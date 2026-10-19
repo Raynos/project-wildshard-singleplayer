@@ -77,7 +77,7 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
     observation: { time: number; delta: number; values: Record<string, number> };
     lane: ReturnType<typeof installChannelPrograms> | null;
   }>();
-  return registerRigidCorpseAnimation(c => {
+  const animate = (c: AnimalRigContext): void => {
     if ((row.alive !== undefined && row.alive !== c.alive)
       || (row.variant !== undefined && Reflect.get(c.animal, 'variant') !== row.variant)) return;
     // Detached observations only: missing old-save memory can supply an authored default without a write.
@@ -129,5 +129,8 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
     rig.lane?.evaluate(rig.observation);
     const body = row.squash === undefined ? undefined : c.bones[row.squash];
     if (body !== undefined) squashBody(body, c.flinch);
-  });
+  };
+  // Fixed corpse collision admits rigid transforms only; legacy squash and scale animation remain unchanged.
+  return row.squash === undefined && row.programs.every(program => program.numeric?.outputs.every(output => output.path[0] !== 'scale') === true)
+    ? registerRigidCorpseAnimation(animate) : animate;
 }

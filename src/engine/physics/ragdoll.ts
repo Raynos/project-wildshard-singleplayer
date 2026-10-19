@@ -365,7 +365,7 @@ export class Ragdoll {
   /** @internal Existing fixed.pre composition owns all opted-in local collider movement. */
   fixedPre(dt: number): void {
     if (this.state !== 'live' || this.corpsePose === undefined) return;
-    if (this.system.physics.disposed) { this.dispose(); return; }
+    if (this.system.physics.disposed || this.parts.some(part => !this.system.physics.world.bodies.contains(part.body.handle))) { this.dispose(); return; }
     try {
       this.corpsePose.step(dt);
       const poses = this.corpseColliders.map(part => rigidCorpseTransform(this.root, part.bone, this.scale));
@@ -380,7 +380,7 @@ export class Ragdoll {
   /** @internal Capture every physics endpoint, including multiple steps in one rendered frame. */
   fixedPost(dt: number): void {
     if (this.state !== 'live' || this.corpsePose === undefined) return;
-    if (this.system.physics.disposed) { this.dispose(); return; }
+    if (this.system.physics.disposed || this.parts.some(part => !this.system.physics.world.bodies.contains(part.body.handle))) { this.dispose(); return; }
     this.age += dt; let fastest = 0, asleep = true;
     for (const part of this.parts) {
       const b = part.body, p = b.translation(), q = b.rotation();

@@ -1,8 +1,10 @@
 import { expect, test } from 'vitest';
 import { Bone, Vector3 } from 'three';
-import { RigidCorpsePose, registerRigidCorpseAnimation } from '../src/engine/entities/rigidCorpsePose';
+import { RigidCorpsePose, registerRigidCorpseAnimation, supportsRigidCorpseAnimation } from '../src/engine/entities/rigidCorpsePose';
 import type { AnimalRigContext } from '../src/engine/entities/animalRig';
 import { worldTime } from '../src/engine/core/time';
+import { numericCreaturePose } from '../src/game/plugin/channelPrograms';
+import { bellbackTuckedClips } from '../src/shards/driftwood-isle/generators/bellbackTuckedClips';
 
 function fixture() {
   const body = new Bone(), mem = { value: 3 }, position = new Vector3();
@@ -43,4 +45,15 @@ test('rejects arbitrary callbacks and rolls back unsafe scale writes', () => {
   const f = fixture(); expect(() => new RigidCorpsePose(f.context, () => undefined)).toThrow('admitted');
   const pose = new RigidCorpsePose(f.context, registerRigidCorpseAnimation(() => { f.body.scale.y = 2; f.body.position.y = 200; }));
   expect(() => pose.step(1 / 60)).toThrow('Unsafe'); expect(f.body.position.y).toBe(0); expect(f.body.scale.y).toBe(1);
+});
+
+
+test('numeric compiler marks only rigid-transform programs eligible for fixed corpse ownership', () => {
+  const row = bellbackTuckedClips();
+  expect(supportsRigidCorpseAnimation(numericCreaturePose(row))).toBe(true);
+  expect(supportsRigidCorpseAnimation(numericCreaturePose({ ...row, squash: 'body' }))).toBe(false);
+  const programs = structuredClone(row.programs), numeric = programs[0]?.numeric;
+  if (numeric === undefined) throw new Error('Missing numeric fixture');
+  for (const output of numeric.outputs) output.path = ['scale', 'y'];
+  expect(supportsRigidCorpseAnimation(numericCreaturePose({ ...row, programs }))).toBe(false);
 });

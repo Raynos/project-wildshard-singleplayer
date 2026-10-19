@@ -345,11 +345,7 @@ export class AnimalFactory {
     setLowPoly(lowPoly);
     const sp = species.build(v, new Rng(hashSeed(key)));
     setLowPoly(false);
-    if (Object.hasOwn(sp.dims, 'rigidCorpse')) {
-      validateRigidCorpse(sp.dims.rigidCorpse);
-      if (species.rig !== 'custom' || sp.dims.capsuleAxis === 'y' || !supportsRigidCorpseAnimation(species.animate)
-        || sp.dims.rigidCorpse.parts.some(part => !sp.bones.some(bone => bone.name === part.bone))) throw new Error('Incompatible rigid corpse model');
-    }
+
     validateCreatureBones(kind, sp.bones.map((bone) => bone.name));
     if (sp.bones[0]?.name !== 'body') throw new Error(`species '${kind}': bones[0] must be 'body'`);
     // the procedural eyes, where an overgrown hull's glowing eyes go
@@ -367,6 +363,11 @@ export class AnimalFactory {
     // A loaded replacement hull already owns the geometry that is drawn. Avoid merging/bounding a procedural
     // stand-in that would immediately be discarded; still release every source part on success or failure.
     try {
+      if (Object.hasOwn(sp.dims, 'rigidCorpse')) {
+        validateRigidCorpse(sp.dims.rigidCorpse);
+        if (species.rig !== 'custom' || sp.dims.capsuleAxis === 'y' || !supportsRigidCorpseAnimation(species.animate)
+          || sp.dims.rigidCorpse.parts.some(part => !sp.bones.some(bone => bone.name === part.bone))) throw new Error('Incompatible rigid corpse model');
+      }
       const look = app.species.look(kind);
       if (look?.material !== undefined) {
         // Nalati: the smooth loft, vertex colours only, no fur texture / shells — and fur, hooves and eyes in ONE group so a

@@ -4,6 +4,9 @@ import { rigidCorpseSchema, copyRigidCorpse } from '../src/format/rigidCorpse';
 import { validateRigidCorpse } from '../src/engine/physics/rigidCorpse';
 import { nativeBodySchema } from '../src/format/nativePhysics';
 import { packedCreatureBodies } from '../src/game/plugin/geometry';
+import { AnimalSim, type AnimalSimSpec } from '../src/engine/entities/AnimalSim';
+import { Vector3 } from 'three';
+import { parseWorldPhysics } from '../src/format/worldPhysics';
 
 const tetra = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]];
 const recipe = () => ({ parts: [{ bone: 'body', points: tetra.map(p => [...p]) }] });
@@ -57,4 +60,52 @@ test('packed metadata deep-copies hulls and rejects unknown bones or upright rec
   expect(a.dims.rigidCorpse?.parts[0]?.points[0]?.[0]).toBe(0);
   expect(() => packedCreatureBodies({ ...row, bodies: [{ ...body, dims: { ...body.dims, capsuleAxis: 'y' } }] })).toThrow('Incompatible');
   expect(() => packedCreatureBodies({ ...row, bodies: [{ ...body, bones: [] }] })).toThrow('Incompatible');
+});
+
+test.each([
+  [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+  [[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0]],
+  [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]],
+])('pure data admission rejects non-volumetric hull %# before native preparation', points => {
+  expect(v.safeParse(rigidCorpseSchema, { parts: [{ bone: 'body', points }] }).success).toBe(false);
+});
+
+
+test('optional corpse recipe leaves living simulation, attack clocks, memory and analytic hit volumes byte-identical', () => {
+  const base: AnimalSimSpec = { kind: 'fixture', label: 'Fixture', variant: 'base', rarity: 'common', hp: 180, aggressive: true,
+    dims: { bodyY: 1, bodyHalfLen: .5, bodyRadius: .3, headRadius: .2, legLen: .5, feet: [], halfWidth: .4 },
+    mods: { speed: 1, chargeDist: 1, damageTaken: 1, chargeDamage: 1, relentless: false } };
+  const ports = { heightAt: () => 0, now: () => 5, random: () => .5 };
+  const a = new AnimalSim(base, 123, 1.5, 'fixture', ports),
+    b = new AnimalSim({ ...base, dims: { ...base.dims, rigidCorpse: v.parse(rigidCorpseSchema, recipe()) } }, 123, 1.5, 'fixture', ports);
+  const beforeStorage = localStorage.length;
+  for (let tick = 0; tick < 180; tick++) {
+    for (const actor of [a, b]) {
+      actor.mem['decision'] = tick % 7;
+      if (tick === 0) { actor.place(2, 4, .6); actor.setMotion(.4, 2, 1); }
+      if (tick === 20) actor.startAttack(.8);
+      if (tick === 45) actor.applyFinalDamage(20, new Vector3(2, 1, 4), new Vector3(1, 0, 0));
+      if (tick === 60) actor.stagger(new Vector3(0, 0, 1), .8);
+      if (tick === 90) actor.setMotion(-.5, 0, 2);
+      if (tick === 110) actor.setMotion(.7, 3, 2);
+      if (tick === 140) actor.applyFinalDamage(1000, new Vector3(2, 1, 4), new Vector3(1, 0, 0));
+      actor.step(1 / 60);
+    }
+    expect(JSON.stringify(b.snapshot())).toBe(JSON.stringify(a.snapshot()));
+    const ar = new Vector3(), af = new Vector3(), br = new Vector3(), bf = new Vector3();
+    a.bodyCapsule(ar, af); b.bodyCapsule(br, bf); expect(br).toEqual(ar); expect(bf).toEqual(af);
+    expect(b.headWorld(new Vector3())).toEqual(a.headWorld(new Vector3()));
+  }
+  expect(localStorage.length).toBe(beforeStorage);
+});
+
+test('native world retains inert corpse geometry without accepting extra fields', () => {
+  const body = { kind: 'fixture', label: 'Fixture', variant: 'base', rarity: 'common', hp: 180, aggressive: true,
+    dims: { bodyY: 1, bodyHalfLen: .5, bodyRadius: .3, headRadius: .2, legLen: .5, feet: [], halfWidth: .4, rigidCorpse: recipe() },
+    mods: { speed: 1, chargeDist: 1, damageTaken: 1, chargeDamage: 1, relentless: false } };
+  const row = { version: 1, rig: 'axis', provenance: 'tagged',
+    ground: { rows: 1, cols: 1, heights: '', friction: .9, groups: 1, scale: { x: 1, y: 1, z: 1 }, at: { x: 0, y: 0, z: 0 } },
+    solids: [], actors: [{ id: 'fixture', kind: 'fixture', variant: 'base', spec: body, seed: 1, scale: 1, herd: 0 }], herds: [] };
+  expect(parseWorldPhysics(row)).toEqual(row);
+  expect(() => parseWorldPhysics({ ...row, actors: [{ ...row.actors[0], spec: { ...body, dims: { ...body.dims, extra: 1 } } }] })).toThrow();
 });

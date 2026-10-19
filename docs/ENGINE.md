@@ -9889,6 +9889,7 @@ existing ragdoll host, not a living body shape. Its strict data shape is
 1–8 unique admitted bone ids, 4–128 finite triples per part, at most 512 total,
 coordinates within ±20. Physics rejects degenerate hulls, unsafe transforms,
 non-unit bone scales, and nonpositive/nonuniform actor scale before allocation.
+The root parent must be identity, matching the existing ragdoll world/local contract.
 Actor scale applies once to points and relative translations. No trimesh,
 per-part mass, shard callback, root lift, geometry sampling or arbitrary key is
 admitted. Convex hulls are prepared once; only local transforms move thereafter.
@@ -9933,3 +9934,33 @@ are unchanged. Full default trace snapshots and complete end-to-end acceptance
 remain outstanding. A whole-tree type check was resource-killed (exit 137),
 not passed; the standalone engine project also requires missing format declaration
 outputs before its complete layer check can be evaluated.
+
+Coverage follow-up (still no product opt-in): 83 focused assertions pass across
+seven suites, including existing packed-body, model-preparation, practice-support
+and demo-entry checks. Native preparation/allocation failure at each of eight
+part indices leaves no body/collider or consumed cap; scope retirement and
+whole-world retirement both tolerate repeated disposal. Nonidentity parent transforms
+reject before allocation only on the optional path. MAX_T freezes an
+unfinished pose without later advancement. A synthetic tetrahedron settles on
+flat and ±0.24-radian native planes within the existing 5 mm penetration / 35 mm
+empty-support study bounds. These are synthetic tests, not product acceptance.
+The native anatomy fixture includes all 13,374 original vertices and eight
+joints, checks 435-point shape publication at all 48 fixed ticks, and compares
+mesh/hull support in eight plane directions at nine observed poses. This does
+not certify intermediate solver contacts or varied lethal-hit snapshots.
+
+The numeric compiler marks only position/rotation programs without squash as
+eligible for this rigid recipe. Unsupported legacy animators retain their old
+behavior when the recipe is absent. Optional model-admission failures use the
+factory's existing geometry-cleanup boundary. Native/world round-trip and a
+180-step paired AnimalSim fixture verify inert geometry preserves serialized
+simulation state, hit volumes, motion/attack/damage clocks, memory and storage.
+
+Review still owes: complete default rigid/upright/full-and-lite quadruped trace
+snapshots; actual bootstrap and practice phase ordering under repeated lifecycle,
+pause/resume and catch-up; post-lethal external event timing versus the captured
+memory snapshot; real original-mesh varied-hit/yaw/scale/terrain contact evidence;
+full gameplay/cooldown/retry/loot/storage cycles; exact-build physics walk and
+phone review. In particular, the initial death snapshot precedes onDamaged in
+AnimalSim. Standard callbacks do not mutate pose memory themselves, but external
+event consumers require a targeted review before enabling any product recipe.

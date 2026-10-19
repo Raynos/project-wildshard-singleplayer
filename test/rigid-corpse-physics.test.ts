@@ -5,6 +5,7 @@ import { Bone, Group, Vector3 } from 'three';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { prepareRigidCorpse, type RigidCorpseRecipe } from '../src/engine/physics/rigidCorpse';
 import { Physics } from '../src/engine/physics/Physics';
+import { Scope } from '../src/engine/app/scope';
 import { Ragdolls, setRagdollClock, type RagdollSpec } from '../src/engine/physics/ragdoll';
 import { groups } from '../src/engine/physics/groups';
 import * as v from 'valibot';
@@ -102,7 +103,8 @@ test('whole-world teardown before corpse retirement never dereferences freed han
 });
 
 test('deterministic native 8-part/435-point fixture follows the actual numeric collapse on one body', () => {
-  const native = v.parse(v.object({ bones: v.array(v.strictObject({ name: v.string(), parent: v.nullable(v.string()), pos: v.tuple([v.number(), v.number(), v.number()]) })) }),
+  const native = v.parse(v.object({ bones: v.array(v.strictObject({ name: v.string(), parent: v.nullable(v.string()), pos: v.tuple([v.number(), v.number(), v.number()]) })),
+    parts: v.array(v.object({ name: v.string(), positions: v.array(v.number()) })) }),
     JSON.parse(readFileSync('art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/bellback-v6-native.json', 'utf8')));
   const proposed = v.parse(v.object({ rigidCorpse: rigidCorpseSchema }), JSON.parse(readFileSync('docs/reviews/bellback-corpse-shape-study/posed-parts-proposal.json', 'utf8'))).rigidCorpse;
   const root = new Group(), bones: Record<string, Bone> = {};
@@ -125,6 +127,7 @@ test('deterministic native 8-part/435-point fixture follows the actual numeric c
   try {
     const r = system.spawn({ ...base, root, bones, dims: { ...base.dims, rigidCorpse: proposed }, corpsePose: pose });
     const body = physics.world.getRigidBody(0);
+    expect(native.parts.reduce((n, p) => n + p.positions.length / 3, 0)).toBe(13374);
     expect(proposed.parts.reduce((n, p) => n + p.points.length, 0)).toBe(435); expect(body.numColliders()).toBe(8); expect(r?.bodies).toBe(1);
     for (let tick = 0; tick < 48; tick++) {
       system.fixedPre(1 / 60);
@@ -136,7 +139,116 @@ test('deterministic native 8-part/435-point fixture follows the actual numeric c
         expect(actual?.x).toBeCloseTo(expected.x, 5); expect(actual?.y).toBeCloseTo(expected.y, 5); expect(actual?.z).toBeCloseTo(expected.z, 5);
       }
       physics.step(); system.fixedPost(1 / 60); r?.pose(1 / 6);
+      if (tick % 6 === 0 || tick === 47) {
+        root.updateMatrixWorld(true);
+        const directions = [new Vector3(1, 0, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 1), new Vector3(1, 1, 1).normalize()];
+        for (const direction of directions) {
+          let meshMin = Infinity, meshMax = -Infinity, hullMin = Infinity, hullMax = -Infinity;
+          for (const part of native.parts) {
+            const bone = bones[part.name], rest = native.bones.find(b => b.name === part.name);
+            if (bone === undefined || rest === undefined) throw new Error('Missing native rigid part');
+            for (let vertex = 0; vertex < part.positions.length; vertex += 3) {
+              const point = new Vector3().fromArray(part.positions, vertex).sub(new Vector3(...rest.pos)).applyMatrix4(bone.matrixWorld);
+              const support = point.dot(direction); meshMin = Math.min(meshMin, support); meshMax = Math.max(meshMax, support);
+            }
+          }
+          for (const part of proposed.parts) {
+            const bone = bones[part.bone]; if (bone === undefined) throw new Error('Missing proposed part');
+            for (const point of part.points) {
+              const support = new Vector3(...point).applyMatrix4(bone.matrixWorld).dot(direction);
+              hullMin = Math.min(hullMin, support); hullMax = Math.max(hullMax, support);
+            }
+          }
+          expect(hullMin).toBeCloseTo(meshMin, 6); expect(hullMax).toBeCloseTo(meshMax, 6);
+        }
+      }
     }
     expect(pose.complete).toBe(true); r?.dispose(); expect(system.live).toBe(0); expect(physics.world.colliders.len()).toBe(0);
+  } finally { physics.dispose(); }
+});
+
+test.each([0, 1, 2, 3, 4, 5, 6, 7])('part allocation failure at index %s releases the entire root and permits retry', index => {
+  const physics = new Physics(R), system = new Ragdolls(physics, 1), source = spec(), bones: Record<string, Bone> = {};
+  const points = recipe.parts[0]?.points; if (points === undefined) throw new Error('Missing tetrahedron');
+  const parts = Array.from({ length: 8 }, (_, i) => {
+    const name = `part${i}`, bone = new Bone(); source.root.add(bone); bones[name] = bone; return { bone: name, points };
+  });
+  const input = { ...source, bones, dims: { ...source.dims, rigidCorpse: { parts } } }, create = physics.world.createCollider.bind(physics.world);
+  let attempt = 0;
+  try {
+    physics.world.createCollider = (...args) => { if (attempt++ === index) throw new Error('injected part failure'); return create(...args); };
+    expect(() => system.spawn(input)).toThrow('injected'); expect(system.live).toBe(0);
+    expect(physics.world.bodies.len()).toBe(0); expect(physics.world.colliders.len()).toBe(0);
+    physics.world.createCollider = create;
+    const next = system.spawn(input); expect(next?.bodies).toBe(1); expect(physics.world.colliders.len()).toBe(8); next?.dispose();
+    expect(system.live).toBe(0); expect(physics.world.colliders.len()).toBe(0);
+  } finally { physics.dispose(); }
+});
+test.each([0, 1, 2, 3, 4, 5, 6, 7])('invalid preparation part %s allocates nothing', index => {
+  const physics = new Physics(R), system = new Ragdolls(physics), source = spec(), bones: Record<string, Bone> = {};
+  const points = recipe.parts[0]?.points; if (points === undefined) throw new Error('Missing tetrahedron');
+  const parts = Array.from({ length: 8 }, (_, i) => {
+    const name = `part${i}`, bone = new Bone(); source.root.add(bone); bones[name] = bone;
+    return { bone: i === index ? 'absent' : name, points };
+  });
+  try {
+    expect(() => system.spawn({ ...source, bones, dims: { ...source.dims, rigidCorpse: { parts } } })).toThrow('Missing');
+    expect(system.live).toBe(0); expect(physics.world.bodies.len()).toBe(0); expect(physics.world.colliders.len()).toBe(0);
+  } finally { physics.dispose(); }
+});
+
+test.each([0, .24, -.24])('synthetic convex corpse settles on native plane inclination %s without changing world-only masks', angle => {
+  const physics = new Physics(R), system = new Ragdolls(physics), source = spec();
+  try {
+    const normal = new Vector3(-Math.sin(angle), Math.cos(angle), 0);
+    physics.world.createCollider(R.ColliderDesc.cuboid(20, .5, 20)
+      .setRotation({ x: 0, y: 0, z: Math.sin(angle / 2), w: Math.cos(angle / 2) })
+      .setTranslation(-normal.x * .5, -normal.y * .5, 0).setCollisionGroups(groups('WORLD')).setSolverGroups(groups('WORLD')));
+    source.root.position.y = 3;
+    const r = system.spawn(source); if (r === null) throw new Error('Missing corpse');
+    for (let i = 0; i < 301 && r.state === 'live'; i++) { system.fixedPre(1 / 60); physics.step(); system.fixedPost(1 / 60); r.pose(1 / 60); }
+    expect(r.state).toBe('frozen'); expect(system.live).toBe(0);
+    const bone = source.bones['body'], part = recipe.parts[0]; if (bone === undefined || part === undefined) throw new Error('Missing tetrahedron');
+    source.root.updateMatrixWorld(true);
+    const minimum = Math.min(...part.points.map(p => new Vector3(...p).applyMatrix4(bone.matrixWorld).dot(normal)));
+    expect(minimum).toBeGreaterThan(-.005); expect(minimum).toBeLessThan(.035);
+    expect(physics.world.colliders.len()).toBe(1); r.dispose();
+  } finally { physics.dispose(); }
+});
+
+
+test('scope retirement removes active compound ownership before the next fixed publication', () => {
+  const scope = new Scope('corpse-owner'), physics = new Physics(R, undefined, scope), system = new Ragdolls(physics);
+  try {
+    const corpse = system.spawn(spec()); expect(system.live).toBe(1);
+    scope.dispose(); expect(physics.world.bodies.len()).toBe(0); expect(physics.world.colliders.len()).toBe(0);
+    expect(() => { system.fixedPre(1 / 60); system.fixedPost(1 / 60); corpse?.dispose(); }).not.toThrow();
+    expect(system.live).toBe(0); expect(corpse?.state).toBe('gone');
+  } finally { scope.dispose(); physics.dispose(); }
+});
+
+test('MAX_T freezes incomplete pose endpoints together and releases the cap exactly once', () => {
+  const physics = new Physics(R), system = new Ragdolls(physics); let ticks = 0;
+  try {
+    const r = system.spawn({ ...spec(), corpsePose: { complete: false, step: () => { ticks++; }, render: () => undefined } });
+    for (let i = 0; i < 310; i++) { system.fixedPre(1 / 60); physics.step(); system.fixedPost(1 / 60); }
+    expect(r?.state).toBe('frozen'); expect(ticks).toBeLessThanOrEqual(301); expect(system.live).toBe(0);
+    const stopped = ticks; system.fixedPre(1); r?.pose(1); r?.dispose(); r?.dispose(); expect(ticks).toBe(stopped); expect(system.live).toBe(0);
+  } finally { physics.dispose(); }
+});
+
+
+test.each(['translation', 'rotation', 'scale'])('opt-in refuses parent %s before allocation while default admission remains unchanged', change => {
+  const physics = new Physics(R), system = new Ragdolls(physics), source = spec(), parent = new Group();
+  parent.add(source.root);
+  if (change === 'translation') parent.position.x = 1;
+  if (change === 'rotation') parent.rotation.y = .3;
+  if (change === 'scale') parent.scale.setScalar(2);
+  try {
+    expect(() => system.spawn(source)).toThrow('identity parent');
+    expect(system.live).toBe(0); expect(physics.world.bodies.len()).toBe(0); expect(physics.world.colliders.len()).toBe(0);
+    const defaultSource = spec(1, false); parent.add(defaultSource.root);
+    const legacy = system.spawn(defaultSource); expect(legacy?.bodies).toBe(1); legacy?.dispose();
+    expect(system.live).toBe(0); expect(physics.world.bodies.len()).toBe(0);
   } finally { physics.dispose(); }
 });

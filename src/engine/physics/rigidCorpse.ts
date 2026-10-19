@@ -36,6 +36,8 @@ export function rigidCorpseTransform(root: Object3D, bone: Bone, scale: number):
     node = node.parent;
   }
   root.updateWorldMatrix(true, true);
+  if (root.parent?.matrixWorld.elements.some((value, i) => !Number.isFinite(value)
+    || Math.abs(value - (i % 5 === 0 ? 1 : 0)) > 1e-7) === true) throw new Error('Rigid corpse requires an identity parent');
   const worldScale = new Vector3(), worldPosition = new Vector3(), worldRotation = new Quaternion();
   root.matrixWorld.decompose(worldPosition, worldRotation, worldScale);
   if (root.matrixWorld.elements.some(n => !Number.isFinite(n)) || [worldScale.x, worldScale.y, worldScale.z].some(n => Math.abs(n - scale) > 1e-6)) throw new Error('Unsafe rigid corpse root transform');
