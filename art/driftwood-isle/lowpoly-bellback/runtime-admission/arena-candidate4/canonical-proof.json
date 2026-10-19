@@ -1,0 +1,104 @@
+{
+  "schema": "wildshard.bellback.runtimecandidate4.canonical-proof.v1",
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "vertices": 13374,
+  "bones": 8,
+  "hullPoints": 435,
+  "compressedPayload": {
+    "sha256": "b97a9df5437062aa2eb490340663c2b35ecf22ba83c83b834082d8ffe7ae7e9c",
+    "bytes": 38768
+  },
+  "decodedBytes": 695448,
+  "rows": [
+    {
+      "bone": "body",
+      "vertices": 5004,
+      "hullPoints": 86,
+      "maxHalfspaceViolation": 8.881784197001252e-16,
+      "maxFacetSupportGap": 0.0,
+      "hullVolume": 9.487415319109273,
+      "allHullPointsExactOriginalVertices": true,
+      "everyCanonicalHullVertexRetained": true,
+      "singleBoneUnitWeights": true
+    },
+    {
+      "bone": "head",
+      "vertices": 1314,
+      "hullPoints": 49,
+      "maxHalfspaceViolation": 2.220446049250313e-16,
+      "maxFacetSupportGap": 0.0,
+      "hullVolume": 2.040580024705164,
+      "allHullPointsExactOriginalVertices": true,
+      "everyCanonicalHullVertexRetained": true,
+      "singleBoneUnitWeights": true
+    },
+    {
+      "bone": "bell",
+      "vertices": 1728,
+      "hullPoints": 86,
+      "maxHalfspaceViolation": 2.220446049250313e-16,
+      "maxFacetSupportGap": 0.0,
+      "hullVolume": 2.3524654732821833,
+      "allHullPointsExactOriginalVertices": true,
+      "everyCanonicalHullVertexRetained": true,
+      "singleBoneUnitWeights": true
+    },
+    {
+      "bone": "clapper",
+      "vertices": 240,
+      "hullPoints": 29,
+      "maxHalfspaceViolation": 2.636779683484747e-16,
+      "maxFacetSupportGap": 0.0,
+      "hullVolume": 0.14103559970873972,
+      "allHullPointsExactOriginalVertices": true,
+      "everyCanonicalHullVertexRetained": true,
+      "singleBoneUnitWeights": true
+    },
+    {
+      "bone": "leg0",
+      "vertices": 1272,
+      "hullPoints": 43,
+      "maxHalfspaceViolation": 2.220446049250313e-16,
+      "maxFacetSupportGap": 0.0,
+      "hullVolume": 0.9902596624700882,
+      "allHullPointsExactOriginalVertices": true,
+      "everyCanonicalHullVertexRetained": true,
+      "singleBoneUnitWeights": true
+    },
+    {
+      "bone": "leg1",
+      "vertices": 1272,
+      "hullPoints": 42,
+      "maxHalfspaceViolation": 2.220446049250313e-16,
+      "maxFacetSupportGap": 0.0,
+      "hullVolume": 0.9892131425372352,
+      "allHullPointsExactOriginalVertices": true,
+      "everyCanonicalHullVertexRetained": true,
+      "singleBoneUnitWeights": true
+    },
+    {
+      "bone": "leg2",
+      "vertices": 1272,
+      "hullPoints": 50,
+      "maxHalfspaceViolation": 2.220446049250313e-16,
+      "maxFacetSupportGap": 0.0,
+      "hullVolume": 1.0217619134508358,
+      "allHullPointsExactOriginalVertices": true,
+      "everyCanonicalHullVertexRetained": true,
+      "singleBoneUnitWeights": true
+    },
+    {
+      "bone": "leg3",
+      "vertices": 1272,
+      "hullPoints": 50,
+      "maxHalfspaceViolation": 2.220446049250313e-16,
+      "maxFacetSupportGap": 0.0,
+      "hullVolume": 1.033784046013684,
+      "allHullPointsExactOriginalVertices": true,
+      "everyCanonicalHullVertexRetained": true,
+      "singleBoneUnitWeights": true
+    }
+  ],
+  "scope": "Exact canonical packed vertices, exact unit rigid weights, and equal convex hulls prove same-pose support equality under rigid transforms. Does not prove simulation clock, interpolation, dynamic or settled contact, slope stability, phone performance, or visual acceptance."
+}

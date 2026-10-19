@@ -1,0 +1,10 @@
+{
+  "file": "test-run.log",
+  "originalSha256": "dd7d7e007cedddfef5e1ee5d9d95709b95a2890e2bc296d653a86c421ddb61de",
+  "publishedSha256": "a6efee0f7e8b8cda37359b55fdfafbd9bfb226fee495a2293b4cf7124da3f45d",
+  "changes": [
+    "Replace private absolute checkout path with repository placeholder",
+    "Strip trailing whitespace and blank EOF lines"
+  ],
+  "outcomesUnchanged": true
+}

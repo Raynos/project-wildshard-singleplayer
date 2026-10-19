@@ -1,0 +1,24 @@
+{
+  "vitest": {
+    "exitCode": 0,
+    "files": 5,
+    "passed": 128,
+    "durationSeconds": 33.36,
+    "workers": 1,
+    "heapLimitMB": 4096
+  },
+  "typedOxlint": {
+    "exitCode": 0,
+    "diagnostics": "none",
+    "log": "lint-run.log"
+  },
+  "unchangedReproducer": {
+    "exitCode": 0,
+    "checkpoints": 15,
+    "allSampledDeltasExactlyZero": true
+  },
+  "postCheckSourceHashes": {
+    "matched": 33,
+    "changed": []
+  }
+}

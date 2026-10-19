@@ -1,0 +1,327 @@
+{
+  "reviewedTree": "444a3206c20fcd3b1aa61dacd9084a373109c810",
+  "manifestBase": "6f1a7daec2b12572fe4499704ea79e0502daef0e",
+  "manifestSha256": "868b1a8982d553a8ac251a4d3e6bbaa203f51699600cd21725fc807229bce06c",
+  "dateUTC": "2026-10-19",
+  "all14ManifestBytesMatch": true,
+  "files": [
+    {
+      "path": "docs/ENGINE.md",
+      "sha256": "e2f492b2d0613d81410d30c1cb902255abeeed0265dfba4e8409c49666b1dbb5"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-contract-audit/reproduce-stale-death-input.mjs",
+      "sha256": "11bedf28070d55ab3618aa77e3a9cc63116a34ad8fe3163fd939479800364690"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-default-parity/README.md",
+      "sha256": "ca333a8d357b1343421029d57b7da29d40bb687b771dcee8c9c98fcccb97c360"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-default-parity/lint-run.log",
+      "sha256": "ca108d4f0ff4d2813dec47e19c73a3adf140a4b142abaa27e990d11402c84267"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-default-parity/log-whitespace-normalization.json",
+      "sha256": "add5161510dc0fc0861715b6fc3b9be193daa437c31e385eb24493cc92823190"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-default-parity/provenance.json",
+      "sha256": "849d840ccd041aa71a1e88046d9d17982bb9d45e8900ba9fc3fab2c857b70e09"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-default-parity/ragdoll-540a4156.ts.txt",
+      "sha256": "a385a470f0940b26c12d9cc255d78a0690882dfaec5eaad122ab471a21e257e3"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-default-parity/test-run.log",
+      "sha256": "8eec405fa3138e048a4659502c8402e8443a76575def1a13f7d2d85f07be57e5"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-input-order/REVIEW.md",
+      "sha256": "b533838b7bd9fe31f038ecc01fbc65eca86ea69fd99e8dcc4f88393a3b46fe41"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-input-order/fixed-input-results.json",
+      "sha256": "b68ce3a872e1e94333d339b09a77cfbc59a9c7c8dcb14481aee9ec905aeb90b2"
+    },
+    {
+      "path": "src/engine/core/Game.ts",
+      "sha256": "4d0fb78994cdcc6260b07a79033f431fcea8955ee659413e4331c336e564fe59"
+    },
+    {
+      "path": "src/engine/core/bootstrap.ts",
+      "sha256": "18fc3a9bc4c86ccd48c1739f9b245125d69d97fcbed656f125f1af34762799fd"
+    },
+    {
+      "path": "src/engine/entities/AnimalFactory.ts",
+      "sha256": "3150a92ee756e5afb7035751d48cf2d1b63de806e919d16f5f23176df3119f8c"
+    },
+    {
+      "path": "src/engine/entities/AnimalSim.ts",
+      "sha256": "13a7e23fe566753d97879100addd4493357c2617b251fd82148a305c9b871ae7"
+    },
+    {
+      "path": "src/engine/entities/AnimalView.ts",
+      "sha256": "e1fd783f39c14ccd17914ff3205ce69f883d9808bd86ac4e4c6149fb86883453"
+    },
+    {
+      "path": "src/engine/entities/rigidCorpsePose.ts",
+      "sha256": "4334277f9a061f8fa0a19e7d512f12d219d62878d5761dede8716ccbe0fed375"
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "sha256": "be12a0fa8d3005a9ee988a1e9aa845c423cadb92c6df7b4594c8fab6ba33dec9"
+    },
+    {
+      "path": "src/engine/physics/rigidCorpse.ts",
+      "sha256": "73c2e2cab5493babd35191521547fa43b47a610c7aee1d9a35a93ec19347a21a"
+    },
+    {
+      "path": "src/engine/script/decision.ts",
+      "sha256": "664d5e5a92e16e109831385632498b44d13188e744eaec384569e1feeda3e939"
+    },
+    {
+      "path": "src/engine/script/decisionModule.ts",
+      "sha256": "d337bcbf9e0f919fd33cfe622c046a13a5183f6642486f7f86d887bb252b93c3"
+    },
+    {
+      "path": "src/game/plugin/channelPrograms.ts",
+      "sha256": "9a345126cbc74cac7a07eda3286dfe4957891f21b6d1a47ff75dab9f8dc6fc2d"
+    },
+    {
+      "path": "src/game/practice/PracticeCreature.ts",
+      "sha256": "ee97d17f4e90e7a74454055baefa167006122cd2299b5e614d8ce63603906dec"
+    },
+    {
+      "path": "src/game/practiceDemo/startPracticeDemo.ts",
+      "sha256": "5d49997057a3b834453c058f1c5ee8464caa724dc4bbc2fa40d8755ef5a63184"
+    },
+    {
+      "path": "src/game/shardfile/borrowedDecisions.ts",
+      "sha256": "bfe383dcc8c27950e10e84fbe22a91b6bfd54555252357dbb00b8f316bc5f693"
+    },
+    {
+      "path": "src/game/shardfile/decisions.ts",
+      "sha256": "b52feed31f45c3865dddec78949f470207a3bab0ce529bf3da5d429f0e4a2cde"
+    },
+    {
+      "path": "src/shards/driftwood-isle/behaviour/bellback.as",
+      "sha256": "69c546e693e372b29332c0b0b6376ba234d08181eb7596ee3febd9050c680e2a"
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bellbackTuckedClips.ts",
+      "sha256": "c23219a2ee36d6a0fa56d647aec2f2926c37b143a896061e4aa789290ebdfe1d"
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/index.ts",
+      "sha256": "627df3c92be8b45e313588c219790221b137dc38d7f4ecde3b6b9404babdbc45"
+    },
+    {
+      "path": "test/rigid-corpse-clock.test.ts",
+      "sha256": "87c6e6023a7840f84d15c46e6153d6199bb579317e875091f6a9523c47083ad2"
+    },
+    {
+      "path": "test/rigid-corpse-default-parity.test.ts",
+      "sha256": "f6d8e56e0c7a54b2ee168e2507b301a51396a6c3a19e685426cd5066904e087f"
+    },
+    {
+      "path": "test/rigid-corpse-input-order.test.ts",
+      "sha256": "2150e48d115525ec4585b63d2acfcc3d531127698d6f628045c79dda693295ff"
+    },
+    {
+      "path": "test/rigid-corpse-physics.test.ts",
+      "sha256": "1077e0c0c45969e34d9927e1072300629ddc0aa0e1b2c2ccc99d04e9971ef67b"
+    },
+    {
+      "path": "test/rigid-corpse-schema.test.ts",
+      "sha256": "ce2ea5be91e32208c30c06c99fef7515538c8098d5aabcd421b6882513b3917c"
+    }
+  ],
+  "productFixtureFiles": [
+    {
+      "path": "blobs/json/0695cd24b4676a46b78d24545096b4be2401c98c580ffd4e2477f6303c06d510.json",
+      "sha256": "0695cd24b4676a46b78d24545096b4be2401c98c580ffd4e2477f6303c06d510"
+    },
+    {
+      "path": "blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635"
+    },
+    {
+      "path": "blobs/json/50b7de20d03e97122cba4c502a89bb8746423379d44a430dcd1868725ed20907.json",
+      "sha256": "50b7de20d03e97122cba4c502a89bb8746423379d44a430dcd1868725ed20907"
+    },
+    {
+      "path": "blobs/json/a776162d1fb120f8f579842081992a6f9a2520c44eb7e42b21a626422da7d506.json",
+      "sha256": "a776162d1fb120f8f579842081992a6f9a2520c44eb7e42b21a626422da7d506"
+    },
+    {
+      "path": "blobs/wasm/cd1e131532871004bcc96b8bd88ede7f2d3406118f23ac0cef6db4487b026ee1.wasm",
+      "sha256": "cd1e131532871004bcc96b8bd88ede7f2d3406118f23ac0cef6db4487b026ee1"
+    },
+    {
+      "path": "sections/actors/creatures.json",
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84"
+    },
+    {
+      "path": "sections/actors/crowds.json",
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96"
+    },
+    {
+      "path": "sections/actors/moves.json",
+      "sha256": "17c265fb428b10ee2d4b189b082bd893200e5b8777acef7b090f5014bc98756d"
+    },
+    {
+      "path": "sections/actors/spawns.json",
+      "sha256": "a6b47e4d25f413dbca751c50583f96b9d2abc9b396a0bcb066b58859de41769d"
+    },
+    {
+      "path": "sections/actors/species-programs.json",
+      "sha256": "878d631591b481ed0b872399a3faa110adfa9fdfaed87db850d05b72601c451c"
+    },
+    {
+      "path": "sections/actors/species.json",
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7"
+    },
+    {
+      "path": "sections/actors/strikes.json",
+      "sha256": "4cab4060ad3340151016a57406599f328638bdfe9a64b7f6bfe7e015badf18dd"
+    },
+    {
+      "path": "sections/audio/audio.json",
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543"
+    },
+    {
+      "path": "sections/combat/encounters.json",
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca"
+    },
+    {
+      "path": "sections/combat/items.json",
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca"
+    },
+    {
+      "path": "sections/combat/strikes.json",
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c"
+    },
+    {
+      "path": "sections/economy/ledger.json",
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f"
+    },
+    {
+      "path": "sections/economy/loot.json",
+      "sha256": "efa44df09a8a6d28be149372f269b1fb6b719b0869b204dc10f2d8a7a36fa6a7"
+    },
+    {
+      "path": "sections/held/arms.json",
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1"
+    },
+    {
+      "path": "sections/look/look.json",
+      "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6"
+    },
+    {
+      "path": "sections/look/materials.json",
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7"
+    },
+    {
+      "path": "sections/quests/quests.json",
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb"
+    },
+    {
+      "path": "sections/sim/client-scripts.json",
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb"
+    },
+    {
+      "path": "sections/sim/hooks.json",
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10"
+    },
+    {
+      "path": "sections/sim/plumbing.json",
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea"
+    },
+    {
+      "path": "sections/sim/scripts.json",
+      "sha256": "711a1a96298fbbc1c1192e8adfb43a66f97eb73eb7dcb1aeabce482fc06574c5"
+    },
+    {
+      "path": "sections/sim/sim.json",
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0"
+    },
+    {
+      "path": "sections/state/migrations.json",
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c"
+    },
+    {
+      "path": "sections/state/state.json",
+      "sha256": "86cc6e3942d5976324ee7a2006b490991bc665d454880b4328392693a38da6ec"
+    },
+    {
+      "path": "sections/ui/card.json",
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b"
+    },
+    {
+      "path": "sections/ui/compendium.json",
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214"
+    },
+    {
+      "path": "sections/ui/ui.json",
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3"
+    },
+    {
+      "path": "sections/world/collision.json",
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e"
+    },
+    {
+      "path": "sections/world/days.json",
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842"
+    },
+    {
+      "path": "sections/world/edge.json",
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711"
+    },
+    {
+      "path": "sections/world/movers.json",
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b"
+    },
+    {
+      "path": "sections/world/navigation.json",
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5"
+    },
+    {
+      "path": "sections/world/props.json",
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59"
+    },
+    {
+      "path": "sections/world/spawn.json",
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7"
+    },
+    {
+      "path": "sections/world/terrain.json",
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e"
+    },
+    {
+      "path": "sections/world/tiles.json",
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95"
+    },
+    {
+      "path": "sections/world/traversal.json",
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078"
+    },
+    {
+      "path": "sections/world/water.json",
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d"
+    },
+    {
+      "path": "sections/world/weather.json",
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2"
+    },
+    {
+      "path": "shard.json",
+      "sha256": "00c99b7caf5ae1d1719c9b1c09a17e0eb45ba244f8529702b24c91c8165d92dc"
+    },
+    {
+      "path": "validation.json",
+      "sha256": "4806f8ea08c40223a38eef95c85f18a62233dd7f2718c08e31e752d4dfd31f1c"
+    }
+  ]
+}
