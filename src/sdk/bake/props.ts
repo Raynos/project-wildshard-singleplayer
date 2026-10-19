@@ -110,45 +110,6 @@ export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform
     return { x: group.x, z: group.z, geometry: part, vertices: group.vertices, triangles: group.triangles };
   });
 }
-
-/** Reconstruct the original mesh from any ordering of exact subsets. `shape` supplies storage/layout, never vertex values. */
-export function assembleWholeGeometry(shape: BufferGeometry, parts: readonly WholeGeometryPart[]): BufferGeometry {
-  const result = new BufferGeometry(), count = shape.getAttribute('position').count, seen = new Uint8Array(count);
-  const originalIndex = shape.getIndex(), triangleCount = (originalIndex?.count ?? count) / 3, triangles = new Uint8Array(triangleCount);
-  for (const [name, attribute] of Object.entries(shape.attributes)) {
-    if (!(attribute instanceof BufferAttribute)) throw new Error('Whole geometry requires non-interleaved channels');
-    const copy = attribute.clone(); copy.array.fill(0); result.setAttribute(name, copy);
-  }
-  if (originalIndex !== null) { const copy = originalIndex.clone(); copy.array.fill(0); result.setIndex(copy); }
-  for (const part of parts) {
-    for (const [local, vertex] of part.vertices.entries()) {
-      if (!Number.isInteger(vertex) || vertex < 0 || vertex >= count) throw new Error('Whole assembly vertex ordinal outside source');
-      for (const [name, destination] of Object.entries(result.attributes)) {
-        const source = part.geometry.getAttribute(name);
-        if (!(source instanceof BufferAttribute) || !(destination instanceof BufferAttribute) || source.itemSize !== destination.itemSize || source.normalized !== destination.normalized || source.array.constructor !== destination.array.constructor) throw new Error('Whole assembly channel layout mismatch');
-        const values = source.array.subarray(local * source.itemSize, (local + 1) * source.itemSize);
-        if (seen[vertex] === 1) for (const [i, value] of values.entries()) if (!Object.is(value, destination.array[vertex * destination.itemSize + i])) throw new Error('Whole assembly shared vertex differs');
-        destination.array.set(values, vertex * destination.itemSize);
-      }
-      seen[vertex] = 1;
-    }
-    const index = part.geometry.getIndex();
-    for (const [local, triangle] of part.triangles.entries()) {
-      if (!Number.isInteger(triangle) || triangle < 0 || triangle >= triangleCount || triangles[triangle] === 1) throw new Error('Whole assembly duplicate or invalid triangle');
-      for (let corner = 0; corner < 3; corner++) {
-        const vertex = part.vertices[index?.getX(local * 3 + corner) ?? local * 3 + corner];
-        if (vertex === undefined) throw new Error('Whole assembly missing triangle vertex');
-        if (result.index !== null) result.index.setX(triangle * 3 + corner, vertex);
-        else if (vertex !== triangle * 3 + corner) throw new Error('Whole assembly non-indexed triangle mismatch');
-      }
-      triangles[triangle] = 1;
-    }
-  }
-  if (seen.some(value => value === 0) || triangles.some(value => value === 0)) throw new Error('Whole assembly incomplete');
-  result.groups = shape.groups.map(group => ({ ...group })); result.drawRange = { ...shape.drawRange };
-  result.boundingBox = shape.boundingBox?.clone() ?? null; result.boundingSphere = shape.boundingSphere?.clone() ?? null;
-  return result;
-}
 /** Content-addressed GLBs and tile rows, including actual budget numbers and an independent far proxy (none for whole shapes alone). */
 export interface BakedProps {
   props: ShardProps; tiles: Shardfile['tiles']; files: Shardfile['files']; library: string[];

@@ -4466,10 +4466,8 @@ or decimates source attributes. Each GLB node's `wholePartition` extras
 retain its source id, vertex ordinals, triangle ordinals, source vertex and
 index counts and original index width. A trusted client can reconstruct the
 original draw from its tile subsets, retaining its material and draw count.
-`partitionWholeGeometry` and `assembleWholeGeometry` are defined in
-`@wildshard/sdk/bake/props`: assembly takes a storage/layout template,
-checks duplicate triangles and differing shared vertices, then restores
-attributes, index, groups, draw range and bounds. A missing subset refuses.
+`partitionWholeGeometry` is defined in `@wildshard/sdk/bake/props`.
+Runtime reconstruction uses `assembleWholeGeometryViews` below.
 An unreferenced authored vertex travels in the first occupied tile.
 Omitting partition keeps the original whole-shape byte path. Application
 GLB extras are charged bytes and cannot overwrite reserved storage keys.
@@ -4792,13 +4790,6 @@ Absent `item.native` preserves existing item and product bytes.
 
 The public `@wildshard/sdk/compileScript` module is implemented by the Node
 authoring host `sdk/bake/compileScript.ts`; gameplay never loads it.
-
-`@wildshard/sdk/compileScript.bakeScriptModule(sourceFileUrl, assetsDirUrl,
-{ hash, bytes }, options?)` compiles an author-owned AS file with the same
-pinned portable compiler and metering as `compileScript`. It checks the
-exact declared size and SHA-256 before emitting the hash-named file. A
-crossed pin refuses before any directory or output is created. File I/O
-stays in this Node authoring operation; importing it installs no service.
 
 The Sky page fan constructs one `bindMeleeContacts` controller from its
 admitted item rows. Its GUST hook uses the existing mover composition's

@@ -1,22 +1,15 @@
-import { type Material, MeshLambertMaterial, MeshStandardMaterial, NormalBlending, SRGBColorSpace, TangentSpaceNormalMap, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, LinearFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, type Texture, type BufferGeometry } from 'three';
+import { MeshStandardMaterial, type BufferGeometry } from 'three';
 import type { Shardfile } from '../shardfile';
 import { parseKtx2 } from '../assets';
 import { hashImmutableBytes } from '../immutable';
 import type { WorldMaterial, WorldTexture } from './world';
 import type { GlbPrimitive } from './glb';
 
-/** Actual static surface factors copied while the authored material is alive. The owner selects the named look recipe. */
-export interface CapturedStaticMaterial extends WorldMaterial { vertexColours: boolean; faceted: boolean }
-/** Original full bitmap/atlas identity and extent, captured by its real producer. */
-export interface StaticImageSource { id: string; width: number; height: number }
-/** Name a real source bitmap/atlas before its producer retires. This port never reads dummy bake-canvas pixels. */
-export type StaticTextureIdentity = (texture: Texture, slot: keyof WorldMaterial['maps']) => StaticImageSource;
 const slots = ['colour', 'normal', 'metallicRoughness', 'occlusion', 'emissive'] as const;
-type Slot = typeof slots[number];
 type Bindings = NonNullable<Shardfile['props']>['materials'];
 type BoundMaterial = NonNullable<Bindings>[string];
 const nameOk = (name: string): boolean => name.length > 0 && name.length <= 128 && name.trim() === name && !/\p{Cc}/u.test(name) && !['__proto__', 'prototype', 'constructor'].includes(name);
-const colourSlot = (slot: Slot): boolean => slot === 'colour' || slot === 'emissive';
+const colourSlot = (slot: typeof slots[number]): boolean => slot === 'colour' || slot === 'emissive';
 function wrap(value: number): NonNullable<BoundMaterial['colour']>['wrapS'] {
   if (value === 33071 || value === 33648 || value === 10497) return value;
   throw new Error('Unsupported static texture wrap');
@@ -29,52 +22,10 @@ function magFilter(value: number | null): NonNullable<BoundMaterial['colour']>['
   if (value === null || value === 9728 || value === 9729) return value;
   throw new Error('Unsupported static texture magnification');
 }
-function gltfSampler(value: number): number {
-  const enums = new Map<number, number>([[RepeatWrapping, 10497], [ClampToEdgeWrapping, 33071], [MirroredRepeatWrapping, 33648],
-    [NearestFilter, 9728], [LinearFilter, 9729], [NearestMipmapNearestFilter, 9984], [LinearMipmapNearestFilter, 9985], [NearestMipmapLinearFilter, 9986], [LinearMipmapLinearFilter, 9987]]);
-  const converted = enums.get(value); if (converted === undefined) throw new Error('Unsupported authored Three sampler'); return converted;
-}
 function checkSource(row: WorldMaterial): void {
   if (!nameOk(row.name) || !/^[a-z][a-z0-9.-]{0,127}$/u.test(row.id) || row.colour.length !== 4 || row.emissive.length !== 3
     || ![...row.colour, ...row.emissive, row.roughness, row.metalness, row.alphaCutoff, row.occlusion].every(value => Number.isFinite(value) && value >= 0 && value <= 1)
     || !Number.isFinite(row.normalScale) || row.normalScale < 0 || row.normalScale > 4 || !['OPAQUE', 'MASK', 'BLEND'].includes(row.alpha)) throw new Error('Static material factors require an explicit bounded adapter');
-}
-
-/** Snapshot Lambert/PBR source factors and all supported slots without inferring a family from a Three class.
- * Stable name and look ID are explicit, including for unnamed generated meshes. Shader recipes remain shard-owned data.
- * UV transforms, independent alpha maps and unsupported lighting maps refuse; nothing is silently flattened. */
-export function captureStaticMaterial(source: Material, assignment: { name: string; id: string }, image: StaticTextureIdentity): CapturedStaticMaterial {
-  if (Reflect.get(source, 'isMeshPhysicalMaterial') === true) throw new Error('Physical extension layers require an explicit static adapter');
-  if (!(source instanceof MeshLambertMaterial || source instanceof MeshStandardMaterial)) throw new Error('Static capture requires an explicit Lambert/PBR surface adapter');
-  if (!nameOk(assignment.name) || !/^[a-z][a-z0-9.-]{0,127}$/u.test(assignment.id)) throw new Error('Static material requires a stable name and explicit look ID');
-  if (source.side === 1 || source.blending !== NormalBlending || !source.depthWrite || !source.depthTest || source.polygonOffset || !source.colorWrite || source.wireframe || source.stencilWrite || source.premultipliedAlpha || source.alphaHash || !source.fog) throw new Error('Unsupported static material render state');
-  for (const key of ['alphaMap', 'bumpMap', 'lightMap', 'displacementMap', 'specularMap', 'envMap']) {
-    const value: unknown = Reflect.get(source, key); if (value !== null && value !== undefined) throw new Error(`Static material ${assignment.name}: unsupported ${key}`);
-  }
-  if (source.transparent && source.alphaTest > 0) throw new Error('Combined blend/mask requires an explicit static adapter');
-  const standard = source instanceof MeshStandardMaterial ? source : null;
-  if (source.normalMap !== null && source.normalMapType !== TangentSpaceNormalMap) throw new Error('Static normal maps require tangent-space vectors');
-  if (standard !== null && (standard.roughnessMap !== standard.metalnessMap)) throw new Error('Static material requires one combined metallic-roughness map and scalar normal scale');
-  if (source.normalScale.x !== source.normalScale.y) throw new Error('Static material requires scalar normal scale');
-  const use = (texture: Texture | null, slot: Slot): WorldTexture | null => {
-    if (texture === null) return null;
-    if (texture.channel !== 0 || texture.offset.x !== 0 || texture.offset.y !== 0 || texture.repeat.x !== 1 || texture.repeat.y !== 1 || texture.rotation !== 0 || texture.center.x !== 0 || texture.center.y !== 0) throw new Error('Static material texture requires original UV0 with identity transform');
-    if (texture.premultiplyAlpha || !texture.matrixAutoUpdate) throw new Error('Static texture requires an explicit premultiply/matrix adapter');
-    if (!colourSlot(slot) && texture.colorSpace === SRGBColorSpace) throw new Error('Static data texture must use linear transfer');
-    if (colourSlot(slot) && texture.colorSpace !== SRGBColorSpace) throw new Error('Static colour atlas needs an explicit sRGB source adapter');
-    const original = image(texture, slot);
-    if (original.id.length === 0 || original.id.length > 2048 || ![original.width, original.height].every(value => Number.isInteger(value) && value >= 1 && value <= 4096)) throw new Error('Missing bounded original static texture/atlas identity');
-    return { image: original.id, width: original.width, height: original.height, wrapS: wrap(gltfSampler(texture.wrapS)), wrapT: wrap(gltfSampler(texture.wrapT)), minFilter: minFilter(gltfSampler(texture.minFilter)), magFilter: magFilter(gltfSampler(texture.magFilter)), flipY: texture.flipY, anisotropy: texture.anisotropy };
-  };
-  const row: CapturedStaticMaterial = {
-    ...assignment, colour: [...source.color, source.opacity], metalness: standard?.metalness ?? 0, roughness: standard?.roughness ?? 1,
-    emissive: source.emissive.toArray().map(value => value * source.emissiveIntensity), alpha: source.transparent ? 'BLEND' : source.alphaTest > 0 ? 'MASK' : 'OPAQUE',
-    alphaCutoff: source.alphaTest, doubleSided: source.side === 2, normalScale: source.normalScale.x, occlusion: source.aoMapIntensity,
-    vertexColours: source.vertexColors, faceted: source.flatShading,
-    maps: { colour: use(source.map, 'colour'), normal: use(source.normalMap, 'normal'), metallicRoughness: use(standard?.roughnessMap ?? null, 'metallicRoughness'), occlusion: use(source.aoMap, 'occlusion'), emissive: use(source.emissiveMap, 'emissive') },
-  };
-  checkSource(row);
-  return row;
 }
 
 /** Return complete mipmapped KTX2 pixels for this exact original image, orientation and colour/data role.
