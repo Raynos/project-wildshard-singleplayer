@@ -1,0 +1,228 @@
+{
+  "status": "frozen unaccepted source for independent review",
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/README.md",
+      "bytes": 5509,
+      "sha256": "325ef8c17f1fbe42a8988d1b7a13113153a2678c90a3bdd0af011460153793aa"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/audit_normals.py",
+      "bytes": 1600,
+      "sha256": "57b49099b49f30c94a55b29e6934d28ce37fe81fde07c4112ef4ba5268b733f3"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/back.webp",
+      "bytes": 15342,
+      "sha256": "31373a364945b72cc123f88c8d92cb96820ab4d58d5378337615cce1b77180df"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/bloomthroat-iguana-complete-next.glb",
+      "bytes": 793660,
+      "sha256": "8f9337f5675a2692b01e097db4b5df813699bc21e9e403c88b441ed516472d43"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/build_iguana.py",
+      "bytes": 16531,
+      "sha256": "ede883698fc58f0c09f1691095cfb5f634b981707a2b8d36edabc5c716e51e79"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/cameras.json",
+      "bytes": 1422,
+      "sha256": "6e665cb59f84b932fbd604ef0c1808e806aec3e0717dcc8ce831df6cedc04f93"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/capture-provenance.json",
+      "bytes": 1772,
+      "sha256": "9b0ea5fdef45e78731d0f78165a8d2cb199e443ad836d757639ad2c711332a3b"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/construction.json",
+      "bytes": 23330,
+      "sha256": "112b92d713721ac3362f96ce2257109b59b7efdfbfdd38a56d3c207e653d16c2"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/elevated-back.webp",
+      "bytes": 26758,
+      "sha256": "0c246cdca78242abddd5e159fde2e75df0f7a2f532014aec2783b4eae706c780"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/elevated-front.webp",
+      "bytes": 29670,
+      "sha256": "2177df9390ad6a73204f33aaf5f2c5c4f998fe2db704068f743a45119924c67c"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/elevated-left.webp",
+      "bytes": 35874,
+      "sha256": "1c2cb1dfac8e9b5453ad731a74f5048f3550254cdb902cb610c978b7c8134a96"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/elevated-right.webp",
+      "bytes": 31468,
+      "sha256": "c7adb4e0de71b792e4fdb4c40900261442b1819d70e7abdf0ead899efae5d685"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/explorer-paired-nine-board.webp",
+      "bytes": 123094,
+      "sha256": "21744fd3820d66c1eb578293ccd7f72556378385f9b431e0129d933cacf53864"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/finalize_evidence.py",
+      "bytes": 3390,
+      "sha256": "89280cfb0d86443125387a65924cb76b49b2bccb7109ff51a9afe1de2f2eae08"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/front.webp",
+      "bytes": 16874,
+      "sha256": "ac1e8d4da320340c9f73e2beec0d31228502edaf084c697cb18ccbe83fd8ebbc"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/glb-equivalence.json",
+      "bytes": 263,
+      "sha256": "a9db2174b871ed0d646736afea3bcbef284aa8b185cb781956f76b719f83c509"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/hero.webp",
+      "bytes": 25472,
+      "sha256": "531ac3bc7e7f5dbb1c7c596c00da07fc7935be2dc44d21cb38f7e8c67ff284d6"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/left.webp",
+      "bytes": 19332,
+      "sha256": "59459dc5aa4b1b7a44791becf1c450d6a8d6fc236765797fc89b8081180ba197"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/make_review.py",
+      "bytes": 3217,
+      "sha256": "d565595e8ee6af15a656c05b4da618a2e36d92861bb13f6c93b9e1eff59ed3b0"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/metadata.json",
+      "bytes": 20429,
+      "sha256": "b1dfd298135f609f01ad8195c242617073f0d184b79be6636bc1a0c961111b14"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/native-source.json",
+      "bytes": 1557251,
+      "sha256": "3a8c1d134385720d2d77051c8a5aac138a25773cd01771ee6eedc304f5673171"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/native.test.ts",
+      "bytes": 7389,
+      "sha256": "8bc2df9a0e39e582319fc88b0e3f22fec17ff05a67fb9514c5c9a074dfb4abb6"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/normals-audit.json",
+      "bytes": 178,
+      "sha256": "9b760d73ff7f17727e0d3ddcf034df5410979a646736b5b7e65e2f2fb9327907"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/paired-hero-board.webp",
+      "bytes": 41510,
+      "sha256": "9ac1e69094a10ac6781ad9104e128ab1812e868da1abd7731139e2bfa25baf5e"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/payload.bin",
+      "bytes": 36681,
+      "sha256": "6f53f402e8574c985f87b95fe80bd5b98a445a2e221688686f1b1714ec17e219"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/right.webp",
+      "bytes": 20626,
+      "sha256": "2f24e34e9ac8da592fee4a0980781f5d850db2f46e26fb37e08dc85355737b89"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/surface-audit.json",
+      "bytes": 28336,
+      "sha256": "ed7e5630bb12e4483af881a71adee74ce610fccb6f13e7640f5f25d9a5d2ace6"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/top.webp",
+      "bytes": 31284,
+      "sha256": "626fc3cdd09728da3fdd03807ccf919d25687bc6f9eb166560f6c8acf63d5455"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/v3-paired-hero-board.webp",
+      "bytes": 38146,
+      "sha256": "d3705bd02f30b25d9f531354c74197727e0d7d2d882e4bc1f3f00294d5c5e6cf"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/v3-paired-nine-board.webp",
+      "bytes": 64968,
+      "sha256": "767f8508ab6eeac7815dcef62e6df95b0833c2aa5399a8b42e34b3a02414559a"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/vitest.config.ts",
+      "bytes": 240,
+      "sha256": "7dee835b1b104723d0f6574507f86f54977d55ee5cab37b96b3b563deae6f3ca"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/weighted-pose-contact.json",
+      "bytes": 2309,
+      "sha256": "b383d5932a288b2315df7c579a4d6704e6f6ac5563185ac551430a795a80b479"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next/world-paired-nine-board.webp",
+      "bytes": 146444,
+      "sha256": "855396120141c9f67e3410bd79491edecb86bc229392b0d6d966593d33e744fd"
+    }
+  ],
+  "binaryBytes": 1497203,
+  "referenceAndDependencyPins": [
+    {
+      "name": "bloomthroat-iguana-hero.png",
+      "sha256": "11d3253bc8c57660e7f3a034957376af91638b9ff7b9673da861b78fb51dd9d4"
+    },
+    {
+      "name": "iguanaWorldGen.png",
+      "sha256": "16efec40da515672a1755ac942aebe1d35aab57ecfc3e161425400f70953c695"
+    },
+    {
+      "name": "iguanaExplorerGen.png",
+      "sha256": "91745cf6c99876dca8d7091fa50df1c843edc78ac90701e6a05b33a37abf6426"
+    },
+    {
+      "name": "iguanaClips.ts",
+      "sha256": "968fd63e37df19f83d971dd4a41b468a4b864f88c542a57d9d2cb76f61a5a66b"
+    },
+    {
+      "name": "audit_glb.py",
+      "sha256": "7bea1f37e188931423b630e59660c28c6e5dca201a8f129e881c38ecc9614a8c"
+    },
+    {
+      "name": "audit_surface.py",
+      "sha256": "8c7815593f6310d06916c722968f271d80a2f4f79e0e5e1deb3bddfbb28dfeaa"
+    },
+    {
+      "name": "native_export.py",
+      "sha256": "210ee9b812655509dcbf869e91db945cc17df40da2ccc07ffdc9d2f292043416"
+    }
+  ],
+  "v3CameraRecordsExactlyEqual": true,
+  "baselineCaptures": {
+    "hero": "17de07620e4246fc23680e3625ecfcffcbbd2c7879eb1f0f70465c0250818aac",
+    "front": "7a5b9979c6f3943d9e45934b0c544fd7bc563bb8581a049740b70c8a5cc8c36d",
+    "left": "ef505c960e26d885b0481552228107498646f6b52e72bb47fa8ac7b78e8af3c0",
+    "right": "dbc713c0cacd88ce3bc24cca19b7c6f8f859ff71b07a1c466564b90a3c5ffc10",
+    "back": "3a5672b7de052be681c50934d33df369e10caaf47e1efe5652dc44be2eae0eb8",
+    "top": "f6b72000064456a56c309aa8c9dd366ec76f114bfffe38478d30eeef861c1e8e",
+    "elevated-front": "f7660a5d5c34cb847421bf34f7fe6a60dd90c57274bdd4d57c69dcc8dd33f0c7",
+    "elevated-left": "ae930c2ffcc2c5456c8bf2656ae7dace28c69b36b2310ef72b564dbd51b16c11",
+    "elevated-right": "0c3c2e1b1d33e1e4efa241b8d42a8da6e191c57076a903d96e48825d12b80417",
+    "elevated-back": "1c26e60f437722622ccb6a257cf1c344d1ccd1e836c6e09be9f015cc6c76fd2f"
+  },
+  "rawFinalCaptures": {
+    "hero": "7255a021c2f96a0844fa54ae104f9a8f608c434bd0278005c2e523947bb41af9",
+    "front": "ebf98c6d45a0bea2b17f65967a2475e2df5da4d4b7a7d38defb7ad8da4b04422",
+    "left": "5cd123f0d9fa3aea9e05ff205cbf6a1442b7c35013e9b51dbd5216f290a0e15f",
+    "right": "e7d33f8a5b369bbab3da05e7babf34db20abd805007a4f98d961db8d4f25709c",
+    "back": "7b51caebd3dea1ed319650dd928565825008640c5263a238d1e6d0ab5e4b543f",
+    "top": "a31cdda2bc829a3e8637e009918f709788884d22d433b959e77e1f00f5133e3e",
+    "elevated-front": "11ca65c3857e7beed1ce790356f6ca5670506a5b772f3fb2d76e50f3557638d2",
+    "elevated-left": "858a9030e7a191d7a090d3b421fef0a7b60ff7f3bbb610f3d057f9db09e653ec",
+    "elevated-right": "9c9730c84d6d0d711dc979592fa041cf300bbb2aae842c529035716922808bf7",
+    "elevated-back": "451664f03002a389785e86bc82a4e9365adfa9ddd9928be6e2b6315ae26e0f28"
+  },
+  "visualAcceptance": false,
+  "runtimeAcceptance": false
+}

@@ -1,0 +1,854 @@
+{
+  "vertices": 11610,
+  "triangles": 3870,
+  "bones": 27,
+  "parts": 16,
+  "components": [
+    {
+      "name": "Continuous low trunk into rising broad shoulder",
+      "triangles": 164,
+      "part": "body",
+      "signedVolume": 1.36605097866656,
+      "minTriangleArea": 0.003081414101200656
+    },
+    {
+      "name": "Sloping attached cervical mantle",
+      "triangles": 92,
+      "part": "neck",
+      "signedVolume": 0.2709944788172531,
+      "minTriangleArea": 0.004501542596099487
+    },
+    {
+      "name": "Broad angular reptile skull",
+      "triangles": 116,
+      "part": "head",
+      "signedVolume": 0.19549152969072253,
+      "minTriangleArea": 0.0024416874932183153
+    },
+    {
+      "name": "Integrated lower angular jaw",
+      "triangles": 76,
+      "part": "jaw",
+      "signedVolume": 0.05211093005103368,
+      "minTriangleArea": 0.0014312764347729115
+    },
+    {
+      "name": "Narrow mouth line L",
+      "triangles": 48,
+      "part": "head",
+      "signedVolume": 0.00012395406277695045,
+      "minTriangleArea": 0.0002507935621885167
+    },
+    {
+      "name": "Eye angular socket L",
+      "triangles": 64,
+      "part": "head",
+      "signedVolume": 0.0033356074903470793,
+      "minTriangleArea": 0.0010905722052961396
+    },
+    {
+      "name": "Large amber eye L",
+      "triangles": 100,
+      "part": "head",
+      "signedVolume": 0.001182394354448963,
+      "minTriangleArea": 0.000259838834992395
+    },
+    {
+      "name": "Vertical pupil L",
+      "triangles": 64,
+      "part": "head",
+      "signedVolume": 6.983242928981778e-05,
+      "minTriangleArea": 5.4847578992550795e-05
+    },
+    {
+      "name": "Catchlight L",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 6.636641046498005e-06,
+      "minTriangleArea": 3.0181818975579432e-05
+    },
+    {
+      "name": "Angular gold supraorbital brow L",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.00024929068361719475,
+      "minTriangleArea": 0.0020205206420385625
+    },
+    {
+      "name": "Nostril L",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 2.5480384162316636e-05,
+      "minTriangleArea": 8.35437610673355e-05
+    },
+    {
+      "name": "Overlapping cheek plate L0",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.00025616128308077673,
+      "minTriangleArea": 0.0022946069271981315
+    },
+    {
+      "name": "Overlapping cheek plate L1",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.0003323860776921115,
+      "minTriangleArea": 0.0029723784268400923
+    },
+    {
+      "name": "Overlapping cheek plate L2",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.0003634096744159857,
+      "minTriangleArea": 0.003228711792825187
+    },
+    {
+      "name": "Overlapping cheek plate L3",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.0004680018561581769,
+      "minTriangleArea": 0.004075767276369721
+    },
+    {
+      "name": "Overlapping cheek plate L4",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.0004841792397201064,
+      "minTriangleArea": 0.0042149161061887
+    },
+    {
+      "name": "Overlapping cheek plate L5",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.00057614144558708,
+      "minTriangleArea": 0.004967549683288513
+    },
+    {
+      "name": "Overlapping cheek plate L6",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.000633752749611933,
+      "minTriangleArea": 0.005460544891513524
+    },
+    {
+      "name": "Shoulder mantle plate L0",
+      "triangles": 12,
+      "part": "neck",
+      "signedVolume": 0.00236364764471849,
+      "minTriangleArea": 0.012684225155191471
+    },
+    {
+      "name": "Shoulder mantle plate L1",
+      "triangles": 12,
+      "part": "neck",
+      "signedVolume": 0.0028880833027263453,
+      "minTriangleArea": 0.015489892731705902
+    },
+    {
+      "name": "Shoulder mantle plate L2",
+      "triangles": 12,
+      "part": "neck",
+      "signedVolume": 0.0026000149858494605,
+      "minTriangleArea": 0.013952346814219592
+    },
+    {
+      "name": "Shoulder mantle plate L3",
+      "triangles": 12,
+      "part": "neck",
+      "signedVolume": 0.0018244395032525073,
+      "minTriangleArea": 0.00981397422795048
+    },
+    {
+      "name": "Narrow mouth line R",
+      "triangles": 48,
+      "part": "head",
+      "signedVolume": 0.00012401823187246827,
+      "minTriangleArea": 0.0002507935621885167
+    },
+    {
+      "name": "Eye angular socket R",
+      "triangles": 64,
+      "part": "head",
+      "signedVolume": 0.003335687322154016,
+      "minTriangleArea": 0.0010905722052961396
+    },
+    {
+      "name": "Large amber eye R",
+      "triangles": 100,
+      "part": "head",
+      "signedVolume": 0.0011823958775494274,
+      "minTriangleArea": 0.000259838834992395
+    },
+    {
+      "name": "Vertical pupil R",
+      "triangles": 64,
+      "part": "head",
+      "signedVolume": 7.004754903997935e-05,
+      "minTriangleArea": 5.484760328290889e-05
+    },
+    {
+      "name": "Catchlight R",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 6.589553474138171e-06,
+      "minTriangleArea": 3.0181636891770847e-05
+    },
+    {
+      "name": "Angular gold supraorbital brow R",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.00024929068361719475,
+      "minTriangleArea": 0.0020205206420385625
+    },
+    {
+      "name": "Nostril R",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 2.5468965759500902e-05,
+      "minTriangleArea": 8.354381870887146e-05
+    },
+    {
+      "name": "Overlapping cheek plate R0",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.00025616128308077673,
+      "minTriangleArea": 0.0022946069271981315
+    },
+    {
+      "name": "Overlapping cheek plate R1",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.0003323860776921115,
+      "minTriangleArea": 0.0029723784268400923
+    },
+    {
+      "name": "Overlapping cheek plate R2",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.0003634096744159857,
+      "minTriangleArea": 0.003228711792825187
+    },
+    {
+      "name": "Overlapping cheek plate R3",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.0004680018561581769,
+      "minTriangleArea": 0.004075767276369721
+    },
+    {
+      "name": "Overlapping cheek plate R4",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.0004841792397201064,
+      "minTriangleArea": 0.0042149161061887
+    },
+    {
+      "name": "Overlapping cheek plate R5",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.00057614144558708,
+      "minTriangleArea": 0.004967549683288513
+    },
+    {
+      "name": "Overlapping cheek plate R6",
+      "triangles": 12,
+      "part": "head",
+      "signedVolume": 0.000633752749611933,
+      "minTriangleArea": 0.005460544891513524
+    },
+    {
+      "name": "Shoulder mantle plate R0",
+      "triangles": 12,
+      "part": "neck",
+      "signedVolume": 0.00236364764471849,
+      "minTriangleArea": 0.012684225155191471
+    },
+    {
+      "name": "Shoulder mantle plate R1",
+      "triangles": 12,
+      "part": "neck",
+      "signedVolume": 0.0028880833027263453,
+      "minTriangleArea": 0.015489892731705902
+    },
+    {
+      "name": "Shoulder mantle plate R2",
+      "triangles": 12,
+      "part": "neck",
+      "signedVolume": 0.0026000149858494605,
+      "minTriangleArea": 0.013952346814219592
+    },
+    {
+      "name": "Shoulder mantle plate R3",
+      "triangles": 12,
+      "part": "neck",
+      "signedVolume": 0.0018244395032525073,
+      "minTriangleArea": 0.00981397422795048
+    },
+    {
+      "name": "legFL broad bent limb",
+      "triangles": 76,
+      "part": "legFL",
+      "signedVolume": 0.14612576452661113,
+      "minTriangleArea": 0.0023602002393929475
+    },
+    {
+      "name": "legFL broad palm",
+      "triangles": 60,
+      "part": "legFL",
+      "signedVolume": 0.023960186551751875,
+      "minTriangleArea": 0.005373069187568404
+    },
+    {
+      "name": "legFL stout toe 0",
+      "triangles": 32,
+      "part": "legFL",
+      "signedVolume": 0.0024516347608975276,
+      "minTriangleArea": 0.0006252675138802486
+    },
+    {
+      "name": "legFL hooked dark talon 0",
+      "triangles": 32,
+      "part": "legFL",
+      "signedVolume": 0.0012482599746969447,
+      "minTriangleArea": 2.771295176689069e-05
+    },
+    {
+      "name": "legFL stout toe 1",
+      "triangles": 32,
+      "part": "legFL",
+      "signedVolume": 0.002288541213298837,
+      "minTriangleArea": 0.000625270344175213
+    },
+    {
+      "name": "legFL hooked dark talon 1",
+      "triangles": 32,
+      "part": "legFL",
+      "signedVolume": 0.0012112270672635828,
+      "minTriangleArea": 2.7712357738918527e-05
+    },
+    {
+      "name": "legFL stout toe 2",
+      "triangles": 32,
+      "part": "legFL",
+      "signedVolume": 0.0022317073598969736,
+      "minTriangleArea": 0.0006252699088006859
+    },
+    {
+      "name": "legFL hooked dark talon 2",
+      "triangles": 32,
+      "part": "legFL",
+      "signedVolume": 0.0011989071789078772,
+      "minTriangleArea": 2.7712799094513963e-05
+    },
+    {
+      "name": "legFL stout toe 3",
+      "triangles": 32,
+      "part": "legFL",
+      "signedVolume": 0.002289332244496716,
+      "minTriangleArea": 0.0006252703420445065
+    },
+    {
+      "name": "legFL hooked dark talon 3",
+      "triangles": 32,
+      "part": "legFL",
+      "signedVolume": 0.0012119970489644998,
+      "minTriangleArea": 2.771278799928693e-05
+    },
+    {
+      "name": "legFL stout toe 4",
+      "triangles": 32,
+      "part": "legFL",
+      "signedVolume": 0.0024530729230415695,
+      "minTriangleArea": 0.0006252706929007575
+    },
+    {
+      "name": "legFL hooked dark talon 4",
+      "triangles": 32,
+      "part": "legFL",
+      "signedVolume": 0.0012497204073345814,
+      "minTriangleArea": 2.771294776073821e-05
+    },
+    {
+      "name": "legFL broad wrist scale 0",
+      "triangles": 12,
+      "part": "legFL",
+      "signedVolume": 0.0005212692873707648,
+      "minTriangleArea": 0.003773472166174627
+    },
+    {
+      "name": "legFL broad wrist scale 1",
+      "triangles": 12,
+      "part": "legFL",
+      "signedVolume": 0.0005212672209988041,
+      "minTriangleArea": 0.0037734734837998026
+    },
+    {
+      "name": "legFL broad wrist scale 2",
+      "triangles": 12,
+      "part": "legFL",
+      "signedVolume": 0.0005212701701869567,
+      "minTriangleArea": 0.003773472166174627
+    },
+    {
+      "name": "legFL broad wrist scale 3",
+      "triangles": 12,
+      "part": "legFL",
+      "signedVolume": 0.0005212693164745963,
+      "minTriangleArea": 0.0037734734837998026
+    },
+    {
+      "name": "legBL broad bent limb",
+      "triangles": 76,
+      "part": "legBL",
+      "signedVolume": 0.13063736465604356,
+      "minTriangleArea": 0.0023602014556422576
+    },
+    {
+      "name": "legBL broad palm",
+      "triangles": 60,
+      "part": "legBL",
+      "signedVolume": 0.023960184422321618,
+      "minTriangleArea": 0.0053730693568375225
+    },
+    {
+      "name": "legBL stout toe 0",
+      "triangles": 32,
+      "part": "legBL",
+      "signedVolume": 0.0024516300554751074,
+      "minTriangleArea": 0.0006252675920065049
+    },
+    {
+      "name": "legBL hooked dark talon 0",
+      "triangles": 32,
+      "part": "legBL",
+      "signedVolume": 0.0012482649504666674,
+      "minTriangleArea": 2.7712885289723024e-05
+    },
+    {
+      "name": "legBL stout toe 1",
+      "triangles": 32,
+      "part": "legBL",
+      "signedVolume": 0.002288535708430573,
+      "minTriangleArea": 0.000625270424431822
+    },
+    {
+      "name": "legBL hooked dark talon 1",
+      "triangles": 32,
+      "part": "legBL",
+      "signedVolume": 0.0012112377414770967,
+      "minTriangleArea": 2.7712451071588794e-05
+    },
+    {
+      "name": "legBL stout toe 2",
+      "triangles": 32,
+      "part": "legBL",
+      "signedVolume": 0.002231700434397984,
+      "minTriangleArea": 0.000625270036643156
+    },
+    {
+      "name": "legBL hooked dark talon 2",
+      "triangles": 32,
+      "part": "legBL",
+      "signedVolume": 0.0011988985859071968,
+      "minTriangleArea": 2.7712866197851613e-05
+    },
+    {
+      "name": "legBL stout toe 3",
+      "triangles": 32,
+      "part": "legBL",
+      "signedVolume": 0.002289323857742905,
+      "minTriangleArea": 0.000625270418039703
+    },
+    {
+      "name": "legBL hooked dark talon 3",
+      "triangles": 32,
+      "part": "legBL",
+      "signedVolume": 0.0012120024150590327,
+      "minTriangleArea": 2.7712889405428007e-05
+    },
+    {
+      "name": "legBL stout toe 4",
+      "triangles": 32,
+      "part": "legBL",
+      "signedVolume": 0.002453070549866728,
+      "minTriangleArea": 0.0006252705224443039
+    },
+    {
+      "name": "legBL hooked dark talon 4",
+      "triangles": 32,
+      "part": "legBL",
+      "signedVolume": 0.001249721310747039,
+      "minTriangleArea": 2.771288303625692e-05
+    },
+    {
+      "name": "legBL broad wrist scale 0",
+      "triangles": 12,
+      "part": "legBL",
+      "signedVolume": 0.0005212685015673433,
+      "minTriangleArea": 0.003773474456601374
+    },
+    {
+      "name": "legBL broad wrist scale 1",
+      "triangles": 12,
+      "part": "legBL",
+      "signedVolume": 0.0005212674538294477,
+      "minTriangleArea": 0.003773473251485429
+    },
+    {
+      "name": "legBL broad wrist scale 2",
+      "triangles": 12,
+      "part": "legBL",
+      "signedVolume": 0.0005212692970720432,
+      "minTriangleArea": 0.003773474456601374
+    },
+    {
+      "name": "legBL broad wrist scale 3",
+      "triangles": 12,
+      "part": "legBL",
+      "signedVolume": 0.000521270208992064,
+      "minTriangleArea": 0.003773473251485429
+    },
+    {
+      "name": "legFR broad bent limb",
+      "triangles": 76,
+      "part": "legFR",
+      "signedVolume": 0.1462287281428871,
+      "minTriangleArea": 0.0023602002393929475
+    },
+    {
+      "name": "legFR broad palm",
+      "triangles": 60,
+      "part": "legFR",
+      "signedVolume": 0.023960181473133477,
+      "minTriangleArea": 0.0053730685951264455
+    },
+    {
+      "name": "legFR stout toe 0",
+      "triangles": 32,
+      "part": "legFR",
+      "signedVolume": 0.002451633224457812,
+      "minTriangleArea": 0.0006252706517071188
+    },
+    {
+      "name": "legFR hooked dark talon 0",
+      "triangles": 32,
+      "part": "legFR",
+      "signedVolume": 0.0012482658736795813,
+      "minTriangleArea": 2.7712950765352625e-05
+    },
+    {
+      "name": "legFR stout toe 1",
+      "triangles": 32,
+      "part": "legFR",
+      "signedVolume": 0.002288534409065808,
+      "minTriangleArea": 0.000625270344175213
+    },
+    {
+      "name": "legFR hooked dark talon 1",
+      "triangles": 32,
+      "part": "legFR",
+      "signedVolume": 0.0012112431104469583,
+      "minTriangleArea": 2.7712787952339557e-05
+    },
+    {
+      "name": "legFR stout toe 2",
+      "triangles": 32,
+      "part": "legFR",
+      "signedVolume": 0.002231702033895999,
+      "minTriangleArea": 0.0006252699088006859
+    },
+    {
+      "name": "legFR hooked dark talon 2",
+      "triangles": 32,
+      "part": "legFR",
+      "signedVolume": 0.0011988973425710973,
+      "minTriangleArea": 2.7712799094513963e-05
+    },
+    {
+      "name": "legFR stout toe 3",
+      "triangles": 32,
+      "part": "legFR",
+      "signedVolume": 0.002289315266049624,
+      "minTriangleArea": 0.0006252703420445065
+    },
+    {
+      "name": "legFR hooked dark talon 3",
+      "triangles": 32,
+      "part": "legFR",
+      "signedVolume": 0.0012119993180021989,
+      "minTriangleArea": 2.771235183910637e-05
+    },
+    {
+      "name": "legFR stout toe 4",
+      "triangles": 32,
+      "part": "legFR",
+      "signedVolume": 0.002453081279478888,
+      "minTriangleArea": 0.0006252675110392937
+    },
+    {
+      "name": "legFR hooked dark talon 4",
+      "triangles": 32,
+      "part": "legFR",
+      "signedVolume": 0.0012497129043064592,
+      "minTriangleArea": 2.7712952580640342e-05
+    },
+    {
+      "name": "legFR broad wrist scale 0",
+      "triangles": 12,
+      "part": "legFR",
+      "signedVolume": 0.0005212692873707648,
+      "minTriangleArea": 0.003773472166174627
+    },
+    {
+      "name": "legFR broad wrist scale 1",
+      "triangles": 12,
+      "part": "legFR",
+      "signedVolume": 0.0005212672209988041,
+      "minTriangleArea": 0.0037734734837998026
+    },
+    {
+      "name": "legFR broad wrist scale 2",
+      "triangles": 12,
+      "part": "legFR",
+      "signedVolume": 0.0005212701701869567,
+      "minTriangleArea": 0.003773472166174627
+    },
+    {
+      "name": "legFR broad wrist scale 3",
+      "triangles": 12,
+      "part": "legFR",
+      "signedVolume": 0.0005212693164745963,
+      "minTriangleArea": 0.0037734734837998026
+    },
+    {
+      "name": "legBR broad bent limb",
+      "triangles": 76,
+      "part": "legBR",
+      "signedVolume": 0.1306154796135767,
+      "minTriangleArea": 0.0023602018289463757
+    },
+    {
+      "name": "legBR broad palm",
+      "triangles": 60,
+      "part": "legBR",
+      "signedVolume": 0.023960180430246204,
+      "minTriangleArea": 0.005373070287817582
+    },
+    {
+      "name": "legBR stout toe 0",
+      "triangles": 32,
+      "part": "legBR",
+      "signedVolume": 0.0024516328455016874,
+      "minTriangleArea": 0.0006252705181828919
+    },
+    {
+      "name": "legBR hooked dark talon 0",
+      "triangles": 32,
+      "part": "legBR",
+      "signedVolume": 0.0012482658936884643,
+      "minTriangleArea": 2.7712885665300693e-05
+    },
+    {
+      "name": "legBR stout toe 1",
+      "triangles": 32,
+      "part": "legBR",
+      "signedVolume": 0.0022885354325505127,
+      "minTriangleArea": 0.000625270424431822
+    },
+    {
+      "name": "legBR hooked dark talon 1",
+      "triangles": 32,
+      "part": "legBR",
+      "signedVolume": 0.0012112397423228083,
+      "minTriangleArea": 2.7712889374129876e-05
+    },
+    {
+      "name": "legBR stout toe 2",
+      "triangles": 32,
+      "part": "legBR",
+      "signedVolume": 0.002231700043012097,
+      "minTriangleArea": 0.000625270036643156
+    },
+    {
+      "name": "legBR hooked dark talon 2",
+      "triangles": 32,
+      "part": "legBR",
+      "signedVolume": 0.0011988988863436134,
+      "minTriangleArea": 2.7712866197851613e-05
+    },
+    {
+      "name": "legBR stout toe 3",
+      "triangles": 32,
+      "part": "legBR",
+      "signedVolume": 0.00228932338419933,
+      "minTriangleArea": 0.000625270418039703
+    },
+    {
+      "name": "legBR hooked dark talon 3",
+      "triangles": 32,
+      "part": "legBR",
+      "signedVolume": 0.0012120009231513986,
+      "minTriangleArea": 2.7712454029309122e-05
+    },
+    {
+      "name": "legBR stout toe 4",
+      "triangles": 32,
+      "part": "legBR",
+      "signedVolume": 0.002453068433775721,
+      "minTriangleArea": 0.000625267597688414
+    },
+    {
+      "name": "legBR hooked dark talon 4",
+      "triangles": 32,
+      "part": "legBR",
+      "signedVolume": 0.001249720345109988,
+      "minTriangleArea": 2.7712884288182557e-05
+    },
+    {
+      "name": "legBR broad wrist scale 0",
+      "triangles": 12,
+      "part": "legBR",
+      "signedVolume": 0.0005212685015673433,
+      "minTriangleArea": 0.003773474456601374
+    },
+    {
+      "name": "legBR broad wrist scale 1",
+      "triangles": 12,
+      "part": "legBR",
+      "signedVolume": 0.0005212674538294477,
+      "minTriangleArea": 0.003773473251485429
+    },
+    {
+      "name": "legBR broad wrist scale 2",
+      "triangles": 12,
+      "part": "legBR",
+      "signedVolume": 0.0005212692970720432,
+      "minTriangleArea": 0.003773474456601374
+    },
+    {
+      "name": "legBR broad wrist scale 3",
+      "triangles": 12,
+      "part": "legBR",
+      "signedVolume": 0.000521270208992064,
+      "minTriangleArea": 0.003773473251485429
+    },
+    {
+      "name": "Continuous curled leaf paddle tail",
+      "triangles": 176,
+      "part": "tail",
+      "signedVolume": 0.6613890638068368,
+      "minTriangleArea": 2.8063754030587066e-05
+    },
+    {
+      "name": "Anchored alternating dorsal plate 0",
+      "triangles": 8,
+      "part": "neck",
+      "signedVolume": 0.0066152672128131,
+      "minTriangleArea": 0.017169840731169773
+    },
+    {
+      "name": "Anchored alternating dorsal plate 1",
+      "triangles": 8,
+      "part": "neck",
+      "signedVolume": 0.006784699081132804,
+      "minTriangleArea": 0.017947999627251365
+    },
+    {
+      "name": "Anchored alternating dorsal plate 2",
+      "triangles": 8,
+      "part": "neck",
+      "signedVolume": 0.006954132113605737,
+      "minTriangleArea": 0.018738042646478013
+    },
+    {
+      "name": "Anchored alternating dorsal plate 3",
+      "triangles": 8,
+      "part": "body",
+      "signedVolume": 0.00695413331656406,
+      "minTriangleArea": 0.018738052548092268
+    },
+    {
+      "name": "Anchored alternating dorsal plate 4",
+      "triangles": 8,
+      "part": "body",
+      "signedVolume": 0.0066152680083178,
+      "minTriangleArea": 0.017169851537144256
+    },
+    {
+      "name": "Anchored alternating dorsal plate 5",
+      "triangles": 8,
+      "part": "body",
+      "signedVolume": 0.004697668783289069,
+      "minTriangleArea": 0.011480851580701303
+    },
+    {
+      "name": "Anchored alternating dorsal plate 6",
+      "triangles": 8,
+      "part": "body",
+      "signedVolume": 0.004306667872394125,
+      "minTriangleArea": 0.009899497347260582
+    },
+    {
+      "name": "Anchored alternating dorsal plate 7",
+      "triangles": 8,
+      "part": "body",
+      "signedVolume": 0.004045999608933926,
+      "minTriangleArea": 0.008964374621900839
+    },
+    {
+      "name": "Broad overlapping coral throat petal 0",
+      "triangles": 26,
+      "part": "bloom0",
+      "signedVolume": 0.020933106114777444,
+      "minTriangleArea": 0.004499996113175296
+    },
+    {
+      "name": "Broad overlapping coral throat petal 1",
+      "triangles": 26,
+      "part": "bloom1",
+      "signedVolume": 0.02048651734367015,
+      "minTriangleArea": 0.004499996113175296
+    },
+    {
+      "name": "Broad overlapping coral throat petal 2",
+      "triangles": 26,
+      "part": "bloom2",
+      "signedVolume": 0.0287338938408842,
+      "minTriangleArea": 0.004499995102624641
+    },
+    {
+      "name": "Broad overlapping coral throat petal 3",
+      "triangles": 26,
+      "part": "bloom3",
+      "signedVolume": 0.02742939186282453,
+      "minTriangleArea": 0.004499995102624641
+    },
+    {
+      "name": "Broad overlapping coral throat petal 4",
+      "triangles": 26,
+      "part": "bloom4",
+      "signedVolume": 0.03368360973157302,
+      "minTriangleArea": 0.004500002984913732
+    },
+    {
+      "name": "Broad overlapping coral throat petal 5",
+      "triangles": 26,
+      "part": "bloom5",
+      "signedVolume": 0.03417610384834312,
+      "minTriangleArea": 0.004500002580694115
+    },
+    {
+      "name": "Broad overlapping coral throat petal 6",
+      "triangles": 26,
+      "part": "bloom6",
+      "signedVolume": 0.027655800270925568,
+      "minTriangleArea": 0.004499995708955062
+    }
+  ],
+  "nativeBytes": 1557251,
+  "packedBytes": 36681,
+  "glbBytes": 793660,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "sourceSha256": "ede883698fc58f0c09f1691095cfb5f634b981707a2b8d36edabc5c716e51e79"
+}

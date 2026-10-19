@@ -1,0 +1,980 @@
+{
+  "proof": "independent actual GLB mesh topology and single-sided culling; not likeness",
+  "singleSidedMaterials": true,
+  "closedOutwardComponents": 120,
+  "triangles": 3870,
+  "viewFrontFacingTriangles": {
+    "front": 2161,
+    "left": 1777,
+    "right": 1769,
+    "back": 1611,
+    "top": 1874,
+    "elevated-front": 1999,
+    "elevated-left": 1843,
+    "elevated-right": 1829,
+    "elevated-back": 1706
+  },
+  "components": [
+    {
+      "mesh": "Anchored alternating dorsal plate 0",
+      "triangles": 8,
+      "signedVolume": 0.006615266666666682,
+      "minimumArea": 0.01716984566034303,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Anchored alternating dorsal plate 1",
+      "triangles": 8,
+      "signedVolume": 0.006784699999999997,
+      "minimumArea": 0.017948005460217572,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Anchored alternating dorsal plate 2",
+      "triangles": 8,
+      "signedVolume": 0.006954133333333335,
+      "minimumArea": 0.018738046856596337,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Anchored alternating dorsal plate 3",
+      "triangles": 8,
+      "signedVolume": 0.00695413333333333,
+      "minimumArea": 0.018738046856596337,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Anchored alternating dorsal plate 4",
+      "triangles": 8,
+      "signedVolume": 0.006615266666666671,
+      "minimumArea": 0.01716984566034303,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Anchored alternating dorsal plate 5",
+      "triangles": 8,
+      "signedVolume": 0.0046976666666666625,
+      "minimumArea": 0.011480853626799702,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Anchored alternating dorsal plate 6",
+      "triangles": 8,
+      "signedVolume": 0.00430666666666667,
+      "minimumArea": 0.00989949493661167,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Anchored alternating dorsal plate 7",
+      "triangles": 8,
+      "signedVolume": 0.004045999999999998,
+      "minimumArea": 0.00896437393240598,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Angular gold supraorbital brow L",
+      "triangles": 12,
+      "signedVolume": 0.00024929100000000304,
+      "minimumArea": 0.0020205206708296826,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Angular gold supraorbital brow R",
+      "triangles": 12,
+      "signedVolume": 0.00024929100000000304,
+      "minimumArea": 0.0020205206708296826,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Broad angular reptile skull",
+      "triangles": 116,
+      "signedVolume": 0.19549152091566993,
+      "minimumArea": 0.002441635525499997,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Broad overlapping coral throat petal 0",
+      "triangles": 26,
+      "signedVolume": 0.02093311629166675,
+      "minimumArea": 0.004499999999999997,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Broad overlapping coral throat petal 1",
+      "triangles": 26,
+      "signedVolume": 0.020486493958333376,
+      "minimumArea": 0.004499999999999997,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Broad overlapping coral throat petal 2",
+      "triangles": 26,
+      "signedVolume": 0.02873383799999999,
+      "minimumArea": 0.004499999999999998,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Broad overlapping coral throat petal 3",
+      "triangles": 26,
+      "signedVolume": 0.02742940933333336,
+      "minimumArea": 0.004499999999999996,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Broad overlapping coral throat petal 4",
+      "triangles": 26,
+      "signedVolume": 0.03368361769650005,
+      "minimumArea": 0.00450000000000001,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Broad overlapping coral throat petal 5",
+      "triangles": 26,
+      "signedVolume": 0.03417607874999999,
+      "minimumArea": 0.00450000000000001,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Broad overlapping coral throat petal 6",
+      "triangles": 26,
+      "signedVolume": 0.027655798333333342,
+      "minimumArea": 0.004499999999999997,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Catchlight L",
+      "triangles": 36,
+      "signedVolume": 6.623579106990962e-06,
+      "minimumArea": 3.0180369282377164e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Catchlight R",
+      "triangles": 36,
+      "signedVolume": 6.623579107123884e-06,
+      "minimumArea": 3.0180369282376897e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Continuous curled leaf paddle tail",
+      "triangles": 176,
+      "signedVolume": 0.6613891081346183,
+      "minimumArea": 2.8057377563166027e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Continuous low trunk into rising broad shoulder",
+      "triangles": 164,
+      "signedVolume": 1.3660509317974294,
+      "minimumArea": 0.0030813999999999954,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Eye angular socket L",
+      "triangles": 64,
+      "signedVolume": 0.0033356151924679536,
+      "minimumArea": 0.0010905757005493745,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Eye angular socket R",
+      "triangles": 64,
+      "signedVolume": 0.0033356151924679536,
+      "minimumArea": 0.0010905757005493745,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Integrated lower angular jaw",
+      "triangles": 76,
+      "signedVolume": 0.052110959588583305,
+      "minimumArea": 0.001431246267999991,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Large amber eye L",
+      "triangles": 100,
+      "signedVolume": 0.0011823575984129218,
+      "minimumArea": 0.0002598399160668111,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Large amber eye R",
+      "triangles": 100,
+      "signedVolume": 0.0011823575984131942,
+      "minimumArea": 0.0002598399160668111,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL broad bent limb",
+      "triangles": 76,
+      "signedVolume": 0.13063724075955285,
+      "minimumArea": 0.0023601830830920034,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL broad palm",
+      "triangles": 60,
+      "signedVolume": 0.023960098077469242,
+      "minimumArea": 0.005373031999201432,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL broad wrist scale 0",
+      "triangles": 12,
+      "signedVolume": 0.0005212688000000004,
+      "minimumArea": 0.003773473449078446,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL broad wrist scale 1",
+      "triangles": 12,
+      "signedVolume": 0.0005212688000000004,
+      "minimumArea": 0.003773473449078449,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL broad wrist scale 2",
+      "triangles": 12,
+      "signedVolume": 0.0005212687999999986,
+      "minimumArea": 0.003773473449078446,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL broad wrist scale 3",
+      "triangles": 12,
+      "signedVolume": 0.000521268800000001,
+      "minimumArea": 0.003773473449078449,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL hooked dark talon 0",
+      "triangles": 32,
+      "signedVolume": 0.0012482648157915333,
+      "minimumArea": 2.77110855975625e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL hooked dark talon 1",
+      "triangles": 32,
+      "signedVolume": 0.0012112458163882965,
+      "minimumArea": 2.7707837610135288e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL hooked dark talon 2",
+      "triangles": 32,
+      "signedVolume": 0.0011989050950000012,
+      "minimumArea": 2.7713723964851806e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL hooked dark talon 3",
+      "triangles": 32,
+      "signedVolume": 0.001212005870209426,
+      "minimumArea": 2.770788951275019e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL hooked dark talon 4",
+      "triangles": 32,
+      "signedVolume": 0.0012497214742076073,
+      "minimumArea": 2.7711085597562817e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL stout toe 0",
+      "triangles": 32,
+      "signedVolume": 0.0024516256614538464,
+      "minimumArea": 0.0006252496874850585,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL stout toe 1",
+      "triangles": 32,
+      "signedVolume": 0.0022885403912737932,
+      "minimumArea": 0.0006252701119348321,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL stout toe 2",
+      "triangles": 32,
+      "signedVolume": 0.002231698284999999,
+      "minimumArea": 0.0006252672749288868,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL stout toe 3",
+      "triangles": 32,
+      "signedVolume": 0.0022893287933761545,
+      "minimumArea": 0.0006252701119348323,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL stout toe 4",
+      "triangles": 32,
+      "signedVolume": 0.0024530739459439664,
+      "minimumArea": 0.0006252515349773294,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR broad bent limb",
+      "triangles": 76,
+      "signedVolume": 0.1306154646894977,
+      "minimumArea": 0.0023601830830920077,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR broad palm",
+      "triangles": 60,
+      "signedVolume": 0.023960098077469242,
+      "minimumArea": 0.005373031999201432,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR broad wrist scale 0",
+      "triangles": 12,
+      "signedVolume": 0.0005212688000000004,
+      "minimumArea": 0.003773473449078446,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR broad wrist scale 1",
+      "triangles": 12,
+      "signedVolume": 0.0005212688000000004,
+      "minimumArea": 0.003773473449078449,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR broad wrist scale 2",
+      "triangles": 12,
+      "signedVolume": 0.0005212687999999986,
+      "minimumArea": 0.003773473449078446,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR broad wrist scale 3",
+      "triangles": 12,
+      "signedVolume": 0.000521268800000001,
+      "minimumArea": 0.003773473449078449,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR hooked dark talon 0",
+      "triangles": 32,
+      "signedVolume": 0.0012482657031928424,
+      "minimumArea": 2.771108559756281e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR hooked dark talon 1",
+      "triangles": 32,
+      "signedVolume": 0.001211245926900575,
+      "minimumArea": 2.7707889512750195e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR hooked dark talon 2",
+      "triangles": 32,
+      "signedVolume": 0.0011989050949999995,
+      "minimumArea": 2.7713723964851806e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR hooked dark talon 3",
+      "triangles": 32,
+      "signedVolume": 0.0012120050523154724,
+      "minimumArea": 2.7707889512749798e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR hooked dark talon 4",
+      "triangles": 32,
+      "signedVolume": 0.0012497208369533575,
+      "minimumArea": 2.771108559756313e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR stout toe 0",
+      "triangles": 32,
+      "signedVolume": 0.002451632473845698,
+      "minimumArea": 0.0006252515349773312,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR stout toe 1",
+      "triangles": 32,
+      "signedVolume": 0.002288540391273793,
+      "minimumArea": 0.000625270111934832,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR stout toe 2",
+      "triangles": 32,
+      "signedVolume": 0.002231698284999997,
+      "minimumArea": 0.0006252672749288904,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR stout toe 3",
+      "triangles": 32,
+      "signedVolume": 0.0022893287933761623,
+      "minimumArea": 0.0006252701119348323,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR stout toe 4",
+      "triangles": 32,
+      "signedVolume": 0.002453068789810914,
+      "minimumArea": 0.0006252496874850588,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL broad bent limb",
+      "triangles": 76,
+      "signedVolume": 0.14612581673928474,
+      "minimumArea": 0.0023601775083108797,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL broad palm",
+      "triangles": 60,
+      "signedVolume": 0.02396009807746925,
+      "minimumArea": 0.005373031999201429,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL broad wrist scale 0",
+      "triangles": 12,
+      "signedVolume": 0.0005212687999999995,
+      "minimumArea": 0.003773473449078449,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL broad wrist scale 1",
+      "triangles": 12,
+      "signedVolume": 0.0005212687999999975,
+      "minimumArea": 0.003773473449078446,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL broad wrist scale 2",
+      "triangles": 12,
+      "signedVolume": 0.0005212687999999988,
+      "minimumArea": 0.003773473449078449,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL broad wrist scale 3",
+      "triangles": 12,
+      "signedVolume": 0.0005212687999999975,
+      "minimumArea": 0.003773473449078446,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL hooked dark talon 0",
+      "triangles": 32,
+      "signedVolume": 0.001248264815791531,
+      "minimumArea": 2.7711085597563105e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL hooked dark talon 1",
+      "triangles": 32,
+      "signedVolume": 0.0012112458163882956,
+      "minimumArea": 2.770783761013508e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL hooked dark talon 2",
+      "triangles": 32,
+      "signedVolume": 0.0011989050950000023,
+      "minimumArea": 2.7713723964851508e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL hooked dark talon 3",
+      "triangles": 32,
+      "signedVolume": 0.0012120058702094344,
+      "minimumArea": 2.77078895127503e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL hooked dark talon 4",
+      "triangles": 32,
+      "signedVolume": 0.001249721474207604,
+      "minimumArea": 2.771108559756341e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL stout toe 0",
+      "triangles": 32,
+      "signedVolume": 0.0024516269476370827,
+      "minimumArea": 0.0006252496874850575,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL stout toe 1",
+      "triangles": 32,
+      "signedVolume": 0.0022885376629151037,
+      "minimumArea": 0.0006252701119348311,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL stout toe 2",
+      "triangles": 32,
+      "signedVolume": 0.0022316982849999987,
+      "minimumArea": 0.0006252672749288869,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL stout toe 3",
+      "triangles": 32,
+      "signedVolume": 0.00228932629825433,
+      "minimumArea": 0.0006252701119348325,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL stout toe 4",
+      "triangles": 32,
+      "signedVolume": 0.0024530724443315214,
+      "minimumArea": 0.0006252496874850571,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR broad bent limb",
+      "triangles": 76,
+      "signedVolume": 0.14622876761574366,
+      "minimumArea": 0.0023601775083108814,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR broad palm",
+      "triangles": 60,
+      "signedVolume": 0.02396009807746926,
+      "minimumArea": 0.005373031999201429,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR broad wrist scale 0",
+      "triangles": 12,
+      "signedVolume": 0.0005212687999999995,
+      "minimumArea": 0.003773473449078449,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR broad wrist scale 1",
+      "triangles": 12,
+      "signedVolume": 0.0005212687999999975,
+      "minimumArea": 0.003773473449078446,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR broad wrist scale 2",
+      "triangles": 12,
+      "signedVolume": 0.0005212687999999988,
+      "minimumArea": 0.003773473449078449,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR broad wrist scale 3",
+      "triangles": 12,
+      "signedVolume": 0.0005212687999999975,
+      "minimumArea": 0.003773473449078446,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR hooked dark talon 0",
+      "triangles": 32,
+      "signedVolume": 0.00124826570319284,
+      "minimumArea": 2.7711085597563417e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR hooked dark talon 1",
+      "triangles": 32,
+      "signedVolume": 0.0012112459269005703,
+      "minimumArea": 2.7707889512750303e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR hooked dark talon 2",
+      "triangles": 32,
+      "signedVolume": 0.001198905095000002,
+      "minimumArea": 2.7713723964851508e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR hooked dark talon 3",
+      "triangles": 32,
+      "signedVolume": 0.0012120050523154516,
+      "minimumArea": 2.7707889512749907e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR hooked dark talon 4",
+      "triangles": 32,
+      "signedVolume": 0.0012497208369533486,
+      "minimumArea": 2.7711085597563725e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR stout toe 0",
+      "triangles": 32,
+      "signedVolume": 0.002451631963560343,
+      "minimumArea": 0.0006252496874850575,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR stout toe 1",
+      "triangles": 32,
+      "signedVolume": 0.0022885376629150933,
+      "minimumArea": 0.0006252701119348311,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR stout toe 2",
+      "triangles": 32,
+      "signedVolume": 0.0022316982850000004,
+      "minimumArea": 0.0006252672749288902,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR stout toe 3",
+      "triangles": 32,
+      "signedVolume": 0.0022893262982543157,
+      "minimumArea": 0.0006252701119348325,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR stout toe 4",
+      "triangles": 32,
+      "signedVolume": 0.002453067418540767,
+      "minimumArea": 0.000625249687485059,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Narrow mouth line L",
+      "triangles": 48,
+      "signedVolume": 0.0001239925449855396,
+      "minimumArea": 0.0002507835370566333,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Narrow mouth line R",
+      "triangles": 48,
+      "signedVolume": 0.00012399254498558288,
+      "minimumArea": 0.0002507835370566333,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Nostril L",
+      "triangles": 36,
+      "signedVolume": 2.5487509302807083e-05,
+      "minimumArea": 8.353745457008158e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Nostril R",
+      "triangles": 36,
+      "signedVolume": 2.5487509294364546e-05,
+      "minimumArea": 8.353745457008158e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate L0",
+      "triangles": 12,
+      "signedVolume": 0.0002561603520000017,
+      "minimumArea": 0.002294607880768303,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate L1",
+      "triangles": 12,
+      "signedVolume": 0.000332388000000002,
+      "minimumArea": 0.0029723762085240727,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate L2",
+      "triangles": 12,
+      "signedVolume": 0.00036341087999999913,
+      "minimumArea": 0.003228710197214985,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate L3",
+      "triangles": 12,
+      "signedVolume": 0.000468002303999996,
+      "minimumArea": 0.0040757685539785,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate L4",
+      "triangles": 12,
+      "signedVolume": 0.00048417851999999753,
+      "minimumArea": 0.0042149178595199165,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate L5",
+      "triangles": 12,
+      "signedVolume": 0.0005761391999999951,
+      "minimumArea": 0.0049675496937625135,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate L6",
+      "triangles": 12,
+      "signedVolume": 0.0006337531199999987,
+      "minimumArea": 0.005460549697603701,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate R0",
+      "triangles": 12,
+      "signedVolume": 0.0002561603520000017,
+      "minimumArea": 0.002294607880768303,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate R1",
+      "triangles": 12,
+      "signedVolume": 0.000332388000000002,
+      "minimumArea": 0.0029723762085240727,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate R2",
+      "triangles": 12,
+      "signedVolume": 0.00036341087999999913,
+      "minimumArea": 0.003228710197214985,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate R3",
+      "triangles": 12,
+      "signedVolume": 0.000468002303999996,
+      "minimumArea": 0.0040757685539785,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate R4",
+      "triangles": 12,
+      "signedVolume": 0.00048417851999999753,
+      "minimumArea": 0.0042149178595199165,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate R5",
+      "triangles": 12,
+      "signedVolume": 0.0005761391999999951,
+      "minimumArea": 0.0049675496937625135,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping cheek plate R6",
+      "triangles": 12,
+      "signedVolume": 0.0006337531199999987,
+      "minimumArea": 0.005460549697603701,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Shoulder mantle plate L0",
+      "triangles": 12,
+      "signedVolume": 0.0023636480000000033,
+      "minimumArea": 0.012684224160743923,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Shoulder mantle plate L1",
+      "triangles": 12,
+      "signedVolume": 0.0028880824000000003,
+      "minimumArea": 0.01548989750232389,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Shoulder mantle plate L2",
+      "triangles": 12,
+      "signedVolume": 0.002600012800000001,
+      "minimumArea": 0.013952340719750213,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Shoulder mantle plate L3",
+      "triangles": 12,
+      "signedVolume": 0.001824440799999998,
+      "minimumArea": 0.009813978299981103,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Shoulder mantle plate R0",
+      "triangles": 12,
+      "signedVolume": 0.0023636480000000033,
+      "minimumArea": 0.012684224160743923,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Shoulder mantle plate R1",
+      "triangles": 12,
+      "signedVolume": 0.0028880824000000003,
+      "minimumArea": 0.01548989750232389,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Shoulder mantle plate R2",
+      "triangles": 12,
+      "signedVolume": 0.002600012800000001,
+      "minimumArea": 0.013952340719750213,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Shoulder mantle plate R3",
+      "triangles": 12,
+      "signedVolume": 0.001824440799999998,
+      "minimumArea": 0.009813978299981103,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Sloping attached cervical mantle",
+      "triangles": 92,
+      "signedVolume": 0.2709943873753034,
+      "minimumArea": 0.0045015018599999955,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Vertical pupil L",
+      "triangles": 64,
+      "signedVolume": 6.994491161733374e-05,
+      "minimumArea": 5.484999883027054e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Vertical pupil R",
+      "triangles": 64,
+      "signedVolume": 6.994491161742644e-05,
+      "minimumArea": 5.484999883027054e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    }
+  ],
+  "runtimeAcceptance": false
+}

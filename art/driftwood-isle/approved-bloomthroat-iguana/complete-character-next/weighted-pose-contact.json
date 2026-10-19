@@ -1,0 +1,96 @@
+{
+  "proof": "actual native consumer + numericCreaturePose + THREE weighted vertices; source only",
+  "rootLift": 0,
+  "physicalDeathTested": false,
+  "runtimeAcceptance": false,
+  "rows": [
+    {
+      "state": "idle",
+      "minY": 0,
+      "maxY": 1.9017802476882935,
+      "minZ": -2.2214128044891135,
+      "maxZ": 1.5669200548879132,
+      "coreOutside": 2688,
+      "coreVertices": 14688,
+      "headOutside": 0,
+      "headVertices": 72288
+    },
+    {
+      "state": "walk",
+      "minY": 0,
+      "maxY": 1.9017802476882935,
+      "minZ": -2.2214128044891135,
+      "maxZ": 1.5669200548879132,
+      "coreOutside": 2688,
+      "coreVertices": 14688,
+      "headOutside": 0,
+      "headVertices": 72288
+    },
+    {
+      "state": "tell",
+      "minY": 0,
+      "maxY": 1.9017802476882935,
+      "minZ": -2.2214128044891135,
+      "maxZ": 1.6385141062013981,
+      "coreOutside": 2688,
+      "coreVertices": 14688,
+      "headOutside": 0,
+      "headVertices": 72288
+    },
+    {
+      "state": "strike",
+      "minY": 0,
+      "maxY": 1.9017802476882935,
+      "minZ": -2.177734704390647,
+      "maxZ": 1.5971277859954822,
+      "coreOutside": 2688,
+      "coreVertices": 14688,
+      "headOutside": 0,
+      "headVertices": 72288
+    },
+    {
+      "state": "recover",
+      "minY": 0,
+      "maxY": 1.9017802476882935,
+      "minZ": -2.2214128044891135,
+      "maxZ": 1.5669200548879132,
+      "coreOutside": 2688,
+      "coreVertices": 14688,
+      "headOutside": 0,
+      "headVertices": 72288
+    },
+    {
+      "state": "hit",
+      "minY": 0,
+      "maxY": 1.9017802476882935,
+      "minZ": -2.2214128044891135,
+      "maxZ": 1.605751629240503,
+      "coreOutside": 2688,
+      "coreVertices": 14688,
+      "headOutside": 0,
+      "headVertices": 72288
+    },
+    {
+      "state": "dying",
+      "minY": 0,
+      "maxY": 1.9017802476882935,
+      "minZ": -2.222375538366225,
+      "maxZ": 1.5819149715533642,
+      "coreOutside": 2688,
+      "coreVertices": 14688,
+      "headOutside": 0,
+      "headVertices": 72288
+    },
+    {
+      "state": "dead",
+      "minY": 0,
+      "maxY": 1.9017802476882935,
+      "minZ": -2.223333038734498,
+      "maxZ": 1.6288946649422438,
+      "coreOutside": 2688,
+      "coreVertices": 14688,
+      "headOutside": 0,
+      "headVertices": 72288
+    }
+  ]
+}

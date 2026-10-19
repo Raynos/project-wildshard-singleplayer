@@ -1,0 +1,7 @@
+{
+  "actualGlbNormalCorners": 11610,
+  "minimumOrientedFaceAgreement": 0.9999999248721068,
+  "maximumUnitLengthError": 1.0440928832622376e-07,
+  "repairs": 0,
+  "passed": true
+}
