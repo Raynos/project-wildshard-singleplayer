@@ -1,0 +1,46 @@
+{
+  "schema": "wildshard.colossus.arena-evidence-summary.v1",
+  "sourceHash": "7a4c5bc237574a93d7b5b6f3325a53cf0141054aafc86082f497baff24d905a5",
+  "functionalChecks": {
+    "onlyColossus": true,
+    "leftSweep": true,
+    "rightSweep": true,
+    "slam": true,
+    "actualPlayerDamage": true,
+    "exposedSwordMultiplier": true,
+    "actualEnemyDamage": true,
+    "enemyDefeated": true,
+    "noPostDeathStrike": true,
+    "boutLocalReward": true,
+    "retry": true,
+    "playerDefeated": true,
+    "defeatedAttackBlocked": true,
+    "finalRetry": true,
+    "emptyStorage": true,
+    "emptyUnchangedStateStore": true,
+    "reentry": true,
+    "reentryPersistence": true,
+    "exposed": true,
+    "errors": true
+  },
+  "worldContact": {
+    "livingMinimum": 0.027000000700354576,
+    "deadMinimum": -0.20103540500167583,
+    "frames": 1212,
+    "minimum": -0.20103540500167583,
+    "framesBelow": 112
+  },
+  "deadFrames": 155,
+  "frozenCorpseFrames": 105,
+  "visualAcceptance": false,
+  "worldCorpseContactAccepted": false,
+  "runtimeAcceptance": false,
+  "caveats": [
+    "Diagnostic player placement; enemy health/AI/time untouched. Render-only observer restored camera each frame.",
+    "Observer body about140px tall; not close-up attachment review.",
+    "Every dead frame retained tg-state1 despite deathT reaching1. The40 living tg-state6 frames occur during player defeat, NOT Retry; Retry snapshots reset to tg-state0.",
+    "Corpse largely upright and penetrates floor; transient float precedes settle.",
+    "Existing reach mismatch4.7/6.2 damage versus~3.93 mesh, material semantic loss and attachment blockers remain.",
+    "No physical-phone performance or visual acceptance."
+  ]
+}

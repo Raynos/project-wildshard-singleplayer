@@ -1,0 +1,191 @@
+{
+  "schema": "wildshard.colossus.actual-evidence-closure.v1",
+  "createdAt": "2026-10-19T05:34:58.902223+00:00",
+  "sourceHash": "7a4c5bc237574a93d7b5b6f3325a53cf0141054aafc86082f497baff24d905a5",
+  "runtimeAcceptance": false,
+  "visualAcceptance": false,
+  "worldCorpseContactAccepted": false,
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/qa-source-freeze3.json",
+      "bytes": 30297,
+      "sha256": "48ad03e76a964668630ad7a98288ef3b283f8c2d9fdf6ab554a6addddf2bb30c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/qa-source-freeze2.json",
+      "bytes": 30297,
+      "sha256": "5dd23c3d4f73fbcb0e742426a27047a8e61650b0e100eb55735c91a872bf3afa"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/combat-run2-closure.json",
+      "bytes": 1610,
+      "sha256": "ff0eee2d7fcb8e46d91d79a7009d57116ede0995d1709c4cafc71f267c03f1ef"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/failed-launch1.json",
+      "bytes": 1835,
+      "sha256": "afc7806bc9080f37e2f6bec6c3f662307048781f79cc8edcb4e131744801905b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/OBSERVATIONS.md",
+      "bytes": 4209,
+      "sha256": "605853a59ba9aae811de473869880ae1cff1016676e006de381a39f92a6b52eb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/combat-run2.json",
+      "bytes": 1382520,
+      "sha256": "5c879f940165d76df624a9e86c577862e0e4621518973e97f8809680f89be06d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/qa-source-freeze1.json",
+      "bytes": 29561,
+      "sha256": "da378465a9ce777bdf27094c6b592a477e46b1891705036ff405c8c5070a7d63"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/observer-run1-world-contact.json",
+      "bytes": 1682067,
+      "sha256": "43cf429cd6d6608abb826d2b970a2cc5cc66715f720bd5a2723b499cc5588ee6"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/observer-run1.json",
+      "bytes": 1518507,
+      "sha256": "bbd5edd04d300b9cdf3aa034093c3d5eb717b4685de67f556fc1379eb731c197"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/summary.json",
+      "bytes": 1695,
+      "sha256": "f7c8daba8796bc4a82620cefcaac463c68f945925224b182f65a28bcb5337630"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/observer-run1-trace.json",
+      "bytes": 3547418,
+      "sha256": "9ee8e722863aab07ea3591a196110469c92ab1016595ebbe5a13abfb46b9d9e5"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/observer-run1/corpse-reward.jpg",
+      "bytes": 50451,
+      "sha256": "454c26ded62bf5be0136a6b96e8a4b259ac2db297e407ede3036b294072eed21"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/observer-run1/entry.jpg",
+      "bytes": 61939,
+      "sha256": "c4e2bd290f3ea28716cdc168f8940f460afee3732362bdf7900f718e47c133e6"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/observer-run1/sword-result.jpg",
+      "bytes": 50901,
+      "sha256": "bca41977973ef8a1628ba9261e47b775a3c51925d30d8181b7bfd46a3c72f883"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/observer-run1/player-defeat.jpg",
+      "bytes": 62715,
+      "sha256": "a7f6c07858e9e81c91b935fab8a3d9119237e9cade855d6a017574a056b68787"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/observer-run1/actual-death-settle-and-retry.mp4",
+      "bytes": 497433,
+      "sha256": "dabb2d01049d344d145175ffc62e624369ba43c75109f20bbe70463b4a408bfb"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/observer-run1/actual-attacks-and-exposed.mp4",
+      "bytes": 557521,
+      "sha256": "a22aed5735576cc0c04a3085dacd9b89dacef6a760e8568e1136513badcfd2c9"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/observer-run1/both-strikes-observation.jpg",
+      "bytes": 63683,
+      "sha256": "906958e29d2f78f38cf86820f11465f484e5d6f76456625a76720c70d4059a36"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/combat-run2/corpse-reward.jpg",
+      "bytes": 68338,
+      "sha256": "92859e8df77251fe64063ba2d2dd773ba620f5fe79670ee735d36e3b73153381"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/combat-run2/entry.jpg",
+      "bytes": 76265,
+      "sha256": "888d67670ae0d9e3286ef54e83685942b255185a969ddddd234277d4bb8fc05d"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/combat-run2/sword-result.jpg",
+      "bytes": 76737,
+      "sha256": "0489934c9d06df9e717e5f0daababc74afda5bcb9891ea327af200027657e6eb"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/combat-run2/player-defeat.jpg",
+      "bytes": 69060,
+      "sha256": "9cd76250f92ac15bf04b54d694495b78672f4d7900bf6816ecc06f498de631f2"
+    },
+    {
+      "path": "public/review-evidence/colossus-native-motion1/combat-run2/both-strikes-observation.jpg",
+      "bytes": 83175,
+      "sha256": "17a3ae5ddef0e1f01319163facec437b955c1ebbac6cab0cf4482a900312754e"
+    },
+    {
+      "path": "tmp/colossus-native-observer-build1/corpse-reward.jpg",
+      "bytes": 50451,
+      "sha256": "454c26ded62bf5be0136a6b96e8a4b259ac2db297e407ede3036b294072eed21"
+    },
+    {
+      "path": "tmp/colossus-native-observer-build1/render-trace.json",
+      "bytes": 3552322,
+      "sha256": "13d42cb682f65d50ffcf85371ce01bca1065e337d75ed07452c16a4936ed9023"
+    },
+    {
+      "path": "tmp/colossus-native-observer-build1/entry.jpg",
+      "bytes": 61939,
+      "sha256": "c4e2bd290f3ea28716cdc168f8940f460afee3732362bdf7900f718e47c133e6"
+    },
+    {
+      "path": "tmp/colossus-native-observer-build1/sword-result.jpg",
+      "bytes": 50901,
+      "sha256": "bca41977973ef8a1628ba9261e47b775a3c51925d30d8181b7bfd46a3c72f883"
+    },
+    {
+      "path": "tmp/colossus-native-observer-build1/world-contact.json",
+      "bytes": 3077877,
+      "sha256": "8ce5956041c69bfb26a54c8a1e29e9ebfe8bfa76e29bac9799ba6fec1f6f7277"
+    },
+    {
+      "path": "tmp/colossus-native-observer-build1/player-defeat.jpg",
+      "bytes": 62715,
+      "sha256": "a7f6c07858e9e81c91b935fab8a3d9119237e9cade855d6a017574a056b68787"
+    },
+    {
+      "path": "tmp/colossus-native-observer-build1/report.json",
+      "bytes": 3598496,
+      "sha256": "af562c33bb035e5d7fc70797854b94e7598e7acdebce918aca7818462a2e11fc"
+    },
+    {
+      "path": "tmp/colossus-native-observer-build1/both-strikes-observation.jpg",
+      "bytes": 63683,
+      "sha256": "906958e29d2f78f38cf86820f11465f484e5d6f76456625a76720c70d4059a36"
+    },
+    {
+      "path": "tmp/colossus-native-observer-build1/video/page@a4e14349df5e2430715333422c7936d8.webm",
+      "bytes": 10815562,
+      "sha256": "62ac9bc0bde68aae73a7b8b42d1f5caa0bd3246a3766f3fd73fb08c6fe3bdf60"
+    },
+    {
+      "path": "scripts/qa-colossus-native-preview-v2.mjs",
+      "bytes": 12908,
+      "sha256": "e31061fd7e8d1aa67f755ac19e079de61f23d7e038e91354d447a726e76123c6"
+    },
+    {
+      "path": "scripts/qa-colossus-native-observer.mjs",
+      "bytes": 16190,
+      "sha256": "27a02b1ea9568006b8ffc4abbaf995c86cb58983092be4d2311c51ea18f8c3f4"
+    },
+    {
+      "path": "scripts/measure-colossus-world-contact.mjs",
+      "bytes": 4592,
+      "sha256": "c581e587a69884124781270f96c1d5d83d61f5eafa7ac35753ba9a98c533f3e9"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/evidence-screening-provenance.json",
+      "bytes": 3110,
+      "sha256": "60b4e1a03f1031b356d2d4f54d251c15414ecae3c22381d95b7886d6aa828575"
+    }
+  ],
+  "publicEvidenceScreening": "evidence-screening-provenance.json"
+}

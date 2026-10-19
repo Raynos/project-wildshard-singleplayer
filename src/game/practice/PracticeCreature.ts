@@ -146,7 +146,8 @@ export class PracticeCreature {
       onCollect: receipt => { this.options.onCollect?.(receipt.coins); } });
     const decision = this.decision?.({ scope, events, physics: this.options.physics,
       player: { id: health.id, position: player.position, get yaw() { return player.yaw; }, health, motor: player.motor },
-      groundHeightAt: () => at.y, live: body => body.alive && !scope.disposed,
+      // A retained corpse still owns its queued lethal-hit/death delivery.
+      groundHeightAt: () => at.y, live: body => !scope.disposed && this.targets.some(target => target === body),
       fixed: (_id, run, fixedScope) => { this.fixed.add(run); fixedScope.onDispose(() => { this.fixed.delete(run); }); },
     });
     const callbacks = admitSpeciesBrains([this.options.species], this.options.strikes).bind(this.options.species.kind,
@@ -214,8 +215,9 @@ export class PracticeCreature {
     // Deliver applied hits before fixed decisions observe their immediate stun.
     // Otherwise a queued guard hit can arrive after the guest resets its stage.
     this.events?.flush('update');
-    if (this.decision !== undefined && animal.alive) {
-      context.dt = dt; callbacks.act(animal, context);
+    if (this.decision !== undefined) {
+      context.dt = dt;
+      if (animal.alive) callbacks.act(animal, context);
       this.fixedTime += dt;
       while (this.fixedTime >= 1 / 60) { for (const run of this.fixed) run(); this.fixedTime -= 1 / 60; }
     } else if (animal.alive && !animal.stunned) {

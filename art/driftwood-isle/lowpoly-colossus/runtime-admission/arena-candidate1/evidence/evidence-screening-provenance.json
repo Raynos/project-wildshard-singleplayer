@@ -1,0 +1,44 @@
+{
+  "schema": "wildshard.colossus.evidence-screening.v1",
+  "screenedAt": "2026-10-19T05:47:03.459253+00:00",
+  "scope": "All 20 files present in this evidence directory before screening.",
+  "method": "Read and parse all JSON files; scan all file text and decoded string values for absolute filesystem paths, credentials, authentication tokens, private keys and sensitive-data indicators; inspect matches.",
+  "findings": "Three private absolute filesystem locations in three files. No credential or secret indicators found. Repository-relative evidence references and the public Vitest documentation URL are retained.",
+  "rawOriginals": "Preserved locally in ignored project tmp storage; not included in the public checkpoint. Original SHA-256 values below identify the unmodified bytes.",
+  "outcomesUnchanged": "The launch still failed before gameplay because ffmpeg was missing. The red regression remains 2 failed / 1 passed; the green regression remains 87 passed across 16 files. Existing runtime, visual and world-contact acceptance remains false. No new test or browser run occurred.",
+  "redactions": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/failed-launch1.json",
+      "originalBytes": 1840,
+      "originalSha256": "38e40fa7007942b62fd4d7f98d4340729de27a02c4af4aae6baa7742d88ac5af",
+      "screenedBytes": 1835,
+      "screenedSha256": "afc7806bc9080f37e2f6bec6c3f662307048781f79cc8edcb4e131744801905b",
+      "field": "fatal",
+      "replacement": "[REDACTED_PLAYWRIGHT_CACHE]/ffmpeg-1011/ffmpeg-linux",
+      "occurrences": 1,
+      "reason": "Remove private absolute filesystem location; preserve the diagnostic and outcome verbatim otherwise."
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/borrowed-event-regression-red.log",
+      "originalBytes": 4160,
+      "originalSha256": "6d4ac2c8ae022a3229f3c47747bdd92268cedb37dc26f7ef4ce025c7088cc74a",
+      "screenedBytes": 4123,
+      "screenedSha256": "2b0964045b26e69153df243b214c36c57e200d00b305f490738384dd0b706582",
+      "field": "RUN working directory",
+      "replacement": "[REDACTED_REPOSITORY_ROOT]",
+      "occurrences": 1,
+      "reason": "Remove private absolute filesystem location; preserve the diagnostic and outcome verbatim otherwise. Trailing blank lines normalized for repository whitespace policy."
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/borrowed-event-regression-green.log",
+      "originalBytes": 1220,
+      "originalSha256": "ef8d1c9c3b715282e34fdadfc8968343864cdeed8571857f3b8e4707bcc87aa2",
+      "screenedBytes": 1183,
+      "screenedSha256": "20a45207d0dc440da710f6f93706ac8281625c7d3b06717e2b2f1acf723dc25d",
+      "field": "RUN working directory",
+      "replacement": "[REDACTED_REPOSITORY_ROOT]",
+      "occurrences": 1,
+      "reason": "Remove private absolute filesystem location; preserve the diagnostic and outcome verbatim otherwise. Trailing blank lines normalized for repository whitespace policy."
+    }
+  ]
+}

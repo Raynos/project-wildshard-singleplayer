@@ -1,0 +1,727 @@
+{
+  "createdAt": "2026-10-19T05:24:46.028477+00:00",
+  "sourceHash": "7a4c5bc237574a93d7b5b6f3325a53cf0141054aafc86082f497baff24d905a5",
+  "browserRun": false,
+  "files": [
+    {
+      "path": "scripts/qa-colossus-native-preview.mjs",
+      "bytes": 12649,
+      "sha256": "287be611bb29deb285b47404f7f15b62b5e255da87ce972decc3ae5a85295d4f"
+    },
+    {
+      "path": "scripts/qa-colossus-native-preview-v2.mjs",
+      "bytes": 12908,
+      "sha256": "e31061fd7e8d1aa67f755ac19e079de61f23d7e038e91354d447a726e76123c6"
+    },
+    {
+      "path": "tmp/colossus-native-preview/motion1-build1/preview.json",
+      "bytes": 4253,
+      "sha256": "4903a0564d24b4a80cb5563a46c653d35dde0667251a66c7893acccfa23c7e9a"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice.html",
+      "bytes": 1597,
+      "sha256": "fde2369bae32c34532105a9b9d4b9ea1512ff9b0b4c6979894ff23dcdead748c"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/index.html",
+      "bytes": 1597,
+      "sha256": "fde2369bae32c34532105a9b9d4b9ea1512ff9b0b4c6979894ff23dcdead748c"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/colossus-preview.json",
+      "bytes": 4253,
+      "sha256": "4903a0564d24b4a80cb5563a46c653d35dde0667251a66c7893acccfa23c7e9a"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/engineNodesHandler-DNyftxvC.js",
+      "bytes": 85,
+      "sha256": "28b9dd950e097b92db85ddefb4fccf61d9103fb6c1997643c7e4f0c3991bfb3f"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/registry-M-IoM4kW.js",
+      "bytes": 93192,
+      "sha256": "93a55357568272b2cc6ad981616074272c41629dec20f175d527ef056ab4c578"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/emptyLook-ByH8maKc.js",
+      "bytes": 67,
+      "sha256": "bd14a78f86e6398c3ff52da8cde487cb9e3b75caaacb698d14be9f7e2e631f4c"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/practice-COZAhXdo.js",
+      "bytes": 268193,
+      "sha256": "fae51cb65c103994316221f24d5deefea4be2a8b92d624935103941f9c71591f"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/graphBackend-D1ygfH9T.js",
+      "bytes": 82,
+      "sha256": "27a103a0b131261a92e46996b4afe762482f0536ffd4ac05324c16b82df3873c"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/GLTFLoader-CitLpWWm.js",
+      "bytes": 69,
+      "sha256": "ce5b6bdf4c659e9967666d276c31fbabc06584277149c0f32ee7e5fd874860c3"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/prod-C5nMThY5.js",
+      "bytes": 416263,
+      "sha256": "9cacb5d99e9391d67fa860cf4b7388812eb202e10d80e2f33666f8ac7f6c0a28"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/nodeCoarseMask-BL9dSruf.js",
+      "bytes": 95,
+      "sha256": "c9e6b79ff809441b9eae829bec23c8aaa0d10fa6f2254d8321d18033c9e8f0f2"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/time-B56yC7k3.js",
+      "bytes": 8414,
+      "sha256": "57e16f83847b4ae218bc99cb99553b83b332c7453d879dec2081db61b03ba529"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/imageDecode.worker-ZOU3pmld.js",
+      "bytes": 576,
+      "sha256": "3e4a75a497bcb0297a976855ce5083de46fa0c76e726c018b38a8746b1b4e73e"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/dayCycle-e1TDlXAt.js",
+      "bytes": 6203,
+      "sha256": "92d7c55e2ecdd130c63c3fc488632ea5d2acdddfe0786f904674f8fbc7258531"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/runtimeProduct-Bm15mpOZ.js",
+      "bytes": 141,
+      "sha256": "3fe073b7247b581ca2f6b9e193168eb520bc58f01d52c48dcfcdc9cdda2b2258"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/preload-COhwNpWT.js",
+      "bytes": 4422,
+      "sha256": "f054ccd451b17c3a9fd269798d48dd01cf6348cf55817eaa6a3af22dd182f9e0"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/compile-D1f1phAq.js",
+      "bytes": 32451,
+      "sha256": "6d9870530758672c5fc9f3314773e32303a44a8ef9a860d5b3676ad0e263eb02"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/basis_transcoder-o4Hde_L7.js",
+      "bytes": 57529,
+      "sha256": "8478b5b6d6b74e7d3082b89f6417321d8d1dc0307f2b30d4484bb11b441696a1"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/engineNodesHandler-DstRZd0E.js",
+      "bytes": 428364,
+      "sha256": "5235e139b2a6c3d41618098eb7031d0618f3a5145e6817f09234a10e9503d417"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "bytes": 26473,
+      "sha256": "4ee55c80aac81445136f4cfdb9d133e2d577128af02cab14ba2f0b59e5cfdea8"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/dataLook-B79LXKAQ.js",
+      "bytes": 14215,
+      "sha256": "da316308d8c70b2a1d215bd0209e29c8ff8f8812dce5ead1240d070837bb0ec7"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/SetScore-BQZlZzxT.js",
+      "bytes": 10825,
+      "sha256": "19026745460206a35fd65dca3fad3e88079debaf22be7398b1d40f8678397fae"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/bootInbox-ZfWFO76m.js",
+      "bytes": 434,
+      "sha256": "ac62871ae671263cc3c7640eb60542179426a08073ea8a7245af4cdfb2952f2f"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/emptyEquipment-fBwmFmVX.js",
+      "bytes": 77,
+      "sha256": "64d7142376901b669562711949e8f2ad511c62c7f33089fa4ed00ff208957c24"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/geometryBounds-D6hTDZ2m.js",
+      "bytes": 42267,
+      "sha256": "1e7611ff34cee6c46f30b94888c82dfc8a6a2177c0b79eacbbac7fd2add4d678"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/three.core-BNyAOcZ3.js",
+      "bytes": 295588,
+      "sha256": "b2355b82917341d4899142d5da57d60534f44ac9f9660be34902cbdffcc3df52"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/materialGraph-CteREh-_.js",
+      "bytes": 32819,
+      "sha256": "e1d32c6650c335b07ff3280b31b757015bc614ee9fc6de3328049561d202d008"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/memoryResources-ConTL0Oo.js",
+      "bytes": 487,
+      "sha256": "e616349a08bb52a53a29265a8ba9bda4bfb17d5dacede6d0448d96b65ef296a0"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/look-Bw9aIf9D.js",
+      "bytes": 66,
+      "sha256": "c812e437ea718afdac4afc4e08a64f9ecb14b67d56074fed577f5b9edcb0af71"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/Cues-D2VJqsCL.js",
+      "bytes": 6096,
+      "sha256": "b050cfd01938c2d722081de79c3d2472e3647951cffb392ddc59a595baacb5f0"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/wind-CDg_obA2.js",
+      "bytes": 1276,
+      "sha256": "ea7250436613955af8349386e4fa5901e08b08927350be4597f4a25a0876b30a"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/graphBackend-CjKwUOfn.js",
+      "bytes": 2914,
+      "sha256": "70829c5f1f599245d69d4f1bc35642ebd076d565599904ab23d95166869805e9"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/shadowChunks-Ck6CmAKv.js",
+      "bytes": 3114,
+      "sha256": "20bf1e38519afa2b0d782e910a91dd2505bfee71e0ff1fa8de1e544d01b8c844"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/rolldown-runtime-DK3Fl9T5.js",
+      "bytes": 158,
+      "sha256": "a526d1bb3288ef04d001028843220a24b0867a4edf8c685b69506d6525af36ff"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/parkedDraws-BdzTnBkk.js",
+      "bytes": 7387,
+      "sha256": "7813734d1106a654b6720f71ac5f5b8ccad7960cd625bfcaca372bbac1762f7b"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/json-Dr12Y27u.js",
+      "bytes": 723,
+      "sha256": "eea02dcf802f1d98069fced3f139e705786d8ea18a9b4e55fbc4cfac0d0e5a15"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/lastEnd-CO7XKvkn.js",
+      "bytes": 23890,
+      "sha256": "8080b85d2c200c060fde6e12d1564a8f6f915c3408a24eebf3f31b2b21b9afbf"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/audioLog-CNEZ94zn.js",
+      "bytes": 65,
+      "sha256": "5ccb4d88b22da897b88e0c78647d5d774f339ef6e236f73002bbc893651feac4"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/contentCache.worker-DDj1l_TA.js",
+      "bytes": 23425,
+      "sha256": "426f44e00cba764c61a0b3a577dc9ce12bf6cab666d8227e4b2591a55291c9d0"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/tables-HCOmEZXl.js",
+      "bytes": 192,
+      "sha256": "af54b257023b15c30d87f1bf531759b3159c679fd82a02bf8d261b3c4ee2e247"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/memoryAttribution-DlUGm6mv.js",
+      "bytes": 2686,
+      "sha256": "0066d7b47a82eed6166f75ec0dc8f308b262890713e60220d6baa65d56c9b745"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/precompile-DCR5QO7A.js",
+      "bytes": 651,
+      "sha256": "7131556feac25c52f0369f1067ec7ecccd551412d163ec085b2ff432947ddf8d"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/meshopt_decoder.module-CwO9m-VD.js",
+      "bytes": 85,
+      "sha256": "a52ffc6b3d679a8e65f8ca912977e9e5374008fa5679a8d3ff0eb8a7e1e8da46"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/GLTFLoader-DnZ_kjM2.js",
+      "bytes": 48974,
+      "sha256": "5f8a416c5e71cfbe15302f9cdffc4eea24af179baced5954d606e6ff2cd41c55"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/SetScore-B-XElmrC.js",
+      "bytes": 155,
+      "sha256": "ed5b05ab683a639387889d0a95bcb9a9abbc36539a3ca0353b5780efe13dd0a3"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/postPreparation-BM0ovkLk.js",
+      "bytes": 1702,
+      "sha256": "dbe0bf289be1c40b279c4e1ee78835e9c92c68f29daa064bbc411a7b7442158c"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/client-DphdTAGR.js",
+      "bytes": 97607,
+      "sha256": "1c6224bcd3f3634ebd964c531ab12e224928ae9fd094af087ba1d05c4ecec660"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/postPreparation-BECjvRCN.js",
+      "bytes": 101,
+      "sha256": "7f0fec95b1e2041de178031506d6aadb1fb1717b43be53c8d656583bd31bd3db"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/clock-B53qIMMf.js",
+      "bytes": 5278,
+      "sha256": "cf789c2a3e16ac707892818adf51a861174ea12d430deff1b142664e6bf69236"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/precompile-DREjZDoj.js",
+      "bytes": 20838,
+      "sha256": "bd34d6cdf2b5c013f245100cb95f65dc339df437b5315c8be64e8a509fbae587"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/Tool-jTOctduU.js",
+      "bytes": 75,
+      "sha256": "98795c79e3bebdf731da92cee8c364652a864c1f09b36bb16cab10d9e08d9520"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/toon-DUqt6u0A.js",
+      "bytes": 14099,
+      "sha256": "06ffbad20ec4ed983a08afaa78ae07ece4948b93da441104400f54322739ae52"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/Stems-DUQmwD8L.js",
+      "bytes": 22851,
+      "sha256": "f3a09bebc839dd2dc2a8d7fd1784571589eccf32230cc64139c99794265eaa2a"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/declaredBank-QOtd3q2a.js",
+      "bytes": 16924,
+      "sha256": "28c74a742c5db3b0bf8ca83fe61e4c2df9957d147fd2a5bafaee98b888924ee5"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/audioLog-DDd08KrP.js",
+      "bytes": 239,
+      "sha256": "12ce81990e69112b82808c6eb9ff488e1284e92d02ec95c7e37eded31fd993f9"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/ui-B_AjnF--.js",
+      "bytes": 1631,
+      "sha256": "6bd9acec842dd429e88661bebd58c21f79113c7298c9333fb79c474230299f51"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/basis_transcoder-VXdx5NbI.wasm",
+      "bytes": 527333,
+      "sha256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/Cues-B8syKJyb.js",
+      "bytes": 246,
+      "sha256": "0ddc4b312aad48c58a2132550d9c19bf884fedeb11f41f60d54211fe7eee3ceb"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/presets-B1FSbhQe.js",
+      "bytes": 27869,
+      "sha256": "ae6dfc99ca330ff87f10f5f5b054ff1a585e36e3535adf62ba22313da111268f"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/audioCatalogue-HI6AhkNZ.js",
+      "bytes": 5639,
+      "sha256": "94a4d421506a415895b15ffde14ad8446b57b4e80b94a477f9c7d8479bff109b"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/Weapon-CNKF6Yh8.js",
+      "bytes": 2072,
+      "sha256": "6ed78ceb6fe4d4c09231e6f10f5cdf28c501e0bc66e4b3c7eacd2cb049ff6a13"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/look-InUeJZQo.js",
+      "bytes": 368,
+      "sha256": "deb018fffcc09e10141984aecfaec8226b7a87d289c24de9c28aaada46393a2b"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/scope-CDMJThrF.js",
+      "bytes": 8176,
+      "sha256": "a7a5da789f4e0a772701b57c62a8e5004bf4f6ed35dfed97300be3eb54e306b0"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/runtime-Dnap3_gP.js",
+      "bytes": 81883,
+      "sha256": "8fc68f0f05dcb695cdc8878575e346223d72c1d63480ee95e64b687fe71ce06e"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/shadowDepthVariants-BoIU_3-F.js",
+      "bytes": 87,
+      "sha256": "36bdae70b852f7d93bc4e2db4db1aa05fb633dc94def330bba13fee2e06a60a4"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/emptyLook-D2dy-xuz.js",
+      "bytes": 744,
+      "sha256": "cc4bc53d71c3df4b84092b320fcd53559fea3c6a41119085cb2348c8cb46cbc8"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/audioFiles-CqQjhF1x.js",
+      "bytes": 174,
+      "sha256": "adabd9952054e273d97219855f0f7b84109e84b7fb9a708cac7f7f926916a0d2"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/hybrid-D4G79iN2.js",
+      "bytes": 9267,
+      "sha256": "92e7ef7083194a06a4ce3cd4d1267d266b47592504eb48a76f4640092a39a1f7"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/shadowVariants-kzUh2vEP.js",
+      "bytes": 1872,
+      "sha256": "067de742b01c0e0b3a7ac8ad0688072b16c4195f4a530352538f35670fd00faf"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/ui-pEdg3azN.js",
+      "bytes": 276704,
+      "sha256": "2d9afa7006cfd6fcfee52ce5110acba18b78ac71c313c6aca74c90b0602f2d36"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/emptyEquipment-AHpV0mQX.js",
+      "bytes": 506,
+      "sha256": "bd04bc2516349bd0d62b106150c3edcf408da1ef70f9a9dfeab4d6ef1fc2aafa"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/lentLooks-tKyW0kzN.js",
+      "bytes": 39646,
+      "sha256": "7a9a75e677732289b741a8f63dba341c91fb70e3b68c1b58c90f3dbb3309a36e"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/audioFiles-DZY9teyU.js",
+      "bytes": 1228,
+      "sha256": "eeba4a7fe8ca062362aba852c7811e3bfd303c57b62f82081535d7a570e79f41"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/shaderPatches-CWlvy5Ya.js",
+      "bytes": 355979,
+      "sha256": "3c6fd4536de9e2424e72c6c456a571a2a7c9c04f09bb910757e803bfca2413da"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/practiceBoot-Dcy303Bd.js",
+      "bytes": 750595,
+      "sha256": "15434cb040657028452aa85f354970f0e6998cb60ab3ed54daaf9095961ee904"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/weaponFamily-C6_CNV1i.js",
+      "bytes": 29090,
+      "sha256": "a158d46535d3453495115112f857faccabf65ef719bf782a3d9bb0a74c9abd02"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/preload-DoxDYpot.js",
+      "bytes": 237,
+      "sha256": "66be183e5ceab4ac46ddfb78075d8d719d242d57563782862a1c20aede820f1a"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/Stems-BMtLyjWi.js",
+      "bytes": 222,
+      "sha256": "f631d2aa55f1af7c3d9219f0d2cce43c7620694f27538cc5f03f9b224900d2a7"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/style-3STfMJLR.css",
+      "bytes": 102553,
+      "sha256": "651a2e309885a2cea80b9c58bbb49a322135242f2511c04c37de55832f4ff2bf"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/runtimeProduct-DcGMIx8T.js",
+      "bytes": 1029286,
+      "sha256": "be0158efbe1bc4a24536c544b1dd0789a03923d20cce6d456a8413c43915a08d"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/Settings-CEn8EVHQ.js",
+      "bytes": 39461,
+      "sha256": "7d6774ee964a0bf53df9d885b13a9c6b7937dd0697d48bfeb7edbe889e57fdff"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/clientPlan-Dw5mY5bP.js",
+      "bytes": 30001,
+      "sha256": "2e8d679329117119d39ddb28f1b1d9042a1bea3096a50a2b32d881e499c24f7b"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/preload-helper-uBIymjUX.js",
+      "bytes": 1233,
+      "sha256": "e1a22f3f73566f21ff932e058d32243e4a118f3491b91e96893aa5ab7eb49a00"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/tables-BovtVlAx.js",
+      "bytes": 430,
+      "sha256": "d6476fce97ab773a05714c5cfab33157ea8fafc70ce4e19a65e6a4aefd98920b"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/nodeLayerFrame-PqqyriBq.js",
+      "bytes": 5668,
+      "sha256": "9bf4a74a1a08abac2ee9f536aed5eea4ad6634554ac5908867a1c3dc3560fff9"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/Settings-D52JhRXA.js",
+      "bytes": 676,
+      "sha256": "ff9000503a4ad7b780e7294ddbf6a06d8a1d29ea058a383ba397a374b459ada2"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/build-CehzHm6x.js",
+      "bytes": 190130,
+      "sha256": "7f5f2158d984caf245ab2dd3c9c687c40b39dfb26396043126ad4ed3938e978e"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/declaredBank-Dyukk5eJ.js",
+      "bytes": 78,
+      "sha256": "e8f5cad7f9b43414e7be7bd7b8c3dd80a75e1f7c1b87e7ad0bb1ff4fcfe78dfc"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/shard.json",
+      "bytes": 9947,
+      "sha256": "419507a124804ec86e90f4853f6f3629eae2002938ef00b2c12cdce5d46f773f"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/validation.json",
+      "bytes": 853,
+      "sha256": "b350648d0522e4d76cc7e09f05e119b6622f4fc3cfa42f050edc68efcd0e5a81"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/driftwood-isle/colossus-native-bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46.bin",
+      "bytes": 76711,
+      "sha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/physics/rapier.wasm",
+      "bytes": 3292228,
+      "sha256": "2935a533335952cf160de69186d03e8b3ad2895b65d20df1b74d197a7498bd6f"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/assets/models/driftwood-fp/fp-arms.glb",
+      "bytes": 373240,
+      "sha256": "2c233b8c91c82a26c8fbfd3867095cbfec6cec81caa9bd9a12b243075236550a"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/sim/client-scripts.json",
+      "bytes": 46,
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/sim/scripts.json",
+      "bytes": 1393,
+      "sha256": "553231793d1bf472aa448b05ee21887b373e73e57e85ccbc9bc3b8ed2bb12323"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/sim/plumbing.json",
+      "bytes": 18,
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/sim/hooks.json",
+      "bytes": 40,
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/sim/sim.json",
+      "bytes": 111,
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/state/migrations.json",
+      "bytes": 18,
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/state/state.json",
+      "bytes": 539,
+      "sha256": "86cc6e3942d5976324ee7a2006b490991bc665d454880b4328392693a38da6ec"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/tiles.json",
+      "bytes": 24,
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/props.json",
+      "bytes": 15,
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/weather.json",
+      "bytes": 24,
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/movers.json",
+      "bytes": 14,
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/water.json",
+      "bytes": 13,
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/edge.json",
+      "bytes": 16835,
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/days.json",
+      "bytes": 21,
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/traversal.json",
+      "bytes": 30,
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/spawn.json",
+      "bytes": 38,
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/terrain.json",
+      "bytes": 37,
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/collision.json",
+      "bytes": 23,
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/world/navigation.json",
+      "bytes": 20,
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/combat/encounters.json",
+      "bytes": 18,
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/combat/items.json",
+      "bytes": 103,
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/combat/strikes.json",
+      "bytes": 24,
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/look/look.json",
+      "bytes": 6557,
+      "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/look/materials.json",
+      "bytes": 22,
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/ui/card.json",
+      "bytes": 18,
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/ui/ui.json",
+      "bytes": 52,
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/ui/compendium.json",
+      "bytes": 28,
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/actors/creatures.json",
+      "bytes": 52,
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/actors/crowds.json",
+      "bytes": 14,
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/actors/strikes.json",
+      "bytes": 751,
+      "sha256": "bbfeec9fee2d33773bd8411186033b381c85c04b10832a2bdd0eacca29577659"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/actors/moves.json",
+      "bytes": 187,
+      "sha256": "54b09ff761dfbd430c15c163cd39db5c244479bc157efbc3fef81922c7eb6ae6"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/actors/species-programs.json",
+      "bytes": 1624,
+      "sha256": "d0f83d5128ff4d503fa8108b0d7f8976e34a602ad8cf86f97935001e33e6b6c0"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/actors/species.json",
+      "bytes": 24,
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/actors/spawns.json",
+      "bytes": 160,
+      "sha256": "4469702b9f3383e77f6ba7b02f97c92cee0191121929ad7462e53b009238ba80"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/audio/audio.json",
+      "bytes": 68,
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/quests/quests.json",
+      "bytes": 64,
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/held/arms.json",
+      "bytes": 895,
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/economy/ledger.json",
+      "bytes": 14,
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/sections/economy/loot.json",
+      "bytes": 437,
+      "sha256": "6de02e5f66db07ed2e5681cc3ab004a80bbd4fa5ec34fccc204e7e00dc8bc741"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/blobs/wasm/26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699.wasm",
+      "bytes": 13557,
+      "sha256": "26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/blobs/json/939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6.json",
+      "bytes": 4815,
+      "sha256": "939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json",
+      "bytes": 493,
+      "sha256": "4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "bytes": 2520,
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635"
+    },
+    {
+      "path": "tmp/colossus-native-preview-dist-build1/practice-product/blobs/json/8ffb2649d66b25c1850770bd99473dd41f8417db5a1fdfbb990e077fe2cb435d.json",
+      "bytes": 42527,
+      "sha256": "8ffb2649d66b25c1850770bd99473dd41f8417db5a1fdfbb990e077fe2cb435d"
+    },
+    {
+      "path": "scripts/qa-colossus-native-observer.mjs",
+      "bytes": 15256,
+      "sha256": "704c5c595ac8b704d75d77092a41ffd321a91a38713062bdd86e4381896ddebf"
+    },
+    {
+      "path": "scripts/measure-colossus-world-contact.mjs",
+      "bytes": 4592,
+      "sha256": "c581e587a69884124781270f96c1d5d83d61f5eafa7ac35753ba9a98c533f3e9"
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/tidalGiantsCombat.ts",
+      "bytes": 5832,
+      "sha256": "a94b7d52f9df2f43eab6e98dfe645f5093d1db3a6d8398098230549c5585946e"
+    },
+    {
+      "path": "src/shards/driftwood-isle/behaviour/tide-root-colossus.as",
+      "bytes": 2893,
+      "sha256": "f95eeb9abd37f25c9fa493b98e09adf65ab71406a978d5ed4bad944784ffd774"
+    }
+  ]
+}

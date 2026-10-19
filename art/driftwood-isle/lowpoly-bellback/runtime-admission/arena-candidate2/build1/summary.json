@@ -1,0 +1,645 @@
+{
+  "schema": "wildshard.bellback.candidate2-build1.v1",
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "sourceHash": "83d9d2d27fdd83e4e14bc488ce5ee29619efd0e4fb9f247d9ef9a9a8e20117d9",
+  "summary": {
+    "deadMinimum": -0.012449061620259272,
+    "frames": 430,
+    "minimum": -0.012449061620259272,
+    "framesBelow": 1
+  },
+  "deadFrames": 145,
+  "worstFrame": {
+    "deathT": 1,
+    "ragdoll": {
+      "build": "rigid",
+      "state": "live",
+      "bodies": 1
+    },
+    "originalMeshes": [
+      {
+        "name": "Clapper stem",
+        "joint": "clapper",
+        "minHeight": 1.2164625611327438,
+        "maxHeight": 2.5591861829175286,
+        "below": 0
+      },
+      {
+        "name": "Clapper weight",
+        "joint": "clapper",
+        "minHeight": 1.030071405237777,
+        "maxHeight": 1.484379920949209,
+        "below": 0
+      },
+      {
+        "name": "Hollow cast bell",
+        "joint": "bell",
+        "minHeight": 1.0975985502385583,
+        "maxHeight": 2.78235527273182,
+        "below": 0
+      },
+      {
+        "name": "Arch left",
+        "joint": "body",
+        "minHeight": 1.98568874378509,
+        "maxHeight": 2.9720977832866993,
+        "below": 0
+      },
+      {
+        "name": "Arch right",
+        "joint": "body",
+        "minHeight": 2.111140642111536,
+        "maxHeight": 3.014241008883573,
+        "below": 0
+      },
+      {
+        "name": "Barrel timber hull",
+        "joint": "body",
+        "minHeight": 0.3805688687135671,
+        "maxHeight": 1.5715832706576975,
+        "below": 0
+      },
+      {
+        "name": "Broken ship rib -1 0",
+        "joint": "body",
+        "minHeight": 0.5035607425256785,
+        "maxHeight": 2.454822472072806,
+        "below": 0
+      },
+      {
+        "name": "Broken ship rib -1 1",
+        "joint": "body",
+        "minHeight": 0.49351601825196667,
+        "maxHeight": 2.875721475979958,
+        "below": 0
+      },
+      {
+        "name": "Broken ship rib 1 0",
+        "joint": "body",
+        "minHeight": 0.6090477297112784,
+        "maxHeight": 2.6980891198662675,
+        "below": 0
+      },
+      {
+        "name": "Broken ship rib 1 1",
+        "joint": "body",
+        "minHeight": 0.5990030051441408,
+        "maxHeight": 3.095626113362073,
+        "below": 0
+      },
+      {
+        "name": "Crown tie",
+        "joint": "body",
+        "minHeight": 2.721799373261092,
+        "maxHeight": 3.0158441932717324,
+        "below": 0
+      },
+      {
+        "name": "Diagonal binding -1",
+        "joint": "body",
+        "minHeight": 1.1806290853337487,
+        "maxHeight": 2.0286714380171134,
+        "below": 0
+      },
+      {
+        "name": "Diagonal binding 1",
+        "joint": "body",
+        "minHeight": 1.288979131778774,
+        "maxHeight": 2.1376469536412515,
+        "below": 0
+      },
+      {
+        "name": "Frame rope knot",
+        "joint": "body",
+        "minHeight": 1.812160934265762,
+        "maxHeight": 2.0005437400067194,
+        "below": 0
+      },
+      {
+        "name": "Frame rope knot.001",
+        "joint": "body",
+        "minHeight": 1.9419323509424657,
+        "maxHeight": 2.1303151532022184,
+        "below": 0
+      },
+      {
+        "name": "Frame rope knot.002",
+        "joint": "body",
+        "minHeight": 1.0457864463975284,
+        "maxHeight": 1.2341692522119274,
+        "below": 0
+      },
+      {
+        "name": "Frame rope knot.003",
+        "joint": "body",
+        "minHeight": 1.175558213111799,
+        "maxHeight": 1.363941018926198,
+        "below": 0
+      },
+      {
+        "name": "Frame rope knot.004",
+        "joint": "body",
+        "minHeight": 1.9126175889118713,
+        "maxHeight": 2.1010003911717376,
+        "below": 0
+      },
+      {
+        "name": "Frame rope knot.005",
+        "joint": "body",
+        "minHeight": 2.0423890021073703,
+        "maxHeight": 2.2307718078484413,
+        "below": 0
+      },
+      {
+        "name": "Frame rope knot.006",
+        "joint": "body",
+        "minHeight": 1.141570696235135,
+        "maxHeight": 1.3299534985684431,
+        "below": 0
+      },
+      {
+        "name": "Frame rope knot.007",
+        "joint": "body",
+        "minHeight": 1.2713424629495194,
+        "maxHeight": 1.4597252652827137,
+        "below": 0
+      },
+      {
+        "name": "Lower angled rail -1",
+        "joint": "body",
+        "minHeight": 0.9009674393147407,
+        "maxHeight": 1.346889242912198,
+        "below": 0
+      },
+      {
+        "name": "Lower angled rail 1",
+        "joint": "body",
+        "minHeight": 1.007615653991138,
+        "maxHeight": 1.450878926377186,
+        "below": 0
+      },
+      {
+        "name": "Tall stern plank",
+        "joint": "body",
+        "minHeight": 1.1432914049637475,
+        "maxHeight": 3.095289708850146,
+        "below": 0
+      },
+      {
+        "name": "Upper angled rail -1",
+        "joint": "body",
+        "minHeight": 1.8465974584242986,
+        "maxHeight": 2.316456225305842,
+        "below": 0
+      },
+      {
+        "name": "Upper angled rail 1",
+        "joint": "body",
+        "minHeight": 1.951411360366592,
+        "maxHeight": 2.4022559616755643,
+        "below": 0
+      },
+      {
+        "name": "Brow ivory splinter",
+        "joint": "head",
+        "minHeight": 1.2368687864374124,
+        "maxHeight": 1.4814622811421714,
+        "below": 0
+      },
+      {
+        "name": "Brow ivory splinter.001",
+        "joint": "head",
+        "minHeight": 1.2808031991512507,
+        "maxHeight": 1.5259890166980767,
+        "below": 0
+      },
+      {
+        "name": "Continuous ivory W jaw",
+        "joint": "head",
+        "minHeight": 0.49564905704562534,
+        "maxHeight": 0.8225760396566102,
+        "below": 0
+      },
+      {
+        "name": "Inset amber eye",
+        "joint": "head",
+        "minHeight": 0.8590961645859352,
+        "maxHeight": 0.9976370381840525,
+        "below": 0
+      },
+      {
+        "name": "Inset amber eye.001",
+        "joint": "head",
+        "minHeight": 0.9198373922845349,
+        "maxHeight": 1.0665549690756961,
+        "below": 0
+      },
+      {
+        "name": "Ivory upper fang -1",
+        "joint": "head",
+        "minHeight": 0.5919619352130212,
+        "maxHeight": 0.8779390994180858,
+        "below": 0
+      },
+      {
+        "name": "Ivory upper fang 1",
+        "joint": "head",
+        "minHeight": 0.6163151122435693,
+        "maxHeight": 0.909971681688944,
+        "below": 0
+      },
+      {
+        "name": "Lower cheek timber",
+        "joint": "head",
+        "minHeight": 0.5438028278244929,
+        "maxHeight": 0.9400236953690637,
+        "below": 0
+      },
+      {
+        "name": "Lower cheek timber.001",
+        "joint": "head",
+        "minHeight": 0.6227229702687964,
+        "maxHeight": 1.0485683030910877,
+        "below": 0
+      },
+      {
+        "name": "Lower timber jaw",
+        "joint": "head",
+        "minHeight": 0.3028109586896335,
+        "maxHeight": 0.6715337413885436,
+        "below": 0
+      },
+      {
+        "name": "Mouth dark pocket",
+        "joint": "head",
+        "minHeight": 0.5297835742572943,
+        "maxHeight": 0.8074819941128908,
+        "below": 0
+      },
+      {
+        "name": "Pointed central face keel",
+        "joint": "head",
+        "minHeight": 0.7161027864070775,
+        "maxHeight": 1.3477071802706178,
+        "below": 0
+      },
+      {
+        "name": "Recessed eye shadow",
+        "joint": "head",
+        "minHeight": 0.8032956472649175,
+        "maxHeight": 1.0329783670938468,
+        "below": 0
+      },
+      {
+        "name": "Recessed eye shadow.001",
+        "joint": "head",
+        "minHeight": 0.8641536904797249,
+        "maxHeight": 1.1065687027941067,
+        "below": 0
+      },
+      {
+        "name": "Shaped orbital brow timber",
+        "joint": "head",
+        "minHeight": 0.8814855738150982,
+        "maxHeight": 1.2789439657478852,
+        "below": 0
+      },
+      {
+        "name": "Shaped orbital brow timber.001",
+        "joint": "head",
+        "minHeight": 0.9142556998589271,
+        "maxHeight": 1.3571435341719962,
+        "below": 0
+      },
+      {
+        "name": "Solid timber cranium",
+        "joint": "head",
+        "minHeight": 0.6057130202825647,
+        "maxHeight": 1.3345750194956736,
+        "below": 0
+      },
+      {
+        "name": "Swept cheek horn",
+        "joint": "head",
+        "minHeight": 0.6439076789563387,
+        "maxHeight": 1.8413035813903207,
+        "below": 0
+      },
+      {
+        "name": "Swept cheek horn.001",
+        "joint": "head",
+        "minHeight": 0.746182302051011,
+        "maxHeight": 1.9816208727407911,
+        "below": 0
+      },
+      {
+        "name": "Left fore shoulder cap",
+        "joint": "leg0",
+        "minHeight": 0.6739611694662244,
+        "maxHeight": 1.5426961336492013,
+        "below": 0
+      },
+      {
+        "name": "Left fore shoulder lashing",
+        "joint": "leg0",
+        "minHeight": 0.9388255734410222,
+        "maxHeight": 1.3660141891640478,
+        "below": 0
+      },
+      {
+        "name": "Left fore shoulder lashing.001",
+        "joint": "leg0",
+        "minHeight": 1.0600762753363142,
+        "maxHeight": 1.4872648910593398,
+        "below": 0
+      },
+      {
+        "name": "Left fore stone foot",
+        "joint": "leg0",
+        "minHeight": 0.012418660900721079,
+        "maxHeight": 0.8131723072705199,
+        "below": 0
+      },
+      {
+        "name": "Left fore timber leg",
+        "joint": "leg0",
+        "minHeight": 0.22292691071243098,
+        "maxHeight": 1.4892103874891518,
+        "below": 0
+      },
+      {
+        "name": "Left fore toe -0.23",
+        "joint": "leg0",
+        "minHeight": 0.2836646916556447,
+        "maxHeight": 0.6811736680624563,
+        "below": 0
+      },
+      {
+        "name": "Left fore toe 0.23",
+        "joint": "leg0",
+        "minHeight": 0.1443949442162875,
+        "maxHeight": 0.5419039025771326,
+        "below": 0
+      },
+      {
+        "name": "Left hind shoulder cap",
+        "joint": "leg2",
+        "minHeight": 0.9710599767390704,
+        "maxHeight": 1.5281977974381107,
+        "below": 0
+      },
+      {
+        "name": "Left hind shoulder lashing",
+        "joint": "leg2",
+        "minHeight": 0.8708137751475533,
+        "maxHeight": 1.5306470866141808,
+        "below": 0
+      },
+      {
+        "name": "Left hind shoulder lashing.001",
+        "joint": "leg2",
+        "minHeight": 0.9257394562987429,
+        "maxHeight": 1.5855727677653704,
+        "below": 0
+      },
+      {
+        "name": "Left hind stone foot",
+        "joint": "leg2",
+        "minHeight": -0.012449061620259272,
+        "maxHeight": 0.755570247319497,
+        "below": 7
+      },
+      {
+        "name": "Left hind timber leg",
+        "joint": "leg2",
+        "minHeight": 0.251877251652445,
+        "maxHeight": 1.4988153126209909,
+        "below": 0
+      },
+      {
+        "name": "Left hind toe -0.23",
+        "joint": "leg2",
+        "minHeight": 0.427792390516629,
+        "maxHeight": 0.7808965522012841,
+        "below": 0
+      },
+      {
+        "name": "Left hind toe 0.23",
+        "joint": "leg2",
+        "minHeight": 0.4112874583179291,
+        "maxHeight": 0.7643916200024705,
+        "below": 0
+      },
+      {
+        "name": "Right fore shoulder cap",
+        "joint": "leg1",
+        "minHeight": 0.7818426515021883,
+        "maxHeight": 1.6082577779828853,
+        "below": 0
+      },
+      {
+        "name": "Right fore shoulder lashing",
+        "joint": "leg1",
+        "minHeight": 0.9894896718059272,
+        "maxHeight": 1.4797692886721734,
+        "below": 0
+      },
+      {
+        "name": "Right fore shoulder lashing.001",
+        "joint": "leg1",
+        "minHeight": 1.1043720518725877,
+        "maxHeight": 1.594651668738834,
+        "below": 0
+      },
+      {
+        "name": "Right fore stone foot",
+        "joint": "leg1",
+        "minHeight": 0.15836198281738234,
+        "maxHeight": 0.9685336289987845,
+        "below": 0
+      },
+      {
+        "name": "Right fore timber leg",
+        "joint": "leg1",
+        "minHeight": 0.37923494826998194,
+        "maxHeight": 1.5734346795753709,
+        "below": 0
+      },
+      {
+        "name": "Right fore toe -0.23",
+        "joint": "leg1",
+        "minHeight": 0.2934290639473147,
+        "maxHeight": 0.6715963527361737,
+        "below": 0
+      },
+      {
+        "name": "Right fore toe 0.23",
+        "joint": "leg1",
+        "minHeight": 0.4821898534740967,
+        "maxHeight": 0.8603571422629557,
+        "below": 0
+      },
+      {
+        "name": "Right hind shoulder cap",
+        "joint": "leg3",
+        "minHeight": 1.0590100079925833,
+        "maxHeight": 1.6957371381768098,
+        "below": 0
+      },
+      {
+        "name": "Right hind shoulder lashing",
+        "joint": "leg3",
+        "minHeight": 0.9405264540084772,
+        "maxHeight": 1.6254648516974157,
+        "below": 0
+      },
+      {
+        "name": "Right hind shoulder lashing.001",
+        "joint": "leg3",
+        "minHeight": 0.9915648842006703,
+        "maxHeight": 1.6765032818896088,
+        "below": 0
+      },
+      {
+        "name": "Right hind stone foot",
+        "joint": "leg3",
+        "minHeight": 0.19357119815128954,
+        "maxHeight": 0.9555360264246247,
+        "below": 0
+      },
+      {
+        "name": "Right hind timber leg",
+        "joint": "leg3",
+        "minHeight": 0.4066133190698338,
+        "maxHeight": 1.5811217459678346,
+        "below": 0
+      },
+      {
+        "name": "Right hind toe -0.23",
+        "joint": "leg3",
+        "minHeight": 0.5683605555922213,
+        "maxHeight": 0.9192467195308609,
+        "below": 0
+      },
+      {
+        "name": "Right hind toe 0.23",
+        "joint": "leg3",
+        "minHeight": 0.6370580191758108,
+        "maxHeight": 0.9879441831143367,
+        "below": 0
+      }
+    ],
+    "frame": 276,
+    "gameTime": 24.166299999959808,
+    "wallTime": 34354.20000000298,
+    "stage": 4,
+    "alive": false,
+    "hp": 0,
+    "minHeight": -0.012449061620259272,
+    "below": 7,
+    "near": 14,
+    "parts": [
+      {
+        "name": "body",
+        "minHeight": 0.3805688687135671,
+        "below": 0,
+        "near": 0
+      },
+      {
+        "name": "head",
+        "minHeight": 0.3028109586896335,
+        "below": 0,
+        "near": 0
+      },
+      {
+        "name": "bell",
+        "minHeight": 1.0975985502385583,
+        "below": 0,
+        "near": 0
+      },
+      {
+        "name": "clapper",
+        "minHeight": 1.030071405237777,
+        "below": 0,
+        "near": 0
+      },
+      {
+        "name": "leg0",
+        "minHeight": 0.012418660900721079,
+        "below": 0,
+        "near": 7
+      },
+      {
+        "name": "leg1",
+        "minHeight": 0.15836198281738234,
+        "below": 0,
+        "near": 0
+      },
+      {
+        "name": "leg2",
+        "minHeight": -0.012449061620259272,
+        "below": 7,
+        "near": 7
+      },
+      {
+        "name": "leg3",
+        "minHeight": 0.19357119815128954,
+        "below": 0,
+        "near": 0
+      }
+    ]
+  },
+  "settledFeet": [
+    {
+      "name": "body",
+      "minHeight": 0.32495349906787396,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "head",
+      "minHeight": 0.2216122347692817,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "bell",
+      "minHeight": 1.0448853166035406,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "clapper",
+      "minHeight": 0.9676145998585071,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "leg0",
+      "minHeight": 0.019384031211870933,
+      "below": 0,
+      "near": 4
+    },
+    {
+      "name": "leg1",
+      "minHeight": 0.002335384631578563,
+      "below": 0,
+      "near": 4
+    },
+    {
+      "name": "leg2",
+      "minHeight": 0.013962394781628973,
+      "below": 0,
+      "near": 7
+    },
+    {
+      "name": "leg3",
+      "minHeight": 0.029126727655579998,
+      "below": 0,
+      "near": 0
+    }
+  ],
+  "hostCaveat": "Early applied-hit drain host exactly pinned; subject-routing and dead-decision corrections under separate investigation were not tested by this capture.",
+  "verdict": "One transient left hind foot failure at -12.449mm; do not relax the existing -5mm threshold. Settled3feet within20mm; all4within35mm. Real kill,12coins,Retry and empty stores pass; no gameplay/visual promotion."
+}

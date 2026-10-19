@@ -428,7 +428,7 @@ export class ShardDecisions {
   publish(event: ScriptV1Event): void {
     for (const [id, active] of this.enabled) {
       const row = this.rows[id - 1];
-      if (row !== undefined && 'spawnGroup' in row.binding && [7, 8, 9].includes(event[0])
+      if (row !== undefined && ('spawnGroup' in row.binding || this.sim.borrowedActors !== undefined) && [7, 8, 9].includes(event[0])
         && !Object.values(decisionBindingMap(row, this.registries).ids.actors ?? {}).includes(event[1])) continue;
       if (active) this.host.enqueue(id, event);
     }

@@ -1,0 +1,44 @@
+{
+  "sourceHash": "7a4c5bc237574a93d7b5b6f3325a53cf0141054aafc86082f497baff24d905a5",
+  "createdAt": "2026-10-19T05:29:37.804767+00:00",
+  "passed": true,
+  "visualAcceptance": false,
+  "worldCorpseContactAccepted": false,
+  "files": [
+    {
+      "path": "tmp/colossus-native-qa-build1-v2-run2/corpse-reward.jpg",
+      "bytes": 68338,
+      "sha256": "92859e8df77251fe64063ba2d2dd773ba620f5fe79670ee735d36e3b73153381"
+    },
+    {
+      "path": "tmp/colossus-native-qa-build1-v2-run2/entry.jpg",
+      "bytes": 76265,
+      "sha256": "888d67670ae0d9e3286ef54e83685942b255185a969ddddd234277d4bb8fc05d"
+    },
+    {
+      "path": "tmp/colossus-native-qa-build1-v2-run2/sword-result.jpg",
+      "bytes": 76737,
+      "sha256": "0489934c9d06df9e717e5f0daababc74afda5bcb9891ea327af200027657e6eb"
+    },
+    {
+      "path": "tmp/colossus-native-qa-build1-v2-run2/player-defeat.jpg",
+      "bytes": 69060,
+      "sha256": "9cd76250f92ac15bf04b54d694495b78672f4d7900bf6816ecc06f498de631f2"
+    },
+    {
+      "path": "tmp/colossus-native-qa-build1-v2-run2/report.json",
+      "bytes": 3319587,
+      "sha256": "7a7b041501d35f7a9518e767f76be2757e3d6bf2427a37ba3b03e219fd54dedf"
+    },
+    {
+      "path": "tmp/colossus-native-qa-build1-v2-run2/both-strikes-observation.jpg",
+      "bytes": 83175,
+      "sha256": "17a3ae5ddef0e1f01319163facec437b955c1ebbac6cab0cf4482a900312754e"
+    },
+    {
+      "path": "tmp/colossus-native-qa-build1-v2-run2/video/page@8e10730834ff95664d96876306688cf6.webm",
+      "bytes": 19675685,
+      "sha256": "5c19cdbf4e95b8f048c2fbac5f558a26af4a18a4144fe3b3aa9a26a0e584d5ca"
+    }
+  ]
+}

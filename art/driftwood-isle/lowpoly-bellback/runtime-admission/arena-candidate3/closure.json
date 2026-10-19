@@ -1,0 +1,127 @@
+{
+  "schema": "wildshard.source-closure.v1",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/ANATOMY-CANDIDATE.md",
+      "sha256": "35de97e591b08adca92f6d2cb9ec69c6425bd1868204185351bb50cbf40d3974",
+      "bytes": 1589
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/checkpoint.py",
+      "sha256": "3fb06ebec80288dc3d52a802ca110ded83e7dd964e0cce500acd45d2c6fe96f5",
+      "bytes": 2479
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/dimension-measurement.json",
+      "sha256": "0f241d3185f0aad08b2012265ade2d09b257194dc6e2a30641d02e0f3c0ed5f6",
+      "bytes": 5494
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/metadata.json",
+      "sha256": "7102c5ba2084311c55bfeeee832ca7e6868410c6962cd3e443f9e2505aa82475",
+      "bytes": 10104
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/support-endpoint-proof.json",
+      "sha256": "b4bab5effefc1f3c04deeba86df228aa67d737603bbc7a21cda0de2a18a632b0",
+      "bytes": 1509
+    },
+    {
+      "path": "scripts/bellback-tucked-admission.mjs",
+      "sha256": "5da77de6c9011992b407a4aeed74854f734a6fb3238717ff1b2f9d03508914ab",
+      "bytes": 2991
+    },
+    {
+      "path": "scripts/bellback-tucked-admission.test.mjs",
+      "sha256": "ee907291441335755cfbd1966143be8e01d552df1dfd14193bce77902371ba0d",
+      "bytes": 1785
+    },
+    {
+      "path": "scripts/build-bellback-tucked-preview.mjs",
+      "sha256": "9839c51a03f2f0fa1cff50c3507c706d961a6360c1effdb59c16d70b82b8ab7d",
+      "bytes": 5207
+    },
+    {
+      "path": "scripts/qa-bellback-tucked-observer.mjs",
+      "sha256": "b27b6ab71db12e6b0adc1b8b4478ab8d2d4eb746bce416d22a7b63305be83191",
+      "bytes": 12517
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bellbackTuckedClips.ts",
+      "sha256": "c23219a2ee36d6a0fa56d647aec2f2926c37b143a896061e4aa789290ebdfe1d",
+      "bytes": 6877
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bellbackTuckedPreview.ts",
+      "sha256": "f9608e0f95219481931730bf39af11d0f0772f170c224ae2508464638f8362fb",
+      "bytes": 7469
+    },
+    {
+      "path": "test/bellback-tucked-envelope.test.ts",
+      "sha256": "6bd5dc6b919fa13870a47058a30477c093f87db5f549f9403318d17d69b6a3c9",
+      "bytes": 5210
+    },
+    {
+      "path": "test/bellback-tucked-preview.test.ts",
+      "sha256": "9272e0927517e7d1f3a737e280720c8c9b411a11a0489deadae192ec160f8106",
+      "bytes": 7085
+    },
+    {
+      "path": "test/bellback-tucked-world.test.ts",
+      "sha256": "1b607aaad9e7ddd0d342fb13780c1a6fd5766d596a4a50e932efac066a82fa76",
+      "bytes": 4831
+    },
+    {
+      "path": "vite/bellback-tucked-preview.config.ts",
+      "sha256": "51544526116c8a99e19976f597dbe71d754529788773ed31d6a4200132cd8a38",
+      "bytes": 7781
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/admission.json",
+      "sha256": "936809d26f06109fdc32006ab12965f3101183086c316acfd44a7e2a94facd3a",
+      "bytes": 3507
+    }
+  ],
+  "referencedInputs": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/bellback-study-v6-frame2.glb",
+      "sha256": "f8b0d37813279d7ee1c079a2a2b498a05a9a6e4ea751846e4fef036a567596f0",
+      "bytes": 325036
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/build_bellback_v6_frame2.py",
+      "sha256": "68a955915e6836735a0c0df2454c2f168255689f2baf54ef2bea16008a410728",
+      "bytes": 17550
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/bellback-v6-native.json",
+      "sha256": "32e78a1677765c511645905ca7c48ad3e60d0cf7fac4a8dbd830d39e9f343d44",
+      "bytes": 1785369
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/mesh-map.json",
+      "sha256": "11c1672a5e38c8fd754b0dece7c8ab733d57cb8b1d27d9eb20cb1c42d8e25df6",
+      "bytes": 6767
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/metadata.json",
+      "sha256": "34ba7aa229056ad3504e6959f4c1779b198d28f9323aea9c5187d4acd3b9cb12",
+      "bytes": 3285
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/payload.bin",
+      "sha256": "b97a9df5437062aa2eb490340663c2b35ecf22ba83c83b834082d8ffe7ae7e9c",
+      "bytes": 38768
+    },
+    {
+      "path": "src/shards/driftwood-isle/behaviour/bellback.as",
+      "sha256": "69c546e693e372b29332c0b0b6376ba234d08181eb7596ee3febd9050c680e2a",
+      "bytes": 2634
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/tidalGiantsCombat.ts",
+      "sha256": "a94b7d52f9df2f43eab6e98dfe645f5093d1db3a6d8398098230549c5585946e",
+      "bytes": 5832
+    }
+  ]
+}

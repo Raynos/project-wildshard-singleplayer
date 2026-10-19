@@ -1,0 +1,51 @@
+{
+  "createdAt": "2026-10-19T05:42:21.539599+00:00",
+  "testFiles": 16,
+  "tests": 87,
+  "passed": true,
+  "browserPostfixRun": false,
+  "method": "Real borrowed authority and immutable native product; current host source fixes. Former alive-gate scheduler is explicitly a negative characterization, not production. Static assertion ties retained membership and fixed scheduling to PracticeCreature source. No agent shared source edits.",
+  "files": [
+    {
+      "path": "test/colossus-borrowed-event-subject.test.ts",
+      "bytes": 8340,
+      "sha256": "754260759cfc109b537d64420ef96e9af2ca3fed80c36abbdafd6449f287915d"
+    },
+    {
+      "path": "scripts/qa-colossus-native-observer-v2.mjs",
+      "bytes": 17233,
+      "sha256": "ccfd84146f8704b98d2b85550a680e8ed97f0877a893130b4c166eab08c3f276"
+    },
+    {
+      "path": "src/game/shardfile/decisions.ts",
+      "bytes": 46216,
+      "sha256": "b52feed31f45c3865dddec78949f470207a3bab0ce529bf3da5d429f0e4a2cde"
+    },
+    {
+      "path": "src/game/practice/PracticeCreature.ts",
+      "bytes": 16740,
+      "sha256": "ee97d17f4e90e7a74454055baefa167006122cd2299b5e614d8ce63603906dec"
+    },
+    {
+      "path": "src/game/shardfile/borrowedDecisions.ts",
+      "bytes": 24717,
+      "sha256": "bfe383dcc8c27950e10e84fbe22a91b6bfd54555252357dbb00b8f316bc5f693"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/borrowed-event-regression-green.log",
+      "bytes": 1183,
+      "sha256": "20a45207d0dc440da710f6f93706ac8281625c7d3b06717e2b2f1acf723dc25d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/borrowed-player-event-queue-fixed.json",
+      "bytes": 9163,
+      "sha256": "617b0417c7bff2fd5167ffecc2a5b4acdde17f89f452713adfcc228ca61db107"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/borrowed-player-event-steps-fixed.json",
+      "bytes": 309677,
+      "sha256": "9d7f2af2ac4a92f15a0640d7e4f812f54bb582ce531e9f357c185cfd97392723"
+    }
+  ],
+  "publicEvidenceScreening": "evidence-screening-provenance.json"
+}
