@@ -68,38 +68,30 @@ function frames(): Frame[] {
   return [base, golden, sunset, afterglow, blue, night];
 }
 
-/** Existing H4 ops, in the old descending DayCycle.segment and blendSteppeKey operand order.
+/** Existing descending DayCycle keys, with bounded smoothstep tables.
  * Each scalar has its own bounded program: all live reads are captured before any output is written. */
 export function nalatiDayChannels(): ReturnType<typeof parseClientChannels> {
   const keys = frames(), elevations = [14, 6, 1, -3, -9, -16];
   const fields = [...colours.flatMap(field => [0, 1, 2].map(axis => ({ field, axis }))), ...numbers.map(field => ({ field, axis: null }))];
   return fields.map(({ field, axis }, index) => {
     const b = new ClientChannels(`nalati.day.${String(index)}`), path = axis === null ? [field] : [field, axis];
-    const el = b.read('elevation'), live = b.read('baseline');
-    const values = keys.map(key => {
+    const descending = b.unary('neg', b.read('elevation'));
+    // A key is baseline * scale + offset. Sample the two bounded numeric
+    // tables instead of repeating five segment-selection DAGs per scalar.
+    const coefficients = keys.map(key => {
       const raw = key[field], value = Array.isArray(raw) ? raw[axis ?? 0] : raw;
-      if (value === null) return live;
+      if (value === null) return [1, 0] as const;
       if (value === undefined) throw new Error('Missing painted day key');
-      if (typeof value === 'number') return b.constant(value);
-      return 'scale' in value ? b.binary('mul', live, b.constant(value.scale)) : b.binary('add', live, b.constant(value.add));
+      if (typeof value === 'number') return [0, value] as const;
+      return 'scale' in value ? [value.scale, 0] as const : [1, value.add] as const;
     });
-    const zero = b.constant(0), one = b.constant(1), two = b.constant(2), three = b.constant(3);
-    let a = values[5] ?? zero, end = a, t = zero;
-    for (let i = 4; i >= 0; i--) {
-      const upper = elevations[i], lower = elevations[i + 1], start = values[i], next = values[i + 1];
-      if (upper === undefined || lower === undefined || start === undefined || next === undefined) throw new Error('Missing painted day segment');
-      const u = b.binary('div', b.binary('sub', b.constant(upper), el), b.constant(upper - lower));
-      const eased = b.binary('mul', b.binary('mul', u, u), b.binary('sub', three, b.binary('mul', two, u)));
-      const below = b.binary('gt', b.constant(lower), el);
-      a = b.select(below, a, start); end = b.select(below, end, next); t = b.select(below, t, eased);
-    }
-    // The two clamped endpoints blend a key with itself at zero, just as the old clock does.
-    const top = values[0] ?? zero, bottom = values[5] ?? zero;
-    const above = b.select(b.binary('gt', b.constant(14), el), zero, one), below = b.select(b.binary('gt', el, b.constant(-16)), zero, one);
-    a = b.select(above, top, b.select(below, bottom, a));
-    end = b.select(above, top, b.select(below, bottom, end));
-    t = b.select(above, zero, b.select(below, zero, t));
-    b.output('value', b.binary('add', a, b.binary('mul', b.binary('sub', end, a), t)));
+    const table = (component: 0 | 1): number => b.sample(descending, coefficients.map((value, at) => {
+      const elevation = elevations[at];
+      if (elevation === undefined) throw new Error('Missing painted day elevation');
+      return [-elevation, value[component]];
+    }), 'smoothstep');
+    const scale = table(0), offset = table(1);
+    b.output('value', b.binary('add', b.binary('mul', b.read('baseline'), scale), offset));
     const program = parseClientChannels([{ ...b.build(), numeric: { group: 'nalati.day',
       inputs: [{ input: 'elevation', owner: 'clock', path: ['elevation'] }, { input: 'baseline', owner: 'day', path }],
       outputs: [{ property: 'value', target: axis === null ? 'key' : `key.${field}`, path: [axis === null ? field : ['x', 'y', 'z'][axis] ?? 'x'] }], restoreOnly: [] } }])[0];

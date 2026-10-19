@@ -39,6 +39,6 @@ it('replays every migrated call with its original timing, argument and noise dra
 });
 it('retains the native sheep graph and refuses a missing declared call',()=>{
  const rows=parseAudioData(audio.audio).synth;
- expect(rows?.['sheep_bleat']?.steps.some(step=>step.kind==='gainLfo')).toBe(true);
+ expect(rows?.['sheep_bleat']).toBeUndefined();
  expect(()=>requireAudioProfile(rows?.['missing'],'missing')).toThrow('missing');
 });

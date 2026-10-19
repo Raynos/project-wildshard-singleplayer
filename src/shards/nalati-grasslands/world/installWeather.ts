@@ -39,7 +39,7 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
-import { audioVoicePatches } from '@wildshard/game/audio/voicePatches';
+import { steppeVoices } from '../runtime/audio/synth';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import type { Lightning as Weather, Exposed, LightningPlayer, Strike } from './Lightning';
 import { readWeatherProgram, steppeStorm, stormWind, stepStorm, stormEnv, yurtsOf, yurtShelters, exposeTrees, type YurtCircle } from './weatherStep';
@@ -156,7 +156,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   weather.onTelegraph((s) => {
     fx.telegraph(s);
     const d = Math.hypot(s.x - player.position.x, s.z - player.position.z);
-    if (d < 160 && hooks.audio) audioVoicePatches(hooks.audio).play('lightningCrackle',{pan:panOf(s.x,s.z),gain:Math.max(.15,1-d/160)});
+    if (d < 160 && hooks.audio) steppeVoices(hooks.audio).lightningCrackle(panOf(s.x, s.z), Math.max(0.15, 1 - d / 160));
   });
   weather.onStrike((s) => {
     fx.bolt(s);
@@ -165,7 +165,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   weather.onFlash((dist, bearing) => {
     fx.inCloudFlash(bearing);
     const p = player.position;
-    if (hooks.audio) audioVoicePatches(hooks.audio).play('thunder',{distance:dist,pan:panOf(p.x+Math.cos(bearing)*100,p.z+Math.sin(bearing)*100)});
+    if (hooks.audio) steppeVoices(hooks.audio).thunder(dist, panOf(p.x + Math.cos(bearing) * 100, p.z + Math.sin(bearing) * 100));
   });
   weather.onPlayerHit((dmg) => hooks.hurt?.(game.app.events.ask('weather.damage', dmg), 'Struck by lightning — get low in a storm'));
 
@@ -220,7 +220,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       if (audioT <= 0 && hooks.audio) {
         audioT = 0.25;
         const windLevel = smoothstep(6, 22, wind.speed);
-        audioVoicePatches(hooks.audio).setGroup('storm',{rain:indoors?0:weather.weather.rain,stormwind:indoors||weather.weather.state==='clear'?0:windLevel});
+        steppeVoices(hooks.audio).setStorm(indoors ? 0 : weather.weather.rain, indoors || weather.weather.state === 'clear' ? 0 : windLevel);
       }
     },
   };

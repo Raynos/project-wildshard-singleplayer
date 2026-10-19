@@ -227,8 +227,6 @@
     "./grapple/sim": "./grapple/sim.ts",
     "./practice/hookCourse": "./practice/hookCourse.ts",
     "./shardfile/sceneBuffers": "./shardfile/sceneBuffers.ts",
-    "./audio/voicePatches": "./audio/voicePatches.ts",
-    "./audio/sceneDirector": "./audio/sceneDirector.ts",
     "./stealth/controller": "./stealth/controller.ts",
     "./weapons/heldPolearm": "./weapons/heldPolearm.ts",
     "./weapons/mountedBlade": "./weapons/mountedBlade.ts",

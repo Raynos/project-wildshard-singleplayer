@@ -530,7 +530,7 @@ const spearPose=(row:PolearmRows['view']['poses']['rest']):HeldPolearmPose=>({po
 export class PolearmSet {
  private data:{parts:ReturnType<typeof createModelLibrary<never,never>>;profile:HeldPolearmProfile;javelin:ThrownProfile;view:HeldPolearmView;rows:PolearmData}|null=null;
  constructor(private readonly rows:{file:string;item:`weapon.${string}`}){}
- readonly Weapon=((owner:PolearmSet)=>class extends HeldPolearm {
+ readonly Weapon:new(world:HeldPolearmWorld,targets?:Targets,opts?:{allowUnlocked?:boolean;profile?:HeldPolearmProfile})=>HeldPolearm=((owner:PolearmSet)=>class extends HeldPolearm {
   constructor(world:HeldPolearmWorld,targets?:Targets,opts:{allowUnlocked?:boolean;profile?:HeldPolearmProfile}={}){
    const r=owner.need();super(world,targets,{profile:opts.profile??r.profile,javelin:r.javelin,view:r.view,allowUnlocked:opts.allowUnlocked??false,program:r.rows.program,presentation:r.rows.presentation,geometry:new Map(r.rows.pool.parts.map(id=>[id,owner.geometry(id)]))});
   }

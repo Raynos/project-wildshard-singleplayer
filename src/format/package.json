@@ -211,8 +211,6 @@
     "./riding": "./riding.ts",
     "./scaledPost": "./scaledPost.ts",
     "./grapple": "./grapple.ts",
-    "./voicePatches": "./voicePatches.ts",
-    "./audioScene": "./audioScene.ts",
     "./stealth": "./stealth.ts",
     "./heldMelee": "./heldMelee.ts"
   },

@@ -45,3 +45,29 @@ it('keeps twilight continuous and emits an admitted sky material graph', () => {
   const validated = validateGraph(skyDome, { trustedBudget: true });
   expect(validated.ok, JSON.stringify(validated)).toBe(true);
 });
+
+
+it('samples every day interval against the authored colour and baseline coefficients', () => {
+  const { look, day, at } = rig();
+  const elevations = [14, 6, 1, -3, -9, -16];
+  const red = [day.sun[0], 1, 1, .8, .5, .5];
+  const intensity = [1, .85, .45, 0, 0, 0];
+  const sample = (values: readonly number[], elevation: number): number => {
+    for (let i = 0; i < elevations.length - 1; i++) {
+      const upper = elevations[i], lower = elevations[i + 1], a = values[i], b = values[i + 1];
+      if (upper === undefined || lower === undefined || a === undefined || b === undefined) throw new Error('Missing day key');
+      if (elevation < lower) continue;
+      const u = Math.max(0, Math.min(1, (upper - elevation) / (upper - lower)));
+      return a + (b - a) * u * u * (3 - 2 * u);
+    }
+    return values.at(-1) ?? 0;
+  };
+  for (let elevation = -20; elevation <= 18; elevation += .125) {
+    at(elevation);
+    if (elevation >= 1.5) {
+      expect(look.keyColor.r).toBeCloseTo(sample(red, elevation), 12);
+      expect(look.keyIntensity).toBeCloseTo(day.sunI * sample(intensity, elevation), 12);
+    }
+    for (const value of [look.zenith.r, look.zenith.g, look.zenith.b]) expect(Number.isFinite(value)).toBe(true);
+  }
+});

@@ -1,15 +1,12 @@
 import { parseAudioData } from '@wildshard/sdk/audio';
 import {NALATI_PHRASES} from './audioPhrases';
-import patches from '../data/voicePatches.json' with {type:'json'};
-import scene from '../data/audioScene.json' with {type:'json'};
-
 
 const PANS = [['river', 'riverPan'], ['camp', 'campPan'], ['meltwater', 'meltPan']];
 const LEVELS = { river: 0.9, meltwater: 0.85, camp: 0.8, rain: 0.9, stormwind: 0.85 };
 const LOOPS = ['steppe-wind', 'steppe-larks', 'steppe-night', 'river', 'meltwater', 'camp', 'highwind', 'coldwind', 'rain', 'stormwind'];
 
 /** Existing Kazakh-folk calm/tension/boss catalogue, fallback order and steppe mixer data. */
-export const NALATI_AUDIO = parseAudioData({ patches,scene,synth:NALATI_PHRASES, cues: [], ambience: null, score: 'default',
+export const NALATI_AUDIO = parseAudioData({ synth:NALATI_PHRASES, cues: [], ambience: null, score: 'default',
   music: { setPlayback: { scene: { zone: 'grass', night: false, storm: false, boss: null }, stateMode: false, waitForBank: false },
     setCatalogue: { inventory: 'base', priority: true, bootSynth: false, titleStings: true, baseSamples: true, cueOverlay: true }, id: 'score.nalati', base: 'steppe-grass', slots: ['steppe-grass', 'steppe-sky', 'steppe-snow', 'steppe-night', 'steppe-storm', 'steppe-king'], bootSlots: ['title', 'steppe-grass'],
     synthLead: 'pluck', minFade: 6, source: { dir: '/assets/music/nalati/', manifestKey: 'nalati' }, sets: {}, selectMode: 'all', selection: [
@@ -54,8 +51,9 @@ export const NALATI_AUDIO = parseAudioData({ patches,scene,synth:NALATI_PHRASES,
       { id: 'melt', x: 0, z: 0, inner: 3, outer: 40, gain: 1, source: 'brook.distance' },
     ] },
   voiceBindings: [
-    ...['bowTwang','bowDraw','bowFullDraw','bowLetDown','javelinThrow','sabreSwing','arrowImpact','javelinImpact','sabreHit'].map(id=>({id:`steppe.${id}`,owner:'voices',method:'play',args:[{kind:'literal',value:id},{kind:'options',fields:{power:{kind:'field',field:'strength',fallback:1},pan:{kind:'field',field:'pan',fallback:0},gain:{kind:'field',field:'gain',fallback:1}}},{kind:'field',field:'surface',fallback:'ground'}]})),
-    { id:'steppe.thrustPending',owner:'thrust',method:'start',args:[] },
+    ...['bowTwang', 'bowDraw', 'bowFullDraw', 'bowLetDown', 'javelinThrow', 'sabreSwing'].map(method => ({ id: `steppe.${method}`, owner: 'voices', method, args: method === 'bowTwang' ? [{kind: 'field', field: 'strength', fallback: 1}] : [] })),
+    { id: 'steppe.thrustPending', owner: 'thrust', method: 'start', args: [] },
+    ...['arrowImpact', 'javelinImpact', 'sabreHit'].map(method => ({ id: `steppe.${method}`, owner: 'voices', method, args: [{kind: 'field', field: 'surface', fallback: 'ground'}, {kind: 'field', field: 'pan', fallback: 0}, {kind: 'field', field: 'gain', fallback: 1}] })),
   ],
   routing: [
     { id: 'cue.bow.loose', actions: [] },

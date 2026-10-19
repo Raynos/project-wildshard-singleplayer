@@ -1365,9 +1365,7 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "src/sdk/package.json",
-        "src/shards/nalati-grasslands/data/voicePatches.json",
-        "src/shards/nalati-grasslands/data/audioScene.json"
+        "src/sdk/package.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/audio.generated.json"

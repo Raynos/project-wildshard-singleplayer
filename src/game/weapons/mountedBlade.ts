@@ -115,7 +115,7 @@ export class BladeSet {
  private data:{rows:BladeRows;parts:ReturnType<typeof createModelLibrary<never,never>>;profile:SabreProfile;passes:MountedSwordPasses}|null=null;
  constructor(private readonly declaration:{file:string;item:`weapon.${string}`}){}
  private need():NonNullable<BladeSet['data']>{if(this.data===null)throw new Error('Blade rows not prepared');return this.data;}
- readonly Power=((owner:BladeSet)=>class extends ArcWeaponPower{constructor(deps:ArcWeaponDeps){super(deps,owner.need().rows.power);}})(this);
+ readonly Power:new(deps:ArcWeaponDeps)=>ArcWeaponPower=((owner:BladeSet)=>class extends ArcWeaponPower{constructor(deps:ArcWeaponDeps){super(deps,owner.need().rows.power);}})(this);
  readonly Weapon:MountedSwordType<SabreProfile>=((owner:BladeSet)=>class extends MountedSword<SabreProfile>{
   constructor(world:SwordWorld,targets?:Targets,opts:MountedSwordRowOptions<SabreProfile>={}){
    const data=owner.need(),material=painterlyMaterial(world.sky,{vertexColors:true,rim:.55,bands:.7,transparent:true,depthWrite:true});material.name='held-viewmodel';
