@@ -1,0 +1,164 @@
+{
+  "schema": "wildshard.conch.fullbody-event-order1-evidence.v1",
+  "createdAt": "2026-10-19T05:48:36.596137+00:00",
+  "candidate": "character-native15-motion2",
+  "host": "Frozen event-order1, source checkpoint6fb8b293d415a8f01638dca50e52132164b71034; excludes later retained-dead/borrowed-subject host fixes. Updated host must be retested before promotion.",
+  "productSourceHash": "bb2f0928b20938a942a93f8b9d27b65bebc726464ffedd359c16f19a70c9e8d0",
+  "captureChecks": {
+    "onlyConch": true,
+    "thrust": true,
+    "actualPlayerDamage": true,
+    "counter": true,
+    "guardObserved": true,
+    "actualEnemyDamage": true,
+    "enemyDefeated": true,
+    "noPostDeathStrike": false,
+    "boutLocalReward": true,
+    "retry": true,
+    "playerDefeated": true,
+    "defeatedAttackBlocked": true,
+    "finalRetry": true,
+    "emptyStorage": true,
+    "emptyUnchangedStateStore": true,
+    "counterPending": true,
+    "all15Bones": true,
+    "reentry": true,
+    "reentryPersistence": true,
+    "errors": true
+  },
+  "inheritedAssertionCorrection": {
+    "check": "noPostDeathStrike",
+    "original": false,
+    "reason": "Original harness compares exact HP before/after8second corpse hold. Natural regeneration increased HP; equality cannot prove post-death damage. Raw report retained unchanged.",
+    "renderedDeadSamples": 150,
+    "playerHealthDecreases": 0,
+    "strikePhases": [
+      "idle"
+    ],
+    "playerHealthRange": [
+      84,
+      100
+    ],
+    "observedNoPostDeathDamage": true
+  },
+  "weightedReconstruction": {
+    "canonicalPayloadSha256": "a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610",
+    "canonicalGeometryExact": true,
+    "groundY": 900,
+    "vertices": 7338,
+    "blendedVertices": 94,
+    "method": "meshWorld * bindInverse * sum(weight * boneWorld * inverseBind * bind * canonicalVertex), all four weights; captured transforms for each actual rendered frame. Canonical payload regenerated from pinned original with T(0,0,.05) Ry(pi).",
+    "thresholds": {
+      "below": -0.005,
+      "nearAbsolute": 0.02
+    },
+    "summary": {
+      "frames": 734,
+      "minimum": 0.002765252297422194,
+      "maximumMinimum": 0.15036534208161356,
+      "framesBelow": 0,
+      "framesWithoutNearContact": 696
+    },
+    "living": {
+      "frames": 584,
+      "minimum": 0.002765252297422194,
+      "maximumMinimum": 0.08731285040380499,
+      "framesBelow": 0,
+      "framesWithoutNearContact": 546
+    },
+    "settledCorpse": {
+      "frames": 141,
+      "minimum": 0.15036534208161356,
+      "maximumMinimum": 0.15036534208161356,
+      "framesBelow": 0,
+      "framesWithoutNearContact": 141
+    },
+    "phases": {
+      "idle": {
+        "frames": 26,
+        "minimum": 0.04377444608633141,
+        "maximumMinimum": 0.08561291854982755,
+        "framesBelow": 0,
+        "framesWithoutNearContact": 26
+      },
+      "approach": {
+        "frames": 48,
+        "minimum": 0.02601926943077615,
+        "maximumMinimum": 0.08731285040380499,
+        "framesBelow": 0,
+        "framesWithoutNearContact": 48
+      },
+      "thrust-defense": {
+        "frames": 30,
+        "minimum": 0.002765252297422194,
+        "maximumMinimum": 0.0811510525011272,
+        "framesBelow": 0,
+        "framesWithoutNearContact": 26
+      },
+      "guard-counter": {
+        "frames": 76,
+        "minimum": 0.008639186630148288,
+        "maximumMinimum": 0.08550547706317957,
+        "framesBelow": 0,
+        "framesWithoutNearContact": 73
+      },
+      "sword-death": {
+        "frames": 113,
+        "minimum": 0.02500332190197696,
+        "maximumMinimum": 0.15036534208161356,
+        "framesBelow": 0,
+        "framesWithoutNearContact": 113
+      },
+      "corpse-settle": {
+        "frames": 122,
+        "minimum": 0.05145747840299464,
+        "maximumMinimum": 0.15036534208161356,
+        "framesBelow": 0,
+        "framesWithoutNearContact": 122
+      },
+      "player-defeat": {
+        "frames": 319,
+        "minimum": 0.0030000059826988945,
+        "maximumMinimum": 0.08547699739574455,
+        "framesBelow": 0,
+        "framesWithoutNearContact": 288
+      }
+    }
+  },
+  "coverage": {
+    "renderedSamples": 734,
+    "encodedFrames": 2029,
+    "encodedFps": 25,
+    "videoDurationSeconds": 81.16,
+    "allFrameSheets": 43,
+    "stages": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "strikePhases": [
+      "active",
+      "idle",
+      "recover",
+      "windup"
+    ],
+    "all15BoneLocalAndWorldTransforms": true
+  },
+  "analysisAmendment": "Preflight analyzer expected15 runtime meshes. Actual renderer merges15 hardparts into1 mesh, preserving all7338 vertices in canonical source order. Corrected analyzer splits merged arrays by pinned canonical part counts and verifies every position/index/weight. Observer source unchanged; no capture alteration.",
+  "limits": [
+    "All frames and full15bone traces captured; independent visual reviewer still pending.",
+    "Phase labels are harness activity labels, may include Retry transition; alive/stage/strike fields are authoritative.",
+    "Floor clearance is not planted contact. Motion2 rejected for corpse hovering15.04cm and living contact gaps.",
+    "No animation, AI, strike timing, native model, shared engine or production asset edits.",
+    "Cloud browser; no physical phone performance claim."
+  ],
+  "acceptance": {
+    "visual": false,
+    "animation": false,
+    "collider": false,
+    "runtimePromotion": false
+  }
+}

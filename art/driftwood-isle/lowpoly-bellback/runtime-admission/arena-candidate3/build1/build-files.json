@@ -1,0 +1,932 @@
+[
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/pack/metadata.json",
+    "sha256": "4ca9dc6d87ba86a8e3d310a9a381c97d9216914fffe1b04b5eeab4947e0132ce",
+    "bytes": 3267
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/pack/payload.bin",
+    "sha256": "b97a9df5437062aa2eb490340663c2b35ecf22ba83c83b834082d8ffe7ae7e9c",
+    "bytes": 38768
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/preview.json",
+    "sha256": "22a8a7f287bac868d7d33df2634386c0f14999bb9a4b9c8b36e8460d3c646021",
+    "bytes": 4179
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/blobs/json/0695cd24b4676a46b78d24545096b4be2401c98c580ffd4e2477f6303c06d510.json",
+    "sha256": "0695cd24b4676a46b78d24545096b4be2401c98c580ffd4e2477f6303c06d510",
+    "bytes": 36049
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+    "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+    "bytes": 2520
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/blobs/json/50b7de20d03e97122cba4c502a89bb8746423379d44a430dcd1868725ed20907.json",
+    "sha256": "50b7de20d03e97122cba4c502a89bb8746423379d44a430dcd1868725ed20907",
+    "bytes": 3268
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/blobs/json/a776162d1fb120f8f579842081992a6f9a2520c44eb7e42b21a626422da7d506.json",
+    "sha256": "a776162d1fb120f8f579842081992a6f9a2520c44eb7e42b21a626422da7d506",
+    "bytes": 438
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/blobs/wasm/cd1e131532871004bcc96b8bd88ede7f2d3406118f23ac0cef6db4487b026ee1.wasm",
+    "sha256": "cd1e131532871004bcc96b8bd88ede7f2d3406118f23ac0cef6db4487b026ee1",
+    "bytes": 11144
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/actors/creatures.json",
+    "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+    "bytes": 52
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/actors/crowds.json",
+    "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+    "bytes": 14
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/actors/moves.json",
+    "sha256": "17c265fb428b10ee2d4b189b082bd893200e5b8777acef7b090f5014bc98756d",
+    "bytes": 193
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/actors/spawns.json",
+    "sha256": "a6b47e4d25f413dbca751c50583f96b9d2abc9b396a0bcb066b58859de41769d",
+    "bytes": 142
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/actors/species-programs.json",
+    "sha256": "878d631591b481ed0b872399a3faa110adfa9fdfaed87db850d05b72601c451c",
+    "bytes": 1481
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/actors/species.json",
+    "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+    "bytes": 24
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/actors/strikes.json",
+    "sha256": "4cab4060ad3340151016a57406599f328638bdfe9a64b7f6bfe7e015badf18dd",
+    "bytes": 713
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/audio/audio.json",
+    "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+    "bytes": 68
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/combat/encounters.json",
+    "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+    "bytes": 18
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/combat/items.json",
+    "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+    "bytes": 103
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/combat/strikes.json",
+    "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+    "bytes": 24
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/economy/ledger.json",
+    "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+    "bytes": 14
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/economy/loot.json",
+    "sha256": "efa44df09a8a6d28be149372f269b1fb6b719b0869b204dc10f2d8a7a36fa6a7",
+    "bytes": 429
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/held/arms.json",
+    "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+    "bytes": 895
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/look/look.json",
+    "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+    "bytes": 6557
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/look/materials.json",
+    "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+    "bytes": 22
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/quests/quests.json",
+    "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+    "bytes": 64
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/sim/client-scripts.json",
+    "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+    "bytes": 46
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/sim/hooks.json",
+    "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+    "bytes": 40
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/sim/plumbing.json",
+    "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+    "bytes": 18
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/sim/scripts.json",
+    "sha256": "711a1a96298fbbc1c1192e8adfb43a66f97eb73eb7dcb1aeabce482fc06574c5",
+    "bytes": 1393
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/sim/sim.json",
+    "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+    "bytes": 111
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/state/migrations.json",
+    "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+    "bytes": 18
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/state/state.json",
+    "sha256": "86cc6e3942d5976324ee7a2006b490991bc665d454880b4328392693a38da6ec",
+    "bytes": 539
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/ui/card.json",
+    "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+    "bytes": 18
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/ui/compendium.json",
+    "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+    "bytes": 28
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/ui/ui.json",
+    "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+    "bytes": 52
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/collision.json",
+    "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+    "bytes": 23
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/days.json",
+    "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+    "bytes": 21
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/edge.json",
+    "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+    "bytes": 16835
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/movers.json",
+    "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+    "bytes": 14
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/navigation.json",
+    "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+    "bytes": 20
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/props.json",
+    "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+    "bytes": 15
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/spawn.json",
+    "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+    "bytes": 38
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/terrain.json",
+    "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+    "bytes": 37
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/tiles.json",
+    "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+    "bytes": 24
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/traversal.json",
+    "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+    "bytes": 30
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/water.json",
+    "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+    "bytes": 13
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/sections/world/weather.json",
+    "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+    "bytes": 24
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/shard.json",
+    "sha256": "00c99b7caf5ae1d1719c9b1c09a17e0eb45ba244f8529702b24c91c8165d92dc",
+    "bytes": 9935
+  },
+  {
+    "path": "tmp/bellback-tucked-preview/motion3-build1/product/validation.json",
+    "sha256": "4806f8ea08c40223a38eef95c85f18a62233dd7f2718c08e31e752d4dfd31f1c",
+    "bytes": 853
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/Cues-BSVlteWF.js",
+    "sha256": "7c1f2dfa73f2b3170285e8402ea26468238f0bce1867584ccc4d8575dd186f91",
+    "bytes": 246
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/Cues-CGcZjQnC.js",
+    "sha256": "28c1de3979c89d14984a955e6ff8e684ce29e46be1794ab4acf1eed717692a6a",
+    "bytes": 6096
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/GLTFLoader-CitLpWWm.js",
+    "sha256": "ce5b6bdf4c659e9967666d276c31fbabc06584277149c0f32ee7e5fd874860c3",
+    "bytes": 69
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/GLTFLoader-DnZ_kjM2.js",
+    "sha256": "5f8a416c5e71cfbe15302f9cdffc4eea24af179baced5954d606e6ff2cd41c55",
+    "bytes": 48974
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/SetScore-CgB5Gcmd.js",
+    "sha256": "f3ebd34fe47287546bfb67e903a99abc70dbd55d7fa9041c73f1f2ef4f3a9acd",
+    "bytes": 155
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/SetScore-CuB-f-C5.js",
+    "sha256": "796d2df8b137b0adb1dd22e9432ab3cfc9bb1000f8f8eca819d6b5902f5c317f",
+    "bytes": 10825
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/Settings-CABrftbF.js",
+    "sha256": "a66d1fbbe05c9e256b567ac2d3c467402ec023c1148f13757426a251cd9d9252",
+    "bytes": 676
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/Settings-pvTpWorf.js",
+    "sha256": "866846def0d87fbdff7d02493aa3b615aa747dcdca87430bb034a19f52270fcc",
+    "bytes": 39461
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/Stems-DD0QGxE1.js",
+    "sha256": "1f29b300870a048606ddf4b5702af1227049a7d37b55b78240b87ddc2ec51cdf",
+    "bytes": 22851
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/Stems-aM9AuSAh.js",
+    "sha256": "d93e792baa305f16f84fbd12caaade1897109c3ea970b8f6971c0fcec70900ba",
+    "bytes": 222
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/Tool-jTOctduU.js",
+    "sha256": "98795c79e3bebdf731da92cee8c364652a864c1f09b36bb16cab10d9e08d9520",
+    "bytes": 75
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/Weapon-CNKF6Yh8.js",
+    "sha256": "6ed78ceb6fe4d4c09231e6f10f5cdf28c501e0bc66e4b3c7eacd2cb049ff6a13",
+    "bytes": 2072
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/audioCatalogue-BDwGHPSu.js",
+    "sha256": "3b079eb8a9854453956c85f2734b56756e90f238561c98ff43086ee07d67d7ff",
+    "bytes": 5639
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/audioFiles-B9qduko-.js",
+    "sha256": "000c896ec9d6f97b622f88755000f4443305f15d4594d9f8b2e769d5ce5a0db8",
+    "bytes": 174
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/audioFiles-DIuYUoUj.js",
+    "sha256": "7188092cbeb332ee8278b5d900631e0fcc4f7e83d51a1e24f9b1a8d0abf8ac3f",
+    "bytes": 1228
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/audioLog-CNEZ94zn.js",
+    "sha256": "5ccb4d88b22da897b88e0c78647d5d774f339ef6e236f73002bbc893651feac4",
+    "bytes": 65
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/audioLog-DDd08KrP.js",
+    "sha256": "12ce81990e69112b82808c6eb9ff488e1284e92d02ec95c7e37eded31fd993f9",
+    "bytes": 239
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/basis_transcoder-VXdx5NbI.wasm",
+    "sha256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a",
+    "bytes": 527333
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/basis_transcoder-o4Hde_L7.js",
+    "sha256": "8478b5b6d6b74e7d3082b89f6417321d8d1dc0307f2b30d4484bb11b441696a1",
+    "bytes": 57529
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/bootInbox-ZfWFO76m.js",
+    "sha256": "ac62871ae671263cc3c7640eb60542179426a08073ea8a7245af4cdfb2952f2f",
+    "bytes": 434
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/build-CehzHm6x.js",
+    "sha256": "7f5f2158d984caf245ab2dd3c9c687c40b39dfb26396043126ad4ed3938e978e",
+    "bytes": 190130
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/client-BzGkDBw5.js",
+    "sha256": "f2620468392361b3fa0d4fe3b7a0729f02c57d3459b90bf811427e967196779a",
+    "bytes": 97607
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/clientPlan-BMjuDS82.js",
+    "sha256": "fec4bd4f27a3439b161dcf834e5b6ed944d2ab4eb67d97d2798c247a6a249fc4",
+    "bytes": 30001
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/clock-B53qIMMf.js",
+    "sha256": "cf789c2a3e16ac707892818adf51a861174ea12d430deff1b142664e6bf69236",
+    "bytes": 5278
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/compile-DDQWQ1NF.js",
+    "sha256": "25539704faa79f381642ad5c2010ee739704f8f129f5673da69927beef18fcf2",
+    "bytes": 32451
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/contentCache.worker-DDj1l_TA.js",
+    "sha256": "426f44e00cba764c61a0b3a577dc9ce12bf6cab666d8227e4b2591a55291c9d0",
+    "bytes": 23425
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/dataLook-Bg-cFgPa.js",
+    "sha256": "994dfaf5f8a9091e321a59a30eb852c374de2351b30a141888b066e915cdee1d",
+    "bytes": 14215
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/dayCycle-e1TDlXAt.js",
+    "sha256": "92d7c55e2ecdd130c63c3fc488632ea5d2acdddfe0786f904674f8fbc7258531",
+    "bytes": 6203
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/declaredBank-CSIIscfK.js",
+    "sha256": "273a4713174756621dc16f8fa98258abd824c7d0df4ad6e44a93b6f37733e1e0",
+    "bytes": 78
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/declaredBank-DvCMeeIk.js",
+    "sha256": "fdf433ba8e1856cf6a78a726aedac5141dd937ac7266798f91381bf200c0c88d",
+    "bytes": 16924
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/driftwood-isle/bellback-native-b97a9df5437062aa2eb490340663c2b35ecf22ba83c83b834082d8ffe7ae7e9c.bin",
+    "sha256": "b97a9df5437062aa2eb490340663c2b35ecf22ba83c83b834082d8ffe7ae7e9c",
+    "bytes": 38768
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/emptyEquipment-AHpV0mQX.js",
+    "sha256": "bd04bc2516349bd0d62b106150c3edcf408da1ef70f9a9dfeab4d6ef1fc2aafa",
+    "bytes": 506
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/emptyEquipment-fBwmFmVX.js",
+    "sha256": "64d7142376901b669562711949e8f2ad511c62c7f33089fa4ed00ff208957c24",
+    "bytes": 77
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/emptyLook-ByH8maKc.js",
+    "sha256": "bd14a78f86e6398c3ff52da8cde487cb9e3b75caaacb698d14be9f7e2e631f4c",
+    "bytes": 67
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/emptyLook-D2dy-xuz.js",
+    "sha256": "cc4bc53d71c3df4b84092b320fcd53559fea3c6a41119085cb2348c8cb46cbc8",
+    "bytes": 744
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/engineNodesHandler-3M6Ftk_i.js",
+    "sha256": "6b7aec59cfe27fb98ed174e6d8c06957394d09d11a5a695c28520cd37ce148af",
+    "bytes": 428364
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/engineNodesHandler-DwlRTArU.js",
+    "sha256": "9cfb23183742d59318c9aeee61885b67ac31b68e4bb5c464998f94a7d6bd32c9",
+    "bytes": 85
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/geometryBounds-D4lEq9-d.js",
+    "sha256": "e8245164b5e931140eb393fcd43835dd51c16228f9d4a617f5e5aae819804c3d",
+    "bytes": 42267
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/graphBackend-Bdeeqr2P.js",
+    "sha256": "9ab743ba593944ccc9b2a2b1d7819dfb6956c1697ab9fa60377be92666e8eaf8",
+    "bytes": 82
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/graphBackend-DbIqQTqS.js",
+    "sha256": "0ba1dc2863d83923974d25cbf4c2390ae6952f4325027ee84efbc0b7c0ac9437",
+    "bytes": 2914
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/hybrid-CSKXudhC.js",
+    "sha256": "f020f164155dc1d635f0efed2b23490b666ad2637fa0846e2ee0b246b590c782",
+    "bytes": 9267
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/imageDecode.worker-ZOU3pmld.js",
+    "sha256": "3e4a75a497bcb0297a976855ce5083de46fa0c76e726c018b38a8746b1b4e73e",
+    "bytes": 576
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/json-Dr12Y27u.js",
+    "sha256": "eea02dcf802f1d98069fced3f139e705786d8ea18a9b4e55fbc4cfac0d0e5a15",
+    "bytes": 723
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/lastEnd-BnyoBxo2.js",
+    "sha256": "a890626b15c98f57057085be1497d74a6b170750ba970bc4cfac81092c72751a",
+    "bytes": 23890
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/lentLooks-tSvnL0Zz.js",
+    "sha256": "766cdc4f1e79de170ad6920bcbc18019d975bafbab874d04b6f0863aefb1ed90",
+    "bytes": 39646
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/look-BWm8gUmk.js",
+    "sha256": "d9fcbab1af61baaf449143e78bc76887519f440751a2e4641f5e014e2f66b35c",
+    "bytes": 368
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/look-RC0ZTdn4.js",
+    "sha256": "402cfabc613d04a384456d17b053ccb6ac1881e2366e076de0c2327fe3190257",
+    "bytes": 66
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/materialGraph-CteREh-_.js",
+    "sha256": "e1d32c6650c335b07ff3280b31b757015bc614ee9fc6de3328049561d202d008",
+    "bytes": 32819
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/memoryAttribution-DlUGm6mv.js",
+    "sha256": "0066d7b47a82eed6166f75ec0dc8f308b262890713e60220d6baa65d56c9b745",
+    "bytes": 2686
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/memoryResources-ConTL0Oo.js",
+    "sha256": "e616349a08bb52a53a29265a8ba9bda4bfb17d5dacede6d0448d96b65ef296a0",
+    "bytes": 487
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/meshopt_decoder.module-CwO9m-VD.js",
+    "sha256": "a52ffc6b3d679a8e65f8ca912977e9e5374008fa5679a8d3ff0eb8a7e1e8da46",
+    "bytes": 85
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/meshopt_decoder.module-DDLmvpjg.js",
+    "sha256": "4ee55c80aac81445136f4cfdb9d133e2d577128af02cab14ba2f0b59e5cfdea8",
+    "bytes": 26473
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/models/driftwood-fp/fp-arms.glb",
+    "sha256": "2c233b8c91c82a26c8fbfd3867095cbfec6cec81caa9bd9a12b243075236550a",
+    "bytes": 373240
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/nodeCoarseMask-BL9dSruf.js",
+    "sha256": "c9e6b79ff809441b9eae829bec23c8aaa0d10fa6f2254d8321d18033c9e8f0f2",
+    "bytes": 95
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/nodeLayerFrame-PqqyriBq.js",
+    "sha256": "9bf4a74a1a08abac2ee9f536aed5eea4ad6634554ac5908867a1c3dc3560fff9",
+    "bytes": 5668
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/parkedDraws-DkJX10RV.js",
+    "sha256": "c4557449f9b4e0dfe5e25de83340f8fb53fae8a43bd5d833a1350c867eb85903",
+    "bytes": 7387
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/physics/rapier.wasm",
+    "sha256": "2935a533335952cf160de69186d03e8b3ad2895b65d20df1b74d197a7498bd6f",
+    "bytes": 3292228
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/postPreparation-BECjvRCN.js",
+    "sha256": "7f0fec95b1e2041de178031506d6aadb1fb1717b43be53c8d656583bd31bd3db",
+    "bytes": 101
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/postPreparation-BM0ovkLk.js",
+    "sha256": "dbe0bf289be1c40b279c4e1ee78835e9c92c68f29daa064bbc411a7b7442158c",
+    "bytes": 1702
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/practice-BuEXqrWR.js",
+    "sha256": "8e5068b8bcef6c5dda41d3aa1796f7639b969b3b5f69c8c8f040d17c92e670c6",
+    "bytes": 268193
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/practiceBoot-BwwXRoZf.js",
+    "sha256": "41d9d55626e79c46bf166f86e5c2a19014d5fe1b84e0f1132896d636cf5e3a9b",
+    "bytes": 750615
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/precompile-B-sNrE7u.js",
+    "sha256": "6f39c15f47942246227fc6e366a447a0c4a61fd48a6855fb427020ee84777f10",
+    "bytes": 651
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/precompile-bwSDNk1x.js",
+    "sha256": "09397e0c5c17c5c882b3bd2e49b31cdd10cc611cda96e825c224e97ef6440356",
+    "bytes": 20838
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/preload-2fP3K9fo.js",
+    "sha256": "fa6233da00c2ff4bd442e5df529e85253627c6d5e31da1664ef1ee90ae1683bd",
+    "bytes": 237
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/preload-DiwvwiCF.js",
+    "sha256": "30709adfc1be91bc58c9e6a5300584c36905bbbac97f177a4e12a1164acf18fe",
+    "bytes": 4422
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/preload-helper-uBIymjUX.js",
+    "sha256": "e1a22f3f73566f21ff932e058d32243e4a118f3491b91e96893aa5ab7eb49a00",
+    "bytes": 1233
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/presets-B5CSAUV4.js",
+    "sha256": "5f8e67d948a3ef98680285c81d2995995cc574680e0ea268305e7868257d045b",
+    "bytes": 27869
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/prod-C5nMThY5.js",
+    "sha256": "9cacb5d99e9391d67fa860cf4b7388812eb202e10d80e2f33666f8ac7f6c0a28",
+    "bytes": 416263
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/registry-BORHZd7W.js",
+    "sha256": "5503012cef10b0a9c555160bd556848292bacf78838f79958dcbf0fdf21651dd",
+    "bytes": 93192
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/rolldown-runtime-DK3Fl9T5.js",
+    "sha256": "a526d1bb3288ef04d001028843220a24b0867a4edf8c685b69506d6525af36ff",
+    "bytes": 158
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/runtime-0bgJ9nYy.js",
+    "sha256": "4bb3d35c205c735cef39fc0ffa9d551124c37b274342a5c18e375c9fa4fae708",
+    "bytes": 81883
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/runtimeProduct-DHSBRFVT.js",
+    "sha256": "2f189e4cb80488ab7f1a75ac71d9b45d66f5418fb62514fe86c1abff464e59f4",
+    "bytes": 1029322
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/runtimeProduct-Vj_jIhAi.js",
+    "sha256": "1d4cad59b232ee1c85401e29c252bbc34ec756e69f6eb0f610b15b2232e6591b",
+    "bytes": 141
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/scope-CDMJThrF.js",
+    "sha256": "a7a5da789f4e0a772701b57c62a8e5004bf4f6ed35dfed97300be3eb54e306b0",
+    "bytes": 8176
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/shaderPatches-CWlvy5Ya.js",
+    "sha256": "3c6fd4536de9e2424e72c6c456a571a2a7c9c04f09bb910757e803bfca2413da",
+    "bytes": 355979
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/shadowChunks-CTmZ2FKh.js",
+    "sha256": "6091527c15f70db0f50ca718cf633a01a48f1e8ec82230e47fdac9e999194067",
+    "bytes": 3114
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/shadowDepthVariants-BoIU_3-F.js",
+    "sha256": "36bdae70b852f7d93bc4e2db4db1aa05fb633dc94def330bba13fee2e06a60a4",
+    "bytes": 87
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/shadowVariants-kzUh2vEP.js",
+    "sha256": "067de742b01c0e0b3a7ac8ad0688072b16c4195f4a530352538f35670fd00faf",
+    "bytes": 1872
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/style-3STfMJLR.css",
+    "sha256": "651a2e309885a2cea80b9c58bbb49a322135242f2511c04c37de55832f4ff2bf",
+    "bytes": 102553
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/tables-BovtVlAx.js",
+    "sha256": "d6476fce97ab773a05714c5cfab33157ea8fafc70ce4e19a65e6a4aefd98920b",
+    "bytes": 430
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/tables-HCOmEZXl.js",
+    "sha256": "af54b257023b15c30d87f1bf531759b3159c679fd82a02bf8d261b3c4ee2e247",
+    "bytes": 192
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/three.core-BNyAOcZ3.js",
+    "sha256": "b2355b82917341d4899142d5da57d60534f44ac9f9660be34902cbdffcc3df52",
+    "bytes": 295588
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/time-CnjfkoR3.js",
+    "sha256": "0be04e0464131015abf880cb51bdc55a0652c81d50e35aa55d8b96ce915da59b",
+    "bytes": 8414
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/toon-oIVqGj8W.js",
+    "sha256": "815bd2f084f8489f4380013fa6611ec9039a2813431282058e749d278ea96e52",
+    "bytes": 14099
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/ui-BZFY1AYf.js",
+    "sha256": "f3d679d6f107679e290a8a58016c6e5111b3be2519b9bf666b98cd40ee1e6624",
+    "bytes": 1631
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/ui-bybgGOje.js",
+    "sha256": "5d1943dcbb9f36a23a79b4185c027bd0985e3a90f3aa7d6306978fde996b0fc0",
+    "bytes": 276704
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/weaponFamily-DoLlE5pe.js",
+    "sha256": "092c92f713ddea7546d464f71b52f9f4122b1aa04b2f59a1560f7e6f4c17fb20",
+    "bytes": 29090
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/assets/wind-CDg_obA2.js",
+    "sha256": "ea7250436613955af8349386e4fa5901e08b08927350be4597f4a25a0876b30a",
+    "bytes": 1276
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/bellback-preview.json",
+    "sha256": "22a8a7f287bac868d7d33df2634386c0f14999bb9a4b9c8b36e8460d3c646021",
+    "bytes": 4179
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/index.html",
+    "sha256": "0869ce910c00dc76097dae86b60f1453d2e1fddf8ece21702aa7a99c7e2bf258",
+    "bytes": 1597
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/blobs/json/0695cd24b4676a46b78d24545096b4be2401c98c580ffd4e2477f6303c06d510.json",
+    "sha256": "0695cd24b4676a46b78d24545096b4be2401c98c580ffd4e2477f6303c06d510",
+    "bytes": 36049
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+    "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+    "bytes": 2520
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/blobs/json/50b7de20d03e97122cba4c502a89bb8746423379d44a430dcd1868725ed20907.json",
+    "sha256": "50b7de20d03e97122cba4c502a89bb8746423379d44a430dcd1868725ed20907",
+    "bytes": 3268
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/blobs/json/a776162d1fb120f8f579842081992a6f9a2520c44eb7e42b21a626422da7d506.json",
+    "sha256": "a776162d1fb120f8f579842081992a6f9a2520c44eb7e42b21a626422da7d506",
+    "bytes": 438
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/blobs/wasm/cd1e131532871004bcc96b8bd88ede7f2d3406118f23ac0cef6db4487b026ee1.wasm",
+    "sha256": "cd1e131532871004bcc96b8bd88ede7f2d3406118f23ac0cef6db4487b026ee1",
+    "bytes": 11144
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/actors/creatures.json",
+    "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+    "bytes": 52
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/actors/crowds.json",
+    "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+    "bytes": 14
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/actors/moves.json",
+    "sha256": "17c265fb428b10ee2d4b189b082bd893200e5b8777acef7b090f5014bc98756d",
+    "bytes": 193
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/actors/spawns.json",
+    "sha256": "a6b47e4d25f413dbca751c50583f96b9d2abc9b396a0bcb066b58859de41769d",
+    "bytes": 142
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/actors/species-programs.json",
+    "sha256": "878d631591b481ed0b872399a3faa110adfa9fdfaed87db850d05b72601c451c",
+    "bytes": 1481
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/actors/species.json",
+    "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+    "bytes": 24
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/actors/strikes.json",
+    "sha256": "4cab4060ad3340151016a57406599f328638bdfe9a64b7f6bfe7e015badf18dd",
+    "bytes": 713
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/audio/audio.json",
+    "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+    "bytes": 68
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/combat/encounters.json",
+    "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+    "bytes": 18
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/combat/items.json",
+    "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+    "bytes": 103
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/combat/strikes.json",
+    "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+    "bytes": 24
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/economy/ledger.json",
+    "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+    "bytes": 14
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/economy/loot.json",
+    "sha256": "efa44df09a8a6d28be149372f269b1fb6b719b0869b204dc10f2d8a7a36fa6a7",
+    "bytes": 429
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/held/arms.json",
+    "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+    "bytes": 895
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/look/look.json",
+    "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+    "bytes": 6557
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/look/materials.json",
+    "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+    "bytes": 22
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/quests/quests.json",
+    "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+    "bytes": 64
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/sim/client-scripts.json",
+    "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+    "bytes": 46
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/sim/hooks.json",
+    "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+    "bytes": 40
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/sim/plumbing.json",
+    "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+    "bytes": 18
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/sim/scripts.json",
+    "sha256": "711a1a96298fbbc1c1192e8adfb43a66f97eb73eb7dcb1aeabce482fc06574c5",
+    "bytes": 1393
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/sim/sim.json",
+    "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+    "bytes": 111
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/state/migrations.json",
+    "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+    "bytes": 18
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/state/state.json",
+    "sha256": "86cc6e3942d5976324ee7a2006b490991bc665d454880b4328392693a38da6ec",
+    "bytes": 539
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/ui/card.json",
+    "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+    "bytes": 18
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/ui/compendium.json",
+    "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+    "bytes": 28
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/ui/ui.json",
+    "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+    "bytes": 52
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/collision.json",
+    "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+    "bytes": 23
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/days.json",
+    "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+    "bytes": 21
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/edge.json",
+    "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+    "bytes": 16835
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/movers.json",
+    "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+    "bytes": 14
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/navigation.json",
+    "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+    "bytes": 20
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/props.json",
+    "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+    "bytes": 15
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/spawn.json",
+    "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+    "bytes": 38
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/terrain.json",
+    "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+    "bytes": 37
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/tiles.json",
+    "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+    "bytes": 24
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/traversal.json",
+    "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+    "bytes": 30
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/water.json",
+    "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+    "bytes": 13
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/sections/world/weather.json",
+    "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+    "bytes": 24
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/shard.json",
+    "sha256": "00c99b7caf5ae1d1719c9b1c09a17e0eb45ba244f8529702b24c91c8165d92dc",
+    "bytes": 9935
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice-product/validation.json",
+    "sha256": "4806f8ea08c40223a38eef95c85f18a62233dd7f2718c08e31e752d4dfd31f1c",
+    "bytes": 853
+  },
+  {
+    "path": "tmp/bellback-tucked-preview-dist-build1/practice.html",
+    "sha256": "0869ce910c00dc76097dae86b60f1453d2e1fddf8ece21702aa7a99c7e2bf258",
+    "bytes": 1597
+  }
+]

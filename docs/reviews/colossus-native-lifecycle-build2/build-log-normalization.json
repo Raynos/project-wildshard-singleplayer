@@ -1,0 +1,7 @@
+{
+  "method": "Strip trailing line whitespace only; build outcomes unchanged.",
+  "originalSha256": "ff07edb052065b6798d5b24b2015632df2d6d9e0b8beff7376807afef5ae3810",
+  "originalBytes": 12004,
+  "sha256": "1f94eb28974d11ab05702c52735142b9bea7d9e2a4e4649e5f2aab22327dece7",
+  "bytes": 12003
+}

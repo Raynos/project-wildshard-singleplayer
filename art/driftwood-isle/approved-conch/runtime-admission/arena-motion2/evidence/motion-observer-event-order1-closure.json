@@ -1,0 +1,247 @@
+{
+  "schema": "wildshard.conch.motion-observer-freeze.v1",
+  "files": {
+    "scripts/qa-conch-motion-observer.mjs": {
+      "sha256": "350d781e8a841a7f97e9ae9cc61cfb7f729232b7f451c537b8a492e61aac5fa9",
+      "bytes": 18180
+    },
+    "scripts/measure-conch-world-contact.mjs": {
+      "sha256": "1983d86ccba0266e3b81be5e5b8cd67696f92bcab32c820db585a8a76d7c5da5",
+      "bytes": 6590
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/motion-observer-event-order1-receipt.json": {
+      "sha256": "f1400f4af292605dacff2d0ec13f1824d3d780a68c5303ad0a3583d2dd3b6af3",
+      "bytes": 5454
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/motion-observer-event-order1-observation.json": {
+      "sha256": "6564cb27aed89df33d87369b1e48c2123a31293cab9657048e6297b18cf17864",
+      "bytes": 498720
+    },
+    "tmp/conch-motion-observer-event-order1/corpse-reward.jpg": {
+      "sha256": "91257509cceeec8e5a896ad22c7e4762deebcdbc16f7679eb28726399c861f72",
+      "bytes": 56717
+    },
+    "tmp/conch-motion-observer-event-order1/render-trace.json": {
+      "sha256": "40314a62b1038a9657507d09c56024430b08b34344ea235b141a17837e00f18b",
+      "bytes": 6748657
+    },
+    "tmp/conch-motion-observer-event-order1/entry.jpg": {
+      "sha256": "bdd643ab28d0e47a68dc47439d8e589a486e0f8e107db4475e0da9991b1db24b",
+      "bytes": 59439
+    },
+    "tmp/conch-motion-observer-event-order1/served-build-manifest.json": {
+      "sha256": "61025bc93e33cbc600bab6699b21895c2d198173adc0b1a87b2479fe4cd3f250",
+      "bytes": 21553
+    },
+    "tmp/conch-motion-observer-event-order1/sword-result.jpg": {
+      "sha256": "086ed464435d6f76763775589b9c639c0333ca59bced4d401d1ad28d8d719a56",
+      "bytes": 59234
+    },
+    "tmp/conch-motion-observer-event-order1/player-defeat.jpg": {
+      "sha256": "7f6ee1fe6b13537e59dee6e2c1cafd20b2e153a39a54a805faf566551251db26",
+      "bytes": 60802
+    },
+    "tmp/conch-motion-observer-event-order1/weighted-contact.json": {
+      "sha256": "8eea255a8d3a89f568d41af560d7c8268c694e45106c66f32c4289c61a92d404",
+      "bytes": 7698612
+    },
+    "tmp/conch-motion-observer-event-order1/runtime-geometry.json": {
+      "sha256": "245833a07462c8b44b68270786fc67bc13f399f6d98d8ff9c2cf58d74c352ef5",
+      "bytes": 548452
+    },
+    "tmp/conch-motion-observer-event-order1/report.json": {
+      "sha256": "6564cb27aed89df33d87369b1e48c2123a31293cab9657048e6297b18cf17864",
+      "bytes": 498720
+    },
+    "tmp/conch-motion-observer-event-order1/both-strikes-observation.jpg": {
+      "sha256": "8788a5533f0167fdec31d361e94ab847559b4412637b3922d52e49b04c0bfb2f",
+      "bytes": 61343
+    },
+    "tmp/conch-motion-observer-event-order1/guard-counter.jpg": {
+      "sha256": "8f8c9cf7b89d769a132c7199b2eb2193142e43c03f33ab014027c518527c6f44",
+      "bytes": 59411
+    },
+    "tmp/conch-motion-observer-event-order1/video/page@19c3902e0d512212de1f1b4bea8b1cdc.webm": {
+      "sha256": "90312f32ea7951d80fa9c5a948a63ae8a61bdc90aa718e580113feab102feeba",
+      "bytes": 7625150
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-31.jpg": {
+      "sha256": "a0681048a277d819e088d5246dc3cf8307a3d0c6e12ce6ce07a6d30d1af27460",
+      "bytes": 301310
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-04.jpg": {
+      "sha256": "205a5b92ba475a3d18652a55c1dfb13cd4f9fe8e9165c693f5753eecb195b212",
+      "bytes": 301081
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-18.jpg": {
+      "sha256": "b5244c5af164f696840b9db326f6f619792a8ad93f009b65aa09b1764f211cb6",
+      "bytes": 298012
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-29.jpg": {
+      "sha256": "7cf1ab66a9ee108600d45e73056a7e4e8bbc7020511228fab893c5482aadc8f1",
+      "bytes": 301314
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-12.jpg": {
+      "sha256": "47fd83469679f2b45b8e6508daeea8c465398f1fafe4cda3568b9aa3d0ec9432",
+      "bytes": 308124
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-35.jpg": {
+      "sha256": "a1a5838edfcc7f0b6db4a34b676e35c41bf6f3556dca049ae3c3154e5d9f5612",
+      "bytes": 301213
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-09.jpg": {
+      "sha256": "22977e2488a383194b499ab375f6275361c4b3f73f64bbfcb207a394d172b0fc",
+      "bytes": 295608
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-08.jpg": {
+      "sha256": "e4119f0a6d9ee52d0f9d57b8ab18b3028d9d514bb7d739b9e212bccd67915a8b",
+      "bytes": 300503
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-14.jpg": {
+      "sha256": "f4b31b9a0f5d545c3806a0df57de163b45879f4f272816e063810aa8a6b6ee2d",
+      "bytes": 298978
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-43.jpg": {
+      "sha256": "8c56ba0777b66597e19034cdc1cae46568817430f31e28fe9c2fd84500df9f52",
+      "bytes": 43568
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-39.jpg": {
+      "sha256": "9ab0c7b3236e2b4713d4bd1efc33ca529486a4e98a0ab3c0a3f395ac11006498",
+      "bytes": 300736
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-34.jpg": {
+      "sha256": "5c3c44a68b4b3bfce7fb4aecf3e06dcd1c5689ea196c4a87bebc51e9cd972df7",
+      "bytes": 302876
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-23.jpg": {
+      "sha256": "a57c17ee64fe57e52cf48e1bd7e3c84b42f6f418c81e4e7a96360399ccee2c60",
+      "bytes": 298272
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-01.jpg": {
+      "sha256": "604027388525fbf4a21367d7a5d4f65fbc32571c324b48c6259cadff379d78b1",
+      "bytes": 84442
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-37.jpg": {
+      "sha256": "c8ca4a5fac2aaa5bee5ea1e272576810aec5c2f0801b46bb574d2735bfc807f1",
+      "bytes": 301673
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-40.jpg": {
+      "sha256": "e35cd23f832ea5953996f0d096c57dc67591ca473e40c34ae000992c8a7abe78",
+      "bytes": 300842
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-25.jpg": {
+      "sha256": "8cc40efaeabeb68a6517bd67d7d49b2696d43ec76dfa69edfa3b9042e2c8c9c8",
+      "bytes": 303408
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-28.jpg": {
+      "sha256": "ab96d3e7e23fbb310da463adbe077f1a1ff19b29af6cee714946c97b94a02fc9",
+      "bytes": 302909
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-11.jpg": {
+      "sha256": "97a8fc6ec312fdcc9836bebe0f713f6e6654109e7e8dc0f456d85c582442f7e4",
+      "bytes": 308185
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-16.jpg": {
+      "sha256": "d935c4818e0ab897ec5ff461f62cf2bd9b7e7af2cbce8f2fa409489d0158e6d0",
+      "bytes": 298260
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-27.jpg": {
+      "sha256": "638f9a7e82d9fff3b8f913fe0f9780ce022b1beeb325ff115f3b5240b408c7db",
+      "bytes": 301213
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-07.jpg": {
+      "sha256": "c90d627b6488b011c3d5ac8f7798a60b931259b6a2f20d4d1fe66a8c110f6144",
+      "bytes": 301211
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-13.jpg": {
+      "sha256": "6c14eb27319b603840b450508d8740eaf145ada8d3f98858a32dae072030611e",
+      "bytes": 297687
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-42.jpg": {
+      "sha256": "18e170e3b390da3e23c5904e62518ec4590ecac3696a41b78d5942a4f4385399",
+      "bytes": 188154
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-41.jpg": {
+      "sha256": "d1e196af8d7fd06cade47db55d659285f7921196edc75162b207738a5caa8278",
+      "bytes": 298897
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-30.jpg": {
+      "sha256": "115026c6944222919de3efb628524571a51dcd5e585ea71c393dde001bcdc043",
+      "bytes": 303261
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-05.jpg": {
+      "sha256": "6dfd08400e07207c90177fa98a777974d1ed2965f94316540489be51afd0d24f",
+      "bytes": 295023
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-20.jpg": {
+      "sha256": "a145e687345b5055902767768400e265ccb5281dfb38e0d0d9458cf3aac3db8d",
+      "bytes": 298554
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/index.json": {
+      "sha256": "ec619dfd98871073b04a7583b6a0819ca67a3342ba36638825bd272ba321c566",
+      "bytes": 4405
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-22.jpg": {
+      "sha256": "0a3f0b980ba6f2046a5a26a1a4449723bcb2be7c927029da8cfc2c54f53e4884",
+      "bytes": 297930
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-32.jpg": {
+      "sha256": "875694fd7651271593085fb9fd3f128ccb799ac4371112c9a676ae75a5164449",
+      "bytes": 303849
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-02.jpg": {
+      "sha256": "6cb14c1523a0b73ba654f2fc42efa12b67ca3ee5df51c8c54cfa8c78a1ab50a7",
+      "bytes": 124003
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-24.jpg": {
+      "sha256": "35992692482ecba512c8e40efa4a851d9c9b11547e0fe40e8f6c96f50dd75d0d",
+      "bytes": 300278
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-33.jpg": {
+      "sha256": "c100cdfcbc71f5ec7b3bb2a94df43ef156af72ba8150e4045a41cfa7f4920874",
+      "bytes": 301254
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-19.jpg": {
+      "sha256": "626f5805e49ec66c606662c9796371cc49a358f9af11e266046e3391f99454eb",
+      "bytes": 298700
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-03.jpg": {
+      "sha256": "89919cddbfc8983177d6bd45953931d4faa52aaf3d5a1fb2138b80b24018de98",
+      "bytes": 352306
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-06.jpg": {
+      "sha256": "d1833b11e9c0901400de903bd91a3ac436025003ee3912ec65a7c41e5a5e412f",
+      "bytes": 297885
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-17.jpg": {
+      "sha256": "297f2cee433ddf6d0acf19c6af17b88063b3160035b8e7918032c7817139348f",
+      "bytes": 295617
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-36.jpg": {
+      "sha256": "bb05ef4d49319e25e24a8e0a1883d9330f0d67cb6a00693e5a2edc48037164c4",
+      "bytes": 302806
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-15.jpg": {
+      "sha256": "ce7679ea03f7ba72659c2fb7ec4b40b5ddbd6bbfc72a25bb9936d5b17221ab47",
+      "bytes": 291781
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-10.jpg": {
+      "sha256": "604f96dd38b719e2863268c27768bb29b94b07166ef79a07006747eaded60251",
+      "bytes": 307768
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-38.jpg": {
+      "sha256": "d3ff7e25b865c194548818c5febb988fee3bcbb8969a55262db42884dd297678",
+      "bytes": 302602
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-26.jpg": {
+      "sha256": "d11d1f15248a3854786ca7b74cb5c894b0c51158720201d2d6ce4ad0d2eb200f",
+      "bytes": 303260
+    },
+    "tmp/conch-motion-observer-event-order1/frame-review/allframes-21.jpg": {
+      "sha256": "be1400fc0dfaf53612d1c8e85c8ad53f692be0250b096fe8669b33e280a940e1",
+      "bytes": 298478
+    }
+  },
+  "preserve": "Large raw transforms, weighted reconstruction, video and all43 frame sheets remain in exact named temporary directory; not committed as source binaries. Individual cropped JPEGs are reproducible from retained video.",
+  "acceptance": false
+}

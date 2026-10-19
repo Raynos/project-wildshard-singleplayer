@@ -1,0 +1,115 @@
+{
+  "schema": "wildshard.colossus.lifecycle-closure.v1",
+  "hostRevision": "e5f1e73d70550051fc1b4569d0df77bf7c514eb7",
+  "productSourceHash": "7a4c5bc237574a93d7b5b6f3325a53cf0141054aafc86082f497baff24d905a5",
+  "unchangedProduct": true,
+  "observerScript": {
+    "path": "scripts/qa-colossus-native-observer-v2.mjs",
+    "sha256": "ccfd84146f8704b98d2b85550a680e8ed97f0877a893130b4c166eab08c3f276"
+  },
+  "geometryScript": {
+    "path": "scripts/measure-colossus-world-contact.mjs",
+    "sha256": "c581e587a69884124781270f96c1d5d83d61f5eafa7ac35753ba9a98c533f3e9"
+  },
+  "videoPreservedLocally": [
+    {
+      "path": "page@72feab5aa6a73228eb95481f4465eaa5.webm",
+      "sha256": "3e632a90f83e7d797c3e0829908fd2955ba8f57313548534085003c51242a5dc",
+      "bytes": 14277372
+    }
+  ],
+  "buildCommand": "COLOSSUS_NATIVE_PREVIEW_DIR=tmp/colossus-native-preview/motion1-build1 python3 scripts/heavy-lane.py build -- node --experimental-strip-types scripts/build-colossus-native-preview.mjs --app tmp/colossus-native-preview-dist-build2",
+  "evidence": [
+    {
+      "path": "README.md",
+      "sha256": "aa2dac4d68a73d9b6613170d4df5f8df8f6a09113111780a662bf37daa367768",
+      "bytes": 4248
+    },
+    {
+      "path": "analyze.py",
+      "sha256": "99bf735b94434e1d4419aa3fff4680b11955918b91b4b4b83ad7e0b56f1c746b",
+      "bytes": 3973
+    },
+    {
+      "path": "both-strikes-observation.jpg",
+      "sha256": "ea6cdf5934c0ed0b426c9850b79b826903bc4a80c9af8bdf40853a89925492f0",
+      "bytes": 68263
+    },
+    {
+      "path": "build.log",
+      "sha256": "1f94eb28974d11ab05702c52735142b9bea7d9e2a4e4649e5f2aab22327dece7",
+      "bytes": 12003
+    },
+    {
+      "path": "combat-events.json",
+      "sha256": "287d0dc7d91e014aa8484e25c00d77200814aa71c3a436c15c887081d2f3aa5f",
+      "bytes": 8848
+    },
+    {
+      "path": "corpse-reward.jpg",
+      "sha256": "1dc80259ab500ce0b440ba70561c2f9960fd40a02760a1f985ac16d9be89ff35",
+      "bytes": 53336
+    },
+    {
+      "path": "entry.jpg",
+      "sha256": "f839b88925ca492ecad5dd1e45b1a00d057252bfc488fb9719d83a29db05d33e",
+      "bytes": 66521
+    },
+    {
+      "path": "host-files.json",
+      "sha256": "56f45936774d8062c6596f6fcff13aaeefb3759d0d5604179f04ef6ccb548153",
+      "bytes": 21995
+    },
+    {
+      "path": "player-defeat.jpg",
+      "sha256": "4a18cbfc10836eb56eb2bc65e9762b25ec3593d0b83555e34844848413b85a2a",
+      "bytes": 65641
+    },
+    {
+      "path": "preview.json",
+      "sha256": "4903a0564d24b4a80cb5563a46c653d35dde0667251a66c7893acccfa23c7e9a",
+      "bytes": 4253
+    },
+    {
+      "path": "product-files.json",
+      "sha256": "9faf9e80ce4bbdcd38dfe8b987e06af27123c59436e4d557ab31f86091b841c1",
+      "bytes": 7940
+    },
+    {
+      "path": "render-trace.json",
+      "sha256": "bf29352c8f5475f998e7f405e59c80a9effeb138dc7dbdee7a2f1b74280f3874",
+      "bytes": 3502540
+    },
+    {
+      "path": "report.json",
+      "sha256": "29cf5bc4d538a9e34f4e6a3ceacf40e9fe1730dff6d4ba33b658aa514a07f707",
+      "bytes": 1515590
+    },
+    {
+      "path": "source-files.json",
+      "sha256": "9288a5784d2615f5a4f788040beeff111f268e9ebc9a00de9ab43131421cfc8f",
+      "bytes": 657815
+    },
+    {
+      "path": "summary.json",
+      "sha256": "43fac7462c33ec77df0edd316419882c45956b0a39db6bdf5034c17d5addd3c3",
+      "bytes": 15661
+    },
+    {
+      "path": "sword-result.jpg",
+      "sha256": "67e32739745d493332e6fdb3dc0dfe85c7c68c389bb6a4c26e378fcb591285e1",
+      "bytes": 52288
+    },
+    {
+      "path": "world-contact.json",
+      "sha256": "9c11f4affcc566fda582a6fbb8544e46f401fa3de1dadff72bf7065be4cf1c5c",
+      "bytes": 1594472
+    },
+    {
+      "path": "build-log-normalization.json",
+      "sha256": "0232f657a30c3871680924f782576da9d9563124f9c26e603f3d1eb03fddfac3",
+      "bytes": 293
+    }
+  ],
+  "screening": "Repository-relative paths only. No credentials or private host paths. Diagnostic player placement is disclosed; no health, enemy state, clock, damage or RNG injection."
+}

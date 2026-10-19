@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/event-order1-world/weighted-contact.json",
+      "bytes": 3361677,
+      "sha256": "55429270de54d096a91a9043ca138816a3defff6116ad0fcd897541939e469df",
+      "originalPath": "tmp/conch-motion-observer-event-order1/weighted-contact.json",
+      "originalBytes": 7698612,
+      "originalSha256": "8eea255a8d3a89f568d41af560d7c8268c694e45106c66f32c4289c61a92d404",
+      "method": "Lossless JSON whitespace normalization; decoded data exactly equal."
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/event-order1-world/runtime-geometry.json",
+      "bytes": 548503,
+      "sha256": "6c32e4e14d8561c4116dc7511b3fea5e6d55efce9c570e2cff445014eb53c88d",
+      "originalPath": "tmp/conch-motion-observer-event-order1/runtime-geometry.json",
+      "originalBytes": 548452,
+      "originalSha256": "245833a07462c8b44b68270786fc67bc13f399f6d98d8ff9c2cf58d74c352ef5",
+      "method": "Lossless JSON whitespace normalization; decoded data exactly equal."
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/event-order1-world/served-build-manifest.json",
+      "bytes": 17842,
+      "sha256": "00198623559018292980ad42c64e5500087c282d94b6a25393d5c7f04734ca91",
+      "originalPath": "tmp/conch-motion-observer-event-order1/served-build-manifest.json",
+      "originalBytes": 21553,
+      "originalSha256": "61025bc93e33cbc600bab6699b21895c2d198173adc0b1a87b2479fe4cd3f250",
+      "method": "Lossless JSON whitespace normalization; decoded data exactly equal."
+    }
+  ],
+  "largeTrace": "Original full render-trace.json retained for native Site source protection; no chunk splitting."
+}

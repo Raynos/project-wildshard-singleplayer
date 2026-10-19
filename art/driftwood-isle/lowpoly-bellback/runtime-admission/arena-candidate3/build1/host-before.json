@@ -1,0 +1,26 @@
+{
+  "src/game/practice/PracticeCreature.ts": {
+    "sha256": "ee97d17f4e90e7a74454055baefa167006122cd2299b5e614d8ce63603906dec",
+    "bytes": 16740
+  },
+  "src/engine/entities/AnimalView.ts": {
+    "sha256": "7df9e8d3f7d1adcf92231c83bee33418b9ed34cd15b76b947d77883b0efacd6e",
+    "bytes": 31484
+  },
+  "src/engine/physics/ragdoll.ts": {
+    "sha256": "a385a470f0940b26c12d9cc255d78a0690882dfaec5eaad122ab471a21e257e3",
+    "bytes": 25315
+  },
+  "src/game/practice/PracticeDecisions.ts": {
+    "sha256": "b414117f940a49c1e1b90950951584d90d6716e409a0a1f775aab9b0167cd6d0",
+    "bytes": 2208
+  },
+  "src/game/plugin/brain.ts": {
+    "sha256": "a9a798c611d3b24778dd85273124277fa69de62aedeaa52c5c5d53f12720a4be",
+    "bytes": 103526
+  },
+  "src/game/practice/PracticePlayer.ts": {
+    "sha256": "a1b2b23b4b1f8d7b61211421f8e6b9bc6832e571a2b109a7060da9290a9c2aa2",
+    "bytes": 3937
+  }
+}

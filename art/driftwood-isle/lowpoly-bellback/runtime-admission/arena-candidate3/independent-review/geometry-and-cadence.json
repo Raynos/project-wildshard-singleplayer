@@ -1,0 +1,133 @@
+{
+  "schema": "bellback.independent-world-review.v1",
+  "runtimeAcceptance": false,
+  "nativeSha256": "32e78a1677765c511645905ca7c48ad3e60d0cf7fac4a8dbd830d39e9f343d44",
+  "traceSha256": "fc7df48aa0b230bc3ef6971a286e884f41872887b2bf1081ad54fe8e7f6bc344",
+  "method": "Independent NumPy quaternion hierarchy; verified each vertex has exactly one unit rigid weight. Column-major captured world times posed ancestor transforms times inverse absolute bind translation times source vertex. Ground Y=900. No Three.js or original measurement implementation used.",
+  "verticesPerFrame": 13374,
+  "observations": 449,
+  "deadObservations": 145,
+  "minimum": -1.1368683772161603e-13,
+  "postFoldMinimum": 0.0023916565368153897,
+  "framesBelowMinus5mm": 0,
+  "maxPartMinimumDisagreement": 1.1368683772161603e-13,
+  "frozenObservations": 92,
+  "settledFeet": {
+    "leg0": 0.019380613469706987,
+    "leg1": 0.002395423196730917,
+    "leg2": 0.018852851341193855,
+    "leg3": 0.026620719767151968
+  },
+  "frozenGameTime": [
+    25.211100000008983,
+    32.68369999998815
+  ],
+  "runs": [
+    {
+      "key": [
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 5,
+      "firstGameTime": 0.2503999999985099,
+      "firstWallMs": 3022.1999999955297,
+      "count": 35,
+      "lastFrame": 39,
+      "lastGameTime": 2.6228000000044704,
+      "lastWallMs": 6374
+    },
+    {
+      "key": [
+        1,
+        "strike.bellback.pulse",
+        "windup",
+        true
+      ],
+      "firstFrame": 40,
+      "firstGameTime": 2.7228000000044705,
+      "firstWallMs": 6547.39999999851,
+      "count": 7,
+      "lastFrame": 46,
+      "lastGameTime": 3.279500000007451,
+      "lastWallMs": 7132.19999999553
+    },
+    {
+      "key": [
+        4,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 47,
+      "firstGameTime": 3.379500000007451,
+      "firstWallMs": 7285.5,
+      "count": 198,
+      "lastFrame": 244,
+      "lastGameTime": 20.92390000000598,
+      "lastWallMs": 28541.79999999702
+    },
+    {
+      "key": [
+        4,
+        null,
+        "idle",
+        false
+      ],
+      "firstFrame": 245,
+      "firstGameTime": 21.02390000000598,
+      "firstWallMs": 28665.79999999702,
+      "count": 1,
+      "lastFrame": 245,
+      "lastGameTime": 21.02390000000598,
+      "lastWallMs": 28665.79999999702
+    },
+    {
+      "key": [
+        6,
+        null,
+        "idle",
+        false
+      ],
+      "firstFrame": 246,
+      "firstGameTime": 21.123900000005982,
+      "firstWallMs": 28977.89999999851,
+      "count": 144,
+      "lastFrame": 389,
+      "lastGameTime": 32.68369999998815,
+      "lastWallMs": 41974.79999999702
+    },
+    {
+      "key": [
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 390,
+      "firstGameTime": 32.77029999998964,
+      "firstWallMs": 42062.29999999702,
+      "count": 64,
+      "lastFrame": 453,
+      "lastGameTime": 38.20279999998968,
+      "lastWallMs": 48455
+    }
+  ],
+  "cadence": {
+    "wallIntervalsMsPercentiles": {
+      "min": 4.100000001490116,
+      "p50": 96.10000000149012,
+      "p90": 164.12999999970197,
+      "p95": 178.88499999605116,
+      "p99": 262.74699999920995,
+      "max": 332.5
+    },
+    "observedRenderHz": 9.860717367187492,
+    "stateClockPositiveStepValues": [
+      0.1
+    ],
+    "gameTimeSpan": 37.95239999999117,
+    "wallSpanSeconds": 45.43280000000447
+  }
+}

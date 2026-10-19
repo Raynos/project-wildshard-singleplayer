@@ -1,0 +1,215 @@
+{
+  "schema": "bellback.encoded-frame-review.v1",
+  "raw": {
+    "path": "tmp/bellback-tucked-qa-build1/video/page@c5d2850e03e51728719f17ea701bb87d.webm",
+    "sha256": "ee887ab6e2b09cd21e565633c253774a6e64843f9679576abc3918420bb15809",
+    "bytes": 4493228
+  },
+  "encodedFrames": 1247,
+  "encodedFps": 25,
+  "dimensions": [
+    402,
+    874
+  ],
+  "allEncodedFramesInspected": true,
+  "scope": "Consecutive thumbnail review of every encoded frame plus larger collapse detail; encoded frames include repeated render images. No audio or physical-device assessment.",
+  "sheets": [
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-01.jpg",
+      "sha256": "af1372b87d53a881b053e321f6bb3f4f530130347eeb873c020ca2e18a24ef79",
+      "bytes": 103820,
+      "firstEncodedFrame": 0,
+      "lastEncodedFrame": 59,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-02.jpg",
+      "sha256": "209ffd2dc33896ce8b84641a1e8451d713c210371593fd466d1a1bac6de84616",
+      "bytes": 375564,
+      "firstEncodedFrame": 60,
+      "lastEncodedFrame": 119,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-03.jpg",
+      "sha256": "270777cf093c50e939ed6d09fab56c000c1d0734d38c3d19c0d032e273818fe0",
+      "bytes": 515741,
+      "firstEncodedFrame": 120,
+      "lastEncodedFrame": 179,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-04.jpg",
+      "sha256": "438bff112c80bbcc18a82b4d7f0ce2bbf7e8ff7396725a8259df3031bab22ef7",
+      "bytes": 432295,
+      "firstEncodedFrame": 180,
+      "lastEncodedFrame": 239,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-05.jpg",
+      "sha256": "6e280c1fe512ed193d90e4c5305ce845733e6c3cfc4191ff52345047e9cbc935",
+      "bytes": 332850,
+      "firstEncodedFrame": 240,
+      "lastEncodedFrame": 299,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-06.jpg",
+      "sha256": "c5d875a8f4497b32f44c3f3c2d88bc38a1f4b341fc2ce442e341c81ca4b17b49",
+      "bytes": 264408,
+      "firstEncodedFrame": 300,
+      "lastEncodedFrame": 359,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-07.jpg",
+      "sha256": "edaa8bfc3df0d6575bf213da6a419c13576765a2ca52615fe61e432c0edea25a",
+      "bytes": 206473,
+      "firstEncodedFrame": 360,
+      "lastEncodedFrame": 419,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-08.jpg",
+      "sha256": "f52428f5c00bc7a3981c17916cba3d586233e8b2d49a0a0afd871c84fe8c1d21",
+      "bytes": 170241,
+      "firstEncodedFrame": 420,
+      "lastEncodedFrame": 479,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-09.jpg",
+      "sha256": "77b2211619606c37ba5bbca3cc0c5ba2cd2fb5f918ceaa6a1672fb8702883c6c",
+      "bytes": 144645,
+      "firstEncodedFrame": 480,
+      "lastEncodedFrame": 539,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-10.jpg",
+      "sha256": "a26bdd9a323291f311bc578997defa03c45a0147d2e591354deeedd0ca86f5ff",
+      "bytes": 131025,
+      "firstEncodedFrame": 540,
+      "lastEncodedFrame": 599,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-11.jpg",
+      "sha256": "1f470b49425e6fc1b8c27c02a3f274aaa0455901d8a04085a25e9a7f306d7244",
+      "bytes": 115697,
+      "firstEncodedFrame": 600,
+      "lastEncodedFrame": 659,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-12.jpg",
+      "sha256": "94e123923251778245f8668027de927ff1e5a0a5c26d60f90afb43f77324857e",
+      "bytes": 103183,
+      "firstEncodedFrame": 660,
+      "lastEncodedFrame": 719,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-13.jpg",
+      "sha256": "d6890793d97ff784d29df145a36fdbf6a18daebc872c4e5e3972fa9598d010fd",
+      "bytes": 101095,
+      "firstEncodedFrame": 720,
+      "lastEncodedFrame": 779,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-14.jpg",
+      "sha256": "26d768b3bff7a8ac1208726141b14276a5e1d1818c37515739c0bc26dff35d68",
+      "bytes": 92885,
+      "firstEncodedFrame": 780,
+      "lastEncodedFrame": 839,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-15.jpg",
+      "sha256": "635d9ddfffa6b233db3c921a9442f7cdd2d67f304eea803edf4aa66c6abe0e52",
+      "bytes": 98842,
+      "firstEncodedFrame": 840,
+      "lastEncodedFrame": 899,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-16.jpg",
+      "sha256": "dc23424de20f8ec36c7397007c5342fba570919640cf46f34575fe6f1bc6a0ba",
+      "bytes": 99852,
+      "firstEncodedFrame": 900,
+      "lastEncodedFrame": 959,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-17.jpg",
+      "sha256": "e2825e9c47731e7b8cac4e0e2441ff15b5673065e78fbaaae40923f12df51b3c",
+      "bytes": 100147,
+      "firstEncodedFrame": 960,
+      "lastEncodedFrame": 1019,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-18.jpg",
+      "sha256": "a5fb7e3422df7f53936048959759059e85e573e3a64f6cde937916cc05de1fa6",
+      "bytes": 100779,
+      "firstEncodedFrame": 1020,
+      "lastEncodedFrame": 1079,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-19.jpg",
+      "sha256": "2f102b83ca2d6043aa9a0c83ec654b78ae509c5e92f93b164e3f2227a0170624",
+      "bytes": 104572,
+      "firstEncodedFrame": 1080,
+      "lastEncodedFrame": 1139,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-20.jpg",
+      "sha256": "8e31b987f031c924a4b509e7c18d23610e00f8b40dfc4a681b1d56be7d85c2a3",
+      "bytes": 104358,
+      "firstEncodedFrame": 1140,
+      "lastEncodedFrame": 1199,
+      "inspected": true
+    },
+    {
+      "path": "tmp/bellback-anatomy3-independent-review/sheet-21.jpg",
+      "sha256": "738ab86002812292495c00233972783c78e302042f995d3c0b8db3e627dc3ffe",
+      "bytes": 87481,
+      "firstEncodedFrame": 1200,
+      "lastEncodedFrame": 1246,
+      "inspected": true
+    }
+  ],
+  "detail": {
+    "path": "tmp/bellback-anatomy3-independent-review/defeat-detail.jpg",
+    "sha256": "3f4c6f6f06bc65c2cbfcf74370df8629828044a403d002d6092334b31f3a97be",
+    "bytes": 668261,
+    "firstEncodedFrame": 750,
+    "lastEncodedFrame": 797,
+    "inspected": true,
+    "labelCaveat": "Detail labels reset to0; add750 for encoded frame index."
+  },
+  "generation": "ffmpeg -threads 1 -i RAW -vf \"scale=134:291,drawtext=text='%{n}':x=2:y=2:fontsize=14:fontcolor=white:box=1:boxcolor=black,tile=10x6\" -vsync 0 -threads 1 sheet-%02d.jpg",
+  "coverageMissing": [
+    "complete pulse active/recovery",
+    "echo",
+    "stomp",
+    "clean stagger recovery into offense",
+    "player defeat",
+    "page reload",
+    "second completed bout",
+    "repeated Retry"
+  ],
+  "runtimeAcceptance": false,
+  "scoresOutOfFive": {
+    "capturedGroundClearanceAndSettle": 4.0,
+    "collapseReadabilityAndWeight": 3.0,
+    "idleAndApproachMotion": 2.5,
+    "hitAndStaggerReadability": 2.0,
+    "observedRetryAndRewardClarity": 4.0,
+    "completeAttackCycleAnimation": null
+  }
+}

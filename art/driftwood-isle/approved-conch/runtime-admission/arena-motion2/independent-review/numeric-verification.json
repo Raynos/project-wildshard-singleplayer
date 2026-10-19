@@ -1,0 +1,7656 @@
+{
+  "schema": "conch.independent-review.numeric.v1",
+  "inputs": {
+    "tmp/conch-motion-observer-event-order1/render-trace.json": "40314a62b1038a9657507d09c56024430b08b34344ea235b141a17837e00f18b",
+    "tmp/conch-motion-observer-event-order1/runtime-geometry.json": "245833a07462c8b44b68270786fc67bc13f399f6d98d8ff9c2cf58d74c352ef5",
+    "tmp/conch-motion-observer-event-order1/weighted-contact.json": "8eea255a8d3a89f568d41af560d7c8268c694e45106c66f32c4289c61a92d404"
+  },
+  "closureSha256": "7f9dbe17d972283cb3837b2629a2af9f77be33f9c5b1fdba2bf7ca35c7be82f2",
+  "closureMismatches": [],
+  "method": "Independent Python/NumPy column-major matrices; all four skin weights on captured merged geometry; homogeneous coordinates normalized. No use of original JS analyzer.",
+  "vertices": 7338,
+  "blendedVertices": 94,
+  "all": {
+    "samples": 734,
+    "min": 0.002765252297422194,
+    "maxMinimum": 0.15036534208161356,
+    "belowZero": 0,
+    "withoutNear2cm": 696
+  },
+  "living": {
+    "samples": 584,
+    "min": 0.002765252297422194,
+    "maxMinimum": 0.08731285040391867,
+    "belowZero": 0,
+    "withoutNear2cm": 546
+  },
+  "settledCorpse": {
+    "samples": 141,
+    "min": 0.15036534208161356,
+    "maxMinimum": 0.15036534208161356,
+    "belowZero": 0,
+    "withoutNear2cm": 141
+  },
+  "maxAbsoluteDifferenceFromPrior": 1.1368683772161603e-13,
+  "postDeath": {
+    "samples": 150,
+    "healthRange": [
+      84,
+      100
+    ],
+    "healthDecreases": 0,
+    "strikePhases": [
+      "idle"
+    ]
+  },
+  "cadence": {
+    "renderSamples": 734,
+    "firstRenderFrame": 4,
+    "lastRenderFrame": 737,
+    "wallSpan": 70.86229999999702,
+    "gameSpan": 59.93409999996445,
+    "medianRenderIntervalMs": 88.89999999850988,
+    "maxRenderIntervalMs": 511.6000000014901
+  },
+  "eventRanges": [
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        4,
+        69
+      ],
+      "wallSeconds": [
+        2.4809000000059607,
+        10.07430000000447
+      ],
+      "gameSeconds": [
+        0.23570000000298025,
+        5.767299999989566
+      ],
+      "strikeClock": [
+        0.2333333333333333,
+        5.7666666666666515
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        70,
+        76
+      ],
+      "wallSeconds": [
+        10.16870000000298,
+        10.77560000000149
+      ],
+      "gameSeconds": [
+        5.860699999988076,
+        6.373799999982115
+      ],
+      "strikeClock": [
+        5.8499999999999845,
+        6.366666666666649
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        77,
+        77
+      ],
+      "wallSeconds": [
+        10.8575,
+        10.8575
+      ],
+      "gameSeconds": [
+        6.453399999976154,
+        6.453399999976154
+      ],
+      "strikeClock": [
+        6.449999999999982,
+        6.449999999999982
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrame": [
+        78,
+        88
+      ],
+      "wallSeconds": [
+        10.94710000000149,
+        11.83930000000447
+      ],
+      "gameSeconds": [
+        6.544699999980625,
+        7.383999999977643
+      ],
+      "strikeClock": [
+        6.5333333333333155,
+        7.383333333333312
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        89,
+        89
+      ],
+      "wallSeconds": [
+        11.928100000001491,
+        11.928100000001491
+      ],
+      "gameSeconds": [
+        7.472599999979133,
+        7.472599999979133
+      ],
+      "strikeClock": [
+        7.4666666666666455,
+        7.4666666666666455
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        90,
+        101
+      ],
+      "wallSeconds": [
+        12.02290000000596,
+        13.10670000000298
+      ],
+      "gameSeconds": [
+        7.567499999977643,
+        8.523599999971681
+      ],
+      "strikeClock": [
+        7.566666666666645,
+        8.51666666666667
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        102,
+        114
+      ],
+      "wallSeconds": [
+        13.20120000000298,
+        14.48840000000596
+      ],
+      "gameSeconds": [
+        8.617199999973172,
+        9.396399999976154
+      ],
+      "strikeClock": [
+        0.08333333333333333,
+        0.11666666666666665
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        115,
+        121
+      ],
+      "wallSeconds": [
+        14.598200000002981,
+        15.14090000000596
+      ],
+      "gameSeconds": [
+        9.496399999976154,
+        9.968199999973173
+      ],
+      "strikeClock": [
+        0.21666666666666665,
+        0.7000000000000005
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        122,
+        122
+      ],
+      "wallSeconds": [
+        15.22430000000447,
+        15.22430000000447
+      ],
+      "gameSeconds": [
+        10.056399999976152,
+        10.056399999976152
+      ],
+      "strikeClock": [
+        0.7833333333333341,
+        0.7833333333333341
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 4,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        123,
+        127
+      ],
+      "wallSeconds": [
+        15.50110000000149,
+        15.89920000000298
+      ],
+      "gameSeconds": [
+        10.156399999976152,
+        10.476699999973173
+      ],
+      "strikeClock": [
+        0.8833333333333344,
+        1.2000000000000006
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "guard": 0,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "windup",
+      "renderFrame": [
+        128,
+        133
+      ],
+      "wallSeconds": [
+        15.987900000005961,
+        16.34670000000298
+      ],
+      "gameSeconds": [
+        10.565199999973172,
+        10.865899999976152
+      ],
+      "strikeClock": [
+        1.3000000000000003,
+        1.5999999999999992
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "guard": 0,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "active",
+      "renderFrame": [
+        134,
+        134
+      ],
+      "wallSeconds": [
+        16.46830000000447,
+        16.46830000000447
+      ],
+      "gameSeconds": [
+        10.965899999976152,
+        10.965899999976152
+      ],
+      "strikeClock": [
+        1.6999999999999988,
+        1.6999999999999988
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "guard": 0,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "recover",
+      "renderFrame": [
+        135,
+        145
+      ],
+      "wallSeconds": [
+        16.6065,
+        17.7995
+      ],
+      "gameSeconds": [
+        11.065899999976152,
+        11.94559999997913
+      ],
+      "strikeClock": [
+        1.7999999999999985,
+        2.666666666666662
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        146,
+        162
+      ],
+      "wallSeconds": [
+        17.88910000000149,
+        19.72760000000149
+      ],
+      "gameSeconds": [
+        12.03599999997764,
+        13.36929999997466
+      ],
+      "strikeClock": [
+        2.7666666666666617,
+        4.099999999999991
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        163,
+        171
+      ],
+      "wallSeconds": [
+        19.83510000000149,
+        20.67330000000447
+      ],
+      "gameSeconds": [
+        13.469299999974659,
+        14.257799999974656
+      ],
+      "strikeClock": [
+        4.19999999999999,
+        4.983333333333321
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        172,
+        178
+      ],
+      "wallSeconds": [
+        20.76310000000149,
+        21.34110000000149
+      ],
+      "gameSeconds": [
+        14.347399999976146,
+        14.850299999982106
+      ],
+      "strikeClock": [
+        5.066666666666654,
+        5.583333333333319
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        179,
+        179
+      ],
+      "wallSeconds": [
+        21.36410000000149,
+        21.36410000000149
+      ],
+      "gameSeconds": [
+        14.873399999983596,
+        14.873399999983596
+      ],
+      "strikeClock": [
+        5.599999999999985,
+        5.599999999999985
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        180,
+        180
+      ],
+      "wallSeconds": [
+        21.453,
+        21.453
+      ],
+      "gameSeconds": [
+        14.961199999980614,
+        14.961199999980614
+      ],
+      "strikeClock": [
+        5.6833333333333185,
+        5.6833333333333185
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        181,
+        184
+      ],
+      "wallSeconds": [
+        21.55630000000447,
+        22.20310000000149
+      ],
+      "gameSeconds": [
+        15.061199999980614,
+        15.267999999977633
+      ],
+      "strikeClock": [
+        0.09999999999999999,
+        0.3
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        185,
+        189
+      ],
+      "wallSeconds": [
+        22.45130000000447,
+        23.05920000000298
+      ],
+      "gameSeconds": [
+        15.367999999977632,
+        15.736699999973162
+      ],
+      "strikeClock": [
+        0.39999999999999997,
+        0.7666666666666674
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 4,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        190,
+        196
+      ],
+      "wallSeconds": [
+        23.25760000000149,
+        23.83
+      ],
+      "gameSeconds": [
+        15.836699999973161,
+        16.226699999973164
+      ],
+      "strikeClock": [
+        0.8666666666666677,
+        1.2500000000000004
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "guard": 0,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "windup",
+      "renderFrame": [
+        197,
+        202
+      ],
+      "wallSeconds": [
+        23.91930000000447,
+        24.44820000000298
+      ],
+      "gameSeconds": [
+        16.315399999968694,
+        16.723999999962736
+      ],
+      "strikeClock": [
+        1.35,
+        1.7499999999999987
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "guard": 0,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "active",
+      "renderFrame": [
+        203,
+        203
+      ],
+      "wallSeconds": [
+        24.70960000000149,
+        24.70960000000149
+      ],
+      "gameSeconds": [
+        16.823999999962737,
+        16.823999999962737
+      ],
+      "strikeClock": [
+        1.8499999999999983,
+        1.8499999999999983
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        204,
+        260
+      ],
+      "wallSeconds": [
+        24.81040000000596,
+        30.49630000000447
+      ],
+      "gameSeconds": [
+        16.92399999996274,
+        22.00959999995682
+      ],
+      "strikeClock": [
+        1.949999999999998,
+        7.033333333333314
+      ]
+    },
+    {
+      "alive": false,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        261,
+        410
+      ],
+      "wallSeconds": [
+        30.61430000000447,
+        43.79460000000149
+      ],
+      "gameSeconds": [
+        22.10959999995682,
+        33.80399999997771
+      ],
+      "strikeClock": [
+        7.133333333333313,
+        7.133333333333313
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        411,
+        419
+      ],
+      "wallSeconds": [
+        43.89230000000447,
+        44.60010000000149
+      ],
+      "gameSeconds": [
+        33.901399999983674,
+        34.415599999979214
+      ],
+      "strikeClock": [
+        0.08333333333333333,
+        0.6000000000000002
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        420,
+        425
+      ],
+      "wallSeconds": [
+        44.68330000000447,
+        45.21870000000298
+      ],
+      "gameSeconds": [
+        34.500599999979215,
+        34.94019999998071
+      ],
+      "strikeClock": [
+        0.6833333333333338,
+        1.1333333333333342
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        426,
+        426
+      ],
+      "wallSeconds": [
+        45.33360000000149,
+        45.33360000000149
+      ],
+      "gameSeconds": [
+        35.040199999980715,
+        35.040199999980715
+      ],
+      "strikeClock": [
+        1.2333333333333338,
+        1.2333333333333338
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrame": [
+        427,
+        437
+      ],
+      "wallSeconds": [
+        45.48230000000447,
+        46.48040000000596
+      ],
+      "gameSeconds": [
+        35.140199999980716,
+        35.97529999998221
+      ],
+      "strikeClock": [
+        1.3333333333333335,
+        2.166666666666664
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        438,
+        438
+      ],
+      "wallSeconds": [
+        46.55530000000447,
+        46.55530000000447
+      ],
+      "gameSeconds": [
+        36.0498999999837,
+        36.0498999999837
+      ],
+      "strikeClock": [
+        2.2333333333333303,
+        2.2333333333333303
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        439,
+        455
+      ],
+      "wallSeconds": [
+        46.643,
+        48.09330000000447
+      ],
+      "gameSeconds": [
+        36.13719999998072,
+        37.4855999999867
+      ],
+      "strikeClock": [
+        2.3166666666666633,
+        3.6666666666666585
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        456,
+        456
+      ],
+      "wallSeconds": [
+        48.17480000000447,
+        48.17480000000447
+      ],
+      "gameSeconds": [
+        37.56699999998521,
+        37.56699999998521
+      ],
+      "strikeClock": [
+        3.7499999999999916,
+        3.7499999999999916
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        457,
+        464
+      ],
+      "wallSeconds": [
+        48.332,
+        48.872
+      ],
+      "gameSeconds": [
+        37.66699999998521,
+        38.19649999998521
+      ],
+      "strikeClock": [
+        3.849999999999991,
+        4.383333333333323
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        465,
+        465
+      ],
+      "wallSeconds": [
+        48.975,
+        48.975
+      ],
+      "gameSeconds": [
+        38.29649999998521,
+        38.29649999998521
+      ],
+      "strikeClock": [
+        4.483333333333323,
+        4.483333333333323
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrame": [
+        466,
+        476
+      ],
+      "wallSeconds": [
+        49.05030000000447,
+        49.88340000000596
+      ],
+      "gameSeconds": [
+        38.37239999998372,
+        39.196599999986695
+      ],
+      "strikeClock": [
+        4.566666666666656,
+        5.3833333333333195
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        477,
+        477
+      ],
+      "wallSeconds": [
+        49.96520000000298,
+        49.96520000000298
+      ],
+      "gameSeconds": [
+        39.27819999998818,
+        39.27819999998818
+      ],
+      "strikeClock": [
+        5.466666666666653,
+        5.466666666666653
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        478,
+        494
+      ],
+      "wallSeconds": [
+        50.04310000000149,
+        51.58870000000298
+      ],
+      "gameSeconds": [
+        39.35609999998669,
+        40.69419999998074
+      ],
+      "strikeClock": [
+        5.549999999999986,
+        6.883333333333314
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        495,
+        495
+      ],
+      "wallSeconds": [
+        51.67460000000149,
+        51.67460000000149
+      ],
+      "gameSeconds": [
+        40.77999999998521,
+        40.77999999998521
+      ],
+      "strikeClock": [
+        6.966666666666647,
+        6.966666666666647
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        496,
+        501
+      ],
+      "wallSeconds": [
+        51.77270000000298,
+        52.27560000000149
+      ],
+      "gameSeconds": [
+        40.877499999985204,
+        41.35439999998371
+      ],
+      "strikeClock": [
+        7.066666666666647,
+        7.5499999999999785
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        502,
+        502
+      ],
+      "wallSeconds": [
+        52.3725,
+        52.3725
+      ],
+      "gameSeconds": [
+        41.4509999999852,
+        41.4509999999852
+      ],
+      "strikeClock": [
+        7.6333333333333115,
+        7.6333333333333115
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrame": [
+        503,
+        514
+      ],
+      "wallSeconds": [
+        52.44960000000149,
+        53.34380000000447
+      ],
+      "gameSeconds": [
+        41.52859999998669,
+        42.40219999998818
+      ],
+      "strikeClock": [
+        7.716666666666645,
+        8.58333333333334
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        515,
+        515
+      ],
+      "wallSeconds": [
+        53.49610000000149,
+        53.49610000000149
+      ],
+      "gameSeconds": [
+        42.50219999998818,
+        42.50219999998818
+      ],
+      "strikeClock": [
+        8.683333333333344,
+        8.683333333333344
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        516,
+        533
+      ],
+      "wallSeconds": [
+        53.58730000000447,
+        54.973
+      ],
+      "gameSeconds": [
+        42.59369999998818,
+        43.90049999999265
+      ],
+      "strikeClock": [
+        8.78333333333335,
+        10.083333333333414
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        534,
+        534
+      ],
+      "wallSeconds": [
+        55.06460000000149,
+        55.06460000000149
+      ],
+      "gameSeconds": [
+        43.98989999999116,
+        43.98989999999116
+      ],
+      "strikeClock": [
+        10.183333333333419,
+        10.183333333333419
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        535,
+        541
+      ],
+      "wallSeconds": [
+        55.22110000000149,
+        55.7085
+      ],
+      "gameSeconds": [
+        44.08989999999116,
+        44.57759999998668
+      ],
+      "strikeClock": [
+        10.283333333333424,
+        10.766666666666781
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        542,
+        542
+      ],
+      "wallSeconds": [
+        55.7475,
+        55.7475
+      ],
+      "gameSeconds": [
+        44.61659999998668,
+        44.61659999998668
+      ],
+      "strikeClock": [
+        10.800000000000116,
+        10.800000000000116
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        543,
+        543
+      ],
+      "wallSeconds": [
+        55.795,
+        55.795
+      ],
+      "gameSeconds": [
+        44.663699999988175,
+        44.663699999988175
+      ],
+      "strikeClock": [
+        10.850000000000119,
+        10.850000000000119
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrame": [
+        544,
+        555
+      ],
+      "wallSeconds": [
+        55.89180000000447,
+        56.82140000000596
+      ],
+      "gameSeconds": [
+        44.76039999999116,
+        45.606799999989676
+      ],
+      "strikeClock": [
+        10.950000000000124,
+        11.800000000000166
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        556,
+        556
+      ],
+      "wallSeconds": [
+        56.90860000000149,
+        56.90860000000149
+      ],
+      "gameSeconds": [
+        45.694399999983716,
+        45.694399999983716
+      ],
+      "strikeClock": [
+        11.883333333333503,
+        11.883333333333503
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        557,
+        573
+      ],
+      "wallSeconds": [
+        56.99890000000596,
+        58.42360000000149
+      ],
+      "gameSeconds": [
+        45.784599999986696,
+        47.033199999980745
+      ],
+      "strikeClock": [
+        11.96666666666684,
+        13.216666666666903
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        574,
+        574
+      ],
+      "wallSeconds": [
+        58.61340000000596,
+        58.61340000000596
+      ],
+      "gameSeconds": [
+        47.13319999998075,
+        47.13319999998075
+      ],
+      "strikeClock": [
+        13.316666666666908,
+        13.316666666666908
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        575,
+        582
+      ],
+      "wallSeconds": [
+        58.714,
+        59.37620000000298
+      ],
+      "gameSeconds": [
+        47.23319999998075,
+        47.76059999997926
+      ],
+      "strikeClock": [
+        13.416666666666913,
+        13.950000000000273
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        583,
+        584
+      ],
+      "wallSeconds": [
+        59.52670000000298,
+        59.54490000000596
+      ],
+      "gameSeconds": [
+        47.860599999979264,
+        47.87989999997628
+      ],
+      "strikeClock": [
+        14.050000000000278,
+        14.066666666666945
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrame": [
+        585,
+        596
+      ],
+      "wallSeconds": [
+        59.62790000000596,
+        60.59010000000149
+      ],
+      "gameSeconds": [
+        47.962399999976284,
+        48.815899999976295
+      ],
+      "strikeClock": [
+        14.150000000000283,
+        15.000000000000325
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        597,
+        597
+      ],
+      "wallSeconds": [
+        60.6715,
+        60.6715
+      ],
+      "gameSeconds": [
+        48.89779999997481,
+        48.89779999997481
+      ],
+      "strikeClock": [
+        15.083333333333663,
+        15.083333333333663
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        598,
+        612
+      ],
+      "wallSeconds": [
+        60.825600000001494,
+        62.21220000000298
+      ],
+      "gameSeconds": [
+        48.99779999997481,
+        50.28589999997631
+      ],
+      "strikeClock": [
+        15.183333333333668,
+        16.466666666667013
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        613,
+        614
+      ],
+      "wallSeconds": [
+        62.29160000000149,
+        62.31880000000447
+      ],
+      "gameSeconds": [
+        50.365299999974816,
+        50.39259999997929
+      ],
+      "strikeClock": [
+        16.55000000000034,
+        16.583333333333673
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        615,
+        621
+      ],
+      "wallSeconds": [
+        62.398400000005964,
+        62.953
+      ],
+      "gameSeconds": [
+        50.47119999997333,
+        51.00149999997781
+      ],
+      "strikeClock": [
+        16.666666666667002,
+        17.18333333333364
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        622,
+        622
+      ],
+      "wallSeconds": [
+        63.04360000000149,
+        63.04360000000149
+      ],
+      "gameSeconds": [
+        51.09139999997632,
+        51.09139999997632
+      ],
+      "strikeClock": [
+        17.283333333333633,
+        17.283333333333633
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrame": [
+        623,
+        634
+      ],
+      "wallSeconds": [
+        63.12910000000149,
+        64.07140000000597
+      ],
+      "gameSeconds": [
+        51.17769999998079,
+        51.93819999998079
+      ],
+      "strikeClock": [
+        17.366666666666962,
+        18.133333333333585
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        635,
+        635
+      ],
+      "wallSeconds": [
+        64.225,
+        64.225
+      ],
+      "gameSeconds": [
+        52.03819999998079,
+        52.03819999998079
+      ],
+      "strikeClock": [
+        18.23333333333358,
+        18.23333333333358
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        636,
+        652
+      ],
+      "wallSeconds": [
+        64.31520000000297,
+        65.863
+      ],
+      "gameSeconds": [
+        52.12979999998228,
+        53.48899999997782
+      ],
+      "strikeClock": [
+        18.316666666666908,
+        19.683333333333497
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        653,
+        653
+      ],
+      "wallSeconds": [
+        65.97320000000298,
+        65.97320000000298
+      ],
+      "gameSeconds": [
+        53.58899999997782,
+        53.58899999997782
+      ],
+      "strikeClock": [
+        19.78333333333349,
+        19.78333333333349
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        654,
+        661
+      ],
+      "wallSeconds": [
+        66.12370000000298,
+        66.62270000000298
+      ],
+      "gameSeconds": [
+        53.688999999977824,
+        54.18859999997932
+      ],
+      "strikeClock": [
+        19.883333333333486,
+        20.383333333333457
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        662,
+        662
+      ],
+      "wallSeconds": [
+        66.70420000000298,
+        66.70420000000298
+      ],
+      "gameSeconds": [
+        54.26969999998081,
+        54.26969999998081
+      ],
+      "strikeClock": [
+        20.45000000000012,
+        20.45000000000012
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrame": [
+        663,
+        674
+      ],
+      "wallSeconds": [
+        66.81710000000149,
+        67.773
+      ],
+      "gameSeconds": [
+        54.36969999998081,
+        55.21429999998231
+      ],
+      "strikeClock": [
+        20.550000000000114,
+        21.400000000000066
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        675,
+        675
+      ],
+      "wallSeconds": [
+        67.92630000000447,
+        67.92630000000447
+      ],
+      "gameSeconds": [
+        55.31429999998231,
+        55.31429999998231
+      ],
+      "strikeClock": [
+        21.50000000000006,
+        21.50000000000006
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        676,
+        692
+      ],
+      "wallSeconds": [
+        67.94340000000597,
+        69.47570000000297
+      ],
+      "gameSeconds": [
+        55.3323999999838,
+        56.696099999986785
+      ],
+      "strikeClock": [
+        21.516666666666726,
+        22.883333333333315
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        693,
+        693
+      ],
+      "wallSeconds": [
+        69.573,
+        69.573
+      ],
+      "gameSeconds": [
+        56.79309999998679,
+        56.79309999998679
+      ],
+      "strikeClock": [
+        22.98333333333331,
+        22.98333333333331
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrame": [
+        694,
+        700
+      ],
+      "wallSeconds": [
+        69.67060000000149,
+        70.1995
+      ],
+      "gameSeconds": [
+        56.89089999998381,
+        57.365599999979345
+      ],
+      "strikeClock": [
+        23.083333333333304,
+        23.549999999999944
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        701,
+        701
+      ],
+      "wallSeconds": [
+        70.24510000000149,
+        70.24510000000149
+      ],
+      "gameSeconds": [
+        57.41089999998382,
+        57.41089999998382
+      ],
+      "strikeClock": [
+        23.59999999999994,
+        23.59999999999994
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrame": [
+        702,
+        702
+      ],
+      "wallSeconds": [
+        70.3931000000015,
+        70.3931000000015
+      ],
+      "gameSeconds": [
+        57.51089999998382,
+        57.51089999998382
+      ],
+      "strikeClock": [
+        23.699999999999935,
+        23.699999999999935
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        703,
+        703
+      ],
+      "wallSeconds": [
+        70.506,
+        70.506
+      ],
+      "gameSeconds": [
+        57.61089999998382,
+        57.61089999998382
+      ],
+      "strikeClock": [
+        23.79999999999993,
+        23.79999999999993
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 5,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        704,
+        731
+      ],
+      "wallSeconds": [
+        70.602,
+        72.75420000000298
+      ],
+      "gameSeconds": [
+        57.70599999998531,
+        59.7170999999719
+      ],
+      "strikeClock": [
+        23.899999999999924,
+        25.89999999999981
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "guard": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrame": [
+        732,
+        737
+      ],
+      "wallSeconds": [
+        72.91530000000446,
+        73.34320000000298
+      ],
+      "gameSeconds": [
+        59.8170999999719,
+        60.16979999996743
+      ],
+      "strikeClock": [
+        0.09999999999999999,
+        0.44999999999999996
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "frame": 4,
+      "minimum": 0.06879091086102562,
+      "maximum": 3.684438251932079,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 5,
+      "minimum": 0.07059542213687564,
+      "maximum": 3.6845847179386055,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 6,
+      "minimum": 0.07253313178512144,
+      "maximum": 3.68474570419437,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 7,
+      "minimum": 0.07474683015232131,
+      "maximum": 3.6849363885178263,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 8,
+      "minimum": 0.08310224513945741,
+      "maximum": 3.685827988720348,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 9,
+      "minimum": 0.08561291854982755,
+      "maximum": 3.686606819703343,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 10,
+      "minimum": 0.08173604085368424,
+      "maximum": 3.687251477442146,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 11,
+      "minimum": 0.07277051789913003,
+      "maximum": 3.6877443953409283,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 12,
+      "minimum": 0.061292101184449166,
+      "maximum": 3.688072233984599,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 13,
+      "minimum": 0.05442743070477718,
+      "maximum": 3.6882261659184223,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 14,
+      "minimum": 0.052866506268287594,
+      "maximum": 3.6882020586648423,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 15,
+      "minimum": 0.052137345259097856,
+      "maximum": 3.688000558888689,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 16,
+      "minimum": 0.05170954218567658,
+      "maximum": 3.6876270792930654,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 17,
+      "minimum": 0.05157596392677988,
+      "maximum": 3.6874347555177565,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 18,
+      "minimum": 0.051490878757704195,
+      "maximum": 3.6868393192926305,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 19,
+      "minimum": 0.05222698449222207,
+      "maximum": 3.686111350680335,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 20,
+      "minimum": 0.05749087966557909,
+      "maximum": 3.6852679167005817,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 21,
+      "minimum": 0.06850779517651517,
+      "maximum": 3.6843168556079036,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 22,
+      "minimum": 0.07698201462198995,
+      "maximum": 3.68334221388875,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 23,
+      "minimum": 0.0812306806885772,
+      "maximum": 3.6822799003932687,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 24,
+      "minimum": 0.07928379044847134,
+      "maximum": 3.681204791281175,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 25,
+      "minimum": 0.07613543401168954,
+      "maximum": 3.680689079756121,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 26,
+      "minimum": 0.06608317723953405,
+      "maximum": 3.6796522393245823,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 27,
+      "minimum": 0.054155060129005506,
+      "maximum": 3.678728672818238,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 28,
+      "minimum": 0.04520794816846774,
+      "maximum": 3.6779255605957815,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 29,
+      "minimum": 0.04377444608633141,
+      "maximum": 3.6775324088375783,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 30,
+      "minimum": 0.04265735832109385,
+      "maximum": 3.677158176694661,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 31,
+      "minimum": 0.04135287989947756,
+      "maximum": 3.676537770148684,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 32,
+      "minimum": 0.040725325334506124,
+      "maximum": 3.676043620459268,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 33,
+      "minimum": 0.04058745327881752,
+      "maximum": 3.6758669111331983,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 34,
+      "minimum": 0.0406678097956501,
+      "maximum": 3.6756495664114937,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 35,
+      "minimum": 0.0416690641883406,
+      "maximum": 3.67557766824757,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 36,
+      "minimum": 0.04320114354300131,
+      "maximum": 3.6756375833178936,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 37,
+      "minimum": 0.0532617679014038,
+      "maximum": 3.6758801280634543,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 38,
+      "minimum": 0.06421294206211314,
+      "maximum": 3.676261162913761,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 39,
+      "minimum": 0.06618297749287194,
+      "maximum": 3.676354452915689,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 40,
+      "minimum": 0.07447144352704527,
+      "maximum": 3.676955334070385,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 41,
+      "minimum": 0.07722704768013955,
+      "maximum": 3.6776043943818877,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 42,
+      "minimum": 0.07453022020104072,
+      "maximum": 3.6784585118165296,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 43,
+      "minimum": 0.06724086970439203,
+      "maximum": 3.6793514101170786,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 44,
+      "minimum": 0.05910132943267854,
+      "maximum": 3.6801439471927324,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 45,
+      "minimum": 0.04884333614768366,
+      "maximum": 3.6811910065385973,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 46,
+      "minimum": 0.047717457982798805,
+      "maximum": 3.6822660783835772,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 47,
+      "minimum": 0.047806213116018625,
+      "maximum": 3.683328751848194,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 48,
+      "minimum": 0.048551040628240116,
+      "maximum": 3.6843486608190688,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 49,
+      "minimum": 0.04955187163568553,
+      "maximum": 3.685296996125203,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 50,
+      "minimum": 0.05096619245045986,
+      "maximum": 3.6861472679694316,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 51,
+      "minimum": 0.05331622490996324,
+      "maximum": 3.686875972192297,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 52,
+      "minimum": 0.054466949300717715,
+      "maximum": 3.6871051921483513,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 53,
+      "minimum": 0.06289151038504315,
+      "maximum": 3.6875094712983127,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 54,
+      "minimum": 0.07468611958222482,
+      "maximum": 3.6879180469519497,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 55,
+      "minimum": 0.08341737268449378,
+      "maximum": 3.6881582600067304,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 56,
+      "minimum": 0.08731285040391867,
+      "maximum": 3.6882378068224853,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 57,
+      "minimum": 0.08536690394055313,
+      "maximum": 3.6881597324885433,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 58,
+      "minimum": 0.07836900837401117,
+      "maximum": 3.687930223235071,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 59,
+      "minimum": 0.06817657360261364,
+      "maximum": 3.687563459395278,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 60,
+      "minimum": 0.0552395404993149,
+      "maximum": 3.687070128970504,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 61,
+      "minimum": 0.052077114061603424,
+      "maximum": 3.686382483154489,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 62,
+      "minimum": 0.05026462440537216,
+      "maximum": 3.6855668090939844,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 63,
+      "minimum": 0.049430984489163166,
+      "maximum": 3.6847570605456212,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 64,
+      "minimum": 0.04865077236036086,
+      "maximum": 3.68376380591576,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 65,
+      "minimum": 0.04887059269128713,
+      "maximum": 3.6836217544675947,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 66,
+      "minimum": 0.04813896601490342,
+      "maximum": 3.682568110836087,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 67,
+      "minimum": 0.04799243300612943,
+      "maximum": 3.681493402193155,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 68,
+      "minimum": 0.04804064520965312,
+      "maximum": 3.6805527103327904,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 69,
+      "minimum": 0.04808424672046385,
+      "maximum": 3.6796238993842962,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 70,
+      "minimum": 0.047391891829420274,
+      "maximum": 3.6787145586944234,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 71,
+      "minimum": 0.04874811929983025,
+      "maximum": 3.6759959669417412,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 72,
+      "minimum": 0.05078169011744649,
+      "maximum": 3.670739911546434,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 73,
+      "minimum": 0.05061250767425918,
+      "maximum": 3.670550519622225,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 74,
+      "minimum": 0.05259659914429449,
+      "maximum": 3.6642451348139957,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 75,
+      "minimum": 0.032796071021152784,
+      "maximum": 3.659011997174048,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 76,
+      "minimum": 0.026094170842156927,
+      "maximum": 3.6572268382744824,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 77,
+      "minimum": 0.02601926943077615,
+      "maximum": 3.6571369366438375,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 78,
+      "minimum": 0.002765252297422194,
+      "maximum": 3.7000922046293,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 49
+    },
+    {
+      "frame": 79,
+      "minimum": 0.00448809966042063,
+      "maximum": 3.699694282195196,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 28
+    },
+    {
+      "frame": 80,
+      "minimum": 0.00893731555663635,
+      "maximum": 3.698373153906914,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 81,
+      "minimum": 0.015488608828945871,
+      "maximum": 3.6962412545010466,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 12
+    },
+    {
+      "frame": 82,
+      "minimum": 0.023495206943835,
+      "maximum": 3.693446056205403,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 83,
+      "minimum": 0.03135685114159514,
+      "maximum": 3.6901974173504186,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 84,
+      "minimum": 0.0314681737115734,
+      "maximum": 3.6903051915879814,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 85,
+      "minimum": 0.03794847213725916,
+      "maximum": 3.6868487404362895,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 86,
+      "minimum": 0.038790907115412665,
+      "maximum": 3.6876924379291722,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 87,
+      "minimum": 0.044572794932946636,
+      "maximum": 3.684713043006923,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 88,
+      "minimum": 0.04906193491922295,
+      "maximum": 3.6829586568854893,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 89,
+      "minimum": 0.05128825644214885,
+      "maximum": 3.6828435167295765,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 90,
+      "minimum": 0.0522323613701019,
+      "maximum": 3.6838347509241203,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 91,
+      "minimum": 0.05317717666423505,
+      "maximum": 3.684823126571928,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 92,
+      "minimum": 0.05404390046555818,
+      "maximum": 3.685726639277732,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 93,
+      "minimum": 0.05480754472273475,
+      "maximum": 3.6865201825766007,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 94,
+      "minimum": 0.05538082131772626,
+      "maximum": 3.6871143567683475,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 95,
+      "minimum": 0.055892876772873024,
+      "maximum": 3.687643955663816,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 96,
+      "minimum": 0.05622179502165636,
+      "maximum": 3.6879835842361217,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 97,
+      "minimum": 0.05641722666246096,
+      "maximum": 3.688185172600015,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 98,
+      "minimum": 0.0564668521042222,
+      "maximum": 3.6882363368397364,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 99,
+      "minimum": 0.056462708129856765,
+      "maximum": 3.6882320647487177,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 100,
+      "minimum": 0.05633652582685045,
+      "maximum": 3.688101948130111,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 101,
+      "minimum": 0.056098667972946714,
+      "maximum": 3.6878564990691984,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 102,
+      "minimum": 0.051419228157215,
+      "maximum": 3.6829812415716106,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 103,
+      "minimum": 0.06255170432359591,
+      "maximum": 3.684018544578521,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 104,
+      "minimum": 0.06359290111163318,
+      "maximum": 3.6840760643431167,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 105,
+      "minimum": 0.07217068191687304,
+      "maximum": 3.6846563304483197,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 106,
+      "minimum": 0.07892000908123009,
+      "maximum": 3.6852752058119904,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 107,
+      "minimum": 0.0811510525011272,
+      "maximum": 3.68552141156988,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 108,
+      "minimum": 0.08550547706317957,
+      "maximum": 3.686343142929559,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 109,
+      "minimum": 0.08352299031901111,
+      "maximum": 3.6870272851715526,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 110,
+      "minimum": 0.07681181328939601,
+      "maximum": 3.687533061606473,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 111,
+      "minimum": 0.06600539545740958,
+      "maximum": 3.687939702146764,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 112,
+      "minimum": 0.0507203978185089,
+      "maximum": 3.6822455768990494,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 113,
+      "minimum": 0.061874876612932894,
+      "maximum": 3.6833087749056403,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 114,
+      "minimum": 0.06327058803208274,
+      "maximum": 3.683387183469563,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 115,
+      "minimum": 0.05277594102722105,
+      "maximum": 3.684403832607245,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 116,
+      "minimum": 0.05350644156430917,
+      "maximum": 3.6851667248436115,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 117,
+      "minimum": 0.05642068266536171,
+      "maximum": 3.684197900061008,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 118,
+      "minimum": 0.05984455766804331,
+      "maximum": 3.680716478845966,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 119,
+      "minimum": 0.06255370553481043,
+      "maximum": 3.6755880008931854,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 120,
+      "minimum": 0.06301878333329114,
+      "maximum": 3.676108023681536,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 121,
+      "minimum": 0.04407044550282535,
+      "maximum": 3.672174583484434,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 122,
+      "minimum": 0.031454381795583686,
+      "maximum": 3.6368947674372976,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 123,
+      "minimum": 0.06564891043035459,
+      "maximum": 3.673347298249155,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 124,
+      "minimum": 0.06438717647256453,
+      "maximum": 3.6760152559899097,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 125,
+      "minimum": 0.06167367071645913,
+      "maximum": 3.681368542305904,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 126,
+      "minimum": 0.06007472912904177,
+      "maximum": 3.68392442530228,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 127,
+      "minimum": 0.0587363968407999,
+      "maximum": 3.685170132118742,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 128,
+      "minimum": 0.05710183548626446,
+      "maximum": 3.6855767810626503,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 129,
+      "minimum": 0.05924244796028688,
+      "maximum": 3.6826097078690054,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 130,
+      "minimum": 0.06145941277316069,
+      "maximum": 3.6757619105450203,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 131,
+      "minimum": 0.061036017467586134,
+      "maximum": 3.6755721634665406,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 132,
+      "minimum": 0.06050336855957994,
+      "maximum": 3.675249651381705,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 133,
+      "minimum": 0.04085250719981559,
+      "maximum": 3.668209011544832,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 134,
+      "minimum": 0.03345455586236312,
+      "maximum": 3.665794510909109,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 135,
+      "minimum": 0.04157214852705238,
+      "maximum": 3.6896779804408197,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 136,
+      "minimum": 0.008639186630148288,
+      "maximum": 3.7044189918483426,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 137,
+      "minimum": 0.010511091561852481,
+      "maximum": 3.702555375466318,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 138,
+      "minimum": 0.014786078635211197,
+      "maximum": 3.6997874907275445,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 12
+    },
+    {
+      "frame": 139,
+      "minimum": 0.020700945269709337,
+      "maximum": 3.6960779128014565,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 140,
+      "minimum": 0.028269557741850804,
+      "maximum": 3.692228175415039,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 141,
+      "minimum": 0.02760292515756646,
+      "maximum": 3.691595035753835,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 142,
+      "minimum": 0.03300668557949393,
+      "maximum": 3.6867673694417817,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 143,
+      "minimum": 0.037964185603982514,
+      "maximum": 3.6821022693894747,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 144,
+      "minimum": 0.04195597074829038,
+      "maximum": 3.6782468952533236,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 145,
+      "minimum": 0.04423269350547798,
+      "maximum": 3.6759119831376665,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 146,
+      "minimum": 0.04450704360988311,
+      "maximum": 3.675543869973808,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 147,
+      "minimum": 0.04459320105763709,
+      "maximum": 3.675636871458437,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 148,
+      "minimum": 0.044849857333815635,
+      "maximum": 3.6759137379250433,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 149,
+      "minimum": 0.0449564058113765,
+      "maximum": 3.676028598335506,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 150,
+      "minimum": 0.045421859252428476,
+      "maximum": 3.676529824579461,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 151,
+      "minimum": 0.04598799357768257,
+      "maximum": 3.677138290347898,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 152,
+      "minimum": 0.046152042386324865,
+      "maximum": 3.6773143636643226,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 153,
+      "minimum": 0.04691307397001765,
+      "maximum": 3.6781297559939503,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 154,
+      "minimum": 0.04761551976594092,
+      "maximum": 3.6788803018309864,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 155,
+      "minimum": 0.04854664232027517,
+      "maximum": 3.6798721115031867,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 156,
+      "minimum": 0.04953428414842165,
+      "maximum": 3.680920297237094,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 157,
+      "minimum": 0.050538751294539,
+      "maximum": 3.681982298699836,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 158,
+      "minimum": 0.05155337413577854,
+      "maximum": 3.6830509003083307,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 159,
+      "minimum": 0.052460861436429695,
+      "maximum": 3.6840031439389804,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 160,
+      "minimum": 0.053319752872312165,
+      "maximum": 3.6849013309812335,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 161,
+      "minimum": 0.053516837457664224,
+      "maximum": 3.6851070121672365,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 162,
+      "minimum": 0.054351589091652386,
+      "maximum": 3.6859764350975865,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 163,
+      "minimum": 0.055075500677730815,
+      "maximum": 3.686728135361136,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 164,
+      "minimum": 0.0752617053801714,
+      "maximum": 3.6873414947324363,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 165,
+      "minimum": 0.06927719536213317,
+      "maximum": 3.687799826577816,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 166,
+      "minimum": 0.058957813983624874,
+      "maximum": 3.688090742801478,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 167,
+      "minimum": 0.055094083609560585,
+      "maximum": 3.688206416442881,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 168,
+      "minimum": 0.054162653978210074,
+      "maximum": 3.68814374317742,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 169,
+      "minimum": 0.05369914552056798,
+      "maximum": 3.68793304498638,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 170,
+      "minimum": 0.05333543182746325,
+      "maximum": 3.687538409446347,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 171,
+      "minimum": 0.05314151779111853,
+      "maximum": 3.6869991326479976,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 172,
+      "minimum": 0.05474093427517346,
+      "maximum": 3.6863809891032133,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 173,
+      "minimum": 0.05615854301049694,
+      "maximum": 3.683849386832776,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 174,
+      "minimum": 0.05794555521424627,
+      "maximum": 3.678602558332045,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 175,
+      "minimum": 0.05953451657978803,
+      "maximum": 3.672135408095869,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 176,
+      "minimum": 0.05939766717369821,
+      "maximum": 3.6719805148733258,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 177,
+      "minimum": 0.03897223440446851,
+      "maximum": 3.6662567700532236,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 178,
+      "minimum": 0.0315806094471327,
+      "maximum": 3.663720107927361,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 179,
+      "minimum": 0.03134598430267488,
+      "maximum": 3.6634435605783437,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 180,
+      "minimum": 0.03046660391248679,
+      "maximum": 3.6624050795688845,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 181,
+      "minimum": 0.05148362594138689,
+      "maximum": 3.683048934407225,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 182,
+      "minimum": 0.06261336456168465,
+      "maximum": 3.6840831139254533,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 183,
+      "minimum": 0.06386809420791906,
+      "maximum": 3.6841514301888765,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 184,
+      "minimum": 0.060510799998041875,
+      "maximum": 3.6851161309182316,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 185,
+      "minimum": 0.0542949691529202,
+      "maximum": 3.6859877980019746,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 186,
+      "minimum": 0.057205048161222294,
+      "maximum": 3.685022987435559,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 187,
+      "minimum": 0.06031770569836681,
+      "maximum": 3.681228219569448,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 188,
+      "minimum": 0.0633537406627056,
+      "maximum": 3.6764820124990365,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 189,
+      "minimum": 0.0442950226291714,
+      "maximum": 3.672431563535497,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 190,
+      "minimum": 0.07080577285330492,
+      "maximum": 3.662398492869329,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 191,
+      "minimum": 0.06736294442021062,
+      "maximum": 3.6697693299889806,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 192,
+      "minimum": 0.06420139686770199,
+      "maximum": 3.6762421274239614,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 193,
+      "minimum": 0.06370758290074718,
+      "maximum": 3.6772051148377614,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 194,
+      "minimum": 0.061118753596360875,
+      "maximum": 3.681808595255916,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 195,
+      "minimum": 0.05942051143881599,
+      "maximum": 3.684038717972612,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 196,
+      "minimum": 0.05873300129769632,
+      "maximum": 3.684623178709785,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 197,
+      "minimum": 0.05695216912329215,
+      "maximum": 3.685062634755127,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 198,
+      "minimum": 0.05805431334556488,
+      "maximum": 3.6819763632047398,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 199,
+      "minimum": 0.05780484803051422,
+      "maximum": 3.6818889242882733,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 200,
+      "minimum": 0.05994534653427763,
+      "maximum": 3.6745927655540527,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 201,
+      "minimum": 0.04026674708882183,
+      "maximum": 3.6675136163729576,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 202,
+      "minimum": 0.03284129507630951,
+      "maximum": 3.6650660429835398,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 203,
+      "minimum": 0.04095594914542744,
+      "maximum": 3.689053824501002,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 204,
+      "minimum": 0.06366256925286962,
+      "maximum": 3.6536836236507497,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 205,
+      "minimum": 0.05804361898935895,
+      "maximum": 3.6634183036150034,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 206,
+      "minimum": 0.05493077851326689,
+      "maximum": 3.6681560568629266,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 207,
+      "minimum": 0.05182262753965006,
+      "maximum": 3.6720729731903248,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 208,
+      "minimum": 0.04981352505660652,
+      "maximum": 3.67392166730599,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 209,
+      "minimum": 0.0479652161195645,
+      "maximum": 3.67472915673045,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 210,
+      "minimum": 0.04643283266398157,
+      "maximum": 3.6750375376174134,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 211,
+      "minimum": 0.04548910167170561,
+      "maximum": 3.6751460049964635,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 212,
+      "minimum": 0.044960734306300765,
+      "maximum": 3.675223562761744,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 213,
+      "minimum": 0.04474583396120124,
+      "maximum": 3.675366012242648,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 214,
+      "minimum": 0.0447746674640257,
+      "maximum": 3.6756002758954764,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 215,
+      "minimum": 0.04501483583158006,
+      "maximum": 3.675989041781577,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 216,
+      "minimum": 0.05974801957222553,
+      "maximum": 3.6488206053256818,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 217,
+      "minimum": 0.05479585464513548,
+      "maximum": 3.6620483238669976,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 218,
+      "minimum": 0.05249881961719893,
+      "maximum": 3.669656884606411,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 219,
+      "minimum": 0.051742065023290706,
+      "maximum": 3.6737352800084864,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 220,
+      "minimum": 0.051665937078610114,
+      "maximum": 3.676915804694886,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 221,
+      "minimum": 0.05131764770942482,
+      "maximum": 3.6791763285381194,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 222,
+      "minimum": 0.05146458749436533,
+      "maximum": 3.6808135651301654,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 223,
+      "minimum": 0.05191856194767297,
+      "maximum": 3.682166255684706,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 224,
+      "minimum": 0.05252615490576318,
+      "maximum": 3.6833248908283167,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 225,
+      "minimum": 0.05325330129960548,
+      "maximum": 3.6844202048522448,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 226,
+      "minimum": 0.05391593089666458,
+      "maximum": 3.685293216827745,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 227,
+      "minimum": 0.054648788390181835,
+      "maximum": 3.686183016880591,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 228,
+      "minimum": 0.05529324185272344,
+      "maximum": 3.6869246091697505,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 229,
+      "minimum": 0.05581711857882965,
+      "maximum": 3.6875086967586412,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 230,
+      "minimum": 0.05619847898265107,
+      "maximum": 3.687902675102009,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 231,
+      "minimum": 0.07592866765071449,
+      "maximum": 3.650869100382465,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 232,
+      "minimum": 0.06783962027884627,
+      "maximum": 3.6687108338578582,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 233,
+      "minimum": 0.06560160079357047,
+      "maximum": 3.6734747254839704,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 234,
+      "minimum": 0.06232574881130404,
+      "maximum": 3.6800124666489182,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 235,
+      "minimum": 0.06063142637481178,
+      "maximum": 3.6828748247659178,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 236,
+      "minimum": 0.059166811280420006,
+      "maximum": 3.6846519971763882,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 237,
+      "minimum": 0.057433899433476654,
+      "maximum": 3.6852955053589085,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 238,
+      "minimum": 0.05584532396153463,
+      "maximum": 3.6853143690278785,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 239,
+      "minimum": 0.05464384632159636,
+      "maximum": 3.6849567414080866,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 240,
+      "minimum": 0.05343720417329223,
+      "maximum": 3.6842873361570128,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 241,
+      "minimum": 0.05229433324279853,
+      "maximum": 3.6834317707542823,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 242,
+      "minimum": 0.05118485305172271,
+      "maximum": 3.6824633506411146,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 243,
+      "minimum": 0.05010430789786824,
+      "maximum": 3.6814379505975694,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 244,
+      "minimum": 0.04976814100984939,
+      "maximum": 3.681107556893835,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 245,
+      "minimum": 0.04874264349052737,
+      "maximum": 3.680076090495163,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 246,
+      "minimum": 0.04779801986626353,
+      "maximum": 3.6790705993506663,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 247,
+      "minimum": 0.06124836335447981,
+      "maximum": 3.650691764858834,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 248,
+      "minimum": 0.0553753343039034,
+      "maximum": 3.661511693347279,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 249,
+      "minimum": 0.054519062074064095,
+      "maximum": 3.6629948777207346,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 250,
+      "minimum": 0.05123823863686994,
+      "maximum": 3.6683404491861893,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 251,
+      "minimum": 0.049111395587146944,
+      "maximum": 3.671423399340256,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 252,
+      "minimum": 0.048027646497416754,
+      "maximum": 3.6728631268966865,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 253,
+      "minimum": 0.04664533057643894,
+      "maximum": 3.673824091666461,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 254,
+      "minimum": 0.04569501594733083,
+      "maximum": 3.6745419085785898,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 255,
+      "minimum": 0.04531207144623295,
+      "maximum": 3.675082377963463,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 256,
+      "minimum": 0.04528559693130774,
+      "maximum": 3.6756494553357015,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 257,
+      "minimum": 0.04547784774104002,
+      "maximum": 3.676144328567375,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 258,
+      "minimum": 0.04586981171109983,
+      "maximum": 3.676768213444234,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 259,
+      "minimum": 0.04648541386404759,
+      "maximum": 3.6775631413607925,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 260,
+      "minimum": 0.047216205656468446,
+      "maximum": 3.6784200971204655,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 261,
+      "minimum": 0.04808687835850378,
+      "maximum": 3.679394186073864,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 262,
+      "minimum": 0.057220812276455035,
+      "maximum": 3.630592697525344,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 263,
+      "minimum": 0.042226576790881154,
+      "maximum": 3.5695940522748515,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 264,
+      "minimum": 0.0398596347097282,
+      "maximum": 3.5388967096266697,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 265,
+      "minimum": 0.02500332190197696,
+      "maximum": 3.4192690869144826,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 266,
+      "minimum": 0.03359704399531438,
+      "maximum": 3.517945429573274,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 267,
+      "minimum": 0.05976606103138238,
+      "maximum": 3.568474333413633,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 268,
+      "minimum": 0.10168341712426354,
+      "maximum": 3.589483226179368,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 269,
+      "minimum": 0.13818223975147248,
+      "maximum": 3.5872735455034217,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 270,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 271,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 272,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 273,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 274,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 275,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 276,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 277,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 278,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 279,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 280,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 281,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 282,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 283,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 284,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 285,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 286,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 287,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 288,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 289,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 290,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 291,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 292,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 293,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 294,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 295,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 296,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 297,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 298,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 299,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 300,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 301,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 302,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 303,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 304,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 305,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 306,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 307,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 308,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 309,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 310,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 311,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 312,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 313,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 314,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 315,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 316,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 317,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 318,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 319,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 320,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 321,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 322,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 323,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 324,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 325,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 326,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 327,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 328,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 329,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 330,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 331,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 332,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 333,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 334,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 335,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 336,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 337,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 338,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 339,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 340,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 341,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 342,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 343,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 344,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 345,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 346,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 347,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 348,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 349,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 350,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 351,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 352,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 353,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 354,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 355,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 356,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 357,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 358,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 359,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 360,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 361,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 362,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 363,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 364,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 365,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 366,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 367,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 368,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 369,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 370,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 371,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 372,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 373,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 374,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 375,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 376,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 377,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 378,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 379,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 380,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 381,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 382,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 383,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 384,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 385,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 386,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 387,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 388,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 389,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 390,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 391,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 392,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 393,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 394,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 395,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 396,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 397,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 398,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 399,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 400,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 401,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 402,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 403,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 404,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 405,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 406,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 407,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 408,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 409,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 410,
+      "minimum": 0.15036534208161356,
+      "maximum": 3.5840668259493214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 411,
+      "minimum": 0.05145747840299464,
+      "maximum": 3.683021450993465,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 412,
+      "minimum": 0.06258834324410145,
+      "maximum": 3.684056913962195,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 413,
+      "minimum": 0.065440797797919,
+      "maximum": 3.684201467916978,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 414,
+      "minimum": 0.0728764149057497,
+      "maximum": 3.6847504891128438,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 415,
+      "minimum": 0.07842770832735368,
+      "maximum": 3.6852570692851714,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 416,
+      "minimum": 0.08477671705077228,
+      "maximum": 3.6861121837299606,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 417,
+      "minimum": 0.08545290372228465,
+      "maximum": 3.686674135645717,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 418,
+      "minimum": 0.08515813447695564,
+      "maximum": 3.6867751853626487,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 419,
+      "minimum": 0.0556421065576842,
+      "maximum": 3.687384726193841,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 420,
+      "minimum": 0.05602576351213884,
+      "maximum": 3.6877812221110844,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 421,
+      "minimum": 0.058465519898390994,
+      "maximum": 3.6863436936065455,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 422,
+      "minimum": 0.06131249145357742,
+      "maximum": 3.6823011972592212,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 423,
+      "minimum": 0.06386488381656363,
+      "maximum": 3.6770518445867992,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 424,
+      "minimum": 0.04430778668631774,
+      "maximum": 3.6724461631318945,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 425,
+      "minimum": 0.03763123278315561,
+      "maximum": 3.670804290499177,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 426,
+      "minimum": 0.03719201053729648,
+      "maximum": 3.6702972196666224,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 427,
+      "minimum": 0.0133004771329297,
+      "maximum": 3.7087371958596123,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 428,
+      "minimum": 0.01307003258102668,
+      "maximum": 3.708552884795381,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 429,
+      "minimum": 0.013833180200776951,
+      "maximum": 3.7074484538574097,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 430,
+      "minimum": 0.017242294220864096,
+      "maximum": 3.705429119866608,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 6
+    },
+    {
+      "frame": 431,
+      "minimum": 0.02238598507040024,
+      "maximum": 3.7023226243137515,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 432,
+      "minimum": 0.028823817393572426,
+      "maximum": 3.6983508912367142,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 433,
+      "minimum": 0.03490143828821601,
+      "maximum": 3.693604444115863,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 434,
+      "minimum": 0.039639691415345624,
+      "maximum": 3.6885395947729194,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 435,
+      "minimum": 0.043637646317392864,
+      "maximum": 3.6837491721321385,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 436,
+      "minimum": 0.046221378428526805,
+      "maximum": 3.67996785834805,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 437,
+      "minimum": 0.04600919029178385,
+      "maximum": 3.679743139038351,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 438,
+      "minimum": 0.04671241894391187,
+      "maximum": 3.677988245958545,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 439,
+      "minimum": 0.04606186670969237,
+      "maximum": 3.6772911003097306,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 440,
+      "minimum": 0.04548478793026334,
+      "maximum": 3.6766712598378035,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 441,
+      "minimum": 0.0450809684896285,
+      "maximum": 3.67623671743047,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 442,
+      "minimum": 0.04473809144690222,
+      "maximum": 3.6758672370050363,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 443,
+      "minimum": 0.04456008799581923,
+      "maximum": 3.675675235280778,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 444,
+      "minimum": 0.04447299630635371,
+      "maximum": 3.675581248042704,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 445,
+      "minimum": 0.04452027176694173,
+      "maximum": 3.6756322703733986,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 446,
+      "minimum": 0.04473903833877557,
+      "maximum": 3.675868258018795,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 447,
+      "minimum": 0.04504648192187233,
+      "maximum": 3.6761995765699567,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 448,
+      "minimum": 0.04555932461926204,
+      "maximum": 3.676751395352653,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 449,
+      "minimum": 0.046050896625729365,
+      "maximum": 3.677279329879866,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 450,
+      "minimum": 0.04662882210868702,
+      "maximum": 3.6778987575138444,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 451,
+      "minimum": 0.04739821321641102,
+      "maximum": 3.678721307095543,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 452,
+      "minimum": 0.04831459311958497,
+      "maximum": 3.6796978816250885,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 453,
+      "minimum": 0.0492930720804452,
+      "maximum": 3.680736890164667,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 454,
+      "minimum": 0.04948772156933501,
+      "maximum": 3.680943119701965,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 455,
+      "minimum": 0.05032175464725697,
+      "maximum": 3.681825038268471,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 456,
+      "minimum": 0.05115054274222075,
+      "maximum": 3.68269862754687,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 457,
+      "minimum": 0.052149226396409176,
+      "maximum": 3.6837476104487905,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 458,
+      "minimum": 0.05233435885452309,
+      "maximum": 3.6839416245825305,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 459,
+      "minimum": 0.05545558724577404,
+      "maximum": 3.6831792900043183,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 460,
+      "minimum": 0.05878484355685032,
+      "maximum": 3.679567048484955,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 461,
+      "minimum": 0.061946589538024455,
+      "maximum": 3.6749078454917026,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 462,
+      "minimum": 0.06251188487021864,
+      "maximum": 3.67554119668614,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 463,
+      "minimum": 0.04361701281754904,
+      "maximum": 3.6716551073789105,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 464,
+      "minimum": 0.037574305530256424,
+      "maximum": 3.670738613345293,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 465,
+      "minimum": 0.03787705819502207,
+      "maximum": 3.6710877499288017,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 466,
+      "minimum": 0.014691239859075722,
+      "maximum": 3.7098449933207576,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 6
+    },
+    {
+      "frame": 467,
+      "minimum": 0.016233193276434577,
+      "maximum": 3.7093847727204547,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 6
+    },
+    {
+      "frame": 468,
+      "minimum": 0.0202695229662595,
+      "maximum": 3.7079436925185973,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 469,
+      "minimum": 0.02006480945203748,
+      "maximum": 3.7077748120267415,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 470,
+      "minimum": 0.02574225131206731,
+      "maximum": 3.705212371507855,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 471,
+      "minimum": 0.03265715442034889,
+      "maximum": 3.7018084601669443,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 472,
+      "minimum": 0.039208804731515556,
+      "maximum": 3.6976763415875666,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 473,
+      "minimum": 0.04425947791901308,
+      "maximum": 3.693099494284752,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 474,
+      "minimum": 0.04868277382809083,
+      "maximum": 3.688907374879477,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 475,
+      "minimum": 0.04794761516575363,
+      "maximum": 3.6881621391225963,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 476,
+      "minimum": 0.05067051461060146,
+      "maximum": 3.6846378632817505,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 477,
+      "minimum": 0.05117869096090999,
+      "maximum": 3.6827282486387958,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 478,
+      "minimum": 0.05038578223491186,
+      "maximum": 3.68189262583644,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 479,
+      "minimum": 0.04952173363506063,
+      "maximum": 3.6809791395004368,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 480,
+      "minimum": 0.04853300582851716,
+      "maximum": 3.6799301407829716,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 481,
+      "minimum": 0.048330580305560034,
+      "maximum": 3.6797148888667834,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 482,
+      "minimum": 0.04754647717265925,
+      "maximum": 3.678879540103935,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 483,
+      "minimum": 0.046702019248527904,
+      "maximum": 3.6779771148666214,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 484,
+      "minimum": 0.04596615163848128,
+      "maximum": 3.6771883857614966,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 485,
+      "minimum": 0.04536008974878314,
+      "maximum": 3.6765371447814914,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 486,
+      "minimum": 0.0449013066262296,
+      "maximum": 3.6760431750477665,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 487,
+      "minimum": 0.044720519198222064,
+      "maximum": 3.6758482885589956,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 488,
+      "minimum": 0.04452685493743047,
+      "maximum": 3.6756393745845344,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 489,
+      "minimum": 0.04446905727832018,
+      "maximum": 3.6755769964152023,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 490,
+      "minimum": 0.044512572158737385,
+      "maximum": 3.675623961139422,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 491,
+      "minimum": 0.044721193111286084,
+      "maximum": 3.6758490152735703,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 492,
+      "minimum": 0.04501165427336673,
+      "maximum": 3.6761620635024883,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 493,
+      "minimum": 0.045410098050297165,
+      "maximum": 3.6765909371191583,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 494,
+      "minimum": 0.04594886920870067,
+      "maximum": 3.6771698355543094,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 495,
+      "minimum": 0.046570419047498035,
+      "maximum": 3.6778362216643927,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 496,
+      "minimum": 0.04737640817279498,
+      "maximum": 3.678698028424037,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 497,
+      "minimum": 0.0504742542391341,
+      "maximum": 3.6778619236140457,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 498,
+      "minimum": 0.05413987422025457,
+      "maximum": 3.6744753341226897,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 499,
+      "minimum": 0.05752255873665035,
+      "maximum": 3.669906660516517,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 500,
+      "minimum": 0.03908007424877269,
+      "maximum": 3.666411679945327,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 501,
+      "minimum": 0.03361381992999668,
+      "maximum": 3.666137294783084,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 502,
+      "minimum": 0.034537882995664404,
+      "maximum": 3.667216536626597,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 503,
+      "minimum": 0.011929071650342848,
+      "maximum": 3.70763718328692,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 504,
+      "minimum": 0.014263881614397178,
+      "maximum": 3.7077976512896385,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 12
+    },
+    {
+      "frame": 505,
+      "minimum": 0.01439297220838398,
+      "maximum": 3.707902167700354,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 12
+    },
+    {
+      "frame": 506,
+      "minimum": 0.014883328012160746,
+      "maximum": 3.7082985652226625,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 6
+    },
+    {
+      "frame": 507,
+      "minimum": 0.019573214933870986,
+      "maximum": 3.7073685759365844,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 6
+    },
+    {
+      "frame": 508,
+      "minimum": 0.02599480293849865,
+      "maximum": 3.7054279796808487,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 509,
+      "minimum": 0.03362139358273453,
+      "maximum": 3.702668839813441,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 510,
+      "minimum": 0.04087640716534224,
+      "maximum": 3.699232660108237,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 511,
+      "minimum": 0.04663392615827888,
+      "maximum": 3.695409618009762,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 512,
+      "minimum": 0.05149310279750807,
+      "maximum": 3.6917361002068674,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 513,
+      "minimum": 0.05479263795700717,
+      "maximum": 3.688893262521219,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 514,
+      "minimum": 0.05446595428634282,
+      "maximum": 3.6885585208929115,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 515,
+      "minimum": 0.05524585856551312,
+      "maximum": 3.686974593710943,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 516,
+      "minimum": 0.05462580181585963,
+      "maximum": 3.6863315374680496,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 517,
+      "minimum": 0.05400579140882655,
+      "maximum": 3.6856869764233124,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 518,
+      "minimum": 0.053317841401053556,
+      "maximum": 3.6849699682261416,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 519,
+      "minimum": 0.052574669100749816,
+      "maximum": 3.684193257159791,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 520,
+      "minimum": 0.0516668583882165,
+      "maximum": 3.683241450700507,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 521,
+      "minimum": 0.05089838289711679,
+      "maximum": 3.6824331305322175,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 522,
+      "minimum": 0.05011457707712452,
+      "maximum": 3.6816062280024653,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 523,
+      "minimum": 0.049262778211073055,
+      "maximum": 3.680704780296878,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 524,
+      "minimum": 0.04846932482973898,
+      "maximum": 3.6798624425745174,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 525,
+      "minimum": 0.04768728894123342,
+      "maximum": 3.6790297376510352,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 526,
+      "minimum": 0.04695898600380133,
+      "maximum": 3.678252025804909,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 527,
+      "minimum": 0.046814162959094574,
+      "maximum": 3.678097122453437,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 528,
+      "minimum": 0.04617625630191924,
+      "maximum": 3.6774138064830595,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 529,
+      "minimum": 0.04556560607568372,
+      "maximum": 3.6767581476158284,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 530,
+      "minimum": 0.04514337843352223,
+      "maximum": 3.6763039186066635,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 531,
+      "minimum": 0.04476718284490744,
+      "maximum": 3.6758986039990305,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 532,
+      "minimum": 0.044533101301794886,
+      "maximum": 3.67564611517048,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 533,
+      "minimum": 0.044507963454179844,
+      "maximum": 3.675618987420421,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 534,
+      "minimum": 0.04447269861395853,
+      "maximum": 3.6755809267277755,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 535,
+      "minimum": 0.04459695415766873,
+      "maximum": 3.675715011120815,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 536,
+      "minimum": 0.047013355320927985,
+      "maximum": 3.674108559980823,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 537,
+      "minimum": 0.05005582129444974,
+      "maximum": 3.6699265194051804,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 538,
+      "minimum": 0.05300933015564624,
+      "maximum": 3.66472325441714,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 539,
+      "minimum": 0.05350673210466539,
+      "maximum": 3.6652985461323624,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 540,
+      "minimum": 0.03475004256881675,
+      "maximum": 3.661329942033717,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 541,
+      "minimum": 0.028961291059317773,
+      "maximum": 3.660651143638802,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 542,
+      "minimum": 0.029310083977748036,
+      "maximum": 3.6610654585215343,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 543,
+      "minimum": 0.029747032104523896,
+      "maximum": 3.661583796719242,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 544,
+      "minimum": 0.00738340702446294,
+      "maximum": 3.7039368625036104,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 28
+    },
+    {
+      "frame": 545,
+      "minimum": 0.009600292175719005,
+      "maximum": 3.703976781628967,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 546,
+      "minimum": 0.010409959946514391,
+      "maximum": 3.7046464321301755,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 547,
+      "minimum": 0.015357489815983172,
+      "maximum": 3.7038454214952026,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 6
+    },
+    {
+      "frame": 548,
+      "minimum": 0.02219418160495934,
+      "maximum": 3.7021561082262906,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 549,
+      "minimum": 0.03032959078029762,
+      "maximum": 3.69971613467726,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 550,
+      "minimum": 0.038148543264696855,
+      "maximum": 3.6966809937613334,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 551,
+      "minimum": 0.03882115231840544,
+      "maximum": 3.697312949426532,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 552,
+      "minimum": 0.045141153617805685,
+      "maximum": 3.693959943458367,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 553,
+      "minimum": 0.04525283145460435,
+      "maximum": 3.6940687085599393,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 554,
+      "minimum": 0.050821077403270465,
+      "maximum": 3.6910625782868465,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 555,
+      "minimum": 0.05476799889402173,
+      "maximum": 3.688868030744402,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 556,
+      "minimum": 0.05634084705252462,
+      "maximum": 3.688106405153462,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 557,
+      "minimum": 0.05646000088324854,
+      "maximum": 3.688229273766183,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 558,
+      "minimum": 0.05644471635037007,
+      "maximum": 3.6882135159239624,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 559,
+      "minimum": 0.05626821493842726,
+      "maximum": 3.6880314804999443,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 560,
+      "minimum": 0.055924505959296766,
+      "maximum": 3.68767663376002,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 561,
+      "minimum": 0.05589832470593592,
+      "maximum": 3.6876495845532418,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 562,
+      "minimum": 0.0554594514863993,
+      "maximum": 3.687195749704415,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 563,
+      "minimum": 0.05498273634020734,
+      "maximum": 3.686701901295123,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 564,
+      "minimum": 0.054314339137022216,
+      "maximum": 3.6860079358538087,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 565,
+      "minimum": 0.05347974748872275,
+      "maximum": 3.6851388850492413,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 566,
+      "minimum": 0.052624168790771364,
+      "maximum": 3.684245060078524,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 567,
+      "minimum": 0.05171670076128976,
+      "maximum": 3.683293794977544,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 568,
+      "minimum": 0.05147125607140879,
+      "maximum": 3.6830359329059092,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 569,
+      "minimum": 0.050641599289861006,
+      "maximum": 3.682162501263747,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 570,
+      "minimum": 0.049800491295059146,
+      "maximum": 3.6812741761574443,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 571,
+      "minimum": 0.04882977393242527,
+      "maximum": 3.6802454139885867,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 572,
+      "minimum": 0.04787689864292588,
+      "maximum": 3.679231859229958,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 573,
+      "minimum": 0.047599925280906064,
+      "maximum": 3.6789365602137423,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 574,
+      "minimum": 0.04674971488509527,
+      "maximum": 3.6780281612811905,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 575,
+      "minimum": 0.0460067197158196,
+      "maximum": 3.6772319250295595,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 576,
+      "minimum": 0.047575720327699855,
+      "maximum": 3.6747217390081914,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 577,
+      "minimum": 0.04724328534234701,
+      "maximum": 3.674359420278847,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 578,
+      "minimum": 0.04957015265881637,
+      "maximum": 3.6693811026015055,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 579,
+      "minimum": 0.04953212710711341,
+      "maximum": 3.669338358861637,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 580,
+      "minimum": 0.05192781693517645,
+      "maximum": 3.6634689391204347,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 581,
+      "minimum": 0.03249134532939024,
+      "maximum": 3.6586491215663273,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 582,
+      "minimum": 0.02609820227723958,
+      "maximum": 3.657231676428296,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 583,
+      "minimum": 0.02634953493395642,
+      "maximum": 3.6575331731756933,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 584,
+      "minimum": 0.02641716051448384,
+      "maximum": 3.657614252835174,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 585,
+      "minimum": 0.0034700456930067958,
+      "maximum": 3.7006845141045233,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 44
+    },
+    {
+      "frame": 586,
+      "minimum": 0.005523511861269981,
+      "maximum": 3.700566386398691,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 28
+    },
+    {
+      "frame": 587,
+      "minimum": 0.010165079434045765,
+      "maximum": 3.6994325066002602,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 588,
+      "minimum": 0.017026613745997565,
+      "maximum": 3.6976139400929924,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 6
+    },
+    {
+      "frame": 589,
+      "minimum": 0.017300868750567133,
+      "maximum": 3.697857712303062,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 6
+    },
+    {
+      "frame": 590,
+      "minimum": 0.025572967022981175,
+      "maximum": 3.695372214101667,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 591,
+      "minimum": 0.02577323232674189,
+      "maximum": 3.695556945995122,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 592,
+      "minimum": 0.03365816953566991,
+      "maximum": 3.6924152035312545,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 593,
+      "minimum": 0.04014079994749409,
+      "maximum": 3.6890383761538033,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 594,
+      "minimum": 0.04093161119897104,
+      "maximum": 3.6898234512449335,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 595,
+      "minimum": 0.04692558513443146,
+      "maximum": 3.687122472304168,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 596,
+      "minimum": 0.05141054347006957,
+      "maximum": 3.685406873755028,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 597,
+      "minimum": 0.053484729192291525,
+      "maximum": 3.685144080787609,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 598,
+      "minimum": 0.05431875945669162,
+      "maximum": 3.6860125311919774,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 599,
+      "minimum": 0.054937186513257075,
+      "maximum": 3.6866546663484314,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 600,
+      "minimum": 0.05555015712616296,
+      "maximum": 3.687289611375604,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 601,
+      "minimum": 0.056016622113361336,
+      "maximum": 3.687771781712854,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 602,
+      "minimum": 0.056255920401326875,
+      "maximum": 3.6880187957926864,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 603,
+      "minimum": 0.05644032258180687,
+      "maximum": 3.6882089859208236,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 604,
+      "minimum": 0.05646483989198714,
+      "maximum": 3.688234262425908,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 605,
+      "minimum": 0.05634279703622269,
+      "maximum": 3.688108416392197,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 606,
+      "minimum": 0.0560513963765743,
+      "maximum": 3.6878076915817246,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 607,
+      "minimum": 0.05564138890599679,
+      "maximum": 3.6873839839690845,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 608,
+      "minimum": 0.05505250802013961,
+      "maximum": 3.6867742379334913,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 609,
+      "minimum": 0.05443657213515962,
+      "maximum": 3.686134979472513,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 610,
+      "minimum": 0.0537334732571253,
+      "maximum": 3.6854033844723517,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 611,
+      "minimum": 0.0529290781016698,
+      "maximum": 3.6845639386223183,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 612,
+      "minimum": 0.05198260742929506,
+      "maximum": 3.683572879618964,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 613,
+      "minimum": 0.05118754303384776,
+      "maximum": 3.68273756324038,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 614,
+      "minimum": 0.05091041470791424,
+      "maximum": 3.6824458045609845,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 615,
+      "minimum": 0.05010931008996522,
+      "maximum": 3.6816006630224365,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 616,
+      "minimum": 0.05128457482965132,
+      "maximum": 3.6787337323022484,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 617,
+      "minimum": 0.0531288458535073,
+      "maximum": 3.6733555228233854,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 618,
+      "minimum": 0.05483240830687919,
+      "maximum": 3.666826938921531,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 619,
+      "minimum": 0.03476871254679281,
+      "maximum": 3.6613520154842263,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 620,
+      "minimum": 0.02755760060222201,
+      "maximum": 3.658978806046207,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 621,
+      "minimum": 0.027097407744690827,
+      "maximum": 3.658428809556426,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 622,
+      "minimum": 0.026631953111404982,
+      "maximum": 3.657871656058205,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 623,
+      "minimum": 0.0030000059826988945,
+      "maximum": 3.7002897145466704,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 49
+    },
+    {
+      "frame": 624,
+      "minimum": 0.004341371661212179,
+      "maximum": 3.699570346647306,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 34
+    },
+    {
+      "frame": 625,
+      "minimum": 0.004317190248002589,
+      "maximum": 3.699549913192527,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 34
+    },
+    {
+      "frame": 626,
+      "minimum": 0.0083634313401717,
+      "maximum": 3.697875902504279,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 28
+    },
+    {
+      "frame": 627,
+      "minimum": 0.008365428064962543,
+      "maximum": 3.6978776349035343,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 28
+    },
+    {
+      "frame": 628,
+      "minimum": 0.014555012730738781,
+      "maximum": 3.6954033521501515,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 12
+    },
+    {
+      "frame": 629,
+      "minimum": 0.022105652222535355,
+      "maximum": 3.692148160073998,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 630,
+      "minimum": 0.029502385255682384,
+      "maximum": 3.6883946982486577,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 631,
+      "minimum": 0.03577918135897562,
+      "maximum": 3.6846630022246245,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 632,
+      "minimum": 0.03631807514113916,
+      "maximum": 3.6852077565418995,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 633,
+      "minimum": 0.042067521410103836,
+      "maximum": 3.682122877365373,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 634,
+      "minimum": 0.04581623368187593,
+      "maximum": 3.6795386291360046,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 635,
+      "minimum": 0.04803410164970501,
+      "maximum": 3.679399325578629,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 636,
+      "minimum": 0.04891406936042131,
+      "maximum": 3.680334900825301,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 637,
+      "minimum": 0.04987934367352409,
+      "maximum": 3.681357576440746,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 638,
+      "minimum": 0.050033813870413724,
+      "maximum": 3.6815208831042128,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 639,
+      "minimum": 0.0508634269782533,
+      "maximum": 3.682396305465204,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 640,
+      "minimum": 0.05187062762604455,
+      "maximum": 3.6834553850600287,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 641,
+      "minimum": 0.05269134342813686,
+      "maximum": 3.6843153445337293,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 642,
+      "minimum": 0.053583007920792625,
+      "maximum": 3.6852465614857692,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 643,
+      "minimum": 0.05438955110957977,
+      "maximum": 3.686086115023045,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 644,
+      "minimum": 0.05510137752526134,
+      "maximum": 3.6868248922772864,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 645,
+      "minimum": 0.055202730144856105,
+      "maximum": 3.686929915801443,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 646,
+      "minimum": 0.05575810939319581,
+      "maximum": 3.6875046737392267,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 647,
+      "minimum": 0.056160987655061945,
+      "maximum": 3.6879208297722244,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 648,
+      "minimum": 0.0563997497621358,
+      "maximum": 3.688167151402922,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 649,
+      "minimum": 0.056467512091785466,
+      "maximum": 3.688237017225333,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 650,
+      "minimum": 0.056362321024380435,
+      "maximum": 3.688128552842045,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 651,
+      "minimum": 0.056135709120212596,
+      "maximum": 3.687894737404463,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 652,
+      "minimum": 0.055796647060560645,
+      "maximum": 3.687544509862164,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 653,
+      "minimum": 0.05525309430879588,
+      "maximum": 3.686982088678974,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 654,
+      "minimum": 0.054571600390659114,
+      "maximum": 3.6862752517610033,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 655,
+      "minimum": 0.05605833792105841,
+      "maximum": 3.6838159043381893,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 656,
+      "minimum": 0.058058305046756686,
+      "maximum": 3.6787763803525877,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 657,
+      "minimum": 0.05983930633203727,
+      "maximum": 3.672535500415961,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 658,
+      "minimum": 0.05951527775823706,
+      "maximum": 3.67216912445906,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 659,
+      "minimum": 0.039466622058284884,
+      "maximum": 3.666861656810397,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 660,
+      "minimum": 0.03877937402376119,
+      "maximum": 3.6660612206889027,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 661,
+      "minimum": 0.031440513057077624,
+      "maximum": 3.663585447403989,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 662,
+      "minimum": 0.030625206213926504,
+      "maximum": 3.662623219384159,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 663,
+      "minimum": 0.006354760712952157,
+      "maximum": 3.7030879503921597,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 28
+    },
+    {
+      "frame": 664,
+      "minimum": 0.007355274380756782,
+      "maximum": 3.7021061696298148,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 28
+    },
+    {
+      "frame": 665,
+      "minimum": 0.006710422885021217,
+      "maximum": 3.7015651029814762,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 28
+    },
+    {
+      "frame": 666,
+      "minimum": 0.010065094759283966,
+      "maximum": 3.6993464642528124,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 18
+    },
+    {
+      "frame": 667,
+      "minimum": 0.015529507562632716,
+      "maximum": 3.6962778806515644,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 12
+    },
+    {
+      "frame": 668,
+      "minimum": 0.022438348970467814,
+      "maximum": 3.6924596213398218,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 669,
+      "minimum": 0.02915316498535958,
+      "maximum": 3.688053668198563,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 670,
+      "minimum": 0.03472331255761674,
+      "maximum": 3.683592249570097,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 671,
+      "minimum": 0.03963186253508866,
+      "maximum": 3.6795803793080495,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 672,
+      "minimum": 0.04318893247386768,
+      "maximum": 3.67673905477443,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 673,
+      "minimum": 0.04321243893286919,
+      "maximum": 3.6767642261587525,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 674,
+      "minimum": 0.043359443465419645,
+      "maximum": 3.6769215921738123,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 675,
+      "minimum": 0.045037965022061144,
+      "maximum": 3.676190403419014,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 676,
+      "minimum": 0.045119025612279984,
+      "maximum": 3.676277698082572,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 677,
+      "minimum": 0.04553739394418699,
+      "maximum": 3.6767278196837196,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 678,
+      "minimum": 0.046023686291619015,
+      "maximum": 3.677250132259701,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 679,
+      "minimum": 0.04659711725503257,
+      "maximum": 3.677864810832034,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 680,
+      "minimum": 0.04742843975031974,
+      "maximum": 3.6787535732222523,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 681,
+      "minimum": 0.04834740951798722,
+      "maximum": 3.6797327907449926,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 682,
+      "minimum": 0.04932753223124564,
+      "maximum": 3.6807734115596986,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 683,
+      "minimum": 0.0499647545929065,
+      "maximum": 3.681447885203056,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 684,
+      "minimum": 0.0509296456669972,
+      "maximum": 3.6824660607907163,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 685,
+      "minimum": 0.051935090545612184,
+      "maximum": 3.6835230288209004,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 686,
+      "minimum": 0.05289825385318636,
+      "maximum": 3.6845317192426137,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 687,
+      "minimum": 0.053687045496985775,
+      "maximum": 3.6853550047436556,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 688,
+      "minimum": 0.053825262006171215,
+      "maximum": 3.685499006684836,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 689,
+      "minimum": 0.05454772020982546,
+      "maximum": 3.6862504495169333,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 690,
+      "minimum": 0.05520027670559102,
+      "maximum": 3.686927373990784,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 691,
+      "minimum": 0.05574509668667815,
+      "maximum": 3.6874912212388153,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 692,
+      "minimum": 0.05609786882678236,
+      "maximum": 3.687855674033244,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 693,
+      "minimum": 0.056362319863865196,
+      "maximum": 3.6881285516453772,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 694,
+      "minimum": 0.05646705629385451,
+      "maximum": 3.6882365473403524,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 695,
+      "minimum": 0.05862496088877833,
+      "maximum": 3.686510296608617,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 696,
+      "minimum": 0.061174571002652556,
+      "maximum": 3.6821526746424524,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 697,
+      "minimum": 0.06346624775483178,
+      "maximum": 3.6766075280651194,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 698,
+      "minimum": 0.04361931129471941,
+      "maximum": 3.671657742726211,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 699,
+      "minimum": 0.03655222327006413,
+      "maximum": 3.669557209103118,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 700,
+      "minimum": 0.03626255281437807,
+      "maximum": 3.669221618401366,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 701,
+      "minimum": 0.035923759609886474,
+      "maximum": 3.668828688250983,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 702,
+      "minimum": 0.03509696208527657,
+      "maximum": 3.667867830060004,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 703,
+      "minimum": 0.0341813800782802,
+      "maximum": 3.666800573907153,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 704,
+      "minimum": 0.05170346900786171,
+      "maximum": 3.6832799000170553,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 705,
+      "minimum": 0.05082780378768348,
+      "maximum": 3.6823587723687297,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 706,
+      "minimum": 0.04993926762040246,
+      "maximum": 3.6814209397781497,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 707,
+      "minimum": 0.048935759994378714,
+      "maximum": 3.6803579226537977,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 708,
+      "minimum": 0.04847764992928205,
+      "maximum": 3.6798712937797973,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 709,
+      "minimum": 0.047616729072160524,
+      "maximum": 3.6789544846388935,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 710,
+      "minimum": 0.046856090882783974,
+      "maximum": 3.6781419774526967,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 711,
+      "minimum": 0.04627042613526555,
+      "maximum": 3.6775147831814365,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 712,
+      "minimum": 0.045739897430735255,
+      "maximum": 3.6769454388780787,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 713,
+      "minimum": 0.045259384724772644,
+      "maximum": 3.676428788947078,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 714,
+      "minimum": 0.04489281484507046,
+      "maximum": 3.676034023972761,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 715,
+      "minimum": 0.044627575871572844,
+      "maximum": 3.6757480454940605,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 716,
+      "minimum": 0.04449741528537743,
+      "maximum": 3.675607603502499,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 717,
+      "minimum": 0.044485264702871063,
+      "maximum": 3.675594489651985,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 718,
+      "minimum": 0.044469588847391606,
+      "maximum": 3.6755775701728908,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 719,
+      "minimum": 0.04448989894501665,
+      "maximum": 3.6755994913556833,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 720,
+      "minimum": 0.04459702673489119,
+      "maximum": 3.6757150894206916,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 721,
+      "minimum": 0.04482628994787774,
+      "maximum": 3.675962324068678,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 722,
+      "minimum": 0.04519883995908458,
+      "maximum": 3.676363624731948,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 723,
+      "minimum": 0.045760163966292566,
+      "maximum": 3.676967209076224,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 724,
+      "minimum": 0.04602511609095927,
+      "maximum": 3.677251666557936,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 725,
+      "minimum": 0.04677129189610696,
+      "maximum": 3.678051251131137,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 726,
+      "minimum": 0.047624060852626826,
+      "maximum": 3.6789623050136697,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 727,
+      "minimum": 0.048383793332163805,
+      "maximum": 3.679771489692257,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 728,
+      "minimum": 0.0493656951301773,
+      "maximum": 3.6808138515868905,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 729,
+      "minimum": 0.04979837025564393,
+      "maximum": 3.681271932437653,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 730,
+      "minimum": 0.05081677313035016,
+      "maximum": 3.682347149273255,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 731,
+      "minimum": 0.05088802642819701,
+      "maximum": 3.6824222208009587,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 732,
+      "minimum": 0.05148362594138689,
+      "maximum": 3.683048934407225,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 733,
+      "minimum": 0.06261336456157096,
+      "maximum": 3.6840831139253396,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 734,
+      "minimum": 0.0650676529339762,
+      "maximum": 3.6842094583562357,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 735,
+      "minimum": 0.07341674204735682,
+      "maximum": 3.6848201107485465,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 736,
+      "minimum": 0.08236329846249646,
+      "maximum": 3.6857239339948364,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    },
+    {
+      "frame": 737,
+      "minimum": 0.08547699739563086,
+      "maximum": 3.6863499934640913,
+      "belowZero": 0,
+      "below5mm": 0,
+      "near2cm": 0
+    }
+  ]
+}

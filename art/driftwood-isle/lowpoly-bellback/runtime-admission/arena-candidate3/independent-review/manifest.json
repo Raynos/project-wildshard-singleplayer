@@ -1,0 +1,63 @@
+{
+  "schema": "bellback.independent-review-closure.v1",
+  "runtimeAcceptance": false,
+  "inputs": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/closure.json",
+      "sha256": "295e2fa160cd2883be69508c69b88f5525d35cb1795fe95a1f3b38525ab7c712",
+      "bytes": 4944
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/closure.json",
+      "sha256": "85b676f9c68a5659bdd4e38a7cc13e244c50c132c918e7ca7d9b592d668839a1",
+      "bytes": 2646
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/summary.json",
+      "sha256": "83823b408a6455c665906d2db90a47e12db9349665d31641a84208bb6e87266b",
+      "bytes": 5767
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/report.json",
+      "sha256": "f7d57379bdd0d40b94655929b8912135b098c2615c4125c35de2fa924ba2710d",
+      "bytes": 490337
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/render-trace.json",
+      "sha256": "fc7df48aa0b230bc3ef6971a286e884f41872887b2bf1081ad54fe8e7f6bc344",
+      "bytes": 631626
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/world-contact.json",
+      "sha256": "4c8536b17b5d6a7739249a471147d5519f4d38b44848fc288df1f166849176df",
+      "bytes": 4163881
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/bellback-v6-native.json",
+      "sha256": "32e78a1677765c511645905ca7c48ad3e60d0cf7fac4a8dbd830d39e9f343d44",
+      "bytes": 1785369
+    }
+  ],
+  "outputs": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/independent-review/reconstruct.py",
+      "sha256": "abc51e32cb6a2daa68ead3dcc3e8b875a4e1e84093e116b13bd6d9c362efbd00",
+      "bytes": 4170
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/independent-review/geometry-and-cadence.json",
+      "sha256": "3dfa6e63a55981ec0778536faa7d36ce975a5cbf0e19cfaf66287836c594867a",
+      "bytes": 3407
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/independent-review/video-review.json",
+      "sha256": "547c71dec30689c91e67f05016cb89f666f7595fa7edca1de708c1b0fedd298c",
+      "bytes": 7492
+    },
+    {
+      "path": "docs/reviews/bellback-anatomy3-contact-and-cycles.md",
+      "sha256": "3e4dfb66c3ec19ba31650c7376f3b1920e4baa6388ab780d0d49ef6c2b5863e1",
+      "bytes": 8025
+    }
+  ]
+}

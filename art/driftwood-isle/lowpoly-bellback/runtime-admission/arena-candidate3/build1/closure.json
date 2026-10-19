@@ -1,0 +1,53 @@
+{
+  "schema": "wildshard.bellback.build-evidence-closure.v1",
+  "files": {
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/build-files.json": {
+      "sha256": "b5f00549dda51258469daeb6e879ce856a9abec632fd69a618dec4040b6b8795",
+      "bytes": 37519
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/corpse-reward.jpg": {
+      "sha256": "e1adf7ef762dcd46749d021e8e2f105a36f0fec05ac7b25893a67f251848fc68",
+      "bytes": 54761
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/entry.jpg": {
+      "sha256": "d6f872145e481638f7a548a5f13b3fd29590ceefae1ecf998e84f065806b8a88",
+      "bytes": 60324
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/host-after.json": {
+      "sha256": "a3293d862547961d915dcc4e22d5afafd50eed9a3901e335c5d90df47f5785a0",
+      "bytes": 882
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/host-before.json": {
+      "sha256": "a3293d862547961d915dcc4e22d5afafd50eed9a3901e335c5d90df47f5785a0",
+      "bytes": 882
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/preview.json": {
+      "sha256": "22a8a7f287bac868d7d33df2634386c0f14999bb9a4b9c8b36e8460d3c646021",
+      "bytes": 4179
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/render-trace.json": {
+      "sha256": "fc7df48aa0b230bc3ef6971a286e884f41872887b2bf1081ad54fe8e7f6bc344",
+      "bytes": 631626
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/report.json": {
+      "sha256": "f7d57379bdd0d40b94655929b8912135b098c2615c4125c35de2fa924ba2710d",
+      "bytes": 490337
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/retry.jpg": {
+      "sha256": "f7a6e1fb709b584384accb6f358609d68509e5cd6a82ccf5268cd096d9cd9634",
+      "bytes": 59196
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/summary.json": {
+      "sha256": "83823b408a6455c665906d2db90a47e12db9349665d31641a84208bb6e87266b",
+      "bytes": 5767
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/sword-result.jpg": {
+      "sha256": "05ddacda47728db8231336bc2f1b61bf7153a1c1ce9ae3dbcb7b8fea51431751",
+      "bytes": 53947
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/world-contact.json": {
+      "sha256": "4c8536b17b5d6a7739249a471147d5519f4d38b44848fc288df1f166849176df",
+      "bytes": 4163881
+    }
+  }
+}
