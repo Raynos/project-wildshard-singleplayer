@@ -1,0 +1,17 @@
+{
+  "schema": "wildshard.shared-arena.build-equivalence.v1",
+  "predecessor": "shared-arena-build3",
+  "successor": "shared-arena-build4",
+  "sourceChange": "Trailing whitespace removed only from practice/shared-arena/controller.ts; exact old source snapshot preserved.",
+  "runtimeAndAssetFilesIdentical": true,
+  "identicalFiles": 282,
+  "differentFiles": [
+    "shared-arena-build.json"
+  ],
+  "receiptDifferences": [
+    "builtAt"
+  ],
+  "oldManifest": "build3-source-build-manifest.json",
+  "browserProofRemains": "build3-qa.json",
+  "fullCycleProbeRunsAgainst": "shared-arena-build3"
+}

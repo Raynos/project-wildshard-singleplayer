@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wildshard Enemy Arena</title>
+<link rel="stylesheet" href="/src/engine/ui/styles/base.css"><link rel="stylesheet" href="/src/engine/ui/styles/game.css">
+<link rel="stylesheet" href="/src/engine/ui/styles/menu.css"><link rel="stylesheet" href="/src/engine/ui/styles/touch.css">
+<link rel="stylesheet" href="./page.css">
+</head><body><canvas id="game"></canvas><div id="hud"></div>
+<section class="shared-arena"><strong>Wildshard Enemy Arena</strong>
+<p>Four playable WIP enemies. Bellback is awaiting admission. Health and coins stay in this page.</p>
+<select id="arena-opponent" aria-label="Arena opponent">
+<option value="splinter-mantis">Splinter Mantis · motion 7</option><option value="conch-duelist">Conch Duelist · motion 4</option>
+<option value="tideRootColossus">Tide-root Colossus · motion 2</option><option value="brine-puffer">Brine Puffer · V70</option>
+<option disabled value="bellback">Bellback · unavailable</option></select>
+<button id="arena-start" type="button">Start</button><button id="arena-back" type="button" hidden>Back</button>
+<button id="arena-retry" type="button" hidden>Retry</button>
+<output id="arena-status" aria-live="polite">Choose an enemy, then Start.</output></section>
+<script type="module" src="./page.ts"></script></body></html>
