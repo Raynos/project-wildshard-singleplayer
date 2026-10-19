@@ -1,0 +1,11 @@
+{
+  "commit": "0897feb6c37e76ce9a07fdb8b6efb704f4637162",
+  "path": "art/driftwood-isle/puffer-complete-remaster/next-complete-assembly/render_matched.py",
+  "blob": "28a26f72b1431b9c5e93802fffbd8415645524bc",
+  "originalSha256": "3dcff53dd20c68914a9bae176aa4a7125bea0252db11cc20bbda89c5f7a9c720",
+  "currentSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf",
+  "commitPathEqualsBlob": true,
+  "sharedSceneAndCameraConfigurationByteIdentical": true,
+  "qualificationResolved": true,
+  "rescore": false
+}

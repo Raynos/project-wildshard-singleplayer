@@ -1,0 +1,8 @@
+# Blind visual score, frozen before comparator or author notes
+
+2026-10-19. Opened the original low-poly concept and each of the ten actual candidate PNGs individually: hero, front, left, right, back, top, elevated front, elevated left, elevated right, elevated back. No comparator, source, construction prose, receipts or previous scores read before this freeze.
+
+Scores on a 0–100 scale: silhouette 78; face 76; details 76; facets 82.
+Weighted likeness = 78 × 0.35 + 76 × 0.30 + 76 × 0.20 + 82 × 0.15 = **77.6/100**, unrounded. Geometry quality adds no points.
+
+The complete silhouette is recognizably the reference creature: teal domed mass, cream belly, cream crown spikes, orange brows, splayed feet and rimmed fan tail. The front is squat and solid. The side profile is more elongated and pinched toward the tail than the rounded, compact concept. The cream lower face forms a broad flat-ish angular bib and a dark lower belly band instead of the concept's inflated continuous cream volume. The feet look longer and more evenly striped, with unusually regular toe fans. The reference's substantial irregular spikes become small narrow side spikes. Brow strips are thinner and straighter, with prominent central orange points; the eye-and-mouth arrangement reads angry but less naturally integrated. The triangular mouth and tongue are legible. Large low-poly facets are present throughout, though broad upper planes and the planar cheek/bib transition feel constructed rather than the more varied reference planes. Top and rear confirm a full model, but they are not grounds for likeness bonuses or runtime acceptance.

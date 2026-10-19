@@ -1,0 +1,5 @@
+# Comparator decision before author notes
+
+After the blind candidate freeze, opened all ten corresponding selected PNGs individually. Prefer **selected** as actual best likeness of these two complete models. Selected score: silhouette 80, face 80, details 79, facets 82; weighted score **80.1/100**, unrounded. Candidate remains 77.6/100. These are independent visual judgments, not a reuse of prior scores or a threshold certification.
+
+Selected's substantial wedge brows, broader forward splay, and distinct pointed, less uniform toe shapes are closer to the original. Its cream bib is still too flat/projected, and the side is still more stretched than the concept. Candidate improves some dome/face continuity and makes the frontal stance compact, but the flattened brow strips, little central orange points and rounded regular toe fans cost more likeness than that gain. Rear and top views give neither an overriding likeness advantage; the tail remains similarly narrow from back/top in both. Retain selected; do not promote candidate on the basis of construction improvements.

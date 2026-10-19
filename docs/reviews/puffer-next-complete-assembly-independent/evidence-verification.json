@@ -1,0 +1,1801 @@
+{
+  "passed": 252,
+  "total": 252,
+  "checks": [
+    {
+      "check": "closure hash attachment-cap-audit.json",
+      "passed": true,
+      "actual": "044dc91cd00df6da3fcd7fd1c71755bdf42a24453f9238894d8dc2b258511636",
+      "expected": "044dc91cd00df6da3fcd7fd1c71755bdf42a24453f9238894d8dc2b258511636"
+    },
+    {
+      "check": "closure bytes attachment-cap-audit.json",
+      "passed": true,
+      "actual": 16950,
+      "expected": 16950
+    },
+    {
+      "check": "closure hash audit_attachment_caps.py",
+      "passed": true,
+      "actual": "f4ce3044ed4365e7d2b21d222b6d3cf3d26add98013f4e42fd301bcb679ac8a1",
+      "expected": "f4ce3044ed4365e7d2b21d222b6d3cf3d26add98013f4e42fd301bcb679ac8a1"
+    },
+    {
+      "check": "closure bytes audit_attachment_caps.py",
+      "passed": true,
+      "actual": 3845,
+      "expected": 3845
+    },
+    {
+      "check": "closure hash audit_geometry.py",
+      "passed": true,
+      "actual": "a3e06736ca2d8eccae66554532ca437320fd3c70fef7947de0a6026a9ec40afc",
+      "expected": "a3e06736ca2d8eccae66554532ca437320fd3c70fef7947de0a6026a9ec40afc"
+    },
+    {
+      "check": "closure bytes audit_geometry.py",
+      "passed": true,
+      "actual": 8193,
+      "expected": 8193
+    },
+    {
+      "check": "closure hash audit_glb_roundtrip.py",
+      "passed": true,
+      "actual": "fb3c9413cb21e310c160c65e1896b914bd32a8060139213e1be42423140d82d1",
+      "expected": "fb3c9413cb21e310c160c65e1896b914bd32a8060139213e1be42423140d82d1"
+    },
+    {
+      "check": "closure bytes audit_glb_roundtrip.py",
+      "passed": true,
+      "actual": 2147,
+      "expected": 2147
+    },
+    {
+      "check": "closure hash audit_preservation.py",
+      "passed": true,
+      "actual": "6fd62297ebe3a27f2a6af87a1236bdf64458a3c9e5928f2eed87f4e0ef44fb54",
+      "expected": "6fd62297ebe3a27f2a6af87a1236bdf64458a3c9e5928f2eed87f4e0ef44fb54"
+    },
+    {
+      "check": "closure bytes audit_preservation.py",
+      "passed": true,
+      "actual": 4311,
+      "expected": 4311
+    },
+    {
+      "check": "closure hash build_candidate.py",
+      "passed": true,
+      "actual": "64ddd309bcf050120bcacd8e440ac4daf67576c9d7778ab53732648ae87101ac",
+      "expected": "64ddd309bcf050120bcacd8e440ac4daf67576c9d7778ab53732648ae87101ac"
+    },
+    {
+      "check": "closure bytes build_candidate.py",
+      "passed": true,
+      "actual": 10830,
+      "expected": 10830
+    },
+    {
+      "check": "closure hash candidate-01-front.webp",
+      "passed": true,
+      "actual": "dcfc6b04a1499aa47c9198629cf3b0a78a7787783b14083ee278114165611c3b",
+      "expected": "dcfc6b04a1499aa47c9198629cf3b0a78a7787783b14083ee278114165611c3b"
+    },
+    {
+      "check": "closure bytes candidate-01-front.webp",
+      "passed": true,
+      "actual": 15538,
+      "expected": 15538
+    },
+    {
+      "check": "closure hash candidate-02-left.webp",
+      "passed": true,
+      "actual": "f87daa2da77a0a7f5ff013d840683084b0c8c0848cbab19d92f563bb3cc173fb",
+      "expected": "f87daa2da77a0a7f5ff013d840683084b0c8c0848cbab19d92f563bb3cc173fb"
+    },
+    {
+      "check": "closure bytes candidate-02-left.webp",
+      "passed": true,
+      "actual": 15166,
+      "expected": 15166
+    },
+    {
+      "check": "closure hash candidate-03-right.webp",
+      "passed": true,
+      "actual": "4fbfa87412475d6a4b7e1cc6ac59841e90ebf9608d320aba1abfe53ed713e543",
+      "expected": "4fbfa87412475d6a4b7e1cc6ac59841e90ebf9608d320aba1abfe53ed713e543"
+    },
+    {
+      "check": "closure bytes candidate-03-right.webp",
+      "passed": true,
+      "actual": 16766,
+      "expected": 16766
+    },
+    {
+      "check": "closure hash candidate-04-back.webp",
+      "passed": true,
+      "actual": "6c60914b46c439d6fd419540597e5f568bc08dbe15e7f01b64af4bf78c93e0b2",
+      "expected": "6c60914b46c439d6fd419540597e5f568bc08dbe15e7f01b64af4bf78c93e0b2"
+    },
+    {
+      "check": "closure bytes candidate-04-back.webp",
+      "passed": true,
+      "actual": 12638,
+      "expected": 12638
+    },
+    {
+      "check": "closure hash candidate-05-top.webp",
+      "passed": true,
+      "actual": "49b0008ff353c0c61222de06acb89f8bdf36350797adeabe110745a261f30923",
+      "expected": "49b0008ff353c0c61222de06acb89f8bdf36350797adeabe110745a261f30923"
+    },
+    {
+      "check": "closure bytes candidate-05-top.webp",
+      "passed": true,
+      "actual": 55982,
+      "expected": 55982
+    },
+    {
+      "check": "closure hash candidate-06-elevated-front.webp",
+      "passed": true,
+      "actual": "12844b08172a3d62654a1a26b71798aff31412b99fb8a2c810f1abfba428a621",
+      "expected": "12844b08172a3d62654a1a26b71798aff31412b99fb8a2c810f1abfba428a621"
+    },
+    {
+      "check": "closure bytes candidate-06-elevated-front.webp",
+      "passed": true,
+      "actual": 61496,
+      "expected": 61496
+    },
+    {
+      "check": "closure hash candidate-07-elevated-left.webp",
+      "passed": true,
+      "actual": "22e4fd3387696a1d3d53a8d1dd264d695f9f681afb1573ec71b0ccb948424335",
+      "expected": "22e4fd3387696a1d3d53a8d1dd264d695f9f681afb1573ec71b0ccb948424335"
+    },
+    {
+      "check": "closure bytes candidate-07-elevated-left.webp",
+      "passed": true,
+      "actual": 52326,
+      "expected": 52326
+    },
+    {
+      "check": "closure hash candidate-08-elevated-right.webp",
+      "passed": true,
+      "actual": "aabdf11a659128cf8fb17c3cbbb44fce9f47e6da25a3a50889dc57173a6e83ee",
+      "expected": "aabdf11a659128cf8fb17c3cbbb44fce9f47e6da25a3a50889dc57173a6e83ee"
+    },
+    {
+      "check": "closure bytes candidate-08-elevated-right.webp",
+      "passed": true,
+      "actual": 72736,
+      "expected": 72736
+    },
+    {
+      "check": "closure hash candidate-09-elevated-back.webp",
+      "passed": true,
+      "actual": "dc8a1b76930cfd7d13fef33ea61cdae7f7e087df5b3aff1e97044b9252d3616d",
+      "expected": "dc8a1b76930cfd7d13fef33ea61cdae7f7e087df5b3aff1e97044b9252d3616d"
+    },
+    {
+      "check": "closure bytes candidate-09-elevated-back.webp",
+      "passed": true,
+      "actual": 53906,
+      "expected": 53906
+    },
+    {
+      "check": "closure hash candidate-hero.webp",
+      "passed": true,
+      "actual": "8c9183010c493600342de50d85e88d47b488f6b9c7b5afe33475c6e272bcdf93",
+      "expected": "8c9183010c493600342de50d85e88d47b488f6b9c7b5afe33475c6e272bcdf93"
+    },
+    {
+      "check": "closure bytes candidate-hero.webp",
+      "passed": true,
+      "actual": 57288,
+      "expected": 57288
+    },
+    {
+      "check": "closure hash candidate-native.json",
+      "passed": true,
+      "actual": "b48589944bf7b85b05b1ef612969095f5d73941576a4a78c915770922e9a2e20",
+      "expected": "b48589944bf7b85b05b1ef612969095f5d73941576a4a78c915770922e9a2e20"
+    },
+    {
+      "check": "closure bytes candidate-native.json",
+      "passed": true,
+      "actual": 1379944,
+      "expected": 1379944
+    },
+    {
+      "check": "closure hash candidate.glb",
+      "passed": true,
+      "actual": "52f7ef179bdf47ebc8231d77fdb4e7b915b91066f310c8831c957fac3de9f49b",
+      "expected": "52f7ef179bdf47ebc8231d77fdb4e7b915b91066f310c8831c957fac3de9f49b"
+    },
+    {
+      "check": "closure bytes candidate.glb",
+      "passed": true,
+      "actual": 625136,
+      "expected": 625136
+    },
+    {
+      "check": "closure hash capture-receipt.json",
+      "passed": true,
+      "actual": "420bfc74c89ad6e99551f02a2a1ccd3405f0a2ab45c6a23f7c5e28c18a090ccf",
+      "expected": "420bfc74c89ad6e99551f02a2a1ccd3405f0a2ab45c6a23f7c5e28c18a090ccf"
+    },
+    {
+      "check": "closure bytes capture-receipt.json",
+      "passed": true,
+      "actual": 14970,
+      "expected": 14970
+    },
+    {
+      "check": "closure hash carrier-controls.json",
+      "passed": true,
+      "actual": "673398c946c23acb9c6758e9a3e58a5f52f1182f78e5ec0173a9c6ef3aabc55a",
+      "expected": "673398c946c23acb9c6758e9a3e58a5f52f1182f78e5ec0173a9c6ef3aabc55a"
+    },
+    {
+      "check": "closure bytes carrier-controls.json",
+      "passed": true,
+      "actual": 17554,
+      "expected": 17554
+    },
+    {
+      "check": "closure hash close_evidence.py",
+      "passed": true,
+      "actual": "a50aec70c52e91ee4d8c04c00e858d13ff017809081942ad30b075b6e3f74a7c",
+      "expected": "a50aec70c52e91ee4d8c04c00e858d13ff017809081942ad30b075b6e3f74a7c"
+    },
+    {
+      "check": "closure bytes close_evidence.py",
+      "passed": true,
+      "actual": 2680,
+      "expected": 2680
+    },
+    {
+      "check": "closure hash construction-receipt.json",
+      "passed": true,
+      "actual": "e81f34beb2f49e10b2a655678b03556115f81cca5f546bdd78671dcfd81df9f7",
+      "expected": "e81f34beb2f49e10b2a655678b03556115f81cca5f546bdd78671dcfd81df9f7"
+    },
+    {
+      "check": "closure bytes construction-receipt.json",
+      "passed": true,
+      "actual": 1432,
+      "expected": 1432
+    },
+    {
+      "check": "closure hash edited-carrier-indexed.json",
+      "passed": true,
+      "actual": "a77ba64f47461701f5b393436cba6b84ab23d3e8f60e5bcdd3413b6277979f40",
+      "expected": "a77ba64f47461701f5b393436cba6b84ab23d3e8f60e5bcdd3413b6277979f40"
+    },
+    {
+      "check": "closure bytes edited-carrier-indexed.json",
+      "passed": true,
+      "actual": 87832,
+      "expected": 87832
+    },
+    {
+      "check": "closure hash export_glb.py",
+      "passed": true,
+      "actual": "83717109b03dd22dab925a8ca278a621e5ffeb58e850b9295b40d43c67f4a4a9",
+      "expected": "83717109b03dd22dab925a8ca278a621e5ffeb58e850b9295b40d43c67f4a4a9"
+    },
+    {
+      "check": "closure bytes export_glb.py",
+      "passed": true,
+      "actual": 3475,
+      "expected": 3475
+    },
+    {
+      "check": "closure hash failed-partition-receipt.json",
+      "passed": true,
+      "actual": "52cacd27169f8bcbf19d468f45f08615f3d92a1d0f1c3449dedec144bd012359",
+      "expected": "52cacd27169f8bcbf19d468f45f08615f3d92a1d0f1c3449dedec144bd012359"
+    },
+    {
+      "check": "closure bytes failed-partition-receipt.json",
+      "passed": true,
+      "actual": 2324,
+      "expected": 2324
+    },
+    {
+      "check": "closure hash failed-reproduction-receipt.json",
+      "passed": true,
+      "actual": "5c79e9b8238d7631c609ea435e81cdf33df68618ae6a1740ad9b14a76d9ac60a",
+      "expected": "5c79e9b8238d7631c609ea435e81cdf33df68618ae6a1740ad9b14a76d9ac60a"
+    },
+    {
+      "check": "closure bytes failed-reproduction-receipt.json",
+      "passed": true,
+      "actual": 526,
+      "expected": 526
+    },
+    {
+      "check": "closure hash failed_partition_paint.py",
+      "passed": true,
+      "actual": "5dbe1247ad882bee16fac0f561932340fe2afc1ed36c73c2b4e679c975f5a74f",
+      "expected": "5dbe1247ad882bee16fac0f561932340fe2afc1ed36c73c2b4e679c975f5a74f"
+    },
+    {
+      "check": "closure bytes failed_partition_paint.py",
+      "passed": true,
+      "actual": 7142,
+      "expected": 7142
+    },
+    {
+      "check": "closure hash geometry-audit.json",
+      "passed": true,
+      "actual": "8b6b4fdddcdf9b0e049d108f7d254d7afebd16ef2fda0a5b2f9bbca29e6aed1c",
+      "expected": "8b6b4fdddcdf9b0e049d108f7d254d7afebd16ef2fda0a5b2f9bbca29e6aed1c"
+    },
+    {
+      "check": "closure bytes geometry-audit.json",
+      "passed": true,
+      "actual": 1096258,
+      "expected": 1096258
+    },
+    {
+      "check": "closure hash geometry_tools.py",
+      "passed": true,
+      "actual": "9322c987ae28e9a040b28a13d320aa24816eeca1add973bcca2122945b44b70c",
+      "expected": "9322c987ae28e9a040b28a13d320aa24816eeca1add973bcca2122945b44b70c"
+    },
+    {
+      "check": "closure bytes geometry_tools.py",
+      "passed": true,
+      "actual": 4179,
+      "expected": 4179
+    },
+    {
+      "check": "closure hash glb-export-receipt.json",
+      "passed": true,
+      "actual": "c4d8b42b546f36424f7f35d87da27bf923e2cc2f7b449e855bd208a6f45648b0",
+      "expected": "c4d8b42b546f36424f7f35d87da27bf923e2cc2f7b449e855bd208a6f45648b0"
+    },
+    {
+      "check": "closure bytes glb-export-receipt.json",
+      "passed": true,
+      "actual": 478,
+      "expected": 478
+    },
+    {
+      "check": "closure hash glb-roundtrip-audit.json",
+      "passed": true,
+      "actual": "c09589b038d79ee929e4412fd06a84c8a4a78a9733c9b387b376206eb2ea2374",
+      "expected": "c09589b038d79ee929e4412fd06a84c8a4a78a9733c9b387b376206eb2ea2374"
+    },
+    {
+      "check": "closure bytes glb-roundtrip-audit.json",
+      "passed": true,
+      "actual": 2138,
+      "expected": 2138
+    },
+    {
+      "check": "closure hash guided-input-contact-diagnostic.json",
+      "passed": true,
+      "actual": "e3386bf73abaa55b2c2b4c63dcb20ff7a9d7633ab779b8d427f03b2a3d34b60f",
+      "expected": "e3386bf73abaa55b2c2b4c63dcb20ff7a9d7633ab779b8d427f03b2a3d34b60f"
+    },
+    {
+      "check": "closure bytes guided-input-contact-diagnostic.json",
+      "passed": true,
+      "actual": 135046,
+      "expected": 135046
+    },
+    {
+      "check": "closure hash hero-comparison-board.webp",
+      "passed": true,
+      "actual": "ebd32c60b82921dc4143f361e40b7f770588b0504ff0b96514d937e749d38f71",
+      "expected": "ebd32c60b82921dc4143f361e40b7f770588b0504ff0b96514d937e749d38f71"
+    },
+    {
+      "check": "closure bytes hero-comparison-board.webp",
+      "passed": true,
+      "actual": 72976,
+      "expected": 72976
+    },
+    {
+      "check": "closure hash nine-view-comparison-board.webp",
+      "passed": true,
+      "actual": "593285280e2780dadc42bb9ad75c39f92f2cc75f86c001cb7c95e0b48b5b8d98",
+      "expected": "593285280e2780dadc42bb9ad75c39f92f2cc75f86c001cb7c95e0b48b5b8d98"
+    },
+    {
+      "check": "closure bytes nine-view-comparison-board.webp",
+      "passed": true,
+      "actual": 75904,
+      "expected": 75904
+    },
+    {
+      "check": "closure hash paint-receipt.json",
+      "passed": true,
+      "actual": "af4a2db3719895e23269a41ff34af5f91c7bdc244b1bf00b0b917358e00cd766",
+      "expected": "af4a2db3719895e23269a41ff34af5f91c7bdc244b1bf00b0b917358e00cd766"
+    },
+    {
+      "check": "closure bytes paint-receipt.json",
+      "passed": true,
+      "actual": 70944,
+      "expected": 70944
+    },
+    {
+      "check": "closure hash paint_candidate.py",
+      "passed": true,
+      "actual": "2f3bc0b1ac4dc7bf1366831ff5e857296b46f3ef2df7d45dbf815f75a3e720ce",
+      "expected": "2f3bc0b1ac4dc7bf1366831ff5e857296b46f3ef2df7d45dbf815f75a3e720ce"
+    },
+    {
+      "check": "closure bytes paint_candidate.py",
+      "passed": true,
+      "actual": 2393,
+      "expected": 2393
+    },
+    {
+      "check": "closure hash prepaint-body-diagnostic.json",
+      "passed": true,
+      "actual": "24f901304f16fb6a46f7f9ceb98be9a09a129a30ae177d54f61f1dca24d76882",
+      "expected": "24f901304f16fb6a46f7f9ceb98be9a09a129a30ae177d54f61f1dca24d76882"
+    },
+    {
+      "check": "closure bytes prepaint-body-diagnostic.json",
+      "passed": true,
+      "actual": 1094,
+      "expected": 1094
+    },
+    {
+      "check": "closure hash prepaint-native.json",
+      "passed": true,
+      "actual": "27397bf287ae3772f22521a53fcf830c48b77242596136a77dcb25a9bc7684d8",
+      "expected": "27397bf287ae3772f22521a53fcf830c48b77242596136a77dcb25a9bc7684d8"
+    },
+    {
+      "check": "closure bytes prepaint-native.json",
+      "passed": true,
+      "actual": 1379023,
+      "expected": 1379023
+    },
+    {
+      "check": "closure hash preservation-audit.json",
+      "passed": true,
+      "actual": "4a1528f5e2cbe0bfc9d55e4e26755c51b098d9593d37a49406273a897c7680dd",
+      "expected": "4a1528f5e2cbe0bfc9d55e4e26755c51b098d9593d37a49406273a897c7680dd"
+    },
+    {
+      "check": "closure bytes preservation-audit.json",
+      "passed": true,
+      "actual": 11098,
+      "expected": 11098
+    },
+    {
+      "check": "closure hash render-freeze-receipt.json",
+      "passed": true,
+      "actual": "25d27d370cb81161e645f174e372462697700857a241fd7e3e1b362efe186e13",
+      "expected": "25d27d370cb81161e645f174e372462697700857a241fd7e3e1b362efe186e13"
+    },
+    {
+      "check": "closure bytes render-freeze-receipt.json",
+      "passed": true,
+      "actual": 881,
+      "expected": 881
+    },
+    {
+      "check": "closure hash render-recovery-receipt.json",
+      "passed": true,
+      "actual": "579b2e1ea5c28a4c628271373186c8fdca342988b81bb1fbeeae00627fe4e6bb",
+      "expected": "579b2e1ea5c28a4c628271373186c8fdca342988b81bb1fbeeae00627fe4e6bb"
+    },
+    {
+      "check": "closure bytes render-recovery-receipt.json",
+      "passed": true,
+      "actual": 1306,
+      "expected": 1306
+    },
+    {
+      "check": "closure hash render_matched.py",
+      "passed": true,
+      "actual": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf",
+      "expected": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "check": "closure bytes render_matched.py",
+      "passed": true,
+      "actual": 6280,
+      "expected": 6280
+    },
+    {
+      "check": "closure hash repair-arrangement-diagnostic.json",
+      "passed": true,
+      "actual": "0cdccef281f774ea705ce1706c7491416d516bc953e393f0a7699fc087dece59",
+      "expected": "0cdccef281f774ea705ce1706c7491416d516bc953e393f0a7699fc087dece59"
+    },
+    {
+      "check": "closure bytes repair-arrangement-diagnostic.json",
+      "passed": true,
+      "actual": 5685,
+      "expected": 5685
+    },
+    {
+      "check": "closure hash reproduce_failed_partition.py",
+      "passed": true,
+      "actual": "781a4ad02842f2b407979a32eb6b7b4f9d7a136a259412566abe11699c0503c0",
+      "expected": "781a4ad02842f2b407979a32eb6b7b4f9d7a136a259412566abe11699c0503c0"
+    },
+    {
+      "check": "closure bytes reproduce_failed_partition.py",
+      "passed": true,
+      "actual": 2082,
+      "expected": 2082
+    },
+    {
+      "check": "closure hash selected-01-front.webp",
+      "passed": true,
+      "actual": "00e61fadcc0b6de1959f7c84a9cfa375ec32332d121c82ac2a46bf749756f3ee",
+      "expected": "00e61fadcc0b6de1959f7c84a9cfa375ec32332d121c82ac2a46bf749756f3ee"
+    },
+    {
+      "check": "closure bytes selected-01-front.webp",
+      "passed": true,
+      "actual": 17380,
+      "expected": 17380
+    },
+    {
+      "check": "closure hash selected-02-left.webp",
+      "passed": true,
+      "actual": "0247cb925a1090d46a3d15e7bcd23f1d1a9c9b15f8c046c8b72a5387772cb220",
+      "expected": "0247cb925a1090d46a3d15e7bcd23f1d1a9c9b15f8c046c8b72a5387772cb220"
+    },
+    {
+      "check": "closure bytes selected-02-left.webp",
+      "passed": true,
+      "actual": 16874,
+      "expected": 16874
+    },
+    {
+      "check": "closure hash selected-03-right.webp",
+      "passed": true,
+      "actual": "10718da5454ed0e58f81ecd585fb1c43df91f2f2f603a568c11a400d7e4168d8",
+      "expected": "10718da5454ed0e58f81ecd585fb1c43df91f2f2f603a568c11a400d7e4168d8"
+    },
+    {
+      "check": "closure bytes selected-03-right.webp",
+      "passed": true,
+      "actual": 18524,
+      "expected": 18524
+    },
+    {
+      "check": "closure hash selected-04-back.webp",
+      "passed": true,
+      "actual": "a66d377c2ad3c692100db735ab7a8b24a17308d869e9412faf081d4f0a7ecf28",
+      "expected": "a66d377c2ad3c692100db735ab7a8b24a17308d869e9412faf081d4f0a7ecf28"
+    },
+    {
+      "check": "closure bytes selected-04-back.webp",
+      "passed": true,
+      "actual": 14068,
+      "expected": 14068
+    },
+    {
+      "check": "closure hash selected-05-top.webp",
+      "passed": true,
+      "actual": "1fe73b8edf6d81f8c091d8296d5318d86b00cb169d550d0c160db3749e17814f",
+      "expected": "1fe73b8edf6d81f8c091d8296d5318d86b00cb169d550d0c160db3749e17814f"
+    },
+    {
+      "check": "closure bytes selected-05-top.webp",
+      "passed": true,
+      "actual": 56914,
+      "expected": 56914
+    },
+    {
+      "check": "closure hash selected-06-elevated-front.webp",
+      "passed": true,
+      "actual": "b35c60ec9c1054c87dc7a8a6d31c02cf89df2c6ed5f818b5666b10a85d609591",
+      "expected": "b35c60ec9c1054c87dc7a8a6d31c02cf89df2c6ed5f818b5666b10a85d609591"
+    },
+    {
+      "check": "closure bytes selected-06-elevated-front.webp",
+      "passed": true,
+      "actual": 62022,
+      "expected": 62022
+    },
+    {
+      "check": "closure hash selected-07-elevated-left.webp",
+      "passed": true,
+      "actual": "a83d20af70ed3c6fcc44418055ae7d7a7354306fe5a13e3fca4a054c544ecdd4",
+      "expected": "a83d20af70ed3c6fcc44418055ae7d7a7354306fe5a13e3fca4a054c544ecdd4"
+    },
+    {
+      "check": "closure bytes selected-07-elevated-left.webp",
+      "passed": true,
+      "actual": 53460,
+      "expected": 53460
+    },
+    {
+      "check": "closure hash selected-08-elevated-right.webp",
+      "passed": true,
+      "actual": "676fe7f5b7c2a78b396a0888cc8bcabe4d4bde8401c8ea9b95dacfd429cb5e91",
+      "expected": "676fe7f5b7c2a78b396a0888cc8bcabe4d4bde8401c8ea9b95dacfd429cb5e91"
+    },
+    {
+      "check": "closure bytes selected-08-elevated-right.webp",
+      "passed": true,
+      "actual": 74334,
+      "expected": 74334
+    },
+    {
+      "check": "closure hash selected-09-elevated-back.webp",
+      "passed": true,
+      "actual": "14dd71c0321e6b2c10fd610f8e15af441e96933f2102c673625c4f64ca517c16",
+      "expected": "14dd71c0321e6b2c10fd610f8e15af441e96933f2102c673625c4f64ca517c16"
+    },
+    {
+      "check": "closure bytes selected-09-elevated-back.webp",
+      "passed": true,
+      "actual": 54192,
+      "expected": 54192
+    },
+    {
+      "check": "closure hash selected-hero.webp",
+      "passed": true,
+      "actual": "dfdbc020b586962c130e18efbdc3d64b3847e71128c2cd7fbf78a32b69ab4968",
+      "expected": "dfdbc020b586962c130e18efbdc3d64b3847e71128c2cd7fbf78a32b69ab4968"
+    },
+    {
+      "check": "closure bytes selected-hero.webp",
+      "passed": true,
+      "actual": 57970,
+      "expected": 57970
+    },
+    {
+      "check": "closure hash shoulder-controls.json",
+      "passed": true,
+      "actual": "914e782445b6bcb5fad1d6208588196964f43b515a3b70e753067d26b0ea60b0",
+      "expected": "914e782445b6bcb5fad1d6208588196964f43b515a3b70e753067d26b0ea60b0"
+    },
+    {
+      "check": "closure bytes shoulder-controls.json",
+      "passed": true,
+      "actual": 5605,
+      "expected": 5605
+    },
+    {
+      "check": "closure hash surface-ownership.json",
+      "passed": true,
+      "actual": "4c3228a2522dce1163a87d32a0d3f4e0b4bfa2abc190cbbfd77fe69cb0e3cb0b",
+      "expected": "4c3228a2522dce1163a87d32a0d3f4e0b4bfa2abc190cbbfd77fe69cb0e3cb0b"
+    },
+    {
+      "check": "closure bytes surface-ownership.json",
+      "passed": true,
+      "actual": 42086,
+      "expected": 42086
+    },
+    {
+      "check": "closure hash test_patch_arrangement.py",
+      "passed": true,
+      "actual": "b835aafb9b2f824609da6b08530c97a9ba6a0adcee12badcf55b1e734a3b7bfb",
+      "expected": "b835aafb9b2f824609da6b08530c97a9ba6a0adcee12badcf55b1e734a3b7bfb"
+    },
+    {
+      "check": "closure bytes test_patch_arrangement.py",
+      "passed": true,
+      "actual": 1409,
+      "expected": 1409
+    },
+    {
+      "check": "closure hash whole-fin-controls.json",
+      "passed": true,
+      "actual": "b5e1d8c3c3511b41fb13b0cf799c047a5896031583aa5a50005556d67eb0033d",
+      "expected": "b5e1d8c3c3511b41fb13b0cf799c047a5896031583aa5a50005556d67eb0033d"
+    },
+    {
+      "check": "closure bytes whole-fin-controls.json",
+      "passed": true,
+      "actual": 47668,
+      "expected": 47668
+    },
+    {
+      "check": "native selected",
+      "passed": true,
+      "actual": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006",
+      "expected": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006"
+    },
+    {
+      "check": "native candidate",
+      "passed": true,
+      "actual": "b48589944bf7b85b05b1ef612969095f5d73941576a4a78c915770922e9a2e20",
+      "expected": "b48589944bf7b85b05b1ef612969095f5d73941576a4a78c915770922e9a2e20"
+    },
+    {
+      "check": "current renderer hash",
+      "passed": true,
+      "actual": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf",
+      "expected": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "check": "raw selected-hero.png",
+      "passed": true,
+      "actual": "405408c18f48cd16683a13f4d2df82835baacdaee4d3674f60f6e08a91db89db",
+      "expected": "405408c18f48cd16683a13f4d2df82835baacdaee4d3674f60f6e08a91db89db"
+    },
+    {
+      "check": "raw bytes selected-hero.png",
+      "passed": true,
+      "actual": 766976,
+      "expected": 766976
+    },
+    {
+      "check": "resolution selected-hero.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview selected-hero.webp",
+      "passed": true,
+      "actual": "dfdbc020b586962c130e18efbdc3d64b3847e71128c2cd7fbf78a32b69ab4968",
+      "expected": "dfdbc020b586962c130e18efbdc3d64b3847e71128c2cd7fbf78a32b69ab4968"
+    },
+    {
+      "check": "raw candidate-hero.png",
+      "passed": true,
+      "actual": "32d7d8d3224ea9645602452986225089acf531064f3302ce4f87ef98f443ae29",
+      "expected": "32d7d8d3224ea9645602452986225089acf531064f3302ce4f87ef98f443ae29"
+    },
+    {
+      "check": "raw bytes candidate-hero.png",
+      "passed": true,
+      "actual": 757246,
+      "expected": 757246
+    },
+    {
+      "check": "resolution candidate-hero.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview candidate-hero.webp",
+      "passed": true,
+      "actual": "8c9183010c493600342de50d85e88d47b488f6b9c7b5afe33475c6e272bcdf93",
+      "expected": "8c9183010c493600342de50d85e88d47b488f6b9c7b5afe33475c6e272bcdf93"
+    },
+    {
+      "check": "raw selected-01-front.png",
+      "passed": true,
+      "actual": "07aa74351ca4b0b14306b715c81acaf76a99f453da89af7e9ec075953ce88769",
+      "expected": "07aa74351ca4b0b14306b715c81acaf76a99f453da89af7e9ec075953ce88769"
+    },
+    {
+      "check": "raw bytes selected-01-front.png",
+      "passed": true,
+      "actual": 338528,
+      "expected": 338528
+    },
+    {
+      "check": "resolution selected-01-front.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview selected-01-front.webp",
+      "passed": true,
+      "actual": "00e61fadcc0b6de1959f7c84a9cfa375ec32332d121c82ac2a46bf749756f3ee",
+      "expected": "00e61fadcc0b6de1959f7c84a9cfa375ec32332d121c82ac2a46bf749756f3ee"
+    },
+    {
+      "check": "raw candidate-01-front.png",
+      "passed": true,
+      "actual": "51a6d32534c8add6654d3a84a6c50da5ac2ef36fb37db657d4e59c4d26d9cb05",
+      "expected": "51a6d32534c8add6654d3a84a6c50da5ac2ef36fb37db657d4e59c4d26d9cb05"
+    },
+    {
+      "check": "raw bytes candidate-01-front.png",
+      "passed": true,
+      "actual": 323047,
+      "expected": 323047
+    },
+    {
+      "check": "resolution candidate-01-front.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview candidate-01-front.webp",
+      "passed": true,
+      "actual": "dcfc6b04a1499aa47c9198629cf3b0a78a7787783b14083ee278114165611c3b",
+      "expected": "dcfc6b04a1499aa47c9198629cf3b0a78a7787783b14083ee278114165611c3b"
+    },
+    {
+      "check": "raw selected-02-left.png",
+      "passed": true,
+      "actual": "b5867b82c9a14a3cece75216704c2bfbf59ff15266f0fd85f55b70c6a3625aa4",
+      "expected": "b5867b82c9a14a3cece75216704c2bfbf59ff15266f0fd85f55b70c6a3625aa4"
+    },
+    {
+      "check": "raw bytes selected-02-left.png",
+      "passed": true,
+      "actual": 340605,
+      "expected": 340605
+    },
+    {
+      "check": "resolution selected-02-left.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview selected-02-left.webp",
+      "passed": true,
+      "actual": "0247cb925a1090d46a3d15e7bcd23f1d1a9c9b15f8c046c8b72a5387772cb220",
+      "expected": "0247cb925a1090d46a3d15e7bcd23f1d1a9c9b15f8c046c8b72a5387772cb220"
+    },
+    {
+      "check": "raw candidate-02-left.png",
+      "passed": true,
+      "actual": "f0c55cd70dfba30ad2863adbe44dab9ba3593c1d3abf5baef798d29b6f55cdef",
+      "expected": "f0c55cd70dfba30ad2863adbe44dab9ba3593c1d3abf5baef798d29b6f55cdef"
+    },
+    {
+      "check": "raw bytes candidate-02-left.png",
+      "passed": true,
+      "actual": 330438,
+      "expected": 330438
+    },
+    {
+      "check": "resolution candidate-02-left.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview candidate-02-left.webp",
+      "passed": true,
+      "actual": "f87daa2da77a0a7f5ff013d840683084b0c8c0848cbab19d92f563bb3cc173fb",
+      "expected": "f87daa2da77a0a7f5ff013d840683084b0c8c0848cbab19d92f563bb3cc173fb"
+    },
+    {
+      "check": "raw selected-03-right.png",
+      "passed": true,
+      "actual": "b535899fb662da5da4ec2f7a980e861fd6f3118d5f6a5980df3fa88bb41c95e3",
+      "expected": "b535899fb662da5da4ec2f7a980e861fd6f3118d5f6a5980df3fa88bb41c95e3"
+    },
+    {
+      "check": "raw bytes selected-03-right.png",
+      "passed": true,
+      "actual": 349416,
+      "expected": 349416
+    },
+    {
+      "check": "resolution selected-03-right.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview selected-03-right.webp",
+      "passed": true,
+      "actual": "10718da5454ed0e58f81ecd585fb1c43df91f2f2f603a568c11a400d7e4168d8",
+      "expected": "10718da5454ed0e58f81ecd585fb1c43df91f2f2f603a568c11a400d7e4168d8"
+    },
+    {
+      "check": "raw candidate-03-right.png",
+      "passed": true,
+      "actual": "dff81142cc12d7c6ddfb1873d641655b3a33ef87504e9f8e036c94b18ee95aa5",
+      "expected": "dff81142cc12d7c6ddfb1873d641655b3a33ef87504e9f8e036c94b18ee95aa5"
+    },
+    {
+      "check": "raw bytes candidate-03-right.png",
+      "passed": true,
+      "actual": 338101,
+      "expected": 338101
+    },
+    {
+      "check": "resolution candidate-03-right.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview candidate-03-right.webp",
+      "passed": true,
+      "actual": "4fbfa87412475d6a4b7e1cc6ac59841e90ebf9608d320aba1abfe53ed713e543",
+      "expected": "4fbfa87412475d6a4b7e1cc6ac59841e90ebf9608d320aba1abfe53ed713e543"
+    },
+    {
+      "check": "raw selected-04-back.png",
+      "passed": true,
+      "actual": "2893f859507192d8cb799fa8f8a021e137e4c51f8d5c48b902a4640eea4b9803",
+      "expected": "2893f859507192d8cb799fa8f8a021e137e4c51f8d5c48b902a4640eea4b9803"
+    },
+    {
+      "check": "raw bytes selected-04-back.png",
+      "passed": true,
+      "actual": 329879,
+      "expected": 329879
+    },
+    {
+      "check": "resolution selected-04-back.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview selected-04-back.webp",
+      "passed": true,
+      "actual": "a66d377c2ad3c692100db735ab7a8b24a17308d869e9412faf081d4f0a7ecf28",
+      "expected": "a66d377c2ad3c692100db735ab7a8b24a17308d869e9412faf081d4f0a7ecf28"
+    },
+    {
+      "check": "raw candidate-04-back.png",
+      "passed": true,
+      "actual": "3524de29a1ece604e78ddf8c0734819d022f0333c613a6b979faa71f4d406448",
+      "expected": "3524de29a1ece604e78ddf8c0734819d022f0333c613a6b979faa71f4d406448"
+    },
+    {
+      "check": "raw bytes candidate-04-back.png",
+      "passed": true,
+      "actual": 318201,
+      "expected": 318201
+    },
+    {
+      "check": "resolution candidate-04-back.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview candidate-04-back.webp",
+      "passed": true,
+      "actual": "6c60914b46c439d6fd419540597e5f568bc08dbe15e7f01b64af4bf78c93e0b2",
+      "expected": "6c60914b46c439d6fd419540597e5f568bc08dbe15e7f01b64af4bf78c93e0b2"
+    },
+    {
+      "check": "raw selected-05-top.png",
+      "passed": true,
+      "actual": "03db20bacf107ae8739f6a746920fe2b03fa52e38ccceb068d251a10468d6ec2",
+      "expected": "03db20bacf107ae8739f6a746920fe2b03fa52e38ccceb068d251a10468d6ec2"
+    },
+    {
+      "check": "raw bytes selected-05-top.png",
+      "passed": true,
+      "actual": 782509,
+      "expected": 782509
+    },
+    {
+      "check": "resolution selected-05-top.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview selected-05-top.webp",
+      "passed": true,
+      "actual": "1fe73b8edf6d81f8c091d8296d5318d86b00cb169d550d0c160db3749e17814f",
+      "expected": "1fe73b8edf6d81f8c091d8296d5318d86b00cb169d550d0c160db3749e17814f"
+    },
+    {
+      "check": "raw candidate-05-top.png",
+      "passed": true,
+      "actual": "227e840aff3b7064b927932a9c1fa0ba68a5ac36141c38b43736d4eb579c708f",
+      "expected": "227e840aff3b7064b927932a9c1fa0ba68a5ac36141c38b43736d4eb579c708f"
+    },
+    {
+      "check": "raw bytes candidate-05-top.png",
+      "passed": true,
+      "actual": 775147,
+      "expected": 775147
+    },
+    {
+      "check": "resolution candidate-05-top.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview candidate-05-top.webp",
+      "passed": true,
+      "actual": "49b0008ff353c0c61222de06acb89f8bdf36350797adeabe110745a261f30923",
+      "expected": "49b0008ff353c0c61222de06acb89f8bdf36350797adeabe110745a261f30923"
+    },
+    {
+      "check": "raw selected-06-elevated-front.png",
+      "passed": true,
+      "actual": "b629795d95bfc53488a2c538d9876b7e9ebfd0a5f6aa10e85bfe1b34a57125b3",
+      "expected": "b629795d95bfc53488a2c538d9876b7e9ebfd0a5f6aa10e85bfe1b34a57125b3"
+    },
+    {
+      "check": "raw bytes selected-06-elevated-front.png",
+      "passed": true,
+      "actual": 776905,
+      "expected": 776905
+    },
+    {
+      "check": "resolution selected-06-elevated-front.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview selected-06-elevated-front.webp",
+      "passed": true,
+      "actual": "b35c60ec9c1054c87dc7a8a6d31c02cf89df2c6ed5f818b5666b10a85d609591",
+      "expected": "b35c60ec9c1054c87dc7a8a6d31c02cf89df2c6ed5f818b5666b10a85d609591"
+    },
+    {
+      "check": "raw candidate-06-elevated-front.png",
+      "passed": true,
+      "actual": "6675a1a34b265659b19f3329370e4163ee9fec28666824e64dc84fc3c624ab5c",
+      "expected": "6675a1a34b265659b19f3329370e4163ee9fec28666824e64dc84fc3c624ab5c"
+    },
+    {
+      "check": "raw bytes candidate-06-elevated-front.png",
+      "passed": true,
+      "actual": 769994,
+      "expected": 769994
+    },
+    {
+      "check": "resolution candidate-06-elevated-front.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview candidate-06-elevated-front.webp",
+      "passed": true,
+      "actual": "12844b08172a3d62654a1a26b71798aff31412b99fb8a2c810f1abfba428a621",
+      "expected": "12844b08172a3d62654a1a26b71798aff31412b99fb8a2c810f1abfba428a621"
+    },
+    {
+      "check": "raw selected-07-elevated-left.png",
+      "passed": true,
+      "actual": "4ecfcc0f2439718d8c6f90bd2ae0dc40d4093f73dd34c5f6b0bb3a85135474f3",
+      "expected": "4ecfcc0f2439718d8c6f90bd2ae0dc40d4093f73dd34c5f6b0bb3a85135474f3"
+    },
+    {
+      "check": "raw bytes selected-07-elevated-left.png",
+      "passed": true,
+      "actual": 770455,
+      "expected": 770455
+    },
+    {
+      "check": "resolution selected-07-elevated-left.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview selected-07-elevated-left.webp",
+      "passed": true,
+      "actual": "a83d20af70ed3c6fcc44418055ae7d7a7354306fe5a13e3fca4a054c544ecdd4",
+      "expected": "a83d20af70ed3c6fcc44418055ae7d7a7354306fe5a13e3fca4a054c544ecdd4"
+    },
+    {
+      "check": "raw candidate-07-elevated-left.png",
+      "passed": true,
+      "actual": "3b895f544a4007881532411b77c2441ef65bc0d45b9ebc107c98d5a999f3de17",
+      "expected": "3b895f544a4007881532411b77c2441ef65bc0d45b9ebc107c98d5a999f3de17"
+    },
+    {
+      "check": "raw bytes candidate-07-elevated-left.png",
+      "passed": true,
+      "actual": 764201,
+      "expected": 764201
+    },
+    {
+      "check": "resolution candidate-07-elevated-left.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview candidate-07-elevated-left.webp",
+      "passed": true,
+      "actual": "22e4fd3387696a1d3d53a8d1dd264d695f9f681afb1573ec71b0ccb948424335",
+      "expected": "22e4fd3387696a1d3d53a8d1dd264d695f9f681afb1573ec71b0ccb948424335"
+    },
+    {
+      "check": "raw selected-08-elevated-right.png",
+      "passed": true,
+      "actual": "84580e070b7ce823a7e8398d6dabb6dbecd5e8012edc0b6d410cee2f6a288693",
+      "expected": "84580e070b7ce823a7e8398d6dabb6dbecd5e8012edc0b6d410cee2f6a288693"
+    },
+    {
+      "check": "raw bytes selected-08-elevated-right.png",
+      "passed": true,
+      "actual": 788654,
+      "expected": 788654
+    },
+    {
+      "check": "resolution selected-08-elevated-right.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview selected-08-elevated-right.webp",
+      "passed": true,
+      "actual": "676fe7f5b7c2a78b396a0888cc8bcabe4d4bde8401c8ea9b95dacfd429cb5e91",
+      "expected": "676fe7f5b7c2a78b396a0888cc8bcabe4d4bde8401c8ea9b95dacfd429cb5e91"
+    },
+    {
+      "check": "raw candidate-08-elevated-right.png",
+      "passed": true,
+      "actual": "92ff48c844b7ea0086a67d91fc8c1533ddfeb67ea8c67636b4925cd137ede642",
+      "expected": "92ff48c844b7ea0086a67d91fc8c1533ddfeb67ea8c67636b4925cd137ede642"
+    },
+    {
+      "check": "raw bytes candidate-08-elevated-right.png",
+      "passed": true,
+      "actual": 781695,
+      "expected": 781695
+    },
+    {
+      "check": "resolution candidate-08-elevated-right.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview candidate-08-elevated-right.webp",
+      "passed": true,
+      "actual": "aabdf11a659128cf8fb17c3cbbb44fce9f47e6da25a3a50889dc57173a6e83ee",
+      "expected": "aabdf11a659128cf8fb17c3cbbb44fce9f47e6da25a3a50889dc57173a6e83ee"
+    },
+    {
+      "check": "raw selected-09-elevated-back.png",
+      "passed": true,
+      "actual": "a0018894f35ab69d1306efb16010617bd2ee5a9ff43e1690f6fec941fcaf1de2",
+      "expected": "a0018894f35ab69d1306efb16010617bd2ee5a9ff43e1690f6fec941fcaf1de2"
+    },
+    {
+      "check": "raw bytes selected-09-elevated-back.png",
+      "passed": true,
+      "actual": 770925,
+      "expected": 770925
+    },
+    {
+      "check": "resolution selected-09-elevated-back.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview selected-09-elevated-back.webp",
+      "passed": true,
+      "actual": "14dd71c0321e6b2c10fd610f8e15af441e96933f2102c673625c4f64ca517c16",
+      "expected": "14dd71c0321e6b2c10fd610f8e15af441e96933f2102c673625c4f64ca517c16"
+    },
+    {
+      "check": "raw candidate-09-elevated-back.png",
+      "passed": true,
+      "actual": "0dd5c66d0d4c17806dbb6e53cc4f97b7b66bf1cb43677a4a0e8306bb0b5060d6",
+      "expected": "0dd5c66d0d4c17806dbb6e53cc4f97b7b66bf1cb43677a4a0e8306bb0b5060d6"
+    },
+    {
+      "check": "raw bytes candidate-09-elevated-back.png",
+      "passed": true,
+      "actual": 765658,
+      "expected": 765658
+    },
+    {
+      "check": "resolution candidate-09-elevated-back.png",
+      "passed": true,
+      "actual": [
+        600,
+        740
+      ],
+      "expected": [
+        600,
+        740
+      ]
+    },
+    {
+      "check": "preview candidate-09-elevated-back.webp",
+      "passed": true,
+      "actual": "dc8a1b76930cfd7d13fef33ea61cdae7f7e087df5b3aff1e97044b9252d3616d",
+      "expected": "dc8a1b76930cfd7d13fef33ea61cdae7f7e087df5b3aff1e97044b9252d3616d"
+    },
+    {
+      "check": "matched 06-elevated-front camera",
+      "passed": true,
+      "actual": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "expected": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ]
+    },
+    {
+      "check": "matched 06-elevated-front target",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 06-elevated-front scale",
+      "passed": true,
+      "actual": 4.2,
+      "expected": 4.2
+    },
+    {
+      "check": "matched 04-back camera",
+      "passed": true,
+      "actual": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "expected": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 04-back target",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 04-back scale",
+      "passed": true,
+      "actual": 4.2,
+      "expected": 4.2
+    },
+    {
+      "check": "matched 03-right camera",
+      "passed": true,
+      "actual": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 03-right target",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 03-right scale",
+      "passed": true,
+      "actual": 4.2,
+      "expected": 4.2
+    },
+    {
+      "check": "matched 02-left camera",
+      "passed": true,
+      "actual": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 02-left target",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 02-left scale",
+      "passed": true,
+      "actual": 4.2,
+      "expected": 4.2
+    },
+    {
+      "check": "matched 09-elevated-back camera",
+      "passed": true,
+      "actual": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "expected": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ]
+    },
+    {
+      "check": "matched 09-elevated-back target",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 09-elevated-back scale",
+      "passed": true,
+      "actual": 4.2,
+      "expected": 4.2
+    },
+    {
+      "check": "matched 01-front camera",
+      "passed": true,
+      "actual": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "expected": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 01-front target",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 01-front scale",
+      "passed": true,
+      "actual": 4.2,
+      "expected": 4.2
+    },
+    {
+      "check": "matched 08-elevated-right camera",
+      "passed": true,
+      "actual": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "expected": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ]
+    },
+    {
+      "check": "matched 08-elevated-right target",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 08-elevated-right scale",
+      "passed": true,
+      "actual": 4.2,
+      "expected": 4.2
+    },
+    {
+      "check": "matched 05-top camera",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "expected": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ]
+    },
+    {
+      "check": "matched 05-top target",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 05-top scale",
+      "passed": true,
+      "actual": 4.2,
+      "expected": 4.2
+    },
+    {
+      "check": "matched 07-elevated-left camera",
+      "passed": true,
+      "actual": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "expected": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ]
+    },
+    {
+      "check": "matched 07-elevated-left target",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "expected": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ]
+    },
+    {
+      "check": "matched 07-elevated-left scale",
+      "passed": true,
+      "actual": 4.2,
+      "expected": 4.2
+    },
+    {
+      "check": "matched hero camera",
+      "passed": true,
+      "actual": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ],
+      "expected": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ]
+    },
+    {
+      "check": "matched hero target",
+      "passed": true,
+      "actual": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ],
+      "expected": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ]
+    },
+    {
+      "check": "matched hero scale",
+      "passed": true,
+      "actual": 3.2,
+      "expected": 3.2
+    },
+    {
+      "check": "dependency art/driftwood-isle/puffer-remaster-guided/paint_semantic_face_diagonal_robust.py",
+      "passed": true,
+      "actual": "70cfbabc73a72277636c517737f158ffe48a89c27edf298e3fbf4257c74c6d96",
+      "expected": "70cfbabc73a72277636c517737f158ffe48a89c27edf298e3fbf4257c74c6d96"
+    },
+    {
+      "check": "dependency art/driftwood-isle/puffer-spike-study/build_spikes.py",
+      "passed": true,
+      "actual": "ca57ec38ef34576adaa1ece0c72cca343cc99c33360bb8829b8d54e27210b4a9",
+      "expected": "ca57ec38ef34576adaa1ece0c72cca343cc99c33360bb8829b8d54e27210b4a9"
+    },
+    {
+      "check": "dependency art/driftwood-isle/puffer-complete-remaster/local-surface-repair/validate.py",
+      "passed": true,
+      "actual": "71e8a5b663e16e5147ebeea08f28b6cfbd8eb37b5eb63eb418d2c4aa588117fd",
+      "expected": "71e8a5b663e16e5147ebeea08f28b6cfbd8eb37b5eb63eb418d2c4aa588117fd"
+    },
+    {
+      "check": "dependency art/driftwood-isle/puffer-complete-remaster/local-surface-repair/intersections.py",
+      "passed": true,
+      "actual": "c2bd3cc1fc14407c592201009247c5b44f9b86610b51b0a668b4662ddb009dc4",
+      "expected": "c2bd3cc1fc14407c592201009247c5b44f9b86610b51b0a668b4662ddb009dc4"
+    },
+    {
+      "check": "dependency art/driftwood-isle/puffer-complete-remaster/closed-anatomy-study/save_preview.py",
+      "passed": true,
+      "actual": "8fbfd2a33d10d6b63788f4eb4435a538bc96b9a7fdedb38c970525f04dff46c2",
+      "expected": "8fbfd2a33d10d6b63788f4eb4435a538bc96b9a7fdedb38c970525f04dff46c2"
+    },
+    {
+      "check": "dependency art/driftwood-isle/puffer-fin-study/terminal-fin-fans-indexed.json",
+      "passed": true,
+      "actual": "10f7aa739ad1980345936a329d82cec8f35fd268fc07b2cb835b60f2ba66f953",
+      "expected": "10f7aa739ad1980345936a329d82cec8f35fd268fc07b2cb835b60f2ba66f953"
+    },
+    {
+      "check": "construction source puffer-remaster-guided/seated-mouth-diagnostic-native.json",
+      "passed": true,
+      "actual": "030dbb8c40bf2507429b6017ad4c8d36a15eb5f5ca839c630e14189c51c8424b",
+      "expected": "030dbb8c40bf2507429b6017ad4c8d36a15eb5f5ca839c630e14189c51c8424b"
+    },
+    {
+      "check": "construction source puffer-remaster-guided/semantic-face-diagonal-native.json",
+      "passed": true,
+      "actual": "483b47367ddbad0e4872f357f786fc0cca778380a07bd536428923aadd3046cb",
+      "expected": "483b47367ddbad0e4872f357f786fc0cca778380a07bd536428923aadd3046cb"
+    },
+    {
+      "check": "construction source puffer-tail-study/tail-native-study.json",
+      "passed": true,
+      "actual": "c8f2ef68d0860539b93d3a343a54a05369b3278d239d5e871715a6f3abb17d35",
+      "expected": "c8f2ef68d0860539b93d3a343a54a05369b3278d239d5e871715a6f3abb17d35"
+    },
+    {
+      "check": "construction source puffer-fin-study/terminal-fin-native-study.json",
+      "passed": true,
+      "actual": "755d8e2d7605cfe9331ae064fe6f301602709ed542e8ee73f3d56f6687f0159e",
+      "expected": "755d8e2d7605cfe9331ae064fe6f301602709ed542e8ee73f3d56f6687f0159e"
+    },
+    {
+      "check": "construction source puffer-spike-study/spike-native-study.json",
+      "passed": true,
+      "actual": "f49fb808735792d5945d8ac2991e89c5e8f013b4e4e8dcfe6ee51cfc189e90dd",
+      "expected": "f49fb808735792d5945d8ac2991e89c5e8f013b4e4e8dcfe6ee51cfc189e90dd"
+    },
+    {
+      "check": "construction source puffer-complete-remaster/closed-anatomy-study/closed-anatomy-native.json",
+      "passed": true,
+      "actual": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006",
+      "expected": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006"
+    },
+    {
+      "check": "geometry source candidate-native.json",
+      "passed": true,
+      "actual": "b48589944bf7b85b05b1ef612969095f5d73941576a4a78c915770922e9a2e20",
+      "expected": "b48589944bf7b85b05b1ef612969095f5d73941576a4a78c915770922e9a2e20"
+    },
+    {
+      "check": "geometry source prepaint-native.json",
+      "passed": true,
+      "actual": "27397bf287ae3772f22521a53fcf830c48b77242596136a77dcb25a9bc7684d8",
+      "expected": "27397bf287ae3772f22521a53fcf830c48b77242596136a77dcb25a9bc7684d8"
+    },
+    {
+      "check": "geometry source candidate.glb",
+      "passed": true,
+      "actual": "52f7ef179bdf47ebc8231d77fdb4e7b915b91066f310c8831c957fac3de9f49b",
+      "expected": "52f7ef179bdf47ebc8231d77fdb4e7b915b91066f310c8831c957fac3de9f49b"
+    },
+    {
+      "check": "geometry source build_candidate.py",
+      "passed": true,
+      "actual": "64ddd309bcf050120bcacd8e440ac4daf67576c9d7778ab53732648ae87101ac",
+      "expected": "64ddd309bcf050120bcacd8e440ac4daf67576c9d7778ab53732648ae87101ac"
+    },
+    {
+      "check": "geometry source paint_candidate.py",
+      "passed": true,
+      "actual": "2f3bc0b1ac4dc7bf1366831ff5e857296b46f3ef2df7d45dbf815f75a3e720ce",
+      "expected": "2f3bc0b1ac4dc7bf1366831ff5e857296b46f3ef2df7d45dbf815f75a3e720ce"
+    },
+    {
+      "check": "geometry source geometry_tools.py",
+      "passed": true,
+      "actual": "9322c987ae28e9a040b28a13d320aa24816eeca1add973bcca2122945b44b70c",
+      "expected": "9322c987ae28e9a040b28a13d320aa24816eeca1add973bcca2122945b44b70c"
+    },
+    {
+      "check": "part count",
+      "passed": true,
+      "actual": 7,
+      "expected": 7
+    },
+    {
+      "check": "bone count",
+      "passed": true,
+      "actual": 8,
+      "expected": 8
+    },
+    {
+      "check": "native triangles",
+      "passed": true,
+      "actual": 3424,
+      "expected": 3424
+    },
+    {
+      "check": "prepaint positions equal",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "check": "GLB single-sided",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    }
+  ],
+  "geometryAuditRecomputed": false,
+  "geometryAuditScope": "Inspected receipts and auditor source; independently recomputed listed simple structural and position equality checks only. No crossing, manifold, cap containment or preservation audit rerun.",
+  "initialRendererLimitation": "The first selected hero used a different renderer hash. Its preserved raw hash and recovery receipt match; original renderer bytes are not present in this package, so exact original-vs-resumed code equivalence is not independently verified."
+}
