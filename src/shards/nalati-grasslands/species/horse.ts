@@ -6,7 +6,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, clamp } from '@wildshard/engine/entities/species/rigs';
 
-import * as THREE from 'three';
+import type * as THREE from 'three';
 
 
 
@@ -31,8 +31,6 @@ import { wildEnv } from '../creatures/env';
  *        never slide at any speed in between.
  *   horseBones(horse)          → { body, neck1, neck2, head, earL, earR, mane1, mane2, tail, tail2, tail3 } (THREE.Bone)
  *                                 — for the first-person head/neck view and a bridle; read their matrixWorld after update
- *   horseSaddle(horse, out)    → the rider's seat (world): on the spine behind the withers, riding the gait's bob
- *   horseEye(horse, out)       → a point between the ears (world) — a camera anchor for a mounted look
  *   horse.mem knobs (0..1, eased in postPose; set them, the pose follows):
  *        rear    up on the hind legs, forelegs tucked (the stallion's display, a thrown rider)
  *        buck    the hind end kicks up in a rhythm (taming rounds); mem.buckDir ±1 tilts it left / right
@@ -47,7 +45,6 @@ import { wildEnv } from '../creatures/env';
 
 export const HORSE_SPEED = ecology.modes.ride[0].gaits;
 
-export const HORSE = horseRows.palette;
 const nativeClips = new WeakMap<object, ReturnType<typeof numericCreaturePose>>();
 /** Data channels draw the overlay; this binding observes wind and advances presentation envelopes. */
 export function poseNalatiHorse(c: AnimalRigContext, wind: { readonly x: number; readonly z: number; readonly strength: number }, input?: object): void {
@@ -87,12 +84,6 @@ export function horseBones(a: Animal): HorseBones {
   return out;
 }
 
-const SADDLE_LOCAL = new THREE.Vector3(0, 0.36, 0.28);   // on the spine, behind the withers (body-bone space, scale 1)
-
-/** the rider's seat, world space (follows the gait's bob and pitch; valid after the horse's update this frame) */
-export function horseSaddle(a: Animal, out: THREE.Vector3): THREE.Vector3 {
-  return out.copy(SADDLE_LOCAL).applyMatrix4(horseBones(a).body.matrixWorld);
-}
 export const HORSE_SPECIES: SpeciesDef = {
   ...horseRows.definition, fur: NO_FUR,
   build: variant => nalatiBody('horse', variant),

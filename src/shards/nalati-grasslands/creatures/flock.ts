@@ -1,4 +1,5 @@
-import { GroupBrain } from '@wildshard/engine/ai/GroupBrain';
+import viewRows from './flock.json' with { type: 'json' };
+import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
 import { app } from '@wildshard/engine/app/runtime';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -51,7 +52,7 @@ export interface FlockController {
   kill: (index: number) => void; scare: (x: number, z: number, seconds: number) => void;
   straggler: (minimum?: number) => number; nearest: (x: number, z: number) => number;
 }
-const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
+const _p = new THREE.Vector3();
 const flockOfDog = new WeakMap<Animal, Flock>();
 const smooth = (t: number): number => t * t * (3 - 2 * t);
 /** the wolves the sheepdog watches for (Wildlife keeps it current) */
@@ -66,34 +67,20 @@ export class SheepPrey implements PackPrey {
   get alive(): boolean { return this.flock.isAlive(this.index); }
   readonly applyDamage = (): boolean => { this.flock.kill(this.index); return true; };
 }
-export class Flock extends GroupBrain<SheepPrey> {
-  mesh!: THREE.InstancedMesh;
+export class Flock {
+  private draw: PosedDraw | null = null;
+  get mesh(): THREE.InstancedMesh { if (this.draw === null) throw new Error('Flock view is not built'); return this.draw.mesh; }
   readonly n: number;
   dog: Animal | null = null;
   onSound?: ((name: string, x: number, z: number) => void) | undefined;
-  cx: number; cz: number;
-  private readonly homeX: number; private readonly homeZ: number;
-  private px: Float32Array; private pz: Float32Array; private py: Float32Array;
-  private yaw: Float32Array; private spd: Float32Array;
-  private phase: Float32Array; private graze: Float32Array; private dead: Uint8Array; private deadT: Float32Array;
-  private scale: Float32Array;
-  private anim!: THREE.InstancedBufferAttribute;
   private uTime = { value: 0 };
-  /** living sheep */
-  alive: number;
+  get alive(): number { return this.controller.alive; }
+  get cx(): number { return this.controller.cx; }
+  get cz(): number { return this.controller.cz; }
 
   constructor(private readonly sky: Sky, opts: FlockOpts, private readonly body: FlockBody, private readonly controller: FlockController) {
-    super([]);
     if (controller.n !== opts.count) throw new Error('Flock view roster mismatch');
-    this.n = opts.count; this.alive = opts.count;
-    this.cx = opts.x; this.cz = opts.z;
-    this.homeX = opts.x; this.homeZ = opts.z;
-    const n = this.n;
-    for (let i = 0; i < n; i++) this.members.push(new SheepPrey(this, i));
-    this.px = new Float32Array(n); this.pz = new Float32Array(n); this.py = new Float32Array(n);
-    this.yaw = new Float32Array(n); this.spd = new Float32Array(n);
-    this.phase = new Float32Array(n); this.graze = new Float32Array(n); this.dead = new Uint8Array(n); this.deadT = new Float32Array(n);
-    this.scale = new Float32Array(n);
+    this.n = opts.count;
   }
 
   static ofDog(dog: Animal): Flock | null { return flockOfDog.get(dog) ?? null; }
@@ -104,38 +91,31 @@ export class Flock extends GroupBrain<SheepPrey> {
     setDogFlock(dog, { flock: this, wolves: dogWolves, rng: app.rng.stream('ai'), bark: (x, z) => { this.onSound?.('dog_bark', x, z); } }, author);
   }
 
-  build(): this {
-    const geo = this.body.geometry.clone();
+  build(resources?: { readonly material: THREE.MeshLambertMaterial; readonly rig: Promise<RiggedHullAsset> }): this {
     // the shared painterly material + the flock's vertex animation: a sibling program ('…|nalati-sheep'), the one
     // exception to painterly's "no onBeforeCompile" rule — 40 GPU-animated sheep for one draw are worth one program
-    const mat = painterlyAnimalMaterial(this.sky);
+    const mat = resources?.material ?? painterlyAnimalMaterial(this.sky);
     patchSheep(mat, this.uTime, false, this.body.pivots);
-    const mesh = new THREE.InstancedMesh(geo, mat, this.n);
+    this.draw = new PosedDraw(viewRows, this.n, this.body.geometry, mat);
+    const mesh = this.draw.mesh;
     const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
     patchSheep(depth, this.uTime, true, this.body.pivots);
     mesh.customDepthMaterial = depth;
     // the phone's shadow map skips the flock (40 sheep ≈ 0.1 M tris a frame into it); desktop casts
     mesh.castShadow = TIER !== 'phone'; mesh.receiveShadow = true;
-    mesh.name = 'sheep-flock';
-    this.anim = new THREE.InstancedBufferAttribute(new Float32Array(this.n * 4), 4);
-    this.anim.setUsage(THREE.DynamicDrawUsage);
-    geo.setAttribute('iAnim', this.anim);
-    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     // wool colours: mostly cream, some fawn, brown and a few near-black (sheep-1 mockup)
-    const wool = [new THREE.Color(1, 1, 1), new THREE.Color(0.86, 0.74, 0.58), new THREE.Color(0.52, 0.36, 0.26), new THREE.Color(0.30, 0.22, 0.18)];
-    this.project();
+    const wool = viewRows.wool.map(rgb => new THREE.Color(...rgb));
     for (let i = 0; i < this.n; i++) {
       const pose = this.controller.readPose(i, this.pose);
       mesh.setColorAt(i, wool[pose.wool] ?? new THREE.Color(1, 1, 1));
     }
     if (mesh.instanceColor !== null) mesh.instanceColor.needsUpdate = true;
     mesh.frustumCulled = true;
-    mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3(this.homeX, this.py[0] ?? 0, this.homeZ), 30);
-    this.mesh = mesh;
+    mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3(this.cx, this.controller.readPose(0, this.pose).y, this.cz), viewRows.cullRadius);
     this.writeInstances();
     // Debug ▸ Creatures = Models (the default): the generated sheep, baked onto the flock's parts (scripts/nalati-rig-bake.mjs), swapped in when
     // it loads — the procedural flock stands in until then
-    productRiggedHulls('nalati-grasslands').load('sheep').then((rig) => { this.useRig(rig, mat); return null; }).catch((cause: unknown) => { throw new Error('Nalati sheep rig failed', { cause }); });
+    (resources?.rig ?? productRiggedHulls('nalati-grasslands').load('sheep')).then((rig) => { this.useRig(rig, mat); return null; }).catch((cause: unknown) => { throw new Error('Nalati sheep rig failed', { cause }); });
     return this;
   }
 
@@ -156,20 +136,20 @@ export class Flock extends GroupBrain<SheepPrey> {
     const g = new THREE.BufferGeometry();
     for (const k of ['position', 'normal', 'uv', 'color'] as const) g.setAttribute(k, src.getAttribute(k));
     g.setAttribute('aRig', new THREE.BufferAttribute(aRig, 3));
-    g.setAttribute('iAnim', this.anim);
     const index = src.getIndex();
     if (index) g.setIndex(index);
     g.computeBoundingSphere();
     const old = this.mesh.geometry;
+    g.setAttribute(viewRows.attributes[0], old.getAttribute(viewRows.attributes[0]));
     this.mesh.geometry = g;
     old.dispose();
     mat.map = rig.map; mat.needsUpdate = true;
   }
 
-  positions(i: number, out: THREE.Vector3): THREE.Vector3 { return out.set(this.px[i] ?? 0, (this.py[i] ?? 0) + 0.6, this.pz[i] ?? 0); }
+  positions(i: number, out: THREE.Vector3): THREE.Vector3 { const p = this.controller.readPose(i, this.pose); return out.set(p.x, p.y + viewRows.preyY, p.z); }
   /** sheep i's heading (animal yaw) and whether it lives */
-  headingOf(i: number): number { return this.yaw[i] ?? 0; }
-  isAlive(i: number): boolean { return i >= 0 && i < this.n && this.dead[i] === 0; }
+  headingOf(i: number): number { return this.controller.readPose(i, this.pose).yaw; }
+  isAlive(i: number): boolean { return i >= 0 && i < this.n && !this.controller.readPose(i, this.pose).dead; }
   /** B1: sheep i as a wolf pack's prey (Pack.raid): live position / heading, a bite kills it */
   prey(i: number): SheepPrey { return new SheepPrey(this, i); }
   /** the living sheep nearest (x, z) — the one a raid from that side reaches first — or -1 */
@@ -179,10 +159,10 @@ export class Flock extends GroupBrain<SheepPrey> {
   raycast(o: THREE.Vector3, d: THREE.Vector3, maxDist: number): number {
     let best = maxDist, bi = -1;
     for (let i = 0; i < this.n; i++) {
-      if (this.dead[i] === 1) continue;
-      const s = this.scale[i] ?? 1, yw = this.yaw[i] ?? 0;
-      for (const [off, up, r] of [[0, 0.6, 0.36], [0.62, 0.66, 0.14]] as const) {
-        _p.set((this.px[i] ?? 0) + Math.sin(yw) * off * s, (this.py[i] ?? 0) + up * s, (this.pz[i] ?? 0) + Math.cos(yw) * off * s);
+      const pose = this.controller.readPose(i, this.pose); if (pose.dead) continue;
+      const s = pose.scale, yw = pose.yaw;
+      for (const [off, up, r] of viewRows.hits) {
+        _p.set(pose.x + Math.sin(yw) * off * s, pose.y + up * s, pose.z + Math.cos(yw) * off * s);
         const t = raySphere(o, d, _p, r * s);
         if (t >= 0 && t < best) { best = t; bi = i; }
       }
@@ -191,40 +171,25 @@ export class Flock extends GroupBrain<SheepPrey> {
   }
 
   /** The declared flock owns deaths, panic and straggler decisions. */
-  kill(i: number): void { this.controller.kill(i); this.project(); }
+  kill(i: number): void { this.controller.kill(i); }
   scare(x: number, z: number, secs: number): void { this.controller.scare(x, z, secs); }
   straggler(minD = 12): number { return this.controller.straggler(minD); }
   get panicking(): boolean { return this.controller.panicking; }
 
-  private readonly pose: SheepPose = { x: 0, y: 0, z: 0, yaw: 0, speed: 0, phase: 0, graze: 0, dead: false, deathTime: 0, scale: 1, wool: 0 };
-  /** Copy pose inputs into the existing material/rig recipe; paused bodies preserve shader time and upload state. */
+  private readonly pose = { x: 0, y: 0, z: 0, yaw: 0, speed: 0, phase: 0, graze: 0, dead: false, deathTime: 0, scale: 1, wool: 0, pitch: 0, roll: 0, death: 0 };
+  /** Upload the current authoritative poses through the shared instance host; paused bodies preserve shader time and upload state. */
   project(time?: number): void {
-    const controller = this.controller;
-    this.cx = controller.cx; this.cz = controller.cz; this.alive = controller.alive;
-    for (let i = 0; i < this.n; i++) {
-      const pose = controller.readPose(i, this.pose);
-      this.px[i] = pose.x; this.py[i] = pose.y; this.pz[i] = pose.z; this.yaw[i] = pose.yaw;
-      this.spd[i] = pose.speed; this.phase[i] = pose.phase; this.graze[i] = pose.graze;
-      this.dead[i] = pose.dead ? 1 : 0; this.deadT[i] = pose.deathTime; this.scale[i] = pose.scale;
-    }
     if (time !== undefined) { this.uTime.value = time; this.writeInstances(); }
   }
 
   private writeInstances(): void {
-    const a = this.anim.array as Float32Array;
+    const draw = this.draw; if (draw === null) throw new Error('Flock view is not built');
+    draw.begin();
     for (let i = 0; i < this.n; i++) {
-      const s = this.scale[i] ?? 1;
-      _q.setFromAxisAngle(_y, this.yaw[i] ?? 0);
-      _p.set(this.px[i] ?? 0, (this.py[i] ?? 0) - 0.02, this.pz[i] ?? 0);
-      _s.set(s, s, s);
-      this.mesh.setMatrixAt(i, _m.compose(_p, _q, _s));
-      a[i * 4] = this.phase[i] ?? 0;
-      a[i * 4 + 1] = this.spd[i] ?? 0;
-      a[i * 4 + 2] = this.graze[i] ?? 0;
-      a[i * 4 + 3] = this.dead[i] === 1 ? smooth(this.deadT[i] ?? 0) : 0;
+      this.controller.readPose(i, this.pose); this.pose.y += viewRows.feetY;
+      this.pose.death = this.pose.dead ? smooth(this.pose.deathTime) : 0; draw.add(this.pose);
     }
-    this.mesh.instanceMatrix.needsUpdate = true;
-    this.anim.needsUpdate = true;
+    draw.commit();
   }
 }
 

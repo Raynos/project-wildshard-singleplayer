@@ -4,7 +4,7 @@ import { loft, tube, skinPlain, S, boneIndex, mix, srgb, paletteColors, type Sta
 import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import * as THREE from 'three';
 import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from './shape';
-import { HORSE } from '../species/horse';
+import horseRows from '../species/horse.json' with { type: 'json' };
 
 /**
  * Build-time only (SHARD-PLATFORM M3, Nalati's species bodies bake): the wild steppe horse's painterly lofts, moved from
@@ -12,7 +12,7 @@ import { HORSE } from '../species/horse';
  * writes them to `public/assets/nalati/baked/bodies.bin`; the page only reads the bake (`species/bodies.ts`).
  */
 function horsePaint(v: VariantDef): Paint {
-  const P = paletteColors(HORSE, v.tint);
+  const P = paletteColors(horseRows.palette, v.tint);
   const blaze = Boolean(v.traits?.['blaze']);
   const socks = Number(v.traits?.['socks'] ?? 0);
   const dappled = Boolean(v.traits?.['dapple']);
