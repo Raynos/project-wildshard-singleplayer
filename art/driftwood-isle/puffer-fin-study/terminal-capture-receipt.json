@@ -1,0 +1,108 @@
+{
+  "status": "unaccepted; genuine fixed-camera Blender native-bind evidence, no runtime proof",
+  "sourcePins": [
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/build_terminal_fins.py",
+      "bytes": 1873,
+      "sha256": "9bab6007190c1258f79db073de6d6562bfc4b21f28240d4f59286f6a2a34833e"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/check_terminal_fins.py",
+      "bytes": 3395,
+      "sha256": "621261030a2648b1cf9e274652ba8808db43dc6846cfc000217f9080e5c0e4b8"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/render_terminal_comparison.py",
+      "bytes": 4157,
+      "sha256": "f697d66ec15d14f70e93b8ca38640daa9608f4bc90bdd312c3c842ad5b0016b0"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/terminal-fin-fans-indexed.json",
+      "bytes": 99058,
+      "sha256": "10f7aa739ad1980345936a329d82cec8f35fd268fc07b2cb835b60f2ba66f953"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/terminal-fin-native-study.json",
+      "bytes": 287965,
+      "sha256": "755d8e2d7605cfe9331ae064fe6f301602709ed542e8ee73f3d56f6687f0159e"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/terminal-structural-audit.json",
+      "bytes": 2936,
+      "sha256": "a66e99700c174145a68dd0b658053f71bc6fc315ca1a75c56eba172ee5476a7a"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/TERMINAL-REFINEMENT.md",
+      "bytes": 1157,
+      "sha256": "5c1180e3bd4b5d80b1be165548082066027bc3eee3b894d6d03f3cb1a3bf9205"
+    }
+  ],
+  "images": [
+    {
+      "rawPath": "tmp/puffer-fin-study-terminal/compact-base-front.png",
+      "rawSha256": "15de2e34934dd30bc8963abfeb9c8c66fc4c45e7e6e00d2e36a0c9d26688cdc8",
+      "path": "tmp/puffer-fin-study-terminal/compact-base-front-labelled.webp",
+      "bytes": 14306,
+      "sha256": "c519d95eae695738e5fa7e4203610d05be3cd3571eadf72e44d813362bfb1e88"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-terminal/compact-base-hero.png",
+      "rawSha256": "ce8d64269d0bc0fdded13fb3e4d4c1212df68b0a4e0058e3340132e1bc3a547b",
+      "path": "tmp/puffer-fin-study-terminal/compact-base-hero-labelled.webp",
+      "bytes": 55742,
+      "sha256": "0ae81676243c7055d3eef5e92fc8728f5c953c694cb03ca9495f679e6d692add"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-terminal/compact-base-side.png",
+      "rawSha256": "26fb38cc4844273a36bc01e4fade797a336898d143f3dfb36c7747dd83d95e92",
+      "path": "tmp/puffer-fin-study-terminal/compact-base-side-labelled.webp",
+      "bytes": 14816,
+      "sha256": "f5f7d31c6bfdc7a0fc10e77e70465e7286ca776f4e473c2322c41359d7eb37a5"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-terminal/fin-study-front.png",
+      "rawSha256": "5626ae8e9402e2fa72dd8d5611e055e5c4d88ec6a0c38ec770f720e3e484db42",
+      "path": "tmp/puffer-fin-study-terminal/fin-study-front-labelled.webp",
+      "bytes": 14566,
+      "sha256": "edc2beadc0552dee5e361002b59886eba1afb04b8097b94a95374c184c6684f8"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-terminal/fin-study-hero.png",
+      "rawSha256": "b06856985f0671410646a919717d0965c5e5607b3e45c0b0c2e405ea1c84ac89",
+      "path": "tmp/puffer-fin-study-terminal/fin-study-hero-labelled.webp",
+      "bytes": 56312,
+      "sha256": "c637b681f4cde4504d1a79d26ae53a6610476637f271d908be6f936436f3d0e1"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-terminal/fin-study-side.png",
+      "rawSha256": "a46d9cdfd1e1b82c574e92f1146503c910f79ba16eb744c0fec9e6c653f299b5",
+      "path": "tmp/puffer-fin-study-terminal/fin-study-side-labelled.webp",
+      "bytes": 14874,
+      "sha256": "281479f3421e2507dd1d2bc858198854ec47c09ed6126ec138aa9481ca5395a9"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-terminal/v71-front.png",
+      "rawSha256": "0040ca922c7e21b021592b7b08635ac8bdf680b90243d9278a79f1b906e6a4a9",
+      "path": "tmp/puffer-fin-study-terminal/v71-front-labelled.webp",
+      "bytes": 13856,
+      "sha256": "be5d3c3f03a582dd7cd08fb665aea76543a5a237ab34d3acec02b07a6478af64"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-terminal/v71-hero.png",
+      "rawSha256": "09a6f01b822eb14fc74463aeebe5b0817119ade4f2f8205ed9052634e0fbb3a7",
+      "path": "tmp/puffer-fin-study-terminal/v71-hero-labelled.webp",
+      "bytes": 55748,
+      "sha256": "a1d3d978c34fe86413f087d98e733432658f8711bbb4a95c01542d5d47d73e21"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-terminal/v71-side.png",
+      "rawSha256": "5afc560152a7748b6593015e8da8c89a5301b4b187579dab7c80d9b550a31c66",
+      "path": "tmp/puffer-fin-study-terminal/v71-side-labelled.webp",
+      "bytes": 14116,
+      "sha256": "add175b7f5df6046ee14e8f2a406fc4b1966a590910201119c4ba07ab4d0506b"
+    }
+  ],
+  "visualRead": "Exact smooth teal web retained. Thinner and slightly sharper cream tips, but full-model visual gain is small. No score or acceptance claimed.",
+  "preservation": "V71 body, face, rear feet, tail, bones and scene unchanged in paired captures; only two forefins replaced in memory",
+  "checks": "Static topology/root/floor audit passes; self-intersection and motion not established"
+}

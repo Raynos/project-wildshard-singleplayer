@@ -116,3 +116,31 @@ The receipt preserves the previous camera positions, targets, scales,
 resolution and lighting. No visible body/framing shift explains the fin
 tradeoff. The recorded refinement-native SHA-256 is
 `7b581d46442f45221674c62b4e78dd033cfb702f52d316fa1b5ee645e578be95`.
+
+## Terminal-edge-only variant — 2026-10-19, 01:49 UTC
+
+**Retain this terminal variant, with a weak preference over the compact base.**
+The hero shows a slightly thinner, less continuous cream rim with shallow tip
+separation. Front and side are essentially a visual tie. The coherent teal web
+survives and the rejected refinement's dark vertical flutes do not return.
+
+This is small edge cleanup, not a substantial fidelity gain. The reference's
+broad pointed tips remain more emphatic. Carry the compact stance and terminal
+variant into integration; further fin micro-iterations are lower priority than
+the body/face changes. No full-model score increase, owner acceptance or runtime
+claim is made.
+
+All nine actual frames were individually inspected in
+`tmp/puffer-fin-study-terminal/`:
+
+- `v71-hero.png`, `compact-base-hero.png`, `fin-study-hero.png`.
+- `v71-front.png`, `compact-base-front.png`, `fin-study-front.png`.
+- `v71-side.png`, `compact-base-side.png`, `fin-study-side.png`.
+
+The capture receipt repeats the earlier fixed camera/light/render settings.
+The prelaunch manifest and
+`art/driftwood-isle/puffer-fin-study/terminal-structural-audit.json` were read.
+The audit reports exact protected web buffers, vertices and normals, unchanged
+faces, roots, compact reach and sole. These engineering checks were not rerun
+by this reviewer. The recorded terminal-native SHA-256 is
+`755d8e2d7605cfe9331ae064fe6f301602709ed542e8ee73f3d56f6687f0159e`.
