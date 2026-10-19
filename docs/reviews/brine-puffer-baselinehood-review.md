@@ -54,3 +54,36 @@ cover plane; do not flatten that plane again to simplify the mesh.
 
 This separate review preserves the earlier frozen orbital assessments in
 `brine-puffer-guided-surface-review.md`.
+
+## Matched native-palette comparison — 2026-10-19, 02:11 UTC
+
+**Bounded retain of the connected baselinehood for mouth work.** Color makes
+the short orange hood legible and the angry read survives. The hero's raised
+separate far-brow wing is reduced; the side no longer has the old block cap.
+This resolves enough of the clay ambiguity to continue the connected face
+branch without another brow-geometry pass now.
+
+The remaining concern is the radiating temple/under-eye transition: broad
+brown shadow triangles and interpolated teal/orange smears make the socket
+look more excavated than the approved reference. The brows still have fairly
+straight upper edges, but the colored result does not read as the earlier
+large crownward visor. Keep this geometry for the next branch, then author
+clean flat color-region boundaries and recheck the dark triangles. If they
+remain with clean color regions, assess the cavity corners geometrically.
+Exact palette transfer is not equivalent to finished low-poly painting.
+
+All six actual images were inspected individually:
+
+- `tmp/puffer-remaster-guided/supported-original-palette/color-hero.png`
+- `tmp/puffer-remaster-guided/baselinehood-original-palette/color-hero.png`
+- `tmp/puffer-remaster-guided/supported-original-palette/color-front.png`
+- `tmp/puffer-remaster-guided/baselinehood-original-palette/color-front.png`
+- `tmp/puffer-remaster-guided/supported-original-palette/color-side.png`
+- `tmp/puffer-remaster-guided/baselinehood-original-palette/color-side.png`
+
+The paired render and baselinehood palette-transfer receipts were read. The
+study uses the inherited native palette, not a claim of pixel-exact colors
+from the approved concept: unchanged triangles retain native corner colors;
+new surfaces use barycentric transfer, with explicit hood/socket regions.
+Geometry, mouth and paired camera/light settings are frozen for this test.
+No whole-model score, final face acceptance or runtime claim is made.

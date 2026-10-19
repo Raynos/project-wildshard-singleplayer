@@ -1,0 +1,9 @@
+{
+  "status": "failed-before-export-no-render",
+  "session": 69651,
+  "exitCode": 1,
+  "sourceSha256": "250efcddf6515e1fa5d49f2f75310d0cacd568d64d16625fe604324980ae0ff0",
+  "failure": "Mouth ridge outside selected facial surface",
+  "apertureInsideAndSimplePerimeter": "passed",
+  "nextStep": "Read-only exact offending-point/perimeter diagnostic; no guard relaxation"
+}

@@ -1,0 +1,21 @@
+{
+  "status": "source-only-fitted-controls",
+  "archShoulderXBefore": 0.17,
+  "archShoulderXAfter": 0.16,
+  "nasalTurnControlsAdded": [
+    [
+      -0.095,
+      0.895,
+      0.897
+    ],
+    [
+      0.095,
+      0.895,
+      0.897
+    ]
+  ],
+  "lowerTransition": "Central bowed control retained; two lateral ridge controls omitted because the fixed asymmetric boundary cannot accommodate their joining segments. Existing aperture/perimeter still defines lateral transition.",
+  "lightSegmentCheck": "All six arch segments sampled at101 points remain inside actual fixed perimeter and outside aperture",
+  "apertureEyePerimeterChanged": false,
+  "limitsUnchanged": true
+}
