@@ -1,0 +1,9 @@
+{
+  "status": "failed-before-render",
+  "session": 47812,
+  "exitCode": 1,
+  "sourceSha256": "52782dd5f7d65bff5e76e5c0456fd82f0b9a8cd8240ebd952d8225714c5bfb3a",
+  "error": "KeyError: colors; native v2 field is colorsLinear",
+  "correctedSourceSha256": "67a82df66e01029689449734252c74d590571bfb36bc1f41b49b7402ce454369",
+  "geometryAndPaletteValuesUnchanged": true
+}

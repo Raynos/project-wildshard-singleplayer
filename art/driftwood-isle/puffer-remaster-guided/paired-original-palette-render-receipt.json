@@ -1,0 +1,43 @@
+{
+  "session": 47928,
+  "exitCode": 0,
+  "status": "unaccepted six-frame original-palette comparison",
+  "frames": [
+    {
+      "variant": "supported",
+      "path": "tmp/puffer-remaster-guided/supported-original-palette/color-hero.png",
+      "bytes": 429159,
+      "sha256": "4ef93fea71e646888972d1e5d665f9bb77c8ac8a44673b07915ce0709ee0380e"
+    },
+    {
+      "variant": "supported",
+      "path": "tmp/puffer-remaster-guided/supported-original-palette/color-front.png",
+      "bytes": 383432,
+      "sha256": "ea0274d09636f902c0f4e43b70be7b54e7039b2b2433248383fa975c97b2633f"
+    },
+    {
+      "variant": "supported",
+      "path": "tmp/puffer-remaster-guided/supported-original-palette/color-side.png",
+      "bytes": 395595,
+      "sha256": "b63d15053f258dc7b9345c7ef82618797c135d99597a0eb5693046794af4ab35"
+    },
+    {
+      "variant": "baselinehood",
+      "path": "tmp/puffer-remaster-guided/baselinehood-original-palette/color-hero.png",
+      "bytes": 428815,
+      "sha256": "4d074d38dead4a83aeb398a373453c95377ac3022a6efcef7fa327b23c70c759"
+    },
+    {
+      "variant": "baselinehood",
+      "path": "tmp/puffer-remaster-guided/baselinehood-original-palette/color-front.png",
+      "bytes": 383549,
+      "sha256": "4218a80057b3ed153a82283459b97715bc960a43de17444904e416709364535c"
+    },
+    {
+      "variant": "baselinehood",
+      "path": "tmp/puffer-remaster-guided/baselinehood-original-palette/color-side.png",
+      "bytes": 395294,
+      "sha256": "1ba42cbd974c53f4b207d43e85fea417b6697188893fe03cd982c5f7301a4a59"
+    }
+  ]
+}

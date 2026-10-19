@@ -1,0 +1,64 @@
+{
+  "status": "unaccepted matched original-palette geometry check",
+  "variant": "supported",
+  "nativeSha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338",
+  "sceneSha256": "0c3e546f2ad5088c0d2fe83e84b2d597fd23742c1743a719295856fe1dab6109",
+  "paletteChanges": false,
+  "originalPaletteSrgb": {
+    "ochre": [
+      0.91,
+      0.43,
+      0.075
+    ],
+    "socket": [
+      0.39,
+      0.24,
+      0.09
+    ]
+  },
+  "parts": [
+    {
+      "name": "Continuous mantle cheek and pouch",
+      "counts": {
+        "exactNativeTriangles": 1298,
+        "barycentricNativeTransfer": 92
+      }
+    },
+    {
+      "name": "Dark recessed palate",
+      "counts": {
+        "exactNativeTriangles": 1129
+      }
+    },
+    {
+      "name": "Tail root",
+      "counts": {
+        "exactNativeTriangles": 140
+      }
+    },
+    {
+      "name": "Volumetric connected finL",
+      "counts": {
+        "exactNativeTriangles": 164
+      }
+    },
+    {
+      "name": "Volumetric connected finR",
+      "counts": {
+        "exactNativeTriangles": 164
+      }
+    },
+    {
+      "name": "Volumetric connected rearL",
+      "counts": {
+        "exactNativeTriangles": 132
+      }
+    },
+    {
+      "name": "Volumetric connected rearR",
+      "counts": {
+        "exactNativeTriangles": 132
+      }
+    }
+  ]
+}

@@ -1,0 +1,655 @@
+{
+  "status": "passed",
+  "sceneSha256": "59ee64ec89e3414474bd5dcce0ba4e0f4a92b8da3c461fba4157048d6b9bffec",
+  "baselineNativeSha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338",
+  "attachments": [
+    {
+      "part": "Volumetric connected finL",
+      "index": 0,
+      "before": -0.06143433228135109,
+      "after": -0.06143433228135109
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 1,
+      "before": -0.029812173917889595,
+      "after": -0.029812173917889595
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 4,
+      "before": -0.134088933467865,
+      "after": -0.134088933467865
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 6,
+      "before": -0.2089264839887619,
+      "after": -0.2089264839887619
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 8,
+      "before": -0.2686755657196045,
+      "after": -0.2686755657196045
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 10,
+      "before": -0.2932661771774292,
+      "after": -0.2932661771774292
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 11,
+      "before": -0.02768232300877571,
+      "after": -0.02768232300877571
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 12,
+      "before": -0.27311089634895325,
+      "after": -0.27311089634895325
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 13,
+      "before": -0.04860628768801689,
+      "after": -0.04860628768801689
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 14,
+      "before": -0.2453462928533554,
+      "after": -0.2453462928533554
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 15,
+      "before": -0.034198567271232605,
+      "after": -0.034198567271232605
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 16,
+      "before": -0.21536482870578766,
+      "after": -0.21536482870578766
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 18,
+      "before": -0.17843817174434662,
+      "after": -0.17843817174434662
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 20,
+      "before": -0.11406072229146957,
+      "after": -0.11406072229146957
+    },
+    {
+      "part": "Volumetric connected finL",
+      "index": 22,
+      "before": -0.05787067115306854,
+      "after": -0.05787067115306854
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 0,
+      "before": -0.2890979051589966,
+      "after": -0.2890979051589966
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 1,
+      "before": -0.27167755365371704,
+      "after": -0.27167755365371704
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 2,
+      "before": -0.02709009498357773,
+      "after": -0.02709009498357773
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 3,
+      "before": -0.04860629886388779,
+      "after": -0.04860629886388779
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 4,
+      "before": -0.26942184567451477,
+      "after": -0.26942184567451477
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 6,
+      "before": -0.20741555094718933,
+      "after": -0.20741555094718933
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 8,
+      "before": -0.1306692212820053,
+      "after": -0.1306692212820053
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 10,
+      "before": -0.06131259351968765,
+      "after": -0.06131259351968765
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 12,
+      "before": -0.03265760466456413,
+      "after": -0.03265760466456413
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 14,
+      "before": -0.05786852911114693,
+      "after": -0.05786852911114693
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 16,
+      "before": -0.1140599250793457,
+      "after": -0.1140599250793457
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 18,
+      "before": -0.178438201546669,
+      "after": -0.178438201546669
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 20,
+      "before": -0.2148086577653885,
+      "after": -0.2148086577653885
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 22,
+      "before": -0.2443946897983551,
+      "after": -0.2443946897983551
+    },
+    {
+      "part": "Volumetric connected finR",
+      "index": 23,
+      "before": -0.034520965069532394,
+      "after": -0.034520965069532394
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 0,
+      "before": -0.05447271093726158,
+      "after": -0.05447271093726158
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 1,
+      "before": -0.03321240469813347,
+      "after": -0.03321240469813347
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 4,
+      "before": -0.084818996489048,
+      "after": -0.084818996489048
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 6,
+      "before": -0.11611998081207275,
+      "after": -0.11611998081207275
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 8,
+      "before": -0.13998860120773315,
+      "after": -0.13998860120773315
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 10,
+      "before": -0.1452193260192871,
+      "after": -0.1452193260192871
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 12,
+      "before": -0.13365916907787323,
+      "after": -0.13365916907787323
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 14,
+      "before": -0.10916037112474442,
+      "after": -0.10916037112474442
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 16,
+      "before": -0.07828735560178757,
+      "after": -0.07828735560178757
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 18,
+      "before": -0.04931246489286423,
+      "after": -0.04931246489286423
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 20,
+      "before": -0.029999632388353348,
+      "after": -0.029999632388353348
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "index": 22,
+      "before": -0.025523625314235687,
+      "after": -0.025523625314235687
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 0,
+      "before": -0.1452193260192871,
+      "after": -0.1452193260192871
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 1,
+      "before": -0.13365916907787323,
+      "after": -0.13365916907787323
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 4,
+      "before": -0.13998860120773315,
+      "after": -0.13998860120773315
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 6,
+      "before": -0.11611997336149216,
+      "after": -0.11611997336149216
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 8,
+      "before": -0.0848190039396286,
+      "after": -0.0848190039396286
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 10,
+      "before": -0.05447271093726158,
+      "after": -0.05447271093726158
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 12,
+      "before": -0.033212389796972275,
+      "after": -0.033212389796972275
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 14,
+      "before": -0.025523625314235687,
+      "after": -0.025523625314235687
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 16,
+      "before": -0.029999632388353348,
+      "after": -0.029999632388353348
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 18,
+      "before": -0.04931246489286423,
+      "after": -0.04931246489286423
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 20,
+      "before": -0.07828735560178757,
+      "after": -0.07828735560178757
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "index": 22,
+      "before": -0.10916038602590561,
+      "after": -0.10916038602590561
+    },
+    {
+      "part": "spine-cap",
+      "index": 719,
+      "before": 0.028771018609404564,
+      "after": 0.028771018609404564
+    },
+    {
+      "part": "spine-cap",
+      "index": 718,
+      "before": -0.006945467088371515,
+      "after": -0.006945467088371515
+    },
+    {
+      "part": "spine-cap",
+      "index": 720,
+      "before": -0.00694546801969409,
+      "after": -0.00694546801969409
+    },
+    {
+      "part": "spine-cap",
+      "index": 721,
+      "before": -0.07131374627351761,
+      "after": -0.07131374627351761
+    },
+    {
+      "part": "spine-cap",
+      "index": 725,
+      "before": -0.05022263899445534,
+      "after": -0.05022263899445534
+    },
+    {
+      "part": "spine-cap",
+      "index": 724,
+      "before": -0.02836219035089016,
+      "after": -0.02836219035089016
+    },
+    {
+      "part": "spine-cap",
+      "index": 726,
+      "before": -0.02728630229830742,
+      "after": -0.02728630229830742
+    },
+    {
+      "part": "spine-cap",
+      "index": 723,
+      "before": 0.006194897461682558,
+      "after": 0.006194897461682558
+    },
+    {
+      "part": "spine-cap",
+      "index": 729,
+      "before": -0.064149871468544,
+      "after": -0.064149871468544
+    },
+    {
+      "part": "spine-cap",
+      "index": 728,
+      "before": -0.018911439925432205,
+      "after": -0.018911439925432205
+    },
+    {
+      "part": "spine-cap",
+      "index": 730,
+      "before": -0.018911434337496758,
+      "after": -0.018911434337496758
+    },
+    {
+      "part": "spine-cap",
+      "index": 731,
+      "before": -0.010595162399113178,
+      "after": -0.010595162399113178
+    },
+    {
+      "part": "spine-cap",
+      "index": 733,
+      "before": 0.0345383919775486,
+      "after": 0.0345383919775486
+    },
+    {
+      "part": "spine-cap",
+      "index": 734,
+      "before": 0.011615986004471779,
+      "after": 0.011615986004471779
+    },
+    {
+      "part": "spine-cap",
+      "index": 736,
+      "before": -0.03971175476908684,
+      "after": -0.03971175476908684
+    },
+    {
+      "part": "spine-cap",
+      "index": 735,
+      "before": -0.03832373023033142,
+      "after": -0.03832373023033142
+    },
+    {
+      "part": "spine-cap",
+      "index": 740,
+      "before": 0.0345383882522583,
+      "after": 0.0345383882522583
+    },
+    {
+      "part": "spine-cap",
+      "index": 739,
+      "before": 0.011615957133471966,
+      "after": 0.011615957133471966
+    },
+    {
+      "part": "spine-cap",
+      "index": 741,
+      "before": -0.03971170634031296,
+      "after": -0.03971170634031296
+    },
+    {
+      "part": "spine-cap",
+      "index": 738,
+      "before": -0.03832373023033142,
+      "after": -0.03832373023033142
+    },
+    {
+      "part": "spine-cap",
+      "index": 743,
+      "before": 0.03470464050769806,
+      "after": 0.03470464050769806
+    },
+    {
+      "part": "spine-cap",
+      "index": 744,
+      "before": -0.019267063587903976,
+      "after": -0.019267063587903976
+    },
+    {
+      "part": "spine-cap",
+      "index": 746,
+      "before": 0.007585328537970781,
+      "after": 0.007585328537970781
+    },
+    {
+      "part": "spine-cap",
+      "index": 745,
+      "before": -0.046282343566417694,
+      "after": -0.046282343566417694
+    },
+    {
+      "part": "spine-cap",
+      "index": 750,
+      "before": 0.03470463678240776,
+      "after": 0.03470463678240776
+    },
+    {
+      "part": "spine-cap",
+      "index": 749,
+      "before": -0.019267063587903976,
+      "after": -0.019267063587903976
+    },
+    {
+      "part": "spine-cap",
+      "index": 751,
+      "before": 0.007585329003632069,
+      "after": 0.007585329003632069
+    },
+    {
+      "part": "spine-cap",
+      "index": 748,
+      "before": -0.046282343566417694,
+      "after": -0.046282343566417694
+    },
+    {
+      "part": "spine-cap",
+      "index": 755,
+      "before": 0.03442319855093956,
+      "after": 0.03442319855093956
+    },
+    {
+      "part": "spine-cap",
+      "index": 754,
+      "before": 0.029523085802793503,
+      "after": 0.029523085802793503
+    },
+    {
+      "part": "spine-cap",
+      "index": 756,
+      "before": -0.04156611114740372,
+      "after": -0.04156611114740372
+    },
+    {
+      "part": "spine-cap",
+      "index": 753,
+      "before": -0.045554596930742264,
+      "after": -0.045554596930742264
+    }
+  ],
+  "visibility": [
+    {
+      "view": "hero",
+      "side": -1,
+      "sample": "pupil",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "hero",
+      "side": -1,
+      "sample": "lower-amber-1",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "hero",
+      "side": -1,
+      "sample": "lower-amber-2",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "hero",
+      "side": -1,
+      "sample": "lower-amber-3",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "hero",
+      "side": 1,
+      "sample": "pupil",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "hero",
+      "side": 1,
+      "sample": "lower-amber-1",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "hero",
+      "side": 1,
+      "sample": "lower-amber-2",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "hero",
+      "side": 1,
+      "sample": "lower-amber-3",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "front",
+      "side": -1,
+      "sample": "pupil",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "front",
+      "side": -1,
+      "sample": "lower-amber-1",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "front",
+      "side": -1,
+      "sample": "lower-amber-2",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "front",
+      "side": -1,
+      "sample": "lower-amber-3",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "front",
+      "side": 1,
+      "sample": "pupil",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "front",
+      "side": 1,
+      "sample": "lower-amber-1",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "front",
+      "side": 1,
+      "sample": "lower-amber-2",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    },
+    {
+      "view": "front",
+      "side": 1,
+      "sample": "lower-amber-3",
+      "visible": true,
+      "hit": null,
+      "distance": null
+    }
+  ],
+  "failures": [],
+  "inheritedSpineCaveat": "Existing exposed cap corners retained; no all-buried claim."
+}

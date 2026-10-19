@@ -1,0 +1,73 @@
+{
+  "status": "actual native coordinate measurement; no20degree trial implemented",
+  "sourceNativeSha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338",
+  "cameraYawElevationDegrees": [
+    32.94,
+    14.34
+  ],
+  "measurements": [
+    {
+      "side": -1,
+      "actualLowerFrontAndRear": [
+        [
+          -0.1899999976158142,
+          0.7850000262260437,
+          0.8944000005722046
+        ],
+        [
+          -0.46000000834465027,
+          0.7250000238418579,
+          0.9579999446868896
+        ],
+        [
+          -0.1899999976158142,
+          0.6449999809265137,
+          0.8793999552726746
+        ],
+        [
+          -0.46000000834465027,
+          0.5849999785423279,
+          0.9429999589920044
+        ]
+      ],
+      "frontSlopeDegrees": 13.254700833743225,
+      "heroProjectedSlopeMagnitudeDegrees": 29.658603888888564,
+      "frontDepthVariationMeters": -0.06000000238418579,
+      "priorAperturePlaneY": 0.743,
+      "upperRingYAtInnerX0232": 0.7756666666666667,
+      "upperRingYAtOuterX0448": 0.7276666666666667
+    },
+    {
+      "side": 1,
+      "actualLowerFrontAndRear": [
+        [
+          0.1899999976158142,
+          0.7850000262260437,
+          0.8944000005722046
+        ],
+        [
+          0.46000000834465027,
+          0.7250000238418579,
+          0.9579999446868896
+        ],
+        [
+          0.1899999976158142,
+          0.6449999809265137,
+          0.8793999552726746
+        ],
+        [
+          0.46000000834465027,
+          0.5849999785423279,
+          0.9429999589920044
+        ]
+      ],
+      "frontSlopeDegrees": 13.254700833743225,
+      "heroProjectedSlopeMagnitudeDegrees": 8.28077515857713,
+      "frontDepthVariationMeters": -0.06000000238418579,
+      "priorAperturePlaneY": 0.743,
+      "upperRingYAtInnerX0232": 0.7756666666666667,
+      "upperRingYAtOuterX0448": 0.7276666666666667
+    }
+  ],
+  "diagnosis": "The old underside has60mm front-depth variation and a sloped depth plane. The previous constantY aperture did not retain that3D cover geometry even though itsXZ slope formula matched."
+}

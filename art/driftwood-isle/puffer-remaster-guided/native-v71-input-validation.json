@@ -1,0 +1,35 @@
+{
+  "status": "passed",
+  "sha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338",
+  "parts": [
+    {
+      "name": "Continuous mantle cheek and pouch",
+      "vertices": 4422
+    },
+    {
+      "name": "Dark recessed palate",
+      "vertices": 3387
+    },
+    {
+      "name": "Tail root",
+      "vertices": 420
+    },
+    {
+      "name": "Volumetric connected finL",
+      "vertices": 492
+    },
+    {
+      "name": "Volumetric connected finR",
+      "vertices": 492
+    },
+    {
+      "name": "Volumetric connected rearL",
+      "vertices": 396
+    },
+    {
+      "name": "Volumetric connected rearR",
+      "vertices": 396
+    }
+  ],
+  "colorEncoding": "native colorsLinear copied directly; no gamma conversion"
+}
