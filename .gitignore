@@ -2093,3 +2093,9 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 # G508: blender-template data map outputs.
 /public/assets/blender-template/map/top.webp
 /src/shards/blender-template/look/map.baked.json
+
+# G508: sunscar-dunes data map outputs.
+/public/assets/sunscar-dunes/map/top.webp
+/src/shards/sunscar-dunes/look/map.baked.json
+/src/shards/sunscar-dunes/data/productMap.json
+/src/shards/sunscar-dunes/assets/map.webp

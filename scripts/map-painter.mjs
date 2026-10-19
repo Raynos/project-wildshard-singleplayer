@@ -57,18 +57,36 @@ export class MapRaster {
     }
   }
   /** CPU projection of ordinary admitted GLBs, including instanced copies. */
-  async glb(file, placement, select, options = {}) {
+  async document(file) {
     await MeshoptDecoder.ready;
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS)
       .registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
     let doc = this.documents.get(file);
     if (doc === undefined) { doc = await io.readBinary(new Uint8Array(readFileSync(file))); this.documents.set(file, doc); }
-    let selected = 0;
+    return doc;
+  }
+  geometry(geometry, matrix = identity) {
+    const position = geometry.getAttribute('position'), colour = geometry.getAttribute('color'), indices = geometry.getIndex();
+    if (position === undefined) throw new Error('Map geometry needs positions');
+    const points = [], colours = [];
+    for (let i = 0; i < position.count; i++) {
+      points.push(new Vector3().fromBufferAttribute(position, i).applyMatrix4(matrix).toArray());
+      colours.push(colour === undefined ? [180, 180, 180] : [colour.getX(i), colour.getY(i), colour.getZ(i)].map(srgb));
+    }
+    for (let i = 0; i < (indices?.count ?? position.count); i += 3) {
+      const ids = [0, 1, 2].map(k => indices?.getX(i + k) ?? i + k);
+      this.triangle(ids.map(id => points[id]), ids.map(id => colours[id]));
+    }
+  }
+  async glb(file, placement, select, options = {}) {
+    const doc = await this.document(file);
+    let selected = 0, meshIndex = 0;
     for (const node of doc.getRoot().listNodes()) {
-      const mesh = node.getMesh(); if (mesh === null || select !== undefined && !select(node)) continue;
+      const mesh = node.getMesh(); if (mesh === null) continue;
+      const index = meshIndex++; if (select !== undefined && !select(node, index)) continue;
       selected++;
       const world = new Matrix4().multiplyMatrices(placement ?? identity, options.local === true ? identity : new Matrix4().fromArray(node.getWorldMatrix()));
-      const instances = node.getExtension('EXT_mesh_gpu_instancing');
+      const instances = options.local === true ? null : node.getExtension('EXT_mesh_gpu_instancing');
       const translation = instances?.getAttribute('TRANSLATION'), rotation = instances?.getAttribute('ROTATION'), scale = instances?.getAttribute('SCALE');
       const count = instances === null ? 1 : instances.listAttributes()[0]?.getCount() ?? 0;
       for (let copy = 0; copy < count; copy++) {
@@ -110,8 +128,9 @@ export function stylizeMap(raster, style) {
     return distance < best.distance ? { row, distance } : best;
   }, { row: rows[0], distance: Infinity }).row;
   const valid = at => at >= 0 && at < height.length && height[at] !== -2147483648;
+  const sourceColour = at => Array.from(colour.subarray(at * 3, at * 3 + 3), c => byte(c * (style.sourceGain ?? 1)));
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-    const at = y * size + x, h = height[at] / 65536, rgb = colour.subarray(at * 3, at * 3 + 3);
+    const at = y * size + x, h = height[at] / 65536, rgb = sourceColour(at);
     const neighbours = [x > 0 ? at - 1 : -1, x + 1 < size ? at + 1 : -1, y > 0 ? at - size : -1, y + 1 < size ? at + size : -1];
     const border = neighbours.some(other => !valid(other));
     const clear = style.void === 'transparent';
@@ -133,10 +152,23 @@ export function stylizeMap(raster, style) {
         if (w === undefined || wx >= w.x0 && wx <= w.x1 && wz >= w.z0 && wz <= w.z1) fill = hex(style.water.fill);
       }
       if (border && style.rim !== undefined) fill = hex(style.rim);
-      else if (row.edge !== undefined && neighbours.some(other => valid(other) && nearest(colour.subarray(other * 3, other * 3 + 3), style.classes) !== row)) fill = hex(row.edge);
+      else if (row.edge !== undefined && neighbours.some(other => valid(other) && nearest(sourceColour(other), style.classes) !== row)) fill = hex(row.edge);
+      if (style.raised !== undefined) {
+        const around = [];
+        for (const dz of [-7, 0, 7]) for (const dx of [-7, 0, 7]) {
+          const px = x + dx, py = y + dz, other = py * size + px;
+          if (px >= 0 && px < size && py >= 0 && py < size && valid(other)) around.push(height[other]);
+        }
+        around.sort((a, b) => a - b);
+        const ground = around[Math.floor(around.length / 2)] ?? height[at];
+        if (height[at] - ground > style.raised.bump * 65536) {
+          const raised = nearest(rgb, style.raised.classes);
+          fill = hex(neighbours.some(other => valid(other) && height[at] - height[other] > style.raised.bump * 32768) ? raised.edge : raised.fill);
+        }
+      }
     }
     const left = valid(at - 1) && x > 0 ? height[at - 1] : height[at], top = valid(at - size) ? height[at - size] : height[at];
-    const relief = Math.max(-28, Math.min(28, Math.trunc((left + top - height[at] * 2) / 32768)));
+    const relief = Math.max(-80, Math.min(80, Math.trunc((left + top - height[at] * 2) / 512)));
     const shade = 256 + Math.trunc(relief * (style.shade ?? 0.5));
     for (let k = 0; k < 3; k++) out[at * 4 + k] = byte(Math.trunc(fill[k] * shade / 256));
     out[at * 4 + 3] = 255;

@@ -10,6 +10,7 @@ import { decodeTerrainTile, terrainTileHeight } from '../src/format/terrainTileB
 import terrain from '../src/shards/_template/data/terrain.json' with { type: 'json' };
 import { paintDataMap } from '../scripts/bake-data-maps.mjs';
 import { mapTilesHash } from '../scripts/map-hash.mjs';
+import { paintMapScenes } from '../scripts/map-scenes.mjs';
 
 const grey = [[120, 120, 120], [120, 120, 120], [120, 120, 120]];
 const triangle = [[200, 4, 200], [150, 4, 200], [200, 4, 150]];
@@ -55,10 +56,10 @@ test('instanced GLB placements and fresh stamps survive deterministic regenerati
   const doc = new Document(), buffer = doc.createBuffer();
   const positions = doc.createAccessor().setType('VEC3').setArray(new Float32Array([0, 0, 0, 0, 0, 10, 10, 0, 0])).setBuffer(buffer);
   const primitive = doc.createPrimitive().setAttribute('POSITION', positions);
-  const mesh = doc.createMesh().addPrimitive(primitive);
+  const mesh = doc.createMesh('model').addPrimitive(primitive);
   const ext = doc.createExtension(EXTMeshGPUInstancing).setRequired(true);
   const translation = doc.createAccessor().setType('VEC3').setArray(new Float32Array([100, 8, -100, -100, 12, 100])).setBuffer(buffer);
-  const node = doc.createNode().setMesh(mesh).setTranslation([5, 0, 5]).setExtension('EXT_mesh_gpu_instancing', ext.createInstancedMesh().setAttribute('TRANSLATION', translation));
+  const node = doc.createNode('model').setMesh(mesh).setTranslation([5, 0, 5]).setExtension('EXT_mesh_gpu_instancing', ext.createInstancedMesh().setAttribute('TRANSLATION', translation));
   doc.createScene().addChild(node);
   const file = resolve(dir, 'scene.glb'), io = new NodeIO().registerExtensions([EXTMeshGPUInstancing]);
   try {
@@ -69,6 +70,17 @@ test('instanced GLB placements and fresh stamps survive deterministic regenerati
     expect(first.raster.height[pixel(107, -93)]).toBe(8 * 65536);
     expect(first.raster.height[pixel(-93, 107)]).toBe(12 * 65536);
     expect(first.raster.height[pixel(0, 0)]).toBe(-2147483648);
+    const recipe = { scene: { root: 'root', nodes: [{ kind: 'group', id: 'root', position: [100, 3, -100], children: ['part'] },
+      { kind: 'mesh', id: 'part', geometry: 'model', position: [0, 5, 0] }] }, imports: [] };
+    const assembly = new MapRaster();
+    await paintMapScenes(assembly, { pools: ['scene.glb'], recipes: [{ file: 'recipe.json' }] }, {}, {
+      input: () => file, json: () => recipe, bytes: () => new Uint8Array(),
+    });
+    expect(assembly.height[pixel(102, -98)]).toBe(8 * 65536);
+    expect(assembly.height[pixel(-93, 107)]).toBe(-2147483648);
+    await expect(paintMapScenes(new MapRaster(), { recipes: [{ file: 'recipe.json' }] }, {}, {
+      input: () => file, json: () => recipe, bytes: () => new Uint8Array(),
+    })).rejects.toThrow('Missing declared map geometry');
     const image = resolve(root, 'public/assets/fixture/map/top.webp'), bytes = readFileSync(image);
     expect(first.stamp.tilesHash).toBe(mapTilesHash(dir));
     expect((await paintDataMap(root, 'fixture')).stamp).toEqual(first.stamp);
