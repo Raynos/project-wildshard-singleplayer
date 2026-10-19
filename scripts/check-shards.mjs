@@ -115,6 +115,7 @@ function generatedProduct(root, slug) {
     if (job.shard !== slug || typeof job.entry !== 'string' ||
         !job.entry.startsWith(`src/shards/${slug}/generators/`) || !existsSync(resolve(root, job.entry)) ||
         !Array.isArray(job.command) || !job.command.includes(job.entry) || !Array.isArray(job.outputs)) continue;
+    for (const file of job.buildTimeOutputs ?? []) if (file.startsWith(prefix) && job.outputs.includes(file)) outputs.add(file);
     const pins = job.buildOutputs ?? job.comparisonOutputs ?? {};
     for (const [file, hash] of Object.entries(pins)) if (file.startsWith(prefix) &&
         job.outputs.includes(file) && typeof hash === 'string' && /^[a-f0-9]{64}$/u.test(hash)) outputs.add(file);

@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Reads the committed head and the bake's own output.
 import { readFileSync } from 'node:fs';
-import { afterAll, beforeAll, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { mergeAnimalGeometry } from '../src/engine/models/animalGeometry';
@@ -25,6 +25,8 @@ beforeAll(async () => {
   const [geometry] = found;
   if (geometry === undefined) throw new Error('the sailor head has no mesh');
   head = faceHeadOf(geometry);
+});
+beforeEach(() => {
   const bytes = readFileSync(`public${bake.file}`);
   vi.stubGlobal('fetch', (url: string) => Promise.resolve(new Response(url === bake.file ? bytes : null, { status: url === bake.file ? 200 : 404 })));
 });
