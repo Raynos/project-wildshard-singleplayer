@@ -7,9 +7,10 @@ import type { Scope } from '@wildshard/engine/app/scope';
 // movers. The look (materials, signs, neon, streaks, light) is look/'s; this file only assembles it.
 // (E306 / E315 M4) Every reusable thing in it is a model (../models/: the facade's pieces, the square's lions and sets,
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
-// Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
+// the instanced ones are handed to the fragment's own cullers (the SDK's instance culler and figure crowd, look/lanterns.ts
+// `Lanterns`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Box3, ClampToEdgeWrapping, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
+  ClampToEdgeWrapping, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
 } from 'three';
 import type { InKit, Piece } from './ctx';
 import { inkFigure } from '../models/inKit';
@@ -31,6 +32,8 @@ import { loadTextureRow } from '@wildshard/engine/core/assets';
 import { installLight } from '../look/light/install';
 import { glowUniforms } from '../look/light/glow';
 import { gradeUniforms } from '../look/light/grade';
+import { FigureCrowd } from '../runtime/cull/figureCrowd';
+import { CROWD_LEVELS } from '../data/lod';
 import metadata from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
 import { placeSquareProps } from './squareProps';
@@ -41,7 +44,7 @@ import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/len
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
-import { type Placed, placeSliced } from '@wildshard/engine/models/place';
+import { type HandedBatch, type InstancedCuller, type Placed, placeSliced } from '@wildshard/engine/models/place';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ndModelContext, loadSpecimens, takeSpecimen } from './modelLook';
@@ -53,6 +56,8 @@ import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, umbrellaWalker } from '../models/crowd';
 import { loadLayoutBake, restoreLayout } from './layoutBake';
 import { loadCast, loadFixedRows, loadSignAtlas, loadSpill } from './casts';
+import { type InstanceCuller as InstanceCullerView, InstanceCuller } from '../runtime/cull/instanceCuller';
+import { cullHandedBatches } from '../runtime/cull/handedBatches';
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
 
@@ -62,6 +67,8 @@ import { addKitMeshes } from '../runtime/kit/kitMeshes';
 const canopyRows = metadata.looks.canopy as LookRows['canopy'];
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
 
+/** an instanced batch whose bounding sphere is wider than this (m) is culled per instance */
+const CULL_R = 40;
 
 /** the wall kit's model per piece (ctx.put's pieces that are placed: models/wallKit.ts) */
 const WALL_KIT: Readonly<Partial<Record<Piece, ModelDef<Record<string, unknown>>>>> = { plant: galleryPlant };
@@ -91,9 +98,11 @@ export interface NineDragonWorld {
   update: (t: number, camera: PerspectiveCamera) => void;
   /**
    * per frame, with the camera as it is drawn (the render hook's `frame`, after the updaters and the late hooks): the
-   * whole-kit draw distances; model placement owns instance culling
+   * world-wide instanced batches culled per instance (../runtime/cull/instanceCuller) and the crowd's figures picked
    */
   cull: (camera: PerspectiveCamera) => void;
+  /** the per-instance culling (its `stats` for the budget ruler) */
+  readonly culler: InstanceCullerView;
   /** G200: whether the decks' open ends are closed by their standalone balustrades (world/entries.ts; the colliders follow) */
   readonly entryCaps?: boolean;
   /** G224: the portals' ride step (world/portalRide.ts sets it in play), run by `update` with the frame's dt */
@@ -146,6 +155,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
   const nd = ndModelContext(renderer, opts.scope);
   nd.look.calligraphy = neonSigns;
+  // the fragment's instanced models are culled per copy here (the SDK instance culler), taken as `place` hands them over and set up
+  // at the end, once the world is whole
+  const culler = new InstanceCuller();
+  const handed: HandedBatch[] = [];
+  const batches: InstancedCuller = { take: (b) => { handed.push(b); } };
   // G285: the layout (the square, the towers, the Well) is an offline bake (../generators/layout.ts, world/layoutBake.ts):
   // the page restores it and has no live builders to fall back on
   const layout = await layoutReady;
@@ -215,7 +229,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // (E283, Jake's pick) the distance LODs are the models' own (models/: meshoptimizer copies of the sculpts, their error
   // under SCULPT_PX px where each starts, data/lod.ts; the facade dressing's and the balustrade's thin parts dropped where
   // they are ~half a pixel wide), handed to the culler with their batches
-  const squareSets = await placeSquareProps({ ctx: nd.ctx, look: nd.look, root, rows: worldRows, records: worldData, sets: ctx.sets, due: slice.due });
+  const squareSets = await placeSquareProps({ ctx: nd.ctx, look: nd.look, culler: batches, root, rows: worldRows, records: worldData, sets: ctx.sets, due: slice.due });
   phaseDone('square props', phaseStart);
   await slice();
   // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below; E264: the kits are ~100 MB of
@@ -230,13 +244,15 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await slice();
   const inKitPlaced: InKitPlaced[] = [];
   for (const model of IN_KIT) { inKitPlaced.push(...model.register(nd.ctx, ctx.inKit, meshOfKit)); await slice(); }
-  const lanterns = await placeSliced(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-lanterns' } }, slice.due);
+  const lanternStart = handed.length;
+  const lanterns = await placeSliced(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-lanterns' } }, slice.due);
+  for (const batch of handed.splice(lanternStart)) paper.take(batch);
   lanterns.object.name = 'lanterns';
   progress(0.56, 'facade batches');
   phaseStart = performance.now();
   // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.
   // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md.
-  const facade = await buildFacade(ctx.fd, worldRows.facade, worldData, facadeUniforms(shared), { ctx: nd.ctx, look: nd.look }, { clutterFar: [55, 85], pause: opts.pause });
+  const facade = await buildFacade(ctx.fd, worldRows.facade, worldData, facadeUniforms(shared), { ctx: nd.ctx, look: nd.look, culler: batches }, { clutterFar: [55, 85], pause: opts.pause });
   phaseDone('facade', phaseStart);
   const isMesh = (o: Object3D | undefined): o is Mesh => o instanceof Mesh;
   const shell = facade.group.getObjectByName('facade-shell');
@@ -275,7 +291,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     const piece = key.slice(0, key.indexOf('@')) as Piece;
     const model = WALL_KIT[piece];
     if (model === undefined) throw new Error(`nine-dragon: the wall kit's '${piece}' is no model yet (models/wallKit.ts)`);
-    const placed = await placeSliced(model, list.map((it) => at<Record<string, unknown>>(it.m, it.c)), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: `nds-inst-${key}` } }, slice.due);
+    const placed = await placeSliced(model, list.map((it) => at<Record<string, unknown>>(it.m, it.c)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: `nds-inst-${key}` } }, slice.due);
     nameDraws(placed, `inst:${key}`);
     if (!key.endsWith('@town')) wellKit.push(placed);
   }
@@ -285,7 +301,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     const members = [...inKitPlaced.filter(copy => region.kits.includes(copy.kit)).map(copy => copy.placed), ...extras.get(region.extra) ?? []];
     if (members.length > 0) placeSet({ id: region.id, name: region.name, place: region.place, file: 'src/shards/nine-dragon-stack/generators/worldRows.ts', members });
   }
-  if (ctx.acs.length > 0) nameDraws(await placeSliced(airConBox, ctx.acs.map((m) => at<Record<string, unknown>>(m)), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-inst-ac' } }, slice.due), 'inst:ac');
+  if (ctx.acs.length > 0) nameDraws(await placeSliced(airConBox, ctx.acs.map((m) => at<Record<string, unknown>>(m)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-inst-ac' } }, slice.due), 'inst:ac');
   await slice();
 
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
@@ -342,11 +358,13 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     const mounts = ctx.hookMounts.filter((m) => m.ring.y > Y0 - 23 && m.ring.y < Y0 + 14)
       .sort((a, b) => a.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)) - b.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)))
       .slice(0, 3);
-    if (mounts.length > 0) nameDraws(await placeSliced(feiZhuaHook, mounts.map(({ ring, out }) => at(feiZhuaAt(ring, out))), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-fei-zhua-hooks' } }, slice.due), 'glb:dragon-hook');
+    if (mounts.length > 0) nameDraws(await placeSliced(feiZhuaHook, mounts.map(({ ring, out }) => at(feiZhuaAt(ring, out))), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-fei-zhua-hooks' } }, slice.due), 'glb:dragon-hook');
   }
-  // Crowd LODs are declared on the models; placement owns their frustum and range.
+  // dome B (the SDK's figure crowd, data/lod.ts CROWD_LEVELS): per-figure frustum culling + a distance LOD (the E283 middle copies, a ~320-tri far copy
+  // past 35 m, none past 130 m); its meshes start empty, so the batch culler leaves them alone
+  const crowd = new FigureCrowd(CROWD_LEVELS);
   const drawCrowd = async <P extends object>(model: ModelDef<P>, rows: readonly { matrix: number; variant: string }[], id: string): Promise<void> => {
-    if (rows.length > 0) (await placeSliced(model, rows.map(row => ({ ...at<P>(new Matrix4().fromArray(worldData, row.matrix)), variant: row.variant })), { ctx: nd.ctx, cull: { bounds: 'sphere', from: 'origin', far: 130 }, parent: root, draw: 'instanced', piece: { id } }, slice.due)).object.name = 'crowd';
+    if (rows.length > 0) (await placeSliced(model, rows.map(row => ({ ...at<P>(new Matrix4().fromArray(worldData, row.matrix)), variant: row.variant })), { ctx: nd.ctx, culler: crowd, parent: root, draw: 'instanced', piece: { id } }, slice.due)).object.name = 'crowd';
   };
   await drawCrowd(umbrellaWalker, worldRows.crowd.walkers, 'nds-crowd-walkers');
   await drawCrowd(mahjongSitter, worldRows.crowd.sitters, 'nds-crowd-sitters');
@@ -364,9 +382,14 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await light.ready;
   progress(0.95, 'culling');
 
-  // Model placement owns per-copy LOD and frustum culling in the registry's frame.
-  const farMeshes = kits.far.map(([mesh, far]) => ({ mesh, far, box: new Box3().setFromObject(mesh) }));
-  const eye = new Vector3();
+  // the world-wide instanced batches (the facade dressing, the wall kit, the square's props: bounding spheres past CULL_R,
+  // which three's per-object test never drops) are culled per instance against the view; the facade's small clutter also
+  // past 85 m, where its shader has shrunk it into the wall (its `cull.far`). A batch with a distance LOD is taken
+  // whatever its size (the culler deals its instances out to the copies); one without, within CULL_R, three culls whole.
+  // (The crowd and the paper lanterns cull themselves; the facade's windows are drawn whole — E283: packing and
+  // re-uploading the ~4 k one-quad windows in view cost more than drawing all ~10 k.)
+  cullHandedBatches(culler, handed, CULL_R);
+  for (const [mesh, far] of kits.far) culler.addFar(mesh, far);
   progress(1, 'world ready');
   Reflect.set(window, '__ndPhaseProfile', phaseProfile);
 
@@ -382,10 +405,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     for (const m of running) m.advance(t);
   };
   const cull = (camera: PerspectiveCamera): void => {
-    eye.setFromMatrixPosition(camera.matrixWorld);
-    for (const { mesh, far, box } of farMeshes) mesh.visible = box.distanceToPoint(eye) <= far;
+    culler.update(camera);
+    crowd.update(camera);
   };
   // The playable world only needs hook points from the build context. Retaining the full Ctx kept its
   // facade grammar, instance placement lists and atlas canvases alive alongside the finished meshes.
-  return { root, shared, ctx: { hooks: ctx.hooks, rimZ: worldRows.rim.z0 }, update, cull, entryCaps, portal };
+  return { root, shared, ctx: { hooks: ctx.hooks, rimZ: worldRows.rim.z0 }, update, cull, culler, entryCaps, portal };
 }

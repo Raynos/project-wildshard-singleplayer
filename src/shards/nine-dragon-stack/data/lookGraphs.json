@@ -14055,10 +14055,9 @@
     "op": "time"
    },
    "p1": {
-    "op": "fract",
-    "in": [
-     "lanternSeedDot"
-    ]
+    "op": "attribute",
+    "name": "aSeed",
+    "type": "float"
    },
    "p2": {
     "op": "attribute",
@@ -14418,7 +14417,7 @@
     "op": "max",
     "in": [
      "p1l",
-     1e-05
+     0.00001
     ]
    },
    "p1n": {
@@ -14840,20 +14839,6 @@
      "p36",
      "p3a"
     ]
-   },
-   "lanternSeedDot": {
-    "op": "dot",
-    "in": [
-     "lanternOrigin",
-     [
-      0.1031,
-      0.11369,
-      0.13787
-     ]
-    ]
-   },
-   "lanternOrigin": {
-    "op": "objectOrigin"
    }
   },
   "stages": {

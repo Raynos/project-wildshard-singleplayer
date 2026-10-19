@@ -18,7 +18,7 @@ import metadata from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
 import { type Halos, buildHalos } from './light/halos';
 import { STREAK_PERF, setStreakOn } from './streaks';
-import { clearLanterns } from './lanterns';
+import { clearLanterns, updateLanterns } from './lanterns';
 import { JiehuaEffect } from './render/jiehua';
 import { ScaledPostPass as RowRenderPass, prepareScaledPost } from '@wildshard/game/looks/scaledPost';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
@@ -282,6 +282,7 @@ export function shardRender(): LookStrategy {
         world.shared.bandWindow();
         onEye(world.root, world.shared, view);
         world.shared.u.uNear.value = view.near;
+        updateLanterns(view);
         return;
       }
       lines(handle.renderer, world.shared);
@@ -292,6 +293,7 @@ export function shardRender(): LookStrategy {
       onEye(world.root, world.shared, handle.camera);
       world.shared.u.uNear.value = handle.camera.near;
       // the paper lanterns in view, bucketed near / far for this camera (look/lanterns.ts LOD)
+      updateLanterns(handle.camera);
     },
     dispose(): void {
       if (handle?.halos) { handle.halos.mesh.removeFromParent(); handle.halos.mesh.geometry.dispose(); handle.halos.mesh.material.dispose(); }
