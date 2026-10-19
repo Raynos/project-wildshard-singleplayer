@@ -12,7 +12,7 @@ const rows = source.nodes.filter(node => node.mesh !== undefined).map((node, ind
   if (primitives.length !== 1 || typeof node.name !== 'string') throw new Error('Held rig requires named single-primitive meshes');
   const extras = node.extras ?? {}, attributes = Object.keys(primitives[0].attributes);
   const channels = { aMat: '_amat', ...(attributes.includes('_AFACE') ? { aFace: '_aface' } : {}),
-    ...(attributes.includes('_AHULLN') ? { aHullN: '_ahulln' } : {}), ...(attributes.includes('NORMAL') ? { aNs: attributes.includes('_ANS') ? '_ans' : 'normal' } : {}) };
+    ...(attributes.includes('_AHULLN') ? { aHullN: '_ahulln' } : {}), ...(attributes.includes('NORMAL') ? { aNs: attributes.includes('_ANS') ? '_ans' : 'normal' } : { normal: 'aHullN' }) };
   return { name: node.name, look: `nine-vm-rig-${index}`, attributes, channels,
     hull: extras.hull === true, width: extras.hullK ?? 1, maps: extras.maps ?? '',
     rotation: extras.assetRot ?? [1, 0, 0, 0, 1, 0, 0, 0, 1], doubleSide: node.skin !== undefined && extras.hull !== true };
