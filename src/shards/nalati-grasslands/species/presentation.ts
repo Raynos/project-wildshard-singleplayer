@@ -4,7 +4,7 @@ import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import type { BakedGeometryRow, PackedCreatureBodies } from '@wildshard/game/plugin/geometry';
 import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import { app } from '@wildshard/engine/app/runtime';
+import type { Scope } from '@wildshard/engine/app/scope';
 import type * as THREE from 'three';
 import * as schema from 'valibot';
 
@@ -65,4 +65,4 @@ export function nalatiBody(family: BodyFamily, variant: VariantDef): AnimalSpeci
 
 /** The crack mesh is generated once against the original skeleton at build time. */
 export function balbalCrackGeometry(): THREE.BufferGeometry { if (crackGeometry === null) throw new Error('Missing balbal crack geometry'); return crackGeometry; }
-export function balbalProgram(): ReturnProgram { if (speciesData === null) throw new Error('Missing Nalati species program'); return ReturnProgram.page(speciesData.program, app.levelScope ?? undefined); }
+export function balbalProgram(owner?: Scope): ReturnProgram { if (speciesData === null) throw new Error('Missing Nalati species program'); return ReturnProgram.page(speciesData.program, owner); }

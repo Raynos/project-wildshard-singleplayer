@@ -45,7 +45,7 @@ function thinkBalbal(a: Animal, c: ThinkCtx): void {
   const n = (key: string, fallback = 0) => m[key] ?? fallback;
   const bearing = Math.atan2(c.player.x - a.position.x, c.player.z - a.position.z), homeBearing = Math.atan2(n('homeX', a.position.x) - a.position.x, n('homeZ', a.position.z) - a.position.z);
   const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
-  const answer = balbalProgram().project('think', { bearing, homeBearing, homeOff: wrap(n('homeYaw', a.yaw) - a.yaw), hitOff: wrap(bearing - a.yaw), dt, field: n('field'), px: c.player.x, py: c.player.y, pz: c.player.z,
+  const answer = balbalProgram(app.levelScope ?? undefined).project('think', { bearing, homeBearing, homeOff: wrap(n('homeYaw', a.yaw) - a.yaw), hitOff: wrap(bearing - a.yaw), dt, field: n('field'), px: c.player.x, py: c.player.y, pz: c.player.z,
     x: a.position.x, ay: a.position.y, z: a.position.z, yaw: a.yaw, st: n('st', 1), t: n('t'), cd: n('cd'), rise: n('rise', m['init'] === 1 ? 1 : 0),
     emerge: n('emerge', 1), hit: n('hit'), gone: n('gone'), slamT: n('slamT'), state: ['rise', 'idle', 'stalk', 'wander', 'attack'].indexOf(a.state), init: n('init'),
     homeX: n('homeX', a.position.x), homeZ: n('homeZ', a.position.z), homeYaw: n('homeYaw', a.yaw), calm: Number(c.calm), dawn: n('dawn'), emergeT: n('emergeT', 1.6), attack: a.attackPhase,
@@ -89,7 +89,7 @@ export const BALBAL_SPECIES: SpeciesDef = {
     { id: 'capped', label: engineString('s_21d824fec935'), weight: 1, rarity: 'uncommon', scale: [1.15, 1.22], hp: 220, traits: { cap: true } },
   ],
   build: variant => nalatiBody('balbal', variant), animate: animateBalbal, think: thinkBalbal,
-  damageMul: (a, point, _direction, request) => schema.parse(finite, balbalProgram().project('damage', {
+  damageMul: (a, point, _direction, request) => schema.parse(finite, balbalProgram(app.levelScope ?? undefined).project('damage', {
     field: a.mem['field'] ?? 0, rise: a.mem['rise'] ?? 1, open: a.mem['open'] ?? 0,
     range: Math.hypot(point.x - (a.mem['balbalPlayerX'] ?? 0), point.z - (a.mem['balbalPlayerZ'] ?? 0)),
     piercing: Number(balbalCombat.isPiercing?.(request) ?? balbalCombat.melee === 'spear'), crack: Number(onBalbalCrack(a, point)),
