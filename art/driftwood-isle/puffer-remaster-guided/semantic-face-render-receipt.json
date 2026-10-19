@@ -1,0 +1,34 @@
+{
+  "status": "unaccepted semantic color study; independent review pending",
+  "session": 89205,
+  "exitCode": 0,
+  "terminalUtc": "2026-10-19T02:46:12Z",
+  "native": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/semantic-face-native.json",
+    "bytes": 2506764,
+    "sha256": "6a47c3d3b47f0e65fa6aa8758064b4f296cb1679578b6b2a6aec160edb80279c"
+  },
+  "renderer": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/render_semantic_face_native.py",
+    "bytes": 4466,
+    "sha256": "746f27e1f74ab7be9ffa6cad53c1a57da4dce59e0a2f9fa18344bf07c6a92242"
+  },
+  "images": [
+    {
+      "path": "tmp/puffer-remaster-guided/semantic-face-color/color-hero.png",
+      "bytes": 428560,
+      "sha256": "5e7bfa2f2e141d7ad88d1cb1d99968d16450cecbae9a9376b25fdeacee30acdd"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/semantic-face-color/color-front.png",
+      "bytes": 383168,
+      "sha256": "5cf72e8ccdca8567970cfd513f4f5020e82acfa7a899050ec8263f03e6ee185b"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/semantic-face-color/color-side.png",
+      "bytes": 395336,
+      "sha256": "481ef1b154ca25a0ab839a2da89bf576e89088eb540add048da73072aecc6248"
+    }
+  ],
+  "selfReview": "Broad stepped orange side field and small retained teal island need review; flat color alone is not target fidelity."
+}

@@ -1,0 +1,115 @@
+{
+  "status": "geometry cost disclosure, not runtime performance approval",
+  "beforeSha256": "030dbb8c40bf2507429b6017ad4c8d36a15eb5f5ca839c630e14189c51c8424b",
+  "afterSha256": "6a47c3d3b47f0e65fa6aa8758064b4f296cb1679578b6b2a6aec160edb80279c",
+  "parts": [
+    {
+      "name": "Continuous mantle cheek and pouch",
+      "before": {
+        "triangles": 1142,
+        "expandedVertices": 3426,
+        "uniquePositions": 591
+      },
+      "after": {
+        "triangles": 4516,
+        "expandedVertices": 13548,
+        "uniquePositions": 2278
+      },
+      "exactPartPayload": false
+    },
+    {
+      "name": "Dark recessed palate",
+      "before": {
+        "triangles": 1069,
+        "expandedVertices": 3207,
+        "uniquePositions": 565
+      },
+      "after": {
+        "triangles": 1069,
+        "expandedVertices": 3207,
+        "uniquePositions": 565
+      },
+      "exactPartPayload": false
+    },
+    {
+      "name": "Tail root",
+      "before": {
+        "triangles": 140,
+        "expandedVertices": 420,
+        "uniquePositions": 74
+      },
+      "after": {
+        "triangles": 140,
+        "expandedVertices": 420,
+        "uniquePositions": 74
+      },
+      "exactPartPayload": true
+    },
+    {
+      "name": "Volumetric connected finL",
+      "before": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "after": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "exactPartPayload": true
+    },
+    {
+      "name": "Volumetric connected finR",
+      "before": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "after": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "exactPartPayload": true
+    },
+    {
+      "name": "Volumetric connected rearL",
+      "before": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "after": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "exactPartPayload": true
+    },
+    {
+      "name": "Volumetric connected rearR",
+      "before": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "after": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "exactPartPayload": true
+    }
+  ],
+  "beforeTotal": {
+    "triangles": 2943,
+    "expandedVertices": 8829,
+    "uniquePositions": 1566
+  },
+  "afterTotal": {
+    "triangles": 6317,
+    "expandedVertices": 18951,
+    "uniquePositions": 3253
+  }
+}

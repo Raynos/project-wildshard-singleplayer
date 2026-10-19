@@ -1,0 +1,5 @@
+{
+  "failedCheck": "28 unmatched edges when planeY=.10 nearly coincided with existing float32 rowY=.10000000149011612",
+  "correction": "Use actual row coordinate exactly for both partition and classification; no tolerance/area/volume guard change.",
+  "failedSourceSha256": "96d81911510063b4403a128578c52fe558db66bf8fab0039dc5e13ffcc9f6827"
+}
