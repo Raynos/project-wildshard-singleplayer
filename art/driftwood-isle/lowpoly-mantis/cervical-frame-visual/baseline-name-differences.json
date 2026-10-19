@@ -1,0 +1,546 @@
+{
+  "exactByteEquality": false,
+  "onlyDifference": "Blender .001 suffix on material and mesh datablock names; all other JSON and binary exact",
+  "differences": [
+    {
+      "section": "materials",
+      "index": 0,
+      "frozen": "Honey driftwood.001",
+      "rebuilt": "Honey driftwood"
+    },
+    {
+      "section": "materials",
+      "index": 1,
+      "frozen": "Warm broad wood plane.001",
+      "rebuilt": "Warm broad wood plane"
+    },
+    {
+      "section": "materials",
+      "index": 2,
+      "frozen": "Cut wood plane.001",
+      "rebuilt": "Cut wood plane"
+    },
+    {
+      "section": "materials",
+      "index": 3,
+      "frozen": "Pale hooked cutting edge.001",
+      "rebuilt": "Pale hooked cutting edge"
+    },
+    {
+      "section": "materials",
+      "index": 4,
+      "frozen": "Vivid green compound eyes.001",
+      "rebuilt": "Vivid green compound eyes"
+    },
+    {
+      "section": "materials",
+      "index": 5,
+      "frozen": "Eye upper facet.001",
+      "rebuilt": "Eye upper facet"
+    },
+    {
+      "section": "materials",
+      "index": 6,
+      "frozen": "Leaf folded plane.001",
+      "rebuilt": "Leaf folded plane"
+    },
+    {
+      "section": "materials",
+      "index": 7,
+      "frozen": "Recessed wood hinge.001",
+      "rebuilt": "Recessed wood hinge"
+    },
+    {
+      "section": "materials",
+      "index": 8,
+      "frozen": "Leaf green.001",
+      "rebuilt": "Leaf green"
+    },
+    {
+      "section": "materials",
+      "index": 9,
+      "frozen": "Sunward leaf plane.001",
+      "rebuilt": "Sunward leaf plane"
+    },
+    {
+      "section": "meshes",
+      "index": 0,
+      "frozen": "Abdomen core.001",
+      "rebuilt": "Abdomen core"
+    },
+    {
+      "section": "meshes",
+      "index": 1,
+      "frozen": "Abdominal tergite 0.001",
+      "rebuilt": "Abdominal tergite 0"
+    },
+    {
+      "section": "meshes",
+      "index": 2,
+      "frozen": "Abdominal tergite 1.001",
+      "rebuilt": "Abdominal tergite 1"
+    },
+    {
+      "section": "meshes",
+      "index": 3,
+      "frozen": "Abdominal tergite 2.001",
+      "rebuilt": "Abdominal tergite 2"
+    },
+    {
+      "section": "meshes",
+      "index": 5,
+      "frozen": "Integrated pale throat.001",
+      "rebuilt": "Integrated pale throat"
+    },
+    {
+      "section": "meshes",
+      "index": 6,
+      "frozen": "Imbricated thorax bark (-1, 0).001",
+      "rebuilt": "Imbricated thorax bark (-1, 0)"
+    },
+    {
+      "section": "meshes",
+      "index": 7,
+      "frozen": "Imbricated thorax bark (-1, 1).001",
+      "rebuilt": "Imbricated thorax bark (-1, 1)"
+    },
+    {
+      "section": "meshes",
+      "index": 8,
+      "frozen": "Imbricated thorax bark (-1, 2).001",
+      "rebuilt": "Imbricated thorax bark (-1, 2)"
+    },
+    {
+      "section": "meshes",
+      "index": 9,
+      "frozen": "Imbricated thorax bark (-1, 3).001",
+      "rebuilt": "Imbricated thorax bark (-1, 3)"
+    },
+    {
+      "section": "meshes",
+      "index": 10,
+      "frozen": "Imbricated thorax bark (-1, 4).001",
+      "rebuilt": "Imbricated thorax bark (-1, 4)"
+    },
+    {
+      "section": "meshes",
+      "index": 11,
+      "frozen": "Rear neck collar -1.001",
+      "rebuilt": "Rear neck collar -1"
+    },
+    {
+      "section": "meshes",
+      "index": 12,
+      "frozen": "Imbricated thorax bark (1, 0).001",
+      "rebuilt": "Imbricated thorax bark (1, 0)"
+    },
+    {
+      "section": "meshes",
+      "index": 13,
+      "frozen": "Imbricated thorax bark (1, 1).001",
+      "rebuilt": "Imbricated thorax bark (1, 1)"
+    },
+    {
+      "section": "meshes",
+      "index": 14,
+      "frozen": "Imbricated thorax bark (1, 2).001",
+      "rebuilt": "Imbricated thorax bark (1, 2)"
+    },
+    {
+      "section": "meshes",
+      "index": 15,
+      "frozen": "Imbricated thorax bark (1, 3).001",
+      "rebuilt": "Imbricated thorax bark (1, 3)"
+    },
+    {
+      "section": "meshes",
+      "index": 16,
+      "frozen": "Imbricated thorax bark (1, 4).001",
+      "rebuilt": "Imbricated thorax bark (1, 4)"
+    },
+    {
+      "section": "meshes",
+      "index": 17,
+      "frozen": "Rear neck collar 1.001",
+      "rebuilt": "Rear neck collar 1"
+    },
+    {
+      "section": "meshes",
+      "index": 22,
+      "frozen": "Volumetric pointed insect skull.001",
+      "rebuilt": "Volumetric pointed insect skull"
+    },
+    {
+      "section": "meshes",
+      "index": 23,
+      "frozen": "Inset green compound eye -1.001",
+      "rebuilt": "Inset green compound eye -1"
+    },
+    {
+      "section": "meshes",
+      "index": 26,
+      "frozen": "Swept crown splinter -1.001",
+      "rebuilt": "Swept crown splinter -1"
+    },
+    {
+      "section": "meshes",
+      "index": 27,
+      "frozen": "Compact mandible -1.001",
+      "rebuilt": "Compact mandible -1"
+    },
+    {
+      "section": "meshes",
+      "index": 28,
+      "frozen": "Twig antenna -1.001",
+      "rebuilt": "Twig antenna -1"
+    },
+    {
+      "section": "meshes",
+      "index": 29,
+      "frozen": "Antenna leaf -1.001",
+      "rebuilt": "Antenna leaf -1"
+    },
+    {
+      "section": "meshes",
+      "index": 30,
+      "frozen": "Leaf wing wing-1_0.001",
+      "rebuilt": "Leaf wing wing-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 31,
+      "frozen": "Seated folded wing midrib wing-1_0.001",
+      "rebuilt": "Seated folded wing midrib wing-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 32,
+      "frozen": "Leaf wing wing-1_1.001",
+      "rebuilt": "Leaf wing wing-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 33,
+      "frozen": "Seated folded wing midrib wing-1_1.001",
+      "rebuilt": "Seated folded wing midrib wing-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 34,
+      "frozen": "Walking femur leg-1_0.001",
+      "rebuilt": "Walking femur leg-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 35,
+      "frozen": "Walking tibia leg-1_0.001",
+      "rebuilt": "Walking tibia leg-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 36,
+      "frozen": "Ground tarsus leg-1_0.001",
+      "rebuilt": "Ground tarsus leg-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 37,
+      "frozen": "Angular ankle cuff leg-1_0.001",
+      "rebuilt": "Angular ankle cuff leg-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 38,
+      "frozen": "Articulated foot claw leg-1_0_-1.001",
+      "rebuilt": "Articulated foot claw leg-1_0_-1"
+    },
+    {
+      "section": "meshes",
+      "index": 39,
+      "frozen": "Articulated foot claw leg-1_0_1.001",
+      "rebuilt": "Articulated foot claw leg-1_0_1"
+    },
+    {
+      "section": "meshes",
+      "index": 40,
+      "frozen": "Femur leaf plate leg-1_0.001",
+      "rebuilt": "Femur leaf plate leg-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 41,
+      "frozen": "Walking femur leg-1_1.001",
+      "rebuilt": "Walking femur leg-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 42,
+      "frozen": "Walking tibia leg-1_1.001",
+      "rebuilt": "Walking tibia leg-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 43,
+      "frozen": "Ground tarsus leg-1_1.001",
+      "rebuilt": "Ground tarsus leg-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 44,
+      "frozen": "Angular ankle cuff leg-1_1.001",
+      "rebuilt": "Angular ankle cuff leg-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 45,
+      "frozen": "Articulated foot claw leg-1_1_-1.001",
+      "rebuilt": "Articulated foot claw leg-1_1_-1"
+    },
+    {
+      "section": "meshes",
+      "index": 46,
+      "frozen": "Articulated foot claw leg-1_1_1.001",
+      "rebuilt": "Articulated foot claw leg-1_1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 47,
+      "frozen": "Femur leaf plate leg-1_1.001",
+      "rebuilt": "Femur leaf plate leg-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 48,
+      "frozen": "Raptorial upper arm -1.001",
+      "rebuilt": "Raptorial upper arm -1"
+    },
+    {
+      "section": "meshes",
+      "index": 49,
+      "frozen": "Raised raptorial forearm -1.001",
+      "rebuilt": "Raised raptorial forearm -1"
+    },
+    {
+      "section": "meshes",
+      "index": 50,
+      "frozen": "Swept bevelled wood sickle -1.001",
+      "rebuilt": "Swept bevelled wood sickle -1"
+    },
+    {
+      "section": "meshes",
+      "index": 51,
+      "frozen": "Bevelled continuous ivory teeth -1.001",
+      "rebuilt": "Bevelled continuous ivory teeth -1"
+    },
+    {
+      "section": "meshes",
+      "index": 52,
+      "frozen": "Inset green compound eye 1.001",
+      "rebuilt": "Inset green compound eye 1"
+    },
+    {
+      "section": "meshes",
+      "index": 55,
+      "frozen": "Swept crown splinter 1.001",
+      "rebuilt": "Swept crown splinter 1"
+    },
+    {
+      "section": "meshes",
+      "index": 56,
+      "frozen": "Compact mandible 1.001",
+      "rebuilt": "Compact mandible 1"
+    },
+    {
+      "section": "meshes",
+      "index": 57,
+      "frozen": "Twig antenna 1.001",
+      "rebuilt": "Twig antenna 1"
+    },
+    {
+      "section": "meshes",
+      "index": 58,
+      "frozen": "Antenna leaf 1.001",
+      "rebuilt": "Antenna leaf 1"
+    },
+    {
+      "section": "meshes",
+      "index": 59,
+      "frozen": "Leaf wing wing1_0.001",
+      "rebuilt": "Leaf wing wing1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 60,
+      "frozen": "Seated folded wing midrib wing1_0.001",
+      "rebuilt": "Seated folded wing midrib wing1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 61,
+      "frozen": "Leaf wing wing1_1.001",
+      "rebuilt": "Leaf wing wing1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 62,
+      "frozen": "Seated folded wing midrib wing1_1.001",
+      "rebuilt": "Seated folded wing midrib wing1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 63,
+      "frozen": "Walking femur leg1_0.001",
+      "rebuilt": "Walking femur leg1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 64,
+      "frozen": "Walking tibia leg1_0.001",
+      "rebuilt": "Walking tibia leg1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 65,
+      "frozen": "Ground tarsus leg1_0.001",
+      "rebuilt": "Ground tarsus leg1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 66,
+      "frozen": "Angular ankle cuff leg1_0.001",
+      "rebuilt": "Angular ankle cuff leg1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 67,
+      "frozen": "Articulated foot claw leg1_0_-1.001",
+      "rebuilt": "Articulated foot claw leg1_0_-1"
+    },
+    {
+      "section": "meshes",
+      "index": 68,
+      "frozen": "Articulated foot claw leg1_0_1.001",
+      "rebuilt": "Articulated foot claw leg1_0_1"
+    },
+    {
+      "section": "meshes",
+      "index": 69,
+      "frozen": "Femur leaf plate leg1_0.001",
+      "rebuilt": "Femur leaf plate leg1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 70,
+      "frozen": "Walking femur leg1_1.001",
+      "rebuilt": "Walking femur leg1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 71,
+      "frozen": "Walking tibia leg1_1.001",
+      "rebuilt": "Walking tibia leg1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 72,
+      "frozen": "Ground tarsus leg1_1.001",
+      "rebuilt": "Ground tarsus leg1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 73,
+      "frozen": "Angular ankle cuff leg1_1.001",
+      "rebuilt": "Angular ankle cuff leg1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 74,
+      "frozen": "Articulated foot claw leg1_1_-1.001",
+      "rebuilt": "Articulated foot claw leg1_1_-1"
+    },
+    {
+      "section": "meshes",
+      "index": 75,
+      "frozen": "Articulated foot claw leg1_1_1.001",
+      "rebuilt": "Articulated foot claw leg1_1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 76,
+      "frozen": "Femur leaf plate leg1_1.001",
+      "rebuilt": "Femur leaf plate leg1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 77,
+      "frozen": "Raptorial upper arm 1.001",
+      "rebuilt": "Raptorial upper arm 1"
+    },
+    {
+      "section": "meshes",
+      "index": 78,
+      "frozen": "Raised raptorial forearm 1.001",
+      "rebuilt": "Raised raptorial forearm 1"
+    },
+    {
+      "section": "meshes",
+      "index": 79,
+      "frozen": "Swept bevelled wood sickle 1.001",
+      "rebuilt": "Swept bevelled wood sickle 1"
+    },
+    {
+      "section": "meshes",
+      "index": 80,
+      "frozen": "Bevelled continuous ivory teeth 1.001",
+      "rebuilt": "Bevelled continuous ivory teeth 1"
+    },
+    {
+      "section": "meshes",
+      "index": 81,
+      "frozen": "Coxal bark shield (-1, 0).001",
+      "rebuilt": "Coxal bark shield (-1, 0)"
+    },
+    {
+      "section": "meshes",
+      "index": 82,
+      "frozen": "Coxal bark shield (-1, 1).001",
+      "rebuilt": "Coxal bark shield (-1, 1)"
+    },
+    {
+      "section": "meshes",
+      "index": 83,
+      "frozen": "Lateral tail splinter -1.001",
+      "rebuilt": "Lateral tail splinter -1"
+    },
+    {
+      "section": "meshes",
+      "index": 84,
+      "frozen": "Coxal bark shield (1, 0).001",
+      "rebuilt": "Coxal bark shield (1, 0)"
+    },
+    {
+      "section": "meshes",
+      "index": 85,
+      "frozen": "Coxal bark shield (1, 1).001",
+      "rebuilt": "Coxal bark shield (1, 1)"
+    },
+    {
+      "section": "meshes",
+      "index": 86,
+      "frozen": "Lateral tail splinter 1.001",
+      "rebuilt": "Lateral tail splinter 1"
+    },
+    {
+      "section": "meshes",
+      "index": 87,
+      "frozen": "Curved lateral chest splinter -1.001",
+      "rebuilt": "Curved lateral chest splinter -1"
+    },
+    {
+      "section": "meshes",
+      "index": 88,
+      "frozen": "Curved lateral chest splinter 1.001",
+      "rebuilt": "Curved lateral chest splinter 1"
+    }
+  ]
+}

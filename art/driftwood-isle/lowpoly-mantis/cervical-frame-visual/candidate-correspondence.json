@@ -1,0 +1,12 @@
+{
+  "objects": 89,
+  "triangles": 3052,
+  "corners": 9156,
+  "packedChannels": 132,
+  "opposed": 0,
+  "deviations": 595,
+  "minimumCosine": 0.3485399854984324,
+  "sourceBoundaryMaterialCorrespondence": true,
+  "packedSixChannelCorrespondence": true,
+  "opposedFacets": []
+}

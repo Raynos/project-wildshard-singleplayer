@@ -1,0 +1,30 @@
+{
+  "source": "Unmodified actual full-frame PNGs",
+  "interpolation": "Pillow contain default bicubic; enlargement only",
+  "matchingPixelRois": {
+    "hero": [
+      260,
+      303,
+      446,
+      541
+    ],
+    "front": [
+      256,
+      288,
+      386,
+      582
+    ],
+    "left": [
+      250,
+      288,
+      539,
+      582
+    ],
+    "right": [
+      99,
+      288,
+      388,
+      582
+    ]
+  }
+}

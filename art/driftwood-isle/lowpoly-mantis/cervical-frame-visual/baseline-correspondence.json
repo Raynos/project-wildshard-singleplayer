@@ -1,0 +1,185 @@
+{
+  "objects": 89,
+  "triangles": 3052,
+  "corners": 9156,
+  "packedChannels": 132,
+  "opposed": 4,
+  "deviations": 603,
+  "minimumCosine": -0.8982597841363307,
+  "sourceBoundaryMaterialCorrespondence": true,
+  "packedSixChannelCorrespondence": true,
+  "opposedFacets": [
+    {
+      "node": 4,
+      "name": "Rising prothorax curved cervical arch",
+      "polygon": 53,
+      "primitive": 0,
+      "triangle": 32,
+      "material": 0,
+      "materialName": "Honey driftwood.001",
+      "sourceVertexIds": [
+        36,
+        43,
+        42
+      ],
+      "nativeJoint": "neck",
+      "nativeVertexStart": 96,
+      "cosines": [
+        -0.6997748062874358,
+        -0.6997748062874358,
+        -0.6997748062874358
+      ],
+      "geometricNormal": [
+        0.6597482071013234,
+        0.44304712526663176,
+        -0.606993861599574
+      ],
+      "storedNormals": [
+        [
+          -0.7851640582084656,
+          0.31788545846939087,
+          0.5314756631851196
+        ],
+        [
+          -0.7851640582084656,
+          0.31788545846939087,
+          0.5314756631851196
+        ],
+        [
+          -0.7851640582084656,
+          0.31788545846939087,
+          0.5314756631851196
+        ]
+      ]
+    },
+    {
+      "node": 4,
+      "name": "Rising prothorax curved cervical arch",
+      "polygon": 59,
+      "primitive": 0,
+      "triangle": 35,
+      "material": 0,
+      "materialName": "Honey driftwood.001",
+      "sourceVertexIds": [
+        40,
+        47,
+        46
+      ],
+      "nativeJoint": "neck",
+      "nativeVertexStart": 105,
+      "cosines": [
+        -0.867132842414658,
+        -0.867132842414658,
+        -0.867132842414658
+      ],
+      "geometricNormal": [
+        -0.46084029883363886,
+        -0.6266025000709925,
+        -0.6284866950665736
+      ],
+      "storedNormals": [
+        [
+          -0.00010000062320614234,
+          0.8405052423477173,
+          0.5418034195899963
+        ],
+        [
+          -0.00010000062320614234,
+          0.8405052423477173,
+          0.5418034195899963
+        ],
+        [
+          -0.00010000062320614234,
+          0.8405052423477173,
+          0.5418034195899963
+        ]
+      ]
+    },
+    {
+      "node": 4,
+      "name": "Rising prothorax curved cervical arch",
+      "polygon": 62,
+      "primitive": 0,
+      "triangle": 38,
+      "material": 0,
+      "materialName": "Honey driftwood.001",
+      "sourceVertexIds": [
+        35,
+        42,
+        48
+      ],
+      "nativeJoint": "neck",
+      "nativeVertexStart": 114,
+      "cosines": [
+        -0.7136163621589874,
+        -0.7136163621589874,
+        -0.7136163621589874
+      ],
+      "geometricNormal": [
+        0.6763051859022577,
+        -0.32122215362081813,
+        -0.662893372681396
+      ],
+      "storedNormals": [
+        [
+          -0.17630049586296082,
+          0.8592023849487305,
+          0.4803013503551483
+        ],
+        [
+          -0.17630049586296082,
+          0.8592023849487305,
+          0.4803013503551483
+        ],
+        [
+          -0.17630049586296082,
+          0.8592023849487305,
+          0.4803013503551483
+        ]
+      ]
+    },
+    {
+      "node": 4,
+      "name": "Rising prothorax curved cervical arch",
+      "polygon": 56,
+      "primitive": 1,
+      "triangle": 28,
+      "material": 1,
+      "materialName": "Warm broad wood plane.001",
+      "sourceVertexIds": [
+        38,
+        45,
+        44
+      ],
+      "nativeJoint": "neck",
+      "nativeVertexStart": 231,
+      "cosines": [
+        -0.8982597841363307,
+        -0.8982597841363307,
+        -0.8982597841363307
+      ],
+      "geometricNormal": [
+        -0.44150401890286817,
+        0.7182323109723019,
+        -0.5377885725524509
+      ],
+      "storedNormals": [
+        [
+          0.7392909526824951,
+          -0.37989532947540283,
+          0.5559931397438049
+        ],
+        [
+          0.7392909526824951,
+          -0.37989532947540283,
+          0.5559931397438049
+        ],
+        [
+          0.7392909526824951,
+          -0.37989532947540283,
+          0.5559931397438049
+        ]
+      ]
+    }
+  ]
+}

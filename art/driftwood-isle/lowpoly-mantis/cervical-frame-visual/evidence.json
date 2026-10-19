@@ -1,0 +1,449 @@
+{
+  "status": "CAPTURE VERIFIED; independent visual review pending; no promotion",
+  "historicalScore": {
+    "value": 3.935,
+    "appliesOnlyTo": "original complete-pass2 geometry",
+    "candidateScore": null
+  },
+  "frameCount": 20,
+  "pairedCameraLightingEquality": true,
+  "rawFrames": [
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/hero.png",
+      "sha256": "01215cd1c73a4589a368b0a54fffe66c24d6d0773571336851606498d7e56157",
+      "bytes": 584566,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/hero.png",
+      "sha256": "88ea3589c61babf90e12b4858091653b7f7a929658074309cf66225632843c8f",
+      "bytes": 584408,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/front.png",
+      "sha256": "fe83286322ad838276c84d0ddc0faf7ac5859546934cc2d2487fee11743eb2b2",
+      "bytes": 451002,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/front.png",
+      "sha256": "10ed9d829cbfa75ece048f34f7c8a7ab7c441ee6be66a7f52aff709107b00afa",
+      "bytes": 450898,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/left.png",
+      "sha256": "0c9c8f41e7bbf0cc2dfa5f5c700bb40aaf933db2116d0324c65a3fbf0d1ef572",
+      "bytes": 400947,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/left.png",
+      "sha256": "f85cad35ce51a542666f2bebec1bb2a2bf04c56b340378cd8629bb02bd77edbb",
+      "bytes": 400967,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/right.png",
+      "sha256": "011084a2d30b9224b84507ea7baedff9d69d3ffb9d837492d2683bcd6c4dbef6",
+      "bytes": 397354,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/right.png",
+      "sha256": "977aab8f22e40c760ea6cbf47afced36f3485362a08203fea3f8ce834615b1d5",
+      "bytes": 397342,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/back.png",
+      "sha256": "38a9e494a9d0caf2ecac0f88f3f58e38a107c1f0b38c18b6e1bad39a864fdf80",
+      "bytes": 454676,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/back.png",
+      "sha256": "53d16c603a303259639391a610263402a4ae05407523e1b14ed61d3cd30df73d",
+      "bytes": 454551,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/top.png",
+      "sha256": "fb3dc644a825e304ea4a6cc22f68d983a0fad324b3f53f1a6b01c5c7e746a086",
+      "bytes": 690495,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/top.png",
+      "sha256": "43b17e72a6a047e92f72a631cc0701a71ce14150e325db212084ba0d6932481b",
+      "bytes": 690154,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/diag-front.png",
+      "sha256": "a4a2d8fcf8d6f2b7b63a568b2c690d339221a34ce10dc075d5b005288cec58e5",
+      "bytes": 712971,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/diag-front.png",
+      "sha256": "b75b472a382778446c692342d913ca73108ff05bfa2e141e0f70588accc9e7d9",
+      "bytes": 712906,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/diag-left.png",
+      "sha256": "e84e7ef64ba2b9b0d7d8f3c774e965bb98f5d0cfa38b2acda1b9d75b4516beae",
+      "bytes": 726716,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/diag-left.png",
+      "sha256": "cd5fb113c79c5ad2d8448326d8bbf5bc6de5934bec6af2601bae4e2840c21c5e",
+      "bytes": 726537,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/diag-right.png",
+      "sha256": "4b4f00e992f02149611a07554d94ebdfcc0251c8a816460591f9b9197b480b3c",
+      "bytes": 683144,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/diag-right.png",
+      "sha256": "b17d718900fe923d7faa07ec65e73aa8c96071bf2d3324d408ca78020e4818e5",
+      "bytes": 682973,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/diag-back.png",
+      "sha256": "151e6ba6730519338bdce02103324f2e5320763e056a5d21fa4da601ab474592",
+      "bytes": 707501,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/diag-back.png",
+      "sha256": "850932bdb4745dce6698cb50495ddd8f17d12c7ff6282990f4e7f97718cd4090",
+      "bytes": 707373,
+      "size": [
+        638,
+        900
+      ]
+    }
+  ],
+  "projectionFits": [
+    {
+      "role": "baseline",
+      "view": "hero",
+      "pixelBounds": [
+        34.1784982400406,
+        152.36828505691648,
+        603.8213551128952,
+        747.631891739514
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "hero",
+      "pixelBounds": [
+        34.1784982400406,
+        152.36828505691648,
+        603.8213551128952,
+        747.631891739514
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "front",
+      "pixelBounds": [
+        76.63469872710616,
+        104.7574134259255,
+        561.3653012728938,
+        795.2430947230582
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "front",
+      "pixelBounds": [
+        76.63469872710616,
+        104.7574134259255,
+        561.3653012728938,
+        795.2430947230582
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "left",
+      "pixelBounds": [
+        34.45588152853384,
+        104.7572585232432,
+        603.5439619460626,
+        795.2428875822178
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "left",
+      "pixelBounds": [
+        34.45588152853384,
+        104.7572585232432,
+        603.5439619460626,
+        795.2428875822178
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "right",
+      "pixelBounds": [
+        34.45608044374137,
+        104.75727971720386,
+        603.544145949814,
+        795.2428913140529
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "right",
+      "pixelBounds": [
+        34.45608044374137,
+        104.75727971720386,
+        603.544145949814,
+        795.2428913140529
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "back",
+      "pixelBounds": [
+        76.63471896313138,
+        104.75736288595283,
+        561.3653214557474,
+        795.2430164318303
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "back",
+      "pixelBounds": [
+        76.63471896313138,
+        104.75736288595283,
+        561.3653214557474,
+        795.2430164318303
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "top",
+      "pixelBounds": [
+        76.63469872710616,
+        165.45596670563714,
+        561.3653012728938,
+        734.5440332943629
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "top",
+      "pixelBounds": [
+        76.63469872710616,
+        165.45596670563714,
+        561.3653012728938,
+        734.5440332943629
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-front",
+      "pixelBounds": [
+        76.63469872710616,
+        99.4727633058618,
+        561.3653012728938,
+        800.5273891502338
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-front",
+      "pixelBounds": [
+        76.63469872710616,
+        99.4727633058618,
+        561.3653012728938,
+        800.5273891502338
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-left",
+      "pixelBounds": [
+        34.455880128565354,
+        64.8909245785938,
+        603.5439775198504,
+        835.1093228255198
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-left",
+      "pixelBounds": [
+        34.455880128565354,
+        64.8909245785938,
+        603.5439775198504,
+        835.1093228255198
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-right",
+      "pixelBounds": [
+        34.45614965489278,
+        64.89974304102032,
+        603.5442321347217,
+        835.1003131671856
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-right",
+      "pixelBounds": [
+        34.45614965489278,
+        64.89974304102032,
+        603.5442321347217,
+        835.1003131671856
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-back",
+      "pixelBounds": [
+        76.63453050614913,
+        48.21419173592511,
+        561.3651330113246,
+        851.7857283592234
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-back",
+      "pixelBounds": [
+        76.63453050614913,
+        48.21419173592511,
+        561.3651330113246,
+        851.7857283592234
+      ]
+    }
+  ],
+  "originalSourcesUnmodified": true,
+  "newOverlapDisclosure": {
+    "before": {
+      "Volumetric pointed insect skull": 33
+    },
+    "after": {
+      "Volumetric pointed insect skull": 24,
+      "Rear neck collar 1": 10,
+      "Rear neck collar -1": 12,
+      "Integrated pale throat": 8
+    }
+  },
+  "overlapLimit": "Incident triangle intersection counts, not penetration volume; new collar/throat overlaps unaccepted for visual/contact/articulation.",
+  "pointNormalCorrespondence": [
+    "baseline-correspondence.json",
+    "candidate-correspondence.json"
+  ],
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/detail-crops.json": "658a68e60f9a2ad04b9f3b973345e196e35925d70072c6d1dc1c18b1578a45ec",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-diag-front.webp": "def5335d6e12bb20bbf50d58dd1c84af718215491a209933ceaecfe9255e9bce",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/render_matched.py": "909db6d43bacfc1baf9325e4f68f6700f4a88233269dd7443c597e37c1b14014",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-diag-left.webp": "e1ddc5dd3032b5642852afda8ef6891176a434480edf5b162e43bf00c93fafa1",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-correspondence.json": "2fdde383abb5ccf2dea56cf94ec6957a25d405029a10f73cb0ac3205bda3753c",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-correspondence.json": "d71976f24a4fc48e6a0fef61aee93997664e0c9306f90bd3f61397a0722136d5",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-front.webp": "c9fc7eb19c130544d2b225fc640273e01f58ae14dfe077e03035b4b84e2235af",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-diag-back.webp": "0ae1b2caaa4c92a9e9341c1bbc418e758154c521e196b95d4f86ece5018031ac",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-diag-back.webp": "df9ac68d6c96a3292a33b994ad072fecf9b36d4307127a07eb3b5c6222e06a51",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-right.webp": "b0dd85d9d66da0d51b5c7a918dbabb3de61550603cb3e85daa1f35b822fad87d",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/matched-hero-board.webp": "8006b4735c32b77d4d6620a345f98ab792f366f12624769460f1e20877058780",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-front.webp": "d05c5a7139ba3d307e02ced68ba72eecace59fb2ec5e83c6be7304e4403a8e64",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-left.webp": "059d72ed0c3bca0c22a27739ba9a38e8d86941a0dcb5a6d841e3497905643c6b",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/cervical-detail-board.webp": "7904115627e9870666d4e433c562d65108e81140a1615a512e4fe69570aa8ba7",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-nine-board.webp": "02b7fe63cfceecc1cb02803140bc7710b5016ff247c7d663a9576bf76ccdf4f6",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/capture-provenance.json": "3f5964552e5e9a29d84ced2cdaca42d19ef219d4edd937d79f734623275262f6",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-top.webp": "7015d0640dbbd0f97be5f8be62300fa2bf3d1f00f145ff13709446c260ac42ef",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-top.webp": "af0d96c5c42e0aea6b64c7ab61c75d22b8bb2fc7b156208e56dd7e6b7100c3b7",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-hero.webp": "f3ff1da25bd3160448c823a689a5c6a435cdfa5f5bdd5d96e16ddc142df6369a",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-right.webp": "8ebee1d3be7ffa3230bf4a0d20f858d4b2090efada4fdac59198b9b37c4c0c52",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-nine-board.webp": "c6275b693e178a09e6774e06f3be1ac280015ed6ebc5337f4e86fef809b8a085",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-back.webp": "1a8a1335f85dae73907850c7147fe3955b701a496a1cf543853a64d65f939f10",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/assemble_evidence.py": "fb2e06f9cdcb48bd2ea6539f3a4121c5ddae186e1d2a8d838bea10b2661bb6be",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/cameras.json": "0a8ad59d70a266299651f8d0796cc663d913cffc6a8919898e0b069a0615053e",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-diag-front.webp": "43ebb7beaf77d90fb32545018dcb7fc719a282a85961bc5ee6186181efeb97bb",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/check_correspondence.py": "ffc75c1e40595da0dcf47a3928171c822d6387f6678a5f65a8fd126ea2e2868f",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-diag-right.webp": "043c0d5a7ff134b932d072f5ff8aa7d15f39151e91c98a43291fda71046ed267",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-diag-left.webp": "6051b4a740438003c8bb6a88140d3c33c2a626a7b9fd399f70e6c1bb546ec1a0",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-left.webp": "9779020c606a96774f15937a84679c24a4134eefa8896a66e653992bf53ed805",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-diag-right.webp": "63c7dc604514b3080053b0583401517da38297bb3096a4f1f1d7dabd83fc4a68",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/candidate-back.webp": "12d9cf2a8bec076feedcada5649fd5f213a5946b3089468a2bb26f9a4e074a64",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/input-pins.json": "5a746d48647bc567c48a2413d263c280bdb3fb292cb650be8b803032f162c3c9",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/README.md": "d7522f53f2109eeb2c31ba8dacc1da878fee3dbad6d72a8656ffb231534203e4",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-hero.webp": "b2e1c30e240ece1189d060e590c6dcf29f663dc2995be8f1a774d62a85b68704",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-visual/baseline-name-differences.json": "38805619ef1e068d421bc00311f0d966f8cee83a974b13001ad3305059398985"
+  },
+  "totalNewBytes": 14583452
+}
