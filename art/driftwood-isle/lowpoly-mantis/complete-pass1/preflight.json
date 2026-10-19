@@ -1,0 +1,640 @@
+{
+  "status": "PASS",
+  "failures": [],
+  "meshObjects": 89,
+  "joints": 20,
+  "triangles": 3024,
+  "glbNodeMappingExact": true,
+  "finiteClosedMapped": true,
+  "limits": "Intersections are not excluded. Static joint labels are not a rig or runtime admission. No likeness assessment.",
+  "parts": [
+    {
+      "name": "Abdomen core",
+      "joint": "body",
+      "signedVolume": 0.2854972437353104,
+      "edges": 68,
+      "errors": []
+    },
+    {
+      "name": "Abdominal tergite 0",
+      "joint": "body",
+      "signedVolume": 0.07636857444349204,
+      "edges": 30,
+      "errors": []
+    },
+    {
+      "name": "Abdominal tergite 1",
+      "joint": "body",
+      "signedVolume": 0.06654836861496018,
+      "edges": 30,
+      "errors": []
+    },
+    {
+      "name": "Abdominal tergite 2",
+      "joint": "body",
+      "signedVolume": 0.056728133108007096,
+      "edges": 30,
+      "errors": []
+    },
+    {
+      "name": "Rising prothorax",
+      "joint": "body",
+      "signedVolume": 0.17194212016533997,
+      "edges": 77,
+      "errors": []
+    },
+    {
+      "name": "Integrated pale throat",
+      "joint": "body",
+      "signedVolume": 0.005172193452592886,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 0)",
+      "joint": "body",
+      "signedVolume": 0.004411076352007118,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 1)",
+      "joint": "body",
+      "signedVolume": 0.003994104466506039,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 2)",
+      "joint": "body",
+      "signedVolume": 0.0036007076380940627,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 3)",
+      "joint": "body",
+      "signedVolume": 0.003228688923009268,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 4)",
+      "joint": "body",
+      "signedVolume": 0.002875615746635896,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Rear neck collar -1",
+      "joint": "body",
+      "signedVolume": 0.0022495188673385563,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Imbricated thorax bark (1, 0)",
+      "joint": "body",
+      "signedVolume": 0.004411077045856057,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Imbricated thorax bark (1, 1)",
+      "joint": "body",
+      "signedVolume": 0.003994105975049679,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Imbricated thorax bark (1, 2)",
+      "joint": "body",
+      "signedVolume": 0.003600707262539151,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Imbricated thorax bark (1, 3)",
+      "joint": "body",
+      "signedVolume": 0.00322868881603304,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Imbricated thorax bark (1, 4)",
+      "joint": "body",
+      "signedVolume": 0.0028756156265452282,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Rear neck collar 1",
+      "joint": "body",
+      "signedVolume": 0.0022495159966328926,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Overlapping dorsal neck shell 0",
+      "joint": "body",
+      "signedVolume": 0.02458440268623131,
+      "edges": 42,
+      "errors": []
+    },
+    {
+      "name": "Overlapping dorsal neck shell 1",
+      "joint": "body",
+      "signedVolume": 0.021669412954396488,
+      "edges": 42,
+      "errors": []
+    },
+    {
+      "name": "Overlapping dorsal neck shell 2",
+      "joint": "body",
+      "signedVolume": 0.018754432120626125,
+      "edges": 42,
+      "errors": []
+    },
+    {
+      "name": "Overlapping dorsal neck shell 3",
+      "joint": "body",
+      "signedVolume": 0.01583943270601327,
+      "edges": 42,
+      "errors": []
+    },
+    {
+      "name": "Volumetric pointed insect skull",
+      "joint": "head",
+      "signedVolume": 0.04322472320955108,
+      "edges": 56,
+      "errors": []
+    },
+    {
+      "name": "Inset green compound eye -1",
+      "joint": "head",
+      "signedVolume": 0.0008379185367243658,
+      "edges": 20,
+      "errors": []
+    },
+    {
+      "name": "Angled socket brow -1",
+      "joint": "head",
+      "signedVolume": 0.0015481367769103027,
+      "edges": 35,
+      "errors": []
+    },
+    {
+      "name": "Tapered cheek splinter -1",
+      "joint": "head",
+      "signedVolume": 0.0009859468103882152,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Swept crown splinter -1",
+      "joint": "head",
+      "signedVolume": 0.0009479712809891041,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Compact mandible -1",
+      "joint": "head",
+      "signedVolume": 0.00014456032513442918,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Twig antenna -1",
+      "joint": "head",
+      "signedVolume": 0.0011353861387800555,
+      "edges": 35,
+      "errors": []
+    },
+    {
+      "name": "Antenna leaf -1",
+      "joint": "head",
+      "signedVolume": 0.0004117495294849073,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Leaf wing wing-1_0",
+      "joint": "wing-1_0",
+      "signedVolume": 0.1740620896879483,
+      "edges": 60,
+      "errors": []
+    },
+    {
+      "name": "Seated folded wing midrib wing-1_0",
+      "joint": "wing-1_0",
+      "signedVolume": 0.003430120931734407,
+      "edges": 65,
+      "errors": []
+    },
+    {
+      "name": "Leaf wing wing-1_1",
+      "joint": "wing-1_1",
+      "signedVolume": 0.11665800080750234,
+      "edges": 60,
+      "errors": []
+    },
+    {
+      "name": "Seated folded wing midrib wing-1_1",
+      "joint": "wing-1_1",
+      "signedVolume": 0.00311199814648655,
+      "edges": 65,
+      "errors": []
+    },
+    {
+      "name": "Walking femur leg-1_0",
+      "joint": "leg-1_0",
+      "signedVolume": 0.03623732273850924,
+      "edges": 43,
+      "errors": []
+    },
+    {
+      "name": "Walking tibia leg-1_0",
+      "joint": "leg-1_0_knee",
+      "signedVolume": 0.01804726965545828,
+      "edges": 43,
+      "errors": []
+    },
+    {
+      "name": "Ground tarsus leg-1_0",
+      "joint": "leg-1_0_knee",
+      "signedVolume": 0.000905165298083667,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Angular ankle cuff leg-1_0",
+      "joint": "leg-1_0_knee",
+      "signedVolume": 0.0011970735351175062,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Articulated foot claw leg-1_0_-1",
+      "joint": "leg-1_0_knee",
+      "signedVolume": 0.00021956308232087398,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Articulated foot claw leg-1_0_1",
+      "joint": "leg-1_0_knee",
+      "signedVolume": 0.00018530029815569155,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Femur leaf plate leg-1_0",
+      "joint": "leg-1_0",
+      "signedVolume": 0.00426006140832834,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Walking femur leg-1_1",
+      "joint": "leg-1_1",
+      "signedVolume": 0.03847020964589803,
+      "edges": 43,
+      "errors": []
+    },
+    {
+      "name": "Walking tibia leg-1_1",
+      "joint": "leg-1_1_knee",
+      "signedVolume": 0.018217499184207005,
+      "edges": 43,
+      "errors": []
+    },
+    {
+      "name": "Ground tarsus leg-1_1",
+      "joint": "leg-1_1_knee",
+      "signedVolume": 0.0009051660715997422,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Angular ankle cuff leg-1_1",
+      "joint": "leg-1_1_knee",
+      "signedVolume": 0.0011970737379994113,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Articulated foot claw leg-1_1_-1",
+      "joint": "leg-1_1_knee",
+      "signedVolume": 0.0002195628702448888,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Articulated foot claw leg-1_1_1",
+      "joint": "leg-1_1_knee",
+      "signedVolume": 0.00018530011654979437,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Femur leaf plate leg-1_1",
+      "joint": "leg-1_1",
+      "signedVolume": 0.0042497779209132005,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Raptorial upper arm -1",
+      "joint": "raptor-1",
+      "signedVolume": 0.02238970953262424,
+      "edges": 42,
+      "errors": []
+    },
+    {
+      "name": "Raised raptorial forearm -1",
+      "joint": "raptor-1_elbow",
+      "signedVolume": 0.022536484564829942,
+      "edges": 42,
+      "errors": []
+    },
+    {
+      "name": "Swept bevelled wood sickle -1",
+      "joint": "raptor-1_hook",
+      "signedVolume": 0.020238616583368705,
+      "edges": 66,
+      "errors": []
+    },
+    {
+      "name": "Bevelled continuous ivory teeth -1",
+      "joint": "raptor-1_hook",
+      "signedVolume": 0.008338493635364149,
+      "edges": 84,
+      "errors": []
+    },
+    {
+      "name": "Inset green compound eye 1",
+      "joint": "head",
+      "signedVolume": 0.0008379185367243657,
+      "edges": 20,
+      "errors": []
+    },
+    {
+      "name": "Angled socket brow 1",
+      "joint": "head",
+      "signedVolume": 0.0015903333348069647,
+      "edges": 35,
+      "errors": []
+    },
+    {
+      "name": "Tapered cheek splinter 1",
+      "joint": "head",
+      "signedVolume": 0.0010679773691183356,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Swept crown splinter 1",
+      "joint": "head",
+      "signedVolume": 0.0009479721023767872,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Compact mandible 1",
+      "joint": "head",
+      "signedVolume": 0.00016182387223347098,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Twig antenna 1",
+      "joint": "head",
+      "signedVolume": 0.0011341950152689512,
+      "edges": 35,
+      "errors": []
+    },
+    {
+      "name": "Antenna leaf 1",
+      "joint": "head",
+      "signedVolume": 0.00041174796617288493,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Leaf wing wing1_0",
+      "joint": "wing1_0",
+      "signedVolume": 0.16295269793508058,
+      "edges": 60,
+      "errors": []
+    },
+    {
+      "name": "Seated folded wing midrib wing1_0",
+      "joint": "wing1_0",
+      "signedVolume": 0.0032499223361060225,
+      "edges": 65,
+      "errors": []
+    },
+    {
+      "name": "Leaf wing wing1_1",
+      "joint": "wing1_1",
+      "signedVolume": 0.1111454958535264,
+      "edges": 60,
+      "errors": []
+    },
+    {
+      "name": "Seated folded wing midrib wing1_1",
+      "joint": "wing1_1",
+      "signedVolume": 0.002949844748786828,
+      "edges": 65,
+      "errors": []
+    },
+    {
+      "name": "Walking femur leg1_0",
+      "joint": "leg1_0",
+      "signedVolume": 0.03666921422195847,
+      "edges": 43,
+      "errors": []
+    },
+    {
+      "name": "Walking tibia leg1_0",
+      "joint": "leg1_0_knee",
+      "signedVolume": 0.018075117990877167,
+      "edges": 43,
+      "errors": []
+    },
+    {
+      "name": "Ground tarsus leg1_0",
+      "joint": "leg1_0_knee",
+      "signedVolume": 0.0008400730741494226,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Angular ankle cuff leg1_0",
+      "joint": "leg1_0_knee",
+      "signedVolume": 0.0011774676579210162,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Articulated foot claw leg1_0_-1",
+      "joint": "leg1_0_knee",
+      "signedVolume": 0.00018385096214927385,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Articulated foot claw leg1_0_1",
+      "joint": "leg1_0_knee",
+      "signedVolume": 0.0002340562139810435,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Femur leaf plate leg1_0",
+      "joint": "leg1_0",
+      "signedVolume": 0.004260061783984471,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Walking femur leg1_1",
+      "joint": "leg1_1",
+      "signedVolume": 0.036687643860757464,
+      "edges": 43,
+      "errors": []
+    },
+    {
+      "name": "Walking tibia leg1_1",
+      "joint": "leg1_1_knee",
+      "signedVolume": 0.01819421047707673,
+      "edges": 43,
+      "errors": []
+    },
+    {
+      "name": "Ground tarsus leg1_1",
+      "joint": "leg1_1_knee",
+      "signedVolume": 0.000840073481714463,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Angular ankle cuff leg1_1",
+      "joint": "leg1_1_knee",
+      "signedVolume": 0.0011774681017601087,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Articulated foot claw leg1_1_-1",
+      "joint": "leg1_1_knee",
+      "signedVolume": 0.00018385077282058823,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Articulated foot claw leg1_1_1",
+      "joint": "leg1_1_knee",
+      "signedVolume": 0.00023405596163420087,
+      "edges": 25,
+      "errors": []
+    },
+    {
+      "name": "Femur leaf plate leg1_1",
+      "joint": "leg1_1",
+      "signedVolume": 0.004249777976480395,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Raptorial upper arm 1",
+      "joint": "raptor1",
+      "signedVolume": 0.022786198530257002,
+      "edges": 42,
+      "errors": []
+    },
+    {
+      "name": "Raised raptorial forearm 1",
+      "joint": "raptor1_elbow",
+      "signedVolume": 0.022458946554220958,
+      "edges": 42,
+      "errors": []
+    },
+    {
+      "name": "Swept bevelled wood sickle 1",
+      "joint": "raptor1_hook",
+      "signedVolume": 0.02023861658336872,
+      "edges": 66,
+      "errors": []
+    },
+    {
+      "name": "Bevelled continuous ivory teeth 1",
+      "joint": "raptor1_hook",
+      "signedVolume": 0.008338493635364161,
+      "edges": 84,
+      "errors": []
+    },
+    {
+      "name": "Coxal bark shield (-1, 0)",
+      "joint": "body",
+      "signedVolume": 0.005170546968145333,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Coxal bark shield (-1, 1)",
+      "joint": "body",
+      "signedVolume": 0.005332555251622798,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Lateral tail splinter -1",
+      "joint": "body",
+      "signedVolume": 0.004953797176080073,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Coxal bark shield (1, 0)",
+      "joint": "body",
+      "signedVolume": 0.005170547468240362,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Coxal bark shield (1, 1)",
+      "joint": "body",
+      "signedVolume": 0.0053325540684216145,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Lateral tail splinter 1",
+      "joint": "body",
+      "signedVolume": 0.004953799481427786,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Curved lateral chest splinter -1",
+      "joint": "body",
+      "signedVolume": 0.002337457181208164,
+      "edges": 36,
+      "errors": []
+    },
+    {
+      "name": "Curved lateral chest splinter 1",
+      "joint": "body",
+      "signedVolume": 0.0023374577492181444,
+      "edges": 36,
+      "errors": []
+    }
+  ],
+  "sha256": {
+    "mantis-mesh-complete-pass1.json": "e55ce497cb43c827edbf7242be695a07cd9ea52e35aeb5ecf084eb16228bded9",
+    "metrics-complete-pass1.json": "6a763f91c3e522501224a3bc2525b9500f063c6e87b884d4237d7f86f98725b9",
+    "mantis-study-complete-pass1.glb": "fdb5872d81e9b6e59c3a08bf4d23c064e87de1ea45e3c88d3a994fb356c29989"
+  }
+}

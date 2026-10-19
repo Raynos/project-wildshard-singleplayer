@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "candidateHash": true,
+    "eightBonesExact": true,
+    "sevenParts": true,
+    "headExact": true,
+    "fourFinPartsExact": true,
+    "browBeakGeometryExact": true,
+    "browBeakColorsExact": true,
+    "mainHullClosedOriented": true,
+    "meaningfulVolumeChange": true,
+    "allEightSpikeSamplesBuried": true,
+    "tailSamplesBuried": true,
+    "allFourFinSamplesBuried": true,
+    "inheritedOpenInlaysExplicit": true,
+    "noSelfScore": true,
+    "notRuntimeAdmitted": true
+  },
+  "passed": 15,
+  "total": 15,
+  "runtimeAdmission": false
+}

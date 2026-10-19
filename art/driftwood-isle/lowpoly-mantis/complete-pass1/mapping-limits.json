@@ -1,0 +1,18 @@
+{
+  "status": "not native-admitted",
+  "staticPivotCount": 20,
+  "testedNativeJointCount": 22,
+  "nativeDerivedJoints": [
+    "neck",
+    "abdomen"
+  ],
+  "unmappedBodyPartsUnderExistingAdapter": [
+    "Integrated pale throat",
+    "Curved lateral chest splinter -1",
+    "Curved lateral chest splinter 1"
+  ],
+  "required": "Fresh exact-source native mapping, rig, motion/contact admission; do not reuse tested candidate7 scores",
+  "preservedV7SourceSha256": "442540438fc5c1f9fb38c396854338b3ea049931ad28c0b0c15003911d940330",
+  "preservedV7GlbSha256": "6f63fff9d162a02a4b650aeefa4ccb370fb8fe818c23e51c2d45575ac3c3ea6f",
+  "pairedRebuiltV7GlbSha256": "6f63fff9d162a02a4b650aeefa4ccb370fb8fe818c23e51c2d45575ac3c3ea6f"
+}

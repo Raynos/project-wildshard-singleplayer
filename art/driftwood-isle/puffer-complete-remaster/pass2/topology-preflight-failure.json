@@ -1,0 +1,741 @@
+{
+  "method": "Exact geometric edges; no weld tolerance, repair, or waiver",
+  "sources": {
+    "v71": {
+      "sha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338",
+      "parts": [
+        {
+          "name": "Continuous mantle cheek and pouch",
+          "components": [
+            {
+              "triangles": 1022,
+              "minArea": 1.1210969525403784e-10,
+              "closedOriented": true,
+              "signedVolume": 1.056659776558785
+            },
+            {
+              "triangles": 192,
+              "minArea": 0.00013808375328691402,
+              "closedOriented": true,
+              "signedVolume": 0.0020480752393435045
+            },
+            {
+              "triangles": 192,
+              "minArea": 7.143535487814463e-05,
+              "closedOriented": true,
+              "signedVolume": 0.00211459357259373
+            },
+            {
+              "triangles": 20,
+              "minArea": 0.0031580267555805525,
+              "closedOriented": true,
+              "signedVolume": 0.004756054875511804
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.010080000067518422,
+              "closedOriented": true,
+              "signedVolume": 0.0014710999543385097
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.02022999539349352,
+              "closedOriented": true,
+              "signedVolume": 0.0037878750763222675
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.007000000460132314,
+              "closedOriented": true,
+              "signedVolume": 0.0009364644073177304
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.006999998870821125,
+              "closedOriented": true,
+              "signedVolume": 0.0010430385965848814
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.006999998870821125,
+              "closedOriented": true,
+              "signedVolume": 0.00104303859658488
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.004479998699497031,
+              "closedOriented": true,
+              "signedVolume": 0.0004975379209386603
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.004479998699497031,
+              "closedOriented": true,
+              "signedVolume": 0.0004975379209386597
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.003937498807710456,
+              "closedOriented": true,
+              "signedVolume": 0.00036345429434909635
+            }
+          ]
+        },
+        {
+          "name": "Dark recessed palate",
+          "components": [
+            {
+              "triangles": 124,
+              "minArea": 2.4191095349124225e-08,
+              "closedOriented": true,
+              "signedVolume": 6.817271195850684e-05
+            },
+            {
+              "triangles": 124,
+              "minArea": 1.726235154819733e-08,
+              "closedOriented": true,
+              "signedVolume": 0.00010945338888816428
+            },
+            {
+              "triangles": 124,
+              "minArea": 4.423036159550975e-09,
+              "closedOriented": true,
+              "signedVolume": 5.708324768917084e-06
+            },
+            {
+              "triangles": 124,
+              "minArea": 2.9032776183157694e-10,
+              "closedOriented": true,
+              "signedVolume": 1.8803016846047654e-07
+            },
+            {
+              "triangles": 124,
+              "minArea": 2.4191095349124225e-08,
+              "closedOriented": true,
+              "signedVolume": 6.817271195850074e-05
+            },
+            {
+              "triangles": 124,
+              "minArea": 1.726235154819733e-08,
+              "closedOriented": true,
+              "signedVolume": 0.0001094533888881677
+            },
+            {
+              "triangles": 124,
+              "minArea": 4.423036159550975e-09,
+              "closedOriented": true,
+              "signedVolume": 5.708324768916858e-06
+            },
+            {
+              "triangles": 124,
+              "minArea": 2.9032776183157694e-10,
+              "closedOriented": true,
+              "signedVolume": 1.8803016846071424e-07
+            },
+            {
+              "triangles": 56,
+              "minArea": 0.00020800009798982444,
+              "closedOriented": true,
+              "signedVolume": 0.0012072002041301443
+            },
+            {
+              "triangles": 36,
+              "minArea": 0.0009780075727920349,
+              "closedOriented": true,
+              "signedVolume": 0.002215769540654079
+            },
+            {
+              "triangles": 14,
+              "minArea": 0.0035665381145567193,
+              "closedOriented": true,
+              "signedVolume": 0.003255609892771451
+            },
+            {
+              "triangles": 14,
+              "minArea": 0.0035665381145567193,
+              "closedOriented": true,
+              "signedVolume": 0.003255610431800406
+            },
+            {
+              "triangles": 7,
+              "minArea": 0.002718719954280857,
+              "closedOriented": false,
+              "error": "Paint topology mismatch (9, 9)",
+              "triangleIndices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            {
+              "triangles": 4,
+              "minArea": 0.000544058639915553,
+              "closedOriented": true,
+              "signedVolume": 8.133312870114864e-06
+            },
+            {
+              "triangles": 2,
+              "minArea": 0.005991746663309259,
+              "closedOriented": false,
+              "error": "Paint topology mismatch (4, 4)",
+              "triangleIndices": [
+                7,
+                8
+              ]
+            },
+            {
+              "triangles": 2,
+              "minArea": 0.00010733180123997258,
+              "closedOriented": false,
+              "error": "Paint topology mismatch (4, 4)",
+              "triangleIndices": [
+                49,
+                50
+              ]
+            },
+            {
+              "triangles": 2,
+              "minArea": 0.00010733180123997258,
+              "closedOriented": false,
+              "error": "Paint topology mismatch (4, 4)",
+              "triangleIndices": [
+                51,
+                52
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Tail root",
+          "components": [
+            {
+              "triangles": 96,
+              "minArea": 0.0014519644977257443,
+              "closedOriented": true,
+              "signedVolume": 0.01901014255906569
+            },
+            {
+              "triangles": 44,
+              "minArea": 0.0007455832374372307,
+              "closedOriented": true,
+              "signedVolume": 0.008205266392798444
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected finL",
+          "components": [
+            {
+              "triangles": 92,
+              "minArea": 0.0010550497518996282,
+              "closedOriented": true,
+              "signedVolume": 0.05118311452820682
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007188561834244392,
+              "closedOriented": true,
+              "signedVolume": 0.0011522834934299454
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007731262030492085,
+              "closedOriented": true,
+              "signedVolume": 0.0011522832502926697
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007731262030492085,
+              "closedOriented": true,
+              "signedVolume": 0.0011522832502926723
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007188561041982746,
+              "closedOriented": true,
+              "signedVolume": 0.0011522832502926731
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected finR",
+          "components": [
+            {
+              "triangles": 92,
+              "minArea": 0.0010550497518996282,
+              "closedOriented": true,
+              "signedVolume": 0.051183114535194064
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007188561041982746,
+              "closedOriented": true,
+              "signedVolume": 0.0011522832502926725
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007731262030492085,
+              "closedOriented": true,
+              "signedVolume": 0.0011522832502926714
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007731262030492085,
+              "closedOriented": true,
+              "signedVolume": 0.001152283250292671
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007188561834244392,
+              "closedOriented": true,
+              "signedVolume": 0.0011522834934299456
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected rearL",
+          "components": [
+            {
+              "triangles": 92,
+              "minArea": 0.00027141116784701325,
+              "closedOriented": true,
+              "signedVolume": 0.020991849639038912
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.000535991334159283,
+              "closedOriented": true,
+              "signedVolume": 0.00038356448314942577
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.0005537645855734127,
+              "closedOriented": true,
+              "signedVolume": 0.0003835645719469363
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.0005537645365818745,
+              "closedOriented": true,
+              "signedVolume": 0.00038356446859148883
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.000535991372301256,
+              "closedOriented": true,
+              "signedVolume": 0.0003835644831494259
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected rearR",
+          "components": [
+            {
+              "triangles": 92,
+              "minArea": 0.00027141116784701325,
+              "closedOriented": true,
+              "signedVolume": 0.020991849639038968
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.000535991372301256,
+              "closedOriented": true,
+              "signedVolume": 0.00038356448314942566
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.0005537645365818745,
+              "closedOriented": true,
+              "signedVolume": 0.0003835644685914884
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.0005537645855734127,
+              "closedOriented": true,
+              "signedVolume": 0.00038356457194693656
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.000535991334159283,
+              "closedOriented": true,
+              "signedVolume": 0.0003835644831494258
+            }
+          ]
+        }
+      ]
+    },
+    "pass2": {
+      "sha256": "15a8a65ed0303e24982799ab395e77cd1d50920e964bbe81a099308e9ffdb762",
+      "parts": [
+        {
+          "name": "Continuous mantle cheek and pouch",
+          "components": [
+            {
+              "triangles": 1022,
+              "minArea": 1.9749224338752873e-11,
+              "closedOriented": true,
+              "signedVolume": 1.2237031776810747
+            },
+            {
+              "triangles": 192,
+              "minArea": 0.00013808375328691402,
+              "closedOriented": true,
+              "signedVolume": 0.0020480752393435045
+            },
+            {
+              "triangles": 192,
+              "minArea": 7.143535487814463e-05,
+              "closedOriented": true,
+              "signedVolume": 0.00211459357259373
+            },
+            {
+              "triangles": 20,
+              "minArea": 0.0031580267555805525,
+              "closedOriented": true,
+              "signedVolume": 0.004756054875511804
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.013330800089293106,
+              "closedOriented": true,
+              "signedVolume": 0.003019250017312935
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.02022999539349352,
+              "closedOriented": true,
+              "signedVolume": 0.0039181987320787565
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.008470000556760103,
+              "closedOriented": true,
+              "signedVolume": 0.00140899350962375
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.013330797849591592,
+              "closedOriented": true,
+              "signedVolume": 0.0030976904290528785
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.01333079784959159,
+              "closedOriented": true,
+              "signedVolume": 0.003097690429052876
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.0100799970738682,
+              "closedOriented": true,
+              "signedVolume": 0.0019628773721888757
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.0100799970738682,
+              "closedOriented": true,
+              "signedVolume": 0.001962877372188885
+            },
+            {
+              "triangles": 6,
+              "minArea": 0.004939198504391995,
+              "closedOriented": true,
+              "signedVolume": 0.0005820765343557571
+            }
+          ]
+        },
+        {
+          "name": "Dark recessed palate",
+          "components": [
+            {
+              "triangles": 124,
+              "minArea": 2.4191095349124225e-08,
+              "closedOriented": true,
+              "signedVolume": 6.817271195850684e-05
+            },
+            {
+              "triangles": 124,
+              "minArea": 1.726235154819733e-08,
+              "closedOriented": true,
+              "signedVolume": 0.00010945338888816428
+            },
+            {
+              "triangles": 124,
+              "minArea": 4.423036159550975e-09,
+              "closedOriented": true,
+              "signedVolume": 5.708324768917084e-06
+            },
+            {
+              "triangles": 124,
+              "minArea": 2.9032776183157694e-10,
+              "closedOriented": true,
+              "signedVolume": 1.8803016846047654e-07
+            },
+            {
+              "triangles": 124,
+              "minArea": 2.4191095349124225e-08,
+              "closedOriented": true,
+              "signedVolume": 6.817271195850074e-05
+            },
+            {
+              "triangles": 124,
+              "minArea": 1.726235154819733e-08,
+              "closedOriented": true,
+              "signedVolume": 0.0001094533888881677
+            },
+            {
+              "triangles": 124,
+              "minArea": 4.423036159550975e-09,
+              "closedOriented": true,
+              "signedVolume": 5.708324768916858e-06
+            },
+            {
+              "triangles": 124,
+              "minArea": 2.9032776183157694e-10,
+              "closedOriented": true,
+              "signedVolume": 1.8803016846071424e-07
+            },
+            {
+              "triangles": 56,
+              "minArea": 0.00020800009798982444,
+              "closedOriented": true,
+              "signedVolume": 0.0012072002041301443
+            },
+            {
+              "triangles": 36,
+              "minArea": 0.0009780075727920349,
+              "closedOriented": true,
+              "signedVolume": 0.002215769540654079
+            },
+            {
+              "triangles": 14,
+              "minArea": 0.0035665381145567193,
+              "closedOriented": true,
+              "signedVolume": 0.003255609892771451
+            },
+            {
+              "triangles": 14,
+              "minArea": 0.0035665381145567193,
+              "closedOriented": true,
+              "signedVolume": 0.003255610431800406
+            },
+            {
+              "triangles": 7,
+              "minArea": 0.002718719954280857,
+              "closedOriented": false,
+              "error": "Paint topology mismatch (9, 9)",
+              "triangleIndices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            {
+              "triangles": 4,
+              "minArea": 0.000544058639915553,
+              "closedOriented": true,
+              "signedVolume": 8.133312870114864e-06
+            },
+            {
+              "triangles": 2,
+              "minArea": 0.005991746663309259,
+              "closedOriented": false,
+              "error": "Paint topology mismatch (4, 4)",
+              "triangleIndices": [
+                7,
+                8
+              ]
+            },
+            {
+              "triangles": 2,
+              "minArea": 0.00010733180123997258,
+              "closedOriented": false,
+              "error": "Paint topology mismatch (4, 4)",
+              "triangleIndices": [
+                49,
+                50
+              ]
+            },
+            {
+              "triangles": 2,
+              "minArea": 0.00010733180123997258,
+              "closedOriented": false,
+              "error": "Paint topology mismatch (4, 4)",
+              "triangleIndices": [
+                51,
+                52
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Tail root",
+          "components": [
+            {
+              "triangles": 192,
+              "minArea": 0.0005293668187145832,
+              "closedOriented": true,
+              "signedVolume": 0.02783138563166664
+            },
+            {
+              "triangles": 44,
+              "minArea": 0.0007455832374372307,
+              "closedOriented": true,
+              "signedVolume": 0.008205266392798444
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected finL",
+          "components": [
+            {
+              "triangles": 92,
+              "minArea": 0.0010550497518996282,
+              "closedOriented": true,
+              "signedVolume": 0.05118311452820682
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007188561834244392,
+              "closedOriented": true,
+              "signedVolume": 0.0011522834934299454
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007731262030492085,
+              "closedOriented": true,
+              "signedVolume": 0.0011522832502926697
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007731262030492085,
+              "closedOriented": true,
+              "signedVolume": 0.0011522832502926723
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007188561041982746,
+              "closedOriented": true,
+              "signedVolume": 0.0011522832502926731
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected finR",
+          "components": [
+            {
+              "triangles": 92,
+              "minArea": 0.0010550497518996282,
+              "closedOriented": true,
+              "signedVolume": 0.051183114535194064
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007188561041982746,
+              "closedOriented": true,
+              "signedVolume": 0.0011522832502926725
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007731262030492085,
+              "closedOriented": true,
+              "signedVolume": 0.0011522832502926714
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007731262030492085,
+              "closedOriented": true,
+              "signedVolume": 0.001152283250292671
+            },
+            {
+              "triangles": 18,
+              "minArea": 0.0007188561834244392,
+              "closedOriented": true,
+              "signedVolume": 0.0011522834934299456
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected rearL",
+          "components": [
+            {
+              "triangles": 92,
+              "minArea": 0.00027141116784701325,
+              "closedOriented": true,
+              "signedVolume": 0.020991849639038912
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.000535991334159283,
+              "closedOriented": true,
+              "signedVolume": 0.00038356448314942577
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.0005537645855734127,
+              "closedOriented": true,
+              "signedVolume": 0.0003835645719469363
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.0005537645365818745,
+              "closedOriented": true,
+              "signedVolume": 0.00038356446859148883
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.000535991372301256,
+              "closedOriented": true,
+              "signedVolume": 0.0003835644831494259
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected rearR",
+          "components": [
+            {
+              "triangles": 92,
+              "minArea": 0.00027141116784701325,
+              "closedOriented": true,
+              "signedVolume": 0.020991849639038968
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.000535991372301256,
+              "closedOriented": true,
+              "signedVolume": 0.00038356448314942566
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.0005537645365818745,
+              "closedOriented": true,
+              "signedVolume": 0.0003835644685914884
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.0005537645855734127,
+              "closedOriented": true,
+              "signedVolume": 0.00038356457194693656
+            },
+            {
+              "triangles": 10,
+              "minArea": 0.000535991334159283,
+              "closedOriented": true,
+              "signedVolume": 0.0003835644831494258
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "runtimeAdmission": false,
+  "verdict": "FAIL: retained head-part exact-edge defects require diagnosis before runtime admission"
+}

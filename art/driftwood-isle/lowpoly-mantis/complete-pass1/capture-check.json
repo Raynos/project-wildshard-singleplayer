@@ -1,0 +1,151 @@
+{
+  "exitCode": 0,
+  "seconds": 246.36,
+  "individualFramesInspected": 20,
+  "frames": {
+    "tmp/mantis-complete-pass1/baseline/back.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "3c2b3725787f4cbc023c24d2f768dd790e7f900081ce3beafd191b654f94bab8"
+    },
+    "tmp/mantis-complete-pass1/baseline/diag-back.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "724338f94fa892104c532ff4c2d0e9122d3f4646bdf5f7521acb5547d8a0d8aa"
+    },
+    "tmp/mantis-complete-pass1/baseline/diag-front.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "da618a8f082c177f40374a6d33a79f0d6d171241f86dce5428b2505d323ba319"
+    },
+    "tmp/mantis-complete-pass1/baseline/diag-left.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "eb66d739af4b3155c5d8a53a5a73b9c957cc90d4688eb94243a24cb6417fb526"
+    },
+    "tmp/mantis-complete-pass1/baseline/diag-right.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "b844364fd3d2a9f3380d69371bdbd3c76d96ef0d745d119bbca85cecebeff418"
+    },
+    "tmp/mantis-complete-pass1/baseline/front.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "d3af41f0449c3be6db3098e19d7dd64ee7ce41d3833eba4161f464b48504cc6b"
+    },
+    "tmp/mantis-complete-pass1/baseline/hero.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "b3cb5f11b5b456c5f5776d91a350a6d6c56210cd2ccb318a4ab2eba77be1443c"
+    },
+    "tmp/mantis-complete-pass1/baseline/left.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "2b50dcdb118a8386d57a3cb7cbfc133c9932a306096cce0eda7d8db8b349e5a7"
+    },
+    "tmp/mantis-complete-pass1/baseline/right.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "474b8f8d6be8807702ef40a6164fb98d9fec8da65003250b2e5ddfca803fe51e"
+    },
+    "tmp/mantis-complete-pass1/baseline/top.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "b83d3d4fd4c6ddebb8457ba19cab45e9af9c5ac6622d0259f4a791286e72ad62"
+    },
+    "tmp/mantis-complete-pass1/candidate/back.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "bab8e20898d4c5f4506a84bae5bd02bcdf885a7295b6555167c77ffb49cd283e"
+    },
+    "tmp/mantis-complete-pass1/candidate/diag-back.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "f0425da9521b19f0e768acca39e173b1a6437026896caf3f54b55907e177c083"
+    },
+    "tmp/mantis-complete-pass1/candidate/diag-front.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "3b352f8c818d677211f6928e8917ba743ec06182b96e24c3bdeb678ce9c662b8"
+    },
+    "tmp/mantis-complete-pass1/candidate/diag-left.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "cf2cb3d01d0dee6771357b117df209fb75921a6564765e2b140229a9428afed3"
+    },
+    "tmp/mantis-complete-pass1/candidate/diag-right.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "d64940583c40752ea647d95b72dce1b7b2a68a72b7a5b5a460c2483d4c4309b8"
+    },
+    "tmp/mantis-complete-pass1/candidate/front.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "1e3b9b441e117123a2cc8b4fd07a6f4ec08905402ebecb561bda14a9ff0b3016"
+    },
+    "tmp/mantis-complete-pass1/candidate/hero.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "5532926a2b078238adfaac3b3f77810a1b462300341a86c03b840507fa4b833d"
+    },
+    "tmp/mantis-complete-pass1/candidate/left.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "bb888be44c4ebd758310a408a148c5710aa9997c84a5f98a207875032b4d0d19"
+    },
+    "tmp/mantis-complete-pass1/candidate/right.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "00facbe77fb9dae376e021085f3c24db7b9e552c5f7b26536e89ba6abde8a139"
+    },
+    "tmp/mantis-complete-pass1/candidate/top.png": {
+      "size": [
+        638,
+        900
+      ],
+      "sha256": "b4767c6a98dda43d829887ea619dadccf38162f0e208b1fbd1ebcc507c7aa0f9"
+    }
+  },
+  "cameraSha256": "4a2620e22e0a7c3106ac6e8ab4b8ca9f86cbfa561f092853cd031e9d3b0602ae",
+  "sameCamerasForBoth": true,
+  "noClippedSilhouettesObserved": true,
+  "staticOnly": true
+}

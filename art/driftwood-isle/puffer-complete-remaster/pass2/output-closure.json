@@ -1,0 +1,236 @@
+{
+  "checks": {
+    "twentyCaptures": true,
+    "tenViewsEach": true,
+    "nativePins": true,
+    "scriptPin": true,
+    "rawHashes": true,
+    "previewHashes": true,
+    "allResolution600x740": true,
+    "pairedCameraTargetScale": true,
+    "previewSizeCaps": true,
+    "noRuntimeAdmission": true
+  },
+  "passed": 10,
+  "total": 10,
+  "files": [
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/audit_fin_roots.py",
+      "bytes": 997,
+      "sha256": "00c05f8e2460d17710c846bd71bc5c5ff1931102add10cbf321b3bdea5807fbe"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/audit_glb_roundtrip.py",
+      "bytes": 2141,
+      "sha256": "8bc313074f6de5d5e6998da128fa136f74fb628f22a8fac56ce941f7c1e7777b"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/audit_topology.py",
+      "bytes": 1605,
+      "sha256": "fa766d410c7c4fea41fc05bee92d032d97032a4d0e1f3440232b930d3f9f6cc6"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/build_candidate.py",
+      "bytes": 6210,
+      "sha256": "120d1257fb6ae5b269e423d991c384630a7541622be758ba70a2466af10f8dd9"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/capture-receipt.json",
+      "bytes": 9028,
+      "sha256": "1de031ee5a5a7a5c3d15870c3283ecee113c0106e941a7afda52e3ab277b1370"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/construction-receipt.json",
+      "bytes": 16621,
+      "sha256": "a0cb483821ce17ec18ed356077f4dd7710bbf427fb774b001521bf65a2bcbc53"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/evidence-manifest.json",
+      "bytes": 12538,
+      "sha256": "140712e9bed6ae6730a1226525655b56cf8ece5e54b778870b300e2ce2246b7f"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/export_glb.py",
+      "bytes": 3614,
+      "sha256": "82096cdfea14696c80afdb847a0b11fcb14498b4d2fff15f33af6c0755f62aba"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/fin-root-audit.json",
+      "bytes": 5952,
+      "sha256": "65138f6010b4b3cb98a1c0e8c19ce189c86e8f50c09c1ce219dd5bcd7dec47bb"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/focused-tests.json",
+      "bytes": 561,
+      "sha256": "6be37cc6c5ffa57a038076dfb343e5636750a83a55ea427f896966c7f2a7e0c9"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/glb-export-receipt.json",
+      "bytes": 477,
+      "sha256": "d815a435d27c6a28256ebf220d913e00e109bd8e830dd7543c0979775b5eb99b"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/glb-roundtrip-audit.json",
+      "bytes": 2138,
+      "sha256": "302d5750642acc6f8d90326adb94312f2c5cc0d190f2f5a09cb83d61474abc8d"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/glb-validation.json",
+      "bytes": 870,
+      "sha256": "8a848b5894ad924e358e373cf49d6b9f570171dcf3124876eeed7788127cec6c"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/hero-comparison-board.webp",
+      "bytes": 27406,
+      "sha256": "b8a75341c2eef4857ccb3ef4c9cbb29ca66412eae8c4d62cd06835eefdbaec0a"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-01-front.webp",
+      "bytes": 14584,
+      "sha256": "1010d86771e4a64cfb10c70d052efa8a168a8123d20c7db0fd5629b1b0123374"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-02-left.webp",
+      "bytes": 13574,
+      "sha256": "076c2091c04bc9677e486344f9b89b0c4e9c9094c0a59d07aa6a76d288ba0d9e"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-03-right.webp",
+      "bytes": 14864,
+      "sha256": "e7703e13c0623fb3031c2ff52f3eb10ce9d443994f1415dc515d774d03d40941"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-04-back.webp",
+      "bytes": 11048,
+      "sha256": "b7b877a6871eb2b49a6eb93bca7f432e59775bf46131b413d00c7a4fe534863d"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-05-top.webp",
+      "bytes": 43602,
+      "sha256": "59eb1f80d53d526cebb727e809d506e892066ee966b1a47d5a251b459cdc2a17"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-06-elevated-front.webp",
+      "bytes": 48646,
+      "sha256": "62de3967b3f5fca7b2a309e32410eebaa5525cf999a5bebea190f04565f2c701"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-07-elevated-left.webp",
+      "bytes": 39224,
+      "sha256": "a1b937573ace4e74f2ba7be30a97e9cac3925b38237ba95611603008d8548874"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-08-elevated-right.webp",
+      "bytes": 62290,
+      "sha256": "bb09eb3162e7eb5a372cf77d85a9f757ad537e79568cc5719629630df18e02dd"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-09-elevated-back.webp",
+      "bytes": 40888,
+      "sha256": "a48eaf4a659cdde1fbb36a5e59b8196d586f50fe6dbf56ed1c584330f0da1c2a"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-hero.webp",
+      "bytes": 46162,
+      "sha256": "a645327c301c6304985c3b64dce67299f6a5f502bb7a9de337cc06c7c5d89e40"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-native.json",
+      "bytes": 1418930,
+      "sha256": "15a8a65ed0303e24982799ab395e77cd1d50920e964bbe81a099308e9ffdb762"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-nine-view-sheet.webp",
+      "bytes": 33044,
+      "sha256": "16b3f964a91a540914105a34782f0f09468e7e7f68b3e3fb16705ad1c74fc724"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-study.glb",
+      "bytes": 626380,
+      "sha256": "5728405aa78d75d808a25bdbf76ad6649df2895aa14e473db5ae30a0b979a00a"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/prepare_evidence.py",
+      "bytes": 2641,
+      "sha256": "3c0690026cbf910a1c027fc784d4dd16a9dec7570b15e4f4ffeefb7975db2cbb"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/render_matched.py",
+      "bytes": 4976,
+      "sha256": "0b31f44867a28a2b45530e5ba0e28149123242bb240a7dfff0abca371bed38c9"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/test_static.py",
+      "bytes": 1914,
+      "sha256": "6504b3760c2f869444ff070b37bc291f85b140e5b2b30af8f3f63c44947ae0dd"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/topology-preflight-failure.json",
+      "bytes": 23036,
+      "sha256": "393ede3c1cdc51da441d0fadf2fbdb113ec0d63ca8f50e5a838c9ac424760a5c"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-01-front.webp",
+      "bytes": 12538,
+      "sha256": "2c30ea5f041d95e6fc9d8f8f1614d1163bd65784bae4375edb63df42df8d53fa"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-02-left.webp",
+      "bytes": 13028,
+      "sha256": "dfd9d712fdd5d092018dd9b48fb555680bad28f8ff63fb2eae378d0c8068cf83"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-03-right.webp",
+      "bytes": 13930,
+      "sha256": "60638fad960df323f95cfb018d5a4e134c6fea20461789d60bc6ac472359276f"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-04-back.webp",
+      "bytes": 9702,
+      "sha256": "9bc17e8386e72d3e9621121effbdf0f7e08150e12af61d7db2150d3abe269a48"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-05-top.webp",
+      "bytes": 42736,
+      "sha256": "016755c8e2435dbc703ffd25978d5097d0df77db4a02aa6b17b666199d5892f2"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-06-elevated-front.webp",
+      "bytes": 48400,
+      "sha256": "ba75887d14a8eb7574e27850a8413dca2d1defcc819f529038d21c2f59bb5f57"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-07-elevated-left.webp",
+      "bytes": 37992,
+      "sha256": "60f6a8a9da3ad1f8e916c9123e048865307f35827eed87b2a6328920a19ae344"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-08-elevated-right.webp",
+      "bytes": 61684,
+      "sha256": "a9e03a6f8bbcc78c2da8e0ac0caff9664d1df3f79a4ecb1660c8a9677c4c210a"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-09-elevated-back.webp",
+      "bytes": 39280,
+      "sha256": "5e2d2b545e3137f2e7f7d7b61206b633f8361fb8c8217860cbac421d5d4ff24e"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-hero.webp",
+      "bytes": 45092,
+      "sha256": "28076c28cabf402c33e8e743a5551429985533ed7e84a3d634c4ee2535e945fb"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-nine-view-sheet.webp",
+      "bytes": 31968,
+      "sha256": "1c8cf9b253407b5d00fdde02a729acdcc40534ea228e299f2da592cb48b30c2b"
+    },
+    {
+      "path": "docs/reviews/puffer-complete-pass2-construction.md",
+      "bytes": 6677,
+      "sha256": "f736bf6f3e498d70588acbc5b25aad55f3d2229b9663c8e5ee459516cb06aa5a"
+    }
+  ],
+  "rawRetained": "tmp/puffer-complete-pass2/matched",
+  "runtimeAdmitted": false,
+  "qualityScore": null
+}
