@@ -1,0 +1,23 @@
+{
+  "schema": "wildshard.bellback.arena-walk-proof.v1",
+  "sourceHash": "72899786be0fa353ed1d6197d1ea7586db46f12983f4607936a0ac34a0866bef",
+  "runtimeAcceptance": false,
+  "fullPhysicsBaselinePassed": false,
+  "files": [
+    {
+      "path": "scripts/qa-bellback-arena-walk.mjs",
+      "sha256": "33e956a11f52dcb795b7b4cb2d4093ce03e3f00286e2777b67d85e98bdc0927b",
+      "bytes": 11604
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/build1/arena-walk-source-audit.json",
+      "sha256": "e5e5b284bd8c3f6867e9450c406d3876865b70c4a6340f1f71c38dcfd236f827",
+      "bytes": 2924
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/build1/arena-walk-report.json",
+      "sha256": "2f335ea29a3a98f6543bdbddf32a451daa84da569c49c2718ccd1e09bd933c67",
+      "bytes": 148474
+    }
+  ]
+}

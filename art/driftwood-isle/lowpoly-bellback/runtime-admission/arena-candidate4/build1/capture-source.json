@@ -1,0 +1,41 @@
+{
+  "runtimeAcceptance": false,
+  "sourceHash": "72899786be0fa353ed1d6197d1ea7586db46f12983f4607936a0ac34a0866bef",
+  "files": [
+    {
+      "path": "scripts/qa-bellback-following-combat.mjs",
+      "sha256": "1a569900a935b117b381881aa154722606107be464294d83d27ec4a06536acd4",
+      "bytes": 21456
+    },
+    {
+      "path": "tmp/bellback-following-preview/pose-following4-build1/preview.json",
+      "sha256": "ebd40ed7cd74fb9944a195b5a3247d20091cba3280ca95eaa76f79d2167ad14d",
+      "bytes": 3319
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/manifest.json",
+      "sha256": "72af1a5a8da116404585f068cc783bf846d72fcf2d4101247f38060710ba751b",
+      "bytes": 3965
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "sha256": "be12a0fa8d3005a9ee988a1e9aa845c423cadb92c6df7b4594c8fab6ba33dec9",
+      "bytes": 29932
+    },
+    {
+      "path": "src/engine/entities/rigidCorpsePose.ts",
+      "sha256": "4334277f9a061f8fa0a19e7d512f12d219d62878d5761dede8716ccbe0fed375",
+      "bytes": 4305
+    },
+    {
+      "path": "src/engine/entities/AnimalView.ts",
+      "sha256": "e1fd783f39c14ccd17914ff3205ce69f883d9808bd86ac4e4c6149fb86883453",
+      "bytes": 32356
+    },
+    {
+      "path": "src/game/practice/PracticeCreature.ts",
+      "sha256": "ee97d17f4e90e7a74454055baefa167006122cd2299b5e614d8ce63603906dec",
+      "bytes": 16740
+    }
+  ]
+}

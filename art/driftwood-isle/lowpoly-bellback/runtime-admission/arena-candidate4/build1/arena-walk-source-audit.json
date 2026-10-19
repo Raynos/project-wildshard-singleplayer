@@ -1,0 +1,68 @@
+{
+  "schema": "wildshard.bellback.arena-walk-source-audit.v1",
+  "candidate": "V6-frame2-native8-runtimecandidate4",
+  "sourceHash": "72899786be0fa353ed1d6197d1ea7586db46f12983f4607936a0ac34a0866bef",
+  "runtimeStatus": "arena-only-pass-15-checks",
+  "fullBaselineStatus": "unrun-incompatible-with-standalone-host",
+  "baselineBlockers": [
+    "openGame waits for window.__wildshard.world; standalone exposes window.__practiceDemo only",
+    "activationWitness requires world.game.app.systemsByPhase",
+    "walkPhysicsLeg accesses world.physics and freezes world.animals.update; no adapter alias or freeze permitted"
+  ],
+  "sourceFindings": [
+    "Living dimensions and prior metadata unchanged except exact rigidCorpse recipe; 6 admission tests pass",
+    "Player CharacterMotor blocks WORLD, CREATURE, ITEM",
+    "DEBRIS collider/solver mask is 4194305: WORLD only; excludes PLAYER, CREATURE and SENSOR",
+    "Corpse freeze removes physical bodies on settle or at 5 seconds; proof must include live crossing, not only frozen mesh"
+  ],
+  "proofPlan": {
+    "freeLegs": 2,
+    "corpseCrossings": 2,
+    "arrivalMeters": 0.8,
+    "progressMeters": 0.3,
+    "stuckSeconds": 2,
+    "stuckBehavior": "stop and fail; never teleport to skip",
+    "wallContainment": "separate intentional blocked leg",
+    "sensors": "inspect existing sensors and exact filtering; no sensor injection or synthetic trigger",
+    "persistence": "localStorage/sessionStorage/StateStore empty and unchanged through retry and reload"
+  },
+  "files": [
+    {
+      "path": "scripts/qa-bellback-arena-walk.mjs",
+      "sha256": "33e956a11f52dcb795b7b4cb2d4093ce03e3f00286e2777b67d85e98bdc0927b",
+      "bytes": 11604
+    },
+    {
+      "path": "scripts/physics-baseline.mjs",
+      "sha256": "a803f5f7d24cd245a422170dbe81c9ae8ab47af5e6ea2b41228f150a4a92e998",
+      "bytes": 28187
+    },
+    {
+      "path": "scripts/physics-walk.mjs",
+      "sha256": "f435b6ab1bc25a3dc2fb3dcaa2a84b8706280c6be4173f77636f62fbfeb86750",
+      "bytes": 3980
+    },
+    {
+      "path": "src/game/practiceDemo/startPracticeDemo.ts",
+      "sha256": "5d49997057a3b834453c058f1c5ee8464caa724dc4bbc2fa40d8755ef5a63184",
+      "bytes": 10370
+    },
+    {
+      "path": "src/engine/physics/groups.ts",
+      "sha256": "0ac3ea5f7c711ceb636b0256138c8ad2c1517bd52fa3d0a4716f1f862e5b095c",
+      "bytes": 2102
+    },
+    {
+      "path": "src/engine/physics/CharacterMotor.ts",
+      "sha256": "cc6f500cd40cf117c94c11ee6ad7334b6ff00ec76842bb47e91277bfba72fe90",
+      "bytes": 22391
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "sha256": "be12a0fa8d3005a9ee988a1e9aa845c423cadb92c6df7b4594c8fab6ba33dec9",
+      "bytes": 29932
+    }
+  ],
+  "scopeLimit": "Flat arena floor and one wall only; no slopes, trails, varied terrain, or six-shard coverage. Existing sensor runtime behavior unknown if no authored sensor exists.",
+  "result": "arena-walk-report.json"
+}

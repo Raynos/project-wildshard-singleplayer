@@ -1,0 +1,123 @@
+{
+  "schema": "wildshard.bellback.runtimecandidate4.full-combat.v1",
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "productSourceHash": "72899786be0fa353ed1d6197d1ea7586db46f12983f4607936a0ac34a0866bef",
+  "checksPassed": 28,
+  "checksFailed": 0,
+  "renderFrames": 1223,
+  "fixedObservations": 438,
+  "hostContention": "Root checkpoint hooks overlapped07:25:14\u201307:26:16; cloud cadence is not phone-performance proof.",
+  "limits": "Both final frozen contacts within0.14mm;13dynamic render frames exceed5mm; worst22.03mm. No acceptance. FixedPre collider world queries can still show previous broadphase world cache before step; do not equate those to newly assigned local transform.",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/both-strikes-observation.jpg",
+      "sha256": "febbecd1548a710b131df898c77429d1bd01c6269e5db5fa5513b8674d9e1dfd",
+      "bytes": 63011
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/contact-analysis.json",
+      "sha256": "02df356ad6bafd22674f530b98c381ab0d9aaddf313eb0fcebc4aeb8af1bcf45",
+      "bytes": 457481
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/corpse-reward.jpg",
+      "sha256": "e3860c8fb9f86f3d2f305268149d581c0414ef0cb9bb50ac2a927b7b06cc02b8",
+      "bytes": 56768
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/entry.jpg",
+      "sha256": "608ced20acfa96c1478ac06d071c1b9940b0047272e62c71f5ada186a5d63bf0",
+      "bytes": 61127
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/fixed-trace.json",
+      "sha256": "82d953d38338edf090848471ee1ce1cd9825e8e6b078d5d619572e882caf83a4",
+      "bytes": 1608044
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/interruption-recovery.jpg",
+      "sha256": "2fbb6d9e93dc6404b0c0ade9ca564dc89231b3fe034c69141c8586f34a3fe9cd",
+      "bytes": 61173
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/player-defeat.jpg",
+      "sha256": "8df4ca4f6429b2273c7c7470a4f7837c4c1b074be39758ad4f8ca874cb7b7a03",
+      "bytes": 62134
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/render-trace.json",
+      "sha256": "78771787a75aa0fcfb3bdb288cc4310806c11d5258924452ba3adf4682830dd5",
+      "bytes": 1933607
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/report.json",
+      "sha256": "cc1f7877a6a286b1fd4bbcd8f88b392ab69a3078a7fc29c274c696aa45c0f091",
+      "bytes": 776632
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/sword-result.jpg",
+      "sha256": "bda91fa7d37fe658f46fa58cbd06e986b559314138bb8a902e17e56092754a34",
+      "bytes": 56727
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/varied-angle-frozen.jpg",
+      "sha256": "6ff61a8d1946b25a2c4a5c6b78c2f5a8a30665502f744d184180d8384d9f3f54",
+      "bytes": 55571
+    },
+    {
+      "path": "scripts/qa-bellback-following-combat2.mjs",
+      "sha256": "6ab04971c0484231137d83c2104c4210d06462c4c32ca0f478ed036ea5f9b59e",
+      "bytes": 21868
+    },
+    {
+      "path": "scripts/qa-bellback-following-combat.mjs",
+      "sha256": "1a569900a935b117b381881aa154722606107be464294d83d27ec4a06536acd4",
+      "bytes": 21456
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/analyze-contact.py",
+      "sha256": "4a3934bb6f463ef68442719e312209b39162406333685aa5adff015ff022f4eb",
+      "bytes": 3988
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/manifest.json",
+      "sha256": "72af1a5a8da116404585f068cc783bf846d72fcf2d4101247f38060710ba751b",
+      "bytes": 3965
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/build1/build-files.json",
+      "sha256": "f01467d1213c8c35e35820cb381b8f9b572368f751c5b806f2c33b5717131083",
+      "bytes": 27887
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/build1/capture-source.json",
+      "sha256": "2a34f1314c28bcbd9aefff234087db74b0903f13b47c90b05271d1e3fe1c21aa",
+      "bytes": 1386
+    }
+  ],
+  "video": [
+    {
+      "path": "tmp/bellback-following-full-combat2/video/page@05cddc3a3fa5b5a1fe9e33cb2a63b97a.webm",
+      "sha256": "8966b12aa36eb0556303b1229ee8b661c76caa549d8c607fe371c6bd187f17f8",
+      "bytes": 13096967
+    }
+  ],
+  "failedLaunchAndRunnerEvidence": [
+    {
+      "path": "tmp/bellback-following-full-combat1/report.json",
+      "sha256": "9cbcdb0808a7e062bebb6f531fb5ad35d3071e16a0e5d4513e6df06ca4a8f4d4",
+      "bytes": 34835
+    },
+    {
+      "path": "tmp/bellback-following-full-combat1-run3/report.json",
+      "sha256": "0afc5e14ee5a6f1573ee2c549853e9e2e77088e519be93f6b85548342ccfd40b",
+      "bytes": 30710
+    },
+    {
+      "path": "tmp/bellback-following-full-combat1-run4/report.json",
+      "sha256": "4852a2121900348b8babf63d3781209f8a71f14eb49a2149e8a34a2f8b59acc9",
+      "bytes": 166016
+    }
+  ]
+}
