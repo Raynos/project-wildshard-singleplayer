@@ -1,0 +1,118 @@
+{
+  "sourceOnly": true,
+  "accepted": false,
+  "perFoot": {
+    "leg-1_0_knee": {
+      "angleMin": [
+        -0.07136991884188368,
+        0.014316479059064302,
+        -0.7693082235272477,
+        -0.4014907177105513
+      ],
+      "angleMax": [
+        0.5805332555988392,
+        0.653049228584196,
+        -0.14060142057574043,
+        0.21462641604258997
+      ],
+      "stanceErrorMax": 0.011120033649283864,
+      "swingErrorMax": 0.012993159682755667,
+      "angleSeam": 1.9046833526360684e-16,
+      "derivativeSeam": 4.291045855930409e-16,
+      "maxHipQuaternionStep60Hz": 0.15169856669767937,
+      "maxKneeQuaternionStep60Hz": 0.11136408376212213,
+      "stanceMinWithBreath": 0.006190959965805402,
+      "stanceMaxWithBreath": 0.03303189488815729,
+      "swingPeakClearanceWithoutBreath": 0.1347352163562517,
+      "interiorStanceFootRootRatio": 0.019323904914870287,
+      "interiorStanceMedianFootSpeed": 0.01608236030022154
+    },
+    "leg-1_1_knee": {
+      "angleMin": [
+        -0.10202754593762513,
+        -0.008515750398108424,
+        -0.4649815792618441,
+        -0.3615211909541351
+      ],
+      "angleMax": [
+        0.33592707497983754,
+        0.28501375133167367,
+        -0.14016941848051728,
+        0.046388296728541056
+      ],
+      "stanceErrorMax": 0.0007812066549920713,
+      "swingErrorMax": 0.0006349041144127416,
+      "angleSeam": 6.402852157478957e-17,
+      "derivativeSeam": 1.02059637265808e-15,
+      "maxHipQuaternionStep60Hz": 0.11932114951305298,
+      "maxKneeQuaternionStep60Hz": 0.06708913394518763,
+      "stanceMinWithBreath": 0.006232441558261088,
+      "stanceMaxWithBreath": 0.023350108728059607,
+      "swingPeakClearanceWithoutBreath": 0.13508773590395232,
+      "interiorStanceFootRootRatio": 0.011613289910488921,
+      "interiorStanceMedianFootSpeed": 0.012493968415944658
+    },
+    "leg1_0_knee": {
+      "angleMin": [
+        0.030048129280908283,
+        0.0735070990907698,
+        -0.7720452251128656,
+        -0.345422511091368
+      ],
+      "angleMax": [
+        0.5523412752429303,
+        0.6538968681741544,
+        -0.08441339664319975,
+        0.0053540890396142765
+      ],
+      "stanceErrorMax": 0.017058967102075412,
+      "swingErrorMax": 0.018440455790045586,
+      "angleSeam": 1.241146113283446e-16,
+      "derivativeSeam": 5.138391168657041e-16,
+      "maxHipQuaternionStep60Hz": 0.09602210406448905,
+      "maxKneeQuaternionStep60Hz": 0.11864773852134836,
+      "stanceMinWithBreath": 0.006243093390443204,
+      "stanceMaxWithBreath": 0.0383016781014473,
+      "swingPeakClearanceWithoutBreath": 0.1349819067736719,
+      "interiorStanceFootRootRatio": 0.02083507157477472,
+      "interiorStanceMedianFootSpeed": 0.010405595397382561
+    },
+    "leg1_1_knee": {
+      "angleMin": [
+        -0.07152662649234723,
+        -0.024801829773392944,
+        -0.48342682514561847,
+        -0.3821642796479815
+      ],
+      "angleMax": [
+        0.18868674164599053,
+        0.29814627728270854,
+        -0.09846254548827126,
+        -0.04285251747226905
+      ],
+      "stanceErrorMax": 0.000841152115713321,
+      "swingErrorMax": 0.0007666683652984824,
+      "angleSeam": 3.0589295608667546e-17,
+      "derivativeSeam": 7.606966187011096e-16,
+      "maxHipQuaternionStep60Hz": 0.09027851339259235,
+      "maxKneeQuaternionStep60Hz": 0.07484828558012509,
+      "stanceMinWithBreath": 0.006357079955505289,
+      "stanceMaxWithBreath": 0.023275211214834928,
+      "swingPeakClearanceWithoutBreath": 0.13555834551429355,
+      "interiorStanceFootRootRatio": 0.010360452387647764,
+      "interiorStanceMedianFootSpeed": 0.009686470524744435
+    }
+  },
+  "wholeWeightedGeometry": {
+    "poses": 24576,
+    "negativePoses": 930,
+    "worst": {
+      "minimum": -0.0036199127076783355,
+      "phase": 0.572265625,
+      "blend": 0.35000000000000003,
+      "breath": -0.008,
+      "part": "leg1_0_knee"
+    }
+  },
+  "pending": "Exact channel DAG/evaluator, actual trace replay, ramps/turning, attack/flinch/death transition and visual anatomy. No product module unless source gates pass."
+}

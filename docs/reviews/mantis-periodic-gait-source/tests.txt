@@ -1,0 +1,10 @@
+test_fitted_seams_and_fail_closed_report (test_fit.FitIntegrity.test_fitted_seams_and_fail_closed_report) ... ok
+test_fourier_value_and_derivative_periodic (test_fit.FitIntegrity.test_fourier_value_and_derivative_periodic) ... ok
+test_independent_rotation_order (test_fit.FitIntegrity.test_independent_rotation_order) ... ok
+test_rigid_simplification_valid (test_fit.FitIntegrity.test_rigid_simplification_valid) ... ok
+test_zero_speed_exact_leg_rest (test_fit.FitIntegrity.test_zero_speed_exact_leg_rest) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.272s
+
+OK

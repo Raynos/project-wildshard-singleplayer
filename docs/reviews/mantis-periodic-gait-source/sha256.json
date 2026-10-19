@@ -1,0 +1,12 @@
+{
+  "docs/reviews/mantis-periodic-gait-source/fit.py": "b67f2fc0f6c9dd8e0a4cb5dffd5786b7bcde2c9a1721e4e22d2cbc5dac07d48e",
+  "docs/reviews/mantis-periodic-gait-source/evaluate.py": "e31f3645916eded913e9031d096b064c63f59e016201dbad861c9b2690d6b7c6",
+  "docs/reviews/mantis-periodic-gait-source/test_fit.py": "ddb71390279753556b00e163efcf9a0c2edeea900f79c74c3441b008512b7022",
+  "docs/reviews/mantis-periodic-gait-source/README.md": "f472b496636ed6d212c86768ca232279837a6a03e4eecdedc5481062a5070dd6",
+  "docs/reviews/mantis-periodic-gait-source/REVIEW.md": "6b5a7ee725546cad305d4e5997badd64ebd9aec7be1b3184225d031d54889d74",
+  "docs/reviews/mantis-periodic-gait-source/fit.json": "2de2bcd1dad968969c371cde6e4871a0156bf085994577b510ab7ac2f8e99aa1",
+  "docs/reviews/mantis-periodic-gait-source/evaluation.json": "8081a7388fc7aa64bb9a97370cbef5ee07a9bc56581507d44ffef751ecdd54bf",
+  "docs/reviews/mantis-periodic-gait-source/fit-run.txt": "8f809ecf71bd5853605650bae7efe4c502d119e66adeb603bd22e992905b5279",
+  "docs/reviews/mantis-periodic-gait-source/evaluate-run.txt": "8081a7388fc7aa64bb9a97370cbef5ee07a9bc56581507d44ffef751ecdd54bf",
+  "docs/reviews/mantis-periodic-gait-source/tests.txt": "f1c195fa3064597274f3b773d28e00a3b32200d3bf1ffa385a10216ee52f45f7"
+}

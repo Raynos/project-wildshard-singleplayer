@@ -1,0 +1,33 @@
+{
+  "staticNativeSchema": {
+    "vertices": 20211,
+    "triangles": 6737,
+    "bones": 8,
+    "parts": 7
+  },
+  "semanticOwnership": {
+    "scope": "PASS",
+    "changedSpikes": [
+      "Cream crown spine 0",
+      "Cream crown spine 2",
+      "Cream crown spine 3",
+      "Cream crown spine 4",
+      "Cream crown spine 5",
+      "Cream crown spine 6"
+    ],
+    "retainedSpikeCount": 8,
+    "tailRetainedRootTriangles": 44,
+    "replacedParts": [
+      "Tail root",
+      "Volumetric connected finL",
+      "Volumetric connected finR"
+    ],
+    "identityTransform": true,
+    "bonesAndBindPivotsExact": true
+  },
+  "runtimeAdmitted": false,
+  "qualityScore": null,
+  "approvalSha256": "a0d6b49ca04f3491fb08eb72c3032618fc4e6e4306fb4a7e3aa84af4d7b5ae0c",
+  "candidateSha256": "322dac35e093fddb4b44a5bc7332d4c1187dd002bdb59091c583b4df3717f370",
+  "candidateBytes": 2673062
+}
