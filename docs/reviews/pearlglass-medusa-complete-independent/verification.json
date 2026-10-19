@@ -1,0 +1,144 @@
+{
+  "checkpointSha256": "7a4fb822a794dbb59d037d99f962ce74ee5c4c2a13611dee7a4310f87d2e26f5",
+  "fileCount": 40,
+  "fileMismatches": [],
+  "captureChecks": [
+    {
+      "view": "hero",
+      "candidateMatches": true,
+      "baselineMatches": true,
+      "candidateDimensions": [
+        600,
+        720
+      ],
+      "baselineDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "front",
+      "candidateMatches": true,
+      "baselineMatches": true,
+      "candidateDimensions": [
+        600,
+        720
+      ],
+      "baselineDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "left",
+      "candidateMatches": true,
+      "baselineMatches": true,
+      "candidateDimensions": [
+        600,
+        720
+      ],
+      "baselineDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "right",
+      "candidateMatches": true,
+      "baselineMatches": true,
+      "candidateDimensions": [
+        600,
+        720
+      ],
+      "baselineDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "back",
+      "candidateMatches": true,
+      "baselineMatches": true,
+      "candidateDimensions": [
+        600,
+        720
+      ],
+      "baselineDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "top",
+      "candidateMatches": true,
+      "baselineMatches": true,
+      "candidateDimensions": [
+        600,
+        720
+      ],
+      "baselineDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "elevated-front",
+      "candidateMatches": true,
+      "baselineMatches": true,
+      "candidateDimensions": [
+        600,
+        720
+      ],
+      "baselineDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "elevated-left",
+      "candidateMatches": true,
+      "baselineMatches": true,
+      "candidateDimensions": [
+        600,
+        720
+      ],
+      "baselineDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "elevated-right",
+      "candidateMatches": true,
+      "baselineMatches": true,
+      "candidateDimensions": [
+        600,
+        720
+      ],
+      "baselineDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "elevated-back",
+      "candidateMatches": true,
+      "baselineMatches": true,
+      "candidateDimensions": [
+        600,
+        720
+      ],
+      "baselineDimensions": [
+        600,
+        720
+      ]
+    }
+  ],
+  "renderBlockIdentical": true,
+  "cameraJsonIdentical": true,
+  "testLogMatches": true,
+  "failedDirectoriesPresent": {
+    "tmp/pearlglass-medusa-complete-next/failed-inward-ribbons": true,
+    "tmp/pearlglass-medusa-complete-next/failed-missing-native-normals": true
+  }
+}
