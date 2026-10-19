@@ -27,9 +27,8 @@ builders until their baked commons entries (SF54 step 4) replace the procedural 
 `@wildshard/game/systems/species/{boar,bear,deer,elk}` hold the shared species rows (`BOAR`, `BEAR` and their tunings; the
 lofted `DEER` / `ELK` with `DEER_PALETTE` / `ELK_PALETTE`), and `@wildshard/game/systems/species/install.installKitSpecies`
 registers the four plus the default creature calls; the composition root calls it, nothing installs on import.
-`@wildshard/game/models/creatures` defines the shared `shared/deer`, `shared/boar` and `shared/bear` models, and
-`@wildshard/game/systems/audio/forest` the asset-free forest profile and its synth wind bed (`createForestAudio`,
-`installForestAmbience`). All moved unchanged from the kit (SF54); species ids (`kit.creature.*`) and model ids are kept.
+`@wildshard/game/models/creatures` defines the shared `shared/deer`, `shared/boar` and `shared/bear` models.
+All moved unchanged from the kit (SF54); species ids (`kit.creature.*`) and model ids are kept.
 
 `@wildshard/game/systems/looks/{particles,trample,grassField,fogProgram,rainCurtain}` hold the shared look layers
 (mist / needle-fall / mote particles, GPU grass trampling, the meadow height and tone fields, the fog GLSL chunk for
@@ -353,8 +352,8 @@ ctx.answer('damage.modify', (request) => request !== null && invulnerable && req
 ```
 
 **Tags.** `Tag` is `keyof TagMap` (empty today; merge into it). Combat tags (`CombatTag`) are dot-case strings such as
-`'actor.player'`, `'creature.greyBlob'`, `'weapon.template-whip'`, `'dmg.melee'`, `'status.poison'`. `hasTag(tags,
-pattern)` and `matchesTag(tags, pattern)` match a tag or a `parent.*` pattern.
+`'actor.player'`, `'creature.greyBlob'`, `'weapon.template-whip'`, `'dmg.melee'`, `'status.poison'`.
+`matchesTag(tags, pattern)` matches a tag or a `parent.*` pattern.
 
 ## 4. Scope and resource ownership
 
@@ -1685,7 +1684,7 @@ produce inaudible resampler rounding from the shifted buffer origin.
 cue at kit sounds:
 
 **No ambience.** Use `audio: { ambience: 'none', score: '<your score id>', … }`, omit `bed`, and install no ambient
-beds/zones or `installForestAmbience` in the plugin. `ambience` names authored content; it does not start an
+beds/zones in the plugin. `ambience` names authored content; it does not start an
 installer on its own. With no selected bed or installer, the engine starts no ambient loop. Keep `cues` and
 `preload` for weapon / creature SFX and music as needed; those are independent of ambience. An asset-free shard
 can omit `preload` as well. Do not invent a shard-specific silence id or inherit the template’s forest bed.
@@ -3311,7 +3310,7 @@ These one-user implementations and their SDK facades returned to Signal under DS
 
 ### Traversal readiness (SHARD-PLATFORM SF18d)
 
-`@wildshard/engine/sim/readiness` computes a cold-cache distance from speed, request latency, critical wire transfer at the configured link rate, stall and decode. Its separate hybrid line conservatively adds runtime-chunk request, transfer and parse work on the shared link. Critical wire is capped at 2,000,000 bytes: 30 m/s, 5 Mbit/s, 0.5 s latency, 10 s stall and 0.8 s decode give 435 m; a 500 kB hybrid chunk plus 0.2 s parsing raises it to 480 m. `TraversalReadiness` requests by radial edge distance, tracks completion of colliders/sim/runtime separately and invalidates stale generations on unload or failure. `@wildshard/game/shardfile/readiness` counts actual admitted dependency bytes, including cold-cache commons, without charging render tiles. `@wildshard/engine/physics/readinessWalls` installs closed WORLD colliders in each frame and opens them only after all fences pass; call `sync` before the traveler moves. Null-instance proxy edges stay closed. Highway, strip and proxy ground belong to a separate platform scope and survive wall removal. Place an entry wall at the 6 m re-frame line on shared strip ground, so late readiness cannot push the capsule into a cell seam before its world transfer. Walls carry the same platform owner tag as deck/strip colliders. The joined Node fixture drives a gravity-bearing capsule at 30 m/s through the actual generated strip and residency driver with 3 s and 10 s stalls, a deliberately late collider, a U-turn, two world transfers, one enabled traveler capsule, unload/stale completion and a closed proxy edge.
+`@wildshard/engine/sim/readiness` computes a cold-cache distance from speed, request latency, critical wire transfer at the configured link rate, stall and decode. Its separate hybrid line conservatively adds runtime-chunk request, transfer and parse work on the shared link. Critical wire is capped at 2,000,000 bytes: 30 m/s, 5 Mbit/s, 0.5 s latency, 10 s stall and 0.8 s decode give 435 m; a 500 kB hybrid chunk plus 0.2 s parsing raises it to 480 m. `TraversalReadiness` requests by radial edge distance, tracks completion of colliders/sim/runtime separately and invalidates stale generations on unload or failure. `@wildshard/engine/physics/readinessWalls` installs closed WORLD colliders in each frame and opens them only after all fences pass; call `sync` before the traveler moves. Null-instance proxy edges stay closed. Highway, strip and proxy ground belong to a separate platform scope and survive wall removal. Place an entry wall at the 6 m re-frame line on shared strip ground, so late readiness cannot push the capsule into a cell seam before its world transfer. Walls carry the same platform owner tag as deck/strip colliders. The joined Node fixture drives a gravity-bearing capsule at 30 m/s through the actual generated strip and residency driver with 3 s and 10 s stalls, a deliberately late collider, a U-turn, two world transfers, one enabled traveler capsule, unload/stale completion and a closed proxy edge.
 
 The list itself is generated at build time: [docs/api/EXPORTS.md](api/EXPORTS.md) (`pnpm gen`).
 

@@ -1,4 +1,4 @@
-// Game vocabulary extends the engine's named random streams: the loot stream (`GAME_RNG_STREAM`, src/game/rng.ts).
+// Game vocabulary extends the engine's named random streams with the loot stream.
 // A merge file, so every layer project and narrowed program that includes `*.merge.d.ts` sees it without an import.
 import type { RngStream } from '@wildshard/engine/core/rng';
 
