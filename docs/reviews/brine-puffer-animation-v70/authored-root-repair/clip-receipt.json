@@ -1,0 +1,38 @@
+[
+  {
+    "path": "public/review-evidence/puffer-animation-v70/authored-root-normal-hits-death.mp4",
+    "first_frame": 970,
+    "last_frame": 1276,
+    "bytes": 523112,
+    "sha256": "cb15c75512a953c695b7353766b28b03ee7cd181fb0257d0e561331b63f103a3",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "r_frame_rate": "25/1",
+          "duration": "12.280000",
+          "nb_read_frames": "307"
+        }
+      ]
+    }
+  },
+  {
+    "path": "public/review-evidence/puffer-animation-v70/authored-root-diagnostic-hits-death.mp4",
+    "first_frame": 825,
+    "last_frame": 965,
+    "bytes": 431775,
+    "sha256": "89eb50513127316b4acc4c29516444adb0dbd844d3b097fd6105655913fb563b",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "r_frame_rate": "25/1",
+          "duration": "5.640000",
+          "nb_read_frames": "141"
+        }
+      ]
+    }
+  }
+]

@@ -332,3 +332,89 @@ visibly justified against the original and checked across the same actual views.
 
 No model, render, production asset or other review was changed by this reviewer;
 only this dated addendum was written. No heavy job was started.
+
+## V71 follow-up review — 2026-10-19, 00:12 UTC
+
+### Exact evidence and scope
+
+Inspected the actual hero at
+`tmp/puffer-lowpoly-v71-topologyaudit/matched-style.png` and all nine actual
+fixed-camera images in `tmp/puffer-v71-shared-4p2/`:
+
+1. `01-front.png`
+2. `02-left.png`
+3. `03-right.png`
+4. `04-back.png`
+5. `05-top.png`
+6. `06-elevated-front.png`
+7. `07-elevated-left.png`
+8. `08-elevated-right.png`
+9. `09-elevated-back.png`
+
+Reopened the approved original and V67/V70 actual heroes for the preliminary
+hero comparison. For the full review, compared with the previously inspected
+V70 nine-view set and reopened its left, elevated-front, elevated-left and
+elevated-right views to check the targeted plane changes directly. The original
+remains `art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/brine-puffer-lowpoly.webp`.
+
+This is a follow-up review with knowledge of the bounded flank-faceting change,
+not a fresh blind experiment. All previous assessments remain unchanged. Reports
+of topology, containment and fixed-camera guards passing are separate technical
+evidence; they supply no visual-resemblance bonus and were not independently
+audited as part of this image review.
+
+### Preliminary hero judgment, retained
+
+The actual hero justified the full nine-view capture. Its forehead/upper-flank
+planes were less horizontally banded and more irregular than V70, a modest move
+toward the original. Some broad triangular patches still read as large plates.
+Face, silhouette and visible attachments appeared preserved, without an obvious
+new crease, hole or detached feature. No score or full-view acceptance was
+assigned from that hero alone.
+
+### Full-view verdict
+
+**V71 is a small net improvement over V70, but the principal flank-band mismatch
+remains.** Top and elevated views confirm more diagonal crown planes and less
+continuous upper-strip structure. Both profiles and elevated sides still show
+broad horizontal flank bands. Some new crown triangles form a center-led radial
+pattern, rather than the original's more varied, chunky plane changes.
+
+At the supplied capture resolution, no obvious new flute, open seam, floating
+spine, exposed fin cap, attachment-support gap or silhouette regression is
+visible. Face and expression appear preserved. This is an observation across
+the actual rendered views, not certification of unseen internal geometry,
+collision clearance or animated behavior.
+
+The original and actual hero cameras differ. The concept's limited alternate
+views are not exact orthographic anatomy specifications. Top/rear comparisons
+therefore do not invent a precise hidden original surface.
+
+### Separately scoped V71 score on the unchanged rubric
+
+| Category | Weight | V71 score | Evidence-based reason |
+| --- | ---: | ---: | --- |
+| Silhouette and proportions | 35% | 3.5/5 | Earlier compactness improvement retained; no new whole-character proportion correction. |
+| Face and expression | 30% | 3.5/5 | The face appears preserved; the prior face-construction differences remain. |
+| Defining details | 20% | 4/5 | Principal details remain visibly supported; no material category change. Technical support checks are not a bonus. |
+| Facets and style | 15% | 3.5/5 | Localized diagonal crown-plane improvement, but broad side bands and large regular patches remain; the gain stays within the same half-point band. |
+
+`3.5 × 0.35 + 3.5 × 0.30 + 4 × 0.20 + 3.5 × 0.15 = 3.60/5 = 72%`
+
+The visual judgment remains **approximately 70% subjective resemblance**. The
+weighted arithmetic is exact for these chosen category scores; it is not an
+objective 72%-precision measurement. No score was forced upward to meet a gate,
+and the unchanged category band does not erase the small visible improvement.
+
+**Broadly faithful: yes. Close match or owner acceptance: not established.**
+
+### Recommendation and preservation
+
+Retain V71 for continued work without claiming that the flank-band issue is
+solved. Further work should target a directly visible remaining mismatch, rather
+than merely add triangles or optimize a score. Check both profiles and elevated
+sides whenever claiming improvement to the flank plane structure.
+
+Only this report was appended. No previous assessment, model, production asset,
+render, other file or remote state was changed by the reviewer. No heavy job was
+started.
