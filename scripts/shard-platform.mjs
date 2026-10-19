@@ -524,6 +524,7 @@ const approvedFeatures = {
   'stealth-and-detection':'G478',
   'mounts-riding-taming':'G478',
   'grapple-traversal':'G478',
+  'walk-in-portal-ride':'G478',
   'practice-courses':'G478',
   'H6 ambient life':'G474',
   'light emitters':'G478',

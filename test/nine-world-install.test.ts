@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import baked from '../src/shards/nine-dragon-stack/data/physics.generated.json' with { type: 'json' };
 import rows from '../src/shards/nine-dragon-stack/world/install.generated.json' with { type: 'json' };
@@ -7,6 +8,11 @@ import { fragmentFloor as authoredFloor } from '../src/shards/nine-dragon-stack/
 import worldRows from '../src/shards/nine-dragon-stack/data/worldRows.generated.json' with { type: 'json' };
 import { floorAtRects } from '../src/engine/physics/box';
 import { stairFloor } from '../src/shards/nine-dragon-stack/generators/stairPlan';
+import { BoxGeometry, InstancedMesh, MeshBasicMaterial, type Object3D, PerspectiveCamera } from 'three';
+import { defineModel, modelContext } from '../src/engine/models/model';
+import { place } from '../src/engine/models/place';
+import { compileGraph } from '../src/engine/render/graph/compile';
+import lookGraphs from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
 const fragmentFloor = (x: number, z: number): number | undefined => floorAtRects(worldRows.rows.floors, x, z, 'first');
 
@@ -46,4 +52,35 @@ test('declared floors cover the authored plaza, street, rim and stair without ad
     if (actual === undefined || expected === undefined) expect(actual).toBe(expected);
     else expect(Math.abs(actual - expected)).toBeLessThanOrEqual(stair.RISE + 1e-8);
   }
+});
+
+
+// Static instances use the same native LOD owner as every other shard.
+
+test('native model culling retains colour, range and distance levels', () => {
+  const material = new MeshBasicMaterial(), near = new BoxGeometry(), far = new BoxGeometry();
+  const model = defineModel({ id: 'test/static-crowd', name: 'Static crowd', category: 'props', pipeline: 'code', file: 'test/nine-world-install.test.ts', defaults: {},
+    build: () => [{ geometry: near, material }], lods: [{ from: 35, build: () => [{ geometry: far, material }] }] });
+  const placed = place(model, [{ x: 0, y: 0, z: -5, color: 0xff0000 }, { x: 0, y: 0, z: -50, color: 0x00ff00 }, { x: 0, y: 0, z: -150 }],
+    { ctx: modelContext(null), registry: null, draw: 'instanced', cull: { bounds: 'sphere', from: 'origin', far: 130 } });
+  const camera = new PerspectiveCamera(60, 1, 0.1, 250);
+  placed.cull(camera);
+  const meshes: InstancedMesh[] = [];
+  const instance = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
+  placed.object.traverse(node => { if (instance(node)) meshes.push(node); });
+  expect(meshes.map(mesh => mesh.count)).toEqual([1, 1]);
+  expect(meshes[0]?.instanceMatrix.array[14]).toBe(-5);
+  expect(meshes[1]?.instanceMatrix.array[14]).toBe(-50);
+  expect(meshes[0]?.instanceColor?.array.slice(0, 3)).toEqual(Float32Array.of(1, 0, 0));
+  expect(meshes[1]?.instanceColor?.array.slice(0, 3)).toEqual(Float32Array.of(0, 1, 0));
+  camera.rotation.y = Math.PI; placed.cull(camera);
+  expect(meshes.map(mesh => mesh.count)).toEqual([0, 0]);
+  near.dispose(); far.dispose(); material.dispose();
+});
+
+test('lantern sway seed follows the instance pose through native LOD packing', () => {
+  const compiled = compileGraph({ ...lookGraphs['nine-lantern'], effectState: { ...lookGraphs['nine-lantern'].effectState, fog: false } }, { trustedBudget: true });
+  expect(compiled.material).toBeDefined();
+  expect(Object.values(lookGraphs['nine-lantern'].nodes).some(node => 'name' in node && node.name === 'aSeed')).toBe(false);
+  compiled.material.dispose();
 });

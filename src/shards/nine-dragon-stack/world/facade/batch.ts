@@ -1,5 +1,5 @@
 import type { ModelContext, Placement } from '@wildshard/engine/models/model';
-import { type InstancedCuller, place } from '@wildshard/engine/models/place';
+import { place } from '@wildshard/engine/models/place';
 // Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
 // A Dressing → one merged shell mesh (the towers' built fabric, with the few-and-small pieces baked in: models too,
 // registered where they are drawn), the kit's pieces placed as models (../../models/facade.ts: one InstancedMesh per
@@ -27,7 +27,6 @@ export interface FacadeOptions {
 export interface FacadeModels {
   readonly ctx: ModelContext;
   readonly look: NdLook;
-  readonly culler: InstancedCuller;
 }
 
 /** the copies of one piece */
@@ -71,9 +70,8 @@ export async function buildFacade(d: Dressing, facade: WorldRows['facade'], reco
     if (model === undefined) throw new Error(`facade: no model draws the piece '${id}' (models/facade.ts FACADE_MODELS)`);
     const placements = poses(offset, count);
     const placed = place(model, placements, {
-      ctx: models.ctx, draw: 'instanced', culler: models.culler, parent: group,
+      ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere', ...(small ? { far: 85 } : {}) }, parent: group,
       // the small clutter is not drawn past 85 m, where its program has shrunk it into the wall
-      ...(small ? { cull: { far: 85 } } : {}),
       piece: { id: `nds-facade-${id}`, name: model.name },
     });
     const tris = nameDraws(placed, `facade-${id}`);

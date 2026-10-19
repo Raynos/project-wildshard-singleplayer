@@ -2469,6 +2469,17 @@
           "row": "G475"
         }
       }
+    },
+    {
+      "module": "src/game/shardfile/walkInPortalRide.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "walk-in-portal-ride",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G478"
+        }
+      }
     }
   ]
 }

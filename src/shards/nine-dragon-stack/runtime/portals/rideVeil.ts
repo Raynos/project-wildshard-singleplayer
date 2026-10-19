@@ -6,7 +6,7 @@
 //   const ride = installRideVeil(slot, rider, VEIL, 'MyVeil', (r, veil) => walkInRide(r, veil, rings));
 import { declarePanel, type PanelNode } from '@wildshard/engine/ui/panel';
 import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
-import type { PortalRide, PortalRider } from './walkInRide';
+import type { PortalRide, PortalRider } from './types';
 
 /** where the world's per-frame update finds the ride's step (null when no ride runs) */
 export interface RideSlot { step: ((dt: number) => void) | null }

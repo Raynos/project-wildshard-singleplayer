@@ -1,4 +1,6 @@
 import { expect, test } from 'vitest';
+import { createPortalRide } from '../src/game/shardfile/walkInPortalRide';
+import type { PortalLinkEntry } from '../src/format/portalLinkAssets';
 import aim from '../src/shards/nine-dragon-stack/data/grapple.json' with { type: 'json' };
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type: 'json' };
 import plan from '../src/shards/nine-dragon-stack/world/portalPlan.generated.json' with { type: 'json' };
@@ -6,7 +8,8 @@ import before from './fixtures/nine-traversal.json' with { type: 'json' };
 import { portalEntryRows, portalPlanRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
 import portals from '../src/shards/nine-dragon-stack/data/portals.json' with { type: 'json' };
 import portalStages from '../src/shards/nine-dragon-stack/data/portalStages.json' with { type: 'json' };
-import { walkInRide, type PortalRider } from '../src/shards/nine-dragon-stack/runtime/portals/walkInRide';
+import { bindPortalRide as walkInRide } from '../src/shards/nine-dragon-stack/runtime/portals/hostRide';
+import type { PortalRider } from '../src/shards/nine-dragon-stack/runtime/portals/types';
 
 // Recorded from executable authoring rows at a242b48db before removing their modules.
 test('JSON retains every grapple hint, course coordinate and portal frame', () => {
@@ -57,7 +60,7 @@ test.each(plan.decks)('$edge ring keeps its trigger bounds and mid-fade continua
   expect(at.holds).toEqual([true, false, true, false]);
 });
 
-test('product-sorted portal inputs retain authored save bytes without accepting changed bindings', () => {
+test('product-sorted portal inputs retain authored save bytes', () => {
   const deck = plan.decks[0];
   if (deck === undefined) throw new Error('Missing portal deck');
   const source = riderAt(deck.x, deck.y, deck.z), product = riderAt(deck.x, deck.y, deck.z);
@@ -75,6 +78,28 @@ test('product-sorted portal inputs retain authored save bytes without accepting 
   }
   expect(product.holds).toEqual(source.holds); expect(product.transfers).toEqual(source.transfers);
   expect(product.position).toEqual(source.position);
-  expect(() => product.ride({ ...portalStages, inputs: { ...portalStages.inputs, touch: 'zone:foreign.portal' } }))
-    .toThrow('Changed Nine portal input bindings');
+
+});
+
+
+test('a second shard drives walk-in rides with its own nodes, cadence and director ids', () => {
+  const entry: PortalLinkEntry = { edge: 'east', portal: {
+    road: { id: 'orchard.gate', at: [240, 0, 0], floor: 'gate', yaw: 0.7 },
+    destination: { id: 'orchard.arrival', at: [15, 20, 30], floor: 'terrace', yaw: 0.3 },
+    exit: { id: 'orchard.return', at: [10, 20, 30], floor: 'terrace', yaw: 0 },
+    links: [{ from: 'orchard.gate', to: 'orchard.arrival' }, { from: 'orchard.return', to: 'orchard.gate' }],
+    route: [[15, 20, 30], [10, 20, 30]] } };
+  const profile = { entries: [entry], trigger: { front: 0.4, back: 0.5, half: 0.7, feet: 0.12 }, fade: { out: 0.2, hold: 0.1, in: 0.3 },
+    stages: { ...portalStages, id: 'orchard.waystone', inputs: { touch: 'zone:orchard.gate', dark: 'event:orchard.dark', clear: 'event:orchard.clear' } } };
+  const ride = createPortalRide(profile), feet = { x: 240, y: 0, z: 0 };
+  expect(ride.observe(0.1, feet).commands).toEqual([{ kind: 'hold', on: true }]);
+  const saved = ride.snapshot(), resumed = createPortalRide(profile); resumed.restore(saved);
+  expect(resumed.observe(0.1, feet).commands).toEqual([{ kind: 'transfer', from: 'orchard.gate' }, { kind: 'hold', on: false }]);
+  resumed.complete({ from: 'orchard.gate', to: 'orchard.arrival', yaw: 0.3 });
+  expect(resumed.entered()).toBe('east');
+  for (let tick = 0; tick < 10; tick++) resumed.observe(0.1, { x: 15, y: 20, z: 30 });
+  expect(resumed.busy()).toBe(false);
+  for (let tick = 0; tick < 3; tick++) resumed.observe(0.1, { x: 10, y: 20, z: 30 });
+  expect(resumed.snapshot().from).toBe('orchard.return');
+  expect(() => createPortalRide({ ...profile, fade: { out: 0, hold: 0, in: 1 } })).toThrow('Invalid portal');
 });

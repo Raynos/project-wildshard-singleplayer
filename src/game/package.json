@@ -233,7 +233,8 @@
     "./weapons/heldPolearm": "./weapons/heldPolearm.ts",
     "./weapons/mountedBlade": "./weapons/mountedBlade.ts",
     "./weapons/arcPower": "./weapons/arcPower.ts",
-    "./weapons/heldDecision": "./weapons/heldDecision.ts"
+    "./weapons/heldDecision": "./weapons/heldDecision.ts",
+    "./shardfile/walkInPortalRide": "./shardfile/walkInPortalRide.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

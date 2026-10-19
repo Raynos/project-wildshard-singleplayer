@@ -18,10 +18,8 @@
       "JIAN_ID"
     ],
     "src/shards/nine-dragon-stack/runtime/portals/hostRide": [
-      "installHostRide"
-    ],
-    "src/shards/nine-dragon-stack/runtime/portals/walkInRide": [
-      "walkInRide",
+      "installHostRide",
+      "bindPortalRide",
       "playerRider",
       "declaredPortals"
     ],
@@ -690,15 +688,15 @@
               "$call": [
                 {
                   "$ref": [
-                    "src/shards/nine-dragon-stack/runtime/portals/walkInRide",
-                    "walkInRide"
+                    "src/shards/nine-dragon-stack/runtime/portals/hostRide",
+                    "bindPortalRide"
                   ]
                 },
                 {
                   "$call": [
                     {
                       "$ref": [
-                        "src/shards/nine-dragon-stack/runtime/portals/walkInRide",
+                        "src/shards/nine-dragon-stack/runtime/portals/hostRide",
                         "playerRider"
                       ]
                     },
@@ -735,7 +733,7 @@
                     "$call": [
                       {
                         "$ref": [
-                          "src/shards/nine-dragon-stack/runtime/portals/walkInRide",
+                          "src/shards/nine-dragon-stack/runtime/portals/hostRide",
                           "declaredPortals"
                         ]
                       },

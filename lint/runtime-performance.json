@@ -3754,22 +3754,6 @@
       "count": 1,
       "row": "SF79 DS0.1 G303 verbatim move-back"
     },
-    "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts:unbounded-loop:99b9f64070217845ff9638cd831e072d131e21d4eefb5682402247bfca6f9048": {
-      "count": 1,
-      "row": "SF79 DS0.1 G303 verbatim move-back"
-    },
-    "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts:frame-allocation:f95d89a52ec891ce0ad66127069c2ac9fdd793afb1a2f71b41be25a581fee3d3": {
-      "count": 1,
-      "row": "SF79 DS0.1 G303 verbatim move-back"
-    },
-    "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts:unbounded-loop:6586adbde13bc36e2f546a0491303af374a01e1955547c924676424898221a88": {
-      "count": 1,
-      "row": "SF79 DS0.1 G303 verbatim move-back"
-    },
-    "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts:frame-allocation:1118942b4ba381c1d821a2b5de64d6284bbefa647ad454ee6c1ab02b2b18f810": {
-      "count": 1,
-      "row": "SF79 DS0.1 G303 verbatim move-back"
-    },
     "src/shards/nine-dragon-stack/runtime/props/edgeDecks.ts:frame-allocation:8d8757c7745b7a5e6876b7474b3072757af0393306236ce4ecdb9591349cb143": {
       "count": 1,
       "row": "SF79 DS0.1 G303 verbatim move-back"
