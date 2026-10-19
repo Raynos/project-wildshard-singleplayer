@@ -1,0 +1,61 @@
+{
+  "videoSha256": "223182d0041d050a814899e96ca7d4f55e110a15dd6d8f836b2a89f875d93954",
+  "encodedFrames": 896,
+  "uniqueFullFrames": 793,
+  "exactDuplicates": 103,
+  "viewedSheetIndices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "fullResolutionEncodedRepresentatives": [
+    657,
+    658,
+    660,
+    663,
+    667,
+    670,
+    671,
+    672,
+    673,
+    675,
+    676,
+    677,
+    678,
+    680,
+    682,
+    684,
+    688,
+    695
+  ],
+  "visibleDeathHudMap": {
+    "207": 657,
+    "208": 658,
+    "209": 660,
+    "210": 663,
+    "211": 667,
+    "212": 670,
+    "214": 673,
+    "216": 678,
+    "217": 680,
+    "218": 682,
+    "219": 684,
+    "220": 688
+  },
+  "skippedDeathHudFrames": [
+    213,
+    215
+  ],
+  "coverage": "Every encoded frame covered via full portrait representatives and exact duplicates; selected enlarged details. Image-sequence inspection, not real-time playback.",
+  "qualityAcceptance": false
+}

@@ -1,0 +1,12 @@
+{
+  "createdAtUtc": "2026-10-19T10:52:48.696266+00:00",
+  "sameProductVerified": true,
+  "checkedFiles": 194,
+  "builtFreezeSha256": "f91b04673daa242c0e18c57ba531f40e491258958b16c4764a87a50675240210",
+  "files": {
+    "scripts/qa-mantis-early-knee-moving.mjs": {
+      "sha256": "dfb9f5cd7fc9700723a51ba749d6f0463c3e3909d37fb02c695c071ebbe697c2",
+      "bytes": 14944
+    }
+  }
+}

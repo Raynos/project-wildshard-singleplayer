@@ -1,0 +1,106 @@
+{
+  "createdAtUtc": "2026-10-19T10:54:49.744194+00:00",
+  "acceptance": "HOLD pending independent visible continuity and visual review",
+  "files": {
+    "docs/reviews/mantis-early-knee-moving/REVIEW.md": {
+      "sha256": "b757e7a28d57510c0677e928f613b53e2b79490fd07191d6356b6dc9560f7101",
+      "bytes": 3916
+    },
+    "docs/reviews/mantis-early-knee-moving/same-product-after.json": {
+      "sha256": "ad1a47d1a6313c12ee86ef111332a2caaba33d4ae65b53451c4ebe32cac002f8",
+      "bytes": 137
+    },
+    "docs/reviews/mantis-early-knee-moving/lint.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "docs/reviews/mantis-early-knee-moving/syntax.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "docs/reviews/mantis-early-knee-moving/video-probe.json": {
+      "sha256": "a8c01a1f7e6a7fd4213057b6fb54e3b9979eb026c89b2ab25acbee57a56184ce",
+      "bytes": 2451
+    },
+    "docs/reviews/mantis-early-knee-moving/summary.json": {
+      "sha256": "4c59f3379508276165b7b89dba40639037eafad7fb05ea8853d93522aabba45f",
+      "bytes": 25662
+    },
+    "docs/reviews/mantis-early-knee-moving/tooling-freeze.json": {
+      "sha256": "f3f25d7017c67e750a3787e2e896340da54688fa1e6a11fc60604c8b917ebcff",
+      "bytes": 380
+    },
+    "docs/reviews/mantis-early-knee-moving/capture.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "docs/reviews/mantis-early-knee-moving/run1/entry.jpg": {
+      "sha256": "bb934684178bfe7b146412ef5d8151b87f2bf486d087601eda93f5a9169d1b37",
+      "bytes": 63053
+    },
+    "docs/reviews/mantis-early-knee-moving/run1/world-contact.json": {
+      "sha256": "f8726b5dee71e97cc7d2387bec00424bdf623906d75a1585d47bd11637e5b5e3",
+      "bytes": 990438
+    },
+    "docs/reviews/mantis-early-knee-moving/run1/report.json": {
+      "sha256": "0544593e205e9982ab7596e3d3f90d2528b292c2c2ac48cbb1d280a73d81cf6d",
+      "bytes": 86442
+    },
+    "docs/reviews/mantis-early-knee-moving/run1/hit-events.json": {
+      "sha256": "c39b6044db4c7272d48cf9bba8d3f8080513373d4b15a547968493eff94b3fb9",
+      "bytes": 5533
+    },
+    "docs/reviews/mantis-early-knee-moving/run1/aim-events.json": {
+      "sha256": "d30a50e706b16525a409349ee7402b7d2ec696900f92b9297b972353fe14a008",
+      "bytes": 135
+    },
+    "docs/reviews/mantis-early-knee-moving/run1/moving-death-settled.jpg": {
+      "sha256": "1f2c2807f4be3e41d59eb70b273c750d278c66b9a7bfe745d6083396b6141962",
+      "bytes": 57871
+    },
+    "tmp/mantis-early-knee-moving1/render-trace.json": {
+      "sha256": "2984ddd8ec8f14ad4b2f43a384b6247e7c8da77a26b4419f762bfb0ec0661de6",
+      "bytes": 1116111
+    },
+    "tmp/mantis-early-knee-moving1/entry.jpg": {
+      "sha256": "bb934684178bfe7b146412ef5d8151b87f2bf486d087601eda93f5a9169d1b37",
+      "bytes": 63053
+    },
+    "tmp/mantis-early-knee-moving1/world-contact.json": {
+      "sha256": "f8726b5dee71e97cc7d2387bec00424bdf623906d75a1585d47bd11637e5b5e3",
+      "bytes": 990438
+    },
+    "tmp/mantis-early-knee-moving1/report.json": {
+      "sha256": "0544593e205e9982ab7596e3d3f90d2528b292c2c2ac48cbb1d280a73d81cf6d",
+      "bytes": 86442
+    },
+    "tmp/mantis-early-knee-moving1/hit-events.json": {
+      "sha256": "c39b6044db4c7272d48cf9bba8d3f8080513373d4b15a547968493eff94b3fb9",
+      "bytes": 5533
+    },
+    "tmp/mantis-early-knee-moving1/aim-events.json": {
+      "sha256": "d30a50e706b16525a409349ee7402b7d2ec696900f92b9297b972353fe14a008",
+      "bytes": 135
+    },
+    "tmp/mantis-early-knee-moving1/moving-death-settled.jpg": {
+      "sha256": "1f2c2807f4be3e41d59eb70b273c750d278c66b9a7bfe745d6083396b6141962",
+      "bytes": 57871
+    },
+    "tmp/mantis-early-knee-moving1/video/page@aac466508a2be03e282963335d118ac4.webm": {
+      "sha256": "223182d0041d050a814899e96ca7d4f55e110a15dd6d8f836b2a89f875d93954",
+      "bytes": 3624933
+    },
+    "scripts/qa-mantis-early-knee-moving.mjs": {
+      "sha256": "dfb9f5cd7fc9700723a51ba749d6f0463c3e3909d37fb02c695c071ebbe697c2",
+      "bytes": 14944
+    },
+    "scripts/analyze-mantis-early-knee-capture.py": {
+      "sha256": "f0481db648ea6751ac69eb09d0f6292902d2a184340748d8ec0d749ecbca97af",
+      "bytes": 3861
+    },
+    "scripts/measure-mantis-world-contact.mjs": {
+      "sha256": "4561f96859336b5f7a6cfce612427229f4fc61666f51b57a22407c2a6cfdc0c8",
+      "bytes": 3829
+    }
+  }
+}
