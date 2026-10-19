@@ -557,14 +557,14 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   countRef(st.fog?.colour);
   for (const k of ['sun', 'sunSpecular', 'ambient', 'grade'] as const) countRef(st.lighting?.[k]);
   /** the instructions only this side of a select would run */
-  const ownCost = (r: GraphRef | undefined, seen = new Set<string>()): number => {
-    if (typeof r !== 'string' || seen.has(r) || (readers.get(r) ?? 0) > 1) return 0;
+  const ownCost = (r: GraphRef | undefined, nodes = ir.nodes, uses: ReadonlyMap<string, number> = readers, seen = new Set<string>()): number => {
+    if (typeof r !== 'string' || seen.has(r) || (uses.get(r) ?? 0) > 1) return 0;
     seen.add(r);
-    const n = ir.nodes[r];
-    if (n === undefined) return 0; // a loop body's own node: counted with its loop
+    const n = nodes[r];
+    if (n === undefined) return 0; // an ancestor's value is computed outside this branch
     const spec = GRAPH_OPS[n.op];
     const body = n.op === 'loop' && n.body !== undefined ? Object.keys(n.body.nodes).length * (n.count ?? 1) * 2 : 0;
-    return (spec?.cost ?? 0) + body + (n.in ?? []).reduce<number>((sum, x) => sum + ownCost(x, seen), 0);
+    return (spec?.cost ?? 0) + body + (n.in ?? []).reduce<number>((sum, x) => sum + ownCost(x, nodes, uses, seen), 0);
   };
 
   // the scene camera's clip range for `sceneDepth` (uniforms: a camera change moves no program)
@@ -579,6 +579,19 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const weight = uniform(1);
   interface Scope { readonly uniforms?: ReadonlyMap<string, Val>; readonly lightDeps?: ReadonlySet<string>; readonly lightMemo?: Map<string, Val>; readonly nodes: Readonly<Record<string, GraphNode>>; readonly parent: Scope | null; readonly memo: Map<string, Val>; readonly acc: Val | null; readonly index: Val | null }
   const root: Scope = { nodes: ir.nodes, parent: null, memo: new Map(), acc: null, index: null };
+  const localReaders = new WeakMap<Scope, ReadonlyMap<string, number>>();
+  function readersIn(scope: Scope): ReadonlyMap<string, number> {
+    if (scope === root) return readers;
+    let uses = localReaders.get(scope);
+    if (uses === undefined) {
+      const counts = new Map<string, number>();
+      for (const node of Object.values(scope.nodes)) for (const argument of node.in ?? []) {
+        if (typeof argument === 'string') counts.set(argument, (counts.get(argument) ?? 0) + 1);
+      }
+      uses = counts; localReaders.set(scope, uses);
+    }
+    return uses;
+  }
   // Implicit texture derivatives need coherent execution on both sides of a select.
   // Follow references in their lexical scope, including a loop's actual output.
   const sampleOps = new Set(['texture', 'texture3D', 'textureArray', 'textureLod', 'textureGrad', 'meshMap', 'sceneColour', 'sceneColourAt', 'sceneDepth', 'sceneNormal']);
@@ -843,14 +856,22 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'not': return { t: 'bool', n: not(asBool(one())) };
       case 'select': {
         const [cond, x, y] = three();
-        const bothSample = samples(n.in?.[1], scope) && samples(n.in?.[2], scope);
+        const sampleX = samples(n.in?.[1], scope), sampleY = samples(n.in?.[2], scope);
+        const bothSample = sampleX && sampleY;
         if (x.t === 'bool' && y.t === 'bool' && bothSample) {
           selects.light++;
           return { t: 'bool', n: new ConvertNode<'bool'>(new MathNode('mix', new ConvertNode<'float'>(y.n, 'float'), new ConvertNode<'float'>(x.n, 'float'), new ConvertNode<'float'>(cond.n, 'float')), 'bool') };
         }
         if (x.t === 'bool' && y.t === 'bool') { selects.branch++; return { t: 'bool', n: new ConditionalNode(asBool(cond), x.n, y.n) }; }
         const t = widest([x, y]);
-        if (scope.parent === null && !bothSample && Math.max(ownCost(n.in?.[1]), ownCost(n.in?.[2])) > BRANCH_LIGHT_COST) {
+        // A numeric loop select used to evaluate both arms unconditionally,
+        // including costly fog bands that its condition had already rejected.
+        // Keep derivative-sensitive loop bodies coherent; pure arithmetic may
+        // use the same lazy branch policy as the root graph.
+        const pureLoop = scope.parent !== null && !sampleX && !sampleY && !Object.values(scope.nodes).some(node =>
+          node.op === 'fwidth' || node.op === 'dFdx' || node.op === 'dFdy');
+        if ((scope.parent === null || pureLoop) && !bothSample &&
+          Math.max(ownCost(n.in?.[1], scope.nodes, readersIn(scope)), ownCost(n.in?.[2], scope.nodes, readersIn(scope))) > BRANCH_LIGHT_COST) {
           selects.branch++;
           return { t, n: new ConditionalNode(asBool(cond), widen(x, t), widen(y, t)) };
         }

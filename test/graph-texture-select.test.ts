@@ -63,3 +63,19 @@ it('keeps costly texture arms outside divergent shader branches', () => {
 
   } finally { compiled.material.dispose(); sampled.dispose(); }
 });
+
+it('branches around rejected arithmetic inside a bounded loop', () => {
+  const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit',
+    params: { limit: { type: 'float', value: 2 } },
+    nodes: { limit: { op: 'param', param: 'limit' },
+      fog: { op: 'loop', count: 8, in: [[0, 0, 0]], body: { nodes: {
+        i: { op: 'index' }, acc: { op: 'acc' }, condition: { op: 'lt', in: ['i', 'limit'] },
+        p: { op: 'combine', in: ['i', 'i'] }, noise: { op: 'noise', in: ['p'] },
+        colour: { op: 'mul', in: ['noise', [1, 1, 1]] },
+        contribution: { op: 'add', in: ['acc', 'colour'] },
+        chosen: { op: 'select', in: ['condition', 'contribution', 'acc'] },
+      }, out: 'chosen' } } }, stages: { surface: { colour: 'fog' } } };
+  const shader = program(graph).fragmentShader;
+  expect(shader).toMatch(/for\s*\([^]*if\s*\(/u);
+  expect(shader).toMatch(/if\s*\([^]*noise_float/u);
+});
