@@ -1,0 +1,9 @@
+{
+  "status": "source-only-pending-preflight",
+  "baselineSourceSha256": "8023a5349f63a39b5d138cf67949b75d4d979f50d11af73ada628d4781181b07",
+  "candidateSourceSha256": "43fe5079040261ab7b4b7b1f440df2c8678ed9cb43d4a52ecb0b564a1c8d6b09",
+  "change": "Eleven measured lower-pouch, outer-cheek and upper-bridge projected supports added after frozen failure localization. Existing boundary-distance and minimum spacing filters remain.",
+  "limitsUnchanged": true,
+  "knownMaximumBaselineLossMeters": 0.04467407378338906,
+  "noRenderYet": true
+}

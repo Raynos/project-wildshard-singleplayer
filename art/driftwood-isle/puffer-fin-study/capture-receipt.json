@@ -1,0 +1,102 @@
+{
+  "status": "unaccepted; genuine fixed-camera Blender native-bind evidence, no runtime proof",
+  "sourcePins": [
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/README.md",
+      "bytes": 3407,
+      "sha256": "a69b8767e1b232c24434187bde9ddcbaf208f9e5fd42c3787ea83edf5356c690"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/build_failed_first_fins.py",
+      "bytes": 4473,
+      "sha256": "828338801b3634ebb1da28c00398a721b19ad99bbd0a4a0cd785fbb9a29249b0"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/build_fins.py",
+      "bytes": 5433,
+      "sha256": "03967a6a7e3c8a6f223ff7b4e4cfdb726a8a75f43c753c24589f4628c78cb6c6"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/check_fins.py",
+      "bytes": 2454,
+      "sha256": "42fe8de798628c53f6061635735528e8de5e30a5e940df0b07fed8a82b7f4bc6"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/failed-first-fin-fans-indexed.json",
+      "bytes": 65162,
+      "sha256": "2cdb003ecd7cea613250314e2d52e0153418332f0290347416e5e09853146afb"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/failed-first-fin-native-study.json",
+      "bytes": 180239,
+      "sha256": "dbe7640e89849cc9bddbb2ca9e1ebdc63b74978fe70899a0b0a4f98036d8b22f"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/fin-fans-indexed.json",
+      "bytes": 98706,
+      "sha256": "4cb2a91252edfdb3a147d8d212ef474ee62914f16fd80d070a890179dd0a1947"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/fin-native-study.json",
+      "bytes": 286175,
+      "sha256": "60a22a05e85ea21946ec5acc8a19b91b0044f6bc00682bd0b21dd73533fc39df"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/render_comparison.py",
+      "bytes": 3958,
+      "sha256": "0041640cc08c7d9e0c7379c78f1bbea2c06f564d86a7e429aacf9ac4f1a0c1d3"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/structural-audit.json",
+      "bytes": 2354,
+      "sha256": "d52c1fcba1eec4db273bdcd6fcbdf9b7566bbd70a52f07808c351e20fb8f58d5"
+    }
+  ],
+  "images": [
+    {
+      "rawPath": "tmp/puffer-fin-study-corrected/fin-study-front.png",
+      "rawSha256": "a38f86331f12c12d44b248977baf5b1fed8455152c1d9bd872f7e0ce70b53ec9",
+      "path": "tmp/puffer-fin-study-corrected/fin-study-front-labelled.webp",
+      "bytes": 14572,
+      "sha256": "cfbf5f086037b9e71088361047e913200a4bdbfe2ef358dbf48917b96588e0c1"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-corrected/fin-study-hero.png",
+      "rawSha256": "96fc327bf2387abb480c70ea19769959874e110cd997e4575d0758483d53c8a7",
+      "path": "tmp/puffer-fin-study-corrected/fin-study-hero-labelled.webp",
+      "bytes": 56562,
+      "sha256": "adbfb085d4866df8432ebba7ea45c21abe1714f653142a088dd2920b9c4ee9ef"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-corrected/fin-study-side.png",
+      "rawSha256": "fd5fcab254c74b5021a2d3c6d815c79a1f2dcda5560060d11d06fcf39a97a08c",
+      "path": "tmp/puffer-fin-study-corrected/fin-study-side-labelled.webp",
+      "bytes": 14864,
+      "sha256": "79f20a1d4887e7865eb8f945504cfb82e07389475cf182c666df4d8c9a7b3d04"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-corrected/v71-front.png",
+      "rawSha256": "74224507c14cb52d3e597b5d7455f66cd693afecbc8d9190e9dbcf2bbdf52630",
+      "path": "tmp/puffer-fin-study-corrected/v71-front-labelled.webp",
+      "bytes": 13856,
+      "sha256": "be5d3c3f03a582dd7cd08fb665aea76543a5a237ab34d3acec02b07a6478af64"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-corrected/v71-hero.png",
+      "rawSha256": "14db63ada3f0ab41a182196c3b9fd8c37819ee730976dd1bdec59a1badf7e86f",
+      "path": "tmp/puffer-fin-study-corrected/v71-hero-labelled.webp",
+      "bytes": 55748,
+      "sha256": "a1d3d978c34fe86413f087d98e733432658f8711bbb4a95c01542d5d47d73e21"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-corrected/v71-side.png",
+      "rawSha256": "dfadb9e53400321941d05c3e7bcb7cd8a7035fd88360be0e9d9baac4428a9a0f",
+      "path": "tmp/puffer-fin-study-corrected/v71-side-labelled.webp",
+      "bytes": 14116,
+      "sha256": "add175b7f5df6046ee14e8f2a406fc4b1966a590910201119c4ba07ab4d0506b"
+    }
+  ],
+  "visualRead": "Shorter connected forefins; accordion dorsal grooves corrected. Cream rim remains somewhat blocky and level; side shoulder remains steep. No score or acceptance claimed.",
+  "preservation": "V71 body, face, rear feet, tail, bones and scene unchanged in paired captures; only two forefins replaced in memory",
+  "checks": "Static topology/root/floor audit passes; self-intersection and motion not established"
+}

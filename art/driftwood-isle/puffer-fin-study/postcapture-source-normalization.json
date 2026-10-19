@@ -1,0 +1,12 @@
+{
+  "changes": [
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/render_comparison.py",
+      "capturedSourceSha256": "0041640cc08c7d9e0c7379c78f1bbea2c06f564d86a7e429aacf9ac4f1a0c1d3",
+      "normalizedSourceSha256": "1fd70d741f1b868bb637cbd607d9f806d0674ca6a2555f0c5a600ca9f6311209",
+      "change": "trailing whitespace only; after captures, no rerender; prelaunch evidence pins preserved"
+    }
+  ],
+  "geometryChanged": false,
+  "capturePinsRewritten": false
+}
