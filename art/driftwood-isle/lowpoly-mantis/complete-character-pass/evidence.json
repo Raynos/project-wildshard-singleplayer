@@ -1,0 +1,450 @@
+{
+  "status": "MATCHED_STATIC_CAPTURE_VERIFIED",
+  "score": null,
+  "visualAcceptance": false,
+  "rawPngsImmutable": true,
+  "frameCount": 20,
+  "rawFrames": [
+    {
+      "path": "tmp/mantis-complete-character-pass/baseline/hero.png",
+      "sha256": "f7f20bab3f685c2dbf75bbf497285a0bed555b7362d5212fd67ac08d9cac0f3e",
+      "bytes": 578728,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/candidate/hero.png",
+      "sha256": "ba3328b4ed6d2a5b1837d3b193f3bfaae69cbca05b4af84ff33856bbf3c49b17",
+      "bytes": 580527,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/baseline/front.png",
+      "sha256": "a4700fe09f0c01eada01bd86ffe1100da04eb8c6ebd544c749443b5be967af56",
+      "bytes": 396417,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/candidate/front.png",
+      "sha256": "aefb159c4951358ffac24ac804344da0dc57d82b2e6d95cc073e3e36b5fa3742",
+      "bytes": 398935,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/baseline/left.png",
+      "sha256": "2296cb8a5b28e9d4ebde4a8a7f8f444a64571770bdc23645b1cf54fa59f01e4e",
+      "bytes": 372185,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/candidate/left.png",
+      "sha256": "e6f089b4879994205f19870bc633af4222e333fdceca4a663c1034a2ea13cfb3",
+      "bytes": 370805,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/baseline/right.png",
+      "sha256": "584780c245b86beb17a675d21df1e30fb1fad01d20cb19e14d90bb6313576db3",
+      "bytes": 373789,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/candidate/right.png",
+      "sha256": "98a2b1cf54b534b60a863cbaed0691beb50908552a3ab2623d8879efc40216db",
+      "bytes": 372247,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/baseline/back.png",
+      "sha256": "b6d400cfa61040137607936f8e496a763db15cfe2d95371bc07628608e8ea968",
+      "bytes": 402907,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/candidate/back.png",
+      "sha256": "be2775271cc73f84799abaff546d82de67989a27ee3c8fcdb388f18b76b03f08",
+      "bytes": 406274,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/baseline/top.png",
+      "sha256": "bdc8ffce34cc242ce2b0a80f74b7b9b184aa12942df1a5d1b7aabcc5d9708c6b",
+      "bytes": 676141,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/candidate/top.png",
+      "sha256": "ab7c7c38e7e75e1e0c3aa142e89c46a875e49e1b271041d561e97822dcb650f0",
+      "bytes": 669979,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/baseline/diag-front.png",
+      "sha256": "8f33bcb7b9327af41397e9b1ef150a826cb9c4c35accaabbc618bc6339b0fbeb",
+      "bytes": 686732,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/candidate/diag-front.png",
+      "sha256": "fb723c979a4e64d1bb4d5ca6caeb2f48f1f9a19866d75875b23a7f643d6d4658",
+      "bytes": 686750,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/baseline/diag-left.png",
+      "sha256": "8ed38a9269f1e45be506f6f7d6dcf0691e0a398841d3738aba6e18ecd141c8dd",
+      "bytes": 693341,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/candidate/diag-left.png",
+      "sha256": "e2d37cabe43d0cae80a46300edeeec6e5d5c46a605d245fee1e7994ac17709aa",
+      "bytes": 695043,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/baseline/diag-right.png",
+      "sha256": "8847f7f4b8acef64bf05962f07c5477c976130ee13003e6e03d5fc30161a8725",
+      "bytes": 662326,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/candidate/diag-right.png",
+      "sha256": "7ecfdf759162de695b104004692e6e63404b78b16d2df81c22578e18614456cd",
+      "bytes": 663450,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/baseline/diag-back.png",
+      "sha256": "8ca2f2b1150063a76544d9c18676d70f31916e1e1beaba412f88f58ac5a9b4fb",
+      "bytes": 665776,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-character-pass/candidate/diag-back.png",
+      "sha256": "549b46d7656b898e5f0fd234357827af317914efaee83eb2cd4a31dcde840f06",
+      "bytes": 665916,
+      "size": [
+        638,
+        900
+      ]
+    }
+  ],
+  "projectionFits": [
+    {
+      "role": "baseline",
+      "view": "hero",
+      "pixelBounds": [
+        34.178566070646525,
+        164.53355753451308,
+        603.8212701133913,
+        760.9060512976157
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "hero",
+      "pixelBounds": [
+        34.178566070646525,
+        139.09447128491735,
+        603.8212701133913,
+        760.9060512976157
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "front",
+      "pixelBounds": [
+        89.69037489373983,
+        144.7057684805349,
+        548.3096251062602,
+        777.6687534742993
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "front",
+      "pixelBounds": [
+        89.69037489373983,
+        122.33176814352333,
+        548.3096251062602,
+        777.6687534742993
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "left",
+      "pixelBounds": [
+        34.17854570190627,
+        144.7056193627443,
+        603.8211200558667,
+        777.6685647989859
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "left",
+      "pixelBounds": [
+        34.17854570190627,
+        122.33161270007446,
+        603.8211200558667,
+        777.6685647989859
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "right",
+      "pixelBounds": [
+        34.17877967199854,
+        144.70563941503383,
+        603.8213694257432,
+        777.6685683297956
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "right",
+      "pixelBounds": [
+        34.17877967199854,
+        122.33163275236393,
+        603.8213694257432,
+        777.6685683297956
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "back",
+      "pixelBounds": [
+        89.6903941941732,
+        144.70563670136653,
+        548.3096443563862,
+        777.668609877705
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "back",
+      "pixelBounds": [
+        89.6903941941732,
+        122.33162542664934,
+        548.3096443563862,
+        777.668609877705
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "top",
+      "pixelBounds": [
+        89.69037489373983,
+        165.17872183410174,
+        548.3096251062602,
+        734.821298219969
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "top",
+      "pixelBounds": [
+        89.69037489373983,
+        165.17872183410174,
+        548.3096251062602,
+        734.821298219969
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-front",
+      "pixelBounds": [
+        89.69037489373983,
+        106.24302048574867,
+        548.3096251062602,
+        793.7569244705487
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-front",
+      "pixelBounds": [
+        89.69037489373983,
+        106.24302048574867,
+        548.3096251062602,
+        793.7569244705487
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-left",
+      "pixelBounds": [
+        34.178559145103975,
+        108.34022860870255,
+        603.8211554451038,
+        821.1953594080619
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-left",
+      "pixelBounds": [
+        34.178559145103975,
+        78.80476344702521,
+        603.8211554451038,
+        821.1953594080619
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-right",
+      "pixelBounds": [
+        34.17886460864793,
+        108.34879753850635,
+        603.821476308432,
+        821.1870605780559
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-right",
+      "pixelBounds": [
+        34.17886460864793,
+        78.81333237682918,
+        603.821476308432,
+        821.1870605780559
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-back",
+      "pixelBounds": [
+        89.6902090530264,
+        96.7105353874228,
+        548.3094592271223,
+        803.2898302506653
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-back",
+      "pixelBounds": [
+        89.6902090530264,
+        100.2573220342677,
+        548.3094592271223,
+        803.2898302506653
+      ]
+    }
+  ],
+  "pairedCamerasAndSettings": true,
+  "totalNewBytes": 15271688,
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-diag-front.webp": "9d83ef6c1d0ff530b5f2c878dbb506c45e5a6e561af8370a9f688c21c903aa8f",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/render_matched.py": "fc4d71f6b651f08565a3237e6982ce4dc2619b00a27212d980b06f3707d976c9",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-diag-left.webp": "7388c7fbf8d24f95b698352e93ce799d9aadb7904800bace9a07eafd714f5574",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-front.webp": "a188280575486d84ad787050308af854202b217daf28b4818718bcbf9c091c22",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-diag-back.webp": "aaa05a3e8c074fa57799c182d3b2c9b77894f007f824710dc01f399de3141295",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/render.log": "33be0d3b3fe2a1d76efb8ee2f23f6d94004e15bf875becea53cf172d384bc47d",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-diag-back.webp": "7e189f3564b9124962be543f22cce6324ef444b590e71c8dd2d8b6319f5a2bde",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/intersection-test.log": "374337ee8eee751f11a1f538df5ddf11a3d4d33663a17b68bd0515af658303fc",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-right.webp": "62b7913a12ee109ccde62384d90a22d490733c21f74e928e2c73bf4283f65ca0",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/matched-hero-board.webp": "43bb75d05b7f17d9fa53b09039a8d80ce72c928772836b784e414b2a5446c1b3",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/metrics-complete-character-pass.json": "5d939b75aa0f3e4160bd642e029c1bcdaaea0174c72848779eae5e52442201be",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-front.webp": "cfd694a9b7b4c31078f87dc93015b9ad45b0d9fdcb4920c4ea29890e6c9de490",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/intersection-audit.json": "46acd6888272c22b40ebf842519fc5524ed85297f4e5dede74ef515070def0f6",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/geometry-audit.json": "cf4aedf03370daa2d03f90ef714d61ebc87a7565d27b992cbd1bb714b589edec",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/mantis-mesh-complete-character-pass.json": "c19b29df19ab0345a27fd93ba8cc518ef03a497002f9836645b3e2c4aaada2db",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-left.webp": "336ede3ba23f195975e33ffced1acea709fc9c1719070c98465b861d5f37b684",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/pivots.json": "2c8604e7ceac14e7780ab2597de6cea7b4888b55f70a84e5bf66632c3fea2b25",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-nine-board.webp": "05342bcf3ab16a2a00049151de47dea2e1f4f5187abf78e9de48459368f47b96",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/check_scope.py": "11d4b382b459a6f02d34560525900deb2448d6e08e66ca470a3eb01f06964df5",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/capture-provenance.json": "4c032473ce6fedffe742f7a062b175dda3985e0e30b4ab1455fa2d608c44d216",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-top.webp": "aebae577104ae9989983344079fdf0381bdc4068fcceee0423b4bad1ce250658",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-top.webp": "8dccdae5a8d452a112e4e7d3ecb8af04172134a8c83e1d8ceef02759c21bf1d2",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-hero.webp": "a510689e467cdbac2c4885af9261ed365f216ee985002767875cbf5b7fa7aa18",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-right.webp": "f2a8ee7585c0844f8837f89fb245eec62f2e6c08d1c8d1c6c371b76b91281407",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-nine-board.webp": "336937c6e2f6786dfc7103a1f15e80928dcbd38674a2810f0cc34ce22dabca86",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-back.webp": "1f3ea88cceb7d6e573ddc18e86c3602fae9f67122857f8545df0e6bb4e3b7003",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/assemble_evidence.py": "1536711f9848cb2ed47f2029483eaffd7c9cd89218b314e3fd44bb3d85843126",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/scope-test.log": "44da0836e37077b46d569f1e7e8db56ece69b5e4ce018dc63bef29752fb9a6b7",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/cameras.json": "1e89c9746c699fca86f8a8c261f87e12d66b63d8eb4e49d303eab8398b59b72f",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-diag-front.webp": "e4049fc13f6448bcf7a36675247494aa03451528820135ccef9f023e2ac8879d",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-diag-right.webp": "a16eec026941be4b13ffddafb6000c78b22f712b0f4fbbf5376ebd630526e6c9",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/mantis-study-complete-character-pass.glb": "114b15c8399fb31b09a9d681e92ee78ed2b412ad96a0f95cb6f34b3a4ceb85ee",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/scope-audit.json": "44da0836e37077b46d569f1e7e8db56ece69b5e4ce018dc63bef29752fb9a6b7",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-diag-left.webp": "048a4e7987467013b5a74b05ffe36601742c6b3d44afe3fed955454362421545",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/build_mantis_complete.py": "e7b377242d7b8ee8a7d2f6f6b9ffd1f951ffecd5df22492a1e8a719a7439d24e",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-left.webp": "0b326e65b1e75b007ef234ed335d666b182863d4e690173e59203f17b65fd587",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-diag-right.webp": "351eb1836b317c0a8c0ddaa3e75d264c1cea6f866e9d2b0c01cfe45e796fff42",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/candidate-back.webp": "fc06be66f69916d90afd0afbb43f9b2d43150342046d44c6d2a8c101eef6d77f",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/check_geometry.py": "9103212893b2e5638acf242afb4713818da750cbe94ce528994c8670dc519b31",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/input-pins.json": "dc3f009a6a60cda313f36ea52ca6eea013276796cb04cb47bfc28320c845c2a8",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/check_intersections.py": "ed005f962e2b8618aa1b7d13798c932951e6c8c0b2a765850b6a2429a9b3b169",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/build.log": "a925ec9b7c544673e2e0f84c6cb3745573824e4be1287b5a2cdc855e2df518d9",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/geometry-test.log": "86880c0b496d99ead0e66590279ec91f74081ceb9d528e627f3db3426df1f66e",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/baseline-hero.webp": "0f3913a615bb8cbf53a9fa4d3447f8fe2fd1d3b1997e469548205763f1e4d660",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/failed-topology-scope/metrics-complete-character-pass.json": "5d939b75aa0f3e4160bd642e029c1bcdaaea0174c72848779eae5e52442201be",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/failed-topology-scope/geometry-audit.json": "a92a0bd93acf97f00d7d82a009175c44e985f6d863cf439fcab74cb2a3fc3094",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/failed-topology-scope/mantis-mesh-complete-character-pass.json": "d5cfde0e7fab1b647bfb7c750766b3f3cdfb1a6394a4d1dc3b787b05472a31d9",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/failed-topology-scope/scope-test.log": "566b657dbab0a5270e919246140ac312418601e0972edd8446301ca0cb8ef29f",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/failed-topology-scope/mantis-study-complete-character-pass.glb": "0359b02d7f7c7085809e7f7a8579060f3f93b8f937778361a9ea083ad71cf16c",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/failed-topology-scope/scope-audit.json": "566b657dbab0a5270e919246140ac312418601e0972edd8446301ca0cb8ef29f",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/failed-topology-scope/build_mantis_complete.py": "9109eaff74103390d517f16f01512495e22f331ff152de0aba9fde0c575e6f4b",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/failed-topology-scope/build.log": "87bed05f2940f0419b1323dbdabf9b1d615e7a2db81bb9e327abd4625c39943e",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/failed-topology-scope/geometry-test.log": "8f36fd4d5f523e9b8cf50b48a5b7c12afaba871573d95075fe4edfd4725ac1dc",
+    "art/driftwood-isle/lowpoly-mantis/complete-character-pass/failed-topology-scope/README.md": "69c424e224bb7da349c7a5a32c004f07fc65f524f0ebbf2146d10111e735ba23"
+  },
+  "limits": "No articulation/contact/animation/runtime acceptance. Hidden original angles approximate. Raw PNGs never re-encoded; previews are labelled derivatives."
+}

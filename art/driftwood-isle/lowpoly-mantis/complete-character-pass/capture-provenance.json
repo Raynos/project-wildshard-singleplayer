@@ -1,0 +1,1522 @@
+{
+  "baseline": {
+    "sourceSha256": "7a3112e04a8b2094f6ca2a47abbcbadcb9ea92d28d2c196f204d40400f91d76d",
+    "frozenGlbSha256": "fd81310b495a160cd4f698ace0fbda5a0cae59f57ad9b8db1e21428478a5217d",
+    "rebuiltGlbSha256": "fd81310b495a160cd4f698ace0fbda5a0cae59f57ad9b8db1e21428478a5217d",
+    "glbAllNonNameDataAndBinaryEqual": true,
+    "meshAndMetricsEqual": true,
+    "sourcePath": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/build_mantis_complete.py",
+    "capturedViews": {
+      "hero": {
+        "camera": {
+          "location": [
+            -5.481713771820068,
+            -8.036377906799316,
+            3.254544734954834
+          ],
+          "rotation": [
+            1.429825782775879,
+            9.540403311802947e-08,
+            -0.573322594165802
+          ],
+          "orthoScale": 5.803418566067018
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "f7f20bab3f685c2dbf75bbf497285a0bed555b7362d5212fd67ac08d9cac0f3e"
+      },
+      "front": {
+        "camera": {
+          "location": [
+            -0.0001214146614074707,
+            -9.481854438781738,
+            1.9610979557037354
+          ],
+          "rotation": [
+            1.5707964897155762,
+            -0.0,
+            0.0
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "a4700fe09f0c01eada01bd86ffe1100da04eb8c6ebd544c749443b5be967af56"
+      },
+      "left": {
+        "camera": {
+          "location": [
+            -10.000121116638184,
+            0.5181453227996826,
+            1.961098074913025
+          ],
+          "rotation": [
+            1.5707963705062866,
+            -0.0,
+            -1.5707963705062866
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "2296cb8a5b28e9d4ebde4a8a7f8f444a64571770bdc23645b1cf54fa59f01e4e"
+      },
+      "right": {
+        "camera": {
+          "location": [
+            9.999878883361816,
+            0.5181459188461304,
+            1.9610981941223145
+          ],
+          "rotation": [
+            1.5707963705062866,
+            -0.0,
+            1.5707963705062866
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "584780c245b86beb17a675d21df1e30fb1fad01d20cb19e14d90bb6313576db3"
+      },
+      "back": {
+        "camera": {
+          "location": [
+            -0.00012159347534179688,
+            10.518145561218262,
+            1.9610978364944458
+          ],
+          "rotation": [
+            -1.570796251296997,
+            3.141592502593994,
+            -0.0
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "b6d400cfa61040137607936f8e496a763db15cfe2d95371bc07628608e8ea968"
+      },
+      "top": {
+        "camera": {
+          "location": [
+            -0.0001214146614074707,
+            0.5181459784507751,
+            11.961097717285156
+          ],
+          "rotation": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "bdc8ffce34cc242ce2b0a80f74b7b9b184aa12942df1a5d1b7aabcc5d9708c6b"
+      },
+      "diag-front": {
+        "camera": {
+          "location": [
+            -0.0001214146614074707,
+            -9.59815788269043,
+            9.815717697143555
+          ],
+          "rotation": [
+            0.8960553407669067,
+            -0.0,
+            0.0
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "8f33bcb7b9327af41397e9b1ef150a826cb9c4c35accaabbc618bc6339b0fbeb"
+      },
+      "diag-left": {
+        "camera": {
+          "location": [
+            -10.101941108703613,
+            0.5181448459625244,
+            9.833822250366211
+          ],
+          "rotation": [
+            0.8960554599761963,
+            7.597417805982332e-08,
+            -1.5707963705062866
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "8ed38a9269f1e45be506f6f7d6dcf0691e0a398841d3738aba6e18ecd141c8dd"
+      },
+      "diag-right": {
+        "camera": {
+          "location": [
+            10.101761817932129,
+            0.5181447267532349,
+            9.833744049072266
+          ],
+          "rotation": [
+            0.8960554599761963,
+            -7.597417805982332e-08,
+            1.5707963705062866
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "8847f7f4b8acef64bf05962f07c5477c976130ee13003e6e03d5fc30161a8725"
+      },
+      "diag-back": {
+        "camera": {
+          "location": [
+            -0.00012166645319666713,
+            10.42261028289795,
+            10.080516815185547
+          ],
+          "rotation": [
+            0.8960554599761963,
+            6.826572018781008e-08,
+            3.141592502593994
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "8ca2f2b1150063a76544d9c18676d70f31916e1e1beaba412f88f58ac5a9b4fb"
+      }
+    }
+  },
+  "candidate": {
+    "sourceSha256": "e7b377242d7b8ee8a7d2f6f6b9ffd1f951ffecd5df22492a1e8a719a7439d24e",
+    "frozenGlbSha256": "114b15c8399fb31b09a9d681e92ee78ed2b412ad96a0f95cb6f34b3a4ceb85ee",
+    "rebuiltGlbSha256": "114b15c8399fb31b09a9d681e92ee78ed2b412ad96a0f95cb6f34b3a4ceb85ee",
+    "glbAllNonNameDataAndBinaryEqual": true,
+    "meshAndMetricsEqual": true,
+    "sourcePath": "art/driftwood-isle/lowpoly-mantis/complete-character-pass/build_mantis_complete.py",
+    "capturedViews": {
+      "hero": {
+        "camera": {
+          "location": [
+            -5.481713771820068,
+            -8.036377906799316,
+            3.254544734954834
+          ],
+          "rotation": [
+            1.429825782775879,
+            9.540403311802947e-08,
+            -0.573322594165802
+          ],
+          "orthoScale": 5.803418566067018
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "ba3328b4ed6d2a5b1837d3b193f3bfaae69cbca05b4af84ff33856bbf3c49b17"
+      },
+      "front": {
+        "camera": {
+          "location": [
+            -0.0001214146614074707,
+            -9.481854438781738,
+            1.9610979557037354
+          ],
+          "rotation": [
+            1.5707964897155762,
+            -0.0,
+            0.0
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "aefb159c4951358ffac24ac804344da0dc57d82b2e6d95cc073e3e36b5fa3742"
+      },
+      "left": {
+        "camera": {
+          "location": [
+            -10.000121116638184,
+            0.5181453227996826,
+            1.961098074913025
+          ],
+          "rotation": [
+            1.5707963705062866,
+            -0.0,
+            -1.5707963705062866
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "e6f089b4879994205f19870bc633af4222e333fdceca4a663c1034a2ea13cfb3"
+      },
+      "right": {
+        "camera": {
+          "location": [
+            9.999878883361816,
+            0.5181459188461304,
+            1.9610981941223145
+          ],
+          "rotation": [
+            1.5707963705062866,
+            -0.0,
+            1.5707963705062866
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "98a2b1cf54b534b60a863cbaed0691beb50908552a3ab2623d8879efc40216db"
+      },
+      "back": {
+        "camera": {
+          "location": [
+            -0.00012159347534179688,
+            10.518145561218262,
+            1.9610978364944458
+          ],
+          "rotation": [
+            -1.570796251296997,
+            3.141592502593994,
+            -0.0
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "be2775271cc73f84799abaff546d82de67989a27ee3c8fcdb388f18b76b03f08"
+      },
+      "top": {
+        "camera": {
+          "location": [
+            -0.0001214146614074707,
+            0.5181459784507751,
+            11.961097717285156
+          ],
+          "rotation": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "ab7c7c38e7e75e1e0c3aa142e89c46a875e49e1b271041d561e97822dcb650f0"
+      },
+      "diag-front": {
+        "camera": {
+          "location": [
+            -0.0001214146614074707,
+            -9.59815788269043,
+            9.815717697143555
+          ],
+          "rotation": [
+            0.8960553407669067,
+            -0.0,
+            0.0
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "fb723c979a4e64d1bb4d5ca6caeb2f48f1f9a19866d75875b23a7f643d6d4658"
+      },
+      "diag-left": {
+        "camera": {
+          "location": [
+            -10.101941108703613,
+            0.5181448459625244,
+            9.833822250366211
+          ],
+          "rotation": [
+            0.8960554599761963,
+            7.597417805982332e-08,
+            -1.5707963705062866
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "e2d37cabe43d0cae80a46300edeeec6e5d5c46a605d245fee1e7994ac17709aa"
+      },
+      "diag-right": {
+        "camera": {
+          "location": [
+            10.101761817932129,
+            0.5181447267532349,
+            9.833744049072266
+          ],
+          "rotation": [
+            0.8960554599761963,
+            -7.597417805982332e-08,
+            1.5707963705062866
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "7ecfdf759162de695b104004692e6e63404b78b16d2df81c22578e18614456cd"
+      },
+      "diag-back": {
+        "camera": {
+          "location": [
+            -0.00012166645319666713,
+            10.42261028289795,
+            10.080516815185547
+          ],
+          "rotation": [
+            0.8960554599761963,
+            6.826572018781008e-08,
+            3.141592502593994
+          ],
+          "orthoScale": 5.349954240374431
+        },
+        "settings": {
+          "engine": "CYCLES",
+          "samples": 20,
+          "denoising": false,
+          "seed": 0,
+          "resolution": [
+            638,
+            900
+          ],
+          "worldColor": [
+            0.15,
+            0.15,
+            0.15
+          ],
+          "viewTransform": "AgX",
+          "groundDiffuse": [
+            0.00209,
+            0.00286,
+            0.0035,
+            1
+          ],
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                -4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                -2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "lightTarget": [
+            0,
+            0,
+            1.7
+          ]
+        },
+        "sha256": "549b46d7656b898e5f0fd234357827af317914efaee83eb2cd4a31dcde840f06"
+      }
+    }
+  }
+}
