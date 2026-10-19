@@ -1,0 +1,3025 @@
+{
+  "status": "FAIL: seven membership-derived hulls do not contain mixed cap skin at an unchanged steady gait input",
+  "scope": "Source double-precision geometry only. No universal impossibility proof and no native/world-contact result.",
+  "source": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/closed-anatomy-rig1-native.json",
+  "sourceSha256": "38e0ad4de8a25827ace7a366e70c3c21a860ce9221de64f4b4afaf0c27ec2b61",
+  "sourceVertexCount": 10458,
+  "occupiedBones": 7,
+  "totalExtremePoints": 344,
+  "budgetPass": true,
+  "hulls": [
+    {
+      "bone": "belly",
+      "memberVertices": 4974,
+      "uniqueMemberPoints": 853,
+      "extremeCount": 82,
+      "volumeM3": 1.7069020244487936,
+      "maxBindContainmentResidualM": 2.220446049250313e-16,
+      "maxFacetCentroidToActualSurfaceM": 0.1608825759905364,
+      "bridgeDiagnosticCentroid": [
+        0.2162020372730037,
+        1.3815175759233072,
+        -0.24231200317541757
+      ],
+      "bridgeDiagnosticFacetVertices": [
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4278,
+          "sourceVertex": 4278
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4350,
+          "sourceVertex": 4350
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4296,
+          "sourceVertex": 4296
+        }
+      ],
+      "extremeSources": [
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 31,
+          "sourceVertex": 9205
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 25,
+          "sourceVertex": 9199
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4368,
+          "sourceVertex": 4368
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 19,
+          "sourceVertex": 9193
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 31,
+          "sourceVertex": 10093
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 953,
+          "sourceVertex": 953
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 37,
+          "sourceVertex": 10099
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4332,
+          "sourceVertex": 4332
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1703,
+          "sourceVertex": 1703
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 43,
+          "sourceVertex": 10105
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 49,
+          "sourceVertex": 10111
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 3265,
+          "sourceVertex": 3265
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 3259,
+          "sourceVertex": 3259
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 3367,
+          "sourceVertex": 3367
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 3355,
+          "sourceVertex": 3355
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 2198,
+          "sourceVertex": 2198
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1941,
+          "sourceVertex": 1941
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1947,
+          "sourceVertex": 1947
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 2139,
+          "sourceVertex": 2139
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 2058,
+          "sourceVertex": 2058
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1953,
+          "sourceVertex": 1953
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 111,
+          "sourceVertex": 111
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 108,
+          "sourceVertex": 108
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 114,
+          "sourceVertex": 114
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 99,
+          "sourceVertex": 99
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1959,
+          "sourceVertex": 1959
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 117,
+          "sourceVertex": 117
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 7,
+          "sourceVertex": 7
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1869,
+          "sourceVertex": 1869
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1872,
+          "sourceVertex": 1872
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1866,
+          "sourceVertex": 1866
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1875,
+          "sourceVertex": 1875
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1863,
+          "sourceVertex": 1863
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1878,
+          "sourceVertex": 1878
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4314,
+          "sourceVertex": 4314
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4278,
+          "sourceVertex": 4278
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1847,
+          "sourceVertex": 1847
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1962,
+          "sourceVertex": 1962
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1971,
+          "sourceVertex": 1971
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 2145,
+          "sourceVertex": 2145
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 2151,
+          "sourceVertex": 2151
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 2,
+          "sourceVertex": 2
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 3069,
+          "sourceVertex": 3069
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1860,
+          "sourceVertex": 1860
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 93,
+          "sourceVertex": 93
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1846,
+          "sourceVertex": 1846
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1857,
+          "sourceVertex": 1857
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1845,
+          "sourceVertex": 1845
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1854,
+          "sourceVertex": 1854
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1881,
+          "sourceVertex": 1881
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1848,
+          "sourceVertex": 1848
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1851,
+          "sourceVertex": 1851
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 87,
+          "sourceVertex": 87
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 9,
+          "sourceVertex": 9
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4296,
+          "sourceVertex": 4296
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 2067,
+          "sourceVertex": 2067
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 69,
+          "sourceVertex": 69
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 24,
+          "sourceVertex": 24
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 53,
+          "sourceVertex": 53
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 39,
+          "sourceVertex": 39
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1884,
+          "sourceVertex": 1884
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1977,
+          "sourceVertex": 1977
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1890,
+          "sourceVertex": 1890
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1896,
+          "sourceVertex": 1896
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 2158,
+          "sourceVertex": 2158
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 2070,
+          "sourceVertex": 2070
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4404,
+          "sourceVertex": 4404
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 3898,
+          "sourceVertex": 3898
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 3799,
+          "sourceVertex": 3799
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 3802,
+          "sourceVertex": 3802
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 49,
+          "sourceVertex": 9715
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 55,
+          "sourceVertex": 9721
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 955,
+          "sourceVertex": 955
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 1455,
+          "sourceVertex": 1455
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4350,
+          "sourceVertex": 4350
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 61,
+          "sourceVertex": 9727
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 941,
+          "sourceVertex": 941
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 4,
+          "sourceVertex": 9670
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 7,
+          "sourceVertex": 8689
+        },
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "partVertex": 4386,
+          "sourceVertex": 4386
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 1,
+          "sourceVertex": 8683
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 4,
+          "sourceVertex": 8686
+        }
+      ]
+    },
+    {
+      "bone": "tail",
+      "memberVertices": 708,
+      "uniqueMemberPoints": 122,
+      "extremeCount": 53,
+      "volumeM3": 0.06951614849691777,
+      "maxBindContainmentResidualM": 2.220446049250313e-16,
+      "maxFacetCentroidToActualSurfaceM": 0.10242404913686223,
+      "bridgeDiagnosticCentroid": [
+        0.13726406177520753,
+        0.35671573281288144,
+        -0.7591666634877523
+      ],
+      "bridgeDiagnosticFacetVertices": [
+        {
+          "part": "Tail root",
+          "partVertex": 308,
+          "sourceVertex": 8282
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 25,
+          "sourceVertex": 7999
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 293,
+          "sourceVertex": 8267
+        }
+      ],
+      "extremeSources": [
+        {
+          "part": "Tail root",
+          "partVertex": 19,
+          "sourceVertex": 7993
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 25,
+          "sourceVertex": 7999
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 13,
+          "sourceVertex": 7987
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 31,
+          "sourceVertex": 8005
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 7,
+          "sourceVertex": 7981
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 37,
+          "sourceVertex": 8011
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 1,
+          "sourceVertex": 7975
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 2,
+          "sourceVertex": 7976
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 293,
+          "sourceVertex": 8267
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 248,
+          "sourceVertex": 8222
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 263,
+          "sourceVertex": 8237
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 218,
+          "sourceVertex": 8192
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 308,
+          "sourceVertex": 8282
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 188,
+          "sourceVertex": 8162
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 158,
+          "sourceVertex": 8132
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 173,
+          "sourceVertex": 8147
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 501,
+          "sourceVertex": 8475
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 546,
+          "sourceVertex": 8520
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 531,
+          "sourceVertex": 8505
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 486,
+          "sourceVertex": 8460
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 495,
+          "sourceVertex": 8469
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 540,
+          "sourceVertex": 8514
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 525,
+          "sourceVertex": 8499
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 456,
+          "sourceVertex": 8430
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 576,
+          "sourceVertex": 8550
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 411,
+          "sourceVertex": 8385
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 426,
+          "sourceVertex": 8400
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 480,
+          "sourceVertex": 8454
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 396,
+          "sourceVertex": 8370
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 591,
+          "sourceVertex": 8565
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 522,
+          "sourceVertex": 8496
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 492,
+          "sourceVertex": 8466
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 381,
+          "sourceVertex": 8355
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 382,
+          "sourceVertex": 8356
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 450,
+          "sourceVertex": 8424
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 570,
+          "sourceVertex": 8544
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 537,
+          "sourceVertex": 8511
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 477,
+          "sourceVertex": 8451
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 405,
+          "sourceVertex": 8379
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 420,
+          "sourceVertex": 8394
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 390,
+          "sourceVertex": 8364
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 447,
+          "sourceVertex": 8421
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 585,
+          "sourceVertex": 8559
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 375,
+          "sourceVertex": 8349
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 376,
+          "sourceVertex": 8350
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 417,
+          "sourceVertex": 8391
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 567,
+          "sourceVertex": 8541
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 402,
+          "sourceVertex": 8376
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 387,
+          "sourceVertex": 8361
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 582,
+          "sourceVertex": 8556
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 373,
+          "sourceVertex": 8347
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 372,
+          "sourceVertex": 8346
+        },
+        {
+          "part": "Tail root",
+          "partVertex": 374,
+          "sourceVertex": 8348
+        }
+      ]
+    },
+    {
+      "bone": "finL",
+      "memberVertices": 426,
+      "uniqueMemberPoints": 80,
+      "extremeCount": 42,
+      "volumeM3": 0.03469760962168408,
+      "maxBindContainmentResidualM": 1.1102230246251565e-16,
+      "maxFacetCentroidToActualSurfaceM": 0.06706275634885281,
+      "bridgeDiagnosticCentroid": [
+        0.5299999813238779,
+        0.18000000715255737,
+        0.5133333404858907
+      ],
+      "bridgeDiagnosticFacetVertices": [
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 55,
+          "sourceVertex": 8737
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 19,
+          "sourceVertex": 8701
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 13,
+          "sourceVertex": 8695
+        }
+      ],
+      "extremeSources": [
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 31,
+          "sourceVertex": 8713
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 37,
+          "sourceVertex": 8719
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 25,
+          "sourceVertex": 8707
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 292,
+          "sourceVertex": 8974
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 277,
+          "sourceVertex": 8959
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 309,
+          "sourceVertex": 8991
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 285,
+          "sourceVertex": 8967
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 175,
+          "sourceVertex": 8857
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 303,
+          "sourceVertex": 8985
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 282,
+          "sourceVertex": 8964
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 181,
+          "sourceVertex": 8863
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 278,
+          "sourceVertex": 8960
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 43,
+          "sourceVertex": 8725
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 19,
+          "sourceVertex": 8701
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 331,
+          "sourceVertex": 9013
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 187,
+          "sourceVertex": 8869
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 49,
+          "sourceVertex": 8731
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 13,
+          "sourceVertex": 8695
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 357,
+          "sourceVertex": 9039
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 336,
+          "sourceVertex": 9018
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 332,
+          "sourceVertex": 9014
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 55,
+          "sourceVertex": 8737
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 7,
+          "sourceVertex": 8689
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 193,
+          "sourceVertex": 8875
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 61,
+          "sourceVertex": 8743
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 1,
+          "sourceVertex": 8683
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 386,
+          "sourceVertex": 9068
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 411,
+          "sourceVertex": 9093
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 390,
+          "sourceVertex": 9072
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 4,
+          "sourceVertex": 8686
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 199,
+          "sourceVertex": 8881
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 384,
+          "sourceVertex": 9066
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 133,
+          "sourceVertex": 8815
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 440,
+          "sourceVertex": 9122
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 205,
+          "sourceVertex": 8887
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 465,
+          "sourceVertex": 9147
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 444,
+          "sourceVertex": 9126
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 148,
+          "sourceVertex": 8830
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 459,
+          "sourceVertex": 9141
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 441,
+          "sourceVertex": 9123
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 453,
+          "sourceVertex": 9135
+        },
+        {
+          "part": "Volumetric connected finL",
+          "partVertex": 438,
+          "sourceVertex": 9120
+        }
+      ]
+    },
+    {
+      "bone": "finR",
+      "memberVertices": 426,
+      "uniqueMemberPoints": 80,
+      "extremeCount": 42,
+      "volumeM3": 0.034697609621684083,
+      "maxBindContainmentResidualM": 2.220446049250313e-16,
+      "maxFacetCentroidToActualSurfaceM": 0.07558357191078471,
+      "bridgeDiagnosticCentroid": [
+        -0.6347285906473795,
+        0.18000000715255737,
+        0.4404786427815755
+      ],
+      "bridgeDiagnosticFacetVertices": [
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 13,
+          "sourceVertex": 9187
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 43,
+          "sourceVertex": 9217
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 37,
+          "sourceVertex": 9211
+        }
+      ],
+      "extremeSources": [
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 292,
+          "sourceVertex": 9466
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 277,
+          "sourceVertex": 9451
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 309,
+          "sourceVertex": 9483
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 285,
+          "sourceVertex": 9459
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 175,
+          "sourceVertex": 9349
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 303,
+          "sourceVertex": 9477
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 282,
+          "sourceVertex": 9456
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 181,
+          "sourceVertex": 9355
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 278,
+          "sourceVertex": 9452
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 109,
+          "sourceVertex": 9283
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 331,
+          "sourceVertex": 9505
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 187,
+          "sourceVertex": 9361
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 31,
+          "sourceVertex": 9205
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 357,
+          "sourceVertex": 9531
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 336,
+          "sourceVertex": 9510
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 332,
+          "sourceVertex": 9506
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 37,
+          "sourceVertex": 9211
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 25,
+          "sourceVertex": 9199
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 193,
+          "sourceVertex": 9367
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 43,
+          "sourceVertex": 9217
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 19,
+          "sourceVertex": 9193
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 386,
+          "sourceVertex": 9560
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 411,
+          "sourceVertex": 9585
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 390,
+          "sourceVertex": 9564
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 49,
+          "sourceVertex": 9223
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 13,
+          "sourceVertex": 9187
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 199,
+          "sourceVertex": 9373
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 384,
+          "sourceVertex": 9558
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 55,
+          "sourceVertex": 9229
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 7,
+          "sourceVertex": 9181
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 440,
+          "sourceVertex": 9614
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 205,
+          "sourceVertex": 9379
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 465,
+          "sourceVertex": 9639
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 444,
+          "sourceVertex": 9618
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 148,
+          "sourceVertex": 9322
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 459,
+          "sourceVertex": 9633
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 441,
+          "sourceVertex": 9615
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 453,
+          "sourceVertex": 9627
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 438,
+          "sourceVertex": 9612
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 61,
+          "sourceVertex": 9235
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 1,
+          "sourceVertex": 9175
+        },
+        {
+          "part": "Volumetric connected finR",
+          "partVertex": 4,
+          "sourceVertex": 9178
+        }
+      ]
+    },
+    {
+      "bone": "rearL",
+      "memberVertices": 330,
+      "uniqueMemberPoints": 64,
+      "extremeCount": 42,
+      "volumeM3": 0.014394375488217873,
+      "maxBindContainmentResidualM": 5.551115123125783e-17,
+      "maxFacetCentroidToActualSurfaceM": 0.043801905360053864,
+      "bridgeDiagnosticCentroid": [
+        0.42277777194976807,
+        0.009733333407590786,
+        0.1529791553815206
+      ],
+      "bridgeDiagnosticFacetVertices": [
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 309,
+          "sourceVertex": 9975
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 291,
+          "sourceVertex": 9957
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 279,
+          "sourceVertex": 9945
+        }
+      ],
+      "extremeSources": [
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 31,
+          "sourceVertex": 9697
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 37,
+          "sourceVertex": 9703
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 25,
+          "sourceVertex": 9691
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 286,
+          "sourceVertex": 9952
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 278,
+          "sourceVertex": 9944
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 175,
+          "sourceVertex": 9841
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 97,
+          "sourceVertex": 9763
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 291,
+          "sourceVertex": 9957
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 279,
+          "sourceVertex": 9945
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 181,
+          "sourceVertex": 9847
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 43,
+          "sourceVertex": 9709
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 19,
+          "sourceVertex": 9685
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 276,
+          "sourceVertex": 9942
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 91,
+          "sourceVertex": 9757
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 187,
+          "sourceVertex": 9853
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 49,
+          "sourceVertex": 9715
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 13,
+          "sourceVertex": 9679
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 321,
+          "sourceVertex": 9987
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 309,
+          "sourceVertex": 9975
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 306,
+          "sourceVertex": 9972
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 85,
+          "sourceVertex": 9751
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 55,
+          "sourceVertex": 9721
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 7,
+          "sourceVertex": 9673
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 193,
+          "sourceVertex": 9859
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 61,
+          "sourceVertex": 9727
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 1,
+          "sourceVertex": 9667
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 79,
+          "sourceVertex": 9745
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 336,
+          "sourceVertex": 10002
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 351,
+          "sourceVertex": 10017
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 339,
+          "sourceVertex": 10005
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 4,
+          "sourceVertex": 9670
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 199,
+          "sourceVertex": 9865
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 133,
+          "sourceVertex": 9799
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 73,
+          "sourceVertex": 9739
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 76,
+          "sourceVertex": 9742
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 366,
+          "sourceVertex": 10032
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 205,
+          "sourceVertex": 9871
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 381,
+          "sourceVertex": 10047
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 369,
+          "sourceVertex": 10035
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 148,
+          "sourceVertex": 9814
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 375,
+          "sourceVertex": 10041
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "partVertex": 367,
+          "sourceVertex": 10033
+        }
+      ]
+    },
+    {
+      "bone": "rearR",
+      "memberVertices": 330,
+      "uniqueMemberPoints": 64,
+      "extremeCount": 42,
+      "volumeM3": 0.014394375488217877,
+      "maxBindContainmentResidualM": 1.1102230246251565e-16,
+      "maxFacetCentroidToActualSurfaceM": 0.043801905360053864,
+      "bridgeDiagnosticCentroid": [
+        -0.42277777194976807,
+        0.009733333407590786,
+        0.1529791553815206
+      ],
+      "bridgeDiagnosticFacetVertices": [
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 339,
+          "sourceVertex": 10401
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 381,
+          "sourceVertex": 10443
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 369,
+          "sourceVertex": 10431
+        }
+      ],
+      "extremeSources": [
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 286,
+          "sourceVertex": 10348
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 278,
+          "sourceVertex": 10340
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 175,
+          "sourceVertex": 10237
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 291,
+          "sourceVertex": 10353
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 279,
+          "sourceVertex": 10341
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 181,
+          "sourceVertex": 10243
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 276,
+          "sourceVertex": 10338
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 103,
+          "sourceVertex": 10165
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 109,
+          "sourceVertex": 10171
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 97,
+          "sourceVertex": 10159
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 187,
+          "sourceVertex": 10249
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 31,
+          "sourceVertex": 10093
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 321,
+          "sourceVertex": 10383
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 309,
+          "sourceVertex": 10371
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 306,
+          "sourceVertex": 10368
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 91,
+          "sourceVertex": 10153
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 37,
+          "sourceVertex": 10099
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 25,
+          "sourceVertex": 10087
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 193,
+          "sourceVertex": 10255
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 43,
+          "sourceVertex": 10105
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 19,
+          "sourceVertex": 10081
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 85,
+          "sourceVertex": 10147
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 336,
+          "sourceVertex": 10398
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 351,
+          "sourceVertex": 10413
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 339,
+          "sourceVertex": 10401
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 49,
+          "sourceVertex": 10111
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 13,
+          "sourceVertex": 10075
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 199,
+          "sourceVertex": 10261
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 79,
+          "sourceVertex": 10141
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 366,
+          "sourceVertex": 10428
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 55,
+          "sourceVertex": 10117
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 7,
+          "sourceVertex": 10069
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 205,
+          "sourceVertex": 10267
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 381,
+          "sourceVertex": 10443
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 369,
+          "sourceVertex": 10431
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 73,
+          "sourceVertex": 10135
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 148,
+          "sourceVertex": 10210
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 375,
+          "sourceVertex": 10437
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 367,
+          "sourceVertex": 10429
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 61,
+          "sourceVertex": 10123
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 1,
+          "sourceVertex": 10063
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "partVertex": 4,
+          "sourceVertex": 10066
+        }
+      ]
+    },
+    {
+      "bone": "head",
+      "memberVertices": 3552,
+      "uniqueMemberPoints": 624,
+      "extremeCount": 41,
+      "volumeM3": 0.06120491283539969,
+      "maxBindContainmentResidualM": 2.220446049250313e-16,
+      "maxFacetCentroidToActualSurfaceM": 0.08374565615744618,
+      "bridgeDiagnosticCentroid": [
+        -0.14813333749771118,
+        0.9883166551589966,
+        0.8316733638445536
+      ],
+      "bridgeDiagnosticFacetVertices": [
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 154,
+          "sourceVertex": 4576
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 148,
+          "sourceVertex": 4570
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 1816,
+          "sourceVertex": 6238
+        }
+      ],
+      "extremeSources": [
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 1817,
+          "sourceVertex": 6239
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 1815,
+          "sourceVertex": 6237
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 369,
+          "sourceVertex": 4791
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 1836,
+          "sourceVertex": 6258
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 1816,
+          "sourceVertex": 6238
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 375,
+          "sourceVertex": 4797
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 381,
+          "sourceVertex": 4803
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 1845,
+          "sourceVertex": 6267
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 36,
+          "sourceVertex": 4458
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 171,
+          "sourceVertex": 4593
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 165,
+          "sourceVertex": 4587
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 159,
+          "sourceVertex": 4581
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 3463,
+          "sourceVertex": 7885
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 166,
+          "sourceVertex": 4588
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 162,
+          "sourceVertex": 4584
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 149,
+          "sourceVertex": 4571
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 150,
+          "sourceVertex": 4572
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 148,
+          "sourceVertex": 4570
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 137,
+          "sourceVertex": 4559
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 208,
+          "sourceVertex": 4630
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 204,
+          "sourceVertex": 4626
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 196,
+          "sourceVertex": 4618
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 136,
+          "sourceVertex": 4558
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 156,
+          "sourceVertex": 4578
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 154,
+          "sourceVertex": 4576
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 153,
+          "sourceVertex": 4575
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 238,
+          "sourceVertex": 4660
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 234,
+          "sourceVertex": 4656
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 3464,
+          "sourceVertex": 7886
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 280,
+          "sourceVertex": 4702
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 276,
+          "sourceVertex": 4698
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 268,
+          "sourceVertex": 4690
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 105,
+          "sourceVertex": 4527
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 3347,
+          "sourceVertex": 7769
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 1935,
+          "sourceVertex": 6357
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 1941,
+          "sourceVertex": 6363
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 3353,
+          "sourceVertex": 7775
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 3351,
+          "sourceVertex": 7773
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 1859,
+          "sourceVertex": 6281
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 3369,
+          "sourceVertex": 7791
+        },
+        {
+          "part": "Dark recessed palate",
+          "partVertex": 3346,
+          "sourceVertex": 7768
+        }
+      ]
+    }
+  ],
+  "pose": {
+    "t": 0.6544984694978736,
+    "phase": 0.0,
+    "speed": 0.23225806451612901,
+    "stage": 0,
+    "clock": 0,
+    "deathT": 0,
+    "flinch": 0,
+    "allBoneScale": [
+      1,
+      1,
+      1
+    ],
+    "commonBodyBob": 0.03,
+    "relativeTranslations": {
+      "belly": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "tail": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "finL": [
+        0.0,
+        -0.03,
+        0.12
+      ],
+      "finR": [
+        0.0,
+        -0.03,
+        -0.07354838709677419
+      ],
+      "rearL": [
+        0.0,
+        -0.03,
+        -0.07354838709677419
+      ],
+      "rearR": [
+        0.0,
+        -0.03,
+        0.12
+      ],
+      "head": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "rotation": "all identity; fin gait amplitude suppresses yaw; irrelevant body-common transform canceled"
+  },
+  "outsideVertexCount": 192,
+  "outsideMixedVertexCount": 192,
+  "worstUnionHalfspaceViolationM": 0.017319728812089208,
+  "witness": {
+    "part": "Volumetric connected rearR",
+    "partVertex": 37,
+    "sourceVertex": 10099,
+    "bindPosition": [
+      -0.6134300827980042,
+      0.147599995136261,
+      -0.2231999933719635
+    ],
+    "weightedBodyFramePosition": [
+      -0.6134300827980042,
+      0.12359999513626099,
+      -0.1271999933719635
+    ],
+    "indices": [
+      6,
+      1,
+      0,
+      0
+    ],
+    "weights": [
+      0.8,
+      0.2,
+      0.0,
+      0.0
+    ],
+    "perHullMaxHalfspaceViolationM": {
+      "belly": 0.02042486930799817,
+      "tail": 0.5880950115774988,
+      "finL": 0.9034325661622523,
+      "finR": 0.2887843320224765,
+      "rearL": 0.9323836419164787,
+      "rearR": 0.017319728812089208,
+      "head": 1.0004513578170047
+    }
+  },
+  "outsideSourceVertices": [
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 1,
+      "sourceVertex": 8683
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 3,
+      "sourceVertex": 8685
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 4,
+      "sourceVertex": 8686
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 7,
+      "sourceVertex": 8689
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 9,
+      "sourceVertex": 8691
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 10,
+      "sourceVertex": 8692
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 13,
+      "sourceVertex": 8695
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 15,
+      "sourceVertex": 8697
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 16,
+      "sourceVertex": 8698
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 19,
+      "sourceVertex": 8701
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 21,
+      "sourceVertex": 8703
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 22,
+      "sourceVertex": 8704
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 28,
+      "sourceVertex": 8710
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 55,
+      "sourceVertex": 8737
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 57,
+      "sourceVertex": 8739
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 61,
+      "sourceVertex": 8743
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 63,
+      "sourceVertex": 8745
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 64,
+      "sourceVertex": 8746
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 67,
+      "sourceVertex": 8749
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 69,
+      "sourceVertex": 8751
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 70,
+      "sourceVertex": 8752
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 72,
+      "sourceVertex": 8754
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 74,
+      "sourceVertex": 8756
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 77,
+      "sourceVertex": 8759
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 78,
+      "sourceVertex": 8760
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 80,
+      "sourceVertex": 8762
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 83,
+      "sourceVertex": 8765
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 84,
+      "sourceVertex": 8766
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 86,
+      "sourceVertex": 8768
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 89,
+      "sourceVertex": 8771
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 90,
+      "sourceVertex": 8772
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 92,
+      "sourceVertex": 8774
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 95,
+      "sourceVertex": 8777
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 98,
+      "sourceVertex": 8780
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 101,
+      "sourceVertex": 8783
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 126,
+      "sourceVertex": 8808
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 132,
+      "sourceVertex": 8814
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 134,
+      "sourceVertex": 8816
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 137,
+      "sourceVertex": 8819
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 138,
+      "sourceVertex": 8820
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 140,
+      "sourceVertex": 8822
+    },
+    {
+      "part": "Volumetric connected finL",
+      "partVertex": 143,
+      "sourceVertex": 8825
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 19,
+      "sourceVertex": 9193
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 21,
+      "sourceVertex": 9195
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 25,
+      "sourceVertex": 9199
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 27,
+      "sourceVertex": 9201
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 28,
+      "sourceVertex": 9202
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 31,
+      "sourceVertex": 9205
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 33,
+      "sourceVertex": 9207
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 34,
+      "sourceVertex": 9208
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 37,
+      "sourceVertex": 9211
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 39,
+      "sourceVertex": 9213
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 40,
+      "sourceVertex": 9214
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 43,
+      "sourceVertex": 9217
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 45,
+      "sourceVertex": 9219
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 46,
+      "sourceVertex": 9220
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 52,
+      "sourceVertex": 9226
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 90,
+      "sourceVertex": 9264
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 96,
+      "sourceVertex": 9270
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 98,
+      "sourceVertex": 9272
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 101,
+      "sourceVertex": 9275
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 102,
+      "sourceVertex": 9276
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 104,
+      "sourceVertex": 9278
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 107,
+      "sourceVertex": 9281
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 108,
+      "sourceVertex": 9282
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 110,
+      "sourceVertex": 9284
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 113,
+      "sourceVertex": 9287
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 114,
+      "sourceVertex": 9288
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 116,
+      "sourceVertex": 9290
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 119,
+      "sourceVertex": 9293
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 122,
+      "sourceVertex": 9296
+    },
+    {
+      "part": "Volumetric connected finR",
+      "partVertex": 125,
+      "sourceVertex": 9299
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 1,
+      "sourceVertex": 9667
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 3,
+      "sourceVertex": 9669
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 4,
+      "sourceVertex": 9670
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 7,
+      "sourceVertex": 9673
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 9,
+      "sourceVertex": 9675
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 10,
+      "sourceVertex": 9676
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 13,
+      "sourceVertex": 9679
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 15,
+      "sourceVertex": 9681
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 16,
+      "sourceVertex": 9682
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 19,
+      "sourceVertex": 9685
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 21,
+      "sourceVertex": 9687
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 22,
+      "sourceVertex": 9688
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 25,
+      "sourceVertex": 9691
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 27,
+      "sourceVertex": 9693
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 28,
+      "sourceVertex": 9694
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 31,
+      "sourceVertex": 9697
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 33,
+      "sourceVertex": 9699
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 34,
+      "sourceVertex": 9700
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 37,
+      "sourceVertex": 9703
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 39,
+      "sourceVertex": 9705
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 40,
+      "sourceVertex": 9706
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 43,
+      "sourceVertex": 9709
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 45,
+      "sourceVertex": 9711
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 46,
+      "sourceVertex": 9712
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 49,
+      "sourceVertex": 9715
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 51,
+      "sourceVertex": 9717
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 52,
+      "sourceVertex": 9718
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 55,
+      "sourceVertex": 9721
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 57,
+      "sourceVertex": 9723
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 58,
+      "sourceVertex": 9724
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 61,
+      "sourceVertex": 9727
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 63,
+      "sourceVertex": 9729
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 64,
+      "sourceVertex": 9730
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 67,
+      "sourceVertex": 9733
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 69,
+      "sourceVertex": 9735
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 70,
+      "sourceVertex": 9736
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 72,
+      "sourceVertex": 9738
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 74,
+      "sourceVertex": 9740
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 77,
+      "sourceVertex": 9743
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 78,
+      "sourceVertex": 9744
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 80,
+      "sourceVertex": 9746
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 83,
+      "sourceVertex": 9749
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 84,
+      "sourceVertex": 9750
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 86,
+      "sourceVertex": 9752
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 89,
+      "sourceVertex": 9755
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 90,
+      "sourceVertex": 9756
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 92,
+      "sourceVertex": 9758
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 95,
+      "sourceVertex": 9761
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 96,
+      "sourceVertex": 9762
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 98,
+      "sourceVertex": 9764
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 101,
+      "sourceVertex": 9767
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 102,
+      "sourceVertex": 9768
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 104,
+      "sourceVertex": 9770
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 107,
+      "sourceVertex": 9773
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 108,
+      "sourceVertex": 9774
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 110,
+      "sourceVertex": 9776
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 113,
+      "sourceVertex": 9779
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 114,
+      "sourceVertex": 9780
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 116,
+      "sourceVertex": 9782
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 119,
+      "sourceVertex": 9785
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 120,
+      "sourceVertex": 9786
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 122,
+      "sourceVertex": 9788
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 125,
+      "sourceVertex": 9791
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 126,
+      "sourceVertex": 9792
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 128,
+      "sourceVertex": 9794
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 131,
+      "sourceVertex": 9797
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 132,
+      "sourceVertex": 9798
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 134,
+      "sourceVertex": 9800
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 137,
+      "sourceVertex": 9803
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 138,
+      "sourceVertex": 9804
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 140,
+      "sourceVertex": 9806
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "partVertex": 143,
+      "sourceVertex": 9809
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 19,
+      "sourceVertex": 10081
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 21,
+      "sourceVertex": 10083
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 25,
+      "sourceVertex": 10087
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 27,
+      "sourceVertex": 10089
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 28,
+      "sourceVertex": 10090
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 31,
+      "sourceVertex": 10093
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 33,
+      "sourceVertex": 10095
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 34,
+      "sourceVertex": 10096
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 37,
+      "sourceVertex": 10099
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 39,
+      "sourceVertex": 10101
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 40,
+      "sourceVertex": 10102
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 43,
+      "sourceVertex": 10105
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 45,
+      "sourceVertex": 10107
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 46,
+      "sourceVertex": 10108
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 49,
+      "sourceVertex": 10111
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 51,
+      "sourceVertex": 10113
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 52,
+      "sourceVertex": 10114
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 55,
+      "sourceVertex": 10117
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 57,
+      "sourceVertex": 10119
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 58,
+      "sourceVertex": 10120
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 61,
+      "sourceVertex": 10123
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 63,
+      "sourceVertex": 10125
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 64,
+      "sourceVertex": 10126
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 70,
+      "sourceVertex": 10132
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 90,
+      "sourceVertex": 10152
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 96,
+      "sourceVertex": 10158
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 98,
+      "sourceVertex": 10160
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 101,
+      "sourceVertex": 10163
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 102,
+      "sourceVertex": 10164
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 104,
+      "sourceVertex": 10166
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 107,
+      "sourceVertex": 10169
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 108,
+      "sourceVertex": 10170
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 110,
+      "sourceVertex": 10172
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 113,
+      "sourceVertex": 10175
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 114,
+      "sourceVertex": 10176
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 116,
+      "sourceVertex": 10178
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 119,
+      "sourceVertex": 10181
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 120,
+      "sourceVertex": 10182
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 122,
+      "sourceVertex": 10184
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 125,
+      "sourceVertex": 10187
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 126,
+      "sourceVertex": 10188
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 128,
+      "sourceVertex": 10190
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 131,
+      "sourceVertex": 10193
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 132,
+      "sourceVertex": 10194
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 134,
+      "sourceVertex": 10196
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 137,
+      "sourceVertex": 10199
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 140,
+      "sourceVertex": 10202
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "partVertex": 143,
+      "sourceVertex": 10205
+    }
+  ],
+  "notes": [
+    "Halfspace violation is a rigorous outside certificate up to floating numerical tolerance, not Euclidean surface distance or floor penetration.",
+    "Bind membership hulls are convexifications, not exact surface colliders. Facet centroid distances are sampled convex-bridge diagnostics, not a volume-of-concavity proof.",
+    "Every source vertex with positive bone influence is included for that bone; each retained extreme preserves its original source index. No padding or dropped extremes.",
+    "Containment of vertices would not alone establish containment of triangles across a nonconvex union.",
+    "An eighth or reassigned support hull was not designed; allowing convex bridges can change representability. This failed construction does not prove all legal recipes impossible.",
+    "No integrated alternate animation authored after this strict prerequisite failed. Removing inflation would be a real visual tradeoff, not equivalent animation."
+  ]
+}
