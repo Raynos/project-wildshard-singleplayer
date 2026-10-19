@@ -1,0 +1,226 @@
+{
+  "siteSource": "7494b6440bec378dd34d178ce4b5635d336203ab",
+  "scope": "Local published-source artifact inspection; no live-browser recheck",
+  "heroes": 9,
+  "sheets": 18,
+  "panels": 162,
+  "structuralErrors": [],
+  "pins": [
+    {
+      "identity": "brine-puffer",
+      "context": "model-explorer",
+      "path": "assets/approved-nine/pufferExplorerGen.webp",
+      "sha256": "7ef32a4391be00aec08c026779155730d247c2d2d5fbd88339644ee7930bc286",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "brine-puffer",
+      "context": "world",
+      "path": "assets/approved-nine/pufferWorldGen.webp",
+      "sha256": "2ed08952ccadce8a4b0cef695606be92f8ad35391eac9209285ff88a69d3e989",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "conch-duelist",
+      "context": "model-explorer",
+      "path": "assets/approved-nine/conchExplorerGen.webp",
+      "sha256": "3828746276be5527b905efc831ec989cec77eaca5886661716d4808492f68f84",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "conch-duelist",
+      "context": "world",
+      "path": "assets/approved-nine/conchWorldGen.webp",
+      "sha256": "facbd912c0c9f270d2084e15a9ea30255d6c82ddff0b6c046a6dbd1ecc90c36a",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "splinter-mantis",
+      "context": "model-explorer",
+      "path": "assets/approved-nine/mantisExplorerGen.webp",
+      "sha256": "ba996db41350d8009df08c09bdc2128320445e02d17fc5ffb17003d067d7288c",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "splinter-mantis",
+      "context": "world",
+      "path": "assets/approved-nine/mantisWorldGen.webp",
+      "sha256": "7df961251b66d92e43db85fff2658ad850e80ed9c3de01187c99774713bff80c",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "bellback",
+      "context": "model-explorer",
+      "path": "assets/approved-nine/bellbackExplorerGen.webp",
+      "sha256": "8e09918936cc26162c5d2a9edc728fdc2b3862d894b6acb49045ba7f45cc8f6a",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "bellback",
+      "context": "world",
+      "path": "assets/approved-nine/bellbackWorldGen.webp",
+      "sha256": "1056cdce23ca4647138918f40b8d5aa75e815c9080d486bc78a942f4bc273b33",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "tide-root-colossus",
+      "context": "model-explorer",
+      "path": "assets/approved-nine/colossusExplorerGen.webp",
+      "sha256": "acbf82712d6c56d600aabe2b8713755cd598a403c551be6a37ba62b93e2b6d71",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "tide-root-colossus",
+      "context": "world",
+      "path": "assets/approved-nine/colossusWorldGen.webp",
+      "sha256": "5087ca172cac36211ffd513c228eb44dc64a4e438cec1fa6343a493a45efeb69",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "DI-N16",
+      "context": "model-explorer",
+      "path": "assets/approved-nine/pitcherExplorerCorrectedGen.webp",
+      "sha256": "4af4ea44ea30495fd13d91250a96cf024e7905faa15266781c3a855c4595840e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "DI-N16",
+      "context": "world",
+      "path": "assets/approved-nine/pitcherWorldGen.webp",
+      "sha256": "e8a09b9b0bc03ef0228f34e9054d64337a4b6f6863556ad35b563d45bde01bb5",
+      "dimensions": [
+        1229,
+        1280
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "DI-N17",
+      "context": "model-explorer",
+      "path": "assets/approved-nine/medusaExplorerGen.webp",
+      "sha256": "b2021a36bac5d77f37ccbf4206d7a96e9874be19e432e11a894c4290dae83de9",
+      "dimensions": [
+        1145,
+        1374
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "DI-N17",
+      "context": "world",
+      "path": "assets/approved-nine/medusaWorldCorrectedGen.webp",
+      "sha256": "379a27c4a553bb0eb977a2324f703b1665b094180a9039dcdee296e50b27de21",
+      "dimensions": [
+        1145,
+        1374
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "DI-N19",
+      "context": "model-explorer",
+      "path": "assets/approved-nine/keelmawExplorerCorrectedGen.webp",
+      "sha256": "e14ed7a9772b8dadd4b7dadfa2dc3de0a6049f9ca928bb4ed0c2f05fa8589ee9",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "DI-N19",
+      "context": "world",
+      "path": "assets/approved-nine/keelmawWorldGen.webp",
+      "sha256": "adf2486bbb13bdc587c502967c7690acd35c324060c481222703df6ec97a8d59",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "DI-N10",
+      "context": "model-explorer",
+      "path": "assets/approved-nine/iguanaExplorerGen.webp",
+      "sha256": "28f5b6e6c8bfc28c0abd5e49f523836b96358b81905d8a57bc6ae818d11c2499",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    },
+    {
+      "identity": "DI-N10",
+      "context": "world",
+      "path": "assets/approved-nine/iguanaWorldGen.webp",
+      "sha256": "6b18d1642498987590493a9661858315b3ec37ceeaf2c6b13ab77c9c02c9dba8",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "panelCount": 9,
+      "status": "usable_with_caveats"
+    }
+  ]
+}
