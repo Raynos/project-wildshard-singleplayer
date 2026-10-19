@@ -1,0 +1,281 @@
+{
+  "schema": "wildshard.bellback.captured-contact.v1",
+  "method": "Exact original 13374 unit-weight vertices: meshWorld * hierarchy * inverseBind * originalVertex. Native fixed endpoints use corresponding native collider poses and original bind-local vertices. Native hull triangle planes test containment. Flat authored arena floor Y=900 only; no fake terrain; observations are not continuous-time proof. Initial velocities compared to unchanged rigid throw constants.",
+  "source": "22a5dec83554617cfc56fc587dde955e75d08a24f49d67b6cdf22d10f03f414f",
+  "vertices": 13374,
+  "render": {
+    "count": 1247,
+    "minimum": -0.0058343277152062,
+    "over5mm": 1,
+    "worst": {
+      "frame": 533,
+      "gameTime": 48.796599999979414,
+      "wallTime": 65737,
+      "scenario": "enemy-defeat",
+      "alive": false,
+      "ragdollState": "live",
+      "minimum": -0.0058343277152062,
+      "parts": {
+        "body": 0.8181883675142672,
+        "head": 0.7342798455790671,
+        "bell": 1.4727356038763446,
+        "clapper": 1.7770903893350578,
+        "leg0": 0.1823425778196679,
+        "leg1": 0.21646299438873484,
+        "leg2": -0.0058343277152062,
+        "leg3": 0.03714427362388051
+      }
+    }
+  },
+  "deadRender": {
+    "count": 157,
+    "minimum": -0.0058343277152062,
+    "over5mm": 1,
+    "worst": {
+      "frame": 533,
+      "gameTime": 48.796599999979414,
+      "wallTime": 65737,
+      "scenario": "enemy-defeat",
+      "alive": false,
+      "ragdollState": "live",
+      "minimum": -0.0058343277152062,
+      "parts": {
+        "body": 0.8181883675142672,
+        "head": 0.7342798455790671,
+        "bell": 1.4727356038763446,
+        "clapper": 1.7770903893350578,
+        "leg0": 0.1823425778196679,
+        "leg1": 0.21646299438873484,
+        "leg2": -0.0058343277152062,
+        "leg3": 0.03714427362388051
+      }
+    }
+  },
+  "fixedPost": {
+    "count": 175,
+    "minimum": -0.010302153087764054,
+    "over5mm": 3,
+    "worst": {
+      "frame": 533,
+      "gameTime": 48.796599999979414,
+      "wallTime": 65731.29999999702,
+      "scenario": "enemy-defeat",
+      "phase": "fixedPost",
+      "minimum": -0.010302153087764054,
+      "nativeHullMinimum": -0.010302153087764054,
+      "parts": {
+        "body": 0.7695034926222206,
+        "head": 0.5710825525353584,
+        "bell": 1.417712401559811,
+        "clapper": 1.6673614025521601,
+        "leg0": 0.06711062342026253,
+        "leg1": 0.08413957206812483,
+        "leg2": -0.010302153087764054,
+        "leg3": 0.011146381990329246
+      }
+    }
+  },
+  "maximumNativeHullVsOriginalSupportDifference": 3.821310201601591e-08
+}
+[
+  {
+    "scenario": "enemy-defeat",
+    "posePolicy": "captured",
+    "lethal": {
+      "frame": 532,
+      "gameTime": 48.69659999997941,
+      "wallTime": 65461.59999999404,
+      "stage": 4,
+      "gait": 0.5852470131616032,
+      "flinch": 1
+    },
+    "steps": 88,
+    "lastResultState": "frozen",
+    "containment": [
+      {
+        "bone": "body",
+        "originalVertices": 5004,
+        "nativeVertices": 86,
+        "nativeTriangles": 168,
+        "maximumOutwardPlaneDistance": 3.7747995973447246e-07
+      },
+      {
+        "bone": "head",
+        "originalVertices": 1314,
+        "nativeVertices": 49,
+        "nativeTriangles": 94,
+        "maximumOutwardPlaneDistance": 2.220446049250313e-16
+      },
+      {
+        "bone": "bell",
+        "originalVertices": 1728,
+        "nativeVertices": 81,
+        "nativeTriangles": 158,
+        "maximumOutwardPlaneDistance": 1.8684500457943898e-07
+      },
+      {
+        "bone": "clapper",
+        "originalVertices": 240,
+        "nativeVertices": 29,
+        "nativeTriangles": 54,
+        "maximumOutwardPlaneDistance": 1.1841320146643852e-08
+      },
+      {
+        "bone": "leg0",
+        "originalVertices": 1272,
+        "nativeVertices": 43,
+        "nativeTriangles": 82,
+        "maximumOutwardPlaneDistance": 8.679835961089566e-09
+      },
+      {
+        "bone": "leg1",
+        "originalVertices": 1272,
+        "nativeVertices": 42,
+        "nativeTriangles": 80,
+        "maximumOutwardPlaneDistance": 1.296392171390437e-08
+      },
+      {
+        "bone": "leg2",
+        "originalVertices": 1272,
+        "nativeVertices": 50,
+        "nativeTriangles": 96,
+        "maximumOutwardPlaneDistance": 4.867022607157878e-08
+      },
+      {
+        "bone": "leg3",
+        "originalVertices": 1272,
+        "nativeVertices": 50,
+        "nativeTriangles": 96,
+        "maximumOutwardPlaneDistance": 4.8670230734515485e-08
+      }
+    ],
+    "maximumRenderBoneDelta": 0.0,
+    "maximumFixedBoneDelta": 0.0,
+    "maximumLocalColliderDelta": 0.0,
+    "initialLinvel": {
+      "x": -0.8485281467437744,
+      "y": 2.5999999046325684,
+      "z": -0.8485281467437744
+    },
+    "initialAngvel": {
+      "x": -3.535533905029297,
+      "y": 0,
+      "z": 3.535533905029297
+    },
+    "expectedLinvel": [
+      -0.8485281374238569,
+      2.6,
+      -0.848528137423857
+    ],
+    "expectedAngvel": [
+      -3.5355339059327378,
+      0.0,
+      3.5355339059327373
+    ],
+    "maximumInitialVelocityDelta": 9.536743172944284e-08,
+    "minimumNativeManifoldDistance": -0.010302066802978516,
+    "frozenSamples": 39,
+    "frozenMinimum": -3.5162321637471905e-05,
+    "frozenMaximum": -3.5162321637471905e-05
+  },
+  {
+    "scenario": "varied-angle-death",
+    "posePolicy": "captured",
+    "lethal": {
+      "frame": 819,
+      "gameTime": 74.2921999999286,
+      "wallTime": 97802.40000000596,
+      "stage": 4,
+      "gait": 0,
+      "flinch": 1
+    },
+    "steps": 87,
+    "lastResultState": "frozen",
+    "containment": [
+      {
+        "bone": "body",
+        "originalVertices": 5004,
+        "nativeVertices": 86,
+        "nativeTriangles": 168,
+        "maximumOutwardPlaneDistance": 3.7747995973447246e-07
+      },
+      {
+        "bone": "head",
+        "originalVertices": 1314,
+        "nativeVertices": 49,
+        "nativeTriangles": 94,
+        "maximumOutwardPlaneDistance": 2.220446049250313e-16
+      },
+      {
+        "bone": "bell",
+        "originalVertices": 1728,
+        "nativeVertices": 81,
+        "nativeTriangles": 158,
+        "maximumOutwardPlaneDistance": 1.8684500457943898e-07
+      },
+      {
+        "bone": "clapper",
+        "originalVertices": 240,
+        "nativeVertices": 29,
+        "nativeTriangles": 54,
+        "maximumOutwardPlaneDistance": 1.1841320146643852e-08
+      },
+      {
+        "bone": "leg0",
+        "originalVertices": 1272,
+        "nativeVertices": 43,
+        "nativeTriangles": 82,
+        "maximumOutwardPlaneDistance": 8.679835961089566e-09
+      },
+      {
+        "bone": "leg1",
+        "originalVertices": 1272,
+        "nativeVertices": 42,
+        "nativeTriangles": 80,
+        "maximumOutwardPlaneDistance": 1.296392171390437e-08
+      },
+      {
+        "bone": "leg2",
+        "originalVertices": 1272,
+        "nativeVertices": 50,
+        "nativeTriangles": 96,
+        "maximumOutwardPlaneDistance": 4.867022607157878e-08
+      },
+      {
+        "bone": "leg3",
+        "originalVertices": 1272,
+        "nativeVertices": 50,
+        "nativeTriangles": 96,
+        "maximumOutwardPlaneDistance": 4.8670230734515485e-08
+      }
+    ],
+    "maximumRenderBoneDelta": 0.0,
+    "maximumFixedBoneDelta": 0.0,
+    "maximumLocalColliderDelta": 0.0,
+    "initialLinvel": {
+      "x": -1.01376211643219,
+      "y": 2.5999999046325684,
+      "z": 0.6420953869819641
+    },
+    "initialAngvel": {
+      "x": 2.6753973960876465,
+      "y": 0,
+      "z": 4.224008560180664
+    },
+    "expectedLinvel": [
+      -1.0137620597400345,
+      2.6,
+      0.6420953871751784
+    ],
+    "expectedAngvel": [
+      2.6753974465632435,
+      -0.0,
+      4.2240085822501445
+    ],
+    "maximumInitialVelocityDelta": 9.536743172944284e-08,
+    "minimumNativeManifoldDistance": -0.0005155801773071289,
+    "frozenSamples": 55,
+    "frozenMinimum": -1.6266317629742844e-05,
+    "frozenMaximum": -1.6266317629742844e-05
+  }
+]

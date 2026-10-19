@@ -1,0 +1,159 @@
+{
+  "schema": "wildshard.bellback.captured-actual-capture.v1",
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "sourceHash": "22a5dec83554617cfc56fc587dde955e75d08a24f49d67b6cdf22d10f03f414f",
+  "files": [
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/README.md",
+      "sha256": "0c5d30790fbe00c4c6bff5eea8fae6a1a89d9ce763af0bbb987b4563b2067a56",
+      "bytes": 4894
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/app-build1.log",
+      "sha256": "2412c66b6388830a019a8eb43ec908db7a3b6a33620ff42208ede8a015c8268a",
+      "bytes": 12220
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/arena-walk-report.json",
+      "sha256": "e5035630e8707693848db25fc44c952f743c4a73af8ddeff64eff72a2cd889df",
+      "bytes": 140818
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/arena-walk1.log",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bytes": 1
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/both-strikes-observation.jpg",
+      "sha256": "551144283c87caf46432614ce8d31c0e12791755ad973da733ace4966cabcb94",
+      "bytes": 62847
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/contact-analysis.json",
+      "sha256": "4723082ea06a7630ce3079f7f753df1408b08654743bfb05a259e903e1ba2004",
+      "bytes": 561127
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/contact-analysis.log",
+      "sha256": "6c13316cc8d1dca22c7224ac6a9d5f2f2809950ff47b35085c9de2a4c1c85cec",
+      "bytes": 7954
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/corpse-reward.jpg",
+      "sha256": "b8373c9506cab3fa77fc1b072f97c65854df7a336283da27d9125d8bfb2a740f",
+      "bytes": 58373
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/entry.jpg",
+      "sha256": "4d4b2f353bbff59924b5c4076bef393f00f755fc81db06e5cb4a0189b2d8a5cb",
+      "bytes": 61413
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/fixed-trace.json",
+      "sha256": "ed9b1348b7d5e62eef14a454c1288ec59377e01b2a83f860d96bfea1577d98fa",
+      "bytes": 1756231
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/full-combat1.log",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bytes": 1
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/interruption-recovery.jpg",
+      "sha256": "843ffa464919d8228935a3c44fcb2134351865add09547606011d5d10dd99719",
+      "bytes": 61013
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/native-case-0.json",
+      "sha256": "4a9a581c63282d71eb1df30fba5ce1984b843dd440ee45e04fa36a0e8d7c52da",
+      "bytes": 1115192
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/native-case-1.json",
+      "sha256": "e0342903b06f4049f38a2433b8dcd46e8c45ff6a654a1668341ab66b1fa51c04",
+      "bytes": 1077900
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/player-defeat.jpg",
+      "sha256": "76943e43f2c7d77886db710ebcc49258e4d11585742081f22861746fc1e5525f",
+      "bytes": 61112
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/product-build1.log",
+      "sha256": "a68c603f79d014c56f53b2571ae677f7452ed1ae63c93cb4fbc9b0ae5c4ac832",
+      "bytes": 293
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/render-trace.json",
+      "sha256": "ba1e110e01d599c30a0b3cfcc02db6506482bfef1ec882142ba0005a192d6907",
+      "bytes": 1874729
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/report.json",
+      "sha256": "0b42db43d2c7c3c959aef07d435feac38f02615e5396db89532707e49e2c501a",
+      "bytes": 776596
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/result.json",
+      "sha256": "2d1329835ddeb4557fe83d98aaddee7b2c1b076c82c3993ec95a7938cecf63a9",
+      "bytes": 1786
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/scenario-ranges.json",
+      "sha256": "84a854c45ba0090339bfcb7919b6ee92b30605c4d2d80af3101c6aa1d4b66df2",
+      "bytes": 2142
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/sword-result.jpg",
+      "sha256": "3be67e6c900e349dec634a1e61ce2541f1b520fc14ac23a30e68be8c6df4bce0",
+      "bytes": 58878
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/varied-angle-frozen.jpg",
+      "sha256": "0b9559327b5eed9d53046a207e1febb73194536147eb853937c29926cd6b5afb",
+      "bytes": 56569
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/log-whitespace-normalization.json",
+      "sha256": "ece4790204ff71097455514b1b792ad814a019ca12a2bf9c7058ff5520b676d9",
+      "bytes": 1046
+    }
+  ],
+  "video": [
+    {
+      "path": "tmp/bellback-captured-full-combat1/video/page@c06c59c2a8bd2f774903e95ee9193c40.webm",
+      "sha256": "3660550bc0b1750fe00d2bd7c29a21de63fe51d386da977cc972d4203bd2e4c6",
+      "bytes": 13023553
+    }
+  ],
+  "buildPins": {
+    "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate5/build1/build-files.json",
+    "sha256": "4a403570569f6b8600f6709c423890b12cfc50a18b096c5af48e2d8e89a484fa",
+    "bytes": 38237
+  },
+  "sourceClosure": {
+    "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate5/build1/source-closure.json",
+    "sha256": "8bbe5985f6fb2d3d658ae246179b1fe24ee43a58ab8ed87bda81f271395a66b6",
+    "bytes": 263656
+  },
+  "harnesses": [
+    {
+      "path": "scripts/qa-bellback-captured-combat.mjs",
+      "sha256": "c82e7b9d18f22998a203fabfcca48fdf41eb41b8f6d22c6b8089d9a289ffdbcb",
+      "bytes": 27031
+    },
+    {
+      "path": "scripts/qa-bellback-captured-arena-walk.mjs",
+      "sha256": "8215d14998c87a155c7083140c61165cb534c8e5c538a2a4b2ab5fe231289ce9",
+      "bytes": 11603
+    },
+    {
+      "path": "scripts/analyze-bellback-captured-contact.py",
+      "sha256": "73173678799d8b7c692b706ac84e806f4d20090a8b502aefa068b99c5a290936",
+      "bytes": 6725
+    }
+  ],
+  "originalManifestSha256": "f122566f3d340a410c87b4195214d4c4b6f9ea4a2e5680c854d09eddbc88517b",
+  "publicationNormalization": "See log-whitespace-normalization.json; no measurements changed."
+}

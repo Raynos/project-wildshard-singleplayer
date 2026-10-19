@@ -1,0 +1,140 @@
+{
+  "sourceCommit": "803359c25722126591ea08c9e4e63872af5b5db5",
+  "scope": "Controlled native fixture only; candidate4 lethal inputs, not candidate5 gameplay. No product edits.",
+  "command": "node --experimental-transform-types --import ./scripts/bake-loader.mjs docs/reviews/captured-corpse-terrain/run.mjs",
+  "exitCode": 0,
+  "postRunNormalization": [
+    "Renamed slidingAtMaxT output field to movingAtMaxT, because the recorded 205 mm air gap is moving/airborne rather than sliding. No measurement values changed.",
+    "Added exact digests of already imported numeric compiler, clips, loader and Rapier binding sources; runner records these on future runs."
+  ],
+  "files": {
+    "README.md": {
+      "bytes": 6026,
+      "sha256": "25362cce861c4ec28b4538407790b8c7745855703586cb61a6df75e222e08486"
+    },
+    "pose0-orientation0-slope0-scale1.json": {
+      "bytes": 138203,
+      "sha256": "6a2df5cc6b124ce0399dc93ff9b11c5c6b6e68fd1c0ac583ce03607d63cbcd28"
+    },
+    "pose0-orientation0-slope15-scale1.json": {
+      "bytes": 144385,
+      "sha256": "abfccfa597444dde351e1dfa6839c6822aadadbf2f881e02c75b15bfbbcf948d"
+    },
+    "pose0-orientation0-slope26-scale1.json": {
+      "bytes": 339851,
+      "sha256": "943f9bc01e922546f8cffc30a35e129d45c0becf76fbd3d89cd6a73039675214"
+    },
+    "pose0-orientation1-slope0-scale1.json": {
+      "bytes": 132557,
+      "sha256": "11a4a22935973fcd018e8da9c97a2a5c5f6c02bd039e3cc7bc4d83ded92eb218"
+    },
+    "pose0-orientation1-slope15-scale1.json": {
+      "bytes": 133639,
+      "sha256": "a3ccfcad4e4c7c870cb07d49e33b8da8625c0fab902908ad6095f592879f1b57"
+    },
+    "pose0-orientation1-slope26-scale1.json": {
+      "bytes": 177572,
+      "sha256": "6ad53a692728a202b362aded87fa11d3948f1b26f6b3eaa7a2cdfbb3990ab7c1"
+    },
+    "pose0-orientation2-slope0-scale1.json": {
+      "bytes": 171030,
+      "sha256": "bbfd19ad2d3214bc888ed0429675e003d958f1efaef36c4e163b039d166f02df"
+    },
+    "pose0-orientation2-slope15-scale1.json": {
+      "bytes": 191401,
+      "sha256": "71c7aad62db227f952b0e10300bae42e3da5ebd12a891bcc4c35a8de36822fef"
+    },
+    "pose0-orientation2-slope26-scale0.5.json": {
+      "bytes": 316960,
+      "sha256": "8a2d95e8f0691a1fb15d78b41c838053220df04df102b592f2530d36b2e4bfaa"
+    },
+    "pose0-orientation2-slope26-scale1.json": {
+      "bytes": 325446,
+      "sha256": "1a16ac70bbce1dc282b7e657caf5842bdffc596e665a6c9ba2d8c84b10dd4222"
+    },
+    "pose0-orientation2-slope26-scale2.json": {
+      "bytes": 327687,
+      "sha256": "8493215b1643e69d5e718786bf9952e60320e870aba7ae4a6325970e0028f030"
+    },
+    "pose0-orientation3-slope0-scale1.json": {
+      "bytes": 348524,
+      "sha256": "ee88b4e351bd06c853266b7a9157004bfa5f8e0003e3b5bc0b4460ddbd70ce22"
+    },
+    "pose0-orientation3-slope15-scale1.json": {
+      "bytes": 341328,
+      "sha256": "d519c80c18dd9f40a3fb8351e73d168b157359d7509877d3192eccdaef1baf43"
+    },
+    "pose0-orientation3-slope26-scale1.json": {
+      "bytes": 435862,
+      "sha256": "3879ffb3d511f41f3e45a686a371080f3a96cd6a19a8008582b4dc86dfc86216"
+    },
+    "pose1-orientation0-slope0-scale1.json": {
+      "bytes": 165421,
+      "sha256": "7776eb5b74332cf315209c04698b9046d72c08c2d5c82d7b3725b6a3e55054bc"
+    },
+    "pose1-orientation0-slope15-scale1.json": {
+      "bytes": 368471,
+      "sha256": "3c62de865f3f3a8e08737ea859496df0873456e4643ec70a79943500f53e1464"
+    },
+    "pose1-orientation0-slope26-scale1.json": {
+      "bytes": 344184,
+      "sha256": "441087fdd524334d298ad62935d7289ac17fc7c48922c154066cfdee695326a6"
+    },
+    "pose1-orientation1-slope0-scale1.json": {
+      "bytes": 157634,
+      "sha256": "92c90b3838db3529c01c2de35d1b47eb39462a9cf5b265324374712720afefe9"
+    },
+    "pose1-orientation1-slope15-scale1.json": {
+      "bytes": 158176,
+      "sha256": "4641210ac636f85bed892aa3d240b9cab8756e1ba89f3eac66e3ee5d6cf0b063"
+    },
+    "pose1-orientation1-slope26-scale1.json": {
+      "bytes": 200100,
+      "sha256": "41740f47961f5825b4f2d502503d0d832689652d6275cd76551f16ea19b61373"
+    },
+    "pose1-orientation2-slope0-scale1.json": {
+      "bytes": 159190,
+      "sha256": "590087a70f33c93af1cf1b5a20cb347e79c005179ce131af7f41781b6ad8ed13"
+    },
+    "pose1-orientation2-slope15-scale1.json": {
+      "bytes": 365157,
+      "sha256": "b86bba33d3391152aa77974abe6b5f8b8d191ee4d65aa84eec2b7ea569cd4828"
+    },
+    "pose1-orientation2-slope26-scale0.5.json": {
+      "bytes": 156255,
+      "sha256": "3674c56221b212dd258ee13bb3db3074cc99fd0a75606213b0bcc9f0186661f2"
+    },
+    "pose1-orientation2-slope26-scale1.json": {
+      "bytes": 136721,
+      "sha256": "66fa41a75912a53606ecd85c12e49bf5c151512f25910779de777b2d3dda80ce"
+    },
+    "pose1-orientation2-slope26-scale2.json": {
+      "bytes": 243369,
+      "sha256": "a0673e9bb19d38bd75d45df1901fe9a0a6df314131ecde1a62228b290faf694d"
+    },
+    "pose1-orientation3-slope0-scale1.json": {
+      "bytes": 266599,
+      "sha256": "54cf3e5fe1978921da95a151e6456fb0cb2fbb17540b0a5f915085986747c01d"
+    },
+    "pose1-orientation3-slope15-scale1.json": {
+      "bytes": 354488,
+      "sha256": "5aa35bb13fd255216243206fcb2ebec4052a00c04724b98e275db9768d6d5341"
+    },
+    "pose1-orientation3-slope26-scale1.json": {
+      "bytes": 302645,
+      "sha256": "cc9d0f44d5f7a311ab7f377433e125aea37f042b1efa08947bf6bb8a74de6080"
+    },
+    "run.log": {
+      "bytes": 47775,
+      "sha256": "54f61c3f9e5ed7a190f80e6d1bca718bc8dde000b43216cec6196c2802bb9957"
+    },
+    "run.mjs": {
+      "bytes": 12997,
+      "sha256": "f4cc4051352a5c26784aa0b0246b771f9272277ea3751da0ac9f782318e83ac4"
+    },
+    "summary.json": {
+      "bytes": 49785,
+      "sha256": "d7df7e53f5e402de3e77d62147940d1b48bd634f8973201b9c6353e46e5106c7"
+    }
+  }
+}

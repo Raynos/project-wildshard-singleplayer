@@ -1,0 +1,26 @@
+{
+  "changes": "Trailing whitespace and blank EOF lines only; outcomes unchanged.",
+  "files": [
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/arena-walk1.log",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalBytes": 0,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bytes": 1
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/app-build1.log",
+      "originalSha256": "5c1e11a51cc9ed55b6054d55bd329958865856828471fd424501ff49b666b3ea",
+      "originalBytes": 12221,
+      "sha256": "2412c66b6388830a019a8eb43ec908db7a3b6a33620ff42208ede8a015c8268a",
+      "bytes": 12220
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/full-combat1.log",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalBytes": 0,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bytes": 1
+    }
+  ]
+}

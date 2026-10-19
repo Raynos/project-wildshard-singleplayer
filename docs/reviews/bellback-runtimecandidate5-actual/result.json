@@ -1,0 +1,48 @@
+{
+  "schema": "wildshard.bellback.captured-actual-result.v1",
+  "sourceHash": "22a5dec83554617cfc56fc587dde955e75d08a24f49d67b6cdf22d10f03f414f",
+  "runtimeChecks": {
+    "passed": 28,
+    "failed": 0
+  },
+  "arenaWalkChecks": {
+    "passed": 15,
+    "failed": 0
+  },
+  "strictContactAcceptance": false,
+  "productPromotion": false,
+  "decision": "Reject strict <=5mm contact acceptance: actual render and native post-solver endpoints penetrate beyond 5mm. Exact captured pose and immediate original throw work; do not promote or retune solver/padding/floor in this test.",
+  "postCapturePinVerification": {
+    "build-files.json": {
+      "filesVerified": 186,
+      "unchanged": true
+    },
+    "source-closure.json": {
+      "filesVerified": 1600,
+      "unchanged": true
+    },
+    "protected-host-pins.json": {
+      "filesVerified": 137,
+      "unchanged": true
+    }
+  },
+  "sourceFreezeManifestSha256": "eed05d4799c9e6b8936712de9d937d0a48770b9970d03a4cb88e634381cfb321",
+  "renderObservations": 1247,
+  "deadRenderObservations": 157,
+  "renderBelow5mm": 1,
+  "renderMinimumMeters": -0.0058343277152062,
+  "fixedPostObservations": 175,
+  "fixedPostBelow5mm": 3,
+  "fixedPostMinimumMeters": -0.010302153087764054,
+  "scopeLimitations": [
+    "Flat authored Y900 arena only; no artificial floor or terrain injection",
+    "Actual UI input with explicit diagnostic player placement and temporary observer camera",
+    "Native fixed samples and render frames do not prove continuous-time nonpenetration",
+    "No physical phone/performance/human-fun/taste acceptance",
+    "Independent complete encoded-frame review remains separate; captured corpse visibly stiff/upright"
+  ],
+  "scriptChecks": {
+    "nodeSyntaxBothHarnesses": "passed",
+    "pythonCompileAnalyzer": "passed"
+  }
+}

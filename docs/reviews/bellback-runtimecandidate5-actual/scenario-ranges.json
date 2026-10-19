@@ -1,0 +1,82 @@
+[
+  {
+    "scenario": "entry",
+    "observations": 19,
+    "firstFrame": 4,
+    "lastFrame": 22,
+    "firstGameTime": 0.23879999999701979,
+    "lastGameTime": 1.5604000000059608,
+    "firstWallTime": 2633.2999999970198,
+    "lastWallTime": 5404.4000000059605
+  },
+  {
+    "scenario": "moving-approach",
+    "observations": 25,
+    "firstFrame": 23,
+    "lastFrame": 47,
+    "firstGameTime": 1.6604000000059609,
+    "lastGameTime": 4.055700000017883,
+    "firstWallTime": 5626.9000000059605,
+    "lastWallTime": 8964.59999999404
+  },
+  {
+    "scenario": "uninterrupted-cycles",
+    "observations": 92,
+    "firstFrame": 48,
+    "lastFrame": 139,
+    "firstGameTime": 4.155700000017883,
+    "lastGameTime": 12.705299999996996,
+    "firstWallTime": 9108.40000000596,
+    "lastWallTime": 20594.20000000298
+  },
+  {
+    "scenario": "approach-stop-resume",
+    "observations": 149,
+    "firstFrame": 140,
+    "lastFrame": 288,
+    "firstGameTime": 12.805299999996995,
+    "lastGameTime": 26.419299999952397,
+    "firstWallTime": 20695.90000000596,
+    "lastWallTime": 37306.79999999702
+  },
+  {
+    "scenario": "single-interruption-recovery",
+    "observations": 60,
+    "firstFrame": 289,
+    "lastFrame": 348,
+    "firstGameTime": 26.5192999999524,
+    "lastGameTime": 31.855799999922652,
+    "firstWallTime": 37512.5,
+    "lastWallTime": 45084
+  },
+  {
+    "scenario": "enemy-defeat",
+    "observations": 259,
+    "firstFrame": 349,
+    "lastFrame": 607,
+    "firstGameTime": 31.955799999922654,
+    "lastGameTime": 54.95209999993478,
+    "firstWallTime": 45271.79999999702,
+    "lastWallTime": 73978.5
+  },
+  {
+    "scenario": "varied-angle-death",
+    "observations": 302,
+    "firstFrame": 608,
+    "lastFrame": 909,
+    "firstGameTime": 54.96269999992882,
+    "lastGameTime": 81.54799999994039,
+    "firstWallTime": 73989.20000000298,
+    "lastWallTime": 106153.90000000596
+  },
+  {
+    "scenario": "player-defeat",
+    "observations": 341,
+    "firstFrame": 910,
+    "lastFrame": 1250,
+    "firstGameTime": 81.63399999994039,
+    "lastGameTime": 109.56990000006523,
+    "firstWallTime": 106240,
+    "lastWallTime": 137560.40000000596
+  }
+]
