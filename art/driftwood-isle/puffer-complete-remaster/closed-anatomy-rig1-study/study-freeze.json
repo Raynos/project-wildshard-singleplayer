@@ -1,0 +1,24 @@
+{
+  "files": {
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/README.md": "2f4cd661a4c0a7000346eed2a424ee9d7535f62f304583e5b53fe8f052a12e0d",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/audit_regions.py": "92f48c181cccaf3ee234cb667789c1748643ad49d1571c33345d9b9a06a19e5d",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/candidate-source.json": "04c89b1f8492f229cce28a655a3c2679644ac24afefb68a52a861831c4d93b9b",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/closed-anatomy-rig1-native.json": "38e0ad4de8a25827ace7a366e70c3c21a860ce9221de64f4b4afaf0c27ec2b61",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/input-pins.json": "c5d1e5747b87146ba14003465fb294df01b2ae87a697bda7428c49ecbef4f8d6",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/prepare.py": "bb12915d3469a70f6b823a2e87ce6f8365ff6e7d070e78ce6f355233ece18b57",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/runtime-audit.test.ts": "9d3368afe407d582a96207477541eceadffeb4974cfa33153e331fe682b4e234",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/runtime-envelope-results.json": "00009b4fbb0e04f929d7ba6686fc78792772173a82e46fb847077de42341f286",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/semantic-envelope-audit.json": "08d99aa987be8c651b5f2d14556c96a1711417538c478c74c7b8c3b400b4a5bd",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/test_transfer.py": "d45495fde76af35db8c68dcd7932354d248312927a1678cc3b1aeceda4f16cff",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/transfer-receipt.json": "69a53b57ff6b4cf60ac732c5419db651ab84b8433de957d52aee3ddd106a1652",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/transfer-test.log": "cc64d625030188e016fdae948820dbcd48437f9611690dd14591db1b1622f2f5",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/transfer_weights.py": "a097088b5106c696468c81ff63c788f1b751bd449d41a91f65fa861252995c2e",
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/vitest.config.ts": "0cb12fa3470de2094979a20604543a2e9aa2ead8f6491126a025d8fc77ca012e"
+  },
+  "excludedRawEnvironmentLogs": [
+    "test.log"
+  ],
+  "runtimeMeasurementTest": "1 passed;1071 samples for each of three sources",
+  "transferTests": "7 passed",
+  "runtimeAdmission": false
+}

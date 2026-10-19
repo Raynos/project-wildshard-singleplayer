@@ -1,0 +1,2543 @@
+{
+  "publicPoseSha256": "cf98695e901d32720a0434084c553b4f91ac2b01e58c0a0b224105ee10dfed17",
+  "scope": "Real native codec and packedCreatureBodies decoder; admitted numeric evaluator, unchanged gait5 adapter and Three SkinnedMesh.applyBoneTransform. Local sampled envelopes, not world contact, rendering, combat or physical death acceptance.",
+  "protectedPins": {
+    "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-study/closed-anatomy-native.json": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006",
+    "art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+    "src/shards/driftwood-isle/generators/pufferNativeClips.ts": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+    "src/shards/driftwood-isle/generators/pufferNativeGait4Clips.ts": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0",
+    "src/pufferGaitContinuityPreview.ts": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+    "scripts/puffer-gait-admission.mjs": "3e5ad5f11686445891b268a53eb6d3d998e9c5fe5a9994135d41aab724c8e475",
+    "scripts/puffer-preview-input.mjs": "686720f2e80f860a70cfc593e62dc2d518c7052d5c3dd59c40d4cfff2d252662",
+    "src/shards/driftwood-isle/behaviour/brinePuffer.as": "b9b86abe7de602237a56782b06bf279c4cc9b2831babd3e1e92e7dc8f4ccc6b2",
+    "src/shards/driftwood-isle/generators/driftwoodRegularCombat.ts": "1d440026e146b9d46ab58098e9517165ba3290365f1317e0a6f8fe169ade72ff",
+    "src/shards/driftwood-isle/data/practiceNeutralGrayLighting.json": "b0871ebc6bb4b1584cc3b970861dd9d577dd1d6f03c59b752f4d937571c29101"
+  },
+  "results": [
+    {
+      "key": "selected",
+      "path": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-study/closed-anatomy-native.json",
+      "sha256": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006",
+      "validation": {
+        "vertices": 10458,
+        "triangles": 3486,
+        "bones": 8,
+        "parts": 7
+      },
+      "parts": [
+        {
+          "name": "Continuous mantle cheek and pouch",
+          "triangles": 1474,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "belly",
+                  1
+                ]
+              ],
+              "vertices": 4422
+            }
+          ]
+        },
+        {
+          "name": "Dark recessed palate",
+          "triangles": 1184,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "head",
+                  1
+                ]
+              ],
+              "vertices": 3552
+            }
+          ]
+        },
+        {
+          "name": "Tail root",
+          "triangles": 236,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "tail",
+                  1
+                ]
+              ],
+              "vertices": 708
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected finL",
+          "triangles": 164,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "finL",
+                  1
+                ]
+              ],
+              "vertices": 492
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected finR",
+          "triangles": 164,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "finR",
+                  1
+                ]
+              ],
+              "vertices": 492
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected rearL",
+          "triangles": 132,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "rearL",
+                  1
+                ]
+              ],
+              "vertices": 396
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected rearR",
+          "triangles": 132,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "rearR",
+                  1
+                ]
+              ],
+              "vertices": 396
+            }
+          ]
+        }
+      ],
+      "bones": [
+        {
+          "name": "body",
+          "parent": null,
+          "pos": [
+            0,
+            0.6000000238418579,
+            0
+          ]
+        },
+        {
+          "name": "belly",
+          "parent": "body",
+          "pos": [
+            0,
+            0.6000000238418579,
+            0
+          ]
+        },
+        {
+          "name": "tail",
+          "parent": "body",
+          "pos": [
+            0,
+            0.5799999833106995,
+            -0.5174999833106995
+          ]
+        },
+        {
+          "name": "finL",
+          "parent": "body",
+          "pos": [
+            0.4300000071525574,
+            0.5,
+            0.1599999964237213
+          ]
+        },
+        {
+          "name": "finR",
+          "parent": "body",
+          "pos": [
+            -0.4300000071525574,
+            0.5,
+            0.1599999964237213
+          ]
+        },
+        {
+          "name": "rearL",
+          "parent": "body",
+          "pos": [
+            0.4300000071525574,
+            0.5,
+            -0.36000001430511475
+          ]
+        },
+        {
+          "name": "rearR",
+          "parent": "body",
+          "pos": [
+            -0.4300000071525574,
+            0.5,
+            -0.36000001430511475
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "belly",
+          "pos": [
+            0,
+            0.8299999833106995,
+            0.5
+          ]
+        }
+      ],
+      "measurement": {
+        "schema": "wildshard.puffer.preview-dimensions.v1",
+        "candidate": "puffer-closed-anatomy audit input",
+        "sourceSha256": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006",
+        "colliderAcceptance": false,
+        "visualAcceptance": false,
+        "scope": "Diagnostic weighted rest measurement only; no candidate admission or collision acceptance",
+        "method": {
+          "bodyY": "Actual body absolute bind Y",
+          "bodyHalfLen": "Half of maximum absolute hull Z offset from body pivot",
+          "bodyRadius": "Maximum body/belly-influenced vertex distance to symmetric Z segment plus 0.001 m; includes every positive influence across merged parts",
+          "headRadius": "Maximum head-influenced vertex distance to head pivot plus 0.001 m; merged head envelope, not eye-only or anatomical fit",
+          "legLen": "Body pivot Y minus lowest fin/toe vertex Y",
+          "feet": "AABB X/Z centres of all positively fin-weighted vertices, ordered finL, finR, rearL, rearR",
+          "halfWidth": "Maximum absolute X of all actual parts"
+        },
+        "bounds": {
+          "hull": {
+            "min": [
+              -0.707255125713191,
+              0.05660514948313201,
+              -0.5450000166893005
+            ],
+            "max": [
+              0.707255125713191,
+              1.5608454865017063,
+              1.012995328338444
+            ]
+          },
+          "eyes": {
+            "min": [
+              -0.46000000834465027,
+              0.6349999904632568,
+              0.5552200078964233
+            ],
+            "max": [
+              0.46000000834465027,
+              1.0609499216079712,
+              0.9119999408721924
+            ]
+          },
+          "limbs": {
+            "finL": {
+              "min": [
+                0.18000000715255737,
+                0.004000000189989805,
+                0.08500000089406967
+              ],
+              "max": [
+                0.9789999723434448,
+                0.47999998927116394,
+                0.9581454992294312
+              ]
+            },
+            "finR": {
+              "min": [
+                -0.9789999723434448,
+                0.004000000189989805,
+                0.08500000089406967
+              ],
+              "max": [
+                -0.18000000715255737,
+                0.47999998927116394,
+                0.9581454992294312
+              ]
+            },
+            "rearL": {
+              "min": [
+                0.2565000057220459,
+                0.004000000189989805,
+                -0.2851250171661377
+              ],
+              "max": [
+                0.7908999919891357,
+                0.492000013589859,
+                0.18570184707641602
+              ]
+            },
+            "rearR": {
+              "min": [
+                -0.7908999919891357,
+                0.004000000189989805,
+                -0.2851250171661377
+              ],
+              "max": [
+                -0.2565000057220459,
+                0.492000013589859,
+                0.18570184707641602
+              ]
+            }
+          },
+          "all": {
+            "min": [
+              -0.9789999723434448,
+              0.004000000189989805,
+              -1.1825
+            ],
+            "max": [
+              0.9789999723434448,
+              1.5608454865017063,
+              1.012995328338444
+            ]
+          }
+        },
+        "restHullOutsideCapsule": 0,
+        "limitations": [
+          "Rest only; 1.05/1.10 inflation containment and collider response untested",
+          "Conservative capsule includes empty space and may feel oversized",
+          "Eye sphere is not a full head hit-volume design",
+          "No visual, fight, terrain, balance or phone acceptance",
+          "Weight-based envelopes can include non-anatomical regions; rest bind weights do not prove inflation containment"
+        ],
+        "dimensions": {
+          "bodyY": 0.6000000238418579,
+          "bodyHalfLen": 0.506497664169222,
+          "bodyRadius": 0.9631455207963731,
+          "headRadius": 0.5321923664959826,
+          "legLen": 0.5960000236518681,
+          "feet": [
+            [
+              0.5794999897480011,
+              0.5215727500617504
+            ],
+            [
+              -0.5794999897480011,
+              0.5215727500617504
+            ],
+            [
+              0.5236999988555908,
+              -0.04971158504486084
+            ],
+            [
+              -0.5236999988555908,
+              -0.04971158504486084
+            ]
+          ],
+          "halfWidth": 0.9789999723434448
+        }
+      },
+      "phaseDimensions": {
+        "bodyY": 0.6000000238418579,
+        "bodyHalfLen": 0.506497664169222,
+        "bodyRadius": 0.9631455207963731,
+        "headRadius": 0.5321923664959826,
+        "legLen": 0.3406437050032335,
+        "feet": [
+          [
+            0.5794999897480011,
+            0.5215727500617504
+          ],
+          [
+            -0.5794999897480011,
+            0.5215727500617504
+          ],
+          [
+            0.5236999988555908,
+            -0.04971158504486084
+          ],
+          [
+            -0.5236999988555908,
+            -0.04971158504486084
+          ]
+        ],
+        "halfWidth": 0.9789999723434448
+      },
+      "decodedDimensions": {
+        "bodyY": 0.6000000238418579,
+        "bodyHalfLen": 0.506497664169222,
+        "bodyRadius": 0.9631455207963731,
+        "headRadius": 0.5321923664959826,
+        "legLen": 0.3406437050032335,
+        "feet": [
+          [
+            0.5794999897480011,
+            0.5215727500617504
+          ],
+          [
+            -0.5794999897480011,
+            0.5215727500617504
+          ],
+          [
+            0.5236999988555908,
+            -0.04971158504486084
+          ],
+          [
+            -0.5236999988555908,
+            -0.04971158504486084
+          ]
+        ],
+        "halfWidth": 0.9789999723434448
+      },
+      "decodedBones": [
+        {
+          "name": "body",
+          "parent": null,
+          "pos": [
+            0,
+            0.6000000238418579,
+            0
+          ]
+        },
+        {
+          "name": "belly",
+          "parent": "body",
+          "pos": [
+            0,
+            0.6000000238418579,
+            0
+          ]
+        },
+        {
+          "name": "tail",
+          "parent": "body",
+          "pos": [
+            0,
+            0.5799999833106995,
+            -0.5174999833106995
+          ]
+        },
+        {
+          "name": "finL",
+          "parent": "body",
+          "pos": [
+            0.4300000071525574,
+            0.5,
+            0.1599999964237213
+          ]
+        },
+        {
+          "name": "finR",
+          "parent": "body",
+          "pos": [
+            -0.4300000071525574,
+            0.5,
+            0.1599999964237213
+          ]
+        },
+        {
+          "name": "rearL",
+          "parent": "body",
+          "pos": [
+            0.4300000071525574,
+            0.5,
+            -0.36000001430511475
+          ]
+        },
+        {
+          "name": "rearR",
+          "parent": "body",
+          "pos": [
+            -0.4300000071525574,
+            0.5,
+            -0.36000001430511475
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "belly",
+          "pos": [
+            0,
+            0.8299999833106995,
+            0.5
+          ]
+        }
+      ],
+      "inverseBindMatrices": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.6000000238418579,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.6000000238418579,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.5799999833106995,
+          0.5174999833106995,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -0.4300000071525574,
+          -0.5,
+          -0.1599999964237213,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0.4300000071525574,
+          -0.5,
+          -0.1599999964237213,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -0.4300000071525574,
+          -0.5,
+          0.36000001430511475,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0.4300000071525574,
+          -0.5,
+          0.36000001430511475,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.8299999833106995,
+          -0.5,
+          1
+        ]
+      ],
+      "packedSha256": "3e75d36bb88671a797547486f86126f8f9d67c4d018767341cd42a648720b995",
+      "scans": [
+        {
+          "scenario": "rest",
+          "frames": 1,
+          "minimumLocalY": 0.004000000189989805,
+          "minimumFinY": 0.004000000189989805,
+          "maximumCapToBellyError": 0,
+          "minimumFinAreaRatio": 1,
+          "envelope": {
+            "min": [
+              -0.9789999723434448,
+              0.004000000189989805,
+              -1.1825000047683716
+            ],
+            "max": [
+              0.9789999723434448,
+              1.5608454942703247,
+              1.0129953622817993
+            ]
+          },
+          "worstFloor": {
+            "scenario": "rest",
+            "dt": 0.016666666666666666,
+            "time": 0,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.004000000189989805,
+              0.7599999904632568
+            ],
+            "deathT": -1
+          },
+          "worstCap": null,
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.05660514906048775,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6349999904632568,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.2800000011920929,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0
+            }
+          ]
+        },
+        {
+          "scenario": "inflate-105",
+          "frames": 1,
+          "minimumLocalY": 0.004000000189989805,
+          "minimumFinY": 0.004000000189989805,
+          "maximumCapToBellyError": 0.02783933883205628,
+          "minimumFinAreaRatio": 1,
+          "envelope": {
+            "min": [
+              -0.9789999723434448,
+              0.004000000189989805,
+              -1.1825000047683716
+            ],
+            "max": [
+              0.9789999723434448,
+              1.6088877677917481,
+              1.0636451303958894
+            ]
+          },
+          "worstFloor": {
+            "scenario": "inflate-105",
+            "dt": 0.016666666666666666,
+            "time": 0,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.004000000189989805,
+              0.7599999904632568
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "inflate-105",
+            "dt": 0.016666666666666666,
+            "time": 0,
+            "part": "Volumetric connected finL",
+            "vertex": 0,
+            "rest": [
+              0.4599038064479828,
+              0.47999998927116394,
+              0.28999999165534973
+            ],
+            "shown": [
+              0.4599038064479828,
+              0.47999998927116394,
+              0.28999999165534973
+            ],
+            "bellyAttached": [
+              0.48289899677038195,
+              0.47399998754262923,
+              0.3044999912381172
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.029435405321419243,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6367499887943266,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.2800000011920929,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0.02783933883205628
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0.02783933883205628
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0.024133224448630954
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0.024133224448630954
+            }
+          ]
+        },
+        {
+          "scenario": "inflate-110",
+          "frames": 1,
+          "minimumLocalY": 0.0022656615823507392,
+          "minimumFinY": 0.004000000189989805,
+          "maximumCapToBellyError": 0.05567867766411256,
+          "minimumFinAreaRatio": 1,
+          "envelope": {
+            "min": [
+              -0.9789999723434448,
+              0.0022656615823507392,
+              -1.1825000047683716
+            ],
+            "max": [
+              0.9789999723434448,
+              1.6569300413131716,
+              1.1142948985099794
+            ]
+          },
+          "worstFloor": {
+            "scenario": "inflate-110",
+            "dt": 0.016666666666666666,
+            "time": 0,
+            "part": "Continuous mantle cheek and pouch",
+            "vertex": 1847,
+            "point": [
+              0,
+              0.0022656615823507392,
+              0.5418018370866776
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "inflate-110",
+            "dt": 0.016666666666666666,
+            "time": 0,
+            "part": "Volumetric connected finL",
+            "vertex": 0,
+            "rest": [
+              0.4599038064479828,
+              0.47999998927116394,
+              0.28999999165534973
+            ],
+            "shown": [
+              0.4599038064479828,
+              0.47999998927116394,
+              0.28999999165534973
+            ],
+            "bellyAttached": [
+              0.5058941870927811,
+              0.4679999858140945,
+              0.3189999908208847
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.0022656615823507392,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6384999871253968,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.2800000011920929,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0.05567867766411256
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0.05567867766411256
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0.04826644889726192
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0.04826644889726192
+            }
+          ]
+        },
+        {
+          "scenario": "stop-resume",
+          "frames": 267,
+          "minimumLocalY": 0.00400000018998975,
+          "minimumFinY": 0.00400000018998975,
+          "maximumCapToBellyError": 0.12278964263212996,
+          "minimumFinAreaRatio": 0.9999999999999799,
+          "envelope": {
+            "min": [
+              -0.9942649984674461,
+              0.00400000018998975,
+              -1.2476952560791075
+            ],
+            "max": [
+              0.9942649984674461,
+              1.5908446200737743,
+              1.078070609466209
+            ]
+          },
+          "worstFloor": {
+            "scenario": "stop-resume",
+            "dt": 0.016666666666666666,
+            "time": 0.016666666666666666,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.00400000018998975,
+              0.8566666607062021
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "stop-resume",
+            "dt": 0.016666666666666666,
+            "time": 0.5333333333333333,
+            "part": "Volumetric connected rearR",
+            "vertex": 0,
+            "rest": [
+              -0.26634714007377625,
+              0.492000013589859,
+              -0.20243750512599945
+            ],
+            "shown": [
+              -0.26634714007377625,
+              0.49468600409470564,
+              -0.0825823956043403
+            ],
+            "bellyAttached": [
+              -0.26634714007377625,
+              0.5213702514941974,
+              -0.20243750512599945
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.05660558351553735,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6350004249183064,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.2800004356471425,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12278963215970093
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12113027719965722
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12113026657106937
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12278964263212996
+            }
+          ]
+        },
+        {
+          "scenario": "attack",
+          "frames": 267,
+          "minimumLocalY": 0.00400000018998975,
+          "minimumFinY": 0.00400000018998975,
+          "maximumCapToBellyError": 0.12278964263212996,
+          "minimumFinAreaRatio": 0.9999999999999714,
+          "envelope": {
+            "min": [
+              -1.0125462841591775,
+              0.00400000018998975,
+              -1.2476952560791075
+            ],
+            "max": [
+              1.0125462841591775,
+              1.7182779464568105,
+              1.1253666468790007
+            ]
+          },
+          "worstFloor": {
+            "scenario": "attack",
+            "dt": 0.016666666666666666,
+            "time": 0.016666666666666666,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.00400000018998975,
+              0.8566666607062021
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "attack",
+            "dt": 0.016666666666666666,
+            "time": 0.5333333333333333,
+            "part": "Volumetric connected rearR",
+            "vertex": 0,
+            "rest": [
+              -0.26634714007377625,
+              0.492000013589859,
+              -0.20243750512599945
+            ],
+            "shown": [
+              -0.26634714007377625,
+              0.49468600409470564,
+              -0.0825823956043403
+            ],
+            "bellyAttached": [
+              -0.26634714007377625,
+              0.5213702514941974,
+              -0.20243750512599945
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.056815357150062695,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6351910027890783,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.28021020928166784,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12278963215970093
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12113027719965722
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12113026657106937
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12278964263212996
+            }
+          ]
+        },
+        {
+          "scenario": "hit",
+          "frames": 267,
+          "minimumLocalY": 0.00400000018998975,
+          "minimumFinY": 0.00400000018998975,
+          "maximumCapToBellyError": 0.12278964263212996,
+          "minimumFinAreaRatio": 0.9999999999999698,
+          "envelope": {
+            "min": [
+              -1.0125462841591775,
+              0.00400000018998975,
+              -1.2476952560791075
+            ],
+            "max": [
+              1.0125462841591775,
+              1.7189387530081466,
+              1.1257860102665933
+            ]
+          },
+          "worstFloor": {
+            "scenario": "hit",
+            "dt": 0.016666666666666666,
+            "time": 0.016666666666666666,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.00400000018998975,
+              0.8566666607062021
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "hit",
+            "dt": 0.016666666666666666,
+            "time": 0.5333333333333333,
+            "part": "Volumetric connected rearR",
+            "vertex": 0,
+            "rest": [
+              -0.26634714007377625,
+              0.492000013589859,
+              -0.20243750512599945
+            ],
+            "shown": [
+              -0.26634714007377625,
+              0.49468600409470564,
+              -0.0825823956043403
+            ],
+            "bellyAttached": [
+              -0.26634714007377625,
+              0.5213702514941974,
+              -0.20243750512599945
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.05690644319767,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6353115978218096,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.2802272642340995,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12278963215970093
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12113027719965722
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12113026657106937
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12278964263212996
+            }
+          ]
+        },
+        {
+          "scenario": "death",
+          "frames": 267,
+          "minimumLocalY": 0.00400000018998975,
+          "minimumFinY": 0.00400000018998975,
+          "maximumCapToBellyError": 0.12278964263212996,
+          "minimumFinAreaRatio": 0.5999999999999934,
+          "envelope": {
+            "min": [
+              -1.0060843833722628,
+              0.00400000018998975,
+              -1.2476952560791075
+            ],
+            "max": [
+              1.0521283286833183,
+              1.6307068890265188,
+              1.0780005980222542
+            ]
+          },
+          "worstFloor": {
+            "scenario": "death",
+            "dt": 0.016666666666666666,
+            "time": 0.016666666666666666,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.00400000018998975,
+              0.8566666607062021
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "death",
+            "dt": 0.016666666666666666,
+            "time": 0.5333333333333333,
+            "part": "Volumetric connected rearR",
+            "vertex": 0,
+            "rest": [
+              -0.26634714007377625,
+              0.492000013589859,
+              -0.20243750512599945
+            ],
+            "shown": [
+              -0.26634714007377625,
+              0.49468600409470564,
+              -0.0825823956043403
+            ],
+            "bellyAttached": [
+              -0.26634714007377625,
+              0.5213702514941974,
+              -0.20243750512599945
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.07160514906048776,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6499999904632568,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.2950000011920929,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12278963215970093
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12113027719965722
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12113026657106937
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0.12278964263212996
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "public70",
+      "path": "art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json",
+      "sha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+      "validation": {
+        "vertices": 9993,
+        "triangles": 3331,
+        "bones": 8,
+        "parts": 7
+      },
+      "parts": [
+        {
+          "name": "Continuous mantle cheek and pouch",
+          "triangles": 1470,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "belly",
+                  1
+                ]
+              ],
+              "vertices": 4410
+            }
+          ]
+        },
+        {
+          "name": "Dark recessed palate",
+          "triangles": 1129,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "head",
+                  1
+                ]
+              ],
+              "vertices": 3387
+            }
+          ]
+        },
+        {
+          "name": "Tail root",
+          "triangles": 140,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "tail",
+                  1
+                ]
+              ],
+              "vertices": 420
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected finL",
+          "triangles": 164,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "belly",
+                  1
+                ]
+              ],
+              "vertices": 66
+            },
+            {
+              "influences": [
+                [
+                  "finL",
+                  0.8
+                ],
+                [
+                  "belly",
+                  0.2
+                ]
+              ],
+              "vertices": 72
+            },
+            {
+              "influences": [
+                [
+                  "finL",
+                  1
+                ]
+              ],
+              "vertices": 354
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected finR",
+          "triangles": 164,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "belly",
+                  1
+                ]
+              ],
+              "vertices": 66
+            },
+            {
+              "influences": [
+                [
+                  "finR",
+                  0.8
+                ],
+                [
+                  "belly",
+                  0.2
+                ]
+              ],
+              "vertices": 72
+            },
+            {
+              "influences": [
+                [
+                  "finR",
+                  1
+                ]
+              ],
+              "vertices": 354
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected rearL",
+          "triangles": 132,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "belly",
+                  1
+                ]
+              ],
+              "vertices": 66
+            },
+            {
+              "influences": [
+                [
+                  "rearL",
+                  0.8
+                ],
+                [
+                  "belly",
+                  0.2
+                ]
+              ],
+              "vertices": 72
+            },
+            {
+              "influences": [
+                [
+                  "rearL",
+                  1
+                ]
+              ],
+              "vertices": 258
+            }
+          ]
+        },
+        {
+          "name": "Volumetric connected rearR",
+          "triangles": 132,
+          "weightClasses": [
+            {
+              "influences": [
+                [
+                  "belly",
+                  1
+                ]
+              ],
+              "vertices": 66
+            },
+            {
+              "influences": [
+                [
+                  "rearR",
+                  0.8
+                ],
+                [
+                  "belly",
+                  0.2
+                ]
+              ],
+              "vertices": 72
+            },
+            {
+              "influences": [
+                [
+                  "rearR",
+                  1
+                ]
+              ],
+              "vertices": 258
+            }
+          ]
+        }
+      ],
+      "bones": [
+        {
+          "name": "body",
+          "parent": null,
+          "pos": [
+            0,
+            0.6000000238418579,
+            0
+          ]
+        },
+        {
+          "name": "belly",
+          "parent": "body",
+          "pos": [
+            0,
+            0.6000000238418579,
+            0
+          ]
+        },
+        {
+          "name": "tail",
+          "parent": "body",
+          "pos": [
+            0,
+            0.5799999833106995,
+            -0.5174999833106995
+          ]
+        },
+        {
+          "name": "finL",
+          "parent": "body",
+          "pos": [
+            0.4300000071525574,
+            0.5,
+            0.1599999964237213
+          ]
+        },
+        {
+          "name": "finR",
+          "parent": "body",
+          "pos": [
+            -0.4300000071525574,
+            0.5,
+            0.1599999964237213
+          ]
+        },
+        {
+          "name": "rearL",
+          "parent": "body",
+          "pos": [
+            0.4300000071525574,
+            0.5,
+            -0.36000001430511475
+          ]
+        },
+        {
+          "name": "rearR",
+          "parent": "body",
+          "pos": [
+            -0.4300000071525574,
+            0.5,
+            -0.36000001430511475
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "belly",
+          "pos": [
+            0,
+            0.8299999833106995,
+            0.5
+          ]
+        }
+      ],
+      "measurement": {
+        "schema": "wildshard.puffer.preview-dimensions.v1",
+        "candidate": "public V70 rig1 audit input",
+        "sourceSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+        "colliderAcceptance": false,
+        "visualAcceptance": false,
+        "scope": "Diagnostic weighted rest measurement only; no candidate admission or collision acceptance",
+        "method": {
+          "bodyY": "Actual body absolute bind Y",
+          "bodyHalfLen": "Half of maximum absolute hull Z offset from body pivot",
+          "bodyRadius": "Maximum body/belly-influenced vertex distance to symmetric Z segment plus 0.001 m; includes every positive influence across merged parts",
+          "headRadius": "Maximum head-influenced vertex distance to head pivot plus 0.001 m; merged head envelope, not eye-only or anatomical fit",
+          "legLen": "Body pivot Y minus lowest fin/toe vertex Y",
+          "feet": "AABB X/Z centres of all positively fin-weighted vertices, ordered finL, finR, rearL, rearR",
+          "halfWidth": "Maximum absolute X of all actual parts"
+        },
+        "bounds": {
+          "hull": {
+            "min": [
+              -0.7599999904632568,
+              0.07079359143972397,
+              -0.5450000166893005
+            ],
+            "max": [
+              0.7599999904632568,
+              1.4559999704360962,
+              0.9181897640228271
+            ]
+          },
+          "eyes": {
+            "min": [
+              -0.46000000834465027,
+              0.6349999904632568,
+              0.5552200078964233
+            ],
+            "max": [
+              0.46000000834465027,
+              1.0609499216079712,
+              0.9119999408721924
+            ]
+          },
+          "limbs": {
+            "finL": {
+              "min": [
+                0.30000001192092896,
+                0.004000000189989805,
+                0.30000001192092896
+              ],
+              "max": [
+                0.9789999723434448,
+                0.18000000715255737,
+                0.9581454992294312
+              ]
+            },
+            "finR": {
+              "min": [
+                -0.9789999723434448,
+                0.004000000189989805,
+                0.30000001192092896
+              ],
+              "max": [
+                -0.30000001192092896,
+                0.18000000715255737,
+                0.9581454992294312
+              ]
+            },
+            "rearL": {
+              "min": [
+                0.31299999356269836,
+                0.004000000189989805,
+                -0.2791999876499176
+              ],
+              "max": [
+                0.7908999919891357,
+                0.147599995136261,
+                0.18570184707641602
+              ]
+            },
+            "rearR": {
+              "min": [
+                -0.7908999919891357,
+                0.004000000189989805,
+                -0.2791999876499176
+              ],
+              "max": [
+                -0.31299999356269836,
+                0.147599995136261,
+                0.18570184707641602
+              ]
+            }
+          },
+          "all": {
+            "min": [
+              -0.9789999723434448,
+              0.004000000189989805,
+              -1.1575000286102295
+            ],
+            "max": [
+              0.9789999723434448,
+              1.4559999704360962,
+              0.9581454992294312
+            ]
+          }
+        },
+        "restHullOutsideCapsule": 0,
+        "limitations": [
+          "Rest only; 1.05/1.10 inflation containment and collider response untested",
+          "Conservative capsule includes empty space and may feel oversized",
+          "Eye sphere is not a full head hit-volume design",
+          "No visual, fight, terrain, balance or phone acceptance",
+          "Weight-based envelopes can include non-anatomical regions; rest bind weights do not prove inflation containment"
+        ],
+        "dimensions": {
+          "bodyY": 0.6000000238418579,
+          "bodyHalfLen": 0.4590948820114136,
+          "bodyRadius": 0.8693322053090293,
+          "headRadius": 0.5321923664959826,
+          "legLen": 0.5960000236518681,
+          "feet": [
+            [
+              0.6394999921321869,
+              0.62907275557518
+            ],
+            [
+              -0.6394999921321869,
+              0.62907275557518
+            ],
+            [
+              0.551949992775917,
+              -0.04674907028675079
+            ],
+            [
+              -0.551949992775917,
+              -0.04674907028675079
+            ]
+          ],
+          "halfWidth": 0.9789999723434448
+        }
+      },
+      "phaseDimensions": {
+        "bodyY": 0.6000000238418579,
+        "bodyHalfLen": 0.4590948820114136,
+        "bodyRadius": 0.8693322053090293,
+        "headRadius": 0.5321923664959826,
+        "legLen": 0.3406437050032335,
+        "feet": [
+          [
+            0.6394999921321869,
+            0.62907275557518
+          ],
+          [
+            -0.6394999921321869,
+            0.62907275557518
+          ],
+          [
+            0.551949992775917,
+            -0.04674907028675079
+          ],
+          [
+            -0.551949992775917,
+            -0.04674907028675079
+          ]
+        ],
+        "halfWidth": 0.9789999723434448
+      },
+      "decodedDimensions": {
+        "bodyY": 0.6000000238418579,
+        "bodyHalfLen": 0.4590948820114136,
+        "bodyRadius": 0.8693322053090293,
+        "headRadius": 0.5321923664959826,
+        "legLen": 0.3406437050032335,
+        "feet": [
+          [
+            0.6394999921321869,
+            0.62907275557518
+          ],
+          [
+            -0.6394999921321869,
+            0.62907275557518
+          ],
+          [
+            0.551949992775917,
+            -0.04674907028675079
+          ],
+          [
+            -0.551949992775917,
+            -0.04674907028675079
+          ]
+        ],
+        "halfWidth": 0.9789999723434448
+      },
+      "decodedBones": [
+        {
+          "name": "body",
+          "parent": null,
+          "pos": [
+            0,
+            0.6000000238418579,
+            0
+          ]
+        },
+        {
+          "name": "belly",
+          "parent": "body",
+          "pos": [
+            0,
+            0.6000000238418579,
+            0
+          ]
+        },
+        {
+          "name": "tail",
+          "parent": "body",
+          "pos": [
+            0,
+            0.5799999833106995,
+            -0.5174999833106995
+          ]
+        },
+        {
+          "name": "finL",
+          "parent": "body",
+          "pos": [
+            0.4300000071525574,
+            0.5,
+            0.1599999964237213
+          ]
+        },
+        {
+          "name": "finR",
+          "parent": "body",
+          "pos": [
+            -0.4300000071525574,
+            0.5,
+            0.1599999964237213
+          ]
+        },
+        {
+          "name": "rearL",
+          "parent": "body",
+          "pos": [
+            0.4300000071525574,
+            0.5,
+            -0.36000001430511475
+          ]
+        },
+        {
+          "name": "rearR",
+          "parent": "body",
+          "pos": [
+            -0.4300000071525574,
+            0.5,
+            -0.36000001430511475
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "belly",
+          "pos": [
+            0,
+            0.8299999833106995,
+            0.5
+          ]
+        }
+      ],
+      "inverseBindMatrices": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.6000000238418579,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.6000000238418579,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.5799999833106995,
+          0.5174999833106995,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -0.4300000071525574,
+          -0.5,
+          -0.1599999964237213,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0.4300000071525574,
+          -0.5,
+          -0.1599999964237213,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -0.4300000071525574,
+          -0.5,
+          0.36000001430511475,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0.4300000071525574,
+          -0.5,
+          0.36000001430511475,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.8299999833106995,
+          -0.5,
+          1
+        ]
+      ],
+      "packedSha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15",
+      "scans": [
+        {
+          "scenario": "rest",
+          "frames": 1,
+          "minimumLocalY": 0.004000000189989805,
+          "minimumFinY": 0.004000000189989805,
+          "maximumCapToBellyError": 0,
+          "minimumFinAreaRatio": 0.9999998974821815,
+          "envelope": {
+            "min": [
+              -0.9789999723434448,
+              0.004000000189989805,
+              -1.1575000286102295
+            ],
+            "max": [
+              0.9789999723434448,
+              1.4559999704360962,
+              0.9581454992294312
+            ]
+          },
+          "worstFloor": {
+            "scenario": "rest",
+            "dt": 0.016666666666666666,
+            "time": 0,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.004000000189989805,
+              0.7599999904632568
+            ],
+            "deathT": -1
+          },
+          "worstCap": null,
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.07079359143972397,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6349999904632568,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.27000001072883606,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0
+            }
+          ]
+        },
+        {
+          "scenario": "inflate-105",
+          "frames": 1,
+          "minimumLocalY": 0.004000000189989805,
+          "minimumFinY": 0.004000000189989805,
+          "maximumCapToBellyError": 5.551115123125783e-17,
+          "minimumFinAreaRatio": 0.8601311286197342,
+          "envelope": {
+            "min": [
+              -0.9789999723434448,
+              0.004000000189989805,
+              -1.1575000286102295
+            ],
+            "max": [
+              0.9789999723434448,
+              1.4987999677658081,
+              0.9640992522239685
+            ]
+          },
+          "worstFloor": {
+            "scenario": "inflate-105",
+            "dt": 0.016666666666666666,
+            "time": 0,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.004000000189989805,
+              0.7599999904632568
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "inflate-105",
+            "dt": 0.016666666666666666,
+            "time": 0,
+            "part": "Volumetric connected finL",
+            "vertex": 0,
+            "rest": [
+              0.4599038064479828,
+              0.47999998927116394,
+              0.28999999165534973
+            ],
+            "shown": [
+              0.48289899677038195,
+              0.4739999875426293,
+              0.3044999912381172
+            ],
+            "bellyAttached": [
+              0.48289899677038195,
+              0.47399998754262923,
+              0.3044999912381172
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.04433326981961727,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6367499887943266,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.27000001072883606,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 5.551115123125783e-17
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 5.551115123125783e-17
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 0
+            }
+          ]
+        },
+        {
+          "scenario": "inflate-110",
+          "frames": 1,
+          "minimumLocalY": 0.004000000189989805,
+          "minimumFinY": 0.004000000189989805,
+          "maximumCapToBellyError": 1.1102230246251565e-16,
+          "minimumFinAreaRatio": 0.720770584699275,
+          "envelope": {
+            "min": [
+              -0.9789999723434448,
+              0.004000000189989805,
+              -1.1575000286102295
+            ],
+            "max": [
+              0.9789999723434448,
+              1.54159996509552,
+              1.01000874042511
+            ]
+          },
+          "worstFloor": {
+            "scenario": "inflate-110",
+            "dt": 0.016666666666666666,
+            "time": 0,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.004000000189989805,
+              0.7599999904632568
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "inflate-110",
+            "dt": 0.016666666666666666,
+            "time": 0,
+            "part": "Volumetric connected finL",
+            "vertex": 0,
+            "rest": [
+              0.4599038064479828,
+              0.47999998927116394,
+              0.28999999165534973
+            ],
+            "shown": [
+              0.5058941870927811,
+              0.46799998581409463,
+              0.3189999908208847
+            ],
+            "bellyAttached": [
+              0.5058941870927811,
+              0.4679999858140945,
+              0.3189999908208847
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.017872948199510574,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6384999871253968,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.27000001072883606,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 1.1102230246251565e-16
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 1.1102230246251565e-16
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 5.551115123125783e-17
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.004000000189989805,
+              "maximumCapError": 5.551115123125783e-17
+            }
+          ]
+        },
+        {
+          "scenario": "stop-resume",
+          "frames": 267,
+          "minimumLocalY": 0.00400000018998975,
+          "minimumFinY": 0.00400000018998975,
+          "maximumCapToBellyError": 0,
+          "minimumFinAreaRatio": 0.6870939930640879,
+          "envelope": {
+            "min": [
+              -0.9942649984674461,
+              0.00400000018998975,
+              -1.220177351505075
+            ],
+            "max": [
+              0.9942649984674461,
+              1.4859990962395457,
+              1.078070609466209
+            ]
+          },
+          "worstFloor": {
+            "scenario": "stop-resume",
+            "dt": 0.016666666666666666,
+            "time": 0.016666666666666666,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.00400000018998975,
+              0.8566666607062021
+            ],
+            "deathT": -1
+          },
+          "worstCap": null,
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.07079402589477357,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6350004249183064,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.27000044518388566,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 0
+            }
+          ]
+        },
+        {
+          "scenario": "attack",
+          "frames": 267,
+          "minimumLocalY": 0.00400000018998975,
+          "minimumFinY": 0.00400000018998975,
+          "maximumCapToBellyError": 1.2412670766236366e-16,
+          "minimumFinAreaRatio": 0.7467049251777711,
+          "envelope": {
+            "min": [
+              -1.0125462841591775,
+              0.00400000018998975,
+              -1.220177351505075
+            ],
+            "max": [
+              1.0125462841591775,
+              1.605732591675726,
+              1.0780005980222542
+            ]
+          },
+          "worstFloor": {
+            "scenario": "attack",
+            "dt": 0.016666666666666666,
+            "time": 0.016666666666666666,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.00400000018998975,
+              0.8566666607062021
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "attack",
+            "dt": 0.016666666666666666,
+            "time": 0.6833333333333333,
+            "part": "Volumetric connected rearL",
+            "vertex": 36,
+            "rest": [
+              0.26634714007377625,
+              0.492000013589859,
+              -0.2575624883174896
+            ],
+            "shown": [
+              0.26905722493411177,
+              0.5229892323477308,
+              -0.2597934891370931
+            ],
+            "bellyAttached": [
+              0.26905722493411177,
+              0.5229892323477306,
+              -0.25979348913709316
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.07100379952929892,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6351910027890783,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.270210218818411,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 1.2412670766236366e-16
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 1.2412670766236366e-16
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 1.2412670766236366e-16
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 1.2412670766236366e-16
+            }
+          ]
+        },
+        {
+          "scenario": "hit",
+          "frames": 267,
+          "minimumLocalY": 0.00400000018998975,
+          "minimumFinY": 0.00400000018998975,
+          "maximumCapToBellyError": 2.220446049250313e-16,
+          "minimumFinAreaRatio": 0.7467049251777711,
+          "envelope": {
+            "min": [
+              -1.0125462841591775,
+              0.00400000018998975,
+              -1.220177351505075
+            ],
+            "max": [
+              1.0125462841591775,
+              1.6063908058071452,
+              1.0780005980222542
+            ]
+          },
+          "worstFloor": {
+            "scenario": "hit",
+            "dt": 0.016666666666666666,
+            "time": 0.016666666666666666,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.00400000018998975,
+              0.8566666607062021
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "hit",
+            "dt": 0.016666666666666666,
+            "time": 1.1333333333333333,
+            "part": "Volumetric connected finL",
+            "vertex": 6,
+            "rest": [
+              0.4050000011920929,
+              0.47999998927116394,
+              0.34124356508255005
+            ],
+            "shown": [
+              0.43137362764334847,
+              0.5330728181614406,
+              0.3671524599115436
+            ],
+            "bellyAttached": [
+              0.43137362764334847,
+              0.5330728181614404,
+              0.3671524599115436
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.07109032705806202,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6353115978218096,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.2702275761832028,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 2.220446049250313e-16
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 2.220446049250313e-16
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 1.2412670766236366e-16
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 1.2412670766236366e-16
+            }
+          ]
+        },
+        {
+          "scenario": "death",
+          "frames": 267,
+          "minimumLocalY": 0.00400000018998975,
+          "minimumFinY": 0.00400000018998975,
+          "maximumCapToBellyError": 1.2412670766236366e-16,
+          "minimumFinAreaRatio": 0.5999999999999934,
+          "envelope": {
+            "min": [
+              -1.0060843833722628,
+              0.00400000018998975,
+              -1.220177351505075
+            ],
+            "max": [
+              1.0521283286833183,
+              1.5222421627779752,
+              1.0780005980222542
+            ]
+          },
+          "worstFloor": {
+            "scenario": "death",
+            "dt": 0.016666666666666666,
+            "time": 0.016666666666666666,
+            "part": "Volumetric connected finL",
+            "vertex": 145,
+            "point": [
+              0.9198076128959656,
+              0.00400000018998975,
+              0.8566666607062021
+            ],
+            "deathT": -1
+          },
+          "worstCap": {
+            "scenario": "death",
+            "dt": 0.016666666666666666,
+            "time": 0.6833333333333333,
+            "part": "Volumetric connected rearL",
+            "vertex": 36,
+            "rest": [
+              0.26634714007377625,
+              0.492000013589859,
+              -0.2575624883174896
+            ],
+            "shown": [
+              0.26905722493411177,
+              0.5229892323477308,
+              -0.2597934891370931
+            ],
+            "bellyAttached": [
+              0.26905722493411177,
+              0.5229892323477306,
+              -0.25979348913709316
+            ]
+          },
+          "parts": [
+            {
+              "name": "Continuous mantle cheek and pouch",
+              "minimumY": 0.08579359143972398,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Dark recessed palate",
+              "minimumY": 0.6499999904632568,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Tail root",
+              "minimumY": 0.2850000107288361,
+              "maximumCapError": 0
+            },
+            {
+              "name": "Volumetric connected finL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 1.2412670766236366e-16
+            },
+            {
+              "name": "Volumetric connected finR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 1.2412670766236366e-16
+            },
+            {
+              "name": "Volumetric connected rearL",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 1.2412670766236366e-16
+            },
+            {
+              "name": "Volumetric connected rearR",
+              "minimumY": 0.00400000018998975,
+              "maximumCapError": 1.2412670766236366e-16
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

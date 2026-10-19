@@ -1,0 +1,358 @@
+{
+  "sourceSha256": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006",
+  "derivativeSha256": "38e0ad4de8a25827ace7a366e70c3c21a860ce9221de64f4b4afaf0c27ec2b61",
+  "semanticProvenance": [
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-native.json",
+      "sha256": "15a8a65ed0303e24982799ab395e77cd1d50920e964bbe81a099308e9ffdb762"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/construction-receipt.json",
+      "sha256": "a0cb483821ce17ec18ed356077f4dd7710bbf427fb774b001521bf65a2bcbc53"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/build_candidate.py",
+      "sha256": "120d1257fb6ae5b269e423d991c384630a7541622be758ba70a2466af10f8dd9"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-study/build_candidate.py",
+      "sha256": "3d8bbccfc79fe77f0e87cb24cadff3b4c68504f3a42593b6aa09999658c1b93a"
+    }
+  ],
+  "rangeProof": "Selected positions after first1022 triangles exactly equal pass2; each six-triangle spike array exactly reconstructs from pinned producer receipt vertices/faces. Core0..1021, authored face1022..1425, eight spikes1426..1473.",
+  "regionsAgainstUnmodifiedPublicRestBodyCapsule": [
+    {
+      "region": "core-continuous-hull",
+      "triangleRangeHalfOpen": [
+        0,
+        1022
+      ],
+      "vertices": 3066,
+      "maximumSignedOutside": -0.11509624667497076,
+      "outsideTriangleVertices": 0,
+      "uniqueOutsideCoordinates": 0,
+      "witnesses": []
+    },
+    {
+      "region": "authored-face-brows-beak",
+      "triangleRangeHalfOpen": [
+        1022,
+        1426
+      ],
+      "vertices": 1212,
+      "maximumSignedOutside": -0.25328204772040386,
+      "outsideTriangleVertices": 0,
+      "uniqueOutsideCoordinates": 0,
+      "witnesses": []
+    },
+    {
+      "region": "decorative-spike-0",
+      "triangleRangeHalfOpen": [
+        1426,
+        1432
+      ],
+      "vertices": 18,
+      "maximumSignedOutside": -0.1182794445087878,
+      "outsideTriangleVertices": 0,
+      "uniqueOutsideCoordinates": 0,
+      "witnesses": []
+    },
+    {
+      "region": "decorative-spike-1",
+      "triangleRangeHalfOpen": [
+        1432,
+        1438
+      ],
+      "vertices": 18,
+      "maximumSignedOutside": 0.09281331548734373,
+      "outsideTriangleVertices": 4,
+      "uniqueOutsideCoordinates": 1,
+      "witnesses": [
+        {
+          "vertex": 4296,
+          "triangle": 1432,
+          "position": [
+            0.05000000074505806,
+            1.5608454865017063,
+            -0.11719999462366104
+          ],
+          "outsideMetres": 0.09281331548734373
+        },
+        {
+          "vertex": 4299,
+          "triangle": 1433,
+          "position": [
+            0.05000000074505806,
+            1.5608454865017063,
+            -0.11719999462366104
+          ],
+          "outsideMetres": 0.09281331548734373
+        },
+        {
+          "vertex": 4302,
+          "triangle": 1434,
+          "position": [
+            0.05000000074505806,
+            1.5608454865017063,
+            -0.11719999462366104
+          ],
+          "outsideMetres": 0.09281331548734373
+        },
+        {
+          "vertex": 4305,
+          "triangle": 1435,
+          "position": [
+            0.05000000074505806,
+            1.5608454865017063,
+            -0.11719999462366104
+          ],
+          "outsideMetres": 0.09281331548734373
+        }
+      ]
+    },
+    {
+      "region": "decorative-spike-2",
+      "triangleRangeHalfOpen": [
+        1438,
+        1444
+      ],
+      "vertices": 18,
+      "maximumSignedOutside": -0.0405233310795623,
+      "outsideTriangleVertices": 0,
+      "uniqueOutsideCoordinates": 0,
+      "witnesses": []
+    },
+    {
+      "region": "decorative-spike-3",
+      "triangleRangeHalfOpen": [
+        1444,
+        1450
+      ],
+      "vertices": 18,
+      "maximumSignedOutside": 0.0016332977602098175,
+      "outsideTriangleVertices": 4,
+      "uniqueOutsideCoordinates": 1,
+      "witnesses": [
+        {
+          "vertex": 4332,
+          "triangle": 1444,
+          "position": [
+            -0.598606111073953,
+            1.2326544566261157,
+            -0.2477240091562271
+          ],
+          "outsideMetres": 0.0016332977602098175
+        },
+        {
+          "vertex": 4335,
+          "triangle": 1445,
+          "position": [
+            -0.598606111073953,
+            1.2326544566261157,
+            -0.2477240091562271
+          ],
+          "outsideMetres": 0.0016332977602098175
+        },
+        {
+          "vertex": 4338,
+          "triangle": 1446,
+          "position": [
+            -0.598606111073953,
+            1.2326544566261157,
+            -0.2477240091562271
+          ],
+          "outsideMetres": 0.0016332977602098175
+        },
+        {
+          "vertex": 4341,
+          "triangle": 1447,
+          "position": [
+            -0.598606111073953,
+            1.2326544566261157,
+            -0.2477240091562271
+          ],
+          "outsideMetres": 0.0016332977602098175
+        }
+      ]
+    },
+    {
+      "region": "decorative-spike-4",
+      "triangleRangeHalfOpen": [
+        1450,
+        1456
+      ],
+      "vertices": 18,
+      "maximumSignedOutside": 0.0016332977602098175,
+      "outsideTriangleVertices": 4,
+      "uniqueOutsideCoordinates": 1,
+      "witnesses": [
+        {
+          "vertex": 4350,
+          "triangle": 1450,
+          "position": [
+            0.598606111073953,
+            1.2326544566261157,
+            -0.2477240091562271
+          ],
+          "outsideMetres": 0.0016332977602098175
+        },
+        {
+          "vertex": 4353,
+          "triangle": 1451,
+          "position": [
+            0.598606111073953,
+            1.2326544566261157,
+            -0.2477240091562271
+          ],
+          "outsideMetres": 0.0016332977602098175
+        },
+        {
+          "vertex": 4356,
+          "triangle": 1452,
+          "position": [
+            0.598606111073953,
+            1.2326544566261157,
+            -0.2477240091562271
+          ],
+          "outsideMetres": 0.0016332977602098175
+        },
+        {
+          "vertex": 4359,
+          "triangle": 1453,
+          "position": [
+            0.598606111073953,
+            1.2326544566261157,
+            -0.2477240091562271
+          ],
+          "outsideMetres": 0.0016332977602098175
+        }
+      ]
+    },
+    {
+      "region": "decorative-spike-5",
+      "triangleRangeHalfOpen": [
+        1456,
+        1462
+      ],
+      "vertices": 18,
+      "maximumSignedOutside": 0.00038971548880684104,
+      "outsideTriangleVertices": 4,
+      "uniqueOutsideCoordinates": 1,
+      "witnesses": [
+        {
+          "vertex": 4368,
+          "triangle": 1456,
+          "position": [
+            -0.707255125713191,
+            1.106168381869793,
+            0.09240000229328871
+          ],
+          "outsideMetres": 0.00038971548880684104
+        },
+        {
+          "vertex": 4371,
+          "triangle": 1457,
+          "position": [
+            -0.707255125713191,
+            1.106168381869793,
+            0.09240000229328871
+          ],
+          "outsideMetres": 0.00038971548880684104
+        },
+        {
+          "vertex": 4374,
+          "triangle": 1458,
+          "position": [
+            -0.707255125713191,
+            1.106168381869793,
+            0.09240000229328871
+          ],
+          "outsideMetres": 0.00038971548880684104
+        },
+        {
+          "vertex": 4377,
+          "triangle": 1459,
+          "position": [
+            -0.707255125713191,
+            1.106168381869793,
+            0.09240000229328871
+          ],
+          "outsideMetres": 0.00038971548880684104
+        }
+      ]
+    },
+    {
+      "region": "decorative-spike-6",
+      "triangleRangeHalfOpen": [
+        1462,
+        1468
+      ],
+      "vertices": 18,
+      "maximumSignedOutside": 0.00038971548880684104,
+      "outsideTriangleVertices": 4,
+      "uniqueOutsideCoordinates": 1,
+      "witnesses": [
+        {
+          "vertex": 4386,
+          "triangle": 1462,
+          "position": [
+            0.707255125713191,
+            1.106168381869793,
+            0.09240000229328871
+          ],
+          "outsideMetres": 0.00038971548880684104
+        },
+        {
+          "vertex": 4389,
+          "triangle": 1463,
+          "position": [
+            0.707255125713191,
+            1.106168381869793,
+            0.09240000229328871
+          ],
+          "outsideMetres": 0.00038971548880684104
+        },
+        {
+          "vertex": 4392,
+          "triangle": 1464,
+          "position": [
+            0.707255125713191,
+            1.106168381869793,
+            0.09240000229328871
+          ],
+          "outsideMetres": 0.00038971548880684104
+        },
+        {
+          "vertex": 4395,
+          "triangle": 1465,
+          "position": [
+            0.707255125713191,
+            1.106168381869793,
+            0.09240000229328871
+          ],
+          "outsideMetres": 0.00038971548880684104
+        }
+      ]
+    },
+    {
+      "region": "decorative-spike-7",
+      "triangleRangeHalfOpen": [
+        1468,
+        1474
+      ],
+      "vertices": 18,
+      "maximumSignedOutside": -0.40519037136894187,
+      "outsideTriangleVertices": 0,
+      "uniqueOutsideCoordinates": 0,
+      "witnesses": []
+    }
+  ],
+  "headAgainstUnmodifiedPublicHeadSphere": {
+    "outsideVertices": 0,
+    "maximumSignedOutside": -0.0010000000000000009
+  },
+  "conclusion": "All20 misses are five unique decorative spike tips (indices1,3,4,5,6), each repeated in four triangle corners. Zero core hull or face-region vertices miss the old rest capsule. This defeats automatic whole-weight radius padding; it does not approve old collision dimensions for living inflated poses, gameplay or physics death.",
+  "colliderAcceptance": false,
+  "contactExemptionsAdded": false,
+  "runtimeAdmission": false
+}

@@ -1,0 +1,16 @@
+{
+  "files": {
+    "docs/reviews/puffer-closed-anatomy-runtime-audit/README.md": "064aad9c3b7a8a5bdf371d7f38ffd98bb8e5ad37f1bc59e36e7b7637e2a17fdc",
+    "docs/reviews/puffer-closed-anatomy-runtime-audit/input-pins.json": "402b115415d1742c23d5d69517dae2d533d5123bbbd0bd298c2ade0935b90eff",
+    "docs/reviews/puffer-closed-anatomy-runtime-audit/prepare.py": "bdbc926c501bcd876d8e63fb572ff11f0e6cf3543e078499180706131282d054",
+    "docs/reviews/puffer-closed-anatomy-runtime-audit/runtime-audit.test.ts": "6c036abaa0bfe7a62ccfd67819d2399edc161412eb77720f24985fd297aff028",
+    "docs/reviews/puffer-closed-anatomy-runtime-audit/runtime-envelope-results.json": "283339e9e7bb2d82edf35b159de9fc8fadad87172ce6d16f3494d47694702296",
+    "docs/reviews/puffer-closed-anatomy-runtime-audit/source-and-host-audit.json": "7ef88512e786499fcf495f79c7d2538d14e7d1b6f961dc1779469c2a101d01b0",
+    "docs/reviews/puffer-closed-anatomy-runtime-audit/source-audit.py": "035f4707eae992dce8738878b0d04954df19486559322f1e736531fed9f67bc1",
+    "docs/reviews/puffer-closed-anatomy-runtime-audit/vitest.config.ts": "8b6c6a318e2f63dfa1ec47b39a7a30cd362cde0120723a23030a599c961a70d5"
+  },
+  "excludedRawEnvironmentLogs": [
+    "test.log"
+  ],
+  "testResult": "1 file, 1 measurement test passed; 1071 samples per source; no acceptance claimed"
+}
