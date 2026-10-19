@@ -1,0 +1,989 @@
+{
+  "schema": "wildshard.bellback.native-rest-render.v1",
+  "scope": "Frozen rest-only geometry diagnostic in unchanged V70 renderer host; no Bellback gameplay or admission",
+  "started": "2026-10-19T04:04:39.047Z",
+  "sourceSha256": "ec5850fda8a97e7eef064098fdb212d4e2be2f5dc4699548de0430f812b8e7b0",
+  "hostPreview": {
+    "schema": "wildshard.puffer.native-preview.v1",
+    "candidate": "V70",
+    "mode": "gait5",
+    "rigAdmission": {
+      "profile": "v70-rig1-gait5",
+      "originalSourceSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+      "equivalenceSha256": "5cb9e2b3128f5b87ef4ed7c89816c324d79bd57bc6b947d25b23c46bea567b06",
+      "poseSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+      "gaitSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0"
+    },
+    "rootFlinch": "authored-pose",
+    "arenaLighting": "neutral-gray-v2",
+    "arenaLightingProfileSha256": "b0871ebc6bb4b1584cc3b970861dd9d577dd1d6f03c59b752f4d937571c29101",
+    "arenaOcclusion": "contact-v1",
+    "visualAdapter": "puffer-gait5-continuity",
+    "visualAdapterSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+    "source": "art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json",
+    "measurementSha256": "a923ca6c0ca4ba7d853da3b871d536e2b2a3106202a21c3673f22a8eaa6c6f27",
+    "sourceSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+    "metadataSha256": "55f188d53546dd06537c12ba64a29a36b0569a1d72930146605aaa0a43b86673",
+    "dimensionsSha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e",
+    "colliderAcceptance": false,
+    "visualAcceptance": false,
+    "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+    "packedSha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15",
+    "bodyFile": "/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+    "sourceHash": "80e39ff9f9af3b1e0bcaf3565e9282aa042a33af32298850c6085be7396cf895"
+  },
+  "errors": [],
+  "httpErrors": [],
+  "views": [
+    {
+      "name": "front",
+      "mode": "source",
+      "camera": [
+        0,
+        902.1,
+        2
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-source.png",
+      "sha256": "66f0b152b9504fc75cbf807e50287cb365d1f373e880188cf7bc037836d853df"
+    },
+    {
+      "name": "front",
+      "mode": "native",
+      "camera": [
+        0,
+        902.1,
+        2
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-native.png",
+      "sha256": "c78465eb1d8be48e69af3e40533263ab8168ace73ef2a21c414cd7cbfd501471"
+    },
+    {
+      "name": "front",
+      "mode": "native-double",
+      "camera": [
+        0,
+        902.1,
+        2
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-native-double.png",
+      "sha256": "8763a9cde39036f19d3b14a6c5e4c8e28442a82251d45793d6d052802c212f2e"
+    },
+    {
+      "name": "front",
+      "mode": "source-front",
+      "camera": [
+        0,
+        902.1,
+        2
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-source-front.png",
+      "sha256": "9ef362b450b108bda2b493ac04eaad71e15e117cadaa004ec9aa93118a06159f"
+    },
+    {
+      "name": "left",
+      "mode": "source",
+      "camera": [
+        -9,
+        902.1,
+        -7
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "left-source.png",
+      "sha256": "08d6a956ff0347f80f69e4bc953cf53951b18ee7d74177f8e790f094e85b0f52"
+    },
+    {
+      "name": "left",
+      "mode": "native",
+      "camera": [
+        -9,
+        902.1,
+        -7
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "left-native.png",
+      "sha256": "f16e64fdd950fdc83e582584558d07fc51a1fb20204928011767ac647047352c"
+    },
+    {
+      "name": "left",
+      "mode": "native-double",
+      "camera": [
+        -9,
+        902.1,
+        -7
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "left-native-double.png",
+      "sha256": "afb4c4f54e8c51e8c31f243883f25c499c95c838dc132738fb8be9ed7fd873cc"
+    },
+    {
+      "name": "left",
+      "mode": "source-front",
+      "camera": [
+        -9,
+        902.1,
+        -7
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "left-source-front.png",
+      "sha256": "5061c2de86a9b12c58a034890cb5ac170fda9433916166f454c3dbdfd9d13c5b"
+    },
+    {
+      "name": "right",
+      "mode": "source",
+      "camera": [
+        9,
+        902.1,
+        -7
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "right-source.png",
+      "sha256": "8f123d6a6b554a465525121a9b593895eb035f2296955ee45ff6e03d34e8ded1"
+    },
+    {
+      "name": "right",
+      "mode": "native",
+      "camera": [
+        9,
+        902.1,
+        -7
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "right-native.png",
+      "sha256": "36f52c90441df1136d3845d1abd4e16947bad87b0aaec65ed1cc8aaf479eab6b"
+    },
+    {
+      "name": "right",
+      "mode": "native-double",
+      "camera": [
+        9,
+        902.1,
+        -7
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "right-native-double.png",
+      "sha256": "21073db0b79147aa1e2e5d905c85bf0efa644524b9dc95172c32566aab96c1ef"
+    },
+    {
+      "name": "right",
+      "mode": "source-front",
+      "camera": [
+        9,
+        902.1,
+        -7
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "right-source-front.png",
+      "sha256": "24cd046a30f5671923284dc05083f233e9202505e7036d867b8e33ea5fad35fa"
+    },
+    {
+      "name": "back",
+      "mode": "source",
+      "camera": [
+        0,
+        902.1,
+        -16
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "back-source.png",
+      "sha256": "409949d986e08c12b2386c9fd4b94b554577029b06ce1dba1d70470dfa67e58b"
+    },
+    {
+      "name": "back",
+      "mode": "native",
+      "camera": [
+        0,
+        902.1,
+        -16
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "back-native.png",
+      "sha256": "fb1f64cbcc7f711c158f39a96e621b1e14cae50dab146c4bf9cd6ded7d77e4f5"
+    },
+    {
+      "name": "back",
+      "mode": "native-double",
+      "camera": [
+        0,
+        902.1,
+        -16
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "back-native-double.png",
+      "sha256": "a883e44d7db75d98e6e515445dbed7f9b5b5714e107a24a4f5c2e5a77e58f9a3"
+    },
+    {
+      "name": "back",
+      "mode": "source-front",
+      "camera": [
+        0,
+        902.1,
+        -16
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "back-source-front.png",
+      "sha256": "c1a48a937a920c6e59dc1835df934ccd0ef03b7eff8021cbc1c43961c2596cc8"
+    },
+    {
+      "name": "top",
+      "mode": "source",
+      "camera": [
+        0,
+        910,
+        -6.99
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "top-source.png",
+      "sha256": "1d358e69f8eb1e7a9e0be43f0f37100e1647f8ef1261b5b38610c0f4195f9440"
+    },
+    {
+      "name": "top",
+      "mode": "native",
+      "camera": [
+        0,
+        910,
+        -6.99
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "top-native.png",
+      "sha256": "2b883033c13f49054722b1555808c37d333458737ab7bf51ae666a3e6abc12af"
+    },
+    {
+      "name": "top",
+      "mode": "native-double",
+      "camera": [
+        0,
+        910,
+        -6.99
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "top-native-double.png",
+      "sha256": "254bdcefa6497b9b6b986a240c66f408150b2d9e9a71f89ce9846923f762f3f5"
+    },
+    {
+      "name": "top",
+      "mode": "source-front",
+      "camera": [
+        0,
+        910,
+        -6.99
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "top-source-front.png",
+      "sha256": "75fd515e12b49245cacd5263078dbc83e92e5dff3abb285c570e6420efb890e6"
+    },
+    {
+      "name": "front-left",
+      "mode": "source",
+      "camera": [
+        -7,
+        903,
+        0
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-left-source.png",
+      "sha256": "263b91458b1e1fab9a6124ad4bb5f905daba22842ba13f6785561b600a260b09"
+    },
+    {
+      "name": "front-left",
+      "mode": "native",
+      "camera": [
+        -7,
+        903,
+        0
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-left-native.png",
+      "sha256": "06b379c61aba64bc08544af9238832181c2cebd58650f396de6b1ae80c12fe18"
+    },
+    {
+      "name": "front-left",
+      "mode": "native-double",
+      "camera": [
+        -7,
+        903,
+        0
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-left-native-double.png",
+      "sha256": "62625c959bd9f46558fad3d93a1fb4c902908968dc03d793d694868f76e2088f"
+    },
+    {
+      "name": "front-left",
+      "mode": "source-front",
+      "camera": [
+        -7,
+        903,
+        0
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-left-source-front.png",
+      "sha256": "6475e640eab711edc9ac792fe1c15a980fa6ecd5730607cef21a8ce47c71d7c4"
+    },
+    {
+      "name": "front-right",
+      "mode": "source",
+      "camera": [
+        7,
+        903,
+        0
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-right-source.png",
+      "sha256": "a9411b51e183f0b50c7a838303a5607bf00a16aa699651674c175f38c3976393"
+    },
+    {
+      "name": "front-right",
+      "mode": "native",
+      "camera": [
+        7,
+        903,
+        0
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-right-native.png",
+      "sha256": "ff8b5d86b64258749497f5c246c51655a8fb9ebb4bbbf5bd05edd1bc21096bae"
+    },
+    {
+      "name": "front-right",
+      "mode": "native-double",
+      "camera": [
+        7,
+        903,
+        0
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-right-native-double.png",
+      "sha256": "1e24979a8fbd893330dd0e463cbb3a8ad208044e5a324110b65c0ca27aeeea4d"
+    },
+    {
+      "name": "front-right",
+      "mode": "source-front",
+      "camera": [
+        7,
+        903,
+        0
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-right-source-front.png",
+      "sha256": "0f39279c1d67f40fce4277fdfbb0d1141998c02665de057107b09f9ca37f76ad"
+    },
+    {
+      "name": "rear-left",
+      "mode": "source",
+      "camera": [
+        -7,
+        903,
+        -14
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "rear-left-source.png",
+      "sha256": "4d358a512142e0be075fa1d7365da508755dd16e31b324658d8182b9907f58d4"
+    },
+    {
+      "name": "rear-left",
+      "mode": "native",
+      "camera": [
+        -7,
+        903,
+        -14
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "rear-left-native.png",
+      "sha256": "6c7696e972c18a6177ce05ee9e58ccf6f8878b4fbf2b0e7a4aa725a94446c8c3"
+    },
+    {
+      "name": "rear-left",
+      "mode": "native-double",
+      "camera": [
+        -7,
+        903,
+        -14
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "rear-left-native-double.png",
+      "sha256": "4e3bcf982234dee251343b819f2bf6573a3357a620ab6bf89a75a0c7f0595b4a"
+    },
+    {
+      "name": "rear-left",
+      "mode": "source-front",
+      "camera": [
+        -7,
+        903,
+        -14
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "rear-left-source-front.png",
+      "sha256": "7371979b6bb96e298c4c0d1fabe3eb2be722b9b19cb47929ea60e555aca61c93"
+    },
+    {
+      "name": "rear-right",
+      "mode": "source",
+      "camera": [
+        7,
+        903,
+        -14
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "rear-right-source.png",
+      "sha256": "a1a0da0f741a96631f8e146a75e651bb70408afad7181ce2a52f13770f11dfff"
+    },
+    {
+      "name": "rear-right",
+      "mode": "native",
+      "camera": [
+        7,
+        903,
+        -14
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "rear-right-native.png",
+      "sha256": "273a7473b56edfc9f75a0ff99d3c859139552e77f0f96a4732dc484b5989b2b6"
+    },
+    {
+      "name": "rear-right",
+      "mode": "native-double",
+      "camera": [
+        7,
+        903,
+        -14
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "rear-right-native-double.png",
+      "sha256": "0e63f43c738b4b24a38484edf1be7f47174a90815e2902d217ff55f3707b4b55"
+    },
+    {
+      "name": "rear-right",
+      "mode": "source-front",
+      "camera": [
+        7,
+        903,
+        -14
+      ],
+      "target": [
+        0,
+        901.65,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "rear-right-source-front.png",
+      "sha256": "e4da26837e4f68c0f8fe7e95d8a2be134b92493d57789ad1e8917c749720862e"
+    },
+    {
+      "name": "jaw-front",
+      "mode": "source",
+      "camera": [
+        0,
+        900.65,
+        -3.1
+      ],
+      "target": [
+        0,
+        900.65,
+        -5.8
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "jaw-front-source.png",
+      "sha256": "1e96ac51410a9ef6b85f855de493ff4ca21675a4fb5abcf788b6559984ad7f48"
+    },
+    {
+      "name": "jaw-front",
+      "mode": "native",
+      "camera": [
+        0,
+        900.65,
+        -3.1
+      ],
+      "target": [
+        0,
+        900.65,
+        -5.8
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "jaw-front-native.png",
+      "sha256": "b36c5930791ea3dd890f855953c677506a50876fd36f3378f95223df740d2b8d"
+    },
+    {
+      "name": "jaw-front",
+      "mode": "native-double",
+      "camera": [
+        0,
+        900.65,
+        -3.1
+      ],
+      "target": [
+        0,
+        900.65,
+        -5.8
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "jaw-front-native-double.png",
+      "sha256": "604197f1ab23a3a390e017c097a2622067a27d86aaf63b70a73f4cbc7a6fb1b8"
+    },
+    {
+      "name": "jaw-front",
+      "mode": "source-front",
+      "camera": [
+        0,
+        900.65,
+        -3.1
+      ],
+      "target": [
+        0,
+        900.65,
+        -5.8
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "jaw-front-source-front.png",
+      "sha256": "be73731af92e22a5a165971adba57ca85658a34c3d26dfb3d9f700bcd4af0df8"
+    },
+    {
+      "name": "hull-front",
+      "mode": "source",
+      "camera": [
+        0,
+        901.4,
+        -2.9000000000000004
+      ],
+      "target": [
+        0,
+        901.3,
+        -6.5
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "hull-front-source.png",
+      "sha256": "56e4528a1bcbd04ef81292ffee24ec549866dc7df35bf9f8b3da190c6cf23162"
+    },
+    {
+      "name": "hull-front",
+      "mode": "native",
+      "camera": [
+        0,
+        901.4,
+        -2.9000000000000004
+      ],
+      "target": [
+        0,
+        901.3,
+        -6.5
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "hull-front-native.png",
+      "sha256": "27051137711e0df85c3837fd94bc055d6a7b0a2b4944957bdb163c7ae782123f"
+    },
+    {
+      "name": "hull-front",
+      "mode": "native-double",
+      "camera": [
+        0,
+        901.4,
+        -2.9000000000000004
+      ],
+      "target": [
+        0,
+        901.3,
+        -6.5
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "hull-front-native-double.png",
+      "sha256": "fe8aab802498049294d93b6259bfdba3dde08350eb0f9e93a4b9e20ea3f88c08"
+    },
+    {
+      "name": "hull-front",
+      "mode": "source-front",
+      "camera": [
+        0,
+        901.4,
+        -2.9000000000000004
+      ],
+      "target": [
+        0,
+        901.3,
+        -6.5
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "hull-front-source-front.png",
+      "sha256": "f92f4d6806acd35acda84e6fbbe0604ac48342b1b003e274d39c4423fce63c01"
+    },
+    {
+      "name": "crown-right",
+      "mode": "source",
+      "camera": [
+        1.6,
+        903.7,
+        -6.3
+      ],
+      "target": [
+        0,
+        903.2,
+        -7.1
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "crown-right-source.png",
+      "sha256": "df19f826f367e153ce849747d4f4841b373b62f45d5bbce69649b1c2e0fa0612"
+    },
+    {
+      "name": "crown-right",
+      "mode": "native",
+      "camera": [
+        1.6,
+        903.7,
+        -6.3
+      ],
+      "target": [
+        0,
+        903.2,
+        -7.1
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "crown-right-native.png",
+      "sha256": "425dc4323a894e352238929a7890531fa53e37045a79fa974778d352efb4897f"
+    },
+    {
+      "name": "crown-right",
+      "mode": "native-double",
+      "camera": [
+        1.6,
+        903.7,
+        -6.3
+      ],
+      "target": [
+        0,
+        903.2,
+        -7.1
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "crown-right-native-double.png",
+      "sha256": "aeb6ed81a4df66ef91bb68094ba8a80c1eeaef0e55ba6def9609e930480dcd4d"
+    },
+    {
+      "name": "crown-right",
+      "mode": "source-front",
+      "camera": [
+        1.6,
+        903.7,
+        -6.3
+      ],
+      "target": [
+        0,
+        903.2,
+        -7.1
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "crown-right-source-front.png",
+      "sha256": "2bde40646b02de2ba99e82213a872b8964ad18712b7e257076836ada9b3cadea"
+    }
+  ],
+  "setup": {
+    "vertices": 13374,
+    "bones": [
+      "body",
+      "head",
+      "bell",
+      "clapper",
+      "leg0",
+      "leg1",
+      "leg2",
+      "leg3"
+    ],
+    "facetJitter": 0.12,
+    "sourceMaterialsUntouched": true,
+    "origin": [
+      0,
+      900,
+      -7
+    ],
+    "hidden": [],
+    "material": [
+      {
+        "type": "MeshStandardNodeMaterial",
+        "side": 0,
+        "color": [
+          0.7697310801828281,
+          0.7827579721645452,
+          0.8088117561279796
+        ],
+        "flatShading": true,
+        "vertexColors": false
+      }
+    ],
+    "pixelRatio": 2,
+    "passes": [
+      {
+        "enabled": true,
+        "name": "Bh"
+      },
+      {
+        "enabled": true,
+        "name": "Ot"
+      },
+      {
+        "enabled": true,
+        "name": "Ot"
+      }
+    ],
+    "light": [
+      {
+        "color": [
+          1,
+          0.97,
+          0.9
+        ],
+        "intensity": 2.7,
+        "position": [
+          47.40681495774217,
+          994.3531541695644,
+          -12.262642265295483
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "workers": 0,
+    "databases": []
+  },
+  "passed": true,
+  "finished": "2026-10-19T04:05:44.445Z",
+  "invalidViews": [
+    "top"
+  ],
+  "rawCaptureDirectory": "tmp/bellback-native-visual/capture2",
+  "diagnosticInputs": {
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/diagnostic.ts": "da2ff1e1480cb3319c5aafb51eeec6cabbb8b918627f18565ca64e390a20671a",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/vite.config.ts": "7d7fd20c1c221c8820d910d9d48758932bb8e0f138a4ec213d084b92df14c2d2",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/capture.mjs": "033cd6b5c60054635deb39bc803b7be2104f99876630b5db3e702cb5d9fa845d",
+    "src/game/plugin/geometry.ts": "a0e47e4049c72350f66f2c2f554e96792dbbc54c82c0560e26552ee2d60665c7",
+    "src/engine/models/animalGeometry.ts": "dad745ee0fe448a310275ac4695708f3275afeac527e0c2b900a804e20c1ea69",
+    "src/engine/entities/lowpoly.ts": "7a0ab5527c4b4f4623bdfa391000eb6aae3984e94b74a4510471627c04015c8b"
+  },
+  "bundleSha256": "c89651e3068231568d7c1e43db70ec8637a63276038b885b1bdea6c471e61be5"
+}

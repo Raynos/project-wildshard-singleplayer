@@ -1,0 +1,34 @@
+{
+  "schema": "wildshard.mantis.arena-candidate.v1",
+  "candidate": "V7-native22-motion1",
+  "rootFlinch": "authored-pose",
+  "footOrder": [
+    0,
+    2,
+    1,
+    3
+  ],
+  "footLabels": [
+    "front-left",
+    "front-right",
+    "rear-left",
+    "rear-right"
+  ],
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/metadata.json": "f6354fa3ca75a30fdddd428fd81152884e96a27a246107e98ffcc5801281a73a",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/payload.bin": "dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/mantis-v7-native.json": "6c47dd59acdc01993b84f70adf39a1c3f050088e6bbd781409514f85fda75bb0",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/diagnostic-dimensions.json": "669e51c975ad55819484c9d24c6d9f10edf053c49097103cd1eda45093755a01",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate1/metadata.json": "e07eb5704cd93b2955ebb2d7da7321559ef925c1e6f6479b5c91bdd78485cecd",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate1/dimensions.json": "95b9279c331b8d31f9a4ca639f2ac9422130b997d900b34b9d253c5319d3be4e",
+    "src/shards/driftwood-isle/generators/mantisNativeClips.ts": "f2110f3e8557a610618b9c3370e528f286e261272cb1a2fd606e39c752319649",
+    "src/shards/driftwood-isle/generators/mantisNativePreview.ts": "143698206b20672837b65130356f5cdc1e516b664c79a641a822373aa29deff0",
+    "src/shards/driftwood-isle/generators/driftwoodRegularCombat.ts": "1d440026e146b9d46ab58098e9517165ba3290365f1317e0a6f8fe169ade72ff",
+    "src/shards/driftwood-isle/behaviour/splinterMantis.as": "c75103f4bdd3370baafa989dba6b82dc6b1396b56a484426a2ff3de0eafc1a71"
+  },
+  "visualAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false,
+  "phonePerformanceAcceptance": false,
+  "note": "Exact V7 payload; only metadata foot ordering changed. Conservative source-hull dimensions remain unaccepted. New bounded poses follow unchanged Mantis strikes; contacts, deformation, recovery continuity and real combat require visual/interactive proof."
+}

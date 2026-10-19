@@ -1,0 +1,658 @@
+{
+  "schema": "wildshard.bellback.visual-checkpoint.v1",
+  "frozenAt": "2026-10-19T04:19:30Z",
+  "scope": "Complete original diagnostic and Frame1 source/evidence plus stable Frame2 source/test preparation. No original GLB/source, engine, Puffer app or production changes.",
+  "frame2Status": "Prepared only; Blender export and render pending heavy lane",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/analyze_frames.py",
+      "bytes": 2860,
+      "sha256": "8ab27029580c7a6783d8510c236aa421cf59f3adf633d99c884d39fef8588307"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/back-native.webp",
+      "bytes": 17600,
+      "sha256": "b9d6eaa95aa0d0b0c3f7e5f3ccb1caf7bb1b29184e7f3a1919617834ee0e793b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/back-source.webp",
+      "bytes": 16680,
+      "sha256": "c2b59f579620c14250562e8812d3e26df2c4f4451375918b4ce41f6b8c6175df"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/bellback-study-v6-frame1.glb",
+      "bytes": 325036,
+      "sha256": "a990dd05e254e35d981c60ebb76b3baf0997a41705b5a35ed145acd9f08ac601"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/build_bellback_v6_frame1.py",
+      "bytes": 17419,
+      "sha256": "8c5f87075b5e4c878b8dc766d09020a80ffb97a4e36e07f7e57ce1b3bebb78a7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/build_bellback_v6_frame2.py",
+      "bytes": 17550,
+      "sha256": "68a955915e6836735a0c0df2454c2f168255689f2baf54ef2bea16008a410728"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/capture-frame1.mjs",
+      "bytes": 7588,
+      "sha256": "d425bc01b5a0677beb60aee96c5b1621240528bd3a8e9d17a72682147aa9d89f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/capture-frame2.mjs",
+      "bytes": 7495,
+      "sha256": "e8e80f65ac8a3e5b243739b5dbdc718f2f8395493875b6e02493717678ab885e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/capture.mjs",
+      "bytes": 6582,
+      "sha256": "033cd6b5c60054635deb39bc803b7be2104f99876630b5db3e702cb5d9fa845d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/crown-right-native-double.webp",
+      "bytes": 20134,
+      "sha256": "61a738e58957d8c56b2350f5e8cfdb3545761c49d1c4821a1733cf65c8d7a53d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/crown-right-native.webp",
+      "bytes": 20138,
+      "sha256": "f86b59b7f4486d40ffbf28dbad28fdf100081aa32ac2434a17423c05fa86fe2a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/crown-right-source-front.webp",
+      "bytes": 19744,
+      "sha256": "6446e14df8eec2034a9e93ce37731a832a2490466fa7e5a6f262f8baec3754e7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/crown-right-source.webp",
+      "bytes": 19524,
+      "sha256": "9b88d976beecc9e5159c959fe3b56e4af3194e3738eaff9abac6209dc788d88c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/diagnostic-frame2.ts",
+      "bytes": 3813,
+      "sha256": "d1782df14f0d2ae4517228f9104f3c8fcb804ed8d26d5063218b4d8abf3499ac"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/diagnostic-v1.ts",
+      "bytes": 2718,
+      "sha256": "da2ff1e1480cb3319c5aafb51eeec6cabbb8b918627f18565ca64e390a20671a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/diagnostic.ts",
+      "bytes": 3802,
+      "sha256": "0f8349369c81a1431c8d3ad50ff32955f3cccf25dd9d2d8a7d8cafdcb869b0eb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/export_frame2_candidate.py",
+      "bytes": 4306,
+      "sha256": "8bfa431dd530791ca0b28b15cba51fbbd1ccce2ef8dd08737bd2b9ce887ead5a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/export_frame_candidate.py",
+      "bytes": 3126,
+      "sha256": "bddad0814e90b59ef5922de62f73f61db38c4307b7456e57a162d201884fa9e4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame-analysis.json",
+      "bytes": 6448,
+      "sha256": "b439ddc1ba7b1f70ecc6a7fc624f514629de6d6b257040c19e97ac1d482b4cfb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-native/bellback-v6-native.json",
+      "bytes": 1785368,
+      "sha256": "895f3169d27430308a26292e58124fc9eafd13c0d89a9509e93b27d2206f69aa"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-native/closure.json",
+      "bytes": 3876,
+      "sha256": "0713d150e17fce7fe5980290611a8a5c8b3da72b854283134841ef218d92f438"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-native/diagnostic-dimensions.json",
+      "bytes": 345,
+      "sha256": "f0dd896925b539354fb59051a7f560e536e59ecf7272e564c3d9b8d66ceef74e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-native/mesh-map.json",
+      "bytes": 6767,
+      "sha256": "11c1672a5e38c8fd754b0dece7c8ab733d57cb8b1d27d9eb20cb1c42d8e25df6"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-native/metadata.json",
+      "bytes": 3285,
+      "sha256": "884e10d777c1b10ae2b50081444210eae9766e414e1cec299801ecac8f0532cb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-native/payload.bin",
+      "bytes": 38768,
+      "sha256": "78e75381d5c9149691aa2d5eb2e9f1219484eca478819f0e2b32190ba18b3744"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-render-receipt.json",
+      "bytes": 60351,
+      "sha256": "e5886f34cbaf554d1247fe1590c22508ead2e513a12ebff62acb05dd38d0bc2e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/back-frame1-native.webp",
+      "bytes": 17620,
+      "sha256": "5af1c3f6bc12cefae12d89da4ab68901b6ef3700695742dcd8addf831ca0d3cb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/back-frame1-source.webp",
+      "bytes": 17172,
+      "sha256": "60859bf000846de7476304434340eebf66a81f9caa7482a956fb96fd1d4015d4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/back-original-native.webp",
+      "bytes": 18128,
+      "sha256": "f230429a470643eebc12b5fe235ef82565df7896661cbb64b153011bca8f744b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/back-original-source.webp",
+      "bytes": 17232,
+      "sha256": "576a5bd744520543acbc189d233abe22a9da18ecd42b84c609aaca27e5f232ee"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/crown-right-frame1-native.webp",
+      "bytes": 19918,
+      "sha256": "20f2e9c576cc6468746712c93dfe5c0158fb311f7aeedf02a0fec7f95f845250"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/crown-right-frame1-source.webp",
+      "bytes": 19788,
+      "sha256": "00cc2650968b1f7aa5c99a922c2dbc86e77a9021878d23e7a957fe9ebb005cb1"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/crown-right-original-native.webp",
+      "bytes": 20358,
+      "sha256": "99356f8f3ceae6b8c07781eb24e51f92912dc84a9a557124bdcf08b5475f4455"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/crown-right-original-source.webp",
+      "bytes": 20180,
+      "sha256": "72cc4bac5101d3f7a8f27e2da0e92420f629b6db846b1a1d8fae9555005c2810"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-frame1-native.webp",
+      "bytes": 20802,
+      "sha256": "ebe82f2351e2e19b3c887b3c4e3a6fec44e6f2022a10415287e25818ef198ab2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-frame1-source.webp",
+      "bytes": 20174,
+      "sha256": "e5752e80467c2686fd002f3223fb8821128ff083ee7c09d51868f7010723b26d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-left-frame1-native.webp",
+      "bytes": 23036,
+      "sha256": "1625dbe4b4dbc25602e01c823871a1fb532187707a9e43367abae04359442b53"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-left-frame1-source.webp",
+      "bytes": 22142,
+      "sha256": "dae6fee2bcc7226b6a1d8eadf395fc869111d0abd8b435d264cf892f4c4efb69"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-left-original-native.webp",
+      "bytes": 23162,
+      "sha256": "b2a69db45e8c6b15fdeb6d3b3aae0dcf85d2dac93f7a6b6d8798671d1090824c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-left-original-source.webp",
+      "bytes": 22276,
+      "sha256": "a7daea0edaaa1443c146505d25e641806391dd86ee63d68fc93fdb113a3efd9d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-original-native.webp",
+      "bytes": 21064,
+      "sha256": "474cc21997fc1c6d7d73386b73fd49e42bfdb1a6aacd611e9c2fc20576e29313"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-original-source.webp",
+      "bytes": 20406,
+      "sha256": "ac92e94741e7ccaebbdad5185f7268733e5181b817fbb043cd34e86e6ce239ba"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-right-frame1-native.webp",
+      "bytes": 23314,
+      "sha256": "1b50f6e467b90fa6f2acb910c516d3e545cd295dac0ddedd9a47bd9df4a9bb40"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-right-frame1-source.webp",
+      "bytes": 22840,
+      "sha256": "3388cb042296f7d63ee2b4f570fec84e266378af4fb1ee4271536a606f47b2dd"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-right-original-native.webp",
+      "bytes": 23418,
+      "sha256": "cf5ac6d70b2cbf03c27d87166c6c34086b05eab716de5dcebda3dd1f8e0f8d80"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-right-original-source.webp",
+      "bytes": 23030,
+      "sha256": "b50180a430df6553bf77d430dd5b56db23860af8791837ab95dceba26140e0aa"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/hull-front-frame1-native.webp",
+      "bytes": 24440,
+      "sha256": "a6d9a27c271b27ed408f37e736b2194b10fc714f62eb2928ad27f376cccbd25e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/hull-front-frame1-source.webp",
+      "bytes": 22388,
+      "sha256": "b871557c389c2f5db601484260ba325db3e4c6ab6c9b258b960cb0c8659b6276"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/hull-front-original-native.webp",
+      "bytes": 24262,
+      "sha256": "1f87e7a2dd48f5185d0ec3be252404052849243631d7b52e9de55c9a59fcc205"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/hull-front-original-source.webp",
+      "bytes": 22792,
+      "sha256": "909be5db8396cebd00ccd7d0bed320efacf42e86f406254980e641475d32dbf2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-frame1-native-double.webp",
+      "bytes": 11674,
+      "sha256": "2ccde98492dfabeff010dc377911720b55948359407a9477841c2ec843c24985"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-frame1-native.webp",
+      "bytes": 11528,
+      "sha256": "638d2761cfe86bf44054cad92df0fc0d48b6a68a3546f664e57f06114de8aab5"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-frame1-source-front.webp",
+      "bytes": 11796,
+      "sha256": "6b44b3792651f92edcaac2fa470f6974c614978e15ca4a29bcbb446fa4f88662"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-frame1-source.webp",
+      "bytes": 11542,
+      "sha256": "f97d4f830fa03909a692f6434d7b4db6e648e2a344f999ce6b5aae5f843e5b11"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-original-native-double.webp",
+      "bytes": 11762,
+      "sha256": "6df94223c495d48acbb28dbe82dac12d61a667cd3ca6214a049d62d2c7728f14"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-original-native.webp",
+      "bytes": 11862,
+      "sha256": "70bbf087bdb18aeb1302e9d822bcb7fca6a3b1f6ab4802373da6fcb4414317f8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-original-source-front.webp",
+      "bytes": 11474,
+      "sha256": "022630231bce74377c3cd2ec5907c8cffcc45dca26acbb8354bfbf47df0db25a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-original-source.webp",
+      "bytes": 11664,
+      "sha256": "8a61ddfd56660123dcfaddedc1d6239cf479c8039a0b3f0a9ea465552d58bcb1"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-frame1-native-double.webp",
+      "bytes": 13084,
+      "sha256": "ae7094849f104ecb318cadb28c8ff7f4f047693b7098c5320959b155ae5b41cd"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-frame1-native.webp",
+      "bytes": 12676,
+      "sha256": "6b37512fbf32c5b708899830cec3c4a73a1c7a14fda4550743ed601a048dcca0"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-frame1-source-front.webp",
+      "bytes": 11888,
+      "sha256": "015821aa4ed3879bc4c23c2c3c39bf0cf9bfdc909aa8309a630bb2bd1257e202"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-frame1-source.webp",
+      "bytes": 11778,
+      "sha256": "150f3ed0daab9485b95718f3756409f4df62f8cac25b87c5cbc3d9afb971a2ff"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-original-native-double.webp",
+      "bytes": 13072,
+      "sha256": "8454d45d6e81dcca5c8fad2e2e1aca4ea54d853a0fdb6e93713ee6ce0304d229"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-original-native.webp",
+      "bytes": 12688,
+      "sha256": "6da94d2cc7cc5fb408542cbdd760f143bc0c537abb22da17ee362b753751da77"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-original-source-front.webp",
+      "bytes": 12356,
+      "sha256": "c9bade3bc0a01795f28010d3f21c9366bcb786711c504f2132de016228c01bec"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-original-source.webp",
+      "bytes": 12526,
+      "sha256": "6a55b3777e242a5478e8a6284973073359a10bccc85570ba35842b0b1db5fea4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-frame1-native-double.webp",
+      "bytes": 13312,
+      "sha256": "a7ce261d96c52f7f5fae40b89c3fbc7bca0d92342c95c9929f40e509a13a9c8b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-frame1-native.webp",
+      "bytes": 13016,
+      "sha256": "a6e302bea211a4fe9df77158b08d75db571f6b6e2a9d675e1cf24013dd7156c2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-frame1-source-front.webp",
+      "bytes": 12902,
+      "sha256": "0ce3de545497fbfb4e3549beaacf42d1c08f54755a974b817ac32f5fb49d076d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-frame1-source.webp",
+      "bytes": 12658,
+      "sha256": "d6e04f2facb6b5f3d377616730302851a7b07066657bb7da5aaf83dd19c68156"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-original-native-double.webp",
+      "bytes": 12984,
+      "sha256": "1034e95f494e70be1e2b8c42803c27952d725491a383bf851b7fc85e73df65d1"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-original-native.webp",
+      "bytes": 12718,
+      "sha256": "a3fe97b08c8f7db7b1d44dc45c8af2978abc71b4e7a39562d5ea2d685b5986c4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-original-source-front.webp",
+      "bytes": 12606,
+      "sha256": "23103cb26e1dabc6644d56da1d9bb3fafd1e58f0df8501e8da1a7b78d7e387b3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-original-source.webp",
+      "bytes": 12404,
+      "sha256": "37bba7c81084187732124a345a1a291aff3eda5db2ad064874580ed5850ff245"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/jaw-front-frame1-native.webp",
+      "bytes": 19702,
+      "sha256": "3a2355ab7887d1f6ec48f963bc9bcf953b08caaea02259104a1ed48dd70129d5"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/jaw-front-frame1-source.webp",
+      "bytes": 18026,
+      "sha256": "9ce30c918ad1418c0f9bf7d9e244b3b71b1dbec4e1b12c110aacf8f1c70bfb12"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/jaw-front-original-native.webp",
+      "bytes": 19756,
+      "sha256": "163027517b1748af9c4193f91ad4bbe14bac28bcbd3fd140c9d604209922532f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/jaw-front-original-source.webp",
+      "bytes": 18062,
+      "sha256": "864362991d7d883ad96f4ab37b2f974a1e2111aa1e4657c3133fed8dfc8c44e4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/left-frame1-native.webp",
+      "bytes": 18990,
+      "sha256": "5f20a365544ea83c1bf417d69ac26c1fde076bd71afae27493a73831c05962e7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/left-frame1-source.webp",
+      "bytes": 17702,
+      "sha256": "922ecd82a907d281d96323abb79f4f334f0d5bd82191ff9d9e703177d5a5f365"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/left-original-native.webp",
+      "bytes": 19400,
+      "sha256": "3963ebb96bffd77f32fadd5199cdcb89b7643376b688d7fcadb75697eef95aa3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/left-original-source.webp",
+      "bytes": 18166,
+      "sha256": "83bf46d182758bd355426b00e188b6282c6286028331db79fd9b5508d35f9fe0"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-left-frame1-native.webp",
+      "bytes": 22086,
+      "sha256": "67e2cc6794ce95988a08188f2b167004bcfbbd78c1e6f5a08b8d07acd9cf2ff8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-left-frame1-source.webp",
+      "bytes": 21274,
+      "sha256": "a7576bba518998efb87764cf19d3b2cf23fc51d6d6d77510c5512383e61731a7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-left-original-native.webp",
+      "bytes": 22098,
+      "sha256": "c39bdcce6117da37db1c9596bebb3e3b9e6e01fe96ff1a9b1e97cdc9b3f7ae97"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-left-original-source.webp",
+      "bytes": 21422,
+      "sha256": "140fca90d5ed3fae7801a3c59f889d336aa95462edb34f20f8be0b68464514bb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-right-frame1-native.webp",
+      "bytes": 23534,
+      "sha256": "62409328e8024602fe98c5b8d77f417fa6f41310a89ee8acaf8dfc405daba0ad"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-right-frame1-source.webp",
+      "bytes": 22602,
+      "sha256": "c164eecaf1525700fef3f7f06214a33f5ae56e24426ba7a3fb77a471adbc5776"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-right-original-native.webp",
+      "bytes": 23758,
+      "sha256": "82cb00f339992ca9022f633655d65888e2ecac2c8e194929d4b8d6af333b75eb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-right-original-source.webp",
+      "bytes": 22898,
+      "sha256": "1d8fd8bfaf78c06006892037db97304f24317ed9e00c9a039ec2dfcd61405706"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/right-frame1-native.webp",
+      "bytes": 20458,
+      "sha256": "7a03b9c068a68f53713400732f957a7d37cad05c99f255e2d51f114644f37254"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/right-frame1-source.webp",
+      "bytes": 19952,
+      "sha256": "05860b026e5f6f510f5ea1ea186ac86026526c9da1e45fc4482eea557684b3bd"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/right-original-native.webp",
+      "bytes": 20724,
+      "sha256": "5099d7d022a5b7abd7ade4e2ccddb601ed44e0e3ae3c10d6303906cc814e73cb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/right-original-source.webp",
+      "bytes": 19892,
+      "sha256": "ea9765c1eadf6043835c3eb466f11815271fea0fd171bf7a6a6b4e8f5ad7a400"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/top-frame1-native.webp",
+      "bytes": 21562,
+      "sha256": "a4ff56255479ba6fe295562a693d09f1c7a607411f37f6a8911f260c51d96577"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/top-frame1-source.webp",
+      "bytes": 20286,
+      "sha256": "f2868e16abff292cec966fd9f8deb2eb6bd207fdb2e3c521571c7e2a54f90b36"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/top-original-native.webp",
+      "bytes": 22332,
+      "sha256": "0df47f9b4565c16d4c3a1202bdddd453903cb02be0249b81dd995da4feaf12bf"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/top-original-source.webp",
+      "bytes": 20454,
+      "sha256": "70d0ffcb59ffcd37403759d37665d4509d33d89fd94fa7a8ff13168363d1f991"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/front-left-native.webp",
+      "bytes": 22916,
+      "sha256": "c0cb504b5313d8b1d54c0528ae3ba43ebfd7a4806db0a6196d3f1e731829ac5e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/front-left-source.webp",
+      "bytes": 22200,
+      "sha256": "2751c75f8bf9fb5ad86f091e7e5d7e844b68af8b47c80d762c2f8e83be7ac129"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/front-native.webp",
+      "bytes": 20944,
+      "sha256": "91dccb7a47832a2e0ec36e57ff11b5ffab13f91e9fb026d7285e5f65e7809287"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/front-right-native.webp",
+      "bytes": 23118,
+      "sha256": "29e1cfab2d4174a50b23c751aeda909909264d4b1e3511c6cf97ebf234f83970"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/front-right-source.webp",
+      "bytes": 22666,
+      "sha256": "b64e8e577b31989eaa17cb45b25b27d96bab80551bbc2213f696fbb12d12233f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/front-source.webp",
+      "bytes": 20392,
+      "sha256": "b1ebbab5d6c8fd548c1970124f787e00560fa398cb60ba7bbc3fc987a08182b3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/hull-front-native.webp",
+      "bytes": 23960,
+      "sha256": "93a404ec8a69d603a39321e25b75c364dd1c2c619eb00a6abc3ad34ad4c47aee"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/hull-front-source.webp",
+      "bytes": 22382,
+      "sha256": "a488b0d78a1664ecf3668d99a2a6e6fd1157d327ec5bf4ad49a820d7af5743ac"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/jaw-front-native-double.webp",
+      "bytes": 19672,
+      "sha256": "6374bf038673c975e68e558aed2e8f9153a3a5225cd92ce6a6214aaa1cdefdab"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/jaw-front-native.webp",
+      "bytes": 19502,
+      "sha256": "6b10929dd3f59d2767a6c32726faf2453988ac04d0dabfd635f90f80188eb204"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/jaw-front-source-front.webp",
+      "bytes": 18118,
+      "sha256": "f290aff13b2424022fdbeedadf142c4ff07fbda93e2d2dfda80b66d78c13edf5"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/jaw-front-source.webp",
+      "bytes": 17584,
+      "sha256": "f9a730173b156bc1a31e622313f1dbde4c5aaaca32f1a8af71c0e2b1f17e62f3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/left-native.webp",
+      "bytes": 19078,
+      "sha256": "1bb8169a57a4556c0c6f1f7cd70921d5ef8b1b0394021e7aa685ded3ddf280e3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/left-source.webp",
+      "bytes": 17742,
+      "sha256": "b96dae5da69fcd3db3194f803270322453b9d42213ea92e50f160fcce12ca5ac"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/native-frame1.test.ts",
+      "bytes": 9208,
+      "sha256": "c768d32cd57ed87a39faac6b04ae7e236374eef87c148688cec133df6140f722"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/pixel-differences.json",
+      "bytes": 4806,
+      "sha256": "ba21327bd9849acb03b7b4a759f654a8fa08ed494c2a0167c27a37ea277f01a8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/prepare_frame2_candidate.py",
+      "bytes": 1000,
+      "sha256": "c1385b44651c6b0a9b93994340328ffccfad731bca41678ab4407f05c00f8593"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/prepare_frame_candidate.py",
+      "bytes": 1427,
+      "sha256": "47ad2a406625dca464fca49a6a07252325dd72baf95bac773c7d226e3822c153"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/rear-left-native.webp",
+      "bytes": 21622,
+      "sha256": "57e868381cbe870fb169bcb14bffe397b71046817f14004f0548eb22f454f15f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/rear-left-source.webp",
+      "bytes": 21036,
+      "sha256": "f0a39c3125333cdfb1df1158ed1908bfc4a21691c1f7a80d08ebb97087868581"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/rear-right-native.webp",
+      "bytes": 23268,
+      "sha256": "7a7ea817fca88359643ec9c95d52d6dbfeac2965f26b22e606efaca810c65460"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/rear-right-source.webp",
+      "bytes": 22276,
+      "sha256": "2cda8300ddd4c7cc84d1c212d7814825973b3729c0a51373e86eb36953aebd23"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/render-receipt.json",
+      "bytes": 21445,
+      "sha256": "49e665f27c3bf41bcfaa82582c65ca8b4a942804564222cbf1cad51538235e3d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/right-native.webp",
+      "bytes": 20518,
+      "sha256": "795680d9bc950e295f194388e6f7a0868a7c3e77df98a6167aca1bd01d2cbd29"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/right-source.webp",
+      "bytes": 19730,
+      "sha256": "e9dff1f81382b9681a4496e8ef5c4c02fec9bf099b32f82fdfcd68b024605d0a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/test_frame2_candidate.py",
+      "bytes": 1735,
+      "sha256": "3c0667ff8c4d04c5b3db7d6a12f13c7cf26fdd0c98fa123002492ee99fdc9bba"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/test_frame2_topology.py",
+      "bytes": 919,
+      "sha256": "5ebc7d3eee0b496c82afa267d216c158107e9593512f2f9082a90b137efa080b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/test_frame_candidate.py",
+      "bytes": 2781,
+      "sha256": "659637d5d51602f08820dc3fdc12c05f95fee2c13c00ab3030845c4618fd16a8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/vite-frame2.config.ts",
+      "bytes": 612,
+      "sha256": "30b1a3252642246ceaf0e164d4d243888f589ca795fced3be6ffa1aaa3033551"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/vite.config.ts",
+      "bytes": 605,
+      "sha256": "fcaa0c8974c38d050551e2f4716bc2154eee4b99f2050362d9df7967a443e5e9"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/vitest.config.ts",
+      "bytes": 242,
+      "sha256": "75f76e1892f214a4772a98a1c7bb5a90e5dc8cd55c48c7dc3d11bd24965d74fc"
+    },
+    {
+      "path": "docs/reviews/bellback-native-visual-diagnostic.md",
+      "bytes": 6469,
+      "sha256": "22d2b6c226da47c67507d8b2e84f4d0a9bb93207a8348ff24d06fae872268a69"
+    }
+  ]
+}

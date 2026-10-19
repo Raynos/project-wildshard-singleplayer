@@ -1,0 +1,51 @@
+{
+  "schema": "wildshard.mantis.arena-source-closure.v1",
+  "frozenAtUtc": "2026-10-19T04:14:10.115559+00:00",
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate1/ADMISSION.md": {
+      "sha256": "d6e3442e2b06f7661b9f644b6f240a22e33d21eb30b77180c5db3df9327ef534",
+      "bytes": 3676
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate1/admission.json": {
+      "sha256": "c398b54f97b79cbaff87deed44a0e3f84450dc3ff72eed2fe385cad2188f1789",
+      "bytes": 2157
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate1/dimensions.json": {
+      "sha256": "95b9279c331b8d31f9a4ca639f2ac9422130b997d900b34b9d253c5319d3be4e",
+      "bytes": 366
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate1/metadata.json": {
+      "sha256": "e07eb5704cd93b2955ebb2d7da7321559ef925c1e6f6479b5c91bdd78485cecd",
+      "bytes": 8262
+    },
+    "scripts/build-mantis-native-preview.mjs": {
+      "sha256": "05ea439aa414225d156bcb2043382c1a405b1c8c7863a93a444c49369ea27189",
+      "bytes": 5142
+    },
+    "scripts/mantis-native-admission.mjs": {
+      "sha256": "208bb8ed52abb563ed58eb68fcda56b3f7141a87aa876bd114585cfdd6631df8",
+      "bytes": 2783
+    },
+    "scripts/mantis-native-admission.test.mjs": {
+      "sha256": "645d06d2599bb881a5be9790296b92b862eb38d97428cda76722b51f7bbec43c",
+      "bytes": 1796
+    },
+    "src/shards/driftwood-isle/generators/mantisNativeClips.ts": {
+      "sha256": "f2110f3e8557a610618b9c3370e528f286e261272cb1a2fd606e39c752319649",
+      "bytes": 7220
+    },
+    "src/shards/driftwood-isle/generators/mantisNativePreview.ts": {
+      "sha256": "143698206b20672837b65130356f5cdc1e516b664c79a641a822373aa29deff0",
+      "bytes": 7573
+    },
+    "test/mantis-native-preview.test.ts": {
+      "sha256": "9ddbd5279f09e4c11996ad803bbabcb6d13182e310b5f5c1893d2a4d312210c8",
+      "bytes": 7646
+    },
+    "vite/mantis-preview.config.ts": {
+      "sha256": "e6d83a2d4d3102b5838e755e4b33224314558b5a6e23e9b9538777afdeb32a2e",
+      "bytes": 7714
+    }
+  },
+  "acceptance": false
+}

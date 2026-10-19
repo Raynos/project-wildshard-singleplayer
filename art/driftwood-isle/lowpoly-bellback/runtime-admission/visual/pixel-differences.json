@@ -1,0 +1,218 @@
+[
+  {
+    "view": "front",
+    "sourceCulling": {
+      "nonzeroPixels": 97563,
+      "over8Pixels": 14839,
+      "meanRGB": 0.18602628489365017
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 29378,
+      "over8Pixels": 9344,
+      "meanRGB": 0.12330946950402862
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 572312,
+      "over8Pixels": 295644,
+      "meanRGB": 3.0293591749080266
+    }
+  },
+  {
+    "view": "left",
+    "sourceCulling": {
+      "nonzeroPixels": 46466,
+      "over8Pixels": 9198,
+      "meanRGB": 0.09565888204609492
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 24577,
+      "over8Pixels": 9499,
+      "meanRGB": 0.1049369145060899
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 575834,
+      "over8Pixels": 174204,
+      "meanRGB": 2.291776101609911
+    }
+  },
+  {
+    "view": "right",
+    "sourceCulling": {
+      "nonzeroPixels": 125606,
+      "over8Pixels": 24656,
+      "meanRGB": 0.29587665117462936
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 49461,
+      "over8Pixels": 19922,
+      "meanRGB": 0.29095008077753926
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 591481,
+      "over8Pixels": 270719,
+      "meanRGB": 3.247790416891719
+    }
+  },
+  {
+    "view": "back",
+    "sourceCulling": {
+      "nonzeroPixels": 24693,
+      "over8Pixels": 5564,
+      "meanRGB": 0.06356093087330518
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 13150,
+      "over8Pixels": 6847,
+      "meanRGB": 0.11861285196735605
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 635011,
+      "over8Pixels": 105059,
+      "meanRGB": 1.6325231151631066
+    }
+  },
+  {
+    "view": "top",
+    "sourceCulling": {
+      "nonzeroPixels": 0,
+      "over8Pixels": 0,
+      "meanRGB": 0.0
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 0,
+      "over8Pixels": 0,
+      "meanRGB": 0.0
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 0,
+      "over8Pixels": 0,
+      "meanRGB": 0.0
+    }
+  },
+  {
+    "view": "front-left",
+    "sourceCulling": {
+      "nonzeroPixels": 76224,
+      "over8Pixels": 12654,
+      "meanRGB": 0.1534237945267902
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 34626,
+      "over8Pixels": 12370,
+      "meanRGB": 0.15170465186343243
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 528763,
+      "over8Pixels": 231477,
+      "meanRGB": 2.608904468383668
+    }
+  },
+  {
+    "view": "front-right",
+    "sourceCulling": {
+      "nonzeroPixels": 117471,
+      "over8Pixels": 22359,
+      "meanRGB": 0.26927675980285276
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 45493,
+      "over8Pixels": 15894,
+      "meanRGB": 0.2136435480354185
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 533476,
+      "over8Pixels": 245766,
+      "meanRGB": 2.7800681082675367
+    }
+  },
+  {
+    "view": "rear-left",
+    "sourceCulling": {
+      "nonzeroPixels": 23292,
+      "over8Pixels": 4105,
+      "meanRGB": 0.044821657608785793
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 18478,
+      "over8Pixels": 7497,
+      "meanRGB": 0.08515629405859108
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 540417,
+      "over8Pixels": 109521,
+      "meanRGB": 1.524801735397692
+    }
+  },
+  {
+    "view": "rear-right",
+    "sourceCulling": {
+      "nonzeroPixels": 66631,
+      "over8Pixels": 9812,
+      "meanRGB": 0.12467576646681124
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 25413,
+      "over8Pixels": 8728,
+      "meanRGB": 0.11945078511184154
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 547808,
+      "over8Pixels": 195351,
+      "meanRGB": 2.4245664144573853
+    }
+  },
+  {
+    "view": "jaw-front",
+    "sourceCulling": {
+      "nonzeroPixels": 194740,
+      "over8Pixels": 24963,
+      "meanRGB": 0.3570548180477258
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 49035,
+      "over8Pixels": 19150,
+      "meanRGB": 0.2876523305760101
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 1042543,
+      "over8Pixels": 540636,
+      "meanRGB": 6.2561092820434405
+    }
+  },
+  {
+    "view": "hull-front",
+    "sourceCulling": {
+      "nonzeroPixels": 349968,
+      "over8Pixels": 54346,
+      "meanRGB": 0.6858429257603599
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 107031,
+      "over8Pixels": 43320,
+      "meanRGB": 0.5727297922703872
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 1445415,
+      "over8Pixels": 788257,
+      "meanRGB": 8.665793448952124
+    }
+  },
+  {
+    "view": "crown-right",
+    "sourceCulling": {
+      "nonzeroPixels": 102138,
+      "over8Pixels": 25339,
+      "meanRGB": 0.2504105224016307
+    },
+    "nativeCulling": {
+      "nonzeroPixels": 30822,
+      "over8Pixels": 707,
+      "meanRGB": 0.03766461986002581
+    },
+    "totalPipeline": {
+      "nonzeroPixels": 1297657,
+      "over8Pixels": 447125,
+      "meanRGB": 5.324325363544163
+    }
+  }
+]

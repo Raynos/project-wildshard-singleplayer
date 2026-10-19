@@ -1,0 +1,1887 @@
+{
+  "schema": "wildshard.bellback.native-rest-render.v1",
+  "scope": "Frozen rest-only geometry diagnostic in unchanged V70 renderer host; no Bellback gameplay or admission",
+  "started": "2026-10-19T04:12:02.517Z",
+  "sourceSha256": "ec5850fda8a97e7eef064098fdb212d4e2be2f5dc4699548de0430f812b8e7b0",
+  "hostPreview": {
+    "schema": "wildshard.puffer.native-preview.v1",
+    "candidate": "V70",
+    "mode": "gait5",
+    "rigAdmission": {
+      "profile": "v70-rig1-gait5",
+      "originalSourceSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+      "equivalenceSha256": "5cb9e2b3128f5b87ef4ed7c89816c324d79bd57bc6b947d25b23c46bea567b06",
+      "poseSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+      "gaitSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0"
+    },
+    "rootFlinch": "authored-pose",
+    "arenaLighting": "neutral-gray-v2",
+    "arenaLightingProfileSha256": "b0871ebc6bb4b1584cc3b970861dd9d577dd1d6f03c59b752f4d937571c29101",
+    "arenaOcclusion": "contact-v1",
+    "visualAdapter": "puffer-gait5-continuity",
+    "visualAdapterSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+    "source": "art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json",
+    "measurementSha256": "a923ca6c0ca4ba7d853da3b871d536e2b2a3106202a21c3673f22a8eaa6c6f27",
+    "sourceSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+    "metadataSha256": "55f188d53546dd06537c12ba64a29a36b0569a1d72930146605aaa0a43b86673",
+    "dimensionsSha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e",
+    "colliderAcceptance": false,
+    "visualAcceptance": false,
+    "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+    "packedSha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15",
+    "bodyFile": "/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+    "sourceHash": "80e39ff9f9af3b1e0bcaf3565e9282aa042a33af32298850c6085be7396cf895"
+  },
+  "errors": [],
+  "httpErrors": [],
+  "views": [
+    {
+      "name": "front",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        902.1,
+        2.0700000002980232
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-original-source.png",
+      "sha256": "a7bbd7066322e682f5add13ec3730a0ac9be92de6c4ac5ccfe03543d63400dc2",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-original-source.webp",
+      "reviewImageSha256": "ac92e94741e7ccaebbdad5185f7268733e5181b817fbb043cd34e86e6ce239ba"
+    },
+    {
+      "name": "front",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        902.1,
+        2.0700000002980232
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-original-native.png",
+      "sha256": "b94fe62bfa04db62fb58b1736ef83aa5dd1b5acc6b1ff41bee90573d0d7e24ea",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-original-native.webp",
+      "reviewImageSha256": "474cc21997fc1c6d7d73386b73fd49e42bfdb1a6aacd611e9c2fc20576e29313"
+    },
+    {
+      "name": "front",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        902.1,
+        2.0700000002980232
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-frame1-source.png",
+      "sha256": "7a2918a0849a8f5c3b342657435b27106961656aa926e2baea357fbf7e8efad2",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-frame1-source.webp",
+      "reviewImageSha256": "e5752e80467c2686fd002f3223fb8821128ff083ee7c09d51868f7010723b26d"
+    },
+    {
+      "name": "front",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        902.1,
+        2.0700000002980232
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-frame1-native.png",
+      "sha256": "17664025a0c4ebb609713bed093fdc343878bcb4b6d3697d186726ef9f30d216",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-frame1-native.webp",
+      "reviewImageSha256": "ebe82f2351e2e19b3c887b3c4e3a6fec44e6f2022a10415287e25818ef198ab2"
+    },
+    {
+      "name": "left",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        -8.999999895275536,
+        902.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "left-original-source.png",
+      "sha256": "8d4a8feda82d4bfed8b99cc2998014e91534eb0bbb4c8cf652c69dc2b3a40f04",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/left-original-source.webp",
+      "reviewImageSha256": "83bf46d182758bd355426b00e188b6282c6286028331db79fd9b5508d35f9fe0"
+    },
+    {
+      "name": "left",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        -8.999999895275536,
+        902.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "left-original-native.png",
+      "sha256": "73ca9d606f29eadeabc6f88a0d5c428758395cd22efa7f1fc62d7e93f1c9790c",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/left-original-native.webp",
+      "reviewImageSha256": "3963ebb96bffd77f32fadd5199cdcb89b7643376b688d7fcadb75697eef95aa3"
+    },
+    {
+      "name": "left",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        -8.999999895275536,
+        902.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "left-frame1-source.png",
+      "sha256": "7f7a0abc0b203233e677c8f229cf0a24067b904d1267bbe4ceb3acba03b8b5a5",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/left-frame1-source.webp",
+      "reviewImageSha256": "922ecd82a907d281d96323abb79f4f334f0d5bd82191ff9d9e703177d5a5f365"
+    },
+    {
+      "name": "left",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        -8.999999895275536,
+        902.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "left-frame1-native.png",
+      "sha256": "799380d6a8bfdcfcc3835bf2c7f16394906165c732ff1aee39ec46155c0c8ea3",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/left-frame1-native.webp",
+      "reviewImageSha256": "5f20a365544ea83c1bf417d69ac26c1fde076bd71afae27493a73831c05962e7"
+    },
+    {
+      "name": "right",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        9.000000104724464,
+        902.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "right-original-source.png",
+      "sha256": "ac471c0c678711a8fefa34ea87720d28e6cccfa81c523ae70e9c0384c8d7ffc7",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/right-original-source.webp",
+      "reviewImageSha256": "ea9765c1eadf6043835c3eb466f11815271fea0fd171bf7a6a6b4e8f5ad7a400"
+    },
+    {
+      "name": "right",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        9.000000104724464,
+        902.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "right-original-native.png",
+      "sha256": "d97787d5afc543bb617cd218319a8c46ffc12602eccda9dc23b5fb0300aba021",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/right-original-native.webp",
+      "reviewImageSha256": "5099d7d022a5b7abd7ade4e2ccddb601ed44e0e3ae3c10d6303906cc814e73cb"
+    },
+    {
+      "name": "right",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        9.000000104724464,
+        902.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "right-frame1-source.png",
+      "sha256": "44016019c028c1ec63ec80a2bc0db864b1c299823584c89ebee7c3b1bc574411",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/right-frame1-source.webp",
+      "reviewImageSha256": "05860b026e5f6f510f5ea1ea186ac86026526c9da1e45fc4482eea557684b3bd"
+    },
+    {
+      "name": "right",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        9.000000104724464,
+        902.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "right-frame1-native.png",
+      "sha256": "7d3e54b8a28892eef12e9ec7aa018d16b33b61af546a0437a94604a14d52b79b",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/right-frame1-native.webp",
+      "reviewImageSha256": "7a03b9c068a68f53713400732f957a7d37cad05c99f255e2d51f114644f37254"
+    },
+    {
+      "name": "back",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        902.1,
+        -15.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "back-original-source.png",
+      "sha256": "f26dde6230d8048c6d7e821a64c02502bb65bef98f2ee285d0fc83536b8ab084",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/back-original-source.webp",
+      "reviewImageSha256": "576a5bd744520543acbc189d233abe22a9da18ecd42b84c609aaca27e5f232ee"
+    },
+    {
+      "name": "back",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        902.1,
+        -15.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "back-original-native.png",
+      "sha256": "887e540855081068b48fd1c103a9a7140ffa23f96dc92d56f9ea1cbe12100f69",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/back-original-native.webp",
+      "reviewImageSha256": "f230429a470643eebc12b5fe235ef82565df7896661cbb64b153011bca8f744b"
+    },
+    {
+      "name": "back",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        902.1,
+        -15.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "back-frame1-source.png",
+      "sha256": "36032b833df8eb03e2c0ec9333b080b61b6305817c5db9a8b15db1518f7a0361",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/back-frame1-source.webp",
+      "reviewImageSha256": "60859bf000846de7476304434340eebf66a81f9caa7482a956fb96fd1d4015d4"
+    },
+    {
+      "name": "back",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        902.1,
+        -15.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "back-frame1-native.png",
+      "sha256": "491a48e16826aebc859607580f130198c8a2319bd7241369961f39749d1b4dc9",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/back-frame1-native.webp",
+      "reviewImageSha256": "5af1c3f6bc12cefae12d89da4ab68901b6ef3700695742dcd8addf831ca0d3cb"
+    },
+    {
+      "name": "top",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        908.7,
+        -6.919999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "top-original-source.png",
+      "sha256": "239a6e5708d3709bdc5231241b1c3a0a0a7f3edf98936345bb33b9211cc7a1f7",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/top-original-source.webp",
+      "reviewImageSha256": "70d0ffcb59ffcd37403759d37665d4509d33d89fd94fa7a8ff13168363d1f991"
+    },
+    {
+      "name": "top",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        908.7,
+        -6.919999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "top-original-native.png",
+      "sha256": "7bc3d0a9075220780d96cc194dfc9765061a7d48ff16d5d175625cda15f96224",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/top-original-native.webp",
+      "reviewImageSha256": "0df47f9b4565c16d4c3a1202bdddd453903cb02be0249b81dd995da4feaf12bf"
+    },
+    {
+      "name": "top",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        908.7,
+        -6.919999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "top-frame1-source.png",
+      "sha256": "43932f130e590f8314bebced4993efe7c773c6a378ec70e8bb450a5d9e5c1f1f",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/top-frame1-source.webp",
+      "reviewImageSha256": "f2868e16abff292cec966fd9f8deb2eb6bd207fdb2e3c521571c7e2a54f90b36"
+    },
+    {
+      "name": "top",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        908.7,
+        -6.919999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "top-frame1-native.png",
+      "sha256": "128172d73f0189ff0208e061057020bc44fe29cd9287657cd6cd8896ac8fedfc",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/top-frame1-native.webp",
+      "reviewImageSha256": "a4ff56255479ba6fe295562a693d09f1c7a607411f37f6a8911f260c51d96577"
+    },
+    {
+      "name": "front-left",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        -6.999999895275536,
+        903,
+        0.07000000029802322
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-left-original-source.png",
+      "sha256": "7f5b8f42c962f3614f55ade61467140ca6c558b100b5d88a40d57d2acfeccf27",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-left-original-source.webp",
+      "reviewImageSha256": "a7daea0edaaa1443c146505d25e641806391dd86ee63d68fc93fdb113a3efd9d"
+    },
+    {
+      "name": "front-left",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        -6.999999895275536,
+        903,
+        0.07000000029802322
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-left-original-native.png",
+      "sha256": "00e6b71e53f29567a695d49615f70a4ca997b940c99d8656063601ff1dd53027",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-left-original-native.webp",
+      "reviewImageSha256": "b2a69db45e8c6b15fdeb6d3b3aae0dcf85d2dac93f7a6b6d8798671d1090824c"
+    },
+    {
+      "name": "front-left",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        -6.999999895275536,
+        903,
+        0.07000000029802322
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-left-frame1-source.png",
+      "sha256": "43244ab9bffcec8139cf316e142c1797b174c01f3708245b03212fc523ce4c39",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-left-frame1-source.webp",
+      "reviewImageSha256": "dae6fee2bcc7226b6a1d8eadf395fc869111d0abd8b435d264cf892f4c4efb69"
+    },
+    {
+      "name": "front-left",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        -6.999999895275536,
+        903,
+        0.07000000029802322
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-left-frame1-native.png",
+      "sha256": "2b27dca9c8872789eb645ab844e30e07671061df9bc7f5a96e9d3fc64a0b06ec",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-left-frame1-native.webp",
+      "reviewImageSha256": "1625dbe4b4dbc25602e01c823871a1fb532187707a9e43367abae04359442b53"
+    },
+    {
+      "name": "front-right",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        7.000000104724464,
+        903,
+        0.07000000029802322
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-right-original-source.png",
+      "sha256": "a8a625ad65a76bbd5fbd311c41b2f5c2521d6e7be8c8f19d758a4af663fda8ec",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-right-original-source.webp",
+      "reviewImageSha256": "b50180a430df6553bf77d430dd5b56db23860af8791837ab95dceba26140e0aa"
+    },
+    {
+      "name": "front-right",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        7.000000104724464,
+        903,
+        0.07000000029802322
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-right-original-native.png",
+      "sha256": "1e21fa22fdd7c3e2a5b9f53d9b2330e215322f5b05ed294d790f2895ec7fb0fe",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-right-original-native.webp",
+      "reviewImageSha256": "cf5ac6d70b2cbf03c27d87166c6c34086b05eab716de5dcebda3dd1f8e0f8d80"
+    },
+    {
+      "name": "front-right",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        7.000000104724464,
+        903,
+        0.07000000029802322
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-right-frame1-source.png",
+      "sha256": "b0707fad75b8fff8b0a96bc085c3cfed2df8929e3d6242a0c70f029fe54706a9",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-right-frame1-source.webp",
+      "reviewImageSha256": "3388cb042296f7d63ee2b4f570fec84e266378af4fb1ee4271536a606f47b2dd"
+    },
+    {
+      "name": "front-right",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        7.000000104724464,
+        903,
+        0.07000000029802322
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-right-frame1-native.png",
+      "sha256": "782cd995370a234ee28f845f4fdfb9a01b48ded68c72677c850e36c4f1a9fc76",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/front-right-frame1-native.webp",
+      "reviewImageSha256": "1b50f6e467b90fa6f2acb910c516d3e545cd295dac0ddedd9a47bd9df4a9bb40"
+    },
+    {
+      "name": "rear-left",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        -6.999999895275536,
+        903,
+        -13.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-left-original-source.png",
+      "sha256": "4576684ff40a6a696f846493d68d942fca09c9e49bc5c969a47094b69ae94ab4",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-left-original-source.webp",
+      "reviewImageSha256": "140fca90d5ed3fae7801a3c59f889d336aa95462edb34f20f8be0b68464514bb"
+    },
+    {
+      "name": "rear-left",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        -6.999999895275536,
+        903,
+        -13.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-left-original-native.png",
+      "sha256": "edd9cf3d60d978476017614fb50012dc8ac13e38e756e9bc7a3bdd3c88ac7700",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-left-original-native.webp",
+      "reviewImageSha256": "c39bdcce6117da37db1c9596bebb3e3b9e6e01fe96ff1a9b1e97cdc9b3f7ae97"
+    },
+    {
+      "name": "rear-left",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        -6.999999895275536,
+        903,
+        -13.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-left-frame1-source.png",
+      "sha256": "07ffbb15aa286337cf93e17febe0cf8a0ba338867ad7de4bc925f374921212c6",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-left-frame1-source.webp",
+      "reviewImageSha256": "a7576bba518998efb87764cf19d3b2cf23fc51d6d6d77510c5512383e61731a7"
+    },
+    {
+      "name": "rear-left",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        -6.999999895275536,
+        903,
+        -13.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-left-frame1-native.png",
+      "sha256": "5f167286d451ccef0635337efc6e1f4ed3be2266a6b427199bd415f081a08ec0",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-left-frame1-native.webp",
+      "reviewImageSha256": "67e2cc6794ce95988a08188f2b167004bcfbbd78c1e6f5a08b8d07acd9cf2ff8"
+    },
+    {
+      "name": "rear-right",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        7.000000104724464,
+        903,
+        -13.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-right-original-source.png",
+      "sha256": "07a7b76c91d9706d4450af475a5d38a925889380508f794a44a857d7d5878aa8",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-right-original-source.webp",
+      "reviewImageSha256": "1d8fd8bfaf78c06006892037db97304f24317ed9e00c9a039ec2dfcd61405706"
+    },
+    {
+      "name": "rear-right",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        7.000000104724464,
+        903,
+        -13.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-right-original-native.png",
+      "sha256": "15d7021156c3fc463622e727e0e5f94b4331a329c76949d35f11ba918fc3ad6f",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-right-original-native.webp",
+      "reviewImageSha256": "82cb00f339992ca9022f633655d65888e2ecac2c8e194929d4b8d6af333b75eb"
+    },
+    {
+      "name": "rear-right",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        7.000000104724464,
+        903,
+        -13.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-right-frame1-source.png",
+      "sha256": "5fad41dd3110e3883134a97be89c8b3d058b0a93065a595b2f72008a9d8eb121",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-right-frame1-source.webp",
+      "reviewImageSha256": "c164eecaf1525700fef3f7f06214a33f5ae56e24426ba7a3fb77a471adbc5776"
+    },
+    {
+      "name": "rear-right",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        7.000000104724464,
+        903,
+        -13.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.65,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-right-frame1-native.png",
+      "sha256": "17d3fbb97b667bc188e6c5950c7c464e7ea10ade58a6568419c3b06c68e4ef02",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/rear-right-frame1-native.webp",
+      "reviewImageSha256": "62409328e8024602fe98c5b8d77f417fa6f41310a89ee8acaf8dfc405daba0ad"
+    },
+    {
+      "name": "jaw-front",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        900.65,
+        -3.029999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.729999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "jaw-front-original-source.png",
+      "sha256": "ef602b0525368d1911dc0c346e8969ccbea1647257a338f88522b8f43fbef83d",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/jaw-front-original-source.webp",
+      "reviewImageSha256": "864362991d7d883ad96f4ab37b2f974a1e2111aa1e4657c3133fed8dfc8c44e4"
+    },
+    {
+      "name": "jaw-front",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        900.65,
+        -3.029999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.729999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "jaw-front-original-native.png",
+      "sha256": "3ce98dd804a42c1c1f5a6d4abfa5500ce0b37c473c54a603728ff93543dc007d",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/jaw-front-original-native.webp",
+      "reviewImageSha256": "163027517b1748af9c4193f91ad4bbe14bac28bcbd3fd140c9d604209922532f"
+    },
+    {
+      "name": "jaw-front",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        900.65,
+        -3.029999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.729999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "jaw-front-frame1-source.png",
+      "sha256": "ce5dac80d88fa4369da2ea1283f8ab68a29c8054894f01556d60b6538cce0967",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/jaw-front-frame1-source.webp",
+      "reviewImageSha256": "9ce30c918ad1418c0f9bf7d9e244b3b71b1dbec4e1b12c110aacf8f1c70bfb12"
+    },
+    {
+      "name": "jaw-front",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        900.65,
+        -3.029999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.729999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "jaw-front-frame1-native.png",
+      "sha256": "8e638605aefde3101ce784a1a5febeee06a3e9dc1220ee0a53a7dfd905eb8c46",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/jaw-front-frame1-native.webp",
+      "reviewImageSha256": "3a2355ab7887d1f6ec48f963bc9bcf953b08caaea02259104a1ed48dd70129d5"
+    },
+    {
+      "name": "hull-front",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        901.4,
+        -2.829999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.429999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "hull-front-original-source.png",
+      "sha256": "a198e511de378b581832b2306701bffef76ce184de5502f076a407e0daee434d",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/hull-front-original-source.webp",
+      "reviewImageSha256": "909be5db8396cebd00ccd7d0bed320efacf42e86f406254980e641475d32dbf2"
+    },
+    {
+      "name": "hull-front",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        901.4,
+        -2.829999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.429999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "hull-front-original-native.png",
+      "sha256": "b303cabdfc796caa3d1901b9c67051d3003828dbbd0eb648707d93c2af2abff9",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/hull-front-original-native.webp",
+      "reviewImageSha256": "1f87e7a2dd48f5185d0ec3be252404052849243631d7b52e9de55c9a59fcc205"
+    },
+    {
+      "name": "hull-front",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        901.4,
+        -2.829999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.429999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "hull-front-frame1-source.png",
+      "sha256": "b6c1a880febcf741bb84dc43f8d599703f80e17c1097054ddf7be1ca9bcbf578",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/hull-front-frame1-source.webp",
+      "reviewImageSha256": "b871557c389c2f5db601484260ba325db3e4c6ab6c9b258b960cb0c8659b6276"
+    },
+    {
+      "name": "hull-front",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.0472446376752487e-07,
+        901.4,
+        -2.829999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.429999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "hull-front-frame1-native.png",
+      "sha256": "1c36f350c14a5ee6a28bfdf9e17a2a6e993f1caa811c9ad6b5dced5cdaa7982a",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/hull-front-frame1-native.webp",
+      "reviewImageSha256": "a6d9a27c271b27ed408f37e736b2194b10fc714f62eb2928ad27f376cccbd25e"
+    },
+    {
+      "name": "crown-right",
+      "mode": "source",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.6000001047244639,
+        903.7,
+        -6.229999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "crown-right-original-source.png",
+      "sha256": "71f470632a70f2590bd20ade42c34adc7b5cf56c8c2b6756603c960488723db7",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/crown-right-original-source.webp",
+      "reviewImageSha256": "72cc4bac5101d3f7a8f27e2da0e92420f629b6db846b1a1d8fae9555005c2810"
+    },
+    {
+      "name": "crown-right",
+      "mode": "native",
+      "fixture": "original",
+      "node": null,
+      "camera": [
+        1.6000001047244639,
+        903.7,
+        -6.229999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "crown-right-original-native.png",
+      "sha256": "a18058e44e38e6a674918099750e14faba02b6f7e580ea6f7e76224fe763d1f8",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/crown-right-original-native.webp",
+      "reviewImageSha256": "99356f8f3ceae6b8c07781eb24e51f92912dc84a9a557124bdcf08b5475f4455"
+    },
+    {
+      "name": "crown-right",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.6000001047244639,
+        903.7,
+        -6.229999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "crown-right-frame1-source.png",
+      "sha256": "ec116a4147d14d77bcf54eaae29c3a859fc10219573c1589799d98b71a05fa44",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/crown-right-frame1-source.webp",
+      "reviewImageSha256": "00cc2650968b1f7aa5c99a922c2dbc86e77a9021878d23e7a957fe9ebb005cb1"
+    },
+    {
+      "name": "crown-right",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": null,
+      "camera": [
+        1.6000001047244639,
+        903.7,
+        -6.229999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "crown-right-frame1-native.png",
+      "sha256": "d4f47438ef1a78e07c726afc84f002bdc5d0fab77c93b4a983eeb9e04687b9de",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/crown-right-frame1-native.webp",
+      "reviewImageSha256": "20f2e9c576cc6468746712c93dfe5c0158fb311f7aeedf02a0fec7f95f845250"
+    },
+    {
+      "name": "isolated-hull",
+      "mode": "source",
+      "fixture": "original",
+      "node": 6,
+      "camera": [
+        1.0472446376752487e-07,
+        901.7,
+        -2.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-hull-original-source.png",
+      "sha256": "d3baebed1af78d05f155a29cfd0f8c7f9eb0083e891b617e51ecceaf4d04401c",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-original-source.webp",
+      "reviewImageSha256": "6a55b3777e242a5478e8a6284973073359a10bccc85570ba35842b0b1db5fea4"
+    },
+    {
+      "name": "isolated-hull",
+      "mode": "native",
+      "fixture": "original",
+      "node": 6,
+      "camera": [
+        1.0472446376752487e-07,
+        901.7,
+        -2.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-hull-original-native.png",
+      "sha256": "db3528eea4ef8036f1142b2c294ec8f92e1ab019f6526e41089986ded1e8b15f",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-original-native.webp",
+      "reviewImageSha256": "6da94d2cc7cc5fb408542cbdd760f143bc0c537abb22da17ee362b753751da77"
+    },
+    {
+      "name": "isolated-hull",
+      "mode": "native-double",
+      "fixture": "original",
+      "node": 6,
+      "camera": [
+        1.0472446376752487e-07,
+        901.7,
+        -2.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-hull-original-native-double.png",
+      "sha256": "7ae675cbd86115f9c47f59d41d727410a8f2e1e98e881fb2463b251fc729bf40",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-original-native-double.webp",
+      "reviewImageSha256": "8454d45d6e81dcca5c8fad2e2e1aca4ea54d853a0fdb6e93713ee6ce0304d229"
+    },
+    {
+      "name": "isolated-hull",
+      "mode": "source-front",
+      "fixture": "original",
+      "node": 6,
+      "camera": [
+        1.0472446376752487e-07,
+        901.7,
+        -2.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-hull-original-source-front.png",
+      "sha256": "dadd7d1934d474818a052b76351b85419df2c8983af014286bc49642fc96b0ec",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-original-source-front.webp",
+      "reviewImageSha256": "c9bade3bc0a01795f28010d3f21c9366bcb786711c504f2132de016228c01bec"
+    },
+    {
+      "name": "isolated-hull",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": 6,
+      "camera": [
+        1.0472446376752487e-07,
+        901.7,
+        -2.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-hull-frame1-source.png",
+      "sha256": "86a53a3be8c92740fe46556e3bff745dc1654b5dcfbd8fc3395817b631802a3c",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-frame1-source.webp",
+      "reviewImageSha256": "150f3ed0daab9485b95718f3756409f4df62f8cac25b87c5cbc3d9afb971a2ff"
+    },
+    {
+      "name": "isolated-hull",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": 6,
+      "camera": [
+        1.0472446376752487e-07,
+        901.7,
+        -2.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-hull-frame1-native.png",
+      "sha256": "a8ce59ca25c3ec2dfb089535d99c3ef863bece928cf5cf5eb7d27308adfda127",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-frame1-native.webp",
+      "reviewImageSha256": "6b37512fbf32c5b708899830cec3c4a73a1c7a14fda4550743ed601a048dcca0"
+    },
+    {
+      "name": "isolated-hull",
+      "mode": "native-double",
+      "fixture": "frame1",
+      "node": 6,
+      "camera": [
+        1.0472446376752487e-07,
+        901.7,
+        -2.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-hull-frame1-native-double.png",
+      "sha256": "9a01a9643ee0411a0ac0782d9be167cd2748b909cb1baabd9566a6dac50359c1",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-frame1-native-double.webp",
+      "reviewImageSha256": "ae7094849f104ecb318cadb28c8ff7f4f047693b7098c5320959b155ae5b41cd"
+    },
+    {
+      "name": "isolated-hull",
+      "mode": "source-front",
+      "fixture": "frame1",
+      "node": 6,
+      "camera": [
+        1.0472446376752487e-07,
+        901.7,
+        -2.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        901.3,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-hull-frame1-source-front.png",
+      "sha256": "78ff7eb6aeda5f8e8b8fc542e78de31260ad57bfe70c3ba0bc56f8c158862e92",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-hull-frame1-source-front.webp",
+      "reviewImageSha256": "015821aa4ed3879bc4c23c2c3c39bf0cf9bfdc909aa8309a630bb2bd1257e202"
+    },
+    {
+      "name": "isolated-jaw",
+      "mode": "source",
+      "fixture": "original",
+      "node": 37,
+      "camera": [
+        1.0472446376752487e-07,
+        900.8,
+        -4.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.579999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-jaw-original-source.png",
+      "sha256": "cca0da93d1cfe30815c8576ed2f8c31b557e7c28bfd01a4f1d8c970aa56772ad",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-original-source.webp",
+      "reviewImageSha256": "37bba7c81084187732124a345a1a291aff3eda5db2ad064874580ed5850ff245"
+    },
+    {
+      "name": "isolated-jaw",
+      "mode": "native",
+      "fixture": "original",
+      "node": 37,
+      "camera": [
+        1.0472446376752487e-07,
+        900.8,
+        -4.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.579999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-jaw-original-native.png",
+      "sha256": "a2d3b2d95f1d9baa24f1825e6c537192c125dc1e56d4a10efd9db06c1f0e694b",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-original-native.webp",
+      "reviewImageSha256": "a3fe97b08c8f7db7b1d44dc45c8af2978abc71b4e7a39562d5ea2d685b5986c4"
+    },
+    {
+      "name": "isolated-jaw",
+      "mode": "native-double",
+      "fixture": "original",
+      "node": 37,
+      "camera": [
+        1.0472446376752487e-07,
+        900.8,
+        -4.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.579999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-jaw-original-native-double.png",
+      "sha256": "ad50712d76bd6018441891941254547d77f5acb957d9ddcf70487c448c2ec1a3",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-original-native-double.webp",
+      "reviewImageSha256": "1034e95f494e70be1e2b8c42803c27952d725491a383bf851b7fc85e73df65d1"
+    },
+    {
+      "name": "isolated-jaw",
+      "mode": "source-front",
+      "fixture": "original",
+      "node": 37,
+      "camera": [
+        1.0472446376752487e-07,
+        900.8,
+        -4.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.579999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-jaw-original-source-front.png",
+      "sha256": "25f72b23031d35be31c3353005f28dbf39262287cb731280456f9b0df8046dc8",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-original-source-front.webp",
+      "reviewImageSha256": "23103cb26e1dabc6644d56da1d9bb3fafd1e58f0df8501e8da1a7b78d7e387b3"
+    },
+    {
+      "name": "isolated-jaw",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": 37,
+      "camera": [
+        1.0472446376752487e-07,
+        900.8,
+        -4.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.579999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-jaw-frame1-source.png",
+      "sha256": "84664e13437832822fe25e99959f245392a6c7d3d2c5690b06578ec969fe199e",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-frame1-source.webp",
+      "reviewImageSha256": "d6e04f2facb6b5f3d377616730302851a7b07066657bb7da5aaf83dd19c68156"
+    },
+    {
+      "name": "isolated-jaw",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": 37,
+      "camera": [
+        1.0472446376752487e-07,
+        900.8,
+        -4.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.579999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-jaw-frame1-native.png",
+      "sha256": "e97baea8ba38538438a88fee009dbbd2a53cd6f9d44b0c8953c72dd82263fa7f",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-frame1-native.webp",
+      "reviewImageSha256": "a6e302bea211a4fe9df77158b08d75db571f6b6e2a9d675e1cf24013dd7156c2"
+    },
+    {
+      "name": "isolated-jaw",
+      "mode": "native-double",
+      "fixture": "frame1",
+      "node": 37,
+      "camera": [
+        1.0472446376752487e-07,
+        900.8,
+        -4.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.579999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-jaw-frame1-native-double.png",
+      "sha256": "28dedac5380ea128d31eca90266a0461d06433967b2962270e747f77dcd47d37",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-frame1-native-double.webp",
+      "reviewImageSha256": "a7ce261d96c52f7f5fae40b89c3fbc7bca0d92342c95c9929f40e509a13a9c8b"
+    },
+    {
+      "name": "isolated-jaw",
+      "mode": "source-front",
+      "fixture": "frame1",
+      "node": 37,
+      "camera": [
+        1.0472446376752487e-07,
+        900.8,
+        -4.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        900.65,
+        -5.579999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-jaw-frame1-source-front.png",
+      "sha256": "edcad1ddab63af4bcad851b14b3cb61f975bc5001eb96d76f47f8bf05c4c0c47",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-jaw-frame1-source-front.webp",
+      "reviewImageSha256": "0ce3de545497fbfb4e3549beaacf42d1c08f54755a974b817ac32f5fb49d076d"
+    },
+    {
+      "name": "isolated-crown",
+      "mode": "source",
+      "fixture": "original",
+      "node": 11,
+      "camera": [
+        0.6500001047244638,
+        903.55,
+        -6.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-crown-original-source.png",
+      "sha256": "e860a42afb5d512bd2e698b4040bb4cc22364b13bb63f0d9443f07523f1d1cdb",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-original-source.webp",
+      "reviewImageSha256": "8a61ddfd56660123dcfaddedc1d6239cf479c8039a0b3f0a9ea465552d58bcb1"
+    },
+    {
+      "name": "isolated-crown",
+      "mode": "native",
+      "fixture": "original",
+      "node": 11,
+      "camera": [
+        0.6500001047244638,
+        903.55,
+        -6.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-crown-original-native.png",
+      "sha256": "3a9d053f9f3e192df6ebaff1af377ed524b9556db5ef578fd65f3850c56ed50c",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-original-native.webp",
+      "reviewImageSha256": "70bbf087bdb18aeb1302e9d822bcb7fca6a3b1f6ab4802373da6fcb4414317f8"
+    },
+    {
+      "name": "isolated-crown",
+      "mode": "native-double",
+      "fixture": "original",
+      "node": 11,
+      "camera": [
+        0.6500001047244638,
+        903.55,
+        -6.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-crown-original-native-double.png",
+      "sha256": "59f605554b26a288957880891ad1c2346b4fffc68a1825dff5730b439dc36d96",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-original-native-double.webp",
+      "reviewImageSha256": "6df94223c495d48acbb28dbe82dac12d61a667cd3ca6214a049d62d2c7728f14"
+    },
+    {
+      "name": "isolated-crown",
+      "mode": "source-front",
+      "fixture": "original",
+      "node": 11,
+      "camera": [
+        0.6500001047244638,
+        903.55,
+        -6.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-crown-original-source-front.png",
+      "sha256": "085bc038607e72af890274a75a21260e7637019d82dfe6ae7651cae55bba7047",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-original-source-front.webp",
+      "reviewImageSha256": "022630231bce74377c3cd2ec5907c8cffcc45dca26acbb8354bfbf47df0db25a"
+    },
+    {
+      "name": "isolated-crown",
+      "mode": "source",
+      "fixture": "frame1",
+      "node": 11,
+      "camera": [
+        0.6500001047244638,
+        903.55,
+        -6.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-crown-frame1-source.png",
+      "sha256": "4e59731622c73a9185da13a6d76cb0a92d8807a997f0552483f3211146ff2be9",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-frame1-source.webp",
+      "reviewImageSha256": "f97d4f830fa03909a692f6434d7b4db6e648e2a344f999ce6b5aae5f843e5b11"
+    },
+    {
+      "name": "isolated-crown",
+      "mode": "native",
+      "fixture": "frame1",
+      "node": 11,
+      "camera": [
+        0.6500001047244638,
+        903.55,
+        -6.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-crown-frame1-native.png",
+      "sha256": "d6625ee60531664570d85a60bb91698563dbb94834be41277ee8ed9c7ae64279",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-frame1-native.webp",
+      "reviewImageSha256": "638d2761cfe86bf44054cad92df0fc0d48b6a68a3546f664e57f06114de8aab5"
+    },
+    {
+      "name": "isolated-crown",
+      "mode": "native-double",
+      "fixture": "frame1",
+      "node": 11,
+      "camera": [
+        0.6500001047244638,
+        903.55,
+        -6.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-crown-frame1-native-double.png",
+      "sha256": "8cce577fba0dcc672be380c8673d178f908cafac16fa5de9569b87741386138d",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-frame1-native-double.webp",
+      "reviewImageSha256": "2ccde98492dfabeff010dc377911720b55948359407a9477841c2ec843c24985"
+    },
+    {
+      "name": "isolated-crown",
+      "mode": "source-front",
+      "fixture": "frame1",
+      "node": 11,
+      "camera": [
+        0.6500001047244638,
+        903.55,
+        -6.429999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.2,
+        -7.029999999701976
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "isolated-crown-frame1-source-front.png",
+      "sha256": "606f9a701c1a33d9e4e2a0505c7315d9ac9b22f6660b423c6b30bde0093064c8",
+      "reviewImage": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame1-views/isolated-crown-frame1-source-front.webp",
+      "reviewImageSha256": "6b44b3792651f92edcaac2fa470f6974c614978e15ca4a29bcbb446fa4f88662"
+    }
+  ],
+  "candidateClosure": {
+    "schema": "wildshard.bellback.frame-candidate.v1",
+    "sourceSha256": "8c5f87075b5e4c878b8dc766d09020a80ffb97a4e36e07f7e57ce1b3bebb78a7",
+    "glbSha256": "a990dd05e254e35d981c60ebb76b3baf0997a41705b5a35ed145acd9f08ac601",
+    "unchangedMeshes": [
+      "Clapper stem",
+      "Clapper weight",
+      "Hollow cast bell",
+      "Arch left",
+      "Arch right",
+      "Broken ship rib -1 0",
+      "Broken ship rib -1 1",
+      "Broken ship rib 1 0",
+      "Broken ship rib 1 1",
+      "Crown tie",
+      "Diagonal binding -1",
+      "Diagonal binding 1",
+      "Frame rope knot",
+      "Frame rope knot.001",
+      "Frame rope knot.002",
+      "Frame rope knot.003",
+      "Frame rope knot.004",
+      "Frame rope knot.005",
+      "Frame rope knot.006",
+      "Frame rope knot.007",
+      "Lower angled rail -1",
+      "Lower angled rail 1",
+      "Tall stern plank",
+      "Upper angled rail -1",
+      "Upper angled rail 1",
+      "Brow ivory splinter",
+      "Brow ivory splinter.001",
+      "Continuous ivory W jaw",
+      "Inset amber eye",
+      "Inset amber eye.001",
+      "Ivory upper fang -1",
+      "Ivory upper fang 1",
+      "Lower cheek timber",
+      "Lower cheek timber.001",
+      "Mouth dark pocket",
+      "Pointed central face keel",
+      "Recessed eye shadow",
+      "Recessed eye shadow.001",
+      "Shaped orbital brow timber",
+      "Shaped orbital brow timber.001",
+      "Solid timber cranium",
+      "Swept cheek horn",
+      "Swept cheek horn.001",
+      "Left fore shoulder cap",
+      "Left fore shoulder lashing",
+      "Left fore shoulder lashing.001",
+      "Left fore stone foot",
+      "Left fore timber leg",
+      "Left fore toe -0.23",
+      "Left fore toe 0.23",
+      "Left hind shoulder cap",
+      "Left hind shoulder lashing",
+      "Left hind shoulder lashing.001",
+      "Left hind stone foot",
+      "Left hind timber leg",
+      "Left hind toe -0.23",
+      "Left hind toe 0.23",
+      "Right fore shoulder cap",
+      "Right fore shoulder lashing",
+      "Right fore shoulder lashing.001",
+      "Right fore stone foot",
+      "Right fore timber leg",
+      "Right fore toe -0.23",
+      "Right fore toe 0.23",
+      "Right hind shoulder cap",
+      "Right hind shoulder lashing",
+      "Right hind shoulder lashing.001",
+      "Right hind stone foot",
+      "Right hind timber leg",
+      "Right hind toe -0.23",
+      "Right hind toe 0.23"
+    ],
+    "changedMeshes": [
+      "Barrel timber hull",
+      "Lower timber jaw"
+    ],
+    "allMeshPointSetsUnchanged": true,
+    "nodeTransformsAndMaterialsUnchanged": true,
+    "stats": {
+      "vertices": 13374,
+      "triangles": 4458,
+      "bones": 8,
+      "parts": 8
+    },
+    "remainingNormalCaveats": {
+      "glbSha256": "a990dd05e254e35d981c60ebb76b3baf0997a41705b5a35ed145acd9f08ac601",
+      "sourceSha256": "8c5f87075b5e4c878b8dc766d09020a80ffb97a4e36e07f7e57ce1b3bebb78a7",
+      "opposedTriangles": [
+        {
+          "node": 11,
+          "name": "Crown tie",
+          "primitive": 1,
+          "triangle": 15,
+          "positions": [
+            [
+              0.11363954842090607,
+              3.2033276557922363,
+              0.0776941180229187
+            ],
+            [
+              0.19196701049804688,
+              3.1887145042419434,
+              -0.24863095581531525
+            ],
+            [
+              0.14785802364349365,
+              3.2249693870544434,
+              -0.20000000298023224
+            ]
+          ],
+          "normals": [
+            [
+              -0.7521669268608093,
+              0.6576710939407349,
+              -0.04139817878603935
+            ],
+            [
+              -0.7521669268608093,
+              0.6576710939407349,
+              -0.04139817878603935
+            ],
+            [
+              -0.7521669268608093,
+              0.6576710939407349,
+              -0.04139817878603935
+            ]
+          ],
+          "normalCosines": [
+            -0.09632578923128454,
+            -0.09632578923128454,
+            -0.09632578923128454
+          ],
+          "sharedEdgeSameNormalTriangles": [
+            {
+              "primitive": 1,
+              "triangle": 14,
+              "normalCosines": [
+                0.5542874014637096,
+                0.5542874014637096,
+                0.5542874014637096
+              ]
+            }
+          ],
+          "classification": "ambiguous nonplanar or folded polygon; no winding repair emitted"
+        }
+      ],
+      "normalRepairApproved": false,
+      "runtimeAcceptance": false
+    },
+    "files": {
+      "bellback-v6-native.json": {
+        "sha256": "895f3169d27430308a26292e58124fc9eafd13c0d89a9509e93b27d2206f69aa",
+        "bytes": 1785368
+      },
+      "diagnostic-dimensions.json": {
+        "sha256": "f0dd896925b539354fb59051a7f560e536e59ecf7272e564c3d9b8d66ceef74e",
+        "bytes": 345
+      },
+      "mesh-map.json": {
+        "sha256": "11c1672a5e38c8fd754b0dece7c8ab733d57cb8b1d27d9eb20cb1c42d8e25df6",
+        "bytes": 6767
+      },
+      "metadata.json": {
+        "sha256": "884e10d777c1b10ae2b50081444210eae9766e414e1cec299801ecac8f0532cb",
+        "bytes": 3285
+      },
+      "payload.bin": {
+        "sha256": "78e75381d5c9149691aa2d5eb2e9f1219484eca478819f0e2b32190ba18b3744",
+        "bytes": 38768
+      }
+    },
+    "runtimeAcceptance": false,
+    "originalBridgeSha256": "60e6793714f6a24e1abe298c435be7be0ff57222ad6bce44c65a9785554c1bdc",
+    "candidateExporterSha256": "bddad0814e90b59ef5922de62f73f61db38c4307b7456e57a162d201884fa9e4"
+  },
+  "setup": {
+    "vertices": 13374,
+    "bones": [
+      "body",
+      "head",
+      "bell",
+      "clapper",
+      "leg0",
+      "leg1",
+      "leg2",
+      "leg3"
+    ],
+    "facetJitter": 0.12,
+    "sourceMaterialsUntouched": true,
+    "origin": [
+      1.0472446376752487e-07,
+      900,
+      -6.929999999701977
+    ],
+    "hidden": [],
+    "material": [
+      {
+        "type": "MeshStandardNodeMaterial",
+        "side": 0,
+        "color": [
+          0.7697310801828281,
+          0.7827579721645452,
+          0.8088117561279796
+        ],
+        "flatShading": true,
+        "vertexColors": false
+      }
+    ],
+    "pixelRatio": 2,
+    "passes": [
+      {
+        "enabled": true,
+        "name": "Bh"
+      },
+      {
+        "enabled": true,
+        "name": "Ot"
+      },
+      {
+        "enabled": true,
+        "name": "Ot"
+      }
+    ],
+    "light": [
+      {
+        "color": [
+          1,
+          0.97,
+          0.9
+        ],
+        "intensity": 2.7,
+        "position": [
+          47.40681495774217,
+          994.3531541695644,
+          -12.262642265295483
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "workers": 0,
+    "databases": []
+  },
+  "passed": true,
+  "finished": "2026-10-19T04:13:45.393Z",
+  "rawCaptureDirectory": "tmp/bellback-native-visual/capture3",
+  "diagnosticInputs": {
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/diagnostic.ts": "0f8349369c81a1431c8d3ad50ff32955f3cccf25dd9d2d8a7d8cafdcb869b0eb",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/vite.config.ts": "fcaa0c8974c38d050551e2f4716bc2154eee4b99f2050362d9df7967a443e5e9",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/capture-frame1.mjs": "d425bc01b5a0677beb60aee96c5b1621240528bd3a8e9d17a72682147aa9d89f"
+  },
+  "bundleSha256": "8155e0a5eef1e74fc03fec57653d45bdbc2c535cc5706123f082a4bec1673ab1",
+  "fixedSimulationFrames": [
+    3
+  ],
+  "invalidViews": []
+}

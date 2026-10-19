@@ -1,0 +1,360 @@
+{
+  "sourceSha256": "952a8ddca0991a5aaaf1044d3a0498626567d6805881b77e43450c65f1e90a1d",
+  "sourceModified": false,
+  "meshes": [
+    {
+      "name": "Barrel timber hull",
+      "ringU": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          -0.0,
+          0.0
+        ],
+        [
+          1.0,
+          -0.0,
+          0.0
+        ],
+        [
+          1.0,
+          -0.0,
+          0.0
+        ]
+      ],
+      "adjacentUDot": [
+        -1.0,
+        1.0,
+        1.0
+      ],
+      "triangles": [
+        {
+          "primitive": 0,
+          "triangle": 0,
+          "reconstructedVertexIds": [
+            0,
+            1,
+            8
+          ],
+          "sourceSidePolygonCandidates": [
+            0
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 0,
+          "triangle": 2,
+          "reconstructedVertexIds": [
+            3,
+            4,
+            11
+          ],
+          "sourceSidePolygonCandidates": [
+            3
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 0,
+          "triangle": 4,
+          "reconstructedVertexIds": [
+            6,
+            7,
+            14
+          ],
+          "sourceSidePolygonCandidates": [
+            6
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 1,
+          "triangle": 0,
+          "reconstructedVertexIds": [
+            1,
+            2,
+            9
+          ],
+          "sourceSidePolygonCandidates": [
+            1
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 1,
+          "triangle": 2,
+          "reconstructedVertexIds": [
+            4,
+            5,
+            12
+          ],
+          "sourceSidePolygonCandidates": [
+            4
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 1,
+          "triangle": 4,
+          "reconstructedVertexIds": [
+            7,
+            0,
+            15
+          ],
+          "sourceSidePolygonCandidates": [
+            7
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 2,
+          "triangle": 0,
+          "reconstructedVertexIds": [
+            2,
+            3,
+            10
+          ],
+          "sourceSidePolygonCandidates": [
+            2
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 2,
+          "triangle": 2,
+          "reconstructedVertexIds": [
+            5,
+            6,
+            13
+          ],
+          "sourceSidePolygonCandidates": [
+            5
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Lower timber jaw",
+      "ringU": [
+        [
+          1.0,
+          -0.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "adjacentUDot": [
+        -1.0,
+        1.0
+      ],
+      "triangles": [
+        {
+          "primitive": 0,
+          "triangle": 1,
+          "reconstructedVertexIds": [
+            1,
+            6,
+            5
+          ],
+          "sourceSidePolygonCandidates": [
+            0
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 0,
+          "triangle": 3,
+          "reconstructedVertexIds": [
+            3,
+            8,
+            7
+          ],
+          "sourceSidePolygonCandidates": [
+            2
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 0,
+          "triangle": 5,
+          "reconstructedVertexIds": [
+            0,
+            5,
+            9
+          ],
+          "sourceSidePolygonCandidates": [
+            4
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 1,
+          "triangle": 1,
+          "reconstructedVertexIds": [
+            2,
+            7,
+            6
+          ],
+          "sourceSidePolygonCandidates": [
+            1
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "primitive": 1,
+          "triangle": 3,
+          "reconstructedVertexIds": [
+            4,
+            9,
+            8
+          ],
+          "sourceSidePolygonCandidates": [
+            3
+          ],
+          "ringSpans": [
+            [
+              0,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Crown tie",
+      "ringU": [
+        [
+          -0.5766831975986542,
+          0.0,
+          0.8169678632647626
+        ],
+        [
+          -0.028559773898876387,
+          0.0,
+          0.9995920864606948
+        ],
+        [
+          0.7071067811865474,
+          -0.0,
+          0.7071067811865477
+        ],
+        [
+          0.028559773898876383,
+          0.0,
+          -0.9995920864606946
+        ],
+        [
+          -0.09334070869305902,
+          0.0,
+          -0.9956342260592881
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "adjacentUDot": [
+        0.8331045527468582,
+        0.6866235329637171,
+        -0.6866235329637169,
+        0.992562303842448,
+        0.09334070869305902
+      ],
+      "triangles": [
+        {
+          "primitive": 1,
+          "triangle": 15,
+          "reconstructedVertexIds": [
+            16,
+            22,
+            21
+          ],
+          "sourceSidePolygonCandidates": [
+            15
+          ],
+          "ringSpans": [
+            [
+              2,
+              3
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
