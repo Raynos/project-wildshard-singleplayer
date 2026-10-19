@@ -1,0 +1,2239 @@
+{
+  "schema": "conch.motion4.actual-damage-weighted-geometry.v1",
+  "vertices": 7338,
+  "allFourWeightsAndNativeOrderVerified": true,
+  "weaponRange": [
+    5364,
+    582
+  ],
+  "tipVertex": 5761,
+  "events": [
+    {
+      "kind": "hurt-request-before",
+      "sampleIndex": 135,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 16920,
+      "gameTime": 12.093400000035752,
+      "boutTime": 12.093400000035752,
+      "poseInput": {
+        "wallTime": 16786,
+        "wallEpoch": 1792400697162.5,
+        "frame": 137,
+        "gameTime": 11.993400000035752,
+        "boutTime": 11.993400000035752,
+        "fixedRemainder": 0.010066666702432246,
+        "phase": 0.18740061900615082,
+        "bout": 1,
+        "poseIndex": 134,
+        "t": 11.993400000035752,
+        "dt": 0.1,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9768333333233992,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 12.016666666666843,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.00023780119689658898,
+        "z0": 2.294193030335009,
+        "x1": -0.00023780068919118755,
+        "z1": 4.6941930303350095,
+        "yaw": 2.1154391726373897e-10,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9768333333233992,
+      "playerHp": 100,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.009674343615950987,
+        900.883615616922,
+        4.280367158913617
+      ],
+      "targetWorld": [
+        -0.0002379565322462561,
+        900.0023999991827,
+        4.39419178175757
+      ],
+      "tipLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217453
+      },
+      "targetLane": {
+        "along": 2.099998751422561,
+        "perpendicular": -1.5577959162923884e-7
+      },
+      "tipTargetHorizontalDistance": 0.11421510481000995,
+      "poseAgeBoutSeconds": 0.09999999999999964,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-after",
+      "sampleIndex": 136,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 16921,
+      "gameTime": 12.093400000035752,
+      "boutTime": 12.093400000035752,
+      "poseInput": {
+        "wallTime": 16786,
+        "wallEpoch": 1792400697162.5,
+        "frame": 137,
+        "gameTime": 11.993400000035752,
+        "boutTime": 11.993400000035752,
+        "fixedRemainder": 0.010066666702432246,
+        "phase": 0.18740061900615082,
+        "bout": 1,
+        "poseIndex": 134,
+        "t": 11.993400000035752,
+        "dt": 0.1,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9768333333233992,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 12.016666666666843,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.00023780119689658898,
+        "z0": 2.294193030335009,
+        "x1": -0.00023780068919118755,
+        "z1": 4.6941930303350095,
+        "yaw": 2.1154391726373897e-10,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9768333333233992,
+      "playerHp": 86,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.009674343615950987,
+        900.883615616922,
+        4.280367158913617
+      ],
+      "targetWorld": [
+        -0.0002379565322462561,
+        900.0023999991827,
+        4.39419178175757
+      ],
+      "tipLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217453
+      },
+      "targetLane": {
+        "along": 2.099998751422561,
+        "perpendicular": -1.5577959162923884e-7
+      },
+      "tipTargetHorizontalDistance": 0.11421510481000995,
+      "poseAgeBoutSeconds": 0.09999999999999964,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "damage.dealt",
+      "sampleIndex": 137,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 16922.40000000596,
+      "gameTime": 12.093400000035752,
+      "boutTime": 12.093400000035752,
+      "poseInput": {
+        "wallTime": 16921.20000000298,
+        "wallEpoch": 1792400697297.7,
+        "frame": 138,
+        "gameTime": 12.093400000035752,
+        "boutTime": 12.093400000035752,
+        "fixedRemainder": 0.010066666702432274,
+        "phase": 0.18740061900615082,
+        "bout": 1,
+        "poseIndex": 135,
+        "t": 12.093400000035752,
+        "dt": 0.1,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": -1,
+        "stage": 1,
+        "guard": 0,
+        "clock": 0.6
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 12.083333333333513,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.00023780119689658898,
+        "z0": 2.294193030335009,
+        "x1": -0.00023780068919118755,
+        "z1": 4.6941930303350095,
+        "yaw": 2.1154391726373897e-10,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": -1,
+      "playerHp": 86,
+      "dealt": 14,
+      "target": "player",
+      "tipWorld": [
+        -0.009674343615951098,
+        900.883615616922,
+        4.280367158913617
+      ],
+      "targetWorld": [
+        -0.0002379565322462561,
+        900.0023999991827,
+        4.39419178175757
+      ],
+      "tipLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217564
+      },
+      "targetLane": {
+        "along": 2.099998751422561,
+        "perpendicular": -1.5577959162923884e-7
+      },
+      "tipTargetHorizontalDistance": 0.11421510481000997,
+      "poseAgeBoutSeconds": 0,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-before",
+      "sampleIndex": 182,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 21328.10000000894,
+      "gameTime": 16.017000000029782,
+      "boutTime": 16.017000000029782,
+      "poseInput": {
+        "wallTime": 21261.60000000894,
+        "wallEpoch": 1792400701638.1,
+        "frame": 181,
+        "gameTime": 15.950200000017862,
+        "boutTime": 15.950200000017862,
+        "fixedRemainder": 0.00020000001788510885,
+        "phase": 0.892213249334816,
+        "bout": 1,
+        "poseIndex": 178,
+        "t": 15.950200000017862,
+        "dt": 0.047599999994039535,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.8946666666616997,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 16.01666666666704,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 13.016666666666893
+          }
+        ],
+        "scores": [],
+        "x0": -0.0002054681907219216,
+        "z0": 2.7286887746304274,
+        "x1": -0.000027141144987269183,
+        "z1": 5.128688768005316,
+        "yaw": 0.00007430293579114201,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.8946666666616997,
+      "playerHp": 86,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.009494432435280142,
+        900.8836156169219,
+        4.714863598887116
+      ],
+      "targetWorld": [
+        -0.0000403058666433008,
+        900.0199819808295,
+        4.9747191177029535
+      ],
+      "tipLane": {
+        "along": 1.986174128576613,
+        "perpendicular": -0.00943654283921731
+      },
+      "targetLane": {
+        "along": 2.2460303491444877,
+        "perpendicular": -0.000001724324590016806
+      },
+      "tipTargetHorizontalDistance": 0.260027443105961,
+      "poseAgeBoutSeconds": 0.06680000001191999,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-after",
+      "sampleIndex": 183,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 21328.5,
+      "gameTime": 16.017000000029782,
+      "boutTime": 16.017000000029782,
+      "poseInput": {
+        "wallTime": 21261.60000000894,
+        "wallEpoch": 1792400701638.1,
+        "frame": 181,
+        "gameTime": 15.950200000017862,
+        "boutTime": 15.950200000017862,
+        "fixedRemainder": 0.00020000001788510885,
+        "phase": 0.892213249334816,
+        "bout": 1,
+        "poseIndex": 178,
+        "t": 15.950200000017862,
+        "dt": 0.047599999994039535,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.8946666666616997,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 16.01666666666704,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 13.016666666666893
+          }
+        ],
+        "scores": [],
+        "x0": -0.0002054681907219216,
+        "z0": 2.7286887746304274,
+        "x1": -0.000027141144987269183,
+        "z1": 5.128688768005316,
+        "yaw": 0.00007430293579114201,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.8946666666616997,
+      "playerHp": 72,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.009494432435280142,
+        900.8836156169219,
+        4.714863598887116
+      ],
+      "targetWorld": [
+        -0.0000403058666433008,
+        900.0199819808295,
+        4.9747191177029535
+      ],
+      "tipLane": {
+        "along": 1.986174128576613,
+        "perpendicular": -0.00943654283921731
+      },
+      "targetLane": {
+        "along": 2.2460303491444877,
+        "perpendicular": -0.000001724324590016806
+      },
+      "tipTargetHorizontalDistance": 0.260027443105961,
+      "poseAgeBoutSeconds": 0.06680000001191999,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "damage.dealt",
+      "sampleIndex": 184,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 21329.5,
+      "gameTime": 16.017000000029782,
+      "boutTime": 16.017000000029782,
+      "poseInput": {
+        "wallTime": 21328.70000000298,
+        "wallEpoch": 1792400701705.2,
+        "frame": 182,
+        "gameTime": 16.017000000029782,
+        "boutTime": 16.017000000029782,
+        "fixedRemainder": 0.0003333333631393917,
+        "phase": 0.892213249334816,
+        "bout": 1,
+        "poseIndex": 179,
+        "t": 16.017000000029782,
+        "dt": 0.06680000001192093,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": -1,
+        "stage": 1,
+        "guard": 0,
+        "clock": 0.6
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 16.01666666666704,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 13.016666666666893
+          }
+        ],
+        "scores": [],
+        "x0": -0.0002054681907219216,
+        "z0": 2.7286887746304274,
+        "x1": -0.000027141144987269183,
+        "z1": 5.128688768005316,
+        "yaw": 0.00007430293579114201,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": -1,
+      "playerHp": 72,
+      "dealt": 14,
+      "target": "player",
+      "tipWorld": [
+        -0.009494432435280364,
+        900.8836156169219,
+        4.714863598887116
+      ],
+      "targetWorld": [
+        -0.0000403058666433008,
+        900.0199819808295,
+        4.9747191177029535
+      ],
+      "tipLane": {
+        "along": 1.986174128576613,
+        "perpendicular": -0.009436542839217531
+      },
+      "targetLane": {
+        "along": 2.2460303491444877,
+        "perpendicular": -0.000001724324590016806
+      },
+      "tipTargetHorizontalDistance": 0.260027443105961,
+      "poseAgeBoutSeconds": 0,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-before",
+      "sampleIndex": 232,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 27572.29999999702,
+      "gameTime": 20.217800000026845,
+      "boutTime": 20.217800000026845,
+      "poseInput": {
+        "wallTime": 27187,
+        "wallEpoch": 1792400707563.5,
+        "frame": 228,
+        "gameTime": 20.117800000026843,
+        "boutTime": 20.117800000026843,
+        "fixedRemainder": 0.001133333360160159,
+        "phase": 0.6546579641319661,
+        "bout": 1,
+        "poseIndex": 225,
+        "t": 20.117800000026843,
+        "dt": 0.06840000000596047,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9473333333432675,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 20.2166666666668,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 17.016666666666982
+          }
+        ],
+        "scores": [],
+        "x0": -0.00019508528334893606,
+        "z0": 3.2809471257496625,
+        "x1": -0.00014936481480969308,
+        "z1": 5.68094712531417,
+        "yaw": 0.000019050195225836825,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9473333333432675,
+      "playerHp": 72,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.009593791115954542,
+        900.8836156169219,
+        5.267121433733856
+      ],
+      "targetWorld": [
+        -0.00015392712900799452,
+        900.0198293178837,
+        5.555396064911991
+      ],
+      "tipLane": {
+        "along": 1.986174128576612,
+        "perpendicular": -0.009436542839217518
+      },
+      "targetLane": {
+        "along": 2.27444893953369,
+        "perpendicular": -0.0000021705419861459085
+      },
+      "tipTargetHorizontalDistance": 0.28842914903487443,
+      "poseAgeBoutSeconds": 0.10000000000000142,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-after",
+      "sampleIndex": 233,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 27572.5,
+      "gameTime": 20.217800000026845,
+      "boutTime": 20.217800000026845,
+      "poseInput": {
+        "wallTime": 27187,
+        "wallEpoch": 1792400707563.5,
+        "frame": 228,
+        "gameTime": 20.117800000026843,
+        "boutTime": 20.117800000026843,
+        "fixedRemainder": 0.001133333360160159,
+        "phase": 0.6546579641319661,
+        "bout": 1,
+        "poseIndex": 225,
+        "t": 20.117800000026843,
+        "dt": 0.06840000000596047,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9473333333432675,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 20.2166666666668,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 17.016666666666982
+          }
+        ],
+        "scores": [],
+        "x0": -0.00019508528334893606,
+        "z0": 3.2809471257496625,
+        "x1": -0.00014936481480969308,
+        "z1": 5.68094712531417,
+        "yaw": 0.000019050195225836825,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9473333333432675,
+      "playerHp": 58,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.009593791115954542,
+        900.8836156169219,
+        5.267121433733856
+      ],
+      "targetWorld": [
+        -0.00015392712900799452,
+        900.0198293178837,
+        5.555396064911991
+      ],
+      "tipLane": {
+        "along": 1.986174128576612,
+        "perpendicular": -0.009436542839217518
+      },
+      "targetLane": {
+        "along": 2.27444893953369,
+        "perpendicular": -0.0000021705419861459085
+      },
+      "tipTargetHorizontalDistance": 0.28842914903487443,
+      "poseAgeBoutSeconds": 0.10000000000000142,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "damage.dealt",
+      "sampleIndex": 234,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 27578.10000000894,
+      "gameTime": 20.217800000026845,
+      "boutTime": 20.217800000026845,
+      "poseInput": {
+        "wallTime": 27572.70000000298,
+        "wallEpoch": 1792400707949.2,
+        "frame": 229,
+        "gameTime": 20.217800000026845,
+        "boutTime": 20.217800000026845,
+        "fixedRemainder": 0.0011333333601601867,
+        "phase": 0.6546579641319661,
+        "bout": 1,
+        "poseIndex": 226,
+        "t": 20.217800000026845,
+        "dt": 0.1,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": -1,
+        "stage": 1,
+        "guard": 0,
+        "clock": 0.6
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 20.2166666666668,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 17.016666666666982
+          }
+        ],
+        "scores": [],
+        "x0": -0.00019508528334893606,
+        "z0": 3.2809471257496625,
+        "x1": -0.00014936481480969308,
+        "z1": 5.68094712531417,
+        "yaw": 0.000019050195225836825,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": -1,
+      "playerHp": 58,
+      "dealt": 14,
+      "target": "player",
+      "tipWorld": [
+        -0.009593791115954597,
+        900.8836156169219,
+        5.267121433733857
+      ],
+      "targetWorld": [
+        -0.00015392712900799452,
+        900.0198293178837,
+        5.555396064911991
+      ],
+      "tipLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.009436542839217573
+      },
+      "targetLane": {
+        "along": 2.27444893953369,
+        "perpendicular": -0.0000021705419861459085
+      },
+      "tipTargetHorizontalDistance": 0.2884291490348736,
+      "poseAgeBoutSeconds": 0,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-before",
+      "sampleIndex": 282,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 33110.70000000298,
+      "gameTime": 24.469100000038807,
+      "boutTime": 24.469100000038807,
+      "poseInput": {
+        "wallTime": 32942.70000000298,
+        "wallEpoch": 1792400713319.2,
+        "frame": 275,
+        "gameTime": 24.369100000038806,
+        "boutTime": 24.369100000038806,
+        "fixedRemainder": 0.002433333372082118,
+        "phase": 0.4249845346474004,
+        "bout": 1,
+        "poseIndex": 272,
+        "t": 24.369100000038806,
+        "dt": 0.060299999997019765,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 1,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 24.41666666666656,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 21.216666666666743
+          }
+        ],
+        "scores": [],
+        "x0": -0.00019134235441680938,
+        "z0": 3.8503246654290706,
+        "x1": -0.00017943572026633427,
+        "z1": 6.2503246653995355,
+        "yaw": 0.00000496109756271831,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 1,
+      "playerHp": 58,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.009618031589889607,
+        900.883615616922,
+        5.83649884079685
+      ],
+      "targetWorld": [
+        -0.0001960814927960662,
+        900.0198291434353,
+        6.1361584696930676
+      ],
+      "tipLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217302
+      },
+      "targetLane": {
+        "along": 2.285833804212356,
+        "perpendicular": -0.000016079382894265244
+      },
+      "tipTargetHorizontalDistance": 0.29980771560093505,
+      "poseAgeBoutSeconds": 0.10000000000000142,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-after",
+      "sampleIndex": 283,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 33111,
+      "gameTime": 24.469100000038807,
+      "boutTime": 24.469100000038807,
+      "poseInput": {
+        "wallTime": 32942.70000000298,
+        "wallEpoch": 1792400713319.2,
+        "frame": 275,
+        "gameTime": 24.369100000038806,
+        "boutTime": 24.369100000038806,
+        "fixedRemainder": 0.002433333372082118,
+        "phase": 0.4249845346474004,
+        "bout": 1,
+        "poseIndex": 272,
+        "t": 24.369100000038806,
+        "dt": 0.060299999997019765,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 1,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 24.41666666666656,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 21.216666666666743
+          }
+        ],
+        "scores": [],
+        "x0": -0.00019134235441680938,
+        "z0": 3.8503246654290706,
+        "x1": -0.00017943572026633427,
+        "z1": 6.2503246653995355,
+        "yaw": 0.00000496109756271831,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 1,
+      "playerHp": 44,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.009618031589889607,
+        900.883615616922,
+        5.83649884079685
+      ],
+      "targetWorld": [
+        -0.0001960814927960662,
+        900.0198291434353,
+        6.1361584696930676
+      ],
+      "tipLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217302
+      },
+      "targetLane": {
+        "along": 2.285833804212356,
+        "perpendicular": -0.000016079382894265244
+      },
+      "tipTargetHorizontalDistance": 0.29980771560093505,
+      "poseAgeBoutSeconds": 0.10000000000000142,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "damage.dealt",
+      "sampleIndex": 284,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 33111.79999999702,
+      "gameTime": 24.469100000038807,
+      "boutTime": 24.469100000038807,
+      "poseInput": {
+        "wallTime": 33111.20000000298,
+        "wallEpoch": 1792400713487.7,
+        "frame": 276,
+        "gameTime": 24.469100000038807,
+        "boutTime": 24.469100000038807,
+        "fixedRemainder": 0.0024333333720821457,
+        "phase": 0.4249845346474004,
+        "bout": 1,
+        "poseIndex": 273,
+        "t": 24.469100000038807,
+        "dt": 0.1,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": -1,
+        "stage": 1,
+        "guard": 0,
+        "clock": 0.6
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.06666666666666667,
+        "speedMul": 1,
+        "clock": 24.46666666666656,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 21.216666666666743
+          }
+        ],
+        "scores": [],
+        "x0": -0.00019134235441680938,
+        "z0": 3.8503246654290706,
+        "x1": -0.00017943572026633427,
+        "z1": 6.2503246653995355,
+        "yaw": 0.00000496109756271831,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": -1,
+      "playerHp": 44,
+      "dealt": 14,
+      "target": "player",
+      "tipWorld": [
+        -0.009618031589889773,
+        900.883615616922,
+        5.83649884079685
+      ],
+      "targetWorld": [
+        -0.0001960814927960662,
+        900.0198291434353,
+        6.1361584696930676
+      ],
+      "tipLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217469
+      },
+      "targetLane": {
+        "along": 2.285833804212356,
+        "perpendicular": -0.000016079382894265244
+      },
+      "tipTargetHorizontalDistance": 0.29980771560093505,
+      "poseAgeBoutSeconds": 0,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-before",
+      "sampleIndex": 334,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 37998.79999999702,
+      "gameTime": 28.63480000005671,
+      "boutTime": 28.63480000005671,
+      "poseInput": {
+        "wallTime": 37901.20000000298,
+        "wallEpoch": 1792400718277.7,
+        "frame": 324,
+        "gameTime": 28.53670000006267,
+        "boutTime": 28.53670000006267,
+        "fixedRemainder": 0.0033666667292582067,
+        "phase": 0.2696494015579861,
+        "bout": 1,
+        "poseIndex": 321,
+        "t": 28.53670000006267,
+        "dt": 0.084,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9385000000149012,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 28.616666666666323,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 25.416666666666504
+          }
+        ],
+        "scores": [],
+        "x0": -0.00014718683400344014,
+        "z0": 4.4451718928758055,
+        "x1": 0.000028168101612848878,
+        "z1": 6.84517188646969,
+        "yaw": 0.00007306455657179541,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9385000000149012,
+      "playerHp": 44,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.00943861071618296,
+        900.8836156169218,
+        6.4313467056277105
+      ],
+      "targetWorld": [
+        0.0000198593282677319,
+        900.0197404760038,
+        6.716571369870623
+      ],
+      "tipLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.009436542839217384
+      },
+      "targetLane": {
+        "along": 2.271399483137119,
+        "perpendicular": 0.0000010873663889154753
+      },
+      "tipTargetHorizontalDistance": 0.2853814495514101,
+      "poseAgeBoutSeconds": 0.09809999999404084,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-after",
+      "sampleIndex": 335,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 37999.29999999702,
+      "gameTime": 28.63480000005671,
+      "boutTime": 28.63480000005671,
+      "poseInput": {
+        "wallTime": 37901.20000000298,
+        "wallEpoch": 1792400718277.7,
+        "frame": 324,
+        "gameTime": 28.53670000006267,
+        "boutTime": 28.53670000006267,
+        "fixedRemainder": 0.0033666667292582067,
+        "phase": 0.2696494015579861,
+        "bout": 1,
+        "poseIndex": 321,
+        "t": 28.53670000006267,
+        "dt": 0.084,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9385000000149012,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 28.616666666666323,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 25.416666666666504
+          }
+        ],
+        "scores": [],
+        "x0": -0.00014718683400344014,
+        "z0": 4.4451718928758055,
+        "x1": 0.000028168101612848878,
+        "z1": 6.84517188646969,
+        "yaw": 0.00007306455657179541,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9385000000149012,
+      "playerHp": 30,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.00943861071618296,
+        900.8836156169218,
+        6.4313467056277105
+      ],
+      "targetWorld": [
+        0.0000198593282677319,
+        900.0197404760038,
+        6.716571369870623
+      ],
+      "tipLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.009436542839217384
+      },
+      "targetLane": {
+        "along": 2.271399483137119,
+        "perpendicular": 0.0000010873663889154753
+      },
+      "tipTargetHorizontalDistance": 0.2853814495514101,
+      "poseAgeBoutSeconds": 0.09809999999404084,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "damage.dealt",
+      "sampleIndex": 336,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 38000.60000000894,
+      "gameTime": 28.63480000005671,
+      "boutTime": 28.63480000005671,
+      "poseInput": {
+        "wallTime": 37999.70000000298,
+        "wallEpoch": 1792400718376.2,
+        "frame": 325,
+        "gameTime": 28.63480000005671,
+        "boutTime": 28.63480000005671,
+        "fixedRemainder": 0.0014666667232977534,
+        "phase": 0.2696494015579861,
+        "bout": 1,
+        "poseIndex": 322,
+        "t": 28.63480000005671,
+        "dt": 0.09809999999403954,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": -1,
+        "stage": 1,
+        "guard": 0,
+        "clock": 0.6
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.03333333333333333,
+        "speedMul": 1,
+        "clock": 28.63333333333299,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 25.416666666666504
+          }
+        ],
+        "scores": [],
+        "x0": -0.00014718683400344014,
+        "z0": 4.4451718928758055,
+        "x1": 0.000028168101612848878,
+        "z1": 6.84517188646969,
+        "yaw": 0.00007306455657179541,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": -1,
+      "playerHp": 30,
+      "dealt": 14,
+      "target": "player",
+      "tipWorld": [
+        -0.009438610716183016,
+        900.8836156169218,
+        6.4313467056277105
+      ],
+      "targetWorld": [
+        0.0000198593282677319,
+        900.0197404760038,
+        6.716571369870623
+      ],
+      "tipLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.00943654283921744
+      },
+      "targetLane": {
+        "along": 2.271399483137119,
+        "perpendicular": 0.0000010873663889154753
+      },
+      "tipTargetHorizontalDistance": 0.2853814495514101,
+      "poseAgeBoutSeconds": 0,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-before",
+      "sampleIndex": 381,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 42540.60000000894,
+      "gameTime": 32.739500000089514,
+      "boutTime": 32.739500000089514,
+      "poseInput": {
+        "wallTime": 42451.10000000894,
+        "wallEpoch": 1792400722827.6,
+        "frame": 368,
+        "gameTime": 32.64990000008057,
+        "boutTime": 32.64990000008057,
+        "fixedRemainder": 0.01656666674714052,
+        "phase": 0.09588674605936892,
+        "bout": 1,
+        "poseIndex": 365,
+        "t": 32.64990000008057,
+        "dt": 0.1,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9368333333482345,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 32.71666666666609,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 29.616666666666266
+          }
+        ],
+        "scores": [],
+        "x0": -0.00026656335643776254,
+        "z0": 5.021348571637645,
+        "x1": -0.0007681264399758267,
+        "z1": 7.42134851922816,
+        "yaw": -0.00020898461966207898,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9368333333482345,
+      "playerHp": 30,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.010118185831408721,
+        900.883615616922,
+        7.007520684749304
+      ],
+      "targetWorld": [
+        -0.0007479712637263024,
+        900.0199168336294,
+        7.297462754141032
+      ],
+      "tipLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217603
+      },
+      "targetLane": {
+        "along": 2.2761142334060787,
+        "perpendicular": -0.000005735043500431884
+      },
+      "tipTargetHorizontalDistance": 0.2900934410223746,
+      "poseAgeBoutSeconds": 0.08960000000894297,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-after",
+      "sampleIndex": 382,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 42541.10000000894,
+      "gameTime": 32.739500000089514,
+      "boutTime": 32.739500000089514,
+      "poseInput": {
+        "wallTime": 42451.10000000894,
+        "wallEpoch": 1792400722827.6,
+        "frame": 368,
+        "gameTime": 32.64990000008057,
+        "boutTime": 32.64990000008057,
+        "fixedRemainder": 0.01656666674714052,
+        "phase": 0.09588674605936892,
+        "bout": 1,
+        "poseIndex": 365,
+        "t": 32.64990000008057,
+        "dt": 0.1,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9368333333482345,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 32.71666666666609,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 29.616666666666266
+          }
+        ],
+        "scores": [],
+        "x0": -0.00026656335643776254,
+        "z0": 5.021348571637645,
+        "x1": -0.0007681264399758267,
+        "z1": 7.42134851922816,
+        "yaw": -0.00020898461966207898,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9368333333482345,
+      "playerHp": 16,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.010118185831408721,
+        900.883615616922,
+        7.007520684749304
+      ],
+      "targetWorld": [
+        -0.0007479712637263024,
+        900.0199168336294,
+        7.297462754141032
+      ],
+      "tipLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217603
+      },
+      "targetLane": {
+        "along": 2.2761142334060787,
+        "perpendicular": -0.000005735043500431884
+      },
+      "tipTargetHorizontalDistance": 0.2900934410223746,
+      "poseAgeBoutSeconds": 0.08960000000894297,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "damage.dealt",
+      "sampleIndex": 383,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 42542.20000000298,
+      "gameTime": 32.739500000089514,
+      "boutTime": 32.739500000089514,
+      "poseInput": {
+        "wallTime": 42541.10000000894,
+        "wallEpoch": 1792400722917.6,
+        "frame": 369,
+        "gameTime": 32.739500000089514,
+        "boutTime": 32.739500000089514,
+        "fixedRemainder": 0.0061666667560812335,
+        "phase": 0.09588674605936892,
+        "bout": 1,
+        "poseIndex": 366,
+        "t": 32.739500000089514,
+        "dt": 0.0896000000089407,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": -1,
+        "stage": 1,
+        "guard": 0,
+        "clock": 0.6
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.03333333333333333,
+        "speedMul": 1,
+        "clock": 32.73333333333276,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 29.616666666666266
+          }
+        ],
+        "scores": [],
+        "x0": -0.00026656335643776254,
+        "z0": 5.021348571637645,
+        "x1": -0.0007681264399758267,
+        "z1": 7.42134851922816,
+        "yaw": -0.00020898461966207898,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": -1,
+      "playerHp": 16,
+      "dealt": 14,
+      "target": "player",
+      "tipWorld": [
+        -0.010118185831408777,
+        900.883615616922,
+        7.007520684749304
+      ],
+      "targetWorld": [
+        -0.0007479712637263024,
+        900.0199168336294,
+        7.297462754141032
+      ],
+      "tipLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217656
+      },
+      "targetLane": {
+        "along": 2.2761142334060787,
+        "perpendicular": -0.000005735043500431884
+      },
+      "tipTargetHorizontalDistance": 0.2900934410223746,
+      "poseAgeBoutSeconds": 0,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-before",
+      "sampleIndex": 431,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 46996,
+      "gameTime": 36.93060000008356,
+      "boutTime": 36.93060000008356,
+      "poseInput": {
+        "wallTime": 46913,
+        "wallEpoch": 1792400727289.5,
+        "frame": 415,
+        "gameTime": 36.848100000083555,
+        "boutTime": 36.848100000083555,
+        "fixedRemainder": 0.01476666675012164,
+        "phase": 0.9479232027529937,
+        "bout": 1,
+        "poseIndex": 412,
+        "t": 36.848100000083555,
+        "dt": 0.09429999999701977,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9723333333184322,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 36.916666666665854,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 33.716666666666036
+          }
+        ],
+        "scores": [],
+        "x0": -0.0003869541059814932,
+        "z0": 5.605683270143345,
+        "x1": -0.0008872508562243868,
+        "z1": 8.00568321799817,
+        "yaw": -0.0002084569807775982,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9723333333184322,
+      "playerHp": 16,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.010237528599312819,
+        900.8836156169219,
+        7.591855388452827
+      ],
+      "targetWorld": [
+        -0.0008642711013861191,
+        900.0200553799732,
+        7.878132905915052
+      ],
+      "tipLane": {
+        "along": 1.986174128576613,
+        "perpendicular": -0.00943654283921749
+      },
+      "targetLane": {
+        "along": 2.272449685897898,
+        "perpendicular": -0.0000036089984225382726
+      },
+      "tipTargetHorizontalDistance": 0.286430925286459,
+      "poseAgeBoutSeconds": 0.08250000000000313,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-after",
+      "sampleIndex": 432,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 46996.40000000596,
+      "gameTime": 36.93060000008356,
+      "boutTime": 36.93060000008356,
+      "poseInput": {
+        "wallTime": 46913,
+        "wallEpoch": 1792400727289.5,
+        "frame": 415,
+        "gameTime": 36.848100000083555,
+        "boutTime": 36.848100000083555,
+        "fixedRemainder": 0.01476666675012164,
+        "phase": 0.9479232027529937,
+        "bout": 1,
+        "poseIndex": 412,
+        "t": 36.848100000083555,
+        "dt": 0.09429999999701977,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9723333333184322,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 36.916666666665854,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 33.716666666666036
+          }
+        ],
+        "scores": [],
+        "x0": -0.0003869541059814932,
+        "z0": 5.605683270143345,
+        "x1": -0.0008872508562243868,
+        "z1": 8.00568321799817,
+        "yaw": -0.0002084569807775982,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9723333333184322,
+      "playerHp": 2,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.010237528599312819,
+        900.8836156169219,
+        7.591855388452827
+      ],
+      "targetWorld": [
+        -0.0008642711013861191,
+        900.0200553799732,
+        7.878132905915052
+      ],
+      "tipLane": {
+        "along": 1.986174128576613,
+        "perpendicular": -0.00943654283921749
+      },
+      "targetLane": {
+        "along": 2.272449685897898,
+        "perpendicular": -0.0000036089984225382726
+      },
+      "tipTargetHorizontalDistance": 0.286430925286459,
+      "poseAgeBoutSeconds": 0.08250000000000313,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "damage.dealt",
+      "sampleIndex": 433,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 46999.60000000894,
+      "gameTime": 36.93060000008356,
+      "boutTime": 36.93060000008356,
+      "poseInput": {
+        "wallTime": 46996.60000000894,
+        "wallEpoch": 1792400727373.1,
+        "frame": 416,
+        "gameTime": 36.93060000008356,
+        "boutTime": 36.93060000008356,
+        "fixedRemainder": 0.013933333416788325,
+        "phase": 0.9479232027529937,
+        "bout": 1,
+        "poseIndex": 413,
+        "t": 36.93060000008356,
+        "dt": 0.0825,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": -1,
+        "stage": 1,
+        "guard": 0,
+        "clock": 0.6
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 36.916666666665854,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 33.716666666666036
+          }
+        ],
+        "scores": [],
+        "x0": -0.0003869541059814932,
+        "z0": 5.605683270143345,
+        "x1": -0.0008872508562243868,
+        "z1": 8.00568321799817,
+        "yaw": -0.0002084569807775982,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": -1,
+      "playerHp": 2,
+      "dealt": 14,
+      "target": "player",
+      "tipWorld": [
+        -0.01023752859931293,
+        900.8836156169219,
+        7.591855388452827
+      ],
+      "targetWorld": [
+        -0.0008642711013861191,
+        900.0200553799732,
+        7.878132905915052
+      ],
+      "tipLane": {
+        "along": 1.986174128576613,
+        "perpendicular": -0.0094365428392176
+      },
+      "targetLane": {
+        "along": 2.272449685897898,
+        "perpendicular": -0.0000036089984225382726
+      },
+      "tipTargetHorizontalDistance": 0.286430925286459,
+      "poseAgeBoutSeconds": 0,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-before",
+      "sampleIndex": 481,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 51624.29999999702,
+      "gameTime": 41.15530000011638,
+      "boutTime": 41.15530000011638,
+      "poseInput": {
+        "wallTime": 51523.5,
+        "wallEpoch": 1792400731900,
+        "frame": 462,
+        "gameTime": 41.055300000116375,
+        "boutTime": 41.055300000116375,
+        "fixedRemainder": 0.0053000001162384555,
+        "phase": 0.7754213917877169,
+        "bout": 1,
+        "poseIndex": 459,
+        "t": 41.055300000116375,
+        "dt": 0.1,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9631666666766008,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 41.116666666665616,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 37.9166666666658
+          }
+        ],
+        "scores": [],
+        "x0": -0.0003388919497852552,
+        "z0": 6.182370929745957,
+        "x1": -0.00014458802094024804,
+        "z1": 8.582370921880536,
+        "yaw": 0.00008095997044052856,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9631666666766008,
+      "playerHp": 2,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.00961463415951308,
+        900.8836156169218,
+        8.168545815795593
+      ],
+      "targetWorld": [
+        -0.00015657287941364434,
+        900.0197194852335,
+        8.458665699522266
+      ],
+      "tipLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.009436542839217459
+      },
+      "targetLane": {
+        "along": 2.2762947770768487,
+        "perpendicular": -0.000001969687299595044
+      },
+      "tipTargetHorizontalDistance": 0.2902740116799235,
+      "poseAgeBoutSeconds": 0.10000000000000142,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "hurt-request-after",
+      "sampleIndex": 482,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 51624.5,
+      "gameTime": 41.15530000011638,
+      "boutTime": 41.15530000011638,
+      "poseInput": {
+        "wallTime": 51523.5,
+        "wallEpoch": 1792400731900,
+        "frame": 462,
+        "gameTime": 41.055300000116375,
+        "boutTime": 41.055300000116375,
+        "fixedRemainder": 0.0053000001162384555,
+        "phase": 0.7754213917877169,
+        "bout": 1,
+        "poseIndex": 459,
+        "t": 41.055300000116375,
+        "dt": 0.1,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": 0.9631666666766008,
+        "stage": 1,
+        "guard": 1,
+        "clock": 0.5
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 41.116666666665616,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 37.9166666666658
+          }
+        ],
+        "scores": [],
+        "x0": -0.0003388919497852552,
+        "z0": 6.182370929745957,
+        "x1": -0.00014458802094024804,
+        "z1": 8.582370921880536,
+        "yaw": 0.00008095997044052856,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": 0.9631666666766008,
+      "playerHp": 0,
+      "requestedDamage": 14,
+      "tipWorld": [
+        -0.00961463415951308,
+        900.8836156169218,
+        8.168545815795593
+      ],
+      "targetWorld": [
+        -0.00015657287941364434,
+        900.0197194852335,
+        8.458665699522266
+      ],
+      "tipLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.009436542839217459
+      },
+      "targetLane": {
+        "along": 2.2762947770768487,
+        "perpendicular": -0.000001969687299595044
+      },
+      "tipTargetHorizontalDistance": 0.2902740116799235,
+      "poseAgeBoutSeconds": 0.10000000000000142,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    },
+    {
+      "kind": "damage.dealt",
+      "sampleIndex": 483,
+      "phase": "thrust-defense",
+      "bout": 1,
+      "wallTime": 51625.29999999702,
+      "gameTime": 41.15530000011638,
+      "boutTime": 41.15530000011638,
+      "poseInput": {
+        "wallTime": 51624.70000000298,
+        "wallEpoch": 1792400732001.2,
+        "frame": 463,
+        "gameTime": 41.15530000011638,
+        "boutTime": 41.15530000011638,
+        "fixedRemainder": 0.005300000116238483,
+        "phase": 0.7754213917877169,
+        "bout": 1,
+        "poseIndex": 460,
+        "t": 41.15530000011638,
+        "dt": 0.1,
+        "speed": 0,
+        "flinch": 0,
+        "deathT": -1,
+        "alive": true,
+        "state": "attack",
+        "attack": -1,
+        "stage": 1,
+        "guard": 0,
+        "clock": 0.6
+      },
+      "actorAlive": true,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 41.14999999999895,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 37.9166666666658
+          }
+        ],
+        "scores": [],
+        "x0": -0.0003388919497852552,
+        "z0": 6.182370929745957,
+        "x1": -0.00014458802094024804,
+        "z1": 8.582370921880536,
+        "yaw": 0.00008095997044052856,
+        "length": 2.4
+      },
+      "strikeSpec": {
+        "id": "strike.conch-duelist.thrust",
+        "shape": {
+          "kind": "lane",
+          "length": 2.4,
+          "width": 0.65
+        },
+        "range": 2.4,
+        "units": "world",
+        "windup": 0.6,
+        "active": 0.1,
+        "recover": 0.9,
+        "damage": 14
+      },
+      "behaviorClock": 0.6,
+      "frameAttack": -1,
+      "playerHp": 0,
+      "dealt": 14,
+      "target": "player",
+      "tipWorld": [
+        -0.009614634159513191,
+        900.8836156169218,
+        8.168545815795593
+      ],
+      "targetWorld": [
+        -0.00015657287941364434,
+        900.0197194852335,
+        8.458665699522266
+      ],
+      "tipLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.00943654283921757
+      },
+      "targetLane": {
+        "along": 2.2762947770768487,
+        "perpendicular": -0.000001969687299595044
+      },
+      "tipTargetHorizontalDistance": 0.2902740116799235,
+      "poseAgeBoutSeconds": 0,
+      "caveat": "At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact."
+    }
+  ],
+  "runtimeAcceptance": false,
+  "visualAcceptance": false
+}

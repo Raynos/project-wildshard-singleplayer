@@ -1,0 +1,293 @@
+{
+  "schema": "conch.motion4.public-preservation.v1",
+  "scope": "Completed run1, run2 and supplemental stop-resume capture evidence. Source storage only; no hosting or production promotion.",
+  "sourceRoot": "source-evidence/conch-motion4-capture",
+  "rawOriginalsPreserved": true,
+  "reportTransformations": [
+    {
+      "path": "run2/report.json",
+      "originalBytes": 279438,
+      "originalSha256": "e98a86fca5b76dea411f0f9e2097cdb128035e69aa41ebaf0d81abc931454182",
+      "publicBytes": 279313,
+      "publicSha256": "3d34026e668b34ac29dd6caebfea3b58a65b1950fc3bf7efb481e2355e41a4eb",
+      "transformation": "Remove absolute checkout prefix from video path metadata; normalize final newline. No observation or event values changed.",
+      "rawOriginal": "tmp/conch-motion4-public-preservation/original-docs/run2/report.json"
+    },
+    {
+      "path": "stop-resume/report.json",
+      "originalBytes": 26154,
+      "originalSha256": "2aad0eed2d4ccec5e7329a9705e531c33b576480b6d8618acc976f5297765faa",
+      "publicBytes": 26092,
+      "publicSha256": "23304538ae671f1ddf45782e14031b01e4762fa8a87a8992d430cbdc517e55e8",
+      "transformation": "Remove absolute checkout prefix from video path metadata; normalize final newline. No observation or event values changed.",
+      "rawOriginal": "tmp/conch-motion4-public-preservation/original-docs/stop-resume/report.json"
+    }
+  ],
+  "rawEvidence": [
+    {
+      "path": "run1/entry.jpg",
+      "originalBytes": 60060,
+      "originalSha256": "c1c86a0fb0574a1ecacd771445cd3d7d0db2df1021a8e06bce9ecd029be90d60",
+      "storedBytes": 60060,
+      "storedSha256": "c1c86a0fb0574a1ecacd771445cd3d7d0db2df1021a8e06bce9ecd029be90d60",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run1/geometry.json",
+      "originalBytes": 548464,
+      "originalSha256": "2adbb342c86deab272fa398cf9e09a5686a7edf58eeb153b295ad38cbd066d0a",
+      "storedBytes": 548464,
+      "storedSha256": "2adbb342c86deab272fa398cf9e09a5686a7edf58eeb153b295ad38cbd066d0a",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run1/trace.json",
+      "originalBytes": 13479562,
+      "originalSha256": "79b2b300368d6d936a4dd0a527620a4b5b68fdbf97e0ff234d6e0ae2467df628",
+      "storedBytes": 13479562,
+      "storedSha256": "79b2b300368d6d936a4dd0a527620a4b5b68fdbf97e0ff234d6e0ae2467df628",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run1/events.json",
+      "originalBytes": 247466,
+      "originalSha256": "6d369fb575de9a8d49192ca5cfc8949558a481ee579aba7668f350e7df5c116f",
+      "storedBytes": 247466,
+      "storedSha256": "6d369fb575de9a8d49192ca5cfc8949558a481ee579aba7668f350e7df5c116f",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run1/report.json",
+      "originalBytes": 17684,
+      "originalSha256": "142558d4073376e364727864d33787902a25e8703da0dd71d6d731f6ea569af5",
+      "storedBytes": 17684,
+      "storedSha256": "142558d4073376e364727864d33787902a25e8703da0dd71d6d731f6ea569af5",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run1/both-strikes-observation.jpg",
+      "originalBytes": 61266,
+      "originalSha256": "0f4379fedc77d811a8461bb10544b97c69b84d9545b18a2391cec1b644f03d14",
+      "storedBytes": 61266,
+      "storedSha256": "0f4379fedc77d811a8461bb10544b97c69b84d9545b18a2391cec1b644f03d14",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run1/damage-geometry.json",
+      "originalBytes": 63929,
+      "originalSha256": "9b72b12c1aa2f12a3a6730f16e45b75b60cadcc2b956754e184e66a76ffd3a10",
+      "storedBytes": 63929,
+      "storedSha256": "9b72b12c1aa2f12a3a6730f16e45b75b60cadcc2b956754e184e66a76ffd3a10",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run1/video/page@faf9720c0baf03101f5df4b018861a12.webm",
+      "originalBytes": 10318939,
+      "originalSha256": "d889bee51f8eb30c05e7ed80ddf1ecd064bcd7be689b9f43aecc37804c389a79",
+      "storedBytes": 10318939,
+      "storedSha256": "d889bee51f8eb30c05e7ed80ddf1ecd064bcd7be689b9f43aecc37804c389a79",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/corpse-reward.jpg",
+      "originalBytes": 57212,
+      "originalSha256": "496071d41b506e0b2357336becd7ce116fe9b90efbdba7e5a3c93b20fd32e773",
+      "storedBytes": 57212,
+      "storedSha256": "496071d41b506e0b2357336becd7ce116fe9b90efbdba7e5a3c93b20fd32e773",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/entry.jpg",
+      "originalBytes": 59534,
+      "originalSha256": "940c2557726600daec55dee4a76004f8c530bcc4d8c08da533caa2c3ff7d53d9",
+      "storedBytes": 59534,
+      "storedSha256": "940c2557726600daec55dee4a76004f8c530bcc4d8c08da533caa2c3ff7d53d9",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/sword-result.jpg",
+      "originalBytes": 60200,
+      "originalSha256": "eefaab6343ffa69241aa56b69877b25c2659a8d3fb0acf8482928ca767fb2194",
+      "storedBytes": 60200,
+      "storedSha256": "eefaab6343ffa69241aa56b69877b25c2659a8d3fb0acf8482928ca767fb2194",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/player-defeat.jpg",
+      "originalBytes": 59023,
+      "originalSha256": "011256968043201a2fe52268d16c473d13a743a548eddd95a500d5c2a3d96a0e",
+      "storedBytes": 59023,
+      "storedSha256": "011256968043201a2fe52268d16c473d13a743a548eddd95a500d5c2a3d96a0e",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/geometry.json",
+      "originalBytes": 548464,
+      "originalSha256": "ec9abb3b89316c5342fa5459da6b3fca6e6246b37ab402d8aca4f84bafa4c292",
+      "storedBytes": 548464,
+      "storedSha256": "ec9abb3b89316c5342fa5459da6b3fca6e6246b37ab402d8aca4f84bafa4c292",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/trace.json",
+      "originalBytes": 11336506,
+      "originalSha256": "79041e3cedc6fc149e7dac39d4f17e8c3ee6343cf734f688411a3d93e24d59fc",
+      "storedBytes": 11336506,
+      "storedSha256": "79041e3cedc6fc149e7dac39d4f17e8c3ee6343cf734f688411a3d93e24d59fc",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/events.json",
+      "originalBytes": 1059640,
+      "originalSha256": "d62ffc07b9c9dad1d7d6566c6864abe8d1a8c423197be70a0d128eff0a265f61",
+      "storedBytes": 1059640,
+      "storedSha256": "d62ffc07b9c9dad1d7d6566c6864abe8d1a8c423197be70a0d128eff0a265f61",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/report.json",
+      "originalBytes": 279438,
+      "originalSha256": "e98a86fca5b76dea411f0f9e2097cdb128035e69aa41ebaf0d81abc931454182",
+      "storedBytes": 279313,
+      "storedSha256": "3d34026e668b34ac29dd6caebfea3b58a65b1950fc3bf7efb481e2355e41a4eb",
+      "byteIdentical": false,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/both-strikes-observation.jpg",
+      "originalBytes": 61303,
+      "originalSha256": "26bb6f0a9a804c9e9e032ff8f839f63e45d5ed37a668c97692bafb19fbe2c70a",
+      "storedBytes": 61303,
+      "storedSha256": "26bb6f0a9a804c9e9e032ff8f839f63e45d5ed37a668c97692bafb19fbe2c70a",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/damage-geometry.json",
+      "originalBytes": 222479,
+      "originalSha256": "082341d14f3502bdae23944ce7c41ab0683f47c6bc6aa5077d0098ce026be148",
+      "storedBytes": 222479,
+      "storedSha256": "082341d14f3502bdae23944ce7c41ab0683f47c6bc6aa5077d0098ce026be148",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/guard-counter.jpg",
+      "originalBytes": 60272,
+      "originalSha256": "ca749161387505ccafd8a711aaba5807330db174cbe0f1e3918e663e0d921d0a",
+      "storedBytes": 60272,
+      "storedSha256": "ca749161387505ccafd8a711aaba5807330db174cbe0f1e3918e663e0d921d0a",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "run2/video/page@ad1170b2ffbb7662295b1a066ea066cc.webm",
+      "originalBytes": 13744043,
+      "originalSha256": "376f44194a5181d04af6fd0d4bad8305295af69b3a1d934c4dbee8d7217b6327",
+      "storedBytes": 13744043,
+      "storedSha256": "376f44194a5181d04af6fd0d4bad8305295af69b3a1d934c4dbee8d7217b6327",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "stop-resume/far-target-resume.jpg",
+      "originalBytes": 61202,
+      "originalSha256": "151e562eac3cdb8827e12204d19e817a302cbb31769df79672db03731710a3b0",
+      "storedBytes": 61202,
+      "storedSha256": "151e562eac3cdb8827e12204d19e817a302cbb31769df79672db03731710a3b0",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "stop-resume/geometry.json",
+      "originalBytes": 548465,
+      "originalSha256": "76794527317326ef7ce441b149d85e361c74d4338de96d6a9bbc358f4d15ff78",
+      "storedBytes": 548465,
+      "storedSha256": "76794527317326ef7ce441b149d85e361c74d4338de96d6a9bbc358f4d15ff78",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "stop-resume/trace.json",
+      "originalBytes": 789995,
+      "originalSha256": "eab24a3ceab49afc427f8635f92c206913e641f5e53219a0973318df8a23299b",
+      "storedBytes": 789995,
+      "storedSha256": "eab24a3ceab49afc427f8635f92c206913e641f5e53219a0973318df8a23299b",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "stop-resume/near-target-stop.jpg",
+      "originalBytes": 59507,
+      "originalSha256": "aa2f914673bf575b27813f0ed191c6c302101ab33187d77078d9f41a5107b8de",
+      "storedBytes": 59507,
+      "storedSha256": "aa2f914673bf575b27813f0ed191c6c302101ab33187d77078d9f41a5107b8de",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "stop-resume/events.json",
+      "originalBytes": 66160,
+      "originalSha256": "be1747fc6540dd75a3d6b84910e625c50cdfd883c0228e565cbccbf8fa6676b5",
+      "storedBytes": 66160,
+      "storedSha256": "be1747fc6540dd75a3d6b84910e625c50cdfd883c0228e565cbccbf8fa6676b5",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "stop-resume/report.json",
+      "originalBytes": 26154,
+      "originalSha256": "2aad0eed2d4ccec5e7329a9705e531c33b576480b6d8618acc976f5297765faa",
+      "storedBytes": 26092,
+      "storedSha256": "23304538ae671f1ddf45782e14031b01e4762fa8a87a8992d430cbdc517e55e8",
+      "byteIdentical": false,
+      "wholeFile": true
+    },
+    {
+      "path": "stop-resume/damage-geometry.json",
+      "originalBytes": 16000,
+      "originalSha256": "bc30b1ef106709c9704016fe23199d2bb234cd9058795b33ae0f308ea41c0277",
+      "storedBytes": 16000,
+      "storedSha256": "bc30b1ef106709c9704016fe23199d2bb234cd9058795b33ae0f308ea41c0277",
+      "byteIdentical": true,
+      "wholeFile": true
+    },
+    {
+      "path": "stop-resume/video/page@c244f09b75d47e635950a34df52bb8d2.webm",
+      "originalBytes": 1278585,
+      "originalSha256": "a399e6e6030a616c496c0c66dda1faad7e2eed1737c0f6e122a344f472ebaf49",
+      "storedBytes": 1278585,
+      "storedSha256": "a399e6e6030a616c496c0c66dda1faad7e2eed1737c0f6e122a344f472ebaf49",
+      "byteIdentical": true,
+      "wholeFile": true
+    }
+  ],
+  "traceCounts": {
+    "run1": 1367,
+    "run2": 1158,
+    "stop-resume": 86
+  },
+  "traceAndVideoPolicy": "All traces and videos are whole original files, byte-identical to receipt hashes. No archives, chunks or encoding wrappers.",
+  "frozenTooling": "Unchanged. Technical rootGo build approval provenance remains in frozen pins and embedded report pins; no private thread identifiers or communications found.",
+  "acceptance": {
+    "runtime": false,
+    "visual": false,
+    "physicalPhonePerformance": false,
+    "productionPromotion": false
+  }
+}

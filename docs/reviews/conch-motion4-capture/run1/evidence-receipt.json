@@ -1,0 +1,48 @@
+{
+  "schema": "conch.motion4.evidence.v1",
+  "sourceDirectory": "tmp/conch-readable-qa/motion4-run1",
+  "files": {
+    "entry.jpg": {
+      "bytes": 60060,
+      "sha256": "c1c86a0fb0574a1ecacd771445cd3d7d0db2df1021a8e06bce9ecd029be90d60",
+      "repositoryCopy": null
+    },
+    "geometry.json": {
+      "bytes": 548464,
+      "sha256": "2adbb342c86deab272fa398cf9e09a5686a7edf58eeb153b295ad38cbd066d0a",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/run1/geometry.json"
+    },
+    "trace.json": {
+      "bytes": 13479562,
+      "sha256": "79b2b300368d6d936a4dd0a527620a4b5b68fdbf97e0ff234d6e0ae2467df628",
+      "repositoryCopy": null
+    },
+    "events.json": {
+      "bytes": 247466,
+      "sha256": "6d369fb575de9a8d49192ca5cfc8949558a481ee579aba7668f350e7df5c116f",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/run1/events.json"
+    },
+    "report.json": {
+      "bytes": 17684,
+      "sha256": "142558d4073376e364727864d33787902a25e8703da0dd71d6d731f6ea569af5",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/run1/report.json"
+    },
+    "both-strikes-observation.jpg": {
+      "bytes": 61266,
+      "sha256": "0f4379fedc77d811a8461bb10544b97c69b84d9545b18a2391cec1b644f03d14",
+      "repositoryCopy": null
+    },
+    "damage-geometry.json": {
+      "bytes": 63929,
+      "sha256": "9b72b12c1aa2f12a3a6730f16e45b75b60cadcc2b956754e184e66a76ffd3a10",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/run1/damage-geometry.json"
+    },
+    "video/page@faf9720c0baf03101f5df4b018861a12.webm": {
+      "bytes": 10318939,
+      "sha256": "d889bee51f8eb30c05e7ed80ddf1ecd064bcd7be689b9f43aecc37804c389a79",
+      "repositoryCopy": null
+    }
+  },
+  "failed": true,
+  "reason": "Observer overlay intercepted Retry; full genuine ordinary attack/player damage preserved; no full-coverage acceptance"
+}

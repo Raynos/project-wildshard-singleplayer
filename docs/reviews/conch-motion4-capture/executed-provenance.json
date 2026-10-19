@@ -1,0 +1,41 @@
+{
+  "schema": "conch.motion4.executed-provenance.v1",
+  "executedApp": "tmp/conch-readable-preview-dist-build2",
+  "executedAppManifestSha256": "faa5e042547e36ad4f72fe65f89451a35ce9265465a731213e7c5ac51de9cdaa",
+  "executedPreviewSha256": "733af26743cecb4da73d124107e38207762a238f7a591c4206e51fa786c8ef2b",
+  "executedBuildPinPath": "docs/reviews/conch-motion4-capture/tooling-attempt2/reviewed-build-pin.json",
+  "executedBuildPinSha256": "7c929ab05053e8541a38219f066c05fea4e0f9c98cf072cbe288116fe1168a2d",
+  "currentCapturePinSha256": "ab1091def857f5ea06c74da9f8e83a7a34078b4df50f03e07334ccefa7c08ebd",
+  "embeddedPinExactlyMatchesPreservedExecutedPin": true,
+  "all137ExecutedAppFilesUnchanged": true,
+  "allFrozenSourceInputsUnchanged": true,
+  "changedTooling": [
+    {
+      "path": "scripts/conch-readable-build-pin.mjs",
+      "executed": "6e67b564c8fafb49f30313efa37875bb4aef1975e0553d370b91a21e1d386868",
+      "current": "73dff4f02f634f498af4ad8de09d67fc1f5806d14c70c6dd410fe1fed7138506",
+      "category": "build-tooling/receipt-only"
+    },
+    {
+      "path": "vite/conch-readable-preview.config.ts",
+      "executed": "0044e2d0e1a6e46834cf94ea4aed290058d15253266b36730d598cc99d5c34e4",
+      "current": "219686bd3a098ee0514911129eaa883ab54b5624ac176d99bf7fe289b425927c",
+      "category": "build-tooling/receipt-only"
+    },
+    {
+      "path": "scripts/qa-conch-readable-motion.mjs",
+      "executed": "ebc9ebd9b18445dc167d8865edd2c848342bd7c4ce1a0503523bf595f2086606",
+      "current": "10e276ff3cc619365e427df6fd008590ab8a1f398ae4035fbca57842213b9192",
+      "category": "QA observer"
+    },
+    {
+      "path": "scripts/qa-conch-readable-observation.mjs",
+      "executed": "4dd5cf823c0b949c7b37e722dcfbbcb28ece0db6d5bc77b376bec1d449c38242",
+      "current": "a63a140e38713e0d4ad8b937acd1f7b2ebda0466d340e4f412e8aac8a219deb0",
+      "category": "QA observer"
+    }
+  ],
+  "runtimeSemantics": "No game, host, pose, decision, combat, payload, engine or practice source changes. Build/config changes only add candidate unknown-value narrowing and argv narrowing; they produce same selected candidate. Observer function/local names do not change behavior. Run2 adds pointer-events:none to diagnostic overlay (fixes Retry interception), active-interruption trial and executed-preview provenance; these are capture behavior changes, not shipped game changes. Current pin differs from embedded build2; this evidence never relabels it.",
+  "runtimeAcceptance": false,
+  "visualAcceptance": false
+}

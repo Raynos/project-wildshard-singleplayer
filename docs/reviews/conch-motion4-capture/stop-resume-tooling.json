@@ -1,0 +1,18 @@
+{
+  "schema": "conch.motion4.supplemental-tooling.v1",
+  "frozenAt": "2026-10-19T09:12:25Z",
+  "purpose": "Close genuine stop/resume coverage using near-target combat stop and far-target pursuit; retain failed original assumption.",
+  "files": {
+    "scripts/qa-conch-readable-stop-resume.mjs": {
+      "bytes": 10538,
+      "sha256": "232a5f4eefbb1bbeebff818e5a299e7874b47d140ca82586dceec08270762779"
+    },
+    "scripts/qa-conch-readable-observation.mjs": {
+      "bytes": 7065,
+      "sha256": "a63a140e38713e0d4ad8b937acd1f7b2ebda0466d340e4f412e8aac8a219deb0"
+    }
+  },
+  "executedApp": "tmp/conch-readable-preview-dist-build2",
+  "buildManifest": "docs/reviews/conch-motion4-capture/build-manifest.json",
+  "gameChanges": false
+}

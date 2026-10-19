@@ -1,0 +1,50 @@
+{
+  "schema": "conch.motion4.evidence.v1",
+  "sourceDirectory": "tmp/conch-readable-qa/motion4-stop-resume",
+  "files": {
+    "far-target-resume.jpg": {
+      "bytes": 61202,
+      "sha256": "151e562eac3cdb8827e12204d19e817a302cbb31769df79672db03731710a3b0",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/stop-resume/far-target-resume.jpg"
+    },
+    "geometry.json": {
+      "bytes": 548465,
+      "sha256": "76794527317326ef7ce441b149d85e361c74d4338de96d6a9bbc358f4d15ff78",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/stop-resume/geometry.json"
+    },
+    "trace.json": {
+      "bytes": 789995,
+      "sha256": "eab24a3ceab49afc427f8635f92c206913e641f5e53219a0973318df8a23299b",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/stop-resume/trace.json"
+    },
+    "near-target-stop.jpg": {
+      "bytes": 59507,
+      "sha256": "aa2f914673bf575b27813f0ed191c6c302101ab33187d77078d9f41a5107b8de",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/stop-resume/near-target-stop.jpg"
+    },
+    "events.json": {
+      "bytes": 66160,
+      "sha256": "be1747fc6540dd75a3d6b84910e625c50cdfd883c0228e565cbccbf8fa6676b5",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/stop-resume/events.json"
+    },
+    "report.json": {
+      "bytes": 26154,
+      "sha256": "2aad0eed2d4ccec5e7329a9705e531c33b576480b6d8618acc976f5297765faa",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/stop-resume/report.json"
+    },
+    "damage-geometry.json": {
+      "bytes": 16000,
+      "sha256": "bc30b1ef106709c9704016fe23199d2bb234cd9058795b33ae0f308ea41c0277",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/stop-resume/damage-geometry.json"
+    },
+    "video/page@c244f09b75d47e635950a34df52bb8d2.webm": {
+      "bytes": 1278585,
+      "sha256": "a399e6e6030a616c496c0c66dda1faad7e2eed1737c0f6e122a344f472ebaf49",
+      "repositoryCopy": null
+    }
+  },
+  "complete": true,
+  "functionalChecks": "4/4 pass. Actual near-target stop, far-target resumed pursuit, second stop and zero errors. Original run2 failed assumption remains preserved.",
+  "runtimeAcceptance": false,
+  "visualAcceptance": false
+}

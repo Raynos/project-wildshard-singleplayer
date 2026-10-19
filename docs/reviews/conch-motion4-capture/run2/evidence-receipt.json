@@ -1,0 +1,70 @@
+{
+  "schema": "conch.motion4.evidence.v1",
+  "sourceDirectory": "tmp/conch-readable-qa/motion4-run2",
+  "files": {
+    "corpse-reward.jpg": {
+      "bytes": 57212,
+      "sha256": "496071d41b506e0b2357336becd7ce116fe9b90efbdba7e5a3c93b20fd32e773",
+      "repositoryCopy": null
+    },
+    "entry.jpg": {
+      "bytes": 59534,
+      "sha256": "940c2557726600daec55dee4a76004f8c530bcc4d8c08da533caa2c3ff7d53d9",
+      "repositoryCopy": null
+    },
+    "sword-result.jpg": {
+      "bytes": 60200,
+      "sha256": "eefaab6343ffa69241aa56b69877b25c2659a8d3fb0acf8482928ca767fb2194",
+      "repositoryCopy": null
+    },
+    "player-defeat.jpg": {
+      "bytes": 59023,
+      "sha256": "011256968043201a2fe52268d16c473d13a743a548eddd95a500d5c2a3d96a0e",
+      "repositoryCopy": null
+    },
+    "geometry.json": {
+      "bytes": 548464,
+      "sha256": "ec9abb3b89316c5342fa5459da6b3fca6e6246b37ab402d8aca4f84bafa4c292",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/run2/geometry.json"
+    },
+    "trace.json": {
+      "bytes": 11336506,
+      "sha256": "79041e3cedc6fc149e7dac39d4f17e8c3ee6343cf734f688411a3d93e24d59fc",
+      "repositoryCopy": null
+    },
+    "events.json": {
+      "bytes": 1059640,
+      "sha256": "d62ffc07b9c9dad1d7d6566c6864abe8d1a8c423197be70a0d128eff0a265f61",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/run2/events.json"
+    },
+    "report.json": {
+      "bytes": 279438,
+      "sha256": "e98a86fca5b76dea411f0f9e2097cdb128035e69aa41ebaf0d81abc931454182",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/run2/report.json"
+    },
+    "both-strikes-observation.jpg": {
+      "bytes": 61303,
+      "sha256": "26bb6f0a9a804c9e9e032ff8f839f63e45d5ed37a668c97692bafb19fbe2c70a",
+      "repositoryCopy": null
+    },
+    "damage-geometry.json": {
+      "bytes": 222479,
+      "sha256": "082341d14f3502bdae23944ce7c41ab0683f47c6bc6aa5077d0098ce026be148",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/run2/damage-geometry.json"
+    },
+    "guard-counter.jpg": {
+      "bytes": 60272,
+      "sha256": "ca749161387505ccafd8a711aaba5807330db174cbe0f1e3918e663e0d921d0a",
+      "repositoryCopy": null
+    },
+    "video/page@ad1170b2ffbb7662295b1a066ea066cc.webm": {
+      "bytes": 13744043,
+      "sha256": "376f44194a5181d04af6fd0d4bad8305295af69b3a1d934c4dbee8d7217b6327",
+      "repositoryCopy": null
+    }
+  },
+  "complete": true,
+  "functionalChecks": "25/26 pass; stopResumeObserved false because the stop diagnostic moved target out of range, causing pursuit. Do not count as a game defect or complete stop/resume proof.",
+  "runtimeAcceptance": false,
+  "visualAcceptance": false
+}
