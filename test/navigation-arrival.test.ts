@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { freshPageArrival, setTitleArrival, consumeTitleArrival } from '../src/engine/boot/titleArrival';
+import { bootRoute } from '../src/bootRoute';
 import { SaveStore } from '../src/engine/saves/store';
 import { gridIntents } from '../src/game/grid/intent';
 import { travelService, travelSlot } from '../src/game/travel/travel';
@@ -58,4 +59,22 @@ test('a different destination refuses and consumes both entry copies', () => {
   expect(grid.consume('driftwood-isle')).toBeNull();
   expect(travel.consume('driftwood-isle')).toBeNull();
   expect(consumeTitleArrival('driftwood-isle')).toBeNull();
+});
+
+
+test.each([
+  ['', true],
+  ['v=build', true],
+  ['tier=phone&touch=1&mute=1&nolock=1&sw=0', true],
+  ['tier=phone&touch=1&mute=1&nolock=1&sw=0&v=build', true],
+  ['chunk=driftwood-isle&tier=phone&mute=1', false],
+  ['chunk=_template&touch=1&sw=0', false],
+  ['explore=hub&mute=1', false],
+])('environment flags on %s preserve the selected title route %s', (query, titleOnly) => {
+  expect(bootRoute(new URLSearchParams(query), { line: '', level: '' })).toEqual({ rescue: false, titleOnly });
+});
+
+test('interrupted explicit level entry still returns to the title', () => {
+  expect(bootRoute(new URLSearchParams('chunk=driftwood-isle&tier=phone'), { line: 'interrupted', level: 'driftwood-isle' }))
+    .toEqual({ rescue: true, titleOnly: true });
 });

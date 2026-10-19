@@ -48,7 +48,9 @@ async function enterPage(): Promise<unknown> {
   const titleOnly = route.titleOnly;
   if (rescueBoot) {
     history.replaceState(history.state, '', new URL('/', location.origin));
-    // index.html picked the loading shell from the original URL before this module ran.
+  }
+  if (titleOnly) {
+    // Environment harness flags do not select a level; retire the first-paint loader too.
     document.documentElement.classList.add('title-first');
     document.querySelector<HTMLElement>('.ws-resume')?.classList.remove('show');
   }
