@@ -1,0 +1,134 @@
+{
+  "scope": "Independent frozen-numeric evaluator, legal same/actual-hit source snapshots; no rendered/runtime continuity claim",
+  "cases": 6120,
+  "maximumJump": [
+    0.5199568283214883,
+    {
+      "stage": 3,
+      "clock": 0.215,
+      "before": 0,
+      "after": 1,
+      "axis": "joint.rapierForearm.rotation.y"
+    }
+  ],
+  "lethalOnsetMaximum": [
+    0.8,
+    {
+      "stage": 1,
+      "clock": 0.0,
+      "before": 1,
+      "axis": "joint.rapierArm.rotation.y"
+    }
+  ],
+  "inputs": [
+    "frame.deathT",
+    "frame.dims.bodyY",
+    "frame.flinch",
+    "frame.phase",
+    "frame.speed",
+    "frame.t",
+    "scalars.clock",
+    "scalars.guard",
+    "scalars.stage"
+  ],
+  "maximumNodes": 95,
+  "sampledRegressionCount": 75,
+  "sampledRegressions": [
+    {
+      "stage": 1,
+      "clock": 0,
+      "before": 0,
+      "after": 1,
+      "next": 0.36,
+      "old": 0.32
+    },
+    {
+      "stage": 1,
+      "clock": 0,
+      "before": 0.25,
+      "after": 1,
+      "next": 0.26999999999999996,
+      "old": 0.24
+    },
+    {
+      "stage": 1,
+      "clock": 0,
+      "before": 0.5,
+      "after": 1,
+      "next": 0.17999999999999994,
+      "old": 0.16
+    },
+    {
+      "stage": 1,
+      "clock": 0,
+      "before": 0.75,
+      "after": 1,
+      "next": 0.08999999999999997,
+      "old": 0.08000000000000002
+    },
+    {
+      "stage": 1,
+      "clock": 0.1,
+      "before": 0,
+      "after": 1,
+      "next": 0.2928395061728395,
+      "old": 0.2099074074074074
+    },
+    {
+      "stage": 1,
+      "clock": 0.1,
+      "before": 0.25,
+      "after": 1,
+      "next": 0.21962962962962962,
+      "old": 0.15479745370370368
+    },
+    {
+      "stage": 1,
+      "clock": 0.1,
+      "before": 0.5,
+      "after": 1,
+      "next": 0.14641975308641975,
+      "old": 0.09968749999999998
+    },
+    {
+      "stage": 1,
+      "clock": 0.1,
+      "before": 0.75,
+      "after": 1,
+      "next": 0.07320987654320987,
+      "old": 0.04457754629629629
+    },
+    {
+      "stage": 1,
+      "clock": 0.2,
+      "before": 0,
+      "after": 1,
+      "next": 0.3663125539805924,
+      "old": 0.16759259259259257
+    },
+    {
+      "stage": 1,
+      "clock": 0.2,
+      "before": 0.25,
+      "after": 1,
+      "next": 0.2747344154854443,
+      "old": 0.12285879629629629
+    },
+    {
+      "stage": 1,
+      "clock": 0.2,
+      "before": 0.5,
+      "after": 1,
+      "next": 0.18315627699029624,
+      "old": 0.085
+    },
+    {
+      "stage": 1,
+      "clock": 0.2,
+      "before": 0.75,
+      "after": 1,
+      "next": 0.09157813849514812,
+      "old": 0.08134259259259263
+    }
+  ]
+}

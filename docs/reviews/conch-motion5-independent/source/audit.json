@@ -1,0 +1,61 @@
+{
+  "manifestSha256": "47025e87c28ceb164115df26348d3994153b3aaa32bc4ef0bbf59de2e87b0c44",
+  "verifiedFreezeFiles": 73,
+  "mismatches": [],
+  "freshEvidence": {
+    "schema": "conch.motion5.source-check.v1",
+    "samples": 4815,
+    "parity": 5300,
+    "clearanceChecks": 2231,
+    "min": 0.0030000000000000027,
+    "max": 0.0030000000000000027,
+    "vertices": 7338,
+    "blended": 94,
+    "laneSamples": 483,
+    "deltas": [
+      {
+        "stage": 1,
+        "peakTip": [
+          0.425,
+          0.34135320197686175,
+          0.9032060171720229,
+          2.0258570098564515
+        ]
+      },
+      {
+        "stage": 1,
+        "hitPose": [
+          0.6,
+          -0.009436542839217632,
+          0.8836156169220082,
+          1.9861741285766121
+        ]
+      },
+      {
+        "stage": 3,
+        "peakTip": [
+          0.305,
+          0.40966705856387164,
+          1.0344529075841176,
+          2.050209266387346
+        ]
+      },
+      {
+        "stage": 3,
+        "hitPose": [
+          0.45,
+          -0.009436542839217632,
+          0.8836156169220082,
+          1.9861741285766121
+        ]
+      }
+    ],
+    "variedSamples": 54,
+    "maximumJump": 0.5199568283214883,
+    "baselineMaximumJump": 0.55,
+    "interruptionCases": 6120,
+    "hitBridgeSamples": 260,
+    "boundaryChecks": 20
+  },
+  "frozenPoseEqualsFreshExport": true
+}

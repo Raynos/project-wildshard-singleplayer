@@ -1,0 +1,11 @@
+✔ exact canonical native15 admits only isolated measured torso dimensions (10.468067ms)
+✔ changed candidate is rejected while the frozen tuple remains pinned (25.868766ms)
+✔ source freeze preserves motion3 admission and forbids build acceptance (31.924801ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 395.778359

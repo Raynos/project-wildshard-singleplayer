@@ -1,0 +1,7 @@
+{
+  "path": "docs/reviews/conch-motion5-independent/source/vitest.txt",
+  "change": "Replace local checkout absolute path with dot and remove extra EOF blank lines; test results unchanged",
+  "beforeSha256": "844ec2fbd6533a0db3faac4826db25cd00f17c8287568e539dc1ac2a9ad19d7d",
+  "afterSha256": "93616309bf5ef7f7d2106629cfcf5c133448d6a75c890789823940569e5f1791",
+  "originalRetainedLocally": true
+}
