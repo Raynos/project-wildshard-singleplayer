@@ -1,0 +1,9 @@
+{
+  "schema": "wildshard.puffer.closed-anatomy-preview-input.v1",
+  "candidate": "puffer-closed-anatomy-98c4855852fc",
+  "sourceIdentity": "puffer-closed-anatomy-98c4855852fc",
+  "rigProfile": "closed-anatomy-rig1",
+  "source": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/closed-anatomy-rig1-native.json",
+  "sourceSha256": "38e0ad4de8a25827ace7a366e70c3c21a860ce9221de64f4b4afaf0c27ec2b61",
+  "measurement": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-admission/measurement.json"
+}

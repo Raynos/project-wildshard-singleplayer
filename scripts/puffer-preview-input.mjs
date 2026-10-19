@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve, relative, isAbsolute } from 'node:path';
+import { CLOSED_ANATOMY_INPUT, resolveClosedAnatomyInput } from './puffer-closed-anatomy-admission.mjs';
 
 export const V23_PREVIEW_INPUT = Object.freeze({ candidate: 'V23',
   source: 'art/driftwood-isle/approved-puffer/unaccepted-native-v23.json',
@@ -10,7 +11,10 @@ export const previewHash = bytes => createHash('sha256').update(bytes).digest('h
 /** Explicit pinned identity. Optional descriptors never mutate the preserved V23 default. */
 export function resolvePufferPreviewInput(root, descriptor, dimensions) {
   const legacy = descriptor === undefined || descriptor === null;
-  const input = legacy ? V23_PREVIEW_INPUT : JSON.parse(readFileSync(descriptor, 'utf8'));
+  const descriptorBytes = legacy ? null : readFileSync(descriptor);
+  const input = descriptorBytes === null ? V23_PREVIEW_INPUT : JSON.parse(descriptorBytes.toString('utf8'));
+  if (descriptorBytes !== null && input?.schema === CLOSED_ANATOMY_INPUT.schema)
+    return resolveClosedAnatomyInput(root, descriptorBytes, dimensions);
   if (input === null || typeof input !== 'object' || !/^V[0-9]+$/u.test(input.candidate)
     || typeof input.source !== 'string' || !/^[a-f0-9]{64}$/u.test(input.sourceSha256)) throw new Error('Invalid native candidate descriptor');
   const source = resolve(root, input.source), sourceRelative = relative(root, source);

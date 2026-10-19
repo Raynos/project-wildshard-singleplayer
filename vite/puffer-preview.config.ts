@@ -1,3 +1,4 @@
+import { resolvePufferAppCandidate } from '../scripts/puffer-closed-anatomy-admission.mjs';
 import { pufferPreviewPoseRoute } from './puffer-preview-pose-route.ts';
 import { defineConfig } from 'vite';
 import { createHash } from 'node:crypto';
@@ -33,8 +34,7 @@ export const pufferPreviewConfig = defineConfig(({ command }) => {
   const mode = receiptPreview.mode;
   if (mode === 'gait5' && (!('visualAdapter' in receiptPreview) || receiptPreview.visualAdapter !== 'puffer-gait5-continuity'
     || !('visualAdapterSha256' in receiptPreview) || receiptPreview.visualAdapterSha256 !== hash(resolve('src/pufferGaitContinuityPreview.ts')))) throw new Error('Preview visual adapter receipt mismatch');
-  if (!('candidate' in receiptPreview) || typeof receiptPreview.candidate !== 'string' || !/^V[0-9]+(?: · UNACCEPTED WIP)?$/u.test(receiptPreview.candidate)) throw new Error('Invalid Puffer candidate identity');
-  const candidate = receiptPreview.candidate.split(' ')[0];
+  const candidate = resolvePufferAppCandidate(resolve('.'), receiptPreview, JSON.parse(indexBytes.toString('utf8')));
   const bodyFile = bake.file.slice(1);
   const assets = [ 'assets/models/driftwood-fp/fp-arms.glb', 'assets/physics/rapier.wasm'];
   // The isolated entry must not require ignored production boot tables in a clean source export.

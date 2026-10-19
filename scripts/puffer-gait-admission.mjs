@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { previewHash } from './puffer-preview-input.mjs';
+import { CLOSED_ANATOMY_INPUT, assertClosedAnatomyGaitAdmission } from './puffer-closed-anatomy-admission.mjs';
 
 const directory = 'art/driftwood-isle/approved-puffer/';
 export const V70_GAIT5_INPUT = Object.freeze({
@@ -20,6 +21,7 @@ export const V70_GAIT5_INPUT = Object.freeze({
 
 /** New candidates require explicit immutable admission; the V57 rig1 path stays pinned. */
 export function assertPufferGaitAdmission(root, input, mode) {
+  if (input.candidate === CLOSED_ANATOMY_INPUT.candidate) return assertClosedAnatomyGaitAdmission(root, input, mode);
   const sourceHash = previewHash(input.sourceBytes), dims = JSON.parse(input.dimensionBytes.toString('utf8'));
   if (Math.abs(dims.legLen - .24 / (2 * Math.sin(.36))) > 1e-9 || !Number.isFinite(dims.legLen))
     throw new Error('gait4 requires pinned rig1 and explicit phase calibration');

@@ -15,6 +15,7 @@ import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { resolvePufferPreviewInput } from './puffer-preview-input.mjs';
 import { assertPufferGaitAdmission } from './puffer-gait-admission.mjs';
+import { CLOSED_ANATOMY_INPUT, assertClosedAnatomyPreviewPolicy, assertClosedAnatomyPackedOutput } from './puffer-closed-anatomy-admission.mjs';
 
 /** Pack one native source and compile one unchanged decision through the official SDK pipeline.
  * @param {string | null} [arenaLighting]
@@ -29,15 +30,19 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
   if (existsSync(destination) && readdirSync(destination).length > 0) throw new Error('Practice output must be a new or empty directory');
   const input = resolvePufferPreviewInput(root, descriptor, dimensions);
   const { candidate, source, sourceRelative, sourceBytes, dimensionBytes, measurementSha256 } = input;
-  const rigAdmission = mode === 'gait4' || mode === 'gait5' ? assertPufferGaitAdmission(root, input, mode) : null;
-  if (arenaLighting !== null && (!['neutral-studio-v1', 'neutral-gray-v2'].includes(arenaLighting) || rigAdmission?.profile !== 'v70-rig1-gait5')) throw new Error('Lighting study requires exact admitted V70 gait5');
+  const closedAnatomy = input.candidate === CLOSED_ANATOMY_INPUT.candidate;
+  const rigAdmission = closedAnatomy || mode === 'gait4' || mode === 'gait5' ? assertPufferGaitAdmission(root, input, mode) : null;
+  const closedAnatomyRecoil = closedAnatomy ? assertClosedAnatomyPreviewPolicy(rigAdmission, mode, arenaLighting, arenaOcclusion) : undefined;
+  if (!closedAnatomy && arenaLighting !== null && (!['neutral-studio-v1', 'neutral-gray-v2'].includes(arenaLighting) || rigAdmission?.profile !== 'v70-rig1-gait5')) throw new Error('Lighting study requires exact admitted V70 gait5');
   if (arenaOcclusion !== null && (arenaOcclusion !== 'contact-v1' || arenaLighting === null)) throw new Error('Contact AO requires explicit neutral studio lighting study');
   const packed = resolve(destination, 'pack'), productDirectory = resolve(destination, 'product');
   mkdirSync(destination, { recursive: true });
   writeFileSync(resolve(destination, 'unaccepted-dimensions.json'), dimensionBytes, { flag: 'wx' });
   execFileSync('python3', [resolve(root, 'art/driftwood-isle/approved-puffer/native_export.py'), source,
     resolve(destination, 'unaccepted-dimensions.json'), packed], { stdio: 'inherit' });
-  const metadata = JSON.parse(readFileSync(resolve(packed, 'metadata.json'), 'utf8'));
+  const metadataBytes = readFileSync(resolve(packed, 'metadata.json'));
+  if (closedAnatomy) assertClosedAnatomyPackedOutput(metadataBytes, readFileSync(resolve(packed, 'payload.bin')));
+  const metadata = JSON.parse(metadataBytes.toString('utf8'));
   const bones = metadata.bodies?.[0]?.bones;
   if (!Array.isArray(bones) || bones.find(row => row.name === 'head')?.parent !== 'belly'
     || bones.find(row => row.name === 'belly')?.parent !== 'body') throw new Error('Preview requires head under belly under body');
@@ -61,11 +66,13 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
   if (typeof author.buildPufferPreviewProduct !== 'function') throw new Error('Practice author entry is missing');
   const lines = decisionLegacyLines(root, 'driftwood-isle');
   if (lines === undefined) throw new Error('Practice decisions require the sealed Driftwood line budget');
-  const rootFlinch = rigAdmission?.profile === 'v70-rig1-gait5' ? 'authored-pose' : undefined;
+  const rootFlinch = closedAnatomyRecoil ?? (rigAdmission?.profile === 'v70-rig1-gait5' ? 'authored-pose' : undefined);
   const product = await author.buildPufferPreviewProduct(project, productDirectory, { decisionLegacyLines: lines }, metadata, mode, rootFlinch, arenaLighting ?? undefined, arenaOcclusion ?? undefined);
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   writeFileSync(resolve(destination, 'preview.json'), JSON.stringify({
     schema: 'wildshard.puffer.native-preview.v1', candidate, mode,
+    ...(closedAnatomy ? { sourceIdentity: input.sourceIdentity, rigProfile: input.rigProfile,
+      physicalAcceptance: false, physicalDeathAcceptance: false, animationAcceptance: false } : {}),
     ...(rigAdmission === null ? {} : { rigAdmission }),
     ...(rootFlinch === undefined ? {} : { rootFlinch }),
     ...(arenaLighting === null ? {} : { arenaLighting,

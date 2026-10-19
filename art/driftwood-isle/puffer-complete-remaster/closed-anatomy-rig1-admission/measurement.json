@@ -1,0 +1,165 @@
+{
+  "schema": "wildshard.puffer.closed-anatomy-diagnostic-dimensions.v1",
+  "sourceIdentity": "puffer-closed-anatomy-98c4855852fc",
+  "rigProfile": "closed-anatomy-rig1",
+  "sourceSha256": "38e0ad4de8a25827ace7a366e70c3c21a860ce9221de64f4b4afaf0c27ec2b61",
+  "dimensionsSha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e",
+  "dimensionsOrigin": "art/driftwood-isle/approved-puffer/v70-gait5-dimensions.json",
+  "dimensions": {
+    "bodyY": 0.6000000238418579,
+    "bodyHalfLen": 0.4590948820114136,
+    "bodyRadius": 0.8693322053090293,
+    "headRadius": 0.5321923664959826,
+    "legLen": 0.3406437050032335,
+    "feet": [
+      [
+        0.6394999921321869,
+        0.62907275557518
+      ],
+      [
+        -0.6394999921321869,
+        0.62907275557518
+      ],
+      [
+        0.551949992775917,
+        -0.04674907028675079
+      ],
+      [
+        -0.551949992775917,
+        -0.04674907028675079
+      ]
+    ],
+    "halfWidth": 0.9789999723434448
+  },
+  "measuredDimensions": {
+    "bodyY": 0.6000000238418579,
+    "bodyHalfLen": 0.506497664169222,
+    "bodyRadius": 0.9631455207963731,
+    "headRadius": 0.5321923664959826,
+    "legLen": 0.5960000236518681,
+    "feet": [
+      [
+        0.6394999921321869,
+        0.62907275557518
+      ],
+      [
+        -0.6394999921321869,
+        0.62907275557518
+      ],
+      [
+        0.551949992775917,
+        -0.04674907028675079
+      ],
+      [
+        -0.551949992775917,
+        -0.04674907028675079
+      ]
+    ],
+    "halfWidth": 0.9789999723434448
+  },
+  "bounds": {
+    "hull": {
+      "min": [
+        -0.7599999904632568,
+        0.05660514948313201,
+        -0.5450000166893005
+      ],
+      "max": [
+        0.7599999904632568,
+        1.5608454865017063,
+        1.012995328338444
+      ]
+    },
+    "eyes": {
+      "min": [
+        -0.46000000834465027,
+        0.6349999904632568,
+        0.5552200078964233
+      ],
+      "max": [
+        0.46000000834465027,
+        1.0609499216079712,
+        0.9119999408721924
+      ]
+    },
+    "limbs": {
+      "finL": {
+        "min": [
+          0.30000001192092896,
+          0.004000000189989805,
+          0.30000001192092896
+        ],
+        "max": [
+          0.9789999723434448,
+          0.18000000715255737,
+          0.9581454992294312
+        ]
+      },
+      "finR": {
+        "min": [
+          -0.9789999723434448,
+          0.004000000189989805,
+          0.30000001192092896
+        ],
+        "max": [
+          -0.30000001192092896,
+          0.18000000715255737,
+          0.9581454992294312
+        ]
+      },
+      "rearL": {
+        "min": [
+          0.31299999356269836,
+          0.004000000189989805,
+          -0.2791999876499176
+        ],
+        "max": [
+          0.7908999919891357,
+          0.147599995136261,
+          0.18570184707641602
+        ]
+      },
+      "rearR": {
+        "min": [
+          -0.7908999919891357,
+          0.004000000189989805,
+          -0.2791999876499176
+        ],
+        "max": [
+          -0.31299999356269836,
+          0.147599995136261,
+          0.18570184707641602
+        ]
+      }
+    },
+    "all": {
+      "min": [
+        -0.9789999723434448,
+        0.004000000189989805,
+        -1.1825
+      ],
+      "max": [
+        0.9789999723434448,
+        1.5608454865017063,
+        1.012995328338444
+      ]
+    }
+  },
+  "measurementReceipt": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/runtime-envelope-results.json",
+  "measurementReceiptSha256": "00009b4fbb0e04f929d7ba6686fc78792772173a82e46fb847077de42341f286",
+  "semanticEnvelopeReceipt": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-rig1-study/semantic-envelope-audit.json",
+  "semanticEnvelopeReceiptSha256": "08d99aa987be8c651b5f2d14556c96a1711417538c478c74c7b8c3b400b4a5bd",
+  "colliderAcceptance": false,
+  "physicalAcceptance": false,
+  "physicalDeathAcceptance": false,
+  "visualAcceptance": false,
+  "animationAcceptance": false,
+  "scope": "Exact historical V70 gait5 dimensions for a separately authorized isolated diagnostic only. No new radius, padding, root lift or contact exemption. Full weighted measurements are retained separately, not substituted into collision settings.",
+  "limitations": [
+    "20 historical rest body-capsule misses are five decorative spike tips; zero core or face misses is not dynamic contact acceptance.",
+    "Historical dimensions, living weapon hit volumes, environmental motor collision and corpse shapes are distinct; this receipt accepts none of them.",
+    "Weighted measurement body radius includes decorative spikes and must not be treated as approved padding.",
+    "Physical death, continuous geometry contact and rendered motion/readability remain unaccepted.",
+    "Phase legLen remains .24/(2*sin(.36)); geometric measured legLen is retained separately."
+  ]
+}
