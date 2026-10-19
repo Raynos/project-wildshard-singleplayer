@@ -1,0 +1,24 @@
+{
+  "status": "Passed bounded static construction checks; no art score or physics acceptance",
+  "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+  "glb_sha256": "7f5f31a1c39dc4a7768d012d485bca996c927585c87bc6876fee625ec16ea796",
+  "byte_identical_hero_nine_exports": true,
+  "meshes": 90,
+  "nonmanifold_edges": 0,
+  "zero_area_faces": 0,
+  "ground_z_min": 0,
+  "matched_pairs": 10,
+  "all_images_within_storage_limits": true,
+  "raw_capture_directory": "tmp/bellback-complete-pass3",
+  "builder_visual_inspection": "Actual hero and nine actual full frames inspected; independent review required",
+  "render_logs": [
+    {
+      "path": "tmp/bellback-complete-pass3/hero.log",
+      "sha256": "dbcd7a8a9eaf163996c300202be3e66815b356609b8f7b524626a2f39b9cdfda"
+    },
+    {
+      "path": "tmp/bellback-complete-pass3/nine.log",
+      "sha256": "19ebb82affa4f0bda62547ac48bf866436acc586fb947aa4ca3228fdf5fc99ff"
+    }
+  ]
+}
