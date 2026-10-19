@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["conch-motion5-*.ts", "../art/driftwood-isle/approved-conch/motion5-study/*.ts"],
+  "exclude": ["../node_modules"]
+}

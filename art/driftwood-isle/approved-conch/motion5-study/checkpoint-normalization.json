@@ -1,0 +1,31 @@
+{
+  "reviewedManifestSha256": "47025e87c28ceb164115df26348d3994153b3aaa32bc4ef0bbf59de2e87b0c44",
+  "originalsRetainedLocally": true,
+  "candidateRuntimeSourcesUnchanged": true,
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-conch/motion5-study/complete-tests.txt",
+      "beforeSha256": "64eb912a8a1b2abdbc9840dd400efb021b71a259d9025ba19abc8e220e871e2d",
+      "afterSha256": "ba0a78e94866cb795ab3060a5d8d23e754250113161036be55d8c36fceafbc87",
+      "onlyExtraEofNewlinesRemoved": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/motion5-study/export-tests.txt",
+      "beforeSha256": "1d4cd62c7da88191182c9442e2ddf4ae49bf95b19fb207f49fc1c145c890b136",
+      "afterSha256": "4453e4454ecdbc97235078140c797e21e9484b4a846967b6e9381dd226c6ef63",
+      "onlyExtraEofNewlinesRemoved": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/motion5-study/initial-tests.txt",
+      "beforeSha256": "631a7fe13ec231af8a91288ddddc26e1f89b3cb23254d37f0f10545dd58eb1c4",
+      "afterSha256": "ddf47e66bd6b37955f5e9f7aee50990d074fd2f135e4a0971faf96cb34b9d3e7",
+      "onlyExtraEofNewlinesRemoved": true
+    },
+    {
+      "path": "tests/conch-motion5-catalogue.test.ts",
+      "beforeSha256": "327b5c47b3e36dd2946ab6c4038e6a507ed0ab9af3b28c521f8cd8dd905e2541",
+      "afterSha256": "26289d1c50973292baeafd0485322648f732a774801f6b46f437596195d8f8ac",
+      "onlyExtraEofNewlinesRemoved": true
+    }
+  ]
+}

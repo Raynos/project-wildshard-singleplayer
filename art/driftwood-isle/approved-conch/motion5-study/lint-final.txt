@@ -1,0 +1,1 @@
+Focused oxlint completed with no diagnostics after adding a strict tests/tsconfig.json extending the unchanged root tsconfig. No source/consumer/schema lint rules were relaxed. Narrow existing-style annotations identify Node test evidence I/O and Vitest default config export. Source/art directories remain outside the repository lint scope; numeric admission is separately tested.

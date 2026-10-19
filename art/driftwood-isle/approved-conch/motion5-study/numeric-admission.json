@@ -1,0 +1,30 @@
+{
+  "programs": 26,
+  "maximumNodes": 95,
+  "scalars": [
+    {
+      "name": "clock",
+      "path": [
+        "mem",
+        "regular-clock"
+      ],
+      "fallback": 0
+    },
+    {
+      "name": "stage",
+      "path": [
+        "mem",
+        "conch-st"
+      ],
+      "fallback": 0
+    },
+    {
+      "name": "guard",
+      "path": [
+        "mem",
+        "conch-guard"
+      ],
+      "fallback": 0
+    }
+  ]
+}
