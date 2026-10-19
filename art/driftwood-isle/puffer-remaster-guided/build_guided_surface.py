@@ -1,0 +1,164 @@
+"""Replace a real V71 front/pouch surface patch, retaining the stronger volume.
+
+Constrained triangulation uses the original boundary and authored interior
+samples projected onto V71. No arbitrary planar body, whole-body remesh or
+Boolean union. Native source stays immutable. Clay views are the first gate.
+"""
+import argparse,hashlib,json,math,sys
+from pathlib import Path
+from collections import defaultdict,Counter
+import bpy,bmesh
+from mathutils import Vector
+from mathutils.geometry import delaunay_2d_cdt
+
+ROOT=Path(__file__).resolve().parents[3]
+SOURCE=ROOT/'art/driftwood-isle/approved-puffer/unaccepted-native-v71.json'
+EXPECTED='e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338'
+if hashlib.sha256(SOURCE.read_bytes()).hexdigest()!=EXPECTED:raise RuntimeError('V71 source pin changed')
+p=argparse.ArgumentParser();p.add_argument('--out',type=Path,required=True);p.add_argument('--render',action='store_true');args=p.parse_args(sys.argv[sys.argv.index('--')+1:])
+args.out.mkdir(parents=True,exist_ok=True)
+if (args.out/'inspection.blend').exists():raise RuntimeError('Fresh output directory required')
+native=json.loads(SOURCE.read_text())
+bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
+mat=bpy.data.materials.new('Unaccepted anatomy clay');mat.use_nodes=True
+shader=mat.node_tree.nodes['Principled BSDF'];shader.inputs['Base Color'].default_value=(.32,.31,.28,1);shader.inputs['Roughness'].default_value=.85
+
+# Exact positional welding within each native part, preserving original faces.
+meshes=[]
+for part in native['parts']:
+    lookup={};verts=[];faces=[]
+    pos=part['positions']
+    for i in range(0,len(pos),9):
+        face=[]
+        for k in (0,6,3):
+            game=pos[i+k:i+k+3];point=(game[0],game[2],game[1])
+            if point not in lookup:lookup[point]=len(verts);verts.append(point)
+            face.append(lookup[point])
+        faces.append(tuple(face))
+    meshes.append((part,verts,faces))
+part,vertices,faces=meshes[0]
+uses=defaultdict(list)
+for fi,f in enumerate(faces):
+    for a,b in zip(f,f[1:]+f[:1]):uses[tuple(sorted((a,b)))].append(fi)
+adjacency=defaultdict(set)
+for fs in uses.values():
+    for a in fs:adjacency[a].update(fs)
+unvisited=set(range(len(faces)));components=[]
+while unvisited:
+    seed=unvisited.pop();component={seed};todo=[seed]
+    while todo:
+        for n in adjacency[todo.pop()]:
+            if n in unvisited:unvisited.remove(n);component.add(n);todo.append(n)
+    components.append(component)
+core=max(components,key=len)
+if len(core)!=1022:raise RuntimeError('Frozen V71 main hull component changed: '+str(len(core)))
+
+def normal(f,points=vertices):
+    a,b,c=[Vector(points[i])for i in f];return (b-a).cross(c-a).normalized()
+patch={i for i in core if normal(faces[i]).y>.20 and all(.16<vertices[j][2]<1.14 and vertices[j][1]>.12 for j in faces[i])}
+# The original mouth back cap is a separate-depth surface at Blender Y=.51.
+# Preserve its original faces; it cannot share an X/Z parameter domain with
+# the exterior rim above it. This is the measured frozen V71 cavity plane.
+preserved_mouth_cap={i for i in patch if all(abs(vertices[j][1]-.51)<1e-6 for j in faces[i])}
+patch-=preserved_mouth_cap
+# Keep only connected front components substantial enough to form one patch.
+# All selected components are retained; each boundary is constrained separately.
+if len(patch)<30:raise RuntimeError('No meaningful front region selected')
+patch_edges=Counter(tuple(sorted((a,b)))for i in patch for a,b in zip(faces[i],faces[i][1:]+faces[i][:1]))
+boundary={e for e,n in patch_edges.items()if n==1};boundary_ids=sorted({i for e in boundary for i in e})
+
+# Project X/Z onto the actual outward-facing V71 patch, not an analytic sphere.
+def sample(x,z):
+    hits=[]
+    for fi in patch:
+        f=faces[fi];a,b,c=[vertices[i]for i in f]
+        den=(b[2]-c[2])*(a[0]-c[0])+(c[0]-b[0])*(a[2]-c[2])
+        if abs(den)<1e-14:continue
+        u=((b[2]-c[2])*(x-c[0])+(c[0]-b[0])*(z-c[2]))/den
+        v=((c[2]-a[2])*(x-c[0])+(a[0]-c[0])*(z-c[2]))/den
+        w=1-u-v
+        if min(u,v,w)>=-1e-8:hits.append((u*a[1]+v*b[1]+w*c[1],fi))
+    if not hits:return None
+    y,fi=max(hits);return (x,y,z),fi
+
+points=[vertices[i]for i in boundary_ids];old_to_input={old:i for i,old in enumerate(boundary_ids)}
+constraints=[(old_to_input[a],old_to_input[b])for a,b in boundary]
+# Staggered anatomical sampling: upper cheek, full pouch below mouth, lower turn.
+# No complete horizontal sample ring or arbitrary old lattice preservation.
+authored=[(-.49,.78),(-.32,.75),(-.13,.71),(.13,.71),(.32,.75),(.49,.78),
+          (-.46,.59),(-.24,.54),(0,.60),(.24,.54),(.46,.59),
+          (-.36,.39),(-.12,.34),(.12,.34),(.36,.39),
+          (-.50,.95),(-.28,1.03),(.28,1.03),(.50,.95)]
+accepted=[]
+for x,z in authored:
+    hit=sample(x,z)
+    if hit and min(math.dist(hit[0],p)for p in points)>.025:
+        accepted.append({'point':hit[0],'sourceFace':hit[1]});points.append(hit[0])
+if len(accepted)<6:raise RuntimeError('Too few useful anatomical interior samples')
+uv=[Vector((p[0],p[2]))for p in points]
+cdt_vertices,cdt_edges,cdt_faces,orig_vertices,_,_=delaunay_2d_cdt(uv,constraints,[],0,1e-9,True)
+new_points=[];input_to_output={}
+for index,(uvpoint,orig)in enumerate(zip(cdt_vertices,orig_vertices)):
+    if len(orig)!=1:raise RuntimeError('CDT moved/merged a protected sample or generated intersection')
+    source_index=orig[0];input_to_output[source_index]=index;new_points.append(points[source_index])
+if len(input_to_output)!=len(points):raise RuntimeError('CDT dropped sample')
+new_faces=[];source_faces=[]
+for face in cdt_faces:
+    if len(face)!=3:raise RuntimeError('Expected triangular constrained output')
+    center=[sum(new_points[i][k]for i in face)/3 for k in range(3)]
+    hit=sample(center[0],center[2])
+    if hit:
+        new_faces.append(tuple(reversed(face)));source_faces.append(hit[1])
+new_edges=Counter(tuple(sorted((a,b)))for f in new_faces for a,b in zip(f,f[1:]+f[:1]))
+expected_boundary={tuple(sorted((input_to_output[a],input_to_output[b])))for a,b in constraints}
+if {e for e,n in new_edges.items()if n==1}!=expected_boundary:raise RuntimeError('Exact patch boundary was not preserved')
+if any(n>2 for n in new_edges.values()):raise RuntimeError('Patch overlap/nonmanifold')
+# Reuse protected original vertex IDs on the perimeter; only new interior IDs added.
+new_to_global={input_to_output[i]:old for i,old in enumerate(boundary_ids)}
+for i,point in enumerate(new_points):
+    if i not in new_to_global:new_to_global[i]=len(vertices);vertices.append(point)
+replacement=[tuple(new_to_global[i]for i in f)for f in new_faces]
+result=[f for i,f in enumerate(faces)if i not in patch]+replacement
+for f in replacement:
+    if normal(f).y<=.10:raise RuntimeError('Replacement inverted or folds behind frontal parameterization')
+
+def audit(points,fs):
+    data=bpy.data.meshes.new('Audit temporary');data.from_pydata(points,[],fs);data.update()
+    bm=bmesh.new();bm.from_mesh(data)
+    if any(not e.is_manifold for e in bm.edges):raise RuntimeError('Closed hull lost manifold boundary')
+    if any(f.calc_area()<1e-12 for f in bm.faces):raise RuntimeError('Degenerate surface')
+    volume=bm.calc_volume(signed=True)
+    if volume<=0:raise RuntimeError('Nonpositive signed volume')
+    bm.free();bpy.data.meshes.remove(data);return volume
+before_volume=audit(vertices,[faces[i]for i in core])
+after_core=[f for i,f in enumerate(faces)if i in core and i not in patch]+replacement
+after_volume=audit(vertices,after_core)
+if abs(after_volume/before_volume-1)>.02:raise RuntimeError('Core volume drift exceeds2percent')
+# Surface depth loss is measured at original interior samples, not just new vertices.
+maximum_depth_loss=0
+for old in {i for fi in patch for i in faces[fi]}:
+    point=vertices[old]
+    for f in replacement:
+        a,b,c=[vertices[i]for i in f]
+        den=(b[2]-c[2])*(a[0]-c[0])+(c[0]-b[0])*(a[2]-c[2])
+        if abs(den)<1e-14:continue
+        u=((b[2]-c[2])*(point[0]-c[0])+(c[0]-b[0])*(point[2]-c[2]))/den
+        v=((c[2]-a[2])*(point[0]-c[0])+(a[0]-c[0])*(point[2]-c[2]))/den
+        if min(u,v,1-u-v)>=-1e-8:maximum_depth_loss=max(maximum_depth_loss,abs(point[1]-(u*a[1]+v*b[1]+(1-u-v)*c[1])))
+if maximum_depth_loss>.02:raise RuntimeError('Retopology changed source depth by over2cm: '+str(maximum_depth_loss))
+receipt={'status':'unaccepted V71-guided surface replacement','sourceNativeSha256':EXPECTED,'sourceCoreTriangles':len(core),'preservedMouthBackTriangles':len(preserved_mouth_cap),'removedPatchTriangles':len(patch),'newPatchTriangles':len(replacement),'boundaryVerticesExact':len(boundary_ids),'authoredSamples':accepted,'oldVolume':before_volume,'newVolume':after_volume,'maximumSourceDepthDeviation':maximum_depth_loss,'outsidePatchTrianglesExact':True,'faceAssembliesAndAppendagesUnchanged':True}
+(args.out/'preflight.json').write_text(json.dumps(receipt,indent=2)+'\n')
+meshes[0]=(part,vertices,result)
+for part,verts,fs in meshes:
+    data=bpy.data.meshes.new(part['name']);data.from_pydata(verts,[],fs);data.update();data.materials.append(mat)
+    ob=bpy.data.objects.new(part['name'],data);bpy.context.collection.objects.link(ob)
+bpy.ops.wm.save_as_mainfile(filepath=str((args.out/'inspection.blend').resolve()))
+if args.render:
+    scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=24;scene.cycles.use_denoising=False
+    scene.render.resolution_x=600;scene.render.resolution_y=740;scene.render.resolution_percentage=100;scene.world.color=(.18,)*3;scene.view_settings.view_transform='AgX'
+    for name,loc,power,size,color in [('Warm key',(-3,4,5),650,4,(1,.90,.76)),('Cool fill',(4,1,3),360,4,(.73,.87,1)),('Rim',(0,-4,4),500,3,(.66,.87,1))]:
+        data=bpy.data.lights.new(name,'AREA');data.energy=power;data.size=size;data.color=color;ob=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(ob);ob.location=loc;ob.rotation_euler=(Vector((0,0,.7))-ob.location).to_track_quat('-Z','Y').to_euler()
+    data=bpy.data.cameras.new('Fixed guide comparison');cam=bpy.data.objects.new('Fixed guide comparison',data);bpy.context.collection.objects.link(cam);scene.camera=cam;data.type='ORTHO';data.ortho_scale=3.2
+    for name,yaw,elevation in [('hero',32.94,14.34),('front',0,0),('side',90,0)]:
+        y,e=math.radians(yaw),math.radians(elevation);target=Vector((0,-.03,.84));cam.location=target+Vector((5*math.sin(y)*math.cos(e),5*math.cos(y)*math.cos(e),5*math.sin(e)));cam.rotation_euler=(target-cam.location).to_track_quat('-Z','Y').to_euler();scene.render.filepath=str((args.out/('clay-'+name+'.png')).resolve());bpy.ops.render.render(write_still=True)
+print(json.dumps(receipt))
