@@ -1,0 +1,10 @@
+{
+  "executedHarnessSha256": "86ca43d9feb0af9005f90884ffc0e28307e7c64408a4866a8494a6fcb513d67a",
+  "currentHarnessSha256": "d34182c1db00aa43df512b70d9a7d87f0e0818d55210926b82aa3f815e94e5f6",
+  "changes": [
+    "Remove unreachable Colossus configuration branch",
+    "Select explicit path, sha256 and bytes fields in map"
+  ],
+  "actualRunUses": "executed-harness.mjs.txt",
+  "appBytesChanged": false
+}

@@ -1,0 +1,55 @@
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { admitConchReadable, CONCH_READABLE_CANDIDATE } from './conch-readable-admission.mjs';
+import { conchHash } from './conch-planted-admission.mjs';
+
+export const BUILD_PIN = `${CONCH_READABLE_CANDIDATE}/reviewed-build-pin.json`;
+export const BUILD_INPUTS = [
+  'scripts/conch-readable-build-pin.mjs', 'scripts/build-conch-readable-preview.mjs',
+  'vite/conch-readable-preview.config.ts', 'scripts/qa-conch-readable-motion.mjs',
+  'scripts/qa-conch-readable-observation.mjs', 'scripts/conch-readable-admission.mjs',
+  'src/game/practice/PracticeCreature.ts', 'src/game/practice/PracticePlayer.ts',
+  'src/game/practiceDemo/startPracticeDemo.ts', 'src/game/shardfile/borrowedDecisions.ts',
+  'src/game/shardfile/decisions.ts', 'src/engine/entities/AnimalView.ts',
+  'src/engine/entities/animalPose.ts', 'src/game/plugin/channels.ts',
+  'src/game/plugin/channelPrograms.ts', 'src/engine/ai/strikes.ts',
+  'practice.html', 'pnpm-lock.yaml',
+];
+export function validateConchBuildPin(root, manifest, pin) {
+  if (pin.schema !== 'wildshard.conch.motion4.reviewed-build-pin.v1'
+    || pin.candidate !== manifest.candidate || pin.buildAllowed !== true
+    || pin.runtimeAcceptance !== false || pin.visualAcceptance !== false
+    || pin.colliderAcceptance !== false || typeof pin.rootGo !== 'string' || !pin.rootGo.trim()
+    || typeof pin.reviewPath !== 'string' || !pin.reviewPath.startsWith('docs/reviews/')) throw new Error('Missing explicit reviewed Conch build permission');
+  const read = path => { if (path.startsWith('/') || path.split('/').includes('..')) throw new Error('Unsafe build pin path'); return readFileSync(resolve(root, path)); };
+  if (pin.sourceFreezeSha256 !== conchHash(read(`${CONCH_READABLE_CANDIDATE}/freeze-manifest.json`))) throw new Error('Reviewed Conch source freeze changed');
+  if (pin.reviewSha256 !== conchHash(read(pin.reviewPath))) throw new Error('Reviewed Conch source review changed');
+  for (const path of BUILD_INPUTS) if (typeof pin.files?.[path] !== 'string') throw new Error(`Incomplete Conch build pin: ${path}`);
+  for (const [path, expected] of Object.entries(pin.files)) if (conchHash(read(path)) !== expected) throw new Error(`Conch build input changed: ${path}`);
+}
+/** Source-only admission remains false. This distinct exact pin permits only isolated build/QA. */
+export function admitConchReviewedBuild(root) {
+  const admitted = admitConchReadable(root);
+  const buildPin = JSON.parse(readFileSync(resolve(root, BUILD_PIN), 'utf8'));
+  validateConchBuildPin(root, admitted.manifest, buildPin);
+  return { ...admitted, buildPin };
+}
+
+// Root runs this only AFTER explicit GO on a reviewed freeze; no automatic inference of approval.
+const commandPath = process.argv.at(1);
+if (commandPath !== undefined && import.meta.url === pathToFileURL(resolve(commandPath)).href) {
+  const [command, reviewPath, rootGo] = process.argv.slice(2), root = resolve(import.meta.dirname, '..');
+  if (command !== '--pin-reviewed' || !reviewPath || !rootGo) throw new Error('Usage: --pin-reviewed docs/reviews/<source-review> "exact root GO reference"');
+  if (existsSync(resolve(root, BUILD_PIN))) throw new Error('Preserve existing reviewed build pin; do not overwrite');
+  const { manifest } = admitConchReadable(root);
+  const pin = { schema: 'wildshard.conch.motion4.reviewed-build-pin.v1', candidate: manifest.candidate,
+    buildAllowed: true, runtimeAcceptance: false, visualAcceptance: false, colliderAcceptance: false,
+    reviewedAt: new Date().toISOString(), rootGo, reviewPath,
+    sourceFreezeSha256: conchHash(readFileSync(resolve(root, CONCH_READABLE_CANDIDATE, 'freeze-manifest.json'))),
+    reviewSha256: conchHash(readFileSync(resolve(root, reviewPath))),
+    files: Object.fromEntries(BUILD_INPUTS.map(path => [path, conchHash(readFileSync(resolve(root, path)))])) };
+  validateConchBuildPin(root, manifest, pin);
+  writeFileSync(resolve(root, BUILD_PIN), `${JSON.stringify(pin, null, 2)}\n`, { flag: 'wx' });
+  console.info(JSON.stringify({ path: BUILD_PIN, sha256: conchHash(readFileSync(resolve(root, BUILD_PIN))), runtimeAcceptance: false }));
+}

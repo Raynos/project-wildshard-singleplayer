@@ -1,0 +1,2132 @@
+{
+  "freezeSha256": "fb27b7ed8f16d3fe7455195c9b7d3f35067570be2cf0d3fb9c481a4cee820f0a",
+  "verifiedFiles": 55,
+  "sourceCheckSha256": "e11589453bd6f0ce8f4bc9a4d1641bbda4d4be4d11bdcb977811c2eb237ab17f",
+  "runnerCases": 720,
+  "denseLaneSamples": 483,
+  "variedSamples": 54,
+  "clearanceSamples": 1989,
+  "runnerTipRanges": [
+    [
+      -0.009436542839217632,
+      -0.009436542839217632
+    ],
+    [
+      0.8836156169220082,
+      0.8836156169220082
+    ],
+    [
+      1.9861741285766121,
+      1.9861741285766121
+    ]
+  ],
+  "interruptionCases": [
+    {
+      "from": 1,
+      "to": 4,
+      "clock": 0.4,
+      "flinch": 0,
+      "maximum": 0.3916629350702219,
+      "differences": [
+        {
+          "name": "body",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shell",
+          "axis": 0,
+          "delta": 0.012858742112762053
+        },
+        {
+          "name": "shell",
+          "axis": 1,
+          "delta": 0.040774475880317525
+        },
+        {
+          "name": "shell",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 0,
+          "delta": 0.032027274577651116
+        },
+        {
+          "name": "head",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 2,
+          "delta": 0.030774475880317523
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 2,
+          "delta": 0.01357622633828616
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "rapierArm",
+          "axis": 0,
+          "delta": 0.3916629350702219
+        },
+        {
+          "name": "rapierArm",
+          "axis": 1,
+          "delta": 0.12236922450641163
+        },
+        {
+          "name": "rapierArm",
+          "axis": 2,
+          "delta": 0.033576226338286164
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 1,
+          "delta": 0.04665174028088753
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 2,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "from": 3,
+      "to": 2,
+      "clock": 0.485,
+      "flinch": 0,
+      "maximum": 0.48,
+      "differences": [
+        {
+          "name": "body",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shell",
+          "axis": 0,
+          "delta": 0.025
+        },
+        {
+          "name": "shell",
+          "axis": 1,
+          "delta": 0.025
+        },
+        {
+          "name": "shell",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 0,
+          "delta": 0.05
+        },
+        {
+          "name": "head",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 2,
+          "delta": 0.015
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 0,
+          "delta": 0.18
+        },
+        {
+          "name": "shieldArm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 2,
+          "delta": 0.1
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 1,
+          "delta": 0.08
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "rapierArm",
+          "axis": 0,
+          "delta": 0.48
+        },
+        {
+          "name": "rapierArm",
+          "axis": 1,
+          "delta": 0.4
+        },
+        {
+          "name": "rapierArm",
+          "axis": 2,
+          "delta": 0.08
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 1,
+          "delta": 0.4
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 2,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "from": 3,
+      "to": 2,
+      "clock": 0.8,
+      "flinch": 0,
+      "maximum": 0.45503999999999994,
+      "differences": [
+        {
+          "name": "body",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shell",
+          "axis": 0,
+          "delta": 0.020319999999999994
+        },
+        {
+          "name": "shell",
+          "axis": 1,
+          "delta": 0.01927999999999999
+        },
+        {
+          "name": "shell",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 0,
+          "delta": 0.04011999999999999
+        },
+        {
+          "name": "head",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 2,
+          "delta": 0.010839999999999992
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 0,
+          "delta": 0.17792
+        },
+        {
+          "name": "shieldArm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 2,
+          "delta": 0.08543999999999999
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 1,
+          "delta": 0.06127999999999997
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "rapierArm",
+          "axis": 0,
+          "delta": 0.45503999999999994
+        },
+        {
+          "name": "rapierArm",
+          "axis": 1,
+          "delta": 0.35527999999999993
+        },
+        {
+          "name": "rapierArm",
+          "axis": 2,
+          "delta": 0.05815999999999996
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 1,
+          "delta": 0.34591999999999995
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 2,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "from": 1,
+      "to": 4,
+      "clock": 0.4,
+      "flinch": 0.5,
+      "maximum": 0.2523019729120195,
+      "differences": [
+        {
+          "name": "body",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shell",
+          "axis": 0,
+          "delta": 0.00867965092611439
+        },
+        {
+          "name": "shell",
+          "axis": 1,
+          "delta": 0.027522771219214332
+        },
+        {
+          "name": "shell",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 0,
+          "delta": 0.021618410339914518
+        },
+        {
+          "name": "head",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 2,
+          "delta": 0.02077277121921433
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 2,
+          "delta": 0.009163952778343157
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "rapierArm",
+          "axis": 0,
+          "delta": 0.2523019729120195
+        },
+        {
+          "name": "rapierArm",
+          "axis": 1,
+          "delta": 0.10465560885605346
+        },
+        {
+          "name": "rapierArm",
+          "axis": 2,
+          "delta": 0.004549552608218321
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 1,
+          "delta": 0.0592262103942614
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 2,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "from": 3,
+      "to": 2,
+      "clock": 0.485,
+      "flinch": 0.5,
+      "maximum": 0.46,
+      "differences": [
+        {
+          "name": "body",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shell",
+          "axis": 0,
+          "delta": 0.016875
+        },
+        {
+          "name": "shell",
+          "axis": 1,
+          "delta": 0.016875
+        },
+        {
+          "name": "shell",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 0,
+          "delta": 0.03375
+        },
+        {
+          "name": "head",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 2,
+          "delta": 0.010125000000000002
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 0,
+          "delta": 0.1215
+        },
+        {
+          "name": "shieldArm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 2,
+          "delta": 0.0675
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 1,
+          "delta": 0.054000000000000006
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "rapierArm",
+          "axis": 0,
+          "delta": 0.31999999999999995
+        },
+        {
+          "name": "rapierArm",
+          "axis": 1,
+          "delta": 0.42000000000000004
+        },
+        {
+          "name": "rapierArm",
+          "axis": 2,
+          "delta": 0.14
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 1,
+          "delta": 0.46
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 2,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "from": 3,
+      "to": 2,
+      "clock": 0.8,
+      "flinch": 0.5,
+      "maximum": 0.3879879039999999,
+      "differences": [
+        {
+          "name": "body",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shell",
+          "axis": 0,
+          "delta": 0.013715999999999992
+        },
+        {
+          "name": "shell",
+          "axis": 1,
+          "delta": 0.013013999999999998
+        },
+        {
+          "name": "shell",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 0,
+          "delta": 0.027080999999999994
+        },
+        {
+          "name": "head",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 2,
+          "delta": 0.007316999999999997
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 0,
+          "delta": 0.12009600000000001
+        },
+        {
+          "name": "shieldArm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 2,
+          "delta": 0.057671999999999994
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 1,
+          "delta": 0.041363999999999984
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "rapierArm",
+          "axis": 0,
+          "delta": 0.29629964799999997
+        },
+        {
+          "name": "rapierArm",
+          "axis": 1,
+          "delta": 0.36119153599999987
+        },
+        {
+          "name": "rapierArm",
+          "axis": 2,
+          "delta": 0.10995419199999995
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 1,
+          "delta": 0.3879879039999999
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 2,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "from": 1,
+      "to": 4,
+      "clock": 0.4,
+      "flinch": 1,
+      "maximum": 0.11294101075381696,
+      "differences": [
+        {
+          "name": "body",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shell",
+          "axis": 0,
+          "delta": 0.004500559739466725
+        },
+        {
+          "name": "shell",
+          "axis": 1,
+          "delta": 0.01427106655811114
+        },
+        {
+          "name": "shell",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 0,
+          "delta": 0.01120954610217792
+        },
+        {
+          "name": "head",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 2,
+          "delta": 0.010771066558111136
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 2,
+          "delta": 0.004751679218400154
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "rapierArm",
+          "axis": 0,
+          "delta": 0.11294101075381696
+        },
+        {
+          "name": "rapierArm",
+          "axis": 1,
+          "delta": 0.08694199320569523
+        },
+        {
+          "name": "rapierArm",
+          "axis": 2,
+          "delta": 0.02447712112184952
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 1,
+          "delta": 0.07180068050763527
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 2,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "from": 3,
+      "to": 2,
+      "clock": 0.485,
+      "flinch": 1,
+      "maximum": 0.52,
+      "differences": [
+        {
+          "name": "body",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shell",
+          "axis": 0,
+          "delta": 0.008750000000000008
+        },
+        {
+          "name": "shell",
+          "axis": 1,
+          "delta": 0.008749999999999994
+        },
+        {
+          "name": "shell",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 0,
+          "delta": 0.017499999999999988
+        },
+        {
+          "name": "head",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 2,
+          "delta": 0.005250000000000005
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 0,
+          "delta": 0.063
+        },
+        {
+          "name": "shieldArm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 2,
+          "delta": 0.034999999999999996
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 1,
+          "delta": 0.027999999999999997
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "rapierArm",
+          "axis": 0,
+          "delta": 0.15999999999999998
+        },
+        {
+          "name": "rapierArm",
+          "axis": 1,
+          "delta": 0.44
+        },
+        {
+          "name": "rapierArm",
+          "axis": 2,
+          "delta": 0.2
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 1,
+          "delta": 0.52
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 2,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "from": 3,
+      "to": 2,
+      "clock": 0.8,
+      "flinch": 1,
+      "maximum": 0.4300558079999999,
+      "differences": [
+        {
+          "name": "body",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "body",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shell",
+          "axis": 0,
+          "delta": 0.007112000000000007
+        },
+        {
+          "name": "shell",
+          "axis": 1,
+          "delta": 0.006748000000000004
+        },
+        {
+          "name": "shell",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 0,
+          "delta": 0.014041999999999999
+        },
+        {
+          "name": "head",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "head",
+          "axis": 2,
+          "delta": 0.003793999999999992
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "eyestalkRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 0,
+          "delta": 0.062271999999999994
+        },
+        {
+          "name": "shieldArm",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "shieldArm",
+          "axis": 2,
+          "delta": 0.029903999999999993
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 1,
+          "delta": 0.021447999999999988
+        },
+        {
+          "name": "shieldForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "rapierArm",
+          "axis": 0,
+          "delta": 0.137559296
+        },
+        {
+          "name": "rapierArm",
+          "axis": 1,
+          "delta": 0.36710307199999986
+        },
+        {
+          "name": "rapierArm",
+          "axis": 2,
+          "delta": 0.1617483839999999
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 1,
+          "delta": 0.4300558079999999
+        },
+        {
+          "name": "rapierForearm",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeft",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legLeftAnkle",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRight",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightKnee",
+          "axis": 2,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 0,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 1,
+          "delta": 0
+        },
+        {
+          "name": "legRightAnkle",
+          "axis": 2,
+          "delta": 0
+        }
+      ]
+    }
+  ],
+  "scope": "Independent hash and report arithmetic verification; producer sample geometry not independently regenerated."
+}

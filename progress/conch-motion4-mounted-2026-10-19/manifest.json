@@ -1,0 +1,69 @@
+{
+  "schema": "conch.motion4.mounted-evidence-manifest.v1",
+  "files": {
+    "scripts/qa-conch-motion4-mounted.mjs": {
+      "bytes": 15915,
+      "sha256": "86ca43d9feb0af9005f90884ffc0e28307e7c64408a4866a8494a6fcb513d67a"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/README.md": {
+      "bytes": 2935,
+      "sha256": "e830109965620204448764aa1a0cd4b157b3545334091abd9f265a4946c65dd2"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/corpseReward.jpg": {
+      "bytes": 54210,
+      "sha256": "0c0cf17f1607741b07878c13b9a683723527bb490e73a9b83b0912c5c42d4e31"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/desktop-entry.jpg": {
+      "bytes": 75952,
+      "sha256": "8a9edb4290d2b6e7ba5cd13a56c5adbcb317bd0bd97c4a93fb45235618bece40"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/entry.jpg": {
+      "bytes": 54973,
+      "sha256": "d8bc9d23083276898c2463fbecfd5d0e2b760be24f5310c436202063eb36c1c1"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/guardCounter.jpg": {
+      "bytes": 60465,
+      "sha256": "0586bcc3c13a171643439127651bc199c3cea987719e157eb854308c17b385b4"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/inventory-after.json": {
+      "bytes": 93535,
+      "sha256": "bd6990728d9da8ba0208d055948133bfc6c09f09b3f13bb0b90c3bf5adbdf98e"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/inventory-before.json": {
+      "bytes": 93535,
+      "sha256": "bd6990728d9da8ba0208d055948133bfc6c09f09b3f13bb0b90c3bf5adbdf98e"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/playerDefeat.jpg": {
+      "bytes": 46011,
+      "sha256": "9a12b229a040fb8991650f8b0e745089b65ca84dfbf8defd813743d9cbef4fcf"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/reentry.jpg": {
+      "bytes": 54776,
+      "sha256": "7160f9cf91c47d15205df118e3ef44b0ab9fdff53b2b9433e79b6df19e082069"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/report.json": {
+      "bytes": 319069,
+      "sha256": "f4414b0f46ed428edd50ae77b8a2f6779d70576fcfab3e39281ddeddd3307064"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/source-inventory-after.json": {
+      "bytes": 21991,
+      "sha256": "4d488b567a6b9abbab7b0a7556b23fc740a9c6705d802839355d6033e9da84c4"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/source-inventory.json": {
+      "bytes": 21991,
+      "sha256": "4d488b567a6b9abbab7b0a7556b23fc740a9c6705d802839355d6033e9da84c4"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1/swordResult.jpg": {
+      "bytes": 52981,
+      "sha256": "1786b7ad9575e8c33a6bb09f0749702ae9e54b946e8e85b0d529cf49308898a8"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/run1.log": {
+      "bytes": 1104,
+      "sha256": "1e0413f90c45905cd48b2d952d71476fd4549a7a1172fcced8a508fa0219c4b0"
+    },
+    "progress/conch-motion4-mounted-2026-10-19/summary.json": {
+      "bytes": 2983,
+      "sha256": "2faabfb95a42ce2d8a972a459b521ed9dbee779fac91cb4a3742fc1b123e6e15"
+    }
+  }
+}

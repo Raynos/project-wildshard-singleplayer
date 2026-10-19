@@ -1,0 +1,27 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { tmpdir } from 'node:os';
+import { BUILD_INPUTS, validateConchBuildPin } from './conch-readable-build-pin.mjs';
+import { CONCH_READABLE_CANDIDATE } from './conch-readable-admission.mjs';
+import { conchHash } from './conch-planted-admission.mjs';
+
+await test('reviewed build pin is separate, exact, fail-closed and never runtime acceptance', () => {
+  const root = mkdtempSync(resolve(tmpdir(),'conch-pin-'));
+  try {
+    const write = (path,text) => { mkdirSync(dirname(resolve(root,path)),{recursive:true});writeFileSync(resolve(root,path),text); };
+    for(const path of BUILD_INPUTS) write(path,'exact');
+    write(`${CONCH_READABLE_CANDIDATE}/freeze-manifest.json`,'freeze');write('docs/reviews/source.md','review');
+    const manifest={candidate:'candidate'};
+    const pin={schema:'wildshard.conch.motion4.reviewed-build-pin.v1',candidate:'candidate',buildAllowed:true,
+      runtimeAcceptance:false,visualAcceptance:false,colliderAcceptance:false,rootGo:'root explicit GO',
+      reviewPath:'docs/reviews/source.md',sourceFreezeSha256:conchHash('freeze'),reviewSha256:conchHash('review'),
+      files:Object.fromEntries(BUILD_INPUTS.map(path=>[path,conchHash('exact')]))};
+    assert.doesNotThrow(()=>validateConchBuildPin(root,manifest,pin));
+    for(const mutation of [{rootGo:''},{buildAllowed:false},{runtimeAcceptance:true},{sourceFreezeSha256:'wrong'},
+      {reviewSha256:'wrong'},{files:{}},{reviewPath:'/outside'},{candidate:'wrong'}])
+      assert.throws(()=>validateConchBuildPin(root,manifest,{...pin,...mutation}));
+    write(BUILD_INPUTS[0],'changed');assert.throws(()=>validateConchBuildPin(root,manifest,pin),/input changed/u);
+  } finally { rmSync(root,{recursive:true,force:true}); }
+});

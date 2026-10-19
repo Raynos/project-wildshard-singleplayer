@@ -1,0 +1,84 @@
+{
+  "schema": "conch.motion4.tooling-freeze.v1",
+  "frozenAt": "2026-10-19T09:07:30Z",
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion4/reviewed-build-pin.json": {
+      "sha256": "2e66b673e2c9175fcb34ca5a0bce35d860e249a31b662fea7e00d7b0a501583c",
+      "bytes": 2710
+    },
+    "docs/reviews/conch-motion4-capture/build-manifest.json": {
+      "sha256": "faa5e042547e36ad4f72fe65f89451a35ce9265465a731213e7c5ac51de9cdaa",
+      "bytes": 21759
+    },
+    "docs/reviews/conch-motion4-capture/tooling-attempt1/qa-conch-readable-motion.mjs.txt": {
+      "sha256": "4e6049746e0501fc722b388d4c7d63004c51c03b1718b0be850f24c31c5773ad",
+      "bytes": 20703
+    },
+    "docs/reviews/conch-motion4-capture/tooling-attempt1/reviewed-build-pin.json": {
+      "sha256": "d273b4896449fcfa7dcd5903ca0e439d47a1a4cf1c9d0b2a11aa819e49852042",
+      "bytes": 2649
+    },
+    "docs/reviews/conch-motion4-capture/tooling-attempt2/conch-readable-build-pin.mjs.txt": {
+      "sha256": "6e67b564c8fafb49f30313efa37875bb4aef1975e0553d370b91a21e1d386868",
+      "bytes": 4217
+    },
+    "docs/reviews/conch-motion4-capture/tooling-attempt2/conch-readable-build-pin.test.mjs.txt": {
+      "sha256": "f06df51816d1675691d6368a5fc136064371e9eabba84a7f261470f0b8aa8738",
+      "bytes": 1908
+    },
+    "docs/reviews/conch-motion4-capture/tooling-attempt2/conch-readable-preview.config.ts.txt": {
+      "sha256": "0044e2d0e1a6e46834cf94ea4aed290058d15253266b36730d598cc99d5c34e4",
+      "bytes": 8059
+    },
+    "docs/reviews/conch-motion4-capture/tooling-attempt2/qa-conch-readable-observation.mjs.txt": {
+      "sha256": "4dd5cf823c0b949c7b37e722dcfbbcb28ece0db6d5bc77b376bec1d449c38242",
+      "bytes": 6920
+    },
+    "docs/reviews/conch-motion4-capture/tooling-attempt2/reviewed-build-pin.json": {
+      "sha256": "7c929ab05053e8541a38219f066c05fea4e0f9c98cf072cbe288116fe1168a2d",
+      "bytes": 2690
+    },
+    "docs/reviews/conch-motion4-capture/tooling-attempt3/qa-conch-readable-observation.mjs.txt": {
+      "sha256": "8c9570fe16a1d72fb4498c82b8849f55685d27ca34c50bbc786b21b165b87efd",
+      "bytes": 6990
+    },
+    "docs/reviews/conch-motion4-capture/tooling-attempt3/reviewed-build-pin.json": {
+      "sha256": "8182c5fa9554f92f7aa9d15f57a49337193a2c1ff55182bf4337a11e1d27423b",
+      "bytes": 2714
+    },
+    "scripts/build-conch-readable-preview.mjs": {
+      "sha256": "9709871f7ab36a6ae9cd178f315e382b46735909115d2e8e5b4fed4588a22f12",
+      "bytes": 5247
+    },
+    "scripts/conch-readable-build-pin.mjs": {
+      "sha256": "73dff4f02f634f498af4ad8de09d67fc1f5806d14c70c6dd410fe1fed7138506",
+      "bytes": 4249
+    },
+    "scripts/conch-readable-build-pin.test.mjs": {
+      "sha256": "5e3570fc08db1306ae9cb0a2f3e8f2efee4ecfed1be7ce2082c9b9cceb889c1e",
+      "bytes": 1915
+    },
+    "scripts/qa-conch-readable-damage-geometry.mjs": {
+      "sha256": "474bf55dd182ade09884e24ccfdb1836d3c341cac9662995a4a22308efeda612",
+      "bytes": 4278
+    },
+    "scripts/qa-conch-readable-motion.mjs": {
+      "sha256": "ebc9ebd9b18445dc167d8865edd2c848342bd7c4ce1a0503523bf595f2086606",
+      "bytes": 20772
+    },
+    "scripts/qa-conch-readable-observation.mjs": {
+      "sha256": "fcb547279bbe4e35095a6b27752bbbe66f4ec02e59c2c7290446ac67b29ffd19",
+      "bytes": 7045
+    },
+    "vite/conch-readable-preview.config.ts": {
+      "sha256": "219686bd3a098ee0514911129eaa883ab54b5624ac176d99bf7fe289b425927c",
+      "bytes": 8268
+    }
+  },
+  "executedBuild": "tmp/conch-readable-preview-dist-build2",
+  "executedPin": "docs/reviews/conch-motion4-capture/tooling-attempt2/reviewed-build-pin.json",
+  "currentPin": "art/driftwood-isle/approved-conch/runtime-admission/arena-motion4/reviewed-build-pin.json",
+  "changesAfterExecution": "Only wrapper function names/local reference names, unknown candidate narrowing, argv narrowing, awaited node:test; complete runtime capture script unchanged. No game/host/pose/decision/payload byte changed. Root permits preservation of original executed tooling and continuous genuine capture without redundant rebuild.",
+  "runtimeAcceptance": false,
+  "visualAcceptance": false
+}

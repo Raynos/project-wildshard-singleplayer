@@ -1,0 +1,83 @@
+{
+  "schema": "conch.motion4.local-mounted-summary.v1",
+  "verdict": "PASS with explicit coverage limits",
+  "publicDeployment": false,
+  "appRoot": "tmp/conch-readable-preview-dist-build2",
+  "buildManifestSha256": "faa5e042547e36ad4f72fe65f89451a35ce9265465a731213e7c5ac51de9cdaa",
+  "productSourceHash": "e41d1e7600a94074384a00fca22b58f634c060f5eb0458c5d34ec2bf44db6cb8",
+  "startedAt": "2026-10-19T09:11:02.209Z",
+  "endedAt": "2026-10-19T09:15:40.807Z",
+  "passedChecks": 34,
+  "totalChecks": 34,
+  "checks": {
+    "exactFrozenBytesBefore": true,
+    "desktopPlayStart": true,
+    "desktopNoRuntimeErrors": true,
+    "wipLabel": true,
+    "normalPhonePolicy": true,
+    "correctSingleEnemy": true,
+    "nativeModel": true,
+    "guardRetry0": true,
+    "guardRetry1": true,
+    "guardRetry2": true,
+    "guardRetry3": true,
+    "guardObserved": true,
+    "counterPending": true,
+    "counterObserved": true,
+    "retryAfterGuard": true,
+    "swordDamage": true,
+    "enemyDefeated": true,
+    "noPostDeathStrike": true,
+    "localReward": true,
+    "retryAfterReward": true,
+    "enemyAttacks": true,
+    "playerDefeated": true,
+    "playerDeathDoesNotKillEnemy": true,
+    "defeatedAttackBlocked": true,
+    "retryAfterDefeat": true,
+    "reloadFresh": true,
+    "reloadAssets": true,
+    "mountedAssetBase": true,
+    "emptyBrowserStorage": true,
+    "emptyWorldShardPersistence": true,
+    "noRuntimeErrors": true,
+    "exactFrozenBytesAfter": true,
+    "siteHtmlUnchanged": true,
+    "allFourAppsUnchanged": true
+  },
+  "phoneRendering": {
+    "dpr": 3,
+    "touch": 1,
+    "pixelRatio": 2,
+    "canvas": [
+      {
+        "width": 804,
+        "height": 1748
+      }
+    ],
+    "viewport": {
+      "width": 402,
+      "height": 874
+    }
+  },
+  "counterDamageObserved": false,
+  "counterDamageVerdict": "NOT ESTABLISHED in this mounted run. Guard, pending-counter and counter states observed; sampled damage occurred during regular thrust only. Do not count the overall pass as counter-damage proof.",
+  "limits": [
+    "Local mounted proof only. No actual Site checkout or published host changed. Existing HTML still labels the published motion3 app.",
+    "Normal controls and original rendering; explicit diagnostic player placement and aim only. Very close corpse/defeat screenshots result from diagnostic placement, not presentation-quality camera claims.",
+    "Cloud host shared briefly with root source-checkpoint hooks from approximately09:12UTC; no performance measurement or physical-phone/Safari/human-fun claim.",
+    "Corpse strike/HP observations are sampled. Inter-sample damage plus regeneration is not excluded.",
+    "Sword-only loadout; spear unavailable. Independent every-frame visual acceptance is separate."
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "browserServerClosed": true,
+  "processExitCode": 0,
+  "screenshotsInspected": [
+    "desktop-entry.jpg",
+    "entry.jpg",
+    "corpseReward.jpg",
+    "playerDefeat.jpg",
+    "reentry.jpg"
+  ]
+}

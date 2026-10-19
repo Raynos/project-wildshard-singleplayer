@@ -1,0 +1,33 @@
+{
+  "schema": "wildshard.conch.motion4.reviewed-build-pin.v1",
+  "candidate": "character-native15-motion4-upper-readable-r2",
+  "buildAllowed": true,
+  "runtimeAcceptance": false,
+  "visualAcceptance": false,
+  "colliderAcceptance": false,
+  "reviewedAt": "2026-10-19T09:08:10.577Z",
+  "rootGo": "Root GO 2026-10-19 09:01 UTC; 09:07 preserve unchanged build2 and fix observer overlay tap interception; source 4e593e6f0e24d54317e3f7c99c07428c7328d25a; isolated capture only",
+  "reviewPath": "docs/reviews/conch-motion4-independent/revised-source/REVIEW.md",
+  "sourceFreezeSha256": "fb27b7ed8f16d3fe7455195c9b7d3f35067570be2cf0d3fb9c481a4cee820f0a",
+  "reviewSha256": "07e16659b0739af652ec6cc51ff12fb27c60b733722efe2ecddc9f0f068b964e",
+  "files": {
+    "scripts/conch-readable-build-pin.mjs": "73dff4f02f634f498af4ad8de09d67fc1f5806d14c70c6dd410fe1fed7138506",
+    "scripts/build-conch-readable-preview.mjs": "9709871f7ab36a6ae9cd178f315e382b46735909115d2e8e5b4fed4588a22f12",
+    "vite/conch-readable-preview.config.ts": "219686bd3a098ee0514911129eaa883ab54b5624ac176d99bf7fe289b425927c",
+    "scripts/qa-conch-readable-motion.mjs": "10e276ff3cc619365e427df6fd008590ab8a1f398ae4035fbca57842213b9192",
+    "scripts/qa-conch-readable-observation.mjs": "a63a140e38713e0d4ad8b937acd1f7b2ebda0466d340e4f412e8aac8a219deb0",
+    "scripts/conch-readable-admission.mjs": "9a8ff24b656f4467b5e3fecb42b3ad965d97fc5cab3c46cdd5615ebed33fe231",
+    "src/game/practice/PracticeCreature.ts": "ee97d17f4e90e7a74454055baefa167006122cd2299b5e614d8ce63603906dec",
+    "src/game/practice/PracticePlayer.ts": "a1b2b23b4b1f8d7b61211421f8e6b9bc6832e571a2b109a7060da9290a9c2aa2",
+    "src/game/practiceDemo/startPracticeDemo.ts": "5d49997057a3b834453c058f1c5ee8464caa724dc4bbc2fa40d8755ef5a63184",
+    "src/game/shardfile/borrowedDecisions.ts": "bfe383dcc8c27950e10e84fbe22a91b6bfd54555252357dbb00b8f316bc5f693",
+    "src/game/shardfile/decisions.ts": "b52feed31f45c3865dddec78949f470207a3bab0ce529bf3da5d429f0e4a2cde",
+    "src/engine/entities/AnimalView.ts": "36f47df937bb2ff48aac743f7b307b0f16fafcc48795107f9121fecf106e6f28",
+    "src/engine/entities/animalPose.ts": "3bdbc2f4c1085445e7998597e608758365857aaa45248c45cc31bceb3f56b9f3",
+    "src/game/plugin/channels.ts": "462853661692628f0d61c1686a717e065814d6467463e21fedae28a41292209d",
+    "src/game/plugin/channelPrograms.ts": "9a345126cbc74cac7a07eda3286dfe4957891f21b6d1a47ff75dab9f8dc6fc2d",
+    "src/engine/ai/strikes.ts": "c6c60afb550fe9a594cf16a12385d8878cf234351643e53c4d2c1f4a24a8a006",
+    "practice.html": "630ef1c5ab6b09621fc23e0c30ef2c449e30fe3cb9ad258b4a2b2b615d2af345",
+    "pnpm-lock.yaml": "1495ce479562f459d0af5e19d976df79c957d5b54dbc031fd803475c264e96ea"
+  }
+}

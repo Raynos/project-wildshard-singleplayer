@@ -1,0 +1,7 @@
+2026-10-19T09:11:14.752Z conch boot
+2026-10-19T09:11:20.233Z conch guard-counter
+2026-10-19T09:12:05.847Z conch sword-combat
+2026-10-19T09:12:43.491Z conch enemy-attacks-player-defeat
+2026-10-19T09:15:19.817Z conch reload
+2026-10-19T09:15:35.962Z conch complete
+{"kind":"conch","pass":true,"checks":{"exactFrozenBytesBefore":true,"desktopPlayStart":true,"desktopNoRuntimeErrors":true,"wipLabel":true,"normalPhonePolicy":true,"correctSingleEnemy":true,"nativeModel":true,"guardRetry0":true,"guardRetry1":true,"guardRetry2":true,"guardRetry3":true,"guardObserved":true,"counterPending":true,"counterObserved":true,"retryAfterGuard":true,"swordDamage":true,"enemyDefeated":true,"noPostDeathStrike":true,"localReward":true,"retryAfterReward":true,"enemyAttacks":true,"playerDefeated":true,"playerDeathDoesNotKillEnemy":true,"defeatedAttackBlocked":true,"retryAfterDefeat":true,"reloadFresh":true,"reloadAssets":true,"mountedAssetBase":true,"emptyBrowserStorage":true,"emptyWorldShardPersistence":true,"noRuntimeErrors":true,"exactFrozenBytesAfter":true,"siteHtmlUnchanged":true,"allFourAppsUnchanged":true}}

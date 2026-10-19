@@ -1,0 +1,54 @@
+/** Reconstruct real four-weight skinning at actual damage observations, never authored-clock poses. */
+import { readFileSync, writeFileSync } from 'node:fs';
+import { Matrix4, Vector3 } from 'three';
+import { inflateSync } from 'node:zlib';
+
+const directory = process.argv.at(2);
+if (directory === undefined) throw new Error('Pass the complete capture directory');
+const geometry = JSON.parse(readFileSync(`${directory}/geometry.json`, 'utf8'));
+const events = JSON.parse(readFileSync(`${directory}/events.json`, 'utf8'));
+const metadata = JSON.parse(readFileSync('art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/metadata.json', 'utf8'));
+const native = inflateSync(readFileSync('art/driftwood-isle/approved-conch/runtime-admission/arena-candidate1/payload.bin'));
+if (geometry.length !== 1) throw new Error('Revalidate mapping for multiple runtime meshes');
+const mesh = geometry[0], parts = metadata.bodies[0].hard;
+let base = 0;
+for (const part of parts) {
+  for (let i = 0; i < part.row.count; i++) {
+    for (let k = 0; k < 3; k++) if (mesh.positions[(base+i)*3+k] !== native.readFloatLE(part.offsets[0]+(i*3+k)*4)) throw new Error('Runtime/native position mapping differs');
+    for (let k = 0; k < 4; k++) {
+      if (mesh.indices[(base+i)*4+k] !== native.readUInt16LE(part.offsets[2]+(i*4+k)*2)) throw new Error('Runtime/native joint mapping differs');
+      if (mesh.weights[(base+i)*4+k] !== native.readFloatLE(part.offsets[3]+(i*4+k)*4)) throw new Error('Runtime/native weight mapping differs');
+    }
+  }
+  base += part.row.count;
+}
+if (base * 3 !== mesh.positions.length) throw new Error('Unexpected extra runtime vertices');
+const weaponStart = parts.slice(0,8).reduce((n,p)=>n+p.row.count,0), weaponCount = parts[8].row.count;
+let tip = weaponStart;
+for(let i=weaponStart;i<weaponStart+weaponCount;i++) if(mesh.positions[i*3+2]>mesh.positions[tip*3+2]) tip=i;
+const inverse = mesh.inverses.map(m=>new Matrix4().fromArray(m)), bind = new Matrix4().fromArray(mesh.bind);
+const weighted = (row,index) => {
+  const state = row.meshes[0], original = new Vector3().fromArray(mesh.positions,index*3).applyMatrix4(bind), result = new Vector3();
+  for(let k=0;k<4;k++) { const weight = mesh.weights[index*4+k]; if(weight === 0) continue;
+    const joint = mesh.indices[index*4+k];
+    result.addScaledVector(original.clone().applyMatrix4(inverse[joint]).applyMatrix4(new Matrix4().fromArray(state.boneWorld[joint])),weight); }
+  return result.applyMatrix4(new Matrix4().fromArray(state.bindInverse)).applyMatrix4(new Matrix4().fromArray(state.world));
+};
+const rows = events.filter(row=>['hurt-request-before','hurt-request-after','damage.dealt','enemy-damage-before-presentation'].includes(row.kind)).map(row=> {
+  const point=weighted(row,tip), s=row.strike, target=row.playerPosition;
+  const dx=s.x1-s.x0,dz=s.z1-s.z0,length=Math.hypot(dx,dz), lane=p=>({
+    along:length === 0 ? null:((p[0]-s.x0)*dx+(p[2]-s.z0)*dz)/length,
+    perpendicular:length === 0 ? null:((p[0]-s.x0)*dz-(p[2]-s.z0)*dx)/length });
+  return {kind:row.kind,sampleIndex:row.sampleIndex,phase:row.phase,bout:row.bout,wallTime:row.wallTime,
+    gameTime:row.gameTime,boutTime:row.boutTime,poseInput:row.poseInput,actorAlive:row.alive,
+    strike:s,strikeSpec:row.strikeSpec,behaviorClock:row.clock,frameAttack:row.poseInput?.attack,
+    playerHp:row.playerHp,requestedDamage:row.requestedDamage,dealt:row.dealt,target:row.target,
+    tipWorld:point.toArray(),targetWorld:target,tipLane:lane(point.toArray()),targetLane:lane(target),
+    tipTargetHorizontalDistance:Math.hypot(point.x-target[0],point.z-target[2]),
+    poseAgeBoutSeconds:row.poseInput === null ? null:row.boutTime-row.poseInput.boutTime,
+    caveat:'At damage callback the skeleton may still show the last evaluated pose. This measures those actual matrices; it does not synthesize a damage-time pose or prove point contact.'};
+});
+const result={schema:'conch.motion4.actual-damage-weighted-geometry.v1',vertices:base,allFourWeightsAndNativeOrderVerified:true,
+  weaponRange:[weaponStart,weaponCount],tipVertex:tip,events:rows,runtimeAcceptance:false,visualAcceptance:false};
+writeFileSync(`${directory}/damage-geometry.json`,JSON.stringify(result,null,2));
+console.info(JSON.stringify({events:rows.length,vertices:base,output:`${directory}/damage-geometry.json`}));
