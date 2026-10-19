@@ -1,0 +1,133 @@
+{
+  "studyOnly": true,
+  "acceptance": false,
+  "scope": "Controlled exact-native physical replay with original numeric clips and captured owned inputs. Only per-body additionalSolverIterations differs; global/default/mass/inertia/geometry untouched. Baseline reproduction required before comparative runs.",
+  "results": [
+    {
+      "case": 0,
+      "inputSha256": "be1279c4fe3afdaa6666a811a578ef1aa34b38ed95d45167485567d5ca6adeae",
+      "settings": {
+        "dt": 0.01666666753590107,
+        "lengthUnit": 1,
+        "normalizedAllowedLinearError": 0.004999999888241291,
+        "normalizedPredictionDistance": 0.019999999552965164,
+        "numSolverIterations": 4,
+        "numInternalPgsIterations": 1,
+        "maxCcdSubsteps": 1,
+        "contact_erp": 0.135755255818367
+      },
+      "reproducible": true,
+      "baseline": {
+        "iterations": 0,
+        "scenario": "diagnostic-front",
+        "steps": 125,
+        "capturedSteps": 125,
+        "state": "frozen",
+        "initialDifference": 0,
+        "maxBodyDelta": 0,
+        "maxBoneDelta": 1.1102230246251565e-16,
+        "maxSupportGap": 0,
+        "minimum": -0.01321803638950314,
+        "framesBelow5mm": 9,
+        "finalMinimum": -0.00008213690171032795
+      }
+    },
+    {
+      "case": 0,
+      "result": {
+        "iterations": 2,
+        "scenario": "diagnostic-front",
+        "steps": 126,
+        "capturedSteps": 125,
+        "state": "frozen",
+        "initialDifference": 0,
+        "maxBodyDelta": 0.6186800692230463,
+        "maxBoneDelta": 1.1102230246251565e-16,
+        "maxSupportGap": 0,
+        "minimum": -0.012264897618706527,
+        "framesBelow5mm": 13,
+        "finalMinimum": -0.00015592971237765596
+      }
+    },
+    {
+      "case": 0,
+      "result": {
+        "iterations": 4,
+        "scenario": "diagnostic-front",
+        "steps": 126,
+        "capturedSteps": 125,
+        "state": "frozen",
+        "initialDifference": 0,
+        "maxBodyDelta": 0.617653438821435,
+        "maxBoneDelta": 1.1102230246251565e-16,
+        "maxSupportGap": 0,
+        "minimum": -0.009404776671203763,
+        "framesBelow5mm": 11,
+        "finalMinimum": -0.00007892998428360443
+      }
+    },
+    {
+      "case": 1,
+      "inputSha256": "5e51eb23b164f143d09cf156115f5cec67777095bc53675f4ed3300199a0d284",
+      "settings": {
+        "dt": 0.01666666753590107,
+        "lengthUnit": 1,
+        "normalizedAllowedLinearError": 0.004999999888241291,
+        "normalizedPredictionDistance": 0.019999999552965164,
+        "numSolverIterations": 4,
+        "numInternalPgsIterations": 1,
+        "maxCcdSubsteps": 1,
+        "contact_erp": 0.135755255818367
+      },
+      "reproducible": true,
+      "baseline": {
+        "iterations": 0,
+        "scenario": "diagnostic-angle",
+        "steps": 98,
+        "capturedSteps": 98,
+        "state": "frozen",
+        "initialDifference": 0,
+        "maxBodyDelta": 0,
+        "maxBoneDelta": 1.1102230246251565e-16,
+        "maxSupportGap": 0,
+        "minimum": -0.022032783403915346,
+        "framesBelow5mm": 28,
+        "finalMinimum": -0.00009223012614256731
+      }
+    },
+    {
+      "case": 1,
+      "result": {
+        "iterations": 2,
+        "scenario": "diagnostic-angle",
+        "steps": 92,
+        "capturedSteps": 98,
+        "state": "frozen",
+        "initialDifference": 0,
+        "maxBodyDelta": 3.0087979063391685,
+        "maxBoneDelta": 1.1102230246251565e-16,
+        "maxSupportGap": 0,
+        "minimum": -0.021804095698712445,
+        "framesBelow5mm": 27,
+        "finalMinimum": -0.00007779726809076237
+      }
+    },
+    {
+      "case": 1,
+      "result": {
+        "iterations": 4,
+        "scenario": "diagnostic-angle",
+        "steps": 95,
+        "capturedSteps": 98,
+        "state": "frozen",
+        "initialDifference": 0,
+        "maxBodyDelta": 1.1912620216608047,
+        "maxBoneDelta": 1.1102230246251565e-16,
+        "maxSupportGap": 0,
+        "minimum": -0.021809378628745435,
+        "framesBelow5mm": 25,
+        "finalMinimum": -0.00009103019021949876
+      }
+    }
+  ]
+}

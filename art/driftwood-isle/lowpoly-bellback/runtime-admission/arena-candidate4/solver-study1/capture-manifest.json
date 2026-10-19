@@ -1,0 +1,54 @@
+{
+  "studyOnly": true,
+  "acceptance": false,
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/diagnostic-angle-frozen.jpg",
+      "sha256": "e8a1464f3fb09d055ab7d61f132d74ed595dbf2d09e8350ab83a944bd36c63c2",
+      "bytes": 55816
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/diagnostic-front-frozen.jpg",
+      "sha256": "95e141603ddef3368a8c1241294de2af875760fc400abe9b9dad5a7ff6778ffc",
+      "bytes": 55009
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/render-trace.json",
+      "sha256": "e3ff427f033a16db8f5ce9fd72ca1f887f3879f7c3b1ed2eb5aa68225670d39e",
+      "bytes": 986558
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/replay-case-0.json",
+      "sha256": "be1279c4fe3afdaa6666a811a578ef1aa34b38ed95d45167485567d5ca6adeae",
+      "bytes": 1400270
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/replay-case-1.json",
+      "sha256": "5e51eb23b164f143d09cf156115f5cec67777095bc53675f4ed3300199a0d284",
+      "bytes": 1131008
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/report.json",
+      "sha256": "a5d1064a73ce1716b8ad3339fa51d744689eb067d22e3de6ab0f238a5f6fb86e",
+      "bytes": 135981
+    },
+    {
+      "path": "scripts/qa-bellback-following-diagnostics.mjs",
+      "sha256": "2e0934fed84b176304b2a416e0498f2935f8a993853c052818207f19f634202e",
+      "bytes": 15548
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/replay-solver-study.mjs",
+      "sha256": "7f946cb67ca93b5698cdee381808a3acc8836286069a782567818b30ec19c87c",
+      "bytes": 8090
+    }
+  ],
+  "video": [
+    {
+      "path": "tmp/bellback-following-diagnostics1/video/page@006acc60fd9a5a2b073f91b8e6a0a453.webm",
+      "sha256": "033689f2f052e9e3f17c8137cdcf6ad767d8953b70ff1ab8f7f82dada8caef76",
+      "bytes": 6570237
+    }
+  ],
+  "notes": "Exact initial getters show pending mass0 before first physics step; poststep mass5/COM/inertia are captured. Actual allowed error readback0.005m supersedes documented0.001 default inference. No game injection or product change."
+}

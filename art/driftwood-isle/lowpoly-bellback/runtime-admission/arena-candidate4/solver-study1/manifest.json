@@ -1,0 +1,165 @@
+{
+  "schema": "wildshard.bellback.runtimecandidate4.solver-study.v1",
+  "studyOnly": true,
+  "acceptance": false,
+  "status": "Complete negative bounded0/2/4 study; no product change",
+  "baselineReproduction": "Both captured native baselines reproduce exactly: position/linvel/angvel maxdelta0; bones<=1.11e-16;125/98steps to frozen.",
+  "iterationOutcome": "Neither direction meets5mm at0/2/4; angle unchanged~22mm. Stop further iteration escalation.",
+  "sourceAndInputFiles": [
+    {
+      "path": "scripts/qa-bellback-following-diagnostics.mjs",
+      "sha256": "2e0934fed84b176304b2a416e0498f2935f8a993853c052818207f19f634202e",
+      "bytes": 15548
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/replay-solver-study.mjs",
+      "sha256": "7f946cb67ca93b5698cdee381808a3acc8836286069a782567818b30ec19c87c",
+      "bytes": 8090
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/replay-solver-study2.mjs",
+      "sha256": "c2910e0c87f3d1b93096c4ba6b443f233445182ebe0ca6c3b7742dd701a79a89",
+      "bytes": 8106
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "sha256": "be12a0fa8d3005a9ee988a1e9aa845c423cadb92c6df7b4594c8fab6ba33dec9",
+      "bytes": 29932
+    },
+    {
+      "path": "src/engine/physics/rigidCorpse.ts",
+      "sha256": "73c2e2cab5493babd35191521547fa43b47a610c7aee1d9a35a93ec19347a21a",
+      "bytes": 6427
+    },
+    {
+      "path": "src/engine/entities/rigidCorpsePose.ts",
+      "sha256": "4334277f9a061f8fa0a19e7d512f12d219d62878d5761dede8716ccbe0fed375",
+      "bytes": 4305
+    },
+    {
+      "path": "src/engine/physics/Physics.ts",
+      "sha256": "6a45536093316ae57848fba28d6b77c5a9159da1aeeb2bc7be2228bd7bd18739",
+      "bytes": 7881
+    },
+    {
+      "path": "src/game/plugin/channelPrograms.ts",
+      "sha256": "9a345126cbc74cac7a07eda3286dfe4957891f21b6d1a47ff75dab9f8dc6fc2d",
+      "bytes": 10384
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bellbackTuckedClips.ts",
+      "sha256": "c23219a2ee36d6a0fa56d647aec2f2926c37b143a896061e4aa789290ebdfe1d",
+      "bytes": 6877
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/metadata.json",
+      "sha256": "bb6c8304f93430701e67f8d3944d08b619aae476fb028bc84650c07d931be082",
+      "bytes": 77060
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/payload.bin",
+      "sha256": "b97a9df5437062aa2eb490340663c2b35ecf22ba83c83b834082d8ffe7ae7e9c",
+      "bytes": 38768
+    },
+    {
+      "path": "public/assets/physics/rapier.wasm",
+      "sha256": "2935a533335952cf160de69186d03e8b3ad2895b65d20df1b74d197a7498bd6f",
+      "bytes": 3292228
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/capture-manifest.json",
+      "sha256": "2d309b38741e3165e844610a3a09cd8863feca252c06bf31323b8643e4603bd1",
+      "bytes": 2381
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/case0-iterations0.json",
+      "sha256": "7227ba39dd14bb08e83853d5d7568a5f2caca1766a175f7fbc79d7ed0ac3ecb2",
+      "bytes": 134550
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/case0-iterations2.json",
+      "sha256": "2c26ab9e4fa4bfa4201f6e8f1ae93f405e18a90290fb2b921c2c320117ad2c78",
+      "bytes": 135971
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/case0-iterations4.json",
+      "sha256": "2eac3ee2f7b4074a4539ce6d034d438a34abad6cbd82c685eeac464fa4ddedef",
+      "bytes": 135965
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/case1-iterations0.json",
+      "sha256": "5cb5b2e4c9155c0587a14d5bc949f9db3705073b06ba4aaa033cfcbd282751fe",
+      "bytes": 109839
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/case1-iterations2.json",
+      "sha256": "d92e9cc042a85ce577fa15fdce44dfd0f3dd6cff951f848668273c8d3023ba2e",
+      "bytes": 103524
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/case1-iterations4.json",
+      "sha256": "6f78dd5d4fc8e01fc34add9a4075bb36ba1ecaf86e9a23ede85a850afee6ef79",
+      "bytes": 107190
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/diagnostic-angle-frozen.jpg",
+      "sha256": "e8a1464f3fb09d055ab7d61f132d74ed595dbf2d09e8350ab83a944bd36c63c2",
+      "bytes": 55816
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/diagnostic-front-frozen.jpg",
+      "sha256": "95e141603ddef3368a8c1241294de2af875760fc400abe9b9dad5a7ff6778ffc",
+      "bytes": 55009
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/render-trace.json",
+      "sha256": "e3ff427f033a16db8f5ce9fd72ca1f887f3879f7c3b1ed2eb5aa68225670d39e",
+      "bytes": 986558
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/replay-attempt1-screened.log",
+      "sha256": "86fb3fd6edb5f44963c77981ed920fa587fd4146cc6c260a524f646f0e1d2f5a",
+      "bytes": 690
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/replay-case-0.json",
+      "sha256": "be1279c4fe3afdaa6666a811a578ef1aa34b38ed95d45167485567d5ca6adeae",
+      "bytes": 1400270
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/replay-case-1.json",
+      "sha256": "5e51eb23b164f143d09cf156115f5cec67777095bc53675f4ed3300199a0d284",
+      "bytes": 1131008
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/report.json",
+      "sha256": "a5d1064a73ce1716b8ad3339fa51d744689eb067d22e3de6ab0f238a5f6fb86e",
+      "bytes": 135981
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/summary.json",
+      "sha256": "2ee1134d85dbf991599d87c025a60b2c8e80e910d13beb14183fb202aa9346e4",
+      "bytes": 4068
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/surface-velocity-diagnosis.json",
+      "sha256": "6577e195bca70448ab72f0b6e4b6dd5725596617b5ca1b88ba7e952a284a0abd",
+      "bytes": 2174
+    }
+  ],
+  "firstAttemptProvenance": {
+    "original": {
+      "path": "tmp/bellback-following-solver-replay1.log",
+      "sha256": "018a8453aed2753edd086383495c2fef32d0827c6bd5498c74b9549c07f7bdb2",
+      "bytes": 834
+    },
+    "screened": {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/replay-attempt1-screened.log",
+      "sha256": "86fb3fd6edb5f44963c77981ed920fa587fd4146cc6c260a524f646f0e1d2f5a",
+      "bytes": 690
+    },
+    "reason": "First strict-equality guard incorrectly included object-key insertion order; no simulation was run. Second source uses semantic deep strict equality. Only absolute project path redacted from failed log."
+  }
+}

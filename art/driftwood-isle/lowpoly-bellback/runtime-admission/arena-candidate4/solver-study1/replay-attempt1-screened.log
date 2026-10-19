@@ -1,0 +1,11 @@
+(node:5) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+file://<project-root>/docs/reviews/bellback-runtimecandidate4-source/replay-solver-study.mjs:38
+  if(!same(initial.dims,metadata.bodies[0].dims))throw new Error('Captured recipe differs');
+                                                       ^
+
+Error: Captured recipe differs
+    at solve (file://<project-root>/docs/reviews/bellback-runtimecandidate4-source/replay-solver-study.mjs:38:56)
+    at file://<project-root>/docs/reviews/bellback-runtimecandidate4-source/replay-solver-study.mjs:79:18
+
+Node.js v24.19.0

@@ -1,0 +1,72 @@
+{
+  "acceptance": false,
+  "scope": "Recorded actual contacts. Local contact point evaluated under consecutive parent-relative collider transforms; finite-difference articulation velocity rotated by exact before-step root. Root surface velocity uses captured linvel/angvel/COM. Manifold may represent pre-solve geometry; these are diagnostic estimates, not solver-internal target velocities.",
+  "rows": [
+    {
+      "case": 0,
+      "step": 32,
+      "bone": "leg2",
+      "contactDistance": -0.018087029457092285,
+      "contactImpulse": 0,
+      "articulatedSurfaceVelocityFiniteDifference": [
+        0.2673516593407389,
+        -0.3622980080375922,
+        0.1979632267483749
+      ],
+      "rootRigidSurfaceVelocityFromExactBeforeState": [
+        -0.3771544157868859,
+        0.2103874926836239,
+        0.07381597841088539
+      ],
+      "combinedSurfaceVelocityEstimate": [
+        -0.10980275644614701,
+        -0.15191051535396832,
+        0.2717792051592603
+      ]
+    },
+    {
+      "case": 1,
+      "step": 28,
+      "bone": "leg0",
+      "contactDistance": -0.029511690139770508,
+      "contactImpulse": 0.20003357529640198,
+      "articulatedSurfaceVelocityFiniteDifference": [
+        0.2895463780677953,
+        -0.4588624273025701,
+        -0.008346895180605525
+      ],
+      "rootRigidSurfaceVelocityFromExactBeforeState": [
+        -0.8899171800672585,
+        0.0006335570468658513,
+        0.4475819199366052
+      ],
+      "combinedSurfaceVelocityEstimate": [
+        -0.6003708019994631,
+        -0.45822887025570425,
+        0.4392350247559996
+      ]
+    },
+    {
+      "case": 1,
+      "step": 28,
+      "bone": "leg2",
+      "contactDistance": 0.01787281036376953,
+      "contactImpulse": 0,
+      "articulatedSurfaceVelocityFiniteDifference": [
+        0.2895463780677953,
+        -0.4588624273025701,
+        -0.008346895180605525
+      ],
+      "rootRigidSurfaceVelocityFromExactBeforeState": [
+        -0.5539146889089301,
+        -0.48077273293560174,
+        0.4794925460906916
+      ],
+      "combinedSurfaceVelocityEstimate": [
+        -0.2643683108411348,
+        -0.9396351602381718,
+        0.47114565091008603
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "capturedSource": "docs/reviews/bellback-runtimecandidate4-source/captured-diagnostics.mjs",
+  "capturedSha256": "2e0934fed84b176304b2a416e0498f2935f8a993853c052818207f19f634202e",
+  "activeSource": "scripts/qa-bellback-following-diagnostics.mjs",
+  "activeSha256": "34814be1c5f21c6641944e0841ef36da99c9cf827e5db7d68e2aa67fa808381d",
+  "changes": "Mechanical lint fixes only: unused binding names, nested argument shadow, template string and void promise executor. Captured data and outcomes unchanged; active revision not rerun."
+}
