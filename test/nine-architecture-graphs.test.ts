@@ -1,3 +1,6 @@
+import { graphFileRules } from '../src/format/materials';
+import product from '../src/shards/nine-dragon-stack/generators/product';
+import { heldGraphFiles } from '../src/shards/nine-dragon-stack/generators/heldGraphFiles';
 import { compositeRows } from '../src/shards/nine-dragon-stack/generators/composite';
 import { postRows } from '../src/shards/nine-dragon-stack/generators/postGraphs';
 import { haloGraph } from '../src/shards/nine-dragon-stack/generators/haloGraph';
@@ -59,6 +62,9 @@ function build(graph: GraphIr, instanced: boolean, skinned = false): { vertex: s
 }
 
 const graphs = architectureGraphs();
+test('held material files declare their admitted texture dependencies', () => {
+  expect(graphFileRules(product, hash => heldGraphFiles.assets.get(hash))).toEqual([]);
+});
 test('each existing material fits both caps and compiles its real instance channels', () => {
   for (const [id, graph] of Object.entries(graphs)) {
     expect(validateGraph(graph, { trustedBudget: true }).ok, id).toBe(true);
