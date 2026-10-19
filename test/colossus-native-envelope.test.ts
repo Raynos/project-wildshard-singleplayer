@@ -38,8 +38,9 @@ test('all weighted vertices, foliage and joints retain finite motion; measure lo
   expect(weightedVertices).toBeGreaterThan(0);
   for (const [name, stage, end] of [['idle', 0, 5], ['left', 1, 1.5], ['right', 2, 1.5], ['slam', 3, 2.78], ['hit', 0, 1], ['death', 6, 1]] as const) {
     const result = { minY: Infinity, maxY: -Infinity, maxReach: 0, belowFloor: 0, frames: 0, maxOracleError: 0 }; results[name] = result;
-    for (let sample = 0; sample <= 60; sample++) {
-      const fraction = sample / 60;
+    const steps = name === 'death' ? 1000 : 60;
+    for (let sample = 0; sample <= steps; sample++) {
+      const fraction = sample / steps;
       context.mem['tg-state'] = stage; context.mem['tg-clock'] = fraction * end; context.t = name === 'idle' ? fraction * end : 0;
       context.flinch = name === 'hit' ? 1 - fraction : 0; context.deathT = name === 'death' ? fraction : -1; context.alive = name !== 'death';
       animate(context); root.updateMatrixWorld(true); skeleton.update(); result.frames++;

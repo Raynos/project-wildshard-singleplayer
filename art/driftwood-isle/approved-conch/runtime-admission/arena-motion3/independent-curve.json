@@ -1,0 +1,592 @@
+{
+  "method": "Independent NumPy column-major four-weight FK of canonical vertices; explicit authored collapse rotations, no TS evaluator",
+  "knots": 97,
+  "vertices": 7338,
+  "blendedVertices": 94,
+  "maxAbsoluteHeightDifference": 3.0531133177191805e-16,
+  "curveSha256": "26ffb6caf85cdf2c3747678b17c89f0c9527e25ac5035642b667458572bd2bdf",
+  "results": [
+    {
+      "knot": 0,
+      "requiredHeight": 0.012531468152999877,
+      "authoredHeight": 0.012531468152999766,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 1,
+      "requiredHeight": 0.012287177652233739,
+      "authoredHeight": 0.012287177652233684,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 2,
+      "requiredHeight": 0.01156069974265574,
+      "authoredHeight": 0.011560699742655684,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 3,
+      "requiredHeight": 0.012053261120969966,
+      "authoredHeight": 0.012053261120969942,
+      "difference": -2.42861286636753e-17
+    },
+    {
+      "knot": 4,
+      "requiredHeight": 0.013196665918392317,
+      "authoredHeight": 0.013196665918392178,
+      "difference": -1.3877787807814457e-16
+    },
+    {
+      "knot": 5,
+      "requiredHeight": 0.014645982796016765,
+      "authoredHeight": 0.014645982796016765,
+      "difference": 0.0
+    },
+    {
+      "knot": 6,
+      "requiredHeight": 0.016390648895078432,
+      "authoredHeight": 0.016390648895078325,
+      "difference": -1.0755285551056204e-16
+    },
+    {
+      "knot": 7,
+      "requiredHeight": 0.0184194872269042,
+      "authoredHeight": 0.018419487226904088,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 8,
+      "requiredHeight": 0.020720760149811134,
+      "authoredHeight": 0.020720760149811102,
+      "difference": -3.122502256758253e-17
+    },
+    {
+      "knot": 9,
+      "requiredHeight": 0.02328222149654444,
+      "authoredHeight": 0.023282221496544256,
+      "difference": -1.8388068845354155e-16
+    },
+    {
+      "knot": 10,
+      "requiredHeight": 0.0260911674537246,
+      "authoredHeight": 0.02609116745372443,
+      "difference": -1.700029006457271e-16
+    },
+    {
+      "knot": 11,
+      "requiredHeight": 0.029134486287180305,
+      "authoredHeight": 0.029134486287180305,
+      "difference": 0.0
+    },
+    {
+      "knot": 12,
+      "requiredHeight": 0.03239870699823928,
+      "authoredHeight": 0.032398706998239296,
+      "difference": 1.3877787807814457e-17
+    },
+    {
+      "knot": 13,
+      "requiredHeight": 0.03587004698626369,
+      "authoredHeight": 0.03587004698626369,
+      "difference": 0.0
+    },
+    {
+      "knot": 14,
+      "requiredHeight": 0.03953445878220046,
+      "authoredHeight": 0.03953445878220025,
+      "difference": -2.0816681711721685e-16
+    },
+    {
+      "knot": 15,
+      "requiredHeight": 0.043377675906826965,
+      "authoredHeight": 0.043377675906826965,
+      "difference": 0.0
+    },
+    {
+      "knot": 16,
+      "requiredHeight": 0.04738525789595979,
+      "authoredHeight": 0.047385257895959626,
+      "difference": -1.6653345369377348e-16
+    },
+    {
+      "knot": 17,
+      "requiredHeight": 0.051542634523299276,
+      "authoredHeight": 0.051542634523299276,
+      "difference": 0.0
+    },
+    {
+      "knot": 18,
+      "requiredHeight": 0.05583514923999102,
+      "authoredHeight": 0.05583514923999094,
+      "difference": -8.326672684688674e-17
+    },
+    {
+      "knot": 19,
+      "requiredHeight": 0.06024810183854448,
+      "authoredHeight": 0.06024810183854426,
+      "difference": -2.220446049250313e-16
+    },
+    {
+      "knot": 20,
+      "requiredHeight": 0.06476679033761669,
+      "authoredHeight": 0.06476679033761647,
+      "difference": -2.220446049250313e-16
+    },
+    {
+      "knot": 21,
+      "requiredHeight": 0.06937655207344498,
+      "authoredHeight": 0.06937655207344487,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 22,
+      "requiredHeight": 0.07406280397355933,
+      "authoredHeight": 0.07406280397355933,
+      "difference": 0.0
+    },
+    {
+      "knot": 23,
+      "requiredHeight": 0.07881108197887858,
+      "authoredHeight": 0.07881108197887836,
+      "difference": -2.220446049250313e-16
+    },
+    {
+      "knot": 24,
+      "requiredHeight": 0.08360707957153854,
+      "authoredHeight": 0.08360707957153854,
+      "difference": 0.0
+    },
+    {
+      "knot": 25,
+      "requiredHeight": 0.08843668535786067,
+      "authoredHeight": 0.08843668535786069,
+      "difference": 1.3877787807814457e-17
+    },
+    {
+      "knot": 26,
+      "requiredHeight": 0.09382802127198718,
+      "authoredHeight": 0.0938280212719873,
+      "difference": 1.249000902703301e-16
+    },
+    {
+      "knot": 27,
+      "requiredHeight": 0.10006076170811246,
+      "authoredHeight": 0.10006076170811234,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 28,
+      "requiredHeight": 0.10631932022977593,
+      "authoredHeight": 0.10631932022977582,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 29,
+      "requiredHeight": 0.11258929952243786,
+      "authoredHeight": 0.11258929952243787,
+      "difference": 1.3877787807814457e-17
+    },
+    {
+      "knot": 30,
+      "requiredHeight": 0.11885665996913475,
+      "authoredHeight": 0.11885665996913479,
+      "difference": 4.163336342344337e-17
+    },
+    {
+      "knot": 31,
+      "requiredHeight": 0.12510774983990547,
+      "authoredHeight": 0.12510774983990547,
+      "difference": 0.0
+    },
+    {
+      "knot": 32,
+      "requiredHeight": 0.1313293340929394,
+      "authoredHeight": 0.1313293340929394,
+      "difference": 0.0
+    },
+    {
+      "knot": 33,
+      "requiredHeight": 0.13750862171016554,
+      "authoredHeight": 0.1375086217101654,
+      "difference": -1.3877787807814457e-16
+    },
+    {
+      "knot": 34,
+      "requiredHeight": 0.14363329149126963,
+      "authoredHeight": 0.14363329149126952,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 35,
+      "requiredHeight": 0.14969151623238305,
+      "authoredHeight": 0.14969151623238308,
+      "difference": 2.7755575615628914e-17
+    },
+    {
+      "knot": 36,
+      "requiredHeight": 0.15567198521891326,
+      "authoredHeight": 0.15567198521891323,
+      "difference": -2.7755575615628914e-17
+    },
+    {
+      "knot": 37,
+      "requiredHeight": 0.16156392496613414,
+      "authoredHeight": 0.161563924966134,
+      "difference": -1.3877787807814457e-16
+    },
+    {
+      "knot": 38,
+      "requiredHeight": 0.16735711814615556,
+      "authoredHeight": 0.16735711814615548,
+      "difference": -8.326672684688674e-17
+    },
+    {
+      "knot": 39,
+      "requiredHeight": 0.17304192064566665,
+      "authoredHeight": 0.17304192064566665,
+      "difference": 0.0
+    },
+    {
+      "knot": 40,
+      "requiredHeight": 0.17860927670536186,
+      "authoredHeight": 0.17860927670536175,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 41,
+      "requiredHeight": 0.1840507320990774,
+      "authoredHeight": 0.18405073209907744,
+      "difference": 2.7755575615628914e-17
+    },
+    {
+      "knot": 42,
+      "requiredHeight": 0.1893584453183595,
+      "authoredHeight": 0.1893584453183592,
+      "difference": -3.0531133177191805e-16
+    },
+    {
+      "knot": 43,
+      "requiredHeight": 0.19452519673629654,
+      "authoredHeight": 0.19452519673629648,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 44,
+      "requiredHeight": 0.19954439573297533,
+      "authoredHeight": 0.19954439573297522,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 45,
+      "requiredHeight": 0.2044100857736495,
+      "authoredHeight": 0.20441008577364944,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 46,
+      "requiredHeight": 0.20911694743966774,
+      "authoredHeight": 0.20911694743966777,
+      "difference": 2.7755575615628914e-17
+    },
+    {
+      "knot": 47,
+      "requiredHeight": 0.2136602994211928,
+      "authoredHeight": 0.21366029942119277,
+      "difference": -2.7755575615628914e-17
+    },
+    {
+      "knot": 48,
+      "requiredHeight": 0.21803609748972275,
+      "authoredHeight": 0.21803609748972277,
+      "difference": 2.7755575615628914e-17
+    },
+    {
+      "knot": 49,
+      "requiredHeight": 0.22224093147728202,
+      "authoredHeight": 0.22224093147728202,
+      "difference": 0.0
+    },
+    {
+      "knot": 50,
+      "requiredHeight": 0.22627202029777993,
+      "authoredHeight": 0.22627202029777987,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 51,
+      "requiredHeight": 0.23012720505437012,
+      "authoredHeight": 0.23012720505437015,
+      "difference": 2.7755575615628914e-17
+    },
+    {
+      "knot": 52,
+      "requiredHeight": 0.23380494028459234,
+      "authoredHeight": 0.2338049402845923,
+      "difference": -2.7755575615628914e-17
+    },
+    {
+      "knot": 53,
+      "requiredHeight": 0.23730428340253987,
+      "authoredHeight": 0.23730428340253976,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 54,
+      "requiredHeight": 0.24062488240423016,
+      "authoredHeight": 0.24062488240423024,
+      "difference": 8.326672684688674e-17
+    },
+    {
+      "knot": 55,
+      "requiredHeight": 0.2437669619086816,
+      "authoredHeight": 0.2437669619086816,
+      "difference": 0.0
+    },
+    {
+      "knot": 56,
+      "requiredHeight": 0.2467313076128206,
+      "authoredHeight": 0.24673130761282053,
+      "difference": -8.326672684688674e-17
+    },
+    {
+      "knot": 57,
+      "requiredHeight": 0.2495192492432859,
+      "authoredHeight": 0.24951924924328572,
+      "difference": -1.6653345369377348e-16
+    },
+    {
+      "knot": 58,
+      "requiredHeight": 0.25213264209232417,
+      "authoredHeight": 0.2521326420923241,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 59,
+      "requiredHeight": 0.25457384722831794,
+      "authoredHeight": 0.25457384722831783,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 60,
+      "requiredHeight": 0.25684571047397364,
+      "authoredHeight": 0.2568457104739736,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 61,
+      "requiredHeight": 0.2589515402468462,
+      "authoredHeight": 0.258951540246846,
+      "difference": -1.6653345369377348e-16
+    },
+    {
+      "knot": 62,
+      "requiredHeight": 0.26089508435762365,
+      "authoredHeight": 0.26089508435762343,
+      "difference": -2.220446049250313e-16
+    },
+    {
+      "knot": 63,
+      "requiredHeight": 0.26268050586148783,
+      "authoredHeight": 0.26268050586148767,
+      "difference": -1.6653345369377348e-16
+    },
+    {
+      "knot": 64,
+      "requiredHeight": 0.2643123580568638,
+      "authoredHeight": 0.2643123580568638,
+      "difference": 0.0
+    },
+    {
+      "knot": 65,
+      "requiredHeight": 0.2657955587240054,
+      "authoredHeight": 0.2657955587240056,
+      "difference": 2.220446049250313e-16
+    },
+    {
+      "knot": 66,
+      "requiredHeight": 0.26713536369314417,
+      "authoredHeight": 0.2671353636931441,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 67,
+      "requiredHeight": 0.2683373398283747,
+      "authoredHeight": 0.26833733982837465,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 68,
+      "requiredHeight": 0.2694073375090933,
+      "authoredHeight": 0.2694073375090934,
+      "difference": 1.1102230246251565e-16
+    },
+    {
+      "knot": 69,
+      "requiredHeight": 0.27035146268567495,
+      "authoredHeight": 0.2703514626856747,
+      "difference": -2.220446049250313e-16
+    },
+    {
+      "knot": 70,
+      "requiredHeight": 0.2711760485802042,
+      "authoredHeight": 0.27117604858020433,
+      "difference": 1.1102230246251565e-16
+    },
+    {
+      "knot": 71,
+      "requiredHeight": 0.2718876270965214,
+      "authoredHeight": 0.27188762709652137,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 72,
+      "requiredHeight": 0.27249289999661436,
+      "authoredHeight": 0.2724928999966146,
+      "difference": 2.220446049250313e-16
+    },
+    {
+      "knot": 73,
+      "requiredHeight": 0.2729987098925793,
+      "authoredHeight": 0.2729987098925793,
+      "difference": 0.0
+    },
+    {
+      "knot": 74,
+      "requiredHeight": 0.27341201109496494,
+      "authoredHeight": 0.2734120110949647,
+      "difference": -2.220446049250313e-16
+    },
+    {
+      "knot": 75,
+      "requiredHeight": 0.27373984034943627,
+      "authoredHeight": 0.273739840349436,
+      "difference": -2.7755575615628914e-16
+    },
+    {
+      "knot": 76,
+      "requiredHeight": 0.273989287484299,
+      "authoredHeight": 0.273989287484299,
+      "difference": 0.0
+    },
+    {
+      "knot": 77,
+      "requiredHeight": 0.2741674659816517,
+      "authoredHeight": 0.27416746598165187,
+      "difference": 1.6653345369377348e-16
+    },
+    {
+      "knot": 78,
+      "requiredHeight": 0.2742814834747515,
+      "authoredHeight": 0.27428148347475156,
+      "difference": 5.551115123125783e-17
+    },
+    {
+      "knot": 79,
+      "requiredHeight": 0.274338412163682,
+      "authoredHeight": 0.2743384121636822,
+      "difference": 2.220446049250313e-16
+    },
+    {
+      "knot": 80,
+      "requiredHeight": 0.274345259130622,
+      "authoredHeight": 0.27434525913062197,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 81,
+      "requiredHeight": 0.27430893652496313,
+      "authoredHeight": 0.2743089365249631,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 82,
+      "requiredHeight": 0.27423623157727767,
+      "authoredHeight": 0.2742362315772777,
+      "difference": 5.551115123125783e-17
+    },
+    {
+      "knot": 83,
+      "requiredHeight": 0.2741337763896956,
+      "authoredHeight": 0.27413377638969544,
+      "difference": -1.6653345369377348e-16
+    },
+    {
+      "knot": 84,
+      "requiredHeight": 0.2740080174386767,
+      "authoredHeight": 0.2740080174386766,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 85,
+      "requiredHeight": 0.2738651847144769,
+      "authoredHeight": 0.273865184714477,
+      "difference": 1.1102230246251565e-16
+    },
+    {
+      "knot": 86,
+      "requiredHeight": 0.27371126040982313,
+      "authoredHeight": 0.2737112604098232,
+      "difference": 5.551115123125783e-17
+    },
+    {
+      "knot": 87,
+      "requiredHeight": 0.2735519470584941,
+      "authoredHeight": 0.2735519470584942,
+      "difference": 1.1102230246251565e-16
+    },
+    {
+      "knot": 88,
+      "requiredHeight": 0.27339263501265354,
+      "authoredHeight": 0.27339263501265343,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 89,
+      "requiredHeight": 0.27323836913592753,
+      "authoredHeight": 0.2732383691359274,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 90,
+      "requiredHeight": 0.27309381457742893,
+      "authoredHeight": 0.27309381457742893,
+      "difference": 0.0
+    },
+    {
+      "knot": 91,
+      "requiredHeight": 0.27296322148018676,
+      "authoredHeight": 0.2729632214801868,
+      "difference": 5.551115123125783e-17
+    },
+    {
+      "knot": 92,
+      "requiredHeight": 0.2728503884658407,
+      "authoredHeight": 0.2728503884658407,
+      "difference": 0.0
+    },
+    {
+      "knot": 93,
+      "requiredHeight": 0.2727586247260083,
+      "authoredHeight": 0.27275862472600826,
+      "difference": -5.551115123125783e-17
+    },
+    {
+      "knot": 94,
+      "requiredHeight": 0.2726907105395272,
+      "authoredHeight": 0.2726907105395271,
+      "difference": -1.1102230246251565e-16
+    },
+    {
+      "knot": 95,
+      "requiredHeight": 0.2726488560238487,
+      "authoredHeight": 0.27264885602384875,
+      "difference": 5.551115123125783e-17
+    },
+    {
+      "knot": 96,
+      "requiredHeight": 0.2726346579183398,
+      "authoredHeight": 0.27263465791833996,
+      "difference": 1.6653345369377348e-16
+    }
+  ]
+}

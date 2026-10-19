@@ -15,7 +15,7 @@ import { shardfileValidationRevision } from './shardfile-validation-revision.mjs
 import { admitColossusNative } from './colossus-native-admission.mjs';
 
 /** Compile the unchanged Colossus decision using the exact native candidate and normal SDK admission. */
-export async function buildColossusNativePreview(destination = resolve(import.meta.dirname, '../tmp/colossus-native-preview/motion1')) {
+export async function buildColossusNativePreview(destination = resolve(import.meta.dirname, '../tmp/colossus-native-preview/motion2')) {
   assertHeavyLease('build');
   const root = resolve(import.meta.dirname, '..'), project = resolve(root, 'src/shards/driftwood-isle');
   if (existsSync(destination) && readdirSync(destination).length > 0) throw new Error('Colossus output must be new or empty');
@@ -47,7 +47,7 @@ export async function buildColossusNativePreview(destination = resolve(import.me
   const product = await author.buildColossusNativePreviewProduct(project, productDirectory, { decisionLegacyLines: lines }, metadata);
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   writeFileSync(resolve(destination, 'preview.json'), JSON.stringify({
-    schema: 'wildshard.colossus.native-preview.v1', candidate: receipt.candidate, mode: 'motion1',
+    schema: 'wildshard.colossus.native-preview.v1', candidate: receipt.candidate, mode: 'motion2',
     admission: receipt, metadataSha256: hash(readFileSync(resolve(packed, 'metadata.json'))),
     packedSha256: hash(payload), bodyFile: metadata.file, sourceHash: product.index.build.sourceHash,
     colliderAcceptance: false, visualAcceptance: false, runtimeAcceptance: false,

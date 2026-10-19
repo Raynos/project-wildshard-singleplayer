@@ -1,0 +1,3736 @@
+{
+  "vertices": 7338,
+  "blended": 94,
+  "scope": "Offline exact canonical four-weight FK, recorded actor world transforms; no browser/current-host/ragdoll acceptance",
+  "summaries": {
+    "denseDeath": {
+      "samples": 5775,
+      "min": 0.002204350434644068,
+      "max": 0.0041017491085688414,
+      "penetrating": 0,
+      "withoutNear2cm": 0
+    },
+    "denseLiving": {
+      "samples": 1815,
+      "min": 0.002249999999999891,
+      "max": 0.006222121268510655,
+      "penetrating": 0,
+      "withoutNear2cm": 0
+    },
+    "traceLiving": {
+      "samples": 584,
+      "min": 0.0030000000000427463,
+      "max": 0.004977697014851401,
+      "penetrating": 0,
+      "withoutNear2cm": 0
+    },
+    "baselineLiving": {
+      "samples": 584,
+      "min": 0.0027652522975358806,
+      "max": 0.08731285040391867,
+      "penetrating": 0,
+      "withoutNear2cm": 546
+    },
+    "traceCollapse": {
+      "samples": 9,
+      "min": 0.0029777680664437867,
+      "max": 0.003002307443011887,
+      "penetrating": 0,
+      "withoutNear2cm": 0
+    },
+    "baselineCollapse": {
+      "samples": 9,
+      "min": 0.02500332190197696,
+      "max": 0.13818223975147248,
+      "penetrating": 0,
+      "withoutNear2cm": 9
+    },
+    "traceCorpse": {
+      "samples": 141,
+      "min": 0.0029999999999290594,
+      "max": 0.0029999999999290594,
+      "penetrating": 0,
+      "withoutNear2cm": 0
+    },
+    "baselineCorpse": {
+      "samples": 141,
+      "min": 0.15036534208161356,
+      "max": 0.15036534208161356,
+      "penetrating": 0,
+      "withoutNear2cm": 141
+    }
+  },
+  "failures": [],
+  "replayRows": [
+    {
+      "frame": 4,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06879091086102562
+    },
+    {
+      "frame": 5,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07059542213676195
+    },
+    {
+      "frame": 6,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07253313178500775
+    },
+    {
+      "frame": 7,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07474683015232131
+    },
+    {
+      "frame": 8,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08310224513968478
+    },
+    {
+      "frame": 9,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08561291854971387
+    },
+    {
+      "frame": 10,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08173604085379793
+    },
+    {
+      "frame": 11,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07277051789913003
+    },
+    {
+      "frame": 12,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06129210118456285
+    },
+    {
+      "frame": 13,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05442743070489087
+    },
+    {
+      "frame": 14,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.052866506268287594
+    },
+    {
+      "frame": 15,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05213734525921154
+    },
+    {
+      "frame": 16,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.051709542185562896
+    },
+    {
+      "frame": 17,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05157596392666619
+    },
+    {
+      "frame": 18,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.051490878757704195
+    },
+    {
+      "frame": 19,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05222698449222207
+    },
+    {
+      "frame": 20,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0574908796654654
+    },
+    {
+      "frame": 21,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06850779517674255
+    },
+    {
+      "frame": 22,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07698201462210363
+    },
+    {
+      "frame": 23,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08123068068846351
+    },
+    {
+      "frame": 24,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07928379044835765
+    },
+    {
+      "frame": 25,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07613543401180323
+    },
+    {
+      "frame": 26,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06608317723953405
+    },
+    {
+      "frame": 27,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05415506012911919
+    },
+    {
+      "frame": 28,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.04520794816846774
+    },
+    {
+      "frame": 29,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.043774446086445096
+    },
+    {
+      "frame": 30,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.04265735832120754
+    },
+    {
+      "frame": 31,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.041352879899591244
+    },
+    {
+      "frame": 32,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.040725325334506124
+    },
+    {
+      "frame": 33,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.04058745327893121
+    },
+    {
+      "frame": 34,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.04066780979576379
+    },
+    {
+      "frame": 35,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.04166906418856797
+    },
+    {
+      "frame": 36,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.04320114354300131
+    },
+    {
+      "frame": 37,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05326176790117643
+    },
+    {
+      "frame": 38,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06421294206222683
+    },
+    {
+      "frame": 39,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06618297749298563
+    },
+    {
+      "frame": 40,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07447144352704527
+    },
+    {
+      "frame": 41,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07722704768025324
+    },
+    {
+      "frame": 42,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07453022020092703
+    },
+    {
+      "frame": 43,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06724086970450571
+    },
+    {
+      "frame": 44,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.059101329432905914
+    },
+    {
+      "frame": 45,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.04884333614768366
+    },
+    {
+      "frame": 46,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.047717457982798805
+    },
+    {
+      "frame": 47,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.04780621311613231
+    },
+    {
+      "frame": 48,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.0485510406283538
+    },
+    {
+      "frame": 49,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.04955187163557184
+    },
+    {
+      "frame": 50,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05096619245045986
+    },
+    {
+      "frame": 51,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05331622490984955
+    },
+    {
+      "frame": 52,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.054466949300717715
+    },
+    {
+      "frame": 53,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06289151038504315
+    },
+    {
+      "frame": 54,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0746861195823385
+    },
+    {
+      "frame": 55,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08341737268449378
+    },
+    {
+      "frame": 56,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08731285040391867
+    },
+    {
+      "frame": 57,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08536690394043944
+    },
+    {
+      "frame": 58,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07836900837401117
+    },
+    {
+      "frame": 59,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06817657360261364
+    },
+    {
+      "frame": 60,
+      "minimum": 0.0034163111890848086,
+      "baselineMinimum": 0.055239540499087525
+    },
+    {
+      "frame": 61,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05207711406148974
+    },
+    {
+      "frame": 62,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05026462440548585
+    },
+    {
+      "frame": 63,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.049430984489163166
+    },
+    {
+      "frame": 64,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.048650772360247174
+    },
+    {
+      "frame": 65,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.048870592691400816
+    },
+    {
+      "frame": 66,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.04813896601478973
+    },
+    {
+      "frame": 67,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.047992433006015744
+    },
+    {
+      "frame": 68,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.048040645209539434
+    },
+    {
+      "frame": 69,
+      "minimum": 0.003681725856722551,
+      "baselineMinimum": 0.048084246720350166
+    },
+    {
+      "frame": 70,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04739189182953396
+    },
+    {
+      "frame": 71,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04874811929994394
+    },
+    {
+      "frame": 72,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.050781690117560174
+    },
+    {
+      "frame": 73,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.050612507674372864
+    },
+    {
+      "frame": 74,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05259659914452186
+    },
+    {
+      "frame": 75,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03279607102138016
+    },
+    {
+      "frame": 76,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.026094170842270614
+    },
+    {
+      "frame": 77,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.026019269430889835
+    },
+    {
+      "frame": 78,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0027652522975358806
+    },
+    {
+      "frame": 79,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.004488099660534317
+    },
+    {
+      "frame": 80,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.008937315556750036
+    },
+    {
+      "frame": 81,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.015488608829059558
+    },
+    {
+      "frame": 82,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.023495206943948688
+    },
+    {
+      "frame": 83,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03135685114170883
+    },
+    {
+      "frame": 84,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.031468173711687086
+    },
+    {
+      "frame": 85,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.037948472137372846
+    },
+    {
+      "frame": 86,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03879090711552635
+    },
+    {
+      "frame": 87,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044572794932946636
+    },
+    {
+      "frame": 88,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.049061934919336636
+    },
+    {
+      "frame": 89,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.051288256442262536
+    },
+    {
+      "frame": 90,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.052232361370215585
+    },
+    {
+      "frame": 91,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.053177176664348735
+    },
+    {
+      "frame": 92,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05404390046567187
+    },
+    {
+      "frame": 93,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.054807544722848434
+    },
+    {
+      "frame": 94,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.055380821317839946
+    },
+    {
+      "frame": 95,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05589287677298671
+    },
+    {
+      "frame": 96,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05622179502177005
+    },
+    {
+      "frame": 97,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05641722666257465
+    },
+    {
+      "frame": 98,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056466852104335885
+    },
+    {
+      "frame": 99,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05646270812997045
+    },
+    {
+      "frame": 100,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056336525826964134
+    },
+    {
+      "frame": 101,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0560986679730604
+    },
+    {
+      "frame": 102,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.051419228157215
+    },
+    {
+      "frame": 103,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06255170432359591
+    },
+    {
+      "frame": 104,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06359290111163318
+    },
+    {
+      "frame": 105,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07217068191664566
+    },
+    {
+      "frame": 106,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0789200090811164
+    },
+    {
+      "frame": 107,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08115105250101351
+    },
+    {
+      "frame": 108,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08550547706317957
+    },
+    {
+      "frame": 109,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0835229903191248
+    },
+    {
+      "frame": 110,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07681181328939601
+    },
+    {
+      "frame": 111,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06600539545729589
+    },
+    {
+      "frame": 112,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0507203978185089
+    },
+    {
+      "frame": 113,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.061874876612932894
+    },
+    {
+      "frame": 114,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06327058803208274
+    },
+    {
+      "frame": 115,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05277594102722105
+    },
+    {
+      "frame": 116,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05350644156430917
+    },
+    {
+      "frame": 117,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05642068266536171
+    },
+    {
+      "frame": 118,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05984455766804331
+    },
+    {
+      "frame": 119,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06255370553492412
+    },
+    {
+      "frame": 120,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06301878333340483
+    },
+    {
+      "frame": 121,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04407044550293904
+    },
+    {
+      "frame": 122,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03145438179569737
+    },
+    {
+      "frame": 123,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06564891043035459
+    },
+    {
+      "frame": 124,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06438717647256453
+    },
+    {
+      "frame": 125,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.061673670716572815
+    },
+    {
+      "frame": 126,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06007472912904177
+    },
+    {
+      "frame": 127,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.058736396840913585
+    },
+    {
+      "frame": 128,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05710183548637815
+    },
+    {
+      "frame": 129,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.059242447960173195
+    },
+    {
+      "frame": 130,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.061459412773047006
+    },
+    {
+      "frame": 131,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06103601746747245
+    },
+    {
+      "frame": 132,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06050336855957994
+    },
+    {
+      "frame": 133,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04085250719958822
+    },
+    {
+      "frame": 134,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.033454555862249435
+    },
+    {
+      "frame": 135,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04157214852693869
+    },
+    {
+      "frame": 136,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.008639186630034601
+    },
+    {
+      "frame": 137,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.010511091561738795
+    },
+    {
+      "frame": 138,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.01478607863509751
+    },
+    {
+      "frame": 139,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.02070094526959565
+    },
+    {
+      "frame": 140,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.028269557741737117
+    },
+    {
+      "frame": 141,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.027602925157452773
+    },
+    {
+      "frame": 142,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.033006685579380246
+    },
+    {
+      "frame": 143,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.037964185603982514
+    },
+    {
+      "frame": 144,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.041955970748176696
+    },
+    {
+      "frame": 145,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044232693505364296
+    },
+    {
+      "frame": 146,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044507043609769426
+    },
+    {
+      "frame": 147,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0445932010575234
+    },
+    {
+      "frame": 148,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04484985733370195
+    },
+    {
+      "frame": 149,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04495640581126281
+    },
+    {
+      "frame": 150,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04542185925231479
+    },
+    {
+      "frame": 151,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045987993577568886
+    },
+    {
+      "frame": 152,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04615204238621118
+    },
+    {
+      "frame": 153,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04691307396990396
+    },
+    {
+      "frame": 154,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04761551976582723
+    },
+    {
+      "frame": 155,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04854664232016148
+    },
+    {
+      "frame": 156,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04953428414830796
+    },
+    {
+      "frame": 157,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05053875129442531
+    },
+    {
+      "frame": 158,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05155337413566485
+    },
+    {
+      "frame": 159,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05246086143631601
+    },
+    {
+      "frame": 160,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05331975287219848
+    },
+    {
+      "frame": 161,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05351683745755054
+    },
+    {
+      "frame": 162,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0543515890915387
+    },
+    {
+      "frame": 163,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05507550067761713
+    },
+    {
+      "frame": 164,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0752617053802851
+    },
+    {
+      "frame": 165,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06927719536224686
+    },
+    {
+      "frame": 166,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05895781398373856
+    },
+    {
+      "frame": 167,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.055094083609560585
+    },
+    {
+      "frame": 168,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05416265397809639
+    },
+    {
+      "frame": 169,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05369914552068167
+    },
+    {
+      "frame": 170,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05333543182757694
+    },
+    {
+      "frame": 171,
+      "minimum": 0.004977697014851401,
+      "baselineMinimum": 0.05314151779089116
+    },
+    {
+      "frame": 172,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05474093427505977
+    },
+    {
+      "frame": 173,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056158543010383255
+    },
+    {
+      "frame": 174,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05794555521413258
+    },
+    {
+      "frame": 175,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.059534516579674346
+    },
+    {
+      "frame": 176,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05939766717358452
+    },
+    {
+      "frame": 177,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03897223440435482
+    },
+    {
+      "frame": 178,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.031580609447019015
+    },
+    {
+      "frame": 179,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03134598430256119
+    },
+    {
+      "frame": 180,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.030466603912373103
+    },
+    {
+      "frame": 181,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05148362594138689
+    },
+    {
+      "frame": 182,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06261336456179833
+    },
+    {
+      "frame": 183,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06386809420803274
+    },
+    {
+      "frame": 184,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06051079999815556
+    },
+    {
+      "frame": 185,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0542949691529202
+    },
+    {
+      "frame": 186,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.057205048161222294
+    },
+    {
+      "frame": 187,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06031770569836681
+    },
+    {
+      "frame": 188,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06335374066281929
+    },
+    {
+      "frame": 189,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044295022629285086
+    },
+    {
+      "frame": 190,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07080577285330492
+    },
+    {
+      "frame": 191,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06736294442032431
+    },
+    {
+      "frame": 192,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06420139686781567
+    },
+    {
+      "frame": 193,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06370758290074718
+    },
+    {
+      "frame": 194,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.061118753596360875
+    },
+    {
+      "frame": 195,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05942051143881599
+    },
+    {
+      "frame": 196,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05873300129769632
+    },
+    {
+      "frame": 197,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05695216912340584
+    },
+    {
+      "frame": 198,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05805431334579225
+    },
+    {
+      "frame": 199,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05780484803062791
+    },
+    {
+      "frame": 200,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.059945346534505006
+    },
+    {
+      "frame": 201,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.040266747089049204
+    },
+    {
+      "frame": 202,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03284129507653688
+    },
+    {
+      "frame": 203,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0409559491457685
+    },
+    {
+      "frame": 204,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06366256925309699
+    },
+    {
+      "frame": 205,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05804361898970001
+    },
+    {
+      "frame": 206,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05493077851349426
+    },
+    {
+      "frame": 207,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05182262753999112
+    },
+    {
+      "frame": 208,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.049813525056833896
+    },
+    {
+      "frame": 209,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04796521611990556
+    },
+    {
+      "frame": 210,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.046432832664208945
+    },
+    {
+      "frame": 211,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045489101671932985
+    },
+    {
+      "frame": 212,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04496073430652814
+    },
+    {
+      "frame": 213,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04474583396131493
+    },
+    {
+      "frame": 214,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04477466746425307
+    },
+    {
+      "frame": 215,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045014835831693745
+    },
+    {
+      "frame": 216,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.059748019572452904
+    },
+    {
+      "frame": 217,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05479585464536285
+    },
+    {
+      "frame": 218,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05249881961742631
+    },
+    {
+      "frame": 219,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05174206502351808
+    },
+    {
+      "frame": 220,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05166593707883749
+    },
+    {
+      "frame": 221,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05131764770965219
+    },
+    {
+      "frame": 222,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.051464587494592706
+    },
+    {
+      "frame": 223,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.051918561947900344
+    },
+    {
+      "frame": 224,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05252615490599055
+    },
+    {
+      "frame": 225,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.053253301299832856
+    },
+    {
+      "frame": 226,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05391593089700564
+    },
+    {
+      "frame": 227,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05464878839040921
+    },
+    {
+      "frame": 228,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05529324185283713
+    },
+    {
+      "frame": 229,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05581711857917071
+    },
+    {
+      "frame": 230,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05619847898299213
+    },
+    {
+      "frame": 231,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07592866765094186
+    },
+    {
+      "frame": 232,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06783962027907364
+    },
+    {
+      "frame": 233,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06560160079379784
+    },
+    {
+      "frame": 234,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06232574881153141
+    },
+    {
+      "frame": 235,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.060631426375039155
+    },
+    {
+      "frame": 236,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05916681128064738
+    },
+    {
+      "frame": 237,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05743389943370403
+    },
+    {
+      "frame": 238,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.055845323961762006
+    },
+    {
+      "frame": 239,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05464384632171004
+    },
+    {
+      "frame": 240,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.053437204173519604
+    },
+    {
+      "frame": 241,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.052294333242912217
+    },
+    {
+      "frame": 242,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.051184853051950086
+    },
+    {
+      "frame": 243,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0501043078982093
+    },
+    {
+      "frame": 244,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04976814101007676
+    },
+    {
+      "frame": 245,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.048742643490754745
+    },
+    {
+      "frame": 246,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.047798019866490904
+    },
+    {
+      "frame": 247,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06124836335470718
+    },
+    {
+      "frame": 248,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.055375334304130774
+    },
+    {
+      "frame": 249,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05451906207417778
+    },
+    {
+      "frame": 250,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05123823863709731
+    },
+    {
+      "frame": 251,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04911139558737432
+    },
+    {
+      "frame": 252,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04802764649764413
+    },
+    {
+      "frame": 253,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04664533057666631
+    },
+    {
+      "frame": 254,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045695015947558204
+    },
+    {
+      "frame": 255,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04531207144657401
+    },
+    {
+      "frame": 256,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04528559693153511
+    },
+    {
+      "frame": 257,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045477847741267396
+    },
+    {
+      "frame": 258,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045869811711213515
+    },
+    {
+      "frame": 259,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04648541386427496
+    },
+    {
+      "frame": 260,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04721620565669582
+    },
+    {
+      "frame": 261,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04808687835861747
+    },
+    {
+      "frame": 262,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.057220812276455035
+    },
+    {
+      "frame": 263,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.042226576790881154
+    },
+    {
+      "frame": 264,
+      "minimum": 0.003002307443011887,
+      "baselineMinimum": 0.0398596347097282
+    },
+    {
+      "frame": 265,
+      "minimum": 0.0029847865257579542,
+      "baselineMinimum": 0.02500332190197696
+    },
+    {
+      "frame": 266,
+      "minimum": 0.0029777680664437867,
+      "baselineMinimum": 0.033597043995428066
+    },
+    {
+      "frame": 267,
+      "minimum": 0.0029890447510751983,
+      "baselineMinimum": 0.05976606103138238
+    },
+    {
+      "frame": 268,
+      "minimum": 0.0029939527590840953,
+      "baselineMinimum": 0.10168341712426354
+    },
+    {
+      "frame": 269,
+      "minimum": 0.002999482530753994,
+      "baselineMinimum": 0.13818223975147248
+    },
+    {
+      "frame": 270,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 271,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 272,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 273,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 274,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 275,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 276,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 277,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 278,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 279,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 280,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 281,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 282,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 283,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 284,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 285,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 286,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 287,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 288,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 289,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 290,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 291,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 292,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 293,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 294,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 295,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 296,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 297,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 298,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 299,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 300,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 301,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 302,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 303,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 304,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 305,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 306,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 307,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 308,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 309,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 310,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 311,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 312,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 313,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 314,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 315,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 316,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 317,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 318,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 319,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 320,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 321,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 322,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 323,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 324,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 325,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 326,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 327,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 328,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 329,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 330,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 331,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 332,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 333,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 334,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 335,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 336,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 337,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 338,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 339,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 340,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 341,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 342,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 343,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 344,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 345,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 346,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 347,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 348,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 349,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 350,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 351,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 352,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 353,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 354,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 355,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 356,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 357,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 358,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 359,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 360,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 361,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 362,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 363,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 364,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 365,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 366,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 367,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 368,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 369,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 370,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 371,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 372,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 373,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 374,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 375,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 376,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 377,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 378,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 379,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 380,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 381,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 382,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 383,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 384,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 385,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 386,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 387,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 388,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 389,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 390,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 391,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 392,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 393,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 394,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 395,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 396,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 397,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 398,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 399,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 400,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 401,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 402,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 403,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 404,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 405,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 406,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 407,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 408,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 409,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 410,
+      "minimum": 0.0029999999999290594,
+      "baselineMinimum": 0.15036534208161356
+    },
+    {
+      "frame": 411,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05145747840299464
+    },
+    {
+      "frame": 412,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06258834324410145
+    },
+    {
+      "frame": 413,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06544079779803269
+    },
+    {
+      "frame": 414,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07287641490563601
+    },
+    {
+      "frame": 415,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.07842770832724
+    },
+    {
+      "frame": 416,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08477671705065859
+    },
+    {
+      "frame": 417,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08545290372228465
+    },
+    {
+      "frame": 418,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08515813447695564
+    },
+    {
+      "frame": 419,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0556421065576842
+    },
+    {
+      "frame": 420,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056025763512252524
+    },
+    {
+      "frame": 421,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05846551989850468
+    },
+    {
+      "frame": 422,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06131249145369111
+    },
+    {
+      "frame": 423,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06386488381679101
+    },
+    {
+      "frame": 424,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044307786686545114
+    },
+    {
+      "frame": 425,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0376312327832693
+    },
+    {
+      "frame": 426,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03719201053741017
+    },
+    {
+      "frame": 427,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.013300477133043387
+    },
+    {
+      "frame": 428,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.013070032581140367
+    },
+    {
+      "frame": 429,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.013833180200890638
+    },
+    {
+      "frame": 430,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.017242294220977783
+    },
+    {
+      "frame": 431,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.022385985070513925
+    },
+    {
+      "frame": 432,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.028823817393686113
+    },
+    {
+      "frame": 433,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0349014382883297
+    },
+    {
+      "frame": 434,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03963969141545931
+    },
+    {
+      "frame": 435,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.043637646317392864
+    },
+    {
+      "frame": 436,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04622137842864049
+    },
+    {
+      "frame": 437,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04600919029189754
+    },
+    {
+      "frame": 438,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04671241894402556
+    },
+    {
+      "frame": 439,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.046061866709806054
+    },
+    {
+      "frame": 440,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045484787930377024
+    },
+    {
+      "frame": 441,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04508096848974219
+    },
+    {
+      "frame": 442,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044738091447015904
+    },
+    {
+      "frame": 443,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04456008799593292
+    },
+    {
+      "frame": 444,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044472996306467394
+    },
+    {
+      "frame": 445,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04452027176705542
+    },
+    {
+      "frame": 446,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04473903833888926
+    },
+    {
+      "frame": 447,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045046481921986015
+    },
+    {
+      "frame": 448,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04555932461937573
+    },
+    {
+      "frame": 449,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04605089662584305
+    },
+    {
+      "frame": 450,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.046628822108800705
+    },
+    {
+      "frame": 451,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04739821321652471
+    },
+    {
+      "frame": 452,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04831459311969866
+    },
+    {
+      "frame": 453,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.049293072080558886
+    },
+    {
+      "frame": 454,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.049487721569448695
+    },
+    {
+      "frame": 455,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05032175464737065
+    },
+    {
+      "frame": 456,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05115054274233444
+    },
+    {
+      "frame": 457,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05214922639652286
+    },
+    {
+      "frame": 458,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.052334358854636776
+    },
+    {
+      "frame": 459,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05545558724588773
+    },
+    {
+      "frame": 460,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.058784843556964006
+    },
+    {
+      "frame": 461,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06194658953825183
+    },
+    {
+      "frame": 462,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06251188487044601
+    },
+    {
+      "frame": 463,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04361701281777641
+    },
+    {
+      "frame": 464,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03757430553037011
+    },
+    {
+      "frame": 465,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03787705819513576
+    },
+    {
+      "frame": 466,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.014691239859189409
+    },
+    {
+      "frame": 467,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.016233193276548263
+    },
+    {
+      "frame": 468,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.020269522966373188
+    },
+    {
+      "frame": 469,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.020064809452151167
+    },
+    {
+      "frame": 470,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.025742251312180997
+    },
+    {
+      "frame": 471,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.032657154420462575
+    },
+    {
+      "frame": 472,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03920880473162924
+    },
+    {
+      "frame": 473,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044259477919126766
+    },
+    {
+      "frame": 474,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04868277382809083
+    },
+    {
+      "frame": 475,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04794761516575363
+    },
+    {
+      "frame": 476,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.050670514610715145
+    },
+    {
+      "frame": 477,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.051178690961023676
+    },
+    {
+      "frame": 478,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.050385782235025545
+    },
+    {
+      "frame": 479,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.049521733635174314
+    },
+    {
+      "frame": 480,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04853300582863085
+    },
+    {
+      "frame": 481,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04833058030567372
+    },
+    {
+      "frame": 482,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04754647717277294
+    },
+    {
+      "frame": 483,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04670201924864159
+    },
+    {
+      "frame": 484,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045966151638594965
+    },
+    {
+      "frame": 485,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045360089748896826
+    },
+    {
+      "frame": 486,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044901306626343285
+    },
+    {
+      "frame": 487,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04472051919833575
+    },
+    {
+      "frame": 488,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04452685493754416
+    },
+    {
+      "frame": 489,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044469057278433866
+    },
+    {
+      "frame": 490,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04451257215885107
+    },
+    {
+      "frame": 491,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04472119311139977
+    },
+    {
+      "frame": 492,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04501165427348042
+    },
+    {
+      "frame": 493,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04541009805041085
+    },
+    {
+      "frame": 494,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04594886920881436
+    },
+    {
+      "frame": 495,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04657041904761172
+    },
+    {
+      "frame": 496,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04737640817279498
+    },
+    {
+      "frame": 497,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0504742542391341
+    },
+    {
+      "frame": 498,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05413987422025457
+    },
+    {
+      "frame": 499,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05752255873676404
+    },
+    {
+      "frame": 500,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.039080074248886376
+    },
+    {
+      "frame": 501,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03361381992999668
+    },
+    {
+      "frame": 502,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.034537882995664404
+    },
+    {
+      "frame": 503,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.011929071650342848
+    },
+    {
+      "frame": 504,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.014263881614397178
+    },
+    {
+      "frame": 505,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.01439297220838398
+    },
+    {
+      "frame": 506,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.014883328012160746
+    },
+    {
+      "frame": 507,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.019573214933870986
+    },
+    {
+      "frame": 508,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.02599480293849865
+    },
+    {
+      "frame": 509,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03362139358273453
+    },
+    {
+      "frame": 510,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04087640716534224
+    },
+    {
+      "frame": 511,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04663392615827888
+    },
+    {
+      "frame": 512,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.051493102797394386
+    },
+    {
+      "frame": 513,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05479263795700717
+    },
+    {
+      "frame": 514,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05446595428634282
+    },
+    {
+      "frame": 515,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05524585856551312
+    },
+    {
+      "frame": 516,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05462580181585963
+    },
+    {
+      "frame": 517,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05400579140882655
+    },
+    {
+      "frame": 518,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.053317841401053556
+    },
+    {
+      "frame": 519,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.052574669100749816
+    },
+    {
+      "frame": 520,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0516668583882165
+    },
+    {
+      "frame": 521,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05089838289711679
+    },
+    {
+      "frame": 522,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05011457707712452
+    },
+    {
+      "frame": 523,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.049262778211073055
+    },
+    {
+      "frame": 524,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04846932482973898
+    },
+    {
+      "frame": 525,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04768728894123342
+    },
+    {
+      "frame": 526,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04695898600380133
+    },
+    {
+      "frame": 527,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.046814162959094574
+    },
+    {
+      "frame": 528,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04617625630191924
+    },
+    {
+      "frame": 529,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04556560607568372
+    },
+    {
+      "frame": 530,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04514337843352223
+    },
+    {
+      "frame": 531,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04476718284490744
+    },
+    {
+      "frame": 532,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044533101301794886
+    },
+    {
+      "frame": 533,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044507963454179844
+    },
+    {
+      "frame": 534,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04447269861395853
+    },
+    {
+      "frame": 535,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04459695415766873
+    },
+    {
+      "frame": 536,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.047013355320927985
+    },
+    {
+      "frame": 537,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05005582129444974
+    },
+    {
+      "frame": 538,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.053009330155759926
+    },
+    {
+      "frame": 539,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.053506732104779076
+    },
+    {
+      "frame": 540,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03475004256893044
+    },
+    {
+      "frame": 541,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.028961291059317773
+    },
+    {
+      "frame": 542,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.029310083977748036
+    },
+    {
+      "frame": 543,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.029747032104523896
+    },
+    {
+      "frame": 544,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.00738340702446294
+    },
+    {
+      "frame": 545,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.009600292175719005
+    },
+    {
+      "frame": 546,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.010409959946514391
+    },
+    {
+      "frame": 547,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.015357489815983172
+    },
+    {
+      "frame": 548,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.02219418160495934
+    },
+    {
+      "frame": 549,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03032959078029762
+    },
+    {
+      "frame": 550,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.038148543264696855
+    },
+    {
+      "frame": 551,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03882115231840544
+    },
+    {
+      "frame": 552,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045141153617805685
+    },
+    {
+      "frame": 553,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04525283145460435
+    },
+    {
+      "frame": 554,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05082107740315678
+    },
+    {
+      "frame": 555,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05476799889402173
+    },
+    {
+      "frame": 556,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05634084705252462
+    },
+    {
+      "frame": 557,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05646000088324854
+    },
+    {
+      "frame": 558,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05644471635037007
+    },
+    {
+      "frame": 559,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05626821493842726
+    },
+    {
+      "frame": 560,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.055924505959296766
+    },
+    {
+      "frame": 561,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05589832470593592
+    },
+    {
+      "frame": 562,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0554594514863993
+    },
+    {
+      "frame": 563,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05498273634020734
+    },
+    {
+      "frame": 564,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.054314339137022216
+    },
+    {
+      "frame": 565,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05347974748872275
+    },
+    {
+      "frame": 566,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.052624168790771364
+    },
+    {
+      "frame": 567,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05171670076128976
+    },
+    {
+      "frame": 568,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05147125607140879
+    },
+    {
+      "frame": 569,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.050641599289861006
+    },
+    {
+      "frame": 570,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.049800491295059146
+    },
+    {
+      "frame": 571,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04882977393242527
+    },
+    {
+      "frame": 572,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04787689864292588
+    },
+    {
+      "frame": 573,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.047599925280906064
+    },
+    {
+      "frame": 574,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04674971488509527
+    },
+    {
+      "frame": 575,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0460067197158196
+    },
+    {
+      "frame": 576,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.047575720327699855
+    },
+    {
+      "frame": 577,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04724328534234701
+    },
+    {
+      "frame": 578,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04957015265881637
+    },
+    {
+      "frame": 579,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04953212710711341
+    },
+    {
+      "frame": 580,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05192781693529014
+    },
+    {
+      "frame": 581,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03249134532950393
+    },
+    {
+      "frame": 582,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.02609820227723958
+    },
+    {
+      "frame": 583,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.02634953493395642
+    },
+    {
+      "frame": 584,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.02641716051448384
+    },
+    {
+      "frame": 585,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0034700456930067958
+    },
+    {
+      "frame": 586,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.005523511861269981
+    },
+    {
+      "frame": 587,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.010165079434045765
+    },
+    {
+      "frame": 588,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.017026613745997565
+    },
+    {
+      "frame": 589,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.017300868750567133
+    },
+    {
+      "frame": 590,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.025572967022981175
+    },
+    {
+      "frame": 591,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.02577323232674189
+    },
+    {
+      "frame": 592,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03365816953566991
+    },
+    {
+      "frame": 593,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04014079994749409
+    },
+    {
+      "frame": 594,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04093161119897104
+    },
+    {
+      "frame": 595,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04692558513431777
+    },
+    {
+      "frame": 596,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05141054347006957
+    },
+    {
+      "frame": 597,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.053484729192291525
+    },
+    {
+      "frame": 598,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05431875945669162
+    },
+    {
+      "frame": 599,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.054937186513257075
+    },
+    {
+      "frame": 600,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05555015712616296
+    },
+    {
+      "frame": 601,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056016622113361336
+    },
+    {
+      "frame": 602,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056255920401326875
+    },
+    {
+      "frame": 603,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05644032258180687
+    },
+    {
+      "frame": 604,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05646483989198714
+    },
+    {
+      "frame": 605,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05634279703622269
+    },
+    {
+      "frame": 606,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0560513963765743
+    },
+    {
+      "frame": 607,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05564138890599679
+    },
+    {
+      "frame": 608,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05505250802013961
+    },
+    {
+      "frame": 609,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05443657213515962
+    },
+    {
+      "frame": 610,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0537334732571253
+    },
+    {
+      "frame": 611,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0529290781016698
+    },
+    {
+      "frame": 612,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05198260742929506
+    },
+    {
+      "frame": 613,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05118754303384776
+    },
+    {
+      "frame": 614,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05091041470791424
+    },
+    {
+      "frame": 615,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05010931008996522
+    },
+    {
+      "frame": 616,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05128457482965132
+    },
+    {
+      "frame": 617,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0531288458535073
+    },
+    {
+      "frame": 618,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.054832408306992875
+    },
+    {
+      "frame": 619,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0347687125469065
+    },
+    {
+      "frame": 620,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.02755760060222201
+    },
+    {
+      "frame": 621,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.027097407744690827
+    },
+    {
+      "frame": 622,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.026631953111404982
+    },
+    {
+      "frame": 623,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0030000059826988945
+    },
+    {
+      "frame": 624,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.004341371661212179
+    },
+    {
+      "frame": 625,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.004317190248002589
+    },
+    {
+      "frame": 626,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0083634313401717
+    },
+    {
+      "frame": 627,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.008365428064962543
+    },
+    {
+      "frame": 628,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.014555012730738781
+    },
+    {
+      "frame": 629,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.022105652222535355
+    },
+    {
+      "frame": 630,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.029502385255682384
+    },
+    {
+      "frame": 631,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03577918135897562
+    },
+    {
+      "frame": 632,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03631807514113916
+    },
+    {
+      "frame": 633,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04206752140999015
+    },
+    {
+      "frame": 634,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04581623368187593
+    },
+    {
+      "frame": 635,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04803410164970501
+    },
+    {
+      "frame": 636,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04891406936042131
+    },
+    {
+      "frame": 637,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04987934367352409
+    },
+    {
+      "frame": 638,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.050033813870413724
+    },
+    {
+      "frame": 639,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0508634269782533
+    },
+    {
+      "frame": 640,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05187062762604455
+    },
+    {
+      "frame": 641,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05269134342813686
+    },
+    {
+      "frame": 642,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.053583007920792625
+    },
+    {
+      "frame": 643,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05438955110957977
+    },
+    {
+      "frame": 644,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05510137752526134
+    },
+    {
+      "frame": 645,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.055202730144856105
+    },
+    {
+      "frame": 646,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05575810939319581
+    },
+    {
+      "frame": 647,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056160987655061945
+    },
+    {
+      "frame": 648,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0563997497621358
+    },
+    {
+      "frame": 649,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056467512091785466
+    },
+    {
+      "frame": 650,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056362321024380435
+    },
+    {
+      "frame": 651,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056135709120212596
+    },
+    {
+      "frame": 652,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.055796647060560645
+    },
+    {
+      "frame": 653,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05525309430879588
+    },
+    {
+      "frame": 654,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.054571600390659114
+    },
+    {
+      "frame": 655,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05605833792105841
+    },
+    {
+      "frame": 656,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.058058305046756686
+    },
+    {
+      "frame": 657,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.059839306332150954
+    },
+    {
+      "frame": 658,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05951527775835075
+    },
+    {
+      "frame": 659,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03946662205839857
+    },
+    {
+      "frame": 660,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03877937402387488
+    },
+    {
+      "frame": 661,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.031440513057077624
+    },
+    {
+      "frame": 662,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.030625206213926504
+    },
+    {
+      "frame": 663,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.006354760712952157
+    },
+    {
+      "frame": 664,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.007355274380756782
+    },
+    {
+      "frame": 665,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.006710422885021217
+    },
+    {
+      "frame": 666,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.010065094759283966
+    },
+    {
+      "frame": 667,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.015529507562632716
+    },
+    {
+      "frame": 668,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.022438348970467814
+    },
+    {
+      "frame": 669,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.02915316498535958
+    },
+    {
+      "frame": 670,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03472331255761674
+    },
+    {
+      "frame": 671,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03963186253497497
+    },
+    {
+      "frame": 672,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04318893247386768
+    },
+    {
+      "frame": 673,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04321243893286919
+    },
+    {
+      "frame": 674,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.043359443465419645
+    },
+    {
+      "frame": 675,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045037965022061144
+    },
+    {
+      "frame": 676,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045119025612279984
+    },
+    {
+      "frame": 677,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04553739394418699
+    },
+    {
+      "frame": 678,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.046023686291619015
+    },
+    {
+      "frame": 679,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04659711725503257
+    },
+    {
+      "frame": 680,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04742843975031974
+    },
+    {
+      "frame": 681,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04834740951798722
+    },
+    {
+      "frame": 682,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04932753223124564
+    },
+    {
+      "frame": 683,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0499647545929065
+    },
+    {
+      "frame": 684,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0509296456669972
+    },
+    {
+      "frame": 685,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.051935090545612184
+    },
+    {
+      "frame": 686,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05289825385318636
+    },
+    {
+      "frame": 687,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.053687045496985775
+    },
+    {
+      "frame": 688,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.053825262006171215
+    },
+    {
+      "frame": 689,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05454772020982546
+    },
+    {
+      "frame": 690,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05520027670559102
+    },
+    {
+      "frame": 691,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05574509668667815
+    },
+    {
+      "frame": 692,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05609786882678236
+    },
+    {
+      "frame": 693,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.056362319863865196
+    },
+    {
+      "frame": 694,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05646705629385451
+    },
+    {
+      "frame": 695,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05862496088877833
+    },
+    {
+      "frame": 696,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.061174571002652556
+    },
+    {
+      "frame": 697,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06346624775494547
+    },
+    {
+      "frame": 698,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.043619311294833096
+    },
+    {
+      "frame": 699,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03655222327006413
+    },
+    {
+      "frame": 700,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03626255281437807
+    },
+    {
+      "frame": 701,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.035923759609886474
+    },
+    {
+      "frame": 702,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.03509696208527657
+    },
+    {
+      "frame": 703,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0341813800782802
+    },
+    {
+      "frame": 704,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05170346900786171
+    },
+    {
+      "frame": 705,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05082780378768348
+    },
+    {
+      "frame": 706,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04993926762040246
+    },
+    {
+      "frame": 707,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.048935759994378714
+    },
+    {
+      "frame": 708,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04847764992928205
+    },
+    {
+      "frame": 709,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.047616729072160524
+    },
+    {
+      "frame": 710,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.046856090882783974
+    },
+    {
+      "frame": 711,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04627042613526555
+    },
+    {
+      "frame": 712,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045739897430735255
+    },
+    {
+      "frame": 713,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045259384724772644
+    },
+    {
+      "frame": 714,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04489281484507046
+    },
+    {
+      "frame": 715,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044627575871572844
+    },
+    {
+      "frame": 716,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04449741528537743
+    },
+    {
+      "frame": 717,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044485264702871063
+    },
+    {
+      "frame": 718,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.044469588847391606
+    },
+    {
+      "frame": 719,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04448989894501665
+    },
+    {
+      "frame": 720,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04459702673489119
+    },
+    {
+      "frame": 721,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04482628994787774
+    },
+    {
+      "frame": 722,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04519883995908458
+    },
+    {
+      "frame": 723,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.045760163966292566
+    },
+    {
+      "frame": 724,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04602511609095927
+    },
+    {
+      "frame": 725,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04677129189610696
+    },
+    {
+      "frame": 726,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.047624060852626826
+    },
+    {
+      "frame": 727,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.048383793332163805
+    },
+    {
+      "frame": 728,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0493656951301773
+    },
+    {
+      "frame": 729,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.04979837025564393
+    },
+    {
+      "frame": 730,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05081677313035016
+    },
+    {
+      "frame": 731,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05088802642819701
+    },
+    {
+      "frame": 732,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.05148362594138689
+    },
+    {
+      "frame": 733,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06261336456179833
+    },
+    {
+      "frame": 734,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.06506765293420358
+    },
+    {
+      "frame": 735,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.0734167420475842
+    },
+    {
+      "frame": 736,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08236329846249646
+    },
+    {
+      "frame": 737,
+      "minimum": 0.0030000000000427463,
+      "baselineMinimum": 0.08547699739574455
+    }
+  ]
+}

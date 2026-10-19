@@ -1,0 +1,150 @@
+{
+  "schema": "wildshard.colossus.arena-source-closure.v1",
+  "candidate": "V4-skin1-native22-motion2",
+  "sourceOnly": true,
+  "visualAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false,
+  "worldCorpseContactAccepted": false,
+  "buildRun": false,
+  "browserRun": false,
+  "files": [
+    {
+      "path": "src/shards/driftwood-isle/generators/colossusNativeClips.ts",
+      "sha256": "d08b8c09adfd8148d6562ac26c8a830d2e9d737e0b4af36e484ab481c8d7ec45",
+      "bytes": 5764
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/colossusNativePreview.ts",
+      "sha256": "412e5c9c630cf29a072ae42b26526a3f44ed05f90891c8421376064ce3ce1582",
+      "bytes": 7576
+    },
+    {
+      "path": "scripts/colossus-native-admission.mjs",
+      "sha256": "823b550817357a224f638a0e721a41909b9e670e3c577cc3d0f5abf711092bde",
+      "bytes": 3500
+    },
+    {
+      "path": "scripts/colossus-native-admission.test.mjs",
+      "sha256": "bdb1165bff4b762943349411d0d1f6905c7240fb72ef7289f847f3bff9ab6b15",
+      "bytes": 2161
+    },
+    {
+      "path": "scripts/build-colossus-native-preview.mjs",
+      "sha256": "2d7461d87360a7578c31a6e889fcbde88ddc6ce689ab9114a410870dc6604d9b",
+      "bytes": 5207
+    },
+    {
+      "path": "vite/colossus-native-preview.config.ts",
+      "sha256": "6fff4aae27c1583fedbc03cf7383e35a63bcbad9d22b7229d454bec29a127ff8",
+      "bytes": 7781
+    },
+    {
+      "path": "test/colossus-native-preview.test.ts",
+      "sha256": "0cc892e4a60ad92dcec75c539222d9c4537ec2aeae515b2b7320930b7b6b66d2",
+      "bytes": 6015
+    },
+    {
+      "path": "test/colossus-native-envelope.test.ts",
+      "sha256": "19d5fbcbedb80fb85a192ed2db7f8249982f0cb286c5f05948d36b25a9be7ed4",
+      "bytes": 6008
+    },
+    {
+      "path": "test/colossus-native-corpse-trajectory.test.ts",
+      "sha256": "e68f4fe3b212b4afd0845dc188de912b97b6a8073285c346ef509df10cdc70e4",
+      "bytes": 6800
+    },
+    {
+      "path": "scripts/qa-colossus-native-observer-v3.mjs",
+      "sha256": "361ef0626bda1505c3a8ce2f922102ae65999710786f909666da66a506e1b335",
+      "bytes": 17235
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/metadata.json",
+      "sha256": "f948d9e00ad762c7dfbdc1cc4bbe406398a82ba0dcd902ffde1a2e24acc81a79",
+      "bytes": 15815
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/dimension-measurement.json",
+      "sha256": "912ad3330bcafeeb8fd32bc7bb8b55b6b5b92c91304ec20620cd3096e1fc6524",
+      "bytes": 1522
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/measure.py",
+      "sha256": "481565baa947149f69b6f893ec25fc722053ca660619a3052b0276cc714eaea1",
+      "bytes": 2160
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/admission.json",
+      "sha256": "cd4cef2011a8f1983b83807a714deef75101c75e8a7ea676af3318e1feaf08ff",
+      "bytes": 3489
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/README.md",
+      "sha256": "9421cf51e72063575d7c62b34bed577c1f2e56d313e35a2d64ff88b15e2cbd19",
+      "bytes": 1923
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/envelope.json",
+      "sha256": "d61ba90dfb190454be0e55c76b458c4a90efae4eba56bc406347041d0db4ac55",
+      "bytes": 1333
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/trajectory-test.json",
+      "sha256": "ce47d99aefbe9b9456321a4687ec356fd305fe9c19854326738289ad47d2775a",
+      "bytes": 25280
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/freeze.mjs",
+      "sha256": "5f0070e8b3c3cb4fb603ad84e1a24e0a3dc6217ca8a2476605a0d3a3bf40d208",
+      "bytes": 1871
+    }
+  ],
+  "protectedInputs": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/payload.bin",
+      "sha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46",
+      "bytes": 76711
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/metadata.json",
+      "sha256": "1ddb3e8fc73496e44434b325b66ea2c2f39bce5acecae0507b3fc22eb762c8ce",
+      "bytes": 4811
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/colossus-v4-native.json",
+      "sha256": "32c4f9b55c5303e75877c8abae7765947a3814c39bb15d3c7a0046e61cb93641",
+      "bytes": 2395775
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/mesh-map.json",
+      "sha256": "6549ca21f174ac4e5eb045d869eb1f755eddebf6c42d9850b26a0906fe92f79b",
+      "bytes": 91837
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/rig-provenance.json",
+      "sha256": "3fd81746ae148eb7cf4db4f35551a4df4c0f53d336e69c7664d63515a561ca83",
+      "bytes": 4908
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/source-materials.json",
+      "sha256": "538e98a7788861362dac53737b40f36188424d61fea176bda8e6c409ee2ce4e3",
+      "bytes": 3252
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/build_colossus_v4.py",
+      "sha256": "f10cdec46537f8d579fa7af687890aebe6c2f0e9d82c962e64a478567e3a0218",
+      "bytes": 21954
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/tidalGiantsCombat.ts",
+      "sha256": "a94b7d52f9df2f43eab6e98dfe645f5093d1db3a6d8398098230549c5585946e",
+      "bytes": 5832
+    },
+    {
+      "path": "src/shards/driftwood-isle/behaviour/tide-root-colossus.as",
+      "sha256": "f95eeb9abd37f25c9fa493b98e09adf65ab71406a978d5ed4bad944784ffd774",
+      "bytes": 2893
+    }
+  ]
+}

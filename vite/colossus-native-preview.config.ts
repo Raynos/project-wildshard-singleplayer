@@ -12,7 +12,7 @@ import { starterEffectsTableSource } from '../scripts/gen-starter-effects.mjs';
 export const colossusNativePreviewConfig = defineConfig(({ command }) => {
   if (command === 'build') assertHeavyLease('build');
   const admitted = admitColossusNative(resolve('.'));
-  const preview = resolve(process.env.COLOSSUS_NATIVE_PREVIEW_DIR ?? 'tmp/colossus-native-preview/motion1');
+  const preview = resolve(process.env.COLOSSUS_NATIVE_PREVIEW_DIR ?? 'tmp/colossus-native-preview/motion2');
   const product = resolve(join(preview, 'product'));
   const outDir = 'tmp/colossus-native-preview-dist';
   let destinationRoot = outDir;
@@ -30,11 +30,11 @@ export const colossusNativePreviewConfig = defineConfig(({ command }) => {
   if (typeof receiptPreview !== 'object' || receiptPreview === null || !('metadataSha256' in receiptPreview) || !('packedSha256' in receiptPreview) || typeof receiptPreview.packedSha256 !== 'string'
     || receiptPreview.metadataSha256 !== hash(join(preview, 'pack/metadata.json')) || receiptPreview.packedSha256 !== hash(join(preview, 'pack/payload.bin'))
     || !bake.file.includes(receiptPreview.packedSha256)) throw new Error('Native preview body receipt mismatch');
-  if (!('mode' in receiptPreview) || receiptPreview.mode !== 'motion1'
-    || !('candidate' in receiptPreview) || receiptPreview.candidate !== 'V4-skin1-native22-motion1') throw new Error('Unknown Colossus tuple');
+  if (!('mode' in receiptPreview) || receiptPreview.mode !== 'motion2'
+    || !('candidate' in receiptPreview) || receiptPreview.candidate !== 'V4-skin1-native22-motion2') throw new Error('Unknown Colossus tuple');
   if (JSON.stringify(bake) !== JSON.stringify(admitted.metadata)
     || !('admission' in receiptPreview) || JSON.stringify(receiptPreview.admission) !== JSON.stringify(admitted.receipt)) throw new Error('Colossus app tuple differs from admission');
-  const mode = 'motion1', candidate = 'V4-skin1-native22';
+  const mode = 'motion2', candidate = 'V4-skin1-native22';
   const bodyFile = bake.file.slice(1);
   const assets = [ 'assets/models/driftwood-fp/fp-arms.glb', 'assets/physics/rapier.wasm'];
   // The isolated entry must not require ignored production boot tables in a clean source export.

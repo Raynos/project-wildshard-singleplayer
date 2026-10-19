@@ -1,0 +1,17 @@
+{
+  "schema": "wildshard.conch.arena-candidate.v1",
+  "candidate": "character-native15-motion3",
+  "rootFlinch": "authored-pose",
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/metadata.json": "222b363ccf5fb71bf5b7297c97453b293524769a581208c7fe3bc774462cbfeb",
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/dimension-measurement.json": "8b7da9478c4a32754b1644e7447091bc4bfffd13ede05760cec4386d16e69b07",
+    "src/shards/driftwood-isle/generators/conchPlantedPreview.ts": "4c404d845b25fc9eee03a9ae2ff7f07ccb19528ad6a075d84a1c505e36b53def",
+    "src/shards/driftwood-isle/generators/conchPlantedClips.ts": "ff06733641fe30077d04be23b4a881af38fe356353c082b540c51de0ff48ab73",
+    "src/shards/driftwood-isle/behaviour/conchDuelist.as": "07ded78edf914ccc41c2d636b1d9e99d08f5fd4617a509fc3b3c0b3caea93714",
+    "src/shards/driftwood-isle/generators/driftwoodRegularCombat.ts": "1d440026e146b9d46ab58098e9517165ba3290365f1317e0a6f8fe169ade72ff",
+    "src/shards/driftwood-isle/data/conchPlantedContact.json": "26ffb6caf85cdf2c3747678b17c89f0c9527e25ac5035642b667458572bd2bdf"
+  },
+  "visualAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false
+}

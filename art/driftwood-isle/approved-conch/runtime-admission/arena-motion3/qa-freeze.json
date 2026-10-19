@@ -1,0 +1,33 @@
+{
+  "schema": "conch.motion3.qa-freeze.v1",
+  "candidateClosureSha256": "bb2493b4797134096c931dc6a56ce64b3cdcaaaebcc4730b628473944e04c06c",
+  "files": {
+    "scripts/qa-conch-planted-motion.mjs": {
+      "sha256": "7d174aa3d893b128545aff8d07bd8733595115842fcf9f292e4cd0575977f8bf",
+      "bytes": 19602
+    },
+    "scripts/measure-conch-world-contact.mjs": {
+      "sha256": "1983d86ccba0266e3b81be5e5b8cd67696f92bcab32c820db585a8a76d7c5da5",
+      "bytes": 6590
+    },
+    "src/game/practice/PracticeCreature.ts": {
+      "sha256": "ee97d17f4e90e7a74454055baefa167006122cd2299b5e614d8ce63603906dec",
+      "bytes": 16740
+    },
+    "src/game/shardfile/borrowedDecisions.ts": {
+      "sha256": "bfe383dcc8c27950e10e84fbe22a91b6bfd54555252357dbb00b8f316bc5f693",
+      "bytes": 24717
+    }
+  },
+  "checks": [
+    "Complete thrust recovery/rest before Retry",
+    "Guarded collision and counter",
+    "Enemy defeat/reward and retained own-death stage5 delivery",
+    "No postdeath strikes or HP decreases (regen allowed)",
+    "Living enemy never receives playerdeath stage5",
+    "Defeated attack blocked",
+    "Retry/reentry and empty persistence",
+    "Full actual rendered four-weight contact against unchanged thresholds"
+  ],
+  "scope": "QA-only additions; candidate freeze unchanged; new current host build required"
+}

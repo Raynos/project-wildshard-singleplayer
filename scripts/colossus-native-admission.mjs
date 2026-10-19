@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 
-export const COLOSSUS_NATIVE_CANDIDATE = 'art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1';
+export const COLOSSUS_NATIVE_CANDIDATE = 'art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2';
 const original = 'art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 export const COLOSSUS_NATIVE_INPUTS = [
@@ -19,7 +19,7 @@ export const COLOSSUS_NATIVE_INPUTS = [
 export function admitColossusNative(root) {
   const read = path => readFileSync(resolve(root, path));
   const receipt = JSON.parse(read(`${COLOSSUS_NATIVE_CANDIDATE}/admission.json`));
-  if (receipt.schema !== 'wildshard.colossus.arena-candidate.v1' || receipt.candidate !== 'V4-skin1-native22-motion1'
+  if (receipt.schema !== 'wildshard.colossus.arena-candidate.v1' || receipt.candidate !== 'V4-skin1-native22-motion2'
     || receipt.visualAcceptance !== false || receipt.colliderAcceptance !== false || receipt.runtimeAcceptance !== false
     || receipt.worldCorpseContactAccepted !== false || receipt.rootFlinch !== 'authored-pose') throw new Error('Invalid Colossus admission');
   if (JSON.stringify(Object.keys(receipt.files).sort()) !== JSON.stringify([...COLOSSUS_NATIVE_INPUTS].sort())) throw new Error('Incomplete or foreign Colossus tuple');

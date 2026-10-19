@@ -1,0 +1,13 @@
+{
+  "schema": "conch.motion3.curve-provenance.v1",
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/verify-curve.py": {
+      "sha256": "cfbb6df2d8680d7a4b41c2e59be131fa72ef0afc024af1d42f9df5fe9210abc1",
+      "bytes": 2642
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/independent-curve.json": {
+      "sha256": "3c188a60ea37a1903616e9bc17f1eb6c80e820eb2c6430f45f99386d3611dbd7",
+      "bytes": 15909
+    }
+  }
+}

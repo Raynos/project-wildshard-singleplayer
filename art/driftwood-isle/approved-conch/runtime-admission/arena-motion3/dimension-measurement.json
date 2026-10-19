@@ -1,0 +1,42 @@
+{
+  "schema": "wildshard.conch.central-body-measurement.v1",
+  "sourcePayloadSha256": "a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610",
+  "coordinateFrame": "+Y up, +Z forward, root XZ centered; source rest floor retained",
+  "parts": [
+    "body"
+  ],
+  "vertices": 1512,
+  "bounds": {
+    "min": [
+      -0.4456997215747833,
+      0.5678610801696777,
+      -0.20904327929019928
+    ],
+    "max": [
+      0.47623491287231445,
+      1.512732982635498,
+      0.38548702001571655
+    ]
+  },
+  "method": "Root-centered Y capsule segment extends to maximum absolute torso vertex Y offset; radius is maximum XZ torso distance. Shell, shield, rapier, eyestalks and limbs excluded from central body; original head radius retained. No gameplay range adjustment.",
+  "dimensions": {
+    "bodyY": 1.04,
+    "bodyHalfLen": 0.472732982635498,
+    "bodyRadius": 0.5091165774643404,
+    "headRadius": 0.5859726700629535,
+    "legLen": 1.04,
+    "feet": [
+      [
+        -0.883899986743927,
+        0.25716768503189086
+      ],
+      [
+        0.8121898770332336,
+        0.4844668388366699
+      ]
+    ],
+    "halfWidth": 1.6118314266204834,
+    "capsuleAxis": "y"
+  },
+  "colliderAcceptance": false
+}

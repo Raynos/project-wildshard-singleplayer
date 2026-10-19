@@ -1,0 +1,68 @@
+{
+  "schema": "conch.motion3.editable-source-freeze.v1",
+  "animationAcceptance": false,
+  "runtimeAcceptance": false,
+  "files": {
+    "src/shards/driftwood-isle/generators/conchPlantedClips.ts": {
+      "sha256": "ff06733641fe30077d04be23b4a881af38fe356353c082b540c51de0ff48ab73",
+      "bytes": 6727
+    },
+    "src/shards/driftwood-isle/generators/conchPlantedPreview.ts": {
+      "sha256": "4c404d845b25fc9eee03a9ae2ff7f07ccb19528ad6a075d84a1c505e36b53def",
+      "bytes": 7626
+    },
+    "src/shards/driftwood-isle/data/conchPlantedContact.json": {
+      "sha256": "26ffb6caf85cdf2c3747678b17c89f0c9527e25ac5035642b667458572bd2bdf",
+      "bytes": 2598
+    },
+    "scripts/conch-planted-admission.mjs": {
+      "sha256": "1ae4b7c13041c5f01894aaa5e646f84486909c4115bab75762d855f24331a998",
+      "bytes": 3277
+    },
+    "scripts/conch-planted-admission.test.mjs": {
+      "sha256": "f784c122dcbc4271cae7b08b95184e754f4fb5ef069f7fb2d7345175e3b3f7e1",
+      "bytes": 1863
+    },
+    "scripts/build-conch-planted-preview.mjs": {
+      "sha256": "c11f4bacede2246d5f1213b54e6f8b54957490eab5cd8083c90d0d5319404bd4",
+      "bytes": 5169
+    },
+    "vite/conch-planted-preview.config.ts": {
+      "sha256": "4dae6643ef780a83e17aebc8eaae00431517de4b433b470d1ca560e0c532f210",
+      "bytes": 7732
+    },
+    "test/conch-planted-contact.test.ts": {
+      "sha256": "1b2e4efa0dff110becd36bb446e5da825f1e16ea288ffa3290da45bd5a0951db",
+      "bytes": 9206
+    },
+    "test/conch-planted-preview.test.ts": {
+      "sha256": "ed4baa31978b8fe8456af4ae1bb61e6817ace4c287ab9437234b3848f022b4d7",
+      "bytes": 1317
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/README.md": {
+      "sha256": "cfa6ac336ccd494d28673a68bd19cf82e9982bcc6f84e760b866d33ba75b11b0",
+      "bytes": 3738
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/admission.json": {
+      "sha256": "a6645ccdb6fe192b5f63f33469f133bd1c1374b7784b0c38b8e96fdec480c274",
+      "bytes": 1225
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/dimension-measurement.json": {
+      "sha256": "8b7da9478c4a32754b1644e7447091bc4bfffd13ede05760cec4386d16e69b07",
+      "bytes": 1207
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/metadata.json": {
+      "sha256": "222b363ccf5fb71bf5b7297c97453b293524769a581208c7fe3bc774462cbfeb",
+      "bytes": 5284
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/offline-contact.json": {
+      "sha256": "d264702c4a41da4e4b667566e4c3658b9ea90c4ee1abd0a657f5f7fc6fa34ae1",
+      "bytes": 88250
+    }
+  },
+  "evidenceInputs": {
+    "tmp/conch-motion-observer-event-order1/render-trace.json": "40314a62b1038a9657507d09c56024430b08b34344ea235b141a17837e00f18b",
+    "tmp/conch-motion-observer-event-order1/runtime-geometry.json": "245833a07462c8b44b68270786fc67bc13f399f6d98d8ff9c2cf58d74c352ef5",
+    "tmp/conch-independent-event-order1-review/numeric-verification.json": "e2885f0bd5daea92025b2515d55197fc44edb3bc7f4edb7ef659fe86ef9204eb"
+  }
+}

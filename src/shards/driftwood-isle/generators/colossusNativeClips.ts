@@ -28,7 +28,8 @@ function motion(b: Builder, read: Read) {
 }
 /** Bind-aware native22 candidate. No legacy crown/heart/cage targets, no scaling or independent
  * foliage motion. Lower chains turn gently about Y: this stationary boss has no fabricated gait.
- * Local weighted floor bounds are only a probe; the generic corpse controller still needs world tests. */
+ * Death-only sagittal hip/knee/ankle flexion shortens the leg chain as the rigid corpse
+ * settles. Geometry, bind translations, body height and the host trajectory remain unchanged. */
 export function colossusNativeClips(): { group: string; states: string[]; scalars: { name: string; path: string[]; fallback: number }[]; programs: ReturnType<typeof numericChannelPrograms> } {
   const outputs: NumericChannelOutput[] = [];
   const channel = (joint: string, axis: 'x' | 'y' | 'z', expr: NumericChannelOutput['expr']) => outputs.push({ target: `joint.${joint}`, path: ['rotation', axis], expr });
@@ -42,9 +43,12 @@ export function colossusNativeClips(): { group: string; states: string[]; scalar
     channel(`forearm${side}`, 'x', (b, r) => { const { e, sweep, slam } = attack(b, r); return e.add(e.alive(e.add(e.mul(e.n(-.30), sweep.tell()), e.mul(e.n(-.35), slam.tell()))), e.add(e.mul(e.n(-.05), e.flinch()), e.mul(e.n(-.12), e.dead))); });
     channel(`hand${side}`, 'y', (b, r) => { const { e, sweep, slam } = attack(b, r); return e.mul(e.n(side), e.add(e.alive(e.add(e.mul(e.n(.18), sweep.hit()), e.mul(e.n(.08), slam.tell()))), e.mul(e.n(.06), e.dead))); });
     for (const [index, digit] of ['outer', 'middle', 'inner', 'thumb'].entries()) channel(`${digit}${side}`, 'x', (b, r) => { const { e, sweep, slam } = attack(b, r); return e.add(e.mul(e.n(.008 + index * .002), e.idle()), e.add(e.alive(e.mul(e.n(-.06), e.add(sweep.tell(), slam.tell()))), e.mul(e.n(-.04), e.dead))); });
+    // A modest 23° hip / 37° knee fold, with ankle counter-rotation to retain sole orientation.
+    for (const [name, angle] of [['leg', -.4], ['shin', .65], ['foot', -.25]] as const)
+      channel(`${name}${side}`, 'x', (b, r) => { const e = motion(b, r); return e.mul(e.n(angle), e.dead); });
     for (const [index, name] of ['leg', 'shin', 'foot'].entries()) channel(`${name}${side}`, 'y', (b, r) => { const e = motion(b, r); return e.mul(e.n(side * (index === 1 ? -.006 : .003)), e.add(e.idle(), e.dead)); });
   }
   return { group: 'creature.pose', states: ['idle', 'stalk', 'attack', 'alert'], scalars: [
     { name: 'step', path: ['mem', 'tg-state'], fallback: 0 }, { name: 'clock', path: ['mem', 'tg-clock'], fallback: 0 }],
-    programs: outputs.flatMap((row, i) => numericChannelPrograms(`colossus-v4-skin1.motion1.${i}`, 'creature.pose', [row])) };
+    programs: outputs.flatMap((row, i) => numericChannelPrograms(`colossus-v4-skin1.motion2.${i}`, 'creature.pose', [row])) };
 }

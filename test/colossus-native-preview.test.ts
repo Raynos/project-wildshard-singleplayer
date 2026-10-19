@@ -62,6 +62,7 @@ test('sweeps/slam retain full active pose, death suppresses live clocks and retr
   const dead = snapshot(); context.t = 100; context.flinch = 1; context.speed = 1; context.phase = .2;
   context.mem['tg-state'] = 1; context.mem['tg-clock'] = .8; animate(context); expect(JSON.stringify(snapshot())).toBe(JSON.stringify(dead));
   context.deathT = -1; context.alive = true; context.flinch = 0; context.t = 0; context.mem['tg-state'] = 0; animate(context);
+  for (const side of [-1, 1]) for (const name of ['leg', 'shin', 'foot']) expect(Math.abs(joint(`${name}${side}`).rotation.x)).toBe(0);
   expect(joint('body').position.y).toBe(2.28); expect(joint('arm1').rotation.x).toBeCloseTo(0, 12); expect(joint('head').rotation.x).toBeCloseTo(0, 12);
 });
 
