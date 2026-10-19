@@ -1,0 +1,33 @@
+{
+  "status": "explicit buried root correction; no fan footprint/body/face topology changes",
+  "changes": [
+    {
+      "limb": "fore",
+      "before": [
+        0.32,
+        0.16,
+        0.41
+      ],
+      "after": [
+        0.275,
+        0.16,
+        0.41
+      ],
+      "minimumMeasuredTrialBurial": 0.018115904182195663
+    },
+    {
+      "limb": "rear",
+      "before": [
+        0.22,
+        -0.25,
+        0.38
+      ],
+      "after": [
+        0.215,
+        -0.25,
+        0.38
+      ],
+      "minimumMeasuredTrialBurial": 0.025796707719564438
+    }
+  ]
+}
