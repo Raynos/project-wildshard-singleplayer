@@ -60,3 +60,20 @@ test('riding projections enforce practice-room panic, mount identity, rail range
   expect(law.project('name', { x: 6, z: 0, cx: 0, cz: 0, px: 6, pz: 0, alive: 1, yaw: 0, scale: 1 })['distance']).toBe(1e12);
   expect(law.project('walk', { version: 1, board: 0, swim: 0, depth: .2, forward: 1, crouched: 1, sprint: 1, grounded: 1 })).toEqual({ crouched: 1, sprinting: 0, wade: .2 / 1.1 });
 });
+
+test('dismount and naming stay within decision fuel for arbitrary restored headings', () => {
+  const law = ReturnProgram.page(programs.riding);
+  for (const yaw of [0, .37, -1.23, Math.PI / 2, Math.PI, -Math.PI, 12345.67, -1e100]) {
+    for (const thrown of [0, 1]) {
+      const side = thrown === 1 ? 2.2 : 1.15;
+      const row = law.project('dismount', { x: 17, z: -23, yaw, thrown });
+      expect(row['x']).toBeCloseTo(17 + Math.cos(yaw) * side, 10);
+      expect(row['z']).toBeCloseTo(-23 - Math.sin(yaw) * side, 10);
+      expect(row['altX']).toBeCloseTo(17 - Math.cos(yaw) * side, 10);
+      expect(row['altZ']).toBeCloseTo(-23 + Math.sin(yaw) * side, 10);
+    }
+    const name = law.project('name', { x: 17, z: -23, cx: 17, cz: -23, px: 18, pz: -23, alive: 1, yaw, scale: 1.2 });
+    expect(name['x']).toBeCloseTo(17 + Math.sin(yaw) * 1.15 * 1.2, 10);
+    expect(name['z']).toBeCloseTo(-23 + Math.cos(yaw) * 1.15 * 1.2, 10);
+  }
+});

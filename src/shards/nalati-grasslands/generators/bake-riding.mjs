@@ -14,7 +14,7 @@ const authored=new Map(sourceFiles.map(file=>{
 }));
 const text=[...authored.values()].join('\n'),names=prefix=>[...new Set([...text.matchAll(new RegExp(`${prefix}\\.([A-Za-z0-9_]+)`,'g'))].map(match=>match[1]))];
 const fields=names('Field'),channels=names('Channel'),signals=names('Signal');
-const row={id:'nalati.mounts',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/mounts.as',binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],params:{},reads:['field'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals)};
+const row={id:'nalati.mounts',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/mounts.as',binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],params:{},reads:['field','radial'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals)};
 const built=await compileDecisionScripts([row],{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837,singleSignal:true});
 const script=built.rows.at(0),blob=built.blobs.at(0);if(script===undefined||blob===undefined)throw new Error('Missing mounted projection');
 const program={script,bytes:Buffer.from(blob.bytes).toString('base64')},programs={initial:data.initial,approach:program,breaking:program,riding:program};

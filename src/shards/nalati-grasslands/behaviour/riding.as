@@ -1,4 +1,4 @@
-import { Signal, Field, Channel, Params, Read, Do } from './generated/nalatiMounts';
+import { Signal, Field, Channel, Params, Read, List, Do } from './generated/nalatiMounts';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline export function ridingEntry(signal:i32,value:f64,source:i32):void {
   if(signal==Signal.panic){
@@ -7,13 +7,17 @@ import { Signal, Field, Channel, Params, Read, Do } from './generated/nalatiMoun
   } else if(signal==Signal.name){
     const dx=f(Field.x)-f(Field.cx),dz=f(Field.z)-f(Field.cz),px=f(Field.x)-f(Field.px),pz=f(Field.z)-f(Field.pz);
     Do.channel(Channel.distance,f(Field.alive)>0&&dx*dx+dz*dz<=Params.railRange*Params.railRange?px*px+pz*pz:1e12);
-    Do.channel(Channel.x,f(Field.x)+Math.sin(f(Field.yaw))*Params.nameHead*f(Field.scale));
-    Do.channel(Channel.z,f(Field.z)+Math.cos(f(Field.yaw))*Params.nameHead*f(Field.scale));
+    // One fixed-cost ABI query avoids instrumented libc trigonometry.
+    if(Read.radial(f(Field.yaw),Params.nameHead*f(Field.scale))!=2)unreachable();
+    Do.channel(Channel.x,f(Field.x)+List.at(0));
+    Do.channel(Channel.z,f(Field.z)+List.at(1));
     Do.channel(Channel.radius,Params.nameReach);
   } else if(signal==Signal.dismount){
     const side=f(Field.thrown)>0?Params.sideThrown:Params.sideDismount;
-    Do.channel(Channel.x,f(Field.x)+Math.cos(f(Field.yaw))*side);Do.channel(Channel.z,f(Field.z)-Math.sin(f(Field.yaw))*side);
-    Do.channel(Channel.altX,f(Field.x)-Math.cos(f(Field.yaw))*side);Do.channel(Channel.altZ,f(Field.z)+Math.sin(f(Field.yaw))*side);
+    if(Read.radial(f(Field.yaw),side)!=2)unreachable();
+    const dx=List.at(1),dz=List.at(0);
+    Do.channel(Channel.x,f(Field.x)+dx);Do.channel(Channel.z,f(Field.z)-dz);
+    Do.channel(Channel.altX,f(Field.x)-dx);Do.channel(Channel.altZ,f(Field.z)+dz);
   } else if(signal==Signal.mount){
     Do.channel(Channel.accept,f(Field.mounted)==0&&f(Field.present)>0&&f(Field.alive)>0&&f(Field.driven)==0&&(f(Field.available)>0||(f(Field.breaking)>0&&f(Field.stallion)>0))?1:0);
   } else if(signal==Signal.walk){
