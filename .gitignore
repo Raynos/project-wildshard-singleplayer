@@ -2089,3 +2089,7 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 # G508: ink-cel-valley data map outputs.
 /public/assets/ink-cel-valley/map/top.webp
 /src/shards/ink-cel-valley/look/map.baked.json
+
+# G508: blender-template data map outputs.
+/public/assets/blender-template/map/top.webp
+/src/shards/blender-template/look/map.baked.json

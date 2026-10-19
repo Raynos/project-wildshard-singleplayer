@@ -45,6 +45,17 @@
   "inputs": [
     "shard.config.ts",
     "data/source.ts",
-    "assets/world.glb"
-  ]
+    "assets/world.glb",
+    "../../../scripts/map-painter.mjs",
+    "../../../scripts/bake-data-maps.mjs",
+    "generators/bake-map.mjs"
+  ],
+  "painter": {
+    "version": 1,
+    "job": "blender-template-data-map",
+    "glbs": [
+      "assets/world.glb"
+    ],
+    "authored": false
+  }
 }
