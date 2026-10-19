@@ -1,6 +1,6 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-19 08:42 UTC. All four static milestones passed; runtime remains WIP.
+Updated 2026-10-19 08:52 UTC. All four static milestones passed; runtime remains WIP.
 
 OWNER at02:54: park Puffer polishing due to diminishing returns; get EACH other enemy strictly above3.5/5. Supersedes Puffer-first4/5-or-V100. Preserve its work/tested playable; twenty extras parked. No rounding, cross-enemy averaging or art-score chasing. Rubric silhouette35/face30/details20/style15 unchanged; approved originals control, hidden angles approximate. Plan: docs/reviews/driftwood-four-enemy-resume-plan.md.
 
@@ -14,6 +14,6 @@ Completed negative studies: candidate4 solver0/2/4 and one fold-aligned timing s
 
 PENDING OWNER DECISION:08:38 requested an isolated five-body/four-joint prototype using existing Ragdolls: core carrier plus four physical legs, unchanged eight shapes. Do not implement this architecture expansion before approval. Review: docs/reviews/bellback-next-design/REVIEW.md.
 
-INDEPENDENT NEXT WORK: Conch motion4 upper-body readable guard/windup/counter/thrust/recovery source candidate, preserving motion3 lower body/death and exact combat clocks. Weighted source checks underway; no build/promotion yet. Keep all published hosts unchanged until actual tests and independent review pass.
+INDEPENDENT NEXT WORK: Conch motion4 source failed independent strike-timing/guard-transition audit. Revision is aligning the weapon by windup end, restoring idle/guard terms and adding actual StrikeRunner cadence/skew tests. Motion3 lower body/death and combat clocks stay unchanged; no build/promotion yet. Keep all published hosts unchanged until actual tests and independent review pass.
 
 Puffer V70 stays tested; V71 static3.60 and unfinished remaster parked. Broader six-shard work open. Source af11fe0281f6d97362dc239c649fcbba73cba177 verified. Root connector gamedev-dot only; preserve unrelated/sparse work.
