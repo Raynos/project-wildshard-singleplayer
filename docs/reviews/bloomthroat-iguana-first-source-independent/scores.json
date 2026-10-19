@@ -1,0 +1,22 @@
+{
+  "candidate": "v3 + fit_core.py",
+  "scope": "source likeness only",
+  "blindBeforeBuilderOpinions": true,
+  "scores": {
+    "silhouette": 2.3,
+    "face": 2.0,
+    "details": 2.1,
+    "facetStyle": 2.8
+  },
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "details": 0.2,
+    "facetStyle": 0.15
+  },
+  "exactWeightedTotal": 2.245,
+  "likenessAccepted": false,
+  "runtimeAccepted": false,
+  "individualRawCapturesInspected": 10,
+  "animationGameplayPhoneFunTested": false
+}

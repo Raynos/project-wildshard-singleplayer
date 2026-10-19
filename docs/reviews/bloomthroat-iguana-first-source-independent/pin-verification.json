@@ -1,0 +1,124 @@
+{
+  "checkpointSha256": "d67e4cc30fa3399c311753d4cb00e9ba6c09cf4174facf4a40fd29ca1b54c71b",
+  "checkedFileCount": 70,
+  "mismatches": [],
+  "rawCaptures": [
+    {
+      "view": "hero",
+      "sha256": "c9b922a9815efa7a7a4a33d3d95c1448d8cd2069e0556e03018836bbe09aed38",
+      "matchesProvenance": true,
+      "size": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "front",
+      "sha256": "614fca4526a86bf148106400c33e6ea5cfc5d43037968548500b5c049f6aa9cd",
+      "matchesProvenance": true,
+      "size": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "left",
+      "sha256": "a5635979f5865a5b4c804c70722b6079b6e6e346ab87c8a03e936c6025a495a4",
+      "matchesProvenance": true,
+      "size": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "right",
+      "sha256": "d133828c9ffadf3257f2e8f8d37d738060b6a4d60a1568f9ce3ea0caa3435e18",
+      "matchesProvenance": true,
+      "size": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "back",
+      "sha256": "75746ec26d4e58061b9305c81e35d65c5d27f3deca428b824e6ec65e925eee97",
+      "matchesProvenance": true,
+      "size": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "top",
+      "sha256": "c629e8c45fc19e7f18733e94554efe9ca339a34f15e054328ad2ed464a21c4ac",
+      "matchesProvenance": true,
+      "size": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "elevated-front",
+      "sha256": "49c4e897f2a5549749d998e5c1115ea45d4c2b86e5e486214fd1cd6c42e91ed9",
+      "matchesProvenance": true,
+      "size": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "elevated-left",
+      "sha256": "e00be6ca5171af5691850cb46faf000ccdbdcefddd000193b0994c678a6b8061",
+      "matchesProvenance": true,
+      "size": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "elevated-right",
+      "sha256": "97db69acf6de4d4ae4b69d398a77307cfa54dcd2fd7ce5ea6d24b96c30ef20a5",
+      "matchesProvenance": true,
+      "size": [
+        600,
+        720
+      ]
+    },
+    {
+      "view": "elevated-back",
+      "sha256": "8931d6a227bfde6c77588aee0d9c1d2c8d997b1d5c45fcc04d6334b77041a48d",
+      "matchesProvenance": true,
+      "size": [
+        600,
+        720
+      ]
+    }
+  ],
+  "references": [
+    {
+      "name": "bloomthroat-iguana-hero.png",
+      "sha256": "11d3253bc8c57660e7f3a034957376af91638b9ff7b9673da861b78fb51dd9d4",
+      "size": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "name": "iguanaWorldGen.png",
+      "sha256": "16efec40da515672a1755ac942aebe1d35aab57ecfc3e161425400f70953c695",
+      "size": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "name": "iguanaExplorerGen.png",
+      "sha256": "91745cf6c99876dca8d7091fa50df1c843edc78ac90701e6a05b33a37abf6426",
+      "size": [
+        1536,
+        1024
+      ]
+    }
+  ],
+  "heroReferencePinMatches": true
+}
