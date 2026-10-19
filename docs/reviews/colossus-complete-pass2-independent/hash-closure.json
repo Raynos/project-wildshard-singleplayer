@@ -1,0 +1,95 @@
+{
+  "capture-receipt.json": {
+    "sha256": "8b1022bf8d44b19ae59028ea8111efa4b7a196e498848bfa8728e1d9d204690a",
+    "count": 26,
+    "allMatch": true,
+    "mismatches": []
+  },
+  "source-closure.json": {
+    "sha256": "d9e2b5b9af55567b5bfb1e4e12063020b16c8e86461dcfaa2869b74a7dbaab03",
+    "count": 7,
+    "allMatch": true,
+    "mismatches": []
+  },
+  "final-closure.json": {
+    "sha256": "67a7164ec25675bc26972795b6ded3c903c94a8cf6ac55d69875c4b6ef33eca5",
+    "count": 54,
+    "allMatch": true,
+    "mismatches": []
+  },
+  "predecessor-preservation.json": {
+    "sha256": "f59e21de5d1ebf88814e9f137986bc6e99cfbc3bd397243325b3f469da44e4f7",
+    "count": 29,
+    "allMatch": true,
+    "mismatches": []
+  },
+  "cameras": {
+    "sha256": "dc82bb2c509c97772adb9f1e9ba4a52913a22c9b58ce33ecdc3b3cf661f4dcbc",
+    "pairs": [
+      {
+        "view": "hero",
+        "matched": true
+      },
+      {
+        "view": "front",
+        "matched": true
+      },
+      {
+        "view": "left",
+        "matched": true
+      },
+      {
+        "view": "right",
+        "matched": true
+      },
+      {
+        "view": "back",
+        "matched": true
+      },
+      {
+        "view": "top",
+        "matched": true
+      },
+      {
+        "view": "diag-front",
+        "matched": true
+      },
+      {
+        "view": "diag-left",
+        "matched": true
+      },
+      {
+        "view": "diag-right",
+        "matched": true
+      },
+      {
+        "view": "diag-back",
+        "matched": true
+      }
+    ],
+    "resolution": [
+      525,
+      700
+    ],
+    "fixedWorldLights": true,
+    "sourceInspected": true,
+    "normalization": {
+      "reason": "Normalize local absolute capture file references to repository-relative public paths only",
+      "fieldsChanged": 20,
+      "originalSha256": "13fb0815d495853584571dfc1cc1356750ed934b6eb1aa570a24b0ac427a4b12",
+      "normalizedSha256": "dc82bb2c509c97772adb9f1e9ba4a52913a22c9b58ce33ecdc3b3cf661f4dcbc",
+      "cameraTransformsAndRenderedBytesUnchanged": true,
+      "originalRetainedLocally": true
+    }
+  },
+  "initialJudgmentSHA256": "b459292b6d095dde848aca9cca86e166a6468dce2654a7e7068f65c94fc4df5f",
+  "limits": "Hash identity and source inspection only; no rebuild, no runtime or animation acceptance. Failed first foliage attempt remains explicitly unaccepted.",
+  "normalizationVerified": {
+    "allOtherFieldsEqual": true,
+    "changedFileFields": 20
+  },
+  "glbIdentity": {
+    "predecessor": true,
+    "candidate": true
+  }
+}
