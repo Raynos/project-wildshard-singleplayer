@@ -1,0 +1,110 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 [REDACTED_REPOSITORY_ROOT]
+
+ ❯ test/colossus-borrowed-event-subject.test.ts (3 tests | 2 failed) 494ms
+   × borrowed Colossus ignores player hit and death subjects 354ms
+   × practice-current delivers own lethal hit/death before retiring guest 65ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/colossus-borrowed-event-subject.test.ts > borrowed Colossus ignores player hit and death subjects
+AssertionError: Player hit must not enter the borrowed actor guest: expected [ [ 7, 2147483647, +0, 5, 0.95, +0 ] ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   [
++     7,
++     2147483647,
++     0,
++     5,
++     0.95,
++     0,
++   ],
++ ]
+
+ ❯ test/colossus-borrowed-event-subject.test.ts:65:115
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/colossus-borrowed-event-subject.test.ts > borrowed Colossus ignores player hit and death subjects
+AssertionError: Player lethal hit/death must not enter the borrowed actor guest: expected [ …(2) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   [
++     7,
++     2147483647,
++     0,
++     1000,
++     0,
++     0,
++   ],
++   [
++     9,
++     2147483647,
++     0,
++     0,
++     0,
++     0,
++   ],
++ ]
+
+ ❯ test/colossus-borrowed-event-subject.test.ts:66:141
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  test/colossus-borrowed-event-subject.test.ts > borrowed Colossus ignores player hit and death subjects
+AssertionError: {"actor":"practice.tideRootColossus","player":"actor.player","events":[{"kind":"hit","target":"actor.player","amount":5},{"kind":"hit","target":"actor.player","amount":1000},{"kind":"death","target":"actor.player"}],"stages":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,6,6,6,6,6]}: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/colossus-borrowed-event-subject.test.ts:67:192
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  test/colossus-borrowed-event-subject.test.ts > practice-current delivers own lethal hit/death before retiring guest
+AssertionError: {"mode":"practice-current","actor":"practice.tideRootColossus","events":[{"kind":"hit","target":"practice.tideRootColossus","amount":1000},{"kind":"death","target":"practice.tideRootColossus"}],"memory":{"tg-state":0,"tg-clock":0.1,"tg-awake":1,"tg-phase":1,"tg-exposed":0}}: expected +0 to be 6 // Object.is equality
+
+- Expected
++ Received
+
+- 6
++ 0
+
+ ❯ test/colossus-borrowed-event-subject.test.ts:78:127
+     76|     expect(f.events.map(row => [row.kind, row.target])).toContainEqual…
+     77|     expect(f.actor.alive).toBe(false);
+     78|     expect(f.actor.mem['tg-state'], JSON.stringify({ mode, actor: f.ac…
+       |                                                                                                                               ^
+     79|     expect(f.actor.mem['tg-awake']).toBe(0);
+     80|     const hits = f.strikeHits(); f.step(180); expect(f.strikeHits()).t…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  01:39:52
+   Duration  10.61s (transform 74%, setup 17%, tests 5%, import 4%)
+
+  Transform  transforming modules took 7.76s · 74% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

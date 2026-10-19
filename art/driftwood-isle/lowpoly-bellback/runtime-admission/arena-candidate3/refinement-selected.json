@@ -1,0 +1,26 @@
+{
+  "delta": [
+    -0.044,
+    -0.105,
+    -0.001
+  ],
+  "absolute": {
+    "hindX": -1.204,
+    "hindSideZ": 0.135,
+    "hindShoulderOffset": 0.149
+  },
+  "minimum": [
+    0.0,
+    0.0
+  ],
+  "minimumAfterFold": [
+    0.001902481982824611,
+    0.02651904942058536
+  ],
+  "settled": [
+    0.01888535646821765,
+    0.026578143981282665
+  ],
+  "frames": 279,
+  "acceptance": false
+}

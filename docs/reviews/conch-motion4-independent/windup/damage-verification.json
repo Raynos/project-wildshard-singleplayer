@@ -1,0 +1,110 @@
+{
+  "tipVertex": 5761,
+  "events": [
+    {
+      "eventSample": 73,
+      "frame": 74,
+      "callbackLane": {
+        "along": 1.9861741285766115,
+        "perpendicular": -0.009436542839217563
+      },
+      "followingRenderFrame": 74,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766115,
+        "perpendicular": -0.009436542839217674
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 86,
+      "callbackPose": 68,
+      "followingPose": 69
+    },
+    {
+      "eventSample": 134,
+      "frame": 128,
+      "callbackLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.009436542839217868
+      },
+      "followingRenderFrame": 128,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.009436542839217868
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 84,
+      "callbackPose": 122,
+      "followingPose": 123
+    },
+    {
+      "eventSample": 183,
+      "frame": 174,
+      "callbackLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.009436542839217722
+      },
+      "followingRenderFrame": 174,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.009436542839217667
+      },
+      "playerHpBefore": 84,
+      "playerHpFollowing": 70,
+      "callbackPose": 168,
+      "followingPose": 169
+    }
+  ],
+  "actualEnemyHitPhases": [
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 21,
+      "phase": "early-ordinary",
+      "stage": 1,
+      "clock": 0.1,
+      "guard": 1,
+      "hp": 57,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.18333333333333332,
+        "speedMul": 1,
+        "clock": 0.6833333333333338,
+        "deadlines": [],
+        "scores": [],
+        "x0": -2.4214983413827634e-08,
+        "z0": -6.664185284636915,
+        "x1": -2.845671272792156e-07,
+        "z1": -4.264185284636929,
+        "yaw": -1.0848005994391183e-07,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 117,
+      "phase": "late-ordinary",
+      "stage": 1,
+      "clock": 0.4,
+      "guard": 1,
+      "hp": 57,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.4666666666666666,
+        "speedMul": 1,
+        "clock": 0.7666666666666674,
+        "deadlines": [],
+        "scores": [],
+        "x0": 9.308457832660211e-10,
+        "z0": -6.8845980782061815,
+        "x1": 7.865478718679263e-07,
+        "z1": -4.48459807820631,
+        "yaw": 3.2734042753528097e-07,
+        "length": 2.4
+      }
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "status": "built; browser-launch blocked before game boot",
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "sourceHash": "72899786be0fa353ed1d6197d1ea7586db46f12983f4607936a0ac34a0866bef",
+  "verifiedBuildFiles": 137,
+  "candidateSourceFreezeVerified": true,
+  "sourceChecks": {
+    "nodeAdmission": {
+      "passed": 6,
+      "failed": 0
+    },
+    "vitestCandidate": {
+      "passed": 3,
+      "failed": 0
+    },
+    "typedLint": "passed six candidate files",
+    "canonicalVertices": 13374,
+    "canonicalHullPoints": 435
+  },
+  "launchAttempt": {
+    "pageLoaded": false,
+    "error": "Chromium process singleton socket() Operation not permitted inside shell sandbox",
+    "subsequentEscalation": "Tool environment setup failed before command execution: bwrap read-only protected directory; no restricted directory access attempted",
+    "report": {
+      "path": "tmp/bellback-following-full-combat1/report.json",
+      "sha256": "9cbcdb0808a7e062bebb6f531fb5ad35d3071e16a0e5d4513e6df06ca4a8f4d4",
+      "bytes": 34835
+    }
+  },
+  "files": [
+    {
+      "path": "tmp/bellback-following-product-build1.log",
+      "sha256": "db593abc74c517a30eda36e26be45d0f049cf71907fa07d31c10d25bfd359225",
+      "bytes": 467
+    },
+    {
+      "path": "tmp/bellback-following-app-build1.log",
+      "sha256": "1428b14bcd2cdcc4317ffa9e3a73b0f02cfe0011847570e6e5c1439f1c6e267f",
+      "bytes": 12481
+    },
+    {
+      "path": "scripts/qa-bellback-following-combat.mjs",
+      "sha256": "1a569900a935b117b381881aa154722606107be464294d83d27ec4a06536acd4",
+      "bytes": 21456
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/build1/build-files.json",
+      "sha256": "f01467d1213c8c35e35820cb381b8f9b572368f751c5b806f2c33b5717131083",
+      "bytes": 27887
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/build1/capture-source.json",
+      "sha256": "2a34f1314c28bcbd9aefff234087db74b0903f13b47c90b05271d1e3fe1c21aa",
+      "bytes": 1386
+    }
+  ]
+}

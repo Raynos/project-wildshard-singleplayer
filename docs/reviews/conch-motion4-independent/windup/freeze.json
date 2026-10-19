@@ -1,0 +1,36 @@
+{
+  "schema": "conch.motion4.independent-final-wip-review.v1",
+  "recommendation": "Exact build2 may replace public preview as labeled WIP; retain prior version unchanged",
+  "files": [
+    {
+      "path": "docs/reviews/conch-motion4-independent/windup/REVIEW.md",
+      "sha256": "50bdedd37581c7fdc2ce03eea4c6eebb52c1afacf5de5fef2dc0d242b978cda2",
+      "bytes": 4664
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/windup/damage-verification.json",
+      "sha256": "23462626c2efae29830c3f33c4c286f90f2443a3d987a149845a8bdecf3407e2",
+      "bytes": 2841
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/windup/extract-sheets.py",
+      "sha256": "dde72c697df557ba53341cd17db4eda24f3a8c348793505446c99a932edcfb0e",
+      "bytes": 1575
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/windup/numeric-verification.json",
+      "sha256": "698e564cdb6a4bc7d1017959da42cd21e12fe8f30710823015bd105d3cf0b2ee",
+      "bytes": 335096
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/windup/verify-damage.py",
+      "sha256": "233e1d1850724f0d54f0e4e94aeb35b69a5087fbf2a7ef3d38b94791984189e7",
+      "bytes": 1712
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/windup/verify.py",
+      "sha256": "2a0d7ddcef95d3ce3c3c112b3c7d2abf914e1a802445633e72a4399b132b786a",
+      "bytes": 4734
+    }
+  ]
+}

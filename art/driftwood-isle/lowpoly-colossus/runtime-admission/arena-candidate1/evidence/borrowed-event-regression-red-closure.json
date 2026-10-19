@@ -1,0 +1,46 @@
+{
+  "createdAt": "2026-10-19T05:40:20.015504+00:00",
+  "tests": {
+    "failed": 2,
+    "passed": 1
+  },
+  "method": "Actual borrowed authority and exact native product with authentic CombatPipeline subjects. Current versus retained-body scheduler contracts explicitly modeled. No production source edit.",
+  "files": [
+    {
+      "path": "test/colossus-borrowed-event-subject.test.ts",
+      "bytes": 7034,
+      "sha256": "20b7ece94749a8a953fecf6309e4a43dbca0b671221fb5b7b3bc604645c27ccc"
+    },
+    {
+      "path": "src/game/shardfile/decisions.ts",
+      "bytes": 46216,
+      "sha256": "b52feed31f45c3865dddec78949f470207a3bab0ce529bf3da5d429f0e4a2cde"
+    },
+    {
+      "path": "src/game/practice/PracticeCreature.ts",
+      "bytes": 16740,
+      "sha256": "ee97d17f4e90e7a74454055baefa167006122cd2299b5e614d8ce63603906dec"
+    },
+    {
+      "path": "src/game/shardfile/borrowedDecisions.ts",
+      "bytes": 24717,
+      "sha256": "bfe383dcc8c27950e10e84fbe22a91b6bfd54555252357dbb00b8f316bc5f693"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/borrowed-player-event-queue.json",
+      "bytes": 9211,
+      "sha256": "bbec57105c12989eaecea1eafe493175cfe364ea90c9e1622bed2c2474f49d1d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/borrowed-player-event-steps.json",
+      "bytes": 310039,
+      "sha256": "956e7b7b8c54ab77cffb23f678bb55b7c71e74768b70c66d7ed047d01a6191f6"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate1/evidence/borrowed-event-regression-red.log",
+      "bytes": 4123,
+      "sha256": "2b0964045b26e69153df243b214c36c57e200d00b305f490738384dd0b706582"
+    }
+  ],
+  "publicEvidenceScreening": "evidence-screening-provenance.json"
+}

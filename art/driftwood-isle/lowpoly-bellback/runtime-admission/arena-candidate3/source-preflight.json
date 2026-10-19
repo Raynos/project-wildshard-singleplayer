@@ -1,0 +1,25 @@
+{
+  "schema": "wildshard.bellback.tucked-source-preflight.v1",
+  "runtimeAcceptance": false,
+  "closureSha256": "295e2fa160cd2883be69508c69b88f5525d35cb1795fe95a1f3b38525ab7c712",
+  "checks": {
+    "admission": "2/2 pass",
+    "numericPoseSourceWorld": "8/8 pass",
+    "actualRootReplayFrames": 848,
+    "deadFrames": 279,
+    "denseLocalEnvelope": "201 samples per7 states pass",
+    "maximumShoulderLocalOffset": 0.20776694342222402,
+    "shoulderOffsetCeiling": 0.21,
+    "livingJointOutputParity": "exact pass",
+    "typeAwareLint": {
+      "exitCode": 0,
+      "files": 10,
+      "diagnostics": []
+    }
+  },
+  "remaining": [
+    "Fresh exact product and corrected current host build",
+    "Actual candidate3 full collapse/settle/Retry observer",
+    "No inherited runtime acceptance from either prior host"
+  ]
+}
