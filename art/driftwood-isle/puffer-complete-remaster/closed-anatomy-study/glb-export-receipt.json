@@ -1,0 +1,12 @@
+{
+  "sourceSha256": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006",
+  "glbSha256": "4261180dcd0f9dc7c011f2631a1d0d37cc92ac30dd20f892a2aa1eb39eb8f8ef",
+  "bytes": 636280,
+  "vertices": 10458,
+  "bones": 8,
+  "parts": 7,
+  "geometryAndPaint": "native arrays converted to IEEE float32 only",
+  "bindPivots": "absolute native pivots converted to parent-relative nodes and inverse world translations",
+  "runtimeAdmitted": false,
+  "closedAnatomicalInserts": 4
+}

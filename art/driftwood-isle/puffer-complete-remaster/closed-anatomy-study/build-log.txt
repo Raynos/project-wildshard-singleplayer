@@ -1,0 +1,126 @@
+{
+  "sourcePins": [
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-native.json",
+      "sha256": "15a8a65ed0303e24982799ab395e77cd1d50920e964bbe81a099308e9ffdb762"
+    },
+    {
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/brine-puffer-lowpoly.webp",
+      "sha256": "01ba7d0fbfb66bbdd929c975eb75729d7b28cd3aa023db0581df94a718e3d028"
+    }
+  ],
+  "candidatePin": {
+    "path": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-study/closed-anatomy-native.json",
+    "sha256": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006"
+  },
+  "schema": {
+    "vertices": 10458,
+    "triangles": 3486,
+    "bones": 8,
+    "parts": 7
+  },
+  "closures": [
+    {
+      "anatomy": "palate",
+      "originalTriangles": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "addedTriangleRange": [
+        1129,
+        1154
+      ],
+      "depth": 0.022,
+      "extrusionVector": [
+        -0.0,
+        -0.0,
+        -0.022
+      ],
+      "boundaryEdges": 9,
+      "originalFrontSurfaceExact": true
+    },
+    {
+      "anatomy": "tongue",
+      "originalTriangles": [
+        7,
+        8
+      ],
+      "addedTriangleRange": [
+        1154,
+        1164
+      ],
+      "depth": 0.024,
+      "extrusionVector": [
+        -0.0,
+        0.020428101024484488,
+        0.012597328626873865
+      ],
+      "boundaryEdges": 4,
+      "originalFrontSurfaceExact": true
+    },
+    {
+      "anatomy": "left nostril",
+      "originalTriangles": [
+        49,
+        50
+      ],
+      "addedTriangleRange": [
+        1164,
+        1174
+      ],
+      "depth": 0.009,
+      "extrusionVector": [
+        -0.0,
+        -0.0,
+        -0.009
+      ],
+      "boundaryEdges": 4,
+      "originalFrontSurfaceExact": true
+    },
+    {
+      "anatomy": "right nostril",
+      "originalTriangles": [
+        51,
+        52
+      ],
+      "addedTriangleRange": [
+        1174,
+        1184
+      ],
+      "depth": 0.009,
+      "extrusionVector": [
+        -0.0,
+        -0.0,
+        -0.009
+      ],
+      "boundaryEdges": 4,
+      "originalFrontSurfaceExact": true
+    }
+  ],
+  "orientationSafetyLimiter": {
+    "limitedSharedVertices": 19,
+    "minimumScale": 0.1677721600000001,
+    "iterations": 9,
+    "minimumNormalDot": 0.2835175822208217
+  },
+  "bodyHullTriangles": 1022,
+  "maximumHullDisplacement": 0.1360158056197886,
+  "bodyVolumeBefore": 1.2237031776810747,
+  "bodyVolumeAfter": 1.2046563494517952,
+  "bonesExact": true,
+  "spikesBrowsBeakExact": true,
+  "tailFourFinsExact": true,
+  "originalHeadFrontArraysExact": true,
+  "runtimeAdmitted": false,
+  "score": null,
+  "limitations": [
+    "Closed component tests do not establish no inter-component intersection or animation attachment.",
+    "Existing body connectivity is retained; shoulder course warp is not retopology.",
+    "No runtime, motion, physics, likeness or acceptance claim."
+  ]
+}

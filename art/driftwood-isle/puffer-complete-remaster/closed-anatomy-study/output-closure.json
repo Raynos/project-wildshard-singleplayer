@@ -1,0 +1,362 @@
+{
+  "checks": {
+    "twenty actual captures": true,
+    "renderer hash exact": true,
+    "pass2 source exact": true,
+    "pass2 hero and nine": true,
+    "pass2 hero preview hash": true,
+    "pass2 hero full PNG retained": true,
+    "pass2 hero preview cap": true,
+    "pass2 01-front preview hash": true,
+    "pass2 01-front full PNG retained": true,
+    "pass2 01-front preview cap": true,
+    "pass2 02-left preview hash": true,
+    "pass2 02-left full PNG retained": true,
+    "pass2 02-left preview cap": true,
+    "pass2 03-right preview hash": true,
+    "pass2 03-right full PNG retained": true,
+    "pass2 03-right preview cap": true,
+    "pass2 04-back preview hash": true,
+    "pass2 04-back full PNG retained": true,
+    "pass2 04-back preview cap": true,
+    "pass2 05-top preview hash": true,
+    "pass2 05-top full PNG retained": true,
+    "pass2 05-top preview cap": true,
+    "pass2 06-elevated-front preview hash": true,
+    "pass2 06-elevated-front full PNG retained": true,
+    "pass2 06-elevated-front preview cap": true,
+    "pass2 07-elevated-left preview hash": true,
+    "pass2 07-elevated-left full PNG retained": true,
+    "pass2 07-elevated-left preview cap": true,
+    "pass2 08-elevated-right preview hash": true,
+    "pass2 08-elevated-right full PNG retained": true,
+    "pass2 08-elevated-right preview cap": true,
+    "pass2 09-elevated-back preview hash": true,
+    "pass2 09-elevated-back full PNG retained": true,
+    "pass2 09-elevated-back preview cap": true,
+    "closed-anatomy source exact": true,
+    "closed-anatomy hero and nine": true,
+    "closed-anatomy hero preview hash": true,
+    "closed-anatomy hero full PNG retained": true,
+    "closed-anatomy hero preview cap": true,
+    "closed-anatomy 01-front preview hash": true,
+    "closed-anatomy 01-front full PNG retained": true,
+    "closed-anatomy 01-front preview cap": true,
+    "closed-anatomy 02-left preview hash": true,
+    "closed-anatomy 02-left full PNG retained": true,
+    "closed-anatomy 02-left preview cap": true,
+    "closed-anatomy 03-right preview hash": true,
+    "closed-anatomy 03-right full PNG retained": true,
+    "closed-anatomy 03-right preview cap": true,
+    "closed-anatomy 04-back preview hash": true,
+    "closed-anatomy 04-back full PNG retained": true,
+    "closed-anatomy 04-back preview cap": true,
+    "closed-anatomy 05-top preview hash": true,
+    "closed-anatomy 05-top full PNG retained": true,
+    "closed-anatomy 05-top preview cap": true,
+    "closed-anatomy 06-elevated-front preview hash": true,
+    "closed-anatomy 06-elevated-front full PNG retained": true,
+    "closed-anatomy 06-elevated-front preview cap": true,
+    "closed-anatomy 07-elevated-left preview hash": true,
+    "closed-anatomy 07-elevated-left full PNG retained": true,
+    "closed-anatomy 07-elevated-left preview cap": true,
+    "closed-anatomy 08-elevated-right preview hash": true,
+    "closed-anatomy 08-elevated-right full PNG retained": true,
+    "closed-anatomy 08-elevated-right preview cap": true,
+    "closed-anatomy 09-elevated-back preview hash": true,
+    "closed-anatomy 09-elevated-back full PNG retained": true,
+    "closed-anatomy 09-elevated-back preview cap": true,
+    "08-elevated-right matched setup": true,
+    "01-front matched setup": true,
+    "04-back matched setup": true,
+    "03-right matched setup": true,
+    "hero matched setup": true,
+    "02-left matched setup": true,
+    "05-top matched setup": true,
+    "06-elevated-front matched setup": true,
+    "09-elevated-back matched setup": true,
+    "07-elevated-left matched setup": true,
+    "owned outputs below 15MiB": true
+  },
+  "passed": 77,
+  "total": 77,
+  "files": [
+    {
+      "path": "captures-final/pass2-hero.webp",
+      "bytes": 58158,
+      "sha256": "f3ef0147cd9c79dac88f3cc925ed3b5956c8fd9a7f4e253da11de58bf4a583cc"
+    },
+    {
+      "path": "captures-final/pass2-hero.png",
+      "bytes": 659285,
+      "sha256": "f1851ec1fe3e8fe789eda516f04ea2c766c98c55ed7116f3068d639b5e10f7f2"
+    },
+    {
+      "path": "captures-final/pass2-01-front.webp",
+      "bytes": 17664,
+      "sha256": "f956272029bb46af16ab22d8df82de155aae7d725fa8462945243afcc5e817b5"
+    },
+    {
+      "path": "captures-final/pass2-01-front.png",
+      "bytes": 240061,
+      "sha256": "220c22d823ff28a1c03067bd8c087c3f8b0fd2c7266b15824bfb2160b719b0ac"
+    },
+    {
+      "path": "captures-final/pass2-02-left.webp",
+      "bytes": 16748,
+      "sha256": "e3ab576ff54fd3a01ac15b3711c89b2152d952e76507842c4f94077bff76b1e5"
+    },
+    {
+      "path": "captures-final/pass2-02-left.png",
+      "bytes": 240862,
+      "sha256": "bd5fcb41edbbe6789bc0fe86221e7285e13dc41a2f2a52d2648b4410b6716c37"
+    },
+    {
+      "path": "captures-final/pass2-03-right.webp",
+      "bytes": 18098,
+      "sha256": "7c554b48344ffeeae0619b2a422cd7734fda7dfe059f146ba752f8befd5c6372"
+    },
+    {
+      "path": "captures-final/pass2-03-right.png",
+      "bytes": 248266,
+      "sha256": "325719b40f5321a43c52252f3d283953d4d1cf077b83064494b584740a16a791"
+    },
+    {
+      "path": "captures-final/pass2-04-back.webp",
+      "bytes": 13998,
+      "sha256": "e000c217be02ec5c835ac5f155bccdaea28d480c388af74297f1df7a750cb957"
+    },
+    {
+      "path": "captures-final/pass2-04-back.png",
+      "bytes": 232337,
+      "sha256": "42812a71613a932b3f61d0a3f37b00cb0696360d1955272b3d515041b28bb52e"
+    },
+    {
+      "path": "captures-final/pass2-05-top.webp",
+      "bytes": 57114,
+      "sha256": "5b5bd1ab752c79296847f3b712a9572791cb4804ab5a743e7ecf23782c5911c4"
+    },
+    {
+      "path": "captures-final/pass2-05-top.png",
+      "bytes": 680178,
+      "sha256": "cb086d257120623898cec8ad4d9f5bdeb72a786288881e0763f4fe3bc1ded213"
+    },
+    {
+      "path": "captures-final/pass2-06-elevated-front.webp",
+      "bytes": 61524,
+      "sha256": "6cea3e9ba9b71dbba2bfc18e9e75f3f1f8d0099bf3dd7e4ecee3d712dda5aec1"
+    },
+    {
+      "path": "captures-final/pass2-06-elevated-front.png",
+      "bytes": 676430,
+      "sha256": "d40a02e67bacabaa120fb5683ca33ff4cbfdad09f19792cce622b72f911886c5"
+    },
+    {
+      "path": "captures-final/pass2-07-elevated-left.webp",
+      "bytes": 53168,
+      "sha256": "cf5f1bd27541bd4244df928732431688922259757e66644d048c4a1b6a24a139"
+    },
+    {
+      "path": "captures-final/pass2-07-elevated-left.png",
+      "bytes": 663389,
+      "sha256": "c2fa088e30839644617e5caaffd19e9bdb3cdb026acbb98fd0bb2f4e24e2f7e7"
+    },
+    {
+      "path": "captures-final/pass2-08-elevated-right.webp",
+      "bytes": 73856,
+      "sha256": "dc94e8d57ac7bb2a128c07bf405f12b0ac5adccac581bbacc7e3391278e4a3f1"
+    },
+    {
+      "path": "captures-final/pass2-08-elevated-right.png",
+      "bytes": 705394,
+      "sha256": "b1a52da1ca5faa913c37996a12c29cd8758356cadd00bc1e0e9656299641384f"
+    },
+    {
+      "path": "captures-final/pass2-09-elevated-back.webp",
+      "bytes": 54308,
+      "sha256": "0094544ebf673e1cb103a2de09e9e96fb1a83212c76d0971985bb4a17d313ce2"
+    },
+    {
+      "path": "captures-final/pass2-09-elevated-back.png",
+      "bytes": 669145,
+      "sha256": "061c59f2286d174b74bca0d9964ae71cefc56e5ea26340c243e997a85763fbed"
+    },
+    {
+      "path": "captures-final/closed-anatomy-hero.webp",
+      "bytes": 58208,
+      "sha256": "3c5c6f16e6b3374cc5c29a84c4753c16e7e2d7b1ea9f26aeb4341688c958c261"
+    },
+    {
+      "path": "captures-final/closed-anatomy-hero.png",
+      "bytes": 659530,
+      "sha256": "d854e304b6724258cf110b77a74bed809e1e5427cf7cba31c375dccc46641cea"
+    },
+    {
+      "path": "captures-final/closed-anatomy-01-front.webp",
+      "bytes": 17638,
+      "sha256": "e157aedbfe1b853a98c7ea521473e4b5308769fd5dc1afcb50f2dc58a27c882f"
+    },
+    {
+      "path": "captures-final/closed-anatomy-01-front.png",
+      "bytes": 240252,
+      "sha256": "e9e21836f363ef2bdd9e5caeb67e82fd2da12f40a68804583d2eb13004ad83c7"
+    },
+    {
+      "path": "captures-final/closed-anatomy-02-left.webp",
+      "bytes": 17212,
+      "sha256": "7f4ce839b5ae78215b5dc195c994a52ca412d3e21a3cdf4ca00b574980a8a333"
+    },
+    {
+      "path": "captures-final/closed-anatomy-02-left.png",
+      "bytes": 240747,
+      "sha256": "541a230b7fc9deb0dee952f4f83a1930ca39e72085e0f134238773299e50bd33"
+    },
+    {
+      "path": "captures-final/closed-anatomy-03-right.webp",
+      "bytes": 18842,
+      "sha256": "c6718bd4993e85e17485642f44942b538eb6d19955f5ddac9bfcf0626ed2c213"
+    },
+    {
+      "path": "captures-final/closed-anatomy-03-right.png",
+      "bytes": 249276,
+      "sha256": "bd03f666431c36beda81076c900a40d0c0146636c1871b0b92e776ace9ec643a"
+    },
+    {
+      "path": "captures-final/closed-anatomy-04-back.webp",
+      "bytes": 14370,
+      "sha256": "9c0ae6d85a89d1e71d57c7c449041dfdce51488dd51cc91b877a68b3c6cc156d"
+    },
+    {
+      "path": "captures-final/closed-anatomy-04-back.png",
+      "bytes": 231945,
+      "sha256": "5028660363001fba81a9800e93e693d5a8d7418e9a6c8d38dd0608f2ca624abd"
+    },
+    {
+      "path": "captures-final/closed-anatomy-05-top.webp",
+      "bytes": 57174,
+      "sha256": "883e4ec5d2575d589838323b7e94375b1367f492578d105698af7c877d403a71"
+    },
+    {
+      "path": "captures-final/closed-anatomy-05-top.png",
+      "bytes": 680398,
+      "sha256": "8e316ca340d95bc95604487993fd05886799e7c4ecf53e17cec598557f31bce2"
+    },
+    {
+      "path": "captures-final/closed-anatomy-06-elevated-front.webp",
+      "bytes": 62238,
+      "sha256": "82aa56b94bd7d5f5ed439a05d2ba8103cbddd281b59d5da3fd8cf20a08588891"
+    },
+    {
+      "path": "captures-final/closed-anatomy-06-elevated-front.png",
+      "bytes": 677066,
+      "sha256": "5f144b913e6c065b92afe9824c9faf1944bfe813b249538826692387eee0f5af"
+    },
+    {
+      "path": "captures-final/closed-anatomy-07-elevated-left.webp",
+      "bytes": 53696,
+      "sha256": "0b9f6a179224fe76b31a955e8d0721286d03f17d65cafdaf07d0361018e7a56e"
+    },
+    {
+      "path": "captures-final/closed-anatomy-07-elevated-left.png",
+      "bytes": 663378,
+      "sha256": "61e279125aa3e48d9a28ea28c49f35771847266b12470ea2e52d1c4a77395ab7"
+    },
+    {
+      "path": "captures-final/closed-anatomy-08-elevated-right.webp",
+      "bytes": 74770,
+      "sha256": "bf30ec1183e6b69a33180cd810784d9edb61ac6e0bc9920d36acb28bd08db0b4"
+    },
+    {
+      "path": "captures-final/closed-anatomy-08-elevated-right.png",
+      "bytes": 705880,
+      "sha256": "41c0420d7255f9562c60db585ee1f86affafc1e0aaf88cd62e5abb92ba94bc9f"
+    },
+    {
+      "path": "captures-final/closed-anatomy-09-elevated-back.webp",
+      "bytes": 54638,
+      "sha256": "dbaad8cd14d6d9360acc5332599b08075180421a45f9c48db48761bccfa618de"
+    },
+    {
+      "path": "captures-final/closed-anatomy-09-elevated-back.png",
+      "bytes": 668241,
+      "sha256": "d28d0c5e2707a4f101dee7c239366d9e376f95f6c76b2e79998ff71ae14eeb41"
+    },
+    {
+      "path": "build_candidate.py",
+      "bytes": 5639,
+      "sha256": "3d8bbccfc79fe77f0e87cb24cadff3b4c68504f3a42593b6aa09999658c1b93a"
+    },
+    {
+      "path": "closed-anatomy-native.json",
+      "bytes": 1443054,
+      "sha256": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006"
+    },
+    {
+      "path": "closed-anatomy-study.glb",
+      "bytes": 636280,
+      "sha256": "4261180dcd0f9dc7c011f2631a1d0d37cc92ac30dd20f892a2aa1eb39eb8f8ef"
+    },
+    {
+      "path": "construction-receipt.json",
+      "bytes": 2943,
+      "sha256": "0ca3625443875b8277ffcc2aab6671d97cd04ae0ccc78280533b3dddb930734a"
+    },
+    {
+      "path": "geometry-audit.json",
+      "bytes": 31805,
+      "sha256": "6d76c980daaffbf26c0639e0d5887fae7d8cf8bcef6e2b3f27158eb61b7ce6d5"
+    },
+    {
+      "path": "glb-roundtrip-audit.json",
+      "bytes": 2138,
+      "sha256": "34844452b84652a3ffcadd9d66b14dab85a99b7e2631495d60355c212db2d1ba"
+    },
+    {
+      "path": "export_glb.py",
+      "bytes": 3489,
+      "sha256": "a142de83b014d36d9041119f14351ae6f9ffb47cb68e13ce570fdf7e6e928469"
+    },
+    {
+      "path": "audit_geometry.py",
+      "bytes": 3391,
+      "sha256": "7eef842c5b179d53ab7390122645ca42a0d21de56a84fe64eaebae1dc81042d6"
+    },
+    {
+      "path": "audit_glb_roundtrip.py",
+      "bytes": 2168,
+      "sha256": "75343bd1574a1f4860ad1f6855dcda68f215959de78d48ae6224e2d5fbbabaae"
+    },
+    {
+      "path": "render_matched.py",
+      "bytes": 5228,
+      "sha256": "f5e12f506626d10ad0232d134de48ea3c74c81e8c3a1a8cef568c751e1930537"
+    },
+    {
+      "path": "save_preview.py",
+      "bytes": 411,
+      "sha256": "8fbfd2a33d10d6b63788f4eb4435a538bc96b9a7fdedb38c970525f04dff46c2"
+    },
+    {
+      "path": "audit_crossings.py",
+      "bytes": 1556,
+      "sha256": "e26ccf3fe6e3c94b95468c98b4df47c04b5fc9bcd72bb04b9ecf1e1473415323"
+    },
+    {
+      "path": "crossing-audit.json",
+      "bytes": 804,
+      "sha256": "2a0fd7ca404ed535968bb57216c0e15b3134ad795f7b8d68ff5b64993f50a75c"
+    },
+    {
+      "path": "lossless-png-receipt.json",
+      "bytes": 4986,
+      "sha256": "9c64d56def1441653a83023a1433a82ab6e437ad7302bccf8af1aca2504767be"
+    }
+  ],
+  "ownedBytesBeforeClosure": 13843520,
+  "noScore": true,
+  "runtimeAdmission": false,
+  "rawPNGOriginalBytesRetained": false,
+  "losslessPNGPixelIdentityVerified": true,
+  "byteProvenanceLimitation": "Blender PNGs were losslessly re-encoded with exact decoded pixel, mode and size equality. Original encoded byte copies and pre-encoding byte hashes were not retained. lossless-png-receipt.json preserves pre/post sizes and decoded pixel hashes. No rerender substituted history.",
+  "captureConditions": "600x740 Cycles24 no denoising AgX, exact retained pass2 cameras and three area lights; both complete native scenes in same render run"
+}

@@ -1,0 +1,366 @@
+{
+  "status": "All twenty actual matched captures completed",
+  "nativePins": {
+    "pass2": {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-native.json",
+      "sha256": "15a8a65ed0303e24982799ab395e77cd1d50920e964bbe81a099308e9ffdb762"
+    },
+    "closed-anatomy": {
+      "path": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-study/closed-anatomy-native.json",
+      "sha256": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006"
+    }
+  },
+  "scriptSha256": "f5e12f506626d10ad0232d134de48ea3c74c81e8c3a1a8cef568c751e1930537",
+  "resolution": [
+    600,
+    740
+  ],
+  "samples": 24,
+  "denoising": false,
+  "viewTransform": "AgX",
+  "lighting": "V71 three area lights, unchanged between variants",
+  "geometry": "native bind pose, identity transforms, no camera-dependent changes",
+  "captures": [
+    {
+      "variant": "pass2",
+      "view": "hero",
+      "camera": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ],
+      "target": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ],
+      "scale": 3.2,
+      "filename": "pass2-hero.webp",
+      "sha256": "f3ef0147cd9c79dac88f3cc925ed3b5956c8fd9a7f4e253da11de58bf4a583cc"
+    },
+    {
+      "variant": "closed-anatomy",
+      "view": "hero",
+      "camera": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ],
+      "target": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ],
+      "scale": 3.2,
+      "filename": "closed-anatomy-hero.webp",
+      "sha256": "3c5c6f16e6b3374cc5c29a84c4753c16e7e2d7b1ea9f26aeb4341688c958c261"
+    },
+    {
+      "variant": "pass2",
+      "view": "01-front",
+      "camera": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-01-front.webp",
+      "sha256": "f956272029bb46af16ab22d8df82de155aae7d725fa8462945243afcc5e817b5"
+    },
+    {
+      "variant": "closed-anatomy",
+      "view": "01-front",
+      "camera": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "closed-anatomy-01-front.webp",
+      "sha256": "e157aedbfe1b853a98c7ea521473e4b5308769fd5dc1afcb50f2dc58a27c882f"
+    },
+    {
+      "variant": "pass2",
+      "view": "02-left",
+      "camera": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-02-left.webp",
+      "sha256": "e3ab576ff54fd3a01ac15b3711c89b2152d952e76507842c4f94077bff76b1e5"
+    },
+    {
+      "variant": "closed-anatomy",
+      "view": "02-left",
+      "camera": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "closed-anatomy-02-left.webp",
+      "sha256": "7f4ce839b5ae78215b5dc195c994a52ca412d3e21a3cdf4ca00b574980a8a333"
+    },
+    {
+      "variant": "pass2",
+      "view": "03-right",
+      "camera": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-03-right.webp",
+      "sha256": "7c554b48344ffeeae0619b2a422cd7734fda7dfe059f146ba752f8befd5c6372"
+    },
+    {
+      "variant": "closed-anatomy",
+      "view": "03-right",
+      "camera": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "closed-anatomy-03-right.webp",
+      "sha256": "c6718bd4993e85e17485642f44942b538eb6d19955f5ddac9bfcf0626ed2c213"
+    },
+    {
+      "variant": "pass2",
+      "view": "04-back",
+      "camera": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-04-back.webp",
+      "sha256": "e000c217be02ec5c835ac5f155bccdaea28d480c388af74297f1df7a750cb957"
+    },
+    {
+      "variant": "closed-anatomy",
+      "view": "04-back",
+      "camera": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "closed-anatomy-04-back.webp",
+      "sha256": "9c0ae6d85a89d1e71d57c7c449041dfdce51488dd51cc91b877a68b3c6cc156d"
+    },
+    {
+      "variant": "pass2",
+      "view": "05-top",
+      "camera": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-05-top.webp",
+      "sha256": "5b5bd1ab752c79296847f3b712a9572791cb4804ab5a743e7ecf23782c5911c4"
+    },
+    {
+      "variant": "closed-anatomy",
+      "view": "05-top",
+      "camera": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "closed-anatomy-05-top.webp",
+      "sha256": "883e4ec5d2575d589838323b7e94375b1367f492578d105698af7c877d403a71"
+    },
+    {
+      "variant": "pass2",
+      "view": "06-elevated-front",
+      "camera": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-06-elevated-front.webp",
+      "sha256": "6cea3e9ba9b71dbba2bfc18e9e75f3f1f8d0099bf3dd7e4ecee3d712dda5aec1"
+    },
+    {
+      "variant": "closed-anatomy",
+      "view": "06-elevated-front",
+      "camera": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "closed-anatomy-06-elevated-front.webp",
+      "sha256": "82aa56b94bd7d5f5ed439a05d2ba8103cbddd281b59d5da3fd8cf20a08588891"
+    },
+    {
+      "variant": "pass2",
+      "view": "07-elevated-left",
+      "camera": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-07-elevated-left.webp",
+      "sha256": "cf5f1bd27541bd4244df928732431688922259757e66644d048c4a1b6a24a139"
+    },
+    {
+      "variant": "closed-anatomy",
+      "view": "07-elevated-left",
+      "camera": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "closed-anatomy-07-elevated-left.webp",
+      "sha256": "0b9f6a179224fe76b31a955e8d0721286d03f17d65cafdaf07d0361018e7a56e"
+    },
+    {
+      "variant": "pass2",
+      "view": "08-elevated-right",
+      "camera": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-08-elevated-right.webp",
+      "sha256": "dc94e8d57ac7bb2a128c07bf405f12b0ac5adccac581bbacc7e3391278e4a3f1"
+    },
+    {
+      "variant": "closed-anatomy",
+      "view": "08-elevated-right",
+      "camera": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "closed-anatomy-08-elevated-right.webp",
+      "sha256": "bf30ec1183e6b69a33180cd810784d9edb61ac6e0bc9920d36acb28bd08db0b4"
+    },
+    {
+      "variant": "pass2",
+      "view": "09-elevated-back",
+      "camera": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-09-elevated-back.webp",
+      "sha256": "0094544ebf673e1cb103a2de09e9e96fb1a83212c76d0971985bb4a17d313ce2"
+    },
+    {
+      "variant": "closed-anatomy",
+      "view": "09-elevated-back",
+      "camera": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "closed-anatomy-09-elevated-back.webp",
+      "sha256": "dbaad8cd14d6d9360acc5332599b08075180421a45f9c48db48761bccfa618de"
+    }
+  ],
+  "runtimeValidated": false
+}

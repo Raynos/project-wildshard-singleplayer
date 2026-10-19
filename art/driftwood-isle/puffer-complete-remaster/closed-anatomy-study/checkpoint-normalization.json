@@ -1,0 +1,15 @@
+{
+  "scope": "Diagnostic prefix and terminal whitespace only. Original closure records pre-normalization log bytes, retained locally. Source/capture pixels unchanged.",
+  "changes": [
+    {
+      "path": "render.log",
+      "originalSha256": "8dd116e67c9506418f712c762989723e2ab84ed36377cc19c14742b1d864469c",
+      "sha256": "24bd25f7d9dbae839c2609e1afe7329c8e212e8780752437797a5fbac4ab9de5"
+    },
+    {
+      "path": "render-final.log",
+      "originalSha256": "35a4acac3ca018bdf579fd037e364c965be9c25daa56e4fe5ce3b1391aa70f88",
+      "sha256": "6fd7ec2c0fe06daaa224b0736b5261375d0882b8ff8a71c745aaf8e8327c5cd6"
+    }
+  ]
+}
