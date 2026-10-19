@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./rigidCorpse": "./rigidCorpse.ts",
     "./figures": "./figures.ts",
     "./coverAppearance": "./coverAppearance.ts",
     "./eliteFeature": "./eliteFeature.ts",

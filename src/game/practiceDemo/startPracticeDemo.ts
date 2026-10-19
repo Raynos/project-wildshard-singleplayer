@@ -8,7 +8,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { installSaveEnvironment } from '@wildshard/engine/saves/environment';
 import { Physics } from '@wildshard/engine/physics/Physics';
-import { setRagdollClock } from '@wildshard/engine/physics/ragdoll';
+import { setRagdollClock, ragdollsFor } from '@wildshard/engine/physics/ragdoll';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { Bodies, BODY_CAP } from '@wildshard/engine/physics/bodies';
 import { setActiveBodies, setActivePhysics } from '@wildshard/engine/physics/active';
@@ -116,7 +116,9 @@ export async function startPracticeDemo(options: PracticeDemoOptions): Promise<P
     owner.listen(options.canvas, 'click', () => { if (!touch.active) player.lock(); });
     app.addSystem({ id: 'engine.input.collect', phase: 'input', before: ['engine.player.input'], run: () => { player.collectActions(); } }, owner);
     game.onInput(dt => { player.input(dt); }, 'engine.player.input');
+    game.onFixed('pre', dt => { ragdollsFor(physics).fixedPre(dt); }, 'physics.corpse.pre', true);
     game.onFixed('step', () => { physics.step(); }, 'physics.step', true);
+    game.onFixed('post', dt => { ragdollsFor(physics).fixedPost(dt); }, 'physics.corpse.post', true);
     game.onFixed('post', dt => { player.step(dt); }, 'player.step', true);
     game.onUpdate(dt => { player.update(dt, game.alpha); }, 'player.update');
     app.addSystem({ id: 'demo.weapon', phase: 'update', after: ['training-arena'], run: (dt, t) => { weapons.update(dt, t); } }, owner);

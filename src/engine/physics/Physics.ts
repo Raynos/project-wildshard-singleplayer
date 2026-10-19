@@ -120,6 +120,8 @@ export class Physics {
   private creationOwner(): Scope | null { return this.owner === null ? currentOwner() : ownerOr(this.owner); }
   /** Set by `dispose`: a scope torn down in the same pass may still run a capture it had copied before the world went. */
   private freed = false;
+  /** Native handles are invalid after whole-world retirement. */
+  get disposed(): boolean { return this.freed; }
 
   dispose(): void {
     this.world.forEachCollider(untagCollider); this.world.free(); this.freed = true;

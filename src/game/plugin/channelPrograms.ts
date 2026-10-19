@@ -1,3 +1,4 @@
+import { registerRigidCorpseAnimation } from '@wildshard/engine/entities/rigidCorpsePose';
 import * as poseSchema from 'valibot';
 import { ClientChannelsSchema, parseClientChannels } from '@wildshard/format/clientChannels';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
@@ -76,7 +77,7 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
     observation: { time: number; delta: number; values: Record<string, number> };
     lane: ReturnType<typeof installChannelPrograms> | null;
   }>();
-  return c => {
+  return registerRigidCorpseAnimation(c => {
     if ((row.alive !== undefined && row.alive !== c.alive)
       || (row.variant !== undefined && Reflect.get(c.animal, 'variant') !== row.variant)) return;
     // Detached observations only: missing old-save memory can supply an authored default without a write.
@@ -128,5 +129,5 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
     rig.lane?.evaluate(rig.observation);
     const body = row.squash === undefined ? undefined : c.bones[row.squash];
     if (body !== undefined) squashBody(body, c.flinch);
-  };
+  });
 }

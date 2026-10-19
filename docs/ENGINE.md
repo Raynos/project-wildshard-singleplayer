@@ -9880,3 +9880,56 @@ retry; normal engine context teardown is unchanged. The supported preview's
 The loader receives the validated authored `/assets/` archive path; compositions
 may resolve it within their page mount without rewriting or weakening metadata
 admission. Ordinary callers retain `fetchBuildFile` and the existing decode.
+
+### Optional rigid corpse point hulls (implementation study)
+
+`AnimalDims.rigidCorpse` is an optional client-presentation extension to the
+existing ragdoll host, not a living body shape. Its strict data shape is
+`{parts: [{bone, points: [[x,y,z], ...]}]}`. Points are bone-local bind units:
+1–8 unique admitted bone ids, 4–128 finite triples per part, at most 512 total,
+coordinates within ±20. Physics rejects degenerate hulls, unsafe transforms,
+non-unit bone scales, and nonpositive/nonuniform actor scale before allocation.
+Actor scale applies once to points and relative translations. No trimesh,
+per-part mass, shard callback, root lift, geometry sampling or arbitrary key is
+admitted. Convex hulls are prepared once; only local transforms move thereafter.
+
+Only actual custom rigid rigs with the existing admitted numeric pose evaluator
+can use this extension. Upright and quadruped builds reject it. Packed metadata
+and native body schemas preserve it; packed copies own their nested arrays.
+Native living simulation does not create corpses. The separate species-row and
+legacy GLB routes still do not admit this field. Absence retains the old builds.
+
+The existing bootstrap and practice composition register fixed pre/post corpse
+publication. Pre evaluates the same numeric pose from captured death inputs and
+updates collider-local transforms. Post captures every root endpoint, including
+catch-up steps. Render interpolates those bone/root endpoints and never advances
+the opted-in collapse. The .8-second death clock advances once per executed fixed
+step, independently of near/far render observation. Pauses and dropped catch-up
+steps do not advance it. Existing unscaled creature time through visual hit-stop
+is retained. No Game clock or living animation/motor/AI is changed.
+
+One dynamic root retains mass 5, the old cuboid COM and physical inertia tensor;
+all hull colliders are massless DEBRIS with the original friction, restitution
+and world-only masks. Eigenvalue order alone is not a tensor comparison. Quiet
+or sleeping freeze waits for collapse completion; MAX_T still bounds the root.
+Frozen bones and root share their final endpoints. Failure rolls back the new
+body and collider allocation before live-count admission; disposal is repeatable.
+
+This is an opt-in implementation study with no product recipe enabled. Focused
+schema/clock/native fixtures are not contact or visual acceptance. Actual varied
+hits, orientations, terrain, full corpse settling, complete combat/retry cycles,
+collider-change walk, phone performance, and exact-build review remain required.
+
+Initial focused implementation evidence: 42 tests pass across strict corpse
+schema, fixed clock, real Rapier corpse physics and existing packed-body suites.
+The native fixture prepares all eight original parts (435 points) and checks
+collider-local publication over 48 fixed ticks of the actual numeric collapse.
+At actor scale 2, the opt-in additional-mass body differs from the legacy cuboid
+by 0.00006818771362304688 m on one translation component after 31 fixed steps
+(31/60 s) in gravity-free, contact-free integration. This is measured native
+floating-point/eigenbasis rounding, not bitwise trajectory identity; the focused
+comparison bounds each translation component to 0.0001 m. Contact tolerances
+are unchanged. Full default trace snapshots and complete end-to-end acceptance
+remain outstanding. A whole-tree type check was resource-killed (exit 137),
+not passed; the standalone engine project also requires missing format declaration
+outputs before its complete layer check can be evaluated.

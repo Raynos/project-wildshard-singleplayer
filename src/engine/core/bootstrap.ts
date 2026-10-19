@@ -22,7 +22,7 @@ import { loadRapier } from '../physics/rapier';
 import { Physics } from '../physics/Physics';
 import { setActiveBodies, setActivePhysics } from '../physics/active';
 import { loadNavmesh } from '../physics/navmeshLoad';
-import { setRagdollClock } from '../physics/ragdoll';
+import { setRagdollClock, ragdollsFor } from '../physics/ragdoll';
 import { Bodies, BODY_CAP } from '../physics/bodies';
 import { addEdgeWalls, addTerrain } from '../physics/terrain';
 import { addPiece } from '../physics/pieces';
@@ -156,7 +156,9 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   app.addSystem({ id: 'engine.input.collect', phase: 'input', before: ['engine.player.input'], run: () => { if (playing()) player.collectActions(); else app.input.clear(); } }, game.levelScope);
   game.onInput((dt) => { if (playing()) player.input(dt); }, 'engine.player.input');
   game.onFixed('pre', () => { for (const m of moving) m(); }, 'physics.movers');
+  game.onFixed('pre', dt => { ragdollsFor(physics).fixedPre(dt); }, 'physics.corpse.pre', true);
   game.onFixed('step', () => { world.physics.step(); }, 'physics.step', true);
+  game.onFixed('post', dt => { ragdollsFor(physics).fixedPost(dt); }, 'physics.corpse.post', true);
   game.onFixed('post', (dt) => { const on = playing(); player.setBodyEnabled(on); if (on) player.step(dt); }, 'player.step', true);
   game.onUpdate((dt) => {
     if (tour.active) { tour.setTime(tour.time); player.position.copy(game.camera.position); player.position.y -= 1.7; }

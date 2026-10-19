@@ -1,3 +1,4 @@
+import { RigidCorpsePose } from './rigidCorpsePose';
 import { AnimalPoseLaw } from './animalPose';
 import { QuadrupedRigPose, applyAnimalRoot } from './animalRig';
 import { diagnosticNow } from '../core/clock';
@@ -327,6 +328,9 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
     this.mesh.updateMatrixWorld(true);
     this.ragdoll = ragdollsFor(physics).spawn({
       build: !this.custom ? 'quadruped' : d.capsuleAxis === 'y' ? 'upright' : 'rigid',
+      ...(d.rigidCorpse === undefined ? {} : { corpsePose: new RigidCorpsePose({ ...this.rigCtx,
+        deathT: this.deathT, flinch: this.flinch, phase: this.phase, state: this.state, yaw: this.yaw,
+        position: this.position, mem: this.mem }, this.model.species.animate) }),
       root: this.mesh, bones: this.bones, dims: d, scale: this.scale, lite: TIER === 'phone',
       // forward along the heading, strafe to the animal's left (world (cos yaw, -sin yaw))
       velocity: { x: sin * this.speed + cos * this.strafe, y: 0, z: cos * this.speed - sin * this.strafe },
@@ -337,7 +341,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
   /** A ragdolled death's frame: the physics poses the mesh (and a quadruped's bones), a custom rig's limbs keep their keyframes. */
   private updateRagdoll(r: Ragdoll, dt: number, t: number, near: boolean): void {
     this.speed = 0; this.strafe = 0;
-    if (this.custom && near) {
+    if (this.custom && near && !r.fixedPose) {
       if (this.flinch > 0.001) this.flinch *= Math.exp(-dt * 5.5);
       if (this.deathT >= 0) this.deathT = Math.min(1, this.deathT + dt / 0.8);
       const c = this.rigCtx;
@@ -346,6 +350,8 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
       this.model.species.animate?.(c);
     }
     r.pose(dt);
+    if (r.corpseDeathT !== undefined) this.deathT = r.corpseDeathT;
+    if (r.corpseFlinch !== undefined) this.flinch = r.corpseFlinch;
     // the corpse's place (loot, harvest): under the torso, or the custom rig's root
     r.rootPosition(this.position);
     if (!this.custom) this.position.y -= this.model.dims.halfWidth * this.scale;

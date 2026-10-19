@@ -1,3 +1,4 @@
+import type { RigidCorpseRecipe } from '../../physics/rigidCorpse';
 import type { RigContract } from '../../anim/rig';
 import { validateCreatureBones as validateDeclaredBones } from '@wildshard/format/skinData';
 import { WeightedTable } from '../../ai/weighted';
@@ -63,6 +64,8 @@ export interface VariantDef {
 }
 
 export interface AnimalDims {
+  /** Optional rigid-only corpse hulls; never used by living contacts. */
+  rigidCorpse?: RigidCorpseRecipe;
   /** height of the body bone (spine centre) above ground in the bind pose */
   bodyY: number;
   /** half-length of the body capsule along Z (for hit tests) */

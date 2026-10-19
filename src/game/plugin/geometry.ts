@@ -1,3 +1,4 @@
+import { rigidCorpseSchema, copyRigidCorpse } from '@wildshard/format/rigidCorpse';
 import { unzlibSync } from 'fflate';
 import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as WholeNative, nativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
 import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } from '@wildshard/engine/core/deflate';
@@ -1321,7 +1322,7 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
   const PackedBodyParts = wholeV.union([wholeV.null(), PackedBodyPart, wholeV.pipe(wholeV.array(PackedBodyPart), wholeV.maxLength(64))]);
   const PackedBody = wholeV.strictObject({ kind: wholeV.string(), variant: wholeV.string(),
     bones: wholeV.pipe(wholeV.array(wholeV.strictObject({ name: wholeV.string(), parent: wholeV.nullable(wholeV.string()), pos: wholeV.tuple([PackedBodyNumber, PackedBodyNumber, PackedBodyNumber]) })), wholeV.maxLength(512)),
-    dims: wholeV.strictObject({ bodyY: PackedBodyNumber, bodyHalfLen: PackedBodyNumber, bodyRadius: PackedBodyNumber, headRadius: PackedBodyNumber, legLen: PackedBodyNumber,
+    dims: wholeV.strictObject({ rigidCorpse: wholeV.exactOptional(rigidCorpseSchema), bodyY: PackedBodyNumber, bodyHalfLen: PackedBodyNumber, bodyRadius: PackedBodyNumber, headRadius: PackedBodyNumber, legLen: PackedBodyNumber,
       feet: wholeV.pipe(wholeV.array(wholeV.tuple([PackedBodyNumber, PackedBodyNumber])), wholeV.maxLength(512)), halfWidth: PackedBodyNumber, capsuleAxis: wholeV.optional(wholeV.picklist(['y', 'z'])) }),
     fur: PackedBodyParts, hard: PackedBodyParts, eye: PackedBodyParts });
   const bake = wholeV.parse(wholeV.strictObject({ file: wholeV.pipe(wholeV.string(), wholeV.regex(/^\/assets\/[a-zA-Z0-9/_-]+-[0-9a-f]{64}\.bin$/u)),
@@ -1331,6 +1332,7 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
     const key = JSON.stringify([body.kind, body.variant]);
     if (keys.has(key)) throw new Error('Duplicate packed creature body');
     keys.add(key);
+    if (body.dims.rigidCorpse !== undefined && (body.dims.capsuleAxis === 'y' || body.dims.rigidCorpse.parts.some(part => !body.bones.some(bone => bone.name === part.bone)))) throw new Error('Incompatible packed rigid corpse');
     for (const part of [body.fur, body.hard, body.eye].flatMap(parts => parts === null ? [] : Array.isArray(parts) ? parts : [parts])) {
       const row = part.row;
       if (row.attrs[0]?.[0] !== 'position' || new Set(row.attrs.map(attr => attr[0])).size !== row.attrs.length
@@ -1365,10 +1367,10 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
         for (const [start, count, material] of source.groups ?? []) g.addGroup(start, count, material);
         return g;
       });
-      const { capsuleAxis, ...dims } = body.dims;
+      const { capsuleAxis, rigidCorpse, ...dims } = body.dims;
       return { bones: body.bones.map(bone => ({ name: bone.name, parent: bone.parent, pos: [bone.pos[0], bone.pos[1], bone.pos[2]] })),
         furParts: part(body.fur), hardParts: part(body.hard), eyeParts: part(body.eye),
-        dims: { ...dims, feet: dims.feet.map((foot): [number, number] => [foot[0], foot[1]]), ...(capsuleAxis === undefined ? {} : { capsuleAxis }) } };
+        dims: { ...dims, ...(rigidCorpse === undefined ? {} : { rigidCorpse: copyRigidCorpse(rigidCorpse) }), feet: dims.feet.map((foot): [number, number] => [foot[0], foot[1]]), ...(capsuleAxis === undefined ? {} : { capsuleAxis }) } };
     },
   };
 }

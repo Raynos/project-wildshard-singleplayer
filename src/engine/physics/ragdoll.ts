@@ -1,3 +1,4 @@
+import { prepareRigidCorpse, rigidCorpseTransform, type RigidCorpseRecipe, type CorpsePosePublication } from './rigidCorpse';
 /**
  * Ragdolls (project/archive/2026-09-23-physics.md P8): a dying animal's body is handed to the physics world, thrown by the killing hit,
  * and frozen to a static corpse once it has come to rest.
@@ -25,7 +26,7 @@
  * dies on its keyframed collapse.
  */
 import * as THREE from 'three';
-import type { ColliderDesc, ImpulseJoint, RigidBody } from '@dimforge/rapier3d-simd';
+import type { Collider, ColliderDesc, ImpulseJoint, RigidBody } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
 import { groups } from './groups';
 import { castRay } from './query';
@@ -37,6 +38,7 @@ export const RAGDOLL_CAP = { phone: 2, desktop: 6 } as const;
 
 /** the rig numbers a ragdoll is sized from (AnimalDims) */
 export interface RagdollDims {
+  readonly rigidCorpse?: RigidCorpseRecipe;
   readonly bodyY: number; readonly bodyHalfLen: number; readonly bodyRadius: number; readonly headRadius: number;
   readonly halfWidth: number; readonly capsuleAxis?: 'z' | 'y';
 }
@@ -46,6 +48,8 @@ export type RagdollBuild = 'quadruped' | 'rigid' | 'upright';
 export interface Vec3Like { readonly x: number; readonly y: number; readonly z: number }
 
 export interface RagdollSpec {
+  /** @internal Fixed numeric animation ownership, required only with rigidCorpse. */
+  corpsePose?: CorpsePosePublication;
   build: RagdollBuild;
   /** the animal's mesh: the rig's root (its parent has an identity transform — world = local), uniformly scaled by `scale` */
   root: THREE.Object3D;
@@ -166,6 +170,12 @@ export class Ragdoll {
   /** live: bodies in the world; frozen: a static corpse; gone: disposed */
   state: 'live' | 'frozen' | 'gone' = 'live';
   private readonly parts: Part[] = [];
+  private readonly corpseColliders: { bone: THREE.Bone; collider: Collider }[] = [];
+  private readonly corpsePose: CorpsePosePublication | undefined;
+  get fixedPose(): boolean { return this.corpsePose !== undefined; }
+  /** Fixed endpoint clocks for corpse diagnostics; render never advances them. */
+  get corpseDeathT(): number | undefined { return this.corpsePose?.deathT; }
+  get corpseFlinch(): number | undefined { return this.corpsePose?.flinch; }
   private readonly joints: ImpulseJoint[] = [];
   private readonly root: THREE.Object3D;
   private readonly build: RagdollBuild;
@@ -184,6 +194,9 @@ export class Ragdoll {
     const { R, world } = system.physics;
     this.root = spec.root; this.build = spec.build; this.scale = spec.scale;
     const s = spec.scale, d = spec.dims;
+    const prepared = Object.hasOwn(d, 'rigidCorpse') ? prepareRigidCorpse(R, d.rigidCorpse, spec.root, spec.bones, s, spec.build) : undefined;
+    this.corpsePose = prepared === undefined ? undefined : spec.corpsePose;
+    if (prepared !== undefined && this.corpsePose === undefined) throw new Error('Rigid corpse requires fixed pose ownership');
     spec.root.updateMatrixWorld(true);
     const bone = (name: string): THREE.Object3D => {
       const b = spec.bones[name];
@@ -212,13 +225,22 @@ export class Ragdoll {
       const desc = bodyDesc(_p, _q);
       if (spec.build === 'upright') desc.lockRotations();
       else desc.setAngvel(spin);
+      if (prepared !== undefined) {
+        const x = d.halfWidth * s, y = d.bodyY * .5 * s, z = Math.max(d.bodyHalfLen, d.bodyRadius) * s;
+        desc.setAdditionalMassProperties(5, { x: 0, y: d.bodyY * .6 * s, z: 0 },
+          { x: 5 / 3 * (y * y + z * z), y: 5 / 3 * (x * x + z * z), z: 5 / 3 * (x * x + y * y) }, { x: 0, y: 0, z: 0, w: 1 });
+      }
       const body = world.createRigidBody(desc);
-      if (spec.build === 'upright') {
+      try {
+      if (prepared !== undefined) {
+        for (const part of prepared) this.corpseColliders.push({ bone: part.bone, collider: world.createCollider(collider(part.desc, 0), body) });
+      } else if (spec.build === 'upright') {
         const r = Math.max(0.12, d.halfWidth) * s;
         world.createCollider(collider(R.ColliderDesc.ball(r).setTranslation(0, r, 0), 5).setFriction(0.4), body);
       } else {
         world.createCollider(collider(R.ColliderDesc.cuboid(d.halfWidth * s, d.bodyY * 0.5 * s, Math.max(d.bodyHalfLen, d.bodyRadius) * s).setTranslation(0, d.bodyY * 0.6 * s, 0), 5), body);
       }
+      } catch (error) { world.removeRigidBody(body); throw error; }
       this.parts.push({ bone: spec.root, body, prevP: _p.clone(), prevQ: _q.clone(), curP: _p.clone(), curQ: _q.clone() });
       return;
     }
@@ -313,6 +335,10 @@ export class Ragdoll {
    */
   pose(dt: number): void {
     if (this.state === 'gone') return;
+    if (this.corpsePose !== undefined) {
+      const alpha = this.state === 'frozen' ? 1 : THREE.MathUtils.clamp(alphaClock?.() ?? 1, 0, 1);
+      this.corpsePose.render(alpha); this.write(alpha); return;
+    }
     if (this.state === 'frozen') { this.root.position.copy(this.frozenP); return; }
     this.age += dt; this.sinceStep += dt;
     let stepped = false, fastest = 0, asleep = true;
@@ -335,6 +361,40 @@ export class Ragdoll {
     this.write(alpha);
     this.fastest = fastest;
     if (settled) this.freeze();
+  }
+  /** @internal Existing fixed.pre composition owns all opted-in local collider movement. */
+  fixedPre(dt: number): void {
+    if (this.state !== 'live' || this.corpsePose === undefined) return;
+    if (this.system.physics.disposed) { this.dispose(); return; }
+    try {
+      this.corpsePose.step(dt);
+      const poses = this.corpseColliders.map(part => rigidCorpseTransform(this.root, part.bone, this.scale));
+      this.corpseColliders.forEach((part, i) => {
+        const pose = poses[i]; if (pose === undefined) throw new Error('Missing prepared corpse pose');
+        part.collider.setTranslationWrtParent(pose.position); part.collider.setRotationWrtParent(pose.rotation);
+      });
+      // Animation can change a sleeping shape; keep its root active until the collapse finishes.
+      if (!this.corpsePose.complete) this.parts[0]?.body.wakeUp();
+    } catch (error) { this.dispose(); throw error; }
+  }
+  /** @internal Capture every physics endpoint, including multiple steps in one rendered frame. */
+  fixedPost(dt: number): void {
+    if (this.state !== 'live' || this.corpsePose === undefined) return;
+    if (this.system.physics.disposed) { this.dispose(); return; }
+    this.age += dt; let fastest = 0, asleep = true;
+    for (const part of this.parts) {
+      const b = part.body, p = b.translation(), q = b.rotation();
+      part.prevP.copy(part.curP); part.prevQ.copy(part.curQ);
+      part.curP.set(p.x, p.y, p.z); part.curQ.set(q.x, q.y, q.z, q.w);
+      const lv = b.linvel(), av = b.angvel();
+      fastest = Math.max(fastest, Math.hypot(lv.x, lv.y, lv.z), Math.hypot(av.x, av.y, av.z) * SPIN_LEVER);
+      asleep &&= b.isSleeping();
+    }
+    this.fastest = fastest;
+    this.quietT = this.corpsePose.complete && fastest < QUIET_V ? this.quietT + dt : 0;
+    if (this.age >= MAX_T || this.corpsePose.complete && (asleep || this.quietT >= QUIET_T)) {
+      this.corpsePose.render(1); this.write(1); this.freeze();
+    }
   }
   /** the fastest body at the last pose() (m/s; a spin counts at SPIN_LEVER m per radian) */
   fastest = 0;
@@ -416,10 +476,14 @@ export class Ragdoll {
   private removeBodies(): void {
     if (this.state !== 'live') return;
     const world = this.system.physics.world;
+    if (this.corpsePose !== undefined && this.system.physics.disposed) {
+      this.joints.length = 0; this.corpseColliders.length = 0; this.system.released(this); return;
+    }
     for (const j of this.joints) if (world.impulseJoints.contains(j.handle)) world.removeImpulseJoint(j, false);
     for (const p of this.parts) if (world.bodies.contains(p.body.handle)) world.removeRigidBody(p.body);
     this.joints.length = 0;
-    this.system.released();
+    this.corpseColliders.length = 0;
+    this.system.released(this);
   }
 }
 
@@ -427,6 +491,9 @@ export class Ragdoll {
 export class Ragdolls {
   /** ragdolls with bodies in the world right now (the bench reads it) */
   live = 0;
+  private readonly posed = new Set<Ragdoll>();
+  fixedPre(dt: number): void { for (const r of this.posed) r.fixedPre(dt); }
+  fixedPost(dt: number): void { for (const r of this.posed) r.fixedPost(dt); }
 
   readonly physics: Physics;
   readonly cap: number;
@@ -438,12 +505,14 @@ export class Ragdolls {
   /** A ragdoll for this death, or null past the cap (the caller falls back to its keyframed collapse). */
   spawn(spec: RagdollSpec): Ragdoll | null {
     if (this.live >= this.cap) return null;
+    const ragdoll = new Ragdoll(this, spec);
     this.live++;
-    return new Ragdoll(this, spec);
+    if (ragdoll.fixedPose) this.posed.add(ragdoll);
+    return ragdoll;
   }
 
   /** @internal a ragdoll froze or was disposed */
-  released(): void { this.live = Math.max(0, this.live - 1); }
+  released(ragdoll: Ragdoll): void { this.posed.delete(ragdoll); this.live = Math.max(0, this.live - 1); }
 }
 
 const systems = new WeakMap<Physics, Ragdolls>();

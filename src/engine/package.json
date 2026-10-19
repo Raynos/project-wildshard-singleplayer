@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./entities/rigidCorpsePose": "./entities/rigidCorpsePose.ts",
+    "./physics/rigidCorpse": "./physics/rigidCorpse.ts",
     "./physics/ragdoll": "./physics/ragdoll.ts",
     "./core/webglStartup": "./core/webglStartup.ts",
     "./physics/active": "./physics/active.ts",

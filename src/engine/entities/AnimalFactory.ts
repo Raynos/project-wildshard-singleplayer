@@ -1,3 +1,5 @@
+import { supportsRigidCorpseAnimation } from './rigidCorpsePose';
+import { validateRigidCorpse } from '../physics/rigidCorpse';
 import { bindRig } from '../anim/rig';
 import type { CreatureRenderSpec } from '../level/spec';
 import { selectedLevel } from '../level/selection';
@@ -343,6 +345,11 @@ export class AnimalFactory {
     setLowPoly(lowPoly);
     const sp = species.build(v, new Rng(hashSeed(key)));
     setLowPoly(false);
+    if (Object.hasOwn(sp.dims, 'rigidCorpse')) {
+      validateRigidCorpse(sp.dims.rigidCorpse);
+      if (species.rig !== 'custom' || sp.dims.capsuleAxis === 'y' || !supportsRigidCorpseAnimation(species.animate)
+        || sp.dims.rigidCorpse.parts.some(part => !sp.bones.some(bone => bone.name === part.bone))) throw new Error('Incompatible rigid corpse model');
+    }
     validateCreatureBones(kind, sp.bones.map((bone) => bone.name));
     if (sp.bones[0]?.name !== 'body') throw new Error(`species '${kind}': bones[0] must be 'body'`);
     // the procedural eyes, where an overgrown hull's glowing eyes go

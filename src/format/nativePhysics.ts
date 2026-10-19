@@ -1,3 +1,4 @@
+import { rigidCorpseSchema } from './rigidCorpse';
 import * as v from 'valibot';
 
 const finite = v.pipe(v.number(), v.finite());
@@ -8,7 +9,7 @@ const materials = ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water
 /** Strict numeric native body recipe. Decoding and actor construction belong to the native host. */
 const body = v.strictObject({ kind: v.string(), label: v.string(), variant: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']),
   hp: finite, aggressive: v.boolean(), lockable: v.exactOptional(v.boolean()),
-  dims: v.strictObject({ bodyY: finite, bodyHalfLen: finite, bodyRadius: finite, headRadius: finite, legLen: finite, feet: v.array(v.tuple([finite, finite])), halfWidth: finite,
+  dims: v.strictObject({ rigidCorpse: v.exactOptional(rigidCorpseSchema), bodyY: finite, bodyHalfLen: finite, bodyRadius: finite, headRadius: finite, legLen: finite, feet: v.array(v.tuple([finite, finite])), halfWidth: finite,
     capsuleAxis: v.exactOptional(v.picklist(['z', 'y'])), headAt: v.exactOptional(triple), bodyAt: v.exactOptional(triple), bodyPitch: v.exactOptional(finite),
     fore: v.exactOptional(v.strictObject({ bone: v.string(), at: triple, halfLen: finite, radius: finite })) }),
   mods: v.strictObject({ speed: finite, chargeDist: finite, damageTaken: finite, chargeDamage: finite, relentless: v.boolean() }) });
