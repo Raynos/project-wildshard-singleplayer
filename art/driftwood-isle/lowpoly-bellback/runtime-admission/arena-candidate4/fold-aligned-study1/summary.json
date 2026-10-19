@@ -1,0 +1,297 @@
+{
+  "studyOnly": true,
+  "acceptance": false,
+  "scope": "One isolated body-position-Y timing counterfactual. Original initial/final pose, other channels, original geometry and physical settings retained. Captured terminal inputs repeat if needed after original freeze. Actual native interpolation sampled at 30/60/120 Hz with two phases; no browser or gameplay acceptance.",
+  "results": [
+    {
+      "case": 0,
+      "inputSha256": "be1279c4fe3afdaa6666a811a578ef1aa34b38ed95d45167485567d5ca6adeae",
+      "settings": {
+        "dt": 0.01666666753590107,
+        "lengthUnit": 1,
+        "normalizedAllowedLinearError": 0.004999999888241291,
+        "normalizedPredictionDistance": 0.019999999552965164,
+        "numSolverIterations": 4,
+        "numInternalPgsIterations": 1,
+        "maxCcdSubsteps": 1,
+        "contact_erp": 0.135755255818367
+      },
+      "reproducible": true,
+      "baseline": {
+        "altered": false,
+        "scenario": "diagnostic-front",
+        "steps": 125,
+        "capturedSteps": 125,
+        "state": "frozen",
+        "initialDifference": 0,
+        "maxBodyDelta": 0,
+        "maxBoneDelta": 1.1102230246251565e-16,
+        "maxSupportGap": 0,
+        "minimum": -0.01321803638950314,
+        "framesBelow5mm": 9,
+        "finalMinimum": -0.00008213690171032795,
+        "renderSummary": [
+          {
+            "hz": 30,
+            "phase": 0,
+            "samples": 63,
+            "minimum": -0.012196533866131176,
+            "below5mm": 4,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 30,
+            "phase": 0.5,
+            "samples": 62,
+            "minimum": -0.013247496228245836,
+            "below5mm": 5,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 60,
+            "phase": 0,
+            "samples": 125,
+            "minimum": -0.013247496228245836,
+            "below5mm": 9,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 60,
+            "phase": 0.5,
+            "samples": 125,
+            "minimum": -0.012758062645161772,
+            "below5mm": 9,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 120,
+            "phase": 0,
+            "samples": 250,
+            "minimum": -0.013247496228245836,
+            "below5mm": 18,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 120,
+            "phase": 0.5,
+            "samples": 250,
+            "minimum": -0.013011816595962955,
+            "below5mm": 17,
+            "maxSupportGap": 0
+          }
+        ]
+      },
+      "candidate": {
+        "altered": true,
+        "scenario": "diagnostic-front",
+        "steps": 130,
+        "capturedSteps": 125,
+        "state": "frozen",
+        "initialDifference": 0,
+        "maxBodyDelta": 2.572117805480957,
+        "maxBoneDelta": 0.2689453125000001,
+        "maxSupportGap": 0,
+        "minimum": -0.03108494704815712,
+        "framesBelow5mm": 4,
+        "finalMinimum": -0.00008935086964356742,
+        "renderSummary": [
+          {
+            "hz": 30,
+            "phase": 0,
+            "samples": 65,
+            "minimum": -0.02717145195708781,
+            "below5mm": 2,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 30,
+            "phase": 0.5,
+            "samples": 65,
+            "minimum": -0.03106405088487918,
+            "below5mm": 2,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 60,
+            "phase": 0,
+            "samples": 130,
+            "minimum": -0.03106405088487918,
+            "below5mm": 4,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 60,
+            "phase": 0.5,
+            "samples": 130,
+            "minimum": -0.03589308955406523,
+            "below5mm": 4,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 120,
+            "phase": 0,
+            "samples": 260,
+            "minimum": -0.03589308955406523,
+            "below5mm": 8,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 120,
+            "phase": 0.5,
+            "samples": 260,
+            "minimum": -0.035172169719317026,
+            "below5mm": 9,
+            "maxSupportGap": 0
+          }
+        ]
+      },
+      "worsened": true,
+      "passes5mm": false
+    },
+    {
+      "case": 1,
+      "inputSha256": "5e51eb23b164f143d09cf156115f5cec67777095bc53675f4ed3300199a0d284",
+      "settings": {
+        "dt": 0.01666666753590107,
+        "lengthUnit": 1,
+        "normalizedAllowedLinearError": 0.004999999888241291,
+        "normalizedPredictionDistance": 0.019999999552965164,
+        "numSolverIterations": 4,
+        "numInternalPgsIterations": 1,
+        "maxCcdSubsteps": 1,
+        "contact_erp": 0.135755255818367
+      },
+      "reproducible": true,
+      "baseline": {
+        "altered": false,
+        "scenario": "diagnostic-angle",
+        "steps": 98,
+        "capturedSteps": 98,
+        "state": "frozen",
+        "initialDifference": 0,
+        "maxBodyDelta": 0,
+        "maxBoneDelta": 1.1102230246251565e-16,
+        "maxSupportGap": 0,
+        "minimum": -0.022032783403915346,
+        "framesBelow5mm": 28,
+        "finalMinimum": -0.00009223012614256731,
+        "renderSummary": [
+          {
+            "hz": 30,
+            "phase": 0,
+            "samples": 49,
+            "minimum": -0.02199992301916609,
+            "below5mm": 14,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 30,
+            "phase": 0.5,
+            "samples": 49,
+            "minimum": -0.022051757948133854,
+            "below5mm": 14,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 60,
+            "phase": 0,
+            "samples": 98,
+            "minimum": -0.022051757948133854,
+            "below5mm": 28,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 60,
+            "phase": 0.5,
+            "samples": 98,
+            "minimum": -0.022020416618033778,
+            "below5mm": 28,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 120,
+            "phase": 0,
+            "samples": 196,
+            "minimum": -0.022051757948133854,
+            "below5mm": 56,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 120,
+            "phase": 0.5,
+            "samples": 196,
+            "minimum": -0.022034738541833576,
+            "below5mm": 57,
+            "maxSupportGap": 0
+          }
+        ]
+      },
+      "candidate": {
+        "altered": true,
+        "scenario": "diagnostic-angle",
+        "steps": 97,
+        "capturedSteps": 98,
+        "state": "frozen",
+        "initialDifference": 0,
+        "maxBodyDelta": 3.0972914323210716,
+        "maxBoneDelta": 0.2689453125000001,
+        "maxSupportGap": 0,
+        "minimum": -0.0010845384506410483,
+        "framesBelow5mm": 0,
+        "finalMinimum": -0.00008198905163681047,
+        "renderSummary": [
+          {
+            "hz": 30,
+            "phase": 0,
+            "samples": 49,
+            "minimum": -0.0011086984233088515,
+            "below5mm": 0,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 30,
+            "phase": 0.5,
+            "samples": 48,
+            "minimum": -0.0008952671431643466,
+            "below5mm": 0,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 60,
+            "phase": 0,
+            "samples": 97,
+            "minimum": -0.0011086984233088515,
+            "below5mm": 0,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 60,
+            "phase": 0.5,
+            "samples": 97,
+            "minimum": -0.0010005645766568705,
+            "below5mm": 0,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 120,
+            "phase": 0,
+            "samples": 194,
+            "minimum": -0.0011086984233088515,
+            "below5mm": 0,
+            "maxSupportGap": 0
+          },
+          {
+            "hz": 120,
+            "phase": 0.5,
+            "samples": 194,
+            "minimum": -0.0010542649530407289,
+            "below5mm": 0,
+            "maxSupportGap": 0
+          }
+        ]
+      },
+      "worsened": false,
+      "passes5mm": true
+    }
+  ]
+}

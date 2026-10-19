@@ -1,0 +1,330 @@
+{
+  "schema": "wildshard.bellback.fold-aligned-study.v1",
+  "studyOnly": true,
+  "acceptance": false,
+  "failed": true,
+  "sourceDeltaVerified": "Only body.position.y channel timing; all other copied source identical except exported study name and comments.",
+  "references": "Prior solver manifest pins native engine/inputs/Wasm; candidate source freeze and build-files closure are pinned here without altering old proofs. Installed Rapier JS and bake-loader explicitly pinned.",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/build1/build-files.json",
+      "sha256": "f01467d1213c8c35e35820cb381b8f9b572368f751c5b806f2c33b5717131083",
+      "bytes": 27887
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/fold-aligned-study1/case0-baseline.json",
+      "sha256": "7d8ee7da9fb0bf85c7b4e26d38ec37b39439fe0bf3c87edbcffca80d9206b450",
+      "bytes": 275789
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/fold-aligned-study1/case0-fold-aligned.json",
+      "sha256": "68daee90f3d57eab91395cd415a0398c01b1d34a22afd72197c5bd6b490856f9",
+      "bytes": 288850
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/fold-aligned-study1/case1-baseline.json",
+      "sha256": "f5b06dcf8ce5850472d67a2709547efdb86415743be203c8fbf743f0e33d6424",
+      "bytes": 219359
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/fold-aligned-study1/case1-fold-aligned.json",
+      "sha256": "38ef9d2729ded1c96166e006f5bd7c2d2759f62a0c164ee0655ae6d5b2d78141",
+      "bytes": 219425
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/fold-aligned-study1/summary.json",
+      "sha256": "d739f801a525622d0eb9e1c4529026293dfd061aee5a9de32ca9f8030de885d0",
+      "bytes": 8281
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/solver-study1/manifest.json",
+      "sha256": "5c8f38bb0f966f83bf1a4b653c62244048c161c99c3f9ceb1bcb46b95a471e0c",
+      "bytes": 7336
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/bellback-v6-native.json",
+      "sha256": "32e78a1677765c511645905ca7c48ad3e60d0cf7fac4a8dbd830d39e9f343d44",
+      "bytes": 1785369
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/bellbackFoldAlignedStudyClips.ts",
+      "sha256": "78ea1461a298d17090368e05fb25eb6b390efd0ebd56d18c2e7e29566f34f1d1",
+      "bytes": 7151
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/fold-aligned-study-review.md",
+      "sha256": "cbb92a57a04ba8c193778807e3c9d338d0daef15f16f8248ff42e5984d8d6781",
+      "bytes": 3165
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/freeze-fold-aligned-study.py",
+      "sha256": "e76a5fd21e6eabc3030bc355399c90cc92140458875cfee402e0bc3f6b1810ed",
+      "bytes": 2975
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/manifest.json",
+      "sha256": "72af1a5a8da116404585f068cc783bf846d72fcf2d4101247f38060710ba751b",
+      "bytes": 3965
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/replay-fold-aligned-study.mjs",
+      "sha256": "a99437517104f4f3a822413a57a9da12ef5129a6cf0227aa47f9c32b7ad33969",
+      "bytes": 10129
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/coarena.js",
+      "sha256": "07d16a12c325f0588e0a042f882f289de80ed6436859e2452471c795904996cb",
+      "bytes": 1749
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/control/character_controller.js",
+      "sha256": "2ae430c49b503a2b146240a4bd95578f94c392da3706a4d2d3030f1ca225f532",
+      "bytes": 11288
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/control/index.js",
+      "sha256": "8072e00bea89bd336225fa212f65c664eb47fc3fffe345861196de6386721a00",
+      "bytes": 176
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/control/pid_controller.js",
+      "sha256": "32a258f08c8b1b97322b2269e5ee236d4e001c102d4e437deaa2dc18f8b06046",
+      "bytes": 3645
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/control/ray_cast_vehicle_controller.js",
+      "sha256": "e29e52f5842e31edee117bc882188b865fa1afa4543e9d2e1d0f712028fb0b92",
+      "bytes": 13996
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/ccd_solver.js",
+      "sha256": "647fedfd6dc573e7307f70d3279f7496bb43570a050a01e394366d804ebdc605",
+      "bytes": 577
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/coefficient_combine_rule.js",
+      "sha256": "7eecac639b0bd5bb272857f5ae0394c01d0e895bfd836855476d16edebedd433",
+      "bytes": 680
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/impulse_joint.js",
+      "sha256": "f496562643b6df51987f236fd9713654caa5cd11be48c67c5b3ba71e9cf39b9e",
+      "bytes": 23715
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/impulse_joint_set.js",
+      "sha256": "8a61360befb9d86fad90e3ca9999ff1f36060729ad0e531e3a5b99c849b8f81d",
+      "bytes": 4081
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/index.js",
+      "sha256": "a2a7f5e4aca595236734fa8f4382f63e23b2c72e98d9d523561146a01d35a57c",
+      "bytes": 453
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/integration_parameters.js",
+      "sha256": "7e12c900ceec653525c79b4139fe81b58b6d8255abab9ca7eac2c3e51e6aa78a",
+      "bytes": 5749
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/island_manager.js",
+      "sha256": "2616c281f6ed60aa29acac4e86e85df4db2cd4b424f7da8bc5e7c5ba91ccc15a",
+      "bytes": 936
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/multibody_joint.js",
+      "sha256": "1f1eea034b50584920535b6f036267823622f7aa1d8f503da7bf6c58ae2735d9",
+      "bytes": 3953
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/multibody_joint_set.js",
+      "sha256": "351def7c43b21b86b163c3008f83c8825bdaa5cf60708ac9acb17afa2a8bde26",
+      "bytes": 3856
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/rigid_body.js",
+      "sha256": "60121daf3af12bcb5e34082e4b236d0c8e12a92b3597a360c88b13730c10c390",
+      "bytes": 46378
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/rigid_body_set.js",
+      "sha256": "a08895c8bea9542a024744720aee96a6168e3a12745337170d75cb4c1234c436",
+      "bytes": 6470
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/soft_body.js",
+      "sha256": "8f780ee0818e45edd10807d67df1927c83e2d9d760ae9f324d66c777d623b468",
+      "bytes": 55465
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/soft_body_set.js",
+      "sha256": "1be81e4fb4d650c4e568e3fd9a7c6cae84d7806f71d76cf27139a03d8cd0f5b4",
+      "bytes": 7163
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/exports.js",
+      "sha256": "e0be7a31a1d96cb83b6a60ca4477d1e860e946ac3df19a5ad88061b6729715ef",
+      "bytes": 961
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/broad_phase.js",
+      "sha256": "9f0fe25bc00602bbf2b7d7d3f2a4f74f588e79bd8c652308fd48dbcc77980583",
+      "bytes": 14763
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/collider.js",
+      "sha256": "dbbced207e26bfac67fb358183f45bb29ce974cf5f63447bae47a2eed807f76b",
+      "bytes": 58214
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/collider_set.js",
+      "sha256": "ddbd3d561412ffae4b61935ce88e70efa3cc71293ee82e03f6e16cb6bbe27704",
+      "bytes": 8332
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/contact.js",
+      "sha256": "d650d0fbf96804ceeafaf973a68c2ba9348f9244662b1eced919626fd87660ff",
+      "bytes": 1559
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/feature.js",
+      "sha256": "259656eb4c1b19b13b1d21a4f26bf204fd1ef0c58ab1d43d2a3c339a9811fb62",
+      "bytes": 360
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/index.js",
+      "sha256": "d8cd76cef8a6011e8d5e364aaaf2e8cf116d4b25ef34b397d9f2a5db91cea56b",
+      "bytes": 344
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/interaction_groups.js",
+      "sha256": "5f594c59df55870c2504034ba824056ba7ecae4bde72c60a1c969baaed844f07",
+      "bytes": 57
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/narrow_phase.js",
+      "sha256": "cb3528bd9d7451fb386d586f6eb26f36a8d820aab08680199d485bc1047c8ba5",
+      "bytes": 8091
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/point.js",
+      "sha256": "b4a6b6b41f36d8fe125844c0ad191e890691021f5f4bfad51ee82a5a5ddf58a0",
+      "bytes": 2539
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/ray.js",
+      "sha256": "94640c2a4987a7675921f98bb5cd4f5a839ee59d7d17c642e445b9d2aa666af0",
+      "bytes": 4170
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/shape.js",
+      "sha256": "b9423bc55a58d29e01918fea5478e0df3008b3f84b9d4629f65303c3ea67dce2",
+      "bytes": 42894
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/toi.js",
+      "sha256": "995176a802936f05ef5a4b86483aaff875bc20ba5e2475b90db2416ae9638c42",
+      "bytes": 3510
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/init.js",
+      "sha256": "d72d4bf9bc50bb506715f1c29ca09c135b88c5b0f2bcd16e80203e8ab474a282",
+      "bytes": 43
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/math.js",
+      "sha256": "366545bb2a08eec473648d89e56927cfb1a5fcade9ab1fc87e3e228f972a1538",
+      "bytes": 3988
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/debug_render_pipeline.js",
+      "sha256": "87e3b45fc30b36607380c5f16b23dfc9d43dd46369c790fcd26b510590e123ce",
+      "bytes": 1333
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/event_queue.js",
+      "sha256": "ad656b9f5f687491dd96355e1c009901d47ba8fb2e9625bd0bdce3a94b2ceec4",
+      "bytes": 5213
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/index.js",
+      "sha256": "7cc0f1dd9d9caa9130b2cee04ff864e4841fdcea7c2e9a089a40f9825099ed85",
+      "bytes": 275
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/physics_hooks.js",
+      "sha256": "b4979bd9eb19e242326c1daa6e0660091df0fc8a0863947ce1706d4c39478081",
+      "bytes": 643
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/physics_pipeline.js",
+      "sha256": "fd02780420153e26aae2c43b3a5ee460467f0d4df4267988d419e244ca9fe73c",
+      "bytes": 1191
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/query_pipeline.js",
+      "sha256": "db4cfe8cc97bd243ea473c8945b6a0f0d7807b6e567a6f6fc5bfaad0f25674c8",
+      "bytes": 1744
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/serialization_pipeline.js",
+      "sha256": "465a16033d2e23d8c282b6775a7b63c496f205d2c58023d580cbe56d94479e53",
+      "bytes": 2100
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/world.js",
+      "sha256": "cb51d40656a72609d84350cde16dce6f0263cc3c12b7f2341a8155c0a8fe533b",
+      "bytes": 44250
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/rapier.js",
+      "sha256": "3241a12b57667f4a3a5c4c212f109e5546daca3e17f16af5a0ccb3c2ebce53f4",
+      "bytes": 121
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/rapier_wasm3d.js",
+      "sha256": "8fd5fe653c96bd7c5c55c32da3e92c94cc2b13c05ae593df7c32646d197e3d78",
+      "bytes": 1269
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.js",
+      "sha256": "62bd436077d116fe65dcf4710d3d993b64d19d0879b3ae23b58930347d1b1fff",
+      "bytes": 338178
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/raw.js",
+      "sha256": "bad6d4f21e5d94b0a83cdba6474a0c1d7268fb2703958f567280ca2d0261043b",
+      "bytes": 64
+    },
+    {
+      "path": "package.json",
+      "sha256": "271d57c47ea7c9771dc3f7c317848a9b0865ff973e57a89638d1858024ba553a",
+      "bytes": 3843
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "1495ce479562f459d0af5e19d976df79c957d5b54dbc031fd803475c264e96ea",
+      "bytes": 141275
+    },
+    {
+      "path": "scripts/bake-loader.mjs",
+      "sha256": "95f47f094c3bf56dd801ea8e943537cd9123131e383dbdae90a9daa6f220d00f",
+      "bytes": 6743
+    },
+    {
+      "path": "scripts/bellback-following-admission.mjs",
+      "sha256": "e0bea69ce243ecbb933c6af5f68d5d4284cd875c2bbb7045a0ae631ce1d8eb5f",
+      "bytes": 4198
+    },
+    {
+      "path": "src/engine/physics/rapier.ts",
+      "sha256": "752785d73e4aa1b89a72e466c7ac9dc4a4dae079dfa3db90b0e9e7ab7d03aeef",
+      "bytes": 1907
+    },
+    {
+      "path": "src/engine/physics/rapierBindings.ts",
+      "sha256": "9aaf3e3daf71d1879c266f69f2c004c73482a0a9a512a40f952be57930b98c72",
+      "bytes": 525
+    }
+  ]
+}

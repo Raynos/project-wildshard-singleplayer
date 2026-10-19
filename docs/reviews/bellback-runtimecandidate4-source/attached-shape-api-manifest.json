@@ -1,0 +1,71 @@
+{
+  "readOnly": true,
+  "implemented": false,
+  "files": [
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/attached-shape-api-review.md",
+      "bytes": 3930,
+      "sha256": "c92e2e4f6dacaafb3a674b9d4e99a31cba4c0382735635ddbb4b0627613cdcb7"
+    },
+    {
+      "path": "src/engine/physics/Physics.ts",
+      "bytes": 7881,
+      "sha256": "6a45536093316ae57848fba28d6b77c5a9159da1aeeb2bc7be2228bd7bd18739"
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "bytes": 29932,
+      "sha256": "be12a0fa8d3005a9ee988a1e9aa845c423cadb92c6df7b4594c8fab6ba33dec9"
+    },
+    {
+      "path": "src/engine/physics/rapierBindings.ts",
+      "bytes": 525,
+      "sha256": "9aaf3e3daf71d1879c266f69f2c004c73482a0a9a512a40f952be57930b98c72"
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/package.json",
+      "bytes": 654,
+      "sha256": "c1a78d0da5a39c88dd340f13ed20a6df2ea2bbd493e953bb2530220ce72cfe9c"
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/collider.d.ts",
+      "bytes": 44636,
+      "sha256": "a2bbf8f03d08bbcc208537019406fe72779340e7febd217930953012076fa5aa"
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/collider.js",
+      "bytes": 58214,
+      "sha256": "dbbced207e26bfac67fb358183f45bb29ce974cf5f63447bae47a2eed807f76b"
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/physics_hooks.d.ts",
+      "bytes": 2025,
+      "sha256": "b540920dc7cb3fcd9f337cb53c2e30e029d1dd0a7fe0529229302dff4248a70b"
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/physics_pipeline.js",
+      "bytes": 1191,
+      "sha256": "fd02780420153e26aae2c43b3a5ee460467f0d4df4267988d419e244ca9fe73c"
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/narrow_phase.d.ts",
+      "bytes": 5998,
+      "sha256": "4789e2241ff3e1f113f4a30e480f394ba66e71f2cb3c64a494bad9ad9e212d64"
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/narrow_phase.js",
+      "bytes": 8091,
+      "sha256": "cb3528bd9d7451fb386d586f6eb26f36a8d820aab08680199d485bc1047c8ba5"
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/rigid_body.d.ts",
+      "bytes": 36601,
+      "sha256": "ad747f0f548b742af97c2b9046c1fd1f89ee54ffca0f9bf175ee58658c6a4006"
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/rapier_wasm3d.d.ts",
+      "bytes": 87543,
+      "sha256": "68fcd819a734c6a4275ab0bf1bc8936b638a1ca730c0b68b8b8159e75fb47f23"
+    }
+  ]
+}
