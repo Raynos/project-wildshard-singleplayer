@@ -62,7 +62,7 @@ export async function paintDataMap(root, slug) {
   const stampPath = mapStampPath(dir); mkdirSync(dirname(stampPath), { recursive: true });
   writeFileSync(stampPath, `${JSON.stringify(stamp, null, 2)}\n`);
   const companion = resolve(dir, 'data/productMap.json');
-  if (companion !== stampPath && existsSync(companion)) writeFileSync(companion, `${JSON.stringify(stamp, null, 2)}\n`);
+  if (companion !== stampPath && (painter.authored === true || existsSync(companion))) writeFileSync(companion, `${JSON.stringify(stamp, null, 2)}\n`);
   if (painter.authored === true) writeFileSync(resolve(dir, 'assets/map.webp'), bytes);
   console.info(`data-map: ${slug}, ${raster.triangles} source triangles, ${bytes.length} bytes`);
   return { raster, stamp };

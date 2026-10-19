@@ -1,7 +1,7 @@
 // G508: renderer-free map painting. Coordinates and coverage come from the
 // actual admitted triangles, never map-only silhouettes or collider proxies.
 import { NodeIO } from '@gltf-transform/core';
-import { EXTMeshGPUInstancing, EXTMeshoptCompression, KHRMeshQuantization } from '@gltf-transform/extensions';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { readFileSync } from 'node:fs';
 import { Matrix4, Quaternion, Vector3 } from 'three';
@@ -22,6 +22,7 @@ export class MapRaster {
     this.height = new Int32Array(size * size).fill(-2147483648);
     this.colour = new Uint8Array(size * size * 3);
     this.triangles = 0;
+    this.documents = new Map();
   }
   triangle(points, colours) {
     this.triangles++;
@@ -56,14 +57,17 @@ export class MapRaster {
     }
   }
   /** CPU projection of ordinary admitted GLBs, including instanced copies. */
-  async glb(file, placement, select) {
+  async glb(file, placement, select, options = {}) {
     await MeshoptDecoder.ready;
-    const io = new NodeIO().registerExtensions([EXTMeshGPUInstancing, EXTMeshoptCompression, KHRMeshQuantization])
+    const io = new NodeIO().registerExtensions(ALL_EXTENSIONS)
       .registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
-    const doc = await io.readBinary(new Uint8Array(readFileSync(file)));
+    let doc = this.documents.get(file);
+    if (doc === undefined) { doc = await io.readBinary(new Uint8Array(readFileSync(file))); this.documents.set(file, doc); }
+    let selected = 0;
     for (const node of doc.getRoot().listNodes()) {
       const mesh = node.getMesh(); if (mesh === null || select !== undefined && !select(node)) continue;
-      const world = new Matrix4().multiplyMatrices(placement ?? identity, new Matrix4().fromArray(node.getWorldMatrix()));
+      selected++;
+      const world = new Matrix4().multiplyMatrices(placement ?? identity, options.local === true ? identity : new Matrix4().fromArray(node.getWorldMatrix()));
       const instances = node.getExtension('EXT_mesh_gpu_instancing');
       const translation = instances?.getAttribute('TRANSLATION'), rotation = instances?.getAttribute('ROTATION'), scale = instances?.getAttribute('SCALE');
       const count = instances === null ? 1 : instances.listAttributes()[0]?.getCount() ?? 0;
@@ -92,6 +96,7 @@ export class MapRaster {
         }
       }
     }
+    if (selected === 0 && select !== undefined) throw new Error(`${file}: missing map geometry part`);
   }
 }
 

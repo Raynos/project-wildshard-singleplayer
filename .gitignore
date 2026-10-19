@@ -2079,3 +2079,9 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /public/assets/_template/map/top.webp
 /src/shards/_template/data/productMap.json
 /src/shards/_template/assets/map.webp
+
+# G508: pastel-plain data map outputs.
+/public/assets/pastel-plain/map/top.webp
+/src/shards/pastel-plain/look/map.baked.json
+/src/shards/pastel-plain/data/productMap.json
+/src/shards/pastel-plain/assets/map.webp
