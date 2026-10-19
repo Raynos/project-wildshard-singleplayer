@@ -1,0 +1,14 @@
+{
+  "status": "source-only feasibility; no geometry/export/render changed",
+  "scope": "same V71 patch/perimeter; six angularly staggered interior samples, three central longitudinal edge flips",
+  "completeLayouts": 0,
+  "layoutTrials": 1158,
+  "firstRejectedEdgeCounts": {
+    "(71, 85)": 579,
+    "(72, 86)": 0,
+    "(73, 87)": 579
+  },
+  "passingLocalCandidates": 0,
+  "best": null,
+  "limits": "Local deficit and hinge screening only. Full mirrored topology, final union/paint, signed cap clearance and visual validation remain required for any candidate."
+}

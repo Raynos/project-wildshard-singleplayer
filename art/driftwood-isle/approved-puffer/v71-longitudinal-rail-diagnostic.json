@@ -1,0 +1,89 @@
+[
+  {
+    "sector": 1,
+    "chain": [
+      {
+        "edge": [
+          57,
+          71
+        ],
+        "sideProjectedSlopeDegrees": -8.603081760048871,
+        "projectedLength": 0.2426547684901519
+      },
+      {
+        "edge": [
+          71,
+          85
+        ],
+        "sideProjectedSlopeDegrees": -1.0642433857287779,
+        "projectedLength": 0.20566822596840134
+      },
+      {
+        "edge": [
+          85,
+          99
+        ],
+        "sideProjectedSlopeDegrees": -42.86574142566554,
+        "projectedLength": 0.19707046227999872
+      }
+    ]
+  },
+  {
+    "sector": 2,
+    "chain": [
+      {
+        "edge": [
+          58,
+          72
+        ],
+        "sideProjectedSlopeDegrees": -9.848847285775241,
+        "projectedLength": 0.22324339700300114
+      },
+      {
+        "edge": [
+          72,
+          86
+        ],
+        "sideProjectedSlopeDegrees": 2.5956185082826817,
+        "projectedLength": 0.2402931732431852
+      },
+      {
+        "edge": [
+          86,
+          100
+        ],
+        "sideProjectedSlopeDegrees": -35.044900896515344,
+        "projectedLength": 0.1587879104687504
+      }
+    ]
+  },
+  {
+    "sector": 3,
+    "chain": [
+      {
+        "edge": [
+          59,
+          73
+        ],
+        "sideProjectedSlopeDegrees": -1.3822820423274442,
+        "projectedLength": 0.23850395804589938
+      },
+      {
+        "edge": [
+          73,
+          87
+        ],
+        "sideProjectedSlopeDegrees": 4.596711945725833,
+        "projectedLength": 0.2098297754884198
+      },
+      {
+        "edge": [
+          87,
+          101
+        ],
+        "sideProjectedSlopeDegrees": -12.027508334428417,
+        "projectedLength": 0.1456070070531996
+      }
+    ]
+  }
+]
