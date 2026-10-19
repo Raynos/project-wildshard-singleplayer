@@ -43,18 +43,19 @@ export function conchReadableClips(): {
 } {
   const outputs: NumericChannelOutput[] = [];
   // Values are [ordinary preparation, counter preparation, active extension, recovery brace, hit].
-  // Attack apex is 35ms INTO the existing 100ms active window. Recovery only retracts.
+  // Alignment is complete before windup ends, held across bounded runner/behavior skew.
+  // Runner phase resets discard overshoot; these are authored clocks, not phase ports.
   const poses: Record<string, readonly [number, number, number, number, number]> = {
     'shell.x': [-.035, -.06, .025, -.02, -.20],
     'shell.y': [-.05, .09, -.025, .03, .10],
     'head.x': [-.08, -.12, .05, -.045, -.24],
     'head.z': [-.04, .09, -.015, .025, .12],
-    'shieldArm.x': [-.48, -.24, -.18, -.32, -.12],
-    'shieldArm.z': [-.18, .24, .16, -.08, -.12],
-    'shieldForearm.y': [-.38, .16, .12, -.20, -.08],
+    'shieldArm.x': [0, -.12, -.18, -.16, .08],
+    'shieldArm.z': [-.08, .16, .10, -.04, -.08],
+    'shieldForearm.y': [0, .08, .08, -.10, 0],
     'rapierArm.x': [-.34, -.55, -.48, -.24, -.32],
     'rapierArm.z': [.10, .38, -.08, .13, .12],
-    'rapierForearm.y': [.32, .48, -.80, .22, .22],
+    'rapierForearm.y': [.16, .24, -.40, .12, .12],
     'rapierArm.y': [.04, .08, -.40, .03, .04],
   };
   const channel = (joint: string, property: 'position' | 'rotation', axis: 'x' | 'y' | 'z', original: NumericChannelOutput['expr']) => {
@@ -64,14 +65,37 @@ export function conchReadableClips(): {
       const stage=r('scalars',['stage']), clock=r('scalars',['clock']);
       const eq=(x:number)=>mul(b.binary('gt',stage,n(x-.5)),b.binary('gt',n(x+.5),stage));
       const cycle=(windup:number, preparation:number)=>b.sample(clock, [
-        [0,0], [windup*.65,preparation], [windup,preparation],
-        [windup+.035,pose[2]], [windup+.10,pose[2]*.9],
-        [windup+.30,pose[3]], [windup+.68,pose[3]*.35], [windup+1,0],
+        [0,0], [windup*.40,preparation], [windup*.55,preparation],
+        [windup-.10,pose[2]], [windup+.30,pose[2]],
+        [windup+.55,pose[3]], [windup+.80,pose[3]*.35], [windup+1,0],
       ],'smoothstep');
-      const attack=b.binary('add',mul(eq(1),cycle(.6,pose[0])),mul(eq(3),cycle(.45,pose[1])));
-      const flinch=b.binary('max',n(0),b.binary('min',n(1),r('frame',['flinch'])));
+      const shieldGuard=joint==='shieldArm'&&axis==='x'||joint==='shieldForearm'&&axis==='y';
+      const ordinary=shieldGuard?b.sample(clock,[[0,0],[.6,0],[.8,pose[2]],[1.15,pose[3]],[1.6,0]],'smoothstep'):cycle(.6,pose[0]);
+      const attack=b.binary('add',mul(eq(1),ordinary),mul(eq(3),cycle(.45,pose[1])));
+      let flinch=b.binary('max',n(0),b.binary('min',n(1),r('frame',['flinch'])));
+      // Keep the committed weapon aligned even with residual visual recoil.
+      // Head/shield still recoil; a canceled stage immediately restores arm recoil.
+      if(joint==='rapierArm'||joint==='rapierForearm'){
+        const hold=(windup:number)=>b.sample(clock,[[0,0],[windup*.55,0],[windup-.10,1],[windup+.30,1],[windup+.55,0]],'smoothstep');
+        const aligned=b.binary('add',mul(eq(1),hold(.6)),mul(eq(3),hold(.45)));
+        flinch=mul(flinch,b.binary('sub',n(1),aligned));
+      }
       // Recoil reduces offensive extension while raising the weapon clear of the floor.
-      const living=b.binary('add',mul(attack,b.binary('sub',n(1),mul(n(.65),flinch))),mul(n(pose[4]),flinch));
+      let living=b.binary('add',mul(attack,b.binary('sub',n(1),mul(n(.65),flinch))),mul(n(pose[4]),flinch));
+      // A modest inward ready stance shares the turn between shoulder and forearm;
+      // it reduces an active-to-rest forearm snap without hidden pose history.
+      if(joint==='rapierArm'&&axis==='y') living=b.binary('add',living,n(-.40));
+      // Preserve the established breathing channels. Guard remains an observed scalar;
+      // stage4 retains the guarded brace even after the AI clears guard on impact.
+      if(joint==='shell'&&axis==='x'||joint==='head'&&axis==='x')
+        living=b.binary('add',living,mul(n(joint==='shell'?.008:-.015),b.unary('sin',mul(r('frame',['t']),n(1.7)))));
+      if(joint==='shieldArm'&&axis==='x'||joint==='shieldForearm'&&axis==='y'){
+        const amount=joint==='shieldArm'?-.24:-.22;
+        const held=b.binary('max',b.binary('max',n(0),b.binary('min',n(1),r('scalars',['guard']))),eq(4));
+        const ordinaryGuard=mul(eq(1),b.sample(clock,[[0,1],[.60,1],[.80,0]],'smoothstep'));
+        const counter=mul(eq(3),b.sample(clock,[[0,1],[.18,0]],'smoothstep'));
+        living=b.binary('add',living,mul(n(amount),b.binary('max',held,b.binary('add',ordinaryGuard,counter))));
+      }
       // In death, motion3's attack gate is exactly zero. Algebraically remove that
       // dead branch here to stay below the unchanged 128-node admission bound.
       const e=motion(b,r);

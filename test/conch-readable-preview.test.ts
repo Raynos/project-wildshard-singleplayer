@@ -39,3 +39,15 @@ test('root and lower-body programs retain exact motion3 bytecode and strict node
   expect(next.scalars).toEqual(old.scalars);
   for (const program of next.programs) expect(program.nodes.length).toBeLessThanOrEqual(128);
 });
+
+test('motion4 retains strict stateless admission and rejects extra pose storage', async () => {
+  const { conchReadableClips } = await import('../src/shards/driftwood-isle/generators/conchReadableClips');
+  const { numericCreaturePose } = await import('../src/game/plugin/channelPrograms');
+  const clip = conchReadableClips();
+  expect(() => numericCreaturePose(clip)).not.toThrow();
+  expect(() => numericCreaturePose({ ...clip, privatePoseHistory: [] })).toThrow();
+  const withLocal = conchReadableClips(), first = withLocal.programs[0];
+  if (first === undefined) throw new Error('Missing first pose programme');
+  first.locals = [{ initial: { op: 'constant', value: 0 }, next: 0 }];
+  expect(() => numericCreaturePose(withLocal)).toThrow();
+});

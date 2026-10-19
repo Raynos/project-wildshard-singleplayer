@@ -1,0 +1,29 @@
+{
+  "schema": "wildshard.conch.motion4.revision2.validation.v1",
+  "sourceOnly": true,
+  "commands": [
+    {
+      "command": "node node_modules/vitest/vitest.mjs run test/conch-readable-contact.test.ts test/conch-readable-preview.test.ts --maxWorkers=1",
+      "passed": 5,
+      "failed": 0,
+      "seconds": 22.82
+    },
+    {
+      "command": "node node_modules/vitest/vitest.mjs run test/conch-readable-preview.test.ts --maxWorkers=1",
+      "passed": 4,
+      "failed": 0,
+      "seconds": 12.8,
+      "reason": "Final equivalent private-local rejection assertion after scoped lint correction."
+    },
+    {
+      "command": "node node_modules/oxlint/bin/oxlint src/shards/driftwood-isle/generators/conchReadableClips.ts test/conch-readable-contact.test.ts test/conch-readable-preview.test.ts scripts/conch-readable-admission.mjs",
+      "exitCode": 0
+    }
+  ],
+  "limits": [
+    "No app build, browser, phone or runtime acceptance.",
+    "Actual runner with structural actor; bounded ordering/skew hypotheses, not live host evidence.",
+    "Arbitrary interrupted continuity remains rejected."
+  ],
+  "originalInputsRecoverable": 31
+}

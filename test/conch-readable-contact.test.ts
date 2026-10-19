@@ -8,6 +8,9 @@ import type { AnimalRigContext } from '../src/engine/entities/animalRig';
 import { numericCreaturePose } from '../src/game/plugin/channelPrograms';
 import { conchReadableClips } from '../src/shards/driftwood-isle/generators/conchReadableClips';
 import { conchPlantedClips } from '../src/shards/driftwood-isle/generators/conchPlantedClips';
+import { StrikeRunner, type StrikeActor, type StrikeSpec } from '../src/engine/ai/strikes';
+import { FIXED_STEP } from '../src/engine/core/fixedStep';
+import { DRIFTWOOD_REGULAR_STRIKES } from '../src/shards/driftwood-isle/generators/driftwoodRegularCombat';
 import { packedCreatureBodies } from '../src/game/plugin/geometry';
 
 const directory='art/driftwood-isle/approved-conch/runtime-admission/arena-candidate1';
@@ -40,7 +43,7 @@ test('motion4 strict consumer, dense geometry, exact lower-body and death parity
   resetBones(); c.t=.4; c.speed=.8; c.phase=.21; c.flinch=flinch;c.deathT=deathT;c.alive=deathT<0;
   c.mem['conch-st']=stage;c.mem['regular-clock']=clock;c.mem['conch-guard']=stage===1&&clock<.6?1:0;
  };
- let min=Infinity,max=-Infinity,samples=0,parity=0;const keyPoses:unknown[]=[];
+ let min=Infinity,max=-Infinity,samples=0,parity=0,laneSamples=0;const keyPoses:unknown[]=[];
  const weightedPoint=(part:typeof parts[number],index:number)=>{
   p.fromBufferAttribute(part.p,index);sum.set(0,0,0);
   for(let k=0;k<4;k++){const weight=part.w.getComponent(index,k);if(weight===0)continue;const m=matrices[part.i.getComponent(index,k)];if(m===undefined)throw new Error('Missing matrix');sum.addScaledVector(q.copy(p).applyMatrix4(m),weight);}return sum.clone();
@@ -64,6 +67,7 @@ test('motion4 strict consumer, dense geometry, exact lower-body and death parity
  for(const stage of [0,1,2,3,4])for(const flinch of [0,.5,1])for(let i=0;i<=320;i++){
   const clock=i/200;set(stage,clock,flinch);animate(c);const current=snapshot();const floor=measure();samples++;min=Math.min(min,floor);max=Math.max(max,floor);
   expect(floor).toBeGreaterThanOrEqual(0);expect(floor).toBeLessThan(.02);if(i%4===0)bladeClear();
+  if(stage===1||stage===3){const windup=stage===1?.6:.45;if(clock>=windup-.1&&clock<=windup+.3){const point=weightedPoint(weapon,tip);expect(Math.abs(point.x)).toBeLessThanOrEqual(.325);expect(point.z).toBeGreaterThan(1.8);laneSamples++;}}
   if(flinch===0&&(stage===1||stage===3)) {const point=weightedPoint(weapon,tip);(tips[String(stage)]??=[]).push([clock,...point]);}
   if(i%40===0&&flinch===0)keyPoses.push({stage,clock,bones:current});
   resetBones();baseline(c);const old=snapshot();
@@ -77,15 +81,82 @@ test('motion4 strict consumer, dense geometry, exact lower-body and death parity
  // Nominal attack boundaries meet rest without a pose jump; no late offensive second sweep.
  const deltas:unknown[]=[];
  for(const [stage,windup]of [[1,.6],[3,.45]] as const){
-  set(stage,0);animate(c);const start=snapshot();set(2,0);animate(c);expect(start).toEqual(snapshot());
-  set(stage,windup+1);animate(c);expect(start).toEqual(snapshot());
+  set(2,0);animate(c);const rest=snapshot();
+  set(stage,windup+1);animate(c);expect(rest).toEqual(snapshot());
+  set(4,0);animate(c);const held=snapshot();set(3,0);animate(c);expect(held).toEqual(snapshot());
   const row=tips[String(stage)];if(row===undefined)throw new Error('Missing samples');
   const peak=row.reduce((best,point)=> (point[3]??-Infinity)>(best[3]??-Infinity)?point:best,row[0]??[]);
   deltas.push({stage,peakTip:peak});
-  const hitPose=row.find(point=>Math.abs((point[0]??-1)-(windup+.035))<1e-6);
+  const hitPose=row.find(point=>Math.abs((point[0]??-1)-windup)<1e-6);
   deltas.push({stage,hitPose});expect(Math.abs(hitPose?.[1]??Infinity)).toBeLessThanOrEqual(.325);
-  expect(peak[0]).toBeGreaterThanOrEqual(windup);expect(peak[0]).toBeLessThanOrEqual(windup+.1);
+  // Arrival can arc forward before full alignment; alignment holds before active begins.
+  expect(peak[0]).toBeLessThanOrEqual(windup+.3);
  }
- mkdirSync('tmp/conch-readable-offline',{recursive:true});writeFileSync('tmp/conch-readable-offline/report.json',JSON.stringify({schema:'conch.motion4.source-check.v1',samples,parity,clearanceChecks,min,max,vertices,blended,deltas,keyPoses,tips},null,2));
+
+ // Guard onset intentionally differs from unguarded rest; compare the original
+ // observed guard axes instead of incorrectly demanding the shield stay lowered.
+ for(const stage of [0,1])for(const time of [0,.4,1.3]){
+  set(stage,0);c.t=time;animate(c);const current=snapshot();
+  const shellX=bones['shell']?.rotation.x,headX=bones['head']?.rotation.x;
+  resetBones();baseline(c);const old=snapshot();
+  expect(current['shieldArm']).toEqual(old['shieldArm']);expect(current['shieldForearm']).toEqual(old['shieldForearm']);
+  expect(bones['shell']?.rotation.x).toEqual(shellX);expect(bones['head']?.rotation.x).toEqual(headX);
+ }
+ // Real runner regression, not a lookup at an authored apex. The engine fixed step
+ // is included alongside fine, mobile and sparse cadences. +/-one update behavior
+ // skew and both actor/runner update orders are deliberately bounded hypotheses;
+ // only fresh host capture can establish the host's actual ordering.
+ const runnerCases:unknown[]=[];
+ for(const stage of [1,3])for(const dt of [.005,FIXED_STEP,1/30,.05,.1])
+ for(const skewSteps of [-1,0,1])for(const actorFirst of [false,true])for(const offset of [0,.37,.91])for(const recoil of [0,.1,.5,1]){
+  const authored=DRIFTWOOD_REGULAR_STRIKES.find(row=>row.id===`strike.conch-duelist.${stage===1?'thrust':'counter'}`);
+  if(authored===undefined)throw new Error('Missing unchanged strike');
+  const spec:StrikeSpec={...authored,weight:()=>1};
+  let attackT=-1,attackDur=1,elapsed=0,hits=0,firstHit=-1,phaseAtHit=0;
+  const a:StrikeActor={position:{x:0,y:0,z:0},alive:true,scale:1,yaw:0,
+   startAttack(seconds){attackT=0;attackDur=seconds;},cancelAttack(){attackT=-1;},setMotion(){/* This structural actor stays on the locked lane. */}};
+  const runner=new StrikeRunner();runner.start(spec,a,{x:0,y:0,z:1.9});
+  const ctx={actor:a,target:{x:0,y:0,z:1.9},canReach:()=>true,hit(){hits++;firstHit=elapsed;phaseAtHit=attackT<0?-1:Math.min(1,attackT/attackDur);}};
+  let tipAtHit:number[]=[];
+  for(let step=0;step<1000;step++){
+   const stepDt=step===0?dt*(1-offset):dt;elapsed+=stepDt;
+   if(actorFirst&&attackT>=0)attackT+=stepDt;
+   runner.update(stepDt,ctx);
+   if(!actorFirst&&attackT>=0)attackT+=stepDt;
+   if(hits){
+    const behaviorClock=elapsed+skewSteps*dt;set(stage,behaviorClock,recoil);c.attack=phaseAtHit;animate(c);measure();
+    const point=weightedPoint(weapon,tip);tipAtHit=[behaviorClock,...point];
+    expect(Math.abs(point.x),JSON.stringify({stage,dt,skewSteps,actorFirst,offset,point})).toBeLessThanOrEqual(.325);
+    expect(point.z).toBeGreaterThan(1.8);expect(point.z).toBeLessThan(2.4);bladeClear();break;
+   }
+  }
+  expect(hits).toBe(1);expect(phaseAtHit).toBe(-1);
+  runnerCases.push({stage,dt,skewSteps,actorFirst,offset,recoil,firstHit,phaseAtHit,tipAtHit});
+  // Stagger cancellation before contact must not yield a later ghost hit.
+  const cancelled=new StrikeRunner();cancelled.start(spec,a,ctx.target);cancelled.update(spec.windup*.5,ctx);
+  cancelled.cancel();a.cancelAttack();const before=hits;cancelled.update(2,ctx);expect(hits).toBe(before);expect(cancelled.state).toBe('idle');
+ }
+ c.attack=-1;
+ // Same-flinch interrupted snapshots are quantified, never called fully continuous.
+ const interruptions:unknown[]=[];
+ for(const flinch of [0,.5,1])for(const [from,to,clock] of [[1,4,.4],[3,2,.485],[3,2,.8]] as const){
+  set(from,clock,flinch);animate(c);const fromRot=Object.fromEntries(Object.entries(bones).map(([name,bone])=>[name,[bone.rotation.x,bone.rotation.y,bone.rotation.z]]));
+  set(to,0,flinch);animate(c);const differences=Object.entries(bones).flatMap(([name,bone])=>[bone.rotation.x,bone.rotation.y,bone.rotation.z].map((value,axis)=>({name,axis,delta:Math.abs(value-(fromRot[name]?.[axis]??0))})));
+  const shield=differences.find(row=>row.name==='shieldArm'&&row.axis===0);
+  const forearm=differences.find(row=>row.name==='rapierForearm'&&row.axis===1);
+  if(from===1)expect(shield?.delta).toBeLessThan(1e-12);
+  if(from===3)expect(forearm?.delta).toBeLessThanOrEqual(flinch===0?.4:.52);
+  interruptions.push({from,to,clock,flinch,maximum:Math.max(...differences.map(row=>row.delta)),differences});
+ }
+ // Independent gait/time samples retain support and exact lower-body channels.
+ let variedSamples=0;
+ for(const time of [0,.7,2.9])for(const phase of [0,.125,.25,.5,.75,.875])for(const speed of [0,.4,1]){
+  set(0,.3);c.t=time;c.phase=phase;c.speed=speed;animate(c);const current=snapshot();const floor=measure();
+  expect(floor).toBeGreaterThanOrEqual(0);expect(floor).toBeLessThan(.02);bladeClear();
+  resetBones();baseline(c);const old=snapshot();for(const name of ['body','legLeft','legLeftKnee','legLeftAnkle','legRight','legRightKnee','legRightAnkle'])expect(current[name]).toEqual(old[name]);
+  variedSamples++;
+ }
+
+ mkdirSync('tmp/conch-readable-offline',{recursive:true});writeFileSync('tmp/conch-readable-offline/report.json',JSON.stringify({schema:'conch.motion4.source-check.v1',samples,parity,clearanceChecks,min,max,vertices,blended,laneSamples,deltas,keyPoses,tips,runnerCases,interruptions,variedSamples},null,2));
  for(const g of packed.hardParts)g.dispose();
 },120000);

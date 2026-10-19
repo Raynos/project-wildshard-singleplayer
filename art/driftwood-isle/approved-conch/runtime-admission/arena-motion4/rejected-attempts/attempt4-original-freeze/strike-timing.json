@@ -1,0 +1,46 @@
+{
+  "schema": "conch.motion4.actual-runner-diagnostic.v1",
+  "results": [
+    {
+      "stage": 1,
+      "windup": 0.6,
+      "dt": 0.005,
+      "activeEntry": 0.6,
+      "firstHitClock": 0.605,
+      "hitPoseAttack": -1,
+      "tip": [
+        0.605,
+        1.877807228903897,
+        0.545423448828848,
+        1.0415861772059025
+      ],
+      "target": {
+        "x": 0,
+        "y": 0,
+        "z": 2
+      },
+      "hitDespiteTipOutsideNominalAndEffectiveLane": true
+    },
+    {
+      "stage": 3,
+      "windup": 0.45,
+      "dt": 0.005,
+      "activeEntry": 0.45,
+      "firstHitClock": 0.455,
+      "hitPoseAttack": -1,
+      "tip": [
+        0.455,
+        2.1826155964101672,
+        1.0407242335113094,
+        0.7301663366018002
+      ],
+      "target": {
+        "x": 0,
+        "y": 0,
+        "z": 2
+      },
+      "hitDespiteTipOutsideNominalAndEffectiveLane": true
+    }
+  ],
+  "scope": "Real StrikeRunner with structural actor and synchronized behavior clock; frozen source tip lookup. Not a live-host scheduling test."
+}
