@@ -1,0 +1,24 @@
+{
+  "status": "unaccepted-clay-shape-pending-review",
+  "session": 66027,
+  "exitCode": 0,
+  "sourceSha256": "f58f1ec981fbb6c2b0b1c102aaee522d28b0171c94c33be19a56b71179e28d8e",
+  "helperSha256": "9cfd6310ee09ce6c7ca162b8b30e8776fa7e8942771a00a2a9e9309aceaf3093",
+  "frames": [
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-orbital-compact-clay/clay-hero.png",
+      "bytes": 390093,
+      "sha256": "517769505a858e0f0ad365efd2061ffb340a87864113ca9e2e1bb6bb4de2877c"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-orbital-compact-clay/clay-front.png",
+      "bytes": 356224,
+      "sha256": "b2e3883651107ccd8f43195ef042c92ead33c9221c742facbabc5c38853840f0"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-orbital-compact-clay/clay-side.png",
+      "bytes": 357360,
+      "sha256": "10602dcec541bcacf159c3f4e663f4ffede3580e15d2b07f6d7329cf9a46cf65"
+    }
+  ]
+}

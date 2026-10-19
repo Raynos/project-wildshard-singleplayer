@@ -1,0 +1,28 @@
+{
+  "status": "BLOCKED: final body not reviewed or authorized",
+  "componentPins": {
+    "baseline": {
+      "path": "art/driftwood-isle/approved-puffer/unaccepted-native-v71.json",
+      "sha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338"
+    },
+    "tail": {
+      "path": "art/driftwood-isle/puffer-tail-study/tail-native-study.json",
+      "sha256": "c8f2ef68d0860539b93d3a343a54a05369b3278d239d5e871715a6f3abb17d35"
+    },
+    "fins": {
+      "path": "art/driftwood-isle/puffer-fin-study/terminal-fin-native-study.json",
+      "sha256": "755d8e2d7605cfe9331ae064fe6f301602709ed542e8ee73f3d56f6687f0159e"
+    },
+    "spikes": {
+      "path": "art/driftwood-isle/puffer-spike-study/spike-native-study.json",
+      "sha256": "f49fb808735792d5945d8ac2991e89c5e8f013b4e4e8dcfe6ee51cfc189e90dd"
+    },
+    "spike_indexed": {
+      "path": "art/driftwood-isle/puffer-spike-study/spikes-indexed.json",
+      "sha256": "107075e5258bd2f94bade9ac9cdc23082c5a185c70f008251149d30055f1419f"
+    }
+  },
+  "body": null,
+  "attachmentAudit": null,
+  "reviewReference": null
+}

@@ -74,3 +74,56 @@ foundation and the original at the same hero/front/side cameras. Require a
 clearer connected hooded expression and deliberate broad planes, with no
 flattening of the pouch, recessed chin, detached brow tabs or mouth-slab return.
 Only then judge a full colored candidate across the remaining views.
+
+## First connected orbital stage — 2026-10-19, 01:58 UTC
+
+**Reject the current orbital shape before mouth integration.** Preserve the
+connected-topology approach, with the supported-surface foundation as the
+visual fallback. The new hood is more continuous with the body, but hero/side
+introduce long triangular forehead/temple ridges running back toward the crown.
+The front reads as a broad blocky visor. These shapes are farther from the
+approved reference's short, thick angry brow wedges. The eyes feel less sharply
+hooded even though pupils remain visible.
+
+One bounded correction: rebuild each upper hood as a compact diagonal ridge
+immediately above its eye. Preserve the prior inward-descending lid-cover line
+and the connected socket boundary, while blending the upper/rear bridge back
+onto the original mantle. Remove the crownward peak and radiating triangle,
+rather than merely shortening its tip. Inspect the same clay views before
+color or mouth work. No whole-model score is assigned.
+
+Actual candidate views inspected individually:
+
+- `tmp/puffer-remaster-guided/integrated-orbital-clay/clay-hero.png`
+- `tmp/puffer-remaster-guided/integrated-orbital-clay/clay-front.png`
+- `tmp/puffer-remaster-guided/integrated-orbital-clay/clay-side.png`
+
+Each was compared directly with its `supported-surface/` counterpart listed
+above; the exact V71 matching clay comparison remains available and was already
+inspected. The orbital render receipt and renderer were read. The same
+camera/light/clay settings are used. Reported connected-hull, attachment and
+final-pupil-visibility guards do not override this visual rejection.
+
+## Compact orbital correction — 2026-10-19, 02:01 UTC
+
+**The long temple horns are improved, but do not advance to mouth work yet.**
+The compact connected cage is worth keeping as a working branch; the
+supported-surface remains the visual fallback. Hero is cleaner and the
+crownward peaks are gone. Front still has nearly level, thin lid bars and more
+exposed round eye rims, producing a tired/sleepy read compared with the
+baseline's sharply angry hood. Structural and pupil-visibility passes cannot
+establish the intended expression.
+
+One next correction: recover the supported-surface's stronger outer-high,
+inner-low brow underside immediately above each iris, with a short thick upper
+wedge. Preserve pupil visibility without keeping the whole lid edge nearly
+horizontal. If the current aperture enforces that weaker line, reshape it
+rather than treating the aperture as an artistic invariant. Keep the improved
+compact temple transition; do not recreate the crownward horn.
+
+All three actual views in
+`tmp/puffer-remaster-guided/integrated-orbital-compact-clay/` were inspected:
+`clay-hero.png`, `clay-front.png`, `clay-side.png`. Hero/front were compared
+directly with the supported-surface and the rejected tall-orbital hero was
+reopened; the previously inspected side baselines supply the same comparison.
+Mouth geometry is unchanged in this stage. No full-model score is assigned.

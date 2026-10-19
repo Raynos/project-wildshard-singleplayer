@@ -1,0 +1,23 @@
+{
+  "status": "rendered-unaccepted-orbital-stage-mouth-pending",
+  "session": 88428,
+  "exitCode": 0,
+  "rendererSha256": "78024120f45f11386947f4589a05d6fe2798f64864bb664c1f6a2005e034dbba",
+  "frames": [
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-orbital-clay/clay-hero.png",
+      "bytes": 390285,
+      "sha256": "507be52fda560d860a74cf38f32b56366fdc522d1682f404dc05bdc7762ee1c6"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-orbital-clay/clay-front.png",
+      "bytes": 356268,
+      "sha256": "b8799bf353dba9e55ab727bf0df87d836a295b8e0f023b010dce3b708b4f590b"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-orbital-clay/clay-side.png",
+      "bytes": 357210,
+      "sha256": "e49755b89e9fefe86fafeafd61352634b1f77cc69aab83817f0e361135245668"
+    }
+  ]
+}

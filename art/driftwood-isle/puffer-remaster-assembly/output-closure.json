@@ -1,0 +1,43 @@
+{
+  "status": "Prepared harness; final body tuple pending",
+  "files": [
+    {
+      "path": "art/driftwood-isle/puffer-remaster-assembly/README.md",
+      "bytes": 6563,
+      "sha256": "86ffff33d406e4eb1773a47a0fd4996ce93d44b26c35eaa30a668f8d838ba048"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-remaster-assembly/admission-pending.json",
+      "bytes": 1089,
+      "sha256": "dea0e6e6b4a2fce2cee1217bb0885b838792c98f7ad9f4cd93e7f9abd36a9aee"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-remaster-assembly/assemble.py",
+      "bytes": 11001,
+      "sha256": "d659faabf5a412e036dfe6ab532463fd0c70ce3fdd0fd336fb92af0179683a71"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-remaster-assembly/source-audit.json",
+      "bytes": 443,
+      "sha256": "b46c4889d0131a81149ee99a99095ca2daec570f84d933dcde4ee504e0b40906"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-remaster-assembly/source-pins.json",
+      "bytes": 892,
+      "sha256": "95f7b9a283c1d33cf9a77ec8efc803bf3f9c92d4b4c53a6471214e48fdf03393"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-remaster-assembly/test-receipt.json",
+      "bytes": 2498,
+      "sha256": "48ae8f6986ac8e73c6e0dacfc7ea278dcc7d6bf1126ae0a422833593b9f47fcb"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-remaster-assembly/test_assembly.py",
+      "bytes": 8023,
+      "sha256": "eaefb07ce5811e1f2cab80d41e1700d3471337f2cb50a2b1febc99ade28a271f"
+    }
+  ],
+  "fileCount": 7,
+  "totalBytes": 30509,
+  "finalCandidateWritten": false
+}

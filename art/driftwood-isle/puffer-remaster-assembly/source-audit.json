@@ -1,0 +1,20 @@
+{
+  "scope": "PASS",
+  "changedSpikes": [
+    "Cream crown spine 0",
+    "Cream crown spine 2",
+    "Cream crown spine 3",
+    "Cream crown spine 4",
+    "Cream crown spine 5",
+    "Cream crown spine 6"
+  ],
+  "retainedSpikeCount": 8,
+  "tailRetainedRootTriangles": 44,
+  "replacedParts": [
+    "Tail root",
+    "Volumetric connected finL",
+    "Volumetric connected finR"
+  ],
+  "identityTransform": true,
+  "bonesAndBindPivotsExact": true
+}

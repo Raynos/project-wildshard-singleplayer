@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "timestampUtc": "2026-10-19T02:00:28.578575+00:00",
+  "command": "PYTHONDONTWRITEBYTECODE=1 python art/driftwood-isle/puffer-remaster-assembly/test_assembly.py",
+  "exitCode": 0,
+  "testCount": 18,
+  "testSourceSha256": "eaefb07ce5811e1f2cab80d41e1700d3471337f2cb50a2b1febc99ade28a271f",
+  "assemblySourceSha256": "d659faabf5a412e036dfe6ab532463fd0c70ce3fdd0fd336fb92af0179683a71",
+  "output": "test_changed_admission_tuple_rejected (__main__.AssemblyTests.test_changed_admission_tuple_rejected) ... ok\ntest_duplicate_part_rejected (__main__.AssemblyTests.test_duplicate_part_rejected) ... ok\ntest_duplicate_spike_rejected (__main__.AssemblyTests.test_duplicate_spike_rejected) ... ok\ntest_exact_source_scope (__main__.AssemblyTests.test_exact_source_scope) ... ok\ntest_fin_body_overlap_rejected (__main__.AssemblyTests.test_fin_body_overlap_rejected) ... ok\ntest_hash_drift_rejected (__main__.AssemblyTests.test_hash_drift_rejected) ... ok\ntest_missing_spike_rejected (__main__.AssemblyTests.test_missing_spike_rejected) ... ok\ntest_new_cage_attachment_admission (__main__.AssemblyTests.test_new_cage_attachment_admission) ... ok\ntest_nonfinite_rejected (__main__.AssemblyTests.test_nonfinite_rejected) ... ok\ntest_pending_admission_rejected (__main__.AssemblyTests.test_pending_admission_rejected) ... ok\ntest_pivot_drift_rejected (__main__.AssemblyTests.test_pivot_drift_rejected) ... ok\ntest_repeatable_and_nonmutating (__main__.AssemblyTests.test_repeatable_and_nonmutating) ... ok\ntest_retopology_and_order_independence (__main__.AssemblyTests.test_retopology_and_order_independence) ... ok\ntest_reversed_spike_rejected (__main__.AssemblyTests.test_reversed_spike_rejected) ... ok\ntest_spike_bind_overlap_rejected (__main__.AssemblyTests.test_spike_bind_overlap_rejected) ... ok\ntest_spike_material_overlap_rejected (__main__.AssemblyTests.test_spike_material_overlap_rejected) ... ok\ntest_tail_body_overlap_rejected (__main__.AssemblyTests.test_tail_body_overlap_rejected) ... ok\ntest_unrelated_spike_source_change_rejected (__main__.AssemblyTests.test_unrelated_spike_source_change_rejected) ... ok\n\n----------------------------------------------------------------------\nRan 18 tests in 5.218s\n\nOK\n",
+  "blockedCliCheck": "Pending admission rejected before output creation; forbidden-final.json absent",
+  "finalCandidateWritten": false,
+  "scope": "Focused source/assembly tests only; no runtime, rendering or new-cage geometry acceptance"
+}
