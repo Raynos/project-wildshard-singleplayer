@@ -1,0 +1,260 @@
+{
+  "schema": "wildshard.arena-lighting-omission-parity.v1",
+  "exactAllBytes": true,
+  "oldFileCount": 50,
+  "newFileCount": 50,
+  "oldPreviewSha256": "c5aa8a779e7a688e034eeb46c1e2a1322d51cc4048c443be39f66ccbba637134",
+  "newPreviewSha256": "c5aa8a779e7a688e034eeb46c1e2a1322d51cc4048c443be39f66ccbba637134",
+  "files": [
+    {
+      "path": "pack/metadata.json",
+      "bytes": 2966,
+      "sha256": "55f188d53546dd06537c12ba64a29a36b0569a1d72930146605aaa0a43b86673"
+    },
+    {
+      "path": "pack/payload.bin",
+      "bytes": 53440,
+      "sha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15"
+    },
+    {
+      "path": "preview.json",
+      "bytes": 1584,
+      "sha256": "c5aa8a779e7a688e034eeb46c1e2a1322d51cc4048c443be39f66ccbba637134"
+    },
+    {
+      "path": "product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "bytes": 2520,
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635"
+    },
+    {
+      "path": "product/blobs/json/6265cdf7dc0ae093c341fa9754d4205b8ac1f4705c97052b9c71f41617a8925f.json",
+      "bytes": 2955,
+      "sha256": "6265cdf7dc0ae093c341fa9754d4205b8ac1f4705c97052b9c71f41617a8925f"
+    },
+    {
+      "path": "product/blobs/json/a1914dcbd133b29c899818087e9682cf2ecc08408a80af3737bca539744af273.json",
+      "bytes": 330,
+      "sha256": "a1914dcbd133b29c899818087e9682cf2ecc08408a80af3737bca539744af273"
+    },
+    {
+      "path": "product/blobs/json/cf98695e901d32720a0434084c553b4f91ac2b01e58c0a0b224105ee10dfed17.json",
+      "bytes": 66547,
+      "sha256": "cf98695e901d32720a0434084c553b4f91ac2b01e58c0a0b224105ee10dfed17"
+    },
+    {
+      "path": "product/blobs/wasm/d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071.wasm",
+      "bytes": 7083,
+      "sha256": "d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071"
+    },
+    {
+      "path": "product/sections/actors/creatures.json",
+      "bytes": 52,
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84"
+    },
+    {
+      "path": "product/sections/actors/crowds.json",
+      "bytes": 14,
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96"
+    },
+    {
+      "path": "product/sections/actors/moves.json",
+      "bytes": 189,
+      "sha256": "2671be9b3545536768227a417ff0d00412e28e5a513cf1a781538a2e97bca690"
+    },
+    {
+      "path": "product/sections/actors/spawns.json",
+      "bytes": 154,
+      "sha256": "22eae19428dcf1716265c80a8fb629657f5c51fbfd3af7aa1ec0cd6d82f66020"
+    },
+    {
+      "path": "product/sections/actors/species-programs.json",
+      "bytes": 965,
+      "sha256": "f2dcd75abf89e1097133618927091a0de28f2bfce2e633c9bc07702cc148cc0b"
+    },
+    {
+      "path": "product/sections/actors/species.json",
+      "bytes": 24,
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7"
+    },
+    {
+      "path": "product/sections/actors/strikes.json",
+      "bytes": 240,
+      "sha256": "2966a2ce0e6eec7c8e7f26eb4dcabe801a30a69bdd0d2141a17c8129e46c5d59"
+    },
+    {
+      "path": "product/sections/audio/audio.json",
+      "bytes": 68,
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543"
+    },
+    {
+      "path": "product/sections/combat/encounters.json",
+      "bytes": 18,
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca"
+    },
+    {
+      "path": "product/sections/combat/items.json",
+      "bytes": 103,
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca"
+    },
+    {
+      "path": "product/sections/combat/strikes.json",
+      "bytes": 24,
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c"
+    },
+    {
+      "path": "product/sections/economy/ledger.json",
+      "bytes": 14,
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f"
+    },
+    {
+      "path": "product/sections/economy/loot.json",
+      "bytes": 432,
+      "sha256": "7a807395f56fead1b9edb09ee310fa122576c6c2b8f5e54627c9826654c40d63"
+    },
+    {
+      "path": "product/sections/held/arms.json",
+      "bytes": 895,
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1"
+    },
+    {
+      "path": "product/sections/look/look.json",
+      "bytes": 6282,
+      "sha256": "cd68105cec62cfc9a5038db526f36feef08121b6495cd5cb976a8dc59b1ac702"
+    },
+    {
+      "path": "product/sections/look/materials.json",
+      "bytes": 22,
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7"
+    },
+    {
+      "path": "product/sections/quests/quests.json",
+      "bytes": 64,
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb"
+    },
+    {
+      "path": "product/sections/sim/client-scripts.json",
+      "bytes": 46,
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb"
+    },
+    {
+      "path": "product/sections/sim/hooks.json",
+      "bytes": 40,
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10"
+    },
+    {
+      "path": "product/sections/sim/plumbing.json",
+      "bytes": 18,
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea"
+    },
+    {
+      "path": "product/sections/sim/scripts.json",
+      "bytes": 1040,
+      "sha256": "849531b9719c0a10f9dca394d2654f3a0ba1085041397c88fc9b8330088fd288"
+    },
+    {
+      "path": "product/sections/sim/sim.json",
+      "bytes": 111,
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0"
+    },
+    {
+      "path": "product/sections/state/migrations.json",
+      "bytes": 18,
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c"
+    },
+    {
+      "path": "product/sections/state/state.json",
+      "bytes": 275,
+      "sha256": "390f48e1e77ba193359bb7337d43cc41536cac37d0072ebc4bb4f10592f4376b"
+    },
+    {
+      "path": "product/sections/ui/card.json",
+      "bytes": 18,
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b"
+    },
+    {
+      "path": "product/sections/ui/compendium.json",
+      "bytes": 28,
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214"
+    },
+    {
+      "path": "product/sections/ui/ui.json",
+      "bytes": 52,
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3"
+    },
+    {
+      "path": "product/sections/world/collision.json",
+      "bytes": 23,
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e"
+    },
+    {
+      "path": "product/sections/world/days.json",
+      "bytes": 21,
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842"
+    },
+    {
+      "path": "product/sections/world/edge.json",
+      "bytes": 16835,
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711"
+    },
+    {
+      "path": "product/sections/world/movers.json",
+      "bytes": 14,
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b"
+    },
+    {
+      "path": "product/sections/world/navigation.json",
+      "bytes": 20,
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5"
+    },
+    {
+      "path": "product/sections/world/props.json",
+      "bytes": 15,
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59"
+    },
+    {
+      "path": "product/sections/world/spawn.json",
+      "bytes": 38,
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7"
+    },
+    {
+      "path": "product/sections/world/terrain.json",
+      "bytes": 37,
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e"
+    },
+    {
+      "path": "product/sections/world/tiles.json",
+      "bytes": 24,
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95"
+    },
+    {
+      "path": "product/sections/world/traversal.json",
+      "bytes": 30,
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078"
+    },
+    {
+      "path": "product/sections/world/water.json",
+      "bytes": 13,
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d"
+    },
+    {
+      "path": "product/sections/world/weather.json",
+      "bytes": 24,
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2"
+    },
+    {
+      "path": "product/shard.json",
+      "bytes": 9930,
+      "sha256": "9f71af168d0eec74cae7741b7a450c67b08cdc5cceb2dc58dc6b36917767acb9"
+    },
+    {
+      "path": "product/validation.json",
+      "bytes": 853,
+      "sha256": "b64e1d7c533bc627d42f84cf2886eed63393439369f44007c8796197cf3af324"
+    },
+    {
+      "path": "unaccepted-dimensions.json",
+      "bytes": 482,
+      "sha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e"
+    }
+  ]
+}
