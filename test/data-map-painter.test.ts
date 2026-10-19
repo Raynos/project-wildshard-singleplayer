@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { Document, NodeIO } from '@gltf-transform/core';
 import { EXTMeshGPUInstancing } from '@gltf-transform/extensions';
 import { expect, test } from 'vitest';
+import * as schema from 'valibot';
 import { MapRaster, mapPixel, stylizeMap } from '../scripts/map-painter.mjs';
 import { decodeTerrainTile, terrainTileHeight } from '../src/format/terrainTileBytes';
 import terrain from '../src/shards/_template/data/terrain.json' with { type: 'json' };
@@ -15,6 +16,8 @@ import { mapRest } from '../scripts/bake-map-rest.mjs';
 import { parseClientChannels } from '../src/format/clientChannels';
 import isletScene from '../src/shards/far-reach/data/isletScenes.generated.json' with { type: 'json' };
 import isletMotion from '../src/shards/far-reach/data/isletMotion.generated.json' with { type: 'json' };
+import { nalatiMapAssembly } from '../src/shards/nalati-grasslands/generators/mapAssembly.mjs';
+import nalatiPlacesJson from '../src/shards/nalati-grasslands/boot/placeRuntime.generated.json' with { type: 'json' };
 
 const grey = [[120, 120, 120], [120, 120, 120], [120, 120, 120]];
 const triangle = [[200, 4, 200], [150, 4, 200], [200, 4, 150]];
@@ -117,4 +120,27 @@ test('Sky resting matrices include every connector and exact group pose', () => 
   expect(snapshot.nodes['gates']?.matrices?.filter((_, index) => index % 16 !== 15).every(value => value === 0)).toBe(true);
   expect(() => mapRest(isletScene.scene, parseClientChannels(isletMotion.channels), [])).toThrow('Missing map rest pose');
   expect(() => mapRest(isletScene.scene, [], isletMotion.rest)).toThrow('Incomplete map rest instance slots');
+});
+
+test('Nalati map assembly covers every POI model copy at its admitted pose', async () => {
+  const { assembly } = await nalatiMapAssembly();
+  const nalatiPlaces = schema.parse(schema.object({ places: schema.object({ rows: schema.array(schema.object({ name: schema.string(), instances: schema.array(schema.tuple([schema.string(),
+    schema.object({ placements: schema.array(schema.object({ x: schema.number(), y: schema.number(), z: schema.number() })) })])) })) }) }), nalatiPlacesJson);
+  try {
+    for (const place of nalatiPlaces.places.rows.filter(row => !row.name.startsWith('actor:'))) {
+      for (const [id, model] of place.instances) {
+        const name = `poi:${place.name}:model:${id}`, copies = assembly.nodes.find(row => row.name === name);
+        expect(copies?.instances ?? 0).toBe(model.placements.length);
+        for (const [i, pose] of model.placements.entries()) {
+          expect(copies?.matrices.slice(i * 16 + 12, i * 16 + 15)).toEqual([pose.x, pose.y, pose.z].map(Math.fround));
+        }
+      }
+    }
+    expect(assembly.inventory['balbals']).toBe(12);
+    expect(assembly.inventory['kokpar-riders']).toBe(6);
+    expect(assembly.inventory['cloth']).toBe(1);
+    expect(assembly.inventory['dressing:stone']).toBeGreaterThan(19000);
+    for (const node of assembly.nodes) expect(node.matrices.every(Number.isFinite)).toBe(true);
+    expect(Object.entries(assembly.inventory).filter(([name]) => /^spruce:\d+:trunk$/u.test(name)).reduce((sum, [, n]) => sum + n, 0)).toBe(146);
+  } finally { for (const shape of assembly.shapes) shape.geometry.dispose(); }
 });

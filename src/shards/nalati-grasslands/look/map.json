@@ -1,73 +1,16 @@
 {
   "why": "Nalati's map in its painterly palette as flat colours (G252, Jake's pick B): the green and gold steppe, the river's stone bed and blue water with an edge (two water matches: the dark pools and ponds, and the light river the 'nalati-water' look graph draws in display colour since 4c967cd0f, where the old shader wrote linear values straight to the screen), the snowfields in two whites, the trails picked out with an edge; yurts, trees and rocks raised with an edge and a shadow",
   "inputs": [
-    "shard.config.ts",
-    "boot/layout.generated.json",
-    "boot/poiLayout.generated.json",
-    "boot/clearings.generated.json",
-    "world",
     "generators",
-    "models",
-    "generators/clientMotion.ts",
-    "data/creatureRigs.json",
-    "data/oliveColour.json",
-    "data/lookGraphs.json",
-    "look/light.ts",
-    "look/render.ts",
-    "data/terrainScene.json",
-    "behaviour/kokpar.as",
-    "data/layout.generated.json",
-    "data/peopleFrames.json",
-    "data/peopleChannels.generated.json",
+    "data/mapAssembly.generated.json",
+    "data/mapAssembly.generated.bin",
     "assets/world-terrain/ground.generated.glb",
     "assets/world-terrain/slab.generated.glb",
     "assets/world-terrain/water.generated.glb",
-    "behaviour/chapter.as",
-    "data/chapterStory.json",
-    "boot/poiPaint.json",
-    "behaviour/admission.as",
-    "behaviour/titan.as",
-    "data/ecology.json",
-    "data/ecology.generated.json",
-    "data/placeholder.json",
-    "data/aqbarsProfile.json",
-    "data/kokboriProfile.json",
-    "behaviour/qaraCharge.as",
-    "../../../public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin",
-    "../../../public/assets/nalati/baked/cover-boulder-1.webp",
-    "../../../public/assets/nalati/baked/cover-boulder-2.webp",
-    "../../../public/assets/nalati/baked/cover-boulder-3.webp",
-    "../../../public/assets/nalati/baked/cover-desktop.bin",
-    "../../../public/assets/nalati/baked/cover-phone.bin",
-    "../../../public/assets/nalati/baked/gear-specimens.bin",
-    "behaviour/balbal.as",
-    "behaviour/pasture.as",
-    "behaviour/pasture.generated.json",
-    "behaviour/weather.as",
-    "behaviour/weather.generated.json",
-    "boot/cover.generated.json",
-    "boot/decorative.generated.json",
-    "boot/gear.generated.json",
-    "boot/geography.generated.json",
-    "boot/grass.generated.json",
-    "boot/modelMetrics.generated.json",
-    "boot/paintedTextures.generated.json",
-    "boot/placeRuntime.generated.json",
-    "boot/poiScenes.generated.json",
-    "data/ambientSites.json",
-    "data/arenaFire.json",
-    "data/bossArenaRoom.json",
-    "data/headlessAssembly.json",
-    "data/kurganView.json",
-    "data/legendaryWeapons.json",
-    "data/modelMetrics.json",
-    "data/paintedTextures.json",
-    "data/painterlyGraphs.json",
-    "data/skyDome.json",
-    "data/species.generated.json",
-    "data/tamingPoses.generated.json",
-    "data/weaponEffects.json",
-    "data/worldView.json"
+    "../../../scripts/map-assembly.mjs",
+    "../../../scripts/map-scenes.mjs",
+    "../../../scripts/map-painter.mjs",
+    "../../../scripts/bake-data-maps.mjs"
   ],
   "style": {
     "kind": "ground",
@@ -133,6 +76,43 @@
           "match": "#4a5040",
           "fill": "#5d6b4a",
           "edge": "#2e3626"
+        }
+      ]
+    }
+  },
+  "painter": {
+    "version": 1,
+    "job": "nalati-data-map",
+    "prerequisites": [
+      "nalati-map-assembly"
+    ],
+    "glbs": [
+      "assets/world-terrain/ground.generated.glb",
+      "assets/world-terrain/slab.generated.glb",
+      "assets/world-terrain/water.generated.glb"
+    ],
+    "scenes": {
+      "packs": [
+        {
+          "file": "data/mapAssembly.generated.bin",
+          "rows": {
+            "file": "data/mapAssembly.generated.json",
+            "path": [
+              "pack"
+            ]
+          },
+          "names": [
+            "names"
+          ],
+          "deflated": true
+        }
+      ],
+      "recipes": [
+        {
+          "file": "data/mapAssembly.generated.json",
+          "path": [
+            "scene"
+          ]
         }
       ]
     }

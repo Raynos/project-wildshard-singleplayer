@@ -2110,3 +2110,8 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /src/shards/nalati-grasslands/data/heldWeapons.generated.json
 
 /src/shards/nalati-grasslands/behaviour/riding.generated.json
+
+# G508: Nalati resting assembly and map are build outputs.
+/src/shards/nalati-grasslands/data/mapAssembly.generated.*
+/src/shards/nalati-grasslands/look/map.baked.json
+/public/assets/nalati-grasslands/map/top.webp
