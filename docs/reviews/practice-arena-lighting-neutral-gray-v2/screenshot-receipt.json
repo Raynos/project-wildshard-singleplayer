@@ -1,0 +1,232 @@
+[
+  {
+    "path": "phone-matched-000-candidate.webp",
+    "sourcePng": "matched-000-candidate.png",
+    "sourcePngSha256": "ec7fe85e345c348d935d5e0ec6ae62471002126a35f3fab3af12eec3fbb36361",
+    "sha256": "b295340fd515a71a611452f76aaa3eeadd6acadcafb4615ac9390eea6befea37",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-000-neutral-v1.webp",
+    "sourcePng": "matched-000-neutral-v1.png",
+    "sourcePngSha256": "13c6a319ffb8f809239400c3e49b473730b5cb4d3492039e05f564becbec8873",
+    "sha256": "771b9f51d781e4f8d0f3228d9a6e76c5b0da3d7517c1c11d4f52d47a232142d5",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-000-old-profile.webp",
+    "sourcePng": "matched-000-old-profile.png",
+    "sourcePngSha256": "8fcda50ba365d31f2ccf440efcdb373652c864f988a96fa6f868eaae0f596b69",
+    "sha256": "2f5285744718e9e5e89e2ccb086e5b40dd9a4b31087c78be0391b92c14ed497f",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-060-candidate.webp",
+    "sourcePng": "matched-060-candidate.png",
+    "sourcePngSha256": "4020ce6424a102317a91fe23f8349c5e5929062dc2cffa239888ba9031e69804",
+    "sha256": "cf52cd3331fea7cc164bdfe854fdc957342b87a527622b0b99a5735fa23c1d8e",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-060-neutral-v1.webp",
+    "sourcePng": "matched-060-neutral-v1.png",
+    "sourcePngSha256": "8b81ca917163cd52a3fee8db843fec8fb2c8692feb7800c482c2de68af6b924d",
+    "sha256": "1eb158bb19288f33d46ed97f8213d5739d80269f1f80f1026501593c488c5a7c",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-060-old-profile.webp",
+    "sourcePng": "matched-060-old-profile.png",
+    "sourcePngSha256": "9a5ca518a944fb1759c0dc0267818ae9f7ffce26160e68c88f9b39933b394e66",
+    "sha256": "2cf256b0ff9a1fb6aa33b795ae426a2c8755b7c3af11272dfca16d15cc2ad72a",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-120-candidate.webp",
+    "sourcePng": "matched-120-candidate.png",
+    "sourcePngSha256": "62f1825560e34ea7b91d1ae6cb5f010924de00c6633747693f90132333e84ff7",
+    "sha256": "d1a3c8a88d6065def763a53677b2b227ad9c082f9ff4e3c4e769bb42756e8420",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-120-neutral-v1.webp",
+    "sourcePng": "matched-120-neutral-v1.png",
+    "sourcePngSha256": "73ec6ff8d856a05acce24f036013af6340c3e98e87a3af6bc1281149b7a3a833",
+    "sha256": "857ef5537e66bebe7cf9c4c4b94327e247a343fb735b0264778770f825a535df",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-120-old-profile.webp",
+    "sourcePng": "matched-120-old-profile.png",
+    "sourcePngSha256": "258f90a2713cd2270f86af1cfff9b794c6053adaf5b273a4c6ad8a950d51f9d3",
+    "sha256": "f10bcaf35ecda34f54786b4ae8f3ff180f8e6e63d5b3765c12f2ba047cf70907",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-180-candidate.webp",
+    "sourcePng": "matched-180-candidate.png",
+    "sourcePngSha256": "932a01d2f79629583b5fb85901ea4bc88e33faa47ea47f98a0416ab65407eedb",
+    "sha256": "0b98ef377b90317d2bc0a5d2709c90ffe82cf03ffb30b2351796dac41862ddea",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-180-neutral-v1.webp",
+    "sourcePng": "matched-180-neutral-v1.png",
+    "sourcePngSha256": "c80945fe667adf76df3002423d86cfd965396eddb451665abc52fd5eb0496d05",
+    "sha256": "1c30faf30c5d180ec23326baf7cb8d6e24b918d5cc0320a6f8446b62223664e5",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-180-old-profile.webp",
+    "sourcePng": "matched-180-old-profile.png",
+    "sourcePngSha256": "e137a3b83b4f988f6aa13ea2f2ecb4221ebb741df3347b22a8695365b4bc9d44",
+    "sha256": "95343c15adda9f0b4a216075e518c7fde89676f8cb8f7eb99f9579165829d7c4",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-240-candidate.webp",
+    "sourcePng": "matched-240-candidate.png",
+    "sourcePngSha256": "a42fb341cad927e121aebc1cf3deb4e314a2718aaf8de71d9c9962e406ccf5b9",
+    "sha256": "a118387035b1df6da05ae44d5fa6c4e89e74e8628e008a8b832e6556d5b4bb05",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-240-neutral-v1.webp",
+    "sourcePng": "matched-240-neutral-v1.png",
+    "sourcePngSha256": "c7d42db8bd4fa61956a8cf139aebb3cf06b356124baa9abedbe5304fc72d0483",
+    "sha256": "b0905d99303f998a0eedeb1e002852565b5c10db6294afce3715af6aeb7076ae",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-240-old-profile.webp",
+    "sourcePng": "matched-240-old-profile.png",
+    "sourcePngSha256": "13afe63693bffa2c19ac8e3e546dba1a01099f83881adb33c4802ed984cc70f9",
+    "sha256": "2a3846a83f3be7a03241b8032713d1d45b2bb47e3998781841a54ce41b4b4798",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-300-candidate.webp",
+    "sourcePng": "matched-300-candidate.png",
+    "sourcePngSha256": "e449ff946924d6af853216090d6631f8bce774265287776a95bec61fab028e70",
+    "sha256": "b05ab9f9d3f9c74b9632792293808a9f1c6e366a8f27ecd34c070a0433ba36e5",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-300-neutral-v1.webp",
+    "sourcePng": "matched-300-neutral-v1.png",
+    "sourcePngSha256": "fc702ef9d66637d12d11839e8ea0acb8e9bd2ccc795105cc5128c44617d5a307",
+    "sha256": "e5ba4d4d8fcffd5cc741b45117af4dc0a113ef2bca06f4bd5999112bf2ad6cfb",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-matched-300-old-profile.webp",
+    "sourcePng": "matched-300-old-profile.png",
+    "sourcePngSha256": "f4d4f12e3c162bb5d2aec3e7760397121df053fe38afa7ca24a8fa0885827cf6",
+    "sha256": "8b087d3f1929a666d329e8cb17103971aa84b3630fecab9c60c4d9edb56ad108",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-real-combat-after.webp",
+    "sourcePng": "real-combat-after.png",
+    "sourcePngSha256": "8f888a24da4f6f0d4bb2ed0b09a438e8dc9140f50fa5f79ee2c445d707dfa1f9",
+    "sha256": "cbdfa61b0259f5b36c7b8eb39c8fc8359007780ca7d9f1831d6de2d614cb10de",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-real-left.webp",
+    "sourcePng": "real-left.png",
+    "sourcePngSha256": "c1dfadd52a98c7a27ed9dfca1af5caf48cd1b85a25efe70930096ce10fa74025",
+    "sha256": "1a7abcd21bbf9786ffb7e246abc8da1612d2fc0e78abc5a187a65e3106cee85e",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-real-retry.webp",
+    "sourcePng": "real-retry.png",
+    "sourcePngSha256": "ae2d4272750c4d1a71e4a53b75f88cdf5c6baf2cfa6eff36e5b172ed095b013a",
+    "sha256": "87deccffa6ecf6dc39970d9fa4635c6e213a9bfb3d2e7171c0ba7df011def69c",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-real-right.webp",
+    "sourcePng": "real-right.png",
+    "sourcePngSha256": "4aa62e6f52d0b99062d0f52f015cfa9d54565eba2c6ca677a02400178e601108",
+    "sha256": "5a4e4158569977f92164af0fb585fb181ffec8e4c3c03fd9108992372e1196bc",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  },
+  {
+    "path": "phone-real-start.webp",
+    "sourcePng": "real-start.png",
+    "sourcePngSha256": "0aa87afd0b6d7e68e66fc4d90484171918d4ac1e63a43e47e59bea08f3a4f883",
+    "sha256": "269ebba0c238b209447a3524240c8678502a55e604a34af8bcf0c91c2f540df7",
+    "width": 1170,
+    "height": 2532,
+    "lossless": false,
+    "quality": 90
+  }
+]

@@ -1,0 +1,316 @@
+{
+  "schema": "wildshard.v70-arena-lighting-comparison.v1",
+  "nativeSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+  "method": "Exact pinned native Float32 skin weights and captured bone world matrices, projected with captured camera. Full mesh rasterized, silhouette eroded by 2 CSS pixels. Pixel changes are descriptive, not quality scores. Old/new matched views require exact actor/bone/camera/world-key equality. Phone is cloud Chromium UA/pass-policy emulation, not device performance.",
+  "results": {
+    "phone": {
+      "captureSha256": "6f22c76f6b081e5bc382b88252815bc82ff5e8b607a114db80809b7af93361b7",
+      "samples": 612,
+      "actualRenderer": {
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+        "platform": "Linux x86_64",
+        "maxTouchPoints": 1,
+        "devicePixelRatio": 3,
+        "rendererPixelRatio": 2,
+        "canvas": [
+          780,
+          1688
+        ],
+        "css": [
+          390,
+          844
+        ],
+        "drawingBuffer": [
+          780,
+          1688
+        ],
+        "shadowCascades": 1,
+        "aoPresent": false,
+        "passes": [
+          {
+            "name": "Bh",
+            "enabled": true
+          },
+          {
+            "name": "Ot",
+            "enabled": true
+          },
+          {
+            "name": "Ot",
+            "enabled": true
+          }
+        ],
+        "sun": [
+          0.3841106397986879,
+          0.7682212795973759,
+          0.512147519731584
+        ]
+      },
+      "pausedBoneWorldMaxDelta": 0.0,
+      "sunVectorRange": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lightDirectionRange": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "matchedResults": [
+        {
+          "degrees": 0,
+          "baseline": "old-profile",
+          "factor": "candidate",
+          "maskPixels": 208316,
+          "oldMeanLuminance": 126.92450397761094,
+          "newMeanLuminance": 136.88843696691563,
+          "meanLuminanceDelta": 9.963932989304707,
+          "oldMeanRGB": [
+            133.11125885673687,
+            127.22806217477294,
+            105.70000384031951
+          ],
+          "newMeanRGB": [
+            138.934762572246,
+            139.43007258203883,
+            105.68585226290827
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 0,
+          "baseline": "neutral-v1",
+          "factor": "candidate",
+          "maskPixels": 208316,
+          "oldMeanLuminance": 136.69387036713456,
+          "newMeanLuminance": 136.88843696691563,
+          "meanLuminanceDelta": 0.1945665997811017,
+          "oldMeanRGB": [
+            140.07924499318344,
+            139.12539603294994,
+            102.63905316922369
+          ],
+          "newMeanRGB": [
+            138.934762572246,
+            139.43007258203883,
+            105.68585226290827
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 60,
+          "baseline": "old-profile",
+          "factor": "candidate",
+          "maskPixels": 209116,
+          "oldMeanLuminance": 142.75032054936014,
+          "newMeanLuminance": 150.09660315996862,
+          "meanLuminanceDelta": 7.346282610608464,
+          "oldMeanRGB": [
+            152.1844048279424,
+            142.69132921440732,
+            115.55508904148894
+          ],
+          "newMeanRGB": [
+            155.88917156028234,
+            151.98870483368083,
+            114.2970026205551
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 60,
+          "baseline": "neutral-v1",
+          "factor": "candidate",
+          "maskPixels": 209116,
+          "oldMeanLuminance": 149.95502691137932,
+          "newMeanLuminance": 150.09660315996862,
+          "meanLuminanceDelta": 0.14157624858929954,
+          "oldMeanRGB": [
+            157.0319535568775,
+            151.73543870387726,
+            111.47988676141472
+          ],
+          "newMeanRGB": [
+            155.88917156028234,
+            151.98870483368083,
+            114.2970026205551
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 120,
+          "baseline": "old-profile",
+          "factor": "candidate",
+          "maskPixels": 200374,
+          "oldMeanLuminance": 85.93271269126733,
+          "newMeanLuminance": 98.61462674498688,
+          "meanLuminanceDelta": 12.681914053719545,
+          "oldMeanRGB": [
+            87.87885653827342,
+            85.85569485062932,
+            80.96502540249733
+          ],
+          "newMeanRGB": [
+            94.81779073133241,
+            101.45054248555202,
+            81.70272091189476
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 120,
+          "baseline": "neutral-v1",
+          "factor": "candidate",
+          "maskPixels": 200374,
+          "oldMeanLuminance": 98.20388755826602,
+          "newMeanLuminance": 98.61462674498688,
+          "meanLuminanceDelta": 0.41073918672083226,
+          "oldMeanRGB": [
+            95.79726910677034,
+            100.97920887939553,
+            77.79858664297763
+          ],
+          "newMeanRGB": [
+            94.81779073133241,
+            101.45054248555202,
+            81.70272091189476
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 180,
+          "baseline": "old-profile",
+          "factor": "candidate",
+          "maskPixels": 178533,
+          "oldMeanLuminance": 34.24120110231722,
+          "newMeanLuminance": 50.84801164266549,
+          "meanLuminanceDelta": 16.60681054034828,
+          "oldMeanRGB": [
+            34.62148174287107,
+            32.68290456106154,
+            48.557628001545936
+          ],
+          "newMeanRGB": [
+            42.95615376429007,
+            53.24297468815289,
+            50.362297166350196
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 180,
+          "baseline": "neutral-v1",
+          "factor": "candidate",
+          "maskPixels": 178533,
+          "oldMeanLuminance": 49.966190023132974,
+          "newMeanLuminance": 50.84801164266549,
+          "meanLuminanceDelta": 0.8818216195325222,
+          "oldMeanRGB": [
+            43.203026891387026,
+            52.46104641718898,
+            45.167397623968675
+          ],
+          "newMeanRGB": [
+            42.95615376429007,
+            53.24297468815289,
+            50.362297166350196
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 240,
+          "baseline": "old-profile",
+          "factor": "candidate",
+          "maskPixels": 140660,
+          "oldMeanLuminance": 35.84875779183847,
+          "newMeanLuminance": 50.49374609839328,
+          "meanLuminanceDelta": 14.644988306554811,
+          "oldMeanRGB": [
+            36.330228920801936,
+            34.22427129247831,
+            50.5228849708517
+          ],
+          "newMeanRGB": [
+            41.565213991184415,
+            53.17349637423575,
+            50.239570595762835
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 240,
+          "baseline": "neutral-v1",
+          "factor": "candidate",
+          "maskPixels": 140660,
+          "oldMeanLuminance": 49.553527796104085,
+          "newMeanLuminance": 50.49374609839328,
+          "meanLuminanceDelta": 0.9402183022892073,
+          "oldMeanRGB": [
+            41.45612825252382,
+            52.40739371534196,
+            45.12724299729845
+          ],
+          "newMeanRGB": [
+            41.565213991184415,
+            53.17349637423575,
+            50.239570595762835
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 300,
+          "baseline": "old-profile",
+          "factor": "candidate",
+          "maskPixels": 190971,
+          "oldMeanLuminance": 67.0697543469951,
+          "newMeanLuminance": 80.32955244513565,
+          "meanLuminanceDelta": 13.259798098140557,
+          "oldMeanRGB": [
+            60.651999518251465,
+            68.56360913437119,
+            71.16961214006315
+          ],
+          "newMeanRGB": [
+            67.0580611715915,
+            85.11813835608548,
+            71.973907033005
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        },
+        {
+          "degrees": 300,
+          "baseline": "neutral-v1",
+          "factor": "candidate",
+          "maskPixels": 190971,
+          "oldMeanLuminance": 79.7990024035063,
+          "newMeanLuminance": 80.32955244513565,
+          "meanLuminanceDelta": 0.5305500416293577,
+          "oldMeanRGB": [
+            67.81611344130785,
+            84.59525268234444,
+            67.57301894004848
+          ],
+          "newMeanRGB": [
+            67.0580611715915,
+            85.11813835608548,
+            71.973907033005
+          ],
+          "oldAllChannelClippingFraction": 0.0,
+          "newAllChannelClippingFraction": 0.0
+        }
+      ]
+    }
+  }
+}

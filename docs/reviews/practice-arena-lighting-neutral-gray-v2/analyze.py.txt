@@ -1,0 +1,36 @@
+import json,hashlib,pathlib,sys
+import numpy as np
+from PIL import Image,ImageFilter
+base=pathlib.Path(sys.argv[1])
+native_path=pathlib.Path('art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json');assert hashlib.sha256(native_path.read_bytes()).hexdigest()=='b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762';native=json.loads(native_path.read_text());names=[b['name']for b in native['bones']]
+P=np.concatenate([np.array(p['positions'],dtype=np.float32).reshape(-1,3)for p in native['parts']]);W=np.concatenate([np.array(p['skinWeights'],dtype=np.float32).reshape(-1,4)for p in native['parts']]);I=np.concatenate([np.array(p['skinIndices']).reshape(-1,4)for p in native['parts']]);
+def mask(row,width,height):
+ world=np.zeros_like(P,dtype=float)
+ for k,b in enumerate(row['bones']):
+  assert b['name']==names[k];M=np.array(b['world']).reshape(4,4).T;ib=np.eye(4);ib[:3,3]=-np.array(native['bones'][k]['pos']);M=M@ib;weight=np.where(I==k,W,0).sum(axis=1);world+=(P@M[:3,:3].T+M[:3,3])*weight[:,None]
+ view=np.linalg.inv(np.array(row['cameraWorld']).reshape(4,4).T);projection=np.array(row['projection']).reshape(4,4).T;clip=np.c_[world,np.ones(len(world))]@(projection@view).T;ndc=clip[:,:3]/clip[:,3:4];screen=np.c_[(ndc[:,0]+1)*(width/2),(1-ndc[:,1])*(height/2),ndc[:,2]];depth=np.full((height,width),np.inf);hit=np.zeros((height,width),bool)
+ for t in screen.reshape(-1,3,3):
+  if np.any(np.abs(t[:,2])>1):continue
+  lo=np.maximum(np.floor(t[:,:2].min(axis=0)).astype(int),[0,0]);hi=np.minimum(np.ceil(t[:,:2].max(axis=0)).astype(int),[width-1,height-1]);
+  if np.any(hi<lo):continue
+  xx,yy=np.meshgrid(np.arange(lo[0],hi[0]+1)+.5,np.arange(lo[1],hi[1]+1)+.5);a,b,c=t;den=(b[1]-c[1])*(a[0]-c[0])+(c[0]-b[0])*(a[1]-c[1]);
+  if abs(den)<1e-9:continue
+  u=((b[1]-c[1])*(xx-c[0])+(c[0]-b[0])*(yy-c[1]))/den;v=((c[1]-a[1])*(xx-c[0])+(a[0]-c[0])*(yy-c[1]))/den;inside=(u>=0)&(v>=0)&((u+v)<=1);z=u*a[2]+v*b[2]+(1-u-v)*c[2];dest=depth[lo[1]:hi[1]+1,lo[0]:hi[0]+1];keep=inside&(z<dest);dest[keep]=z[keep];hit[lo[1]:hi[1]+1,lo[0]:hi[0]+1]|=keep
+ # Erode 2px to exclude antialiased silhouette/background contamination.
+ return np.array(Image.fromarray((hit*255).astype('uint8')).filter(ImageFilter.MinFilter(2*round(2*width/390)+1)))>0
+results={}
+for tier in ['desktop','phone']:
+ folder=base/f'tmp/v70-neutral-gray-v2-{tier}';file=folder/'capture.json'
+ if not file.exists():continue
+ d=json.loads(file.read_text());shots=d['shots'];samples=d['capture']['samples'];result={'captureSha256':hashlib.sha256(file.read_bytes()).hexdigest(),'samples':len(samples),'actualRenderer':d['actualRenderer'],'pausedBoneWorldMaxDelta':float(np.abs(np.array([[b['world']for b in r['bones']]for r in shots])-np.array([b['world']for b in shots[0]['bones']])).max()),'sunVectorRange':np.ptp(np.array([r['sun']for r in samples]),axis=0).tolist(),'lightDirectionRange':np.ptp(np.array([r['lightDirection']for r in samples]),axis=0).tolist(),'matchedResults':[]}
+ for old in shots:
+  if old['factor']not in ['old-profile','neutral-v1']:continue
+  im=np.array(Image.open(folder/old['filename']).convert('RGB')).astype(float);M=mask(old,im.shape[1],im.shape[0]);baseLuma=im[M]@np.array([.2126,.7152,.0722])
+  for new in shots:
+   if new['deg']!=old['deg']or new['factor']!='candidate':continue
+   assert old['cameraWorld']==new['cameraWorld']and old['projection']==new['projection']and old['bones']==new['bones']and old['actor']==new['actor']and old['sun']==new['sun']and old['lightDirection']==new['lightDirection']
+   arr=np.array(Image.open(folder/new['filename']).convert('RGB')).astype(float);delta=arr[M]-im[M];newLuma=arr[M]@np.array([.2126,.7152,.0722])
+   result['matchedResults'].append({'degrees':old['deg'],'baseline':old['factor'],'factor':new['factor'],'maskPixels':int(M.sum()),'oldMeanLuminance':float(baseLuma.mean()),'newMeanLuminance':float(newLuma.mean()),'meanLuminanceDelta':float((newLuma-baseLuma).mean()),'oldMeanRGB':im[M].mean(axis=0).tolist(),'newMeanRGB':arr[M].mean(axis=0).tolist(),'oldAllChannelClippingFraction':float(np.all(im[M]>=250,axis=1).mean()),'newAllChannelClippingFraction':float(np.all(arr[M]>=250,axis=1).mean())})
+ results[tier]=result
+out={'schema':'wildshard.v70-arena-lighting-comparison.v1','nativeSha256':'b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762','method':'Exact pinned native Float32 skin weights and captured bone world matrices, projected with captured camera. Full mesh rasterized, silhouette eroded by 2 CSS pixels. Pixel changes are descriptive, not quality scores. Old/new matched views require exact actor/bone/camera/world-key equality. Phone is cloud Chromium UA/pass-policy emulation, not device performance.','results':results}
+pathlib.Path('tmp/v70-neutral-gray-v2-analysis.json').write_text(json.dumps(out,indent=2)+'\n');print(json.dumps(out,indent=2))

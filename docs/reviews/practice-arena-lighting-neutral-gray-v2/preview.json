@@ -1,0 +1,29 @@
+{
+  "schema": "wildshard.puffer.native-preview.v1",
+  "candidate": "V70",
+  "mode": "gait5",
+  "rigAdmission": {
+    "profile": "v70-rig1-gait5",
+    "originalSourceSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+    "equivalenceSha256": "5cb9e2b3128f5b87ef4ed7c89816c324d79bd57bc6b947d25b23c46bea567b06",
+    "poseSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+    "gaitSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0"
+  },
+  "rootFlinch": "authored-pose",
+  "arenaLighting": "neutral-gray-v2",
+  "arenaLightingProfileSha256": "b0871ebc6bb4b1584cc3b970861dd9d577dd1d6f03c59b752f4d937571c29101",
+  "arenaOcclusion": "contact-v1",
+  "visualAdapter": "puffer-gait5-continuity",
+  "visualAdapterSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+  "source": "art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json",
+  "measurementSha256": "a923ca6c0ca4ba7d853da3b871d536e2b2a3106202a21c3673f22a8eaa6c6f27",
+  "sourceSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+  "metadataSha256": "55f188d53546dd06537c12ba64a29a36b0569a1d72930146605aaa0a43b86673",
+  "dimensionsSha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e",
+  "colliderAcceptance": false,
+  "visualAcceptance": false,
+  "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+  "packedSha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15",
+  "bodyFile": "/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+  "sourceHash": "80e39ff9f9af3b1e0bcaf3565e9282aa042a33af32298850c6085be7396cf895"
+}
