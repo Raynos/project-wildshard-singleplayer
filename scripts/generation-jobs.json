@@ -109,61 +109,6 @@
       }
     },
     {
-      "id": "nalati-grass",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-grass.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-grass.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-geography.mjs",
-        "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
-        "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
-        "src/shards/nalati-grasslands/generators/wetRecipe.ts",
-        "src/shards/nalati-grasslands/generators/minimapRecipe.ts",
-        "src/shards/nalati-grasslands/data/layout.generated.json",
-        "src/shards/nalati-grasslands/generators/clearings.ts",
-        "src/shards/nalati-grasslands/data/poiLayout.generated.json",
-        "src/engine/core",
-        "src/engine/world/terrainField.ts",
-        "src/sdk/bake/source-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/shards/nalati-grasslands/generators/layout.ts",
-        "src/shards/nalati-grasslands/generators/poiLayout.ts",
-        "src/shards/nalati-grasslands/generators/bake-grass.mjs",
-        "src/shards/nalati-grasslands/generators/grassRows.ts",
-        "src/shards/nalati-grasslands/generators/grassFieldLayout.ts",
-        "public/assets/baked/nalati-grasslands/terrain.bin",
-        "src/game/systems/looks/grassField.ts",
-        "src/sdk/looks/tileField.ts",
-        "src/sdk/bake/terrain.ts",
-        "src/format/bakedTerrainSampling.ts",
-        "scripts/bake-loader.mjs",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/format",
-        "src/shards/nalati-grasslands/data/grassView.json",
-        "src/shards/nalati-grasslands/data/dressing-boulder.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-slab.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-juniper.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-rose.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-willow.generated.json"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/boot/grass.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/nalati-grasslands/boot/grass.generated.json": "a4eb0b922b43aaa27174bac559d606bab10134cf69798aecc012bf40dc5eace0"
-      }
-    },
-    {
       "id": "nalati-kurgan",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-kurgan.mjs",
@@ -18626,7 +18571,10 @@
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
         "src/shards/nalati-grasslands/species/speciesRows.json",
-        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
+        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts",
+        "src/shards/nalati-grasslands/data/kurganLayout.generated.json",
+        "src/shards/nalati-grasslands/boot/declaration.generated.ts",
+        "src/shards/nalati-grasslands/data/navigation.generated.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/dressing-boulder.generated.json",
@@ -18669,6 +18617,61 @@
         "src/shards/nalati-grasslands/data/dressing-colliders.generated.json",
         "src/shards/nalati-grasslands/data/dressing-clutter.generated.json"
       ]
+    },
+    {
+      "id": "nalati-grass",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-grass.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-grass.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-geography.mjs",
+        "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
+        "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
+        "src/shards/nalati-grasslands/generators/wetRecipe.ts",
+        "src/shards/nalati-grasslands/generators/minimapRecipe.ts",
+        "src/shards/nalati-grasslands/data/layout.generated.json",
+        "src/shards/nalati-grasslands/generators/clearings.ts",
+        "src/shards/nalati-grasslands/data/poiLayout.generated.json",
+        "src/engine/core",
+        "src/engine/world/terrainField.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/shards/nalati-grasslands/generators/layout.ts",
+        "src/shards/nalati-grasslands/generators/poiLayout.ts",
+        "src/shards/nalati-grasslands/generators/bake-grass.mjs",
+        "src/shards/nalati-grasslands/generators/grassRows.ts",
+        "src/shards/nalati-grasslands/generators/grassFieldLayout.ts",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "src/game/systems/looks/grassField.ts",
+        "src/sdk/looks/tileField.ts",
+        "src/sdk/bake/terrain.ts",
+        "src/format/bakedTerrainSampling.ts",
+        "scripts/bake-loader.mjs",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "src/shards/nalati-grasslands/data/grassView.json",
+        "src/shards/nalati-grasslands/data/dressing-boulder.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-slab.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-juniper.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-rose.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-willow.generated.json"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/boot/grass.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/boot/grass.generated.json": "a4eb0b922b43aaa27174bac559d606bab10134cf69798aecc012bf40dc5eace0"
+      }
     },
     {
       "id": "nalati-sabre-pool",
