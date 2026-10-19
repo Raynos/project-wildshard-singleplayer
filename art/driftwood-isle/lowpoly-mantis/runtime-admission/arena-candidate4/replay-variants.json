@@ -1,0 +1,22 @@
+{
+  "scope": "Read-only anatomy delta replay, not captures. Full failed grids stay temporary. No root translation or collider alterations.",
+  "variants": [
+    {
+      "change": "Elbow fold +.4 alone",
+      "candidate2minimum": -0.06691421831817479,
+      "result": "Hook improved; body and abdomen still intersect."
+    },
+    {
+      "change": "Also body roll -.2, abdomen +.2; no knee pulse",
+      "candidate2minimum": -0.04676517064478958,
+      "candidate3minimum": -0.10743109871964407,
+      "result": "Settled clear; transient rear knee still intersects."
+    },
+    {
+      "change": "Add side*.5*4*d*(1-d) transient knee tuck",
+      "candidate2minimum": 0.013680755348445928,
+      "candidate3minimum": 0.01368887185742551,
+      "result": "All134captureddeadframe vertices clear in replay; fresh collapse/settle required."
+    }
+  ]
+}

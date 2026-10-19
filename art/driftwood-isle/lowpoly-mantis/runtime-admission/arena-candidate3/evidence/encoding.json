@@ -1,0 +1,85 @@
+{
+  "schema": "wildshard.mantis.encoding.v1",
+  "videos": [
+    {
+      "path": "tmp/mantis-phase-motion-qa/video/page@f83d37ea0d228719580dde9eb4d080cc.webm",
+      "sha256": "78d45ab633bacbb52539ad2e57ec5159a5575061d1087fcb7653c10412472879",
+      "bytes": 7174552,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "nb_read_frames": "1598"
+          }
+        ],
+        "format": {
+          "duration": "63.920000"
+        }
+      }
+    },
+    {
+      "path": "tmp/mantis-phase-idle-qa/video/page@5933bd6aa786bcad0750a16e8cff9c0d.webm",
+      "sha256": "b8c48e427a637d1d050ce65d16a137609041a553a1ffc07eb91920cfd3cf870f",
+      "bytes": 1032424,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "nb_read_frames": "457"
+          }
+        ],
+        "format": {
+          "duration": "18.280000"
+        }
+      }
+    },
+    {
+      "path": "public/review-evidence/mantis-v7-candidate3/live-observer.mp4",
+      "sha256": "0fc7276fa751f5d10d6f600614f4ebb33ce24167a3d18dd33dd35ca242d1f860",
+      "bytes": 879809,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "nb_read_frames": "1598"
+          }
+        ],
+        "format": {
+          "duration": "63.920000"
+        }
+      }
+    },
+    {
+      "path": "public/review-evidence/mantis-v7-candidate3/idle-diagnostic.mp4",
+      "sha256": "b49ed6018bd07ab706a3f1d3c6d89a10f4c054e17b14f46915eaadb844f377f4",
+      "bytes": 184577,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "nb_read_frames": "457"
+          }
+        ],
+        "format": {
+          "duration": "18.280000"
+        }
+      }
+    }
+  ],
+  "method": "Full video transcoded libx264, no fps filter or speed changes. Clock correspondence uses burned-in game frame/clock, not an assumed performance.now videozero.",
+  "observer": "Actual AI/combat with render-only camera; explicit player placement. Authoritative StrikeRunner phase/time snapshots and observer fields in trace.",
+  "idle": "Simulation held; copied idle pose context, actual loaded pose function, wall clock0..7.3377s. Not natural AI gameplay.",
+  "scope": "No physical phone performance claim. Corpse remains unaccepted."
+}

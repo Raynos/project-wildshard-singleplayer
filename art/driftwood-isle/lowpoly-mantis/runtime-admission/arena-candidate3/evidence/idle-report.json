@@ -1,0 +1,44 @@
+{
+  "schema": "wildshard.mantis.combat-observation.v1",
+  "startedAt": "2026-10-19T04:47:35.640Z",
+  "source": "afc2b790b7e0ad59107c63d6d3953e390f39e56f752a2f142ac05f0c27d90996",
+  "errors": [],
+  "samples": [],
+  "placements": [],
+  "checks": {
+    "emptyUnchangedStateStore": true,
+    "errors": true
+  },
+  "caveat": "Cloud browser diagnostic; no physical phone performance, fun or visual acceptance claim.",
+  "storageBefore": {
+    "local": {},
+    "session": {}
+  },
+  "stateBeforeCombat": {
+    "docs": {
+      "global": {
+        "keys": {}
+      }
+    },
+    "shard": {},
+    "generation": 0
+  },
+  "diagnostic": {
+    "scope": "Explicit idle pose diagnostic, not AI gameplay. Simulation held; copied pose context advances by wall clock. Exact loaded native geometry and authored pose function.",
+    "period": 3.490658503988659
+  },
+  "stateAfterDiagnostic": {
+    "docs": {
+      "global": {
+        "keys": {}
+      }
+    },
+    "shard": {},
+    "generation": 0
+  },
+  "storageAfterDiagnostic": {
+    "local": {},
+    "session": {}
+  },
+  "endedAt": "2026-10-19T04:47:53.484Z"
+}

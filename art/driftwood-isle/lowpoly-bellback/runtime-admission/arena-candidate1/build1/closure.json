@@ -1,0 +1,41 @@
+{
+  "schema": "wildshard.bellback.actual-test-closure.v1",
+  "files": {
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate1/build1/receipt.json": {
+      "sha256": "75e39ae2e11d71e82fc8fb9b86c1f4b06f0c67d6d8a419e34d1f668458ea6d4d",
+      "bytes": 21673
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate1/build1/combat-observation.json": {
+      "sha256": "09d5b96906d97ebc35cd805386bd4eaabcba6098f2309faa0921fae035261928",
+      "bytes": 808245
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate1/build1/capture-receipt.json": {
+      "sha256": "4a046fd13357bec7858fc322d4b7b1c990a9a275f4279e10c793b535c57473e7",
+      "bytes": 2075
+    },
+    "scripts/qa-bellback-native-preview.mjs": {
+      "sha256": "a65c7cea495480b6dfd72da7c06450394703851b8986babb3d5d91db0b84a5d0",
+      "bytes": 12409
+    },
+    "public/review-evidence/bellback-native-motion1/corpse-reward.jpg": {
+      "sha256": "a7569852b9e950caa837850ff6f27d93f3ca1099399806ede3a924ff05af004c",
+      "bytes": 68256
+    },
+    "public/review-evidence/bellback-native-motion1/entry.jpg": {
+      "sha256": "7cd1a75a92a472b45960b02060d139df75ebbcc25445c4fcc07c83a170aab2a5",
+      "bytes": 67068
+    },
+    "public/review-evidence/bellback-native-motion1/sword-result.jpg": {
+      "sha256": "08b9cd9842c5baf062e00aa7adea76af3bc294e0ddad2fae18a9562f30165ca1",
+      "bytes": 63916
+    },
+    "public/review-evidence/bellback-native-motion1/player-defeat.jpg": {
+      "sha256": "a1abbaddf962d8c07116f79e1c25d1b5ecde307f6cae5929733447ac4b1fb311",
+      "bytes": 48184
+    },
+    "public/review-evidence/bellback-native-motion1/both-strikes-observation.jpg": {
+      "sha256": "46172dc109319ab2267a5766e94a5787e02e61df6c4f2c5d147e0aa065b101ea",
+      "bytes": 68346
+    }
+  }
+}

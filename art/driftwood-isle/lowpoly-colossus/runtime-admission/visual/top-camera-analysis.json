@@ -1,0 +1,37 @@
+{
+  "schema": "wildshard.colossus.top-camera-analysis.v1",
+  "hostSources": [
+    {
+      "path": "src/engine/practice/TrainingArena.ts",
+      "sha256": "1756d8383edecd56909ef6dbf9172e244da696bb0473cb4502c5322e3f97ba0e",
+      "bytes": 29858
+    },
+    {
+      "path": "src/engine/core/Game.ts",
+      "sha256": "4d0fb78994cdcc6260b07a79033f431fcea8955ee659413e4331c336e564fe59",
+      "bytes": 73939
+    }
+  ],
+  "ceilingWorldY": 909,
+  "failedCameraWorldY": 917,
+  "proposedCameraWorldY": 908.7,
+  "near": 0.08,
+  "far": 2600,
+  "fov": 65,
+  "up": [
+    1,
+    0,
+    0
+  ],
+  "viewport": [
+    402,
+    874
+  ],
+  "pointsChecked": 15600,
+  "maximumAbsoluteProjectedNDC": [
+    0.7615257020920938,
+    0.6918790693811548
+  ],
+  "minimumCameraDepth": 2.8885175704956048,
+  "note": "Exact overhead, ninety-degree rolled compared with conventional top; source/native use identical camera. Projection proof does not replace render verification."
+}

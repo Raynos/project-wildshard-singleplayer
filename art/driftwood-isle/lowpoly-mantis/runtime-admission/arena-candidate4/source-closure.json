@@ -1,0 +1,78 @@
+{
+  "schema": "wildshard.mantis.arena-source-closure.v1",
+  "frozenAtUtc": "2026-10-19T04:54:37.655546+00:00",
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/ADMISSION.md": {
+      "sha256": "1208ef095206865e4717465d101648dece4b28b54eb237783e53842c5b147878",
+      "bytes": 1385
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/admission.json": {
+      "sha256": "e984b260670a4cda3e26aacba85bdcabe0b887d286dc357a6768747cc7c9b84e",
+      "bytes": 3142
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/dimension-measurement.json": {
+      "sha256": "4b8e0cb9115a152425c5dddbb856de4862e2f27ea41368c6b2809437767924f8",
+      "bytes": 1651
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/dimensions.json": {
+      "sha256": "e0bd5afc3bee321177aabe6caa2aaa87afd79c1152e3fe94c467d4a842c3a7cc",
+      "bytes": 327
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/local-envelope.json": {
+      "sha256": "9b82ac093e4420ac4a81782b53822292acfbb3862ba8b40d1afa89f53207cce5",
+      "bytes": 1248
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/metadata.json": {
+      "sha256": "66f5398fd85336b407ee14a7f249d90dace499d0fb55695771aaebf9aa28e88f",
+      "bytes": 8223
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/replay-variants.json": {
+      "sha256": "f9d83ddee471065db99b15ae4923bb2a69918f064953bd96a38eb9a53d0f84e0",
+      "bytes": 850
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/replay.json": {
+      "sha256": "6907faba3f035f16da27b6da0f1048c0073c21b75c22043afb1aac10c7f9016a",
+      "bytes": 712
+    },
+    "scripts/build-mantis-folded-preview.mjs": {
+      "sha256": "917398f83391c5757e217b28714e6ec835214647b9f292818a07694547a2abb8",
+      "bytes": 5173
+    },
+    "scripts/mantis-folded-admission.mjs": {
+      "sha256": "0f268be292c77ba42c454e9253011a30b8a50accc521adb9571a3235cb3772d7",
+      "bytes": 3226
+    },
+    "scripts/mantis-folded-admission.test.mjs": {
+      "sha256": "43e6e9f4294ede0d57686c76ae50bc768c9e07ff6478b91ffcd4ce2daec3e2f8",
+      "bytes": 1995
+    },
+    "scripts/qa-mantis-folded-motion.mjs": {
+      "sha256": "4e1551b0354d67137ec400aa0b12d97af1e34dab7a0fc53086c806d31ee55210",
+      "bytes": 11937
+    },
+    "src/shards/driftwood-isle/generators/mantisFoldedClips.ts": {
+      "sha256": "ed3a3879f7a8a4f0d4fb19339b9ef2219649277298c50976eef843696f9a4031",
+      "bytes": 8343
+    },
+    "src/shards/driftwood-isle/generators/mantisFoldedPreview.ts": {
+      "sha256": "f724c1d5f506832c3e92c2d5d0b7d9690e72f93d812635ff42b434b41ee8a9ea",
+      "bytes": 7674
+    },
+    "test/mantis-folded-envelope.test.ts": {
+      "sha256": "ca8a08100bb978c8826103faa0e1eb75c45895428cb511994602632f8c6d6d79",
+      "bytes": 4392
+    },
+    "test/mantis-folded-preview.test.ts": {
+      "sha256": "d9cbfd67bae12a2b4b4831753ee20ee522e00148956a18ecff92b5ee1a8a4521",
+      "bytes": 9582
+    },
+    "test/mantis-folded-replay.test.ts": {
+      "sha256": "89b147d92b349ccde8d7e6f7b0856c913c5184dca22236c26583f066a15a6ef7",
+      "bytes": 4311
+    },
+    "vite/mantis-folded-preview.config.ts": {
+      "sha256": "9dd848535de3ad95e1f17eb9ac9b526289e8575174dbd607d609cc3476655303",
+      "bytes": 7727
+    }
+  }
+}

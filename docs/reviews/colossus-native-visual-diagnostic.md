@@ -1,9 +1,14 @@
 # Colossus V4 native rest diagnostic
 
-2026-10-19. **Source analysis and diagnostic preparation only.** The selected
+2026-10-19 04:59 UTC. **Original rest capture completed; admission blocked.** The selected
 static model remains V4, independent likeness **3.65/5**. No polish, repair,
 material adaptation, animation or runtime admission has been selected here.
-No browser, Blender or build was run for this preparation.
+The dedicated diagnostic build and 56-frame browser capture completed. No
+Blender or repair run occurred. Four blank top frames are retained as failures;
+a perpendicular-camera-up top-only rerun also produced four blank frames.
+All eight failures are retained. The verified host ceiling is world Y909;
+both failed cameras were Y917. A third top-only capture at Y908.7 now shows
+all four matched modes correctly, completing the nine directional views.
 
 ## Finding: a local correspondence discontinuity
 
@@ -71,16 +76,50 @@ labels. Both models occupy the same lifted diagnostic origin and camera;
 this is a rest comparison, **not an arena/contact screenshot**. The original
 opponent and first-person layer are hidden only in the temporary browser scene.
 The report records cameras, host preview metadata, passes, lights, material,
-errors, file hashes and browser storage. These captures remain **not run**.
+errors, file hashes and browser storage. The original 56 captures completed at 04:52:27 UTC with no page/HTTP
+errors and empty local/session/cache/worker/IndexedDB stores. All 56 are
+retained under `visual/original/`, including the four invalid blank top frames.
+`visual/original-render-receipt.json` records raw PNG hashes and retained WebP
+hashes/bytes. Tool success is not visual acceptance.
 No engine, Puffer source/app, production asset or catalogue is edited.
 
-After the coordinator grants a heavy/browser boundary, build the dedicated
-bundle under the repository build lease, then run the capture script through
-`scripts/browser-lane.sh`. The dedicated Vite config asserts the build lease.
+The dedicated bundle was built under a build lease and capture ran through
+`scripts/browser-lane.sh`; both terminated and released their lanes. The
+dedicated Vite config asserts the build lease.
 Outputs are restricted to `tmp/colossus-native-visual/`; no Vite dev server.
-Inspect all pairs and crop/framing first, retain actual captures, then decide
-whether to prepare the separate correspondence candidate or an explicit
-material adaptation. Do not label numeric/source tests as appearance proof.
+The full frame set was visually inspected. Eight full-body directions retain
+the V4 silhouette. Native bark, mask and heart show harsher triangular facet
+shading. The source heart lower facet is brighter; eye/heart cyan identity
+remains, but this lighting condition does not prove emission equivalence.
+Native DoubleSide changes heart and seam shading and is not an accepted
+material adaptation. Isolated seam front/back reveal the folded green strip
+and facet/culling differences; the whole shin-back closeup is bark-occluded
+and unsuitable as seam evidence.
+
+Recommendation: prepare a separate local correspondence candidate, preserving
+points/caps/materials, for a later matched comparison. Do not globally flip,
+recolor or silently discard emission. The top-only retry uses perpendicular
+up `[0,0,-1]` instead of `[0,1,0]`, in separate output with a changed-camera
+receipt. It ran at 04:54:32–04:54:41 UTC with no tool/page/HTTP errors
+and empty stores, but all four frames remained blank.
+`visual/top-retry-render-receipt.json` marks visual failure explicitly;
+`visual/top-retry/` preserves those images. Those two attempts provide no top-view proof.
+
+Read-only host inspection identified the actual ceiling at Y909
+(`TrainingArena`: Y900 + wall height9), while failed cameras were Y917.
+`top-camera-analysis.json` pins the host source SHA/bytes and checks all
+15,600 rest vertices: camera Y908.7, FOV65, upX gives maximum absolute
+projected coordinates .762/.692, comfortably inside the frame. Near/far are
+.08/2600. This rolls the overhead view ninety degrees; source/native share
+exactly the same camera and no room geometry is hidden or edited.
+
+The below-ceiling run completed at 04:58:54 UTC. All four top images were
+visually inspected and show the whole model. They are retained under
+`visual/top-room/`, with `top-room-render-receipt.json`. All stores remained
+empty and there were no page/HTTP errors. Nine directional source/native
+comparisons now exist; facet/material differences remain and this does not
+constitute runtime appearance admission. Do not label numeric/source tests
+as appearance proof.
 
 ## Rig and remaining admission bar
 
@@ -96,8 +135,11 @@ combat, nonpersistent reward/retry behavior and phone performance remain open.
 Three focused Python tests pass: frozen SHA/bytes, repeatable source seam
 reconstruction and all native isolation ranges/batch order. Capture JS syntax
 passes. Node TypeScript syntax checks pass; this is not a typecheck or
-build. The installed TypeScript 7 package does not expose the old
-`transpileModule` API; Node syntax checking was used instead. No full suite, render, runtime appearance or gameplay pass is claimed.
+full app build. The dedicated diagnostic bundle did build successfully.
+The installed TypeScript 7 package does not expose the old
+`transpileModule` API; Node syntax checking was used instead. No full suite, runtime appearance acceptance or gameplay pass is claimed.
+The source-preparation closure is the historical pre-render checkpoint; the
+subsequent rendered-evidence closure records current review and captures.
 
 ```sh
 python3 -m unittest discover -s art/driftwood-isle/lowpoly-colossus/runtime-admission/visual -p test_preparation.py -v

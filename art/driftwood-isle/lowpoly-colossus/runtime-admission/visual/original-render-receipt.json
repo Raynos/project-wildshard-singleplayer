@@ -1,0 +1,1681 @@
+{
+  "schema": "wildshard.colossus.native-rest-render.v1",
+  "scope": "Frozen rest-only geometry diagnostic in unchanged V70 renderer host; no Colossus gameplay or admission",
+  "started": "2026-10-19T04:51:07.392Z",
+  "sourceSha256": "8c94ed4a452f10ca5c9e1e663c7437c2905e42b90bf5abe9faaf970391a8189b",
+  "hostPreview": {
+    "schema": "wildshard.puffer.native-preview.v1",
+    "candidate": "V70",
+    "mode": "gait5",
+    "rigAdmission": {
+      "profile": "v70-rig1-gait5",
+      "originalSourceSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+      "equivalenceSha256": "5cb9e2b3128f5b87ef4ed7c89816c324d79bd57bc6b947d25b23c46bea567b06",
+      "poseSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+      "gaitSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0"
+    },
+    "rootFlinch": "authored-pose",
+    "arenaLighting": "neutral-gray-v2",
+    "arenaLightingProfileSha256": "b0871ebc6bb4b1584cc3b970861dd9d577dd1d6f03c59b752f4d937571c29101",
+    "arenaOcclusion": "contact-v1",
+    "visualAdapter": "puffer-gait5-continuity",
+    "visualAdapterSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+    "source": "art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json",
+    "measurementSha256": "a923ca6c0ca4ba7d853da3b871d536e2b2a3106202a21c3673f22a8eaa6c6f27",
+    "sourceSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+    "metadataSha256": "55f188d53546dd06537c12ba64a29a36b0569a1d72930146605aaa0a43b86673",
+    "dimensionsSha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e",
+    "colliderAcceptance": false,
+    "visualAcceptance": false,
+    "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+    "packedSha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15",
+    "bodyFile": "/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+    "sourceHash": "80e39ff9f9af3b1e0bcaf3565e9282aa042a33af32298850c6085be7396cf895"
+  },
+  "errors": [],
+  "httpErrors": [],
+  "views": [
+    {
+      "name": "front",
+      "mode": "source",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        9.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-source.png",
+      "sha256": "0125de5096ccc408412bd23bc89593b362b61fdc0abe98e0c746b6c8acccb845"
+    },
+    {
+      "name": "front",
+      "mode": "native",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        9.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-native.png",
+      "sha256": "ceb0da0bb19f2561b4ba674fab2b8b18d99b1f64202976fd8d42c988de557e85"
+    },
+    {
+      "name": "front",
+      "mode": "native-double",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        9.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-native-double.png",
+      "sha256": "8299c71648325db222e3fe7c303d7d8320903263fa0ea4a6225213656e900000"
+    },
+    {
+      "name": "front",
+      "mode": "source-front",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        9.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-source-front.png",
+      "sha256": "b2affa215f396ec7fdcc1c152304df108939bfaf525eff75206a514150b05c84"
+    },
+    {
+      "name": "left",
+      "mode": "source",
+      "camera": [
+        -15.999999895275536,
+        903.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "left-source.png",
+      "sha256": "e6741e5b0be23a64189526fa1e7a5fcd915f09722fee2351618894f15b94c81b"
+    },
+    {
+      "name": "left",
+      "mode": "native",
+      "camera": [
+        -15.999999895275536,
+        903.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "left-native.png",
+      "sha256": "3a66b438bed5c132f2bc77e0bdb39cd4ba74a1373fd37742c0631e8e959ad8fa"
+    },
+    {
+      "name": "left",
+      "mode": "native-double",
+      "camera": [
+        -15.999999895275536,
+        903.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "left-native-double.png",
+      "sha256": "6eaeffdb12df0e90a41df90137b1c7857696e6f191e77e2ea807bc8a807a28fe"
+    },
+    {
+      "name": "left",
+      "mode": "source-front",
+      "camera": [
+        -15.999999895275536,
+        903.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "left-source-front.png",
+      "sha256": "82c2705f804bd133177eb2856d1af37fde57bf2043b45748bd7c1527e493ac18"
+    },
+    {
+      "name": "right",
+      "mode": "source",
+      "camera": [
+        16.000000104724464,
+        903.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "right-source.png",
+      "sha256": "fff2a757b325889bea33e2e5b76109885591a7e80685ec1e9ff4a6ba75b699ff"
+    },
+    {
+      "name": "right",
+      "mode": "native",
+      "camera": [
+        16.000000104724464,
+        903.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "right-native.png",
+      "sha256": "b2820157c9741413e5ca94f2f00f2725451bc8e07273a27661063313b2d27440"
+    },
+    {
+      "name": "right",
+      "mode": "native-double",
+      "camera": [
+        16.000000104724464,
+        903.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "right-native-double.png",
+      "sha256": "6071c803805ba57eaf2e7d7a36d8b9c80a13e84ce76825d27bf698bfa99d871c"
+    },
+    {
+      "name": "right",
+      "mode": "source-front",
+      "camera": [
+        16.000000104724464,
+        903.1,
+        -6.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "right-source-front.png",
+      "sha256": "2ee1abc545450d77fd64263a3f47bc18137b8fbf715cdf861223752c9884502b"
+    },
+    {
+      "name": "back",
+      "mode": "source",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        -22.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "back-source.png",
+      "sha256": "ad45f0a0b3540458290bf194883d63c506587d5361ce00df89a3a783725949f4"
+    },
+    {
+      "name": "back",
+      "mode": "native",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        -22.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "back-native.png",
+      "sha256": "a1a2519230f5b2f2611b528150354798d9cbcbd014e0d1ff93119d7a7b38f5b2"
+    },
+    {
+      "name": "back",
+      "mode": "native-double",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        -22.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "back-native-double.png",
+      "sha256": "e9787cf3763ec61ee240c09dffadbdee064193a2ee2019e22fa731787b6cfb94"
+    },
+    {
+      "name": "back",
+      "mode": "source-front",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        -22.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "back-source-front.png",
+      "sha256": "488243d8f05c655869a8982f8f0ae1796d7ef7b9107565c5c97dc0ec1f0f5284"
+    },
+    {
+      "name": "top",
+      "mode": "source",
+      "camera": [
+        1.0472446376752487e-07,
+        917,
+        -6.919999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "top-source.png",
+      "sha256": "194a5e1d4150d08aae5523af671d7375451c0a1e3e692abb45bbbbe39417fb54"
+    },
+    {
+      "name": "top",
+      "mode": "native",
+      "camera": [
+        1.0472446376752487e-07,
+        917,
+        -6.919999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "top-native.png",
+      "sha256": "9bffd8dfb1bf85449755ca19befef1ac8aed6e85d0ee99a6b1247bdff02ddded"
+    },
+    {
+      "name": "top",
+      "mode": "native-double",
+      "camera": [
+        1.0472446376752487e-07,
+        917,
+        -6.919999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "top-native-double.png",
+      "sha256": "5306138a1c16ac7dc84474d49d1916a0c10fff383ab83b7da44580940ebf1da7"
+    },
+    {
+      "name": "top",
+      "mode": "source-front",
+      "camera": [
+        1.0472446376752487e-07,
+        917,
+        -6.919999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "top-source-front.png",
+      "sha256": "17d38e2d1f78d23f15b9dcbeb168c8a17a9372e72dc72c4e78f174a3a36d5610"
+    },
+    {
+      "name": "front-left",
+      "mode": "source",
+      "camera": [
+        -11.999999895275536,
+        904.8,
+        5.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-left-source.png",
+      "sha256": "405d60464c7bd9343bb6413d1cee6e7757bfff8fb2ca48921ef2c350e89cab5f"
+    },
+    {
+      "name": "front-left",
+      "mode": "native",
+      "camera": [
+        -11.999999895275536,
+        904.8,
+        5.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-left-native.png",
+      "sha256": "4ed715638d127c338e0f27c8d4908e590736f6eaffc025971b483d384b3bd398"
+    },
+    {
+      "name": "front-left",
+      "mode": "native-double",
+      "camera": [
+        -11.999999895275536,
+        904.8,
+        5.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-left-native-double.png",
+      "sha256": "67daa4f1b2b0fab6ce5f67fc0b2cbe119f998f04a983d640d73a4d0c3825379c"
+    },
+    {
+      "name": "front-left",
+      "mode": "source-front",
+      "camera": [
+        -11.999999895275536,
+        904.8,
+        5.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-left-source-front.png",
+      "sha256": "fae54373fcd30ed5835edac21b5cf013912d3d75099fc1a8dda03dc7dcd9f765"
+    },
+    {
+      "name": "front-right",
+      "mode": "source",
+      "camera": [
+        12.000000104724464,
+        904.8,
+        5.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-right-source.png",
+      "sha256": "a8b7a257b6e1b08689591db8566d5c7fec9193db45c0548896b703bc0a6a63fe"
+    },
+    {
+      "name": "front-right",
+      "mode": "native",
+      "camera": [
+        12.000000104724464,
+        904.8,
+        5.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-right-native.png",
+      "sha256": "86e7aeb5716429c17371449bcb024a34444a089d9227a0816bc5289b8d56b451"
+    },
+    {
+      "name": "front-right",
+      "mode": "native-double",
+      "camera": [
+        12.000000104724464,
+        904.8,
+        5.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-right-native-double.png",
+      "sha256": "232a7af318b6716d79484cd6da356d46a0366fef5cdf4e7d5bd40810885aba65"
+    },
+    {
+      "name": "front-right",
+      "mode": "source-front",
+      "camera": [
+        12.000000104724464,
+        904.8,
+        5.070000000298023
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "front-right-source-front.png",
+      "sha256": "7f68b43d5228536ee6c71f756467038a7fbb6e22d6b87c8374c09b66396317e4"
+    },
+    {
+      "name": "rear-left",
+      "mode": "source",
+      "camera": [
+        -11.999999895275536,
+        904.8,
+        -18.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-left-source.png",
+      "sha256": "97cf457f0c7e93fd62dadace0180dda5098a7d5690e9e26f7e721d388ff17bc2"
+    },
+    {
+      "name": "rear-left",
+      "mode": "native",
+      "camera": [
+        -11.999999895275536,
+        904.8,
+        -18.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-left-native.png",
+      "sha256": "975edd5365cfca8c9c1f1efacde2c5a7558484869b9984fcbabf9bebb4799e46"
+    },
+    {
+      "name": "rear-left",
+      "mode": "native-double",
+      "camera": [
+        -11.999999895275536,
+        904.8,
+        -18.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-left-native-double.png",
+      "sha256": "1f3dd9ddc3a9309de7384b437cbb0bf2f10b93a6f3d3a4d96870cefd4de002d1"
+    },
+    {
+      "name": "rear-left",
+      "mode": "source-front",
+      "camera": [
+        -11.999999895275536,
+        904.8,
+        -18.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-left-source-front.png",
+      "sha256": "8f31dbd39e19e35243764a5f68a980151641d06778e323575f005f58a27e0131"
+    },
+    {
+      "name": "rear-right",
+      "mode": "source",
+      "camera": [
+        12.000000104724464,
+        904.8,
+        -18.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-right-source.png",
+      "sha256": "f88ccdc4b2321c2711398fb27355308cf5b1c3d3706beedebc5f8a1e88ce4081"
+    },
+    {
+      "name": "rear-right",
+      "mode": "native",
+      "camera": [
+        12.000000104724464,
+        904.8,
+        -18.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-right-native.png",
+      "sha256": "8478c6574d2dae12a70e7ddf04b5083cc1d3f2284f80b26875e1ed58cdbed8c7"
+    },
+    {
+      "name": "rear-right",
+      "mode": "native-double",
+      "camera": [
+        12.000000104724464,
+        904.8,
+        -18.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-right-native-double.png",
+      "sha256": "27921f13c7dd48c3b4d0dcfa4105e36bcf853f12e7c93feabde7b91ded5dd6b8"
+    },
+    {
+      "name": "rear-right",
+      "mode": "source-front",
+      "camera": [
+        12.000000104724464,
+        904.8,
+        -18.929999999701977
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        902.7,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "rear-right-source-front.png",
+      "sha256": "2bc75e6108aee4c07159368c2088ac09a52d0feb79a906c6b589789fa239e621"
+    },
+    {
+      "name": "eye-heart",
+      "mode": "source",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        -0.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.1,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "eye-heart-source.png",
+      "sha256": "00ddd0bcdb0ecbc5404071d8c7b1901bace417279a544e035d475e67241c62e9"
+    },
+    {
+      "name": "eye-heart",
+      "mode": "native",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        -0.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.1,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "eye-heart-native.png",
+      "sha256": "016b6dfee3d4cf9af535482388c525570d2634da1d7962756178d363cf98af7d"
+    },
+    {
+      "name": "eye-heart",
+      "mode": "native-double",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        -0.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.1,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "eye-heart-native-double.png",
+      "sha256": "2d27d2ee975eaa510d59202900565c9192cdcde264c5bdcc430fda10093cd8cb"
+    },
+    {
+      "name": "eye-heart",
+      "mode": "source-front",
+      "camera": [
+        1.0472446376752487e-07,
+        903.1,
+        -0.9299999997019768
+      ],
+      "target": [
+        1.0472446376752487e-07,
+        903.1,
+        -6.929999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "eye-heart-source-front.png",
+      "sha256": "f233504ff3432c1da53b379ca4665374defb0555d141bc12744b8c435fd1be0a"
+    },
+    {
+      "name": "shin-front",
+      "mode": "source",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -5.229999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "shin-front-source.png",
+      "sha256": "2982dc5b7c4c8007b6309e2a3720f8172e79342e41417bb8bbb24dc19ff9f0b4"
+    },
+    {
+      "name": "shin-front",
+      "mode": "native",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -5.229999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "shin-front-native.png",
+      "sha256": "0c44668766c5b0f5c7e1bed7c4b87ead5867836ae5c0c7e6604026c2a60dcd59"
+    },
+    {
+      "name": "shin-front",
+      "mode": "native-double",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -5.229999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "shin-front-native-double.png",
+      "sha256": "347e9e1244b966cf8e9798383f9b3038e6a43ed8e61ed62c773409a35bdc9bb1"
+    },
+    {
+      "name": "shin-front",
+      "mode": "source-front",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -5.229999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "shin-front-source-front.png",
+      "sha256": "36f8b95e48e8900b018e7289ea0212e41725b8f1f6b08781a37bbf7bb9e2767e"
+    },
+    {
+      "name": "shin-back",
+      "mode": "source",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -8.129999999701976
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "shin-back-source.png",
+      "sha256": "a88f79910627669c5dfce56e4524f3a6e974d0e155290de36af85f6b422cf0fd"
+    },
+    {
+      "name": "shin-back",
+      "mode": "native",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -8.129999999701976
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "shin-back-native.png",
+      "sha256": "baee7e70771c300892853d574df622e176e0e1778450294067c260a6ae63181a"
+    },
+    {
+      "name": "shin-back",
+      "mode": "native-double",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -8.129999999701976
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "shin-back-native-double.png",
+      "sha256": "733f3e2146706f1f77afc872158b1fd473dc629be376eb5dd923fcfa684f5398"
+    },
+    {
+      "name": "shin-back",
+      "mode": "source-front",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -8.129999999701976
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "shin-back-source-front.png",
+      "sha256": "cf501ba00a2bac13c31c78dfee24ef0e27f8cd74c30a34a66fd16a7b91e31312"
+    },
+    {
+      "name": "seam-isolated-front",
+      "mode": "source",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -5.729999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "seam-isolated-front-source.png",
+      "sha256": "f9f9e259ca66c17b4fdad6aca99878e94d841d66c4c7d1e033e199ef45e7ccfe"
+    },
+    {
+      "name": "seam-isolated-front",
+      "mode": "native",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -5.729999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "seam-isolated-front-native.png",
+      "sha256": "9b7ad90e99cbe27a8f084b64c6c7935bdacc62568dc1c375c29dc3c353c4d15a"
+    },
+    {
+      "name": "seam-isolated-front",
+      "mode": "native-double",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -5.729999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "seam-isolated-front-native-double.png",
+      "sha256": "24ef6657d7527bdce5dbad4709c14010aa3fabc10230206e259d59f01e8e439a"
+    },
+    {
+      "name": "seam-isolated-front",
+      "mode": "source-front",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -5.729999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "seam-isolated-front-source-front.png",
+      "sha256": "550b0049fde06f584e3a416b90baecf6b4f21a1cf02a4e79f1f3fb07a5c8d03c"
+    },
+    {
+      "name": "seam-isolated-back",
+      "mode": "source",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -7.629999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "seam-isolated-back-source.png",
+      "sha256": "1c3265f34db567e21a567f27b75ee9326066179a9cd1fbcca4cdb8cf780ecd27"
+    },
+    {
+      "name": "seam-isolated-back",
+      "mode": "native",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -7.629999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "seam-isolated-back-native.png",
+      "sha256": "c81d05360bad672c75ff68e9516e52ed42e1059159ebc116347c7567bd3173ca"
+    },
+    {
+      "name": "seam-isolated-back",
+      "mode": "native-double",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -7.629999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "seam-isolated-back-native-double.png",
+      "sha256": "df84e030b19223a4536361bbc79388227065a2143f80d96a79516ec6dba329f1"
+    },
+    {
+      "name": "seam-isolated-back",
+      "mode": "source-front",
+      "camera": [
+        -1.0199998952755363,
+        901.05,
+        -7.629999999701977
+      ],
+      "target": [
+        -1.0199998952755363,
+        901.05,
+        -6.679999999701977
+      ],
+      "fov": 45,
+      "frame": 3,
+      "file": "seam-isolated-back-source-front.png",
+      "sha256": "2d4c2a225b5cbbfb75ef63460d81b2974949cee7ce7fca6bc3c127316b236908"
+    }
+  ],
+  "pins": {
+    "schema": "wildshard.colossus.visual-input-pins.v1",
+    "files": [
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/build_colossus_v4.py",
+        "bytes": 21954,
+        "sha256": "f10cdec46537f8d579fa7af687890aebe6c2f0e9d82c962e64a478567e3a0218"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/cameras-v4.json",
+        "bytes": 2853,
+        "sha256": "39b010631bbbd6648b6a774e4d62a9641dd6efa9b1fee4066716f3aab7787678"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/metrics-v4.json",
+        "bytes": 455,
+        "sha256": "f4100cd18d20b8764b7a5f1474e6377a69a40eb9dc4854fdf0d95668d53d01c9"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/package_colossus_v4.py",
+        "bytes": 4016,
+        "sha256": "86c65e912dd53beba169c8dda2f15bcc9ed01b3018b625d26b6e2bb1fb51dc81"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/render_colossus_v4_nine.py",
+        "bytes": 2747,
+        "sha256": "3b8c9e59d6cc34f93e77fcf4b03aa8b962becfcdba3378a08d8f84b47f328da4"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/ADMISSION.md",
+        "bytes": 9648,
+        "sha256": "05e3f96de52dcab178f175c06ce716d30e6504c7913d9ec8c1bcab7596240eac"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/audit_source_normals.py",
+        "bytes": 3252,
+        "sha256": "8ee4ee003cb0470acd8a4352894da98a8c1c1f95eca68df3a3367177d4e419c2"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/export_native.py",
+        "bytes": 17959,
+        "sha256": "217dbd39eae14ff5c443c67f194e3369bbb83341903ab6a3f467819214ba966b"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/native-consumer.test.ts",
+        "bytes": 11805,
+        "sha256": "349d076ecb688e0f3372c2320628068cdd2cf98418a9188a85807540d804ba29"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/source-closure.json",
+        "bytes": 2227,
+        "sha256": "28567f21580bedbd71bc0e9884e32de934933f92b962c78fa0b649fb6952f18c"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/source-normal-caveats.json",
+        "bytes": 404458,
+        "sha256": "8b3a95951a38d121559dc8e8ad08605cd2f112f9bc26a19732130468a136fa75"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/test_export_native.py",
+        "bytes": 9532,
+        "sha256": "552519dbfbbdb39306812180d3008ef3ba3c455230a89acae36006aa969561e2"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/closure.json",
+        "bytes": 1718,
+        "sha256": "429bc8104ab56f5d3ded852178abd764ced60afe5b67a4ad535307183e5f1c4a"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/colossus-v4-native.json",
+        "bytes": 2395775,
+        "sha256": "32c4f9b55c5303e75877c8abae7765947a3814c39bb15d3c7a0046e61cb93641"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/diagnostic-dimensions.json",
+        "bytes": 264,
+        "sha256": "e6682b3ed138db2e2e76b7c12f282f7c01fc78e3dc1185e2ba6b696f28446c40"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/mesh-map.json",
+        "bytes": 91837,
+        "sha256": "6549ca21f174ac4e5eb045d869eb1f755eddebf6c42d9850b26a0906fe92f79b"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/metadata.json",
+        "bytes": 4811,
+        "sha256": "1ddb3e8fc73496e44434b325b66ea2c2f39bce5acecae0507b3fc22eb762c8ce"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/payload.bin",
+        "bytes": 76711,
+        "sha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/rig-provenance.json",
+        "bytes": 4908,
+        "sha256": "3fd81746ae148eb7cf4db4f35551a4df4c0f53d336e69c7664d63515a561ca83"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/source-materials.json",
+        "bytes": 3252,
+        "sha256": "538e98a7788861362dac53737b40f36188424d61fea176bda8e6c409ee2ce4e3"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/validation.json",
+        "bytes": 582,
+        "sha256": "27a595e48505f9b09531cfa5da0d2178fd63051e52f08726e3c017d292644896"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/vitest.config.ts",
+        "bytes": 236,
+        "sha256": "bd2389b76d6bbbd17c56ab120d77199d0ee3e1b1f57e5ab960f83c3d11dcdc8b"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/tide-root-colossus-v4.glb",
+        "bytes": 704108,
+        "sha256": "8c94ed4a452f10ca5c9e1e663c7437c2905e42b90bf5abe9faaf970391a8189b"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-01-front.webp",
+        "bytes": 40350,
+        "sha256": "22e36a8cd9a3e41b0f8d8a0f8dd6764e7e08d1d24233f18ec20601f0236996d9"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-02-left.webp",
+        "bytes": 21292,
+        "sha256": "8491be90721a84a9c12a0ed8dc7947ce748974f8f5b7bef3d4d835996eb760b7"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-03-right.webp",
+        "bytes": 22478,
+        "sha256": "0242436d28cd18786d42ce59c6fa80d39c5b89581b7c2bd89f3528708d5a0ece"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-04-back.webp",
+        "bytes": 45452,
+        "sha256": "5b4370d45fec6df7fa1765373704c466a1b1f5ff8ebe4874a42631633c625627"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-05-top.webp",
+        "bytes": 57984,
+        "sha256": "3e041f6fbda2b14d3149dc899c675900adaa24c4d12f577e1912b617347eb521"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-06-diag-front.webp",
+        "bytes": 59484,
+        "sha256": "9c48f7aa2538b1e55471c3b1f8b07cfd4e6ba5a5a8e58a2097f6cd9b2b800e06"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-07-diag-left.webp",
+        "bytes": 51070,
+        "sha256": "8c5ca7153f56dd67e3375d18547ddeaed961045945b3b70135f184808476549c"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-08-diag-right.webp",
+        "bytes": 54318,
+        "sha256": "ca6ab7400f4042c7394ad470fb446e4f90ff99666c09927d92d22e04b29905ad"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-09-diag-back.webp",
+        "bytes": 53696,
+        "sha256": "f30671fd5d1d70233dbb1597010df0461a0769d6f6808c0bf2517509c27539bb"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-capture-receipt.json",
+        "bytes": 2902,
+        "sha256": "5ae0ce6feacc8463fceeae73ec42bdcf49b99ca053068599657f093d05af1adb"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-final-closure.json",
+        "bytes": 4255,
+        "sha256": "606e778a06400061657b6bb6ba76f16e09499e3cbc33f9287f173f36365ee95a"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-hero.webp",
+        "bytes": 90752,
+        "sha256": "0db2baecc765fdd1941a815aba797dc012f3b5e239afaf18dbe51214b3d8e615"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-nine-board.webp",
+        "bytes": 259712,
+        "sha256": "a90a7ded924900d94d227fa1f00cedcaab8df4574be716a634b0a26edbe6e5f6"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-source-closure.json",
+        "bytes": 618,
+        "sha256": "18a277d2db5774e10ada0c2ad9cb0e5b0699878f07cb4df7e6f0726618e3605e"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/validation-v4.json",
+        "bytes": 57509,
+        "sha256": "7cd2090c20808cab276e71439596c22b748b2a4c61f306fcdef18264580b0e98"
+      }
+    ]
+  },
+  "setup": {
+    "vertices": 15600,
+    "bones": [
+      "body",
+      "head",
+      "arm-1",
+      "forearm-1",
+      "hand-1",
+      "outer-1",
+      "middle-1",
+      "inner-1",
+      "thumb-1",
+      "leg-1",
+      "shin-1",
+      "foot-1",
+      "arm1",
+      "forearm1",
+      "hand1",
+      "outer1",
+      "middle1",
+      "inner1",
+      "thumb1",
+      "leg1",
+      "shin1",
+      "foot1"
+    ],
+    "facetJitter": 0.12,
+    "sourceMaterialsRetained": true,
+    "packedEmissionMissing": true,
+    "packedSidednessMissing": true,
+    "motionAdmitted": false,
+    "origin": [
+      1.0472446376752487e-07,
+      900,
+      -6.929999999701977
+    ],
+    "hidden": [],
+    "material": [
+      {
+        "type": "MeshStandardNodeMaterial",
+        "side": 0,
+        "color": [
+          0.7697310801828281,
+          0.7827579721645452,
+          0.8088117561279796
+        ],
+        "flatShading": true,
+        "vertexColors": false
+      }
+    ],
+    "pixelRatio": 2,
+    "passes": [
+      {
+        "enabled": true,
+        "name": "Bh"
+      },
+      {
+        "enabled": true,
+        "name": "Ot"
+      },
+      {
+        "enabled": true,
+        "name": "Ot"
+      }
+    ],
+    "light": [
+      {
+        "color": [
+          1,
+          0.97,
+          0.9
+        ],
+        "intensity": 2.7,
+        "position": [
+          47.40681495774217,
+          994.3531541695644,
+          -12.262642265295483
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "workers": 0,
+    "databases": []
+  },
+  "passed": true,
+  "finished": "2026-10-19T04:52:27.005Z",
+  "visualReview": {
+    "captureToolSucceeded": true,
+    "allViewsAccepted": false,
+    "invalidViews": [
+      "top"
+    ],
+    "occludedCloseups": [
+      "shin-back"
+    ],
+    "note": "Four top frames blank. Shin-back is covered by bark; inspect isolated seam views. No gameplay/appearance admission."
+  },
+  "webpFiles": [
+    {
+      "file": "original/front-source.webp",
+      "bytes": 49948,
+      "sha256": "6a76e1046fe08a51ebdba787a6d5f45dca24241a0c18d49af35a5bdca95d218c",
+      "fromPngSha256": "0125de5096ccc408412bd23bc89593b362b61fdc0abe98e0c746b6c8acccb845"
+    },
+    {
+      "file": "original/front-native.webp",
+      "bytes": 52788,
+      "sha256": "cf54b610bb816bfced5aeb872ff27c09a3f5b4f8ed84cf510d384c8618f49ec1",
+      "fromPngSha256": "ceb0da0bb19f2561b4ba674fab2b8b18d99b1f64202976fd8d42c988de557e85"
+    },
+    {
+      "file": "original/front-native-double.webp",
+      "bytes": 54358,
+      "sha256": "7b1484d0e7f009e6a8c6c5a9be97f0ade013d457542ba230a4c26ea34039652d",
+      "fromPngSha256": "8299c71648325db222e3fe7c303d7d8320903263fa0ea4a6225213656e900000"
+    },
+    {
+      "file": "original/front-source-front.webp",
+      "bytes": 50952,
+      "sha256": "b921298cd1b059ede0983f92d655d30d186ebb227f45f9d0b557835b74f37349",
+      "fromPngSha256": "b2affa215f396ec7fdcc1c152304df108939bfaf525eff75206a514150b05c84"
+    },
+    {
+      "file": "original/left-source.webp",
+      "bytes": 33504,
+      "sha256": "a7bdabc7103ffd0fc03efb71c1a7f7b8d2ec8573e8fef34459fcc841a51c8bc4",
+      "fromPngSha256": "e6741e5b0be23a64189526fa1e7a5fcd915f09722fee2351618894f15b94c81b"
+    },
+    {
+      "file": "original/left-native.webp",
+      "bytes": 35112,
+      "sha256": "f135a9b4a4b6c43b795457695bcb6d193f64c9476a5ac7efdf68621f1be77cbd",
+      "fromPngSha256": "3a66b438bed5c132f2bc77e0bdb39cd4ba74a1373fd37742c0631e8e959ad8fa"
+    },
+    {
+      "file": "original/left-native-double.webp",
+      "bytes": 35724,
+      "sha256": "31bd6ff9254468e4136dad5242198d5b37d78fc14616551b740d1d4e3c1e4891",
+      "fromPngSha256": "6eaeffdb12df0e90a41df90137b1c7857696e6f191e77e2ea807bc8a807a28fe"
+    },
+    {
+      "file": "original/left-source-front.webp",
+      "bytes": 34352,
+      "sha256": "a555ed92a3a9138aaca32e31f6ba778cf7d3e4e6341fdc2592dadf155bac10ab",
+      "fromPngSha256": "82c2705f804bd133177eb2856d1af37fde57bf2043b45748bd7c1527e493ac18"
+    },
+    {
+      "file": "original/right-source.webp",
+      "bytes": 34924,
+      "sha256": "843065097873d526d260c0094a0fdc8d67ebe82d017edca5c18de455dce21623",
+      "fromPngSha256": "fff2a757b325889bea33e2e5b76109885591a7e80685ec1e9ff4a6ba75b699ff"
+    },
+    {
+      "file": "original/right-native.webp",
+      "bytes": 35924,
+      "sha256": "9303aedb2321cf6038c412879592628c5071d14fcf28b183a1468873099fb6aa",
+      "fromPngSha256": "b2820157c9741413e5ca94f2f00f2725451bc8e07273a27661063313b2d27440"
+    },
+    {
+      "file": "original/right-native-double.webp",
+      "bytes": 36918,
+      "sha256": "ad85d392b08248963f2177bf67315a615e1a8cec4ef93dd3cb9f1a28921d6349",
+      "fromPngSha256": "6071c803805ba57eaf2e7d7a36d8b9c80a13e84ce76825d27bf698bfa99d871c"
+    },
+    {
+      "file": "original/right-source-front.webp",
+      "bytes": 35670,
+      "sha256": "37d2487651e656d087de8184df905f12ccfc915abe6cfeadaacf3902f4213458",
+      "fromPngSha256": "2ee1abc545450d77fd64263a3f47bc18137b8fbf715cdf861223752c9884502b"
+    },
+    {
+      "file": "original/back-source.webp",
+      "bytes": 44470,
+      "sha256": "8fde42e16bc171946d35cd1f25703936a9b15707548d9c3f9102040f97664744",
+      "fromPngSha256": "ad45f0a0b3540458290bf194883d63c506587d5361ce00df89a3a783725949f4"
+    },
+    {
+      "file": "original/back-native.webp",
+      "bytes": 45514,
+      "sha256": "c594752e9b50ee629275274efd5118417fa6e1d7bf6a8720e2c2312adebaeca4",
+      "fromPngSha256": "a1a2519230f5b2f2611b528150354798d9cbcbd014e0d1ff93119d7a7b38f5b2"
+    },
+    {
+      "file": "original/back-native-double.webp",
+      "bytes": 46280,
+      "sha256": "b407bc6616db48ff457b316d919c0c4d259edd6affd324ff2dcc65608874a591",
+      "fromPngSha256": "e9787cf3763ec61ee240c09dffadbdee064193a2ee2019e22fa731787b6cfb94"
+    },
+    {
+      "file": "original/back-source-front.webp",
+      "bytes": 45378,
+      "sha256": "31ae1f7052400542e7cd9208d44cc2f7e6fef0bbbd22661de33ebeb9fe0a6a4e",
+      "fromPngSha256": "488243d8f05c655869a8982f8f0ae1796d7ef7b9107565c5c97dc0ec1f0f5284"
+    },
+    {
+      "file": "original/top-source.webp",
+      "bytes": 11434,
+      "sha256": "86725d3e22c0f287ad9ad8db6d8180be14efe8a711cd097e6b90dc195ed2f016",
+      "fromPngSha256": "194a5e1d4150d08aae5523af671d7375451c0a1e3e692abb45bbbbe39417fb54"
+    },
+    {
+      "file": "original/top-native.webp",
+      "bytes": 11436,
+      "sha256": "81f89baf68f10e0a6350fa353d45afac5e58d8eb59ee89bebfc603a3457f3986",
+      "fromPngSha256": "9bffd8dfb1bf85449755ca19befef1ac8aed6e85d0ee99a6b1247bdff02ddded"
+    },
+    {
+      "file": "original/top-native-double.webp",
+      "bytes": 12136,
+      "sha256": "075b0aabde7353103e71f3be089805144ee6ce87fa86a7cb29c3cb796a002809",
+      "fromPngSha256": "5306138a1c16ac7dc84474d49d1916a0c10fff383ab83b7da44580940ebf1da7"
+    },
+    {
+      "file": "original/top-source-front.webp",
+      "bytes": 11892,
+      "sha256": "651fd0116c4d1fe5b30201e682682685497b5a178ea606a835a908cbfb0ed703",
+      "fromPngSha256": "17d38e2d1f78d23f15b9dcbeb168c8a17a9372e72dc72c4e78f174a3a36d5610"
+    },
+    {
+      "file": "original/front-left-source.webp",
+      "bytes": 53074,
+      "sha256": "f11c1305865a9be32576133ff41adfa9a1f2dd8d3a7ca82163ea582b5f1c0523",
+      "fromPngSha256": "405d60464c7bd9343bb6413d1cee6e7757bfff8fb2ca48921ef2c350e89cab5f"
+    },
+    {
+      "file": "original/front-left-native.webp",
+      "bytes": 56080,
+      "sha256": "b4e5c12dc5fd8d734c45f5ef59a6745ea0955830d8fb6319f1e1b5dd7bbdb95c",
+      "fromPngSha256": "4ed715638d127c338e0f27c8d4908e590736f6eaffc025971b483d384b3bd398"
+    },
+    {
+      "file": "original/front-left-native-double.webp",
+      "bytes": 56628,
+      "sha256": "53cb961be5250d18d729c5d1ea641fc0879c5d9b7453873e8add8b49b3e8cae9",
+      "fromPngSha256": "67daa4f1b2b0fab6ce5f67fc0b2cbe119f998f04a983d640d73a4d0c3825379c"
+    },
+    {
+      "file": "original/front-left-source-front.webp",
+      "bytes": 53692,
+      "sha256": "3087226066498ca52464747da4542a55eec119f732063530523e204ccd2645fb",
+      "fromPngSha256": "fae54373fcd30ed5835edac21b5cf013912d3d75099fc1a8dda03dc7dcd9f765"
+    },
+    {
+      "file": "original/front-right-source.webp",
+      "bytes": 55420,
+      "sha256": "df138b3172987cd33ebf8aa5ce99ebf1fb64e579014f343edb9c04113d66be27",
+      "fromPngSha256": "a8b7a257b6e1b08689591db8566d5c7fec9193db45c0548896b703bc0a6a63fe"
+    },
+    {
+      "file": "original/front-right-native.webp",
+      "bytes": 57546,
+      "sha256": "63b7a9f3fd7d6e9be152b117914d48e1f931f7b273cd81aefd2c732b0b9f5b2b",
+      "fromPngSha256": "86e7aeb5716429c17371449bcb024a34444a089d9227a0816bc5289b8d56b451"
+    },
+    {
+      "file": "original/front-right-native-double.webp",
+      "bytes": 59754,
+      "sha256": "ef5b906be5f6c143043668fa3023568ecac2455537a945536f590f04a72391bc",
+      "fromPngSha256": "232a7af318b6716d79484cd6da356d46a0366fef5cdf4e7d5bd40810885aba65"
+    },
+    {
+      "file": "original/front-right-source-front.webp",
+      "bytes": 56338,
+      "sha256": "b0a7f71ec1e51fd328f393f427768aae3e7dfed17dce03f72f6b96e9d872cdf8",
+      "fromPngSha256": "7f68b43d5228536ee6c71f756467038a7fbb6e22d6b87c8374c09b66396317e4"
+    },
+    {
+      "file": "original/rear-left-source.webp",
+      "bytes": 61154,
+      "sha256": "9835fe4fbf099a6e6c60f76bbbb808c354f4f9ec1f0117d2ec45227a148f557d",
+      "fromPngSha256": "97cf457f0c7e93fd62dadace0180dda5098a7d5690e9e26f7e721d388ff17bc2"
+    },
+    {
+      "file": "original/rear-left-native.webp",
+      "bytes": 62674,
+      "sha256": "987077324eb9e95af81a2afe0a826e7c9b3a5d0f2668ed5dd011e78cde535f54",
+      "fromPngSha256": "975edd5365cfca8c9c1f1efacde2c5a7558484869b9984fcbabf9bebb4799e46"
+    },
+    {
+      "file": "original/rear-left-native-double.webp",
+      "bytes": 63268,
+      "sha256": "17174078a96e7c76eac92196a8b4cc5d464b47d342d0682e81dc1273d3ea8167",
+      "fromPngSha256": "1f3dd9ddc3a9309de7384b437cbb0bf2f10b93a6f3d3a4d96870cefd4de002d1"
+    },
+    {
+      "file": "original/rear-left-source-front.webp",
+      "bytes": 61474,
+      "sha256": "f4b90456c04bb87cca74d5134d66c6a0e20eab80031637c92a3f1cd530658c36",
+      "fromPngSha256": "8f31dbd39e19e35243764a5f68a980151641d06778e323575f005f58a27e0131"
+    },
+    {
+      "file": "original/rear-right-source.webp",
+      "bytes": 62336,
+      "sha256": "c608ce704389d6c7534778b5682dfccc1721b5808748e232ab5c07217b102127",
+      "fromPngSha256": "f88ccdc4b2321c2711398fb27355308cf5b1c3d3706beedebc5f8a1e88ce4081"
+    },
+    {
+      "file": "original/rear-right-native.webp",
+      "bytes": 63808,
+      "sha256": "b8c86ae3dfdff0d2212421c387d4f593e039ca9516530975e749456dd9b73e32",
+      "fromPngSha256": "8478c6574d2dae12a70e7ddf04b5083cc1d3f2284f80b26875e1ed58cdbed8c7"
+    },
+    {
+      "file": "original/rear-right-native-double.webp",
+      "bytes": 64698,
+      "sha256": "14bd51b27cb4829aa45d7b74dd08c58263202773c4aa8ed66961a20e61215ef1",
+      "fromPngSha256": "27921f13c7dd48c3b4d0dcfa4105e36bcf853f12e7c93feabde7b91ded5dd6b8"
+    },
+    {
+      "file": "original/rear-right-source-front.webp",
+      "bytes": 63748,
+      "sha256": "9447e8f29c708c45921f9f38ca76d358c0dfcf304142772a06867b32c91fc87a",
+      "fromPngSha256": "2bc75e6108aee4c07159368c2088ac09a52d0feb79a906c6b589789fa239e621"
+    },
+    {
+      "file": "original/eye-heart-source.webp",
+      "bytes": 64242,
+      "sha256": "8fd8746d38c50695ad0f339680343317f33c99bdf8bccb55e1cdb45171df976e",
+      "fromPngSha256": "00ddd0bcdb0ecbc5404071d8c7b1901bace417279a544e035d475e67241c62e9"
+    },
+    {
+      "file": "original/eye-heart-native.webp",
+      "bytes": 73598,
+      "sha256": "24dd6c57a9a6b4a1c5975d33eb708cfa1644099e26bd768b83909c4f9ba1674b",
+      "fromPngSha256": "016b6dfee3d4cf9af535482388c525570d2634da1d7962756178d363cf98af7d"
+    },
+    {
+      "file": "original/eye-heart-native-double.webp",
+      "bytes": 75122,
+      "sha256": "2dddca7491435639eb5a5768c55fd1b38f891ab71d38eaff45ceb4aeb737fdeb",
+      "fromPngSha256": "2d27d2ee975eaa510d59202900565c9192cdcde264c5bdcc430fda10093cd8cb"
+    },
+    {
+      "file": "original/eye-heart-source-front.webp",
+      "bytes": 63596,
+      "sha256": "cea4b2530a527ff74e1812141ab5ce68a7ea074e198f2c3107e46556e4239870",
+      "fromPngSha256": "f233504ff3432c1da53b379ca4665374defb0555d141bc12744b8c435fd1be0a"
+    },
+    {
+      "file": "original/shin-front-source.webp",
+      "bytes": 31342,
+      "sha256": "4edfefce2102bb2a65d0de76d3d9e02041534a0914b7c44c86155e207362eabf",
+      "fromPngSha256": "2982dc5b7c4c8007b6309e2a3720f8172e79342e41417bb8bbb24dc19ff9f0b4"
+    },
+    {
+      "file": "original/shin-front-native.webp",
+      "bytes": 42868,
+      "sha256": "0d0a59c810b1c6e1fc52d2d2828907f7612b499bcb0e9803517147a01055e4e0",
+      "fromPngSha256": "0c44668766c5b0f5c7e1bed7c4b87ead5867836ae5c0c7e6604026c2a60dcd59"
+    },
+    {
+      "file": "original/shin-front-native-double.webp",
+      "bytes": 41758,
+      "sha256": "7ed876da7f54f2fba33f6303f4f4c564df111d225b33b0bfb36c55536bf2af3f",
+      "fromPngSha256": "347e9e1244b966cf8e9798383f9b3038e6a43ed8e61ed62c773409a35bdc9bb1"
+    },
+    {
+      "file": "original/shin-front-source-front.webp",
+      "bytes": 31314,
+      "sha256": "a3b9099e6f6885943f784286abcdc74f3688ccecd913fd0268755eb1bf3768c3",
+      "fromPngSha256": "36f8b95e48e8900b018e7289ea0212e41725b8f1f6b08781a37bbf7bb9e2767e"
+    },
+    {
+      "file": "original/shin-back-source.webp",
+      "bytes": 13006,
+      "sha256": "6ac7d4ff473fb31815446e0f58730003b1fe2ab791a75d7e92c6c4ba339a1153",
+      "fromPngSha256": "a88f79910627669c5dfce56e4524f3a6e974d0e155290de36af85f6b422cf0fd"
+    },
+    {
+      "file": "original/shin-back-native.webp",
+      "bytes": 13046,
+      "sha256": "89e7c90b61c1a5e758db3180bb9b2501001a707600afeb7ebcc2bb3e42e12759",
+      "fromPngSha256": "baee7e70771c300892853d574df622e176e0e1778450294067c260a6ae63181a"
+    },
+    {
+      "file": "original/shin-back-native-double.webp",
+      "bytes": 13952,
+      "sha256": "fc4879185da4a089c31d06bf68f303d3ad96ff511b3330c7d9050f3afc58c8e8",
+      "fromPngSha256": "733f3e2146706f1f77afc872158b1fd473dc629be376eb5dd923fcfa684f5398"
+    },
+    {
+      "file": "original/shin-back-source-front.webp",
+      "bytes": 13552,
+      "sha256": "dcabd0db0ab445c76b239a91f35b1f77dc8ec7ef8f47d2640ac72699ba0cd196",
+      "fromPngSha256": "cf501ba00a2bac13c31c78dfee24ef0e27f8cd74c30a34a66fd16a7b91e31312"
+    },
+    {
+      "file": "original/seam-isolated-front-source.webp",
+      "bytes": 24026,
+      "sha256": "90c1b5e985141f4249ef79c278abd1a5d4682fdf967ce4b06e9b19668f5c1c4a",
+      "fromPngSha256": "f9f9e259ca66c17b4fdad6aca99878e94d841d66c4c7d1e033e199ef45e7ccfe"
+    },
+    {
+      "file": "original/seam-isolated-front-native.webp",
+      "bytes": 24434,
+      "sha256": "be227e9f58a170b561588eea696382e14cfdf8c4b7d768d2e4956268289b6f24",
+      "fromPngSha256": "9b7ad90e99cbe27a8f084b64c6c7935bdacc62568dc1c375c29dc3c353c4d15a"
+    },
+    {
+      "file": "original/seam-isolated-front-native-double.webp",
+      "bytes": 24818,
+      "sha256": "498db60231a2d93f5eddcf7065df3a8758b1ff3ff96c3a5f85b66aafbd71cb56",
+      "fromPngSha256": "24ef6657d7527bdce5dbad4709c14010aa3fabc10230206e259d59f01e8e439a"
+    },
+    {
+      "file": "original/seam-isolated-front-source-front.webp",
+      "bytes": 24348,
+      "sha256": "947967bdafb1a9650c6c281ca8ede20fd382a3c9f4be0db0ca77171c8169fdb9",
+      "fromPngSha256": "550b0049fde06f584e3a416b90baecf6b4f21a1cf02a4e79f1f3fb07a5c8d03c"
+    },
+    {
+      "file": "original/seam-isolated-back-source.webp",
+      "bytes": 27080,
+      "sha256": "f2cf603a3dbe286fe59c161338064d7443b5a80130eb36ffa4af82c9af4d0e19",
+      "fromPngSha256": "1c3265f34db567e21a567f27b75ee9326066179a9cd1fbcca4cdb8cf780ecd27"
+    },
+    {
+      "file": "original/seam-isolated-back-native.webp",
+      "bytes": 26764,
+      "sha256": "0bd119ba00180d959851959acc391181e890322d763fcedffad4c0e2b5ebc7be",
+      "fromPngSha256": "c81d05360bad672c75ff68e9516e52ed42e1059159ebc116347c7567bd3173ca"
+    },
+    {
+      "file": "original/seam-isolated-back-native-double.webp",
+      "bytes": 27630,
+      "sha256": "42411100effdeb14a9540a1f6842d89c94f622eae89c8ec2f0aff7cddfea9ea1",
+      "fromPngSha256": "df84e030b19223a4536361bbc79388227065a2143f80d96a79516ec6dba329f1"
+    },
+    {
+      "file": "original/seam-isolated-back-source-front.webp",
+      "bytes": 27780,
+      "sha256": "aa16489246a8a7d466d9782327b9976f3b9654a4fb22345cfe534c7438a6c129",
+      "fromPngSha256": "2d4c2a225b5cbbfb75ef63460d81b2974949cee7ce7fca6bc3c127316b236908"
+    }
+  ]
+}

@@ -1,0 +1,431 @@
+{
+  "schema": "wildshard.colossus.native-rest-render.v1",
+  "cameraCorrection": "Top only: perpendicular camera up [0,0,-1]; original [0,1,0] failed frames retained",
+  "scope": "Frozen rest-only geometry diagnostic in unchanged V70 renderer host; no Colossus gameplay or admission",
+  "started": "2026-10-19T04:54:32.092Z",
+  "sourceSha256": "8c94ed4a452f10ca5c9e1e663c7437c2905e42b90bf5abe9faaf970391a8189b",
+  "hostPreview": {
+    "schema": "wildshard.puffer.native-preview.v1",
+    "candidate": "V70",
+    "mode": "gait5",
+    "rigAdmission": {
+      "profile": "v70-rig1-gait5",
+      "originalSourceSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+      "equivalenceSha256": "5cb9e2b3128f5b87ef4ed7c89816c324d79bd57bc6b947d25b23c46bea567b06",
+      "poseSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+      "gaitSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0"
+    },
+    "rootFlinch": "authored-pose",
+    "arenaLighting": "neutral-gray-v2",
+    "arenaLightingProfileSha256": "b0871ebc6bb4b1584cc3b970861dd9d577dd1d6f03c59b752f4d937571c29101",
+    "arenaOcclusion": "contact-v1",
+    "visualAdapter": "puffer-gait5-continuity",
+    "visualAdapterSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+    "source": "art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json",
+    "measurementSha256": "a923ca6c0ca4ba7d853da3b871d536e2b2a3106202a21c3673f22a8eaa6c6f27",
+    "sourceSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+    "metadataSha256": "55f188d53546dd06537c12ba64a29a36b0569a1d72930146605aaa0a43b86673",
+    "dimensionsSha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e",
+    "colliderAcceptance": false,
+    "visualAcceptance": false,
+    "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+    "packedSha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15",
+    "bodyFile": "/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+    "sourceHash": "80e39ff9f9af3b1e0bcaf3565e9282aa042a33af32298850c6085be7396cf895"
+  },
+  "errors": [],
+  "httpErrors": [],
+  "views": [
+    {
+      "name": "top",
+      "mode": "source",
+      "camera": [
+        0,
+        917,
+        -6.99
+      ],
+      "target": [
+        0,
+        902.7,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "top-source.png",
+      "sha256": "955173cfd7aa8cad58bd544616c3fa8fa8e2f2ff62168fd26032dbd03cfc397e"
+    },
+    {
+      "name": "top",
+      "mode": "native",
+      "camera": [
+        0,
+        917,
+        -6.99
+      ],
+      "target": [
+        0,
+        902.7,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "top-native.png",
+      "sha256": "868c40f0600f2efd04e9909a882a6a52b6a2dc2e159550d3eaffed4728bf82fe"
+    },
+    {
+      "name": "top",
+      "mode": "native-double",
+      "camera": [
+        0,
+        917,
+        -6.99
+      ],
+      "target": [
+        0,
+        902.7,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "top-native-double.png",
+      "sha256": "ffa77d05acd7f1406789544822d32d1123778d03e3c05e600d870b0f1db962b8"
+    },
+    {
+      "name": "top",
+      "mode": "source-front",
+      "camera": [
+        0,
+        917,
+        -6.99
+      ],
+      "target": [
+        0,
+        902.7,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "top-source-front.png",
+      "sha256": "7fe1ebf73167b5d2ba60f19bd6200180e3903b0f71e1d98af0b95a52a7906940"
+    }
+  ],
+  "pins": {
+    "schema": "wildshard.colossus.visual-input-pins.v1",
+    "files": [
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/build_colossus_v4.py",
+        "bytes": 21954,
+        "sha256": "f10cdec46537f8d579fa7af687890aebe6c2f0e9d82c962e64a478567e3a0218"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/cameras-v4.json",
+        "bytes": 2853,
+        "sha256": "39b010631bbbd6648b6a774e4d62a9641dd6efa9b1fee4066716f3aab7787678"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/metrics-v4.json",
+        "bytes": 455,
+        "sha256": "f4100cd18d20b8764b7a5f1474e6377a69a40eb9dc4854fdf0d95668d53d01c9"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/package_colossus_v4.py",
+        "bytes": 4016,
+        "sha256": "86c65e912dd53beba169c8dda2f15bcc9ed01b3018b625d26b6e2bb1fb51dc81"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/render_colossus_v4_nine.py",
+        "bytes": 2747,
+        "sha256": "3b8c9e59d6cc34f93e77fcf4b03aa8b962becfcdba3378a08d8f84b47f328da4"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/ADMISSION.md",
+        "bytes": 9648,
+        "sha256": "05e3f96de52dcab178f175c06ce716d30e6504c7913d9ec8c1bcab7596240eac"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/audit_source_normals.py",
+        "bytes": 3252,
+        "sha256": "8ee4ee003cb0470acd8a4352894da98a8c1c1f95eca68df3a3367177d4e419c2"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/export_native.py",
+        "bytes": 17959,
+        "sha256": "217dbd39eae14ff5c443c67f194e3369bbb83341903ab6a3f467819214ba966b"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/native-consumer.test.ts",
+        "bytes": 11805,
+        "sha256": "349d076ecb688e0f3372c2320628068cdd2cf98418a9188a85807540d804ba29"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/source-closure.json",
+        "bytes": 2227,
+        "sha256": "28567f21580bedbd71bc0e9884e32de934933f92b962c78fa0b649fb6952f18c"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/source-normal-caveats.json",
+        "bytes": 404458,
+        "sha256": "8b3a95951a38d121559dc8e8ad08605cd2f112f9bc26a19732130468a136fa75"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/test_export_native.py",
+        "bytes": 9532,
+        "sha256": "552519dbfbbdb39306812180d3008ef3ba3c455230a89acae36006aa969561e2"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/closure.json",
+        "bytes": 1718,
+        "sha256": "429bc8104ab56f5d3ded852178abd764ced60afe5b67a4ad535307183e5f1c4a"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/colossus-v4-native.json",
+        "bytes": 2395775,
+        "sha256": "32c4f9b55c5303e75877c8abae7765947a3814c39bb15d3c7a0046e61cb93641"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/diagnostic-dimensions.json",
+        "bytes": 264,
+        "sha256": "e6682b3ed138db2e2e76b7c12f282f7c01fc78e3dc1185e2ba6b696f28446c40"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/mesh-map.json",
+        "bytes": 91837,
+        "sha256": "6549ca21f174ac4e5eb045d869eb1f755eddebf6c42d9850b26a0906fe92f79b"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/metadata.json",
+        "bytes": 4811,
+        "sha256": "1ddb3e8fc73496e44434b325b66ea2c2f39bce5acecae0507b3fc22eb762c8ce"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/payload.bin",
+        "bytes": 76711,
+        "sha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/rig-provenance.json",
+        "bytes": 4908,
+        "sha256": "3fd81746ae148eb7cf4db4f35551a4df4c0f53d336e69c7664d63515a561ca83"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/source-materials.json",
+        "bytes": 3252,
+        "sha256": "538e98a7788861362dac53737b40f36188424d61fea176bda8e6c409ee2ce4e3"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/validation.json",
+        "bytes": 582,
+        "sha256": "27a595e48505f9b09531cfa5da0d2178fd63051e52f08726e3c017d292644896"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/vitest.config.ts",
+        "bytes": 236,
+        "sha256": "bd2389b76d6bbbd17c56ab120d77199d0ee3e1b1f57e5ab960f83c3d11dcdc8b"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/tide-root-colossus-v4.glb",
+        "bytes": 704108,
+        "sha256": "8c94ed4a452f10ca5c9e1e663c7437c2905e42b90bf5abe9faaf970391a8189b"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-01-front.webp",
+        "bytes": 40350,
+        "sha256": "22e36a8cd9a3e41b0f8d8a0f8dd6764e7e08d1d24233f18ec20601f0236996d9"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-02-left.webp",
+        "bytes": 21292,
+        "sha256": "8491be90721a84a9c12a0ed8dc7947ce748974f8f5b7bef3d4d835996eb760b7"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-03-right.webp",
+        "bytes": 22478,
+        "sha256": "0242436d28cd18786d42ce59c6fa80d39c5b89581b7c2bd89f3528708d5a0ece"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-04-back.webp",
+        "bytes": 45452,
+        "sha256": "5b4370d45fec6df7fa1765373704c466a1b1f5ff8ebe4874a42631633c625627"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-05-top.webp",
+        "bytes": 57984,
+        "sha256": "3e041f6fbda2b14d3149dc899c675900adaa24c4d12f577e1912b617347eb521"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-06-diag-front.webp",
+        "bytes": 59484,
+        "sha256": "9c48f7aa2538b1e55471c3b1f8b07cfd4e6ba5a5a8e58a2097f6cd9b2b800e06"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-07-diag-left.webp",
+        "bytes": 51070,
+        "sha256": "8c5ca7153f56dd67e3375d18547ddeaed961045945b3b70135f184808476549c"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-08-diag-right.webp",
+        "bytes": 54318,
+        "sha256": "ca6ab7400f4042c7394ad470fb446e4f90ff99666c09927d92d22e04b29905ad"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-09-diag-back.webp",
+        "bytes": 53696,
+        "sha256": "f30671fd5d1d70233dbb1597010df0461a0769d6f6808c0bf2517509c27539bb"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-capture-receipt.json",
+        "bytes": 2902,
+        "sha256": "5ae0ce6feacc8463fceeae73ec42bdcf49b99ca053068599657f093d05af1adb"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-final-closure.json",
+        "bytes": 4255,
+        "sha256": "606e778a06400061657b6bb6ba76f16e09499e3cbc33f9287f173f36365ee95a"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-hero.webp",
+        "bytes": 90752,
+        "sha256": "0db2baecc765fdd1941a815aba797dc012f3b5e239afaf18dbe51214b3d8e615"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-nine-board.webp",
+        "bytes": 259712,
+        "sha256": "a90a7ded924900d94d227fa1f00cedcaab8df4574be716a634b0a26edbe6e5f6"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/v4-source-closure.json",
+        "bytes": 618,
+        "sha256": "18a277d2db5774e10ada0c2ad9cb0e5b0699878f07cb4df7e6f0726618e3605e"
+      },
+      {
+        "path": "art/driftwood-isle/lowpoly-colossus/validation-v4.json",
+        "bytes": 57509,
+        "sha256": "7cd2090c20808cab276e71439596c22b748b2a4c61f306fcdef18264580b0e98"
+      }
+    ]
+  },
+  "setup": {
+    "vertices": 15600,
+    "bones": [
+      "body",
+      "head",
+      "arm-1",
+      "forearm-1",
+      "hand-1",
+      "outer-1",
+      "middle-1",
+      "inner-1",
+      "thumb-1",
+      "leg-1",
+      "shin-1",
+      "foot-1",
+      "arm1",
+      "forearm1",
+      "hand1",
+      "outer1",
+      "middle1",
+      "inner1",
+      "thumb1",
+      "leg1",
+      "shin1",
+      "foot1"
+    ],
+    "facetJitter": 0.12,
+    "sourceMaterialsRetained": true,
+    "packedEmissionMissing": true,
+    "packedSidednessMissing": true,
+    "motionAdmitted": false,
+    "origin": [
+      0,
+      900,
+      -7
+    ],
+    "hidden": [],
+    "material": [
+      {
+        "type": "MeshStandardNodeMaterial",
+        "side": 0,
+        "color": [
+          0.7697310801828281,
+          0.7827579721645452,
+          0.8088117561279796
+        ],
+        "flatShading": true,
+        "vertexColors": false
+      }
+    ],
+    "pixelRatio": 2,
+    "passes": [
+      {
+        "enabled": true,
+        "name": "Bh"
+      },
+      {
+        "enabled": true,
+        "name": "Ot"
+      },
+      {
+        "enabled": true,
+        "name": "Ot"
+      }
+    ],
+    "light": [
+      {
+        "color": [
+          1,
+          0.97,
+          0.9
+        ],
+        "intensity": 2.7,
+        "position": [
+          47.40681495774217,
+          994.3531541695644,
+          -12.262642265295483
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "workers": 0,
+    "databases": []
+  },
+  "passed": true,
+  "finished": "2026-10-19T04:54:41.161Z",
+  "visualReview": {
+    "captureToolSucceeded": true,
+    "allViewsAccepted": false,
+    "invalidViews": [
+      "top"
+    ],
+    "note": "All four top frames remain blank despite perpendicular camera up; cause unresolved. No nine-view/render admission."
+  },
+  "webpFiles": [
+    {
+      "file": "top-retry/top-source.webp",
+      "bytes": 11510,
+      "sha256": "cdcbc3a6cd1514bff2427c8c7ed6b3616590263b1a34c84c4be6d3fe77e20055",
+      "fromPngSha256": "955173cfd7aa8cad58bd544616c3fa8fa8e2f2ff62168fd26032dbd03cfc397e"
+    },
+    {
+      "file": "top-retry/top-native.webp",
+      "bytes": 11512,
+      "sha256": "ad673b546f9c37c4745dde3a88ac82f378a570e89c5021d84fd57eb2a3d854e9",
+      "fromPngSha256": "868c40f0600f2efd04e9909a882a6a52b6a2dc2e159550d3eaffed4728bf82fe"
+    },
+    {
+      "file": "top-retry/top-native-double.webp",
+      "bytes": 12174,
+      "sha256": "c418f29785f56900a919df011b91094128f064820a2d22cdcddfb7fc3528d9c7",
+      "fromPngSha256": "ffa77d05acd7f1406789544822d32d1123778d03e3c05e600d870b0f1db962b8"
+    },
+    {
+      "file": "top-retry/top-source-front.webp",
+      "bytes": 12000,
+      "sha256": "ef69472f8311badbf8908b483e0bce9031a9b19c439e2cc23215a3931578c290",
+      "fromPngSha256": "7fe1ebf73167b5d2ba60f19bd6200180e3903b0f71e1d98af0b95a52a7906940"
+    }
+  ]
+}

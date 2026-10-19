@@ -1,0 +1,92 @@
+{
+  "schema": "wildshard.mantis.capture-closure.v1",
+  "frozenAtUtc": "2026-10-19T04:49:49.539828+00:00",
+  "productSourceHash": "afc2b790b7e0ad59107c63d6d3953e390f39e56f752a2f142ac05f0c27d90996",
+  "sourceClosureUnchanged": true,
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/capture-top.mjs": {
+      "sha256": "425af5887e32ecee209ab2ee0a6bc066048b6bc7356412bdc68da1746d0f80ac",
+      "bytes": 6113
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/build-artifact-manifest.json": {
+      "sha256": "7cba9597851eec4b99824be431da7d46500cddebfb12ca58b887d755f20cd5de",
+      "bytes": 21601
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/encoding.json": {
+      "sha256": "e605ce0a08699a5607bd12d882c82f96526f0470d06fb8f31ab6aeceed792b4b",
+      "bytes": 2673
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/host-preview.json": {
+      "sha256": "4a63d0874916ebb7909352e4032e6a310ea0acfbc225691d22a34893133ecf7c",
+      "bytes": 3643
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/idle-render-trace.json": {
+      "sha256": "1c8437cab6278c10b952754d0418d95c322f57de9a070841a4357533541dd51a",
+      "bytes": 139441
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/idle-report.json": {
+      "sha256": "ddc55836f9f13a3de1c8d912352c8fb715b69801b6b6ff4b3e366d8e28d72dd3",
+      "bytes": 1090
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/idle-world-contact.json": {
+      "sha256": "bb6f72eb783bb965d6d4d661d9f14b398c04e55736c574735549221dbe8b7bc5",
+      "bytes": 203317
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/observer-render-trace.json": {
+      "sha256": "ada3cb600ce01d8c17ce288c369830706037da19c7771b863eb68bc04197c074",
+      "bytes": 1151990
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/observer-report.json": {
+      "sha256": "64fa0b92553e8b65eea65c03b73bec0e4eb34a88938bf24526944486960f2fbc",
+      "bytes": 295809
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/observer-world-contact.json": {
+      "sha256": "167e0faaa22ce6133e737d0a8356e3607243bf9ba2ae4c18a0401b5f038ca3f7",
+      "bytes": 1262005
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/top-rest-receipt.json": {
+      "sha256": "757e559bf3cf98b0258cf970d274d05c28244d9390be4cdbabc263aef4d2ddfb",
+      "bytes": 6507
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/source-closure.json": {
+      "sha256": "e0264e7b990e5dee97a0efd8ffdf9248778a524f24ac0b01c54c6a8b5b111657",
+      "bytes": 3598
+    },
+    "public/review-evidence/mantis-v7-candidate3/idle-diagnostic.jpg": {
+      "sha256": "3bc98342bb3c8a7f9cce3a7700734e2c881f9b95be8252a31cd3a5ea7ccd96b3",
+      "bytes": 60704
+    },
+    "public/review-evidence/mantis-v7-candidate3/idle-diagnostic.mp4": {
+      "sha256": "b49ed6018bd07ab706a3f1d3c6d89a10f4c054e17b14f46915eaadb844f377f4",
+      "bytes": 184577
+    },
+    "public/review-evidence/mantis-v7-candidate3/live-observer.mp4": {
+      "sha256": "0fc7276fa751f5d10d6f600614f4ebb33ce24167a3d18dd33dd35ca242d1f860",
+      "bytes": 879809
+    },
+    "public/review-evidence/mantis-v7-candidate3/observer-both-strikes-observation.jpg": {
+      "sha256": "b3fa51099246be8450216876d9a1a969f88ec3744a65811a5e84b7e3af4594aa",
+      "bytes": 67446
+    },
+    "public/review-evidence/mantis-v7-candidate3/observer-corpse-reward.jpg": {
+      "sha256": "586d9e26fc3ab4473c6554032eff12c304ae3a4c9f24d155cad7b28b7fa61b42",
+      "bytes": 57249
+    },
+    "public/review-evidence/mantis-v7-candidate3/observer-entry.jpg": {
+      "sha256": "687961dfbac6e25136e93020991cd1615b641994bba9927f2998c7d7f8a5a9a5",
+      "bytes": 61713
+    },
+    "public/review-evidence/mantis-v7-candidate3/observer-retry.jpg": {
+      "sha256": "97a2fb7c326108f94b1cfcd2423beeadf1ed3ec4cbbc7cc2d546d749a0194f20",
+      "bytes": 59825
+    },
+    "public/review-evidence/mantis-v7-candidate3/top-source-native.jpg": {
+      "sha256": "4da04be83f510c11339e17a22f0e17a6d64614c63c4dc9a48dfed8bf8ad37c1a",
+      "bytes": 73988
+    },
+    "scripts/qa-mantis-phase-idle.mjs": {
+      "sha256": "a45bf424272fa659462da024f556b2a8945b510958a8dc931544f3218a500868",
+      "bytes": 6662
+    }
+  }
+}

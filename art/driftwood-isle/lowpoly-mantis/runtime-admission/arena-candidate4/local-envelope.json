@@ -1,0 +1,62 @@
+{
+  "idle": {
+    "minY": 0.005311838940352809,
+    "maxY": 3.907426527625944,
+    "belowFloor": 0,
+    "frames": 41
+  },
+  "walk": {
+    "minY": 0.008649205281522979,
+    "maxY": 3.91815092086792,
+    "belowFloor": 0,
+    "frames": 41
+  },
+  "first-wind": {
+    "minY": 0.013307643122971058,
+    "maxY": 4.1623787573098365,
+    "belowFloor": 0,
+    "frames": 41
+  },
+  "first-active": {
+    "minY": 0.04290796910387257,
+    "maxY": 4.1623787573098365,
+    "belowFloor": 0,
+    "frames": 41
+  },
+  "first-recover": {
+    "minY": 0.013307643122971058,
+    "maxY": 3.89815092086792,
+    "belowFloor": 0,
+    "frames": 41
+  },
+  "second-wind": {
+    "minY": 0.013307643122971058,
+    "maxY": 4.1623787573098365,
+    "belowFloor": 0,
+    "frames": 41
+  },
+  "second-active": {
+    "minY": 0.04290796910387257,
+    "maxY": 4.1623787573098365,
+    "belowFloor": 0,
+    "frames": 41
+  },
+  "second-recover": {
+    "minY": 0.013307643122971058,
+    "maxY": 3.89815092086792,
+    "belowFloor": 0,
+    "frames": 41
+  },
+  "hit": {
+    "minY": 0.009662956339642176,
+    "maxY": 4.30260495740157,
+    "belowFloor": 0,
+    "frames": 41
+  },
+  "death": {
+    "minY": 0.013307643122971058,
+    "maxY": 3.89815092086792,
+    "belowFloor": 0,
+    "frames": 41
+  }
+}

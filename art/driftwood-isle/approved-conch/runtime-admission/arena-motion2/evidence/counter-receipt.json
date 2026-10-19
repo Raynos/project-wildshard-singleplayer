@@ -1,0 +1,17 @@
+{
+  "schema": "wildshard.conch.counter-test.v1",
+  "result": "Counter not observed in four real guard-hit trials; guard damage reduction observed, persistent stores unchanged. Baseline event-order/decision diagnosis pending; no runtime promotion.",
+  "beforeHitClock": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "guardHitHealth": [
+    57,
+    48,
+    57,
+    48
+  ],
+  "action": "Real touch sword immediately after observed guard start; only diagnostic player placement/aim; no enemy/time/damage injection."
+}

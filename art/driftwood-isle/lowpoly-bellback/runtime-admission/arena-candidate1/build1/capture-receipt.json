@@ -1,0 +1,75 @@
+{
+  "schema": "wildshard.bellback.actual-test.v1",
+  "result": "Functional evidence passes except initial defense-only stomp flag. Later seven samples observe actual stomp, including14damage; original report preserved. Motion/corpse acceptance fails pending review.",
+  "stompLaterSamples": [
+    {
+      "phase": "player-defeat",
+      "time": 45.46419999998096,
+      "clock": 0.4,
+      "health": 84
+    },
+    {
+      "phase": "player-defeat",
+      "time": 46.2498999999765,
+      "clock": 1.2,
+      "health": 70
+    },
+    {
+      "phase": "player-defeat",
+      "time": 52.772799999975085,
+      "clock": 0,
+      "health": 54
+    },
+    {
+      "phase": "player-defeat",
+      "time": 53.7067999999751,
+      "clock": 0.9999999999999999,
+      "health": 40
+    },
+    {
+      "phase": "player-defeat",
+      "time": 60.84839999996921,
+      "clock": 0.4,
+      "health": 24
+    },
+    {
+      "phase": "player-defeat",
+      "time": 61.414699999973685,
+      "clock": 0.9999999999999999,
+      "health": 10
+    },
+    {
+      "phase": "player-defeat",
+      "time": 62.114699999973695,
+      "clock": 1.7000000000000004,
+      "health": 10
+    }
+  ],
+  "worldContact": "Entry/rest0 clearance; sampled corpse minimum899.165206 at arena900, 0.834794m penetration. Local envelope was not world-ragdoll proof. No promotion.",
+  "rawVideo": {
+    "path": "tmp/bellback-native-qa-build1/video/page@2d6836832838ff722b4234e0c324bf29.webm",
+    "sha256": "18bd019668e191720435d126f780dc8b9c21b4fe9ddcfde6e93ee7053f0df7ec",
+    "bytes": 15960828
+  },
+  "allFramesReviewed": false,
+  "checks": {
+    "onlyBellback": true,
+    "pulse": true,
+    "echo": true,
+    "stomp": false,
+    "actualPlayerDamage": true,
+    "actualEnemyDamage": true,
+    "enemyDefeated": true,
+    "noPostDeathStrike": true,
+    "boutLocalReward": true,
+    "retry": true,
+    "playerDefeated": true,
+    "defeatedAttackBlocked": true,
+    "finalRetry": true,
+    "emptyStorage": true,
+    "emptyUnchangedStateStore": true,
+    "reentry": true,
+    "reentryPersistence": true,
+    "errors": true
+  }
+}

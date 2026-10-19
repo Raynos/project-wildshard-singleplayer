@@ -1,0 +1,16 @@
+{
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/counter-observation.json": {
+      "sha256": "fc95ec10e4414302d6e5eed55e8ba094eb549c884490b31cea00c4cd2206319d",
+      "bytes": 72506
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/counter-receipt.json": {
+      "sha256": "57b71827d91265e86d41d41d0cf2bd9f58c65b25a3401c632dfe5124340f4e3f",
+      "bytes": 504
+    },
+    "scripts/qa-conch-counter-preview.mjs": {
+      "sha256": "4bb223d93a8dc6338fae78ebef7dda8e978a6f3c77e44acaec6fe3a51ef9404f",
+      "bytes": 8756
+    }
+  }
+}

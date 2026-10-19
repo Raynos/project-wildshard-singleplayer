@@ -1,0 +1,19 @@
+{
+  "scope": "Replay only, same captured meshWorld and translations, anatomy rotations only. Requires fresh actual collapse/settle capture; no general physical contact acceptance.",
+  "results": [
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/evidence/observer-render-trace.json",
+      "frames": 47,
+      "originalMin": -0.12394445059942427,
+      "foldedMin": 0.013680755348445928,
+      "below": 0
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/evidence/observer-render-trace.json",
+      "frames": 87,
+      "originalMin": -0.14482178458376893,
+      "foldedMin": 0.01368887185742551,
+      "below": 0
+    }
+  ]
+}
