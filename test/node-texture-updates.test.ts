@@ -43,6 +43,9 @@ test('flip policy matches every image kind and keeps custom image getters live',
   sampler.updateType = NodeUpdateType.OBJECT; Reflect.set(sampler, '_flipYUniform', flip);
   custom.flipY = true; updates.update([sampler]); expect(flip.value).toBe(true);
   borrowed = image.image; updates.update([sampler]); expect(flip.value).toBe(false);
+  const beforeUnflipped = reads;
+  custom.flipY = false; updates.update([sampler]);
+  expect(reads).toBe(beforeUnflipped); expect(flip.value).toBe(false);
   for (const [, texture] of cases) texture.dispose();
 });
 

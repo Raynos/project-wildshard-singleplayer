@@ -24,10 +24,10 @@ function isFlipTexture(node: Node): node is Node & FlipTexture {
   return typeof flip === 'object' && flip !== null && typeof Reflect.get(flip, 'value') === 'boolean';
 }
 function textureFlip(texture: SampleTexture): boolean {
-  // Targets/depth always flip. Avoid WebKit's DOM-class check for every shadow
-  // sample; ordinary images still use the live image and flipY policy.
+  // Targets/depth always flip. Images with flipY off (including compressed
+  // textures) never need WebKit's expensive ImageBitmap identity check.
   return texture.isRenderTargetTexture || texture.isFramebufferTexture === true || texture.isDepthTexture === true ||
-    (typeof ImageBitmap !== 'undefined' && texture.image instanceof ImageBitmap && texture.flipY);
+    (texture.flipY && typeof ImageBitmap !== 'undefined' && texture.image instanceof ImageBitmap);
 }
 
 /** RENDER nodes share a camera-pass epoch. Object inputs and custom callbacks
