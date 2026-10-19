@@ -1,0 +1,36 @@
+{
+  "rubric": {
+    "silhouette": "0.35",
+    "face": "0.30",
+    "details": "0.20",
+    "facetStyle": "0.15"
+  },
+  "candidate": {
+    "axes": [
+      "3.75",
+      "3.6",
+      "3.75",
+      "4.1"
+    ],
+    "total": "3.7575"
+  },
+  "baselineFreshThisReview": {
+    "axes": [
+      "3.45",
+      "3.5",
+      "3.6",
+      "4.0"
+    ],
+    "total": "3.5775"
+  },
+  "delta": "0.18",
+  "historicalSelectedSeparate": "3.915",
+  "priorFreshSelectedSeparate": "3.555",
+  "preferred": "complete-integrated-next",
+  "meets4": false,
+  "candidateLockedBeforeBaselineImages": true,
+  "strictScoreBlind": false,
+  "losslessHeroLaterInspectionChangedScore": false,
+  "runtimePromotion": false,
+  "publicCandidate7Changed": false
+}

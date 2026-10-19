@@ -1,0 +1,268 @@
+{
+  "input-pins.json": {
+    "count": 90,
+    "mismatches": []
+  },
+  "evidence.json": {
+    "count": 67,
+    "mismatches": []
+  },
+  "raw_frames": [
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/hero.png",
+      "sha256": "c3798566c083e2c3615ed242e622974d4a6452c48355e308a3cc238eee0a9225",
+      "bytes": 568326,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/hero.png",
+      "sha256": "c6e9948f1c7b9ea644ae38d7d394e3618b84e822b1dbe5fdedcb81ee2deeecaa",
+      "bytes": 582937,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/front.png",
+      "sha256": "4b35479d5fd21bccb98ba878501f84c7cee1fd7462f6ef0560ea58e439284c51",
+      "bytes": 396629,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/front.png",
+      "sha256": "0cf611d7973c010180aedf1b5b6d0b8775fd3e5c17c4b0de2e48993f11c4e067",
+      "bytes": 415630,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/left.png",
+      "sha256": "53d7a99214447f81946b5fa71dd623df852c94ea2b60cf17679da991ab0e7c12",
+      "bytes": 372217,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/left.png",
+      "sha256": "977e879e619c3063ee3db3ea7aa04c322533d8377b7b82253b179a026a23e6d4",
+      "bytes": 382098,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/right.png",
+      "sha256": "35b507a2a0786739a180fa6385a0202efdbbc0638df31dae9d8e488d49e365ce",
+      "bytes": 373571,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/right.png",
+      "sha256": "f09b4bcf2359e1a24e8bf8c4bff8466aefa45c1e6ea2d98f7cfe4b0e67c9942d",
+      "bytes": 382148,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/back.png",
+      "sha256": "e0557ae5e54f36fc8ef3b991fda8a4a24debf2fc0fb91b2762ed95d3974c0c37",
+      "bytes": 402769,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/back.png",
+      "sha256": "f3aac7e03c6887bf1000e13d4c09d3909bdcede68057099b6557813a28d6ba8d",
+      "bytes": 421680,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/top.png",
+      "sha256": "2dd62720a5a8f99191f95095fb3a076dafcf7c49d1e8cb05bac1c655a5cc9a57",
+      "bytes": 676150,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/top.png",
+      "sha256": "2209a54c2052557b506181938e1b3c97faa6cc3684a3c9bd0320fa347a820613",
+      "bytes": 687687,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/diag-front.png",
+      "sha256": "819d2da6f9ac7435765899b9c24464d73f1425ed29320769dde90813134315d7",
+      "bytes": 686722,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/diag-front.png",
+      "sha256": "e3774213f563aad05a818143789af13a66188021c358b2bef372af30e5f73311",
+      "bytes": 695849,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/diag-left.png",
+      "sha256": "ceb510a473dac972f8488b8c74cb7918b1b00e8ebb68f3c10f922570aedea7b0",
+      "bytes": 693674,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/diag-left.png",
+      "sha256": "34fd297e126a50258aca4b0768ea7a510b93463a82c92cef78456ab8fedf39ec",
+      "bytes": 699442,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/diag-right.png",
+      "sha256": "7dfb64077db67cc4268d903b08ebde55f6f154d49bf1d7da4f818fd29d2f4965",
+      "bytes": 662538,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/diag-right.png",
+      "sha256": "328cc773779e855a64fdbae3c4a6e863a165de6a66c53b71f8bf4c02315061c4",
+      "bytes": 671002,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/diag-back.png",
+      "sha256": "d005003d6dfb3d8b8df101327f7558dc1f552b80d701c15e45dd0cb0692f212a",
+      "bytes": 664972,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/diag-back.png",
+      "sha256": "b9263882045ed4442c417376d16345efa013ccd002e23015a4c56684f8b9fe26",
+      "bytes": 689263,
+      "size": [
+        638,
+        900
+      ],
+      "hashVerified": true,
+      "individuallyInspectedOriginalResolution": true
+    }
+  ],
+  "camera_settings_equal": true,
+  "sources": {
+    "baseline": {
+      "producerHash": "7a3112e04a8b2094f6ca2a47abbcbadcb9ea92d28d2c196f204d40400f91d76d",
+      "producerHashMatches": true,
+      "frozenGlbHash": "fd81310b495a160cd4f698ace0fbda5a0cae59f57ad9b8db1e21428478a5217d",
+      "rebuiltGlbHash": "fd81310b495a160cd4f698ace0fbda5a0cae59f57ad9b8db1e21428478a5217d",
+      "meshAndMetricsEqual": true
+    },
+    "candidate": {
+      "producerHash": "541534aa191e4150615de6c1152f4e95e06aae70f75a0c12df21863685e3ed92",
+      "producerHashMatches": true,
+      "frozenGlbHash": "7630296952be80e40f14c2dc531afde1ed7945b40953322e81e070382681c4a6",
+      "rebuiltGlbHash": "7630296952be80e40f14c2dc531afde1ed7945b40953322e81e070382681c4a6",
+      "meshAndMetricsEqual": true
+    }
+  },
+  "referenceOriginals": [
+    {
+      "name": "splinter-mantis-lowpoly-style-revision.png",
+      "sha256": "601a244962deabc489604604afe2d0911096b95098ced82611cea13cbb3c23cb"
+    },
+    {
+      "name": "mantisExplorerGen.png",
+      "sha256": "0e1c64ace284b5c0bb770832da63d705596eb2e38f09f19c309547665bf8d82c"
+    },
+    {
+      "name": "mantisWorldGen.png",
+      "sha256": "763b44a12590e1eea84fe9137f1fc02b3040e499bc6e618a497f9e8e72fd5691"
+    },
+    {
+      "name": "mantisWorldCorrectedGen-v2.png",
+      "sha256": "959f058634838eea12075a16109bad410f2efee0141af6fe39ffac3856f770d3"
+    }
+  ],
+  "scope": "Read-only existing artifacts; no builds, rerenders, native behavioral tests or publication."
+}

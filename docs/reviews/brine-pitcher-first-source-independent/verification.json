@@ -1,0 +1,322 @@
+{
+  "schema": "wildshard.independent-static-source-review.v1",
+  "candidate": "brine-pitcher-native-v3",
+  "rawCaptureDirectory": "tmp/brine-pitcher-v4",
+  "score": {
+    "silhouette": 2.75,
+    "faceMouth": 2.25,
+    "details": 2,
+    "facetStyle": 2.75,
+    "weights": [
+      0.35,
+      0.3,
+      0.2,
+      0.15
+    ],
+    "exactWeighted": 2.45
+  },
+  "admissionHashChecks": {
+    "art/driftwood-isle/approved-brine-pitcher/build_pitcher_v3.py": {
+      "expected": "b7a838343cd4110201224d58592fc05e37aa3b370b5d5eefa2ad2a4f802a6cd3",
+      "actual": "b7a838343cd4110201224d58592fc05e37aa3b370b5d5eefa2ad2a4f802a6cd3",
+      "match": true
+    },
+    "art/driftwood-isle/approved-brine-pitcher/audit_source_v3.py": {
+      "expected": "a599d1bba810b420a0fc453743e26fb871053f759b608a4463ceb8170dfa7fe3",
+      "actual": "a599d1bba810b420a0fc453743e26fb871053f759b608a4463ceb8170dfa7fe3",
+      "match": true
+    },
+    "art/driftwood-isle/approved-brine-pitcher/make_review_v3.py": {
+      "expected": "4c7674990218068763df0e3418632074dba601907341968e365e9ee6cc43c4db",
+      "actual": "4c7674990218068763df0e3418632074dba601907341968e365e9ee6cc43c4db",
+      "match": true
+    },
+    "art/driftwood-isle/approved-brine-pitcher/v3/native-source.json": {
+      "expected": "68f88cb3a5e5c008736ece6e72cfece99516210d3e241c20d698cc055a2aff94",
+      "actual": "68f88cb3a5e5c008736ece6e72cfece99516210d3e241c20d698cc055a2aff94",
+      "match": true
+    },
+    "art/driftwood-isle/approved-brine-pitcher/v3/metadata.json": {
+      "expected": "2faa7fb3782856aa52fbf802af15eb069cca23bf13dbd642f9b506cdd3bf1d58",
+      "actual": "2faa7fb3782856aa52fbf802af15eb069cca23bf13dbd642f9b506cdd3bf1d58",
+      "match": true
+    },
+    "art/driftwood-isle/approved-brine-pitcher/v3/payload.bin": {
+      "expected": "70cc84fae55360f410433857685713a2475a0974cf853740f1ccbde725e6957e",
+      "actual": "70cc84fae55360f410433857685713a2475a0974cf853740f1ccbde725e6957e",
+      "match": true
+    },
+    "art/driftwood-isle/approved-brine-pitcher/v3/brine-pitcher-v1.glb": {
+      "expected": "e9c6e859beb91f4889c8f4f29af330ba4094955badd167fea1dd0a44dcb02199",
+      "actual": "e9c6e859beb91f4889c8f4f29af330ba4094955badd167fea1dd0a44dcb02199",
+      "match": true
+    },
+    "art/driftwood-isle/approved-brine-pitcher/v3/construction.json": {
+      "expected": "60712405dffd8ef8c199ef9c940ea7312efd9627892e10bc7e9e412ea7f04052",
+      "actual": "60712405dffd8ef8c199ef9c940ea7312efd9627892e10bc7e9e412ea7f04052",
+      "match": true
+    },
+    "art/driftwood-isle/approved-brine-pitcher/v3/source-audit.json": {
+      "expected": "cabaa60c15a681723f13d6a63692c40060453e57ffe2d32a2172d0f1cb7c4489",
+      "actual": "cabaa60c15a681723f13d6a63692c40060453e57ffe2d32a2172d0f1cb7c4489",
+      "match": true
+    },
+    "art/driftwood-isle/approved-brine-pitcher/v3/cameras.json": {
+      "expected": "e786801cab422130047a2801c8209f907ba44ef943815e5487a779d488f41157",
+      "actual": "e786801cab422130047a2801c8209f907ba44ef943815e5487a779d488f41157",
+      "match": true
+    },
+    "art/driftwood-isle/approved-brine-pitcher/v3/review-captures.json": {
+      "expected": "99a13336e6b8b024d0d349c2ada705d36c954a82a3fa0047b60d5c0c707c8520",
+      "actual": "99a13336e6b8b024d0d349c2ada705d36c954a82a3fa0047b60d5c0c707c8520",
+      "match": true
+    },
+    "src/shards/driftwood-isle/generators/brinePitcherNativeClips.ts": {
+      "expected": "fd31acc10bb645cb9aba40546675aa0c87517e951ee78d652241b1146cd617f8",
+      "actual": "fd31acc10bb645cb9aba40546675aa0c87517e951ee78d652241b1146cd617f8",
+      "match": true
+    },
+    "src/shards/driftwood-isle/generators/brinePitcherCombat.ts": {
+      "expected": "a633ce296c97b82554c7026cd9a9ae2c8d8a1a9b30430fa15cf2e5208e81d361",
+      "actual": "a633ce296c97b82554c7026cd9a9ae2c8d8a1a9b30430fa15cf2e5208e81d361",
+      "match": true
+    },
+    "src/shards/driftwood-isle/generators/brinePitcherNativePreview.ts": {
+      "expected": "b43a1f9e79afb578f003bf97a82d168086d7c67bfa1770105fcd5c11ac0a059d",
+      "actual": "b43a1f9e79afb578f003bf97a82d168086d7c67bfa1770105fcd5c11ac0a059d",
+      "match": true
+    },
+    "src/shards/driftwood-isle/behaviour/brine-pitcher.as": {
+      "expected": "25c67ba2ecb9037b7e3790dc1c41cd87138eb192860dfe5e54874e7ac175cdcf",
+      "actual": "25c67ba2ecb9037b7e3790dc1c41cd87138eb192860dfe5e54874e7ac175cdcf",
+      "match": true
+    }
+  },
+  "captureReceiptHashChecks": {
+    "paired-hero-board.webp": {
+      "expected": "c18c7383e182c553283ebaaaf2cd842c92341106be335b7a5505250b710eda58",
+      "actual": "c18c7383e182c553283ebaaaf2cd842c92341106be335b7a5505250b710eda58",
+      "match": true
+    },
+    "left.webp": {
+      "expected": "6808e593b44d7d4923691df91fb445d6d6766e210d1f1951cd084fde01264a89",
+      "actual": "6808e593b44d7d4923691df91fb445d6d6766e210d1f1951cd084fde01264a89",
+      "match": true
+    },
+    "explorer-paired-nine-board.webp": {
+      "expected": "eb32a343bd7d23bc0991fc51ea80bbb333316e38528fe904db9f1a362b340c98",
+      "actual": "eb32a343bd7d23bc0991fc51ea80bbb333316e38528fe904db9f1a362b340c98",
+      "match": true
+    },
+    "elevated-left.webp": {
+      "expected": "c2cbc86e0c88fe3afdaa2a49e120a30ce895d3a76b68d0e6220fda3aa6e15cef",
+      "actual": "c2cbc86e0c88fe3afdaa2a49e120a30ce895d3a76b68d0e6220fda3aa6e15cef",
+      "match": true
+    },
+    "elevated-back.webp": {
+      "expected": "6d63792d22d509a26e924ee01027a3a9e71791645eb17899851c760d120c28b8",
+      "actual": "6d63792d22d509a26e924ee01027a3a9e71791645eb17899851c760d120c28b8",
+      "match": true
+    },
+    "elevated-front.webp": {
+      "expected": "c303e86f7b9dc9582a36e8046ca03559266eb0bb758949133bdac4a9f635afc4",
+      "actual": "c303e86f7b9dc9582a36e8046ca03559266eb0bb758949133bdac4a9f635afc4",
+      "match": true
+    },
+    "hero.webp": {
+      "expected": "51ae53d69a71c5f5359f53f4f6ef62567cf8ec56d97eb73d38387ba3b612af85",
+      "actual": "51ae53d69a71c5f5359f53f4f6ef62567cf8ec56d97eb73d38387ba3b612af85",
+      "match": true
+    },
+    "top.webp": {
+      "expected": "8d7e72ce67fc86aafb86f9f61f8df66b6a9771c8aa5f65ee8f31f8c931746b7b",
+      "actual": "8d7e72ce67fc86aafb86f9f61f8df66b6a9771c8aa5f65ee8f31f8c931746b7b",
+      "match": true
+    },
+    "world-paired-nine-board.webp": {
+      "expected": "cb3b1416b68ef1c240c68e2f79efe0b092e2d5c5ca5ff33d034bf3e71e5f287f",
+      "actual": "cb3b1416b68ef1c240c68e2f79efe0b092e2d5c5ca5ff33d034bf3e71e5f287f",
+      "match": true
+    },
+    "front.webp": {
+      "expected": "ffa4a6c4419fa6a56923600444cecd61de8fa2fb1d27fdb2d900df29f4d3711e",
+      "actual": "ffa4a6c4419fa6a56923600444cecd61de8fa2fb1d27fdb2d900df29f4d3711e",
+      "match": true
+    },
+    "elevated-right.webp": {
+      "expected": "8d190ebcb49dd44f4dfacbefc75042423ad8ac302ce1bea962284d83e6f8c148",
+      "actual": "8d190ebcb49dd44f4dfacbefc75042423ad8ac302ce1bea962284d83e6f8c148",
+      "match": true
+    },
+    "right.webp": {
+      "expected": "636697ddd158e491806c3480c833b94215bc59d4d348642ecf55496da4ce4f94",
+      "actual": "636697ddd158e491806c3480c833b94215bc59d4d348642ecf55496da4ce4f94",
+      "match": true
+    },
+    "back.webp": {
+      "expected": "0a31fd8ab224f9984b4c419f444af8f9472a0dfa255d8f267702c4b0bec593ca",
+      "actual": "0a31fd8ab224f9984b4c419f444af8f9472a0dfa255d8f267702c4b0bec593ca",
+      "match": true
+    }
+  },
+  "rawAdmittedArtifactParity": {
+    "source-audit.json": {
+      "sha256": "cabaa60c15a681723f13d6a63692c40060453e57ffe2d32a2172d0f1cb7c4489",
+      "sameAsAdmitted": true
+    },
+    "brine-pitcher-v1.glb": {
+      "sha256": "e9c6e859beb91f4889c8f4f29af330ba4094955badd167fea1dd0a44dcb02199",
+      "sameAsAdmitted": true
+    },
+    "metadata.json": {
+      "sha256": "2faa7fb3782856aa52fbf802af15eb069cca23bf13dbd642f9b506cdd3bf1d58",
+      "sameAsAdmitted": true
+    },
+    "cameras.json": {
+      "sha256": "e786801cab422130047a2801c8209f907ba44ef943815e5487a779d488f41157",
+      "sameAsAdmitted": true
+    },
+    "native-source.json": {
+      "sha256": "68f88cb3a5e5c008736ece6e72cfece99516210d3e241c20d698cc055a2aff94",
+      "sameAsAdmitted": true
+    },
+    "construction.json": {
+      "sha256": "60712405dffd8ef8c199ef9c940ea7312efd9627892e10bc7e9e412ea7f04052",
+      "sameAsAdmitted": true
+    },
+    "payload.bin": {
+      "sha256": "70cc84fae55360f410433857685713a2475a0974cf853740f1ccbde725e6957e",
+      "sameAsAdmitted": true
+    }
+  },
+  "rawCaptures": {
+    "back.png": {
+      "sha256": "cf96c6eb6e5a0748d976aa51816162a2385484304474ecce1c5e4f783c951be1",
+      "bytes": 550135,
+      "dimensions": [
+        600,
+        720
+      ],
+      "viewedIndividuallyAtOriginalResolution": true
+    },
+    "elevated-back.png": {
+      "sha256": "108b8c3dbe38f2402898e3d07d2e2cb37621a728ef699bcbde557b0bc9dd620d",
+      "bytes": 914444,
+      "dimensions": [
+        600,
+        720
+      ],
+      "viewedIndividuallyAtOriginalResolution": true
+    },
+    "elevated-front.png": {
+      "sha256": "e378196847510ca6ef94259dfaba0ad1fafa55b0c7968ec60c5d13a36009b97b",
+      "bytes": 912143,
+      "dimensions": [
+        600,
+        720
+      ],
+      "viewedIndividuallyAtOriginalResolution": true
+    },
+    "elevated-left.png": {
+      "sha256": "abfaec09706dab0d34e018c17662068a2405077c7e7cda3e3ad4af6d2e71f56c",
+      "bytes": 877040,
+      "dimensions": [
+        600,
+        720
+      ],
+      "viewedIndividuallyAtOriginalResolution": true
+    },
+    "elevated-right.png": {
+      "sha256": "de083bd826778fdf81e58698e5a9c00053332d8938582ba2f652bff8a3a75e21",
+      "bytes": 868672,
+      "dimensions": [
+        600,
+        720
+      ],
+      "viewedIndividuallyAtOriginalResolution": true
+    },
+    "front.png": {
+      "sha256": "7586a58262bd74dcb29664344942cd6dd381a35ad7fde8760e5ffebf07903624",
+      "bytes": 556769,
+      "dimensions": [
+        600,
+        720
+      ],
+      "viewedIndividuallyAtOriginalResolution": true
+    },
+    "hero.png": {
+      "sha256": "9c92c7f1583e3fc45efd194d6d7c5d412b6b067ea95b4e25d036d9feddfbe5a4",
+      "bytes": 865074,
+      "dimensions": [
+        600,
+        720
+      ],
+      "viewedIndividuallyAtOriginalResolution": true
+    },
+    "left.png": {
+      "sha256": "65820c89438721bafc1d603fb2df69af3fab950081291fc7206106a7aee71047",
+      "bytes": 440162,
+      "dimensions": [
+        600,
+        720
+      ],
+      "viewedIndividuallyAtOriginalResolution": true
+    },
+    "right.png": {
+      "sha256": "5549f0158808144b39dd7c242aebbbf629fd836421008238dea13cec2ac17170",
+      "bytes": 441212,
+      "dimensions": [
+        600,
+        720
+      ],
+      "viewedIndividuallyAtOriginalResolution": true
+    },
+    "top.png": {
+      "sha256": "f6d2184fb3e9f8f4fac0f6564984ddf829ef2f48229afb755a7c212acf1254c5",
+      "bytes": 863404,
+      "dimensions": [
+        600,
+        720
+      ],
+      "viewedIndividuallyAtOriginalResolution": true
+    }
+  },
+  "rawBytesMatch": true,
+  "references": [
+    {
+      "repositoryPath": "art/driftwood-isle/concepts/approved-nine-2026-10-19/brine-pitcher-hero.png",
+      "nativeSiteEvidencePath": "wildshard-review-site-current/source-evidence/approved-nine-qa/originals/brine-pitcher-hero.png",
+      "sha256": "39b586abd4d1b956e13d6249311a71ece6ce1669f8fb0443db4ff02703318e76",
+      "sameAsViewedNativeSiteOriginal": true,
+      "dimensions": [
+        1229,
+        1280
+      ]
+    },
+    {
+      "repositoryPath": "art/driftwood-isle/concepts/approved-nine-2026-10-19/pitcherExplorerCorrectedGen.png",
+      "nativeSiteEvidencePath": "wildshard-review-site-current/source-evidence/approved-nine-qa/originals/pitcherExplorerCorrectedGen.png",
+      "sha256": "6d7a88b156db57fdcdaac00134d6be40928f1388321b1363911df4f3aa197679",
+      "sameAsViewedNativeSiteOriginal": true,
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "repositoryPath": "art/driftwood-isle/concepts/approved-nine-2026-10-19/corrections/pitcherWorldCorrectedGen-v2.png",
+      "nativeSiteEvidencePath": "wildshard-review-site-current/source-evidence/approved-nine-qa/final-world-20261019-1742/pitcherWorldCorrectedGen-v2.png",
+      "sha256": "c8f1111cbfa45eb50bff81d1da6313dbbadb48d34c6ff415aa1348dd59ed8787",
+      "sameAsViewedNativeSiteOriginal": true,
+      "dimensions": [
+        1229,
+        1280
+      ]
+    }
+  ],
+  "limitations": [
+    "Existing receipts and source were inspected; no Blender rerender or native runtime execution performed.",
+    "PNG hashes freshly recorded here; previous capture receipt does not pin raw PNG hashes.",
+    "Structural audit claims are not independently rerun and do not count toward likeness."
+  ]
+}
