@@ -1,0 +1,11 @@
+# Hemisphere versus toon-lift isolation
+
+Same admitted V70 neutral-studio-v1 app and weighted native, source checkpoint06ce127f51cd8663bca67166b62b6e35d9f1c184. This is a labelled diagnostic, not a replacement product or visual acceptance. Cloud Chromium uses the phone policy: iPhone UA, Linux platform, rendererDPR2,780x1688 buffer,one shadow cascade,three normal passes,no AO. It is not real-phone hardware/performance evidence.
+
+Real W/Lock/right-strafe input precedes Pause. Three fixed-world camera angles each compare four combinations: original hemisphere+original lift; v1 hemisphere+original lift; original hemisphere+v1 lift; v1 hemisphere+v1 lift. The v1 rim [0.65,0.475,0.3] is fixed in every comparison. Thus original-fill is an isolated old fill control, not the complete previous look. The exact actor/bone world matrices are unchanged across all12matched views; camera matrices and world key match within each angle. Actual uniform and hemisphere values are in each shot receipt.
+
+Original hemisphere sky linear[.19806932,.27889426,.90466117],ground[.68668531,.39157248,.18782077],intensity.9. V1 sky[.78353779,.78353779,.72305513],ground[.44520119,.37626212,.27049779],intensity1.15. Original toon lift[.07,.035,.2];v1[.1,.09,.07]. The material’s indirect diffuse adds hemisphere irradiance and toon lift before multiplying Lambert albedo. Both controls remain lit; neither alters vertex colors.
+
+Independent still review finds hemisphere-only produces most purple-to-tan and navy-to-dark-teal correction. Toon-only retains most hue problem and warms browns. Combined v1 is more yellow/olive than hemisphere-only at120/240degrees. The result supports a genuinely neutral-gray fill/lift study rather than strengthening v1’s warm lift. Fin stippling persists across these controls and remains a separate shadow investigation.
+
+Run terminal0,00:38:06–00:39:56UTC:341actual unique rendered-frame samples,12matched stills and2real stills;zero runtime/HTTP errors;all six persistence stores empty. Raw capture/video and PNG hashes are pinned; their original normal files remain locally preserved. The portable script changes only the Chromium executable location to CHROMIUM_EXECUTABLE and must use the browser lane. Full native shader sources remain in the pinned raw capture. No mounted-prefix or new full-combat acceptance is claimed.

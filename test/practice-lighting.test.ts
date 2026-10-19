@@ -6,6 +6,7 @@ import { practiceLevel } from '../src/practiceLevel';
 import { configurePracticeOcclusion, practiceHemisphere } from '../src/practiceLighting';
 import presentation from '../src/shards/driftwood-isle/data/practiceLooks.json';
 import profiles from '../src/shards/driftwood-isle/data/practiceLighting.json';
+import grayProfiles from '../src/shards/driftwood-isle/data/practiceNeutralGrayLighting.json';
 import manifest from '../src/shards/driftwood-isle/manifest.json';
 import { createPufferPreviewOutput, createPufferPreviewSource } from '../src/shards/driftwood-isle/generators/pufferNativePreview';
 import type { ProjectOutput } from '../src/sdk/projectOutput';
@@ -82,4 +83,20 @@ test('lighting and AO opt-ins alter only presentation blob, retaining native pos
     expect(after.namedFiles?.filter(row => row.name !== 'practice/looks.json'))
       .toEqual(before.namedFiles?.filter(row => row.name !== 'practice/looks.json'));
   }
+});
+
+
+test('neutral gray v2 preserves v1 values and changes only the explicit presentation', () => {
+  expect(profiles).toEqual({ 'neutral-studio-v1': {
+    hemisphere: { sky: 15066589, ground: 11707790, intensity: 1.15 },
+    toon: { lift: [0.1, 0.09, 0.07], rim: [0.65, 0.475, 0.3] },
+  }, 'contact-v1': { radius: 0.4, intensity: 1 } });
+  const gray = { profile: 'neutral-gray-v2' as const, ...grayProfiles['neutral-gray-v2'].hemisphere };
+  const original = createPufferPreviewSource(), after = createPufferPreviewSource('neutral-gray-v2');
+  expect(after.look.materials).toEqual(original.look.materials);
+  expect(after.look.familyLooks.toon).toEqual({ ...v.parse(ToonLookSchema, {}), ...grayProfiles['neutral-gray-v2'].toon });
+  expect({ ...after, look: original.look }).toEqual(original);
+  const output = createPufferPreviewOutput({ original: true }, 'gait5', 'authored-pose', 'neutral-gray-v2', 'contact-v1');
+  expect(readPracticePresentation(looks(output)).arenaLighting).toEqual(gray);
+  expect(practiceLevel(gray).sky).toEqual({ ...practiceLevel().sky, hemiSky: gray.sky, hemiGround: gray.ground, hemiIntensity: gray.intensity });
 });

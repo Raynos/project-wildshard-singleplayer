@@ -30,8 +30,8 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
   const input = resolvePufferPreviewInput(root, descriptor, dimensions);
   const { candidate, source, sourceRelative, sourceBytes, dimensionBytes, measurementSha256 } = input;
   const rigAdmission = mode === 'gait4' || mode === 'gait5' ? assertPufferGaitAdmission(root, input, mode) : null;
-  if (arenaLighting !== null && (arenaLighting !== 'neutral-studio-v1' || rigAdmission?.profile !== 'v70-rig1-gait5')) throw new Error('Lighting study requires exact admitted V70 gait5');
-  if (arenaOcclusion !== null && (arenaOcclusion !== 'contact-v1' || arenaLighting !== 'neutral-studio-v1')) throw new Error('Contact AO requires explicit neutral studio lighting study');
+  if (arenaLighting !== null && (!['neutral-studio-v1', 'neutral-gray-v2'].includes(arenaLighting) || rigAdmission?.profile !== 'v70-rig1-gait5')) throw new Error('Lighting study requires exact admitted V70 gait5');
+  if (arenaOcclusion !== null && (arenaOcclusion !== 'contact-v1' || arenaLighting === null)) throw new Error('Contact AO requires explicit neutral studio lighting study');
   const packed = resolve(destination, 'pack'), productDirectory = resolve(destination, 'product');
   mkdirSync(destination, { recursive: true });
   writeFileSync(resolve(destination, 'unaccepted-dimensions.json'), dimensionBytes, { flag: 'wx' });
@@ -69,7 +69,7 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
     ...(rigAdmission === null ? {} : { rigAdmission }),
     ...(rootFlinch === undefined ? {} : { rootFlinch }),
     ...(arenaLighting === null ? {} : { arenaLighting,
-      arenaLightingProfileSha256: hash(readFileSync(resolve(project, 'data/practiceLighting.json'))) }),
+      arenaLightingProfileSha256: hash(readFileSync(resolve(project, arenaLighting === 'neutral-gray-v2' ? 'data/practiceNeutralGrayLighting.json' : 'data/practiceLighting.json'))) }),
     ...(arenaOcclusion === null ? {} : { arenaOcclusion }),
     ...(mode === 'gait5' ? { visualAdapter: 'puffer-gait5-continuity', visualAdapterSha256: hash(readFileSync(resolve(root, 'src/pufferGaitContinuityPreview.ts'))) } : {}),
     source: sourceRelative, measurementSha256, sourceSha256: hash(sourceBytes), metadataSha256: hash(readFileSync(resolve(packed, 'metadata.json'))),

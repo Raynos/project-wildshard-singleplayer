@@ -1,0 +1,6 @@
+{
+  "neutral-gray-v2": {
+    "hemisphere": { "sky": 15066597, "ground": 10855845, "intensity": 1.15 },
+    "toon": { "lift": [0.1, 0.1, 0.1], "rim": [0.65, 0.475, 0.3] }
+  }
+}

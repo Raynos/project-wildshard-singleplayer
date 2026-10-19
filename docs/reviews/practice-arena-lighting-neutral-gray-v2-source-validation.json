@@ -1,0 +1,58 @@
+{
+  "schema": "wildshard.arena-lighting-gray-v2-source.v1",
+  "previousSourceCheckpoint": "06ce127f51cd8663bca67166b62b6e35d9f1c184",
+  "checks": {
+    "focusedTests": {
+      "passed": 20,
+      "files": 5,
+      "terminal": 0
+    },
+    "typedLint": {
+      "files": 4,
+      "terminal": 0
+    },
+    "nativeAdmissionTests": {
+      "passed": 6,
+      "terminal": 0
+    },
+    "diffCheck": {
+      "terminal": 0
+    }
+  },
+  "preservedV1ProfileSha256": "0e39d9246fd4e547fc5ef087fb2bd3467538aef2d3a5966885ad4d112e729765",
+  "newGrayProfileSha256": "b0871ebc6bb4b1584cc3b970861dd9d577dd1d6f03c59b752f4d937571c29101",
+  "shadowBiasChanged": false,
+  "visualAcceptance": false,
+  "files": [
+    {
+      "path": "scripts/build-puffer-native-preview.mjs",
+      "bytes": 8057,
+      "sha256": "0bb51ab1508a639fe0e3cae41ee723c6bc341493245a824dfee4978ffdead7ef"
+    },
+    {
+      "path": "src/practicePresentation.ts",
+      "bytes": 1190,
+      "sha256": "24f488dbb1e2f64b0a3cb30c31fb820f2d064eb8ca0ccb21743aec31995f2b30"
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/pufferNativePreview.ts",
+      "bytes": 8244,
+      "sha256": "1b507b6f43e41c3c17776d77f1975dfcc1f1d6f11eb627669d35551d39467069"
+    },
+    {
+      "path": "src/shards/driftwood-isle/data/practiceNeutralGrayLighting.json",
+      "bytes": 176,
+      "sha256": "b0871ebc6bb4b1584cc3b970861dd9d577dd1d6f03c59b752f4d937571c29101"
+    },
+    {
+      "path": "test/practice-lighting.test.ts",
+      "bytes": 6848,
+      "sha256": "b7327c28b00de2d02a7575fcf0e052808af70a2d682ac54ca4208174941e1aab"
+    },
+    {
+      "path": "docs/reviews/practice-arena-lighting-neutral-gray-v2.md",
+      "bytes": 1879,
+      "sha256": "d46a76af21427f6d6610685bf09781c88027185aa482319f20ab93cdcaef71e4"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "name": "matched-000-hemi-only.png",
+    "bytes": 730013,
+    "sha256": "acccb144ca106cad0385fdecd338c080c0bc0ca13a7d2d420c5510ffeb1a793e"
+  },
+  {
+    "name": "matched-000-neutral-v1.png",
+    "bytes": 732138,
+    "sha256": "5fea1e9ccdac54e897fdd9066cc3d0bbe852ef7e3324afb0c9c769c9cf4a1b59"
+  },
+  {
+    "name": "matched-000-original-fill.png",
+    "bytes": 723701,
+    "sha256": "fd69db40cbb86358dfd7ed690ee0b14d6dae3cadb00138f093a1459806bac61e"
+  },
+  {
+    "name": "matched-000-toon-only.png",
+    "bytes": 725279,
+    "sha256": "dc0b37b490f28c49cc5a3fd7837eeafbfadcde385c580b6e049e4d4d05e4e201"
+  },
+  {
+    "name": "matched-120-hemi-only.png",
+    "bytes": 855124,
+    "sha256": "acd3bb256d813924b7347355901100a3a33a68a89bed4ccf8b9e573cd0ab5b04"
+  },
+  {
+    "name": "matched-120-neutral-v1.png",
+    "bytes": 855246,
+    "sha256": "61bf21b1c2ef9ab154005568de4e83a02a135cb74432cf971f6c2a454a9c46ef"
+  },
+  {
+    "name": "matched-120-original-fill.png",
+    "bytes": 857972,
+    "sha256": "84397e0eedee4e16fd91181bdf7ff219b4f0efa75a067eb4480b5bb84b200bac"
+  },
+  {
+    "name": "matched-120-toon-only.png",
+    "bytes": 859891,
+    "sha256": "52ffef11ab6d44c2686af6adaa6da38f02278b73f955ff5d78629425cf015cad"
+  },
+  {
+    "name": "matched-240-hemi-only.png",
+    "bytes": 798896,
+    "sha256": "15fd56923155384e36f81761d3f3c620f46be22b82b5f2f5198cfb5f5e4b29a0"
+  },
+  {
+    "name": "matched-240-neutral-v1.png",
+    "bytes": 799115,
+    "sha256": "794563629a427442572e8094ee3c4fea73d71af271cc01f64acd2d8dd4fd68c2"
+  },
+  {
+    "name": "matched-240-original-fill.png",
+    "bytes": 781207,
+    "sha256": "1242238f33c6809f85073d5429eef081fa6234378645228a1e35187423215215"
+  },
+  {
+    "name": "matched-240-toon-only.png",
+    "bytes": 782573,
+    "sha256": "990d8692f8988f2ca600d665d2dcf44a21b059fc900a727614edb848575d8a8a"
+  },
+  {
+    "name": "real-right.png",
+    "bytes": 814487,
+    "sha256": "96ee77b3e7e59fe11636d3c4e8084453da731dc38ffa960b2647d0add18d5467"
+  },
+  {
+    "name": "real-start.png",
+    "bytes": 717796,
+    "sha256": "fbc04897e7c7568e105509c3e48b4daed9878a5e72e429ed4c4896b8c5927b4e"
+  }
+]

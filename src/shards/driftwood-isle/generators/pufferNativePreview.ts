@@ -16,9 +16,13 @@ import pickupCatalogue from '@wildshard/game/data/pickupCatalogue' with { type: 
 import authoredGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import heldArms from '../data/heldArms.json' with { type: 'json' };
 import practiceLighting from '../data/practiceLighting.json' with { type: 'json' };
+import neutralGrayLighting from '../data/practiceNeutralGrayLighting.json' with { type: 'json' };
 import { DRIFTWOOD_REGULAR_ACTORS, DRIFTWOOD_REGULAR_DECISIONS, DRIFTWOOD_REGULAR_FIELDS,
   DRIFTWOOD_REGULAR_MOVES, DRIFTWOOD_REGULAR_REWARDS, DRIFTWOOD_REGULAR_SPECIES, DRIFTWOOD_REGULAR_STRIKES } from './driftwoodRegularCombat';
 
+
+type PufferPreviewLighting = 'neutral-studio-v1' | 'neutral-gray-v2';
+const lightingProfiles = { 'neutral-studio-v1': practiceLighting['neutral-studio-v1'], ...neutralGrayLighting };
 
 export type PufferNativePreviewMode = PufferPreviewPose | 'gait4' | 'gait5';
 
@@ -35,14 +39,14 @@ const materials = ['driftwood-creature', 'driftwood-creature-glowing',
 export const PUFFER_PREVIEW_DECISION_MEMORY = decisions.reduce((sum, row) => sum + row.pages * 65536 * 2, 0);
 
 /** Build-only, isolated practice catalogue. No world generator, placement, save or production inventory is imported. */
-export function createPufferPreviewSource(arenaLighting?: 'neutral-studio-v1'): Shardfile {
+export function createPufferPreviewSource(arenaLighting?: PufferPreviewLighting): Shardfile {
   const base = emptyShardfile({ slug: 'driftwood-isle', name: 'Puffer Native WIP Preview', author: 'Wildshard', revision: 2, seed: 0x5ea1 });
   return parseShardfile({ ...base,
     state: { ...base.state, shared: DRIFTWOOD_REGULAR_FIELDS.filter(row => ['puffer-st', 'regular-clock'].includes(row.name)) },
     serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + PUFFER_PREVIEW_DECISION_MEMORY },
     budgets: { ...base.budgets, sim: { ...base.budgets.sim, resident: PUFFER_PREVIEW_DECISION_MEMORY } },
     look: { ...base.look,
-      ...(arenaLighting === undefined ? {} : { familyLooks: { ...base.look.familyLooks, toon: practiceLighting[arenaLighting].toon } }),
+      ...(arenaLighting === undefined ? {} : { familyLooks: { ...base.look.familyLooks, toon: lightingProfiles[arenaLighting].toon } }),
       materials: Object.fromEntries(materials.map(id => [id, { family: 'graph', graph: authoredGraphs.looks[id] }])) },
     // This is the existing source runtime identity, not a copied runtime or an instruction to boot the island.
     // The standalone practice host owns the scene and consumes these admitted data sections directly.
@@ -61,14 +65,14 @@ export function createPufferPreviewSource(arenaLighting?: 'neutral-studio-v1'): 
 
 /** Separate product only: never reads or writes the rejected multi-creature generated bake. */
 export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferNativePreviewMode, rootFlinch?: 'authored-pose',
-  arenaLighting?: 'neutral-studio-v1', arenaOcclusion?: 'contact-v1'): ProjectOutput {
+  arenaLighting?: PufferPreviewLighting, arenaOcclusion?: 'contact-v1'): ProjectOutput {
   if (rootFlinch !== undefined && mode !== 'gait5') throw new Error('Authored recoil requires the admitted gait5 preview');
   const looks: ((typeof practiceLooks.looks)[number] & { rootFlinch?: 'authored-pose' })[] = [];
   for (const row of practiceLooks.looks) {
     if (row.kind === 'brine-puffer') looks.push(rootFlinch === undefined ? row : { ...row, rootFlinch });
   }
   const poses = emitNamedBlobs([
-    ['practice/looks.json', { ...practiceLooks, looks, ...(arenaLighting === undefined ? {} : { arenaLighting: { profile: arenaLighting, ...practiceLighting[arenaLighting].hemisphere } }),
+    ['practice/looks.json', { ...practiceLooks, looks, ...(arenaLighting === undefined ? {} : { arenaLighting: { profile: arenaLighting, ...lightingProfiles[arenaLighting].hemisphere } }),
       ...(arenaOcclusion === undefined ? {} : { arenaOcclusion: { profile: arenaOcclusion, ...practiceLighting[arenaOcclusion] } }) }],
     ['practice/bodies.json', creatureBodies],
     ['practice/pickups.json', { ...pickupCatalogue, looks: [], geometries: pickupCatalogue.geometries.filter(row => row.key === pickupCatalogue.coin) }],
@@ -97,7 +101,7 @@ export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferN
 
 /** Recompile the one Puffer guest against this exact catalogue, then emit and re-read the real SDK product and receipt. */
 export async function buildPufferPreviewProduct(project: string, destination: string, options: DecisionBuildOptions, bodies: unknown, mode: PufferNativePreviewMode, rootFlinch?: 'authored-pose',
-  arenaLighting?: 'neutral-studio-v1', arenaOcclusion?: 'contact-v1'): Promise<ReturnType<typeof validateOutputProduct>> {
+  arenaLighting?: PufferPreviewLighting, arenaOcclusion?: 'contact-v1'): Promise<ReturnType<typeof validateOutputProduct>> {
   const source = createPufferPreviewSource(arenaLighting);
   const prepared = await prepareProjectOutput(project, createPufferPreviewOutput(bodies, mode, rootFlinch, arenaLighting, arenaOcclusion), { source, options });
   const merged = mergeProjectBlobs(source, prepared.assets, prepared.blobs, prepared.options.namedFiles);
