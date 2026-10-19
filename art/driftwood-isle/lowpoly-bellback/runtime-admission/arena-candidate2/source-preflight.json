@@ -1,0 +1,26 @@
+{
+  "schema": "wildshard.bellback.folded-source-preflight.v1",
+  "runtimeAcceptance": false,
+  "closureSha256": "7ff9f84aa717f8e24d42ed5e02c7b51c10954b49481c069ecc19e19f61767178",
+  "checks": {
+    "nodeAdmission": "2/2 pass",
+    "nodeWorldReplay": "3/3 pass",
+    "numericPoseSourceWorld": "8/8 pass",
+    "denseLocalEnvelope": "201 samples per each of7 states pass",
+    "maximumShoulderLocalOffset": 0.2064252981446304,
+    "shoulderOffsetCeiling": 0.21,
+    "livingJointOutputParity": "exact pass",
+    "typeAwareLint": {
+      "exitCode": 0,
+      "files": 13,
+      "command": "oxlint --type-aware -c .oxlintrc.json (13 new Bellback code files)",
+      "diagnostics": []
+    },
+    "baselineMeasurementPreserved": "deep equal after lint-only analyzer revision"
+  },
+  "remaining": [
+    "Fresh exact product and host build",
+    "Actual candidate2 full-body collapse/settle/Retry observer",
+    "Visible support/collision/combat acceptance; baseline replay alone does not close contact"
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "wildshard.bellback.support-endpoints.v1",
+  "angleRange": [
+    -0.52,
+    0.52
+  ],
+  "method": "Analytic sine/cosine extrema at interval ends and stationary points; positive angle selects larger Z, negative selects smaller Z. All original convex hull points lie on or above selected endpoint support. No approximation of original supported angle range.",
+  "checks": [
+    {
+      "leg": 0,
+      "endpoints": [
+        [
+          -1.4600000381469727,
+          0.04977816343307495
+        ],
+        [
+          -1.4600000381469727,
+          0.8102218508720398
+        ]
+      ],
+      "minimumDominanceMargin": 0.0,
+      "passed": true
+    },
+    {
+      "leg": 1,
+      "endpoints": [
+        [
+          -1.4600000381469727,
+          0.04977816343307495
+        ],
+        [
+          -1.4600000381469727,
+          0.8102218508720398
+        ]
+      ],
+      "minimumDominanceMargin": 0.0,
+      "passed": true
+    },
+    {
+      "leg": 2,
+      "endpoints": [
+        [
+          -1.4600000381469727,
+          -0.7302218675613403
+        ],
+        [
+          -1.4600000381469727,
+          0.03022181987762451
+        ]
+      ],
+      "minimumDominanceMargin": 0.0,
+      "passed": true
+    },
+    {
+      "leg": 3,
+      "endpoints": [
+        [
+          -1.4600000381469727,
+          -0.7302218675613403
+        ],
+        [
+          -1.4600000381469727,
+          0.03022181987762451
+        ]
+      ],
+      "minimumDominanceMargin": 0.0,
+      "passed": true
+    }
+  ]
+}
