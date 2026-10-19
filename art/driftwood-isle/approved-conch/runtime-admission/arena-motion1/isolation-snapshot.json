@@ -1,0 +1,37 @@
+{
+  "schema": "wildshard.conch.source-isolation.v1",
+  "baseline": "Current checkout compared against HEAD; no source modifications by this lane",
+  "before": {
+    "practice.html": "630ef1c5ab6b09621fc23e0c30ef2c449e30fe3cb9ad258b4a2b2b615d2af345",
+    "src/practice.ts": "c40b4c5f3d7eebcd536788c9ad7cf8c207dac75cba430a13da67f895d13ac207",
+    "src/practiceContent.ts": "355d1e66a5cfb62971248c64a0f332af3d19c95790e6cc24c20560c485a408fd",
+    "src/game/practice/PracticeCreature.ts": "96cad9369bcfaee9018f5d1556902e0248a34c8b8ddd2bbd7175eb8717a9505a",
+    "src/game/practice/PracticeLoot.ts": "0dfde1528e8f55b455e40f67e7d48cd10b72207a66e22b4b17a663589b3b89e5",
+    "src/game/practiceDemo/startPracticeDemo.ts": "e323ab61e2c19dcd40640c1dd44ee1d32962a49e2fdc9c002a38d73b5abe3a58",
+    "src/shards/driftwood-isle/behaviour/conchDuelist.as": "07ded78edf914ccc41c2d636b1d9e99d08f5fd4617a509fc3b3c0b3caea93714",
+    "src/shards/driftwood-isle/generators/driftwoodRegularCombat.ts": "1d440026e146b9d46ab58098e9517165ba3290365f1317e0a6f8fe169ade72ff"
+  },
+  "after": {
+    "practice.html": "630ef1c5ab6b09621fc23e0c30ef2c449e30fe3cb9ad258b4a2b2b615d2af345",
+    "src/practice.ts": "c40b4c5f3d7eebcd536788c9ad7cf8c207dac75cba430a13da67f895d13ac207",
+    "src/practiceContent.ts": "355d1e66a5cfb62971248c64a0f332af3d19c95790e6cc24c20560c485a408fd",
+    "src/game/practice/PracticeCreature.ts": "96cad9369bcfaee9018f5d1556902e0248a34c8b8ddd2bbd7175eb8717a9505a",
+    "src/game/practice/PracticeLoot.ts": "0dfde1528e8f55b455e40f67e7d48cd10b72207a66e22b4b17a663589b3b89e5",
+    "src/game/practiceDemo/startPracticeDemo.ts": "e323ab61e2c19dcd40640c1dd44ee1d32962a49e2fdc9c002a38d73b5abe3a58",
+    "src/shards/driftwood-isle/behaviour/conchDuelist.as": "07ded78edf914ccc41c2d636b1d9e99d08f5fd4617a509fc3b3c0b3caea93714",
+    "src/shards/driftwood-isle/generators/driftwoodRegularCombat.ts": "1d440026e146b9d46ab58098e9517165ba3290365f1317e0a6f8fe169ade72ff"
+  },
+  "HEADBytesMatch": {
+    "practice.html": true,
+    "src/practice.ts": true,
+    "src/practiceContent.ts": true,
+    "src/game/practice/PracticeCreature.ts": true,
+    "src/game/practice/PracticeLoot.ts": true,
+    "src/game/practiceDemo/startPracticeDemo.ts": true,
+    "src/shards/driftwood-isle/behaviour/conchDuelist.as": true,
+    "src/shards/driftwood-isle/generators/driftwoodRegularCombat.ts": true
+  },
+  "browserStorageBefore": null,
+  "browserStorageAfter": null,
+  "browserProofPending": true
+}

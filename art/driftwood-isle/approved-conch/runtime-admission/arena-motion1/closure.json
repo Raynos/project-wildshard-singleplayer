@@ -1,0 +1,72 @@
+{
+  "schema": "wildshard.conch.isolated-route-closure.v1",
+  "candidate": "character-native15-motion1",
+  "canonicalClosureSha256": "ceaa0fc71297d9f7462519b66cb2550d89def38050abcc305e7c7b0205ed1d75",
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion1/dimension-measurement.json": {
+      "sha256": "8b7da9478c4a32754b1644e7447091bc4bfffd13ede05760cec4386d16e69b07",
+      "bytes": 1207
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion1/motion-envelope.json": {
+      "sha256": "b0abba9b2a85d1489ae2f66ce91e5826066ea874585d1a07ff21fa258ef61bb6",
+      "bytes": 874
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion1/isolation-snapshot.json": {
+      "sha256": "7789f5190b54953a3cfd0084cf7a61cb12beab536f944f750753a8b3dafdb462",
+      "bytes": 2456
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion1/admission.json": {
+      "sha256": "841aec5b3e8757d362be82cdc8e9346b6c12a8d71cd9102f556e1a4652dedc9d",
+      "bytes": 1092
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion1/metadata.json": {
+      "sha256": "222b363ccf5fb71bf5b7297c97453b293524769a581208c7fe3bc774462cbfeb",
+      "bytes": 5284
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion1/README.md": {
+      "sha256": "2ba037d1c5b414b62c54d41f6b1221268806255685db3332777103f23ab9f441",
+      "bytes": 1899
+    },
+    "scripts/conch-native-admission.mjs": {
+      "sha256": "c4a2cbca459651d15d0c215c4460f9c1939ca2f7b32c99ec3ec71a4e2da36b9b",
+      "bytes": 3167
+    },
+    "scripts/conch-native-admission.test.mjs": {
+      "sha256": "f1c1c78e1d939777dc621a7493cf9874d263816a81ce438c1c5a75b94e7f0e35",
+      "bytes": 1835
+    },
+    "scripts/build-conch-native-preview.mjs": {
+      "sha256": "5b0363c610283f2b01695e4e8e7a573ebc243720996ff0407607fa0afdc4622c",
+      "bytes": 5125
+    },
+    "vite/conch-preview.config.ts": {
+      "sha256": "2b0bbbeefa1300707960190d581816b7a59119410bb20fcb0cc6b6b53a5c8f38",
+      "bytes": 7710
+    },
+    "src/shards/driftwood-isle/generators/conchNativePreview.ts": {
+      "sha256": "73dc36273e40e289d98fc6bce7352b0312bd5e259a742cf25f1066973f74991b",
+      "bytes": 7543
+    },
+    "test/conch-native-envelope.test.ts": {
+      "sha256": "0d326ac3805d8c311a4336b4b7dbdd566a1cb94bdb471e606f72f9acd3e0f171",
+      "bytes": 4885
+    },
+    "test/conch-native-preview.test.ts": {
+      "sha256": "60e430412f4a8279c67b84b20f519404c2c82ee13f8b03d50c737ede50d897bd",
+      "bytes": 1272
+    }
+  },
+  "checks": {
+    "nodeAdmission": 2,
+    "vitestEnvelope": 1,
+    "vitestPreview": 1,
+    "oxlint": "passed single-thread",
+    "build": "not run",
+    "browser": "not run",
+    "envelope": "provisional rigid-part approximation; superseded by weighted motion2"
+  },
+  "runtimeAcceptance": false,
+  "visualAcceptance": false,
+  "animationAcceptance": false,
+  "colliderAcceptance": false
+}

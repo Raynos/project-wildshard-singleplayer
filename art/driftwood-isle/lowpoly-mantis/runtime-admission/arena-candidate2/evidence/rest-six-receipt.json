@@ -1,0 +1,361 @@
+{
+  "schema": "wildshard.mantis.native-rest-render.v1",
+  "scope": "Frozen V7 rest-only source/native comparison in motion2 renderer host; not gameplay",
+  "started": "2026-10-19T04:30:45.140Z",
+  "sourceSha256": "6f63fff9d162a02a4b650aeefa4ccb370fb8fe818c23e51c2d45575ac3c3ea6f",
+  "hostPreview": {
+    "schema": "wildshard.mantis.native-preview.v1",
+    "candidate": "V7-native22-motion2",
+    "mode": "motion2",
+    "admission": {
+      "schema": "wildshard.mantis.arena-candidate.v1",
+      "candidate": "V7-native22-motion2",
+      "rootFlinch": "authored-pose",
+      "footOrder": [
+        0,
+        2,
+        1,
+        3
+      ],
+      "footLabels": [
+        "front-left",
+        "front-right",
+        "rear-left",
+        "rear-right"
+      ],
+      "files": {
+        "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/metadata.json": "f6354fa3ca75a30fdddd428fd81152884e96a27a246107e98ffcc5801281a73a",
+        "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/payload.bin": "dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2",
+        "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/mantis-v7-native.json": "6c47dd59acdc01993b84f70adf39a1c3f050088e6bbd781409514f85fda75bb0",
+        "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/diagnostic-dimensions.json": "669e51c975ad55819484c9d24c6d9f10edf053c49097103cd1eda45093755a01",
+        "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/metadata.json": "66f5398fd85336b407ee14a7f249d90dace499d0fb55695771aaebf9aa28e88f",
+        "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/dimensions.json": "e0bd5afc3bee321177aabe6caa2aaa87afd79c1152e3fe94c467d4a842c3a7cc",
+        "src/shards/driftwood-isle/generators/mantisGroundedClips.ts": "b3264c2961bd0a2e3e40b11b7182396df951191358085910831026a5aeedd9b4",
+        "src/shards/driftwood-isle/generators/mantisGroundedPreview.ts": "8883af70bd2d6431e5ce012266d62db1f32964132f18f529c5d7060ad1af1cf9",
+        "src/shards/driftwood-isle/generators/driftwoodRegularCombat.ts": "1d440026e146b9d46ab58098e9517165ba3290365f1317e0a6f8fe169ade72ff",
+        "src/shards/driftwood-isle/behaviour/splinterMantis.as": "c75103f4bdd3370baafa989dba6b82dc6b1396b56a484426a2ff3de0eafc1a71",
+        "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/dimension-measurement.json": "4b8e0cb9115a152425c5dddbb856de4862e2f27ea41368c6b2809437767924f8",
+        "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/measure_dimensions.py": "995df6961e81082b02bf4ae781484d7ed0d21edaeea39dee7ab22e82ed5cdb69"
+      },
+      "visualAcceptance": false,
+      "colliderAcceptance": false,
+      "runtimeAcceptance": false,
+      "phonePerformanceAcceptance": false,
+      "note": "Exact V7 payload; explicitly measured central abdomen and face dimensions, reordered feet, new grounded motion2. Appendage/crown and neck hit-volume omissions disclosed. No shared combat or range changes. Not accepted."
+    },
+    "metadataSha256": "8c285beec0a773327772546f347dc55dd70321c0c2a0f4341e80dff90a11018d",
+    "packedSha256": "dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2",
+    "bodyFile": "/assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin",
+    "sourceHash": "8e4ce9548975175ff813e556976def02c8a15505ce155177a0892a53459303f6",
+    "colliderAcceptance": false,
+    "visualAcceptance": false,
+    "runtimeAcceptance": false
+  },
+  "errors": [],
+  "httpErrors": [],
+  "views": [
+    {
+      "name": "front",
+      "mode": "source",
+      "camera": [
+        0,
+        902.5,
+        3
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-source.png",
+      "sha256": "1eb3902586cde5e8c087139bb1f86fd524da1b283ef26ec46967a28b6adbd876"
+    },
+    {
+      "name": "front",
+      "mode": "native",
+      "camera": [
+        0,
+        902.5,
+        3
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-native.png",
+      "sha256": "e6a1cced3adcbf51c124cf7c43ca6bdab0323218037ea58e511c5ff329e8665d"
+    },
+    {
+      "name": "left",
+      "mode": "source",
+      "camera": [
+        -10,
+        902.5,
+        -7
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "left-source.png",
+      "sha256": "884d8b68e8199914054555724e23b110124ed58eb0b9ec66ccf0bb8f43f291ee"
+    },
+    {
+      "name": "left",
+      "mode": "native",
+      "camera": [
+        -10,
+        902.5,
+        -7
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "left-native.png",
+      "sha256": "309d11544d7971fd54ec0a3594039619cb35d7e48d9e83563e8191d29789e8f2"
+    },
+    {
+      "name": "right",
+      "mode": "source",
+      "camera": [
+        10,
+        902.5,
+        -7
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "right-source.png",
+      "sha256": "253e5ccfadfd5a2109053df5fbc60797d786052fee94802ebb4e7cb4edcf7510"
+    },
+    {
+      "name": "right",
+      "mode": "native",
+      "camera": [
+        10,
+        902.5,
+        -7
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "right-native.png",
+      "sha256": "8e3a6de2096eac0890fd2a1a8fd704ebe1d5d30bba03c528b21352455c7db573"
+    },
+    {
+      "name": "back",
+      "mode": "source",
+      "camera": [
+        0,
+        902.5,
+        -17
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "back-source.png",
+      "sha256": "75af6f3797949aded6ce5d5b65924810835423f1939afe17bf3a01bb568448d7"
+    },
+    {
+      "name": "back",
+      "mode": "native",
+      "camera": [
+        0,
+        902.5,
+        -17
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "back-native.png",
+      "sha256": "41482b74ddc7200b9c135a75f7602b4a0ee0885ebaa83bd060847c2db2d1f8bb"
+    },
+    {
+      "name": "front-left",
+      "mode": "source",
+      "camera": [
+        -8,
+        903,
+        1
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-left-source.png",
+      "sha256": "f8741a9283dc0cd40b85cc8154766a9905b346a71426e2fa481b80cd515e6175"
+    },
+    {
+      "name": "front-left",
+      "mode": "native",
+      "camera": [
+        -8,
+        903,
+        1
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-left-native.png",
+      "sha256": "f41ff719ad10d45dc9095771da6a9654209e0df14665ad82bd380af752b87123"
+    },
+    {
+      "name": "front-right",
+      "mode": "source",
+      "camera": [
+        8,
+        903,
+        1
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-right-source.png",
+      "sha256": "3953111a75b4f12a5f5343455c501ac42ca8e00238d0f004d8ed7e075f654a17"
+    },
+    {
+      "name": "front-right",
+      "mode": "native",
+      "camera": [
+        8,
+        903,
+        1
+      ],
+      "target": [
+        0,
+        901.8,
+        -7
+      ],
+      "fov": 45,
+      "frame": 2,
+      "file": "front-right-native.png",
+      "sha256": "8e62a8cf83de21d1030f9f66d76f21c5cc682dc9ee69031734bca622a8e4848b"
+    }
+  ],
+  "setup": {
+    "vertices": 7986,
+    "bones": [
+      "body",
+      "neck",
+      "head",
+      "abdomen",
+      "wing-1_0",
+      "wing-1_1",
+      "leg-1_0",
+      "leg-1_0_knee",
+      "leg-1_1",
+      "leg-1_1_knee",
+      "raptor-1",
+      "raptor-1_elbow",
+      "raptor-1_hook",
+      "wing1_0",
+      "wing1_1",
+      "leg1_0",
+      "leg1_0_knee",
+      "leg1_1",
+      "leg1_1_knee",
+      "raptor1",
+      "raptor1_elbow",
+      "raptor1_hook"
+    ],
+    "facetJitter": 0.12,
+    "sourceMaterialsUntouched": true,
+    "origin": [
+      0,
+      900,
+      -7
+    ],
+    "hidden": [],
+    "material": [
+      {
+        "type": "MeshStandardNodeMaterial",
+        "side": 0,
+        "color": [
+          0.7697310801828281,
+          0.7827579721645452,
+          0.8088117561279796
+        ],
+        "flatShading": true,
+        "vertexColors": false
+      }
+    ],
+    "pixelRatio": 2,
+    "passes": [
+      {
+        "enabled": true,
+        "name": "Bh"
+      },
+      {
+        "enabled": true,
+        "name": "Ot"
+      },
+      {
+        "enabled": true,
+        "name": "Ot"
+      }
+    ],
+    "light": [
+      {
+        "color": [
+          1,
+          0.97,
+          0.9
+        ],
+        "intensity": 2.7,
+        "position": [
+          47.40681495774217,
+          994.3531541695644,
+          -12.262642265295483
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "workers": 0,
+    "databases": []
+  },
+  "passed": true,
+  "finished": "2026-10-19T04:31:02.801Z"
+}

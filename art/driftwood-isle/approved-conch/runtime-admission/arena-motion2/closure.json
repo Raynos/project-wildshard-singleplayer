@@ -1,0 +1,84 @@
+{
+  "schema": "wildshard.conch.isolated-route-closure.v1",
+  "candidate": "character-native15-motion2",
+  "canonicalClosureSha256": "ceaa0fc71297d9f7462519b66cb2550d89def38050abcc305e7c7b0205ed1d75",
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/dimension-measurement.json": {
+      "sha256": "8b7da9478c4a32754b1644e7447091bc4bfffd13ede05760cec4386d16e69b07",
+      "bytes": 1207
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/motion-envelope.json": {
+      "sha256": "8c05e19151da329d7132577ce1d8aad50fd84b12d82a112718fc934513eac949",
+      "bytes": 857
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/trial-envelope.json": {
+      "sha256": "152ebc8fe8b68021f449c89bee3bbfd5d0af9bc403997a6b36fb27ba00018ad5",
+      "bytes": 861
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/isolation-snapshot.json": {
+      "sha256": "fda4bd3cd2af19ea5670974cfddb5b55a66738ce75b7bfc2a48f0dc143f54c1e",
+      "bytes": 2501
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/admission.json": {
+      "sha256": "037912e1c00881841312dcc533251cb45517bd265b26743e0fbe3a7209a43513",
+      "bytes": 1096
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/metadata.json": {
+      "sha256": "222b363ccf5fb71bf5b7297c97453b293524769a581208c7fe3bc774462cbfeb",
+      "bytes": 5284
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/README.md": {
+      "sha256": "09052bd1cafce1921c252c5422a3f94fbe88eb98e4248a45c6f14965a9011c65",
+      "bytes": 3257
+    },
+    "scripts/conch-grounded-admission.mjs": {
+      "sha256": "53ab92c489eaacfe41fcdd2c1b4b4ba25e84d6c0948cd0bf3bdc7e5ff5ae35d1",
+      "bytes": 3227
+    },
+    "scripts/conch-grounded-admission.test.mjs": {
+      "sha256": "24c62cd0732eb712db670c58cd676217d71a31ddbdd2e14b341124218a5dfdd2",
+      "bytes": 1870
+    },
+    "scripts/build-conch-grounded-preview.mjs": {
+      "sha256": "e074a8e70de8dc6e4fb04b62b39ab226be297e22e9de096bd6c235f31075119a",
+      "bytes": 5182
+    },
+    "vite/conch-grounded-preview.config.ts": {
+      "sha256": "015a11cb2acde75230c8a2ed24bf681d7a22f95f3078aa449d7f9878f73c1714",
+      "bytes": 7741
+    },
+    "src/shards/driftwood-isle/generators/conchGroundedPreview.ts": {
+      "sha256": "738a3a50efe588520e13800a905f8d230b04dfdfe780dc95043e3ad9cc0c2c20",
+      "bytes": 7640
+    },
+    "src/shards/driftwood-isle/generators/conchGroundedClips.ts": {
+      "sha256": "37761052ef962825e11a72708152862ad025e4943b799088d5ef5439c906ec71",
+      "bytes": 5895
+    },
+    "test/conch-grounded-envelope.test.ts": {
+      "sha256": "35a254f2ccfa159e38274d8fb325729edd2028ecf3a9ff55615476b8f4315be0",
+      "bytes": 6010
+    },
+    "test/conch-grounded-clips.test.ts": {
+      "sha256": "51013cf6bf252bea0c60825d1ba10ca46c479aeb8756b3de93d951dbcad97826",
+      "bytes": 10150
+    },
+    "test/conch-grounded-preview.test.ts": {
+      "sha256": "4fc2e1e326e8c95d6dc561e2e92bef947fd8fb59bf9bec5f943692ddc86a850b",
+      "bytes": 1324
+    }
+  },
+  "checks": {
+    "nodeAdmission": 2,
+    "vitestWeightedEnvelope": 1,
+    "vitestPoseAndContinuity": 8,
+    "vitestPreviewIsolation": 1,
+    "oxlint": "passed single-thread",
+    "build": "not run",
+    "browser": "not run"
+  },
+  "runtimeAcceptance": false,
+  "visualAcceptance": false,
+  "animationAcceptance": false,
+  "colliderAcceptance": false
+}

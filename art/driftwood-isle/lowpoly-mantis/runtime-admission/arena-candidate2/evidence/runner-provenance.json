@@ -1,0 +1,5 @@
+{
+  "motionCapturedRunnerSha256": "a732eb446371d2dac53eb7c4c46e18b53be9a908296a8752211f4a7ba12e61a6",
+  "motionFinalRunnerSha256": "f71bd8aac71684c943409ee763c532b24efbc74ca65c3ce085f5883d2c243da8",
+  "note": "Captured runner differs only by moving label declaration before closure and replacing iterable-toArray spreads with direct iterable spreads. Game product unchanged. Main combat-crash capture preceded lint-only resolve import/placement argument renames."
+}

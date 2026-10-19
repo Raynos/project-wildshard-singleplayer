@@ -1,0 +1,54 @@
+{
+  "schema": "wildshard.mantis.observer-encoding.v1",
+  "videos": [
+    {
+      "path": "tmp/mantis-grounded-motion-qa/video/page@0908a99577e09509b46b11797426dbed.webm",
+      "sha256": "b028bfaffef731af2795bd6c434349bead80dc368e6d73ddbbe32a0063cb9ae0",
+      "bytes": 5213009,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "nb_read_frames": "1177"
+          }
+        ],
+        "format": {
+          "duration": "47.080000"
+        }
+      }
+    },
+    {
+      "path": "public/review-evidence/mantis-v7-candidate2/live-observer.mp4",
+      "sha256": "cdbf9e38d9b1e791a6f66e279913ff3a2b1ce6eafa283832426e8e3e6cbb82e7",
+      "bytes": 871287,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "nb_read_frames": "1177"
+          }
+        ],
+        "format": {
+          "duration": "47.080000"
+        }
+      }
+    }
+  ],
+  "transcode": "ffmpeg libx264 preset medium crf31, no fps filter, no speed changes; audio removed",
+  "renderSamples": 247,
+  "trace": "observer-render-trace.json",
+  "alignment": "Video frames repeat rendered frames at25fps. Burned renderer frame/game clock identifies correspondence; do not assume performance.now shares encoded zero. All 1177 encoded frames retained.",
+  "diagnosticCamera": "6,4,8 world offset from enemy, aim y+1.6, applied during composer rendering only, then camera restored. Full engine AI/sword/damage, explicit player placement.",
+  "caveats": [
+    "Actual stage regular-clock lasts longer than nominal strike duration; timing acceptance pending independent review.",
+    "Local motion envelope omits generic mesh death sinking and full-world grounding.",
+    "No complete isolated idle period established.",
+    "Original combined combat browser crashed; independent defeat/Retry recovery passed; crash cause unknown."
+  ]
+}

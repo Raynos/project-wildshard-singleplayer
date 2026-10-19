@@ -1,0 +1,91 @@
+{
+  "schema": "wildshard.mantis.arena-source-closure.v1",
+  "frozenAtUtc": "2026-10-19T04:36:28.899134+00:00",
+  "productSourceHash": "8e4ce9548975175ff813e556976def02c8a15505ce155177a0892a53459303f6",
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/ADMISSION.md": {
+      "sha256": "fb8e00ac4a880e07dea67312fd31fa936e74d781a9471a78c4ca5dd3a8dabe03",
+      "bytes": 2855
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/admission.json": {
+      "sha256": "a9a0c080e775f83f374f2f203e93d20d4a88869432f07514abdbb557b0c3e4f7",
+      "bytes": 2463
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/capture-rest-extra.mjs": {
+      "sha256": "0ba684b41e4191896fabaaadabf728ed1d0b54c4d63bf34321257a97591c719e",
+      "bytes": 6182
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/capture-rest.mjs": {
+      "sha256": "2dd54821546bf15acad355c8755fa33c18847a2f7041941b3578ebc592ef15b7",
+      "bytes": 6277
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/dimension-measurement.json": {
+      "sha256": "4b8e0cb9115a152425c5dddbb856de4862e2f27ea41368c6b2809437767924f8",
+      "bytes": 1651
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/dimensions.json": {
+      "sha256": "e0bd5afc3bee321177aabe6caa2aaa87afd79c1152e3fe94c467d4a842c3a7cc",
+      "bytes": 327
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/measure_dimensions.py": {
+      "sha256": "995df6961e81082b02bf4ae781484d7ed0d21edaeea39dee7ab22e82ed5cdb69",
+      "bytes": 3565
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/metadata.json": {
+      "sha256": "66f5398fd85336b407ee14a7f249d90dace499d0fb55695771aaebf9aa28e88f",
+      "bytes": 8223
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/visual.ts": {
+      "sha256": "ca3059d93d1871650bd581bbdb61e01d1b13405dddf08903c91ad44b85d4ad43",
+      "bytes": 3805
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/visual.vite.config.ts": {
+      "sha256": "d81d4718beb33d63d1e94865627f3d9df42d512b6630ba4eccbf67da76f414f3",
+      "bytes": 600
+    },
+    "scripts/build-mantis-grounded-preview.mjs": {
+      "sha256": "3a58a549d5a0077d42bd7e53fe3ce70bbfcdfc1e6d2cdb6d0deca1cfe5e91ed8",
+      "bytes": 5191
+    },
+    "scripts/mantis-grounded-admission.mjs": {
+      "sha256": "d67f977c493f75a39efbbe24036ef8de4adcd79f36284cabee405acdcc0bdcfc",
+      "bytes": 3073
+    },
+    "scripts/mantis-grounded-admission.test.mjs": {
+      "sha256": "218f70d969f530f9ef79a2f00eb6c6612ebe56ecfffaddb1be28c7bd63dd0c45",
+      "bytes": 2011
+    },
+    "scripts/qa-mantis-grounded-defeat.mjs": {
+      "sha256": "f0bc1e6bd0162c9ec57a742a6b92f6bb265602186c33c2a8434d9da2bd8591d6",
+      "bytes": 8727
+    },
+    "scripts/qa-mantis-grounded-motion.mjs": {
+      "sha256": "f71bd8aac71684c943409ee763c532b24efbc74ca65c3ce085f5883d2c243da8",
+      "bytes": 10735
+    },
+    "scripts/qa-mantis-grounded-preview.mjs": {
+      "sha256": "0fc817c68624eae7b18bfcf323458f2dff5ce6d03cf34732835686629e7a15d7",
+      "bytes": 10676
+    },
+    "src/shards/driftwood-isle/generators/mantisGroundedClips.ts": {
+      "sha256": "b3264c2961bd0a2e3e40b11b7182396df951191358085910831026a5aeedd9b4",
+      "bytes": 7724
+    },
+    "src/shards/driftwood-isle/generators/mantisGroundedPreview.ts": {
+      "sha256": "8883af70bd2d6431e5ce012266d62db1f32964132f18f529c5d7060ad1af1cf9",
+      "bytes": 7688
+    },
+    "test/mantis-grounded-envelope.test.ts": {
+      "sha256": "61fa9599cdf2b204abb46d195595d2f70d822402d1db24ba630f39e1749fd5d4",
+      "bytes": 4069
+    },
+    "test/mantis-grounded-preview.test.ts": {
+      "sha256": "ec124d50c6eb9ed6cc415e63a184084c77d9fd3d08249e2ced4d7af0c981ca05",
+      "bytes": 7712
+    },
+    "vite/mantis-grounded-preview.config.ts": {
+      "sha256": "89bcb4484bf52e7cd26a719b751c76c78b6903dba357fed7a9ab18108af2254a",
+      "bytes": 7739
+    }
+  }
+}
