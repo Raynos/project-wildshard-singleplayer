@@ -1,3 +1,4 @@
+import { PracticeSceneSchema } from '@wildshard/format/practiceCourse';
 import * as v from 'valibot';
 
 const finite = v.number();
@@ -84,3 +85,40 @@ export type WorldRows = v.InferOutput<typeof WorldRowsSchema>;
 
 export const GeometryBootSchema = v.strictObject({ rows: LayoutRowsSchema, library: GeometryLibrarySchema,
   negativeZeros: v.array(v.array(text)), world: WorldRowsSchema });
+
+const Course = v.strictObject({
+  id: v.string(), title: v.string(), chip: v.string(),
+  piece: v.strictObject({ id: v.string(), name: v.string(), file: v.string(), surface: v.string() }),
+  room: v.strictObject({ x0: finite, x1: finite, z0: finite, z1: finite, height: finite }),
+  ringUp: finite, ringOut: finite, fallY: finite, slab: finite,
+  pads: v.pipe(v.array(v.strictObject({ id: v.string(), label: v.string(), x: finite, z: finite, w: finite, d: finite, top: finite, kind: v.string(), next: v.exactOptional(v.string()) })), v.maxLength(256)),
+  column: v.strictObject({ x: finite, z: finite, w: finite, d: finite }),
+  hooks: v.pipe(v.array(v.strictObject({ pad: v.string(), edge: v.string(), along: v.exactOptional(finite) })), v.maxLength(256)),
+  run: v.strictObject({ from: v.string(), to: v.string(), goals: finite }),
+  words: v.strictObject({ ready: v.string(), finish: v.string(), running: v.string(), between: v.string(), done: v.string(), best: v.string(), fell: v.string() }),
+  look: v.strictObject({ ceiling: finite, ring: finite, mast: finite, paint: finite, label: v.string(), startLabel: v.string(), finishLabel: v.string(),
+    map: v.strictObject({ floor: v.string(), grid: v.string(), wall: v.string(), column: v.string(), lit: v.string(), pad: v.string(), finish: v.string(), hook: v.string(), label: v.string() }) }),
+});
+export const FixedRowsSchema = v.strictObject({ signs: v.array(SignCall), lanterns: v.array(v.array(v.number())),
+  lantern: v.strictObject({ drop: v.number(), glow: v.strictObject({ color: v.number(), w: v.number(), h: v.number(), power: v.number(), spill: v.number() }) }),
+  practice: v.strictObject({ presentation: v.unknown(), hooks: v.pipe(v.array(v.strictObject({ pad: v.string(), x: finite, y: finite, z: finite })), v.maxLength(256)), course: Course }),
+});
+
+const N = v.number();
+export const SignAtlasSchema = v.strictObject({
+  glyphLayout: v.strictObject({ cell: N, fontPx: N, spread: N, skeletonSpread: N }),
+  keys: v.record(v.string(), v.string()),
+  pools: v.array(v.strictObject({ name: v.string(), parts: v.array(v.string()) })),
+  channels: v.array(v.strictObject({ name: v.string(), source: v.string(), width: N, parts: v.exactOptional(v.array(v.string())) })),
+  lights: v.array(v.strictObject({ at: V3, color: V3, w: N, h: N, power: N, spill: N })),
+  neonLights: v.array(v.strictObject({ at: V3, color: V3, w: N, h: N, power: N, spill: N })),
+  copies: v.array(v.strictObject({ neon: v.boolean(), boxes: v.array(N), poses: v.array(v.strictObject({ x: N, y: N, z: N, yaw: N, variant: v.string(), params: v.record(v.string(), v.unknown()) })) })),
+});
+
+export const CastChannelsSchema = v.pipe(v.array(v.strictObject({ name: v.string(), source: v.string(), width: v.number() })), v.maxLength(16));
+
+/** Validate the course with its defining public schema before serializing it. */
+export function parseFixedRows(value: unknown): Omit<v.InferOutput<typeof FixedRowsSchema>, 'practice'> & { practice: Omit<v.InferOutput<typeof FixedRowsSchema>['practice'], 'presentation'> & { presentation: v.InferOutput<typeof PracticeSceneSchema> } } {
+  const row = v.parse(FixedRowsSchema, JSON.parse(JSON.stringify(value), (_key, entry: unknown) => entry === '-0' ? -0 : entry));
+  return { ...row, practice: { ...row.practice, presentation: v.parse(PracticeSceneSchema, row.practice.presentation) } };
+}

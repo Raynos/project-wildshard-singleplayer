@@ -38,7 +38,7 @@ function build(graph: GraphIr, instanced: boolean, skinned = false): { vertex: s
   const fogGraph = compileGraph(fog['nine-silk-fog'], { trustedBudget: true });
   const compiled = compileGraph(graph, { trustedBudget: true, fog: () => { if (fogGraph.fog === null) throw new Error('Missing silk fog'); return fogGraph.fog; } });
   const geometry = new THREE.PlaneGeometry(1, 1);
-  for (const [name, count] of Object.entries({ aFace: 4, aPat: 4, aMisc: 4, aOff: 2, aSpill: 3, aTan: 3, aWin: 4, aWall: 3, aMat: 4, aNs: 3, aHullN: 3, aCloth: 4 })) geometry.setAttribute(name, new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * count), count));
+  for (const [name, count] of Object.entries({ aFace: 4, aPat: 4, aMisc: 4, aOff: 2, aSpill: 3, aTan: 3, aWin: 4, aWall: 3, aMat: 4, aNs: 3, aHullN: 3, aCloth: 4, aAge: 1, aUv: 2, aSide: 2, aOut: 1 })) geometry.setAttribute(name, new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * count), count));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * 3).fill(1), 3));
   if (skinned) {
     geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(new Uint16Array(geometry.getAttribute('position').count * 4), 4));
@@ -176,4 +176,15 @@ test('the final ink Effect source is fully expanded by the boot author', () => {
   expect(source).toContain('texture(depthBuffer, p).r');
   expect(bleed.rain).toBe(0.55);
   expect(bleed.wide).toBeGreaterThan(bleed.tight);
+});
+
+test('held draw rows compile aliased GLB buffers and ribbon channels', () => {
+  for (const [id, graph] of Object.entries(viewmodelGraphs()).filter(([key]) => key.startsWith('nine-vm-rig-') || key === 'nine-vm-edge' || key === 'nine-vm-trail')) {
+    expect(validateGraph(graph, { trustedBudget: true }).ok, id).toBe(true);
+    const shaders = build(graph, false, id.startsWith('nine-vm-rig-'));
+    expect(shaders.fragment, id).not.toContain('NaN');
+    if (id.startsWith('nine-vm-rig-')) expect(shaders.vertex + shaders.fragment, id).toContain('aMat');
+    if (id === 'nine-vm-trail') expect(shaders.vertex, id).toContain('aAge');
+    if (id === 'nine-vm-edge') expect(shaders.vertex, id).toContain('aTan');
+  }
 });

@@ -1,12 +1,12 @@
 import type { PlaygroundSpec } from '@wildshard/engine/level/context';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
-import { parseFixedRows } from '../world/casts';
+import type { FixedRows } from '../world/castTypes';
 import grappleArt from '../explore/playground-grapple.webp';
 
 const CLAW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2v9.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="3.4" r="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12 11.5c-3.9 0-6.6 2.5-6.9 6.6l1.9-1.3M12 11.5c3.9 0 6.6 2.5 6.9 6.6l-1.9-1.3M12 11.5v10" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 export function grapplePlayground(ctx: ShardContext): PlaygroundSpec { return {
   id: 'grapple', title: 'Grapple playground', blurb: 'Fei Zhua parkour · dev course · timer', icon: CLAW, art: grappleArt,
-  load: async () => { const [{ HookCoursePlayground }, rows] = await Promise.all([import('@wildshard/game/practice/hookCourse'), ctx.product.json<unknown>('geometry/fixed-kits.json').then(parseFixedRows)]); return class extends HookCoursePlayground { constructor(host: PlaygroundHost) { super(host, rows.practice); } }; },
+  load: async () => { const [{ HookCoursePlayground }, rows] = await Promise.all([import('@wildshard/game/practice/hookCourse'), ctx.product.json<FixedRows>('geometry/fixed-kits.json')]); return class extends HookCoursePlayground { constructor(host: PlaygroundHost) { super(host, rows.practice); } }; },
 }; }

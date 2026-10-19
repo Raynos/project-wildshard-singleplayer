@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import { SignAtlasSchema } from './sections';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author-only lossless KTX2 encoding, matching the SDK texture baker.
 import { zstdCompressSync } from 'node:zlib';
 import { unzlibSync } from 'fflate';
@@ -17,6 +19,7 @@ const vector = (values: readonly (string | number)[]): Vector3 => new Vector3(Nu
 const bytes = (value: string): Uint8Array => Uint8Array.from(atob(value), char => char.codePointAt(0) ?? 0);
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, entry: unknown) =>
   typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry));
+const signJson = (value: unknown): Uint8Array => json(v.parse(SignAtlasSchema, JSON.parse(JSON.stringify(value), (_key, entry: unknown) => entry === '-0' ? -0 : entry)));
 export const SIGN_CHANNELS = [{ name: 'aTint', source: '_tint', width: 3 }, { name: 'aNeon', source: '_neon', width: 4 }];
 
 function textureBlob(tier: string, name: 'mono' | 'colour', row: { packed: string; bytes: number }): NamedBlob {
@@ -102,7 +105,7 @@ export function signAtlasBlobs(): NamedBlob[] {
     }));
     for (const primitive of all) primitive.geometry.dispose(); material.dispose();
     return pools.map(pool => pool.blob).concat([
-      nameBlob(`signs/atlas-${tier}.json`, 'json', json({ keys, glyphLayout: field.layout, neonLights: neon.emitters.map(({ at, color, ...rest }) => Object.assign(rest, { at: at.toArray(), color: color.toArray() })), copies: signCopies(placed, signRows.model), lights: row.lights,
+      nameBlob(`signs/atlas-${tier}.json`, 'json', signJson({ keys, glyphLayout: field.layout, neonLights: neon.emitters.map(({ at, color, ...rest }) => Object.assign(rest, { at: at.toArray(), color: color.toArray() })), copies: signCopies(placed, signRows.model), lights: row.lights,
         pools: pools.map(({ name, parts }) => ({ name, parts })), channels })),
       ...(['mono', 'colour'] as const).map(name => textureBlob(tier, name, row[name])), glyphTexture(tier, field),
     ]);

@@ -21816,6 +21816,30 @@
       "catalogueDependencies": [
         "pine-map-assembly"
       ]
+    },
+    {
+      "id": "nine-held-profile",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-held-profile.mjs",
+      "command": [
+        "src/shards/nine-dragon-stack/generators/bake-held-profile.mjs"
+      ],
+      "inputRoots": [
+        "scripts/bake-output.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-held-profile.mjs",
+        "public/assets/nine-dragon/viewmodel/fp-rig.glb",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/heldProfile.generated.json",
+        "src/shards/nine-dragon-stack/data/heldProfile.generated.d.json.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nine-dragon-stack/data/heldProfile.generated.json",
+        "src/shards/nine-dragon-stack/data/heldProfile.generated.d.json.ts"
+      ],
+      "platform": "portable"
     }
   ]
 }

@@ -1,4 +1,6 @@
+import { heldRigGraphs } from './heldRigGraphs';
 import { Color } from 'three';
+import { heldEffects } from './heldEffects';
 import type { GraphIr, GraphRef, GraphParam } from '@wildshard/format/materialGraph';
 import { LookGraph } from './lookGraph';
 import rows from '../data/viewmodelUniforms.json' with { type: 'json' };
@@ -62,7 +64,7 @@ export function viewmodelGraphs(): Readonly<Record<string, GraphIr>> {
   steel = add(mix(steel, [.3, .36, .46], mul(sky, .5)), mul([.22, .08, .1], mul(street, .5)));
   steel = choose(is(C.bevel), mix(steel, [.45, .66, .74], add(.12, mul(.3, sky))), steel);
   steel = mul(steel, add(.9, mul(.12, div(sw(face, 'y'), max(sw(face, 'w'), 1e-4)))));
-  const etch = g.p('uEtch', 'vec4', [0, 0, 0, 0]), fu = g.p('uFu', 'vec4', [0, 0, 0, 0]);
+  const etch = g.p('uEtch', 'vec4', decals.JIAN_DECAL_UV.etch), fu = g.p('uFu', 'vec4', decals.JIAN_DECAL_UV.fu);
   const etchUv = g.vec(mix(sw(etch, 'x'), sw(etch, 'z'), sw(uv, 'y')), mix(sw(etch, 'y'), sw(etch, 'w'), sw(uv, 'x'))), etchK = mul(sw(g.tex('uDecal', etchUv), 'x'), sub(1, g.smooth(.8, .97, sw(uv, 'y'))));
   steel = choose(g.op('lt', [sw(mat, 'z'), -.5]), mix(steel, add([.42, .5, .58], mul(sky, .2)), mul(etchK, .42)), steel);
   let lacquer: Ref = mix(mix(mul(base, .8), add(mul(base, 1.9), .012), band(ndl, .06)), [.66, .68, .74], mul(band(spec(40), .5), .85));
@@ -101,7 +103,9 @@ export function viewmodelGraphs(): Readonly<Record<string, GraphIr>> {
   const xy = ka(k.vec(km(ks(viewK, 'x'), ks(proj, 'x')), km(ks(viewK, 'y'), ks(proj, 'y'))), km(k.div(km(dir, km(w, 2)), k.u('uRes')), clipW));
   const clip = k.vec(xy, ka(ka(km(ks(viewK, 'z'), ks(proj, 'z')), ks(proj, 'w')), km(.0004, clipW)), clipW);
   const hull = k.finishVm(k.mix(k.u('uInk'), km(k.u('uGold'), 1.3), k.u('uSutra')), { 'vertex.normal': { normal: k.a('aHullN', 'vec3') }, 'vertex.clip': { position: clip } });
-  return { 'nine-vm-body': body, 'nine-vm-hull': hull, 'nine-vm-cloth': flutter(body), 'nine-vm-cloth-hull': flutter(hull) };
+  const bases = { 'nine-vm-body': body, 'nine-vm-hull': hull, 'nine-vm-cloth': flutter(body), 'nine-vm-cloth-hull': flutter(hull) };
+  const withHullWidth = (source: GraphIr, value: number): GraphIr => ({ ...source, params: { ...source.params, uHullK: { type: 'float', value } } });
+  return { 'nine-vm-sheet': { ...bases['nine-vm-cloth'], doubleSided: true }, ...bases, ...heldEffects(), ...heldRigGraphs(bases), 'nine-vm-knot-hull': withHullWidth(hull, .55), 'nine-vm-hair-hull': withHullWidth(bases['nine-vm-cloth-hull'], .18), 'nine-vm-thin-hull': withHullWidth(bases['nine-vm-cloth-hull'], .55) };
 }
 
 /** Both existing cloth draws read the same baked field; no mutable geometry or frame callback. */

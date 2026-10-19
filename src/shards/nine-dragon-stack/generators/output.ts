@@ -1,3 +1,6 @@
+import { heldGraphFiles } from './heldGraphFiles';
+import { heldView } from './heldView';
+import { parseFixedRows, CastChannelsSchema } from './sections';
 import sharedUniforms from '../data/sharedUniforms.json' with { type: 'json' };
 import AO_TUNING from '../data/aoLook.json' with { type: 'json' };
 import { postRows } from './postGraphs';
@@ -48,14 +51,14 @@ const glyphBlobs = Object.entries(glyphs).map(([tier, row]) =>
 const emitted = emitNamedBlobs(glyphBlobs.concat( signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
-  nameBlob('geometry/cast-channels.json', 'json', json(CAST_CHANNELS)),
-  nameBlob('geometry/fixed-kits.json', 'json', json({ ...fixedKits, lantern, practice: grappleCourseScene(course) })),
+  nameBlob('geometry/cast-channels.json', 'json', json(v.parse(CastChannelsSchema, CAST_CHANNELS))),
+  nameBlob('geometry/fixed-kits.json', 'json', json(parseFixedRows({ ...fixedKits, lantern, practice: grappleCourseScene(course) }))),
   nameBlob('weapons/jian-cloth.json', 'json', json(Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])))),
   nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
   nameBlob('sim/headless-constants.json', 'json', json(headlessConstants)),
-  nameBlob('weapons/jian-row.json', 'json', json({ ...equipmentRows, look: { shared: sharedUniforms, vm: viewmodelUniforms, post: postRows(), ao: AO_TUNING } }), { jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['portraitFov', 'aim', 'bursts', 'look'], additionalProperties: false, properties: { look: { type: 'object', required: ['shared', 'vm', 'post', 'ao'], additionalProperties: false, properties: { shared: { type: 'object' }, vm: { type: 'object' }, post: { type: 'object', required: ['bleed', 'reflect', 'haze'], additionalProperties: false, properties: { bleed: { type: 'object' }, reflect: { type: 'object' }, haze: { type: 'object' } } }, ao: { type: 'object' } } }, portraitFov: { type: 'number' }, aim: { type: 'object' }, bursts: { type: 'object', required: ['muzzle', 'bite', 'dock', 'sparks'], additionalProperties: false, properties: Object.fromEntries(['muzzle', 'bite', 'dock', 'sparks'].map(id => [id, { type: 'object', required: ['name', 'shape', 'count', 'life'], additionalProperties: false, properties: { name: { type: 'string' }, shape: { enum: ['flake', 'streak'] }, count: { type: 'integer', minimum: 1, maximum: 24 }, life: { type: 'number', exclusiveMinimum: 0, maximum: 1 } } }])) } } } }),
+  nameBlob('weapons/jian-row.json', 'json', json({ ...equipmentRows, view: heldView(), look: { shared: sharedUniforms, vm: viewmodelUniforms, post: postRows(), ao: AO_TUNING } }), { jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['portraitFov', 'aim', 'bursts', 'look', 'view'], additionalProperties: false, properties: { view: { type: 'object' }, look: { type: 'object', required: ['shared', 'vm', 'post', 'ao'], additionalProperties: false, properties: { shared: { type: 'object' }, vm: { type: 'object' }, post: { type: 'object', required: ['bleed', 'reflect', 'haze'], additionalProperties: false, properties: { bleed: { type: 'object' }, reflect: { type: 'object' }, haze: { type: 'object' } } }, ao: { type: 'object' } } }, portraitFov: { type: 'number' }, aim: { type: 'object' }, bursts: { type: 'object', required: ['muzzle', 'bite', 'dock', 'sparks'], additionalProperties: false, properties: Object.fromEntries(['muzzle', 'bite', 'dock', 'sparks'].map(id => [id, { type: 'object', required: ['name', 'shape', 'count', 'life'], additionalProperties: false, properties: { name: { type: 'string' }, shape: { enum: ['flake', 'streak'] }, count: { type: 'integer', minimum: 1, maximum: 24 }, life: { type: 'number', exclusiveMinimum: 0, maximum: 1 } } }])) } } } }),
   nameBlob('weapons/jian-halo.json', 'json', json({ geometry: { ...halo.geo.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000001' }, material: { ...halo.mat.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000002' } })),
   nameBlob('weapons/jian-support.json', 'json', json({ sword: { ...support.sword.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000003' }, arms: { ...support.arms.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000004' }, tipY: support.tipY, baseY: support.baseY, material: { ...material.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000005' } })),
 ]));
 
-export const output = { namedFiles: emitted.files, assets: emitted.assets };
+export const output = { namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]) };

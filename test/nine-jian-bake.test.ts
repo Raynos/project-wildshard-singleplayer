@@ -1,5 +1,3 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Verify the unchanged live shader source against its pre-bake hash.
-import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { BufferAttribute, BufferGeometryLoader, MaterialLoader, MeshStandardMaterial, ShaderMaterial, type BufferGeometry } from 'three';
@@ -43,12 +41,21 @@ test('named Jian bakes preserve every original vertex and index byte', async () 
   expect(wood).toMatchObject({ name: 'sword', flatShading: true, vertexColors: true, roughness: 0.82, metalness: 0, envMapIntensity: 0.6 });
 });
 
-test('halo shader bytes stay live and unchanged', async () => {
-  const source = readFileSync(new URL('../src/shards/nine-dragon-stack/vm/fpArms.ts', import.meta.url), 'utf8');
-  for (const [name, digest] of [['VS_HALO', baseline.vs], ['FS_HALO', baseline.fs]]) {
-    const tick = String.fromCodePoint(96);
-    const shader = new RegExp(`const ${String(name)} = /\\* glsl \\*/ ${tick}([\\s\\S]*?)${tick};`, 'u').exec(source)?.[1];
-    if (shader === undefined) throw new Error(`Missing live halo shader ${String(name)}`);
-    expect(await hash(new TextEncoder().encode(shader))).toBe(digest);
+test('held effects are admitted graph rows with independent frame params', async () => {
+  const { heldEffects } = await import('../src/shards/nine-dragon-stack/generators/heldEffects');
+  const { compileGraph } = await import('../src/engine/render/graph/compile');
+  for (const [id, row] of Object.entries(heldEffects())) {
+    const graph = compileGraph(row, { trustedBudget: true });
+    try {
+      expect(graph.cost.nodes).toBeGreaterThan(0);
+      if (id === 'nine-vm-edge') {
+        expect(row.stages['vertex.clip']).toBeDefined();
+        graph.setParam('resolution', [1206, 2622]); graph.setParam('pixels', 21);
+        graph.setParam('time', 1); graph.setParam('projection', [1, 1, -1, -.2]);
+      } else {
+        expect(Object.values(row.nodes).some(node => node.op === 'attribute' && node.name === 'aAge')).toBe(true);
+        graph.setParam('seed', 17);
+      }
+    } finally { graph.material.dispose(); }
   }
 });

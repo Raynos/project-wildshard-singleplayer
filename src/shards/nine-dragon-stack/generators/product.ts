@@ -1,4 +1,4 @@
-import { viewmodelGraphs } from './viewmodelGraphs';
+import { heldGraphFiles } from './heldGraphFiles';
 import { filamentGraph } from './filamentGraph';
 import { haloGraph } from './haloGraph';
 import { architectureGraphs } from './architectureGraphs';
@@ -31,16 +31,16 @@ const NINE_LEDGER = parseLedgerRules(ledgerRows);
 // (world/portalPlan.ts `portalLinks`). The floors they bind are this file's `props.colliders` (the generated portal-floor rows: each whole deck, `deck.<edge>`, and the square's slab, `square`), the very boxes the trusted runtime
 // installs under those ids (world/install.ts), so its ride (world/portalRide.ts) is the format's checked transfer.
 const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a });
-const library = new Set(world.shardfile.library), charged = world.shardfile.files.filter(file => library.has(file.hash));
+const library = new Set([...world.shardfile.library, ...heldGraphFiles.library]), charged = [...world.shardfile.files.filter(file => library.has(file.hash)), ...heldGraphFiles.files];
 const navigationResident = navigation.files.reduce((sum, file) => sum + file.decoded, 0);
 const budgets = { ...base.budgets, sim: { resident: navigationResident, compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0) }, library: { compressed: charged.reduce((sum, file) => sum + file.compressed, 0), resident: charged.reduce((sum, file) => sum + file.decoded + file.gpu, 0) } };
 // parseShardfile admits each link against the format's PortalLink schema (strict nodes, bound links, the walked route)
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base, plumbing, budgets, navigation: navigation.navigation, critical: navigation.critical,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigationResident },
-  files: [...world.shardfile.files, ...navigation.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles: world.shardfile.tiles, library: world.shardfile.library,
+  files: [...world.shardfile.files, ...navigation.files, ...heldGraphFiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles: world.shardfile.tiles, library: [...library],
   accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['props', 'items', 'ledger', 'modes', 'clientChannels'], cost: NINE_DRAGON_RUNTIME_COST }, audio: declarations.audio, clientChannels: declarations.clientChannels, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: portalEntries, directors: [portalStages],
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), lent by plugin.ts
-  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, ...architectureGraphs(), ...viewmodelGraphs(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph(), 'nine-filament': filamentGraph(), ...burstGraphs() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
+  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, ...architectureGraphs(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph(), 'nine-filament': filamentGraph(), ...burstGraphs() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])), ...heldGraphFiles.materials } },
   props: { ...world.props, wholeLibrary: world.shardfile.library, colliders: portalFloors } });

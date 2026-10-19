@@ -68,5 +68,6 @@ export function buildViewmodelParts(): { knot: BufferGeometry; tassel: BufferGeo
     geometry.setAttribute('aCloth', new BufferAttribute(field, 4));
     geometry.computeBoundingSphere();
   }
+  knot.setAttribute('aHullN', knot.getAttribute('normal').clone());
   return { knot, tassel: tassel.geo, sheet: sheet.geo, cord: sheet.cordGeo };
 }

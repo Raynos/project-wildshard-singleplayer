@@ -48,7 +48,7 @@ test('admission rejects malformed triangles, negative solids and executable fiel
 
 
 test('Nine fixed-kit admission includes the emitted practice scene and refuses unknown fields', async () => {
-  const { parseFixedRows } = await import('../src/shards/nine-dragon-stack/world/casts');
+  const { parseFixedRows } = await import('../src/shards/nine-dragon-stack/generators/sections');
   const practice = grappleCourseScene(course);
   const payload = { signs: [], lanterns: [], lantern: { drop: 1, glow: { color: 1, w: 1, h: 1, power: 1, spill: 1 } }, practice };
   expect(parseFixedRows(payload).practice).toEqual(practice);

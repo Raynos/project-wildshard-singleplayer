@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "root": "pendants",
+  "nodes": [
+    {
+      "kind": "group",
+      "id": "pendants",
+      "children": [
+        "knot-hull",
+        "knot",
+        "tassel-hull",
+        "tassel",
+        "sheet-hull",
+        "sheet",
+        "cord-hull",
+        "cord",
+        "edge"
+      ]
+    },
+    {
+      "kind": "mesh",
+      "id": "knot-hull",
+      "geometry": "knot",
+      "material": "knot-hull",
+      "frustumCulled": false,
+      "renderOrder": -1,
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "knot",
+      "geometry": "knot",
+      "material": "body",
+      "frustumCulled": false,
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "tassel-hull",
+      "geometry": "tassel",
+      "material": "hair-hull",
+      "frustumCulled": false,
+      "renderOrder": -1,
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "tassel",
+      "geometry": "tassel",
+      "material": "silk",
+      "frustumCulled": false,
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "sheet-hull",
+      "geometry": "sheet",
+      "material": "thin-hull",
+      "frustumCulled": false,
+      "renderOrder": -1,
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "sheet",
+      "geometry": "sheet",
+      "material": "cloth",
+      "frustumCulled": false,
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "cord-hull",
+      "geometry": "cord",
+      "material": "thin-hull",
+      "frustumCulled": false,
+      "renderOrder": -1,
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "cord",
+      "geometry": "cord",
+      "material": "silk",
+      "frustumCulled": false,
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "edge",
+      "geometry": "edge",
+      "material": "nine-vm-edge",
+      "frustumCulled": false,
+      "renderOrder": 4,
+      "missing": "empty"
+    }
+  ],
+  "materials": [
+    {
+      "kind": "port",
+      "id": "knot-hull",
+      "source": "nine-vm-knot-hull"
+    },
+    {
+      "kind": "port",
+      "id": "body",
+      "source": "nine-vm-body"
+    },
+    {
+      "kind": "port",
+      "id": "hair-hull",
+      "source": "nine-vm-hair-hull"
+    },
+    {
+      "kind": "port",
+      "id": "thin-hull",
+      "source": "nine-vm-thin-hull"
+    },
+    {
+      "kind": "port",
+      "id": "silk",
+      "source": "nine-vm-cloth"
+    },
+    {
+      "kind": "port",
+      "id": "cloth",
+      "source": "nine-vm-sheet"
+    },
+    {
+      "kind": "port",
+      "id": "nine-vm-edge",
+      "source": "nine-vm-edge"
+    }
+  ]
+}

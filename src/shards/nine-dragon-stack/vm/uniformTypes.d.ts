@@ -1,19 +1,9 @@
-export interface VmUniformRows {
-  readonly uPal: { readonly rgbs: readonly number[] };
-  readonly uKey: { readonly v3: readonly [number, number, number]; readonly normalize: true; };
-  readonly uInk: { readonly rgb: number };
-  readonly uLinePx: number;
-  readonly uSutra: number;
-  readonly uGold: { readonly rgb: number };
-  readonly uEnvHi: { readonly rgb: number };
-  readonly uEnvLo: { readonly rgb: number };
-  readonly uBladeA: { readonly v3: readonly [number, number, number]; };
-  readonly uBladeB: { readonly v3: readonly [number, number, number]; };
-  readonly uSpill: { readonly v4: readonly [number, number, number, number]; };
-  readonly uTune: { readonly v4: readonly [number, number, number, number]; };
-  readonly uExposure: number;
-  readonly uDetail: number;
-  readonly uRes: { readonly v2: readonly [number, number]; };
-  readonly uHullPx: number;
-  readonly uTime: number;
+import type { CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
+
+export interface HeldView {
+  readonly params: Readonly<Record<string, readonly string[]>>;
+  readonly meshes: readonly { readonly name: string; readonly channels: Readonly<Record<string, string>>; readonly look: string; readonly maps: string; readonly hull: boolean; readonly doubleSide: boolean }[];
+  readonly pendants: unknown;
+  readonly materials: readonly string[];
+  readonly decal: CanvasAtlasRow;
 }
