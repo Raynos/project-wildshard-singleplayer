@@ -112,8 +112,12 @@ export async function loadSignAtlas(tier: 'phone' | 'desktop', renderer: Rendere
   const libraries = await Promise.all(rows.pools.map(async pool => {
     const url = URL.createObjectURL(new Blob([Uint8Array.from(await product.file(pool.name))]));
     try {
+      const channels = rows.channels.flatMap(row => {
+        const parts = row.parts?.filter(part => pool.parts.includes(part));
+        return parts?.length === 0 ? [] : [{ ...row, ...(parts === undefined ? {} : { parts }) }];
+      });
       const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-        geometryPools: [{ url, parts: pool.parts, channels: rows.channels }] }, `Nine sign atlas ${tier}`);
+        geometryPools: [{ url, parts: pool.parts, channels }] }, `Nine sign atlas ${tier}`);
       await library.preload(); return library;
     } finally { URL.revokeObjectURL(url); }
   }));
