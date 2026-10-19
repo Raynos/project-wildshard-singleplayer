@@ -11,6 +11,10 @@ import terrain from '../src/shards/_template/data/terrain.json' with { type: 'js
 import { paintDataMap } from '../scripts/bake-data-maps.mjs';
 import { mapTilesHash } from '../scripts/map-hash.mjs';
 import { paintMapScenes } from '../scripts/map-scenes.mjs';
+import { mapRest } from '../scripts/bake-map-rest.mjs';
+import { parseClientChannels } from '../src/format/clientChannels';
+import isletScene from '../src/shards/far-reach/data/isletScenes.generated.json' with { type: 'json' };
+import isletMotion from '../src/shards/far-reach/data/isletMotion.generated.json' with { type: 'json' };
 
 const grey = [[120, 120, 120], [120, 120, 120], [120, 120, 120]];
 const triangle = [[200, 4, 200], [150, 4, 200], [200, 4, 150]];
@@ -81,6 +85,10 @@ test('instanced GLB placements and fresh stamps survive deterministic regenerati
     await expect(paintMapScenes(new MapRaster(), { recipes: [{ file: 'recipe.json' }] }, {}, {
       input: () => file, json: () => recipe, bytes: () => new Uint8Array(),
     })).rejects.toThrow('Missing declared map geometry');
+    const unplaced = { scene: { root: 'part', nodes: [{ kind: 'mesh', id: 'part', geometry: 'model', instances: 2 }] } };
+    await expect(paintMapScenes(new MapRaster(), { pools: ['scene.glb'], recipes: [{ file: 'recipe.json' }] }, {}, {
+      input: () => file, json: () => unplaced, bytes: () => new Uint8Array(),
+    })).rejects.toThrow('Missing rest instance matrices');
     const image = resolve(root, 'public/assets/fixture/map/top.webp'), bytes = readFileSync(image);
     expect(first.stamp.tilesHash).toBe(mapTilesHash(dir));
     expect((await paintDataMap(root, 'fixture')).stamp).toEqual(first.stamp);
@@ -91,4 +99,22 @@ test('instanced GLB placements and fresh stamps survive deterministic regenerati
     expect(moved.stamp.tilesHash).toBe(mapTilesHash(dir));
     expect(moved.stamp.pixelHash).not.toBe(first.stamp.pixelHash);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+// The same initial mover observations used by showRest fill every visual slot.
+test('Sky resting matrices include every connector and exact group pose', () => {
+  const snapshot = mapRest(isletScene.scene, parseClientChannels(isletMotion.channels), isletMotion.rest);
+  expect(mapRest(isletScene.scene, parseClientChannels(isletMotion.channels), isletMotion.rest)).toEqual(snapshot);
+  for (const [id, count] of Object.entries(isletMotion.counts)) {
+    const row = snapshot.nodes[id];
+    expect(row?.matrices).toHaveLength(count * 16);
+    expect(row?.matrices?.every(Number.isFinite)).toBe(true);
+  }
+  for (const pose of isletMotion.rest.filter(row => !row.id.endsWith('.gate'))) {
+    const id = pose.id.replace('far.', '');
+    expect(snapshot.nodes[id]?.position).toEqual([pose.position.x, pose.position.y, pose.position.z]);
+  }
+  expect(snapshot.nodes['gates']?.matrices?.filter((_, index) => index % 16 !== 15).every(value => value === 0)).toBe(true);
+  expect(() => mapRest(isletScene.scene, parseClientChannels(isletMotion.channels), [])).toThrow('Missing map rest pose');
+  expect(() => mapRest(isletScene.scene, [], isletMotion.rest)).toThrow('Incomplete map rest instance slots');
 });

@@ -2099,3 +2099,8 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /src/shards/sunscar-dunes/look/map.baked.json
 /src/shards/sunscar-dunes/data/productMap.json
 /src/shards/sunscar-dunes/assets/map.webp
+
+# G508: far-reach data map outputs.
+/public/assets/far-reach/map/top.webp
+/src/shards/far-reach/look/map.baked.json
+/src/shards/far-reach/data/mapRest.generated.json

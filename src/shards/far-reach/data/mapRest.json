@@ -1,0 +1,5 @@
+{
+  "scene": "isletScenes.generated.json",
+  "motion": "isletMotion.generated.json",
+  "output": "mapRest.generated.json"
+}

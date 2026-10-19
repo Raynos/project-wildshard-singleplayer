@@ -1,9 +1,10 @@
+import { createClientChannelView } from '../plugin/clientChannelView';
 import { Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { MoverRuntime } from '../plugin/mover';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { parseSceneMotion, type SceneMotion } from '@wildshard/format/sceneMotion';
-import { bindClientChannels, createClientChannelView } from '../plugin/ui';
+import { bindClientChannels } from '../plugin/ui';
 import { createClientChannels } from '../plugin/channels';
 import type { ShardContext } from '../plugin/context';
 import type { DeclaredPage } from '../quest/declaredPage';

@@ -18,6 +18,11 @@ export async function prepareDataMaps(root, only) {
     if (only !== undefined && !only.includes(slug)) continue;
     const settings = json(mapSettingsPath(dir));
     if (settings.painter === undefined) continue;
+    for (const id of settings.painter.prerequisites ?? []) {
+      const prerequisite = jobs.find(row => row.id === id);
+      if (prerequisite === undefined) throw new Error(`${slug}: missing map prerequisite ${id}`);
+      await generateShardJob(root, prerequisite, { restore: true });
+    }
     const job = jobs.find(row => row.id === settings.painter.job);
     if (job === undefined) throw new Error(`${slug}: data map generation job is missing`);
     await generateShardJob(root, job, { restore: true });

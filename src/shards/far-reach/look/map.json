@@ -3,10 +3,7 @@
   "inputs": [
     "shard.config.ts",
     "data/layout.generated.json",
-    "world",
     "generators",
-    "models",
-    "data/isletDesign.ts",
     "data/islets.generated.json",
     "../../../public/assets/far-reach/baked/prepared-models.glb",
     "../../../public/assets/far-reach/models/wind-vane/post.glb",
@@ -22,7 +19,43 @@
     "data/plumbing.json",
     "manifest.json",
     "data/rocSlate.json",
-    "data/lookGraphs.json"
+    "data/lookGraphs.json",
+    "data/groundScene.generated.json",
+    "data/staticScenes.generated.json",
+    "data/routeScene.generated.json",
+    "data/isletScenes.generated.json",
+    "data/worldRows.generated.json",
+    "data/isles.json",
+    "data/geometries.json",
+    "data/mapRest.generated.json",
+    "data/mapRest.json",
+    "data/heroLibrary.generated.json",
+    "data/bridgeRest.generated.json",
+    "data/millRest.generated.json",
+    "../../../public/assets/far-reach/baked/isles.bin",
+    "../../../public/assets/far-reach/baked/islet-rig.glb",
+    "../../../scripts/map-scenes.mjs",
+    "../../../scripts/map-painter.mjs",
+    "../../../scripts/bake-data-maps.mjs",
+    "../../../scripts/bake-map-rest.mjs",
+    "../../../src/game/plugin/clientChannelView.ts",
+    "../../../src/game/plugin/channels.ts",
+    "../../../src/game/plugin/borrowed.ts",
+    "../../../public/assets/far-reach/baked/bridge-rest.glb",
+    "../../../public/assets/far-reach/baked/rest-islets.glb",
+    "../../../public/assets/far-reach/baked/mill-rest.glb",
+    "../../../public/assets/far-reach/baked/rest-storm.glb",
+    "../../../public/assets/far-reach/baked/rest-books.glb",
+    "../../../public/assets/far-reach/baked/geometries.glb",
+    "../../../public/assets/far-reach/baked/winch-house.glb",
+    "../../../public/assets/far-reach/baked/roost.glb",
+    "../../../public/assets/far-reach/baked/docks.glb",
+    "../../../public/assets/far-reach/baked/crown.glb",
+    "../../../public/assets/far-reach/baked/mill.glb",
+    "../../../public/assets/far-reach/baked/book-stand.glb",
+    "../../../public/assets/far-reach/baked/knolls.glb",
+    "../../../public/assets/far-reach/baked/dressing.glb",
+    "generators/bake-map.mjs"
   ],
   "hide": [
     "far.storm",
@@ -58,5 +91,137 @@
   ],
   "hideStanding": [
     "far.sky-isles.*"
-  ]
+  ],
+  "painter": {
+    "version": 1,
+    "job": "sky-data-map",
+    "authored": false,
+    "glbs": [
+      "../../../public/assets/far-reach/baked/islet-rig.glb"
+    ],
+    "scenes": {
+      "pools": [
+        "../../../public/assets/far-reach/baked/prepared-models.glb",
+        "../../../public/assets/far-reach/baked/bridge-rest.glb",
+        "../../../public/assets/far-reach/baked/rest-islets.glb",
+        "../../../public/assets/far-reach/baked/mill-rest.glb",
+        "../../../public/assets/far-reach/baked/rest-winch.glb",
+        "../../../public/assets/far-reach/baked/rest-hover-0.glb",
+        "../../../public/assets/far-reach/baked/rest-hover-1.glb",
+        "../../../public/assets/far-reach/baked/rest-hover-2.glb",
+        "../../../public/assets/far-reach/baked/rest-storm.glb",
+        "../../../public/assets/far-reach/baked/rest-books.glb",
+        {
+          "file": "../../../public/assets/far-reach/baked/geometries.glb",
+          "names": {
+            "file": "data/geometries.json",
+            "path": [
+              "kinds",
+              "*",
+              "name"
+            ]
+          }
+        },
+        {
+          "file": "../../../public/assets/far-reach/models/wind-vane/post.glb",
+          "names": [
+            "vane-post"
+          ]
+        },
+        {
+          "file": "../../../public/assets/far-reach/models/wind-vane/rotor.glb",
+          "names": [
+            "vane-rotor"
+          ]
+        }
+      ],
+      "aliases": {
+        "post-hd": "hero-post-hd"
+      },
+      "packs": [
+        {
+          "file": "../../../public/assets/far-reach/baked/isles.bin",
+          "rows": {
+            "file": "data/isles.json",
+            "path": []
+          },
+          "names": [
+            "isles"
+          ],
+          "deflated": true
+        }
+      ],
+      "bakes": [
+        {
+          "rows": {
+            "file": "data/worldRows.generated.json",
+            "path": [
+              "bakes"
+            ]
+          },
+          "directory": "../../../public/assets/far-reach/baked"
+        }
+      ],
+      "materials": [
+        {
+          "file": "data/lookGraphs.json",
+          "path": []
+        }
+      ],
+      "recipes": [
+        {
+          "file": "data/groundScene.generated.json",
+          "path": [
+            "SKY_GROUND",
+            "recipe"
+          ]
+        },
+        {
+          "file": "data/staticScenes.generated.json",
+          "path": [
+            "standalone",
+            "recipe"
+          ]
+        },
+        {
+          "file": "data/staticScenes.generated.json",
+          "path": [
+            "standalone",
+            "fixed",
+            "recipe"
+          ]
+        },
+        {
+          "file": "data/routeScene.generated.json",
+          "path": [
+            "SKY_ROUTE_SCENE"
+          ]
+        },
+        {
+          "file": "data/routeScene.generated.json",
+          "path": [
+            "SKY_ROUTE_FRAMES",
+            "recipe"
+          ]
+        },
+        {
+          "file": "data/routeScene.generated.json",
+          "path": [
+            "SKY_VANES",
+            "recipe"
+          ]
+        },
+        {
+          "file": "data/isletScenes.generated.json",
+          "path": [
+            "scene"
+          ],
+          "rest": "data/mapRest.generated.json"
+        }
+      ]
+    },
+    "prerequisites": [
+      "sky-map-rest"
+    ]
+  }
 }
