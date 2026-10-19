@@ -1,0 +1,11 @@
+{
+  "status": "11 pure tests passed; candidate Blender audit/render pending",
+  "baselineTriangles": 1018,
+  "baselinePairedEdges": 1527,
+  "baselineMinimumTriangleArea": 1.1210969525403784e-10,
+  "gate": "exact-position welded edge incidence2/opposite orientation; no duplicate or degenerate triangles; then closed-surface winding classification and signed Euclidean distance",
+  "activeBuilder": "build_puffer_lowpoly_v71_topologyaudit.py",
+  "activeBuilderSha256": "93388d2892bec98fa0b7486d1e0453c7ca02b31e2656dcee38d8dd2f8a1765ec",
+  "geometryChanged": false,
+  "thresholdsChanged": false
+}

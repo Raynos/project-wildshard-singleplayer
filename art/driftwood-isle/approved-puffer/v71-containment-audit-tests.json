@@ -1,0 +1,33 @@
+{
+  "status": "six pure tests passed; Blender candidate preflight/render pending",
+  "tests": [
+    "known inside",
+    "known outside",
+    "boundary tolerance1e-6m",
+    "reversed orientation",
+    "open cube rejected",
+    "all80 exact frozen V70 cap queries agree with baseline classification"
+  ],
+  "baselineNativeSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+  "geometryChanged": false,
+  "thresholdsChanged": false,
+  "classification": "closed oriented surface solid-angle winding; ambiguous winding fails",
+  "clearance": "signed Euclidean nearest distance; nearest face normal kept diagnostic only",
+  "sourceManifest": [
+    {
+      "path": "art/driftwood-isle/approved-puffer/build_puffer_lowpoly_v71_containmentaudit.py",
+      "bytes": 55703,
+      "sha256": "c78d5017d4b020aa17184a81b79d13a0c8afc541d73f3aae5e4c0e68a2053ee7"
+    },
+    {
+      "path": "art/driftwood-isle/approved-puffer/puffer_surface_clearance.py",
+      "bytes": 2127,
+      "sha256": "cafb5d55c1d3c226befd3efd6a1dcb32f8f0d73a2e13d33f73c55787f712f360"
+    },
+    {
+      "path": "art/driftwood-isle/approved-puffer/test_puffer_surface_clearance.py",
+      "bytes": 3485,
+      "sha256": "3abbc7d8f38891b692f4eb4da05e473dd2007efe9808354c35ce48776d63a38c"
+    }
+  ]
+}
