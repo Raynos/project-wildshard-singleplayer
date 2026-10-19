@@ -1,0 +1,21 @@
+{
+  "renderSource": "build_keelmaw.py",
+  "rawDirectory": "tmp/keelmaw-v4",
+  "rawBytes": 7557406,
+  "referenceCameraCaveat": "Generated target panels approximate; actual model cameras are explicit orthographic angles. No native gameplay renders yet.",
+  "files": {
+    "paired-hero-board.webp": "f9a9b4b1e116603dcffc233c7c23e788f923b9ae5ea958a3a39422aad48016e4",
+    "left.webp": "cf6bd063eb376875b309618a892e15259d2b2bc5ab8220de9bef59d1b896d02b",
+    "explorer-paired-nine-board.webp": "bc67045bf8abfbd09fc58c6e8330109ede8d053718f51ad38607cc3400e37c1c",
+    "elevated-left.webp": "d124c3562ad50689b0a8fac55dfef9a5440f0303f8fa2381abb85ed4979b4979",
+    "elevated-back.webp": "72cb309566d22c1e49178fc0f74350035dd4d623209f69f4d73716a6b80cb953",
+    "elevated-front.webp": "9c5ce4ae7bc00c6e9f9a43272f6ef3052e1fff90a4772bb4e24c6e4a642df65f",
+    "hero.webp": "b564a462fed4cd855f3c7b685d3d2cc1daabec7a748e254740fd2f967becbdd1",
+    "top.webp": "b8d74bc325b7171269ac958ddea824b8845c60f019cc49ae177a0b5cd06b77c7",
+    "world-paired-nine-board.webp": "e32d95f2a7fb717970e4120ecaf0f92ca32731344a71737da6447a365ac5773a",
+    "front.webp": "9d815a6f939ace4b0de2529ff3f7179ca8a1d2eba83381ccbc7d8944c32792ca",
+    "elevated-right.webp": "78704539a91f4e07a5b2449de9ec009441b367b74e847ae2933059c1c95aed35",
+    "right.webp": "3acbaeb2ae176ac1759cd156ad8e2803c40b62bc7a006dd2a1604cde7995c5d5",
+    "back.webp": "1ef4bcbf2c09154e6339773164144ce76f8cb963afe14d1315e194ff78b045a0"
+  }
+}

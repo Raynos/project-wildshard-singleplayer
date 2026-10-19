@@ -1,0 +1,108 @@
+{
+  "frames": 244,
+  "weightedVertices": 5182560,
+  "minimumY": 0.0068660001270473,
+  "maxIndependentSkinError": 1.7112010859553013e-7,
+  "rootTranslationChanged": false,
+  "coverage": {
+    "body": {
+      "tested": 1920768,
+      "withinCore": 1150704,
+      "maxOutside": 0.173884313525826
+    },
+    "neck1": {
+      "tested": 737856,
+      "withinCore": 720288,
+      "maxOutside": 0.03818827581869688
+    },
+    "head": {
+      "tested": 1147776,
+      "withinCore": 734928,
+      "maxOutside": 0.7310482537275034
+    },
+    "jaw": {
+      "tested": 298656,
+      "withinCore": 135116,
+      "maxOutside": 0.8013442860381603
+    },
+    "tail1": {
+      "tested": 58560,
+      "withinCore": 45384,
+      "maxOutside": 0.23660762487721076
+    },
+    "tail2": {
+      "tested": 58560,
+      "withinCore": 1708,
+      "maxOutside": 1.2847063559137637
+    },
+    "tail3": {
+      "tested": 105408,
+      "withinCore": 0,
+      "maxOutside": 1.607005918402673
+    },
+    "FL_shoulder": {
+      "tested": 32208,
+      "withinCore": 10248,
+      "maxOutside": 0.4800748843615267
+    },
+    "FL_carpus": {
+      "tested": 32208,
+      "withinCore": 0,
+      "maxOutside": 0.8950762534800817
+    },
+    "FL_fetlock": {
+      "tested": 149328,
+      "withinCore": 0,
+      "maxOutside": 1.0719029134245721
+    },
+    "FR_shoulder": {
+      "tested": 32208,
+      "withinCore": 10248,
+      "maxOutside": 0.4800748843615267
+    },
+    "FR_carpus": {
+      "tested": 32208,
+      "withinCore": 0,
+      "maxOutside": 0.8950762534800817
+    },
+    "FR_fetlock": {
+      "tested": 149328,
+      "withinCore": 0,
+      "maxOutside": 1.066900383771769
+    },
+    "BL_hip": {
+      "tested": 32208,
+      "withinCore": 10248,
+      "maxOutside": 0.4800748843615267
+    },
+    "BL_stifle": {
+      "tested": 32208,
+      "withinCore": 0,
+      "maxOutside": 0.8950762534800817
+    },
+    "BL_hock": {
+      "tested": 149328,
+      "withinCore": 0,
+      "maxOutside": 1.056878234843181
+    },
+    "BR_hip": {
+      "tested": 32208,
+      "withinCore": 10248,
+      "maxOutside": 0.4800748843615267
+    },
+    "BR_stifle": {
+      "tested": 32208,
+      "withinCore": 0,
+      "maxOutside": 0.8950762534800817
+    },
+    "BR_hock": {
+      "tested": 149328,
+      "withinCore": 0,
+      "maxOutside": 1.0474919146987904
+    }
+  },
+  "corePolicy": "Living vulnerable torso/head volumes only. Feet, tail, decorative crests excluded intentionally. Snout coverage deficit reported; not accepted as complete facial hit fidelity.",
+  "gait": "No locomotion clip authored yet; all four feet remain planted.",
+  "death": "Numeric pose only; independent actual physics.json owns contact evidence.",
+  "runtimeAcceptance": false
+}

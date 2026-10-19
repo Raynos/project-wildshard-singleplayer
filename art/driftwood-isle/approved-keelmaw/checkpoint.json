@@ -1,0 +1,289 @@
+{
+  "schema": "wildshard.keelmaw.source-checkpoint.v1",
+  "status": "complete first source milestone; contact gate failed, runtime not admitted",
+  "files": {
+    "art/driftwood-isle/approved-keelmaw/build_keelmaw_failed_size.py": {
+      "sha256": "359db06adb564cebff50bf2f6ac38da2e5dc4b7689b39c8937dd1936056ff9a8",
+      "bytes": 15344
+    },
+    "art/driftwood-isle/approved-keelmaw/make_review.py": {
+      "sha256": "01d0624adbadd978526ffa719778b21f125cd2828642b7c64f7d6c2db397f59f",
+      "bytes": 2847
+    },
+    "art/driftwood-isle/approved-keelmaw/audit-v1.log": {
+      "sha256": "529a82227e47e388fb0d1308674e48282739d6e1e506d6668fb40c6c89b7f130",
+      "bytes": 19787
+    },
+    "art/driftwood-isle/approved-keelmaw/tests-v2.log": {
+      "sha256": "556a7e6892070564f3934309c415252299dce8bb7e02e82af72347404ab1c9af",
+      "bytes": 1533
+    },
+    "art/driftwood-isle/approved-keelmaw/prepare_corpse.py": {
+      "sha256": "81a21d013febc995c83e39b81c2d042a12ab8ca705c3bb32a84c2207f7618140",
+      "bytes": 1651
+    },
+    "art/driftwood-isle/approved-keelmaw/build-v2.log": {
+      "sha256": "c6a5beca2a806602a087cf1f3652e887ef12a8efd14dbddefc727906b98c1790",
+      "bytes": 506
+    },
+    "art/driftwood-isle/approved-keelmaw/build_keelmaw_failed_join.py": {
+      "sha256": "db457c66473a14e160dfe2445ec28bbaa8c1a045fee8fd93df08a6e6f191aa8d",
+      "bytes": 15841
+    },
+    "art/driftwood-isle/approved-keelmaw/vitest.config.ts": {
+      "sha256": "ee9f914a86ff019d43221e5d8fde520f58c49a8b95972aec9ac3f8e61652fa0c",
+      "bytes": 341
+    },
+    "art/driftwood-isle/approved-keelmaw/keelmawNativeClips.ts": {
+      "sha256": "a389b4682949169b8b3dd227fcaf0e04d1969322bdd4a3d2e5416cb949ebfeed",
+      "bytes": 2512
+    },
+    "art/driftwood-isle/approved-keelmaw/build_keelmaw_initial_cameras.py": {
+      "sha256": "d8cbe7b68a9efbed3640019000415943af1998215d64a4c210bc9efddc0e6718",
+      "bytes": 15893
+    },
+    "art/driftwood-isle/approved-keelmaw/tests-v1.log": {
+      "sha256": "139fbeddc6fafacc6cdfbc53f645793aef6a2f5488f14027c26c719e0c460f64",
+      "bytes": 1510
+    },
+    "art/driftwood-isle/approved-keelmaw/build_keelmaw_failed_size2.py": {
+      "sha256": "672db6edde838ffbcd1f34dbab14bb8738bb0903f7cbc81ba70b460fb2fef259",
+      "bytes": 15893
+    },
+    "art/driftwood-isle/approved-keelmaw/source.test.ts": {
+      "sha256": "807ebc20203178450542e5161b2d94ae734a482d8414086ced6213aa1e9342c7",
+      "bytes": 5686
+    },
+    "art/driftwood-isle/approved-keelmaw/audit-final.log": {
+      "sha256": "a50106770273e504b4c967ece5c6f42a70bef51f972f6d82274312f88e9d2aec",
+      "bytes": 19787
+    },
+    "art/driftwood-isle/approved-keelmaw/audit_source.py": {
+      "sha256": "f1a705382db7d064c6922fb33be6d6132fa964cd893b1178082adbfb642a2f29",
+      "bytes": 7942
+    },
+    "art/driftwood-isle/approved-keelmaw/build-v5.log": {
+      "sha256": "c6ddb1377c9690273a14d6721da69eaafb0491f973f3757443410b49213e09f7",
+      "bytes": 76980
+    },
+    "art/driftwood-isle/approved-keelmaw/build-v1.log": {
+      "sha256": "13623ce1cd23f48a2231a592598a00a68303a85610b7586b4d5416d8bc85ed8b",
+      "bytes": 21048
+    },
+    "art/driftwood-isle/approved-keelmaw/build-v3.log": {
+      "sha256": "dd990eb7666fcead9dcccab484229bdd8e33494ae578bec49620b2ef4f352f1d",
+      "bytes": 2858
+    },
+    "art/driftwood-isle/approved-keelmaw/build-v4.log": {
+      "sha256": "0ec2d6887aeb3bd67e44adbace0c04641c1176a33362415f3c5f2b491c6c64b4",
+      "bytes": 77238
+    },
+    "art/driftwood-isle/approved-keelmaw/corpse.test.ts": {
+      "sha256": "22d62983724318265cb1b2aa33d74788463d3242c101e912f11b404383e73d6d",
+      "bytes": 5404
+    },
+    "art/driftwood-isle/approved-keelmaw/build_keelmaw.py": {
+      "sha256": "582f163e30214124bf24eb5a16674ca02cd6ac843ad40f41707f2338f5ba129b",
+      "bytes": 15964
+    },
+    "art/driftwood-isle/approved-keelmaw/README.md": {
+      "sha256": "2f147894322b2c92e9d6ef60b1b14993c6f8a9198115d52a5d4bb44e8c87b568",
+      "bytes": 5148
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/paired-hero-board.webp": {
+      "sha256": "b304105fd69be677804017a872c8583462b932e2217502c0ba1ae8fe14e327d4",
+      "bytes": 43576
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/keelmaw-v1.glb": {
+      "sha256": "cf69a48b8ed0411f66fd8deb657c71c0c8702c518537bc7d92ed955017c2dd12",
+      "bytes": 932800
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/left.webp": {
+      "sha256": "3730c3384fd6685d5383f8f4029569145a36ec3052919875823c1e48f843aca9",
+      "bytes": 15286
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/explorer-paired-nine-board.webp": {
+      "sha256": "40b3b2c4a69c455b5e8bc9fc2b64c8162f7a5930835c8e1f3693966ddbff0653",
+      "bytes": 94048
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/physics-failed-first.json": {
+      "sha256": "89d3251a251bad91d64aff82aaf479fc714c149b70c137e77924345b54a1c558",
+      "bytes": 1405226
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/elevated-left.webp": {
+      "sha256": "853fc4b69f1215f8be3155fc1978ee1f5ab780c7208fbc09311a1adcd43f2317",
+      "bytes": 21916
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/elevated-back.webp": {
+      "sha256": "72cb309566d22c1e49178fc0f74350035dd4d623209f69f4d73716a6b80cb953",
+      "bytes": 20838
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/source-audit.json": {
+      "sha256": "a50106770273e504b4c967ece5c6f42a70bef51f972f6d82274312f88e9d2aec",
+      "bytes": 19787
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/review-captures.json": {
+      "sha256": "b2d2d12266b5f59a0f76d83e398f2185a81b930071b9360d03c3d984142cd160",
+      "bytes": 1469
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/elevated-front.webp": {
+      "sha256": "9c5ce4ae7bc00c6e9f9a43272f6ef3052e1fff90a4772bb4e24c6e4a642df65f",
+      "bytes": 22668
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/physics.json": {
+      "sha256": "89d3251a251bad91d64aff82aaf479fc714c149b70c137e77924345b54a1c558",
+      "bytes": 1405226
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/hero.webp": {
+      "sha256": "19e0c35cc1cdae553e57b4d7d3db474c9e8451233ed30d869f3a92f9a2d8cef6",
+      "bytes": 17264
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/top.webp": {
+      "sha256": "cf44d3599064743492569d1ed167a61eff08c30a05f4fe8ff0da07c7143e4546",
+      "bytes": 24690
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/world-paired-nine-board.webp": {
+      "sha256": "0f4ea287cfc24e2a66c3e0821517c884fc80569398acc7c703f4dbac1c7efa89",
+      "bytes": 107480
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/front.webp": {
+      "sha256": "9d815a6f939ace4b0de2529ff3f7179ca8a1d2eba83381ccbc7d8944c32792ca",
+      "bytes": 11680
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/metadata.json": {
+      "sha256": "86de1bdc1185af1d253cfdc02397c52674da31a34994a90805e38114033cfc9b",
+      "bytes": 74562
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/cameras.json": {
+      "sha256": "69ab8795a15343f4fd9bab9d89832bb1805204d338140ac2b75e34c9320e68c9",
+      "bytes": 1352
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/elevated-right.webp": {
+      "sha256": "a02ea31825aff5a21ddb16c4b555c266be562d27ebd18440b445118867b371b8",
+      "bytes": 21140
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/weighted-pose-audit.json": {
+      "sha256": "400a8ae5572e1dab0b317d210a15cb4fbda44b4450a621cac19907ce574af0d2",
+      "bytes": 2707
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/right.webp": {
+      "sha256": "638021a11ab7bf2109d0233c53e1e50b152277c443209bdfcb931544a0ff75c6",
+      "bytes": 12862
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/corpse-hull-audit.json": {
+      "sha256": "c87f04d329e3478c430b9acbd7498972b0a99a5a8f0345355dbf6c6e204f4654",
+      "bytes": 1617
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/native-source.json": {
+      "sha256": "eaaae47bc5316d1278d36295e7c08995e89d7a688888d9f90d25d7909a9a372d",
+      "bytes": 1526834
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/construction.json": {
+      "sha256": "501e918866bcd7dfd98a64408c9a7ff3e835acd7ca760d42c1328c1bbcdde791",
+      "bytes": 35332
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/back.webp": {
+      "sha256": "1ef4bcbf2c09154e6339773164144ce76f8cb963afe14d1315e194ff78b045a0",
+      "bytes": 10294
+    },
+    "art/driftwood-isle/approved-keelmaw/v1/payload.bin": {
+      "sha256": "de184ee931dc9218b2514ab279069195de50bb85f3305a81ef4b8c59dd01fd38",
+      "bytes": 61572
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/paired-hero-board.webp": {
+      "sha256": "f9a9b4b1e116603dcffc233c7c23e788f923b9ae5ea958a3a39422aad48016e4",
+      "bytes": 44910
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/left.webp": {
+      "sha256": "cf6bd063eb376875b309618a892e15259d2b2bc5ab8220de9bef59d1b896d02b",
+      "bytes": 12648
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/explorer-paired-nine-board.webp": {
+      "sha256": "bc67045bf8abfbd09fc58c6e8330109ede8d053718f51ad38607cc3400e37c1c",
+      "bytes": 94160
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/elevated-left.webp": {
+      "sha256": "d124c3562ad50689b0a8fac55dfef9a5440f0303f8fa2381abb85ed4979b4979",
+      "bytes": 21996
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/elevated-back.webp": {
+      "sha256": "72cb309566d22c1e49178fc0f74350035dd4d623209f69f4d73716a6b80cb953",
+      "bytes": 20838
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/review-captures.json": {
+      "sha256": "22bad52eb7b4929f0ed5fd8b066136947e7529c070b214b70cfe31315a185eb5",
+      "bytes": 1469
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/elevated-front.webp": {
+      "sha256": "9c5ce4ae7bc00c6e9f9a43272f6ef3052e1fff90a4772bb4e24c6e4a642df65f",
+      "bytes": 22668
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/hero.webp": {
+      "sha256": "b564a462fed4cd855f3c7b685d3d2cc1daabec7a748e254740fd2f967becbdd1",
+      "bytes": 18852
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/top.webp": {
+      "sha256": "b8d74bc325b7171269ac958ddea824b8845c60f019cc49ae177a0b5cd06b77c7",
+      "bytes": 25714
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/world-paired-nine-board.webp": {
+      "sha256": "e32d95f2a7fb717970e4120ecaf0f92ca32731344a71737da6447a365ac5773a",
+      "bytes": 107764
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/front.webp": {
+      "sha256": "9d815a6f939ace4b0de2529ff3f7179ca8a1d2eba83381ccbc7d8944c32792ca",
+      "bytes": 11680
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/cameras.json": {
+      "sha256": "c6a313d3b6c7dc93ea9af89a3be4d032452fb8aa24d512a0980dff98d725d359",
+      "bytes": 1351
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/elevated-right.webp": {
+      "sha256": "78704539a91f4e07a5b2449de9ec009441b367b74e847ae2933059c1c95aed35",
+      "bytes": 24140
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/right.webp": {
+      "sha256": "3acbaeb2ae176ac1759cd156ad8e2803c40b62bc7a006dd2a1604cde7995c5d5",
+      "bytes": 15446
+    },
+    "art/driftwood-isle/approved-keelmaw/initial-camera-review/back.webp": {
+      "sha256": "1ef4bcbf2c09154e6339773164144ce76f8cb963afe14d1315e194ff78b045a0",
+      "bytes": 10294
+    }
+  },
+  "newBinaryBytes": 1849224,
+  "rawCaptures": [
+    {
+      "path": "tmp/keelmaw-v4",
+      "bytes": 7557406
+    },
+    {
+      "path": "tmp/keelmaw-v5",
+      "bytes": 7507671
+    }
+  ],
+  "preservedFailedOutputs": {
+    "tmp/keelmaw-v1": {
+      "keelmaw-v1.glb": "b36245ba9aba5da59aaff8a32d2eb33556d91cdbe056bc88f40bf40ec56aded5",
+      "metadata.json": "9a572c1febde5b93e15f796972be8507714307403e931c553b7ae5e7d3d19ef4",
+      "native-source.json": "4e0f3a9ef801f8e45ca7877b4e69b0a29a9a3110a4a240b506fc83016db0cdf8",
+      "construction.json": "6cb4d4517ad84b22ea689dde7b08cfa868381c4847a73b0d3ede2e5ce0f66fef",
+      "payload.bin": "6c9a4e791d4c5507eed55aec7eaabec74bc27f7f6e733b0fa01795fa5d381eaf"
+    },
+    "tmp/keelmaw-v2": {
+      "metadata.json": "9a572c1febde5b93e15f796972be8507714307403e931c553b7ae5e7d3d19ef4",
+      "native-source.json": "4e0f3a9ef801f8e45ca7877b4e69b0a29a9a3110a4a240b506fc83016db0cdf8",
+      "payload.bin": "6c9a4e791d4c5507eed55aec7eaabec74bc27f7f6e733b0fa01795fa5d381eaf"
+    },
+    "tmp/keelmaw-v3": {
+      "keelmaw-v1.glb": "d70ebe83daa2fdc9921d0e0a3673f6a4ece1f8da66bb01bfaa14220cc6e7440f",
+      "metadata.json": "9a572c1febde5b93e15f796972be8507714307403e931c553b7ae5e7d3d19ef4",
+      "native-source.json": "4e0f3a9ef801f8e45ca7877b4e69b0a29a9a3110a4a240b506fc83016db0cdf8",
+      "construction.json": "3a4a7cdb1e53b08b0e747b51eb9ce20e00a7e5b892ef0aa17e23f398d6d449de",
+      "payload.bin": "6c9a4e791d4c5507eed55aec7eaabec74bc27f7f6e733b0fa01795fa5d381eaf"
+    }
+  },
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "contactAcceptance": false
+}

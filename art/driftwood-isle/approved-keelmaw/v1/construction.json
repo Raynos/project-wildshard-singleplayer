@@ -1,0 +1,1513 @@
+{
+  "vertices": 21240,
+  "triangles": 7080,
+  "bones": 19,
+  "parts": 19,
+  "components": [
+    {
+      "name": "Continuous armored torso",
+      "joint": "body",
+      "triangles": 116,
+      "startVertex": 0,
+      "signedVolume": 2.7090075998567045
+    },
+    {
+      "name": "Faceted warm belly",
+      "joint": "body",
+      "triangles": 76,
+      "startVertex": 348,
+      "signedVolume": 0.9400033048392894
+    },
+    {
+      "name": "Muscular neck",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 0,
+      "signedVolume": 0.507958118027697
+    },
+    {
+      "name": "Long flattened armored snout",
+      "joint": "head",
+      "triangles": 60,
+      "startVertex": 0,
+      "signedVolume": 0.5208481904119253
+    },
+    {
+      "name": "Upper dark palate",
+      "joint": "head",
+      "triangles": 44,
+      "startVertex": 180,
+      "signedVolume": 0.0615955269895494
+    },
+    {
+      "name": "Heavy hinged ivory lower jaw",
+      "joint": "jaw",
+      "triangles": 60,
+      "startVertex": 0,
+      "signedVolume": 0.28131770466764766
+    },
+    {
+      "name": "Recessed red lower mouth",
+      "joint": "jaw",
+      "triangles": 60,
+      "startVertex": 180,
+      "signedVolume": 0.056445989136894546
+    },
+    {
+      "name": "Throat cavity",
+      "joint": "head",
+      "triangles": 76,
+      "startVertex": 312,
+      "signedVolume": 0.047627100956257586
+    },
+    {
+      "name": "Ivory cheek -1",
+      "joint": "head",
+      "triangles": 76,
+      "startVertex": 540,
+      "signedVolume": 0.0664031299141546
+    },
+    {
+      "name": "Dark eye socket -1",
+      "joint": "head",
+      "triangles": 96,
+      "startVertex": 768,
+      "signedVolume": 0.007864514860557392
+    },
+    {
+      "name": "Amber eye -1",
+      "joint": "head",
+      "triangles": 96,
+      "startVertex": 1056,
+      "signedVolume": 0.001488482307953139
+    },
+    {
+      "name": "Slit pupil -1",
+      "joint": "head",
+      "triangles": 76,
+      "startVertex": 1344,
+      "signedVolume": 6.417317490559071e-05
+    },
+    {
+      "name": "Eye glint -1",
+      "joint": "head",
+      "triangles": 56,
+      "startVertex": 1572,
+      "signedVolume": 5.3679589958240586e-06
+    },
+    {
+      "name": "Predatory brow -1",
+      "joint": "head",
+      "triangles": 32,
+      "startVertex": 1740,
+      "signedVolume": 0.013003182287017504
+    },
+    {
+      "name": "Nostril -1",
+      "joint": "head",
+      "triangles": 56,
+      "startVertex": 1836,
+      "signedVolume": 0.0011830422930264224
+    },
+    {
+      "name": "Upper tooth -1 0",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 2004,
+      "signedVolume": 0.0009560715455639487
+    },
+    {
+      "name": "Lower tooth -1 0",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 360,
+      "signedVolume": 0.0006553830753546208
+    },
+    {
+      "name": "Upper tooth -1 1",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 2052,
+      "signedVolume": 0.0010997313996388887
+    },
+    {
+      "name": "Lower tooth -1 1",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 408,
+      "signedVolume": 0.0007695031041900317
+    },
+    {
+      "name": "Upper tooth -1 2",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 2100,
+      "signedVolume": 0.0012435921526048332
+    },
+    {
+      "name": "Lower tooth -1 2",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 456,
+      "signedVolume": 0.0006553698476636782
+    },
+    {
+      "name": "Upper tooth -1 3",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 2148,
+      "signedVolume": 0.0009557496887282468
+    },
+    {
+      "name": "Lower tooth -1 3",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 504,
+      "signedVolume": 0.000769427041329133
+    },
+    {
+      "name": "Upper tooth -1 4",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 2196,
+      "signedVolume": 0.0010994757855466257
+    },
+    {
+      "name": "Lower tooth -1 4",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 552,
+      "signedVolume": 0.0006553840382063451
+    },
+    {
+      "name": "Upper tooth -1 5",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 2244,
+      "signedVolume": 0.0012433707670425065
+    },
+    {
+      "name": "Lower tooth -1 5",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 600,
+      "signedVolume": 0.0007694468561870357
+    },
+    {
+      "name": "Upper tooth -1 6",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 2292,
+      "signedVolume": 0.0009555057840771042
+    },
+    {
+      "name": "Lower tooth -1 6",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 648,
+      "signedVolume": 0.0006553461425937712
+    },
+    {
+      "name": "Upper tooth -1 7",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 2340,
+      "signedVolume": 0.0010992513950138043
+    },
+    {
+      "name": "Lower tooth -1 7",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 696,
+      "signedVolume": 0.0007694468962048026
+    },
+    {
+      "name": "Upper tooth -1 8",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 2388,
+      "signedVolume": 0.0012431887759400222
+    },
+    {
+      "name": "Lower tooth -1 8",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 744,
+      "signedVolume": 0.0006553494849868002
+    },
+    {
+      "name": "Ivory cheek 1",
+      "joint": "head",
+      "triangles": 76,
+      "startVertex": 2436,
+      "signedVolume": 0.06640316650737077
+    },
+    {
+      "name": "Dark eye socket 1",
+      "joint": "head",
+      "triangles": 96,
+      "startVertex": 2664,
+      "signedVolume": 0.007864726222275445
+    },
+    {
+      "name": "Amber eye 1",
+      "joint": "head",
+      "triangles": 96,
+      "startVertex": 2952,
+      "signedVolume": 0.0014883589465171099
+    },
+    {
+      "name": "Slit pupil 1",
+      "joint": "head",
+      "triangles": 76,
+      "startVertex": 3240,
+      "signedVolume": 6.403607646158586e-05
+    },
+    {
+      "name": "Eye glint 1",
+      "joint": "head",
+      "triangles": 56,
+      "startVertex": 3468,
+      "signedVolume": 5.153189704287797e-06
+    },
+    {
+      "name": "Predatory brow 1",
+      "joint": "head",
+      "triangles": 32,
+      "startVertex": 3636,
+      "signedVolume": 0.013176976082225641
+    },
+    {
+      "name": "Nostril 1",
+      "joint": "head",
+      "triangles": 56,
+      "startVertex": 3732,
+      "signedVolume": 0.0011830833585311968
+    },
+    {
+      "name": "Upper tooth 1 0",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 3900,
+      "signedVolume": 0.0009560640464769676
+    },
+    {
+      "name": "Lower tooth 1 0",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 792,
+      "signedVolume": 0.0006554237237044921
+    },
+    {
+      "name": "Upper tooth 1 1",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 3948,
+      "signedVolume": 0.0010997170029440895
+    },
+    {
+      "name": "Lower tooth 1 1",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 840,
+      "signedVolume": 0.0007694485636117557
+    },
+    {
+      "name": "Upper tooth 1 2",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 3996,
+      "signedVolume": 0.0012435818595501285
+    },
+    {
+      "name": "Lower tooth 1 2",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 888,
+      "signedVolume": 0.000655351507399852
+    },
+    {
+      "name": "Upper tooth 1 3",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 4044,
+      "signedVolume": 0.0009557816083543003
+    },
+    {
+      "name": "Lower tooth 1 3",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 936,
+      "signedVolume": 0.0007694530261990925
+    },
+    {
+      "name": "Upper tooth 1 4",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 4092,
+      "signedVolume": 0.00109951428991432
+    },
+    {
+      "name": "Lower tooth 1 4",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 984,
+      "signedVolume": 0.0006553854885472296
+    },
+    {
+      "name": "Upper tooth 1 5",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 4140,
+      "signedVolume": 0.0012433933176604721
+    },
+    {
+      "name": "Lower tooth 1 5",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 1032,
+      "signedVolume": 0.0007694470477872528
+    },
+    {
+      "name": "Upper tooth 1 6",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 4188,
+      "signedVolume": 0.0009555313141997127
+    },
+    {
+      "name": "Lower tooth 1 6",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 1080,
+      "signedVolume": 0.0006553560888278298
+    },
+    {
+      "name": "Upper tooth 1 7",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 4236,
+      "signedVolume": 0.0010992270448089887
+    },
+    {
+      "name": "Lower tooth 1 7",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 1128,
+      "signedVolume": 0.0007694626862454849
+    },
+    {
+      "name": "Upper tooth 1 8",
+      "joint": "head",
+      "triangles": 16,
+      "startVertex": 4284,
+      "signedVolume": 0.0012431764795716542
+    },
+    {
+      "name": "Lower tooth 1 8",
+      "joint": "jaw",
+      "triangles": 16,
+      "startVertex": 1176,
+      "signedVolume": 0.0006553615360947637
+    },
+    {
+      "name": "Golden vertical snout keel",
+      "joint": "head",
+      "triangles": 12,
+      "startVertex": 4332,
+      "signedVolume": 0.008506658137775958
+    },
+    {
+      "name": "FL muscular upper leg",
+      "joint": "FL_shoulder",
+      "triangles": 44,
+      "startVertex": 0,
+      "signedVolume": 0.1966601648067202
+    },
+    {
+      "name": "FL scaled forearm",
+      "joint": "FL_carpus",
+      "triangles": 44,
+      "startVertex": 0,
+      "signedVolume": 0.08968111474920686
+    },
+    {
+      "name": "FL broad planted foot",
+      "joint": "FL_fetlock",
+      "triangles": 76,
+      "startVertex": 0,
+      "signedVolume": 0.03862067045702133
+    },
+    {
+      "name": "FL toe 0",
+      "joint": "FL_fetlock",
+      "triangles": 16,
+      "startVertex": 228,
+      "signedVolume": 0.004583602004762118
+    },
+    {
+      "name": "FL ivory claw 0",
+      "joint": "FL_fetlock",
+      "triangles": 16,
+      "startVertex": 276,
+      "signedVolume": 0.0009171907780303931
+    },
+    {
+      "name": "FL toe 1",
+      "joint": "FL_fetlock",
+      "triangles": 16,
+      "startVertex": 324,
+      "signedVolume": 0.005758956802310422
+    },
+    {
+      "name": "FL ivory claw 1",
+      "joint": "FL_fetlock",
+      "triangles": 16,
+      "startVertex": 372,
+      "signedVolume": 0.0009172043355647475
+    },
+    {
+      "name": "FL toe 2",
+      "joint": "FL_fetlock",
+      "triangles": 16,
+      "startVertex": 420,
+      "signedVolume": 0.00575895199047712
+    },
+    {
+      "name": "FL ivory claw 2",
+      "joint": "FL_fetlock",
+      "triangles": 16,
+      "startVertex": 468,
+      "signedVolume": 0.0009172029046264166
+    },
+    {
+      "name": "FL toe 3",
+      "joint": "FL_fetlock",
+      "triangles": 16,
+      "startVertex": 516,
+      "signedVolume": 0.0045836081068652374
+    },
+    {
+      "name": "FL ivory claw 3",
+      "joint": "FL_fetlock",
+      "triangles": 16,
+      "startVertex": 564,
+      "signedVolume": 0.0009171922113940431
+    },
+    {
+      "name": "FR muscular upper leg",
+      "joint": "FR_shoulder",
+      "triangles": 44,
+      "startVertex": 0,
+      "signedVolume": 0.1965478715089072
+    },
+    {
+      "name": "FR scaled forearm",
+      "joint": "FR_carpus",
+      "triangles": 44,
+      "startVertex": 0,
+      "signedVolume": 0.08947449317201972
+    },
+    {
+      "name": "FR broad planted foot",
+      "joint": "FR_fetlock",
+      "triangles": 76,
+      "startVertex": 0,
+      "signedVolume": 0.03862070090447863
+    },
+    {
+      "name": "FR toe 0",
+      "joint": "FR_fetlock",
+      "triangles": 16,
+      "startVertex": 228,
+      "signedVolume": 0.004583618234998236
+    },
+    {
+      "name": "FR ivory claw 0",
+      "joint": "FR_fetlock",
+      "triangles": 16,
+      "startVertex": 276,
+      "signedVolume": 0.0009171842903015204
+    },
+    {
+      "name": "FR toe 1",
+      "joint": "FR_fetlock",
+      "triangles": 16,
+      "startVertex": 324,
+      "signedVolume": 0.0057589390489738435
+    },
+    {
+      "name": "FR ivory claw 1",
+      "joint": "FR_fetlock",
+      "triangles": 16,
+      "startVertex": 372,
+      "signedVolume": 0.000917182995181065
+    },
+    {
+      "name": "FR toe 2",
+      "joint": "FR_fetlock",
+      "triangles": 16,
+      "startVertex": 420,
+      "signedVolume": 0.0057589488181596
+    },
+    {
+      "name": "FR ivory claw 2",
+      "joint": "FR_fetlock",
+      "triangles": 16,
+      "startVertex": 468,
+      "signedVolume": 0.0009171686154635003
+    },
+    {
+      "name": "FR toe 3",
+      "joint": "FR_fetlock",
+      "triangles": 16,
+      "startVertex": 516,
+      "signedVolume": 0.004583610221743584
+    },
+    {
+      "name": "FR ivory claw 3",
+      "joint": "FR_fetlock",
+      "triangles": 16,
+      "startVertex": 564,
+      "signedVolume": 0.0009171940958670651
+    },
+    {
+      "name": "BL muscular upper leg",
+      "joint": "BL_hip",
+      "triangles": 44,
+      "startVertex": 0,
+      "signedVolume": 0.1966601631914576
+    },
+    {
+      "name": "BL scaled forearm",
+      "joint": "BL_stifle",
+      "triangles": 44,
+      "startVertex": 0,
+      "signedVolume": 0.08968114660819992
+    },
+    {
+      "name": "BL broad planted foot",
+      "joint": "BL_hock",
+      "triangles": 76,
+      "startVertex": 0,
+      "signedVolume": 0.03862067321460927
+    },
+    {
+      "name": "BL toe 0",
+      "joint": "BL_hock",
+      "triangles": 16,
+      "startVertex": 228,
+      "signedVolume": 0.004583618981996551
+    },
+    {
+      "name": "BL ivory claw 0",
+      "joint": "BL_hock",
+      "triangles": 16,
+      "startVertex": 276,
+      "signedVolume": 0.0009171872422181574
+    },
+    {
+      "name": "BL toe 1",
+      "joint": "BL_hock",
+      "triangles": 16,
+      "startVertex": 324,
+      "signedVolume": 0.005758947975361177
+    },
+    {
+      "name": "BL ivory claw 1",
+      "joint": "BL_hock",
+      "triangles": 16,
+      "startVertex": 372,
+      "signedVolume": 0.0009171879035723881
+    },
+    {
+      "name": "BL toe 2",
+      "joint": "BL_hock",
+      "triangles": 16,
+      "startVertex": 420,
+      "signedVolume": 0.005758944820627221
+    },
+    {
+      "name": "BL ivory claw 2",
+      "joint": "BL_hock",
+      "triangles": 16,
+      "startVertex": 468,
+      "signedVolume": 0.0009171881712669953
+    },
+    {
+      "name": "BL toe 3",
+      "joint": "BL_hock",
+      "triangles": 16,
+      "startVertex": 516,
+      "signedVolume": 0.004583622097319069
+    },
+    {
+      "name": "BL ivory claw 3",
+      "joint": "BL_hock",
+      "triangles": 16,
+      "startVertex": 564,
+      "signedVolume": 0.0009171890196739696
+    },
+    {
+      "name": "BR muscular upper leg",
+      "joint": "BR_hip",
+      "triangles": 44,
+      "startVertex": 0,
+      "signedVolume": 0.19654779446621737
+    },
+    {
+      "name": "BR scaled forearm",
+      "joint": "BR_stifle",
+      "triangles": 44,
+      "startVertex": 0,
+      "signedVolume": 0.08947447031581153
+    },
+    {
+      "name": "BR broad planted foot",
+      "joint": "BR_hock",
+      "triangles": 76,
+      "startVertex": 0,
+      "signedVolume": 0.03862067895109552
+    },
+    {
+      "name": "BR toe 0",
+      "joint": "BR_hock",
+      "triangles": 16,
+      "startVertex": 228,
+      "signedVolume": 0.004583619161470172
+    },
+    {
+      "name": "BR ivory claw 0",
+      "joint": "BR_hock",
+      "triangles": 16,
+      "startVertex": 276,
+      "signedVolume": 0.0009171882411465049
+    },
+    {
+      "name": "BR toe 1",
+      "joint": "BR_hock",
+      "triangles": 16,
+      "startVertex": 324,
+      "signedVolume": 0.005758952005029035
+    },
+    {
+      "name": "BR ivory claw 1",
+      "joint": "BR_hock",
+      "triangles": 16,
+      "startVertex": 372,
+      "signedVolume": 0.000917188449572374
+    },
+    {
+      "name": "BR toe 2",
+      "joint": "BR_hock",
+      "triangles": 16,
+      "startVertex": 420,
+      "signedVolume": 0.005758945728302933
+    },
+    {
+      "name": "BR ivory claw 2",
+      "joint": "BR_hock",
+      "triangles": 16,
+      "startVertex": 468,
+      "signedVolume": 0.0009171902464307399
+    },
+    {
+      "name": "BR toe 3",
+      "joint": "BR_hock",
+      "triangles": 16,
+      "startVertex": 516,
+      "signedVolume": 0.004583619733845505
+    },
+    {
+      "name": "BR ivory claw 3",
+      "joint": "BR_hock",
+      "triangles": 16,
+      "startVertex": 564,
+      "signedVolume": 0.0009171861523403398
+    },
+    {
+      "name": "Continuous tail segment 0",
+      "joint": "tail1",
+      "triangles": 56,
+      "startVertex": 0,
+      "signedVolume": 0.508418082492426
+    },
+    {
+      "name": "Continuous tail segment 1",
+      "joint": "tail2",
+      "triangles": 56,
+      "startVertex": 0,
+      "signedVolume": 0.2986108313004176
+    },
+    {
+      "name": "Continuous tail segment 2",
+      "joint": "tail3",
+      "triangles": 96,
+      "startVertex": 0,
+      "signedVolume": 0.13155756383396996
+    },
+    {
+      "name": "Tail crest 0 -1",
+      "joint": "tail1",
+      "triangles": 6,
+      "startVertex": 168,
+      "signedVolume": 0.015220187604427338
+    },
+    {
+      "name": "Tail crest 0 1",
+      "joint": "tail1",
+      "triangles": 6,
+      "startVertex": 186,
+      "signedVolume": 0.015220185741782188
+    },
+    {
+      "name": "Tail crest 1 -1",
+      "joint": "tail1",
+      "triangles": 6,
+      "startVertex": 204,
+      "signedVolume": 0.01372140645980835
+    },
+    {
+      "name": "Tail crest 1 1",
+      "joint": "tail1",
+      "triangles": 6,
+      "startVertex": 222,
+      "signedVolume": 0.013721398155515393
+    },
+    {
+      "name": "Tail crest 2 -1",
+      "joint": "tail2",
+      "triangles": 6,
+      "startVertex": 168,
+      "signedVolume": 0.008991915732622147
+    },
+    {
+      "name": "Tail crest 2 1",
+      "joint": "tail2",
+      "triangles": 6,
+      "startVertex": 186,
+      "signedVolume": 0.008991925356288752
+    },
+    {
+      "name": "Tail crest 3 -1",
+      "joint": "tail2",
+      "triangles": 6,
+      "startVertex": 204,
+      "signedVolume": 0.005481609453757604
+    },
+    {
+      "name": "Tail crest 3 1",
+      "joint": "tail2",
+      "triangles": 6,
+      "startVertex": 222,
+      "signedVolume": 0.005481667506198089
+    },
+    {
+      "name": "Tail crest 4 -1",
+      "joint": "tail3",
+      "triangles": 6,
+      "startVertex": 288,
+      "signedVolume": 0.0036488783856232962
+    },
+    {
+      "name": "Tail crest 4 1",
+      "joint": "tail3",
+      "triangles": 6,
+      "startVertex": 306,
+      "signedVolume": 0.0036489094297091165
+    },
+    {
+      "name": "Tail crest 5 -1",
+      "joint": "tail3",
+      "triangles": 6,
+      "startVertex": 324,
+      "signedVolume": 0.002035049100716909
+    },
+    {
+      "name": "Tail crest 5 1",
+      "joint": "tail3",
+      "triangles": 6,
+      "startVertex": 342,
+      "signedVolume": 0.0020347966346889734
+    },
+    {
+      "name": "Tail crest 6 -1",
+      "joint": "tail3",
+      "triangles": 6,
+      "startVertex": 360,
+      "signedVolume": 0.0009757416943709055
+    },
+    {
+      "name": "Tail crest 6 1",
+      "joint": "tail3",
+      "triangles": 6,
+      "startVertex": 378,
+      "signedVolume": 0.0009754449129104614
+    },
+    {
+      "name": "Tail crest 7 -1",
+      "joint": "tail3",
+      "triangles": 6,
+      "startVertex": 396,
+      "signedVolume": 0.00035865729053815204
+    },
+    {
+      "name": "Tail crest 7 1",
+      "joint": "tail3",
+      "triangles": 6,
+      "startVertex": 414,
+      "signedVolume": 0.0003584449489911397
+    },
+    {
+      "name": "Dorsal tile 0 0",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 576,
+      "signedVolume": 0.006905188163121541
+    },
+    {
+      "name": "Dorsal keel 0 0",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 618,
+      "signedVolume": 0.006272014230489731
+    },
+    {
+      "name": "Dorsal tile 0 1",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 636,
+      "signedVolume": 0.006905151181854308
+    },
+    {
+      "name": "Dorsal tile 0 2",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 678,
+      "signedVolume": 0.00690518319606781
+    },
+    {
+      "name": "Dorsal keel 0 2",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 720,
+      "signedVolume": 0.008512000242869059
+    },
+    {
+      "name": "Dorsal tile 0 3",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 738,
+      "signedVolume": 0.006905190336207549
+    },
+    {
+      "name": "Dorsal tile 0 4",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 780,
+      "signedVolume": 0.00690518234235545
+    },
+    {
+      "name": "Dorsal keel 0 4",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 822,
+      "signedVolume": 0.006271984428167343
+    },
+    {
+      "name": "Dorsal tile 1 0",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 840,
+      "signedVolume": 0.006905184670661886
+    },
+    {
+      "name": "Dorsal keel 1 0",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 882,
+      "signedVolume": 0.006271999329328537
+    },
+    {
+      "name": "Dorsal tile 1 1",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 900,
+      "signedVolume": 0.006905174891774853
+    },
+    {
+      "name": "Dorsal tile 1 2",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 942,
+      "signedVolume": 0.006905162474140525
+    },
+    {
+      "name": "Dorsal keel 1 2",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 984,
+      "signedVolume": 0.008512000242869059
+    },
+    {
+      "name": "Dorsal tile 1 3",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1002,
+      "signedVolume": 0.006905165500938892
+    },
+    {
+      "name": "Dorsal tile 1 4",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1044,
+      "signedVolume": 0.0069051288689176244
+    },
+    {
+      "name": "Dorsal keel 1 4",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1086,
+      "signedVolume": 0.006272004296382268
+    },
+    {
+      "name": "Dorsal tile 2 0",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1104,
+      "signedVolume": 0.00690517151573052
+    },
+    {
+      "name": "Dorsal keel 2 0",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1146,
+      "signedVolume": 0.006271995759258668
+    },
+    {
+      "name": "Dorsal tile 2 1",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1164,
+      "signedVolume": 0.006905173417180777
+    },
+    {
+      "name": "Dorsal tile 2 2",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1206,
+      "signedVolume": 0.00690516581137975
+    },
+    {
+      "name": "Dorsal keel 2 2",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1248,
+      "signedVolume": 0.008511999466766914
+    },
+    {
+      "name": "Dorsal tile 2 3",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1266,
+      "signedVolume": 0.006905175241020818
+    },
+    {
+      "name": "Dorsal tile 2 4",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1308,
+      "signedVolume": 0.006905170128447935
+    },
+    {
+      "name": "Dorsal keel 2 4",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1350,
+      "signedVolume": 0.006272010466394325
+    },
+    {
+      "name": "Dorsal tile 3 0",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1368,
+      "signedVolume": 0.006905178219312802
+    },
+    {
+      "name": "Dorsal keel 3 0",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1410,
+      "signedVolume": 0.006272009884317716
+    },
+    {
+      "name": "Dorsal tile 3 1",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1428,
+      "signedVolume": 0.006905179005116224
+    },
+    {
+      "name": "Dorsal tile 3 2",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1470,
+      "signedVolume": 0.006905181022981803
+    },
+    {
+      "name": "Dorsal keel 3 2",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1512,
+      "signedVolume": 0.008511997604121765
+    },
+    {
+      "name": "Dorsal tile 3 3",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1530,
+      "signedVolume": 0.006905173494790991
+    },
+    {
+      "name": "Dorsal tile 3 4",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1572,
+      "signedVolume": 0.006905176327563822
+    },
+    {
+      "name": "Dorsal keel 3 4",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1614,
+      "signedVolume": 0.006272004451602697
+    },
+    {
+      "name": "Dorsal tile 4 0",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1632,
+      "signedVolume": 0.006905148892352979
+    },
+    {
+      "name": "Dorsal keel 4 0",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1674,
+      "signedVolume": 0.006272025406360626
+    },
+    {
+      "name": "Dorsal tile 4 1",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1692,
+      "signedVolume": 0.006905169226229191
+    },
+    {
+      "name": "Dorsal tile 4 2",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1734,
+      "signedVolume": 0.0069051819543043775
+    },
+    {
+      "name": "Dorsal keel 4 2",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1776,
+      "signedVolume": 0.008512002105514208
+    },
+    {
+      "name": "Dorsal tile 4 3",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1794,
+      "signedVolume": 0.00690517279629906
+    },
+    {
+      "name": "Dorsal tile 4 4",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1836,
+      "signedVolume": 0.006905218043054144
+    },
+    {
+      "name": "Dorsal keel 4 4",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1878,
+      "signedVolume": 0.006271972010533015
+    },
+    {
+      "name": "Dorsal tile 5 0",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1896,
+      "signedVolume": 0.006905129256968697
+    },
+    {
+      "name": "Dorsal keel 5 0",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 1938,
+      "signedVolume": 0.006272029131650925
+    },
+    {
+      "name": "Dorsal tile 5 1",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1956,
+      "signedVolume": 0.006905208031336467
+    },
+    {
+      "name": "Dorsal tile 5 2",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 1998,
+      "signedVolume": 0.006905160107028981
+    },
+    {
+      "name": "Dorsal keel 5 2",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 2040,
+      "signedVolume": 0.008512000863750776
+    },
+    {
+      "name": "Dorsal tile 5 3",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 2058,
+      "signedVolume": 0.006905172291832666
+    },
+    {
+      "name": "Dorsal tile 5 4",
+      "joint": "body",
+      "triangles": 14,
+      "startVertex": 2100,
+      "signedVolume": 0.006905214007322987
+    },
+    {
+      "name": "Dorsal keel 5 4",
+      "joint": "body",
+      "triangles": 6,
+      "startVertex": 2142,
+      "signedVolume": 0.006271976977586746
+    },
+    {
+      "name": "Snout scute -1 0",
+      "joint": "head",
+      "triangles": 14,
+      "startVertex": 4368,
+      "signedVolume": 0.006905184981102745
+    },
+    {
+      "name": "Snout scute 1 0",
+      "joint": "head",
+      "triangles": 14,
+      "startVertex": 4410,
+      "signedVolume": 0.006905085562417905
+    },
+    {
+      "name": "Snout scute -1 1",
+      "joint": "head",
+      "triangles": 14,
+      "startVertex": 4452,
+      "signedVolume": 0.006905208496997754
+    },
+    {
+      "name": "Snout scute 1 1",
+      "joint": "head",
+      "triangles": 14,
+      "startVertex": 4494,
+      "signedVolume": 0.0069051963509991765
+    },
+    {
+      "name": "Snout scute -1 2",
+      "joint": "head",
+      "triangles": 14,
+      "startVertex": 4536,
+      "signedVolume": 0.006905166044210394
+    },
+    {
+      "name": "Snout scute 1 2",
+      "joint": "head",
+      "triangles": 14,
+      "startVertex": 4578,
+      "signedVolume": 0.006905154480288426
+    },
+    {
+      "name": "Snout scute -1 3",
+      "joint": "head",
+      "triangles": 14,
+      "startVertex": 4620,
+      "signedVolume": 0.006905158671240012
+    },
+    {
+      "name": "Snout scute 1 3",
+      "joint": "head",
+      "triangles": 14,
+      "startVertex": 4662,
+      "signedVolume": 0.0069051873094091816
+    },
+    {
+      "name": "Twisted rope 0 -1",
+      "joint": "body",
+      "triangles": 196,
+      "startVertex": 2160,
+      "signedVolume": 0.017550770731920313
+    },
+    {
+      "name": "Twisted rope 0 1",
+      "joint": "body",
+      "triangles": 196,
+      "startVertex": 2748,
+      "signedVolume": 0.017553827877530164
+    },
+    {
+      "name": "Hollow barnacle 0 -1 0",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 3336,
+      "signedVolume": 0.0012307754053229776
+    },
+    {
+      "name": "Hollow barnacle 0 -1 1",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 3504,
+      "signedVolume": 0.0019501715287333354
+    },
+    {
+      "name": "Hollow barnacle 0 -1 2",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 3672,
+      "signedVolume": 0.0012307243038473341
+    },
+    {
+      "name": "Hollow barnacle 0 -1 3",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 3840,
+      "signedVolume": 0.0019502049787358071
+    },
+    {
+      "name": "Hollow barnacle 0 -1 4",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 4008,
+      "signedVolume": 0.0012306760442394686
+    },
+    {
+      "name": "Hollow barnacle 0 1 0",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 4176,
+      "signedVolume": 0.0012307754053229776
+    },
+    {
+      "name": "Hollow barnacle 0 1 1",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 4344,
+      "signedVolume": 0.0019501715287333354
+    },
+    {
+      "name": "Hollow barnacle 0 1 2",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 4512,
+      "signedVolume": 0.0012307243038473341
+    },
+    {
+      "name": "Hollow barnacle 0 1 3",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 4680,
+      "signedVolume": 0.0019502049787358071
+    },
+    {
+      "name": "Hollow barnacle 0 1 4",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 4848,
+      "signedVolume": 0.0012306760442394686
+    },
+    {
+      "name": "Twisted rope 1 -1",
+      "joint": "body",
+      "triangles": 196,
+      "startVertex": 5016,
+      "signedVolume": 0.017550878051982483
+    },
+    {
+      "name": "Twisted rope 1 1",
+      "joint": "body",
+      "triangles": 196,
+      "startVertex": 5604,
+      "signedVolume": 0.017553890980593678
+    },
+    {
+      "name": "Hollow barnacle 1 -1 0",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 6192,
+      "signedVolume": 0.0012306946949441528
+    },
+    {
+      "name": "Hollow barnacle 1 -1 1",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 6360,
+      "signedVolume": 0.0019502080297873665
+    },
+    {
+      "name": "Hollow barnacle 1 -1 2",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 6528,
+      "signedVolume": 0.001230702422617469
+    },
+    {
+      "name": "Hollow barnacle 1 -1 3",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 6696,
+      "signedVolume": 0.0019503092019779917
+    },
+    {
+      "name": "Hollow barnacle 1 -1 4",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 6864,
+      "signedVolume": 0.0012306785841550056
+    },
+    {
+      "name": "Hollow barnacle 1 1 0",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 7032,
+      "signedVolume": 0.0012306946949441528
+    },
+    {
+      "name": "Hollow barnacle 1 1 1",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 7200,
+      "signedVolume": 0.0019502080297873665
+    },
+    {
+      "name": "Hollow barnacle 1 1 2",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 7368,
+      "signedVolume": 0.001230702422617469
+    },
+    {
+      "name": "Hollow barnacle 1 1 3",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 7536,
+      "signedVolume": 0.0019503092019779917
+    },
+    {
+      "name": "Hollow barnacle 1 1 4",
+      "joint": "body",
+      "triangles": 56,
+      "startVertex": 7704,
+      "signedVolume": 0.0012306785841550056
+    },
+    {
+      "name": "Twisted rope 2 -1",
+      "joint": "neck1",
+      "triangles": 196,
+      "startVertex": 168,
+      "signedVolume": 0.012057314116797594
+    },
+    {
+      "name": "Twisted rope 2 1",
+      "joint": "neck1",
+      "triangles": 196,
+      "startVertex": 756,
+      "signedVolume": 0.012064880665027053
+    },
+    {
+      "name": "Hollow barnacle 2 -1 0",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 1344,
+      "signedVolume": 0.0012306113591572891
+    },
+    {
+      "name": "Hollow barnacle 2 -1 1",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 1512,
+      "signedVolume": 0.0019503243723496173
+    },
+    {
+      "name": "Hollow barnacle 2 -1 2",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 1680,
+      "signedVolume": 0.0012306400167290121
+    },
+    {
+      "name": "Hollow barnacle 2 -1 3",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 1848,
+      "signedVolume": 0.0019502699202954925
+    },
+    {
+      "name": "Hollow barnacle 2 -1 4",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 2016,
+      "signedVolume": 0.0012306624315291022
+    },
+    {
+      "name": "Hollow barnacle 2 1 0",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 2184,
+      "signedVolume": 0.0012306113591572891
+    },
+    {
+      "name": "Hollow barnacle 2 1 1",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 2352,
+      "signedVolume": 0.0019503243723496173
+    },
+    {
+      "name": "Hollow barnacle 2 1 2",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 2520,
+      "signedVolume": 0.0012306400167290121
+    },
+    {
+      "name": "Hollow barnacle 2 1 3",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 2688,
+      "signedVolume": 0.0019502699202954925
+    },
+    {
+      "name": "Hollow barnacle 2 1 4",
+      "joint": "neck1",
+      "triangles": 56,
+      "startVertex": 2856,
+      "signedVolume": 0.0012306624315291022
+    }
+  ],
+  "nativeBytes": 1526834,
+  "packedBytes": 61572,
+  "glbBytes": 932800,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "colliderAcceptance": false,
+  "sourceSha256": "582f163e30214124bf24eb5a16674ca02cd6ac843ad40f41707f2338f5ba129b"
+}

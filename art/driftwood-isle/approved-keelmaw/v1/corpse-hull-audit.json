@@ -1,0 +1,74 @@
+{
+  "method": "Exact convex hull vertices, not bounding boxes or padded contacts. Body includes static planted limbs; all animated joints separate. Existing one rigid body; seven shape budget.",
+  "parts": [
+    {
+      "bone": "body",
+      "hullPoints": 99,
+      "sourceParts": [
+        "body",
+        "FL_shoulder",
+        "FL_carpus",
+        "FL_fetlock",
+        "FR_shoulder",
+        "FR_carpus",
+        "FR_fetlock",
+        "BL_hip",
+        "BL_stifle",
+        "BL_hock",
+        "BR_hip",
+        "BR_stifle",
+        "BR_hock"
+      ],
+      "maximumOutsideDistance": 4.440892098500626e-16
+    },
+    {
+      "bone": "neck1",
+      "hullPoints": 81,
+      "sourceParts": [
+        "neck1"
+      ],
+      "maximumOutsideDistance": 4.440892098500626e-16
+    },
+    {
+      "bone": "head",
+      "hullPoints": 69,
+      "sourceParts": [
+        "head"
+      ],
+      "maximumOutsideDistance": 4.440892098500626e-16
+    },
+    {
+      "bone": "jaw",
+      "hullPoints": 45,
+      "sourceParts": [
+        "jaw"
+      ],
+      "maximumOutsideDistance": 4.440892098500626e-16
+    },
+    {
+      "bone": "tail1",
+      "hullPoints": 29,
+      "sourceParts": [
+        "tail1"
+      ],
+      "maximumOutsideDistance": 2.220446049250313e-16
+    },
+    {
+      "bone": "tail2",
+      "hullPoints": 29,
+      "sourceParts": [
+        "tail2"
+      ],
+      "maximumOutsideDistance": 2.220446049250313e-16
+    },
+    {
+      "bone": "tail3",
+      "hullPoints": 40,
+      "sourceParts": [
+        "tail3"
+      ],
+      "maximumOutsideDistance": 4.440892098500626e-16
+    }
+  ],
+  "runtimeAcceptance": false
+}
