@@ -1,0 +1,6 @@
+2026-10-19T10:43:51.505Z mantis boot
+2026-10-19T10:43:59.108Z mantis sword-combat
+2026-10-19T10:44:42.114Z mantis enemy-attacks-player-defeat
+2026-10-19T10:47:56.049Z mantis reload
+2026-10-19T10:48:12.269Z mantis complete
+{"kind":"mantis","pass":false,"checks":{"exactFrozenBytesBefore":true,"desktopPlayStart":true,"desktopNoRuntimeErrors":true,"wipLabel":true,"normalPhonePolicy":true,"correctSingleEnemy":true,"nativeModel":true,"swordDamage":true,"enemyDefeated":true,"noPostDeathStrike":true,"localReward":true,"retryAfterReward":true,"enemyAttacks":true,"playerDefeated":false,"playerDeathDoesNotKillEnemy":true,"retryAfterDefeat":true,"reloadFresh":true,"reloadAssets":true,"mountedAssetBase":true,"emptyBrowserStorage":true,"emptyWorldShardPersistence":true,"noRuntimeErrors":true,"exactFrozenBytesAfter":true,"siteHtmlUnchanged":true,"allFourAppsUnchanged":true}}

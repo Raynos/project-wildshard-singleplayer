@@ -1,0 +1,92 @@
+{
+  "schema": "wildshard.mantis.actual-supplement-closure.v1",
+  "frozenAtUtc": "2026-10-19T10:42:46.669056+00:00",
+  "sameProductAndOriginalEvidenceUnchanged": true,
+  "acceptance": false,
+  "files": {
+    "docs/reviews/mantis-early-knee-supplement/REVIEW.md": {
+      "sha256": "cb6eb6dae15569792be26f5bd1ac26590bf199470ba228adc325de7ed444c701",
+      "bytes": 4296
+    },
+    "docs/reviews/mantis-early-knee-supplement/capture.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "docs/reviews/mantis-early-knee-supplement/lint.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "docs/reviews/mantis-early-knee-supplement/summary.json": {
+      "sha256": "e3ecf0191cd4bcc5014cb3ef10bfc220c532fa951ff62c3a40714bf41580148c",
+      "bytes": 32175
+    },
+    "docs/reviews/mantis-early-knee-supplement/syntax.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "docs/reviews/mantis-early-knee-supplement/tooling-freeze.json": {
+      "sha256": "1e7605e9d0cfeeac78adc0ce89f14bd572449e4deaa32dff321e97276568dc1e",
+      "bytes": 361
+    },
+    "docs/reviews/mantis-early-knee-supplement/video-probe.json": {
+      "sha256": "aaaa9e02469aee089b7789d7f77c5357f18517a044bc4233064e829fa2bf503c",
+      "bytes": 381
+    },
+    "scripts/analyze-mantis-early-knee-capture.py": {
+      "sha256": "f0481db648ea6751ac69eb09d0f6292902d2a184340748d8ec0d749ecbca97af",
+      "bytes": 3861
+    },
+    "scripts/measure-mantis-world-contact.mjs": {
+      "sha256": "4561f96859336b5f7a6cfce612427229f4fc61666f51b57a22407c2a6cfdc0c8",
+      "bytes": 3829
+    },
+    "scripts/qa-mantis-early-knee-supplement.mjs": {
+      "sha256": "ed88430b0c0d30c9709eef363ebe456612f1d49c3b616d553fc510ccce37ef27",
+      "bytes": 17603
+    },
+    "tmp/mantis-early-knee-supplement1/aim-events.json": {
+      "sha256": "3f18ef27193a0ddd572156b2ef77c19e2db9d6ee5cba081f5126268bcc501545",
+      "bytes": 5999
+    },
+    "tmp/mantis-early-knee-supplement1/entry.jpg": {
+      "sha256": "06e3900254a124b2d5d56ff3248acfec9ed5fe20c066acafa205fb063fa9a2de",
+      "bytes": 62910
+    },
+    "tmp/mantis-early-knee-supplement1/hit-events.json": {
+      "sha256": "5045042b87209447d7d1f39cae6620223f5d6fae11ee1c5b18f91533abb9f945",
+      "bytes": 5332
+    },
+    "tmp/mantis-early-knee-supplement1/moving-death-settled.jpg": {
+      "sha256": "71ce419473821d1a0f5e14b826c34ad5c724020461d4304d98e9afd60bd374ec",
+      "bytes": 59731
+    },
+    "tmp/mantis-early-knee-supplement1/player-defeat.jpg": {
+      "sha256": "2158f8d374ff82f970930f712cb3ee65cf1596d11a3cf82a928b1599bb5eda8d",
+      "bytes": 65139
+    },
+    "tmp/mantis-early-knee-supplement1/reload-reentry.jpg": {
+      "sha256": "873e692bb53e30f22ba692484ebbe8373aa2bff195b1e812ebb6fc7da1d951e8",
+      "bytes": 66436
+    },
+    "tmp/mantis-early-knee-supplement1/render-trace.json": {
+      "sha256": "753b15996e06de14bdec94bfaf3c50ee723509a3409922bc00b2e44c70f9b24d",
+      "bytes": 2911772
+    },
+    "tmp/mantis-early-knee-supplement1/report.json": {
+      "sha256": "10cea35e5f2d589ceadce718445b88f6701d5d3969c3e9c5a24d6afff48e7da4",
+      "bytes": 622222
+    },
+    "tmp/mantis-early-knee-supplement1/retry.jpg": {
+      "sha256": "fb2d2c9553d3cfdac73ca6183420e4b03015f17517293dc1632eb1faab1590cc",
+      "bytes": 61713
+    },
+    "tmp/mantis-early-knee-supplement1/video/page@de825d9a4663c5aa19efe09114e83f58.webm": {
+      "sha256": "faca0448ac5a83dbc2a327a8c9f2c622d8ec52b6804943d693b4eb5d587b13e8",
+      "bytes": 11909704
+    },
+    "tmp/mantis-early-knee-supplement1/world-contact.json": {
+      "sha256": "c08ceebab5d34ae032fc91e9347b488e24221b25bef8f41dacb53c5084370883",
+      "bytes": 2636156
+    }
+  }
+}

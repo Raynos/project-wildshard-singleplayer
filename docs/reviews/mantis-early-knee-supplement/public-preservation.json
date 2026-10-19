@@ -1,0 +1,105 @@
+{
+  "files": [
+    {
+      "source": "tmp/mantis-early-knee-supplement1/aim-events.json",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/aim-events.json",
+      "originalSha256": "3f18ef27193a0ddd572156b2ef77c19e2db9d6ee5cba081f5126268bcc501545",
+      "publicSha256": "3f18ef27193a0ddd572156b2ef77c19e2db9d6ee5cba081f5126268bcc501545",
+      "bytes": 5999,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-supplement1/entry.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/entry.jpg",
+      "originalSha256": "06e3900254a124b2d5d56ff3248acfec9ed5fe20c066acafa205fb063fa9a2de",
+      "publicSha256": "06e3900254a124b2d5d56ff3248acfec9ed5fe20c066acafa205fb063fa9a2de",
+      "bytes": 62910,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-supplement1/hit-events.json",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/hit-events.json",
+      "originalSha256": "5045042b87209447d7d1f39cae6620223f5d6fae11ee1c5b18f91533abb9f945",
+      "publicSha256": "5045042b87209447d7d1f39cae6620223f5d6fae11ee1c5b18f91533abb9f945",
+      "bytes": 5332,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-supplement1/moving-death-settled.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/moving-death-settled.jpg",
+      "originalSha256": "71ce419473821d1a0f5e14b826c34ad5c724020461d4304d98e9afd60bd374ec",
+      "publicSha256": "71ce419473821d1a0f5e14b826c34ad5c724020461d4304d98e9afd60bd374ec",
+      "bytes": 59731,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-supplement1/player-defeat.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/player-defeat.jpg",
+      "originalSha256": "2158f8d374ff82f970930f712cb3ee65cf1596d11a3cf82a928b1599bb5eda8d",
+      "publicSha256": "2158f8d374ff82f970930f712cb3ee65cf1596d11a3cf82a928b1599bb5eda8d",
+      "bytes": 65139,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-supplement1/reload-reentry.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/reload-reentry.jpg",
+      "originalSha256": "873e692bb53e30f22ba692484ebbe8373aa2bff195b1e812ebb6fc7da1d951e8",
+      "publicSha256": "873e692bb53e30f22ba692484ebbe8373aa2bff195b1e812ebb6fc7da1d951e8",
+      "bytes": 66436,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-supplement1/render-trace.json",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/render-trace.json",
+      "originalSha256": "753b15996e06de14bdec94bfaf3c50ee723509a3409922bc00b2e44c70f9b24d",
+      "publicSha256": "753b15996e06de14bdec94bfaf3c50ee723509a3409922bc00b2e44c70f9b24d",
+      "bytes": 2911772,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-supplement1/report.json",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/report.json",
+      "originalSha256": "10cea35e5f2d589ceadce718445b88f6701d5d3969c3e9c5a24d6afff48e7da4",
+      "publicSha256": "10cea35e5f2d589ceadce718445b88f6701d5d3969c3e9c5a24d6afff48e7da4",
+      "bytes": 622222,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-supplement1/retry.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/retry.jpg",
+      "originalSha256": "fb2d2c9553d3cfdac73ca6183420e4b03015f17517293dc1632eb1faab1590cc",
+      "publicSha256": "fb2d2c9553d3cfdac73ca6183420e4b03015f17517293dc1632eb1faab1590cc",
+      "bytes": 61713,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-supplement1/video/page@de825d9a4663c5aa19efe09114e83f58.webm",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/video/page@de825d9a4663c5aa19efe09114e83f58.webm",
+      "originalSha256": "faca0448ac5a83dbc2a327a8c9f2c622d8ec52b6804943d693b4eb5d587b13e8",
+      "publicSha256": "faca0448ac5a83dbc2a327a8c9f2c622d8ec52b6804943d693b4eb5d587b13e8",
+      "bytes": 11909704,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-supplement1/world-contact.json",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/supplement/run1/world-contact.json",
+      "originalSha256": "c08ceebab5d34ae032fc91e9347b488e24221b25bef8f41dacb53c5084370883",
+      "publicSha256": "c08ceebab5d34ae032fc91e9347b488e24221b25bef8f41dacb53c5084370883",
+      "bytes": 2636156,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    }
+  ],
+  "sameProduct": true,
+  "acceptance": false
+}

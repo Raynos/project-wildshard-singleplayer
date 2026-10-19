@@ -1,0 +1,86 @@
+{
+  "schema": "wildshard.mantis.candidate6.mounted-evidence-closure.v1",
+  "createdAt": "2026-10-19T10:49:40.131948+00:00",
+  "files": {
+    "scripts/qa-mantis-knee-mounted.mjs": {
+      "sha256": "cdc27aaf16c1634fd976289a742004c4ae634379baa79f21052cfb3214c814fd",
+      "bytes": 14829
+    },
+    "progress/mantis-knee-mounted-2026-10-19/REVIEW.md": {
+      "sha256": "4a2c64eb26a22a05c0d4649f5399e5a67f45b9eea1f714a4ffb78b847751e6b3",
+      "bytes": 4245
+    },
+    "progress/mantis-knee-mounted-2026-10-19/frozen-input-verification-after.json": {
+      "sha256": "d5bb51e45d8906a3da499661d5ed4bc497d58f6bcb9ce7b5f457ee79df2ea576",
+      "bytes": 44867
+    },
+    "progress/mantis-knee-mounted-2026-10-19/frozen-input-verification-during.json": {
+      "sha256": "ed4ff7e939de651763a5040ce0cb7b3ebd2600667bd317944a3bf7cc1346cbe9",
+      "bytes": 44867
+    },
+    "progress/mantis-knee-mounted-2026-10-19/publication-screen.json": {
+      "sha256": "5dbf671070b0bedb3313658384e3f1c4192bf0a079e987f516536c7e96dc3498",
+      "bytes": 85
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/corpseReward.jpg": {
+      "sha256": "31cf46ad76ac21fa6764ee34eccf46f417453d0af3c1a576a86c22f9a693be8f",
+      "bytes": 48350
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/desktop-entry.jpg": {
+      "sha256": "6cfebe04f9f538db7f53b74ba2f842685e76d92f2a8ef8597d69745044eabbf4",
+      "bytes": 74449
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/entry.jpg": {
+      "sha256": "01c45026f27fdf1b53ce70af0af56752f6bd2d04f7146c92abb3a2417a0c84f9",
+      "bytes": 54489
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/executed-harness.mjs": {
+      "sha256": "e325b7636b4ce680329050b653d3ef6460f5aa395cf2412a525abd6458775f40",
+      "bytes": 14827
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/inventory-after.json": {
+      "sha256": "af6bfa2a7f7f15006d40c148ee51290bd17c29d9754e1c73476bb04403f5fff5",
+      "bytes": 93536
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/inventory-before.json": {
+      "sha256": "af6bfa2a7f7f15006d40c148ee51290bd17c29d9754e1c73476bb04403f5fff5",
+      "bytes": 93536
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/playerDefeat.jpg": {
+      "sha256": "3b108602e6bbf02b0b58b00270a29372d665f696c765d195ba9b3a5215ffef05",
+      "bytes": 40585
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/reentry.jpg": {
+      "sha256": "1acb99f88d76c579e7cce682fa64d8e2d990f37f173eedce9d4281a6aeebfff9",
+      "bytes": 53572
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/report.json": {
+      "sha256": "dc2696c8d399e0798f8539e53e4070fe5321b692694036666c4f56ea0d1950aa",
+      "bytes": 504726
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/source-inventory-after.json": {
+      "sha256": "6f952e1531cbbeebe7569561ec5ae00c9530782cae3b88824aa0da3bb882fc55",
+      "bytes": 21989
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/source-inventory.json": {
+      "sha256": "6f952e1531cbbeebe7569561ec5ae00c9530782cae3b88824aa0da3bb882fc55",
+      "bytes": 21989
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1/swordResult.jpg": {
+      "sha256": "51c6fe11cb071a8712624d44e1097af9d997fc8b2d7f78844639829ce6a8f945",
+      "bytes": 47863
+    },
+    "progress/mantis-knee-mounted-2026-10-19/run1-log.txt": {
+      "sha256": "62b383954c6f09ddb033acf93ad5e1277136be0c040fc60c8ddbb8c0cd0b95c5",
+      "bytes": 873
+    },
+    "progress/mantis-knee-mounted-2026-10-19/tooling-lint.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "progress/mantis-knee-mounted-2026-10-19/tooling-syntax.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  }
+}

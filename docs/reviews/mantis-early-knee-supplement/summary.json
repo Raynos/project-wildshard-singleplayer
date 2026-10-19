@@ -1,0 +1,1394 @@
+{
+  "schema": "wildshard.mantis.early-knee-capture-summary.v1",
+  "acceptance": false,
+  "checks": {
+    "onlyMantis": true,
+    "enemyDefeated": true,
+    "boutLocalReward": true,
+    "retry": true,
+    "playerDefeated": true,
+    "defeatedAttackBlocked": true,
+    "finalRetry": true,
+    "poseInputs": true,
+    "movingLethal": false,
+    "lethalPoseOwned": true,
+    "reentry": true,
+    "emptyStorage": true,
+    "emptyUnchangedStateStore": true,
+    "errors": true
+  },
+  "fatal": null,
+  "renders": 807,
+  "traceSha256": "753b15996e06de14bdec94bfaf3c50ee723509a3409922bc00b2e44c70f9b24d",
+  "strikePhaseEpisodes": [
+    {
+      "key": [
+        "entry",
+        null,
+        "idle"
+      ],
+      "firstFrame": 4,
+      "lastFrame": 30,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "moving-death-approach",
+        null,
+        "idle"
+      ],
+      "firstFrame": 31,
+      "lastFrame": 40,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "moving-death-hits",
+        "strike.splinter-mantis.first",
+        "windup"
+      ],
+      "firstFrame": 41,
+      "lastFrame": 46,
+      "firstElapsed": 0.03333333333333333,
+      "lastElapsed": 0.5333333333333333
+    },
+    {
+      "key": [
+        "moving-death-hits",
+        null,
+        "idle"
+      ],
+      "firstFrame": 47,
+      "lastFrame": 89,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "moving-death-settle",
+        null,
+        "idle"
+      ],
+      "firstFrame": 90,
+      "lastFrame": 210,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "reward-retry",
+        null,
+        "idle"
+      ],
+      "firstFrame": 211,
+      "lastFrame": 243,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 244,
+      "lastFrame": 246,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "windup"
+      ],
+      "firstFrame": 247,
+      "lastFrame": 253,
+      "firstElapsed": 0.09999999999999999,
+      "lastElapsed": 0.6666666666666671
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "active"
+      ],
+      "firstFrame": 254,
+      "lastFrame": 272,
+      "firstElapsed": 0,
+      "lastElapsed": 1.6833333333333322
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "recover"
+      ],
+      "firstFrame": 273,
+      "lastFrame": 273,
+      "firstElapsed": 0.06666666666666667,
+      "lastElapsed": 0.06666666666666667
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 274,
+      "lastFrame": 274,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "windup"
+      ],
+      "firstFrame": 275,
+      "lastFrame": 280,
+      "firstElapsed": 0.016666666666666666,
+      "lastElapsed": 0.39999999999999997
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "active"
+      ],
+      "firstFrame": 281,
+      "lastFrame": 299,
+      "firstElapsed": 0.016666666666666666,
+      "lastElapsed": 1.6333333333333324
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "recover"
+      ],
+      "firstFrame": 300,
+      "lastFrame": 313,
+      "firstElapsed": 0,
+      "lastElapsed": 1.0833333333333344
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 314,
+      "lastFrame": 335,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "windup"
+      ],
+      "firstFrame": 336,
+      "lastFrame": 344,
+      "firstElapsed": 0.06666666666666667,
+      "lastElapsed": 0.7000000000000005
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "active"
+      ],
+      "firstFrame": 345,
+      "lastFrame": 364,
+      "firstElapsed": 0.03333333333333333,
+      "lastElapsed": 1.6833333333333322
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "recover"
+      ],
+      "firstFrame": 365,
+      "lastFrame": 366,
+      "firstElapsed": 0.06666666666666667,
+      "lastElapsed": 0.09999999999999999
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 367,
+      "lastFrame": 367,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "windup"
+      ],
+      "firstFrame": 368,
+      "lastFrame": 372,
+      "firstElapsed": 0.05,
+      "lastElapsed": 0.44999999999999996
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "active"
+      ],
+      "firstFrame": 373,
+      "lastFrame": 390,
+      "firstElapsed": 0,
+      "lastElapsed": 1.6333333333333324
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "recover"
+      ],
+      "firstFrame": 391,
+      "lastFrame": 403,
+      "firstElapsed": 0.016666666666666666,
+      "lastElapsed": 1.0500000000000012
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 404,
+      "lastFrame": 422,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "windup"
+      ],
+      "firstFrame": 423,
+      "lastFrame": 431,
+      "firstElapsed": 0.05,
+      "lastElapsed": 0.7166666666666672
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "active"
+      ],
+      "firstFrame": 432,
+      "lastFrame": 450,
+      "firstElapsed": 0.05,
+      "lastElapsed": 1.6166666666666658
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "recover"
+      ],
+      "firstFrame": 451,
+      "lastFrame": 452,
+      "firstElapsed": 0,
+      "lastElapsed": 0.09999999999999999
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 453,
+      "lastFrame": 453,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "windup"
+      ],
+      "firstFrame": 454,
+      "lastFrame": 458,
+      "firstElapsed": 0.06666666666666667,
+      "lastElapsed": 0.39999999999999997
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "active"
+      ],
+      "firstFrame": 459,
+      "lastFrame": 477,
+      "firstElapsed": 0.03333333333333333,
+      "lastElapsed": 1.6166666666666658
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "recover"
+      ],
+      "firstFrame": 478,
+      "lastFrame": 489,
+      "firstElapsed": 0,
+      "lastElapsed": 1.0000000000000013
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 490,
+      "lastFrame": 511,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "windup"
+      ],
+      "firstFrame": 512,
+      "lastFrame": 518,
+      "firstElapsed": 0.08333333333333333,
+      "lastElapsed": 0.6666666666666671
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "active"
+      ],
+      "firstFrame": 519,
+      "lastFrame": 537,
+      "firstElapsed": 0.016666666666666666,
+      "lastElapsed": 1.6166666666666658
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "recover"
+      ],
+      "firstFrame": 538,
+      "lastFrame": 539,
+      "firstElapsed": 0,
+      "lastElapsed": 0.03333333333333333
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 540,
+      "lastFrame": 541,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "windup"
+      ],
+      "firstFrame": 542,
+      "lastFrame": 545,
+      "firstElapsed": 0.09999999999999999,
+      "lastElapsed": 0.39999999999999997
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "active"
+      ],
+      "firstFrame": 546,
+      "lastFrame": 563,
+      "firstElapsed": 0.03333333333333333,
+      "lastElapsed": 1.649999999999999
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "recover"
+      ],
+      "firstFrame": 564,
+      "lastFrame": 575,
+      "firstElapsed": 0.03333333333333333,
+      "lastElapsed": 1.0833333333333344
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 576,
+      "lastFrame": 593,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "windup"
+      ],
+      "firstFrame": 594,
+      "lastFrame": 602,
+      "firstElapsed": 0.05,
+      "lastElapsed": 0.6500000000000004
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "active"
+      ],
+      "firstFrame": 603,
+      "lastFrame": 622,
+      "firstElapsed": 0,
+      "lastElapsed": 1.6833333333333322
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "recover"
+      ],
+      "firstFrame": 623,
+      "lastFrame": 627,
+      "firstElapsed": 0.06666666666666667,
+      "lastElapsed": 0.11666666666666665
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 628,
+      "lastFrame": 629,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "windup"
+      ],
+      "firstFrame": 630,
+      "lastFrame": 634,
+      "firstElapsed": 0.06666666666666667,
+      "lastElapsed": 0.44999999999999996
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "active"
+      ],
+      "firstFrame": 635,
+      "lastFrame": 655,
+      "firstElapsed": 0.08333333333333333,
+      "lastElapsed": 1.6833333333333322
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "recover"
+      ],
+      "firstFrame": 656,
+      "lastFrame": 667,
+      "firstElapsed": 0.06666666666666667,
+      "lastElapsed": 1.016666666666668
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 668,
+      "lastFrame": 689,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "windup"
+      ],
+      "firstFrame": 690,
+      "lastFrame": 698,
+      "firstElapsed": 0.016666666666666666,
+      "lastElapsed": 0.6500000000000004
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "active"
+      ],
+      "firstFrame": 699,
+      "lastFrame": 717,
+      "firstElapsed": 0,
+      "lastElapsed": 1.6999999999999988
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.first",
+        "recover"
+      ],
+      "firstFrame": 718,
+      "lastFrame": 718,
+      "firstElapsed": 0.08333333333333333,
+      "lastElapsed": 0.08333333333333333
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 719,
+      "lastFrame": 719,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "windup"
+      ],
+      "firstFrame": 720,
+      "lastFrame": 724,
+      "firstElapsed": 0.03333333333333333,
+      "lastElapsed": 0.41666666666666663
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        "strike.splinter-mantis.second",
+        "active"
+      ],
+      "firstFrame": 725,
+      "lastFrame": 725,
+      "firstElapsed": 0.03333333333333333,
+      "lastElapsed": 0.03333333333333333
+    },
+    {
+      "key": [
+        "real-player-defeat",
+        null,
+        "idle"
+      ],
+      "firstFrame": 726,
+      "lastFrame": 771,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    },
+    {
+      "key": [
+        "defeat-retry",
+        null,
+        "idle"
+      ],
+      "firstFrame": 772,
+      "lastFrame": 810,
+      "firstElapsed": 0,
+      "lastElapsed": 0
+    }
+  ],
+  "actualHitEvents": 5,
+  "actualLethalEvents": 1,
+  "deaths": [
+    {
+      "event": {
+        "phase": "moving-death-hits",
+        "frame": 87,
+        "wallTime": 22295.5,
+        "boutTime": 5.816000000029798,
+        "amount": 12,
+        "point": [
+          0.4314778987156679,
+          901.3390496227983,
+          -7.093594745751985
+        ],
+        "direction": [
+          0.9866893929104618,
+          -0.04240097277082614,
+          -0.15699108072139645
+        ],
+        "died": true,
+        "hp": 0,
+        "yaw": -2.1999986382595704,
+        "position": [
+          1.5851480164169438,
+          900,
+          -6.379643628839403
+        ],
+        "poseInputs": {
+          "boutTime": 5.816000000029798,
+          "dt": 0.1,
+          "speed": 0,
+          "gait": 0.11273424689295147,
+          "deathT": -1,
+          "flinch": 0.004865187613967884,
+          "alive": true,
+          "state": "alert",
+          "mem": {
+            "mantis-st": 2,
+            "mantis-beat": 0,
+            "regular-clock": 0.4,
+            "mantis-pose-phase": 0,
+            "mantis-pose-clock": 3.800000000000002
+          },
+          "capturedAt": 22292.40000000596
+        },
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 5.799999999999985,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.8017861983203225,
+          "z0": -6.536741266027093,
+          "x1": -3.631526416536439,
+          "z1": -8.596491323051051,
+          "yaw": -2.1999986382595704,
+          "length": 3.5
+        },
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0.4,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 3.800000000000002
+        }
+      },
+      "lastPreHitFrame": 86,
+      "lastPreHitSpeed": 0,
+      "firstPostHitFrame": 87,
+      "firstPostHitPoseInputs": {
+        "boutTime": 5.816000000029798,
+        "dt": 0.1,
+        "speed": 0,
+        "gait": 0.11273424689295147,
+        "deathT": -1,
+        "flinch": 0.004865187613967884,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0.4,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 3.800000000000002
+        },
+        "capturedAt": 22292.40000000596
+      },
+      "firstPostHitScalarFlinch": 1,
+      "firstPostHitScalarDeathT": 0,
+      "earlyDeathRenderFrames": [
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107
+      ],
+      "earlyDeathWorlds": [
+        [
+          -0.58850001629256,
+          0,
+          0.8084972052046048,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.8084972052046048,
+          0,
+          -0.58850001629256,
+          0,
+          1.5851480164169438,
+          900,
+          -6.379643628839403,
+          1
+        ],
+        [
+          -0.5857718320539249,
+          0.06463555380028477,
+          0.8078946377502091,
+          0,
+          0.08959557240998367,
+          0.9958695600678179,
+          -0.014712345117591969,
+          0,
+          -0.8055086181569621,
+          0.06376570300139608,
+          -0.5891433961618733,
+          0,
+          1.5413441644909711,
+          900.0743710939156,
+          -6.372530588550492,
+          1
+        ],
+        [
+          -0.571157128935948,
+          0.1588417523101208,
+          0.8053253820109436,
+          0,
+          0.218890733747824,
+          0.9750447931406231,
+          -0.03707425330907372,
+          0,
+          -0.7911172605040047,
+          0.1551030344710779,
+          -0.5916727725436528,
+          0,
+          1.502110528486542,
+          900.2366110841676,
+          -6.365707026483455,
+          1
+        ],
+        [
+          -0.5575259215517154,
+          0.21095385356687826,
+          0.8029093434008262,
+          0,
+          0.2885368187280123,
+          0.9561174270153677,
+          -0.050852459917464066,
+          0,
+          -0.7784031386713314,
+          0.20331733843089522,
+          -0.5939282036437445,
+          0,
+          1.5184877667604026,
+          900.3969731446913,
+          -6.367469569208198,
+          1
+        ],
+        [
+          -0.5409054070815071,
+          0.2603018047621385,
+          0.7997903177057538,
+          0,
+          0.35440523519372635,
+          0.9329034799499911,
+          -0.06393775778176077,
+          0,
+          -0.7627702872592618,
+          0.248865582273751,
+          -0.5968648598000785,
+          0,
+          1.5382568092596078,
+          900.535846435684,
+          -6.369903327945206,
+          1
+        ],
+        [
+          -0.5230532565264983,
+          0.30339897962680074,
+          0.7964699303793219,
+          0,
+          0.41172751131981367,
+          0.9081690246826275,
+          -0.0755610946810445,
+          0,
+          -0.746254478887342,
+          0.28840610563651603,
+          -0.5999384726554555,
+          0,
+          1.566464280164415,
+          900.6527396241363,
+          -6.373988742833905,
+          1
+        ],
+        [
+          -0.5052801590564513,
+          0.3395491168548213,
+          0.7933463040230279,
+          0,
+          0.459677285784509,
+          0.8839547221126095,
+          -0.08556192020172411,
+          0,
+          -0.7303346861526395,
+          0.3214505350717748,
+          -0.6027277990141118,
+          0,
+          1.6016565938393108,
+          900.7491951905231,
+          -6.379530797011087,
+          1
+        ],
+        [
+          -0.4881467288292094,
+          0.3699498691451994,
+          0.7904744559141632,
+          0,
+          0.49985426306794417,
+          0.8609648170125225,
+          -0.09426186694202596,
+          0,
+          -0.7154428606297956,
+          0.349108404633924,
+          -0.6051981782753577,
+          0,
+          1.6378796878240502,
+          900.8295554200004,
+          -6.385262547498876,
+          1
+        ],
+        [
+          -0.4721101074536924,
+          0.39545885941348197,
+          0.7878606075642134,
+          0,
+          0.533339582561915,
+          0.8397404586430802,
+          -0.10190609300032802,
+          0,
+          -0.7018980952479823,
+          0.37208635103870347,
+          -0.6073638211631951,
+          0,
+          1.6718641500821712,
+          900.8966740723307,
+          -6.390410975461363,
+          1
+        ],
+        [
+          -0.4575828625943996,
+          0.4164929484885356,
+          0.7855899361112266,
+          0,
+          0.5607067353115794,
+          0.8208620132727503,
+          -0.10859793801927145,
+          0,
+          -0.6900912119684943,
+          0.3907930130198507,
+          -0.6091427912556477,
+          0,
+          1.7025081796953538,
+          900.9519005127482,
+          -6.394747812275264,
+          1
+        ],
+        [
+          -0.4448381251755513,
+          0.43347850928670184,
+          0.7837189702800867,
+          0,
+          0.5825383216968868,
+          0.8047067041217495,
+          -0.11443873512096175,
+          0,
+          -0.6802706418366701,
+          0.4056396212503039,
+          -0.6104820648692599,
+          0,
+          1.729057358767822,
+          900.9963061523856,
+          -6.398116081240836,
+          1
+        ],
+        [
+          -0.4340600842698408,
+          0.4467879268068912,
+          0.7822866429278074,
+          0,
+          0.5993379604952778,
+          0.7915240145669961,
+          -0.11951461614843018,
+          0,
+          -0.6725963517244348,
+          0.4169775567381844,
+          -0.6113459452909087,
+          0,
+          1.7509802355974229,
+          901.0307792969066,
+          -6.400404380800163,
+          1
+        ],
+        [
+          -0.425376461464646,
+          0.4567190664688453,
+          0.7813210353981533,
+          0,
+          0.611501951685106,
+          0.7814832254684768,
+          -0.12389241864089989,
+          0,
+          -0.6671733126535581,
+          0.4250784193948361,
+          -0.6117091696612573,
+          0,
+          1.7678908348236473,
+          901.0560545654519,
+          -6.401530388832639,
+          1
+        ],
+        [
+          -0.41850309806333263,
+          0.46385815151539017,
+          0.7808269796722692,
+          0,
+          0.619711566967736,
+          0.7743448288812533,
+          -0.12785796710121686,
+          0,
+          -0.6639372942362752,
+          0.4303785557594475,
+          -0.6115239717824856,
+          0,
+          1.7802002620792734,
+          901.0735444336069,
+          -6.401393032073194,
+          1
+        ],
+        [
+          -0.41437423114888494,
+          0.4674636369225081,
+          0.7808788284458422,
+          0,
+          0.6231343865083885,
+          0.7710778315440419,
+          -0.13092942393576976,
+          0,
+          -0.6633230984298556,
+          0.432338670322838,
+          -0.6108074502106988,
+          0,
+          1.786130186084691,
+          901.0814326171921,
+          -6.399969390867007,
+          1
+        ],
+        [
+          -0.4124704914113555,
+          0.4682239885217903,
+          0.7814309888196282,
+          0,
+          0.6225859427767761,
+          0.7710963720048143,
+          -0.1334058804467253,
+          0,
+          -0.6650224338859767,
+          0.4314819598242312,
+          -0.6095641728108803,
+          0,
+          1.7866300220468714,
+          901.0814199218712,
+          -6.3972793006862005,
+          1
+        ],
+        [
+          -0.4127876927100813,
+          0.4661791523219023,
+          0.7824853472669755,
+          0,
+          0.6180897433284389,
+          0.7743789208452357,
+          -0.13528620085859627,
+          0,
+          -0.669007765230921,
+          0.4278016887425768,
+          -0.6077946406227415,
+          0,
+          1.7817404889982253,
+          901.0734326171751,
+          -6.393322601313507,
+          1
+        ],
+        [
+          -0.4141685269950357,
+          0.4631986706888631,
+          0.7835249981454528,
+          0,
+          0.6126854453186854,
+          0.7784761196109524,
+          -0.13635056395232895,
+          0,
+          -0.6731129001448464,
+          0.4235822501799906,
+          -0.6062153915821085,
+          0,
+          1.7753627111892483,
+          901.0634273681611,
+          -6.389749509810443,
+          1
+        ],
+        [
+          -0.41792864193765533,
+          0.45680855521438174,
+          0.7852780361955222,
+          0,
+          0.6021449809210634,
+          0.7865318005138132,
+          -0.1370735157937931,
+          0,
+          -0.6802625024207337,
+          0.4155642798213631,
+          -0.6037791459936592,
+          0,
+          1.762588459007277,
+          901.0433905029178,
+          -6.384159265514874,
+          1
+        ],
+        [
+          -0.4239134754481553,
+          0.4471352975228609,
+          0.7876340463962997,
+          0,
+          0.5867387848997065,
+          0.7980578586012274,
+          -0.13726344239905702,
+          0,
+          -0.6899528705845651,
+          0.4039476204088421,
+          -0.600659101602691,
+          0,
+          1.7441199281113031,
+          901.0138184814289,
+          -6.37694103717408,
+          1
+        ],
+        [
+          -0.4318892578808513,
+          0.43433771948874467,
+          0.79045709204007,
+          0,
+          0.5667947722863697,
+          0.812433971256993,
+          -0.13672866728098318,
+          0,
+          -0.7015806119299262,
+          0.38897530484197573,
+          -0.5970618537363799,
+          0,
+          1.7210406882635805,
+          900.975295043924,
+          -6.368573814387519,
+          1
+        ]
+      ],
+      "deathTCompleteObserved": true
+    }
+  ],
+  "hitPhases": [
+    {
+      "frame": 46,
+      "phase": "moving-death-hits",
+      "amount": 12,
+      "died": false,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.5333333333333333,
+        "speedMul": 1,
+        "clock": 1.8333333333333317,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.8017861983203225,
+        "z0": -6.536741266027093,
+        "x1": -3.631526416536439,
+        "z1": -8.596491323051051,
+        "yaw": -2.1999986382595704,
+        "length": 3.5
+      },
+      "poseInputs": {
+        "boutTime": 1.8429000000208622,
+        "dt": 0.1,
+        "speed": 0,
+        "gait": 0.11273424689295147,
+        "deathT": -1,
+        "flinch": 0,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "mantis-st": 1,
+          "mantis-beat": 1,
+          "regular-clock": 0.5,
+          "mantis-pose-phase": 1,
+          "mantis-pose-clock": 0.4
+        },
+        "capturedAt": 14944.59999999404
+      },
+      "mem": {
+        "mantis-st": 1,
+        "mantis-beat": 1,
+        "regular-clock": 0.5,
+        "mantis-pose-phase": 1,
+        "mantis-pose-clock": 0.4
+      }
+    },
+    {
+      "frame": 58,
+      "phase": "moving-death-hits",
+      "amount": 12,
+      "died": false,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 2.933333333333328,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.8017861983203225,
+        "z0": -6.536741266027093,
+        "x1": -3.631526416536439,
+        "z1": -8.596491323051051,
+        "yaw": -2.1999986382595704,
+        "length": 3.5
+      },
+      "poseInputs": {
+        "boutTime": 2.947700000017883,
+        "dt": 0.1,
+        "speed": 0,
+        "gait": 0.11273424689295147,
+        "deathT": -1,
+        "flinch": 0.002296428934103927,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0.7,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 0.9999999999999999
+        },
+        "capturedAt": 17002
+      },
+      "mem": {
+        "mantis-st": 2,
+        "mantis-beat": 0,
+        "regular-clock": 0.7,
+        "mantis-pose-phase": 0,
+        "mantis-pose-clock": 0.9999999999999999
+      }
+    },
+    {
+      "frame": 66,
+      "phase": "moving-death-hits",
+      "amount": 12,
+      "died": false,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 3.733333333333325,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.8017861983203225,
+        "z0": -6.536741266027093,
+        "x1": -3.631526416536439,
+        "z1": -8.596491323051051,
+        "yaw": -2.1999986382595704,
+        "length": 3.5
+      },
+      "poseInputs": {
+        "boutTime": 3.7477000000178835,
+        "dt": 0.1,
+        "speed": 0,
+        "gait": 0.11273424689295147,
+        "deathT": -1,
+        "flinch": 0.012277339903068436,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0.30000000000000004,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 1.8000000000000005
+        },
+        "capturedAt": 18575.70000000298
+      },
+      "mem": {
+        "mantis-st": 2,
+        "mantis-beat": 0,
+        "regular-clock": 0.30000000000000004,
+        "mantis-pose-phase": 0,
+        "mantis-pose-clock": 1.8000000000000005
+      }
+    },
+    {
+      "frame": 77,
+      "phase": "moving-death-hits",
+      "amount": 12,
+      "died": false,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 4.8333333333333215,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.8017861983203225,
+        "z0": -6.536741266027093,
+        "x1": -3.631526416536439,
+        "z1": -8.596491323051051,
+        "yaw": -2.1999986382595704,
+        "length": 3.5
+      },
+      "poseInputs": {
+        "boutTime": 4.8477000000178805,
+        "dt": 0.1,
+        "speed": 0,
+        "gait": 0.11273424689295147,
+        "deathT": -1,
+        "flinch": 0.0023578620064902307,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0.6,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 2.9000000000000012
+        },
+        "capturedAt": 20772.20000000298
+      },
+      "mem": {
+        "mantis-st": 2,
+        "mantis-beat": 0,
+        "regular-clock": 0.6,
+        "mantis-pose-phase": 0,
+        "mantis-pose-clock": 2.9000000000000012
+      }
+    },
+    {
+      "frame": 87,
+      "phase": "moving-death-hits",
+      "amount": 12,
+      "died": true,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 5.799999999999985,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.8017861983203225,
+        "z0": -6.536741266027093,
+        "x1": -3.631526416536439,
+        "z1": -8.596491323051051,
+        "yaw": -2.1999986382595704,
+        "length": 3.5
+      },
+      "poseInputs": {
+        "boutTime": 5.816000000029798,
+        "dt": 0.1,
+        "speed": 0,
+        "gait": 0.11273424689295147,
+        "deathT": -1,
+        "flinch": 0.004865187613967884,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0.4,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 3.800000000000002
+        },
+        "capturedAt": 22292.40000000596
+      },
+      "mem": {
+        "mantis-st": 2,
+        "mantis-beat": 0,
+        "regular-clock": 0.4,
+        "mantis-pose-phase": 0,
+        "mantis-pose-clock": 3.800000000000002
+      }
+    }
+  ],
+  "actualPlayerDamageObserved": true,
+  "minimumPlayerHealth": 0,
+  "poseInputsMissing": [],
+  "lethalPoseScalarDifferences": [
+    46,
+    58,
+    66,
+    77,
+    87
+  ],
+  "renderCadenceMs": {
+    "minimum": 3.8999999910593033,
+    "median": 98.0,
+    "p95": 251.70000000298023,
+    "maximum": 1035.9000000059605
+  },
+  "caveats": [
+    "Render observations do not fill unsampled simulation intervals.",
+    "Cloud browser cadence is not physical-phone performance.",
+    "Variant labels describe intended placements; actual events and trajectories determine diversity.",
+    "Both encoded video and exact native-vertex reconstruction require independent review."
+  ]
+}

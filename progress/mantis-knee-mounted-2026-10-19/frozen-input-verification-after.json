@@ -1,0 +1,1170 @@
+{
+  "checkedAt": "2026-10-19T10:48:53.444417+00:00",
+  "allMatched": true,
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate6/ADMISSION.md",
+      "sha256": "3bce5d11e9e279e1e69c1928da8a570ef4663872f0b1b5b0ae62895c78030b34",
+      "bytes": 665,
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate6/admission.json",
+      "sha256": "c28c8293bf423d6a9e64c9780430eca2e579dc95c1019e70cde64d7d3e3f5ebf",
+      "bytes": 3218,
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate6/dimension-measurement.json",
+      "sha256": "4b8e0cb9115a152425c5dddbb856de4862e2f27ea41368c6b2809437767924f8",
+      "bytes": 1651,
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate6/dimensions.json",
+      "sha256": "e0bd5afc3bee321177aabe6caa2aaa87afd79c1152e3fe94c467d4a842c3a7cc",
+      "bytes": 327,
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate6/metadata.json",
+      "sha256": "66f5398fd85336b407ee14a7f249d90dace499d0fb55695771aaebf9aa28e88f",
+      "bytes": 8223,
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/mantis-v7-native.json",
+      "sha256": "6c47dd59acdc01993b84f70adf39a1c3f050088e6bbd781409514f85fda75bb0",
+      "bytes": 1082991,
+      "matches": true
+    },
+    {
+      "path": "docs/reviews/mantis-early-knee-capture/input-freeze.json",
+      "sha256": "9671eb37627174f3daac4edae234a890f0015cc1acb61f34b903a57bba8e3cc2",
+      "bytes": 248313,
+      "matches": true
+    },
+    {
+      "path": "scripts/qa-mantis-early-knee-motion.mjs",
+      "sha256": "76db73165149e7cfa58f56b4a0d28535a9b26f9bc799aa407d438b0107ad8078",
+      "bytes": 19888,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/Cues-BlprQVZp.js",
+      "sha256": "ec439edc423157d8093a0e54977d795c1a94469624db051945e05832a3532f2c",
+      "bytes": 6096,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/Cues-Btc0ryJD.js",
+      "sha256": "fad6be6b148b1740cab92af327d65204966baca5408ca39849248fa675fd7fec",
+      "bytes": 246,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/GLTFLoader-CitLpWWm.js",
+      "sha256": "ce5b6bdf4c659e9967666d276c31fbabc06584277149c0f32ee7e5fd874860c3",
+      "bytes": 69,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/GLTFLoader-DnZ_kjM2.js",
+      "sha256": "5f8a416c5e71cfbe15302f9cdffc4eea24af179baced5954d606e6ff2cd41c55",
+      "bytes": 48974,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/SetScore-CC_btG6F.js",
+      "sha256": "99dffa2842d0b71bc030fdaccbf6ffa41acdb987815c4d939759693d7f2667b9",
+      "bytes": 10825,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/SetScore-HlRxIkLM.js",
+      "sha256": "e779a7374f10bb153d61e969850efb3d4e002e516f5b49362e4fc697a036739f",
+      "bytes": 155,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/Settings-BhMVwVLx.js",
+      "sha256": "5841b4cc7c6531a08797de2ae03ad6d12fc5c563e20bff197aaa722b1e9fe0f3",
+      "bytes": 676,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/Settings-WgaL9nT3.js",
+      "sha256": "2718d910ac55e4ec5404b1af56d34ea04983150ead91ace04f2362b99ef01acf",
+      "bytes": 39453,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/Stems-CaqP9Ib1.js",
+      "sha256": "d39a13662b84e8c8a8fd0573daaa2127af7b2d7cbb16737ed6e3695b5ed67935",
+      "bytes": 22851,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/Stems-D9Kxi3Iv.js",
+      "sha256": "19c0479132a60297edfe54b1ed01dda2f659bba1e82ace25e780bee1486faf5d",
+      "bytes": 222,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/Tool-jTOctduU.js",
+      "sha256": "98795c79e3bebdf731da92cee8c364652a864c1f09b36bb16cab10d9e08d9520",
+      "bytes": 75,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/Weapon-CNKF6Yh8.js",
+      "sha256": "6ed78ceb6fe4d4c09231e6f10f5cdf28c501e0bc66e4b3c7eacd2cb049ff6a13",
+      "bytes": 2072,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/audioCatalogue-DRLzXm07.js",
+      "sha256": "4a197e06b412cda8a66d433eca22a2e8a1ec66b75b88420ea28de70bb5dfd147",
+      "bytes": 5639,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/audioFiles-Cg74uihw.js",
+      "sha256": "faae68656e8705eefa082b9325733d9a6195e694f62b5dc05e1650542d6948e0",
+      "bytes": 174,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/audioFiles-DZ4lY0DW.js",
+      "sha256": "ca7684da7ef5a7ec0823bbbd6b1982546b53f1bb2fcb29201d73ad84a9104d71",
+      "bytes": 1228,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/audioLog-CNEZ94zn.js",
+      "sha256": "5ccb4d88b22da897b88e0c78647d5d774f339ef6e236f73002bbc893651feac4",
+      "bytes": 65,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/audioLog-DDd08KrP.js",
+      "sha256": "12ce81990e69112b82808c6eb9ff488e1284e92d02ec95c7e37eded31fd993f9",
+      "bytes": 239,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/basis_transcoder-VXdx5NbI.wasm",
+      "sha256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a",
+      "bytes": 527333,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/basis_transcoder-o4Hde_L7.js",
+      "sha256": "8478b5b6d6b74e7d3082b89f6417321d8d1dc0307f2b30d4484bb11b441696a1",
+      "bytes": 57529,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/bootInbox-ZfWFO76m.js",
+      "sha256": "ac62871ae671263cc3c7640eb60542179426a08073ea8a7245af4cdfb2952f2f",
+      "bytes": 434,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/build-CehzHm6x.js",
+      "sha256": "7f5f2158d984caf245ab2dd3c9c687c40b39dfb26396043126ad4ed3938e978e",
+      "bytes": 190130,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/client-CLYcoj2i.js",
+      "sha256": "8db21953d3bf5bbf91d1aa28f11853a9d03b433601aa6350bfc6ec9d9dd6b5c2",
+      "bytes": 97607,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/clientPlan-CEQ6M6N4.js",
+      "sha256": "f8e77de4e3fc5370f0aab24ef0e06c4fe0e29408b203edbfbf12e55949b0b9b1",
+      "bytes": 30001,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/clock-B53qIMMf.js",
+      "sha256": "cf789c2a3e16ac707892818adf51a861174ea12d430deff1b142664e6bf69236",
+      "bytes": 5278,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/compile-CF18Kdpl.js",
+      "sha256": "8fcc59419ce2955a726d544fcbe16bf9872e9fcee60c8b7050897b83d83b1313",
+      "bytes": 32451,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/contentCache.worker-DDj1l_TA.js",
+      "sha256": "426f44e00cba764c61a0b3a577dc9ce12bf6cab666d8227e4b2591a55291c9d0",
+      "bytes": 23425,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/dataLook-BppklpF9.js",
+      "sha256": "d5177dcc12a006efbf4b4eba256d99b1b5e74dfe8558750e1c72982d95fcf923",
+      "bytes": 14215,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/dayCycle-e1TDlXAt.js",
+      "sha256": "92d7c55e2ecdd130c63c3fc488632ea5d2acdddfe0786f904674f8fbc7258531",
+      "bytes": 6203,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/declaredBank-Dbl2wgHz.js",
+      "sha256": "3e0d67281df346f5207c4871fc6b389c3bdc010e15885a97d6da52d579d58e20",
+      "bytes": 16924,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/declaredBank-k1WbV7pO.js",
+      "sha256": "43e28c35a6420ea5626dfbb827e663481dcf47e4b4f5071c54aa5fad12082d35",
+      "bytes": 78,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin",
+      "sha256": "dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2",
+      "bytes": 28370,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/emptyEquipment-AHpV0mQX.js",
+      "sha256": "bd04bc2516349bd0d62b106150c3edcf408da1ef70f9a9dfeab4d6ef1fc2aafa",
+      "bytes": 506,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/emptyEquipment-fBwmFmVX.js",
+      "sha256": "64d7142376901b669562711949e8f2ad511c62c7f33089fa4ed00ff208957c24",
+      "bytes": 77,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/emptyLook-ByH8maKc.js",
+      "sha256": "bd14a78f86e6398c3ff52da8cde487cb9e3b75caaacb698d14be9f7e2e631f4c",
+      "bytes": 67,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/emptyLook-D2dy-xuz.js",
+      "sha256": "cc4bc53d71c3df4b84092b320fcd53559fea3c6a41119085cb2348c8cb46cbc8",
+      "bytes": 744,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/engineNodesHandler-DZ83QCHT.js",
+      "sha256": "dee4aa8e8ce945a0cbdb93e702da97c7e58ba31fb40a298ac9b5b8e9609adc6e",
+      "bytes": 85,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/engineNodesHandler-XwMoGjXW.js",
+      "sha256": "6bb9775a0371aa3248c1dd81d4b0969da1a561f94c9a7dabd72e34483f98d679",
+      "bytes": 428364,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/geometryBounds-kpdH-Mrk.js",
+      "sha256": "d97d72897a861c349850294e584fa6b171bf6878730617fd37636ddf8130ef53",
+      "bytes": 42251,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/graphBackend-CEsLL-7B.js",
+      "sha256": "13740134cbb8bf6ec42f46888a536331ef9321788d78ebe2723c986fc9ffa921",
+      "bytes": 2914,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/graphBackend-Cf8QgiQK.js",
+      "sha256": "a28a6e8f05f62f5ad27422cab50af1f7e6e8d4f5dce6b009753af921ce4ce82b",
+      "bytes": 82,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/hybrid-CN5i5Cnx.js",
+      "sha256": "7adaf9d17266732801862e0d3479a79cc2099cf8f5f9c91e853ecd3c462190be",
+      "bytes": 9267,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/imageDecode.worker-ZOU3pmld.js",
+      "sha256": "3e4a75a497bcb0297a976855ce5083de46fa0c76e726c018b38a8746b1b4e73e",
+      "bytes": 576,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/json-Dr12Y27u.js",
+      "sha256": "eea02dcf802f1d98069fced3f139e705786d8ea18a9b4e55fbc4cfac0d0e5a15",
+      "bytes": 723,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/lastEnd-C9AHPe9m.js",
+      "sha256": "db6148bd87d58b1ba64c708befb8625ddc638499946fa4a8c7c6ee7c90f9fdba",
+      "bytes": 23915,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/lentLooks-BdwICgbt.js",
+      "sha256": "04fe6863ad8dfe11eaf657365149608d68c4113645f2a703474db4dbc495a13f",
+      "bytes": 39646,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/look-C4o9ByGS.js",
+      "sha256": "e17d62c3a8cd2337bc5fdc58a0f561b3542b6f64255e2991fad84e4d16bd6db9",
+      "bytes": 66,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/look-Dusj6kkw.js",
+      "sha256": "f775855a7df330ba59af0f4bcc73f7d272e2a4a6923848e71e16c26a21465a9d",
+      "bytes": 368,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/materialGraph-CteREh-_.js",
+      "sha256": "e1d32c6650c335b07ff3280b31b757015bc614ee9fc6de3328049561d202d008",
+      "bytes": 32819,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/memoryAttribution-DlUGm6mv.js",
+      "sha256": "0066d7b47a82eed6166f75ec0dc8f308b262890713e60220d6baa65d56c9b745",
+      "bytes": 2686,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/memoryResources-ConTL0Oo.js",
+      "sha256": "e616349a08bb52a53a29265a8ba9bda4bfb17d5dacede6d0448d96b65ef296a0",
+      "bytes": 487,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/meshopt_decoder.module-CwO9m-VD.js",
+      "sha256": "a52ffc6b3d679a8e65f8ca912977e9e5374008fa5679a8d3ff0eb8a7e1e8da46",
+      "bytes": 85,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "sha256": "4ee55c80aac81445136f4cfdb9d133e2d577128af02cab14ba2f0b59e5cfdea8",
+      "bytes": 26473,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/models/driftwood-fp/fp-arms.glb",
+      "sha256": "2c233b8c91c82a26c8fbfd3867095cbfec6cec81caa9bd9a12b243075236550a",
+      "bytes": 373240,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/nodeCoarseMask-BL9dSruf.js",
+      "sha256": "c9e6b79ff809441b9eae829bec23c8aaa0d10fa6f2254d8321d18033c9e8f0f2",
+      "bytes": 95,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/nodeLayerFrame-PqqyriBq.js",
+      "sha256": "9bf4a74a1a08abac2ee9f536aed5eea4ad6634554ac5908867a1c3dc3560fff9",
+      "bytes": 5668,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/parkedDraws-Bdqe29oo.js",
+      "sha256": "305ca2acffa67e721c18a4ac4b1b06e2873a685490b32a6901bfcca7bd50ba74",
+      "bytes": 7387,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/physics/rapier.wasm",
+      "sha256": "2935a533335952cf160de69186d03e8b3ad2895b65d20df1b74d197a7498bd6f",
+      "bytes": 3292228,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/postPreparation-BECjvRCN.js",
+      "sha256": "7f0fec95b1e2041de178031506d6aadb1fb1717b43be53c8d656583bd31bd3db",
+      "bytes": 101,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/postPreparation-BM0ovkLk.js",
+      "sha256": "dbe0bf289be1c40b279c4e1ee78835e9c92c68f29daa064bbc411a7b7442158c",
+      "bytes": 1702,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/practice-B3GtE_kS.js",
+      "sha256": "c29a9fdcbca3381746c92666ff245ad690481ccede4fdf956e737e276e8237a1",
+      "bytes": 268193,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/practiceBoot-But0NWdM.js",
+      "sha256": "10507d6ae20f0adecb85c2cbef192f1d5b2b9698279247afa3ad5a41eb422d7f",
+      "bytes": 760031,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/precompile-BITQLS3K.js",
+      "sha256": "32ddec337e9107039627af186a898bbdb1d5ee5c87af5c2b23087ccea1ab92bb",
+      "bytes": 20838,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/precompile-DrZjd1sL.js",
+      "sha256": "e5d5a19d10da063aed75186b8957900213e51717800fb08e109ee5870311ded5",
+      "bytes": 651,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/preload-C3HVuPWp.js",
+      "sha256": "de0831786c72fe25bbd10683b61ffd5f880d6c47f6be3032c758d121a6114e49",
+      "bytes": 4422,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/preload-CJokcInM.js",
+      "sha256": "dbf8df5a4787caa9e22f1605f5b61c82b67b7281a028d550a9637c7aa32e1a11",
+      "bytes": 237,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/preload-helper-uBIymjUX.js",
+      "sha256": "e1a22f3f73566f21ff932e058d32243e4a118f3491b91e96893aa5ab7eb49a00",
+      "bytes": 1233,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/presets-DucwFZVi.js",
+      "sha256": "7717bd0cdf9a0520b2215d0e4e5dc342d4753c35f9347fc3ce35ffcf4fbc7e41",
+      "bytes": 27869,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/prod-C5nMThY5.js",
+      "sha256": "9cacb5d99e9391d67fa860cf4b7388812eb202e10d80e2f33666f8ac7f6c0a28",
+      "bytes": 416263,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/registry-CketoMs_.js",
+      "sha256": "3428526142fcd300a8381e46e3f43c1538f11a81ffceec56c185a5da7531e002",
+      "bytes": 93192,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/rolldown-runtime-DK3Fl9T5.js",
+      "sha256": "a526d1bb3288ef04d001028843220a24b0867a4edf8c685b69506d6525af36ff",
+      "bytes": 158,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/runtime-BwZsofkr.js",
+      "sha256": "81ba1949108298a14b5538f09d92ed502ab56966ba1de3850fc84ceeb0547601",
+      "bytes": 81883,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/runtimeProduct-CuA4Spif.js",
+      "sha256": "7723050082391db806bce43ab32f993e58d97eccb40330b024ff5fb692ed7ae0",
+      "bytes": 141,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/runtimeProduct-DPS5cVn7.js",
+      "sha256": "d5523d8b059fabac76628cc57ba90cb38ec85a9c350f535fa1a104fa85dc651f",
+      "bytes": 1030512,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/scope-CDMJThrF.js",
+      "sha256": "a7a5da789f4e0a772701b57c62a8e5004bf4f6ed35dfed97300be3eb54e306b0",
+      "bytes": 8176,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/shaderPatches-CWlvy5Ya.js",
+      "sha256": "3c6fd4536de9e2424e72c6c456a571a2a7c9c04f09bb910757e803bfca2413da",
+      "bytes": 355979,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/shadowChunks-EAukh2qO.js",
+      "sha256": "e75388d26912623f404c5565ee58a47a58ac6541c59b11ea8525d8fc05ce9fd4",
+      "bytes": 3114,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/shadowDepthVariants-BoIU_3-F.js",
+      "sha256": "36bdae70b852f7d93bc4e2db4db1aa05fb633dc94def330bba13fee2e06a60a4",
+      "bytes": 87,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/shadowVariants-kzUh2vEP.js",
+      "sha256": "067de742b01c0e0b3a7ac8ad0688072b16c4195f4a530352538f35670fd00faf",
+      "bytes": 1872,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/style-3STfMJLR.css",
+      "sha256": "651a2e309885a2cea80b9c58bbb49a322135242f2511c04c37de55832f4ff2bf",
+      "bytes": 102553,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/tables-BovtVlAx.js",
+      "sha256": "d6476fce97ab773a05714c5cfab33157ea8fafc70ce4e19a65e6a4aefd98920b",
+      "bytes": 430,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/tables-HCOmEZXl.js",
+      "sha256": "af54b257023b15c30d87f1bf531759b3159c679fd82a02bf8d261b3c4ee2e247",
+      "bytes": 192,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/three.core-BNyAOcZ3.js",
+      "sha256": "b2355b82917341d4899142d5da57d60534f44ac9f9660be34902cbdffcc3df52",
+      "bytes": 295588,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/time-j5TrBCGc.js",
+      "sha256": "4b458a94a55fffc7db9357f1a296296411f508edc53ee25e69159cdeca15b58f",
+      "bytes": 8414,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/toon-DjbKAfu9.js",
+      "sha256": "81f6c66f091c2ccbbe2c4c01d4d6966342a0e63d2d1ddcdc672f6ff28d17b0aa",
+      "bytes": 14099,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/ui-DMhlLGU1.js",
+      "sha256": "579a75be91aa97de3a2f3d32ff0c04e2ebbc76174036c1aacb6be54c0e671f3d",
+      "bytes": 276696,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/ui-X-khKP8C.js",
+      "sha256": "a6b44ecb61fbacee2d5013f8374fc89797dc6b8e80b42f6b3433c210559f60ec",
+      "bytes": 1631,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/weaponFamily-C43zOwNj.js",
+      "sha256": "b1aa998d4ec95f07283798dde1d0d4e3e0d4a41ee7d462228be1fb28b3394ea4",
+      "bytes": 29090,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/assets/wind-CDg_obA2.js",
+      "sha256": "ea7250436613955af8349386e4fa5901e08b08927350be4597f4a25a0876b30a",
+      "bytes": 1276,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/index.html",
+      "sha256": "915a636bddd62f290324cd8d8a307bdb6a272339a2e1a8b956e1b4a8271b29bc",
+      "bytes": 1579,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/mantis-preview.json",
+      "sha256": "bb4437ea93537d3aacf77f90d3746b41a4241ce0c60bf1e534c6d947dec8c807",
+      "bytes": 3942,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+      "bytes": 2520,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/blobs/json/5242b5410737c36466dcc14303387bc07bc93f34427f9c1e6aca2ca7dffbfefd.json",
+      "sha256": "5242b5410737c36466dcc14303387bc07bc93f34427f9c1e6aca2ca7dffbfefd",
+      "bytes": 56857,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "sha256": "730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40",
+      "bytes": 450,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/blobs/json/ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe.json",
+      "sha256": "ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe",
+      "bytes": 8213,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/blobs/wasm/45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1.wasm",
+      "sha256": "45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1",
+      "bytes": 8810,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/actors/creatures.json",
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+      "bytes": 52,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/actors/crowds.json",
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+      "bytes": 14,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/actors/moves.json",
+      "sha256": "26bbbe45c93635f1d17e54dbb9139385b383d73b7ec0a524de950a0a0181d742",
+      "bytes": 193,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/actors/spawns.json",
+      "sha256": "ca60e280d81a9d05f3747edab3d5a8e5a4d94588035a7f3d122762709755f74e",
+      "bytes": 163,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/actors/species-programs.json",
+      "sha256": "84092ff2ce315be8f8b7f775462ae950ab1513b86a32bda0c6bfcf32750862a7",
+      "bytes": 1345,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/actors/species.json",
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+      "bytes": 24,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/actors/strikes.json",
+      "sha256": "877fd248257fc656bd87d11ffb51f532e238fdf9a94887c9003f371984dcb5c3",
+      "bytes": 589,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/audio/audio.json",
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+      "bytes": 68,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/combat/encounters.json",
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+      "bytes": 18,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/combat/items.json",
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+      "bytes": 103,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/combat/strikes.json",
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+      "bytes": 24,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/economy/ledger.json",
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+      "bytes": 14,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/economy/loot.json",
+      "sha256": "a15429ab370c63a3fb7b3f5b3eb61854ff335c06eb1d49b2aa827c1d29e0b97d",
+      "bytes": 435,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/held/arms.json",
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+      "bytes": 895,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/look/look.json",
+      "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+      "bytes": 6557,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/look/materials.json",
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+      "bytes": 22,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/quests/quests.json",
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+      "bytes": 64,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/sim/client-scripts.json",
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+      "bytes": 46,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/sim/hooks.json",
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+      "bytes": 40,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/sim/plumbing.json",
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+      "bytes": 18,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/sim/scripts.json",
+      "sha256": "99fa420a290764601680ea806c3e2ea468d00db83f30892a0b89831a7dc4017d",
+      "bytes": 1347,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/sim/sim.json",
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+      "bytes": 111,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/state/migrations.json",
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+      "bytes": 18,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/state/state.json",
+      "sha256": "7e19f30b5eda8a7799d568cc668e3cb5e557d3684006df599cb13166c91655b4",
+      "bytes": 564,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/ui/card.json",
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+      "bytes": 18,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/ui/compendium.json",
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+      "bytes": 28,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/ui/ui.json",
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+      "bytes": 52,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/collision.json",
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+      "bytes": 23,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/days.json",
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+      "bytes": 21,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/edge.json",
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+      "bytes": 16835,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/movers.json",
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+      "bytes": 14,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/navigation.json",
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+      "bytes": 20,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/props.json",
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+      "bytes": 15,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/spawn.json",
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+      "bytes": 38,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/terrain.json",
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+      "bytes": 37,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/tiles.json",
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+      "bytes": 24,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/traversal.json",
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+      "bytes": 30,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/water.json",
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+      "bytes": 13,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/sections/world/weather.json",
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+      "bytes": 24,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/shard.json",
+      "sha256": "21207ce1d1661481e2ffa810d994e71b00a1c38dd274491650c90d556fa6920c",
+      "bytes": 9947,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice-product/validation.json",
+      "sha256": "cdb418ca4cbd3d569f805721fcbe4ac8b3e73bdd0ad296c2697f00b8ed3185e7",
+      "bytes": 853,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-dist-capture1/practice.html",
+      "sha256": "915a636bddd62f290324cd8d8a307bdb6a272339a2e1a8b956e1b4a8271b29bc",
+      "bytes": 1579,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/pack/metadata.json",
+      "sha256": "8c285beec0a773327772546f347dc55dd70321c0c2a0f4341e80dff90a11018d",
+      "bytes": 8212,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/pack/payload.bin",
+      "sha256": "dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2",
+      "bytes": 28370,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/preview.json",
+      "sha256": "bb4437ea93537d3aacf77f90d3746b41a4241ce0c60bf1e534c6d947dec8c807",
+      "bytes": 3942,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+      "bytes": 2520,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/blobs/json/5242b5410737c36466dcc14303387bc07bc93f34427f9c1e6aca2ca7dffbfefd.json",
+      "sha256": "5242b5410737c36466dcc14303387bc07bc93f34427f9c1e6aca2ca7dffbfefd",
+      "bytes": 56857,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "sha256": "730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40",
+      "bytes": 450,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/blobs/json/ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe.json",
+      "sha256": "ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe",
+      "bytes": 8213,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/blobs/wasm/45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1.wasm",
+      "sha256": "45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1",
+      "bytes": 8810,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/actors/creatures.json",
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+      "bytes": 52,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/actors/crowds.json",
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+      "bytes": 14,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/actors/moves.json",
+      "sha256": "26bbbe45c93635f1d17e54dbb9139385b383d73b7ec0a524de950a0a0181d742",
+      "bytes": 193,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/actors/spawns.json",
+      "sha256": "ca60e280d81a9d05f3747edab3d5a8e5a4d94588035a7f3d122762709755f74e",
+      "bytes": 163,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/actors/species-programs.json",
+      "sha256": "84092ff2ce315be8f8b7f775462ae950ab1513b86a32bda0c6bfcf32750862a7",
+      "bytes": 1345,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/actors/species.json",
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+      "bytes": 24,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/actors/strikes.json",
+      "sha256": "877fd248257fc656bd87d11ffb51f532e238fdf9a94887c9003f371984dcb5c3",
+      "bytes": 589,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/audio/audio.json",
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+      "bytes": 68,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/combat/encounters.json",
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+      "bytes": 18,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/combat/items.json",
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+      "bytes": 103,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/combat/strikes.json",
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+      "bytes": 24,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/economy/ledger.json",
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+      "bytes": 14,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/economy/loot.json",
+      "sha256": "a15429ab370c63a3fb7b3f5b3eb61854ff335c06eb1d49b2aa827c1d29e0b97d",
+      "bytes": 435,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/held/arms.json",
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+      "bytes": 895,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/look/look.json",
+      "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+      "bytes": 6557,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/look/materials.json",
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+      "bytes": 22,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/quests/quests.json",
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+      "bytes": 64,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/sim/client-scripts.json",
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+      "bytes": 46,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/sim/hooks.json",
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+      "bytes": 40,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/sim/plumbing.json",
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+      "bytes": 18,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/sim/scripts.json",
+      "sha256": "99fa420a290764601680ea806c3e2ea468d00db83f30892a0b89831a7dc4017d",
+      "bytes": 1347,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/sim/sim.json",
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+      "bytes": 111,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/state/migrations.json",
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+      "bytes": 18,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/state/state.json",
+      "sha256": "7e19f30b5eda8a7799d568cc668e3cb5e557d3684006df599cb13166c91655b4",
+      "bytes": 564,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/ui/card.json",
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+      "bytes": 18,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/ui/compendium.json",
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+      "bytes": 28,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/ui/ui.json",
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+      "bytes": 52,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/collision.json",
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+      "bytes": 23,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/days.json",
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+      "bytes": 21,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/edge.json",
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+      "bytes": 16835,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/movers.json",
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+      "bytes": 14,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/navigation.json",
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+      "bytes": 20,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/props.json",
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+      "bytes": 15,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/spawn.json",
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+      "bytes": 38,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/terrain.json",
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+      "bytes": 37,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/tiles.json",
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+      "bytes": 24,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/traversal.json",
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+      "bytes": 30,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/water.json",
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+      "bytes": 13,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/sections/world/weather.json",
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+      "bytes": 24,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/shard.json",
+      "sha256": "21207ce1d1661481e2ffa810d994e71b00a1c38dd274491650c90d556fa6920c",
+      "bytes": 9947,
+      "matches": true
+    },
+    {
+      "path": "tmp/mantis-early-knee-product-capture1/product/validation.json",
+      "sha256": "cdb418ca4cbd3d569f805721fcbe4ac8b3e73bdd0ad296c2697f00b8ed3185e7",
+      "bytes": 853,
+      "matches": true
+    }
+  ]
+}
