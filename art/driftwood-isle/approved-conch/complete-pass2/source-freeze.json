@@ -1,0 +1,120 @@
+{
+  "status": "frozen pending independent review",
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/CAPTURE.md",
+      "bytes": 2440,
+      "sha256": "e34ae5b64f91885f17b2b3c9cecc4c34104f6a7487d329ebb3aa35d63f5bac54"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/color-complete-pass2-front.webp",
+      "bytes": 27628,
+      "sha256": "3394a5515ebecf647104708a9c170b43e4fff2785b802f418a165b1fbe6dcd6a"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/color-complete-pass2-right.webp",
+      "bytes": 16030,
+      "sha256": "c5e34094039b5e506ac6c5857446ce4f5dd9c1e7331de5ee09307baa39b4be50"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/board_conch_complete_pass2.py",
+      "bytes": 2681,
+      "sha256": "62c4f90518a4c0fcbfd1a978540d2dae17a7854dc3fd2c999903a279c23290f0"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/comparison-complete-pass2-board.webp",
+      "bytes": 75360,
+      "sha256": "7f89a56fb3639db637c0ce4ecf9514e681c96ddf1c7e8247c5a6110d130f8a7c"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/color-complete-pass2-top.webp",
+      "bytes": 24804,
+      "sha256": "6a5d56df64c5f9c12ead4e72ebd041a50ae8b05edce001ea1b2bc18d049939b8"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/render_conch_complete_pass2_nine.py",
+      "bytes": 2691,
+      "sha256": "c70dfccf87eb4cf593fcb612e619846186f22901c0b5c99c18ea42fd9592171b"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/color-complete-pass2-diag-left.webp",
+      "bytes": 64748,
+      "sha256": "31a4e463b79b6ad5a1f89d15b5740e701719cb098d80679c6a7feb8d3671cd2d"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/conch-complete-pass2-study.glb",
+      "bytes": 217028,
+      "sha256": "a795444bb6d0db207d280c5eb9236197f44be1a701e7c153056b9b871528a8ab"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/color-complete-pass2-diag-front.webp",
+      "bytes": 32086,
+      "sha256": "9e161a4a28f0966dd68b883d56431fc50956b8324639deb41787b52f0668ad92"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/topology.json",
+      "bytes": 9802,
+      "sha256": "1c4229e759f13257623a7622a0eb6197c6988aa4872568cdd9ed1a3a3aa3a64b"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/nine-view-complete-pass2-board.webp",
+      "bytes": 87888,
+      "sha256": "129a4723f5e187ac726eee06d77d19f7729edf9eecaa9a67fa61692a6e511bcb"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/color-complete-pass2-diag-right.webp",
+      "bytes": 23748,
+      "sha256": "512421fa05469c28784f3189101f313cec6cea678cfcb3595551e23e655c9d56"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/color-complete-pass2-diag-back.webp",
+      "bytes": 39826,
+      "sha256": "b9a4741bb846e18ff8f6d0e307c3ba1f3a346ad0032c0f099ceccc516cbc8da5"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/metrics.json",
+      "bytes": 164,
+      "sha256": "bf79a59f1f57a49d6e710628045d8e7f428ff761df6272c03e1931fa73a4c854"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/color-front.webp",
+      "bytes": 57648,
+      "sha256": "34a72bdb86fea1069bda19d8309a95dfaec892a575be3ebff6ef437eb9b1c5c4"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/color-complete-pass2-left.webp",
+      "bytes": 17936,
+      "sha256": "8aa85d7e9d02279577d63456416dc497c15640438ee4728d2e389ff367490660"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/capture.sh",
+      "bytes": 675,
+      "sha256": "8b780b869ab56048df24eb537d7dd9a5cc845deb4df1ecbd0d1c83670b3c82a8"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/color-complete-pass2-back.webp",
+      "bytes": 22210,
+      "sha256": "8f0baf0488924bd9c8dbd04e95b67f93f5951a8cd77546496ff5407839eba12d"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/build_conch_complete_pass2.py",
+      "bytes": 17869,
+      "sha256": "523529889cd3402645f9dd9308f4562503defad520eb86bb1cf1e940811782a5"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/crossings.json",
+      "bytes": 390,
+      "sha256": "290a82f40adf2c0de880133d843aa758a89d6b37a1a7adbad043b7ebb1c6c49a"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/cameras-complete-pass2.json",
+      "bytes": 2575,
+      "sha256": "305663ad9378980ae5e3950a6b1d75b9057c34634304bf1994f30d5a84dc27ae"
+    },
+    {
+      "path": "docs/reviews/conch-complete-pass2-construction.md",
+      "bytes": 3787,
+      "sha256": "fa7c561538912112576fec563af1e61452eb3006a5907fd466e4f02255402057"
+    }
+  ]
+}

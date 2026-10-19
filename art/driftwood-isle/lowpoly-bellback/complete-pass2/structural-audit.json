@@ -1,0 +1,24 @@
+{
+  "status": "Passed static construction checks only",
+  "source_sha256": "2b4a4e9cd1ebeafe42bd77f1136474effbdca311b3507972681687febce2c94e",
+  "glb_sha256": "6ca935dfe053d6804b48754e491ecd9f675882345ba904563ecf07a77a9e742d",
+  "byte_identical_hero_nine_exports": true,
+  "meshes": 73,
+  "nonmanifold_edges": 0,
+  "zero_area_faces": 0,
+  "ground_z_min": 0,
+  "matched_pairs": 10,
+  "all_images_within_storage_limits": true,
+  "raw_capture_directory": "tmp/bellback-complete-pass2",
+  "builder_visual_inspection": "Hero full image and nine-view contact board; independent full-frame review pending",
+  "render_logs": [
+    {
+      "path": "tmp/bellback-complete-pass2/nine.log",
+      "sha256": "878bf12d2455a85478b30f474ddaf04c4c5e23478498fa5b16983dbf3225d16f"
+    },
+    {
+      "path": "tmp/bellback-complete-pass2/hero.log",
+      "sha256": "29e640cd01aacdcf88ac24abde3732fdb1733cb0a888c2ee07c83ca92c0624bb"
+    }
+  ]
+}

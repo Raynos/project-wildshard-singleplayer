@@ -1,0 +1,331 @@
+{
+  "fixedWorldLights": true,
+  "matchedFraming": true,
+  "resolution": [
+    525,
+    700
+  ],
+  "samples": 16,
+  "views": [
+    {
+      "version": "predecessor",
+      "view": "hero",
+      "position": [
+        7.0,
+        -15.0,
+        7.400000095367432
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/predecessor/hero.png"
+    },
+    {
+      "version": "predecessor",
+      "view": "front",
+      "position": [
+        0.0,
+        -18.0,
+        2.9000000953674316
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/predecessor/front.png"
+    },
+    {
+      "version": "predecessor",
+      "view": "left",
+      "position": [
+        -18.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/predecessor/left.png"
+    },
+    {
+      "version": "predecessor",
+      "view": "right",
+      "position": [
+        18.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/predecessor/right.png"
+    },
+    {
+      "version": "predecessor",
+      "view": "back",
+      "position": [
+        0.0,
+        18.0,
+        2.9000000953674316
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/predecessor/back.png"
+    },
+    {
+      "version": "predecessor",
+      "view": "top",
+      "position": [
+        0.0,
+        -0.01799999177455902,
+        20.899991989135742
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/predecessor/top.png"
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-front",
+      "position": [
+        0.0,
+        -15.091984748840332,
+        12.709789276123047
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/predecessor/diag-front.png"
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-left",
+      "position": [
+        -11.56486701965332,
+        -11.56486701965332,
+        10.417163848876953
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/predecessor/diag-left.png"
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-right",
+      "position": [
+        11.56486701965332,
+        -11.56486701965332,
+        10.417163848876953
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/predecessor/diag-right.png"
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-back",
+      "position": [
+        11.56486701965332,
+        11.56486701965332,
+        10.417163848876953
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/predecessor/diag-back.png"
+    },
+    {
+      "version": "candidate",
+      "view": "hero",
+      "position": [
+        7.0,
+        -15.0,
+        7.400000095367432
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/candidate/hero.png"
+    },
+    {
+      "version": "candidate",
+      "view": "front",
+      "position": [
+        0.0,
+        -18.0,
+        2.9000000953674316
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/candidate/front.png"
+    },
+    {
+      "version": "candidate",
+      "view": "left",
+      "position": [
+        -18.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/candidate/left.png"
+    },
+    {
+      "version": "candidate",
+      "view": "right",
+      "position": [
+        18.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/candidate/right.png"
+    },
+    {
+      "version": "candidate",
+      "view": "back",
+      "position": [
+        0.0,
+        18.0,
+        2.9000000953674316
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/candidate/back.png"
+    },
+    {
+      "version": "candidate",
+      "view": "top",
+      "position": [
+        0.0,
+        -0.01799999177455902,
+        20.899991989135742
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/candidate/top.png"
+    },
+    {
+      "version": "candidate",
+      "view": "diag-front",
+      "position": [
+        0.0,
+        -15.091984748840332,
+        12.709789276123047
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/candidate/diag-front.png"
+    },
+    {
+      "version": "candidate",
+      "view": "diag-left",
+      "position": [
+        -11.56486701965332,
+        -11.56486701965332,
+        10.417163848876953
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/candidate/diag-left.png"
+    },
+    {
+      "version": "candidate",
+      "view": "diag-right",
+      "position": [
+        11.56486701965332,
+        -11.56486701965332,
+        10.417163848876953
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/candidate/diag-right.png"
+    },
+    {
+      "version": "candidate",
+      "view": "diag-back",
+      "position": [
+        11.56486701965332,
+        11.56486701965332,
+        10.417163848876953
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.9000000953674316
+      ],
+      "orthoScale": 7.7,
+      "file": "tmp/colossus-complete-pass2/candidate/diag-back.png"
+    }
+  ]
+}

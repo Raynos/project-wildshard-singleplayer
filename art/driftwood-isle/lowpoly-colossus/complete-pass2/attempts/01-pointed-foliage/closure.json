@@ -1,0 +1,89 @@
+{
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/back.webp",
+      "bytes": 38488,
+      "sha256": "d3709e29d631d537c93e34218d6d9caf3b9420aab798dcbaf77fd703490e6ded"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/build_colossus_complete.py",
+      "bytes": 23430,
+      "sha256": "0fb64c33a4faa49c3b173cc71e4ad7d5ed7a9754353704aa2e50e4298715498e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/capture-receipt.json",
+      "bytes": 3269,
+      "sha256": "a24f9d5e38c4505e04eb9a1f1aacdaf88943f999d38939859c797594963df7a5"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/construct_source.py",
+      "bytes": 5145,
+      "sha256": "196a5e7327092f26328af9de5cc152125d73694a8b5ee2bab2728568a8ed73a2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/diag-back.webp",
+      "bytes": 46062,
+      "sha256": "62572b64df397982607577b73fe1030415b4491992a265894910b245fff23ed8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/diag-front.webp",
+      "bytes": 48764,
+      "sha256": "7bea707a75e07f9b303740d2ebeeac18aeff2c0f48b9d45b9fe81f190406b69c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/diag-left.webp",
+      "bytes": 41542,
+      "sha256": "c622c288274ae0e557978375b91f2d381772db1435ba7f92f43b986acf221ead"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/diag-right.webp",
+      "bytes": 45988,
+      "sha256": "8fc8ae79f6d8020598de065d49626a0f9ec4fa856ec9d49a938607f9966db0aa"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/front.webp",
+      "bytes": 34428,
+      "sha256": "df096d973d35a903654d9cfa41bfa6ce770e938c1549cf2739fe0f9629e9cb20"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/hero.webp",
+      "bytes": 46930,
+      "sha256": "9800357378e90918f542cd7fe846c5172f5b9d51033ac2ffc236575b9d46da72"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/left.webp",
+      "bytes": 21198,
+      "sha256": "0bb79deb259fea964e8971abd6c77c7c0a0d3dd8fc9218f315b15b7c8ec4872e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/metrics-complete-pass2.json",
+      "bytes": 468,
+      "sha256": "bb8f0acaaa8b0d1601d3f7d519753ffcfbf978ff57aafd388300e04733e766a7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/render_matched.py",
+      "bytes": 2559,
+      "sha256": "96a7b3b6f397e18860051f53e6c745114dede4a9cd53e7c13750e8b4db964d2a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/right.webp",
+      "bytes": 20940,
+      "sha256": "64dbfd96b161f0d6df698b135415fc20933f921800292681c6fd567aca4f2563"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/tide-root-colossus-complete-pass2.glb",
+      "bytes": 678268,
+      "sha256": "cf40e93ef21478c7fe9742ff9be8042df866e3e6a9261d585b553405ddf9ca8f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/top.webp",
+      "bytes": 45332,
+      "sha256": "b97307173bf26dfd3de3592305f27fbb777bae31b97518ca04764f8d96518a78"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass2/attempts/01-pointed-foliage/validation.json",
+      "bytes": 48313,
+      "sha256": "e2bf8060d97a9a789c5a74e28055d1efd868701d4dda59dc59ab9654ce2601fb"
+    }
+  ]
+}

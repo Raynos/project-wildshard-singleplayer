@@ -1,0 +1,8 @@
+{
+  "reason": "Normalize local absolute capture file references to repository-relative public paths only",
+  "fieldsChanged": 20,
+  "originalSha256": "13fb0815d495853584571dfc1cc1356750ed934b6eb1aa570a24b0ac427a4b12",
+  "normalizedSha256": "dc82bb2c509c97772adb9f1e9ba4a52913a22c9b58ce33ecdc3b3cf661f4dcbc",
+  "cameraTransformsAndRenderedBytesUnchanged": true,
+  "originalRetainedLocally": true
+}

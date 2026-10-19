@@ -1,0 +1,136 @@
+{
+  "status": "Actual matched hero plus nine for both retained predecessor and candidate",
+  "predecessorRebuildByteIdentical": true,
+  "files": [
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/hero.png",
+      "bytes": 679370,
+      "sha256": "0cff63d7bc708c4d444840fb5f881aa7244528b7a9bcf34d68e92d5d612d3127"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/front.png",
+      "bytes": 520365,
+      "sha256": "1322f4f5ac587003ec8d9f141501109bb0b8c8e9ae2929aa95c308fb42ae2615"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/left.png",
+      "bytes": 389570,
+      "sha256": "d416c1498b8e39a13cb096567cad5b1b78a80bd740ecca5448e4023c55c8b57c"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/right.png",
+      "bytes": 391158,
+      "sha256": "f22f98b64b8291fa87d1c10b7325642426cbd98f2ee7235fbe81a08382659632"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/back.png",
+      "bytes": 515896,
+      "sha256": "05940402a8f45c32de97b74713405e0f78877fdaa558890136e81cbaa6a4cab8"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/top.png",
+      "bytes": 678418,
+      "sha256": "bb5f72ca6706d136fc2b9f46c4ec9b7d5fc97d987ff3484b060c9dafaaa7dc5b"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/diag-front.png",
+      "bytes": 727175,
+      "sha256": "ae40f41f8ae72e4d1720b0dbe6925cbb348b56f1190df6345252902223a3d7b8"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/diag-left.png",
+      "bytes": 699004,
+      "sha256": "c6bce6d6c71748cb1e89759b309ff845f3c820947747a3f4310f6919a5c4e17b"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/diag-right.png",
+      "bytes": 708897,
+      "sha256": "13f850ba0db67dd0e43eacb0c773f60088833f4ac18d2b10e2b64cd280c6dfa4"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/diag-back.png",
+      "bytes": 696489,
+      "sha256": "cf51a764031c249711431799175deae25fbb2ebf45dfdfb8c512b1eff63974de"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/hero.png",
+      "bytes": 661505,
+      "sha256": "f5dcb41d40d98f3149d0cef96c7c87c39f32f5a720b3ac85621eb8fdef8a2216"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/front.png",
+      "bytes": 497121,
+      "sha256": "e848e62dbf7d77dbe248c9761bea5644882ace03f253adf91058e68ae6c5db21"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/left.png",
+      "bytes": 378860,
+      "sha256": "661ce42f0c38242e66487878ba39941cc3e80babb9ba8ec1f374a6e547268ff7"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/right.png",
+      "bytes": 381897,
+      "sha256": "5576ad61c6c67f9122a5fe77d96ddea8bd63d75ae3af66d00b4eae8f0c92cffd"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/back.png",
+      "bytes": 496405,
+      "sha256": "e67fb45787bc0c15e8c10071b334e7172b967243d19d6d5d9a93cc886bc8a7e6"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/top.png",
+      "bytes": 667075,
+      "sha256": "44c3f613360b7eddb427db8f65168384415d6f42f4fdbdf34da8d28abd47ed9e"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/diag-front.png",
+      "bytes": 706931,
+      "sha256": "ac07ffc009b5cefcbc4fa00916fd8b0cc67ce686a443cc039d5466333556ccfe"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/diag-left.png",
+      "bytes": 678088,
+      "sha256": "790fb0d1228e8a2e29de51f6e0713ba3b4dbc2cfcf1a5c0f549a73b887efd20d"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/diag-right.png",
+      "bytes": 692498,
+      "sha256": "50c51750a44f85f36b927f78e70764ab34e6cdbf2a3d347bfa1ef461bdeafda8"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/diag-back.png",
+      "bytes": 688740,
+      "sha256": "97d0d29ec349a30a7ac16b10139388136385aa8550c42fb4d0396768c8a90408"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/render.log",
+      "bytes": 356308,
+      "sha256": "5df8852cd051c1c8ff98d311db35019cfb0de45a8f1c61f12690860c0d0ac26b"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/tide-root-colossus-complete-pass1.glb",
+      "bytes": 905796,
+      "sha256": "0a99d4bd244f29e9a9f37b841fabce0a87059ffffa0856046d3eea66b2b73a90"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/predecessor/validation.json",
+      "bytes": 75894,
+      "sha256": "c50f51f19739d523bd92af9565f195e5e38174c4325e3f34fd44ef0bb6b3db5e"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/tide-root-colossus-complete-pass2.glb",
+      "bytes": 697584,
+      "sha256": "0aa77b0382a472908da1e4ffa08d73b702b4060da4213b5b34842d82079b6807"
+    },
+    {
+      "path": "tmp/colossus-complete-pass2/candidate/validation.json",
+      "bytes": 50377,
+      "sha256": "2132ee0d836ec94130cf61f0b1f26dcb6c326dca54de1742f264d47c7801ef7c"
+    }
+  ]
+}
