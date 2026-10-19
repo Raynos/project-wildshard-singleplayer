@@ -68,7 +68,8 @@ export async function paintDataMap(root, slug) {
   return { raster, stamp };
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+const entry = process.argv.at(1);
+if (entry !== undefined && import.meta.url === pathToFileURL(resolve(entry)).href) {
   const root = resolve(import.meta.dirname, '..'), only = process.argv.find(arg => arg.startsWith('--shards='))?.slice(9).split(',');
   for (const { slug, dir } of mapShards(root)) if ((only === undefined || only.includes(slug)) && json(mapSettingsPath(dir)).painter !== undefined) await paintDataMap(root, slug);
 }
