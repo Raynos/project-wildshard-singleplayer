@@ -1,5 +1,14 @@
 import { Signal, Field, Channel, Read, List, Do } from './generated/nalatiAdmission';
 @inline function get(field:i32):f64 { return Read.field(0,field); }
+// Bounded direction approximation; libc atan2 exceeds the return fuel budget.
+@inline function heading(y:f64,x:f64):f64 {
+  if(x==0&&y==0)return 0;
+  const a=Math.abs(y)+.0000001,right=x>=0;
+  const r=right?(x-a)/(x+a):(x+a)/(a-x);
+  const theta=(right?Math.PI/4:Math.PI*3/4)+(.1963*r*r-.9817)*r;
+  return y<0?-theta:theta;
+}
+@inline function distance2(x:f64,z:f64):f64{return Math.sqrt(x*x+z*z);}
 // Synchronous admission/restore events and bounded 10 Hz sheepdog decisions.
 // The native owner retains bodies, clocks and both original random streams.
 @inline export function onSignal(signal:i32,value:f64,source:i32):void {
@@ -75,22 +84,22 @@ import { Signal, Field, Channel, Read, List, Do } from './generated/nalatiAdmiss
     let lx=cx,ly=get(Field.py),lz=cz,emit=0.0;
     if(get(Field.wolf)!=0&&get(Field.distance)<35) {
       tx=(get(Field.wx)+cx)/2;tz=(get(Field.wz)+cz)/2;
-      path=.8;speed=Math.hypot(tx-px,tz-pz)>3?7.5:0;turn=5;state=1;snarl=1;low=.4;
+      path=.8;speed=distance2(tx-px,tz-pz)>3?7.5:0;turn=5;state=1;snarl=1;low=.4;
       lx=get(Field.wx);ly=get(Field.wy);lz=get(Field.wz);look=1;
       if(bark<=0){bark=.5+Read.random()*.6;emit=1;}
     } else if(get(Field.straggler)!=0) {
-      const sx=get(Field.sx),sz=get(Field.sz),ox=sx-cx,oz=sz-cz,length=Math.hypot(ox,oz),od=length==0?1:length;
+      const sx=get(Field.sx),sz=get(Field.sz),ox=sx-cx,oz=sz-cz,length=distance2(ox,oz),od=length==0?1:length;
       tx=sx+ox/od*3.5;tz=sz+oz/od*3.5;
-      const bd=Math.hypot(tx-px,tz-pz);low=.8;state=2;
-      if(bd>1){path=bd>4?1:0;yaw=Math.atan2(tx-px,tz-pz);speed=bd>8?7.5:3;turn=5;}
-      else{yaw=Math.atan2(-ox,-oz);turn=3;}
+      const bd=distance2(tx-px,tz-pz);low=.8;state=2;
+      if(bd>1){path=bd>4?1:0;yaw=heading(tx-px,tz-pz);speed=bd>8?7.5:3;turn=5;}
+      else{yaw=heading(-ox,-oz);turn=3;}
       lx=sx;ly=get(Field.sy);lz=sz;look=.8;
     } else {
       rest-=dt;
-      if(rest>0){yaw=Math.atan2(cx-px,cz-pz);turn=2;}
+      if(rest>0){yaw=heading(cx-px,cz-pz);turn=2;}
       else {
         if(rest< -20&&Read.random()<.02)rest=6+Read.random()*8;
-        const angle=Math.atan2(px-cx,pz-cz)+.35;
+        const angle=heading(px-cx,pz-cz)+.35;
         if(Read.radial(angle,16)!=2)unreachable();
         tx=cx+List.at(0);tz=cz+List.at(1);path=2;speed=3.4;state=3;
         lx=get(Field.playerX);ly=get(Field.playerY);lz=get(Field.playerZ);

@@ -45,4 +45,10 @@ test('existing sheepdog decision still fits the unchanged return fuel budget', (
   expect(a.project('dog', row, new Rng(503))['state']).toBe(0);
   expect(a.project('dog', { ...row, wolf: 1, distance: 1, wx: 3 }, new Rng(503))['state']).toBe(1);
   expect(a.project('dog', { ...row, straggler: 1, sx: 20 }, new Rng(503))['state']).toBe(2);
+  for (const [px,pz] of [[3,7],[-12,8],[-4,-9],[8,-3]] as const) {
+    const obs={...row,px,pz,rest:0,playerX:2,playerZ:3};
+    expect(a.project('dog',obs,new Rng(503))['state']).toBe(3);
+    expect(a.project('dog',{...obs,straggler:1,sx:20,sz:13},new Rng(503))['state']).toBe(2);
+    expect(a.project('dog',{...obs,rest:3},new Rng(503))['state']).toBe(0);
+  }
 });
