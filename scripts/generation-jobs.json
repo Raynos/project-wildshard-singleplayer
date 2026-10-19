@@ -21458,6 +21458,35 @@
         "src/shards/far-reach/look/map.baked.json"
       ],
       "catalogueDependencies": []
+    },
+    {
+      "id": "nalati-stealth",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-stealth.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-stealth.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-stealth.mjs",
+        "src/shards/nalati-grasslands/behaviour/stealth.as",
+        "src/shards/nalati-grasslands/data/stealth.json",
+        "src/sdk",
+        "src/format",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/stealth.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/stealth.generated.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

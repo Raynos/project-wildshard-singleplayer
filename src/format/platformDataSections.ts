@@ -1,3 +1,4 @@
+import {StealthRowsSchema,type StealthRows} from './stealth';
 import { PaintedLookSchema, type PaintedLookRow } from './paintedLook';
 import { ColourFunctionBookSchema, type ColourFunctionBook } from './colourFunction';
 import { RiggedHullBookSchema, type RiggedHullBook } from './riggedHulls';
@@ -25,6 +26,7 @@ import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRun
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
+  'player/stealth':StealthRows;
   'explore/catalogue': ExplorerCatalogue;
   'look/rigged-hulls': RiggedHullBook;
   'look/toon': ToonLookRow;
@@ -53,6 +55,7 @@ export interface PlatformDataSections {
 
 /** Defining parsers for the first independently authored platform sections. */
 export const PLATFORM_DATA_SECTIONS: Readonly<{ [Name in keyof PlatformDataSections]: { readonly schema: v.GenericSchema<unknown, PlatformDataSections[Name]> } }> = {
+  'player/stealth':{schema:StealthRowsSchema},
   'explore/catalogue': { schema: ExplorerCatalogueSchema },
   'look/rigged-hulls': { schema: RiggedHullBookSchema },
   'look/toon': { schema: ToonLookSchema },
@@ -83,6 +86,7 @@ export const PLATFORM_DATA_SECTIONS: Readonly<{ [Name in keyof PlatformDataSecti
 export type PlatformDataSectionName = keyof PlatformDataSections;
 
 /** Parse the named section without treating its plain payload as fields of the v1 Shardfile. */
+export function parsePlatformDataSection(name:'player/stealth',value:unknown):StealthRows;
 export function parsePlatformDataSection(name: 'explore/catalogue', value: unknown): ExplorerCatalogue;
 export function parsePlatformDataSection(name: 'look/rigged-hulls', value: unknown): RiggedHullBook;
 export function parsePlatformDataSection(name: 'look/toon', value: unknown): ToonLookRow;

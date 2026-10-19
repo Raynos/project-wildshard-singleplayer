@@ -228,7 +228,8 @@
     "./practice/hookCourse": "./practice/hookCourse.ts",
     "./shardfile/sceneBuffers": "./shardfile/sceneBuffers.ts",
     "./audio/voicePatches": "./audio/voicePatches.ts",
-    "./audio/sceneDirector": "./audio/sceneDirector.ts"
+    "./audio/sceneDirector": "./audio/sceneDirector.ts",
+    "./stealth/controller": "./stealth/controller.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

@@ -226,5 +226,6 @@
   "test/grapple-platform.test.ts": [],
   "test/nalati-layout-bake.test.ts": [],
   "test/data-map-painter.test.ts": [],
-  "test/audio-voice-patches.test.ts": []
+  "test/audio-voice-patches.test.ts": [],
+  "test/stealth-detection.test.ts": []
 }

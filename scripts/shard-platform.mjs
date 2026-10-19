@@ -521,6 +521,7 @@ function cachedSourceInfo(source, path, directory, recipe) {
 /** @type {Record<string,string>} */
 const approvedFeatures = {
   'audio-cue-director':'G478',
+  'stealth-and-detection':'G478',
   'mounts-riding-taming':'G478',
   'grapple-traversal':'G478',
   'practice-courses':'G478',

@@ -1,3 +1,4 @@
+import type {StealthRows} from './stealth';
 import type { ColourFunctionBook } from './colourFunction';
 import type { PaintedLookRow } from './paintedLook';
 import type { ExplorerCatalogue } from './explorerCatalogue';
@@ -37,6 +38,7 @@ type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
  * trusts it. Adding a platform section = one entry here, its schema in this package and its row in the writer's table.
  */
 export interface PlatformSections {
+  'player/stealth':StealthRows;
   /** Client-only ordered model references, ignored by simulation. */
   'explore/catalogue': ExplorerCatalogue;
   'look/rigged-hulls': RiggedHullBook;

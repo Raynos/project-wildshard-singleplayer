@@ -2414,6 +2414,17 @@
           "row": "G478"
         }
       }
+    },
+    {
+      "module": "src/game/stealth/controller.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "stealth-and-detection",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G478"
+        }
+      }
     }
   ]
 }

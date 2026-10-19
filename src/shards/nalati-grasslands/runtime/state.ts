@@ -55,7 +55,7 @@ import { nalatiWetAt } from '../wet';
 import { bindFallbackGroupHost } from './groupRegistry';
 import { APP_GROUP_HOST } from './groupHost';
 import { wireNightEnemies } from '../combat/night';
-import { installStealth, type Stealth } from '../stealth';
+import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
 import { AudioSceneDirector } from '@wildshard/game/audio/sceneDirector';
 import { wireLookV2 } from '../look/index';
 import { reseedGrassV2 } from '../look/grass';
@@ -275,6 +275,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
   const player = ctx.player;
+  const stealthRows=plugin.product.section('player/stealth');
   let wildlife: Wildlife | null = null;
   let attachedAnimals: AnimalManager | null = null;
   let play: NalatiPlay | null = null;
@@ -391,14 +392,14 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     },
     bindPlay(p) {
       play = p;
-      stealth = installStealth(plugin, { player, wildlife: () => wildlife, isMounted: () => extra.mounted, crouchHere: () => ride !== null && ride.taming.view.trust !== null });
+      stealth = new StealthController(plugin,player,stealthRows);
       nalati.stealth = stealth;
       if (wildlife === null || attachedAnimals === null) throw new Error('Nalati creatures have not been built');
       ride = wireRide({ namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, forest: ctx.forest, animals: attachedAnimals, wildlife, camera: game.camera });
       nalati.ride = ride;
       installRide(plugin, ride);
 
-      if (p.kit !== null) stealth.bindKit(p.kit);
+      if(p.kit!==null){const bow=p.kit.bow,spear=p.kit.spear,prevBow=bow.damageMultiplier,prevSpear=spear.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);spear.damageMultiplier=hit=>(prevSpear?.(hit)??1)*(stealth?.sneakMultiplier()??1);}
       night.bindKit(p.kit);
       ride.bind({ toast: p.toast });
       painter = new NalatiSkinPainter(nalati.skins, {
@@ -430,7 +431,12 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   };
   // ── crouch + grass stealth (melee agent, B9): the long-grass CROUCH toggle (touch disc above JUMP, C / Ctrl on desktop),
   //    the eye pip + GRASS meter + threat chevron, the sneak shot (× 2 from HIDDEN on arrows and javelins) — src/shards/nalati-grasslands/stealth.ts ──
-  updates.push((dt, t) => { stealth?.update(dt, t); });
+  updates.push((dt,t)=>{
+    if(stealth===null)return;const threats:StealthThreat[]=[];
+    for(let i=0;i<96;i++){const pack=wildlife?.packs[i];if(pack===undefined)break;for(let j=0;j<96;j++){const actor=pack.members[j];if(actor===undefined)break;if(actor.alive)threats.push({x:actor.position.x,z:actor.position.z,awareness:pack.awareness,alert:.35,hunting:Number(pack.phase==='shadow'||pack.phase==='encircle'||pack.phase==='regroup')});}}
+    for(let i=0;i<96;i++){const herd=wildlife?.herds[i];if(herd===undefined)break;for(let j=0;j<96;j++){const actor=herd.members[j];if(actor===undefined)break;if(actor.alive&&(actor.mem['ridden']??0)!==1&&(actor.mem['owned']??0)!==1)threats.push({x:actor.position.x,z:actor.position.z,awareness:actor.mem['aw']??0,alert:.45,hunting:0});}}
+    stealth.update(dt,t,{grass:grassBaseHeightAt(player.position.x,player.position.z),mounted:extra.mounted,forced:ride!==null&&ride.taming.view.trust!==null,threats:threats.sort((a,b)=>Math.hypot(a.x-player.position.x,a.z-player.position.z)-Math.hypot(b.x-player.position.x,b.z-player.position.z)).slice(0,8)});
+  });
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
   //    src/shards/nalati-grasslands/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
 

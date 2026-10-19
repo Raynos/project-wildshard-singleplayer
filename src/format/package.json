@@ -212,7 +212,8 @@
     "./scaledPost": "./scaledPost.ts",
     "./grapple": "./grapple.ts",
     "./voicePatches": "./voicePatches.ts",
-    "./audioScene": "./audioScene.ts"
+    "./audioScene": "./audioScene.ts",
+    "./stealth": "./stealth.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

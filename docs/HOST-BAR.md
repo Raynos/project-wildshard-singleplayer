@@ -86,3 +86,4 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 - G478 audio patches: `game/audio/voicePatches` consumes voice, bed, scheduler and layer rows; client-only presentation, with an unrelated cavern fixture in `test/audio-voice-patches.test.ts`.
 - G478 audio scenes: `game/audio/sceneDirector` consumes zone probes, surface maps, event cues, bed controls and score observations; client-only presentation.
+- G478 stealth: `game/stealth/controller` consumes detection observations and ABI-v1 program rows; `StealthDetection` is server-safe and `StealthController` is client-only baseline HUD presentation.
