@@ -48,8 +48,8 @@ function buildNineScene(project?: string): { baked: BakedScene; layout: ReturnTy
   const recipes = specimenRecipes(banyanOut.plan?.lumps ?? []);
   const counts = layout.rows.counts, start = (counts.walkers + counts.sitters + counts.lanterns + counts.acs) * 16 + counts.hooks * 3 + counts.hookMounts * 6;
   const steam = Array.from({ length: counts.steam }, (_, i) => new Vector3().fromArray(layout.records, start + i * 3));
-  recipes.push(['mist:sheets', () => mistSheetsGeometry(layout.rows.sheets, WELL_RECTS, SHEET_LAYERS)],
-    ['mist:steam', () => steamPuffsGeometry(steam, STEAM_PUFFS.perPoint, STEAM_PUFFS.stride)]);
+  if (layout.rows.sheets.length > 0) recipes.push(['mist:sheets', () => mistSheetsGeometry(layout.rows.sheets, WELL_RECTS, SHEET_LAYERS)]);
+  recipes.push(['mist:steam', () => steamPuffsGeometry(steam, STEAM_PUFFS.perPoint, STEAM_PUFFS.stride)]);
   for (const name of ['boot', 'explorer'] as const) {
     const entries = recipes.filter(([key]) => bootSpecimen(key) === (name === 'boot')).map(([key, build]) => [key, build()] as const);
     keys[name] = entries.map(([key]) => key);

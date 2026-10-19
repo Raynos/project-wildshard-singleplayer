@@ -338,12 +338,15 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // (the stair-street's own screen over x 43…113 at +173 is gone: from the square and landing 1 it was a flat teal
   // ceiling over the stair paifang, where every C target paints blue-hour sky; E281 stair pass 3's experiment)
   root.add(named(screen, 'screens'));
-  const sheets = new Mesh(takeSpecimen(specimens, 'mist:sheets'), lentLook('nine-mist-sheet'));
-  sheets.renderOrder = 2;
+  if (worldRows.sheets.length > 0) {
+    const sheets = new Mesh(takeSpecimen(specimens, 'mist:sheets'), lentLook('nine-mist-sheet'));
+    sheets.renderOrder = 2;
+    root.add(named(sheets, 'sheets'));
+  }
   const steam = new Mesh(takeSpecimen(specimens, 'mist:steam'), lentLook('nine-steam'));
   steam.frustumCulled = false;
   steam.renderOrder = 3;
-  root.add(named(sheets, 'sheets'), named(steam, 'steam'));
+  root.add(named(steam, 'steam'));
   progress(0.75, 'crowd models');
   phaseDone('streaks + dressing', phaseStart);
 
