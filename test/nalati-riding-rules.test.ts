@@ -32,14 +32,17 @@ test('approach selects the closest eligible live stallion and spends trust from 
   expect(law.project('event', { x: 0, z: 0, cx: 0, cz: 0, px: 0, pz: 0, shot: 1, alert: 0 })).toEqual({ trust: -30, alert: 100 });
 });
 
-test('ten-Hz native binding completes five rounds, adopts once, and restricts the second bond to Argymaq', () => {
+test('native binding completes five rounds, adopts once, and restricts the second bond to Argymaq', () => {
   const { law, hud, horse, result } = rig(); law.update(.1); expect(law.interactable.radius).toBe(3.6); law.startBreaking();
   let previous = 0;
+  const rounds = new Set<number>();
   for (let i = 0; i < 220 && law.phase === 'breaking'; i++) {
     const b = law.view.balance;
     hud.lean = Math.max(-1, Math.min(1, b * 8 + (b - previous) * 10 * 2)); previous = b;
     law.update(.1);
+    if (law.view.round !== null) rounds.add(law.view.round);
   }
+  expect([...rounds]).toEqual([1, 2, 3, 4, 5]);
   expect(law.phase).toBe('bonded'); expect(result().hidden).toBe(true); expect(result().saved).toBe('1'); expect(result().mounted?.entityId).toBe('bonded'); expect(result().damage).toBe(0);
   expect(law.canTame(horse)).toBe(false); expect(law.canTame({ ...horse, kind: 'argymaq' })).toBe(true);
 });
@@ -76,4 +79,21 @@ test('dismount and naming stay within decision fuel for arbitrary restored headi
     expect(name['x']).toBeCloseTo(17 + Math.sin(yaw) * 1.15 * 1.2, 10);
     expect(name['z']).toBeCloseTo(-23 + Math.cos(yaw) * 1.15 * 1.2, 10);
   }
+});
+
+// A scheduled buck can fall on the same sample as a round boundary.
+test.each([1, 5])('round %i publishes one next-buck channel at the boundary', round => {
+  const law = ReturnProgram.page(programs.breaking);
+  const row = law.project('step', { ...programs.initial, round, roundT: 3.4, next: 3.45, dt: .1, lean: 0, r0: .25, r1: .25, r2: .25 });
+  expect(row['round']).toBe(round + 1);
+  expect(row['roundT']).toBe(0);
+  expect(row['next']).toBe(.55);
+  expect(row['outcome']).toBe(round === 5 ? 1 : 0);
+});
+
+test('bucking consumes fixed-step input between periodic approach samples', () => {
+  const { law } = rig();
+  law.update(.1); law.startBreaking(); law.update(1 / 60);
+  expect(law.phase).toBe('breaking');
+  expect(law.view.round).toBe(1);
 });

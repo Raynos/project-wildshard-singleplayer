@@ -11,7 +11,7 @@ const Saved = v.strictObject({ version: v.literal(2), phase: v.picklist(['wild',
   state: v.record(v.string(), finite), clock: v.pipe(finite, v.minValue(0), v.maxValue(.1)), prev: v.nullable(triple) });
 const direction = new THREE.Vector3(), toward = new THREE.Vector3();
 
-/** Native identities and effects around Nalati's admitted ten-Hz taming programs. */
+/** Native identities and effects around Nalati's admitted approach and bucking programs. */
 export class NalatiTamingLaw<A extends TamingHorse, H extends TamingHerd<A>> {
   phase: 'wild' | 'breaking' | 'bonded' = 'wild';
   tulpar: A | null = null;
@@ -59,12 +59,13 @@ export class NalatiTamingLaw<A extends TamingHorse, H extends TamingHerd<A>> {
     }
   }
   update(dt: number): void {
+    // Bucking is fixed-step physics; only the approach decision is periodic.
+    if (this.phase === 'breaking') { this.updateBreaking(dt); return; }
     this.clock += dt; if (this.clock + 1e-9 < .1) return;
     const elapsed = this.clock; this.clock = 0;
     const p = this.opts.player, pos = p.position;
     this.state['speed'] = !this.initialized ? 0 : (this.state['speed'] ?? 0) + (Math.hypot(pos.x - this.prev.x, pos.z - this.prev.z) / elapsed - (this.state['speed'] ?? 0)) * Math.min(1, elapsed * 6);
     this.prev.copy(pos); this.initialized = true;
-    if (this.phase === 'breaking') { this.updateBreaking(elapsed); return; }
     const herds = this.roster(), obs = this.observed;
     for (let i = 0; i < 8; i++) {
       const h = herds[i], candidate = this.candidates[i]; if (candidate === undefined) break;
