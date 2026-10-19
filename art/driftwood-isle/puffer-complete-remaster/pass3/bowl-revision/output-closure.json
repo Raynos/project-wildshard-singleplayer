@@ -1,0 +1,382 @@
+{
+  "status": "Known construction failure preserved; no quality increment",
+  "checks": {
+    "twentyActualCaptures": true,
+    "frozenCandidatePin": true,
+    "pass2-hero.png hash": true,
+    "pass2-hero.png size": true,
+    "pass3-hero.png hash": true,
+    "pass3-hero.png size": true,
+    "pass2-01-front.png hash": true,
+    "pass2-01-front.png size": true,
+    "pass3-01-front.png hash": true,
+    "pass3-01-front.png size": true,
+    "pass2-02-left.png hash": true,
+    "pass2-02-left.png size": true,
+    "pass3-02-left.png hash": true,
+    "pass3-02-left.png size": true,
+    "pass2-03-right.png hash": true,
+    "pass2-03-right.png size": true,
+    "pass3-03-right.png hash": true,
+    "pass3-03-right.png size": true,
+    "pass2-04-back.png hash": true,
+    "pass2-04-back.png size": true,
+    "pass3-04-back.png hash": true,
+    "pass3-04-back.png size": true,
+    "pass2-05-top.png hash": true,
+    "pass2-05-top.png size": true,
+    "pass3-05-top.png hash": true,
+    "pass3-05-top.png size": true,
+    "pass2-06-elevated-front.png hash": true,
+    "pass2-06-elevated-front.png size": true,
+    "pass3-06-elevated-front.png hash": true,
+    "pass3-06-elevated-front.png size": true,
+    "pass2-07-elevated-left.png hash": true,
+    "pass2-07-elevated-left.png size": true,
+    "pass3-07-elevated-left.png hash": true,
+    "pass3-07-elevated-left.png size": true,
+    "pass2-08-elevated-right.png hash": true,
+    "pass2-08-elevated-right.png size": true,
+    "pass3-08-elevated-right.png hash": true,
+    "pass3-08-elevated-right.png size": true,
+    "pass2-09-elevated-back.png hash": true,
+    "pass2-09-elevated-back.png size": true,
+    "pass3-09-elevated-back.png hash": true,
+    "pass3-09-elevated-back.png size": true,
+    "hero matched": true,
+    "01-front matched": true,
+    "02-left matched": true,
+    "03-right matched": true,
+    "04-back matched": true,
+    "05-top matched": true,
+    "06-elevated-front matched": true,
+    "07-elevated-left matched": true,
+    "08-elevated-right matched": true,
+    "09-elevated-back matched": true,
+    "previewCaps": true,
+    "glbCap": true,
+    "rawPublishedReceiptExact": true
+  },
+  "passed": 55,
+  "total": 55,
+  "outputs": [
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/audit_fin_roots.py",
+      "bytes": 1077,
+      "sha256": "89891dc3cb8d502a087823cb7ac0ae030625b43c8a4ddeb329bf8c348846d263"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/audit_glb_roundtrip.py",
+      "bytes": 2141,
+      "sha256": "6627ac3f9c8b826a3cdbd4c929b08cb2b0566e13c793291a3fa7969fc2f75727"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/audit_topology.py",
+      "bytes": 1588,
+      "sha256": "00147567c125a8c069caf841b834b24bcf2e74d38fb5ebf28d4be3e0362a05d5"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/build_candidate.py",
+      "bytes": 5938,
+      "sha256": "c5c83f8176d8edd3e829ffa61804a35671e6efb112bd29a58143b28a8fc8eed1"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/capture-receipt.json",
+      "bytes": 9090,
+      "sha256": "206f699d655ed1aee5331a31028cd041a14ffef33c3a653934ddbf9417d7469a"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/construction-receipt.json",
+      "bytes": 2395,
+      "sha256": "c8534898f91d7cf98fc166c1ada7101ef8ea5f1c7b04bd13b9479c57f087d932"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/evidence-manifest.json",
+      "bytes": 12885,
+      "sha256": "efa4c5123b21b4fb6391f5fa957dec2e281cf350b111058fb13c687600d5c66d"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/export_glb.py",
+      "bytes": 3614,
+      "sha256": "e36e79f579e18ff0d501c9c190f8b9a3852c4862c58b685abfd60e3ee8a694b6"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/fin-root-audit.json",
+      "bytes": 5952,
+      "sha256": "47c5b60aebe7e95c72ee779853a6782da9023d7a6170154dc6da0abdf2a6e355"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/focused-tests.json",
+      "bytes": 541,
+      "sha256": "e676d0c2713da33781207fed765f152029643089350fca7b9eca54b7f3182e22"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/glb-export-receipt.json",
+      "bytes": 476,
+      "sha256": "af781b05cd355c5c66c019680732e137ca8ecc7f662709ee786d4e9241b6f383"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/glb-roundtrip-audit.json",
+      "bytes": 2194,
+      "sha256": "664ef132478bf1b55dab25b895bf2563cdf0c4e1ffa725bcb03f5962a2772cba"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/head-inlay-diagnosis.json",
+      "bytes": 7834,
+      "sha256": "6fd4b463cdf6dddfdae24bba63495645083ed261f8b0559157c2cc44f3e045c3"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/hero-comparison-board.webp",
+      "bytes": 28132,
+      "sha256": "8666e6d24996eb3283b4a3dbd558151f5db4ae481452d6f00da123da549ec727"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-01-front.webp",
+      "bytes": 15978,
+      "sha256": "2cae12f511c7833d515d3ed617f569331ce1b22277d4218e2afc7119716cc990"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-02-left.webp",
+      "bytes": 15056,
+      "sha256": "bc068294af99ad61ae64620c9a66795133f309d6ffc34b611cecaf92824ec6fb"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-03-right.webp",
+      "bytes": 16346,
+      "sha256": "153f274634f989a55a5c16424d8a56d075c67242f9eac0b81bb8ec5202baeadb"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-04-back.webp",
+      "bytes": 12364,
+      "sha256": "5e801d082fbea00a2a93f2f6b4d6a427fe0ba0f48e81ff9f25109df39b8bbca2"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-05-top.webp",
+      "bytes": 44122,
+      "sha256": "17666c2e5408c070dde4a9f15357855c9656df3f0199dfcd1cb420a520a226b4"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-06-elevated-front.webp",
+      "bytes": 48672,
+      "sha256": "eeaee9352a1bc4a2a9585d7a03f2d335215a6c3e0932b6935c2d7957c13e4e84"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-07-elevated-left.webp",
+      "bytes": 40618,
+      "sha256": "384925c75a56e2be9b3ed3b3e21815b3f89988451d1b234b10af5ef126777e3e"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-08-elevated-right.webp",
+      "bytes": 60470,
+      "sha256": "92ecc8c02bc7efae75600c97a1477010bb54ae4cd53a5ff4fa551581ae3d993d"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-09-elevated-back.webp",
+      "bytes": 42068,
+      "sha256": "347da472fd966d3fabfafa1aabe26d087d9320748cb86d23c07dbf00a2b12a01"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-hero.webp",
+      "bytes": 47724,
+      "sha256": "389867e3154a9e9f7312de21ee8732e19c2fa9af4b96b98e57e3389b9d4bbe45"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass2-nine-view-sheet.webp",
+      "bytes": 33044,
+      "sha256": "16b3f964a91a540914105a34782f0f09468e7e7f68b3e3fb16705ad1c74fc724"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-01-front.webp",
+      "bytes": 18338,
+      "sha256": "7be28a450691d77c2e0f83d0a94bf0e3f140637c480a5753f0b77e416a892484"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-02-left.webp",
+      "bytes": 14914,
+      "sha256": "c3adb919fd82a404405eb0be7b0d3a84d9bfc70c1d05bac421ffc69e957eb5ea"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-03-right.webp",
+      "bytes": 16716,
+      "sha256": "22aaab4dcb01207b218514190f17c85fe948e241bb8dba5ffa2c6be90a5746f7"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-04-back.webp",
+      "bytes": 11348,
+      "sha256": "b2c15ecb2269092d5cd30c844aa49b1d225c8cd1cbb6a08c7e93f9792f34d642"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-05-top.webp",
+      "bytes": 43104,
+      "sha256": "18a3f54a6395dbd1f3a7169e63ed5ab070a9efd843bcac48cfe5391288faedd1"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-06-elevated-front.webp",
+      "bytes": 49248,
+      "sha256": "c0020e5a1223d691379dee8016fd42fbac415c8437b4b8285da7789bb75daf6c"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-07-elevated-left.webp",
+      "bytes": 40590,
+      "sha256": "a049c26e93fb83275353b442bbeb6e74165593effa041f370332468bcd05b92d"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-08-elevated-right.webp",
+      "bytes": 59978,
+      "sha256": "4ebe36af4d3a847433c2529224656d78b3fa8da442fe0aa0c5a038f1cee6da6f"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-09-elevated-back.webp",
+      "bytes": 41398,
+      "sha256": "f47e314f867c8ac96e93539c3250ee69bebb92ed3f9a64c5b68b9fdb39e9c3ec"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-hero.webp",
+      "bytes": 53564,
+      "sha256": "228cbf871ff8fcfa37f155069ef5ec8f586cd66425d8b6659ff40dfecb697494"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-native.json",
+      "bytes": 1225920,
+      "sha256": "7b92c668ca33ae78eb6340b8674624587f30f7ab78b9cbf96aed2f65a8753bf9"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-nine-view-sheet.webp",
+      "bytes": 32752,
+      "sha256": "271fd958a91b0b624b7e47bc15a5ab1f338550246b2c45ee61399cb45cb13c02"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-study.glb",
+      "bytes": 545768,
+      "sha256": "ab37e84b5e9a88644668c3d7a76183f332f7a76d3db41a3efd5c2712c4fc11f4"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/prepare_evidence.py",
+      "bytes": 2805,
+      "sha256": "305d0fb3a1316c1a1e3f0473c2874c1680ee4aef3fd0cd633278f1fbd8f8f908"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/render_matched.py",
+      "bytes": 4984,
+      "sha256": "98c388dbba1b2bd085a51019b2060960f460152474928fcad0668d01e433192e"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/topology-preflight-failure.json",
+      "bytes": 23044,
+      "sha256": "fe84ba4f87fbcc7d4494d56c36200011c5f1e65f02aea0f92ec19cfa5b47cb9a"
+    }
+  ],
+  "raw": [
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/capture-receipt.json",
+      "bytes": 9090,
+      "sha256": "206f699d655ed1aee5331a31028cd041a14ffef33c3a653934ddbf9417d7469a"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/inspection.blend",
+      "bytes": 1475072,
+      "sha256": "71a301a1daba5dfcf45b90f1cff046b014ce5874c60060229f7012474f79cac5"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass2-01-front.png",
+      "bytes": 338191,
+      "sha256": "0324eb9e135cd94c6cc8a82b2a5df765b9de0508ef72e121d6d9aaf8f6d89d4f"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass2-02-left.png",
+      "bytes": 340257,
+      "sha256": "7faa1aceb0079ce7614bb62e7432076425c4031be0d28951659e547152630859"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass2-03-right.png",
+      "bytes": 348527,
+      "sha256": "4dc21c9fb04cc613aa1b5e47ecc754cc20e92d6f527b4f163ec5c909284da1da"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass2-04-back.png",
+      "bytes": 330369,
+      "sha256": "b641b99b727153623def55113ced91f2e2b5df35fe342d750d6651bc8d455b9b"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass2-05-top.png",
+      "bytes": 782081,
+      "sha256": "aae7b4554601177093505a9e9c308496922c8c6506fecf3d3c7e1686392ef9f5"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass2-06-elevated-front.png",
+      "bytes": 776810,
+      "sha256": "c89fa285f64ed0d84b438d6f4aa162b89ac4d3e5734e00259f57f3c0096e8c11"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass2-07-elevated-left.png",
+      "bytes": 770584,
+      "sha256": "73c53ed19300235fadf5d7b9b74b924cfaaf02e50e13bc68098af23fb12f4015"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass2-08-elevated-right.png",
+      "bytes": 788725,
+      "sha256": "18e24d63c8166cfe8b7633eb9d43dc6f737e9537b0d379e017e46619eb59d8ab"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass2-09-elevated-back.png",
+      "bytes": 771821,
+      "sha256": "cd18e46d2cd66338bc0b92236a5e0c57679bc2ded17770c0b36af5793ded76fa"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass2-hero.png",
+      "bytes": 767198,
+      "sha256": "5b83d2a5bab6a4246438a8d00bfff938b5ac49bbd645f497654fc0c5b10a5130"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass3-01-front.png",
+      "bytes": 347430,
+      "sha256": "632385e9b44d6422d109636a5d38df2bd4c39daa830308074f7d158663178cd7"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass3-02-left.png",
+      "bytes": 340461,
+      "sha256": "d2ea03729b1b6b84629c8a87594dc82953b127a51d0a92bb55f65281ef0481b2"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass3-03-right.png",
+      "bytes": 349876,
+      "sha256": "228e5869cdc698a028a5c85e9f424584a3bfdccceb0d42d5afe160bcff151604"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass3-04-back.png",
+      "bytes": 325962,
+      "sha256": "1349c337b8462763e47d3a62c10aba6857f96be4a2d39e483f9654f79efdcd1c"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass3-05-top.png",
+      "bytes": 776783,
+      "sha256": "f2574b70ed460ee16ce51e1e7bb5ae5f8f4146fca6f6caf3b283169055abfa06"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass3-06-elevated-front.png",
+      "bytes": 777690,
+      "sha256": "6bac6708bee9260e790f45d85c4c9d47f2981de8e6f8c0fad66ad4ba576a9310"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass3-07-elevated-left.png",
+      "bytes": 766400,
+      "sha256": "b2ff20da1cf52570e85c453a59474809c962b0958d2c0e386750df167f3a2ba6"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass3-08-elevated-right.png",
+      "bytes": 784857,
+      "sha256": "f276ae3d76c1ebd62ea1da92828ab03c743fb21604c65a1abb1141d415dcf941"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass3-09-elevated-back.png",
+      "bytes": 765134,
+      "sha256": "a439787d967cbe2b8819c81726d4a6202134e86c4cbed9b8b90b5df38631cbe1"
+    },
+    {
+      "path": "tmp/puffer-complete-pass3/bowl-revision/pass3-hero.png",
+      "bytes": 777329,
+      "sha256": "acf3b6281736ab1724c70c715908079051a0d709f6cb2d13fc0430a09778f554"
+    }
+  ],
+  "runtimeAdmission": false
+}

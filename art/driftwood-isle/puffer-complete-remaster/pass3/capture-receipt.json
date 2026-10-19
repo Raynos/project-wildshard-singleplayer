@@ -1,0 +1,366 @@
+{
+  "status": "All twenty actual matched captures completed",
+  "nativePins": {
+    "pass2": {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-native.json",
+      "sha256": "15a8a65ed0303e24982799ab395e77cd1d50920e964bbe81a099308e9ffdb762"
+    },
+    "pass3": {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass3/pass3-native.json",
+      "sha256": "f117f99588c8537e94ea6d69661648380b9fd34518fcf3fa649de73ef9e3624a"
+    }
+  },
+  "scriptSha256": "15848ea177f17bd0169fb4bb63545571ace28e1d3cdb4e611c1667d08616f012",
+  "resolution": [
+    600,
+    740
+  ],
+  "samples": 24,
+  "denoising": false,
+  "viewTransform": "AgX",
+  "lighting": "V71 three area lights, unchanged between variants",
+  "geometry": "native bind pose, identity transforms, no camera-dependent changes",
+  "captures": [
+    {
+      "variant": "pass2",
+      "view": "hero",
+      "camera": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ],
+      "target": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ],
+      "scale": 3.2,
+      "filename": "pass2-hero.png",
+      "sha256": "b2620763b009cb718a78de97d27748f3686130dccf46f427662d9768716eb348"
+    },
+    {
+      "variant": "pass3",
+      "view": "hero",
+      "camera": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ],
+      "target": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ],
+      "scale": 3.2,
+      "filename": "pass3-hero.png",
+      "sha256": "c8104dc147dfe0375799cbc2ec54e2c2a359149726227cb4f0e7d62074148eea"
+    },
+    {
+      "variant": "pass2",
+      "view": "01-front",
+      "camera": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-01-front.png",
+      "sha256": "464de5b2a1a01ecdfc63b19f9858c0a660adece35fb640d66e1435ef59b7bdd3"
+    },
+    {
+      "variant": "pass3",
+      "view": "01-front",
+      "camera": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass3-01-front.png",
+      "sha256": "96d4dc5c3dd60cd97b5e655445e8ca47f4d3edfac0cdb7bfe0aa0c24497cc360"
+    },
+    {
+      "variant": "pass2",
+      "view": "02-left",
+      "camera": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-02-left.png",
+      "sha256": "f5e4a64d430a1cb8e1c38f437e41975d82e818e83ab41e3fccb0db1dc92fb029"
+    },
+    {
+      "variant": "pass3",
+      "view": "02-left",
+      "camera": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass3-02-left.png",
+      "sha256": "8a772d54519615b43dbe87fcb818b8963bc868865f63af9342edabc58a5819d5"
+    },
+    {
+      "variant": "pass2",
+      "view": "03-right",
+      "camera": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-03-right.png",
+      "sha256": "f427d8994a8f45cdc26fbab912b60d9dcb3f6626be1ab49f6b8f1b31c0f8a701"
+    },
+    {
+      "variant": "pass3",
+      "view": "03-right",
+      "camera": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass3-03-right.png",
+      "sha256": "a667d8f7081c58c27b38f536eea6b64a5073286feb37ce5fdca944b852e1f655"
+    },
+    {
+      "variant": "pass2",
+      "view": "04-back",
+      "camera": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-04-back.png",
+      "sha256": "70692f5dd3bcc9c065a228459dfb4ad66ff88760b7a5365cfad5504a571ac4dd"
+    },
+    {
+      "variant": "pass3",
+      "view": "04-back",
+      "camera": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass3-04-back.png",
+      "sha256": "4144a25d1e488051f9e19665486e7c7872786018fb989e6fae269b240746e91f"
+    },
+    {
+      "variant": "pass2",
+      "view": "05-top",
+      "camera": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-05-top.png",
+      "sha256": "e2dd9d32ae7ac9105328399f7ba42f43cfd61f3b1ba4ef5eb66f9bc62102da1f"
+    },
+    {
+      "variant": "pass3",
+      "view": "05-top",
+      "camera": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass3-05-top.png",
+      "sha256": "037fa1372852be6278b087d59938c3f645dca806ce421e65c15fb2f4b81786f9"
+    },
+    {
+      "variant": "pass2",
+      "view": "06-elevated-front",
+      "camera": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-06-elevated-front.png",
+      "sha256": "73e65907b803de58c28da118d704634fa8873c76b280dd71c8019e494ebe96e1"
+    },
+    {
+      "variant": "pass3",
+      "view": "06-elevated-front",
+      "camera": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass3-06-elevated-front.png",
+      "sha256": "ccfad20f8c4c36bed02e929199df5b317613ce0ffde8cf16bf0479ff8c4e772c"
+    },
+    {
+      "variant": "pass2",
+      "view": "07-elevated-left",
+      "camera": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-07-elevated-left.png",
+      "sha256": "6a1e510ec2ffc922611137757f45d49748f3e901e7a8214f352433b57f44108e"
+    },
+    {
+      "variant": "pass3",
+      "view": "07-elevated-left",
+      "camera": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass3-07-elevated-left.png",
+      "sha256": "3bf6d255b550171a01c021298dcf2e86cf93456555d019e822002a519dc362cc"
+    },
+    {
+      "variant": "pass2",
+      "view": "08-elevated-right",
+      "camera": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-08-elevated-right.png",
+      "sha256": "b28aced0fcb578f04e1dd80e222e7e74f682fbea44d3e49f5b69c3c9a8c27430"
+    },
+    {
+      "variant": "pass3",
+      "view": "08-elevated-right",
+      "camera": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass3-08-elevated-right.png",
+      "sha256": "e6719a6a6eddd10b0ead97a691e8c791ea74bb014cb5ef8a4c683cfe5417ebb4"
+    },
+    {
+      "variant": "pass2",
+      "view": "09-elevated-back",
+      "camera": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass2-09-elevated-back.png",
+      "sha256": "21c03bf746b83986c73904e69310ade9b0243cb71475bfc5915d7dc255ceff6d"
+    },
+    {
+      "variant": "pass3",
+      "view": "09-elevated-back",
+      "camera": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "pass3-09-elevated-back.png",
+      "sha256": "a98ab4e8377093074307ccab06ef1bba4f5b0de2146279f1d0406e0768991134"
+    }
+  ],
+  "runtimeValidated": false
+}

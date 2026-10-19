@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "hashPinned": true,
+    "eightExactPivots": true,
+    "completeSevenParts": true,
+    "headExact": true,
+    "tailExact": true,
+    "finsExact": true,
+    "closedOrientedMainHull": true,
+    "substantialRemesh": true,
+    "tailSamplesBuried": true,
+    "finSamplesBuried": true,
+    "eightSpikeRootsBuried": true,
+    "inheritedInlaysExplicit": true,
+    "noSelfScore": true,
+    "underMillionByteGlb": true
+  },
+  "passed": 14,
+  "total": 14,
+  "tailRootMaxDistance": -0.06396308558105485,
+  "runtimeAdmission": false
+}

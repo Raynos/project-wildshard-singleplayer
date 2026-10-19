@@ -1,0 +1,110 @@
+{
+  "sourcePins": [
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-native.json",
+      "sha256": "15a8a65ed0303e24982799ab395e77cd1d50920e964bbe81a099308e9ffdb762"
+    }
+  ],
+  "candidatePin": {
+    "path": "art/driftwood-isle/puffer-complete-remaster/pass3/bowl-revision/pass3-native.json",
+    "sha256": "7b92c668ca33ae78eb6340b8674624587f30f7ab78b9cbf96aed2f65a8753bf9"
+  },
+  "schema": {
+    "vertices": 8949,
+    "triangles": 2983,
+    "bones": 8,
+    "parts": 7
+  },
+  "oldHullTriangles": 1022,
+  "retainedOrbitalHullTriangles": 389,
+  "newPatchTriangles": 185,
+  "hullTriangles": 574,
+  "boundaryVertices": 29,
+  "authoredPatchVertices": 79,
+  "hullSignedVolume": 1.2243151940737436,
+  "bonesExact": true,
+  "headExact": true,
+  "tailExact": true,
+  "finsExact": true,
+  "spikes": [
+    {
+      "index": 0,
+      "rootTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximumSampledDistance": -0.11697971097366931
+    },
+    {
+      "index": 1,
+      "rootTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximumSampledDistance": -0.012533759507841294
+    },
+    {
+      "index": 2,
+      "rootTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximumSampledDistance": -0.14915504362569673
+    },
+    {
+      "index": 3,
+      "rootTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximumSampledDistance": -0.04354564387583393
+    },
+    {
+      "index": 4,
+      "rootTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximumSampledDistance": -0.04261764496440964
+    },
+    {
+      "index": 5,
+      "rootTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximumSampledDistance": -0.019107802222504074
+    },
+    {
+      "index": 6,
+      "rootTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximumSampledDistance": -0.013067752675437083
+    },
+    {
+      "index": 7,
+      "rootTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "maximumSampledDistance": -0.0655770527595351
+    }
+  ],
+  "qualityScore": null,
+  "runtimeAdmitted": false,
+  "limitations": [
+    "Retained four open head inlays require individual diagnosis; no topology waiver.",
+    "Finite root sampling is not animation or continuous attachment proof.",
+    "Static mesh requires independent original-target review."
+  ]
+}
