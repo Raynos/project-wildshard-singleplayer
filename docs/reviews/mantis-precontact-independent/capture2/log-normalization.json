@@ -1,0 +1,22 @@
+[
+  {
+    "path": "pose-tests.txt",
+    "originalSha256": "c1f2941f2b8548bae186514e8a4b39871dfceb4a2de46f30e872750e0ee942db",
+    "normalizedSha256": "ec53f4cbe43e6b304faeacedfde03d1ffe1846cb6d61c033a49207e463670c4b"
+  },
+  {
+    "path": "contact-run.txt",
+    "originalSha256": "6e567be42dc9e390555cac9a3b5e8e42f9b61f29f9a396456841f8bfe22905cf",
+    "normalizedSha256": "6e567be42dc9e390555cac9a3b5e8e42f9b61f29f9a396456841f8bfe22905cf"
+  },
+  {
+    "path": "attack-timing-run.txt",
+    "originalSha256": "e06d7579192c89c8957d25137a90033ffb108d0a83cf6f4122a3be1bdbaed92a",
+    "normalizedSha256": "e06d7579192c89c8957d25137a90033ffb108d0a83cf6f4122a3be1bdbaed92a"
+  },
+  {
+    "path": "video-decode.txt",
+    "originalSha256": "da43638933962ac7141e7c897d37003caaa224a4ba92161faa099c0711fd4f43",
+    "normalizedSha256": "da43638933962ac7141e7c897d37003caaa224a4ba92161faa099c0711fd4f43"
+  }
+]

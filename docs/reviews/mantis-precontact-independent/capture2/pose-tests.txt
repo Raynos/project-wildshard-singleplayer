@@ -1,0 +1,15 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../../vite/rapier" without a file extension (docs/reviews/mantis-precontact-independent/capture2/vitest.config.ts:2:29). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repo>
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  07:35:08
+   Duration  23.57s (tests 63%, transform 29%, setup 8%)
+
+  Transform  transforming modules took 6.83s · 29% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

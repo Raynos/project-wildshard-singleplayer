@@ -1,0 +1,7 @@
+{
+  "tracePath": "tmp/mantis-precontact-capture-run2/render-trace.json",
+  "cases": 1306,
+  "missing": 0,
+  "maxError": 1.1102230246251565e-16,
+  "failures": []
+}

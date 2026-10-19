@@ -1,0 +1,65 @@
+{
+  "scope": "Actual sampled native vertices only; no triangle/capsule clearance or interpolation claim.",
+  "windupRows": 186,
+  "activeAssemblyWindupVertexOverlaps": [],
+  "anyAssemblyWindupVertexOverlaps": [
+    {
+      "frame": 905,
+      "bout": 5,
+      "t": 21.43060000002385,
+      "wallTime": 112951.89999999106,
+      "poseIndex": 902,
+      "attack": 0.8513333333200879,
+      "stage": 3,
+      "alive": true,
+      "phase": "real-player-defeat",
+      "strike": "windup",
+      "strikeId": "strike.splinter-mantis.second",
+      "elapsed": 0.31666666666666665,
+      "cut": false,
+      "minVertexCapsuleGap": -0.09460579501346911,
+      "parts": {
+        "raptor-1": -0.09460579501346911,
+        "raptor-1_elbow": 0.0863969446870339,
+        "raptor-1_hook": 0.3545304755428901,
+        "raptor1": 0.15542648516872526,
+        "raptor1_elbow": 0.4080490796868895,
+        "raptor1_hook": 0.5952429737028678
+      },
+      "position": [
+        -0.2014546352922637,
+        900,
+        6.936326583374466
+      ]
+    },
+    {
+      "frame": 906,
+      "bout": 5,
+      "t": 21.527600000023853,
+      "wallTime": 113048.69999998808,
+      "poseIndex": 903,
+      "attack": 1,
+      "stage": 3,
+      "alive": true,
+      "phase": "real-player-defeat",
+      "strike": "windup",
+      "strikeId": "strike.splinter-mantis.second",
+      "elapsed": 0.41666666666666663,
+      "cut": true,
+      "minVertexCapsuleGap": -0.11963673570672667,
+      "parts": {
+        "raptor-1": -0.11963673570672667,
+        "raptor-1_elbow": 0.06689379855732341,
+        "raptor-1_hook": 0.34947400156615893,
+        "raptor1": 0.1297056994261333,
+        "raptor1_elbow": 0.4128943707920426,
+        "raptor1_hook": 0.5805475258379535
+      },
+      "position": [
+        -0.2014546352922637,
+        900,
+        6.936326583374466
+      ]
+    }
+  ]
+}

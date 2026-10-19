@@ -1,0 +1,2 @@
+{'videoSha256': '130fd5eeca4507c74e133bb7d3766709119fab9bee8f9ed43154df642bc26821', 'videoBytes': 16976191, 'width': 402, 'height': 874, 'fps': 25.0, 'encodedFrames': 4598, 'uniqueDecodedFullFrames': 3491, 'exactDuplicateFrames': 1107, 'scope': 'Every decoded full RGB frame hashed; only exact full-pixel duplicates reuse a visual representative. Sheets show the full portrait frame, downsampled. Fine contact and HUD require full-resolution representatives. This is chronological image-sequence review, not real-time playback.'}
+sheets 55

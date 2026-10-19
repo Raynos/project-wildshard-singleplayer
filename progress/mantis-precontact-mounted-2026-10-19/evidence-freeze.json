@@ -1,0 +1,84 @@
+{
+  "schema": "wildshard.mantis.candidate7.mounted-evidence-freeze.v1",
+  "checksPassed": 24,
+  "checksTotal": 24,
+  "productFiles": 137,
+  "screening": "No credentials or private absolute filesystem paths found in textual evidence. No remote writes.",
+  "normalizations": [
+    {
+      "path": "progress/mantis-precontact-mounted-2026-10-19/run1/inventory-after.json",
+      "originalSha256": "274678c35be921cb0751480564aa8431edddd61154343ace9143919302e2ad8a",
+      "normalizedSha256": "cb45f73a32e8c7a3f9910ef3256eabf7ff206625b083af9500d2ed623cffbc18"
+    },
+    {
+      "path": "progress/mantis-precontact-mounted-2026-10-19/run1/inventory-before.json",
+      "originalSha256": "274678c35be921cb0751480564aa8431edddd61154343ace9143919302e2ad8a",
+      "normalizedSha256": "cb45f73a32e8c7a3f9910ef3256eabf7ff206625b083af9500d2ed623cffbc18"
+    },
+    {
+      "path": "progress/mantis-precontact-mounted-2026-10-19/run1/report.json",
+      "originalSha256": "4bfa22191f1308880a8d354a592c6327d9122653fb21360cf4c89ca6445bed5a",
+      "normalizedSha256": "cc59ad5dc00422352a5561c8d44c6f84843d539862222b7104e4758ad39d678a"
+    },
+    {
+      "path": "progress/mantis-precontact-mounted-2026-10-19/run1/source-inventory-after.json",
+      "originalSha256": "3485e2c8bbd90ca63114c4e11548284f42d55aef544b74fefb74270f48b9a2f6",
+      "normalizedSha256": "eef074bfa6c0ec14c6d190c1dc17e7bb93780fafcd6311c9a06595ac04aba205"
+    },
+    {
+      "path": "progress/mantis-precontact-mounted-2026-10-19/run1/source-inventory.json",
+      "originalSha256": "3485e2c8bbd90ca63114c4e11548284f42d55aef544b74fefb74270f48b9a2f6",
+      "normalizedSha256": "eef074bfa6c0ec14c6d190c1dc17e7bb93780fafcd6311c9a06595ac04aba205"
+    }
+  ],
+  "files": {
+    "scripts/qa-mantis-precontact-mounted.mjs": {
+      "bytes": 15066,
+      "sha256": "f186e77fdfc95466ad32e568630e6d521ffe0e94cdd1d206f363a2898ff8a14e"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/README.md": {
+      "bytes": 2283,
+      "sha256": "adf50e2d4678a39dd83dd82163d07a2a4c3bb62707cd76b13ef1021868183a8f"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/run1/corpseReward.jpg": {
+      "bytes": 49613,
+      "sha256": "38c8d6c2587d59d3d245f324e4af8302d0701b34d50564f93f926162475aa04b"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/run1/desktop-entry.jpg": {
+      "bytes": 74726,
+      "sha256": "ee3f0406360dc2387e1bbc92533724cc74448d13de813539ff14d7f9b587d4a2"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/run1/entry.jpg": {
+      "bytes": 54688,
+      "sha256": "3f1f2de3081ab17c0be9eea82b40a92f93ce26d25172789ed588c81b7140ae0f"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/run1/inventory-after.json": {
+      "bytes": 93537,
+      "sha256": "cb45f73a32e8c7a3f9910ef3256eabf7ff206625b083af9500d2ed623cffbc18"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/run1/inventory-before.json": {
+      "bytes": 93537,
+      "sha256": "cb45f73a32e8c7a3f9910ef3256eabf7ff206625b083af9500d2ed623cffbc18"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/run1/reentry.jpg": {
+      "bytes": 54547,
+      "sha256": "eb2def8e7cec858db15f44f0c246253a0024d074d060356b3baf14a332ae9b5d"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/run1/report.json": {
+      "bytes": 67542,
+      "sha256": "cc59ad5dc00422352a5561c8d44c6f84843d539862222b7104e4758ad39d678a"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/run1/source-inventory-after.json": {
+      "bytes": 21990,
+      "sha256": "eef074bfa6c0ec14c6d190c1dc17e7bb93780fafcd6311c9a06595ac04aba205"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/run1/source-inventory.json": {
+      "bytes": 21990,
+      "sha256": "eef074bfa6c0ec14c6d190c1dc17e7bb93780fafcd6311c9a06595ac04aba205"
+    },
+    "progress/mantis-precontact-mounted-2026-10-19/run1/swordResult.jpg": {
+      "bytes": 51765,
+      "sha256": "27f6678f596950352de3c237bcaa42fb3aa7261693bf9e8eecba2543b5450d3b"
+    }
+  }
+}

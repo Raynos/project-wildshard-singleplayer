@@ -1,0 +1,2455 @@
+{
+  "schema": "wildshard.mantis.candidate7.local-mounted-functional.v1",
+  "kind": "mantis",
+  "startedAt": "2026-10-19T11:39:55.068Z",
+  "url": "http://127.0.0.1:4478/mantis-engine/index.html",
+  "checks": {
+    "exactPreview": true,
+    "exactProductSource": true,
+    "exactFrozenBytesBefore": true,
+    "desktopPlayStart": true,
+    "desktopNoRuntimeErrors": true,
+    "phoneSitePlayRoute": true,
+    "wipLabel": true,
+    "normalPhonePolicy": true,
+    "correctSingleEnemy": true,
+    "nativeModel": true,
+    "swordDamage": true,
+    "enemyDefeated": true,
+    "noPostDeathStrike": true,
+    "localReward": true,
+    "retryAfterReward": true,
+    "reloadFresh": true,
+    "reloadAssets": true,
+    "mountedAssetBase": true,
+    "emptyBrowserStorage": true,
+    "emptyWorldShardPersistence": true,
+    "noRuntimeErrors": true,
+    "exactFrozenBytesAfter": true,
+    "servedSiteHtmlSnapshotUnchanged": true,
+    "allFourAppsUnchanged": true
+  },
+  "errors": [],
+  "failedRequests": [],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/style-3STfMJLR.css",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/tables-BovtVlAx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/preload-helper-uBIymjUX.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/scope-CDMJThrF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/practice-CJUP7--h.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/memoryResources-ConTL0Oo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/preload-C6UfVI9Y.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/audioFiles-BiiXIQZo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Stems-DE3H66hs.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/toon-CxxpQCSA.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/clock-B53qIMMf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Settings-Ba1njlcr.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/json-Dr12Y27u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Cues-C8khGTWM.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/declaredBank-SnReBuf7.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/geometryBounds-DSkLFGUo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/SetScore-Dw97jfuc.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/registry-DYBV1Kl9.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/presets-CY6YlZKC.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/audioLog-DDd08KrP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/materialGraph-CteREh-_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/time-BpfsQkaN.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/graphBackend-TWaz1L3C.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/runtime-Cwyjp-fC.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/dayCycle-e1TDlXAt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/dataLook-CdhG-zcg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Weapon-CNKF6Yh8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/nodeLayerFrame-PqqyriBq.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/three.core-BNyAOcZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shadowChunks-B0x8A1LY.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/postPreparation-BM0ovkLk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/precompile-BiQ3I_76.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/emptyLook-D2dy-xuz.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/build-CehzHm6x.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/wind-CDg_obA2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Tool-jTOctduU.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/lastEnd-ysVx8NxG.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/lentLooks-B-Im59pf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/practiceBoot-BUtD8QJP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/runtimeProduct-DqlabFPi.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/shard.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/creatures.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/crowds.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/moves.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/spawns.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/species.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/audio/audio.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/combat/encounters.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/combat/items.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/combat/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/held/arms.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/economy/ledger.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/economy/loot.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/look/look.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/look/materials.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/quests/quests.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/sim.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/hooks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/state/state.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/ui/card.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/state/migrations.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/days.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/edge.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/movers.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/ui/compendium.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/ui/ui.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/collision.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/navigation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/spawn.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/props.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/water.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/terrain.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/tiles.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/traversal.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/weather.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/physics/rapier.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/engineNodesHandler-DjEBngml.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/engineNodesHandler-CyBqbEWe.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/compile-CXrr4yNF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/wasm/45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/index.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/style-3STfMJLR.css",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/scope-CDMJThrF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/practice-CJUP7--h.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/preload-helper-uBIymjUX.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/tables-BovtVlAx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/memoryResources-ConTL0Oo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/three.core-BNyAOcZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/geometryBounds-DSkLFGUo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/preload-C6UfVI9Y.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Settings-Ba1njlcr.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/toon-CxxpQCSA.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/SetScore-Dw97jfuc.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/audioFiles-BiiXIQZo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Stems-DE3H66hs.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/registry-DYBV1Kl9.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/json-Dr12Y27u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/clock-B53qIMMf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/presets-CY6YlZKC.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/declaredBank-SnReBuf7.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/audioLog-DDd08KrP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Cues-C8khGTWM.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/runtime-Cwyjp-fC.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/time-BpfsQkaN.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/graphBackend-TWaz1L3C.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/materialGraph-CteREh-_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/dataLook-CdhG-zcg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/nodeLayerFrame-PqqyriBq.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Weapon-CNKF6Yh8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shadowChunks-B0x8A1LY.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/postPreparation-BM0ovkLk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/build-CehzHm6x.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Tool-jTOctduU.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/emptyLook-D2dy-xuz.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/wind-CDg_obA2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/lastEnd-ysVx8NxG.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/lentLooks-B-Im59pf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/dayCycle-e1TDlXAt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/precompile-BiQ3I_76.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/practiceBoot-BUtD8QJP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/runtimeProduct-DqlabFPi.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/shard.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/creatures.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/crowds.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/moves.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/spawns.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/species.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/audio/audio.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/combat/encounters.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/combat/items.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/combat/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/economy/ledger.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/economy/loot.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/held/arms.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/hooks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/look/look.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/look/materials.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/quests/quests.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/sim.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/state/migrations.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/state/state.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/ui/card.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/ui/ui.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/collision.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/days.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/edge.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/movers.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/ui/compendium.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/navigation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/props.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/spawn.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/terrain.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/tiles.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/traversal.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/water.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/weather.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/physics/rapier.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/engineNodesHandler-DjEBngml.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/engineNodesHandler-CyBqbEWe.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/compile-CXrr4yNF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/wasm/45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1.wasm",
+      "status": 200
+    }
+  ],
+  "placements": [
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.05,
+      "pitch": -0.03,
+      "time": 0.9242999999970197,
+      "position": [
+        -1.6585488906487846,
+        900,
+        -7.317025067553832
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.05,
+      "pitch": -0.03,
+      "time": 1.4717000000029805,
+      "position": [
+        -1.6592951168198162,
+        900,
+        -7.3120810666950184
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.05,
+      "pitch": -0.03,
+      "time": 2.1095999999940407,
+      "position": [
+        -0.9000900539461547,
+        900,
+        -6.891872860294743
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.05,
+      "pitch": -0.03,
+      "time": 2.509599999994041,
+      "position": [
+        -0.8257325783263916,
+        900,
+        -6.717270470027788
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.05,
+      "pitch": -0.03,
+      "time": 3.0095999999940415,
+      "position": [
+        -0.22723600714318692,
+        900,
+        -6.674821997796162
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.05,
+      "pitch": -0.03,
+      "time": 3.509599999994042,
+      "position": [
+        -0.22723600714318692,
+        900,
+        -6.674821997796162
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 1.4,
+      "pitch": 0.03,
+      "time": 5.622799999997016,
+      "position": [
+        0.7898510502012801,
+        901.1893920898438,
+        -5.9641369881992325
+      ]
+    }
+  ],
+  "samples": [
+    {
+      "phase": "sword",
+      "time": 1.4717000000029805,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "splinter-mantis",
+        "hp": 43,
+        "maxHp": 55,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "mantis-st": 1,
+          "mantis-beat": 1,
+          "regular-clock": 0.4,
+          "mantis-pose-phase": 1,
+          "mantis-pose-clock": 0.30000000000000004
+        },
+        "position": [
+          -0.0018774889896566948,
+          900,
+          -6.10565377632156
+        ],
+        "bones": [
+          "body",
+          "neck",
+          "head",
+          "abdomen",
+          "wing-1_0",
+          "wing-1_1",
+          "leg-1_0",
+          "leg-1_0_knee",
+          "leg-1_1",
+          "leg-1_1_knee",
+          "raptor-1",
+          "raptor-1_elbow",
+          "raptor-1_hook",
+          "wing1_0",
+          "wing1_1",
+          "leg1_0",
+          "leg1_0_knee",
+          "leg1_1",
+          "leg1_1_knee",
+          "raptor1",
+          "raptor1_elbow",
+          "raptor1_hook"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.splinter-mantis.first",
+          "hit": false,
+          "elapsed": 0.4666666666666666,
+          "speedMul": 1,
+          "clock": 1.4666666666666663,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.0011312628186251005,
+          "z0": -6.110597777180374,
+          "x1": -2.8308762436691812,
+          "z1": -8.170341291152704,
+          "yaw": -2.1999963260168847,
+          "length": 3.5
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -1.5163693522755182,
+          900.001583765632,
+          -7.213052331603011
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 2.000200000002981,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "splinter-mantis",
+        "hp": 31,
+        "maxHp": 55,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 0.4
+        },
+        "position": [
+          0.5965951472033804,
+          900,
+          -6.062869189772755
+        ],
+        "bones": [
+          "body",
+          "neck",
+          "head",
+          "abdomen",
+          "wing-1_0",
+          "wing-1_1",
+          "leg-1_0",
+          "leg-1_0_knee",
+          "leg-1_1",
+          "leg-1_1_knee",
+          "raptor-1",
+          "raptor-1_elbow",
+          "raptor-1_hook",
+          "wing1_0",
+          "wing1_1",
+          "leg1_0",
+          "leg1_0_knee",
+          "leg1_1",
+          "leg1_1_knee",
+          "raptor1",
+          "raptor1_elbow",
+          "raptor1_hook"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 1.9999999999999978,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.0011312628186251005,
+          "z0": -6.110597777180374,
+          "x1": -2.8308762436691812,
+          "z1": -8.170341291152704,
+          "yaw": -2.1999963260168847,
+          "length": 3.5
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -1.136830405908416,
+          900.0015632828872,
+          -7.022760723074093
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 2.509599999994041,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "splinter-mantis",
+        "hp": 31,
+        "maxHp": 55,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 0.8999999999999999
+        },
+        "position": [
+          0.831685049503768,
+          900,
+          -5.51084317965433
+        ],
+        "bones": [
+          "body",
+          "neck",
+          "head",
+          "abdomen",
+          "wing-1_0",
+          "wing-1_1",
+          "leg-1_0",
+          "leg-1_0_knee",
+          "leg-1_1",
+          "leg-1_1_knee",
+          "raptor-1",
+          "raptor-1_elbow",
+          "raptor-1_hook",
+          "wing1_0",
+          "wing1_1",
+          "leg1_0",
+          "leg1_0_knee",
+          "leg1_1",
+          "leg1_1_knee",
+          "raptor1",
+          "raptor1_elbow",
+          "raptor1_hook"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 2.499999999999996,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.0011312628186251005,
+          "z0": -6.110597777180374,
+          "x1": -2.8308762436691812,
+          "z1": -8.170341291152704,
+          "yaw": -2.1999963260168847,
+          "length": 3.5
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.9000844244134534,
+          900.0011996966714,
+          -6.891874119006491
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 3.0095999999940415,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "splinter-mantis",
+        "hp": 19,
+        "maxHp": 55,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 1.4000000000000001
+        },
+        "position": [
+          1.4301816206869726,
+          900,
+          -5.4683947074227035
+        ],
+        "bones": [
+          "body",
+          "neck",
+          "head",
+          "abdomen",
+          "wing-1_0",
+          "wing-1_1",
+          "leg-1_0",
+          "leg-1_0_knee",
+          "leg-1_1",
+          "leg-1_1_knee",
+          "raptor-1",
+          "raptor-1_elbow",
+          "raptor-1_hook",
+          "wing1_0",
+          "wing1_1",
+          "leg1_0",
+          "leg1_0_knee",
+          "leg1_1",
+          "leg1_1_knee",
+          "raptor1",
+          "raptor1_elbow",
+          "raptor1_hook"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 2.9999999999999942,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.0011312628186251005,
+          "z0": -6.110597777180374,
+          "x1": -2.8308762436691812,
+          "z1": -8.170341291152704,
+          "yaw": -2.1999963260168847,
+          "length": 3.5
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.8257312904350833,
+          900.0014999756459,
+          -6.717273145940579
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 3.509599999994042,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "splinter-mantis",
+        "hp": 19,
+        "maxHp": 55,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0.2,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 1.9000000000000006
+        },
+        "position": [
+          1.4301816206869726,
+          900,
+          -5.4683947074227035
+        ],
+        "bones": [
+          "body",
+          "neck",
+          "head",
+          "abdomen",
+          "wing-1_0",
+          "wing-1_1",
+          "leg-1_0",
+          "leg-1_0_knee",
+          "leg-1_1",
+          "leg-1_1_knee",
+          "raptor-1",
+          "raptor-1_elbow",
+          "raptor-1_hook",
+          "wing1_0",
+          "wing1_1",
+          "leg1_0",
+          "leg1_0_knee",
+          "leg1_1",
+          "leg1_1_knee",
+          "raptor1",
+          "raptor1_elbow",
+          "raptor1_hook"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 3.4999999999999925,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.0011312628186251005,
+          "z0": -6.110597777180374,
+          "x1": -2.8308762436691812,
+          "z1": -8.170341291152704,
+          "yaw": -2.1999963260168847,
+          "length": 3.5
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.13224714531835602,
+          900.0015694925532,
+          -6.605678284672212
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 4.109599999994042,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "splinter-mantis",
+        "hp": 0,
+        "maxHp": 55,
+        "alive": false,
+        "state": "dead",
+        "mem": {
+          "mantis-st": 2,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 2.500000000000001
+        },
+        "position": [
+          2.0286781918701773,
+          900,
+          -5.425946234958246
+        ],
+        "bones": [
+          "body",
+          "neck",
+          "head",
+          "abdomen",
+          "wing-1_0",
+          "wing-1_1",
+          "leg-1_0",
+          "leg-1_0_knee",
+          "leg-1_1",
+          "leg-1_1_knee",
+          "raptor-1",
+          "raptor-1_elbow",
+          "raptor-1_hook",
+          "wing1_0",
+          "wing1_1",
+          "leg1_0",
+          "leg1_0_knee",
+          "leg1_1",
+          "leg1_1_knee",
+          "raptor1",
+          "raptor1_elbow",
+          "raptor1_hook"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 4.099999999999991,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.0011312628186251005,
+          "z0": -6.110597777180374,
+          "x1": -2.8308762436691812,
+          "z1": -8.170341291152704,
+          "yaw": -2.1999963260168847,
+          "length": 3.5
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          0.35284395419720127,
+          900.0019735960886,
+          -6.353681727443945
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Opponent defeated. Collect the practice coins."
+    },
+    {
+      "phase": "corpse",
+      "time": 5.947199999988075,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "splinter-mantis",
+        "hp": 0,
+        "maxHp": 55,
+        "alive": false,
+        "state": "idle",
+        "mem": {
+          "mantis-st": 5,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "mantis-pose-phase": 0,
+          "mantis-pose-clock": 2.500000000000001
+        },
+        "position": [
+          2.0091428756713867,
+          901.1951293945312,
+          -5.151726722717285
+        ],
+        "bones": [
+          "body",
+          "neck",
+          "head",
+          "abdomen",
+          "wing-1_0",
+          "wing-1_1",
+          "leg-1_0",
+          "leg-1_0_knee",
+          "leg-1_1",
+          "leg-1_1_knee",
+          "raptor-1",
+          "raptor-1_elbow",
+          "raptor-1_hook",
+          "wing1_0",
+          "wing1_1",
+          "leg1_0",
+          "leg1_0_knee",
+          "leg1_1",
+          "leg1_1_knee",
+          "raptor1",
+          "raptor1_elbow",
+          "raptor1_hook"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 5.933333333333318,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.0011312628186251005,
+          "z0": -6.110597777180374,
+          "x1": -2.8308762436691812,
+          "z1": -8.170341291152704,
+          "yaw": -2.1999963260168847,
+          "length": 3.5
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          0.7898510502012801,
+          900.8532809833996,
+          -5.9641369881992325
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 3,
+        "complete": true
+      },
+      "status": "Collected 3 local practice coins."
+    }
+  ],
+  "persistence": [
+    {
+      "phase": "entry",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "after-reward",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "retry-after-reward",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "reentry",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    }
+  ],
+  "caveat": "Local mounted proof only, not public deployment. Unchanged Site HTML, only /mantis-engine/ routed to exact frozen candidate7 bytes. Native desktop and muted iPhone 16 Pro emulation in dot cloud Chromium. No physical-device, Safari, performance, visual acceptance, or fun claim. Diagnostic player placement/aim only. Sword-only supplied loadout; spear is unavailable and not injected.",
+  "frozenManifestSha256": "4de8400fa69f22dbc1ead4b777ec5bbfc8ac37ac14322e036cccf6771f79bfc3",
+  "productSourceHash": "123eab925eca95a5275637259803235c85c670cb85c184e186334a3c24f8c9f7",
+  "previewSha256": "32439dea716983ace271ff48afc75db7bbfab2e939b9e5d94dd3085ed18b8f7c",
+  "expectedProductSourceHash": "123eab925eca95a5275637259803235c85c670cb85c184e186334a3c24f8c9f7",
+  "localSiteHtmlSha256": "30bf9c6e4ac19bfe9b47ddb1adc15d2f044c3ce6e05f5cfa718661869e09683f",
+  "sitePlay": {
+    "text": "Play Mantis in engine · WIP ↗",
+    "href": "mantis-engine/index.html"
+  },
+  "desktopErrors": [],
+  "desktopFailures": [],
+  "desktop": {
+    "entered": true,
+    "kind": "splinter-mantis",
+    "canvas": [
+      {
+        "width": 650,
+        "height": 900
+      }
+    ],
+    "touch": 0,
+    "dpr": 1,
+    "body": "PREPARING TRAINING TARGETSWoodStraw + clothWood + steelDEVELOPER DEMO · REJECTED VISUAL FIXTURESNNEESESSWWNWNNEESESSWWNWNNEESESSWWNWVitals100/ 100Wooden sword30 / 30\n      ReadyChunk boundaryNo-man's land beyond · nothing has been generated here\nmotion7 · actual-engine arena · collider tuning unacceptedMantis V7-native22 · UNACCEPTED WIP\nOne unaccepted native Mantis candidate. Diagnostic pose and collider dimensions are experimental. Health and coins stay in this page.\nStart practiceSplinter Mantis Precontact Native · UNACCEPTED WIP\nRetryPractice bout. Health and rewards stay in this page.\n"
+  },
+  "phoneSitePlay": {
+    "text": "Play Mantis in engine · WIP ↗",
+    "href": "mantis-engine/index.html"
+  },
+  "phase": "complete",
+  "beforeStart": {
+    "storage": {
+      "local": {},
+      "session": {}
+    },
+    "title": "Mantis V7-native22 · UNACCEPTED WIP",
+    "text": "\nmotion7 · actual-engine arena · collider tuning unacceptedMantis V7-native22 · UNACCEPTED WIP\nOne unaccepted native Mantis candidate. Diagnostic pose and collider dimensions are experimental. Health and coins stay in this page.\nStart practice\nRetryTouch controls or keyboard and mouse.\n"
+  },
+  "entry": {
+    "time": 0.10070000000298024,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "splinter-mantis",
+      "hp": 55,
+      "maxHp": 55,
+      "alive": true,
+      "state": "stalk",
+      "mem": {
+        "mantis-st": 0,
+        "mantis-beat": 0,
+        "regular-clock": 0,
+        "mantis-pose-phase": 0,
+        "mantis-pose-clock": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "neck",
+        "head",
+        "abdomen",
+        "wing-1_0",
+        "wing-1_1",
+        "leg-1_0",
+        "leg-1_0_knee",
+        "leg-1_1",
+        "leg-1_1_knee",
+        "raptor-1",
+        "raptor-1_elbow",
+        "raptor-1_hook",
+        "wing1_0",
+        "wing1_1",
+        "leg1_0",
+        "leg1_0_knee",
+        "leg1_1",
+        "leg1_1_knee",
+        "raptor1",
+        "raptor1_elbow",
+        "raptor1_hook"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.09999999999999999,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        -2.3841383511510883e-13,
+        900.0000999999902,
+        -0.31232912021379433
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Practice bout. Health and rewards stay in this page."
+  },
+  "phoneRendering": {
+    "dpr": 3,
+    "touch": 1,
+    "pixelRatio": 2,
+    "canvas": [
+      {
+        "width": 804,
+        "height": 1748
+      }
+    ],
+    "viewport": {
+      "width": 402,
+      "height": 874
+    }
+  },
+  "swordResult": {
+    "time": 4.109599999994042,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "splinter-mantis",
+      "hp": 0,
+      "maxHp": 55,
+      "alive": false,
+      "state": "dead",
+      "mem": {
+        "mantis-st": 2,
+        "mantis-beat": 0,
+        "regular-clock": 0,
+        "mantis-pose-phase": 0,
+        "mantis-pose-clock": 2.500000000000001
+      },
+      "position": [
+        2.0286781918701773,
+        900,
+        -5.425946234958246
+      ],
+      "bones": [
+        "body",
+        "neck",
+        "head",
+        "abdomen",
+        "wing-1_0",
+        "wing-1_1",
+        "leg-1_0",
+        "leg-1_0_knee",
+        "leg-1_1",
+        "leg-1_1_knee",
+        "raptor-1",
+        "raptor-1_elbow",
+        "raptor-1_hook",
+        "wing1_0",
+        "wing1_1",
+        "leg1_0",
+        "leg1_0_knee",
+        "leg1_1",
+        "leg1_1_knee",
+        "raptor1",
+        "raptor1_elbow",
+        "raptor1_hook"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 4.099999999999991,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.0011312628186251005,
+        "z0": -6.110597777180374,
+        "x1": -2.8308762436691812,
+        "z1": -8.170341291152704,
+        "yaw": -2.1999963260168847,
+        "length": 3.5
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        0.35284395419720127,
+        900.0019735960886,
+        -6.353681727443945
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Opponent defeated. Collect the practice coins."
+  },
+  "corpseReward": {
+    "time": 6.5832999999821125,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "splinter-mantis",
+      "hp": 0,
+      "maxHp": 55,
+      "alive": false,
+      "state": "idle",
+      "mem": {
+        "mantis-st": 5,
+        "mantis-beat": 0,
+        "regular-clock": 0,
+        "mantis-pose-phase": 0,
+        "mantis-pose-clock": 2.500000000000001
+      },
+      "position": [
+        2.255591630935669,
+        901.3129272460938,
+        -5.035216808319092
+      ],
+      "bones": [
+        "body",
+        "neck",
+        "head",
+        "abdomen",
+        "wing-1_0",
+        "wing-1_1",
+        "leg-1_0",
+        "leg-1_0_knee",
+        "leg-1_1",
+        "leg-1_1_knee",
+        "raptor-1",
+        "raptor-1_elbow",
+        "raptor-1_hook",
+        "wing1_0",
+        "wing1_1",
+        "leg1_0",
+        "leg1_0_knee",
+        "leg1_1",
+        "leg1_1_knee",
+        "raptor1",
+        "raptor1_elbow",
+        "raptor1_hook"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 6.566666666666649,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.0011312628186251005,
+        "z0": -6.110597777180374,
+        "x1": -2.8308762436691812,
+        "z1": -8.170341291152704,
+        "yaw": -2.1999963260168847,
+        "length": 3.5
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        0.7898521609636342,
+        900.0198506771485,
+        -5.96413983576709
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 3,
+      "complete": true
+    },
+    "status": "Collected 3 local practice coins."
+  },
+  "retryAfterReward": {
+    "time": 8.815899999976146,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "splinter-mantis",
+      "hp": 55,
+      "maxHp": 55,
+      "alive": true,
+      "state": "stalk",
+      "mem": {
+        "mantis-st": 0,
+        "mantis-beat": 0,
+        "regular-clock": 0,
+        "mantis-pose-phase": 0,
+        "mantis-pose-clock": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "neck",
+        "head",
+        "abdomen",
+        "wing-1_0",
+        "wing-1_1",
+        "leg-1_0",
+        "leg-1_0_knee",
+        "leg-1_1",
+        "leg-1_1_knee",
+        "raptor-1",
+        "raptor-1_elbow",
+        "raptor-1_hook",
+        "wing1_0",
+        "wing1_1",
+        "leg1_0",
+        "leg1_0_knee",
+        "leg1_1",
+        "leg1_1_knee",
+        "raptor1",
+        "raptor1_elbow",
+        "raptor1_hook"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.09999999999999999,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        1.1822639357306555e-10,
+        900.0002999999851,
+        -0.31232912043591454
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Fresh practice bout."
+  },
+  "uncheckedMounted": [
+    "Player defeat, defeated attack blocking, and Retry after defeat are covered by the separate exact candidate7 full capture, not repeated in this mounted routing check."
+  ],
+  "reentry": {
+    "time": 0.10040000000596047,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "splinter-mantis",
+      "hp": 55,
+      "maxHp": 55,
+      "alive": true,
+      "state": "stalk",
+      "mem": {
+        "mantis-st": 0,
+        "mantis-beat": 0,
+        "regular-clock": 0,
+        "mantis-pose-phase": 0,
+        "mantis-pose-clock": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "neck",
+        "head",
+        "abdomen",
+        "wing-1_0",
+        "wing-1_1",
+        "leg-1_0",
+        "leg-1_0_knee",
+        "leg-1_1",
+        "leg-1_1_knee",
+        "raptor-1",
+        "raptor-1_elbow",
+        "raptor-1_hook",
+        "wing1_0",
+        "wing1_1",
+        "leg1_0",
+        "leg1_0_knee",
+        "leg1_1",
+        "leg1_1_knee",
+        "raptor1",
+        "raptor1_elbow",
+        "raptor1_hook"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.09999999999999999,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        -2.3841383511510883e-13,
+        900.0000999999902,
+        -0.31232912021379433
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Practice bout. Health and rewards stay in this page."
+  },
+  "reloadResponses": [
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/index.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/style-3STfMJLR.css",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/scope-CDMJThrF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/practice-CJUP7--h.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/preload-helper-uBIymjUX.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/tables-BovtVlAx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/memoryResources-ConTL0Oo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/three.core-BNyAOcZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/geometryBounds-DSkLFGUo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/preload-C6UfVI9Y.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Settings-Ba1njlcr.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/toon-CxxpQCSA.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/SetScore-Dw97jfuc.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/audioFiles-BiiXIQZo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Stems-DE3H66hs.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/registry-DYBV1Kl9.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/json-Dr12Y27u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/clock-B53qIMMf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/presets-CY6YlZKC.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/declaredBank-SnReBuf7.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/audioLog-DDd08KrP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Cues-C8khGTWM.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/runtime-Cwyjp-fC.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/time-BpfsQkaN.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/graphBackend-TWaz1L3C.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/materialGraph-CteREh-_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/dataLook-CdhG-zcg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/nodeLayerFrame-PqqyriBq.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Weapon-CNKF6Yh8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/shadowChunks-B0x8A1LY.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/postPreparation-BM0ovkLk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/build-CehzHm6x.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/Tool-jTOctduU.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/emptyLook-D2dy-xuz.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/wind-CDg_obA2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/lastEnd-ysVx8NxG.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/lentLooks-B-Im59pf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/dayCycle-e1TDlXAt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/precompile-BiQ3I_76.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/practiceBoot-BUtD8QJP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/runtimeProduct-DqlabFPi.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/shard.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/creatures.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/crowds.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/moves.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/spawns.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/species.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/actors/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/audio/audio.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/combat/encounters.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/combat/items.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/combat/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/economy/ledger.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/economy/loot.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/held/arms.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/hooks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/look/look.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/look/materials.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/quests/quests.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/sim/sim.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/state/migrations.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/state/state.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/ui/card.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/ui/ui.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/collision.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/days.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/edge.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/movers.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/ui/compendium.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/navigation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/props.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/spawn.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/terrain.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/tiles.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/traversal.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/water.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/sections/world/weather.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/physics/rapier.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/engineNodesHandler-DjEBngml.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/engineNodesHandler-CyBqbEWe.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/compile-CXrr4yNF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/json/9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/mantis-engine/practice-product/blobs/wasm/45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1.wasm",
+      "status": 200
+    }
+  ],
+  "siteHtmlDiskSha256After": "456e1cf2fb10d1ac728f411939faee6c8ce62b481d9bf4385de8fe3849a6bafd",
+  "endedAt": "2026-10-19T11:41:15.894Z",
+  "pass": true
+}

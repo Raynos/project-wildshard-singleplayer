@@ -1,0 +1,2 @@
+{'frames': 1306, 'minimum': 0.0006739515108620253, 'livingMinimum': 0.0006739515108620253, 'deadMinimum': 0.01368479706115977, 'framesBelowFloor': 0, 'framesBelow5mm': 0}
+[{'deathNumber': 1, 'samples': 173, 'minimum': 0.01368479706115977, 'negativeFrames': [], 'maxEarlyKneeJump': 0.44441556930541976}]

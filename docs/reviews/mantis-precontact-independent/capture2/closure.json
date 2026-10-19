@@ -1,0 +1,95 @@
+{
+  "decision": "GO labelled diagnostic WIP replacement only; HOLD visual/contact acceptance",
+  "files": [
+    {
+      "path": "REVIEW.md",
+      "bytes": 6384,
+      "sha256": "e5f213850d0ad68d10347dc71eb4a65732e7847e1ad7f88108403bfeb9a6e3cf"
+    },
+    {
+      "path": "active-contact-summary.json",
+      "bytes": 1846,
+      "sha256": "a9635b7a511f8fb44f6c3c4bc0d43cb303ac280b5cd5be2a81816a3de6954adf"
+    },
+    {
+      "path": "adjacent-audit.json",
+      "bytes": 6267,
+      "sha256": "d852fd16dafae62927697f623c6f35310c45892eef0f0ca617c55b9988cfbc33"
+    },
+    {
+      "path": "adjacent-audit.py",
+      "bytes": 1698,
+      "sha256": "0076172d2235478f42e03e7856512149ea8d02237ed3161b50bc7660a7dcc256"
+    },
+    {
+      "path": "attack-timing-run.txt",
+      "bytes": 7110,
+      "sha256": "e06d7579192c89c8957d25137a90033ffb108d0a83cf6f4122a3be1bdbaed92a"
+    },
+    {
+      "path": "attack-timing.json",
+      "bytes": 1027252,
+      "sha256": "2490fb753589ee3c990462d431d7ceb6a07a20199d181c942e815e96a7f2ab30"
+    },
+    {
+      "path": "attack-timing.py",
+      "bytes": 4412,
+      "sha256": "b4cafaae7e0201ded4f8bbb4277d5e81476f6663e435d7d2e7dcd0192317ccb7"
+    },
+    {
+      "path": "check_contact.py",
+      "bytes": 4472,
+      "sha256": "7052e72ba5165ac396c785834ebb2f1b1064eb3ad54ec17bbc3dc3b640b0b5eb"
+    },
+    {
+      "path": "contact-run.txt",
+      "bytes": 303,
+      "sha256": "6e567be42dc9e390555cac9a3b5e8e42f9b61f29f9a396456841f8bfe22905cf"
+    },
+    {
+      "path": "inspect_video.py",
+      "bytes": 2737,
+      "sha256": "617e102f22b0aff437038c4c98fddb69c39a5c8e11fde43405e0a3b27e87c419"
+    },
+    {
+      "path": "log-normalization.json",
+      "bytes": 893,
+      "sha256": "baa0e81d744f638ed41edd6b9aa55502e96d28eb878134a3d004b8716a619699"
+    },
+    {
+      "path": "pose-parity.json",
+      "bytes": 163,
+      "sha256": "c3b1744e8904cb1a5b6b552e9bb6baab80c23cab07ab2b756228b8c57c3fcbaa"
+    },
+    {
+      "path": "pose-parity.test.ts",
+      "bytes": 4572,
+      "sha256": "b224a6de2e53018da784984a89fd7b0bf17f796bb7b2db4da9c055c9eb798ed3"
+    },
+    {
+      "path": "pose-tests.txt",
+      "bytes": 801,
+      "sha256": "ec53f4cbe43e6b304faeacedfde03d1ffe1846cb6d61c033a49207e463670c4b"
+    },
+    {
+      "path": "video-decode.txt",
+      "bytes": 540,
+      "sha256": "da43638933962ac7141e7c897d37003caaa224a4ba92161faa099c0711fd4f43"
+    },
+    {
+      "path": "video-index.json",
+      "bytes": 788924,
+      "sha256": "2575e3e99ac3df685856e29d330b5c18f1553ed18cec9af7ee31f8d51878f5c1"
+    },
+    {
+      "path": "vitest.config.ts",
+      "bytes": 320,
+      "sha256": "00106dc8ac1816cae739fa2d1c69b28bd09f08c51c6d2d77c25fe953be01e592"
+    },
+    {
+      "path": "world-contact-independent.json",
+      "bytes": 626525,
+      "sha256": "3b9945231c034c69797259481fa0ab54fca045618c61b5200b769f61d6b6dd40"
+    }
+  ]
+}
