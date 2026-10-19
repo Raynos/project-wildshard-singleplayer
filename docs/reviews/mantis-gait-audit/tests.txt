@@ -1,0 +1,6 @@
+..
+----------------------------------------------------------------------
+Ran 2 tests in 3.363s
+
+OK
+Maximum direct-world material centroid error: 1.0231815394945443e-12

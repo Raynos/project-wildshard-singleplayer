@@ -1,0 +1,347 @@
+{
+  "attack_or_boundary": {
+    "rows": 557,
+    "allPairs": {
+      "pairs": 1996,
+      "secondsSummedOverFeet": 171.5092000002865,
+      "footTravel": 188.8623075042668,
+      "rootTravelSummedOverFeet": 150.52543190600608,
+      "travelRatio": 1.2546870327015553,
+      "medianFootSpeed": 0.5064142174485011
+    },
+    "straightNominalStance": {
+      "pairs": 802,
+      "secondsSummedOverFeet": 67.31720000022669,
+      "footTravel": 60.171078386960545,
+      "rootTravelSummedOverFeet": 54.116013376531804,
+      "travelRatio": 1.11189044854983,
+      "medianFootSpeed": 0.3942384129581078
+    },
+    "straightNearFloor": {
+      "pairs": 84,
+      "secondsSummedOverFeet": 7.204400000005945,
+      "footTravel": 0.6428728475415699,
+      "rootTravelSummedOverFeet": 0.03737835872969463,
+      "travelRatio": 17.199065699769477,
+      "medianFootSpeed": 0.08873127968900536
+    },
+    "feet": {
+      "leg-1_0_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.12616134181697403,
+          0.13842533075306357
+        ],
+        "minimumClearance": 0.013261556148108866,
+        "maximumClearance": 0.1355180354296408,
+        "nearFloorRows": 45
+      },
+      "leg-1_1_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.13634254379839592,
+          0.13679603687566555
+        ],
+        "minimumClearance": 0.015539391613401676,
+        "maximumClearance": 0.14936855747191657,
+        "nearFloorRows": 16
+      },
+      "leg1_0_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.12570255565805963,
+          0.13796600301649198
+        ],
+        "minimumClearance": 0.00604009291055263,
+        "maximumClearance": 0.12855755104772015,
+        "nearFloorRows": 48
+      },
+      "leg1_1_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.13697863535233912,
+          0.1363367092667589
+        ],
+        "minimumClearance": 0.008317932059526356,
+        "maximumClearance": 0.14864926912377996,
+        "nearFloorRows": 25
+      }
+    }
+  },
+  "death": {
+    "rows": 172,
+    "allPairs": {
+      "pairs": 684,
+      "secondsSummedOverFeet": 53.86640000009561,
+      "footTravel": 13.247567957930697,
+      "rootTravelSummedOverFeet": 10.035340068070628,
+      "travelRatio": 1.3200915831522633,
+      "medianFootSpeed": 0.0
+    },
+    "straightNominalStance": {
+      "pairs": 342,
+      "secondsSummedOverFeet": 26.933200000047805,
+      "footTravel": 6.679810077866827,
+      "rootTravelSummedOverFeet": 5.017670034035314,
+      "travelRatio": 1.3312573430610353,
+      "medianFootSpeed": 0.0
+    },
+    "straightNearFloor": {
+      "pairs": 0,
+      "secondsSummedOverFeet": 0,
+      "footTravel": 0,
+      "rootTravelSummedOverFeet": 0,
+      "travelRatio": null,
+      "medianFootSpeed": null
+    },
+    "feet": {
+      "leg-1_0_knee": {
+        "localMaterialRangeXYZ": [
+          0.4006260201423282,
+          0.614566879350604,
+          0.27103365301724613
+        ],
+        "minimumClearance": 0.4030250097107455,
+        "maximumClearance": 0.8348905099861668,
+        "nearFloorRows": 0
+      },
+      "leg-1_1_knee": {
+        "localMaterialRangeXYZ": [
+          0.23236481704635548,
+          0.6314215799295612,
+          0.2865104466696764
+        ],
+        "minimumClearance": 0.16091183005937637,
+        "maximumClearance": 0.636599966725953,
+        "nearFloorRows": 0
+      },
+      "leg1_0_knee": {
+        "localMaterialRangeXYZ": [
+          0.8963838988742956,
+          1.8143920604844652,
+          0.26620138342125604
+        ],
+        "minimumClearance": 0.775416303993552,
+        "maximumClearance": 2.1317912539107056,
+        "nearFloorRows": 0
+      },
+      "leg1_1_knee": {
+        "localMaterialRangeXYZ": [
+          1.01076354736486,
+          1.747211984142166,
+          0.28135073339157035
+        ],
+        "minimumClearance": 0.5676185942270422,
+        "maximumClearance": 1.8667982936594854,
+        "nearFloorRows": 0
+      }
+    }
+  },
+  "hit_or_flinch": {
+    "rows": 260,
+    "allPairs": {
+      "pairs": 1012,
+      "secondsSummedOverFeet": 88.65440000021451,
+      "footTravel": 62.542456871801946,
+      "rootTravelSummedOverFeet": 49.52249104563611,
+      "travelRatio": 1.2629101555930948,
+      "medianFootSpeed": 0.04733169781190494
+    },
+    "straightNominalStance": {
+      "pairs": 452,
+      "secondsSummedOverFeet": 38.970200000107255,
+      "footTravel": 20.962232287237967,
+      "rootTravelSummedOverFeet": 19.294454557122954,
+      "travelRatio": 1.0864381900601237,
+      "medianFootSpeed": 0.027117990926340152
+    },
+    "straightNearFloor": {
+      "pairs": 511,
+      "secondsSummedOverFeet": 43.66750000004466,
+      "footTravel": 3.9551975853898655,
+      "rootTravelSummedOverFeet": 2.298260419251472,
+      "travelRatio": 1.720952748547985,
+      "medianFootSpeed": 0.0008334115544580998
+    },
+    "feet": {
+      "leg-1_0_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.17531381882310512,
+          0.1781676436510366
+        ],
+        "minimumClearance": 0.01268539329350915,
+        "maximumClearance": 0.18567736982492988,
+        "nearFloorRows": 104
+      },
+      "leg-1_1_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.1391958277457211,
+          0.17922197841807308
+        ],
+        "minimumClearance": 0.012545950119488225,
+        "maximumClearance": 0.14934072606899917,
+        "nearFloorRows": 152
+      },
+      "leg1_0_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.17504412117851878,
+          0.17759224314256516
+        ],
+        "minimumClearance": 0.005441534597252939,
+        "maximumClearance": 0.1786054042397609,
+        "nearFloorRows": 122
+      },
+      "leg1_1_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.13984726590805963,
+          0.17864657806857176
+        ],
+        "minimumClearance": 0.005302106324393208,
+        "maximumClearance": 0.14862129544019353,
+        "nearFloorRows": 158
+      }
+    }
+  },
+  "locomotion": {
+    "rows": 198,
+    "allPairs": {
+      "pairs": 764,
+      "secondsSummedOverFeet": 55.093200000166874,
+      "footTravel": 83.48879079526486,
+      "rootTravelSummedOverFeet": 62.07638063996245,
+      "travelRatio": 1.3449365110297347,
+      "medianFootSpeed": 1.240845523131189
+    },
+    "straightNominalStance": {
+      "pairs": 310,
+      "secondsSummedOverFeet": 20.61220000004768,
+      "footTravel": 23.464715456006314,
+      "rootTravelSummedOverFeet": 23.23110841535888,
+      "travelRatio": 1.0100557853921852,
+      "medianFootSpeed": 1.0554617547301268
+    },
+    "straightNearFloor": {
+      "pairs": 310,
+      "secondsSummedOverFeet": 21.634700000107284,
+      "footTravel": 24.902331482973636,
+      "rootTravelSummedOverFeet": 24.219665291728308,
+      "travelRatio": 1.0281864420099347,
+      "medianFootSpeed": 1.098422499744653
+    },
+    "feet": {
+      "leg-1_0_knee": {
+        "localMaterialRangeXYZ": [
+          0.09155092780887375,
+          0.09586994350646724,
+          0.22161055069376634
+        ],
+        "minimumClearance": 0.013472877489789425,
+        "maximumClearance": 0.10171819579545627,
+        "nearFloorRows": 112
+      },
+      "leg-1_1_knee": {
+        "localMaterialRangeXYZ": [
+          0.09123102604192734,
+          0.10631074292086008,
+          0.20505387989661283
+        ],
+        "minimumClearance": 0.010346954365900274,
+        "maximumClearance": 0.11810982921747382,
+        "nearFloorRows": 135
+      },
+      "leg1_0_knee": {
+        "localMaterialRangeXYZ": [
+          0.0911686526333606,
+          0.09423764817844613,
+          0.22092541707666807
+        ],
+        "minimumClearance": 0.006262532364644358,
+        "maximumClearance": 0.09407864941715616,
+        "nearFloorRows": 77
+      },
+      "leg1_1_knee": {
+        "localMaterialRangeXYZ": [
+          0.09084108697131787,
+          0.1067128318750282,
+          0.20436912110901106
+        ],
+        "minimumClearance": 0.0006739515108620253,
+        "maximumClearance": 0.11474324712071393,
+        "nearFloorRows": 76
+      }
+    }
+  },
+  "stationary_or_recovery": {
+    "rows": 119,
+    "allPairs": {
+      "pairs": 432,
+      "secondsSummedOverFeet": 38.74999999988084,
+      "footTravel": 0.0,
+      "rootTravelSummedOverFeet": 0.0,
+      "travelRatio": null,
+      "medianFootSpeed": 0.0
+    },
+    "straightNominalStance": {
+      "pairs": 216,
+      "secondsSummedOverFeet": 19.37499999994042,
+      "footTravel": 0.0,
+      "rootTravelSummedOverFeet": 0.0,
+      "travelRatio": null,
+      "medianFootSpeed": 0.0
+    },
+    "straightNearFloor": {
+      "pairs": 432,
+      "secondsSummedOverFeet": 38.74999999988084,
+      "footTravel": 0.0,
+      "rootTravelSummedOverFeet": 0.0,
+      "travelRatio": null,
+      "medianFootSpeed": 0.0
+    },
+    "feet": {
+      "leg-1_0_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.01599355417385406,
+          0.0
+        ],
+        "minimumClearance": 0.01255624399448152,
+        "maximumClearance": 0.028549798168342022,
+        "nearFloorRows": 119
+      },
+      "leg-1_1_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.015993554173854063,
+          0.0
+        ],
+        "minimumClearance": 0.012556232818610624,
+        "maximumClearance": 0.028549786992471127,
+        "nearFloorRows": 119
+      },
+      "leg1_0_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.01599355417385406,
+          0.0
+        ],
+        "minimumClearance": 0.0053117902290296115,
+        "maximumClearance": 0.021305344402890114,
+        "nearFloorRows": 119
+      },
+      "leg1_1_knee": {
+        "localMaterialRangeXYZ": [
+          0.0,
+          0.01599355417385406,
+          0.0
+        ],
+        "minimumClearance": 0.00531179395431991,
+        "maximumClearance": 0.021305348128180412,
+        "nearFloorRows": 119
+      }
+    }
+  }
+}

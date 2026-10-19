@@ -1,0 +1,12 @@
+{
+  "poses": 5376,
+  "negativePoses": 1150,
+  "worst": {
+    "minimum": -0.020407579769242457,
+    "phase": 0.125,
+    "blend": 0.45,
+    "breath": -0.008,
+    "part": "leg1_0_knee"
+  },
+  "scope": "All actual weighted vertices, native hierarchy, identity actor world, both idle-breath extrema; 128 phases x21 speed-to-zero blend weights. No actual terrain/root rotations, attack/death transitions, continuity or anatomical intersection acceptance. Unfitted reach samples remain nonperiodic."
+}
