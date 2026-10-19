@@ -1,0 +1,107 @@
+[
+  {
+    "file": "orbit-real-start.webp",
+    "source": "tmp/v57-lighting-orbit/real-start.png",
+    "sourceSha256": "a5a2a728745dfad31e7631d61171f6daa2920df9c6bb70dada791982648dd949",
+    "sha256": "338ad819e0c0fd24d899707528fbb6a45893fa9784d0f35654bbdc7a886570c7",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "orbit-real-right.webp",
+    "source": "tmp/v57-lighting-orbit/real-right.png",
+    "sourceSha256": "f115e45b33ed2bbbdc741f3cc4da6f28ee8ef55c0c70ff99535d628e73410bd0",
+    "sha256": "392a4cc3cb090b9d9be9967e52c988726b1ed8eab7ed5df8bd7d8dc54b702b3f",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "orbit-orbit-000.webp",
+    "source": "tmp/v57-lighting-orbit/orbit-000.png",
+    "sourceSha256": "835ede44e6f7275d8646588b4e851abdfbf35659188f5766c873e60aed997b29",
+    "sha256": "b8ee5076893c9bec1bc3876c6587c5f0065e812a1532ad0fb4c09c5f5129e9d2",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "orbit-orbit-360.webp",
+    "source": "tmp/v57-lighting-orbit/orbit-360.png",
+    "sourceSha256": "711e83d3bf4de37b5997988b4210d2f44c1b9441d7432db67ae6d216cdb14cb6",
+    "sha256": "36ede6a77bc716eb36bb3c4f184c457a441f5a49a907602bc29fcd1f319c3d9d",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "factors-factor-000-normal.webp",
+    "source": "tmp/v57-lighting-factors/factor-000-normal.png",
+    "sourceSha256": "eca9d49874ca51437e8a003e1abc45f013930fe88a341ec4ddd3de2dd4258316",
+    "sha256": "d8792c380a93984ea267e39fe826bce308d9297b5c10fc6dd8699db04c7be106",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "factors-factor-000-no-ao.webp",
+    "source": "tmp/v57-lighting-factors/factor-000-no-ao.png",
+    "sourceSha256": "f9a675c59fbda51ea7d45d59d5a95636122ed0d6b90d565c4cbbdc28d2cf408d",
+    "sha256": "fdfa3608ccea93e008d893b67b057bc1724188d7b17664cb0d1dbc0e235d398a",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "factors-factor-000-no-received-shadow.webp",
+    "source": "tmp/v57-lighting-factors/factor-000-no-received-shadow.png",
+    "sourceSha256": "6bec065125a877942d2d2bb473592b040488768e9869525f07717545c0816f83",
+    "sha256": "df7f40fb9a7cb42ea796e2cc65ca2c44d9bcb7890adeb1a09e5abfab971f211f",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "factors-factor-240-normal.webp",
+    "source": "tmp/v57-lighting-factors/factor-240-normal.png",
+    "sourceSha256": "5f1621b6c150740fa22086fcf6d838d657707bb0d979f20148335113fa4814bd",
+    "sha256": "a07064fafca45ea805a80758208ba7c90a99c6317054efe93b4c6286204817b3",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "factors-factor-240-no-ao.webp",
+    "source": "tmp/v57-lighting-factors/factor-240-no-ao.png",
+    "sourceSha256": "4a2252dcc0b6d1045baca3a09e02c47eff004fa37547b3cc7936971477b2d023",
+    "sha256": "61559bbb369d7c846214d0a0064cf49d9ccf85ce9b5b4adae953fa3384903305",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "factors-factor-240-no-received-shadow.webp",
+    "source": "tmp/v57-lighting-factors/factor-240-no-received-shadow.png",
+    "sourceSha256": "a800f1c6b09f9025fbd97500cf671eaf669fd2539d94ff2ebf7a69ff43d447dd",
+    "sha256": "4daebf62a3ab659d8f48df2ee94fe834c2416bbb7a4aa96e4028600dcdc46281",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "factors-factor-300-normal.webp",
+    "source": "tmp/v57-lighting-factors/factor-300-normal.png",
+    "sourceSha256": "02be9a73b1fe18e4456929890b1516299bc3b26178eb30786d1cdff231e48b1c",
+    "sha256": "2e159ddac40e9ed50d34ba75222ed92bde81a82df2ead312e560fb7e4f0e5b99",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "factors-factor-300-no-ao.webp",
+    "source": "tmp/v57-lighting-factors/factor-300-no-ao.png",
+    "sourceSha256": "e5ad85f2c0d0f16913d653f5f1aafa2eeea5b0dce235ea80403f57d5e51c8806",
+    "sha256": "d232f5af9c9df9a015f7f11a234f4f43bce8b9aea885fb2a59d4ac9e6a57300e",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "factors-factor-300-no-received-shadow.webp",
+    "source": "tmp/v57-lighting-factors/factor-300-no-received-shadow.png",
+    "sourceSha256": "ae8aa5fcf2dd4fb608818b1cf5833309b2f120de611729106077c6e2b857b2be",
+    "sha256": "51731d2071e3a1ad7b05e8f973fe0d1234d115d8f77e4f744c612c0aed7d5257",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "rim-factor-060-normal.webp",
+    "source": "tmp/v57-lighting-rim/factor-060-normal.png",
+    "sourceSha256": "a2527ef5c5626092ec1a1c978162f03d4a274f665cada4ad2849a04455d2f7f5",
+    "sha256": "8a00bc941e09220ea108f2c3ef6ce21580d2b9099bfdc1719865a0031850194c",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  },
+  {
+    "file": "rim-factor-060-no-rim.webp",
+    "source": "tmp/v57-lighting-rim/factor-060-no-rim.png",
+    "sourceSha256": "648deef5b7f965f5500e2b44cb476d9fc7c03c52de1d99f8ac9d3174b63ce8ab",
+    "sha256": "cbaf74498a38354544ab69127cc3e4522c171652ed00ca586ab8ed7b8b146a18",
+    "conversion": "Lossless exact RGB; no crop, resizing, retouch or relighting."
+  }
+]

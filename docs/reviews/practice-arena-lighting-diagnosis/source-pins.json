@@ -1,0 +1,75 @@
+{
+  "scope": "Lighting sources used by preserved V57 baseline and unchanged by V70 recoil fix.",
+  "files": [
+    {
+      "path": "src/practiceLevel.ts",
+      "sha256": "a53ec3eda3cbce2c1f04ec185e0e5f576ce6841685fb0b569ba010aa69f44579",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/practiceContent.ts",
+      "sha256": "355d1e66a5cfb62971248c64a0f332af3d19c95790e6cc24c20560c485a408fd",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/practiceBoot.ts",
+      "sha256": "4dc22e9b23850ea2ab44686911884d14c2329a9024c423e4905af4ef5cb716fa",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/game/practiceDemo/startPracticeDemo.ts",
+      "sha256": "e323ab61e2c19dcd40640c1dd44ee1d32962a49e2fdc9c002a38d73b5abe3a58",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/engine/practice/TrainingArena.ts",
+      "sha256": "1756d8383edecd56909ef6dbf9172e244da696bb0473cb4502c5322e3f97ba0e",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/engine/practice/DummyStudio.ts",
+      "sha256": "b0de94e876a8281c6a1f1773655e173ba140652ef0975db5368cc16eb2fce574",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/engine/core/Game.ts",
+      "sha256": "4d0fb78994cdcc6260b07a79033f431fcea8955ee659413e4331c336e564fe59",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/engine/world/skyRig.ts",
+      "sha256": "6d650a798e72af6fd100dfae089b0ba11a5878a408e132f6808c6fe57d28dc2b",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/engine/render/graph/compile.ts",
+      "sha256": "0eb8aab651372400562d0fec5f8ebc484a59d99b980fc3b7611921a77875ec8e",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/engine/render/graph/presets.ts",
+      "sha256": "785e2d6b1597c0f7a2e14a7e507212c1b45ba52391bc718d737f35f32dd46590",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/engine/render/nodes/cascadeLightNode.ts",
+      "sha256": "42856ca6db748739a013419396080aced843de7aaa961d9ef43da6955f1cf3f5",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/format/materialFamilies.ts",
+      "sha256": "7689664048adc8dd98d1160a17a8d620ab3f41d15b5e30751c914989027aa473",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/shards/driftwood-isle/data/lookGraphs.json",
+      "sha256": "c74633abb6c1558ef7092f2fba4b3df7e48272517e4241a0f2b52f25661443fb",
+      "matchesWorkingSourceAtDiagnosis": true
+    },
+    {
+      "path": "src/shards/driftwood-isle/manifest.json",
+      "sha256": "491be94cd4c3a764ec5eab5662adec9e01f1d590b0c2b41470511377ba6d31b8",
+      "matchesWorkingSourceAtDiagnosis": true
+    }
+  ]
+}

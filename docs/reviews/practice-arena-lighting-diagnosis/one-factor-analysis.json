@@ -1,0 +1,187 @@
+{
+  "schema": "wildshard.v57-arena-lighting-one-factor-analysis.v1",
+  "nativeSha256": "7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb",
+  "method": "Exact pinned native Float32 skin weights and recorded bone world transforms projected with recorded camera matrices; full mesh rasterized to image mask and silhouette eroded2pixels. Matched-frame metrics exclude UI/floor; descriptive pixel deltas are not quality scores.",
+  "results": {
+    "orbit": {
+      "captureSha256": "4032a932194e9f8cff60a6aa2bda12474876620f9a1f9e02425dfa66db1eb684",
+      "samples": 396,
+      "normalCameraOnlyPoseDelta": 0.0,
+      "sunVectorRange": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lightDirectionRange": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cameraOnlyResults": [],
+      "sameCamera0vs360RGBExact": true,
+      "sameCameraMaskPixels": 23877
+    },
+    "factors": {
+      "captureSha256": "9f8178cd40023c48e30ad8f28f3fec33ceab1343e8660c924fbad4979530a493",
+      "samples": 335,
+      "normalCameraOnlyPoseDelta": 0.0,
+      "sunVectorRange": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lightDirectionRange": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cameraOnlyResults": [
+        {
+          "degrees": 0,
+          "factor": "no-ao",
+          "erodedCreatureMaskPixels": 22085,
+          "meanAbsoluteChannelDelta8bit": 14.833838955550524,
+          "p95AbsoluteChannelDelta8bit": 40.0,
+          "meanLuminanceDelta8bit": 15.268532071541769
+        },
+        {
+          "degrees": 0,
+          "factor": "no-received-shadow",
+          "erodedCreatureMaskPixels": 22085,
+          "meanAbsoluteChannelDelta8bit": 0.1260885970870123,
+          "p95AbsoluteChannelDelta8bit": 0.0,
+          "meanLuminanceDelta8bit": 0.1297552909214399
+        },
+        {
+          "degrees": 60,
+          "factor": "no-ao",
+          "erodedCreatureMaskPixels": 24878,
+          "meanAbsoluteChannelDelta8bit": 14.052857946780287,
+          "p95AbsoluteChannelDelta8bit": 40.0,
+          "meanLuminanceDelta8bit": 14.90248118819841
+        },
+        {
+          "degrees": 60,
+          "factor": "no-received-shadow",
+          "erodedCreatureMaskPixels": 24878,
+          "meanAbsoluteChannelDelta8bit": 0.19571508963743067,
+          "p95AbsoluteChannelDelta8bit": 0.0,
+          "meanLuminanceDelta8bit": 0.20716611463944046
+        },
+        {
+          "degrees": 120,
+          "factor": "no-ao",
+          "erodedCreatureMaskPixels": 21214,
+          "meanAbsoluteChannelDelta8bit": 10.926683636592188,
+          "p95AbsoluteChannelDelta8bit": 33.0,
+          "meanLuminanceDelta8bit": 11.301482219289149
+        },
+        {
+          "degrees": 120,
+          "factor": "no-received-shadow",
+          "erodedCreatureMaskPixels": 21214,
+          "meanAbsoluteChannelDelta8bit": 0.029304547311523835,
+          "p95AbsoluteChannelDelta8bit": 0.0,
+          "meanLuminanceDelta8bit": 0.0221538229471104
+        },
+        {
+          "degrees": 180,
+          "factor": "no-ao",
+          "erodedCreatureMaskPixels": 15031,
+          "meanAbsoluteChannelDelta8bit": 6.343113121770563,
+          "p95AbsoluteChannelDelta8bit": 20.0,
+          "meanLuminanceDelta8bit": 5.229918754573881
+        },
+        {
+          "degrees": 180,
+          "factor": "no-received-shadow",
+          "erodedCreatureMaskPixels": 15031,
+          "meanAbsoluteChannelDelta8bit": 0.22602177721597588,
+          "p95AbsoluteChannelDelta8bit": 0.0,
+          "meanLuminanceDelta8bit": 0.2694945246490586
+        },
+        {
+          "degrees": 240,
+          "factor": "no-ao",
+          "erodedCreatureMaskPixels": 21573,
+          "meanAbsoluteChannelDelta8bit": 8.128648464902115,
+          "p95AbsoluteChannelDelta8bit": 29.0,
+          "meanLuminanceDelta8bit": 6.939211894497752
+        },
+        {
+          "degrees": 240,
+          "factor": "no-received-shadow",
+          "erodedCreatureMaskPixels": 21573,
+          "meanAbsoluteChannelDelta8bit": 1.4830111713716219,
+          "p95AbsoluteChannelDelta8bit": 1.0,
+          "meanLuminanceDelta8bit": 1.7256651926018634
+        },
+        {
+          "degrees": 300,
+          "factor": "no-ao",
+          "erodedCreatureMaskPixels": 22687,
+          "meanAbsoluteChannelDelta8bit": 12.115469946077782,
+          "p95AbsoluteChannelDelta8bit": 37.0,
+          "meanLuminanceDelta8bit": 11.809372371842906
+        },
+        {
+          "degrees": 300,
+          "factor": "no-received-shadow",
+          "erodedCreatureMaskPixels": 22687,
+          "meanAbsoluteChannelDelta8bit": 3.6708981648815033,
+          "p95AbsoluteChannelDelta8bit": 22.0,
+          "meanLuminanceDelta8bit": 4.200133847577907
+        }
+      ]
+    },
+    "rim": {
+      "captureSha256": "b97cf506ca8210ea3e3d5f69aa4203a1cb44e5023c9cce3a5f96403f27737bb7",
+      "samples": 158,
+      "normalCameraOnlyPoseDelta": 0.0,
+      "sunVectorRange": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lightDirectionRange": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cameraOnlyResults": [
+        {
+          "degrees": 0,
+          "factor": "no-rim",
+          "erodedCreatureMaskPixels": 21972,
+          "meanAbsoluteChannelDelta8bit": 0.9819922325383822,
+          "p95AbsoluteChannelDelta8bit": 1.0,
+          "meanLuminanceDelta8bit": -1.022881239759694
+        },
+        {
+          "degrees": 60,
+          "factor": "no-rim",
+          "erodedCreatureMaskPixels": 24994,
+          "meanAbsoluteChannelDelta8bit": 1.7120508922141313,
+          "p95AbsoluteChannelDelta8bit": 6.0,
+          "meanLuminanceDelta8bit": -1.787862398975754
+        },
+        {
+          "degrees": 120,
+          "factor": "no-rim",
+          "erodedCreatureMaskPixels": 21170,
+          "meanAbsoluteChannelDelta8bit": 1.7008817509053693,
+          "p95AbsoluteChannelDelta8bit": 9.0,
+          "meanLuminanceDelta8bit": -1.7782063863958433
+        },
+        {
+          "degrees": 240,
+          "factor": "no-rim",
+          "erodedCreatureMaskPixels": 21556,
+          "meanAbsoluteChannelDelta8bit": 1.5882507577163358,
+          "p95AbsoluteChannelDelta8bit": 6.0,
+          "meanLuminanceDelta8bit": -1.6498389033215808
+        }
+      ]
+    }
+  }
+}

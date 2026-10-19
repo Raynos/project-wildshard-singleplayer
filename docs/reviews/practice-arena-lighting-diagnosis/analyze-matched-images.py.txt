@@ -1,0 +1,37 @@
+import json,hashlib,pathlib
+import numpy as np
+from PIL import Image,ImageFilter
+import sys
+base=pathlib.Path(sys.argv[1])
+native_path=pathlib.Path('art/driftwood-isle/approved-puffer/unaccepted-v57-motion-rig1-native.json');assert hashlib.sha256(native_path.read_bytes()).hexdigest()=='7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb';native=json.loads(native_path.read_text());names=[b['name']for b in native['bones']]
+P=np.concatenate([np.array(p['positions'],dtype=np.float32).reshape(-1,3)for p in native['parts']]);W=np.concatenate([np.array(p['skinWeights'],dtype=np.float32).reshape(-1,4)for p in native['parts']]);I=np.concatenate([np.array(p['skinIndices']).reshape(-1,4)for p in native['parts']]);
+def mask(row):
+ world=np.zeros_like(P,dtype=float)
+ for k,b in enumerate(row['bones']):
+  assert b['name']==names[k];M=np.array(b['world']).reshape(4,4).T;ib=np.eye(4);ib[:3,3]=-np.array(native['bones'][k]['pos']);M=M@ib;weight=np.where(I==k,W,0).sum(axis=1);world+=(P@M[:3,:3].T+M[:3,3])*weight[:,None]
+ view=np.linalg.inv(np.array(row['cameraWorld']).reshape(4,4).T);projection=np.array(row['projection']).reshape(4,4).T;clip=np.c_[world,np.ones(len(world))]@(projection@view).T;ndc=clip[:,:3]/clip[:,3:4];screen=np.c_[(ndc[:,0]+1)*195,(1-ndc[:,1])*422,ndc[:,2]];depth=np.full((844,390),np.inf);hit=np.zeros((844,390),bool)
+ for t in screen.reshape(-1,3,3):
+  if np.any(np.abs(t[:,2])>1):continue
+  lo=np.maximum(np.floor(t[:,:2].min(axis=0)).astype(int),[0,0]);hi=np.minimum(np.ceil(t[:,:2].max(axis=0)).astype(int),[389,843]);
+  if np.any(hi<lo):continue
+  xx,yy=np.meshgrid(np.arange(lo[0],hi[0]+1)+.5,np.arange(lo[1],hi[1]+1)+.5);a,b,c=t;den=(b[1]-c[1])*(a[0]-c[0])+(c[0]-b[0])*(a[1]-c[1]);
+  if abs(den)<1e-9:continue
+  u=((b[1]-c[1])*(xx-c[0])+(c[0]-b[0])*(yy-c[1]))/den;v=((c[1]-a[1])*(xx-c[0])+(a[0]-c[0])*(yy-c[1]))/den;inside=(u>=0)&(v>=0)&((u+v)<=1);z=u*a[2]+v*b[2]+(1-u-v)*c[2];dest=depth[lo[1]:hi[1]+1,lo[0]:hi[0]+1];keep=inside&(z<dest);dest[keep]=z[keep];hit[lo[1]:hi[1]+1,lo[0]:hi[0]+1]|=keep
+ # Erode 2px to exclude antialiased silhouette/background contamination.
+ return np.array(Image.fromarray((hit*255).astype('uint8')).filter(ImageFilter.MinFilter(5)))>0
+results={}
+for tag in ['orbit','factors','rim']:
+ folder=base/f'tmp/v57-lighting-{tag}';file=folder/'capture.json'
+ if not file.exists():continue
+ d=json.loads(file.read_text());shots=d['shots'];s=d['capture']['samples'];result={'captureSha256':hashlib.sha256(file.read_bytes()).hexdigest(),'samples':len(s),'normalCameraOnlyPoseDelta':float(np.abs(np.array([[b['world']for b in r['bones']]for r in shots])-np.array([b['world']for b in shots[0]['bones']])).max()),'sunVectorRange':np.ptp(np.array([r['sun']for r in s]),axis=0).tolist(),'lightDirectionRange':np.ptp(np.array([r['lightDirection']for r in s]),axis=0).tolist(),'cameraOnlyResults':[]}
+ for normal in shots:
+  if normal.get('factor')!='normal':continue
+  deg=normal['filename'].split('-')[1];M=mask(normal);im=np.array(Image.open(folder/normal['filename']).convert('RGB')).astype(float)
+  for other in shots:
+   if other['filename'].split('-')[1]!=deg or other.get('factor')=='normal':continue
+   assert np.array_equal(normal['cameraWorld'],other['cameraWorld']);assert np.array_equal([b['world']for b in normal['bones']],[b['world']for b in other['bones']]);arr=np.array(Image.open(folder/other['filename']).convert('RGB')).astype(float);delta=arr[M]-im[M];result['cameraOnlyResults'].append({'degrees':int(deg),'factor':other['factor'],'erodedCreatureMaskPixels':int(M.sum()),'meanAbsoluteChannelDelta8bit':float(np.abs(delta).mean()),'p95AbsoluteChannelDelta8bit':float(np.percentile(np.abs(delta),95)),'meanLuminanceDelta8bit':float((delta@np.array([.2126,.7152,.0722])).mean())})
+ if tag=='orbit':
+  M=mask(shots[0]);a=np.array(Image.open(folder/shots[0]['filename']));b=np.array(Image.open(folder/shots[-1]['filename']));result['sameCamera0vs360RGBExact']=bool(np.array_equal(a[M],b[M]));result['sameCameraMaskPixels']=int(M.sum())
+ results[tag]=result
+out={'schema':'wildshard.v57-arena-lighting-one-factor-analysis.v1','nativeSha256':'7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb','method':'Exact pinned native Float32 skin weights and recorded bone world transforms projected with recorded camera matrices; full mesh rasterized to image mask and silhouette eroded2pixels. Matched-frame metrics exclude UI/floor; descriptive pixel deltas are not quality scores.','results':results}
+pathlib.Path('tmp/v57-lighting-analysis.json').write_text(json.dumps(out,indent=2)+'\n');print(json.dumps(out,indent=2))
