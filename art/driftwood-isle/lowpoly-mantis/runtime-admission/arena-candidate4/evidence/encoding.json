@@ -1,0 +1,44 @@
+{
+  "schema": "wildshard.mantis.encoding.v1",
+  "method": "Whole recording, libx264 CRF35 threads1, no frame-rate filter or speed changes. Original and compressed frame counts verified identical. Actual rendered cadence retained through encoded duplicate frames.",
+  "videos": [
+    {
+      "path": "tmp/mantis-folded-motion-qa/video/page@3c67844f72780fc6e70e7e6090c7f41d.webm",
+      "sha256": "730f13a1e32c26486170bf4c03200b21c89bddded34e6f7943dde78e7c497538",
+      "bytes": 5974527,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "nb_read_frames": "1383"
+          }
+        ],
+        "format": {
+          "duration": "55.320000"
+        }
+      }
+    },
+    {
+      "path": "public/review-evidence/mantis-v7-candidate4/live-observer.mp4",
+      "sha256": "2bf1755eb44815720131ed2b0afde107210202bbfa600ef114c443fd5907b88c",
+      "bytes": 705434,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "nb_read_frames": "1383"
+          }
+        ],
+        "format": {
+          "duration": "55.320000"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schema": "wildshard.conch.counter-event-order.v1",
+  "productSourceHash": "bb2f0928b20938a942a93f8b9d27b65bebc726464ffedd359c16f19a70c9e8d0",
+  "baselinePracticeSourceSha256": "96cad9369bcfaee9018f5d1556902e0248a34c8b8ddd2bbd7175eb8717a9505a",
+  "guestSourceSha256": "07ded78edf914ccc41c2d636b1d9e99d08f5fd4617a509fc3b3c0b3caea93714",
+  "proof": "Real verified product Wasm, preparePracticeDecision, borrowedDecisionAuthority, ShardDecisions, DecisionHost, StrikeRunner, AnimalSim and routed CombatPipeline. Renderer-free diagnostic; not a browser combat acceptance.",
+  "baselineTests": {
+    "passed": 6,
+    "failed": 1,
+    "expectedFailure": "PracticeCreature update still drains hits after borrowed fixed work"
+  },
+  "decisionBoundary": {
+    "ticksBeforeHit": 35,
+    "guestStage": 1,
+    "guestClock": 0.4,
+    "hitDamage": 3,
+    "health": [
+      60,
+      57
+    ],
+    "testedNextFrameHz": [
+      60,
+      30,
+      10
+    ],
+    "oldCounter": false,
+    "earlyDrainCounter": true,
+    "counterContactDamage": 16
+  },
+  "offBoundary": {
+    "ticksBeforeHit": 31,
+    "oldPendingEvents": [
+      "strike.done",
+      "hit"
+    ],
+    "earlyDrainPendingEvents": [
+      "hit",
+      "strike.done"
+    ],
+    "oldCounter": false,
+    "earlyDrainCounter": true
+  },
+  "negativeControls": [
+    "unguarded hit remains 12 damage and cannot counter",
+    "lethal hit disposes fixed registration",
+    "new bout has 60 HP and no inherited hit/counter",
+    "world damage/death event counters empty",
+    "localStorage empty"
+  ],
+  "proposedChange": "Flush the existing bout Events queue before borrowed fixed-step work; retain the end-of-update flush.",
+  "limits": [
+    "Contact geometry and browser animation require root recapture.",
+    "Test health and stagger use actual combat methods; player reach/claim are controlled true ports, not browser contact.",
+    "Fresh-bout recreation proves controller isolation, not actual PracticeCreature Retry UI.",
+    "No world save services are installed in this fixture; browser store proof remains separate."
+  ],
+  "fixedTests": {
+    "passed": 7,
+    "failed": 0
+  },
+  "fixedPracticeSourceSha256": "9ed500ddc759b204687ee2355ab475b7732218d6b58ec80c2d0773c4aae9b1ae",
+  "testSourceSha256": "69c1b6809f065857a90a2cda44084cd96c73a26f835c0a0bb13d565695cc9e99",
+  "correctionStatus": "Root applied early drain; source-order and causal tests green. Real browser acceptance pending.",
+  "practiceRegressionTests": {
+    "passed": 15,
+    "failed": 0,
+    "files": [
+      "test/practice-damage-parity.test.ts",
+      "test/practice-combat-route.test.ts",
+      "test/practice-player-loot.test.ts"
+    ],
+    "workers": 1,
+    "initialAttempt": "Two files passed; third failed loading a Vitest temporary SSR artifact. Preserved initial failure; serial rerun all three passed."
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "schema": "wildshard.colossus.seam1-source-proof.v1",
+  "originalSourceSha256": "f10cdec46537f8d579fa7af687890aebe6c2f0e9d82c962e64a478567e3a0218",
+  "candidateSourceSha256": "237f94a270e14eb5592b0e5a9d6008b8d165c6ebef7e6e5638a43cf2950eb648",
+  "target": "Shin growth -1 living seam",
+  "ringOffsets": [
+    0,
+    2,
+    4
+  ],
+  "originalQuality": {
+    "minimumBothDiagonalTrianglePolygonCosine": -0.18606516698292624,
+    "opposedBothDiagonalTriangles": 6
+  },
+  "candidateQuality": {
+    "minimumBothDiagonalTrianglePolygonCosine": 0.9899081863191097,
+    "opposedBothDiagonalTriangles": 0
+  },
+  "sourceMeshCount": 227,
+  "pointCount": 18,
+  "sideQuadCount": 12,
+  "unchangedCapFaces": [
+    [
+      5,
+      4,
+      3,
+      2,
+      1,
+      0
+    ],
+    [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ]
+  ],
+  "candidateSideFaces": [
+    [
+      0,
+      1,
+      9,
+      8
+    ],
+    [
+      1,
+      2,
+      10,
+      9
+    ],
+    [
+      2,
+      3,
+      11,
+      10
+    ],
+    [
+      3,
+      4,
+      6,
+      11
+    ],
+    [
+      4,
+      5,
+      7,
+      6
+    ],
+    [
+      5,
+      0,
+      8,
+      7
+    ],
+    [
+      8,
+      9,
+      17,
+      16
+    ],
+    [
+      9,
+      10,
+      12,
+      17
+    ],
+    [
+      10,
+      11,
+      13,
+      12
+    ],
+    [
+      11,
+      6,
+      14,
+      13
+    ],
+    [
+      6,
+      7,
+      15,
+      14
+    ],
+    [
+      7,
+      8,
+      16,
+      15
+    ]
+  ],
+  "faceColorsUnchanged": [
+    "leafDark",
+    "leafDark",
+    "leaf",
+    "leaf",
+    "leafDark",
+    "leafDark",
+    "leaf",
+    "leafDark",
+    "leaf",
+    "leaf",
+    "leafDark",
+    "leafDark",
+    "leaf",
+    "leaf"
+  ],
+  "all227SourceMeshPointsUnchanged": true,
+  "all227SourceMeshFaceColorsUnchanged": true,
+  "unaffected226MeshFacesUnchanged": true,
+  "sourceEdgePairs": 30,
+  "pythonTestsPassed": 6,
+  "blenderRun": false,
+  "candidateGLBExists": false,
+  "nativeExportExists": false,
+  "actualMatchedPairsRun": false,
+  "repairSelected": false,
+  "materialAdaptation": false,
+  "runtimeAdmission": false,
+  "note": "Both possible diagonals of each side quad tested numerically; original count6 here differs from3 opposed triangles in actual pinned GLB. Material ownership means unchanged source face-index colors, not unchanged spatial distribution after reconnecting vertices."
+}

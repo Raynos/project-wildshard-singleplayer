@@ -1,0 +1,96 @@
+{
+  "schema": "wildshard.mantis.stationary-contact.v1",
+  "method": "Last six captured game seconds before Retry; exact recorded world matrix and exact native rigid weighted vertices. Near means abs(height)<=.02m. This is geometric clearance, not planted-foot or collision acceptance.",
+  "traceSha256": "9b7e5363907cc018ceae3593293d38ef2f21798261b2d66413967974975ebfdf",
+  "deadFrames": 129,
+  "tailFrames": 77,
+  "gameTimeRange": [
+    23.7588999999911,
+    29.7500999999792
+  ],
+  "frameRange": [
+    276,
+    352
+  ],
+  "worldComponentRanges": [
+    [
+      0.9991852327672512,
+      0.9991852327672512
+    ],
+    [
+      6.579839936036029e-06,
+      6.579839936036029e-06
+    ],
+    [
+      -0.040359268781280225,
+      -0.040359268781280225
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      -5.99442745712207e-06,
+      -5.99442745712207e-06
+    ],
+    [
+      0.9999999998750728,
+      0.9999999998750728
+    ],
+    [
+      1.4626046481716903e-05,
+      1.4626046481716903e-05
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      0.040359268872475304,
+      0.040359268872475304
+    ],
+    [
+      -1.4372198949367064e-05,
+      -1.4372198949367064e-05
+    ],
+    [
+      0.9991852326818682,
+      0.9991852326818682
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      -0.45876067876815796,
+      -0.45876067876815796
+    ],
+    [
+      899.85986328125,
+      899.85986328125
+    ],
+    [
+      -8.672892570495605,
+      -8.672892570495605
+    ],
+    [
+      1,
+      1
+    ]
+  ],
+  "minimumHeight": 0.013627155145854886,
+  "maximumFrameMinimumHeight": 0.013627155145854886,
+  "framesBelow": 0,
+  "nearVertexRange": [
+    8,
+    8
+  ],
+  "lastContactParts": [
+    {
+      "name": "body",
+      "minHeight": 0.013627155145854886,
+      "below": 0,
+      "near": 8
+    }
+  ]
+}

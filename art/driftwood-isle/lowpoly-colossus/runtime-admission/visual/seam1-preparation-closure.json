@@ -1,0 +1,31 @@
+{
+  "schema": "wildshard.colossus.seam1-source-closure.v1",
+  "status": "source only;6 tests pass; no Blender/native/render or repair selection",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/SEAM1.md",
+      "bytes": 2661,
+      "sha256": "e54398f4b90122610826c0415cf92f55c653db553ef60603b84dc708e2c4f91c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/prepare_seam_candidate.py",
+      "bytes": 1676,
+      "sha256": "3dacd8939ea542dd3de901d5d8210ab072a7360f441baf7abba406409d921eaf"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/build_colossus_v4_seam1.py",
+      "bytes": 22460,
+      "sha256": "237f94a270e14eb5592b0e5a9d6008b8d165c6ebef7e6e5638a43cf2950eb648"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/test_seam_candidate.py",
+      "bytes": 5125,
+      "sha256": "d1cce68e153473fa6e3a2fbcfcb9902a15255685bda9b345a078c9b8c127be75"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/seam1-source-proof.json",
+      "bytes": 2359,
+      "sha256": "a44c6318588b94ec5d232c02893de50b95b9382cd4ce08c91cd7f68b18a17e41"
+    }
+  ]
+}

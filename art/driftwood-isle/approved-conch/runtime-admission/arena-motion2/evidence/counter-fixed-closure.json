@@ -1,0 +1,44 @@
+{
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/counter-event-order-baseline-tests.json": {
+      "sha256": "fee95d94f5f5789814d57ad33f089c29cdd1cb0e2e65bfb28994d38bdb7a6cbd",
+      "bytes": 4314
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/counter-event-order-fixed-tests.json": {
+      "sha256": "947be87450e90a6ec35994d6bd91aa79db9bf2355dae7aea15cff61eb3e9ce46",
+      "bytes": 2667
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/counter-event-order-receipt.json": {
+      "sha256": "e2587c112d76a1a4f507f028583fb9515dc0643c2e34caee09a3ce2ff1554d19",
+      "bytes": 2838
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/counter-practice-regression-initial-failure.json": {
+      "sha256": "0b769f9924868803f2a00748f18c6e10c40668574b6c43c57675ced710afe906",
+      "bytes": 3852
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/counter-practice-regression-tests.json": {
+      "sha256": "41ad9206aee3c1b6b53ce0e70a3b94ddd6fa7c353bf9cbfee8f8a05c496381b9",
+      "bytes": 5575
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/counter-fixed-observation.json": {
+      "sha256": "652e612237423d54bd87cabf91a09f848b76894e2cd37abf6b770a88a93393c3",
+      "bytes": 60330
+    },
+    "docs/reviews/conch-counter-event-order.md": {
+      "sha256": "680e0a24a194f601830fb7e7eafd96f3d2c6b8297c7ea740cf97ce7195f5c134",
+      "bytes": 5256
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/conch-counter-event-order.test.ts": {
+      "sha256": "69c1b6809f065857a90a2cda44084cd96c73a26f835c0a0bb13d565695cc9e99",
+      "bytes": 8688
+    },
+    "src/game/practice/PracticeCreature.ts": {
+      "sha256": "9ed500ddc759b204687ee2355ab475b7732218d6b58ec80c2d0773c4aae9b1ae",
+      "bytes": 16622
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/counter-fixed-browser-receipt.json": {
+      "sha256": "a593640551f763ab7080f375919ac6b1cd14b8271ddb7489b9d1c39ad6c00883",
+      "bytes": 21999
+    }
+  }
+}

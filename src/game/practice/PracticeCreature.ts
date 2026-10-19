@@ -211,6 +211,9 @@ export class PracticeCreature {
     this.previousPlayer.copy(this.options.player.position); context.calm = this.practicePlayer?.defeated === true;
     const callbacks = this.callbacks;
     if (callbacks === null) return;
+    // Deliver applied hits before fixed decisions observe their immediate stun.
+    // Otherwise a queued guard hit can arrive after the guest resets its stage.
+    this.events?.flush('update');
     if (this.decision !== undefined && animal.alive) {
       context.dt = dt; callbacks.act(animal, context);
       this.fixedTime += dt;

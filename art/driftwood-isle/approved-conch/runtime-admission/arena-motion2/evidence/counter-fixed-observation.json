@@ -1,0 +1,2913 @@
+{
+  "schema": "wildshard.conch.counter-observation.v1",
+  "startedAt": "2026-10-19T05:07:55.647Z",
+  "source": "conch-motion2-event-order1",
+  "errors": [],
+  "samples": [
+    {
+      "phase": "world-envelope",
+      "capture": "entry",
+      "envelope": {
+        "minY": 900.0691311014075,
+        "maxY": 903.6844647418651,
+        "count": 7338,
+        "root": [
+          -2.3840001153740964e-13,
+          900,
+          -6.89811952970922
+        ],
+        "body": [
+          -2.3840001153740964e-13,
+          901.1023656565616,
+          -6.89811952970922
+        ],
+        "alive": true,
+        "deathT": -1,
+        "scale": 1,
+        "floor": 900
+      }
+    },
+    {
+      "phase": "before-guard-hit",
+      "time": 1.979000000000001,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 1,
+          "regular-clock": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "yaw": 7.11782864662012e-7,
+        "bones": {
+          "body": {
+            "position": [
+              0,
+              1.1029023195227459,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "shell": {
+            "position": [
+              -0.38,
+              0.31000000000000005,
+              -0.35000000000000003
+            ],
+            "rotation": [
+              0.0038697593636610097,
+              0,
+              0
+            ]
+          },
+          "head": {
+            "position": [
+              0,
+              0.5800000000000001,
+              0.415
+            ],
+            "rotation": [
+              -0.007255798806864392,
+              0,
+              0
+            ]
+          },
+          "eyestalkLeft": {
+            "position": [
+              -0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              -0.012092998011440655
+            ]
+          },
+          "eyestalkRight": {
+            "position": [
+              0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              0.012092998011440655
+            ]
+          },
+          "shieldArm": {
+            "position": [
+              -0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              -0.24,
+              0,
+              0
+            ]
+          },
+          "shieldForearm": {
+            "position": [
+              -0.49,
+              -0.32000000000000006,
+              0.31499999999999995
+            ],
+            "rotation": [
+              0,
+              -0.22,
+              0
+            ]
+          },
+          "rapierArm": {
+            "position": [
+              0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "rapierForearm": {
+            "position": [
+              0.41999999999999993,
+              -0.26,
+              0.23500000000000001
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeft": {
+            "position": [
+              -0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftKnee": {
+            "position": [
+              -0.45999999999999996,
+              -0.22999999999999998,
+              -0.14
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftAnkle": {
+            "position": [
+              -0.17000000000000004,
+              -0.49,
+              0.18000000000000002
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRight": {
+            "position": [
+              0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRightKnee": {
+            "position": [
+              0.45999999999999996,
+              -0.22999999999999998,
+              0.15999999999999998
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRightAnkle": {
+            "position": [
+              0.17000000000000004,
+              -0.49,
+              0.18
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0000014947437740940681,
+          900.0006999882098,
+          -4.900000339564805
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "after-guard-hit",
+      "time": 4.399199999995531,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 48,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 1.4000000000000001
+        },
+        "position": [
+          -0.31393089436460286,
+          900,
+          -7.511319280136377
+        ],
+        "yaw": 7.11782864662012e-7,
+        "bones": {
+          "body": {
+            "position": [
+              0,
+              1.0940260113816653,
+              0
+            ],
+            "rotation": [
+              -0.00009436549289611624,
+              0,
+              0
+            ]
+          },
+          "shell": {
+            "position": [
+              -0.38,
+              0.31000000000000005,
+              -0.35000000000000003
+            ],
+            "rotation": [
+              -0.007965318157779717,
+              0,
+              0
+            ]
+          },
+          "head": {
+            "position": [
+              0,
+              0.5800000000000001,
+              0.415
+            ],
+            "rotation": [
+              0.014859479151520076,
+              0,
+              0
+            ]
+          },
+          "eyestalkLeft": {
+            "position": [
+              -0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              0.024891619243061616
+            ]
+          },
+          "eyestalkRight": {
+            "position": [
+              0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              -0.024891619243061616
+            ]
+          },
+          "shieldArm": {
+            "position": [
+              -0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              0.000075492394316893,
+              0,
+              0
+            ]
+          },
+          "shieldForearm": {
+            "position": [
+              -0.49,
+              -0.32000000000000006,
+              0.31499999999999995
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "rapierArm": {
+            "position": [
+              0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              0.00011323859147533948,
+              0,
+              0
+            ]
+          },
+          "rapierForearm": {
+            "position": [
+              0.41999999999999993,
+              -0.26,
+              0.23500000000000001
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeft": {
+            "position": [
+              -0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftKnee": {
+            "position": [
+              -0.45999999999999996,
+              -0.22999999999999998,
+              -0.14
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftAnkle": {
+            "position": [
+              -0.17000000000000004,
+              -0.49,
+              0.18000000000000002
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRight": {
+            "position": [
+              0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRightKnee": {
+            "position": [
+              0.45999999999999996,
+              -0.22999999999999998,
+              0.15999999999999998
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRightAnkle": {
+            "position": [
+              0.17000000000000004,
+              -0.49,
+              0.18
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "player": {
+        "health": {
+          "health": 86,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0006341392341054912,
+          900.0199463127174,
+          -4.626785616779892
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "before-guard-hit",
+      "time": 5.162100000001489,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 1,
+          "regular-clock": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "yaw": 7.11782864662012e-7,
+        "bones": {
+          "body": {
+            "position": [
+              0,
+              1.1028862368682404,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "shell": {
+            "position": [
+              -0.38,
+              0.31000000000000005,
+              -0.35000000000000003
+            ],
+            "rotation": [
+              0.003848315824320398,
+              0,
+              0
+            ]
+          },
+          "head": {
+            "position": [
+              0,
+              0.5800000000000001,
+              0.415
+            ],
+            "rotation": [
+              -0.007215592170600746,
+              0,
+              0
+            ]
+          },
+          "eyestalkLeft": {
+            "position": [
+              -0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              -0.012025986951001245
+            ]
+          },
+          "eyestalkRight": {
+            "position": [
+              0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              0.012025986951001245
+            ]
+          },
+          "shieldArm": {
+            "position": [
+              -0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              -0.24,
+              0,
+              0
+            ]
+          },
+          "shieldForearm": {
+            "position": [
+              -0.49,
+              -0.32000000000000006,
+              0.31499999999999995
+            ],
+            "rotation": [
+              0,
+              -0.22,
+              0
+            ]
+          },
+          "rapierArm": {
+            "position": [
+              0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "rapierForearm": {
+            "position": [
+              0.41999999999999993,
+              -0.26,
+              0.23500000000000001
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeft": {
+            "position": [
+              -0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftKnee": {
+            "position": [
+              -0.45999999999999996,
+              -0.22999999999999998,
+              -0.14
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftAnkle": {
+            "position": [
+              -0.17000000000000004,
+              -0.49,
+              0.18000000000000002
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRight": {
+            "position": [
+              0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRightKnee": {
+            "position": [
+              0.45999999999999996,
+              -0.22999999999999998,
+              0.15999999999999998
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRightAnkle": {
+            "position": [
+              0.17000000000000004,
+              -0.49,
+              0.18
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0000014947437740940681,
+          900.0006999882098,
+          -4.900000339564805
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "after-guard-hit",
+      "time": 8.678600000001477,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 48,
+        "maxHp": 60,
+        "alive": true,
+        "state": "stalk",
+        "mem": {
+          "conch-st": 0,
+          "conch-guard": 0,
+          "regular-clock": 0.8999999999999999
+        },
+        "position": [
+          -0.2571646040305495,
+          900,
+          -7.016232373192906
+        ],
+        "yaw": 0.11416020232038922,
+        "bones": {
+          "body": {
+            "position": [
+              0,
+              1.101172631825214,
+              0
+            ],
+            "rotation": [
+              -0.00007848640813109312,
+              0,
+              0
+            ]
+          },
+          "shell": {
+            "position": [
+              -0.38,
+              0.31000000000000005,
+              -0.35000000000000003
+            ],
+            "rotation": [
+              0.001563509100285081,
+              0,
+              0
+            ]
+          },
+          "head": {
+            "position": [
+              0,
+              0.5800000000000001,
+              0.415
+            ],
+            "rotation": [
+              -0.002994368689539401,
+              0,
+              0
+            ]
+          },
+          "eyestalkLeft": {
+            "position": [
+              -0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              -0.004885965938390878
+            ]
+          },
+          "eyestalkRight": {
+            "position": [
+              0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              0.004885965938390878
+            ]
+          },
+          "shieldArm": {
+            "position": [
+              -0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              0.0000627891265048745,
+              0,
+              0
+            ]
+          },
+          "shieldForearm": {
+            "position": [
+              -0.49,
+              -0.32000000000000006,
+              0.31499999999999995
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "rapierArm": {
+            "position": [
+              0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              0.00009418368975731175,
+              0,
+              0
+            ]
+          },
+          "rapierForearm": {
+            "position": [
+              0.41999999999999993,
+              -0.26,
+              0.23500000000000001
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeft": {
+            "position": [
+              -0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              -0.014336016249681595,
+              0,
+              0
+            ]
+          },
+          "legLeftKnee": {
+            "position": [
+              -0.45999999999999996,
+              -0.22999999999999998,
+              -0.14
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftAnkle": {
+            "position": [
+              -0.17000000000000004,
+              -0.49,
+              0.18000000000000002
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRight": {
+            "position": [
+              0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0.014336016249681578,
+              0,
+              0
+            ]
+          },
+          "legRightKnee": {
+            "position": [
+              0.45999999999999996,
+              -0.22999999999999998,
+              0.15999999999999998
+            ],
+            "rotation": [
+              -0.024260950576384208,
+              0,
+              0
+            ]
+          },
+          "legRightAnkle": {
+            "position": [
+              0.17000000000000004,
+              -0.49,
+              0.18
+            ],
+            "rotation": [
+              0.013233245768936839,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "player": {
+        "health": {
+          "health": 86,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00003062101241522268,
+          900.0200710043646,
+          -4.773629708870803
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "before-guard-hit",
+      "time": 9.367799999997006,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 1,
+          "regular-clock": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "yaw": 7.11782864662012e-7,
+        "bones": {
+          "body": {
+            "position": [
+              0,
+              1.1028548878110582,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "shell": {
+            "position": [
+              -0.38,
+              0.31000000000000005,
+              -0.35000000000000003
+            ],
+            "rotation": [
+              0.003806517081410848,
+              0,
+              0
+            ]
+          },
+          "head": {
+            "position": [
+              0,
+              0.5800000000000001,
+              0.415
+            ],
+            "rotation": [
+              -0.007137219527645339,
+              0,
+              0
+            ]
+          },
+          "eyestalkLeft": {
+            "position": [
+              -0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              -0.0118953658794089
+            ]
+          },
+          "eyestalkRight": {
+            "position": [
+              0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              0.0118953658794089
+            ]
+          },
+          "shieldArm": {
+            "position": [
+              -0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              -0.24,
+              0,
+              0
+            ]
+          },
+          "shieldForearm": {
+            "position": [
+              -0.49,
+              -0.32000000000000006,
+              0.31499999999999995
+            ],
+            "rotation": [
+              0,
+              -0.22,
+              0
+            ]
+          },
+          "rapierArm": {
+            "position": [
+              0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "rapierForearm": {
+            "position": [
+              0.41999999999999993,
+              -0.26,
+              0.23500000000000001
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeft": {
+            "position": [
+              -0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftKnee": {
+            "position": [
+              -0.45999999999999996,
+              -0.22999999999999998,
+              -0.14
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftAnkle": {
+            "position": [
+              -0.17000000000000004,
+              -0.49,
+              0.18000000000000002
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRight": {
+            "position": [
+              0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRightKnee": {
+            "position": [
+              0.45999999999999996,
+              -0.22999999999999998,
+              0.15999999999999998
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRightAnkle": {
+            "position": [
+              0.17000000000000004,
+              -0.49,
+              0.18
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0000014947437740940681,
+          900.0006999882098,
+          -4.900000339564805
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "after-guard-hit",
+      "time": 12.602799999996995,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 57,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0.7999999999999999
+        },
+        "position": [
+          -0.31393079552799463,
+          900,
+          -7.511319329962134
+        ],
+        "yaw": 0.14885812141904034,
+        "bones": {
+          "body": {
+            "position": [
+              0,
+              1.0982969666091706,
+              0
+            ],
+            "rotation": [
+              -0.00007848640813109312,
+              0,
+              0
+            ]
+          },
+          "shell": {
+            "position": [
+              -0.38,
+              0.31000000000000005,
+              -0.35000000000000003
+            ],
+            "rotation": [
+              -0.0022707111877724685,
+              0,
+              0
+            ]
+          },
+          "head": {
+            "position": [
+              0,
+              0.5800000000000001,
+              0.415
+            ],
+            "rotation": [
+              0.004194794350568504,
+              0,
+              0
+            ]
+          },
+          "eyestalkLeft": {
+            "position": [
+              -0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              0.007095972461788965
+            ]
+          },
+          "eyestalkRight": {
+            "position": [
+              0.16,
+              -0.1100000000000001,
+              -0.034999999999999976
+            ],
+            "rotation": [
+              0,
+              0,
+              -0.007095972461788965
+            ]
+          },
+          "shieldArm": {
+            "position": [
+              -0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              0.0000627891265048745,
+              0,
+              0
+            ]
+          },
+          "shieldForearm": {
+            "position": [
+              -0.49,
+              -0.32000000000000006,
+              0.31499999999999995
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "rapierArm": {
+            "position": [
+              0.27,
+              0.32000000000000006,
+              0.035
+            ],
+            "rotation": [
+              0.00009418368975731175,
+              0,
+              0
+            ]
+          },
+          "rapierForearm": {
+            "position": [
+              0.41999999999999993,
+              -0.26,
+              0.23500000000000001
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeft": {
+            "position": [
+              -0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftKnee": {
+            "position": [
+              -0.45999999999999996,
+              -0.22999999999999998,
+              -0.14
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legLeftAnkle": {
+            "position": [
+              -0.17000000000000004,
+              -0.49,
+              0.18000000000000002
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRight": {
+            "position": [
+              0.23,
+              -0.18000000000000005,
+              0.020000000000000004
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRightKnee": {
+            "position": [
+              0.45999999999999996,
+              -0.22999999999999998,
+              0.15999999999999998
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "legRightAnkle": {
+            "position": [
+              0.17000000000000004,
+              -0.49,
+              0.18
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "player": {
+        "health": {
+          "health": 84,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0886360591033917,
+          900.0199400325182,
+          -4.820511802145548
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "world-envelope",
+      "capture": "counter-result",
+      "envelope": {
+        "minY": 900.048803525752,
+        "maxY": 903.6801460320271,
+        "count": 7338,
+        "root": [
+          -0.31393079552799463,
+          900,
+          -7.511319329962134
+        ],
+        "body": [
+          -0.31393079552799463,
+          901.0982969666092,
+          -7.511319329962134
+        ],
+        "alive": true,
+        "deathT": -1,
+        "scale": 1,
+        "floor": 900
+      }
+    }
+  ],
+  "placements": [
+    {
+      "reason": "Diagnostic player/camera placement; aim also follows the enemy during defense; no enemy/health/time edits",
+      "distance": 2.1,
+      "angle": 0,
+      "pitch": 0.08,
+      "position": [
+        0,
+        900,
+        -4.9
+      ]
+    },
+    {
+      "reason": "Diagnostic player/camera placement; aim also follows the enemy during defense; no enemy/health/time edits",
+      "distance": 2.1,
+      "angle": 0,
+      "pitch": 0.08,
+      "position": [
+        0,
+        900,
+        -4.9
+      ]
+    },
+    {
+      "reason": "Diagnostic player/camera placement; aim also follows the enemy during defense; no enemy/health/time edits",
+      "distance": 2.1,
+      "angle": 0,
+      "pitch": 0.08,
+      "position": [
+        0,
+        900,
+        -4.9
+      ]
+    }
+  ],
+  "checks": {
+    "guard": true,
+    "counterPending": true,
+    "counter": true,
+    "persistenceUnchanged": true,
+    "errors": true
+  },
+  "caveat": "Cloud browser diagnostic; no physical phone performance, fun or visual acceptance claim.",
+  "storageBefore": {
+    "local": {},
+    "session": {}
+  },
+  "stateBeforeCombat": {
+    "docs": {
+      "global": {
+        "keys": {}
+      }
+    },
+    "shard": {},
+    "generation": 0
+  },
+  "entry": {
+    "time": 0.2193999999985099,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "conch-duelist",
+      "hp": 60,
+      "maxHp": 60,
+      "alive": true,
+      "state": "stalk",
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.2
+      },
+      "position": [
+        2.3841432300608645e-13,
+        900,
+        -6.914269529283047
+      ],
+      "yaw": 2.244874234877671e-11,
+      "bones": {
+        "body": {
+          "position": [
+            0,
+            1.1021863529461806,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "shell": {
+          "position": [
+            -0.38,
+            0.31000000000000005,
+            -0.35000000000000003
+          ],
+          "rotation": [
+            0.00291513726157389,
+            0,
+            0
+          ]
+        },
+        "head": {
+          "position": [
+            0,
+            0.5800000000000001,
+            0.415
+          ],
+          "rotation": [
+            -0.005465882365451044,
+            0,
+            0
+          ]
+        },
+        "eyestalkLeft": {
+          "position": [
+            -0.16,
+            -0.1100000000000001,
+            -0.034999999999999976
+          ],
+          "rotation": [
+            0,
+            0,
+            -0.009109803942418407
+          ]
+        },
+        "eyestalkRight": {
+          "position": [
+            0.16,
+            -0.1100000000000001,
+            -0.034999999999999976
+          ],
+          "rotation": [
+            0,
+            0,
+            0.009109803942418407
+          ]
+        },
+        "shieldArm": {
+          "position": [
+            -0.27,
+            0.32000000000000006,
+            0.035
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "shieldForearm": {
+          "position": [
+            -0.49,
+            -0.32000000000000006,
+            0.31499999999999995
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "rapierArm": {
+          "position": [
+            0.27,
+            0.32000000000000006,
+            0.035
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "rapierForearm": {
+          "position": [
+            0.41999999999999993,
+            -0.26,
+            0.23500000000000001
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "legLeft": {
+          "position": [
+            -0.23,
+            -0.18000000000000005,
+            0.020000000000000004
+          ],
+          "rotation": [
+            0.04809508026979667,
+            0,
+            0
+          ]
+        },
+        "legLeftKnee": {
+          "position": [
+            -0.45999999999999996,
+            -0.22999999999999998,
+            -0.14
+          ],
+          "rotation": [
+            -0.08139167430273282,
+            0,
+            0
+          ]
+        },
+        "legLeftAnkle": {
+          "position": [
+            -0.17000000000000004,
+            -0.49,
+            0.18000000000000002
+          ],
+          "rotation": [
+            0.04439545871058154,
+            0,
+            0
+          ]
+        },
+        "legRight": {
+          "position": [
+            0.23,
+            -0.18000000000000005,
+            0.020000000000000004
+          ],
+          "rotation": [
+            -0.04809508026979666,
+            0,
+            0
+          ]
+        },
+        "legRightKnee": {
+          "position": [
+            0.45999999999999996,
+            -0.22999999999999998,
+            0.15999999999999998
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "legRightAnkle": {
+          "position": [
+            0.17000000000000004,
+            -0.49,
+            0.18
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        1.4784316094496389e-10,
+        900.0004999999801,
+        -0.31232912040629807
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Practice bout. Health and rewards stay in this page."
+  },
+  "renderFrames": [
+    {
+      "time": 1.3820000000000003,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 1.3
+      }
+    },
+    {
+      "time": 1.4820000000000004,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 1.4000000000000001
+      }
+    },
+    {
+      "time": 1.5820000000000005,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 1.5000000000000002
+      }
+    },
+    {
+      "time": 1.6820000000000006,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 1.6000000000000003
+      }
+    },
+    {
+      "time": 1.7820000000000007,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 1.8820000000000008,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 1.8878000000044712,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 1.979000000000001,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 2.0023999999985107,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 2.102399999998511,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.2
+      }
+    },
+    {
+      "time": 2.202399999998511,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.30000000000000004
+      }
+    },
+    {
+      "time": 2.302399999998511,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.4
+      }
+    },
+    {
+      "time": 2.402399999998511,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.5
+      }
+    },
+    {
+      "time": 2.502399999998511,
+      "enemyHp": 60,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 0,
+        "regular-clock": 0.6
+      }
+    },
+    {
+      "time": 2.6023999999985112,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 0,
+        "regular-clock": 0.7
+      }
+    },
+    {
+      "time": 2.7023999999985113,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 2.716699999995531,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 2.733199999995531,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 2.8331999999955313,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 2.8688999999985114,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 2.9688999999985115,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 3.0688999999985116,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 3.1688999999985117,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 3.2688999999985118,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.2
+      }
+    },
+    {
+      "time": 3.368899999998512,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.30000000000000004
+      }
+    },
+    {
+      "time": 3.468899999998512,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.4
+      }
+    },
+    {
+      "time": 3.568899999998512,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.5
+      }
+    },
+    {
+      "time": 3.668899999998512,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.6
+      }
+    },
+    {
+      "time": 3.768899999998512,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.7
+      }
+    },
+    {
+      "time": 3.8688999999985123,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.7999999999999999
+      }
+    },
+    {
+      "time": 3.9688999999985124,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.8999999999999999
+      }
+    },
+    {
+      "time": 4.0688999999985125,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.9999999999999999
+      }
+    },
+    {
+      "time": 4.168899999998512,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 1.0999999999999999
+      }
+    },
+    {
+      "time": 4.268899999998512,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 1.2
+      }
+    },
+    {
+      "time": 4.368899999998511,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 1.3
+      }
+    },
+    {
+      "time": 4.399199999995531,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 1.4000000000000001
+      }
+    },
+    {
+      "time": 4.499199999995531,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 4.59919999999553,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 4.666899999998511,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 4.76689999999851,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.2
+      }
+    },
+    {
+      "time": 4.86689999999851,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.30000000000000004
+      }
+    },
+    {
+      "time": 4.9668999999985095,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 5.066899999998509,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 5.078499999999999,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 5.162100000001489,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 5.262100000001489,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 5.3621000000014885,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.2
+      }
+    },
+    {
+      "time": 5.462100000001488,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.30000000000000004
+      }
+    },
+    {
+      "time": 5.562100000001488,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.4
+      }
+    },
+    {
+      "time": 5.662100000001487,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.5
+      }
+    },
+    {
+      "time": 5.762100000001487,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 0,
+        "regular-clock": 0.6
+      }
+    },
+    {
+      "time": 5.862100000001487,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 5.962100000001486,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 6.062100000001486,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 6.162100000001486,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 6.262100000001485,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 6.362100000001485,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 6.4621000000014845,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.2
+      }
+    },
+    {
+      "time": 6.562100000001484,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.30000000000000004
+      }
+    },
+    {
+      "time": 6.662100000001484,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.4
+      }
+    },
+    {
+      "time": 6.7621000000014835,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.5
+      }
+    },
+    {
+      "time": 6.862100000001483,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.6
+      }
+    },
+    {
+      "time": 6.962100000001483,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.7
+      }
+    },
+    {
+      "time": 7.062100000001482,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.7999999999999999
+      }
+    },
+    {
+      "time": 7.162100000001482,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.8999999999999999
+      }
+    },
+    {
+      "time": 7.262100000001482,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.9999999999999999
+      }
+    },
+    {
+      "time": 7.362100000001481,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 1.0999999999999999
+      }
+    },
+    {
+      "time": 7.462100000001481,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 1.2
+      }
+    },
+    {
+      "time": 7.562100000001481,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 1.3
+      }
+    },
+    {
+      "time": 7.66210000000148,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 1.4000000000000001
+      }
+    },
+    {
+      "time": 7.76210000000148,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 7.86210000000148,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 7.962100000001479,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.2
+      }
+    },
+    {
+      "time": 8.062100000001479,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.30000000000000004
+      }
+    },
+    {
+      "time": 8.11629999999701,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.4
+      }
+    },
+    {
+      "time": 8.181399999998499,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.4
+      }
+    },
+    {
+      "time": 8.281399999998499,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.5
+      }
+    },
+    {
+      "time": 8.381399999998498,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.6
+      }
+    },
+    {
+      "time": 8.481399999998498,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.7
+      }
+    },
+    {
+      "time": 8.581399999998498,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.7999999999999999
+      }
+    },
+    {
+      "time": 8.678600000001477,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.8999999999999999
+      }
+    },
+    {
+      "time": 8.778600000001477,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 8.878600000001477,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 8.976100000001477,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.2
+      }
+    },
+    {
+      "time": 9.076100000001476,
+      "enemyHp": 48,
+      "playerHp": 86,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.30000000000000004
+      }
+    },
+    {
+      "time": 9.176100000001476,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 9.276100000001476,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 9.291899999998495,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 9.367799999997006,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 9.467799999997006,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 9.567799999997005,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.2
+      }
+    },
+    {
+      "time": 9.667799999997005,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.30000000000000004
+      }
+    },
+    {
+      "time": 9.767799999997004,
+      "enemyHp": 60,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.4
+      }
+    },
+    {
+      "time": 9.867799999997004,
+      "enemyHp": 57,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 1,
+        "regular-clock": 0.5
+      }
+    },
+    {
+      "time": 9.967799999997004,
+      "enemyHp": 57,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 4,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 10.067799999997003,
+      "enemyHp": 57,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 4,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 10.167799999997003,
+      "enemyHp": 57,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 4,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 10.267799999997003,
+      "enemyHp": 57,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 4,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 10.367799999997002,
+      "enemyHp": 57,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 4,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 10.467799999997002,
+      "enemyHp": 57,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0
+      }
+    },
+    {
+      "time": 10.567799999997002,
+      "enemyHp": 57,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 10.667799999997001,
+      "enemyHp": 57,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0.2
+      }
+    },
+    {
+      "time": 10.767799999997,
+      "enemyHp": 57,
+      "playerHp": 100,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0.30000000000000004
+      }
+    },
+    {
+      "time": 10.867799999997,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0.4
+      }
+    },
+    {
+      "time": 10.967799999997,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0.5
+      }
+    },
+    {
+      "time": 11.067799999997,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0.6
+      }
+    },
+    {
+      "time": 11.167799999997,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0.7
+      }
+    },
+    {
+      "time": 11.267799999996999,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0.7999999999999999
+      }
+    },
+    {
+      "time": 11.302799999997,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0.8999999999999999
+      }
+    },
+    {
+      "time": 11.402799999996999,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 0.9999999999999999
+      }
+    },
+    {
+      "time": 11.502799999996999,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 1.0999999999999999
+      }
+    },
+    {
+      "time": 11.602799999996998,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 1.2
+      }
+    },
+    {
+      "time": 11.702799999996998,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 1.3
+      }
+    },
+    {
+      "time": 11.802799999996997,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 3,
+        "conch-guard": 0,
+        "regular-clock": 1.4000000000000001
+      }
+    },
+    {
+      "time": 11.902799999996997,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      }
+    },
+    {
+      "time": 12.002799999996997,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.2
+      }
+    },
+    {
+      "time": 12.102799999996996,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.30000000000000004
+      }
+    },
+    {
+      "time": 12.202799999996996,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.4
+      }
+    },
+    {
+      "time": 12.302799999996996,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.5
+      }
+    },
+    {
+      "time": 12.402799999996995,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.6
+      }
+    },
+    {
+      "time": 12.502799999996995,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.7
+      }
+    },
+    {
+      "time": 12.602799999996995,
+      "enemyHp": 57,
+      "playerHp": 84,
+      "mem": {
+        "conch-st": 2,
+        "conch-guard": 0,
+        "regular-clock": 0.7999999999999999
+      }
+    }
+  ],
+  "stateAfter": {
+    "docs": {
+      "global": {
+        "keys": {}
+      }
+    },
+    "shard": {},
+    "generation": 0
+  },
+  "storageAfter": {
+    "local": {},
+    "session": {}
+  },
+  "endedAt": "2026-10-19T05:08:24.940Z"
+}

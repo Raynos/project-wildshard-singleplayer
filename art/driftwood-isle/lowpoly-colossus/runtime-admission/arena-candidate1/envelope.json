@@ -1,0 +1,56 @@
+{
+  "localOnly": true,
+  "attachmentVisualAcceptance": false,
+  "worldCorpseContactAccepted": false,
+  "weightedVertices": 4384,
+  "results": {
+    "idle": {
+      "minY": 0.027000000700354576,
+      "maxY": 5.813539732066706,
+      "maxReach": 2.584564293294939,
+      "belowFloor": 0,
+      "frames": 61,
+      "maxOracleError": 0
+    },
+    "left": {
+      "minY": 0.027000000700354576,
+      "maxY": 5.8114824295043945,
+      "maxReach": 3.929121819464036,
+      "belowFloor": 0,
+      "frames": 61,
+      "maxOracleError": 0
+    },
+    "right": {
+      "minY": 0.027000000700354576,
+      "maxY": 5.8114824295043945,
+      "maxReach": 3.934705383654902,
+      "belowFloor": 0,
+      "frames": 61,
+      "maxOracleError": 0
+    },
+    "slam": {
+      "minY": 0.027000000700354576,
+      "maxY": 5.8114824295043945,
+      "maxReach": 3.9290997451088336,
+      "belowFloor": 0,
+      "frames": 61,
+      "maxOracleError": 0
+    },
+    "hit": {
+      "minY": 0.027000000700354576,
+      "maxY": 5.8114824295043945,
+      "maxReach": 2.5953615559671976,
+      "belowFloor": 0,
+      "frames": 61,
+      "maxOracleError": 0
+    },
+    "death": {
+      "minY": 0.027000000700354576,
+      "maxY": 5.814302212125714,
+      "maxReach": 3.111567130113728,
+      "belowFloor": 0,
+      "frames": 61,
+      "maxOracleError": 0
+    }
+  }
+}
