@@ -1,0 +1,62 @@
+{
+  "schema": "wildshard.mantis.death-contact-diagnosis.v1",
+  "productSourceHash": "984bfeb67b6fbd80371783923ccfbdff0a942d77ab83b3fcc4ad616a1ac5e962",
+  "sourceClosureChecked": 23,
+  "captureClosureChecked": 28,
+  "mismatches": 0,
+  "implementation": false,
+  "files": {
+    "docs/reviews/mantis-death-contact/REVIEW.md": {
+      "sha256": "94670308d33daac90378630cd88753895b56fa36b7a9656570ca7730041d17c0",
+      "bytes": 7184
+    },
+    "docs/reviews/mantis-death-contact/evaluator-results.json": {
+      "sha256": "a3f20ea50260ad4c81cd03a37b5dc256e764004080a8b98c880a7862e9ae4f14",
+      "bytes": 4188
+    },
+    "docs/reviews/mantis-death-contact/evaluator.test.ts": {
+      "sha256": "5a7429ff5b0e44c5428bf1eaeae3e3098d64f9ce90195843da3c9bcedc3fd370",
+      "bytes": 6814
+    },
+    "docs/reviews/mantis-death-contact/focused-test.txt": {
+      "sha256": "718a69b6902e8d189a0b5530b8ad8a7d7e98b0c848571372262839eb7a2b1b5a",
+      "bytes": 1022
+    },
+    "src/shards/driftwood-isle/generators/mantisOnsetClips.ts": {
+      "sha256": "9045ea799386da1b98e6915f39ec0d3ab1defea71b428eb13ba5cab709b3a25d",
+      "bytes": 8433
+    },
+    "src/shards/driftwood-isle/generators/mantisFoldedClips.ts": {
+      "sha256": "ed3a3879f7a8a4f0d4fb19339b9ef2219649277298c50976eef843696f9a4031",
+      "bytes": 8343
+    },
+    "src/game/plugin/channelPrograms.ts": {
+      "sha256": "9a345126cbc74cac7a07eda3286dfe4957891f21b6d1a47ff75dab9f8dc6fc2d",
+      "bytes": 10384
+    },
+    "src/game/practice/PracticeCreature.ts": {
+      "sha256": "ee97d17f4e90e7a74454055baefa167006122cd2299b5e614d8ce63603906dec",
+      "bytes": 16740
+    },
+    "src/engine/entities/AnimalView.ts": {
+      "sha256": "36f47df937bb2ff48aac743f7b307b0f16fafcc48795107f9121fecf106e6f28",
+      "bytes": 32382
+    },
+    "src/engine/entities/AnimalSim.ts": {
+      "sha256": "13a7e23fe566753d97879100addd4493357c2617b251fd82148a305c9b871ae7",
+      "bytes": 24229
+    },
+    "src/engine/physics/ragdoll.ts": {
+      "sha256": "4f54ab8d7159634c6f7cea5e88e91182693c351821be03f195d3ef3a5cb7484c",
+      "bytes": 30374
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate5/evidence/observer-render-trace.json": {
+      "sha256": "44f6b1dea812893ad6fa094d2c4b35a5bcd2c2493677e549e485ea90e3a285b1",
+      "bytes": 4411250
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/mantis-v7-native.json": {
+      "sha256": "6c47dd59acdc01993b84f70adf39a1c3f050088e6bbd781409514f85fda75bb0",
+      "bytes": 1082991
+    }
+  }
+}

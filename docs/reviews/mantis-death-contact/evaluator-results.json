@@ -1,0 +1,212 @@
+{
+  "identity": {
+    "traceIndex": 385,
+    "frame": 390,
+    "boutTime": 15.917499999999974,
+    "gameTime": 34.19939999999118,
+    "deathT": 0.1103749999962747,
+    "flinch": 0.6152971236343303
+  },
+  "candidate4vs5": 0,
+  "capturedError": 0,
+  "parts": [
+    {
+      "name": "leg-1_1_knee",
+      "minimum": -0.10222949073886411,
+      "below": 98
+    },
+    {
+      "name": "leg-1_0_knee",
+      "minimum": 0.22663110429073186,
+      "below": 0
+    },
+    {
+      "name": "leg1_1_knee",
+      "minimum": 0.27417504045183705,
+      "below": 0
+    },
+    {
+      "name": "leg1_0_knee",
+      "minimum": 0.5604729220639229,
+      "below": 0
+    },
+    {
+      "name": "leg-1_1",
+      "minimum": 0.6935142181637275,
+      "below": 0
+    },
+    {
+      "name": "leg-1_0",
+      "minimum": 0.8605363398133932,
+      "below": 0
+    },
+    {
+      "name": "leg1_1",
+      "minimum": 0.8994944478220077,
+      "below": 0
+    },
+    {
+      "name": "abdomen",
+      "minimum": 0.9917311415899803,
+      "below": 0
+    },
+    {
+      "name": "body",
+      "minimum": 1.0167536423110732,
+      "below": 0
+    },
+    {
+      "name": "leg1_0",
+      "minimum": 1.0678216009664538,
+      "below": 0
+    },
+    {
+      "name": "raptor-1_hook",
+      "minimum": 1.26410587426642,
+      "below": 0
+    },
+    {
+      "name": "neck",
+      "minimum": 1.302969621106854,
+      "below": 0
+    },
+    {
+      "name": "wing-1_1",
+      "minimum": 1.486500776873072,
+      "below": 0
+    },
+    {
+      "name": "raptor1_hook",
+      "minimum": 1.5268155490691697,
+      "below": 0
+    },
+    {
+      "name": "wing1_1",
+      "minimum": 1.5560170532340862,
+      "below": 0
+    },
+    {
+      "name": "wing-1_0",
+      "minimum": 1.680127196197759,
+      "below": 0
+    },
+    {
+      "name": "wing1_0",
+      "minimum": 1.7301643435943106,
+      "below": 0
+    },
+    {
+      "name": "raptor-1_elbow",
+      "minimum": 1.9921446401317553,
+      "below": 0
+    },
+    {
+      "name": "raptor-1",
+      "minimum": 1.9936254052556706,
+      "below": 0
+    },
+    {
+      "name": "raptor1",
+      "minimum": 2.158120506852015,
+      "below": 0
+    },
+    {
+      "name": "raptor1_elbow",
+      "minimum": 2.1931000035631314,
+      "below": 0
+    },
+    {
+      "name": "head",
+      "minimum": 2.697981558234119,
+      "below": 0
+    }
+  ],
+  "wrongGameTimeError": 0.007097115450094544,
+  "noFlinch": {
+    "name": "leg-1_1_knee",
+    "minimum": -0.11024154576443834,
+    "below": 98
+  },
+  "noDeath": {
+    "name": "leg-1_1_knee",
+    "minimum": -0.13110761575262586,
+    "below": 102
+  },
+  "uprightRootSameTranslation": {
+    "name": "leg-1_1_knee",
+    "minimum": 0.19996415968046222,
+    "below": 0
+  },
+  "kneeAngles": {
+    "current": -0.07829066728896988,
+    "next": -0.2902983481769024
+  },
+  "onlyNextKneeAtFailedWorld": {
+    "name": "leg-1_1_knee",
+    "minimum": 0.006680955832848667,
+    "below": 0
+  },
+  "lethalFrameWithPreviousFlinchError": 0,
+  "neighbors": [
+    {
+      "index": 383,
+      "frame": 388,
+      "scalarReplayError": 0,
+      "minimum": {
+        "name": "leg1_1_knee",
+        "minimum": 0.012991904126920417,
+        "below": 0
+      }
+    },
+    {
+      "index": 384,
+      "frame": 389,
+      "scalarReplayError": 0.08992581848839754,
+      "minimum": {
+        "name": "leg1_1_knee",
+        "minimum": 0.009642213334814187,
+        "below": 0
+      }
+    },
+    {
+      "index": 385,
+      "frame": 390,
+      "scalarReplayError": 0,
+      "minimum": {
+        "name": "leg-1_1_knee",
+        "minimum": -0.10222949073886411,
+        "below": 98
+      }
+    },
+    {
+      "index": 386,
+      "frame": 391,
+      "scalarReplayError": 0,
+      "minimum": {
+        "name": "leg-1_1_knee",
+        "minimum": 0.041571169770350025,
+        "below": 0
+      }
+    },
+    {
+      "index": 387,
+      "frame": 392,
+      "scalarReplayError": 0,
+      "minimum": {
+        "name": "leg-1_1_knee",
+        "minimum": 0.27634324080054284,
+        "below": 0
+      }
+    },
+    {
+      "index": 394,
+      "frame": 399,
+      "scalarReplayError": 0,
+      "minimum": {
+        "name": "leg-1_1_knee",
+        "minimum": 0.3575215879455982,
+        "below": 0
+      }
+    }
+  ]
+}

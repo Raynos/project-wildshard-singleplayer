@@ -1,0 +1,7 @@
+{
+  "file": "docs/reviews/mantis-death-contact/focused-test.txt",
+  "originalSha256": "718a69b6902e8d189a0b5530b8ad8a7d7e98b0c848571372262839eb7a2b1b5a",
+  "publicSha256": "7f0262adc2dcee418ca26bbcdab8b877dfbb5ef29d289e864583118b2c752ef1",
+  "change": "Redact absolute checkout root to dot and remove extra blank EOF; test outcomes unchanged.",
+  "originalLocal": "tmp/mantis-death-contact-raw/focused-test.txt"
+}
