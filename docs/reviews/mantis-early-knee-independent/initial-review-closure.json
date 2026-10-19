@@ -1,0 +1,44 @@
+{
+  "schema": "wildshard.mantis.early-knee-independent-source-review.v1",
+  "sourceClosureSha256": "3c61ef62e165f6651256f792b5a8d5d0b80d884b8f7637d2f8c3c57157d31c1d",
+  "verdict": "GO for one bounded actual diagnostic capture; HOLD promotion",
+  "acceptance": false,
+  "files": {
+    "docs/reviews/mantis-early-knee-independent/REVIEW.md": {
+      "sha256": "a60a151d4401fbec30a6a25359ab46fe2098c802f85bde98d7f409444e49e489",
+      "bytes": 8532
+    },
+    "docs/reviews/mantis-early-knee-independent/admission-tests.txt": {
+      "sha256": "94d5686c904246245a228b41174661055f5ffc7e61f2c9532118967a2146b275",
+      "bytes": 893
+    },
+    "docs/reviews/mantis-early-knee-independent/crosscheck.py": {
+      "sha256": "fb9c3bcbca84ab060bdd5fbcc7a1b2b6c4749e142047282227f6846ee1d30c1c",
+      "bytes": 3850
+    },
+    "docs/reviews/mantis-early-knee-independent/focused-tests.txt": {
+      "sha256": "0b41870942421fcd0a92a5cf35071ff8edbcdee6e9400c163426584deda7f0e9",
+      "bytes": 717
+    },
+    "docs/reviews/mantis-early-knee-independent/frozen-producer-results.json": {
+      "sha256": "af45e34f9f010879bd8924eaf289ca07146adad9607d2f24de88d67b5acbcfce",
+      "bytes": 1509327
+    },
+    "docs/reviews/mantis-early-knee-independent/historical-closure-check.json": {
+      "sha256": "ec73990170b6f325be17479a65e3bd3236d9c22f1cc82b9ae0e66b882a53ba06",
+      "bytes": 949
+    },
+    "docs/reviews/mantis-early-knee-independent/rerun-check.json": {
+      "sha256": "9711d41cb61afd3a2f86bd55ab161eb30d35a781415a2ff7f20f812150517baf",
+      "bytes": 232
+    },
+    "docs/reviews/mantis-early-knee-independent/source-closure-check.json": {
+      "sha256": "e64829144a064aaeadd5de8cb5d859f1cfe0ecb5e4f9f9ec4897a82d7687a560",
+      "bytes": 231
+    },
+    "docs/reviews/mantis-early-knee-independent/world-crosscheck.json": {
+      "sha256": "e9002bf3cda6a06da511dd754f254791b14ce41de6911fe0f4e7db61f96c90a0",
+      "bytes": 925353
+    }
+  }
+}

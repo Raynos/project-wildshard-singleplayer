@@ -1,0 +1,8 @@
+{
+  "focusedTestsPassed": 7,
+  "admissionTestsPassed": 8,
+  "resultsByteIdentical": true,
+  "resultsSha256": "af45e34f9f010879bd8924eaf289ca07146adad9607d2f24de88d67b5acbcfce",
+  "frozenSourceFilesChecked": 24,
+  "mismatches": []
+}

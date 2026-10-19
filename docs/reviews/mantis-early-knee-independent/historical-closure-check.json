@@ -1,0 +1,26 @@
+[
+  {
+    "closure": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/source-closure.json",
+    "sha256": "0b9a31b042ecceddbe55b10bab620ae05a478bf09f16a7f9b0ac37dc407372d0",
+    "files": 18,
+    "mismatches": []
+  },
+  {
+    "closure": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/capture-closure.json",
+    "sha256": "333c168f88ead84112193c14db4051adf1ee67a01261ecef49c4b2a19b3f2a99",
+    "files": 16,
+    "mismatches": []
+  },
+  {
+    "closure": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate5/source-closure.json",
+    "sha256": "471c590760e63d74f10a4601568fb36938901e1e1ce84b91a60a9843d01fb890",
+    "files": 23,
+    "mismatches": []
+  },
+  {
+    "closure": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate5/capture-closure.json",
+    "sha256": "dc5797524839191780fa48769fb4e9d3f02f381d4eb7b4dcebde7db2d1f29025",
+    "files": 28,
+    "mismatches": []
+  }
+]

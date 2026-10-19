@@ -1,0 +1,7 @@
+{
+  "file": "docs/reviews/mantis-early-knee-independent/focused-tests.txt",
+  "originalSha256": "0b41870942421fcd0a92a5cf35071ff8edbcdee6e9400c163426584deda7f0e9",
+  "normalizedSha256": "bc3b6b0ee922cde3172c1ea650f1cf45f4305e50aeef90b7d465a4aade06c936",
+  "change": "Remove extra blank EOF only; test outcomes unchanged.",
+  "rawOriginalRetained": "tmp/mantis-early-knee-review-raw/focused-tests.txt"
+}
