@@ -1,0 +1,40 @@
+{
+  "status": "Preserved failed initial geometry:23 exported triangles oppose normals; captures retained unchanged in tmp/bellback-complete-face-character/hero and nine",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/capture-nine.json",
+      "bytes": 22826,
+      "sha256": "4133a01da693057d3a985a35b902d4273e46a1d395d840da2dc4b72a5bc7636b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/bellback-complete-face-character.glb",
+      "bytes": 366584,
+      "sha256": "e0ed9f1bd45b23fb1f19d72767444fbe5cc683a130e5e7f203449247992d1634"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/validation.json",
+      "bytes": 451,
+      "sha256": "56fdca1f67c635f52922fb02f979efde3bf43491f780c66faf91445a91881a20"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/geometry-checks.json",
+      "bytes": 16855,
+      "sha256": "7b4e71a545ce90506c6987368664c67d1990a4ca49f492663aff456491606398"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/capture-hero.json",
+      "bytes": 13527,
+      "sha256": "8f439541018b4ec649f4075255fabf6b8833c972347c099617ce7d801eb4516c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/native-geometry-checks.json",
+      "bytes": 4384,
+      "sha256": "ce517cc97c2173431cefd3d0ba2e2d396804cfae4dd0a4ffce4a96d239812a33"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/build_bellback_complete.py",
+      "bytes": 16744,
+      "sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9"
+    }
+  ]
+}

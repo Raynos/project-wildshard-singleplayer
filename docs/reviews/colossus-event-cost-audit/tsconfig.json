@@ -1,0 +1,1 @@
+{"extends":"../../../tsconfig.json","compilerOptions":{"types":["node","vite/client"],"resolveJsonModule":true},"include":["cost.test.ts","inline-regression.test.ts","../../../src/**/*.d.ts","../../../src/engine/boot/shardPrefetch.ts"]}

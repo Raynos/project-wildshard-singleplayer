@@ -1,0 +1,388 @@
+{
+  "status": "PASS: raw bytes preserved; all three sets have identical camera/light/capture-script hashes",
+  "raw_capture_count": 30,
+  "captures": [
+    {
+      "set": "failed-initial",
+      "view": "hero",
+      "path": "tmp/bellback-complete-face-character/hero/hero.png",
+      "bytes": 1219925,
+      "sha256": "e415be92e9edab12a8dc83b1b11ef90108999742e0cedf2ce2b6cdaa86fc2733",
+      "source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+      "camera_sha256": "56ac369d52e8acbcc61db6223118765b4e51bbcd0387b1837e39d56c05009a96",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "failed-initial",
+      "view": "01-front",
+      "path": "tmp/bellback-complete-face-character/nine/01-front.png",
+      "bytes": 386137,
+      "sha256": "9fd54a6bd9c0ab2896ee5b9c94b4671106fa8e25fe7228ea321b48d86f57ee2f",
+      "source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+      "camera_sha256": "9e57671ea33cd349519cfd79a9ca325b61b43db16e839eabbc1983452b26654b",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "failed-initial",
+      "view": "02-left",
+      "path": "tmp/bellback-complete-face-character/nine/02-left.png",
+      "bytes": 381040,
+      "sha256": "5e53d5100aaa21c7df3509ca71beb8a9b84b9a65fb91840ac8cc7f80545f069d",
+      "source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+      "camera_sha256": "a69e1f1e42452cea2043cf78c801bb8583936ab113a6911d237536ea933da1de",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "failed-initial",
+      "view": "03-right",
+      "path": "tmp/bellback-complete-face-character/nine/03-right.png",
+      "bytes": 385634,
+      "sha256": "d20237cef4ec38bccf6ea8c9be8eec942b570f4f2f34eaec697209e0d269ca7b",
+      "source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+      "camera_sha256": "dd56c3479d20780b9861140f40d152e5af01cb83a4219834cfe0ac101380e92e",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "failed-initial",
+      "view": "04-back",
+      "path": "tmp/bellback-complete-face-character/nine/04-back.png",
+      "bytes": 367882,
+      "sha256": "ef7cd02b52427d42dca87eb747faef7a48823f6b5e80f10f8da6ac4ca92089df",
+      "source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+      "camera_sha256": "06a16d313b68112a9462f47435aaeded9b0408491b9eeb14eaace97141e55548",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "failed-initial",
+      "view": "05-top",
+      "path": "tmp/bellback-complete-face-character/nine/05-top.png",
+      "bytes": 653012,
+      "sha256": "52d041712e50b4615c4c038febd676deff912ff357e82859cfaff06ebbec7340",
+      "source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+      "camera_sha256": "f78736c4083b31c87430efa34403ccff9ea24bb36daf0ef1f304a387543068db",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "failed-initial",
+      "view": "06-diag-front",
+      "path": "tmp/bellback-complete-face-character/nine/06-diag-front.png",
+      "bytes": 664025,
+      "sha256": "62ca398581c02b3d3edf965a006ae1e3a597e69e374c0b4177d48ceda793cd67",
+      "source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+      "camera_sha256": "dc9da28b7e2e1104a221d78cc1b6ae6fce0ffcd645e7a4fe95baa93c6e30285f",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "failed-initial",
+      "view": "07-diag-left",
+      "path": "tmp/bellback-complete-face-character/nine/07-diag-left.png",
+      "bytes": 644457,
+      "sha256": "2f9ad23bace7d1b1ca15012646f25b5b9e42978b17fd51b6faaff16b83dd0c41",
+      "source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+      "camera_sha256": "ae5500271230f25261ca2e7f0c350fe8170c089bfc21ddd1c58d366912a78487",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "failed-initial",
+      "view": "08-diag-right",
+      "path": "tmp/bellback-complete-face-character/nine/08-diag-right.png",
+      "bytes": 646959,
+      "sha256": "6d5f8fb4199f8ca312ef557540d9d045a8b4f14a7b4436736a5baf698743493f",
+      "source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+      "camera_sha256": "762d37bfffad056a42ed1d8c9c8027cd36dfe371ab8791339a4eb4b8751af287",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "failed-initial",
+      "view": "09-diag-back",
+      "path": "tmp/bellback-complete-face-character/nine/09-diag-back.png",
+      "bytes": 638604,
+      "sha256": "972bcf7a49b77fcd8869e16a58282c5fe76296f6d0e83b6070af87c16e11919a",
+      "source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+      "camera_sha256": "2f5ecd72cf2fbe3fca836c9ff11dd38947018244b8f32d99ee6d396632e38598",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "final",
+      "view": "hero",
+      "path": "tmp/bellback-complete-face-character/final/hero/hero.png",
+      "bytes": 1222635,
+      "sha256": "d8bc86c5fdcb1c9a5b5286d002aeae469785ac86cbb25cf9da82a85820d5de7a",
+      "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+      "camera_sha256": "56ac369d52e8acbcc61db6223118765b4e51bbcd0387b1837e39d56c05009a96",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "final",
+      "view": "01-front",
+      "path": "tmp/bellback-complete-face-character/final/nine/01-front.png",
+      "bytes": 387212,
+      "sha256": "3ad3ffbb0e89ff002ebfafa0c1c82ca4a167440dc35666695d8b18a8ff8945dc",
+      "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+      "camera_sha256": "9e57671ea33cd349519cfd79a9ca325b61b43db16e839eabbc1983452b26654b",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "final",
+      "view": "02-left",
+      "path": "tmp/bellback-complete-face-character/final/nine/02-left.png",
+      "bytes": 381761,
+      "sha256": "8763cbd12aa6db1435344d9407c8ab8c436f4fdb7b9c5ed8bfe1810ec02075fe",
+      "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+      "camera_sha256": "a69e1f1e42452cea2043cf78c801bb8583936ab113a6911d237536ea933da1de",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "final",
+      "view": "03-right",
+      "path": "tmp/bellback-complete-face-character/final/nine/03-right.png",
+      "bytes": 387651,
+      "sha256": "fd4fb30c1b26a5f5eb3d0220a59398bb5f64da37a114a305fc800c0ef8cc78f6",
+      "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+      "camera_sha256": "dd56c3479d20780b9861140f40d152e5af01cb83a4219834cfe0ac101380e92e",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "final",
+      "view": "04-back",
+      "path": "tmp/bellback-complete-face-character/final/nine/04-back.png",
+      "bytes": 367994,
+      "sha256": "82bb14a0b14ee84fe4981c6d592601b9183e62e81b5572053e54da303c789cf8",
+      "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+      "camera_sha256": "06a16d313b68112a9462f47435aaeded9b0408491b9eeb14eaace97141e55548",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "final",
+      "view": "05-top",
+      "path": "tmp/bellback-complete-face-character/final/nine/05-top.png",
+      "bytes": 653057,
+      "sha256": "ea988baddea13faf71302d63b67db1627d72dfce1134045aeaaa1a5e161eb3e0",
+      "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+      "camera_sha256": "f78736c4083b31c87430efa34403ccff9ea24bb36daf0ef1f304a387543068db",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "final",
+      "view": "06-diag-front",
+      "path": "tmp/bellback-complete-face-character/final/nine/06-diag-front.png",
+      "bytes": 662488,
+      "sha256": "a7044e6c266a9aaea149e1e820dd677cbc2f5fc9a6f5237ce761b16edf71ee10",
+      "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+      "camera_sha256": "dc9da28b7e2e1104a221d78cc1b6ae6fce0ffcd645e7a4fe95baa93c6e30285f",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "final",
+      "view": "07-diag-left",
+      "path": "tmp/bellback-complete-face-character/final/nine/07-diag-left.png",
+      "bytes": 643181,
+      "sha256": "3e201235b7a299ca97e194d141dfda00e8aba8661c4419d1b4a61609ebda511d",
+      "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+      "camera_sha256": "ae5500271230f25261ca2e7f0c350fe8170c089bfc21ddd1c58d366912a78487",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "final",
+      "view": "08-diag-right",
+      "path": "tmp/bellback-complete-face-character/final/nine/08-diag-right.png",
+      "bytes": 646448,
+      "sha256": "3d2593927a6f6468a16233fc43dcc499997eaa956f07986132066329e5924886",
+      "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+      "camera_sha256": "762d37bfffad056a42ed1d8c9c8027cd36dfe371ab8791339a4eb4b8751af287",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "final",
+      "view": "09-diag-back",
+      "path": "tmp/bellback-complete-face-character/final/nine/09-diag-back.png",
+      "bytes": 638396,
+      "sha256": "9759047241bed76763d7b280e8ff0d260cc15846f4ecb192a43642ea24865f0d",
+      "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+      "camera_sha256": "2f5ecd72cf2fbe3fca836c9ff11dd38947018244b8f32d99ee6d396632e38598",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "retained-pass3",
+      "view": "hero",
+      "path": "tmp/bellback-complete-pass3/hero/hero.png",
+      "bytes": 1231296,
+      "sha256": "cd8caf246fc9679bd7645c169ea8e4c8b8bb9684e85b07fb3ba684ef2ce746c4",
+      "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "camera_sha256": "56ac369d52e8acbcc61db6223118765b4e51bbcd0387b1837e39d56c05009a96",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "retained-pass3",
+      "view": "01-front",
+      "path": "tmp/bellback-complete-pass3/nine/01-front.png",
+      "bytes": 389281,
+      "sha256": "3dd9bf2cba2a635fb3b16f87d28e2f13dc2a618e2301d6a5975cc2b046c0f128",
+      "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "camera_sha256": "9e57671ea33cd349519cfd79a9ca325b61b43db16e839eabbc1983452b26654b",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "retained-pass3",
+      "view": "02-left",
+      "path": "tmp/bellback-complete-pass3/nine/02-left.png",
+      "bytes": 383423,
+      "sha256": "8591eb763f808c2f2ea1f3b655f21c672939b32e67b411ca407f3be6fba99bc4",
+      "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "camera_sha256": "a69e1f1e42452cea2043cf78c801bb8583936ab113a6911d237536ea933da1de",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "retained-pass3",
+      "view": "03-right",
+      "path": "tmp/bellback-complete-pass3/nine/03-right.png",
+      "bytes": 389940,
+      "sha256": "e637e7610eab91d2f2ed168c05b5e86ab811d57af7db3d462663c761712b5c4f",
+      "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "camera_sha256": "dd56c3479d20780b9861140f40d152e5af01cb83a4219834cfe0ac101380e92e",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "retained-pass3",
+      "view": "04-back",
+      "path": "tmp/bellback-complete-pass3/nine/04-back.png",
+      "bytes": 368327,
+      "sha256": "8459f122c02b4440d0254347ffed11c3bfdf084e4bacd4392b5ec7e5ff9f510c",
+      "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "camera_sha256": "06a16d313b68112a9462f47435aaeded9b0408491b9eeb14eaace97141e55548",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "retained-pass3",
+      "view": "05-top",
+      "path": "tmp/bellback-complete-pass3/nine/05-top.png",
+      "bytes": 655095,
+      "sha256": "d7f60469d036fd39a11b44b568fdae308520d5f1d1bd456233a8cd6c3be35a1f",
+      "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "camera_sha256": "f78736c4083b31c87430efa34403ccff9ea24bb36daf0ef1f304a387543068db",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "retained-pass3",
+      "view": "06-diag-front",
+      "path": "tmp/bellback-complete-pass3/nine/06-diag-front.png",
+      "bytes": 669035,
+      "sha256": "835b414cc633e4d758f8c88477f7b8570a74c037c74824df127eb06091a45d74",
+      "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "camera_sha256": "dc9da28b7e2e1104a221d78cc1b6ae6fce0ffcd645e7a4fe95baa93c6e30285f",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "retained-pass3",
+      "view": "07-diag-left",
+      "path": "tmp/bellback-complete-pass3/nine/07-diag-left.png",
+      "bytes": 646817,
+      "sha256": "307695fb1a4687a45272a4f9c916ae50587c8a27b2ccd8035d26b3b547658dab",
+      "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "camera_sha256": "ae5500271230f25261ca2e7f0c350fe8170c089bfc21ddd1c58d366912a78487",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "retained-pass3",
+      "view": "08-diag-right",
+      "path": "tmp/bellback-complete-pass3/nine/08-diag-right.png",
+      "bytes": 649703,
+      "sha256": "c7c4e2c4751f9a55ea935dab7775d624681624f7d58deac9934fec5d6d1728aa",
+      "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "camera_sha256": "762d37bfffad056a42ed1d8c9c8027cd36dfe371ab8791339a4eb4b8751af287",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "set": "retained-pass3",
+      "view": "09-diag-back",
+      "path": "tmp/bellback-complete-pass3/nine/09-diag-back.png",
+      "bytes": 638329,
+      "sha256": "5ede422d01eb87f3b776333eb75ecbd2b13d94ccd8b87accc9fe8c614ec995c6",
+      "source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "camera_sha256": "2f5ecd72cf2fbe3fca836c9ff11dd38947018244b8f32d99ee6d396632e38598",
+      "lights_sha256": "ebe4a604ab22dd31f3fa218fda8ca383445953a5500176bb0e37e3d23f4a5f15",
+      "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    }
+  ],
+  "retained_initial_source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+  "final_source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+  "final_glb_sha256": "ed162247af6a0d6075bb58b4ffbe4922734bc4fa1aee32fb1e01c348fa096890",
+  "original_reference_sha256": "92b3a72c20b2e820d843956f8d076fb981af9d4ec9e5669794cb717dd552f4ae",
+  "owned_scratch_bytes": 15450074,
+  "retained_failed_and_render_logs": [
+    {
+      "path": "tmp/bellback-complete-face-character/final/hero.log",
+      "bytes": 26470,
+      "sha256": "d489881fc0595f4b7e163e91fc1ee93a70fd668986eb469efa99bab540db8637"
+    },
+    {
+      "path": "tmp/bellback-complete-face-character/final/nine.log",
+      "bytes": 161829,
+      "sha256": "b1d330403d67adbd811f60ea682a9e5634b941cf6a7bbf024a503c45168cdf7b"
+    },
+    {
+      "path": "tmp/bellback-complete-face-character/frame-comparison.log",
+      "bytes": 19745,
+      "sha256": "684d90773f9a5a2c72f14356f21644de8426ef25cc4952d3dd2e7b0fc9f6fc28"
+    },
+    {
+      "path": "tmp/bellback-complete-face-character/geometry-checks.log",
+      "bytes": 9241,
+      "sha256": "ac9c95b90b14655728095bff55456f1457fc5fdcb1da2754f97e9f9975c62767"
+    },
+    {
+      "path": "tmp/bellback-complete-face-character/geometry-continuity.log",
+      "bytes": 9241,
+      "sha256": "373786a009ace91b48065adac51f904a1255905fca628f4e8189546be2aea091"
+    },
+    {
+      "path": "tmp/bellback-complete-face-character/hero.log",
+      "bytes": 26463,
+      "sha256": "9bcdc9e2ef8786fa15dc59a1e3f7270256ac53d60087108eedcbc21e6d51fc30"
+    },
+    {
+      "path": "tmp/bellback-complete-face-character/nine.log",
+      "bytes": 160124,
+      "sha256": "102f6bfb533a952f0731e77d9bb3666575e380d4041deeea3b934b564105f3ab"
+    },
+    {
+      "path": "tmp/bellback-complete-face-character/source-retry.log",
+      "bytes": 9225,
+      "sha256": "9785b5eb2fec21850931615e5abfbd1f8748d823aa6a5825b9a7d86607692015"
+    },
+    {
+      "path": "tmp/bellback-complete-face-character/source.log",
+      "bytes": 573,
+      "sha256": "fcbce79cafe5bb0b7ac9d2b1822c1104a48a113048a163fca5dfbe680afed827"
+    }
+  ]
+}

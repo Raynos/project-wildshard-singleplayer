@@ -1,0 +1,255 @@
+{
+  "status": "Complete static evidence; independent review pending",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/01-front.webp",
+      "bytes": 38248,
+      "sha256": "7376df10fed2f0976a533aba3f2d40e1560a664255e7c908bd859d661eef5d65"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/02-left.webp",
+      "bytes": 36148,
+      "sha256": "aa32806eadd6b0fa3c6ee6ff65adaa33982c92d6912e8093895fdbfaa5944864"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/03-right.webp",
+      "bytes": 39078,
+      "sha256": "8c037f02ee258f7e7f6f132967903c60189388927a4a40ab3decfb558346c671"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/04-back.webp",
+      "bytes": 30094,
+      "sha256": "2c895c55161f913a2e522dfbd201547ad04b112f428ea7f807f4f45151cac68f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/05-top.webp",
+      "bytes": 82372,
+      "sha256": "da65ab20aee6f208e61a5459de2a90edc7b540280ceed2480aa720a9784226f4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/06-diag-front.webp",
+      "bytes": 80928,
+      "sha256": "3dd1dc06bba522d27bded18a2a3a926666ade6fa0b6a65de78ba09495ec15d03"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/07-diag-left.webp",
+      "bytes": 70878,
+      "sha256": "7ee02989286618241a34e0c229f9fddca26d2fd6a6b7b242567e952fd005d0db"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/08-diag-right.webp",
+      "bytes": 79174,
+      "sha256": "a7785b553be4c53893043abcd38c11ffbf2069ea631b8ecdd5f5e35abe3b28f1"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/09-diag-back.webp",
+      "bytes": 89040,
+      "sha256": "1656886f3cf82188a4a1e22e96358bd908a62e3c9b0840881e04fc24ab92fd73"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/audit_evidence.py",
+      "bytes": 2327,
+      "sha256": "7a720418b0d07270876b47b123f149636ceb9495902f96a0bbf11f07221008a5"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/bellback-complete-face-character.glb",
+      "bytes": 366236,
+      "sha256": "ed162247af6a0d6075bb58b4ffbe4922734bc4fa1aee32fb1e01c348fa096890"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/build_bellback_complete.py",
+      "bytes": 16839,
+      "sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/capture-hero.json",
+      "bytes": 13527,
+      "sha256": "cb93f2185a49db4c4c61d73e8604d7196457a34b90145a396166a2113579cc6e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/capture-nine.json",
+      "bytes": 22826,
+      "sha256": "07771b9d2f7135f3e1d5c9e9e54a50e7310278d7406967cc31505461cec62f88"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/capture_review.py",
+      "bytes": 5500,
+      "sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/check_geometry.py",
+      "bytes": 1427,
+      "sha256": "3884c9c8b42e7bb2f1b8f6b9cb5a20364750b0f5d0e4ab6df4f2234347816f74"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/check_native.py",
+      "bytes": 1609,
+      "sha256": "885b17a8d0cea14c81c021e1a83c44ea9d970eb78729ac0597015f1df2371dd7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/compare_frames.py",
+      "bytes": 1693,
+      "sha256": "357d9144b2f538d3c1ab3bb405e1d4ccd0b9bfd78ac8e321ac6879775e60426d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/comparison-board.webp",
+      "bytes": 59342,
+      "sha256": "f4936ab0007ce44bfeb3328ac35501d383c10dea44f24990bc100942fd62f26a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/bellback-complete-face-character.glb",
+      "bytes": 366584,
+      "sha256": "e0ed9f1bd45b23fb1f19d72767444fbe5cc683a130e5e7f203449247992d1634"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/build_bellback_complete.py",
+      "bytes": 16744,
+      "sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/capture-hero.json",
+      "bytes": 13527,
+      "sha256": "8f439541018b4ec649f4075255fabf6b8833c972347c099617ce7d801eb4516c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/capture-nine.json",
+      "bytes": 22826,
+      "sha256": "4133a01da693057d3a985a35b902d4273e46a1d395d840da2dc4b72a5bc7636b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/closure.json",
+      "bytes": 1822,
+      "sha256": "b623caa92c81b643a5dd0109dd85a04ee64ed6347d0a38ae9a373c135c1db1e7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/geometry-checks.json",
+      "bytes": 16855,
+      "sha256": "7b4e71a545ce90506c6987368664c67d1990a4ca49f492663aff456491606398"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/native-geometry-checks.json",
+      "bytes": 4384,
+      "sha256": "ce517cc97c2173431cefd3d0ba2e2d396804cfae4dd0a4ffce4a96d239812a33"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/failed-initial/validation.json",
+      "bytes": 451,
+      "sha256": "56fdca1f67c635f52922fb02f979efde3bf43491f780c66faf91445a91881a20"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/frame-correction-diff.json",
+      "bytes": 1328,
+      "sha256": "e0d495fec69bb99198afe791e69ba22b1e1642058f7c7d44b286b924e58740e9"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/freeze_provenance.py",
+      "bytes": 2336,
+      "sha256": "48714fb2b5a84d775800c89c41deecdd5be1eaff3055668a53e34b533149a5ff"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/geometry-checks.json",
+      "bytes": 16853,
+      "sha256": "cf6d5994ac3ca8bb88960c6a1e71e25fbbe7bb2468dc6acf5f67da6267e2592a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/hero.webp",
+      "bytes": 92202,
+      "sha256": "e7616dd3820aea5d052c7827fec01434af7d4440b22b76e51a18a70b1d711efa"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/metrics.json",
+      "bytes": 309,
+      "sha256": "9eeadc3041a774f96191e55ebcdea5cb5265c31e5102d4941feaea45e30be920"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/native-geometry-checks.json",
+      "bytes": 243,
+      "sha256": "593eb1e3cf6e34b0084b81d2fd8818f5d83a107ad0564f6c0409ce580cd130c0"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/nine-view-board.webp",
+      "bytes": 98382,
+      "sha256": "62f9622cd975c1a440b67cddd23f69f03ddab7c2338a5e996854fe30bb17377a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/package_evidence.py",
+      "bytes": 2319,
+      "sha256": "876f578e90a8b0ed0bdc1afc04c7a60ae6d14cf9fb40b3c6d7c1cba4eb6add96"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/pair_evidence.py",
+      "bytes": 2299,
+      "sha256": "302dd060f96e10f85fdadd07e1e91443e25da71e4e206873598720ac957adadf"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-01-front-board.webp",
+      "bytes": 30892,
+      "sha256": "3dcef94a53f2945af373003c00667a6ac3c58fb71dcc9beeaf12940c514200b1"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-02-left-board.webp",
+      "bytes": 28272,
+      "sha256": "154396c1fd45c8f2e47d6a7b8e82d57e4ba69d3f1a15fe80723611fa8fe138df"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-03-right-board.webp",
+      "bytes": 32544,
+      "sha256": "75d9591e21d1cff68f09bf4e1c22a4e073d80e96bcda2ac2296b5683ef975320"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-04-back-board.webp",
+      "bytes": 25680,
+      "sha256": "5f7bbf5c27786e7f6ac3bdb1cb7c150492dd03bd24186b3ca2e66703a201ebe3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-05-top-board.webp",
+      "bytes": 49928,
+      "sha256": "3401f662de4727a726ca4d9daa60bd263c99bffd8e0624801d26315a0599f972"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-06-diag-front-board.webp",
+      "bytes": 50834,
+      "sha256": "34fcb51af41db58404e4427d035ae42a0e2d9d531b0168fffd17201bb2931c7d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-07-diag-left-board.webp",
+      "bytes": 48596,
+      "sha256": "eef159050ea54b09aa09e39b60dc981d0016f3f027d069f219d141735b0cd88d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-08-diag-right-board.webp",
+      "bytes": 49438,
+      "sha256": "6989754b268e8a4ac573160a53e472764980c28900a1d1fbe5a7cfda022b0084"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-09-diag-back-board.webp",
+      "bytes": 58542,
+      "sha256": "1edbaeac8287b6c27135b3e824db9d694fe85fa8fc970457319ac21cb469606c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-captures.json",
+      "bytes": 8717,
+      "sha256": "e1244ee3d5fcd2fb5f2296ec3767234afbd329ce5cafe937160cf4827b159ef6"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-hero-board.webp",
+      "bytes": 36124,
+      "sha256": "2d892de92fd1b99dd63533fcd12ee2eb758a94e7633cc0bfe82620cf97ab2886"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/provenance.json",
+      "bytes": 20850,
+      "sha256": "a65c06f825248acf74c126a12cc3107b4db66ead6e49ab7bfa3a34364bae548f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/structural-audit.json",
+      "bytes": 998,
+      "sha256": "529e38a14086d0b754c9cb3d320e1c83aae70962f1ac0e7ce6d83acaf35b0e15"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-face-character/validation.json",
+      "bytes": 451,
+      "sha256": "1cc4f6c2bf31dd90565b32551d98cc014b3864ab0c64224edc57829e453c9c7a"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vitest.config" without a file extension (docs/reviews/colossus-event-cost-audit/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 .
+
+ ❯ docs/reviews/colossus-event-cost-audit/inline-regression.test.ts (143 tests | 1 failed) 19847ms
+   × baseline comparison: actual host must admit the ordinary paired lethal dispatch 18ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  docs/reviews/colossus-event-cost-audit/inline-regression.test.ts > baseline comparison: actual host must admit the ordinary paired lethal dispatch
+AssertionError: Real paired lethal dispatch is a required gate, never an expected-failure pass: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ docs/reviews/colossus-event-cost-audit/inline-regression.test.ts:153:148
+    151|  }
+    152|  writeFileSync(`${destination}paired-dispatch-failure.json`,JSON.strin…
+    153|  expect(results.every(row=>row.metrics.every(m=>m.refusals===0)),'Real…
+       |                                                                                                                                                    ^
+    154| });
+    155|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 143 passed (144)
+   Start at  11:32:02
+   Duration  41.90s (tests 58%, transform 27%, setup 11%, import 5%)
+
+  Transform  transforming modules took 11.02s · 27% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

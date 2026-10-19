@@ -1,0 +1,16 @@
+{
+  "status": "Native GLB structural validation passed; visual acceptance and performance not established",
+  "sha256": "ed162247af6a0d6075bb58b4ffbe4922734bc4fa1aee32fb1e01c348fa096890",
+  "bytes": 366236,
+  "header_valid": true,
+  "external_dependencies": 0,
+  "finite_attributes": true,
+  "index_bounds_valid": true,
+  "nodes": 96,
+  "meshes": 88,
+  "mesh_primitives": 212,
+  "triangles": 4766,
+  "materials": 15,
+  "animations": 0,
+  "skins": 0
+}

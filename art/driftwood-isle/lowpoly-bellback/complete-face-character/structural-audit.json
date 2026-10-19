@@ -1,0 +1,24 @@
+{
+  "status": "Passed bounded static construction checks; no art score or physics acceptance",
+  "source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+  "glb_sha256": "ed162247af6a0d6075bb58b4ffbe4922734bc4fa1aee32fb1e01c348fa096890",
+  "byte_identical_hero_nine_exports": true,
+  "meshes": 88,
+  "nonmanifold_edges": 0,
+  "zero_area_faces": 0,
+  "ground_z_min": 0,
+  "matched_pairs": 10,
+  "all_images_within_storage_limits": true,
+  "raw_capture_directory": "tmp/bellback-complete-face-character",
+  "builder_visual_inspection": "Actual hero and nine actual full frames inspected; independent review required",
+  "render_logs": [
+    {
+      "path": "tmp/bellback-complete-face-character/final/hero.log",
+      "sha256": "d489881fc0595f4b7e163e91fc1ee93a70fd668986eb469efa99bab540db8637"
+    },
+    {
+      "path": "tmp/bellback-complete-face-character/final/nine.log",
+      "sha256": "b1d330403d67adbd811f60ea682a9e5634b941cf6a7bbf024a503c45168cdf7b"
+    }
+  ]
+}

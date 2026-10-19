@@ -1,0 +1,42 @@
+{
+  "method": "Same named source mesh, same vertex indices; no added/removed vertices or polygons. Consistent transverse frame signs, no normal-only or triangulation-only fix.",
+  "initial_source_sha256": "17cfbe52c11cc35270ac91c2b563c1bd59d9286969cd82e2cec05167b7b8b3e9",
+  "final_source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+  "changed_meshes": [
+    {
+      "mesh": "Barrel timber hull",
+      "changed_vertices": 24,
+      "total_vertices": 32,
+      "max_displacement": 1.8799999952316284,
+      "changed_polygon_order": 0,
+      "total_polygons": 26
+    },
+    {
+      "mesh": "Crown tie",
+      "changed_vertices": 12,
+      "total_vertices": 36,
+      "max_displacement": 0.15000009536743164,
+      "changed_polygon_order": 0,
+      "total_polygons": 32
+    },
+    {
+      "mesh": "Solid timber cranium",
+      "changed_vertices": 21,
+      "total_vertices": 28,
+      "max_displacement": 1.440000057220459,
+      "changed_polygon_order": 0,
+      "total_polygons": 23
+    },
+    {
+      "mesh": "Lower timber jaw",
+      "changed_vertices": 5,
+      "total_vertices": 15,
+      "max_displacement": 0.35999998450279236,
+      "changed_polygon_order": 0,
+      "total_polygons": 12
+    }
+  ],
+  "total_changed_vertices": 62,
+  "triangles_initial": 4766,
+  "triangles_final": 4766
+}

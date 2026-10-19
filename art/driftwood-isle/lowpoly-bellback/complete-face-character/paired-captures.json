@@ -1,0 +1,208 @@
+{
+  "status": "Verified actual paired complete-pass3 and complete-face-character static renders; retained complete-pass3 PNGs reused unchanged",
+  "baseline_source_sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+  "candidate_source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+  "same_lights": true,
+  "pairs": [
+    {
+      "view": "hero",
+      "baseline_png": "tmp/bellback-complete-pass3/hero/hero.png",
+      "baseline_sha256": "cd8caf246fc9679bd7645c169ea8e4c8b8bb9684e85b07fb3ba684ef2ce746c4",
+      "candidate_png": "tmp/bellback-complete-face-character/final/hero/hero.png",
+      "candidate_sha256": "d8bc86c5fdcb1c9a5b5286d002aeae469785ac86cbb25cf9da82a85820d5de7a",
+      "paired_board": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-hero-board.webp",
+      "paired_board_sha256": "2d892de92fd1b99dd63533fcd12ee2eb758a94e7633cc0bfe82620cf97ab2886",
+      "camera": [
+        -4.400000095367432,
+        -8.0,
+        2.6500000953674316
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "01-front",
+      "baseline_png": "tmp/bellback-complete-pass3/nine/01-front.png",
+      "baseline_sha256": "3dd9bf2cba2a635fb3b16f87d28e2f13dc2a618e2301d6a5975cc2b046c0f128",
+      "candidate_png": "tmp/bellback-complete-face-character/final/nine/01-front.png",
+      "candidate_sha256": "3ad3ffbb0e89ff002ebfafa0c1c82ca4a167440dc35666695d8b18a8ff8945dc",
+      "paired_board": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-01-front-board.webp",
+      "paired_board_sha256": "3dcef94a53f2945af373003c00667a6ac3c58fb71dcc9beeaf12940c514200b1",
+      "camera": [
+        0.0,
+        -9.050000190734863,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "02-left",
+      "baseline_png": "tmp/bellback-complete-pass3/nine/02-left.png",
+      "baseline_sha256": "8591eb763f808c2f2ea1f3b655f21c672939b32e67b411ca407f3be6fba99bc4",
+      "candidate_png": "tmp/bellback-complete-face-character/final/nine/02-left.png",
+      "candidate_sha256": "8763cbd12aa6db1435344d9407c8ab8c436f4fdb7b9c5ed8bfe1810ec02075fe",
+      "paired_board": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-02-left-board.webp",
+      "paired_board_sha256": "154396c1fd45c8f2e47d6a7b8e82d57e4ba69d3f1a15fe80723611fa8fe138df",
+      "camera": [
+        9.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "03-right",
+      "baseline_png": "tmp/bellback-complete-pass3/nine/03-right.png",
+      "baseline_sha256": "e637e7610eab91d2f2ed168c05b5e86ab811d57af7db3d462663c761712b5c4f",
+      "candidate_png": "tmp/bellback-complete-face-character/final/nine/03-right.png",
+      "candidate_sha256": "fd4fb30c1b26a5f5eb3d0220a59398bb5f64da37a114a305fc800c0ef8cc78f6",
+      "paired_board": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-03-right-board.webp",
+      "paired_board_sha256": "75d9591e21d1cff68f09bf4e1c22a4e073d80e96bcda2ac2296b5683ef975320",
+      "camera": [
+        -9.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "04-back",
+      "baseline_png": "tmp/bellback-complete-pass3/nine/04-back.png",
+      "baseline_sha256": "8459f122c02b4440d0254347ffed11c3bfdf084e4bacd4392b5ec7e5ff9f510c",
+      "candidate_png": "tmp/bellback-complete-face-character/final/nine/04-back.png",
+      "candidate_sha256": "82bb14a0b14ee84fe4981c6d592601b9183e62e81b5572053e54da303c789cf8",
+      "paired_board": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-04-back-board.webp",
+      "paired_board_sha256": "5f7bbf5c27786e7f6ac3bdb1cb7c150492dd03bd24186b3ca2e66703a201ebe3",
+      "camera": [
+        1.1021821408568715e-15,
+        8.949999809265137,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "05-top",
+      "baseline_png": "tmp/bellback-complete-pass3/nine/05-top.png",
+      "baseline_sha256": "d7f60469d036fd39a11b44b568fdae308520d5f1d1bd456233a8cd6c3be35a1f",
+      "candidate_png": "tmp/bellback-complete-face-character/final/nine/05-top.png",
+      "candidate_sha256": "ea988baddea13faf71302d63b67db1627d72dfce1134045aeaaa1a5e161eb3e0",
+      "paired_board": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-05-top-board.webp",
+      "paired_board_sha256": "3401f662de4727a726ca4d9daa60bd263c99bffd8e0624801d26315a0599f972",
+      "camera": [
+        0.0,
+        -0.05000000074505806,
+        10.649999618530273
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "06-diag-front",
+      "baseline_png": "tmp/bellback-complete-pass3/nine/06-diag-front.png",
+      "baseline_sha256": "835b414cc633e4d758f8c88477f7b8570a74c037c74824df127eb06091a45d74",
+      "candidate_png": "tmp/bellback-complete-face-character/final/nine/06-diag-front.png",
+      "candidate_sha256": "a7044e6c266a9aaea149e1e820dd677cbc2f5fc9a6f5237ce761b16edf71ee10",
+      "paired_board": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-06-diag-front-board.webp",
+      "paired_board_sha256": "34fcb51af41db58404e4427d035ae42a0e2d9d531b0168fffd17201bb2931c7d",
+      "camera": [
+        0.0,
+        -7.015615940093994,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "07-diag-left",
+      "baseline_png": "tmp/bellback-complete-pass3/nine/07-diag-left.png",
+      "baseline_sha256": "307695fb1a4687a45272a4f9c916ae50587c8a27b2ccd8035d26b3b547658dab",
+      "candidate_png": "tmp/bellback-complete-face-character/final/nine/07-diag-left.png",
+      "candidate_sha256": "3e201235b7a299ca97e194d141dfda00e8aba8661c4419d1b4a61609ebda511d",
+      "paired_board": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-07-diag-left-board.webp",
+      "paired_board_sha256": "eef159050ea54b09aa09e39b60dc981d0016f3f027d069f219d141735b0cd88d",
+      "camera": [
+        6.965615749359131,
+        -0.05000000074505806,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "08-diag-right",
+      "baseline_png": "tmp/bellback-complete-pass3/nine/08-diag-right.png",
+      "baseline_sha256": "c7c4e2c4751f9a55ea935dab7775d624681624f7d58deac9934fec5d6d1728aa",
+      "candidate_png": "tmp/bellback-complete-face-character/final/nine/08-diag-right.png",
+      "candidate_sha256": "3d2593927a6f6468a16233fc43dcc499997eaa956f07986132066329e5924886",
+      "paired_board": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-08-diag-right-board.webp",
+      "paired_board_sha256": "6989754b268e8a4ac573160a53e472764980c28900a1d1fbe5a7cfda022b0084",
+      "camera": [
+        -6.965615749359131,
+        -0.05000000074505806,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "09-diag-back",
+      "baseline_png": "tmp/bellback-complete-pass3/nine/09-diag-back.png",
+      "baseline_sha256": "5ede422d01eb87f3b776333eb75ecbd2b13d94ccd8b87accc9fe8c614ec995c6",
+      "candidate_png": "tmp/bellback-complete-face-character/final/nine/09-diag-back.png",
+      "candidate_sha256": "9759047241bed76763d7b280e8ff0d260cc15846f4ecb192a43642ea24865f0d",
+      "paired_board": "art/driftwood-isle/lowpoly-bellback/complete-face-character/paired-09-diag-back-board.webp",
+      "paired_board_sha256": "1edbaeac8287b6c27135b3e824db9d694fe85fa8fc970457319ac21cb469606c",
+      "camera": [
+        8.530419048612408e-16,
+        6.915615558624268,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    }
+  ]
+}

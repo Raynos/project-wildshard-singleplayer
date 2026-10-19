@@ -1,0 +1,25 @@
+{
+  "scope": "Diagnostic prefixes and terminal whitespace only; original logs retained locally. Tests/source/evidence unchanged.",
+  "changes": [
+    {
+      "path": "regression-run.log",
+      "originalSha256": "c2a41b8671ab743fcbe7e2dc37c976117fa8c9eaabf4fb65f4d8707498836bc5",
+      "sha256": "b0fb54a36605e60240e4a44129b5ccde663e81fd2e97dccdd634d07851f06c42"
+    },
+    {
+      "path": "regression-confirmed.log",
+      "originalSha256": "fd73f5c79b1b0597e99517479920fe351e87a174998c13f9774bea89466f49b8",
+      "sha256": "5c623bd02a2ec6c1c0afbad67fc0ff199c462d3609f6c5096fc1f41752ba3f2f"
+    },
+    {
+      "path": "measurement-run.log",
+      "originalSha256": "459ca788ecc15dc358f891ea511c5cf402211feccfa9aa18e5c2a45de973f169",
+      "sha256": "eb73af748785a88979b53f474ed1534167874e05294b51ebe84f266f6f2a6ca9"
+    },
+    {
+      "path": "test.log",
+      "originalSha256": "5f47f3491b49d8ea5d3abc8a6d83aed5b41c7bb64c92057fb9c8b2ecab6518e5",
+      "sha256": "2ecbc627d4c81bb3d6c95695a0e0eda5addfd2746643f06fc4ea18b73faf7832"
+    }
+  ]
+}

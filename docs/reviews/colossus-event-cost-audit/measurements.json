@@ -1,0 +1,7389 @@
+[
+  {
+    "name": "baseline",
+    "module": "blobs/wasm/d5ff42befbbc9379fe087d9a2a0f53b1821b26dca1ed60064cb214a3c5af901e.wasm",
+    "meterCharges": [
+      51800
+    ],
+    "bytes": 13574,
+    "observations": [
+      {
+        "name": "lethal-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 311105,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 311102,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "hit-death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": false,
+            "fuel": 414736,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "death-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": false,
+            "fuel": 414736,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "duplicate-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 311105,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "duplicate-death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 311102,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "duplicate-pair",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": false,
+            "fuel": 414736,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "nonlethal-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 259276,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-tick",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 311338,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-strike-done",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 311339,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-stop",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 259283,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 207470,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      }
+    ]
+  },
+  {
+    "name": "candidate",
+    "module": "blobs/wasm/2be228de77718c28e8e84ab270e84e5e9aa0769aaec4916f4efa99998af7647c.wasm",
+    "meterCharges": [
+      54904
+    ],
+    "bytes": 14404,
+    "observations": [
+      {
+        "name": "lethal-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 330260,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                4,
+                2,
+                115,
+                3,
+                0
+              ],
+              [
+                4,
+                2,
+                116,
+                0.88,
+                0
+              ],
+              [
+                4,
+                2,
+                117,
+                1,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 330257,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                4,
+                2,
+                115,
+                3,
+                0
+              ],
+              [
+                4,
+                2,
+                116,
+                0.88,
+                0
+              ],
+              [
+                4,
+                2,
+                117,
+                1,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "hit-death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": false,
+            "fuel": 440072,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "death-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": false,
+            "fuel": 440072,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "duplicate-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 329702,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "duplicate-death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 329699,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "duplicate-pair",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": false,
+            "fuel": 439514,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "nonlethal-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 274796,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-tick",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 329962,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-strike-done",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 329963,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-stop",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 274803,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      }
+    ]
+  },
+  {
+    "name": "inline-hit",
+    "module": "blobs/wasm/2be228de77718c28e8e84ab270e84e5e9aa0769aaec4916f4efa99998af7647c.wasm",
+    "meterCharges": [
+      54904
+    ],
+    "bytes": 14404,
+    "observations": [
+      {
+        "name": "lethal-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 330260,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                4,
+                2,
+                115,
+                3,
+                0
+              ],
+              [
+                4,
+                2,
+                116,
+                0.88,
+                0
+              ],
+              [
+                4,
+                2,
+                117,
+                1,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 330257,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                4,
+                2,
+                115,
+                3,
+                0
+              ],
+              [
+                4,
+                2,
+                116,
+                0.88,
+                0
+              ],
+              [
+                4,
+                2,
+                117,
+                1,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "hit-death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": false,
+            "fuel": 440072,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "death-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": false,
+            "fuel": 440072,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "duplicate-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 329702,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "duplicate-death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 329699,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "duplicate-pair",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": false,
+            "fuel": 439514,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "nonlethal-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 274796,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-tick",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 329962,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-strike-done",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 329963,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-stop",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 274803,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 219886,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      }
+    ]
+  },
+  {
+    "name": "inline-death",
+    "module": "blobs/wasm/901dd08c064ba1daa70dd2c1cea42b6e5f31e183d368be4846fb0cbef540344c.wasm",
+    "meterCharges": [
+      58696
+    ],
+    "bytes": 15448,
+    "observations": [
+      {
+        "name": "lethal-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 353012,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                4,
+                2,
+                115,
+                3,
+                0
+              ],
+              [
+                4,
+                2,
+                116,
+                0.88,
+                0
+              ],
+              [
+                4,
+                2,
+                117,
+                1,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 294312,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                4,
+                2,
+                115,
+                3,
+                0
+              ],
+              [
+                4,
+                2,
+                116,
+                0.88,
+                0
+              ],
+              [
+                4,
+                2,
+                117,
+                1,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "hit-death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": false,
+            "fuel": 411711,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "death-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": false,
+            "fuel": 411711,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "duplicate-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 352454,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "duplicate-death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 293754,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "duplicate-pair",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": false,
+            "fuel": 411153,
+            "reason": "Decision fuel exhausted",
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": []
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "nonlethal-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 352453,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-tick",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 352714,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-strike-done",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 352715,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-stop",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 293763,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 235054,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      }
+    ]
+  },
+  {
+    "name": "inline-hit-death",
+    "module": "blobs/wasm/9106cc1b0816ccf15446a81f5bfa9466457e915da0a4e0db98247b95a21400c8.wasm",
+    "meterCharges": [
+      58348
+    ],
+    "bytes": 15375,
+    "observations": [
+      {
+        "name": "lethal-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 292575,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                4,
+                2,
+                115,
+                3,
+                0
+              ],
+              [
+                4,
+                2,
+                116,
+                0.88,
+                0
+              ],
+              [
+                4,
+                2,
+                117,
+                1,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 292572,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                4,
+                2,
+                115,
+                3,
+                0
+              ],
+              [
+                4,
+                2,
+                116,
+                0.88,
+                0
+              ],
+              [
+                4,
+                2,
+                117,
+                1,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "hit-death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 350927,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                4,
+                2,
+                115,
+                3,
+                0
+              ],
+              [
+                4,
+                2,
+                116,
+                0.88,
+                0
+              ],
+              [
+                4,
+                2,
+                117,
+                1,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "death-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 350927,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                4,
+                2,
+                115,
+                3,
+                0
+              ],
+              [
+                4,
+                2,
+                116,
+                0.88,
+                0
+              ],
+              [
+                4,
+                2,
+                117,
+                1,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                110,
+                6,
+                0
+              ],
+              [
+                4,
+                2,
+                111,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                112,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 110,
+            "result": 3
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 7,
+            "a": 2,
+            "b": 111,
+            "result": 0.88
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "duplicate-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 292017,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "duplicate-death",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 292014,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "duplicate-pair",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 350369,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 24,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "after": {
+              "step": 6,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 1
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 24,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "fields": {
+          "110": 6,
+          "111": 0,
+          "112": 0,
+          "113": 1,
+          "114": 0,
+          "115": 3,
+          "116": 0.88,
+          "117": 1
+        }
+      },
+      {
+        "name": "nonlethal-hit",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 292016,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-tick",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 350626,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-strike-done",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 350627,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      },
+      {
+        "name": "dead-stop",
+        "calls": [
+          {
+            "kind": "call",
+            "tick": 12,
+            "binding": 1,
+            "ok": true,
+            "fuel": 292023,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                4,
+                2,
+                114,
+                0,
+                0
+              ],
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "kind": "call",
+            "tick": 18,
+            "binding": 1,
+            "ok": true,
+            "fuel": 233662,
+            "reason": null,
+            "before": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "after": {
+              "step": 0,
+              "elapsed": 0,
+              "cooldown": 1,
+              "sequence": 0,
+              "side": 0,
+              "poise": 0,
+              "poseCaptured": 0
+            },
+            "commands": [
+              [
+                3,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "reads": [
+          {
+            "kind": "read",
+            "tick": 12,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          },
+          {
+            "kind": "read",
+            "tick": 18,
+            "binding": 1,
+            "op": 6,
+            "a": 2,
+            "b": 0,
+            "result": 0
+          }
+        ],
+        "state": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 1,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "fields": {
+          "110": 3,
+          "111": 0.88,
+          "112": 1,
+          "113": 1,
+          "114": 0,
+          "115": 0,
+          "116": 0,
+          "117": 0
+        }
+      }
+    ]
+  }
+]
