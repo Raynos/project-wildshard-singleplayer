@@ -1,6 +1,4 @@
-import type { UniformRows } from '@wildshard/sdk/looks/shaderFamily';
-
-export interface VmUniformRows extends UniformRows {
+export interface VmUniformRows {
   readonly uPal: { readonly rgbs: readonly number[] };
   readonly uKey: { readonly v3: readonly [number, number, number]; readonly normalize: true; };
   readonly uInk: { readonly rgb: number };

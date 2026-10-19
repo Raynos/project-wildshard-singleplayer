@@ -20,7 +20,7 @@
 import { BackSide, Color, DataTexture, type Material, type Matrix3, Texture, Vector2, Vector3, Vector4 } from 'three';
 import { loadGraphCompiler, type GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { type UniformsOf, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
+import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
 import { paintCanvasAtlas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
 import decalRows from '../data/decals.json' with { type: 'json' };
 import type { VmUniformRows } from './uniformTypes';
@@ -41,10 +41,10 @@ export function decalAtlas(tier: NdTier): Decals {
   const e = decalRows.JIAN_DECAL_UV.etch, f = decalRows.JIAN_DECAL_UV.fu;
   return { tex: paintCanvasAtlas(decalRows.JIAN_DECALS as CanvasAtlasRow, plumbingKnob(slugRuntimeProduct('nine-dragon-stack')?.source.plumbing, tier, 'nine.decalScale', 'number')), etch: new Vector4(e[0], e[1], e[2], e[3]), fu: new Vector4(f[0], f[1], f[2], f[3]) };
 }
-export type VmUniforms = UniformsOf<VmUniformRows> & { uSilk: { value: Texture }; uDecal: { value: Texture }; uEtch: { value: Vector4 }; uFu: { value: Vector4 } };
+export type VmUniforms = UniformsOf<{ [K in keyof VmUniformRows]: VmUniformRows[K] }> & { uSilk: { value: Texture }; uDecal: { value: Texture }; uEtch: { value: Vector4 }; uFu: { value: Vector4 } };
 export function vmUniforms(silk: Texture, decals: Decals): VmUniforms {
   if (vmRows === null) throw new Error('Held graph uniforms have not loaded');
-  return { uSilk: { value: silk }, uDecal: { value: decals.tex }, uEtch: { value: decals.etch }, uFu: { value: decals.fu }, ...uniformsFrom(vmRows) };
+  return { uSilk: { value: silk }, uDecal: { value: decals.tex }, uEtch: { value: decals.etch }, uFu: { value: decals.fu }, ...uniformsFrom({ ...vmRows }) };
 }
 const BLACK = new DataTexture(new Uint8Array([255, 128, 128, 255]), 1, 1);
 BLACK.needsUpdate = true;
