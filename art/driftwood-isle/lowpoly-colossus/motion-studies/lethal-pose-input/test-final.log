@@ -1,0 +1,70 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../../../vitest.config" without a file extension (art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 .
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts (7 tests | 1 failed) 17052ms
+   × all interruption phases preserve published inputs exactly once for hit/death/reverse/batched event ordering 28ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > all interruption phases preserve published inputs exactly once for hit/death/reverse/batched event ordering
+AssertionError: batch-hit-death 0/0: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:64:88
+     62|   } else if(ordering==='hit-death') { s.send('hit','self',99,22,0);s.s…
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     65|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     66|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  11:26:18
+   Duration  31.79s (tests 54%, transform 34%, setup 9%, import 3%)
+
+  Transform  transforming modules took 10.64s · 34% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

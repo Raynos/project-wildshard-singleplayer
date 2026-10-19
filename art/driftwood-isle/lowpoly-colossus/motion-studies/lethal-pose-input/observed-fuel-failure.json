@@ -1,0 +1,9 @@
+{
+  "status": "FAILED intermediate implementation; corrected without changing fuel",
+  "provenance": "Transcribed from actual Vitest tool output before the next run overwrote test.log; not an original raw log",
+  "test": "all interruption phases preserve published inputs exactly once for hit/death/reverse/batched event ordering",
+  "case": "batch-hit-death 0/0",
+  "trace": {"kind":"call","tick":12,"binding":1,"ok":false,"fuel":440100,"reason":"Decision fuel exhausted","commands":[],"before":{"cooldown":0.9,"elapsed":0.1,"poise":0,"poseCaptured":0,"sequence":0,"side":0,"step":0},"after":{"cooldown":0.9,"elapsed":0.1,"poise":0,"poseCaptured":0,"sequence":0,"side":0,"step":0}},
+  "cause": "Capture was once-only, but each duplicate onDeath still republished stop/state/clock/exposed/awake commands.",
+  "correction": "Return immediately from duplicate lethal transition after binding latch is set. First transition still captures published inputs and issues all existing reset commands. No fuel or schema change."
+}

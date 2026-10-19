@@ -1,0 +1,25 @@
+{
+  "scope": "Diagnostic prefixes and terminal whitespace only; original closure pins original logs retained locally. Source and evidence JSON unchanged.",
+  "changes": [
+    {
+      "path": "baseline-dispatch.log",
+      "originalSha256": "fe9e3f191a1bf30c8d7abcf88108b088523edf99b897c697aaf12a8285d19db4",
+      "sha256": "a443fb4243313826b43891ba022cd261bc6ace0a4a295dc0d9c232e5c23aaf49"
+    },
+    {
+      "path": "test-complete.log",
+      "originalSha256": "bf5fc6412e75c23c780daaaf07f207a6996cc07a8905557f36a5140257c2cfaa",
+      "sha256": "973e5da2db1b56d9e23865efc0fdd10091d46add51888953bbf2ec51bc8b7f3b"
+    },
+    {
+      "path": "test-final.log",
+      "originalSha256": "ebe1b901059af5b816c4603fc994c0c5d41ff5ef7104673797d931ed18954c8a",
+      "sha256": "fb9a61797bf9c2a4c69d45eb435df55e90b61068f2243b94366d72f79031c525"
+    },
+    {
+      "path": "test.log",
+      "originalSha256": "3a055b406db4df429e2c28b917da09bd70176c5d0d607ff4503090bd337ded8d",
+      "sha256": "2bb602a0e3c4393598e7368dec2cece12b0df61594988a07f76125e5e983d5dd"
+    }
+  ]
+}

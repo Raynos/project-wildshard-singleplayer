@@ -1,0 +1,42 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../../../vitest.config" without a file extension (art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 .
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts (8 tests | 1 failed | 7 skipped) 2357ms
+   × baseline comparison: actual host must admit the ordinary paired lethal dispatch 37ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > baseline comparison: actual host must admit the ordinary paired lethal dispatch
+AssertionError: Real paired lethal dispatch is a required gate, never an expected-failure pass: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:153:148
+    151|  }
+    152|  writeFileSync(`${destination}paired-dispatch-failure.json`,JSON.strin…
+    153|  expect(results.every(row=>row.metrics.every(m=>m.refusals===0)),'Real…
+       |                                                                                                                                                    ^
+    154| });
+    155|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 skipped (8)
+   Start at  11:26:50
+   Duration  15.57s (transform 62%, tests 15%, setup 13%, import 9%)
+
+  Transform  transforming modules took 9.58s · 62% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

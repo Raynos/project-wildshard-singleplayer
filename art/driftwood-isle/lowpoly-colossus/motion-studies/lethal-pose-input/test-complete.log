@@ -1,0 +1,3306 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../../../vitest.config" without a file extension (art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 .
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts (143 tests | 69 failed) 19802ms
+   × interruption 0/0 batch-hit-death preserves inputs once 13ms
+   × interruption 0/0 batch-death-hit preserves inputs once 4ms
+   × interruption 0/0.75 batch-hit-death preserves inputs once 4ms
+   × interruption 0/0.75 batch-death-hit preserves inputs once 3ms
+   × interruption 4/0.2 batch-hit-death preserves inputs once 4ms
+   × interruption 4/0.2 batch-death-hit preserves inputs once 3ms
+   × interruption 5/0.2 batch-hit-death preserves inputs once 7ms
+   × interruption 5/0.2 batch-death-hit preserves inputs once 5ms
+   × interruption 1/0 batch-hit-death preserves inputs once 4ms
+   × interruption 1/0 batch-death-hit preserves inputs once 4ms
+   × interruption 1/0.36000000000000004 batch-hit-death preserves inputs once 3ms
+   × interruption 1/0.36000000000000004 batch-death-hit preserves inputs once 3ms
+   × interruption 1/0.7200000000000001 batch-hit-death preserves inputs once 4ms
+   × interruption 1/0.7200000000000001 batch-death-hit preserves inputs once 4ms
+   × interruption 1/0.899999 batch-hit-death preserves inputs once 3ms
+   × interruption 1/0.899999 batch-death-hit preserves inputs once 3ms
+   × interruption 1/0.9 batch-hit-death preserves inputs once 3ms
+   × interruption 1/0.9 batch-death-hit preserves inputs once 3ms
+   × interruption 1/1.025 batch-hit-death preserves inputs once 3ms
+   × interruption 1/1.025 batch-death-hit preserves inputs once 3ms
+   × interruption 1/1.149999 batch-hit-death preserves inputs once 4ms
+   × interruption 1/1.149999 batch-death-hit preserves inputs once 4ms
+   × interruption 1/1.15 batch-hit-death preserves inputs once 9ms
+   × interruption 1/1.15 batch-death-hit preserves inputs once 5ms
+   × interruption 1/1.325 batch-hit-death preserves inputs once 5ms
+   × interruption 1/1.325 batch-death-hit preserves inputs once 3ms
+   × interruption 1/1.5 batch-hit-death preserves inputs once 3ms
+   × interruption 1/1.5 batch-death-hit preserves inputs once 3ms
+   × interruption 2/0 batch-hit-death preserves inputs once 5ms
+   × interruption 2/0 batch-death-hit preserves inputs once 3ms
+   × interruption 2/0.36000000000000004 batch-hit-death preserves inputs once 14ms
+   × interruption 2/0.36000000000000004 batch-death-hit preserves inputs once 2ms
+   × interruption 2/0.7200000000000001 batch-hit-death preserves inputs once 2ms
+   × interruption 2/0.7200000000000001 batch-death-hit preserves inputs once 2ms
+   × interruption 2/0.899999 batch-hit-death preserves inputs once 3ms
+   × interruption 2/0.899999 batch-death-hit preserves inputs once 3ms
+   × interruption 2/0.9 batch-hit-death preserves inputs once 2ms
+   × interruption 2/0.9 batch-death-hit preserves inputs once 2ms
+   × interruption 2/1.025 batch-hit-death preserves inputs once 2ms
+   × interruption 2/1.025 batch-death-hit preserves inputs once 2ms
+   × interruption 2/1.149999 batch-hit-death preserves inputs once 3ms
+   × interruption 2/1.149999 batch-death-hit preserves inputs once 5ms
+   × interruption 2/1.15 batch-hit-death preserves inputs once 2ms
+   × interruption 2/1.15 batch-death-hit preserves inputs once 3ms
+   × interruption 2/1.325 batch-hit-death preserves inputs once 3ms
+   × interruption 2/1.325 batch-death-hit preserves inputs once 3ms
+   × interruption 2/1.5 batch-hit-death preserves inputs once 4ms
+   × interruption 2/1.5 batch-death-hit preserves inputs once 4ms
+   × interruption 3/0 batch-hit-death preserves inputs once 3ms
+   × interruption 3/0 batch-death-hit preserves inputs once 3ms
+   × interruption 3/0.44000000000000006 batch-hit-death preserves inputs once 3ms
+   × interruption 3/0.44000000000000006 batch-death-hit preserves inputs once 2ms
+   × interruption 3/0.8800000000000001 batch-hit-death preserves inputs once 3ms
+   × interruption 3/0.8800000000000001 batch-death-hit preserves inputs once 3ms
+   × interruption 3/1.0999990000000002 batch-hit-death preserves inputs once 12ms
+   × interruption 3/1.0999990000000002 batch-death-hit preserves inputs once 4ms
+   × interruption 3/1.1 batch-hit-death preserves inputs once 3ms
+   × interruption 3/1.1 batch-death-hit preserves inputs once 2ms
+   × interruption 3/1.1900000000000002 batch-hit-death preserves inputs once 2ms
+   × interruption 3/1.1900000000000002 batch-death-hit preserves inputs once 4ms
+   × interruption 3/1.279999 batch-hit-death preserves inputs once 3ms
+   × interruption 3/1.279999 batch-death-hit preserves inputs once 2ms
+   × interruption 3/1.28 batch-hit-death preserves inputs once 3ms
+   × interruption 3/1.28 batch-death-hit preserves inputs once 3ms
+   × interruption 3/2.0300000000000002 batch-hit-death preserves inputs once 3ms
+   × interruption 3/2.0300000000000002 batch-death-hit preserves inputs once 3ms
+   × interruption 3/2.7800000000000002 batch-hit-death preserves inputs once 2ms
+   × interruption 3/2.7800000000000002 batch-death-hit preserves inputs once 3ms
+   × baseline comparison: actual host must admit the ordinary paired lethal dispatch 7ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 69 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 0/0 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 0/0: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 0/0 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 0/0: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 0/0.75 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 0/0.75: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 0/0.75 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 0/0.75: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 4/0.2 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 4/0.2: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 4/0.2 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 4/0.2: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 5/0.2 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 5/0.2: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 5/0.2 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 5/0.2: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/0 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 1/0: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/0 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 1/0: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/0.36000000000000004 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 1/0.36000000000000004: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/0.36000000000000004 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 1/0.36000000000000004: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/0.7200000000000001 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 1/0.7200000000000001: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/0.7200000000000001 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 1/0.7200000000000001: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/0.899999 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 1/0.899999: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/0.899999 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 1/0.899999: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/0.9 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 1/0.9: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/0.9 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 1/0.9: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/1.025 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 1/1.025: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/1.025 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 1/1.025: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/1.149999 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 1/1.149999: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/1.149999 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 1/1.149999: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/1.15 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 1/1.15: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/1.15 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 1/1.15: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/1.325 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 1/1.325: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/1.325 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 1/1.325: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/1.5 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 1/1.5: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 1/1.5 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 1/1.5: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/0 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 2/0: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/0 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 2/0: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/0.36000000000000004 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 2/0.36000000000000004: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/0.36000000000000004 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 2/0.36000000000000004: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/0.7200000000000001 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 2/0.7200000000000001: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/0.7200000000000001 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 2/0.7200000000000001: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/0.899999 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 2/0.899999: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/0.899999 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 2/0.899999: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/0.9 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 2/0.9: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/0.9 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 2/0.9: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/1.025 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 2/1.025: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/1.025 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 2/1.025: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/1.149999 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 2/1.149999: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/1.149999 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 2/1.149999: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/1.15 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 2/1.15: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/1.15 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 2/1.15: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/1.325 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 2/1.325: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/1.325 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 2/1.325: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/1.5 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 2/1.5: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 2/1.5 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 2/1.5: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/0 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 3/0: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/0 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 3/0: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/0.44000000000000006 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 3/0.44000000000000006: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/0.44000000000000006 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 3/0.44000000000000006: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/0.8800000000000001 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 3/0.8800000000000001: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/0.8800000000000001 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 3/0.8800000000000001: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/1.0999990000000002 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 3/1.0999990000000002: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/1.0999990000000002 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 3/1.0999990000000002: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/1.1 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 3/1.1: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[57/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/1.1 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 3/1.1: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[58/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/1.1900000000000002 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 3/1.1900000000000002: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[59/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/1.1900000000000002 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 3/1.1900000000000002: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[60/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/1.279999 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 3/1.279999: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[61/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/1.279999 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 3/1.279999: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[62/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/1.28 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 3/1.28: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[63/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/1.28 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 3/1.28: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[64/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/2.0300000000000002 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 3/2.0300000000000002: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[65/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/2.0300000000000002 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 3/2.0300000000000002: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[66/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/2.7800000000000002 batch-hit-death preserves inputs once
+AssertionError: batch-hit-death 3/2.7800000000000002: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[67/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > interruption 3/2.7800000000000002 batch-death-hit preserves inputs once
+AssertionError: batch-death-hit 3/2.7800000000000002: expected [ { kind: 'call', tick: 12, …(7) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "after": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "before": {
++       "cooldown": 0.9,
++       "elapsed": 0.1,
++       "poise": 0,
++       "poseCaptured": 0,
++       "sequence": 0,
++       "side": 0,
++       "step": 0,
++     },
++     "binding": 1,
++     "commands": [],
++     "fuel": 440072,
++     "kind": "call",
++     "ok": false,
++     "reason": "Decision fuel exhausted",
++     "tick": 12,
++   },
++ ]
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:65:88
+     63|   else {s.send('death','self',99);s.send('hit','self',99,22,-2);}
+     64|   orderingEvidence.push({stage,clock,ordering,refusals:s.host.metrics(…
+     65|   expect(s.trace().filter(t=>t.kind==='call'&&!t.ok), `${ordering} ${s…
+       |                                                                                        ^
+     66|   expect(memory(s), `${ordering} ${stage}/${clock}`).toMatchObject({'t…
+     67|   for(let i=0;i<3;i++){s.send('death','self',99);s.send('hit','self',9…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[68/69]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts > baseline comparison: actual host must admit the ordinary paired lethal dispatch
+AssertionError: Real paired lethal dispatch is a required gate, never an expected-failure pass: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts:152:148
+    150|  }
+    151|  writeFileSync(`${destination}paired-dispatch-failure.json`,JSON.strin…
+    152|  expect(results.every(row=>row.metrics.every(m=>m.refusals===0)),'Real…
+       |                                                                                                                                                    ^
+    153| });
+    154|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[69/69]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  69 failed | 74 passed (143)
+   Start at  11:27:21
+   Duration  35.80s (tests 56%, transform 34%, setup 8%, import 3%)
+
+  Transform  transforming modules took 12.00s · 34% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

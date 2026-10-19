@@ -1,0 +1,30 @@
+{
+  "status": "BLOCKED: paired-event fuel admission fails; not promoted",
+  "counts": {
+    "orderingCases": 136,
+    "orderingPassed": 68,
+    "orderingFailed": 68,
+    "suitePassed": 74,
+    "suiteFailed": 69
+  },
+  "sourceFiles": {
+    "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/colossusLethalPoseClips.ts": "eccafe6d02ebe7439c7414daa571483503c88cb895339c2f43f1809b862fd849",
+    "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/rig.ts": "37c7026efafff20802cc02c4b34f5c64f742fdf95e7a6dc5b82dd80c0854135b",
+    "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/vitest.config.ts": "87c3b01c3569386be7f7fe93c5f40b11cdff91e8eaccfceacddb43454fdad7f1",
+    "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/candidateFactory.ts": "3d03a3dabfdd4a12bb345c23b030a14b08f5fe4b2370cfd8074404f5776a80b9",
+    "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts": "52c6f9d2384cf47baa15c9fa7a4beca6882a592272f16ca934bdcc7a7038f146",
+    "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/behaviour/tide-root-colossus.as": "af4f2b5ed29f5415ff9991dfa5edbbdbce12d6cd9135435304478967f9cd8d4f"
+  },
+  "protectedInputs": {
+    "src/shards/driftwood-isle/generators/colossusNativeClips.ts": "d08b8c09adfd8148d6562ac26c8a830d2e9d737e0b4af36e484ab481c8d7ec45",
+    "src/shards/driftwood-isle/generators/colossusNativePreview.ts": "412e5c9c630cf29a072ae42b26526a3f44ed05f90891c8421376064ce3ce1582",
+    "src/shards/driftwood-isle/generators/tidalGiantsCombat.ts": "a94b7d52f9df2f43eab6e98dfe645f5093d1db3a6d8398098230549c5585946e",
+    "src/shards/driftwood-isle/behaviour/tide-root-colossus.as": "f95eeb9abd37f25c9fa493b98e09adf65ab71406a978d5ed4bad944784ffd774",
+    "src/game/shardfile/decisions.ts": "b52feed31f45c3865dddec78949f470207a3bab0ce529bf3da5d429f0e4a2cde",
+    "src/game/shardfile/borrowedDecisions.ts": "bfe383dcc8c27950e10e84fbe22a91b6bfd54555252357dbb00b8f316bc5f693",
+    "src/engine/combat/pipeline.ts": "4c09b7142fc2eb1e8bd46c88445b09f2d77fea984df97cfd898365f0501d27e1"
+  },
+  "actualMountedCaptureAndRetryPending": true,
+  "bodyPhysicsChanges": false,
+  "publicPromotion": false
+}

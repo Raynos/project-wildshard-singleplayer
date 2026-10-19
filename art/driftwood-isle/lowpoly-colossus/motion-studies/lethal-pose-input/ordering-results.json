@@ -1,0 +1,954 @@
+[
+  {
+    "stage": 0,
+    "clock": 0,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 0,
+    "clock": 0,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 0,
+    "clock": 0,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 0,
+    "clock": 0,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 0,
+    "clock": 0.75,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 0,
+    "clock": 0.75,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 0,
+    "clock": 0.75,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 0,
+    "clock": 0.75,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 4,
+    "clock": 0.2,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 4,
+    "clock": 0.2,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 4,
+    "clock": 0.2,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 4,
+    "clock": 0.2,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 5,
+    "clock": 0.2,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 5,
+    "clock": 0.2,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 5,
+    "clock": 0.2,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 5,
+    "clock": 0.2,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 0,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 0,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 0,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 0,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 0.36000000000000004,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 0.36000000000000004,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 0.36000000000000004,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 0.36000000000000004,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 0.7200000000000001,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 0.7200000000000001,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 0.7200000000000001,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 0.7200000000000001,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 0.899999,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 0.899999,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 0.899999,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 0.899999,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 0.9,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 0.9,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 0.9,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 0.9,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 1.025,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 1.025,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 1.025,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 1.025,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 1.149999,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 1.149999,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 1.149999,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 1.149999,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 1.15,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 1.15,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 1.15,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 1.15,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 1.325,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 1.325,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 1.325,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 1.325,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 1.5,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 1.5,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 1,
+    "clock": 1.5,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 1,
+    "clock": 1.5,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 0,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 0,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 0,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 0,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 0.36000000000000004,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 0.36000000000000004,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 0.36000000000000004,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 0.36000000000000004,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 0.7200000000000001,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 0.7200000000000001,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 0.7200000000000001,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 0.7200000000000001,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 0.899999,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 0.899999,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 0.899999,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 0.899999,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 0.9,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 0.9,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 0.9,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 0.9,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 1.025,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 1.025,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 1.025,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 1.025,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 1.149999,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 1.149999,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 1.149999,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 1.149999,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 1.15,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 1.15,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 1.15,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 1.15,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 1.325,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 1.325,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 1.325,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 1.325,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 1.5,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 1.5,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 2,
+    "clock": 1.5,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 2,
+    "clock": 1.5,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 0,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 0,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 0,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 0,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 0.44000000000000006,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 0.44000000000000006,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 0.44000000000000006,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 0.44000000000000006,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 0.8800000000000001,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 0.8800000000000001,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 0.8800000000000001,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 0.8800000000000001,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 1.0999990000000002,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 1.0999990000000002,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 1.0999990000000002,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 1.0999990000000002,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 1.1,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 1.1,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 1.1,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 1.1,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 1.1900000000000002,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 1.1900000000000002,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 1.1900000000000002,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 1.1900000000000002,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 1.279999,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 1.279999,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 1.279999,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 1.279999,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 1.28,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 1.28,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 1.28,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 1.28,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 2.0300000000000002,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 2.0300000000000002,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 2.0300000000000002,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 2.0300000000000002,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 2.7800000000000002,
+    "ordering": "hit-death",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 2.7800000000000002,
+    "ordering": "death-hit",
+    "refusals": 0,
+    "maxFuel": 330538
+  },
+  {
+    "stage": 3,
+    "clock": 2.7800000000000002,
+    "ordering": "batch-hit-death",
+    "refusals": 1,
+    "maxFuel": 440072
+  },
+  {
+    "stage": 3,
+    "clock": 2.7800000000000002,
+    "ordering": "batch-death-hit",
+    "refusals": 1,
+    "maxFuel": 440072
+  }
+]
