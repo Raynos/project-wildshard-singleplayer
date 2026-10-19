@@ -114,3 +114,33 @@ Do not claim completion, 5/5 quality, runtime registration or animation from V3.
 V3 intact, widens framing to 5.15 at the same viewing angle, shortens rear ribs,
 adds leg mass, rounds rope turns and removes two crowded upper teeth. It has
 no render, measured geometry count or visual pass yet.
+
+
+## 2026-10-19 resumed review: V4 baseline, V5 anatomy candidate
+
+V4 was built and rendered on the cloud VM at 03:00 UTC. Its prior unbuilt
+status above is historical. `closure-v4.json` pins the actual source, metrics,
+landmarks and compact evidence; generated GLB remains under ignored `tmp`.
+The complete figure is now present, but the left rear foot has very little
+frame clearance. V4 is **unaccepted**: thin bent legs and small feet weaken
+weight, the eyes are tiny, and the tooth pillars do not resemble the target's
+serrated jaw. The hollow bell and clapper are useful surviving construction.
+
+V5 is a substantial anatomy candidate, not a passed model: it builds broader
+continuous shoulders/legs and stone feet, a closed timber cranium with inset
+triangular amber eyes, swept wooden horns, a compact continuous W-shaped lower
+jaw, shoulder lashings and broad triangular teal bell facets. Seven named rigid
+pivots preserve independent head, bell and four-leg articulation for subsequent
+animation work. They are not a skin rig or tested animation clips. A source
+revision does not establish improvement until its actual renders are reviewed.
+
+`capture_review.py` rebuilds a pinned generator and records geometry bounds,
+per-object topology, actual camera projection bounds and SHA256 image receipts.
+It rejects cropped geometry rather than silently resizing a single view. Hero
+camera angle, fixed lighting and color settings follow V4; orthographic scale
+is widened consistently to 5.65 for the greater foot mass. The nine inspection
+views use the LOOK-LOOP model-scale ordering (four cardinal, top, four elevated
+cardinal), with the same frozen object and lighting. These are real static
+Blender renders, not game captures. The approved concept is one oblique view;
+hidden anatomy is explicitly inferred. Full runtime and motion checks remain
+separate and pending.

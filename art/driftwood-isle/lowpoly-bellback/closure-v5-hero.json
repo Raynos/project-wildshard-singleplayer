@@ -1,0 +1,45 @@
+{
+  "status": "V5 complete hero candidate; nine-view review pending; not accepted",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/build_bellback_v5.py",
+      "bytes": 15613,
+      "sha256": "c798497883c47c76b1eb90828cd78a4c775cbab901c2ea4da75a05a0e7ef28bb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/capture_review.py",
+      "bytes": 4610,
+      "sha256": "f386ac36b8ef4da361402f7112db71c1be09d54004e16996e7c7145b55e35119"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/metrics-v5.json",
+      "bytes": 303,
+      "sha256": "71cbbb112030e7b93d9344f2bba2c5e6c2c6516192c9bb3e3a29c7b2702ba8cf"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/capture-v5-hero.json",
+      "bytes": 10973,
+      "sha256": "d5debf0f314a363c1537c1573afaf614cd8b3bb9ca641b92bb18ed3ba1a99d33"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-study-v5-hero.webp",
+      "bytes": 51550,
+      "sha256": "1bd0040663930a1daa85b4eb2bd4f7abda2985c504de38e07bc8877fc7b145b7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/comparison-board-v5.webp",
+      "bytes": 68686,
+      "sha256": "8582b5be2e0bda5390124bf49c33def2eb1ed9fe1ebb3dd10ca4bfa278fad6d7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/README.md",
+      "bytes": 8685,
+      "sha256": "348707a4941cb047613468407d04c33fd7f5bb6f1967120ee2c0ec75594de5cd"
+    }
+  ],
+  "temporary_glb": {
+    "path": "tmp/bellback-v5-review/bellback-study-v5.glb",
+    "bytes": 327332,
+    "sha256": "c08e6b43fc4c69757bd889442a1a6567bf8270c400d19b54fabebde478f88e25"
+  }
+}
