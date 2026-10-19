@@ -1,0 +1,296 @@
+{
+  "status": "Ten exact-camera pairs; original raw PNG bytes preserved. Pair images concatenate unchanged RGB pixels.",
+  "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66",
+  "pairs": [
+    {
+      "view": "hero",
+      "baseline": {
+        "path": "tmp/bellback-complete-pass3/hero/hero.png",
+        "bytes": 1231296,
+        "sha256": "cd8caf246fc9679bd7645c169ea8e4c8b8bb9684e85b07fb3ba684ef2ce746c4"
+      },
+      "candidate": {
+        "path": "tmp/bellback-woody-character-integration/final/hero/hero.png",
+        "bytes": 1225640,
+        "sha256": "2e8fc25c5255e2f278e786231004fa1d633a7a182cbb4e25e6924c24bf93af1f"
+      },
+      "pair": {
+        "path": "tmp/bellback-woody-character-integration/pairs/hero.png",
+        "bytes": 2038598,
+        "sha256": "571d4f0b55dccfc57cae0adce8b9c762fe47db04b6e69f02f40474a7ca3428d5"
+      },
+      "camera": [
+        -4.400000095367432,
+        -8.0,
+        2.6500000953674316
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "01-front",
+      "baseline": {
+        "path": "tmp/bellback-complete-pass3/nine/01-front.png",
+        "bytes": 389281,
+        "sha256": "3dd9bf2cba2a635fb3b16f87d28e2f13dc2a618e2301d6a5975cc2b046c0f128"
+      },
+      "candidate": {
+        "path": "tmp/bellback-woody-character-integration/final/nine/01-front.png",
+        "bytes": 389127,
+        "sha256": "bbd197fd7615b4103eb696ee2dae05673d7e2d4faff47744a9b2d6659db88056"
+      },
+      "pair": {
+        "path": "tmp/bellback-woody-character-integration/pairs/01-front.png",
+        "bytes": 615342,
+        "sha256": "8da5725dce0dc1dd0941f48082c71d6ef040ed3747bb8cb472192580468c6413"
+      },
+      "camera": [
+        0.0,
+        -9.050000190734863,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "02-left",
+      "baseline": {
+        "path": "tmp/bellback-complete-pass3/nine/02-left.png",
+        "bytes": 383423,
+        "sha256": "8591eb763f808c2f2ea1f3b655f21c672939b32e67b411ca407f3be6fba99bc4"
+      },
+      "candidate": {
+        "path": "tmp/bellback-woody-character-integration/final/nine/02-left.png",
+        "bytes": 383094,
+        "sha256": "9f41e41a550f9636c86ed8d15066cefca07171a55d235ca0c01ecd725e7974d6"
+      },
+      "pair": {
+        "path": "tmp/bellback-woody-character-integration/pairs/02-left.png",
+        "bytes": 598083,
+        "sha256": "94f40884f44950b67cb281b18e8eb4d1417eb156aa31497b357a34353b4e6538"
+      },
+      "camera": [
+        9.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "03-right",
+      "baseline": {
+        "path": "tmp/bellback-complete-pass3/nine/03-right.png",
+        "bytes": 389940,
+        "sha256": "e637e7610eab91d2f2ed168c05b5e86ab811d57af7db3d462663c761712b5c4f"
+      },
+      "candidate": {
+        "path": "tmp/bellback-woody-character-integration/final/nine/03-right.png",
+        "bytes": 388543,
+        "sha256": "9f087656ce8aa24ea8fd4060515ffc6a5c1d4d34b8393f80f83da16fe05e83e8"
+      },
+      "pair": {
+        "path": "tmp/bellback-woody-character-integration/pairs/03-right.png",
+        "bytes": 615234,
+        "sha256": "3c572790ba9ec21d9aba5e96e3017ed0fb63f2b877c87c84fa3a1e30582bbf09"
+      },
+      "camera": [
+        -9.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "04-back",
+      "baseline": {
+        "path": "tmp/bellback-complete-pass3/nine/04-back.png",
+        "bytes": 368327,
+        "sha256": "8459f122c02b4440d0254347ffed11c3bfdf084e4bacd4392b5ec7e5ff9f510c"
+      },
+      "candidate": {
+        "path": "tmp/bellback-woody-character-integration/final/nine/04-back.png",
+        "bytes": 369840,
+        "sha256": "f003633286744d255c1a4e29a4c866302addd63e912d974521952ea69892c106"
+      },
+      "pair": {
+        "path": "tmp/bellback-woody-character-integration/pairs/04-back.png",
+        "bytes": 568345,
+        "sha256": "6dd8323d9e40dd48fc19d3f7f3b3a46c1b9420ee7d3b99549361767a03da031b"
+      },
+      "camera": [
+        1.1021821408568715e-15,
+        8.949999809265137,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "05-top",
+      "baseline": {
+        "path": "tmp/bellback-complete-pass3/nine/05-top.png",
+        "bytes": 655095,
+        "sha256": "d7f60469d036fd39a11b44b568fdae308520d5f1d1bd456233a8cd6c3be35a1f"
+      },
+      "candidate": {
+        "path": "tmp/bellback-woody-character-integration/final/nine/05-top.png",
+        "bytes": 653678,
+        "sha256": "6fb1c70f1f58a2c33b54aea76b6beaa1c16516593bd84348c5687cb115d33107"
+      },
+      "pair": {
+        "path": "tmp/bellback-woody-character-integration/pairs/05-top.png",
+        "bytes": 1179924,
+        "sha256": "074636b77913fd59fcef07c11702b55f48ecb71964a6fb53a6c8b03e2096e978"
+      },
+      "camera": [
+        0.0,
+        -0.05000000074505806,
+        10.649999618530273
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "06-diag-front",
+      "baseline": {
+        "path": "tmp/bellback-complete-pass3/nine/06-diag-front.png",
+        "bytes": 669035,
+        "sha256": "835b414cc633e4d758f8c88477f7b8570a74c037c74824df127eb06091a45d74"
+      },
+      "candidate": {
+        "path": "tmp/bellback-woody-character-integration/final/nine/06-diag-front.png",
+        "bytes": 665751,
+        "sha256": "1d31b785f760a5061c9aed9e89a2c260b1fcea0db012388c5cefdd364f668ad7"
+      },
+      "pair": {
+        "path": "tmp/bellback-woody-character-integration/pairs/06-diag-front.png",
+        "bytes": 1188699,
+        "sha256": "4bdb7167dc6c0bcc0819ec0fac445f0fdc76f3bfcecbefeae504adf5bc7c60d8"
+      },
+      "camera": [
+        0.0,
+        -7.015615940093994,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "07-diag-left",
+      "baseline": {
+        "path": "tmp/bellback-complete-pass3/nine/07-diag-left.png",
+        "bytes": 646817,
+        "sha256": "307695fb1a4687a45272a4f9c916ae50587c8a27b2ccd8035d26b3b547658dab"
+      },
+      "candidate": {
+        "path": "tmp/bellback-woody-character-integration/final/nine/07-diag-left.png",
+        "bytes": 643121,
+        "sha256": "3e5f6dc9ccbdcef31fb3468c8a8f74c301eb1989b7cda75a808c9111fefb469c"
+      },
+      "pair": {
+        "path": "tmp/bellback-woody-character-integration/pairs/07-diag-left.png",
+        "bytes": 1133176,
+        "sha256": "38074327a045143db216b476851081743453b1c9fafddbe17a1bd2ac3489a079"
+      },
+      "camera": [
+        6.965615749359131,
+        -0.05000000074505806,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "08-diag-right",
+      "baseline": {
+        "path": "tmp/bellback-complete-pass3/nine/08-diag-right.png",
+        "bytes": 649703,
+        "sha256": "c7c4e2c4751f9a55ea935dab7775d624681624f7d58deac9934fec5d6d1728aa"
+      },
+      "candidate": {
+        "path": "tmp/bellback-woody-character-integration/final/nine/08-diag-right.png",
+        "bytes": 646442,
+        "sha256": "61354c5cb74b94bf883f6c85de561721303b6fd76cd0a5e415353632edefc853"
+      },
+      "pair": {
+        "path": "tmp/bellback-woody-character-integration/pairs/08-diag-right.png",
+        "bytes": 1151353,
+        "sha256": "2b8cf62488d3db5ec312364d883252ef008f46074db7a00c24cdffee03edab25"
+      },
+      "camera": [
+        -6.965615749359131,
+        -0.05000000074505806,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "09-diag-back",
+      "baseline": {
+        "path": "tmp/bellback-complete-pass3/nine/09-diag-back.png",
+        "bytes": 638329,
+        "sha256": "5ede422d01eb87f3b776333eb75ecbd2b13d94ccd8b87accc9fe8c614ec995c6"
+      },
+      "candidate": {
+        "path": "tmp/bellback-woody-character-integration/final/nine/09-diag-back.png",
+        "bytes": 638243,
+        "sha256": "4248f7384b22d031283228e0d603bd0e6388b1897604e60c5ef24f8320c1f532"
+      },
+      "pair": {
+        "path": "tmp/bellback-woody-character-integration/pairs/09-diag-back.png",
+        "bytes": 1221106,
+        "sha256": "7de6b482c609af12b63a1de8d1be6cc1ae28cd66de8a80b9a1693ad927c6b6d3"
+      },
+      "camera": [
+        8.530419048612408e-16,
+        6.915615558624268,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    }
+  ]
+}

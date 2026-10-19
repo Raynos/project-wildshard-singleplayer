@@ -1,0 +1,99 @@
+{
+  "schema": "wildshard.conch.selected-native-normals.verification.v1",
+  "pythonTests": {
+    "passed": 10,
+    "failed": 0
+  },
+  "actualConsumerTests": {
+    "passed": 4,
+    "failed": 0
+  },
+  "reproducedNativeFiles": 7,
+  "sourceAndOriginalNativePinsUnchanged": true,
+  "cpuSkinNormalEquationVerified": true,
+  "gpuNormalExecutionVerified": false,
+  "visualAcceptance": false,
+  "animationAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false,
+  "phonePerformanceAcceptance": false,
+  "publicPromotion": false,
+  "files": {
+    "art/driftwood-isle/approved-conch/selected-native-normals/README.md": {
+      "bytes": 997,
+      "sha256": "6a740af911ed780a4f70ab95efe98744c46af3369664d3ebc949b188016e17f4"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/audit_normals.py": {
+      "bytes": 2159,
+      "sha256": "fe76b841deb07dc923d77775b1a75e49e4badcc7f5df033d4fb65f476228946b"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/consumer-test.log": {
+      "bytes": 1183,
+      "sha256": "164a71f877829c305bba17167c3199a029c5edf212c3228254728fb527954244"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/export-test.log": {
+      "bytes": 1849,
+      "sha256": "af96fe87ad04e564a79fd381be382b3de731c3de8d75dac2e4bb7177f1d18940"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/export_native.py": {
+      "bytes": 18866,
+      "sha256": "e97d13091b52ba2073df1e0927162f4ffc85d9321cd3d7e536942d1c390e2687"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/input-pins.json": {
+      "bytes": 923,
+      "sha256": "0e037e1cbfa6367f31ac9cdf31325f943e57c4567af9a18047a685613a3c11b9"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/native/closure.json": {
+      "bytes": 1592,
+      "sha256": "6cf1c6150eb8404de266fc9cf1b9fc04a0b097c0d3fbf45ad7acee211d54affe"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/native/conch-character-pass-native.json": {
+      "bytes": 1286235,
+      "sha256": "3dddaf6a2845ffea0c372fe46d8d422baaa2864bfaf5cc5f4c4cd98a9faa0929"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/native/diagnostic-dimensions.json": {
+      "bytes": 266,
+      "sha256": "118a7dd28ea4d3265aff4f38238540f90f41f88cc376d1b8754d6054a4a3877d"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/native/mesh-map.json": {
+      "bytes": 13607,
+      "sha256": "f6bb1437095c4f13c268b35d25f4710bbf7d6b728eacbeef825506d0fb2a60d6"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/native/metadata.json": {
+      "bytes": 5697,
+      "sha256": "8b5ee001154cf9d781214d97231af3b7ddaf9e97199e7b641fd684cbc754bd58"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/native/payload.bin": {
+      "bytes": 46511,
+      "sha256": "cfd4a13e900eaea9675c047b73759411eaa6d2f484d2bc110fb32669d9e3d544"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/native/rig-provenance.json": {
+      "bytes": 3311,
+      "sha256": "3b61be6a075f95406e872a1c75cba10e64d46193f9e6f7453ec98a63150887b0"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/native-consumer.test.ts": {
+      "bytes": 13504,
+      "sha256": "d625608a90436f944d1cfcffa8da7ba7622d2215d29cbf0cffa43ccbfed822d2"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/normal-audit.json": {
+      "bytes": 5517,
+      "sha256": "8752c492f5ebf5036f99efe0b8f261ae286897622906e2a41f4ac65eebf2b5d8"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/python-test.log": {
+      "bytes": 1017,
+      "sha256": "60b8b49787b10afc4b145d3031e8dd143b2ccb800c88e5e5fa8d505316811412"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/test_export_native.py": {
+      "bytes": 4033,
+      "sha256": "832993829bb51217071e29ab1ef8ae7540e500e7c766e7a183e8a50385392603"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/vitest.config.ts": {
+      "bytes": 240,
+      "sha256": "7c76b30747ea251678964fa9a0ba28b5a4555d7ebe0a464045d738bf8ccd883c"
+    },
+    "docs/reviews/conch-selected-native-normals.md": {
+      "bytes": 6147,
+      "sha256": "7fb5609fd094106966e2649c87b5b3ef385342dde218401a1012c2aa5855c7dd"
+    }
+  }
+}

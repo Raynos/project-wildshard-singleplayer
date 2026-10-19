@@ -1,0 +1,198 @@
+{
+  "status": "Static evidence frozen, no quality score or runtime acceptance",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/bellback-woody-character-integration.glb",
+      "bytes": 369500,
+      "sha256": "efaf7ebf07d6f18d0c71185ebd2d696e2554af2df57128a484bd7e9d5089135a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/build_bellback_complete.py",
+      "bytes": 17385,
+      "sha256": "e67b9e3ea01996bc5f0dfb9da07ed8800bb3d0052c7d3cc08c77c985732f0aa3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/capture-hero.json",
+      "bytes": 13831,
+      "sha256": "8e26546ef1766d930120cbc8433db7577e78350ea9a27240d23cad309725fce2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/capture-nine.json",
+      "bytes": 23270,
+      "sha256": "1bc8c190e76ffaa1b8edd07178aa06bd0adc07acc492bb10ed7a29e11ea0e287"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/capture_review.py",
+      "bytes": 5500,
+      "sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/check_geometry.py",
+      "bytes": 1884,
+      "sha256": "96ae854374955f5b2bfcab5aef629efb747f7a29f9c0917a076e1543f915a210"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/check_native.py",
+      "bytes": 1613,
+      "sha256": "8d455a0a9c22da56996efa5727c4a4cc6bcf6c0c8cf2b67afd78f3346560650e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/compare_source.py",
+      "bytes": 2411,
+      "sha256": "047a301610315c2ac79d5aee8ea60fa3fe57c34acef6f826ef6f8b6d99646f76"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/exact-source-diff.json",
+      "bytes": 294676,
+      "sha256": "22f7bd35f491e439a1f0959177011e3986edbf3a359513f3887575af8e2838d3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/frame_only_pass3.py",
+      "bytes": 16248,
+      "sha256": "107def015e01b08ee6da13f966d7e1a96836711a90dde5977b076c9b5568e5e0"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/geometry-checks.json",
+      "bytes": 25603,
+      "sha256": "01fd050c899ec2e87b2d5fa707da129b88d7dd668cfa4fa032213cb17c900af8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/metrics.json",
+      "bytes": 313,
+      "sha256": "0afd3e728086452b5f38e8b6ae26c1a2377c0014359f746188232489eb37be8c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/native-geometry-checks.json",
+      "bytes": 245,
+      "sha256": "92c127e7f59cf3000c0a05d53b21b6086e316f0c178c233b15b51cbb183c1c53"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/package_evidence.py",
+      "bytes": 2938,
+      "sha256": "a53e38f30601f71fc9c3e2fcfcb5975d735f1af405d4e175c1ab883eabe4f116"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/paired-captures.json",
+      "bytes": 9460,
+      "sha256": "97f7a086259dcdb06420abb31f9bb066d00dc165412705a754c5a2964e142557"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/reference-landmarks.json",
+      "bytes": 1572,
+      "sha256": "27779fdbb0d7870b04587a707cea6b30dce43dd8563359582c2058462205db1e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/source-diff-summary.json",
+      "bytes": 1502,
+      "sha256": "a4dbe76897296b74de47ce7757969e5552994b99a2ed9da41c71a028d6348db4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/validation.json",
+      "bytes": 451,
+      "sha256": "1a5f6d5ca3cf4c6e7fa5121b4e94079de572010dcf67a2856e1a2cd37a44c626"
+    }
+  ],
+  "raw_pngs": [
+    {
+      "path": "tmp/bellback-woody-character-integration/final/hero/hero.png",
+      "bytes": 1225640,
+      "sha256": "2e8fc25c5255e2f278e786231004fa1d633a7a182cbb4e25e6924c24bf93af1f"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/final/nine/01-front.png",
+      "bytes": 389127,
+      "sha256": "bbd197fd7615b4103eb696ee2dae05673d7e2d4faff47744a9b2d6659db88056"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/final/nine/02-left.png",
+      "bytes": 383094,
+      "sha256": "9f41e41a550f9636c86ed8d15066cefca07171a55d235ca0c01ecd725e7974d6"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/final/nine/03-right.png",
+      "bytes": 388543,
+      "sha256": "9f087656ce8aa24ea8fd4060515ffc6a5c1d4d34b8393f80f83da16fe05e83e8"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/final/nine/04-back.png",
+      "bytes": 369840,
+      "sha256": "f003633286744d255c1a4e29a4c866302addd63e912d974521952ea69892c106"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/final/nine/05-top.png",
+      "bytes": 653678,
+      "sha256": "6fb1c70f1f58a2c33b54aea76b6beaa1c16516593bd84348c5687cb115d33107"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/final/nine/06-diag-front.png",
+      "bytes": 665751,
+      "sha256": "1d31b785f760a5061c9aed9e89a2c260b1fcea0db012388c5cefdd364f668ad7"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/final/nine/07-diag-left.png",
+      "bytes": 643121,
+      "sha256": "3e5f6dc9ccbdcef31fb3468c8a8f74c301eb1989b7cda75a808c9111fefb469c"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/final/nine/08-diag-right.png",
+      "bytes": 646442,
+      "sha256": "61354c5cb74b94bf883f6c85de561721303b6fd76cd0a5e415353632edefc853"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/final/nine/09-diag-back.png",
+      "bytes": 638243,
+      "sha256": "4248f7384b22d031283228e0d603bd0e6388b1897604e60c5ef24f8320c1f532"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/pairs/01-front.png",
+      "bytes": 615342,
+      "sha256": "8da5725dce0dc1dd0941f48082c71d6ef040ed3747bb8cb472192580468c6413"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/pairs/02-left.png",
+      "bytes": 598083,
+      "sha256": "94f40884f44950b67cb281b18e8eb4d1417eb156aa31497b357a34353b4e6538"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/pairs/03-right.png",
+      "bytes": 615234,
+      "sha256": "3c572790ba9ec21d9aba5e96e3017ed0fb63f2b877c87c84fa3a1e30582bbf09"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/pairs/04-back.png",
+      "bytes": 568345,
+      "sha256": "6dd8323d9e40dd48fc19d3f7f3b3a46c1b9420ee7d3b99549361767a03da031b"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/pairs/05-top.png",
+      "bytes": 1179924,
+      "sha256": "074636b77913fd59fcef07c11702b55f48ecb71964a6fb53a6c8b03e2096e978"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/pairs/06-diag-front.png",
+      "bytes": 1188699,
+      "sha256": "4bdb7167dc6c0bcc0819ec0fac445f0fdc76f3bfcecbefeae504adf5bc7c60d8"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/pairs/07-diag-left.png",
+      "bytes": 1133176,
+      "sha256": "38074327a045143db216b476851081743453b1c9fafddbe17a1bd2ac3489a079"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/pairs/08-diag-right.png",
+      "bytes": 1151353,
+      "sha256": "2b8cf62488d3db5ec312364d883252ef008f46074db7a00c24cdffee03edab25"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/pairs/09-diag-back.png",
+      "bytes": 1221106,
+      "sha256": "7de6b482c609af12b63a1de8d1be6cc1ae28cd66de8a80b9a1693ad927c6b6d3"
+    },
+    {
+      "path": "tmp/bellback-woody-character-integration/pairs/hero.png",
+      "bytes": 2038598,
+      "sha256": "571d4f0b55dccfc57cae0adce8b9c762fe47db04b6e69f02f40474a7ca3428d5"
+    }
+  ],
+  "new_footprint_bytes": 19595608
+}

@@ -1,0 +1,15 @@
+test_all_packed_channels_independent_struct_decode (__main__.Contract.test_all_packed_channels_independent_struct_decode) ... ok
+test_bad_glb_pin_refused (__main__.Contract.test_bad_glb_pin_refused) ... ok
+test_bad_source_pin_refused (__main__.Contract.test_bad_source_pin_refused) ... ok
+test_missing_normals_refused (__main__.Contract.test_missing_normals_refused) ... ok
+test_nonfinite_normal_refused (__main__.Contract.test_nonfinite_normal_refused) ... ok
+test_nonunit_normal_refused (__main__.Contract.test_nonunit_normal_refused) ... ok
+test_original_channels_bones_and_material_regions_exact (__main__.Contract.test_original_channels_bones_and_material_regions_exact) ... ok
+test_pivot_change_refused (__main__.Contract.test_pivot_change_refused) ... ok
+test_reproduction (__main__.Contract.test_reproduction) ... ok
+test_wrong_rigid_weights_refused (__main__.Contract.test_wrong_rigid_weights_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.374s
+
+OK

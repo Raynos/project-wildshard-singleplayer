@@ -1,0 +1,243 @@
+{
+  "triangleCount": 2190,
+  "degenerateTriangles": 0,
+  "minimumNormalCosine": 0.1021281717893707,
+  "facetNormalDeviations": [
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 0,
+      "triangle": 63,
+      "normalCosines": [
+        0.9962541619100036,
+        0.9962541619100036,
+        0.9962541619100036
+      ]
+    },
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 0,
+      "triangle": 64,
+      "normalCosines": [
+        0.9965378825906223,
+        0.9965378825906223,
+        0.9965378825906223
+      ]
+    },
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 0,
+      "triangle": 65,
+      "normalCosines": [
+        0.9947333935105309,
+        0.9947333935105309,
+        0.9947333935105309
+      ]
+    },
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 0,
+      "triangle": 67,
+      "normalCosines": [
+        0.9832198863893418,
+        0.9832198863893418,
+        0.9832198863893418
+      ]
+    },
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 0,
+      "triangle": 68,
+      "normalCosines": [
+        0.9988191683127111,
+        0.9988191683127111,
+        0.9988191683127111
+      ]
+    },
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 3,
+      "triangle": 0,
+      "normalCosines": [
+        0.9804303134422344,
+        0.9804303134422344,
+        0.9804303134422344
+      ]
+    },
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 3,
+      "triangle": 1,
+      "normalCosines": [
+        0.9907471600928497,
+        0.9907471600928497,
+        0.9907471600928497
+      ]
+    },
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 3,
+      "triangle": 2,
+      "normalCosines": [
+        0.9683282460779806,
+        0.9683282460779806,
+        0.9683282460779806
+      ]
+    },
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 3,
+      "triangle": 3,
+      "normalCosines": [
+        0.998240056046319,
+        0.998240056046319,
+        0.998240056046319
+      ]
+    },
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 3,
+      "triangle": 4,
+      "normalCosines": [
+        0.9335619715613522,
+        0.9335619715613522,
+        0.9335619715613522
+      ]
+    },
+    {
+      "node": 0,
+      "name": "Unified angular whorls lip and recessed throat",
+      "primitive": 3,
+      "triangle": 5,
+      "normalCosines": [
+        0.9969240835142518,
+        0.9969240835142518,
+        0.9969240835142518
+      ]
+    },
+    {
+      "node": 5,
+      "name": "Hooked coral cranium and keel",
+      "primitive": 0,
+      "triangle": 26,
+      "normalCosines": [
+        0.9900093674659729,
+        0.9900093674659729,
+        0.9900093674659729
+      ]
+    },
+    {
+      "node": 5,
+      "name": "Hooked coral cranium and keel",
+      "primitive": 0,
+      "triangle": 27,
+      "normalCosines": [
+        0.9820677061463803,
+        0.9820677061463803,
+        0.9820677061463803
+      ]
+    },
+    {
+      "node": 5,
+      "name": "Hooked coral cranium and keel",
+      "primitive": 0,
+      "triangle": 28,
+      "normalCosines": [
+        0.9820677061463803,
+        0.9820677061463803,
+        0.9820677061463803
+      ]
+    },
+    {
+      "node": 5,
+      "name": "Hooked coral cranium and keel",
+      "primitive": 0,
+      "triangle": 29,
+      "normalCosines": [
+        0.9900093674659729,
+        0.9900093674659729,
+        0.9900093674659729
+      ]
+    },
+    {
+      "node": 5,
+      "name": "Hooked coral cranium and keel",
+      "primitive": 0,
+      "triangle": 30,
+      "normalCosines": [
+        0.9915618197461048,
+        0.9915618197461048,
+        0.9915618197461048
+      ]
+    },
+    {
+      "node": 5,
+      "name": "Hooked coral cranium and keel",
+      "primitive": 0,
+      "triangle": 31,
+      "normalCosines": [
+        0.9915618197461048,
+        0.9915618197461048,
+        0.9915618197461048
+      ]
+    },
+    {
+      "node": 5,
+      "name": "Hooked coral cranium and keel",
+      "primitive": 0,
+      "triangle": 32,
+      "normalCosines": [
+        0.1021281717893707,
+        0.1021281717893707,
+        0.1021281717893707
+      ]
+    },
+    {
+      "node": 5,
+      "name": "Hooked coral cranium and keel",
+      "primitive": 0,
+      "triangle": 33,
+      "normalCosines": [
+        0.9755476713180543,
+        0.9755476713180543,
+        0.9755476713180543
+      ]
+    },
+    {
+      "node": 5,
+      "name": "Hooked coral cranium and keel",
+      "primitive": 0,
+      "triangle": 34,
+      "normalCosines": [
+        0.1021281717893707,
+        0.1021281717893707,
+        0.1021281717893707
+      ]
+    },
+    {
+      "node": 5,
+      "name": "Hooked coral cranium and keel",
+      "primitive": 0,
+      "triangle": 35,
+      "normalCosines": [
+        0.47468148021827905,
+        0.47468148021827905,
+        0.47468148021827905
+      ]
+    }
+  ],
+  "opposedTriangles": [],
+  "normalPolicy": "Exact selected source GLB NORMAL preserved, not triangulated/facet recomputed",
+  "allClosedUnitFacetDiagnostic": false,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false
+}

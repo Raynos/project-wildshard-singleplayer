@@ -1,0 +1,65 @@
+{
+  "frame_changed_vertices": 62,
+  "frame_changed_meshes": [
+    {
+      "mesh": "Barrel timber hull",
+      "points": 24,
+      "vertex_normals": 32,
+      "polygon_normals": 24
+    },
+    {
+      "mesh": "Crown tie",
+      "points": 12,
+      "vertex_normals": 24,
+      "polygon_normals": 18
+    },
+    {
+      "mesh": "Lower timber jaw",
+      "points": 5,
+      "vertex_normals": 10,
+      "polygon_normals": 6
+    },
+    {
+      "mesh": "Solid timber cranium",
+      "points": 21,
+      "vertex_normals": 28,
+      "polygon_normals": 22
+    }
+  ],
+  "art_changed_meshes": [
+    "Inset amber eye",
+    "Inset amber eye.001",
+    "Ivory upper fang -1 0",
+    "Ivory upper fang -1 1",
+    "Ivory upper fang 1 0",
+    "Ivory upper fang 1 1",
+    "Lower cheek timber",
+    "Lower cheek timber.001",
+    "Lower timber jaw",
+    "Mouth dark pocket",
+    "Pointed central face keel",
+    "Recessed eye shadow",
+    "Recessed eye shadow.001",
+    "Shaped orbital brow timber",
+    "Shaped orbital brow timber.001",
+    "Solid timber cranium"
+  ],
+  "art_removed_meshes": [
+    "Ivory crown splinter -1",
+    "Ivory crown splinter 1",
+    "Ivory lower tooth -1 0",
+    "Ivory lower tooth -1 1",
+    "Ivory lower tooth 1 0",
+    "Ivory lower tooth 1 1"
+  ],
+  "art_added_meshes": [
+    "Crown wood splinter -1",
+    "Crown wood splinter 1",
+    "Ivory lower jaw -1",
+    "Ivory lower jaw 1",
+    "Left fore neck gusset",
+    "Right fore neck gusset"
+  ],
+  "unchanged_meshes": 68,
+  "parent_changes": []
+}

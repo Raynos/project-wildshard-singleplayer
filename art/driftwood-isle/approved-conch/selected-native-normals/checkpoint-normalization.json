@@ -1,0 +1,10 @@
+{
+  "scope": "Diagnostic prefixes and terminal whitespace only; original freeze pins reviewed logs retained locally. Source/assets unchanged.",
+  "changes": [
+    {
+      "path": "consumer-test.log",
+      "originalSha256": "164a71f877829c305bba17167c3199a029c5edf212c3228254728fb527954244",
+      "sha256": "2b9015ae84d7fd78e42f746e343cbb291f008dafbe72d3be9dd14ddd600fb479"
+    }
+  ]
+}

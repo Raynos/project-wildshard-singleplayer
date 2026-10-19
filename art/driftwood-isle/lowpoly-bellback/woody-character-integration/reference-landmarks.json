@@ -1,0 +1,55 @@
+{
+  "reference": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/bellback-lowpoly.webp",
+  "sha256": "92b3a72c20b2e820d843956f8d076fb981af9d4ec9e5669794cb717dd552f4ae",
+  "image_size": [
+    1024,
+    1536
+  ],
+  "method": "Manually traced landmarks in original left character image, pixel coordinates, approximate \u00b18 pixels. Single perspective concept; not an orthographic reconstruction or a score. Horns excluded from head envelope.",
+  "landmarks": {
+    "neck_top": [
+      249,
+      655
+    ],
+    "nose_tip": [
+      407,
+      782
+    ],
+    "chin_bottom": [
+      399,
+      822
+    ],
+    "outer_brow": [
+      237,
+      664
+    ],
+    "near_eye": [
+      376,
+      746
+    ],
+    "bell_mouth_left": [
+      199,
+      597
+    ],
+    "bell_mouth_right": [
+      425,
+      623
+    ]
+  },
+  "projected_head_envelope": {
+    "min": [
+      232,
+      648
+    ],
+    "max": [
+      435,
+      824
+    ]
+  },
+  "projected_bell_mouth_width_px": 226,
+  "projected_head_envelope_width_px": 203,
+  "head_to_bell_width": 0.8982300884955752,
+  "neck_to_nose_drop_over_run": 0.8037974683544303,
+  "neck_to_nose_projected_angle_degrees": 38.792232778337976,
+  "construction_response": "Complete temple-to-nose components compressed to 86\u201390% transverse width, 96% length from fixed neck end, with up to 0.10 downward tip offset. Preserve narrow squint; brow root thickens and blends through shoulder gussets. Chin becomes split pointed ivory mandible. These are artistic interpretation, not direct conversion of perspective ratios into world units."
+}
