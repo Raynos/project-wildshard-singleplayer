@@ -1,0 +1,18 @@
+{
+  "status": "actual clay-only study, unaccepted; root/independent visual review pending",
+  "renderExitCode": 0,
+  "frames": [
+    {
+      "path": "tmp/puffer-remaster-blockouts/anatomy-seated/clay-hero.png",
+      "bytes": 357548,
+      "sha256": "63c3684c6f2e63ba22eb774aeb869803d03d5ad70c51b63dd8720e31295568da"
+    },
+    {
+      "path": "tmp/puffer-remaster-blockouts/anatomy-seated/clay-side.png",
+      "bytes": 328288,
+      "sha256": "f28e93f48869b104f06898a08af10537e40c06b77e9b061dd5fc80c1cab72617"
+    }
+  ],
+  "sourceGeometryUnchangedDuringCapture": true,
+  "imagesRemainTemporaryDueWeeklyBinaryBudget": true
+}

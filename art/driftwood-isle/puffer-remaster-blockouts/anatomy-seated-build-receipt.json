@@ -1,0 +1,341 @@
+{
+  "status": "unaccepted anatomical blockout",
+  "candidate": "anatomy-revision",
+  "design": "one wrapped cheek and convex lower pouch cage, with recessed local-frame eyes and low short fan roots",
+  "landmarks": {
+    "eye--1": [
+      -0.3428128728470734,
+      0.5863166939713879,
+      0.9797858095481377
+    ],
+    "eye-1": [
+      0.3429059214496694,
+      0.5863125638177509,
+      0.9794583475150558
+    ],
+    "mouth": [
+      0,
+      0.775,
+      0.8049999999999999
+    ]
+  },
+  "meshAudits": [
+    {
+      "name": "Integrated anatomical cage",
+      "vertices": 100,
+      "triangles": 196,
+      "volume": 1.0185431532134122,
+      "closedManifold": true
+    },
+    {
+      "name": "fore fan -1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.03012384074730081,
+      "closedManifold": true
+    },
+    {
+      "name": "rear fan -1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.01412522497111484,
+      "closedManifold": true
+    },
+    {
+      "name": "fore fan 1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.03012384074730081,
+      "closedManifold": true
+    },
+    {
+      "name": "rear fan 1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.01412522497111484,
+      "closedManifold": true
+    },
+    {
+      "name": "Amber eye -1",
+      "vertices": 24,
+      "triangles": 44,
+      "volume": 0.00047989508616447794,
+      "closedManifold": true
+    },
+    {
+      "name": "Pupil -1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 3.732704907303295e-05,
+      "closedManifold": true
+    },
+    {
+      "name": "Amber eye 1",
+      "vertices": 24,
+      "triangles": 44,
+      "volume": 0.00047989401164337146,
+      "closedManifold": true
+    },
+    {
+      "name": "Pupil 1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 3.732692186771864e-05,
+      "closedManifold": true
+    }
+  ],
+  "finCapQueries": [
+    {
+      "part": "fore fan -1",
+      "vertex": 0,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999996,
+        "signedEuclideanDistance": -0.1810249239206314,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.1810249239206314
+    },
+    {
+      "part": "fore fan -1",
+      "vertex": 1,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0,
+        "signedEuclideanDistance": -0.061943769454956055,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.061943769454956055
+    },
+    {
+      "part": "fore fan -1",
+      "vertex": 2,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999997,
+        "signedEuclideanDistance": -0.018115879967808723,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.018115879967808723
+    },
+    {
+      "part": "fore fan -1",
+      "vertex": 3,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000007,
+        "signedEuclideanDistance": -0.13264761865139008,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.13264761865139008
+    },
+    {
+      "part": "rear fan -1",
+      "vertex": 0,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0,
+        "signedEuclideanDistance": -0.09424234181642532,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.09424234181642532
+    },
+    {
+      "part": "rear fan -1",
+      "vertex": 1,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999997,
+        "signedEuclideanDistance": -0.025796707719564438,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.025796707719564438
+    },
+    {
+      "part": "rear fan -1",
+      "vertex": 2,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.0805015116930008,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.0805015116930008
+    },
+    {
+      "part": "rear fan -1",
+      "vertex": 3,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.1235785037279129,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.1235785037279129
+    },
+    {
+      "part": "fore fan 1",
+      "vertex": 0,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000004,
+        "signedEuclideanDistance": -0.18102490901947021,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.18102490901947021
+    },
+    {
+      "part": "fore fan 1",
+      "vertex": 1,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000007,
+        "signedEuclideanDistance": -0.06194378808140755,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.06194378808140755
+    },
+    {
+      "part": "fore fan 1",
+      "vertex": 2,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.018115904182195663,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.018115904182195663
+    },
+    {
+      "part": "fore fan 1",
+      "vertex": 3,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.13264761865139008,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.13264761865139008
+    },
+    {
+      "part": "rear fan 1",
+      "vertex": 0,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.09424234181642532,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.09424234181642532
+    },
+    {
+      "part": "rear fan 1",
+      "vertex": 1,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.999999999999999,
+        "signedEuclideanDistance": -0.025796707719564438,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.025796707719564438
+    },
+    {
+      "part": "rear fan 1",
+      "vertex": 2,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.0805015042424202,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.0805015042424202
+    },
+    {
+      "part": "rear fan 1",
+      "vertex": 3,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000007,
+        "signedEuclideanDistance": -0.1235785037279129,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.1235785037279129
+    }
+  ],
+  "restPivots": {
+    "body": [
+      [
+        0,
+        0,
+        0.7
+      ],
+      null
+    ],
+    "belly": [
+      [
+        0,
+        0,
+        0.7
+      ],
+      "body"
+    ],
+    "head": [
+      [
+        0,
+        0.5,
+        0.93
+      ],
+      "belly"
+    ],
+    "tail": [
+      [
+        0,
+        -0.58,
+        0.68
+      ],
+      "body"
+    ],
+    "finL": [
+      [
+        -0.275,
+        0.16,
+        0.41
+      ],
+      "body"
+    ],
+    "finR": [
+      [
+        0.275,
+        0.16,
+        0.41
+      ],
+      "body"
+    ],
+    "rearL": [
+      [
+        -0.215,
+        -0.25,
+        0.38
+      ],
+      "body"
+    ],
+    "rearR": [
+      [
+        0.215,
+        -0.25,
+        0.38
+      ],
+      "body"
+    ]
+  },
+  "sourcePins": {
+    "anatomy_controls_seated.json": "120d26c56cb03d0314a4d4470634962f15fa5cea261f14768f8221e30d161c90",
+    "anatomy_geometry.py": "28730789541081748f27dd1837e36648b0973ca1aea80c18e3a8a73f2caa3ffc",
+    "build_anatomy_seated.py": "340f4ee169b854f0e9d1a1fd436e36de3620f1c8be297ab5138276f52f3ebfd0"
+  },
+  "limitations": [
+    "rigid draft weights; no deformation test",
+    "no tail or spine detail; judge anatomy separately",
+    "no runtime admission"
+  ]
+}

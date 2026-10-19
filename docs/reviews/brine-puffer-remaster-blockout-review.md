@@ -174,3 +174,74 @@ is promised by this review.
 Only this ordinary report was created. No model, image, receipt, prior assessment,
 plan-state file or production asset was changed. No Blender, browser, image
 generation, heavy render or remote write was run by the reviewer.
+
+## Wrapped anatomy revision — 2026-10-19, 01:23 UTC
+
+**Recommendation: return to V71's stronger volume baseline and retopologize it;
+do not continue this proxy as the main anatomical base.** This does not abandon
+the remaster. It avoids rebuilding the same identity from a substantially weaker
+shape before making the intended improvements.
+
+Inspected exactly:
+
+- `tmp/puffer-remaster-blockouts/anatomy-seated/clay-hero.png`
+- `tmp/puffer-remaster-blockouts/anatomy-seated/clay-side.png`
+
+Reopened the approved original and V71 actual hero named above. This is a
+two-view preliminary shape assessment, not a front/nine-view review or a new
+fidelity score. Missing color, spikes, tail, toes and finishing detail are not
+penalized.
+
+### What improved, and what still fails
+
+Wrapping the cheek corners removes the worst rectangular slab. The sloped
+socket frame is a better expression direction than the first level eye row.
+Those are useful construction lessons.
+
+However, the side still shows broad belt planes and a long, nearly straight
+bevel from the lower mouth/lip region back toward the underside. The hero's
+lower mass tapers into a pointed chin. This reads as a solid blunt head with a
+receding underside, rather than an inflated forward pouch. The long inclined
+fin supports remain. It is rounder than A/B/C without yet restoring the more
+successful body and facial relationships already present in V71.
+
+### Concrete landmark relationships for the next pass
+
+1. **Start with V71's spatial landmarks.** Initially retain its crown/rear
+   outline, eye centers, bill tip, mouth corners and lower lip while replacing
+   surface connectivity. These are starting guards, not permanently locked
+   anatomy: move a landmark later only for an explicit reference-supported
+   correction. New topology alone is not a reason to move every successful
+   relationship at once.
+2. **Give the pouch an intermediate forward bulge below the mouth.** Between
+   lower lip and pouch bottom, add a full convex cross-section before turning
+   gently back into the underside. The reference's cream belly reads as a
+   substantial lobe beneath the gape. Do not connect lip to underside with one
+   long diagonal bevel or make the low point a central spike-like chin.
+3. **Separate cheek return from pouch fullness.** Let the lateral cheeks wrap
+   behind the mouth corners while retaining the central lower-front volume.
+   Pulling the entire facial row backward defeats the pouch projection that the
+   wrap was intended to support.
+4. **Preserve eye placement before changing socket shape.** Use V71's eye-center
+   and bill/eye relationships in the same hero/front cameras, then sculpt the
+   inward-descending upper orbital ridge. Integration must not casually push the
+   eyes around onto the sides of the head or change their relative visibility.
+5. **Treat fin shortening as its own correction after the core passes.** Reduce
+   root-to-ground reach and develop a broad planted web; do not simultaneously
+   move the belly, raise the body and spread the feet to hide a changed support
+   arrangement.
+
+The relationships above do not claim an exact unseen side anatomy from the
+concept. No absolute millimeter target or inferred hidden curvature is imposed.
+
+### Efficient next check
+
+Make a matched neutral-clay, core-only V71 hero/front/side baseline before
+judging the retopology. Explicitly label this limited comparison and use equal
+detail scope in the new cage. Keep the same cameras and lighting. First show
+that replacing topology preserves V71's recognizable core and face; then test
+the forward pouch correction independently. Do not add detailed paint, spikes
+or fine facets to rescue a weaker core.
+
+Only this dated review was appended. No model, render, prior judgment or other
+file was changed, and no heavy process was started by the reviewer.
