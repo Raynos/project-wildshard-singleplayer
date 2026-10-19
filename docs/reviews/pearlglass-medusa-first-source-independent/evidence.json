@@ -1,0 +1,350 @@
+{
+  "reviewDate": "2026-10-19",
+  "sourceProtectedCommit": "bf6e8fce9771adccc46cc5e5e9220dc9c4fc054a",
+  "sourceTreeDiffAgainstProtectedCommit": "empty",
+  "checkpointSha256": "50cbce035f51485c7b494a4454a1d05dc2fc966315531822a16dd5a5cb9cb12e",
+  "scoring": {
+    "silhouette": 2.8,
+    "faceCore": 2.5,
+    "details": 3,
+    "facetStyle": 2.8,
+    "weights": [
+      0.35,
+      0.3,
+      0.2,
+      0.15
+    ],
+    "exactTotal": 2.75,
+    "blindScoredBeforeBuilderOpinions": true
+  },
+  "rawImages": [
+    {
+      "nativeSitePath": "source-evidence/new-approved-model-captures-20261019/pearlglass-medusa/candidate-v2/hero.png",
+      "sha256": "aaae6ad35beba6a8d01a7019d7ae501b5ac65807f904e0379643788e091f6262",
+      "size": [
+        600,
+        720
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "1ebefec9f0751dba8f2e65f414a6fe28a50fbca9",
+      "view": "hero",
+      "inspectedPath": "tmp/pearlglass-medusa-v2/hero.png",
+      "matchesInspectedBytes": true,
+      "matchesCaptureProvenance": true,
+      "inspection": "individual view_image original detail, full 600x720 image"
+    },
+    {
+      "nativeSitePath": "source-evidence/new-approved-model-captures-20261019/pearlglass-medusa/candidate-v2/front.png",
+      "sha256": "60b7ce17ffe518fd4ff170560c9c942a8995b67384df0f2f9d89ab810c1ab8f8",
+      "size": [
+        600,
+        720
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "1ebefec9f0751dba8f2e65f414a6fe28a50fbca9",
+      "view": "front",
+      "inspectedPath": "tmp/pearlglass-medusa-v2/front.png",
+      "matchesInspectedBytes": true,
+      "matchesCaptureProvenance": true,
+      "inspection": "individual view_image original detail, full 600x720 image"
+    },
+    {
+      "nativeSitePath": "source-evidence/new-approved-model-captures-20261019/pearlglass-medusa/candidate-v2/left.png",
+      "sha256": "f5ed76fdff25c263e1e570dec17a64f4157ab2467668410fbcef6108d17ba2d2",
+      "size": [
+        600,
+        720
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "1ebefec9f0751dba8f2e65f414a6fe28a50fbca9",
+      "view": "left",
+      "inspectedPath": "tmp/pearlglass-medusa-v2/left.png",
+      "matchesInspectedBytes": true,
+      "matchesCaptureProvenance": true,
+      "inspection": "individual view_image original detail, full 600x720 image"
+    },
+    {
+      "nativeSitePath": "source-evidence/new-approved-model-captures-20261019/pearlglass-medusa/candidate-v2/right.png",
+      "sha256": "adcf97526da2b6fc1fc9a976703c4bbfbbc7c0ca93ece34c5bf2ded104089a43",
+      "size": [
+        600,
+        720
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "1ebefec9f0751dba8f2e65f414a6fe28a50fbca9",
+      "view": "right",
+      "inspectedPath": "tmp/pearlglass-medusa-v2/right.png",
+      "matchesInspectedBytes": true,
+      "matchesCaptureProvenance": true,
+      "inspection": "individual view_image original detail, full 600x720 image"
+    },
+    {
+      "nativeSitePath": "source-evidence/new-approved-model-captures-20261019/pearlglass-medusa/candidate-v2/back.png",
+      "sha256": "9de8564c39f79330ae7a7d5934a7cab5f86b463e1457825742d0fbdfe46c9c3a",
+      "size": [
+        600,
+        720
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "1ebefec9f0751dba8f2e65f414a6fe28a50fbca9",
+      "view": "back",
+      "inspectedPath": "tmp/pearlglass-medusa-v2/back.png",
+      "matchesInspectedBytes": true,
+      "matchesCaptureProvenance": true,
+      "inspection": "individual view_image original detail, full 600x720 image"
+    },
+    {
+      "nativeSitePath": "source-evidence/new-approved-model-captures-20261019/pearlglass-medusa/candidate-v2/top.png",
+      "sha256": "62c6715f6be2d4f16702abf99b30435fb62fb9b62c4e4a7a0fd372c40854a87a",
+      "size": [
+        600,
+        720
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "1ebefec9f0751dba8f2e65f414a6fe28a50fbca9",
+      "view": "top",
+      "inspectedPath": "tmp/pearlglass-medusa-v2/top.png",
+      "matchesInspectedBytes": true,
+      "matchesCaptureProvenance": true,
+      "inspection": "individual view_image original detail, full 600x720 image"
+    },
+    {
+      "nativeSitePath": "source-evidence/new-approved-model-captures-20261019/pearlglass-medusa/candidate-v2/elevated-front.png",
+      "sha256": "5f2123ccfe1196cc68deb06082071bb1bc6a73e6d91528171f75258b63016066",
+      "size": [
+        600,
+        720
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "1ebefec9f0751dba8f2e65f414a6fe28a50fbca9",
+      "view": "elevated-front",
+      "inspectedPath": "tmp/pearlglass-medusa-v2/elevated-front.png",
+      "matchesInspectedBytes": true,
+      "matchesCaptureProvenance": true,
+      "inspection": "individual view_image original detail, full 600x720 image"
+    },
+    {
+      "nativeSitePath": "source-evidence/new-approved-model-captures-20261019/pearlglass-medusa/candidate-v2/elevated-left.png",
+      "sha256": "83dd3486ac9bbec33e20fc3fc74315127eb893de9c6af233c2146a3fbc3433ce",
+      "size": [
+        600,
+        720
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "1ebefec9f0751dba8f2e65f414a6fe28a50fbca9",
+      "view": "elevated-left",
+      "inspectedPath": "tmp/pearlglass-medusa-v2/elevated-left.png",
+      "matchesInspectedBytes": true,
+      "matchesCaptureProvenance": true,
+      "inspection": "individual view_image original detail, full 600x720 image"
+    },
+    {
+      "nativeSitePath": "source-evidence/new-approved-model-captures-20261019/pearlglass-medusa/candidate-v2/elevated-right.png",
+      "sha256": "09067872fba1d1e0ce777602a6b2ef8be431e24fd92cc53206d59bdb0c26f713",
+      "size": [
+        600,
+        720
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "1ebefec9f0751dba8f2e65f414a6fe28a50fbca9",
+      "view": "elevated-right",
+      "inspectedPath": "tmp/pearlglass-medusa-v2/elevated-right.png",
+      "matchesInspectedBytes": true,
+      "matchesCaptureProvenance": true,
+      "inspection": "individual view_image original detail, full 600x720 image"
+    },
+    {
+      "nativeSitePath": "source-evidence/new-approved-model-captures-20261019/pearlglass-medusa/candidate-v2/elevated-back.png",
+      "sha256": "18f3cfd1c88188fb77c3086ee5bfbcc5e8f04643127aacd6f58a4e484605e95a",
+      "size": [
+        600,
+        720
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "1ebefec9f0751dba8f2e65f414a6fe28a50fbca9",
+      "view": "elevated-back",
+      "inspectedPath": "tmp/pearlglass-medusa-v2/elevated-back.png",
+      "matchesInspectedBytes": true,
+      "matchesCaptureProvenance": true,
+      "inspection": "individual view_image original detail, full 600x720 image"
+    }
+  ],
+  "references": [
+    {
+      "nativeSitePath": "source-evidence/approved-nine-qa/originals/pearlglass-medusa-hero.png",
+      "sha256": "d53da30e8e8f6aa425db8ec317bc4ad6c8e9ad4aea2af1ca7b0f1172520649db",
+      "size": [
+        1145,
+        1374
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "fc45347cd76dbd46d1d1f2c60526aa0e34212962"
+    },
+    {
+      "nativeSitePath": "source-evidence/approved-nine-qa/originals/medusaExplorerGen.png",
+      "sha256": "b4ba8bf5a53c5f8481d44384e87e54caae73d6ff083600e179926f395a148054",
+      "size": [
+        1145,
+        1374
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "fc45347cd76dbd46d1d1f2c60526aa0e34212962"
+    },
+    {
+      "nativeSitePath": "source-evidence/approved-nine-qa/final-world-20261019-1742/medusaWorldStyleCorrected-v2.png",
+      "sha256": "8ff65c9870a7c43c7b724b2744600fe7a76de7a6b463966de3009a5adfcd2f64",
+      "size": [
+        1145,
+        1374
+      ],
+      "nativeSiteHead": "e9a5b859a0848076141317f416c7ee45df265d9a",
+      "matchesCommittedBytes": true,
+      "lastPathCommit": "4965d4161118be7256c9f8b5a6f7d63302f2e7aa"
+    }
+  ],
+  "checkpointFiles": [
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/build_medusa.py",
+      "sha256": "ab1a640c33150bb818e749bde64b4c2167820b6e05dbf528357de1379dad7147",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/medusaClips.ts",
+      "sha256": "c770bafb4f66243df98679f669460abb0372c56757d70e65b9f5c7230c758e2e",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/medusaBehavior.ts",
+      "sha256": "450e61381438b8de9314a35f01cb4bd9c12e1c178b725cefd7086e2089578643",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/native.test.ts",
+      "sha256": "91675e8788196ca167b8154835dc01e1f7e6e5795d84d3041e8cc80f9c496170",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/audit_medusa.py",
+      "sha256": "cb4539aceba4eae3c326b085f61e58ca1f9eaa20ccb7f45c80b45fefa30e52cb",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/left.webp",
+      "sha256": "47390fe5c12551bbd8267c6e6de8c681b98c421f56dfaede6cc287743725dcdc",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/live-pose-bounds.json",
+      "sha256": "df00bedf6050910e036a99e00d914a3e08ea2352cb8c4ccee26d10058638546d",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/elevated-left.webp",
+      "sha256": "e66dc19452a5a3be3720f5d81053f356d90feaa879a1c07ac5e14b8fbc059e5a",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/elevated-back.webp",
+      "sha256": "4007a2ed2420890cecf5d59b5a63ba1f14dde6db5b6f198c80093b4c99ffa6e5",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/nine-view-board.webp",
+      "sha256": "93ab521dd2a292efb89056d7d510da084a3a3d367787b84dcd3e38894c02f344",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/pearlglass-medusa-v2.glb",
+      "sha256": "2ffa22ff00de5eb71b05a1b5e4fc7a216a5d756666fa4d2192795f85dc64a113",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/capture-provenance.json",
+      "sha256": "bb03a7adf2f6e0fed6d32227620ff22a40f4ae02d49598b4aab753e6a916bfa8",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/elevated-front.webp",
+      "sha256": "a057280a73b1d0fb31e42855fad39a1325c953fbf481c614c1b2c9a5e663d13b",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/hero.webp",
+      "sha256": "43e0b32f1f445b3a2155a0c128039fc4de499e62c37044189ee67892de467cf3",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/top.webp",
+      "sha256": "568f7cc25274961f721f51e36cfba5de5cb230dcbaa15faed046f1ee87faa514",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/front.webp",
+      "sha256": "a8905cf50252f31773de79cdf68f103f9948408f89bc5eb8fa578c970eb6e301",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/metadata.json",
+      "sha256": "1fb41e995198d3968469be0cf248aa8db4bbac32ba696125d1cd39cfcb2d1668",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/cameras.json",
+      "sha256": "ad96906405df3ffecde07ca98b22f54b8710b6ec6a2541cbd5b06384282d6bf6",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/rejected-flight-death.json",
+      "sha256": "8c8d70b7fdb7cbaa576efa76b4db28d62043f8ff20196771a98f6a519e87ed02",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/audit.json",
+      "sha256": "88850389ab121472360c28cf215b000e0918ab7b9e7ac919adc1e6077f534b79",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/elevated-right.webp",
+      "sha256": "49bbddcd4ae0b92ed30b950c2a82d8130879848832f93f39f272dbd5c7f95af1",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/right.webp",
+      "sha256": "72f45b6302f3169176dea740004360b46887a59dc935c328d2a4c5d21e5def07",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/native-source.json",
+      "sha256": "8ce441a4b0e3fda4d8f2ce0f16bb31f9152324d2ee8c32cfc498c1360289665e",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/construction.json",
+      "sha256": "9525921f5e0f81165fe76debffab4e7210eb8d0c09959fb88d13221ec3f77dd8",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/back.webp",
+      "sha256": "30a0af72d730131eed16b4e18c7b4d1f1380b04e8ac295a59f3f95421723fd24",
+      "matchesCheckpoint": true
+    },
+    {
+      "path": "art/driftwood-isle/approved-pearlglass-medusa/v2/payload.bin",
+      "sha256": "3ff82524190ed2e79e993060cf2caef01041d65452a7bbcd04963533ed05fae3",
+      "matchesCheckpoint": true
+    }
+  ],
+  "scope": "Static source likeness only; no animation, gameplay, contact, phone performance, fun or acceptance inference."
+}

@@ -1,0 +1,4535 @@
+{
+  "status": "PASS_STATIC_SOURCE_EXPORT",
+  "candidate": {
+    "meshObjects": 90,
+    "triangles": 3100,
+    "minimumNormalFacetCosine": 0.9999999171940773,
+    "minimumStoredNormalSourcePolygonCosine": 0.9999999761260348,
+    "facetDeviations": [],
+    "opposedTriangles": [],
+    "parts": [
+      {
+        "name": "Abdomen core",
+        "triangles": 52,
+        "signedVolume": 0.21687631895610826,
+        "minimumTriangleArea": 7.418065763455288e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "triangles": 26,
+        "signedVolume": 0.05522046438244356,
+        "minimumTriangleArea": 0.01022939322702816,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "triangles": 26,
+        "signedVolume": 0.04879673944260411,
+        "minimumTriangleArea": 0.009249167710624381,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "triangles": 26,
+        "signedVolume": 0.04267387084552342,
+        "minimumTriangleArea": 0.00829215807352423,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 3",
+        "triangles": 26,
+        "signedVolume": 0.03654382524131494,
+        "minimumTriangleArea": 0.007344759993004103,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rising prothorax curved cervical arch",
+        "triangles": 94,
+        "signedVolume": 0.15276076003856406,
+        "minimumTriangleArea": 0.0036730967712130555,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated pale throat",
+        "triangles": 46,
+        "signedVolume": 0.007006320122846825,
+        "minimumTriangleArea": 0.00022755038522336495,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.003356532683117459,
+        "minimumTriangleArea": 0.004559773618994138,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.0030783548172938664,
+        "minimumTriangleArea": 0.004202747797115013,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 2)",
+        "triangles": 24,
+        "signedVolume": 0.002608677758242653,
+        "minimumTriangleArea": 0.003574830591385811,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 3)",
+        "triangles": 24,
+        "signedVolume": 0.0024077609947305706,
+        "minimumTriangleArea": 0.0033305934858245327,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 4)",
+        "triangles": 24,
+        "signedVolume": 0.0020099211935968664,
+        "minimumTriangleArea": 0.0029173345336456265,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rear neck collar -1",
+        "triangles": 24,
+        "signedVolume": 0.0009912524052125694,
+        "minimumTriangleArea": 0.0019558905231241578,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.0033606812914753173,
+        "minimumTriangleArea": 0.004607590997848317,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.0030783539686432037,
+        "minimumTriangleArea": 0.004244530674127621,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 2)",
+        "triangles": 24,
+        "signedVolume": 0.0026086770308895004,
+        "minimumTriangleArea": 0.003611072639265001,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 3)",
+        "triangles": 24,
+        "signedVolume": 0.002407760742604079,
+        "minimumTriangleArea": 0.003360142342127192,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 4)",
+        "triangles": 24,
+        "signedVolume": 0.0020342103716629615,
+        "minimumTriangleArea": 0.002908259290656919,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rear neck collar 1",
+        "triangles": 24,
+        "signedVolume": 0.0009912549159715987,
+        "minimumTriangleArea": 0.0019664295236970055,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 0",
+        "triangles": 38,
+        "signedVolume": 0.012382769467126785,
+        "minimumTriangleArea": 0.0014247821328881105,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 1",
+        "triangles": 38,
+        "signedVolume": 0.01014514276848595,
+        "minimumTriangleArea": 0.0012538769909069699,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 2",
+        "triangles": 38,
+        "signedVolume": 0.008977275909868184,
+        "minimumTriangleArea": 0.0009789813851068634,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 3",
+        "triangles": 38,
+        "signedVolume": 0.007018119196902837,
+        "minimumTriangleArea": 0.0008188001802376566,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Volumetric pointed insect skull",
+        "triangles": 44,
+        "signedVolume": 0.044305231951742644,
+        "minimumTriangleArea": 0.00332023585234237,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Inset green compound eye -1",
+        "triangles": 18,
+        "signedVolume": 0.0022036628103514633,
+        "minimumTriangleArea": 0.0012969714188398964,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "triangles": 26,
+        "signedVolume": 0.00028972498722153466,
+        "minimumTriangleArea": 0.00016202538276587422,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "triangles": 26,
+        "signedVolume": 0.00041973365716710745,
+        "minimumTriangleArea": 1.4680245576387884e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept crown splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.0009687789783383203,
+        "minimumTriangleArea": 0.002235751150415192,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Compact mandible -1",
+        "triangles": 26,
+        "signedVolume": 0.0001556704093826614,
+        "minimumTriangleArea": 5.686352870006992e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Twig antenna -1",
+        "triangles": 36,
+        "signedVolume": 0.0012027841235108293,
+        "minimumTriangleArea": 5.1179301616916405e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Antenna leaf -1",
+        "triangles": 24,
+        "signedVolume": 0.0006490359589416342,
+        "minimumTriangleArea": 0.0027769744496272974,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing-1_0",
+        "triangles": 40,
+        "signedVolume": 0.15436367121743022,
+        "minimumTriangleArea": 0.00788840670352771,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "triangles": 66,
+        "signedVolume": 0.0016417505334932652,
+        "minimumTriangleArea": 1.0112282033400775e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing-1_1",
+        "triangles": 40,
+        "signedVolume": 0.09828007426542272,
+        "minimumTriangleArea": 0.006760937478710841,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "triangles": 66,
+        "signedVolume": 0.0014800223182286163,
+        "minimumTriangleArea": 9.994856889027356e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg-1_0",
+        "triangles": 36,
+        "signedVolume": 0.03658964365070161,
+        "minimumTriangleArea": 0.007557385758991796,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg-1_0",
+        "triangles": 36,
+        "signedVolume": 0.021191833978918703,
+        "minimumTriangleArea": 0.0011566071477555641,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "triangles": 26,
+        "signedVolume": 0.0009051653342499282,
+        "minimumTriangleArea": 1.971470219464716e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg-1_0",
+        "triangles": 26,
+        "signedVolume": 0.0011970735911458969,
+        "minimumTriangleArea": 0.0004435852642200011,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "triangles": 26,
+        "signedVolume": 0.00021956310118209898,
+        "minimumTriangleArea": 7.885861546915068e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_1",
+        "triangles": 26,
+        "signedVolume": 0.00018530029415141154,
+        "minimumTriangleArea": 7.885827201070437e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg-1_0",
+        "triangles": 24,
+        "signedVolume": 0.006141978650512905,
+        "minimumTriangleArea": 0.008017275765996961,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "triangles": 36,
+        "signedVolume": 0.03850420861226329,
+        "minimumTriangleArea": 0.007557381901878085,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg-1_1",
+        "triangles": 36,
+        "signedVolume": 0.02143033196877879,
+        "minimumTriangleArea": 0.0011566096451917918,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "triangles": 26,
+        "signedVolume": 0.0009051659384759222,
+        "minimumTriangleArea": 1.9714847819057582e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg-1_1",
+        "triangles": 26,
+        "signedVolume": 0.0011970738052838508,
+        "minimumTriangleArea": 0.0004435841313890313,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "triangles": 26,
+        "signedVolume": 0.00021956285295469854,
+        "minimumTriangleArea": 7.88581005483895e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_1",
+        "triangles": 26,
+        "signedVolume": 0.00018530010327347937,
+        "minimumTriangleArea": 7.885785811476953e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg-1_1",
+        "triangles": 24,
+        "signedVolume": 0.006127154259652252,
+        "minimumTriangleArea": 0.007998136488764011,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "triangles": 44,
+        "signedVolume": 0.016144562096638664,
+        "minimumTriangleArea": 0.0016571775898366935,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raised raptorial forearm -1",
+        "triangles": 44,
+        "signedVolume": 0.01637395121112607,
+        "minimumTriangleArea": 0.0019424406412206882,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "triangles": 68,
+        "signedVolume": 0.022642856720932622,
+        "minimumTriangleArea": 1.7835912835844724e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "triangles": 116,
+        "signedVolume": 0.010803475572763285,
+        "minimumTriangleArea": 0.00021283145407921677,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Inset green compound eye 1",
+        "triangles": 18,
+        "signedVolume": 0.0021647273188158556,
+        "minimumTriangleArea": 0.0012969714188398964,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "triangles": 26,
+        "signedVolume": 0.00023894232083192775,
+        "minimumTriangleArea": 0.0001607529571347503,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "triangles": 26,
+        "signedVolume": 0.00046305539909210797,
+        "minimumTriangleArea": 1.4682582180759162e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept crown splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.0009687770490685312,
+        "minimumTriangleArea": 0.0022555285354245837,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Compact mandible 1",
+        "triangles": 26,
+        "signedVolume": 0.00017413015549345366,
+        "minimumTriangleArea": 5.686982228495724e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Twig antenna 1",
+        "triangles": 36,
+        "signedVolume": 0.0012100664607157384,
+        "minimumTriangleArea": 5.117835923977235e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Antenna leaf 1",
+        "triangles": 24,
+        "signedVolume": 0.0006490365801268931,
+        "minimumTriangleArea": 0.0027682975139313604,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing1_0",
+        "triangles": 40,
+        "signedVolume": 0.10422300524006262,
+        "minimumTriangleArea": 0.005379708242638488,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "triangles": 66,
+        "signedVolume": 0.0015085741477127929,
+        "minimumTriangleArea": 1.007410807307317e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing1_1",
+        "triangles": 40,
+        "signedVolume": 0.07206484206604828,
+        "minimumTriangleArea": 0.004938523567313375,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "triangles": 66,
+        "signedVolume": 0.0012468770353250376,
+        "minimumTriangleArea": 9.666489306236744e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg1_0",
+        "triangles": 36,
+        "signedVolume": 0.03684387729202734,
+        "minimumTriangleArea": 0.007557380766569375,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg1_0",
+        "triangles": 36,
+        "signedVolume": 0.02122395055186005,
+        "minimumTriangleArea": 0.0011566072461975142,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "triangles": 26,
+        "signedVolume": 0.0008400730897437892,
+        "minimumTriangleArea": 1.9714564190994668e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg1_0",
+        "triangles": 26,
+        "signedVolume": 0.001177467636271588,
+        "minimumTriangleArea": 0.00044358552942068034,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_0_-1",
+        "triangles": 26,
+        "signedVolume": 0.00018385096034983757,
+        "minimumTriangleArea": 7.885826617161344e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "triangles": 26,
+        "signedVolume": 0.00023405622151307992,
+        "minimumTriangleArea": 7.885861546915068e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg1_0",
+        "triangles": 24,
+        "signedVolume": 0.00614198051722567,
+        "minimumTriangleArea": 0.008017281967120388,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "triangles": 36,
+        "signedVolume": 0.03627941607208424,
+        "minimumTriangleArea": 0.007557383741993367,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg1_1",
+        "triangles": 36,
+        "signedVolume": 0.021403368961495656,
+        "minimumTriangleArea": 0.0011566110971760388,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "triangles": 26,
+        "signedVolume": 0.0008400733513295695,
+        "minimumTriangleArea": 1.971470981592922e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg1_1",
+        "triangles": 26,
+        "signedVolume": 0.0011774681659847725,
+        "minimumTriangleArea": 0.0004435844386408729,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_1_-1",
+        "triangles": 26,
+        "signedVolume": 0.00018385076174913336,
+        "minimumTriangleArea": 7.885785227561528e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "triangles": 26,
+        "signedVolume": 0.00023405593280499478,
+        "minimumTriangleArea": 7.88581005483895e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg1_1",
+        "triangles": 24,
+        "signedVolume": 0.006127155680907026,
+        "minimumTriangleArea": 0.007998133058303438,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "triangles": 44,
+        "signedVolume": 0.016849091230472103,
+        "minimumTriangleArea": 0.0016571762607031242,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raised raptorial forearm 1",
+        "triangles": 44,
+        "signedVolume": 0.016206842869353002,
+        "minimumTriangleArea": 0.0019424380416342,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "triangles": 68,
+        "signedVolume": 0.022642856720932636,
+        "minimumTriangleArea": 1.7835912835844724e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "triangles": 116,
+        "signedVolume": 0.010813190387729335,
+        "minimumTriangleArea": 0.00021283145407921677,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (-1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.005109096169662357,
+        "minimumTriangleArea": 0.0056839588083798355,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (-1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.00527086158769843,
+        "minimumTriangleArea": 0.005807131273036764,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Lateral tail splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.007165317033566498,
+        "minimumTriangleArea": 0.008832128720621236,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.0051297549792570785,
+        "minimumTriangleArea": 0.005693058671830016,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.005286815139567072,
+        "minimumTriangleArea": 0.005808805947559495,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Lateral tail splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.007335461626649963,
+        "minimumTriangleArea": 0.00930178064901316,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Curved lateral chest splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.0008122431338293165,
+        "minimumTriangleArea": 0.0020247836548296203,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Curved lateral chest splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.0008122434060693184,
+        "minimumTriangleArea": 0.00203418799128661,
+        "nonAdjacentSelfIntersections": []
+      }
+    ],
+    "neckIncidentCrossObjectIntersections": {
+      "Abdomen core": 40,
+      "Abdominal tergite 0": 28,
+      "Imbricated thorax bark (-1, 0)": 22,
+      "Imbricated thorax bark (-1, 1)": 20,
+      "Raptorial upper arm -1": 22,
+      "Imbricated thorax bark (1, 1)": 14,
+      "Imbricated thorax bark (1, 2)": 24,
+      "Raptorial upper arm 1": 24,
+      "Overlapping dorsal curved neck shell 0": 22,
+      "Curved lateral chest splinter -1": 20,
+      "Imbricated thorax bark (-1, 2)": 20,
+      "Overlapping dorsal curved neck shell 1": 28,
+      "Imbricated thorax bark (-1, 3)": 22,
+      "Imbricated thorax bark (-1, 4)": 26,
+      "Imbricated thorax bark (1, 3)": 26,
+      "Imbricated thorax bark (1, 4)": 30,
+      "Overlapping dorsal curved neck shell 2": 28,
+      "Overlapping dorsal curved neck shell 3": 28,
+      "Rear neck collar -1": 14,
+      "Volumetric pointed insect skull": 26,
+      "Rear neck collar 1": 12,
+      "Imbricated thorax bark (1, 0)": 22,
+      "Coxal bark shield (1, 0)": 12,
+      "Coxal bark shield (-1, 0)": 4,
+      "Integrated pale throat": 46
+    },
+    "boundaryEdges": 0,
+    "nonmanifoldEdges": 0,
+    "degenerateTriangles": 0,
+    "exactPositionMaterialTriangleCorrespondence": true
+  },
+  "baseline": {
+    "meshObjects": 89,
+    "triangles": 3052,
+    "minimumNormalFacetCosine": 0.1775645656903133,
+    "minimumStoredNormalSourcePolygonCosine": 0.9999999968575035,
+    "facetDeviations": [
+      {
+        "name": "Abdomen core",
+        "polygon": 32,
+        "minimumCosine": 0.9941568404986263
+      },
+      {
+        "name": "Abdomen core",
+        "polygon": 35,
+        "minimumCosine": 0.9979268633766271
+      },
+      {
+        "name": "Abdomen core",
+        "polygon": 36,
+        "minimumCosine": 0.9890796762154902
+      },
+      {
+        "name": "Abdomen core",
+        "polygon": 36,
+        "minimumCosine": 0.9890796762154902
+      },
+      {
+        "name": "Abdomen core",
+        "polygon": 36,
+        "minimumCosine": 0.9865575161926224
+      },
+      {
+        "name": "Abdomen core",
+        "polygon": 36,
+        "minimumCosine": 0.9865575161926224
+      },
+      {
+        "name": "Abdomen core",
+        "polygon": 36,
+        "minimumCosine": 0.987772385829948
+      },
+      {
+        "name": "Abdomen core",
+        "polygon": 36,
+        "minimumCosine": 0.9865575229165917
+      },
+      {
+        "name": "Abdomen core",
+        "polygon": 26,
+        "minimumCosine": 0.9923803946835981
+      },
+      {
+        "name": "Abdomen core",
+        "polygon": 5,
+        "minimumCosine": 0.998744217247034
+      },
+      {
+        "name": "Abdomen core",
+        "polygon": 29,
+        "minimumCosine": 0.9935659119486568
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "polygon": 12,
+        "minimumCosine": 0.9879505650122258
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "polygon": 12,
+        "minimumCosine": 0.9772664773828175
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "polygon": 12,
+        "minimumCosine": 0.985641893712008
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "polygon": 12,
+        "minimumCosine": 0.9973954702647775
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "polygon": 13,
+        "minimumCosine": 0.9834152675067857
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "polygon": 13,
+        "minimumCosine": 0.9909129349072567
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "polygon": 13,
+        "minimumCosine": 0.9921405398075003
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "polygon": 13,
+        "minimumCosine": 0.9981157525254519
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "polygon": 12,
+        "minimumCosine": 0.9868499710707256
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "polygon": 12,
+        "minimumCosine": 0.9688995023438803
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "polygon": 12,
+        "minimumCosine": 0.985085921992294
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "polygon": 12,
+        "minimumCosine": 0.9963958123104586
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "polygon": 13,
+        "minimumCosine": 0.9763457987444369
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "polygon": 13,
+        "minimumCosine": 0.9907549906685671
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "polygon": 13,
+        "minimumCosine": 0.9920174953513698
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "polygon": 13,
+        "minimumCosine": 0.9972865329632497
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "polygon": 12,
+        "minimumCosine": 0.9870181019626715
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "polygon": 12,
+        "minimumCosine": 0.9602160184640438
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "polygon": 12,
+        "minimumCosine": 0.98526783431899
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "polygon": 12,
+        "minimumCosine": 0.9953339275541163
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "polygon": 13,
+        "minimumCosine": 0.9639832108787529
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "polygon": 13,
+        "minimumCosine": 0.9906029918296599
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "polygon": 13,
+        "minimumCosine": 0.9918875151967762
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "polygon": 13,
+        "minimumCosine": 0.9957976936301813
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "polygon": 9,
+        "minimumCosine": 0.9988407226998768
+      },
+      {
+        "name": "Rising prothorax curved cervical arch",
+        "polygon": 38,
+        "minimumCosine": 0.9988227133504837
+      },
+      {
+        "name": "Rising prothorax curved cervical arch",
+        "polygon": 38,
+        "minimumCosine": 0.9985175341364672
+      },
+      {
+        "name": "Rising prothorax curved cervical arch",
+        "polygon": 64,
+        "minimumCosine": 0.9922292743778794
+      },
+      {
+        "name": "Rising prothorax curved cervical arch",
+        "polygon": 64,
+        "minimumCosine": 0.9645873462133978
+      },
+      {
+        "name": "Rising prothorax curved cervical arch",
+        "polygon": 64,
+        "minimumCosine": 0.997087093126586
+      },
+      {
+        "name": "Rising prothorax curved cervical arch",
+        "polygon": 64,
+        "minimumCosine": 0.9979619997217772
+      },
+      {
+        "name": "Integrated pale throat",
+        "polygon": 10,
+        "minimumCosine": 0.9975401104392063
+      },
+      {
+        "name": "Integrated pale throat",
+        "polygon": 10,
+        "minimumCosine": 0.99555842561872
+      },
+      {
+        "name": "Integrated pale throat",
+        "polygon": 14,
+        "minimumCosine": 0.996920292677444
+      },
+      {
+        "name": "Integrated pale throat",
+        "polygon": 14,
+        "minimumCosine": 0.9942226908475458
+      },
+      {
+        "name": "Integrated pale throat",
+        "polygon": 15,
+        "minimumCosine": 0.9982082863530956
+      },
+      {
+        "name": "Integrated pale throat",
+        "polygon": 19,
+        "minimumCosine": 0.9973695928258566
+      },
+      {
+        "name": "Integrated pale throat",
+        "polygon": 11,
+        "minimumCosine": 0.9985092616200918
+      },
+      {
+        "name": "Integrated pale throat",
+        "polygon": 13,
+        "minimumCosine": 0.9983525207387904
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 0",
+        "polygon": 20,
+        "minimumCosine": 0.9983809029165436
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 1",
+        "polygon": 17,
+        "minimumCosine": 0.998900173685618
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 1",
+        "polygon": 20,
+        "minimumCosine": 0.9981401113260477
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 2",
+        "polygon": 11,
+        "minimumCosine": 0.9986055531550434
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 3",
+        "polygon": 17,
+        "minimumCosine": 0.9978207850100101
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 3",
+        "polygon": 20,
+        "minimumCosine": 0.9986407583227094
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 3",
+        "polygon": 20,
+        "minimumCosine": 0.9960727993322069
+      },
+      {
+        "name": "Volumetric pointed insect skull",
+        "polygon": 32,
+        "minimumCosine": 0.9740891663500661
+      },
+      {
+        "name": "Volumetric pointed insect skull",
+        "polygon": 32,
+        "minimumCosine": 0.9740891663500661
+      },
+      {
+        "name": "Volumetric pointed insect skull",
+        "polygon": 33,
+        "minimumCosine": 0.9461063635287077
+      },
+      {
+        "name": "Volumetric pointed insect skull",
+        "polygon": 33,
+        "minimumCosine": 0.8617717570647503
+      },
+      {
+        "name": "Volumetric pointed insect skull",
+        "polygon": 33,
+        "minimumCosine": 0.8617717570647503
+      },
+      {
+        "name": "Inset green compound eye -1",
+        "polygon": 5,
+        "minimumCosine": 0.9948382338715879
+      },
+      {
+        "name": "Inset green compound eye -1",
+        "polygon": 5,
+        "minimumCosine": 0.9985860811449085
+      },
+      {
+        "name": "Inset green compound eye -1",
+        "polygon": 5,
+        "minimumCosine": 0.9981844360995669
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 0,
+        "minimumCosine": 0.9891247917395909
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 0,
+        "minimumCosine": 0.9926072261040684
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 4,
+        "minimumCosine": 0.9745520709046033
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 4,
+        "minimumCosine": 0.9854140400381233
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 5,
+        "minimumCosine": 0.975287833639128
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 5,
+        "minimumCosine": 0.976071727213234
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 9,
+        "minimumCosine": 0.9753361559705342
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 9,
+        "minimumCosine": 0.9762336828614622
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 1,
+        "minimumCosine": 0.9808412782024944
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 1,
+        "minimumCosine": 0.9892031562634201
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 2,
+        "minimumCosine": 0.9816510165240532
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 2,
+        "minimumCosine": 0.9880090704579597
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 6,
+        "minimumCosine": 0.9754447504244713
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 6,
+        "minimumCosine": 0.9744182225927711
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 7,
+        "minimumCosine": 0.9768732694230042
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 7,
+        "minimumCosine": 0.9787082427421221
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 3,
+        "minimumCosine": 0.9865347285982365
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 3,
+        "minimumCosine": 0.9931791260003698
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 8,
+        "minimumCosine": 0.9702498589911336
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "polygon": 8,
+        "minimumCosine": 0.9743035801573388
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 0,
+        "minimumCosine": 0.991873075414454
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 0,
+        "minimumCosine": 0.9873030806959725
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 4,
+        "minimumCosine": 0.9973083327469602
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 4,
+        "minimumCosine": 0.9953171371647781
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 9,
+        "minimumCosine": 0.9986464470717208
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 9,
+        "minimumCosine": 0.9640515122078035
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 1,
+        "minimumCosine": 0.9985949746799139
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 2,
+        "minimumCosine": 0.9910843588049448
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 2,
+        "minimumCosine": 0.9825028420049887
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 6,
+        "minimumCosine": 0.9788734086287367
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 7,
+        "minimumCosine": 0.9914697794500249
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 3,
+        "minimumCosine": 0.9960186149392396
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 3,
+        "minimumCosine": 0.9955298605998815
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "polygon": 8,
+        "minimumCosine": 0.9971371991792182
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 4,
+        "minimumCosine": 0.9846726792495173
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 4,
+        "minimumCosine": 0.9756757390558991
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 5,
+        "minimumCosine": 0.9922184815348137
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 9,
+        "minimumCosine": 0.9987469448910454
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 9,
+        "minimumCosine": 0.9165849049465483
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 1,
+        "minimumCosine": 0.989195030823955
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 1,
+        "minimumCosine": 0.968882112529188
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 2,
+        "minimumCosine": 0.9934307363850168
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 2,
+        "minimumCosine": 0.9921338979435177
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 6,
+        "minimumCosine": 0.9520341027902033
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 7,
+        "minimumCosine": 0.996087305466807
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 7,
+        "minimumCosine": 0.8676929787118491
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 3,
+        "minimumCosine": 0.9976942927672031
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 3,
+        "minimumCosine": 0.9951523512382299
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 8,
+        "minimumCosine": 0.9988113064441505
+      },
+      {
+        "name": "Compact mandible -1",
+        "polygon": 8,
+        "minimumCosine": 0.9578587159447957
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 0,
+        "minimumCosine": 0.9989871754908403
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 15,
+        "minimumCosine": 0.9968223025423918
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 15,
+        "minimumCosine": 0.9962410545276117
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 19,
+        "minimumCosine": 0.9951570217799581
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 19,
+        "minimumCosine": 0.9949242609254021
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 20,
+        "minimumCosine": 0.987261106533922
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 20,
+        "minimumCosine": 0.9876814573074431
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 24,
+        "minimumCosine": 0.9904456900633141
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 24,
+        "minimumCosine": 0.9906595362357542
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 29,
+        "minimumCosine": 0.9964728428401686
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 16,
+        "minimumCosine": 0.996440815560018
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 16,
+        "minimumCosine": 0.9964175753483528
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 17,
+        "minimumCosine": 0.9950495708024232
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 17,
+        "minimumCosine": 0.9949015386774624
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 18,
+        "minimumCosine": 0.9972164814827067
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 18,
+        "minimumCosine": 0.997214488623982
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 21,
+        "minimumCosine": 0.9895017732302093
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 21,
+        "minimumCosine": 0.9893227592904812
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 22,
+        "minimumCosine": 0.9886787296684736
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 22,
+        "minimumCosine": 0.989593523204111
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 23,
+        "minimumCosine": 0.9874943385250823
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "polygon": 23,
+        "minimumCosine": 0.9876034546854073
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 15,
+        "minimumCosine": 0.974692658602543
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 15,
+        "minimumCosine": 0.9697498238654697
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 19,
+        "minimumCosine": 0.9861776552810053
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 19,
+        "minimumCosine": 0.9872339630407586
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 20,
+        "minimumCosine": 0.9560650366436855
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 20,
+        "minimumCosine": 0.958266689480848
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 24,
+        "minimumCosine": 0.9679648513799621
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 24,
+        "minimumCosine": 0.9693942319993236
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 25,
+        "minimumCosine": 0.9847432057476074
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 29,
+        "minimumCosine": 0.9803763448139986
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 31,
+        "minimumCosine": 0.9868581798304897
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 31,
+        "minimumCosine": 0.99144975819848
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 16,
+        "minimumCosine": 0.9788470182210063
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 16,
+        "minimumCosine": 0.9767775797789919
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 17,
+        "minimumCosine": 0.9766325142030389
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 17,
+        "minimumCosine": 0.9829197262102538
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 18,
+        "minimumCosine": 0.9820652716449767
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 18,
+        "minimumCosine": 0.9796697024130936
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 21,
+        "minimumCosine": 0.9677875155842439
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 21,
+        "minimumCosine": 0.9678719928337033
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 22,
+        "minimumCosine": 0.9659913577459305
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 22,
+        "minimumCosine": 0.9681201586132541
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 23,
+        "minimumCosine": 0.9620049510742867
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 23,
+        "minimumCosine": 0.9619444506919131
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 26,
+        "minimumCosine": 0.9947364341563156
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "polygon": 27,
+        "minimumCosine": 0.9860925594848625
+      },
+      {
+        "name": "Walking femur leg-1_0",
+        "polygon": 8,
+        "minimumCosine": 0.9989401624221962
+      },
+      {
+        "name": "Walking femur leg-1_0",
+        "polygon": 2,
+        "minimumCosine": 0.998675456929912
+      },
+      {
+        "name": "Walking femur leg-1_0",
+        "polygon": 2,
+        "minimumCosine": 0.9983066443323672
+      },
+      {
+        "name": "Walking femur leg-1_0",
+        "polygon": 20,
+        "minimumCosine": 0.998418480043996
+      },
+      {
+        "name": "Walking femur leg-1_0",
+        "polygon": 20,
+        "minimumCosine": 0.9945980865615437
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 0,
+        "minimumCosine": 0.9955914889293739
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 0,
+        "minimumCosine": 0.9958448846715807
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 4,
+        "minimumCosine": 0.9957746644034288
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 4,
+        "minimumCosine": 0.9956979121075648
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 5,
+        "minimumCosine": 0.99897022900212
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 5,
+        "minimumCosine": 0.9456018806112381
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 9,
+        "minimumCosine": 0.9976653608674794
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 1,
+        "minimumCosine": 0.9957086794719513
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 1,
+        "minimumCosine": 0.9959448483941119
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 2,
+        "minimumCosine": 0.9955528573875794
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 2,
+        "minimumCosine": 0.9953835846494282
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 3,
+        "minimumCosine": 0.9956606681766157
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 3,
+        "minimumCosine": 0.9952152859216721
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 6,
+        "minimumCosine": 0.9944216988513661
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 7,
+        "minimumCosine": 0.9767867552832112
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "polygon": 8,
+        "minimumCosine": 0.9430720139859567
+      },
+      {
+        "name": "Angular ankle cuff leg-1_0",
+        "polygon": 5,
+        "minimumCosine": 0.998925837012583
+      },
+      {
+        "name": "Angular ankle cuff leg-1_0",
+        "polygon": 7,
+        "minimumCosine": 0.9987584578251842
+      },
+      {
+        "name": "Angular ankle cuff leg-1_0",
+        "polygon": 7,
+        "minimumCosine": 0.9948310776912414
+      },
+      {
+        "name": "Angular ankle cuff leg-1_0",
+        "polygon": 8,
+        "minimumCosine": 0.9988196369929019
+      },
+      {
+        "name": "Angular ankle cuff leg-1_0",
+        "polygon": 8,
+        "minimumCosine": 0.9946575909496344
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 0,
+        "minimumCosine": 0.9968157835503502
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 0,
+        "minimumCosine": 0.9971994954638073
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 4,
+        "minimumCosine": 0.9981523213803936
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 4,
+        "minimumCosine": 0.9984425384659715
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 5,
+        "minimumCosine": 0.9910585888834131
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 9,
+        "minimumCosine": 0.9966277138988066
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 9,
+        "minimumCosine": 0.8569084060462779
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 1,
+        "minimumCosine": 0.9980349257794323
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 1,
+        "minimumCosine": 0.9981363513462457
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 2,
+        "minimumCosine": 0.9972606701226665
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 2,
+        "minimumCosine": 0.9972976585432416
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 6,
+        "minimumCosine": 0.998895617316294
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 6,
+        "minimumCosine": 0.9093367964308414
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 7,
+        "minimumCosine": 0.9674940470844432
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 3,
+        "minimumCosine": 0.9974105649508365
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 3,
+        "minimumCosine": 0.9978441025306232
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "polygon": 8,
+        "minimumCosine": 0.9745562712294864
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_1",
+        "polygon": 5,
+        "minimumCosine": 0.9800126521084047
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_1",
+        "polygon": 9,
+        "minimumCosine": 0.9875352832345676
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_1",
+        "polygon": 6,
+        "minimumCosine": 0.9935256456235796
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_1",
+        "polygon": 8,
+        "minimumCosine": 0.9905426660246383
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 14,
+        "minimumCosine": 0.9946482965764606
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 14,
+        "minimumCosine": 0.9965128546206674
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 2,
+        "minimumCosine": 0.9895968525315336
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 2,
+        "minimumCosine": 0.9757190569452895
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 11,
+        "minimumCosine": 0.9988466782374551
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 11,
+        "minimumCosine": 0.9981504471455375
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 17,
+        "minimumCosine": 0.9988991510143883
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 17,
+        "minimumCosine": 0.9978952459830822
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 5,
+        "minimumCosine": 0.9875263654886994
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 5,
+        "minimumCosine": 0.9931671248327937
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "polygon": 20,
+        "minimumCosine": 0.998391041249613
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 0,
+        "minimumCosine": 0.9955912682401785
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 0,
+        "minimumCosine": 0.9958448996329655
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 4,
+        "minimumCosine": 0.995774460138641
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 4,
+        "minimumCosine": 0.9956979324196317
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 5,
+        "minimumCosine": 0.9989702229411891
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 5,
+        "minimumCosine": 0.9456005056578032
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 9,
+        "minimumCosine": 0.9976653669255212
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 1,
+        "minimumCosine": 0.9957084983815675
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 1,
+        "minimumCosine": 0.9959449635348938
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 2,
+        "minimumCosine": 0.9955528290417222
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 2,
+        "minimumCosine": 0.9953835797614999
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 3,
+        "minimumCosine": 0.9956604668026243
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 3,
+        "minimumCosine": 0.9952154162595562
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 6,
+        "minimumCosine": 0.9944217008062582
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 7,
+        "minimumCosine": 0.9767876972353574
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "polygon": 8,
+        "minimumCosine": 0.9430719728705387
+      },
+      {
+        "name": "Angular ankle cuff leg-1_1",
+        "polygon": 5,
+        "minimumCosine": 0.9989258363058937
+      },
+      {
+        "name": "Angular ankle cuff leg-1_1",
+        "polygon": 7,
+        "minimumCosine": 0.9987584638798225
+      },
+      {
+        "name": "Angular ankle cuff leg-1_1",
+        "polygon": 7,
+        "minimumCosine": 0.9948309601037703
+      },
+      {
+        "name": "Angular ankle cuff leg-1_1",
+        "polygon": 8,
+        "minimumCosine": 0.9988196614480893
+      },
+      {
+        "name": "Angular ankle cuff leg-1_1",
+        "polygon": 8,
+        "minimumCosine": 0.9946575161445087
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 0,
+        "minimumCosine": 0.9968159694865764
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 0,
+        "minimumCosine": 0.9971995128312791
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 4,
+        "minimumCosine": 0.9981544192273237
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 4,
+        "minimumCosine": 0.9984405185352081
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 5,
+        "minimumCosine": 0.9910578348046839
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 9,
+        "minimumCosine": 0.9966276960814251
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 9,
+        "minimumCosine": 0.8569079232097141
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 1,
+        "minimumCosine": 0.9980347988973959
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 1,
+        "minimumCosine": 0.998136433607056
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 2,
+        "minimumCosine": 0.9972606319939266
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 2,
+        "minimumCosine": 0.997297686391749
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 6,
+        "minimumCosine": 0.9988955626063827
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 6,
+        "minimumCosine": 0.9093422453540897
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 7,
+        "minimumCosine": 0.9674929906961354
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 3,
+        "minimumCosine": 0.9974107701978022
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 3,
+        "minimumCosine": 0.9978440000707703
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "polygon": 8,
+        "minimumCosine": 0.9745541753807864
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_1",
+        "polygon": 5,
+        "minimumCosine": 0.9800137196440033
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_1",
+        "polygon": 9,
+        "minimumCosine": 0.9875352550989668
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_1",
+        "polygon": 6,
+        "minimumCosine": 0.9935264935137812
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_1",
+        "polygon": 8,
+        "minimumCosine": 0.990542895070506
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 0,
+        "minimumCosine": 0.9957629823187675
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 0,
+        "minimumCosine": 0.9961015705135391
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 4,
+        "minimumCosine": 0.9973399218964397
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 4,
+        "minimumCosine": 0.9979746167405714
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 5,
+        "minimumCosine": 0.9986353482063144
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 5,
+        "minimumCosine": 0.9987428718380856
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 6,
+        "minimumCosine": 0.9982604934914945
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 12,
+        "minimumCosine": 0.9907701477567973
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 12,
+        "minimumCosine": 0.9884731757525036
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 16,
+        "minimumCosine": 0.9970684832472994
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 16,
+        "minimumCosine": 0.9953837480849063
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 17,
+        "minimumCosine": 0.9961728476515834
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 17,
+        "minimumCosine": 0.9954188021233422
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 1,
+        "minimumCosine": 0.9978353714024532
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 1,
+        "minimumCosine": 0.998247828270171
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 2,
+        "minimumCosine": 0.9986880739106058
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 2,
+        "minimumCosine": 0.9988701968366717
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 13,
+        "minimumCosine": 0.9971370716423937
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 13,
+        "minimumCosine": 0.9969144856255641
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 14,
+        "minimumCosine": 0.995814806823605
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 14,
+        "minimumCosine": 0.9962822250264102
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 3,
+        "minimumCosine": 0.9951047450810387
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 3,
+        "minimumCosine": 0.9959900354146861
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 15,
+        "minimumCosine": 0.9894518716574547
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "polygon": 15,
+        "minimumCosine": 0.9860700307085907
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 1,
+        "minimumCosine": 0.989188018930368
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 1,
+        "minimumCosine": 0.9591246604643295
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 3,
+        "minimumCosine": 0.995205854944041
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 3,
+        "minimumCosine": 0.9752574234843823
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 7,
+        "minimumCosine": 0.9934552140214664
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 7,
+        "minimumCosine": 0.9860590591765401
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 9,
+        "minimumCosine": 0.9980647174432157
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 9,
+        "minimumCosine": 0.9963175702208885
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 13,
+        "minimumCosine": 0.9985244797054333
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 13,
+        "minimumCosine": 0.9983044447924121
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 19,
+        "minimumCosine": 0.9973108781100024
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 19,
+        "minimumCosine": 0.9980971915520619
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 25,
+        "minimumCosine": 0.3875155045963764
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 27,
+        "minimumCosine": 0.9680459939606378
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 0,
+        "minimumCosine": 0.993487017554299
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 0,
+        "minimumCosine": 0.9774066940543099
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 4,
+        "minimumCosine": 0.9856785351183407
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 4,
+        "minimumCosine": 0.9353376489860603
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 6,
+        "minimumCosine": 0.9944937277989431
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 6,
+        "minimumCosine": 0.9893041405013505
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 10,
+        "minimumCosine": 0.9935592216607769
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 10,
+        "minimumCosine": 0.9872684551496494
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 12,
+        "minimumCosine": 0.9977180173017862
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 12,
+        "minimumCosine": 0.9973931552765952
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 16,
+        "minimumCosine": 0.9987079917804671
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 16,
+        "minimumCosine": 0.9987253675042124
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 22,
+        "minimumCosine": 0.9967997697829177
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 22,
+        "minimumCosine": 0.998429273902523
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 24,
+        "minimumCosine": 0.46976386374409795
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "polygon": 28,
+        "minimumCosine": 0.3756756234178796
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 4,
+        "minimumCosine": 0.963904785568012
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 4,
+        "minimumCosine": 0.4167735138991607
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 5,
+        "minimumCosine": 0.701235534512632
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 5,
+        "minimumCosine": 0.9910619263416488
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 28,
+        "minimumCosine": 0.9746982480320349
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 28,
+        "minimumCosine": 0.7564981196096099
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 29,
+        "minimumCosine": 0.36169227988193925
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 29,
+        "minimumCosine": 0.9901120231017336
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 36,
+        "minimumCosine": 0.9976487288089291
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 36,
+        "minimumCosine": 0.9911008664080093
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 36,
+        "minimumCosine": 0.6776399140270503
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 36,
+        "minimumCosine": 0.9754256749262121
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 36,
+        "minimumCosine": 0.9967730765690983
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 36,
+        "minimumCosine": 0.9904362686814514
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 36,
+        "minimumCosine": 0.993129718345288
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 36,
+        "minimumCosine": 0.9643044019891684
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 36,
+        "minimumCosine": 0.6773185331921724
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 36,
+        "minimumCosine": 0.9630698234812819
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 37,
+        "minimumCosine": 0.9919827951182728
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 37,
+        "minimumCosine": 0.9916121164370402
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 37,
+        "minimumCosine": 0.5147808034976954
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 37,
+        "minimumCosine": 0.9904622547407621
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 37,
+        "minimumCosine": 0.9919085014520872
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 37,
+        "minimumCosine": 0.9868275312620545
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 37,
+        "minimumCosine": 0.9636189815405908
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "polygon": 37,
+        "minimumCosine": 0.9549170771457247
+      },
+      {
+        "name": "Inset green compound eye 1",
+        "polygon": 5,
+        "minimumCosine": 0.9948382338715879
+      },
+      {
+        "name": "Inset green compound eye 1",
+        "polygon": 5,
+        "minimumCosine": 0.995200182122409
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 0,
+        "minimumCosine": 0.9748986181862344
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 0,
+        "minimumCosine": 0.9858427813811549
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 4,
+        "minimumCosine": 0.9873035957414485
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 4,
+        "minimumCosine": 0.9910502551832276
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 5,
+        "minimumCosine": 0.9740906420273514
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 5,
+        "minimumCosine": 0.9756817866387446
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 9,
+        "minimumCosine": 0.9758155781692073
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 9,
+        "minimumCosine": 0.9753657257450011
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 1,
+        "minimumCosine": 0.9875153761817602
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 1,
+        "minimumCosine": 0.9939873876230605
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 2,
+        "minimumCosine": 0.9823561207818096
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 2,
+        "minimumCosine": 0.9886482381049618
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 6,
+        "minimumCosine": 0.9677884337204865
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 6,
+        "minimumCosine": 0.9738058775141091
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 7,
+        "minimumCosine": 0.9759951603343446
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 7,
+        "minimumCosine": 0.9784246106466158
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 3,
+        "minimumCosine": 0.9792980293011395
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 3,
+        "minimumCosine": 0.9879662292641777
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 8,
+        "minimumCosine": 0.9755873231215582
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "polygon": 8,
+        "minimumCosine": 0.9731960709084753
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 0,
+        "minimumCosine": 0.9976554770779581
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 0,
+        "minimumCosine": 0.9956308406523658
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 4,
+        "minimumCosine": 0.9911514124536316
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 4,
+        "minimumCosine": 0.9862310890950166
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 5,
+        "minimumCosine": 0.9988049956272566
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 5,
+        "minimumCosine": 0.9679327450573998
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 1,
+        "minimumCosine": 0.9975592609663437
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 1,
+        "minimumCosine": 0.9971151122070362
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 2,
+        "minimumCosine": 0.9898842811023281
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 2,
+        "minimumCosine": 0.9806054023036309
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 6,
+        "minimumCosine": 0.9978810801573654
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 7,
+        "minimumCosine": 0.9931621664307844
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 3,
+        "minimumCosine": 0.998803893137932
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 3,
+        "minimumCosine": 0.9976975084606458
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "polygon": 8,
+        "minimumCosine": 0.9749283548798398
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 0,
+        "minimumCosine": 0.9849887149766449
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 0,
+        "minimumCosine": 0.9759885215254689
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 5,
+        "minimumCosine": 0.9983245316831856
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 5,
+        "minimumCosine": 0.8933527114381167
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 9,
+        "minimumCosine": 0.9977183924471904
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 9,
+        "minimumCosine": 0.8966635119474219
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 1,
+        "minimumCosine": 0.9981562979185564
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 1,
+        "minimumCosine": 0.9957907454804782
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 2,
+        "minimumCosine": 0.9938832042121494
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 2,
+        "minimumCosine": 0.9927200850601383
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 6,
+        "minimumCosine": 0.9974466962795118
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 7,
+        "minimumCosine": 0.9989501869418983
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 7,
+        "minimumCosine": 0.9665501689865996
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 3,
+        "minimumCosine": 0.988486503908821
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 3,
+        "minimumCosine": 0.9687180955097767
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 8,
+        "minimumCosine": 0.9987531665619431
+      },
+      {
+        "name": "Compact mandible 1",
+        "polygon": 8,
+        "minimumCosine": 0.9152900855241919
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 4,
+        "minimumCosine": 0.9988909488694665
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 14,
+        "minimumCosine": 0.9968038112326314
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 14,
+        "minimumCosine": 0.9975331135657587
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 15,
+        "minimumCosine": 0.9962672702329244
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 15,
+        "minimumCosine": 0.9954749005749615
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 19,
+        "minimumCosine": 0.9930882699880997
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 19,
+        "minimumCosine": 0.9925463679878563
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 20,
+        "minimumCosine": 0.9353453585178538
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 20,
+        "minimumCosine": 0.9348857222993053
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 24,
+        "minimumCosine": 0.9434676264681716
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 24,
+        "minimumCosine": 0.9476321363516276
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 25,
+        "minimumCosine": 0.9810198704925633
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 29,
+        "minimumCosine": 0.9989794579929785
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 29,
+        "minimumCosine": 0.959401705642883
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 11,
+        "minimumCosine": 0.9972011445193874
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 11,
+        "minimumCosine": 0.9973964893726555
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 16,
+        "minimumCosine": 0.9949046421099927
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 16,
+        "minimumCosine": 0.9949799515355824
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 17,
+        "minimumCosine": 0.9936261437677826
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 17,
+        "minimumCosine": 0.9932890508835017
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 18,
+        "minimumCosine": 0.9964413441450687
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 18,
+        "minimumCosine": 0.996481761579702
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 21,
+        "minimumCosine": 0.9460226798316655
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 21,
+        "minimumCosine": 0.9460732637686747
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 22,
+        "minimumCosine": 0.9332851740964738
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 22,
+        "minimumCosine": 0.9399712730026627
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 23,
+        "minimumCosine": 0.9415474415084988
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 23,
+        "minimumCosine": 0.9391822188767573
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 26,
+        "minimumCosine": 0.9702229134577862
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 27,
+        "minimumCosine": 0.9754857392553785
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "polygon": 28,
+        "minimumCosine": 0.9848531454388793
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 4,
+        "minimumCosine": 0.9986140871541369
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 4,
+        "minimumCosine": 0.9979660884524013
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 14,
+        "minimumCosine": 0.9973573930867516
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 14,
+        "minimumCosine": 0.997428592195678
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 15,
+        "minimumCosine": 0.998336808846082
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 15,
+        "minimumCosine": 0.9981681873106044
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 19,
+        "minimumCosine": 0.9986423190174389
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 19,
+        "minimumCosine": 0.9983729264135776
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 20,
+        "minimumCosine": 0.9820500164472421
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 20,
+        "minimumCosine": 0.9817937062768034
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 24,
+        "minimumCosine": 0.979343366412716
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 24,
+        "minimumCosine": 0.9804238312710246
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 25,
+        "minimumCosine": 0.9887883612480756
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 25,
+        "minimumCosine": 0.2792038466256315
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 29,
+        "minimumCosine": 0.9868005497463697
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 29,
+        "minimumCosine": 0.20947911715833875
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 11,
+        "minimumCosine": 0.9981117171203244
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 11,
+        "minimumCosine": 0.998147846287658
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 16,
+        "minimumCosine": 0.9989939140320279
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 17,
+        "minimumCosine": 0.9980007894935916
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 17,
+        "minimumCosine": 0.9980620035590626
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 18,
+        "minimumCosine": 0.9986407895484585
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 18,
+        "minimumCosine": 0.9986211598880809
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 21,
+        "minimumCosine": 0.9794451807765356
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 21,
+        "minimumCosine": 0.9801826421107729
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 22,
+        "minimumCosine": 0.9810008585326364
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 22,
+        "minimumCosine": 0.9819986990911931
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 23,
+        "minimumCosine": 0.9778874617725054
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 23,
+        "minimumCosine": 0.9782907382706617
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 26,
+        "minimumCosine": 0.9870585869380739
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 26,
+        "minimumCosine": 0.1775645656903133
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 27,
+        "minimumCosine": 0.9903443346803256
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 27,
+        "minimumCosine": 0.2452391773325258
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 28,
+        "minimumCosine": 0.9868095392220152
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "polygon": 28,
+        "minimumCosine": 0.3575405497347273
+      },
+      {
+        "name": "Walking femur leg1_0",
+        "polygon": 23,
+        "minimumCosine": 0.9975542969855599
+      },
+      {
+        "name": "Walking femur leg1_0",
+        "polygon": 2,
+        "minimumCosine": 0.9989127943632108
+      },
+      {
+        "name": "Walking femur leg1_0",
+        "polygon": 17,
+        "minimumCosine": 0.9983146201177667
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 0,
+        "minimumCosine": 0.9954425045347208
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 0,
+        "minimumCosine": 0.9953405012226674
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 4,
+        "minimumCosine": 0.995199890647961
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 4,
+        "minimumCosine": 0.9955718212514604
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 5,
+        "minimumCosine": 0.9983720396803732
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 9,
+        "minimumCosine": 0.9986981713566575
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 9,
+        "minimumCosine": 0.9240523230231046
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 1,
+        "minimumCosine": 0.9954754220228634
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 1,
+        "minimumCosine": 0.9949011622572611
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 2,
+        "minimumCosine": 0.9953608789724808
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 2,
+        "minimumCosine": 0.9951462207617896
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 3,
+        "minimumCosine": 0.9955330888370467
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 3,
+        "minimumCosine": 0.9958364745930464
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 6,
+        "minimumCosine": 0.956270304604522
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 7,
+        "minimumCosine": 0.9811343770178045
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "polygon": 8,
+        "minimumCosine": 0.9893528488073773
+      },
+      {
+        "name": "Angular ankle cuff leg1_0",
+        "polygon": 9,
+        "minimumCosine": 0.9965801805613044
+      },
+      {
+        "name": "Angular ankle cuff leg1_0",
+        "polygon": 9,
+        "minimumCosine": 0.9903727099420861
+      },
+      {
+        "name": "Angular ankle cuff leg1_0",
+        "polygon": 6,
+        "minimumCosine": 0.9977498966823706
+      },
+      {
+        "name": "Articulated foot claw leg1_0_-1",
+        "polygon": 5,
+        "minimumCosine": 0.984900104003146
+      },
+      {
+        "name": "Articulated foot claw leg1_0_-1",
+        "polygon": 9,
+        "minimumCosine": 0.982466885834311
+      },
+      {
+        "name": "Articulated foot claw leg1_0_-1",
+        "polygon": 6,
+        "minimumCosine": 0.9900733920455734
+      },
+      {
+        "name": "Articulated foot claw leg1_0_-1",
+        "polygon": 8,
+        "minimumCosine": 0.9942481735061336
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 0,
+        "minimumCosine": 0.9981071041148041
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 0,
+        "minimumCosine": 0.9983781461682885
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 4,
+        "minimumCosine": 0.9968520047870316
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 4,
+        "minimumCosine": 0.9972205311683056
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 5,
+        "minimumCosine": 0.9975538193825868
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 5,
+        "minimumCosine": 0.9074872953705215
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 9,
+        "minimumCosine": 0.9931494273008564
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 1,
+        "minimumCosine": 0.9974067345565567
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 1,
+        "minimumCosine": 0.9978240151165845
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 2,
+        "minimumCosine": 0.9974110758675933
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 2,
+        "minimumCosine": 0.9974671433543577
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 6,
+        "minimumCosine": 0.9826864656166714
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 7,
+        "minimumCosine": 0.9985127979487596
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 7,
+        "minimumCosine": 0.9493341081979068
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 3,
+        "minimumCosine": 0.9981219247997785
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 3,
+        "minimumCosine": 0.9982380126742283
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 8,
+        "minimumCosine": 0.9985240219225997
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "polygon": 8,
+        "minimumCosine": 0.8838576917881662
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "polygon": 8,
+        "minimumCosine": 0.9917120399542205
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "polygon": 8,
+        "minimumCosine": 0.9938249893364337
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "polygon": 2,
+        "minimumCosine": 0.9677327358157165
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "polygon": 2,
+        "minimumCosine": 0.9880229427722804
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "polygon": 11,
+        "minimumCosine": 0.9983743049020665
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "polygon": 11,
+        "minimumCosine": 0.9973321508503605
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "polygon": 5,
+        "minimumCosine": 0.983745113772106
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "polygon": 5,
+        "minimumCosine": 0.9560808102468674
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 0,
+        "minimumCosine": 0.9954422696792466
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 0,
+        "minimumCosine": 0.9953405585377609
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 4,
+        "minimumCosine": 0.9951996682213765
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 4,
+        "minimumCosine": 0.9955718410398479
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 5,
+        "minimumCosine": 0.9983722578047048
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 9,
+        "minimumCosine": 0.9986981674861128
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 9,
+        "minimumCosine": 0.9240520201963313
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 1,
+        "minimumCosine": 0.9954752349613378
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 1,
+        "minimumCosine": 0.9949012672645988
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 2,
+        "minimumCosine": 0.9953608492139138
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 2,
+        "minimumCosine": 0.9951462122849256
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 3,
+        "minimumCosine": 0.9955329185987742
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 3,
+        "minimumCosine": 0.995836578869749
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 6,
+        "minimumCosine": 0.9562702865968149
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 7,
+        "minimumCosine": 0.9811337848100289
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "polygon": 8,
+        "minimumCosine": 0.9893528229111942
+      },
+      {
+        "name": "Angular ankle cuff leg1_1",
+        "polygon": 9,
+        "minimumCosine": 0.9965801391689103
+      },
+      {
+        "name": "Angular ankle cuff leg1_1",
+        "polygon": 9,
+        "minimumCosine": 0.9903727340765347
+      },
+      {
+        "name": "Angular ankle cuff leg1_1",
+        "polygon": 6,
+        "minimumCosine": 0.9977497549351666
+      },
+      {
+        "name": "Articulated foot claw leg1_1_-1",
+        "polygon": 5,
+        "minimumCosine": 0.9849010266592851
+      },
+      {
+        "name": "Articulated foot claw leg1_1_-1",
+        "polygon": 9,
+        "minimumCosine": 0.982466866166918
+      },
+      {
+        "name": "Articulated foot claw leg1_1_-1",
+        "polygon": 6,
+        "minimumCosine": 0.9900744298201456
+      },
+      {
+        "name": "Articulated foot claw leg1_1_-1",
+        "polygon": 8,
+        "minimumCosine": 0.9942483627513112
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 0,
+        "minimumCosine": 0.998107009594644
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 0,
+        "minimumCosine": 0.9983781457896138
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 4,
+        "minimumCosine": 0.9968521802182012
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 4,
+        "minimumCosine": 0.997220551505842
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 5,
+        "minimumCosine": 0.9975538152574169
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 5,
+        "minimumCosine": 0.907488852108891
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 9,
+        "minimumCosine": 0.9931493548817778
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 1,
+        "minimumCosine": 0.9974069215468064
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 1,
+        "minimumCosine": 0.9978239261597939
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 2,
+        "minimumCosine": 0.997411036121813
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 2,
+        "minimumCosine": 0.9974671638033452
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 6,
+        "minimumCosine": 0.9826830239421738
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 7,
+        "minimumCosine": 0.9985127897434646
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 7,
+        "minimumCosine": 0.9493356417624195
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 3,
+        "minimumCosine": 0.9981217911815137
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 3,
+        "minimumCosine": 0.9982381130445772
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 8,
+        "minimumCosine": 0.998523993068903
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "polygon": 8,
+        "minimumCosine": 0.8838589841378042
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 0,
+        "minimumCosine": 0.9987100827773806
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 0,
+        "minimumCosine": 0.9988197576393747
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 4,
+        "minimumCosine": 0.99784459428751
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 4,
+        "minimumCosine": 0.9982686970191925
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 5,
+        "minimumCosine": 0.9960017066464408
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 5,
+        "minimumCosine": 0.9963575278018196
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 12,
+        "minimumCosine": 0.9964670054552776
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 12,
+        "minimumCosine": 0.9952925506493968
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 16,
+        "minimumCosine": 0.9962731979604924
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 16,
+        "minimumCosine": 0.9962959242174845
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 17,
+        "minimumCosine": 0.9900376932919357
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 17,
+        "minimumCosine": 0.9877282872937099
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 1,
+        "minimumCosine": 0.9974040605599555
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 1,
+        "minimumCosine": 0.9980013620692394
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 2,
+        "minimumCosine": 0.9948950603348476
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 2,
+        "minimumCosine": 0.9957561377857386
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 8,
+        "minimumCosine": 0.998645428969333
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 8,
+        "minimumCosine": 0.9979998895957738
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 13,
+        "minimumCosine": 0.997338216532844
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 13,
+        "minimumCosine": 0.9955733958650601
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 14,
+        "minimumCosine": 0.9896669292358904
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 14,
+        "minimumCosine": 0.986067016179681
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 3,
+        "minimumCosine": 0.9986515298588886
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 3,
+        "minimumCosine": 0.9988323614140927
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 15,
+        "minimumCosine": 0.9947695062982838
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "polygon": 15,
+        "minimumCosine": 0.9956029459469279
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 1,
+        "minimumCosine": 0.9591246604643295
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 1,
+        "minimumCosine": 0.989188018930368
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 3,
+        "minimumCosine": 0.9752574234843823
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 3,
+        "minimumCosine": 0.995205854944041
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 7,
+        "minimumCosine": 0.9860590591765401
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 7,
+        "minimumCosine": 0.9934552140214664
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 9,
+        "minimumCosine": 0.9963175702208885
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 9,
+        "minimumCosine": 0.9980647174432157
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 13,
+        "minimumCosine": 0.9983044447924121
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 13,
+        "minimumCosine": 0.9985244797054333
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 19,
+        "minimumCosine": 0.9980971915520619
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 19,
+        "minimumCosine": 0.9973108781100024
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 25,
+        "minimumCosine": 0.3875155045963764
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 27,
+        "minimumCosine": 0.9680459939606378
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 0,
+        "minimumCosine": 0.9774066940543099
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 0,
+        "minimumCosine": 0.993487017554299
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 4,
+        "minimumCosine": 0.9353376489860603
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 4,
+        "minimumCosine": 0.9856785351183407
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 6,
+        "minimumCosine": 0.9893041405013505
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 6,
+        "minimumCosine": 0.9944937277989431
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 10,
+        "minimumCosine": 0.9872684551496494
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 10,
+        "minimumCosine": 0.9935592216607769
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 12,
+        "minimumCosine": 0.9973931552765952
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 12,
+        "minimumCosine": 0.9977180173017862
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 16,
+        "minimumCosine": 0.9987253675042124
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 16,
+        "minimumCosine": 0.9987079917804671
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 22,
+        "minimumCosine": 0.998429273902523
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 22,
+        "minimumCosine": 0.9967997697829177
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 24,
+        "minimumCosine": 0.46976386374409795
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "polygon": 28,
+        "minimumCosine": 0.3756756234178796
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 4,
+        "minimumCosine": 0.4167735138991607
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 4,
+        "minimumCosine": 0.963904785568012
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 5,
+        "minimumCosine": 0.9910619263416488
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 5,
+        "minimumCosine": 0.701235534512632
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 28,
+        "minimumCosine": 0.7564981196096099
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 28,
+        "minimumCosine": 0.9746982480320349
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 29,
+        "minimumCosine": 0.9901120231017336
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 29,
+        "minimumCosine": 0.36169227988193925
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 36,
+        "minimumCosine": 0.9904362686814514
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 36,
+        "minimumCosine": 0.9967730765690983
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 36,
+        "minimumCosine": 0.9754256749262121
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 36,
+        "minimumCosine": 0.6776399140270503
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 36,
+        "minimumCosine": 0.9911008664080093
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 36,
+        "minimumCosine": 0.9976487288089291
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 36,
+        "minimumCosine": 0.9904300594758391
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 36,
+        "minimumCosine": 0.9643044019891684
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 36,
+        "minimumCosine": 0.9530169447289952
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 36,
+        "minimumCosine": 0.9630698234812819
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 37,
+        "minimumCosine": 0.9904622547407621
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 37,
+        "minimumCosine": 0.5147808034976954
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 37,
+        "minimumCosine": 0.9916121164370402
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 37,
+        "minimumCosine": 0.9919827951182728
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 37,
+        "minimumCosine": 0.9946901175230188
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 37,
+        "minimumCosine": 0.9868275312620545
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 37,
+        "minimumCosine": 0.7029364124677471
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "polygon": 37,
+        "minimumCosine": 0.9549170771457247
+      }
+    ],
+    "opposedTriangles": [],
+    "parts": [
+      {
+        "name": "Abdomen core",
+        "triangles": 60,
+        "signedVolume": 0.26897980852435016,
+        "minimumTriangleArea": 0.0003010196486709802,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "triangles": 32,
+        "signedVolume": 0.07026955252968091,
+        "minimumTriangleArea": 0.019629228389729914,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "triangles": 32,
+        "signedVolume": 0.061136401988969684,
+        "minimumTriangleArea": 0.017745926563295628,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "triangles": 32,
+        "signedVolume": 0.052035561968108615,
+        "minimumTriangleArea": 0.014365746498069766,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rising prothorax curved cervical arch",
+        "triangles": 94,
+        "signedVolume": 0.1107148697149188,
+        "minimumTriangleArea": 0.0036724940105769,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated pale throat",
+        "triangles": 46,
+        "signedVolume": 0.004270072368824823,
+        "minimumTriangleArea": 0.00022403150633362192,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.002065358630392814,
+        "minimumTriangleArea": 0.003315100084344742,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.0018906119138620264,
+        "minimumTriangleArea": 0.0032010681999887587,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 2)",
+        "triangles": 24,
+        "signedVolume": 0.001830535135531615,
+        "minimumTriangleArea": 0.00292891470969466,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 3)",
+        "triangles": 24,
+        "signedVolume": 0.0018590646059364346,
+        "minimumTriangleArea": 0.0029781757071977327,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 4)",
+        "triangles": 24,
+        "signedVolume": 0.0013533397037632862,
+        "minimumTriangleArea": 0.0023512402455423305,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rear neck collar -1",
+        "triangles": 24,
+        "signedVolume": 0.0009648541273107167,
+        "minimumTriangleArea": 0.0019163999997513694,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.002000290574774806,
+        "minimumTriangleArea": 0.0033807083599890746,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.0018906116114340752,
+        "minimumTriangleArea": 0.0031828068040398428,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 2)",
+        "triangles": 24,
+        "signedVolume": 0.001830535355787663,
+        "minimumTriangleArea": 0.002978128078664148,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 3)",
+        "triangles": 24,
+        "signedVolume": 0.001859063843436413,
+        "minimumTriangleArea": 0.003021293496609775,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 4)",
+        "triangles": 24,
+        "signedVolume": 0.0013593661377435406,
+        "minimumTriangleArea": 0.0023389461475415737,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rear neck collar 1",
+        "triangles": 24,
+        "signedVolume": 0.0009648552949276957,
+        "minimumTriangleArea": 0.0019278058239453214,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 0",
+        "triangles": 38,
+        "signedVolume": 0.011374798123463887,
+        "minimumTriangleArea": 0.0015219457019430966,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 1",
+        "triangles": 38,
+        "signedVolume": 0.010858890156676603,
+        "minimumTriangleArea": 0.001359451452031891,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 2",
+        "triangles": 38,
+        "signedVolume": 0.010662564870857013,
+        "minimumTriangleArea": 0.0009733198779664064,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 3",
+        "triangles": 38,
+        "signedVolume": 0.0070765603980424896,
+        "minimumTriangleArea": 0.0008089648813822851,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Volumetric pointed insect skull",
+        "triangles": 44,
+        "signedVolume": 0.03950149276339327,
+        "minimumTriangleArea": 0.002985575495265762,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Inset green compound eye -1",
+        "triangles": 18,
+        "signedVolume": 0.0013842182565449927,
+        "minimumTriangleArea": 0.0012342661091472545,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "triangles": 26,
+        "signedVolume": 0.00025928518513958156,
+        "minimumTriangleArea": 0.0001512468332753008,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "triangles": 26,
+        "signedVolume": 0.00037217725601808337,
+        "minimumTriangleArea": 1.302273493411362e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept crown splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.00042919626919948515,
+        "minimumTriangleArea": 0.001218458385499769,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Compact mandible -1",
+        "triangles": 26,
+        "signedVolume": 0.00013487583371242571,
+        "minimumTriangleArea": 5.189080415163397e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Twig antenna -1",
+        "triangles": 36,
+        "signedVolume": 0.0010786166922209716,
+        "minimumTriangleArea": 4.692836469759439e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Antenna leaf -1",
+        "triangles": 24,
+        "signedVolume": 0.00039116131945179147,
+        "minimumTriangleArea": 0.00208893410685312,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing-1_0",
+        "triangles": 40,
+        "signedVolume": 0.14449866341296452,
+        "minimumTriangleArea": 0.008261534681394034,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "triangles": 66,
+        "signedVolume": 0.0034090437099261683,
+        "minimumTriangleArea": 1.0123790105279165e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing-1_1",
+        "triangles": 40,
+        "signedVolume": 0.09158798660414962,
+        "minimumTriangleArea": 0.007602279863940995,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "triangles": 66,
+        "signedVolume": 0.0029686921077338446,
+        "minimumTriangleArea": 9.997557092788715e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg-1_0",
+        "triangles": 36,
+        "signedVolume": 0.036390903954265426,
+        "minimumTriangleArea": 0.007557385758991796,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg-1_0",
+        "triangles": 36,
+        "signedVolume": 0.018047270444731693,
+        "minimumTriangleArea": 0.0011566071477555641,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "triangles": 26,
+        "signedVolume": 0.0009051653342499282,
+        "minimumTriangleArea": 1.971470219464716e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg-1_0",
+        "triangles": 26,
+        "signedVolume": 0.0011970735911458969,
+        "minimumTriangleArea": 0.0004435852642200011,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "triangles": 26,
+        "signedVolume": 0.00021956310118209898,
+        "minimumTriangleArea": 7.885861546915068e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_1",
+        "triangles": 26,
+        "signedVolume": 0.00018530029415141154,
+        "minimumTriangleArea": 7.885827201070437e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg-1_0",
+        "triangles": 24,
+        "signedVolume": 0.004260060972141757,
+        "minimumTriangleArea": 0.006505832479433634,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "triangles": 36,
+        "signedVolume": 0.03856316204653165,
+        "minimumTriangleArea": 0.007557381901878085,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg-1_1",
+        "triangles": 36,
+        "signedVolume": 0.01821749957098669,
+        "minimumTriangleArea": 0.0011566096451917918,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "triangles": 26,
+        "signedVolume": 0.0009051659384759222,
+        "minimumTriangleArea": 1.9714847819057582e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg-1_1",
+        "triangles": 26,
+        "signedVolume": 0.0011970738052838508,
+        "minimumTriangleArea": 0.0004435841313890313,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "triangles": 26,
+        "signedVolume": 0.00021956285295469854,
+        "minimumTriangleArea": 7.88581005483895e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_1",
+        "triangles": 26,
+        "signedVolume": 0.00018530010327347937,
+        "minimumTriangleArea": 7.885785811476953e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg-1_1",
+        "triangles": 24,
+        "signedVolume": 0.004249777705458023,
+        "minimumTriangleArea": 0.006490246019126115,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "triangles": 44,
+        "signedVolume": 0.013144146548646592,
+        "minimumTriangleArea": 0.0012706792316795647,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raised raptorial forearm -1",
+        "triangles": 44,
+        "signedVolume": 0.00965973753771047,
+        "minimumTriangleArea": 0.0014369002773503778,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "triangles": 68,
+        "signedVolume": 0.011225988900284454,
+        "minimumTriangleArea": 1.18935916501945e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "triangles": 92,
+        "signedVolume": 0.008751070712563902,
+        "minimumTriangleArea": 0.0002656171181785736,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Inset green compound eye 1",
+        "triangles": 18,
+        "signedVolume": 0.0014650020902756725,
+        "minimumTriangleArea": 0.0012342661091472545,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "triangles": 26,
+        "signedVolume": 0.00021433619116917487,
+        "minimumTriangleArea": 0.00015124610571441626,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "triangles": 26,
+        "signedVolume": 0.000401520115646466,
+        "minimumTriangleArea": 1.3027316597746101e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept crown splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.000429197177084216,
+        "minimumTriangleArea": 0.0012216075405624572,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Compact mandible 1",
+        "triangles": 26,
+        "signedVolume": 0.00015084343760520143,
+        "minimumTriangleArea": 5.19009060625805e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Twig antenna 1",
+        "triangles": 36,
+        "signedVolume": 0.0010774853458053518,
+        "minimumTriangleArea": 4.692770514261972e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Antenna leaf 1",
+        "triangles": 24,
+        "signedVolume": 0.00039116206733333435,
+        "minimumTriangleArea": 0.0020857926681307937,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing1_0",
+        "triangles": 40,
+        "signedVolume": 0.09840151611301523,
+        "minimumTriangleArea": 0.005654531590907843,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "triangles": 66,
+        "signedVolume": 0.0030692429744715757,
+        "minimumTriangleArea": 1.006489325023104e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing1_1",
+        "triangles": 40,
+        "signedVolume": 0.05910075584467306,
+        "minimumTriangleArea": 0.004849584899795913,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "triangles": 66,
+        "signedVolume": 0.0024506976461834192,
+        "minimumTriangleArea": 9.779763565880887e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg1_0",
+        "triangles": 36,
+        "signedVolume": 0.03644128882481486,
+        "minimumTriangleArea": 0.007557380766569375,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg1_0",
+        "triangles": 36,
+        "signedVolume": 0.01807511814445676,
+        "minimumTriangleArea": 0.0011566072461975142,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "triangles": 26,
+        "signedVolume": 0.0008400730897437892,
+        "minimumTriangleArea": 1.9714564190994668e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg1_0",
+        "triangles": 26,
+        "signedVolume": 0.001177467636271588,
+        "minimumTriangleArea": 0.00044358552942068034,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_0_-1",
+        "triangles": 26,
+        "signedVolume": 0.00018385096034983757,
+        "minimumTriangleArea": 7.885826617161344e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "triangles": 26,
+        "signedVolume": 0.00023405622151307992,
+        "minimumTriangleArea": 7.885861546915068e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg1_0",
+        "triangles": 24,
+        "signedVolume": 0.004260061714216067,
+        "minimumTriangleArea": 0.0065058279959273515,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "triangles": 36,
+        "signedVolume": 0.036531918110874806,
+        "minimumTriangleArea": 0.007557383741993367,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg1_1",
+        "triangles": 36,
+        "signedVolume": 0.01819421089394751,
+        "minimumTriangleArea": 0.0011566110971760388,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "triangles": 26,
+        "signedVolume": 0.0008400733513295695,
+        "minimumTriangleArea": 1.971470981592922e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg1_1",
+        "triangles": 26,
+        "signedVolume": 0.0011774681659847725,
+        "minimumTriangleArea": 0.0004435844386408729,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_1_-1",
+        "triangles": 26,
+        "signedVolume": 0.00018385076174913336,
+        "minimumTriangleArea": 7.885785227561528e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "triangles": 26,
+        "signedVolume": 0.00023405593280499478,
+        "minimumTriangleArea": 7.88581005483895e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg1_1",
+        "triangles": 24,
+        "signedVolume": 0.004249778737820174,
+        "minimumTriangleArea": 0.006490243416839595,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "triangles": 44,
+        "signedVolume": 0.01333570244428598,
+        "minimumTriangleArea": 0.001270680190331043,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raised raptorial forearm 1",
+        "triangles": 44,
+        "signedVolume": 0.009611290476474455,
+        "minimumTriangleArea": 0.0014369043683553147,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "triangles": 68,
+        "signedVolume": 0.011225988900284459,
+        "minimumTriangleArea": 1.18935916501945e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "triangles": 92,
+        "signedVolume": 0.00882925971216772,
+        "minimumTriangleArea": 0.0002656171181785736,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (-1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.005101312478030456,
+        "minimumTriangleArea": 0.005678050993798528,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (-1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.005262531699675829,
+        "minimumTriangleArea": 0.005736101279813126,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Lateral tail splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.004558857159916326,
+        "minimumTriangleArea": 0.005974041303487677,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.0051164036949395255,
+        "minimumTriangleArea": 0.005656477248605753,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.005268224239098208,
+        "minimumTriangleArea": 0.0056977608229003005,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Lateral tail splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.004689068877969369,
+        "minimumTriangleArea": 0.006622552411835625,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Curved lateral chest splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.000812243281774102,
+        "minimumTriangleArea": 0.0019075053181648823,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Curved lateral chest splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.0008122433266072941,
+        "minimumTriangleArea": 0.0019299085570124383,
+        "nonAdjacentSelfIntersections": []
+      }
+    ],
+    "neckIncidentCrossObjectIntersections": {
+      "Abdomen core": 32,
+      "Abdominal tergite 0": 27,
+      "Imbricated thorax bark (-1, 0)": 25,
+      "Raptorial upper arm -1": 18,
+      "Imbricated thorax bark (-1, 1)": 22,
+      "Curved lateral chest splinter -1": 20,
+      "Imbricated thorax bark (1, 1)": 20,
+      "Imbricated thorax bark (1, 2)": 26,
+      "Raptorial upper arm 1": 18,
+      "Curved lateral chest splinter 1": 28,
+      "Overlapping dorsal curved neck shell 0": 40,
+      "Overlapping dorsal curved neck shell 1": 48,
+      "Overlapping dorsal curved neck shell 2": 46,
+      "Imbricated thorax bark (-1, 2)": 16,
+      "Imbricated thorax bark (-1, 3)": 16,
+      "Imbricated thorax bark (1, 3)": 22,
+      "Imbricated thorax bark (1, 4)": 22,
+      "Imbricated thorax bark (-1, 4)": 20,
+      "Overlapping dorsal curved neck shell 3": 31,
+      "Volumetric pointed insect skull": 22,
+      "Rear neck collar 1": 10,
+      "Rear neck collar -1": 12,
+      "Imbricated thorax bark (1, 0)": 18,
+      "Coxal bark shield (1, 0)": 10,
+      "Integrated pale throat": 60
+    },
+    "boundaryEdges": 0,
+    "nonmanifoldEdges": 0,
+    "degenerateTriangles": 0,
+    "exactPositionMaterialTriangleCorrespondence": true
+  },
+  "limitations": "Static geometry only. Nonadjacent self intersections and neck-incident cross-object intersections are reported; layered-shell overlap is not contact/articulation approval. Shared-vertex pairs are excluded. No score, native admission or runtime changes."
+}

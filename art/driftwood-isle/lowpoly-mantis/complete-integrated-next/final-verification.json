@@ -1,0 +1,18 @@
+{
+  "status": "PASS_FINAL_STATIC_DELIVERY",
+  "sourceParts": 90,
+  "triangles": 3100,
+  "nativeBones": 22,
+  "captures": 20,
+  "geometryClosure": true,
+  "exactNativeConsumer": true,
+  "immutableOriginals": true,
+  "newBinaryBytes": 1782810,
+  "rawBytes": 12164108,
+  "producerSha256": "541534aa191e4150615de6c1152f4e95e06aae70f75a0c12df21863685e3ed92",
+  "glbSha256": "7630296952be80e40f14c2dc531afde1ed7945b40953322e81e070382681c4a6",
+  "nativeSha256": "7b739b6b562bd1f3015610a490e75e3db62390441a2a1e0a04f7ed4efe75b580",
+  "visualScore": null,
+  "animationAcceptance": false,
+  "runtimePromotion": false
+}

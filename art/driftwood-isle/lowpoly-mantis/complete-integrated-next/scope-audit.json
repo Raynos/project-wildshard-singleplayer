@@ -1,0 +1,568 @@
+{
+  "status": "PASS_COMPLETE_SOURCE_SCOPE",
+  "baselineParts": 89,
+  "candidateParts": 90,
+  "changedVertexParts": 73,
+  "newParts": [
+    "Abdominal tergite 3"
+  ],
+  "changes": [
+    {
+      "name": "Abdomen core",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Abdominal tergite 0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Abdominal tergite 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Abdominal tergite 2",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Abdominal tergite 3",
+      "newPart": true
+    },
+    {
+      "name": "Rising prothorax curved cervical arch",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Integrated pale throat",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 0)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 1)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 2)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 3)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 4)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Rear neck collar -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Imbricated thorax bark (1, 0)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Imbricated thorax bark (1, 1)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Imbricated thorax bark (1, 2)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Imbricated thorax bark (1, 3)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Imbricated thorax bark (1, 4)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Rear neck collar 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Overlapping dorsal curved neck shell 0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Overlapping dorsal curved neck shell 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Overlapping dorsal curved neck shell 2",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Overlapping dorsal curved neck shell 3",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Volumetric pointed insect skull",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Inset green compound eye -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Integrated eye socket rim -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Tucked cheek shell -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Swept crown splinter -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Compact mandible -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Twig antenna -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Antenna leaf -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Leaf wing wing-1_0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Seated folded wing midrib wing-1_0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Leaf wing wing-1_1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Seated folded wing midrib wing-1_1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Walking femur leg-1_0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Walking tibia leg-1_0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Ground tarsus leg-1_0",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Angular ankle cuff leg-1_0",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Articulated foot claw leg-1_0_-1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Articulated foot claw leg-1_0_1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Femur leaf plate leg-1_0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Walking femur leg-1_1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Walking tibia leg-1_1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Ground tarsus leg-1_1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Angular ankle cuff leg-1_1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Articulated foot claw leg-1_1_-1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Articulated foot claw leg-1_1_1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Femur leaf plate leg-1_1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Raptorial upper arm -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Raised raptorial forearm -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Swept bevelled wood sickle -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Bevelled continuous ivory teeth -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Inset green compound eye 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Integrated eye socket rim 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Tucked cheek shell 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Swept crown splinter 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Compact mandible 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Twig antenna 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Antenna leaf 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Leaf wing wing1_0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Seated folded wing midrib wing1_0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Leaf wing wing1_1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Seated folded wing midrib wing1_1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Walking femur leg1_0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Walking tibia leg1_0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Ground tarsus leg1_0",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Angular ankle cuff leg1_0",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Articulated foot claw leg1_0_-1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Articulated foot claw leg1_0_1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Femur leaf plate leg1_0",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Walking femur leg1_1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Walking tibia leg1_1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Ground tarsus leg1_1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Angular ankle cuff leg1_1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Articulated foot claw leg1_1_-1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Articulated foot claw leg1_1_1",
+      "changedVertices": false,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Femur leaf plate leg1_1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Raptorial upper arm 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Raised raptorial forearm 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Swept bevelled wood sickle 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Bevelled continuous ivory teeth 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": true
+    },
+    {
+      "name": "Coxal bark shield (-1, 0)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Coxal bark shield (-1, 1)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Lateral tail splinter -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Coxal bark shield (1, 0)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Coxal bark shield (1, 1)",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Lateral tail splinter 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Curved lateral chest splinter -1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    },
+    {
+      "name": "Curved lateral chest splinter 1",
+      "changedVertices": true,
+      "changedPalette": true,
+      "changedFaces": false
+    }
+  ],
+  "approvedContextOriginals": {
+    "mantisExplorerGen.png": {
+      "sha256": "0e1c64ace284b5c0bb770832da63d705596eb2e38f09f19c309547665bf8d82c",
+      "bytes": 2022792
+    },
+    "mantisWorldGen.png": {
+      "sha256": "763b44a12590e1eea84fe9137f1fc02b3040e499bc6e618a497f9e8e72fd5691",
+      "bytes": 2495395
+    },
+    "corrections/mantisWorldCorrectedGen-v2.png": {
+      "sha256": "959f058634838eea12075a16109bad410f2efee0141af6fe39ffac3856f770d3",
+      "bytes": 2494678
+    }
+  },
+  "predecessorPinsVerified": true,
+  "sourceOnly": true,
+  "gameRuntimeChanges": false,
+  "score": null,
+  "limitations": "Original hero authoritative. AI context hidden angles are approximate, not measured anatomy. No native animation/contact acceptance."
+}

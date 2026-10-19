@@ -1,0 +1,463 @@
+{
+  "status": "MATCHED_STATIC_CAPTURE_VERIFIED",
+  "score": null,
+  "visualAcceptance": false,
+  "rawPngsImmutable": true,
+  "frameCount": 20,
+  "rawFrames": [
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/hero.png",
+      "sha256": "c3798566c083e2c3615ed242e622974d4a6452c48355e308a3cc238eee0a9225",
+      "bytes": 568326,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/hero.png",
+      "sha256": "c6e9948f1c7b9ea644ae38d7d394e3618b84e822b1dbe5fdedcb81ee2deeecaa",
+      "bytes": 582937,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/front.png",
+      "sha256": "4b35479d5fd21bccb98ba878501f84c7cee1fd7462f6ef0560ea58e439284c51",
+      "bytes": 396629,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/front.png",
+      "sha256": "0cf611d7973c010180aedf1b5b6d0b8775fd3e5c17c4b0de2e48993f11c4e067",
+      "bytes": 415630,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/left.png",
+      "sha256": "53d7a99214447f81946b5fa71dd623df852c94ea2b60cf17679da991ab0e7c12",
+      "bytes": 372217,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/left.png",
+      "sha256": "977e879e619c3063ee3db3ea7aa04c322533d8377b7b82253b179a026a23e6d4",
+      "bytes": 382098,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/right.png",
+      "sha256": "35b507a2a0786739a180fa6385a0202efdbbc0638df31dae9d8e488d49e365ce",
+      "bytes": 373571,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/right.png",
+      "sha256": "f09b4bcf2359e1a24e8bf8c4bff8466aefa45c1e6ea2d98f7cfe4b0e67c9942d",
+      "bytes": 382148,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/back.png",
+      "sha256": "e0557ae5e54f36fc8ef3b991fda8a4a24debf2fc0fb91b2762ed95d3974c0c37",
+      "bytes": 402769,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/back.png",
+      "sha256": "f3aac7e03c6887bf1000e13d4c09d3909bdcede68057099b6557813a28d6ba8d",
+      "bytes": 421680,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/top.png",
+      "sha256": "2dd62720a5a8f99191f95095fb3a076dafcf7c49d1e8cb05bac1c655a5cc9a57",
+      "bytes": 676150,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/top.png",
+      "sha256": "2209a54c2052557b506181938e1b3c97faa6cc3684a3c9bd0320fa347a820613",
+      "bytes": 687687,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/diag-front.png",
+      "sha256": "819d2da6f9ac7435765899b9c24464d73f1425ed29320769dde90813134315d7",
+      "bytes": 686722,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/diag-front.png",
+      "sha256": "e3774213f563aad05a818143789af13a66188021c358b2bef372af30e5f73311",
+      "bytes": 695849,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/diag-left.png",
+      "sha256": "ceb510a473dac972f8488b8c74cb7918b1b00e8ebb68f3c10f922570aedea7b0",
+      "bytes": 693674,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/diag-left.png",
+      "sha256": "34fd297e126a50258aca4b0768ea7a510b93463a82c92cef78456ab8fedf39ec",
+      "bytes": 699442,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/diag-right.png",
+      "sha256": "7dfb64077db67cc4268d903b08ebde55f6f154d49bf1d7da4f818fd29d2f4965",
+      "bytes": 662538,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/diag-right.png",
+      "sha256": "328cc773779e855a64fdbae3c4a6e863a165de6a66c53b71f8bf4c02315061c4",
+      "bytes": 671002,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/baseline/diag-back.png",
+      "sha256": "d005003d6dfb3d8b8df101327f7558dc1f552b80d701c15e45dd0cb0692f212a",
+      "bytes": 664972,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-integrated-next/candidate/diag-back.png",
+      "sha256": "b9263882045ed4442c417376d16345efa013ccd002e23015a4c56684f8b9fe26",
+      "bytes": 689263,
+      "size": [
+        638,
+        900
+      ]
+    }
+  ],
+  "projectionFits": [
+    {
+      "role": "baseline",
+      "view": "hero",
+      "pixelBounds": [
+        42.81836110387627,
+        161.36742578394978,
+        593.916721035996,
+        738.6329406844969
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "hero",
+      "pixelBounds": [
+        34.17848381442218,
+        168.0571473030957,
+        603.8212532211271,
+        738.6329406844969
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "front",
+      "pixelBounds": [
+        89.69042333030396,
+        133.71143167526606,
+        548.3095766696961,
+        766.6742829696612
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "front",
+      "pixelBounds": [
+        89.69042333030396,
+        133.32623150471431,
+        548.3095766696961,
+        766.6742829696612
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "left",
+      "pixelBounds": [
+        34.17866602631051,
+        133.71122239530735,
+        603.8211200559319,
+        766.6740341321882
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "left",
+      "pixelBounds": [
+        47.4673174188834,
+        133.3260231550003,
+        603.8211204706624,
+        766.6740341321882
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "right",
+      "pixelBounds": [
+        34.178859888220416,
+        133.71128255572552,
+        603.8213293176227,
+        766.67407777113
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "right",
+      "pixelBounds": [
+        34.17885947348981,
+        133.3260953910222,
+        590.5326472861618,
+        766.67407777113
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "back",
+      "pixelBounds": [
+        89.69044097063394,
+        133.71136005832489,
+        548.3095942597187,
+        766.6741995352968
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "back",
+      "pixelBounds": [
+        89.69044097063394,
+        133.3261597924893,
+        548.3095942597187,
+        766.6741995352968
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "top",
+      "pixelBounds": [
+        89.69042333030396,
+        165.17878199626938,
+        548.3095766696961,
+        734.8212380577971
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "top",
+      "pixelBounds": [
+        89.69042333030396,
+        178.46744870828627,
+        548.3095766696961,
+        734.8212380577971
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-front",
+      "pixelBounds": [
+        89.69042333030396,
+        106.2431522967122,
+        548.3095766696961,
+        793.7569142894572
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-front",
+      "pixelBounds": [
+        89.69042333030396,
+        125.93821132234757,
+        548.3095766696961,
+        793.7569142894572
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-left",
+      "pixelBounds": [
+        34.1788307170965,
+        102.29267182460535,
+        603.8212952945294,
+        815.1476425552854
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-left",
+      "pixelBounds": [
+        47.46748455510908,
+        84.85242664335624,
+        603.821296446393,
+        815.1476425552854
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-right",
+      "pixelBounds": [
+        34.1787047046455,
+        102.30101525443126,
+        603.8211846818593,
+        815.1391182288646
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-right",
+      "pixelBounds": [
+        34.178703552781826,
+        84.8607700731821,
+        590.5325002049586,
+        815.1391182288646
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-back",
+      "pixelBounds": [
+        89.69025745744341,
+        100.04710910884017,
+        548.309410758411,
+        806.6262677380821
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-back",
+      "pixelBounds": [
+        89.69025745744341,
+        93.37421019769795,
+        548.309410758411,
+        806.6262677380821
+      ]
+    }
+  ],
+  "pairedCamerasAndSettings": true,
+  "totalNewBytes": 16864501,
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/native-consumer.test.ts": "58ed0f656a42bd5f3ff0173a20d9ed8833951bbdaf862c64428d2440315a461c",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/closure.json": "db6080e04294dd8114db16860e30214e260e9769a442e2770823063415e56c10",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/verify_delivery.py": "1b88840e1f9dc90ce9a481290d121344a8e6851d6135408dfcb7feb12da0aa37",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-diag-front.webp": "b2ad2e5833c11aa452d5a8fa88848bc6ede6398318801ea93cd71c211aae7483",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/render_matched.py": "fc1a695d13c8dd7505be05b71f64d82c1d4c86d3ccfcd873a490ebe672956552",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-diag-left.webp": "12cf535d1aaa11153e246cee0b93ed9d88dcb1ed5ed9e325aaf9c3bebfba9e4e",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-front.webp": "456512b4a1dcd5b236c6d078ef8ac0f7fbc38c37ca4ff783d9d9840bdae97268",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-diag-back.webp": "818e6271b127520b342c429a56191c70393011ad4fd64332aba5feaffbe672b7",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/render.log": "9a7495e0874c1a435cbb5d9581cef17bf8f99138b77abf79fbe3fcca8b962075",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-diag-back.webp": "d6c74d50373fa3937fd4bc7fc08961312dbf61fc055e8ca42f7c8ac822bb0b88",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/intersection-test.log": "fc8418c686b7b15b0066b54f128a6ed7585c17822ec6f32a8e9eeb68b75a8388",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-right.webp": "4e652cab74e1b14233e140d6b23a3e6d6763d6b36612a867efc6fb3d2f4d0429",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/matched-hero-board.webp": "4031eb6b56017284440d5e124a7cc9d82d49af96eb38487688f69fb23b37aa90",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/metrics-complete-integrated-next.json": "77e13ba074540b490f2add9e738abeebcc137966f6deaae6c081e289cf809587",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-front.webp": "5d4aa6bf6d3edb9de19a00d338275d5ab06292d4e0acddf882667aa2eba6ed0c",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/export_native.py": "94b1e0c18576c0ec08858fb48468350332401bfca9515495cecada2d1ef4fd7a",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/intersection-audit.json": "183084a41a1edf03e2c7a80d413719ea222b4f4f7743a3f82c311638aef1cfa8",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/mantis-mesh-complete-integrated-next.json": "8ed87f1e406a4b148f4b7b4a1eb68527190d98f6604876167c41576367c702fb",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/geometry-audit.json": "dc93c97289635efb7d8250a799b806f58ed81c529ea7d6a85b51e3b69d301663",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/vitest.config.ts": "e99e4d376954b0bec07e5b151669f63249161e609a7566067ae7494da62336f6",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-left.webp": "7c2122f8152af4d122660dafecfe9bef7922e56f508e684d76408e15e0e16418",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/native-consumer-focused-test.log": "7b4d4e8f57af80e33627a2fe20c4fb022a86eac854cc4c9bd63a5d908d6b1899",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/pivots.json": "6a40540ea8446109e4e918de7031fb5bd62169b822f085cf00a7773741ad1719",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-nine-board.webp": "7acfe5dfeee51ded8dc6f759e05f8686f3e424753d5bf9d7ee1df0c63110f045",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/check_scope.py": "a26e56e7b07f5a26190baa1962867996ba111b58e97f550fab0e57f88f7f4cb3",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/prepare_source.py": "f8196a62e27314636cc90e635f850bf44c3a934089652309dabe69e6b0f425a2",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/native-consumer-test.log": "2ec2d75be3beb757377bc0e644dd169053b19ca0f72429a2524ad8bb67f26167",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/capture-provenance.json": "291b30703ba6c66536c15ec510b370a6045e5a4bd51317dab4227c7c22f3a57d",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/normal-audit.json": "7ee5d8ad6f581e5fb67a0aeecd6f24c7b358dff51ce964c2659d3b350c4f433e",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-top.webp": "22e4d5fad2d911a1c36334e109817672ca0087b095f2b1ad4a380b9534d9d6ad",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/export-test.log": "065c4b4b4e83c6abcad6daa58e173690aa83eda10d34c5245cc82465ae8237e1",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-top.webp": "46a45dda363cc84953f0f7c194d89e88afffd7f80ae0635486a9433f3dc9abf0",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/native-python-test.log": "402d774fdc17e128010f0e77805d9ecacf1ea0b0c94ba1f1bf46b3d3bd251151",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-hero.webp": "65e23da83adcc5ffdfa45a036ee30756eb53edd0217b839c06715ce53d402d36",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-right.webp": "7bab2bca7afcbd4dba26bc5fe237f5db38c5e35ab4dc963616628c3001956679",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-nine-board.webp": "844089d43247982d76c9370847bf00fd7bebf5db1328eedfb525552198bbcceb",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/metadata.json": "39b710c14cb2f6089d56a5b6f209cad77693720ccd26aa2f41c1cb91542f3370",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/diagnostic-dimensions.json": "aec641e04a9469ebe38297378c93afc5d4980ae613c1d9b865505e9b88c50ff2",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-back.webp": "e9c1d3c62ee28a3a4ec465b5371c249bdc8ad93e00570839615b3beded17073e",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/assemble_evidence.py": "ff8d98192fa22defa5656a9d55d9ea2a4047112adb70c46a807e17ccba4313b8",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/scope-test.log": "0b80c160a07feb167fb78fef72ce8a19c67f3633e5be845d9695f74dc8fe7dcb",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/cameras.json": "eb4f563cad872b976e3452524c9af387d38bd78e5bb1214168049e030fec4ffa",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-diag-front.webp": "41e44955fad0fdf63fc9587e62c75ae1fc675680621d520fb18a6508af6a4e36",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-diag-right.webp": "e21dfcc57fd8eb7e2a0d37afd631ddd65f99a41b90fa576cde3a7bdb749917e1",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/mantis-study-complete-integrated-next.glb": "7630296952be80e40f14c2dc531afde1ed7945b40953322e81e070382681c4a6",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/lint-test.log": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/prepare_native_mapping.py": "90605e90ae0a02977099a30f9d8317fa3657067d03f1249443432a86fd9531e6",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/scope-audit.json": "597e462bfe02a0023d99702db4ed2c5ca651a094dfd63ce5a8b4b02fc09022b9",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-diag-left.webp": "6e1d7598f9614ee59cb5c00350bebdb45876ec038bc934fc92b1d78706d5c260",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/build_mantis_complete.py": "541534aa191e4150615de6c1152f4e95e06aae70f75a0c12df21863685e3ed92",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/mesh-map.json": "a9997b148837873493528074dc8be2f1d741b57b1da8fab4c7ee4eeb3524a362",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/test_export_native.py": "ed813ed0f46e9682f517a59782a3ae875261e2c088bc4f8251ffe8a864d9c302",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/authored-mapping.json": "c2c130ee11c58e45031efa7169eb2e67ca7721d9c36da230d3a22bad9ca3292a",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-left.webp": "7e8ba9cae06aea155c335096c433d67fff3af96c1519cffaaa2e3f9f38dcc12a",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-diag-right.webp": "f9055a1ba95a921dcb225f40d149f2e7d5c96545a35e286e745ccdda4a05150d",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/mantis-native.json": "7b739b6b562bd1f3015610a490e75e3db62390441a2a1e0a04f7ed4efe75b580",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/candidate-back.webp": "06375d13a5565daf848e6cb8a8acb1a12bffcdca49d360e777483be96cfc0959",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/check_geometry.py": "488027e62c3416266977d94fcbbb642f068488e1ed779ca2c7fe893088097990",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/input-pins.json": "f305250f136c7dd0c49d7a8e7cac6f544b8f22a96351ec4582dcfcf92ee41a2b",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/check_intersections.py": "b1310843536b4f18243ebc99c63bc8837eefbb5c4687e2ac09bae7e98969c7ee",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/build.log": "515484794061772251b32c40883242c3ca6ff99f18e1728a249650dcac181a52",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/geometry-test.log": "7c0450db838fc4c1a75a025907467986e07a25d7649ff689d174ca37e9a1d12b",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/payload.bin": "4e16ec3ad543d219277af1410147b7254c27eedefdfc64af1445a83259dfcb10",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/README.md": "858d691d86bcedef8e82b59db472dbdf8a8d2c0a6032fb9f4aad62d57cb8544d",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/baseline-hero.webp": "cb36ac0f94cff5d1d66c963f50b4d0cb7c69c7309035df7d7c7d1faa73147afa",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/failed-tergite-frame/geometry-audit.json": "b67cbb619054f8a85694588b5d336d152fff63ec2513712d16e8d7d7a8d4f283",
+    "art/driftwood-isle/lowpoly-mantis/complete-integrated-next/failed-tergite-frame/build_mantis_complete.py": "f99ddd8c2c6b4d8463915d25893a7f4bef1b09084031b3cdbe3f8262db796af0"
+  },
+  "limits": "No articulation/contact/animation/runtime acceptance. Hidden original angles approximate. Raw PNGs never re-encoded; previews are labelled derivatives."
+}

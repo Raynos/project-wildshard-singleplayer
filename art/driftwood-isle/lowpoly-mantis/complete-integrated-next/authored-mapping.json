@@ -1,0 +1,925 @@
+{
+  "schema": "wildshard.mantis.complete-integrated-next.mapping.v1",
+  "coordinateTransform": {
+    "blenderToNative": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        -1,
+        0
+      ]
+    ],
+    "determinant": 1,
+    "glbToNative": "identity; bake translation only"
+  },
+  "notes": [
+    "Complete candidate-specific rigid rest map; no animation or contact acceptance.",
+    "22 bones: 20 freshly generated static pivots plus authored neck and abdomen attachment centers.",
+    "Existing explicit part ownership retained for shared anatomical names; additional fourth tergite explicitly assigned to abdomen."
+  ],
+  "bones": [
+    {
+      "name": "body",
+      "parent": null,
+      "blenderPivot": [
+        0.0,
+        0.30000001192092896,
+        1.399999976158142
+      ],
+      "pos": [
+        0.0,
+        1.399999976158142,
+        -0.30000001192092896
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "body"
+    },
+    {
+      "name": "neck",
+      "parent": "body",
+      "blenderPivot": [
+        0,
+        0.36,
+        1.4
+      ],
+      "pos": [
+        0,
+        1.4,
+        -0.36
+      ],
+      "origin": "authored first curved cervical profile station",
+      "staticLabel": null
+    },
+    {
+      "name": "head",
+      "parent": "neck",
+      "blenderPivot": [
+        0.0,
+        -0.5271738767623901,
+        2.588608741760254
+      ],
+      "pos": [
+        0.0,
+        2.588608741760254,
+        0.5271738767623901
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "head"
+    },
+    {
+      "name": "abdomen",
+      "parent": "body",
+      "blenderPivot": [
+        0,
+        0.14,
+        1.47
+      ],
+      "pos": [
+        0,
+        1.47,
+        -0.14
+      ],
+      "origin": "authored first abdomen profile station",
+      "staticLabel": null
+    },
+    {
+      "name": "wing-1_0",
+      "parent": "body",
+      "blenderPivot": [
+        -0.18000000715255737,
+        0.4498039186000824,
+        1.6319999694824219
+      ],
+      "pos": [
+        -0.18000000715255737,
+        1.6319999694824219,
+        -0.4498039186000824
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "wing-1_0"
+    },
+    {
+      "name": "wing-1_1",
+      "parent": "body",
+      "blenderPivot": [
+        -0.18000000715255737,
+        0.595588207244873,
+        1.5084999799728394
+      ],
+      "pos": [
+        -0.18000000715255737,
+        1.5084999799728394,
+        -0.595588207244873
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "wing-1_1"
+    },
+    {
+      "name": "leg-1_0",
+      "parent": "body",
+      "blenderPivot": [
+        -0.23999999463558197,
+        0.15000000596046448,
+        1.4299999475479126
+      ],
+      "pos": [
+        -0.23999999463558197,
+        1.4299999475479126,
+        -0.15000000596046448
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "leg-1_0"
+    },
+    {
+      "name": "leg-1_0_knee",
+      "parent": "leg-1_0",
+      "blenderPivot": [
+        -0.7400000095367432,
+        0.0,
+        1.059999942779541
+      ],
+      "pos": [
+        -0.7400000095367432,
+        1.059999942779541,
+        -0.0
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "leg-1_0_knee"
+    },
+    {
+      "name": "leg-1_1",
+      "parent": "body",
+      "blenderPivot": [
+        -0.23999999463558197,
+        0.7900000214576721,
+        1.3300000429153442
+      ],
+      "pos": [
+        -0.23999999463558197,
+        1.3300000429153442,
+        -0.7900000214576721
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "leg-1_1"
+    },
+    {
+      "name": "leg-1_1_knee",
+      "parent": "leg-1_1",
+      "blenderPivot": [
+        -0.8199999928474426,
+        0.949999988079071,
+        1.059999942779541
+      ],
+      "pos": [
+        -0.8199999928474426,
+        1.059999942779541,
+        -0.949999988079071
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "leg-1_1_knee"
+    },
+    {
+      "name": "raptor-1",
+      "parent": "neck",
+      "blenderPivot": [
+        -0.1316000074148178,
+        0.11631371825933456,
+        2.0119998455047607
+      ],
+      "pos": [
+        -0.1316000074148178,
+        2.0119998455047607,
+        -0.11631371825933456
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "raptor-1"
+    },
+    {
+      "name": "raptor-1_elbow",
+      "parent": "raptor-1",
+      "blenderPivot": [
+        -0.5546000003814697,
+        -0.43609410524368286,
+        1.7080000638961792
+      ],
+      "pos": [
+        -0.5546000003814697,
+        1.7080000638961792,
+        0.43609410524368286
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "raptor-1_elbow"
+    },
+    {
+      "name": "raptor-1_hook",
+      "parent": "raptor-1_elbow",
+      "blenderPivot": [
+        -0.9681999683380127,
+        -0.6776784658432007,
+        2.315999984741211
+      ],
+      "pos": [
+        -0.9681999683380127,
+        2.315999984741211,
+        0.6776784658432007
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "raptor-1_hook"
+    },
+    {
+      "name": "wing1_0",
+      "parent": "body",
+      "blenderPivot": [
+        0.18000000715255737,
+        0.4498039186000824,
+        1.6319999694824219
+      ],
+      "pos": [
+        0.18000000715255737,
+        1.6319999694824219,
+        -0.4498039186000824
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "wing1_0"
+    },
+    {
+      "name": "wing1_1",
+      "parent": "body",
+      "blenderPivot": [
+        0.18000000715255737,
+        0.595588207244873,
+        1.5084999799728394
+      ],
+      "pos": [
+        0.18000000715255737,
+        1.5084999799728394,
+        -0.595588207244873
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "wing1_1"
+    },
+    {
+      "name": "leg1_0",
+      "parent": "body",
+      "blenderPivot": [
+        0.23999999463558197,
+        0.15000000596046448,
+        1.4299999475479126
+      ],
+      "pos": [
+        0.23999999463558197,
+        1.4299999475479126,
+        -0.15000000596046448
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "leg1_0"
+    },
+    {
+      "name": "leg1_0_knee",
+      "parent": "leg1_0",
+      "blenderPivot": [
+        0.7400000095367432,
+        0.0,
+        1.059999942779541
+      ],
+      "pos": [
+        0.7400000095367432,
+        1.059999942779541,
+        -0.0
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "leg1_0_knee"
+    },
+    {
+      "name": "leg1_1",
+      "parent": "body",
+      "blenderPivot": [
+        0.23999999463558197,
+        0.7900000214576721,
+        1.3300000429153442
+      ],
+      "pos": [
+        0.23999999463558197,
+        1.3300000429153442,
+        -0.7900000214576721
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "leg1_1"
+    },
+    {
+      "name": "leg1_1_knee",
+      "parent": "leg1_1",
+      "blenderPivot": [
+        0.8199999928474426,
+        0.949999988079071,
+        1.059999942779541
+      ],
+      "pos": [
+        0.8199999928474426,
+        1.059999942779541,
+        -0.949999988079071
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "leg1_1_knee"
+    },
+    {
+      "name": "raptor1",
+      "parent": "neck",
+      "blenderPivot": [
+        0.1316000074148178,
+        0.11631371825933456,
+        2.0119998455047607
+      ],
+      "pos": [
+        0.1316000074148178,
+        2.0119998455047607,
+        -0.11631371825933456
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "raptor1"
+    },
+    {
+      "name": "raptor1_elbow",
+      "parent": "raptor1",
+      "blenderPivot": [
+        0.5546000003814697,
+        -0.43609410524368286,
+        1.7080000638961792
+      ],
+      "pos": [
+        0.5546000003814697,
+        1.7080000638961792,
+        0.43609410524368286
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "raptor1_elbow"
+    },
+    {
+      "name": "raptor1_hook",
+      "parent": "raptor1_elbow",
+      "blenderPivot": [
+        0.9681999683380127,
+        -0.6776784658432007,
+        2.315999984741211
+      ],
+      "pos": [
+        0.9681999683380127,
+        2.315999984741211,
+        0.6776784658432007
+      ],
+      "origin": "exact static metrics pivot",
+      "staticLabel": "raptor1_hook"
+    }
+  ],
+  "parts": [
+    {
+      "name": "Abdomen core",
+      "staticLabel": "body",
+      "nativeJoint": "abdomen",
+      "newlyMapped": false
+    },
+    {
+      "name": "Abdominal tergite 0",
+      "staticLabel": "body",
+      "nativeJoint": "abdomen",
+      "newlyMapped": false
+    },
+    {
+      "name": "Abdominal tergite 1",
+      "staticLabel": "body",
+      "nativeJoint": "abdomen",
+      "newlyMapped": false
+    },
+    {
+      "name": "Abdominal tergite 2",
+      "staticLabel": "body",
+      "nativeJoint": "abdomen",
+      "newlyMapped": false
+    },
+    {
+      "name": "Abdominal tergite 3",
+      "staticLabel": "body",
+      "nativeJoint": "abdomen",
+      "newlyMapped": true
+    },
+    {
+      "name": "Rising prothorax curved cervical arch",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Integrated pale throat",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": true
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 0)",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 1)",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 2)",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 3)",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Imbricated thorax bark (-1, 4)",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Rear neck collar -1",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Imbricated thorax bark (1, 0)",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Imbricated thorax bark (1, 1)",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Imbricated thorax bark (1, 2)",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Imbricated thorax bark (1, 3)",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Imbricated thorax bark (1, 4)",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Rear neck collar 1",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": false
+    },
+    {
+      "name": "Overlapping dorsal curved neck shell 0",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": true
+    },
+    {
+      "name": "Overlapping dorsal curved neck shell 1",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": true
+    },
+    {
+      "name": "Overlapping dorsal curved neck shell 2",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": true
+    },
+    {
+      "name": "Overlapping dorsal curved neck shell 3",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": true
+    },
+    {
+      "name": "Volumetric pointed insect skull",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Inset green compound eye -1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Integrated eye socket rim -1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Tucked cheek shell -1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Swept crown splinter -1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Compact mandible -1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Twig antenna -1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Antenna leaf -1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Leaf wing wing-1_0",
+      "staticLabel": "wing-1_0",
+      "nativeJoint": "wing-1_0",
+      "newlyMapped": false
+    },
+    {
+      "name": "Seated folded wing midrib wing-1_0",
+      "staticLabel": "wing-1_0",
+      "nativeJoint": "wing-1_0",
+      "newlyMapped": false
+    },
+    {
+      "name": "Leaf wing wing-1_1",
+      "staticLabel": "wing-1_1",
+      "nativeJoint": "wing-1_1",
+      "newlyMapped": false
+    },
+    {
+      "name": "Seated folded wing midrib wing-1_1",
+      "staticLabel": "wing-1_1",
+      "nativeJoint": "wing-1_1",
+      "newlyMapped": false
+    },
+    {
+      "name": "Walking femur leg-1_0",
+      "staticLabel": "leg-1_0",
+      "nativeJoint": "leg-1_0",
+      "newlyMapped": false
+    },
+    {
+      "name": "Walking tibia leg-1_0",
+      "staticLabel": "leg-1_0_knee",
+      "nativeJoint": "leg-1_0_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Ground tarsus leg-1_0",
+      "staticLabel": "leg-1_0_knee",
+      "nativeJoint": "leg-1_0_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Angular ankle cuff leg-1_0",
+      "staticLabel": "leg-1_0_knee",
+      "nativeJoint": "leg-1_0_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Articulated foot claw leg-1_0_-1",
+      "staticLabel": "leg-1_0_knee",
+      "nativeJoint": "leg-1_0_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Articulated foot claw leg-1_0_1",
+      "staticLabel": "leg-1_0_knee",
+      "nativeJoint": "leg-1_0_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Femur leaf plate leg-1_0",
+      "staticLabel": "leg-1_0",
+      "nativeJoint": "leg-1_0",
+      "newlyMapped": false
+    },
+    {
+      "name": "Walking femur leg-1_1",
+      "staticLabel": "leg-1_1",
+      "nativeJoint": "leg-1_1",
+      "newlyMapped": false
+    },
+    {
+      "name": "Walking tibia leg-1_1",
+      "staticLabel": "leg-1_1_knee",
+      "nativeJoint": "leg-1_1_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Ground tarsus leg-1_1",
+      "staticLabel": "leg-1_1_knee",
+      "nativeJoint": "leg-1_1_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Angular ankle cuff leg-1_1",
+      "staticLabel": "leg-1_1_knee",
+      "nativeJoint": "leg-1_1_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Articulated foot claw leg-1_1_-1",
+      "staticLabel": "leg-1_1_knee",
+      "nativeJoint": "leg-1_1_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Articulated foot claw leg-1_1_1",
+      "staticLabel": "leg-1_1_knee",
+      "nativeJoint": "leg-1_1_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Femur leaf plate leg-1_1",
+      "staticLabel": "leg-1_1",
+      "nativeJoint": "leg-1_1",
+      "newlyMapped": false
+    },
+    {
+      "name": "Raptorial upper arm -1",
+      "staticLabel": "raptor-1",
+      "nativeJoint": "raptor-1",
+      "newlyMapped": false
+    },
+    {
+      "name": "Raised raptorial forearm -1",
+      "staticLabel": "raptor-1_elbow",
+      "nativeJoint": "raptor-1_elbow",
+      "newlyMapped": false
+    },
+    {
+      "name": "Swept bevelled wood sickle -1",
+      "staticLabel": "raptor-1_hook",
+      "nativeJoint": "raptor-1_hook",
+      "newlyMapped": false
+    },
+    {
+      "name": "Bevelled continuous ivory teeth -1",
+      "staticLabel": "raptor-1_hook",
+      "nativeJoint": "raptor-1_hook",
+      "newlyMapped": false
+    },
+    {
+      "name": "Inset green compound eye 1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Integrated eye socket rim 1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Tucked cheek shell 1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Swept crown splinter 1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Compact mandible 1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Twig antenna 1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Antenna leaf 1",
+      "staticLabel": "head",
+      "nativeJoint": "head",
+      "newlyMapped": false
+    },
+    {
+      "name": "Leaf wing wing1_0",
+      "staticLabel": "wing1_0",
+      "nativeJoint": "wing1_0",
+      "newlyMapped": false
+    },
+    {
+      "name": "Seated folded wing midrib wing1_0",
+      "staticLabel": "wing1_0",
+      "nativeJoint": "wing1_0",
+      "newlyMapped": false
+    },
+    {
+      "name": "Leaf wing wing1_1",
+      "staticLabel": "wing1_1",
+      "nativeJoint": "wing1_1",
+      "newlyMapped": false
+    },
+    {
+      "name": "Seated folded wing midrib wing1_1",
+      "staticLabel": "wing1_1",
+      "nativeJoint": "wing1_1",
+      "newlyMapped": false
+    },
+    {
+      "name": "Walking femur leg1_0",
+      "staticLabel": "leg1_0",
+      "nativeJoint": "leg1_0",
+      "newlyMapped": false
+    },
+    {
+      "name": "Walking tibia leg1_0",
+      "staticLabel": "leg1_0_knee",
+      "nativeJoint": "leg1_0_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Ground tarsus leg1_0",
+      "staticLabel": "leg1_0_knee",
+      "nativeJoint": "leg1_0_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Angular ankle cuff leg1_0",
+      "staticLabel": "leg1_0_knee",
+      "nativeJoint": "leg1_0_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Articulated foot claw leg1_0_-1",
+      "staticLabel": "leg1_0_knee",
+      "nativeJoint": "leg1_0_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Articulated foot claw leg1_0_1",
+      "staticLabel": "leg1_0_knee",
+      "nativeJoint": "leg1_0_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Femur leaf plate leg1_0",
+      "staticLabel": "leg1_0",
+      "nativeJoint": "leg1_0",
+      "newlyMapped": false
+    },
+    {
+      "name": "Walking femur leg1_1",
+      "staticLabel": "leg1_1",
+      "nativeJoint": "leg1_1",
+      "newlyMapped": false
+    },
+    {
+      "name": "Walking tibia leg1_1",
+      "staticLabel": "leg1_1_knee",
+      "nativeJoint": "leg1_1_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Ground tarsus leg1_1",
+      "staticLabel": "leg1_1_knee",
+      "nativeJoint": "leg1_1_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Angular ankle cuff leg1_1",
+      "staticLabel": "leg1_1_knee",
+      "nativeJoint": "leg1_1_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Articulated foot claw leg1_1_-1",
+      "staticLabel": "leg1_1_knee",
+      "nativeJoint": "leg1_1_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Articulated foot claw leg1_1_1",
+      "staticLabel": "leg1_1_knee",
+      "nativeJoint": "leg1_1_knee",
+      "newlyMapped": false
+    },
+    {
+      "name": "Femur leaf plate leg1_1",
+      "staticLabel": "leg1_1",
+      "nativeJoint": "leg1_1",
+      "newlyMapped": false
+    },
+    {
+      "name": "Raptorial upper arm 1",
+      "staticLabel": "raptor1",
+      "nativeJoint": "raptor1",
+      "newlyMapped": false
+    },
+    {
+      "name": "Raised raptorial forearm 1",
+      "staticLabel": "raptor1_elbow",
+      "nativeJoint": "raptor1_elbow",
+      "newlyMapped": false
+    },
+    {
+      "name": "Swept bevelled wood sickle 1",
+      "staticLabel": "raptor1_hook",
+      "nativeJoint": "raptor1_hook",
+      "newlyMapped": false
+    },
+    {
+      "name": "Bevelled continuous ivory teeth 1",
+      "staticLabel": "raptor1_hook",
+      "nativeJoint": "raptor1_hook",
+      "newlyMapped": false
+    },
+    {
+      "name": "Coxal bark shield (-1, 0)",
+      "staticLabel": "body",
+      "nativeJoint": "body",
+      "newlyMapped": false
+    },
+    {
+      "name": "Coxal bark shield (-1, 1)",
+      "staticLabel": "body",
+      "nativeJoint": "body",
+      "newlyMapped": false
+    },
+    {
+      "name": "Lateral tail splinter -1",
+      "staticLabel": "body",
+      "nativeJoint": "abdomen",
+      "newlyMapped": false
+    },
+    {
+      "name": "Coxal bark shield (1, 0)",
+      "staticLabel": "body",
+      "nativeJoint": "body",
+      "newlyMapped": false
+    },
+    {
+      "name": "Coxal bark shield (1, 1)",
+      "staticLabel": "body",
+      "nativeJoint": "body",
+      "newlyMapped": false
+    },
+    {
+      "name": "Lateral tail splinter 1",
+      "staticLabel": "body",
+      "nativeJoint": "abdomen",
+      "newlyMapped": false
+    },
+    {
+      "name": "Curved lateral chest splinter -1",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": true
+    },
+    {
+      "name": "Curved lateral chest splinter 1",
+      "staticLabel": "body",
+      "nativeJoint": "neck",
+      "newlyMapped": true
+    }
+  ]
+}
