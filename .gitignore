@@ -2120,3 +2120,8 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /src/shards/nine-dragon-stack/data/mapAssembly.generated.*
 /src/shards/nine-dragon-stack/look/map.baked.json
 /public/assets/nine-dragon-stack/map/top.webp
+
+# G508: Pine map assembly and painter outputs are generated.
+src/shards/pine-hollow/data/mapAssembly.generated.*
+src/shards/pine-hollow/look/map.baked.json
+public/assets/pine-hollow/map/top.webp

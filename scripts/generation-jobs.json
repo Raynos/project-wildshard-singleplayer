@@ -21721,6 +21721,101 @@
       "catalogueDependencies": [
         "nine-map-assembly"
       ]
+    },
+    {
+      "id": "pine-map-assembly",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/mapAssembly.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/pine-hollow/generators/mapAssembly.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/format",
+        "src/shards/pine-hollow",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "public/assets/pine-hollow/baked",
+        "scripts/map-assembly.mjs",
+        "scripts/map-world.mjs",
+        "scripts/map-painter.mjs",
+        "scripts/bake-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/mapAssembly.generated.json",
+        "src/shards/pine-hollow/data/mapAssembly.generated.bin"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/mapAssembly.generated.json",
+        "src/shards/pine-hollow/data/mapAssembly.generated.bin"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "pine-timber-world",
+        "pine-timber-scenes",
+        "pine-cabin-scenes",
+        "pine-cabin-living",
+        "pine-crag-scenes",
+        "pine-world-scene-models",
+        "pine-prop-scenes",
+        "pine-hero-scenes",
+        "pine-floor-placements",
+        "pine-tree-rest"
+      ]
+    },
+    {
+      "id": "pine-data-map",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-map.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-map.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators",
+        "src/shards/pine-hollow/manifest.json",
+        "src/shards/pine-hollow/data",
+        "src/shards/pine-hollow/assets",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "public/assets/pine-hollow/baked",
+        "scripts/map-assembly.mjs",
+        "scripts/map-world.mjs",
+        "scripts/map-scenes.mjs",
+        "scripts/map-painter.mjs",
+        "scripts/bake-data-maps.mjs",
+        "src/shards/pine-hollow/look/map.json",
+        "scripts/map-hash.mjs",
+        "scripts/legacy-shards.mjs",
+        "lint/legacy-shards.json",
+        "src/sdk/package.json",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/kit/geometryPack.ts",
+        "src/format/terrainTileBytes.ts",
+        "src/format/contentBounds.ts",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/map/top.webp",
+        "src/shards/pine-hollow/look/map.baked.json"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/pine-hollow/map/top.webp",
+        "src/shards/pine-hollow/look/map.baked.json"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "pine-map-assembly"
+      ]
     }
   ]
 }

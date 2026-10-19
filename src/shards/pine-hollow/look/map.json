@@ -76,40 +76,48 @@
     }
   },
   "inputs": [
-    "shard.config.ts",
-    "data/layout.generated.json",
-    "data/geography.generated.json",
-    "data/cragScenes.generated.json",
-    "world",
     "generators",
-    "models",
-    "runtime/looks",
-    "runtime/kit",
-    "runtime/props",
-    "runtime/npc",
-    "runtime/species",
-    "runtime/cull",
-    "data/creatureHulls.json",
-    "runtime/items",
-    "runtime/brains",
-    "data/heroRows.json",
-    "data/heroScenes.generated.json",
-    "data/propScenes.generated.json",
-    "data/npcSkins.generated.json",
-    "data/codeParts.json",
-    "data/paintedTextures.generated.json",
-    "data/plumbing.json",
-    "data/coverAppearance.json",
-    "data/waterLook.json",
-    "data/timberScenes.generated.json",
-    "data/logKit.json",
-    "data/hollowLog.json",
-    "data/cabinScenes.generated.json",
-    "data/cabinLivingScenes.generated.json",
-    "data/skyLook.json",
-    "behaviour/life.as",
-    "behaviour/stag.as",
-    "data/questLead.json",
-    "data/kingCues.json"
-  ]
+    "manifest.json",
+    "data",
+    "assets",
+    "../../../public/assets/baked/pine-hollow/terrain.bin",
+    "../../../public/assets/pine-hollow/baked",
+    "../../../scripts/map-assembly.mjs",
+    "../../../scripts/map-world.mjs",
+    "../../../scripts/map-scenes.mjs",
+    "../../../scripts/map-painter.mjs",
+    "../../../scripts/bake-data-maps.mjs"
+  ],
+  "painter": {
+    "version": 1,
+    "job": "pine-data-map",
+    "prerequisites": [
+      "pine-map-assembly"
+    ],
+    "scenes": {
+      "packs": [
+        {
+          "file": "data/mapAssembly.generated.bin",
+          "rows": {
+            "file": "data/mapAssembly.generated.json",
+            "path": [
+              "pack"
+            ]
+          },
+          "names": [
+            "names"
+          ],
+          "deflated": true
+        }
+      ],
+      "recipes": [
+        {
+          "file": "data/mapAssembly.generated.json",
+          "path": [
+            "scene"
+          ]
+        }
+      ]
+    }
+  }
 }

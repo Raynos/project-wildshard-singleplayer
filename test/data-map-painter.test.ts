@@ -19,6 +19,8 @@ import isletMotion from '../src/shards/far-reach/data/isletMotion.generated.json
 import { nalatiMapAssembly } from '../src/shards/nalati-grasslands/generators/mapAssembly.mjs';
 import nalatiPlacesJson from '../src/shards/nalati-grasslands/boot/placeRuntime.generated.json' with { type: 'json' };
 import { nineMapAssembly } from '../src/shards/nine-dragon-stack/generators/mapAssembly.mjs';
+import { pineMapAssembly } from '../src/shards/pine-hollow/generators/mapAssembly.mjs';
+import pinePhysics from '../src/shards/pine-hollow/data/physicsRows.json' with { type: 'json' };
 import nineWorld from '../src/shards/nine-dragon-stack/data/worldRows.generated.json' with { type: 'json' };
 
 const grey = [[120, 120, 120], [120, 120, 120], [120, 120, 120]];
@@ -163,4 +165,21 @@ test('Nine map contains every facade copy, queued set and rest mover', async () 
     expect(assembly.nodes.filter(node => node.name.startsWith('mover:'))).toHaveLength(4);
     for (const node of assembly.nodes) expect(node.matrices.every(Number.isFinite)).toBe(true);
   } finally { for (const shape of assembly.shapes) shape.geometry.dispose(); }
+});
+
+test('Pine rest assembly preserves every floor and native forest placement', async () => {
+  const { assembly, trees, floor } = await pineMapAssembly();
+  expect(trees).toHaveLength(pinePhysics.shelterTrees.length);
+  for (const tree of trees) expect(pinePhysics.shelterTrees.some(row => row[0] === tree.x && row[1] === tree.z && row[2] === tree.r)).toBe(true);
+  for (const [kind, rows] of Object.entries(floor.layout)) {
+    const node = assembly.nodes.find(row => row.name === `floor:${kind}`);
+    expect(node?.instances).toBe(rows.length);
+    expect(node?.matrices.map(value => value === 0 ? 0 : value)).toEqual(rows.flatMap(row => Array.from(Float32Array.from(row.matrix), value => value === 0 ? 0 : value)));
+  }
+  expect(assembly.nodes.some(row => row.name.startsWith('weld:cabins.living:'))).toBe(true);
+  expect(assembly.nodes.some(row => row.name.includes('cabins.desktop.true'))).toBe(true);
+  expect(assembly.inventory['beaver-pool']).toBe(1);
+  expect(assembly.inventory['pond']).toBe(1);
+  expect(assembly.nodes.every(row => row.matrices.every(Number.isFinite))).toBe(true);
+  for (const shape of assembly.shapes) shape.geometry.dispose();
 });
