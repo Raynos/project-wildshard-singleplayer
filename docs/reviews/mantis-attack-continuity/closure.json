@@ -1,0 +1,57 @@
+{
+  "scope": "read-only source and complete trace audit; test-only proposed envelope; no product acceptance",
+  "tests": {
+    "passed": 8,
+    "files": 2
+  },
+  "screening": {
+    "privatePathOrCredentialPatternHits": [],
+    "logs": "Environment-specific prefixes normalized; failure retained"
+  },
+  "files": {
+    "docs/reviews/mantis-attack-continuity/REVIEW.md": {
+      "bytes": 10375,
+      "sha256": "e505b3181b5eac84be2f2983f74e8b775d8c9adabcd56d145c32fe536ffcc183"
+    },
+    "docs/reviews/mantis-attack-continuity/audit.py": {
+      "bytes": 2706,
+      "sha256": "7f1d69706752a52d47a1e18e356bcb0a47ebe3ef0c60f2dcfd8326d958580c63"
+    },
+    "docs/reviews/mantis-attack-continuity/baseline.test.ts": {
+      "bytes": 6068,
+      "sha256": "d723be57c5387b3849b3273ad163efe7e58b8e0b2a447cdfee2af79555c289d9"
+    },
+    "docs/reviews/mantis-attack-continuity/focused-tests-direct.txt": {
+      "bytes": 789,
+      "sha256": "3f5028460330b1b367a967e5889b54b6a00e10a67a27be93cf511141c5622a12"
+    },
+    "docs/reviews/mantis-attack-continuity/focused-tests-final.txt": {
+      "bytes": 801,
+      "sha256": "d4b099c30f9569d625c1a141a2cdc90ee467e774e1c5793c0ad1a9038dbc7860"
+    },
+    "docs/reviews/mantis-attack-continuity/focused-tests.txt": {
+      "bytes": 1934,
+      "sha256": "8843f66cde7d4bc33b1415648194cd689728d6ce2a145b6865cd9b9e2d00cf5d"
+    },
+    "docs/reviews/mantis-attack-continuity/native-baseline.json": {
+      "bytes": 1020,
+      "sha256": "aa33f7f0ce89577a7d3d817be2c5a1cc93f015f55f25d214ede01635bd3db06e"
+    },
+    "docs/reviews/mantis-attack-continuity/proposed-envelope.test.ts": {
+      "bytes": 1726,
+      "sha256": "e0e836f0d2bacb0f6e8bb7e8f06847d7c71a964cf983ecf1c481dc6797347364"
+    },
+    "docs/reviews/mantis-attack-continuity/proposed-envelope.ts": {
+      "bytes": 876,
+      "sha256": "937851c08dd146352a4ebfac3769c82906b44c07fcc28f9075d7a6b8315f60df"
+    },
+    "docs/reviews/mantis-attack-continuity/trace-audit.json": {
+      "bytes": 40018,
+      "sha256": "046bf421da55ee68918fa1f458eb2b624e278a3fecbcb20f0166817d518705e8"
+    },
+    "docs/reviews/mantis-attack-continuity/vitest.config.ts": {
+      "bytes": 303,
+      "sha256": "e6ab31dbcd4181a59735acebd5b2451f38e31d5be9ad937fa399feaf8aa0979a"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vite/rapier" without a file extension (docs/reviews/mantis-attack-continuity/vitest.config.ts:2:29). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+
+ Test Files  2 passed (2)
+      Tests  8 passed (8)
+   Start at  07:18:54
+   Duration  12.49s (transform 63%, setup 35%, tests 1%, import 1%)
+
+  Transform  transforming modules took 7.63s · 63% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

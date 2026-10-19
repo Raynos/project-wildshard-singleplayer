@@ -1,0 +1,14 @@
+[
+  {
+    "path": "docs/reviews/mantis-attack-continuity/focused-tests-direct.txt",
+    "before": "09f38dccd224b16c228c8ddf58c86d085fe59bb478fc5fe4efdb00bcda85426f",
+    "after": "3f5028460330b1b367a967e5889b54b6a00e10a67a27be93cf511141c5622a12",
+    "change": "Remove trailing empty EOF line only; original retained locally."
+  },
+  {
+    "path": "docs/reviews/mantis-attack-continuity/focused-tests-final.txt",
+    "before": "88261deb587f1151c9a8b75ea4d3664f809ac7baae104d967136d82814b4ff12",
+    "after": "d4b099c30f9569d625c1a141a2cdc90ee467e774e1c5793c0ad1a9038dbc7860",
+    "change": "Remove trailing empty EOF line only; original retained locally."
+  }
+]

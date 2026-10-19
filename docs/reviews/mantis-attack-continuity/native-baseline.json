@@ -1,0 +1,58 @@
+[
+  {
+    "stage": 1,
+    "before": {
+      "shoulder": -0.45,
+      "elbow": 0.35,
+      "hook": 0,
+      "body": -0.04,
+      "neck": -0.1
+    },
+    "after": {
+      "shoulder": 0.65,
+      "elbow": -0.65,
+      "hook": 0.32,
+      "body": 0.06,
+      "neck": 0.12
+    },
+    "nativeJump": {
+      "shoulder": 1.1,
+      "elbow": -1,
+      "hook": 0.32,
+      "body": 0.1,
+      "neck": 0.22
+    }
+  },
+  {
+    "stage": 3,
+    "before": {
+      "shoulder": -0.45,
+      "elbow": 0.35,
+      "hook": 0,
+      "body": -0.04,
+      "neck": -0.1
+    },
+    "after": {
+      "shoulder": 0.65,
+      "elbow": -0.65,
+      "hook": -0.32,
+      "body": 0.06,
+      "neck": 0.12
+    },
+    "nativeJump": {
+      "shoulder": 1.1,
+      "elbow": -1,
+      "hook": -0.32,
+      "body": 0.1,
+      "neck": 0.22
+    }
+  },
+  {
+    "programs": 30,
+    "maxNodes": 100
+  },
+  {
+    "scope": "Same root and frame, all left raptor native vertices, source boundary only",
+    "maximumVertexDisplacementMeters": 1.2360363233376488
+  }
+]

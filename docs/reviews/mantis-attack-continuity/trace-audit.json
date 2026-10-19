@@ -1,0 +1,1693 @@
+[
+  {
+    "path": "tmp/mantis-early-knee-capture-run1/render-trace.json",
+    "sha256": "c3d79d624bd3102a0eb73ee00d11f6ec73b6abfc22c6e7d4df59357d675f2f30",
+    "poses": 3361,
+    "poseOwnedAttackPresent": 0,
+    "boundaries": [
+      {
+        "index": 70,
+        "frames": [
+          74,
+          75
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.15,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.13999999287589618,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.2202362902353725
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 97,
+        "frames": [
+          101,
+          102
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.11666666666666665,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.13999999953436573,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.21003200091451155
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 183,
+        "frames": [
+          187,
+          188
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.15,
+        "boutDelta": 0.10000000000000142,
+        "rootDistance": 0.14000000351191197,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.22083293923400782
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 203,
+        "frames": [
+          207,
+          208
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.15,
+        "boutDelta": 0.10000000000000009,
+        "rootDistance": 0.14000000059604645,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.21792538481134854
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 223,
+        "frames": [
+          227,
+          228
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.11666666666666665,
+        "boutDelta": 0.09959999999403957,
+        "rootDistance": 0.20994684100174202,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.2150196811934599
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 272,
+        "frames": [
+          276,
+          277
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.09999999999999999,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.07000000029803792,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.22157943850856368
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1061,
+        "frames": [
+          1065,
+          1066
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "windup",
+          "active"
+        ],
+        "strikeElapsed": 0.06666666666666667,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.06968830945057172,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162637,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.10000000000000299,
+          "neck": 0.22233754876219733
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1109,
+        "frames": [
+          1113,
+          1114
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.06666666666666667,
+        "boutDelta": 0.0600000000000005,
+        "rootDistance": 0.025199999680608078,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162637,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.22149644970758567
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1153,
+        "frames": [
+          1157,
+          1158
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.09999999999999999,
+        "boutDelta": 0.09379999999701916,
+        "rootDistance": 0.06158908178613049,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162637,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.10000000000000299,
+          "neck": 0.2224458309963246
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1204,
+        "frames": [
+          1208,
+          1209
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.09999999999999999,
+        "boutDelta": 0.10000000000000142,
+        "rootDistance": 0.06999999755542972,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162637,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.22241768662421127
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1548,
+        "frames": [
+          1552,
+          1553
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.15,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.13974096100674083,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.22140714744210485
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1581,
+        "frames": [
+          1585,
+          1586
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.08333333333333333,
+        "boutDelta": 0.0810000000000004,
+        "rootDistance": 0.016533857924797897,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.21375305652995372
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1649,
+        "frames": [
+          1653,
+          1654
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.11666666666666665,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.14000000059684564,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.2214671694226517
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1680,
+        "frames": [
+          1684,
+          1685
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "windup",
+          "active"
+        ],
+        "strikeElapsed": 0.08333333333333333,
+        "boutDelta": 0.09969999998807921,
+        "rootDistance": 0.06954921917634824,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.21402659433994867
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1751,
+        "frames": [
+          1755,
+          1756
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "windup",
+          "active"
+        ],
+        "strikeElapsed": 0.06666666666666667,
+        "boutDelta": 0.10000000000000142,
+        "rootDistance": 0.06936739768602329,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.21839720373638863
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1787,
+        "frames": [
+          1791,
+          1792
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "windup",
+          "active"
+        ],
+        "strikeElapsed": 0.06666666666666667,
+        "boutDelta": 0.08800000000000097,
+        "rootDistance": 0.05412530799702447,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.2148675643378138
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1887,
+        "frames": [
+          1891,
+          1892
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.11666666666666665,
+        "boutDelta": 0.08720000000298,
+        "rootDistance": 0.10319660857577559,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.22202202065048435
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1913,
+        "frames": [
+          1917,
+          1918
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "windup",
+          "active"
+        ],
+        "strikeElapsed": 0.06666666666666667,
+        "boutDelta": 0.10000000000000142,
+        "rootDistance": 0.11000000141242901,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.21033289313276857
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 1993,
+        "frames": [
+          1997,
+          1998
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.11666666666666665,
+        "boutDelta": 0.10000000000000142,
+        "rootDistance": 0.13998573677616621,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.2219574472218608
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 2022,
+        "frames": [
+          2026,
+          2027
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.08333333333333333,
+        "boutDelta": 0.0923000000119174,
+        "rootDistance": 0.05963502899474157,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.21093535933239566
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 2144,
+        "frames": [
+          2148,
+          2149
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.13333333333333333,
+        "boutDelta": 0.08569999998807987,
+        "rootDistance": 0.1205194054623343,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.22182507203462168
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 2172,
+        "frames": [
+          2176,
+          2177
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.13333333333333333,
+        "boutDelta": 0.10000000000000142,
+        "rootDistance": 0.17999999785353238,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.21036685616484913
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 3295,
+        "frames": [
+          3299,
+          3300
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.11666666666666665,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.1391960588932855,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.2215539271008994
+        },
+        "poseOwnedInputs": false
+      },
+      {
+        "index": 3332,
+        "frames": [
+          3336,
+          3337
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "windup",
+          "active"
+        ],
+        "strikeElapsed": 0.05,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.1479499969227551,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.21147357648114593
+        },
+        "poseOwnedInputs": false
+      }
+    ],
+    "heldActiveMovingCount": 358,
+    "heldActiveRootDistanceSum": 104.97781042214092,
+    "largestHeldActiveTranslation": {
+      "index": 1805,
+      "frames": [
+        1809,
+        1810
+      ],
+      "stage": 3,
+      "observedPhases": [
+        2,
+        2
+      ],
+      "observedClocks": [
+        1.4000000000000001,
+        1.5000000000000002
+      ],
+      "strikePhases": [
+        "active",
+        "active"
+      ],
+      "strikeElapsed": 1.5499999999999994,
+      "boutDelta": 0.10000000000000142,
+      "rootDistance": 0.7000000274686088,
+      "jumpsRadians": {
+        "raptor1": 0.0,
+        "raptor1_elbow": 0.0,
+        "raptor1_hook": 2.9802322387695312e-08,
+        "body": 0.0,
+        "neck": 0.002642831214152223
+      },
+      "poseOwnedInputs": false
+    },
+    "observedActiveLatencyRows": [
+      {
+        "index": 69,
+        "frame": 74,
+        "stage": 1,
+        "strikeElapsed": 0.05,
+        "observerClock": 0.6
+      },
+      {
+        "index": 96,
+        "frame": 101,
+        "stage": 3,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.30000000000000004
+      },
+      {
+        "index": 182,
+        "frame": 187,
+        "stage": 1,
+        "strikeElapsed": 0.05,
+        "observerClock": 0.6
+      },
+      {
+        "index": 202,
+        "frame": 207,
+        "stage": 1,
+        "strikeElapsed": 0.05,
+        "observerClock": 0.6
+      },
+      {
+        "index": 222,
+        "frame": 227,
+        "stage": 3,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.30000000000000004
+      },
+      {
+        "index": 271,
+        "frame": 276,
+        "stage": 1,
+        "strikeElapsed": 0,
+        "observerClock": 0.6
+      },
+      {
+        "index": 1108,
+        "frame": 1113,
+        "stage": 1,
+        "strikeElapsed": 0,
+        "observerClock": 0.6
+      },
+      {
+        "index": 1152,
+        "frame": 1157,
+        "stage": 1,
+        "strikeElapsed": 0,
+        "observerClock": 0.6
+      },
+      {
+        "index": 1203,
+        "frame": 1208,
+        "stage": 1,
+        "strikeElapsed": 0,
+        "observerClock": 0.6
+      },
+      {
+        "index": 1547,
+        "frame": 1552,
+        "stage": 1,
+        "strikeElapsed": 0.05,
+        "observerClock": 0.6
+      },
+      {
+        "index": 1580,
+        "frame": 1585,
+        "stage": 3,
+        "strikeElapsed": 0,
+        "observerClock": 0.30000000000000004
+      },
+      {
+        "index": 1648,
+        "frame": 1653,
+        "stage": 1,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.6
+      },
+      {
+        "index": 1886,
+        "frame": 1891,
+        "stage": 1,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.6
+      },
+      {
+        "index": 1992,
+        "frame": 1997,
+        "stage": 1,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.6
+      },
+      {
+        "index": 2021,
+        "frame": 2026,
+        "stage": 3,
+        "strikeElapsed": 0,
+        "observerClock": 0.30000000000000004
+      },
+      {
+        "index": 2142,
+        "frame": 2147,
+        "stage": 1,
+        "strikeElapsed": 0.03333333333333333,
+        "observerClock": 0.6
+      },
+      {
+        "index": 2143,
+        "frame": 2148,
+        "stage": 1,
+        "strikeElapsed": 0.05,
+        "observerClock": 0.6
+      },
+      {
+        "index": 2171,
+        "frame": 2176,
+        "stage": 3,
+        "strikeElapsed": 0.03333333333333333,
+        "observerClock": 0.30000000000000004
+      },
+      {
+        "index": 3294,
+        "frame": 3299,
+        "stage": 1,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.6
+      }
+    ],
+    "largestRecoveryShoulderStep": {
+      "index": 90,
+      "frames": [
+        94,
+        95
+      ],
+      "stage": 1,
+      "observedPhases": [
+        3,
+        3
+      ],
+      "observedClocks": [
+        0,
+        0.1
+      ],
+      "strikePhases": [
+        "recover",
+        "idle"
+      ],
+      "strikeElapsed": 0,
+      "boutDelta": 0.09999999999999964,
+      "rootDistance": 0.3981361731981143,
+      "jumpsRadians": {
+        "raptor-1": 0.6018518518518521,
+        "raptor-1_elbow": 0.6018518518518521,
+        "raptor-1_hook": 0.2962962962962965,
+        "body": 0.055555555555558626,
+        "neck": 0.11140425290914206
+      },
+      "poseOwnedInputs": true
+    }
+  },
+  {
+    "path": "docs/reviews/mantis-early-knee-supplement/run1/render-trace.json",
+    "sha256": "753b15996e06de14bdec94bfaf3c50ee723509a3409922bc00b2e44c70f9b24d",
+    "poses": 807,
+    "poseOwnedAttackPresent": 0,
+    "boundaries": [
+      {
+        "index": 251,
+        "frames": [
+          254,
+          255
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.09999999999999999,
+        "boutDelta": 0.10000000000000009,
+        "rootDistance": 0.04989640046763115,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.2223630553573403
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 278,
+        "frames": [
+          281,
+          282
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.11666666666666665,
+        "boutDelta": 0.09490000000596055,
+        "rootDistance": 0.11766948228023946,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.21066877107590903
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 342,
+        "frames": [
+          345,
+          346
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.11666666666666665,
+        "boutDelta": 0.08669999998807931,
+        "rootDistance": 0.10211117170669534,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.22159163622276956
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 370,
+        "frames": [
+          373,
+          374
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.09999999999999999,
+        "boutDelta": 0.09190000000596044,
+        "rootDistance": 0.00027707409376639925,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.2136139876287299
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 429,
+        "frames": [
+          432,
+          433
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.13333333333333333,
+        "boutDelta": 0.09750000000000014,
+        "rootDistance": 0.12414675205945969,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.21855099116308366
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 456,
+        "frames": [
+          459,
+          460
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.06666666666666667,
+        "boutDelta": 0.03960000000894226,
+        "rootDistance": 0.04329863935710683,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.21365140831411517
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 516,
+        "frames": [
+          519,
+          520
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.11666666666666665,
+        "boutDelta": 0.10000000000000142,
+        "rootDistance": 0.14000000059830078,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.21739870827273053
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 543,
+        "frames": [
+          546,
+          547
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.13333333333333333,
+        "boutDelta": 0.09850000000000136,
+        "rootDistance": 0.14592775686782353,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.21277547074989225
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 600,
+        "frames": [
+          603,
+          604
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.08333333333333333,
+        "boutDelta": 0.08709999999403806,
+        "rootDistance": 0.04991941526572825,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.2198416679946595
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 631,
+        "frames": [
+          634,
+          635
+        ],
+        "stage": 3,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.30000000000000004,
+          0
+        ],
+        "strikePhases": [
+          "windup",
+          "active"
+        ],
+        "strikeElapsed": 0.08333333333333333,
+        "boutDelta": 0.10000000000000142,
+        "rootDistance": 0.06999999968919436,
+        "jumpsRadians": {
+          "raptor1": 1.0689875186590494,
+          "raptor1_elbow": 0.974074074074074,
+          "raptor1_hook": 0.32000000000000023,
+          "body": 0.0970370370370337,
+          "neck": 0.2101379180733416
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 696,
+        "frames": [
+          699,
+          700
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.09999999999999999,
+        "boutDelta": 0.0956000000089432,
+        "rootDistance": 0.049900951202666737,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.22244681695950114
+        },
+        "poseOwnedInputs": true
+      }
+    ],
+    "heldActiveMovingCount": 182,
+    "heldActiveRootDistanceSum": 23.68548863458569,
+    "largestHeldActiveTranslation": {
+      "index": 290,
+      "frames": [
+        293,
+        294
+      ],
+      "stage": 3,
+      "observedPhases": [
+        2,
+        2
+      ],
+      "observedClocks": [
+        0.9999999999999999,
+        1.0999999999999999
+      ],
+      "strikePhases": [
+        "active",
+        "active"
+      ],
+      "strikeElapsed": 1.2166666666666672,
+      "boutDelta": 0.09999999999999964,
+      "rootDistance": 0.7000000126227988,
+      "jumpsRadians": {
+        "raptor1": 0.0,
+        "raptor1_elbow": 0.0,
+        "raptor1_hook": 2.9802322387695312e-08,
+        "body": 0.0,
+        "neck": 0.002456473386495985
+      },
+      "poseOwnedInputs": true
+    },
+    "observedActiveLatencyRows": [
+      {
+        "index": 250,
+        "frame": 254,
+        "stage": 1,
+        "strikeElapsed": 0,
+        "observerClock": 0.6
+      },
+      {
+        "index": 277,
+        "frame": 281,
+        "stage": 3,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.30000000000000004
+      },
+      {
+        "index": 341,
+        "frame": 345,
+        "stage": 1,
+        "strikeElapsed": 0.03333333333333333,
+        "observerClock": 0.6
+      },
+      {
+        "index": 369,
+        "frame": 373,
+        "stage": 3,
+        "strikeElapsed": 0,
+        "observerClock": 0.30000000000000004
+      },
+      {
+        "index": 428,
+        "frame": 432,
+        "stage": 1,
+        "strikeElapsed": 0.05,
+        "observerClock": 0.6
+      },
+      {
+        "index": 455,
+        "frame": 459,
+        "stage": 3,
+        "strikeElapsed": 0.03333333333333333,
+        "observerClock": 0.30000000000000004
+      },
+      {
+        "index": 515,
+        "frame": 519,
+        "stage": 1,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.6
+      },
+      {
+        "index": 542,
+        "frame": 546,
+        "stage": 3,
+        "strikeElapsed": 0.03333333333333333,
+        "observerClock": 0.30000000000000004
+      },
+      {
+        "index": 599,
+        "frame": 603,
+        "stage": 1,
+        "strikeElapsed": 0,
+        "observerClock": 0.6
+      },
+      {
+        "index": 695,
+        "frame": 699,
+        "stage": 1,
+        "strikeElapsed": 0,
+        "observerClock": 0.6
+      },
+      {
+        "index": 721,
+        "frame": 725,
+        "stage": 3,
+        "strikeElapsed": 0.03333333333333333,
+        "observerClock": 0.30000000000000004
+      }
+    ],
+    "largestRecoveryShoulderStep": {
+      "index": 270,
+      "frames": [
+        273,
+        274
+      ],
+      "stage": 1,
+      "observedPhases": [
+        3,
+        3
+      ],
+      "observedClocks": [
+        0,
+        0.1
+      ],
+      "strikePhases": [
+        "recover",
+        "idle"
+      ],
+      "strikeElapsed": 0,
+      "boutDelta": 0.09999999999999964,
+      "rootDistance": 0.03260598098479685,
+      "jumpsRadians": {
+        "raptor-1": 0.6018518518518521,
+        "raptor-1_elbow": 0.6018518518518521,
+        "raptor-1_hook": 0.2962962962962965,
+        "body": 0.055555555555558626,
+        "neck": 0.11353546330071472
+      },
+      "poseOwnedInputs": true
+    }
+  },
+  {
+    "path": "docs/reviews/mantis-early-knee-moving/run1/render-trace.json",
+    "sha256": "2984ddd8ec8f14ad4b2f43a384b6247e7c8da77a26b4419f762bfb0ec0661de6",
+    "poses": 303,
+    "poseOwnedAttackPresent": 0,
+    "boundaries": [
+      {
+        "index": 45,
+        "frames": [
+          48,
+          49
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.15,
+        "boutDelta": 0.08770000000298017,
+        "rootDistance": 0.11283482041657442,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.2215736863516044
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 83,
+        "frames": [
+          86,
+          87
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.15,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.15497999679228402,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999411,
+          "neck": 0.22139827098687667
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 122,
+        "frames": [
+          125,
+          126
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.13333333333333333,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.09596693775569284,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.2209395840625599
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 161,
+        "frames": [
+          164,
+          165
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.11666666666666665,
+        "boutDelta": 0.09999999999999964,
+        "rootDistance": 0.12269813726812036,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162628,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.2205460845765936
+        },
+        "poseOwnedInputs": true
+      },
+      {
+        "index": 199,
+        "frames": [
+          202,
+          203
+        ],
+        "stage": 1,
+        "observedPhases": [
+          1,
+          2
+        ],
+        "observedClocks": [
+          0.6,
+          0
+        ],
+        "strikePhases": [
+          "active",
+          "active"
+        ],
+        "strikeElapsed": 0.09999999999999999,
+        "boutDelta": 0.09759999999403846,
+        "rootDistance": 0.13496501090700616,
+        "jumpsRadians": {
+          "raptor-1": 1.1026065487162633,
+          "raptor-1_elbow": 1.0000000000000002,
+          "raptor-1_hook": 0.32000000000000023,
+          "body": 0.09999999999999855,
+          "neck": 0.22051610812838307
+        },
+        "poseOwnedInputs": true
+      }
+    ],
+    "heldActiveMovingCount": 23,
+    "heldActiveRootDistanceSum": 5.116370266916535,
+    "largestHeldActiveTranslation": {
+      "index": 127,
+      "frames": [
+        130,
+        131
+      ],
+      "stage": 1,
+      "observedPhases": [
+        2,
+        2
+      ],
+      "observedClocks": [
+        0.4,
+        0.5
+      ],
+      "strikePhases": [
+        "active",
+        "active"
+      ],
+      "strikeElapsed": 0.5666666666666668,
+      "boutDelta": 0.09999999999999964,
+      "rootDistance": 0.3679092447533274,
+      "jumpsRadians": {
+        "raptor-1": 0.0,
+        "raptor-1_elbow": 0.0,
+        "raptor-1_hook": 2.9802322387695312e-08,
+        "body": 0.0,
+        "neck": 0.0010631281060140222
+      },
+      "poseOwnedInputs": true
+    },
+    "observedActiveLatencyRows": [
+      {
+        "index": 44,
+        "frame": 48,
+        "stage": 1,
+        "strikeElapsed": 0.05,
+        "observerClock": 0.6
+      },
+      {
+        "index": 81,
+        "frame": 85,
+        "stage": 1,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.6
+      },
+      {
+        "index": 82,
+        "frame": 86,
+        "stage": 1,
+        "strikeElapsed": 0.05,
+        "observerClock": 0.6
+      },
+      {
+        "index": 120,
+        "frame": 124,
+        "stage": 1,
+        "strikeElapsed": 0,
+        "observerClock": 0.6
+      },
+      {
+        "index": 121,
+        "frame": 125,
+        "stage": 1,
+        "strikeElapsed": 0.03333333333333333,
+        "observerClock": 0.6
+      },
+      {
+        "index": 160,
+        "frame": 164,
+        "stage": 1,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.6
+      },
+      {
+        "index": 198,
+        "frame": 202,
+        "stage": 1,
+        "strikeElapsed": 0.016666666666666666,
+        "observerClock": 0.6
+      }
+    ],
+    "largestRecoveryShoulderStep": null
+  }
+]
