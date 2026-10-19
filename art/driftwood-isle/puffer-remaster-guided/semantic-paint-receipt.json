@@ -1,0 +1,73 @@
+{
+  "status": "passed surface-preserving partition",
+  "coreVolumeBefore": 1.0598386216955613,
+  "coreVolumeAfter": 1.0598386216956521,
+  "oldCoreTriangles": 1074,
+  "newCoreTriangles": 4448,
+  "flatRegionPieces": {
+    "retained": 1488,
+    "ochre": 548,
+    "ivory": 513,
+    "teal": 94,
+    "socket": 136
+  },
+  "intentionalRelabeling": {
+    "ochre": 548,
+    "ivory": 513,
+    "teal": 94,
+    "socket": 136
+  },
+  "paletteSrgb": {
+    "teal": [
+      0.12,
+      0.39,
+      0.38
+    ],
+    "ochre": [
+      0.91,
+      0.43,
+      0.075
+    ],
+    "ivory": [
+      1,
+      0.91,
+      0.7
+    ],
+    "socket": [
+      0.39,
+      0.24,
+      0.09
+    ],
+    "mouth": [
+      0.21,
+      0.058,
+      0.022
+    ]
+  },
+  "actualHoodBoundaryXZ": [
+    [
+      0.1899999976158142,
+      0.8944000005722046
+    ],
+    [
+      0.46000000834465027,
+      0.9579999446868896
+    ],
+    [
+      0.4350000023841858,
+      1.0199999809265137
+    ],
+    [
+      0.20499999821186066,
+      0.9539999961853027
+    ]
+  ],
+  "perSourceTriangleAreaPreserved": true,
+  "paletteValuesChanged": false,
+  "oldPerCornerColorsPreservedWhereRelabeled": false,
+  "untouchedPartsExact": true,
+  "bonesExact": true,
+  "note": "All cavity faces receive explicit socket tag; no barycentric cross-region paint on new face. Original eight spike components copied exactly outside main core.",
+  "inputSha256": "030dbb8c40bf2507429b6017ad4c8d36a15eb5f5ca839c630e14189c51c8424b",
+  "outputSha256": "6a47c3d3b47f0e65fa6aa8758064b4f296cb1679578b6b2a6aec160edb80279c"
+}

@@ -1,0 +1,6 @@
+{
+  "failure": "59 unmatched tiny edges around nominal rounded hood boundaries",
+  "sourceSha256": "aaa42109e0196a2a34a4fefa4ead049953babeacb15f96233b188fc44ce7f879",
+  "resolution": "Use actual frozen hood vertex XZ coordinates, preserving the original topology/area/volume guards. No tolerance relaxation.",
+  "failedOutputAdmitted": false
+}
