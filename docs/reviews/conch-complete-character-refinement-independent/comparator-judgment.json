@@ -1,0 +1,60 @@
+{
+  "assessed_at_utc": "2026-10-19T15:43:11.408017+00:00",
+  "variant": "complete-pass2",
+  "scores_out_of_5": {
+    "silhouette": 4.0,
+    "face": 4.0,
+    "details": 3.9,
+    "facet": 4.2
+  },
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "details": 0.2,
+    "facet": 0.15
+  },
+  "weighted_score_exact": 4.01,
+  "basis": "Independent original-to-model judgment after inspecting ten retained full PNGs; no previous score consulted. Slight preference for fuller face and heavier eyes; protruding shield thumb and black joints weaken cohesive detailing. Marginal subjective preference, not a statistically significant measured gain.",
+  "files": [
+    {
+      "path": "tmp/conch-complete-pass2/color-complete-pass2-back.png",
+      "sha256": "31a39e360d2b6f3043d79be2d0839c55e48adb071d0aa98cbf7c19936a0de6cb"
+    },
+    {
+      "path": "tmp/conch-complete-pass2/color-complete-pass2-diag-back.png",
+      "sha256": "12d90911cc4b407fa179f7050d7d63fa4090ef67de54d9dad42c5635c838d204"
+    },
+    {
+      "path": "tmp/conch-complete-pass2/color-complete-pass2-diag-front.png",
+      "sha256": "20c8cbe64b1f089561d124dfc656cd009be78e0e66f4dac397a8723d77fe735b"
+    },
+    {
+      "path": "tmp/conch-complete-pass2/color-complete-pass2-diag-left.png",
+      "sha256": "e7986eb4e5f217ae61026a2ad90d98814d3a2623caee77c50f35658383ac2c4c"
+    },
+    {
+      "path": "tmp/conch-complete-pass2/color-complete-pass2-diag-right.png",
+      "sha256": "64077a90545f57a7f404dbf77d341990841d5ca93b62b551a55e5c53a8c1f752"
+    },
+    {
+      "path": "tmp/conch-complete-pass2/color-complete-pass2-front.png",
+      "sha256": "6eb2df61a6b6169b92f195e9cf66c6b9c4508632eb70274766b9c43bcde249f5"
+    },
+    {
+      "path": "tmp/conch-complete-pass2/color-complete-pass2-left.png",
+      "sha256": "1c119df848954f12e429832a98bd8a68916eaa1080745493e7fb6431927ef54c"
+    },
+    {
+      "path": "tmp/conch-complete-pass2/color-complete-pass2-right.png",
+      "sha256": "1fb43ff1e391bd2aa2d1c1ef2b3bd03f7f329d29ca47115970391be8e4efea4d"
+    },
+    {
+      "path": "tmp/conch-complete-pass2/color-complete-pass2-top.png",
+      "sha256": "d5b5884924294c80b17abd882205cb96d36a83867be5b013bb0c795f0bf82d09"
+    },
+    {
+      "path": "tmp/conch-complete-pass2/color-front.png",
+      "sha256": "c285e8beaa4d4f13d1c6537b1ea92a4f92e7573f9c409002af44fe12bf0030da"
+    }
+  ]
+}

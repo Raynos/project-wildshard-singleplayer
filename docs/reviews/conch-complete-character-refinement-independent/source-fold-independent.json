@@ -1,0 +1,86 @@
+{
+  "build_conch_character_refinement.py": {
+    "meshes": 36,
+    "minimumOutwardRadialCosine": 0.5387902157381177,
+    "failedMeshes": [],
+    "matchesStoredReceipt": true
+  },
+  "rejected-folded-breast-source.py": {
+    "meshes": 36,
+    "minimumOutwardRadialCosine": -0.8647028189152479,
+    "failedMeshes": [
+      {
+        "mesh": "Raised breast carapace -1",
+        "minimumOutwardRadialCosine": -0.8647028189152479,
+        "opposedSideTriangles": [
+          [
+            1,
+            0,
+            -0.8647028189152479
+          ],
+          [
+            1,
+            1,
+            -0.6885620374232531
+          ],
+          [
+            1,
+            6,
+            -0.774481289088726
+          ]
+        ],
+        "opposedStripTrianglePairs": [
+          [
+            1,
+            1,
+            -0.7328563248738647
+          ],
+          [
+            1,
+            6,
+            -0.2273167222738266
+          ]
+        ]
+      },
+      {
+        "mesh": "Raised breast carapace 1",
+        "minimumOutwardRadialCosine": -0.86402159743011,
+        "opposedSideTriangles": [
+          [
+            1,
+            2,
+            -0.8218649849295616
+          ],
+          [
+            1,
+            3,
+            -0.4042421087506227
+          ],
+          [
+            1,
+            3,
+            -0.86402159743011
+          ],
+          [
+            1,
+            4,
+            -0.46522000432014465
+          ]
+        ],
+        "opposedStripTrianglePairs": [
+          [
+            1,
+            2,
+            -0.6257918030023575
+          ],
+          [
+            1,
+            4,
+            -0.3522644527256489
+          ]
+        ]
+      }
+    ],
+    "matchesStoredReceipt": null
+  }
+}

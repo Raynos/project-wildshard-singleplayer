@@ -1,0 +1,291 @@
+{
+  "glbSha256": "6a2740b1059be2ba7c20eb6e1b34ec2c5fff126202eb4a2aa16248da2ba8dbbd",
+  "triangles": 2210,
+  "minimumFacetNormalCosine": 0.9999999250794644,
+  "meshes": [
+    {
+      "mesh": "Unified angular whorls lip and recessed throat",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 2.5325722107610233
+    },
+    {
+      "mesh": "Compact thorax core",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.12836433059686256
+    },
+    {
+      "mesh": "Raised breast carapace -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.009189837270941904
+    },
+    {
+      "mesh": "Raised breast carapace 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.009201404933031633
+    },
+    {
+      "mesh": "Continuous tucked abdomen",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.0496798351194172
+    },
+    {
+      "mesh": "Hooked coral cranium and keel",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.014346124414468406
+    },
+    {
+      "mesh": "Sculpted cheek -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.0026363833805200933
+    },
+    {
+      "mesh": "Angular brow root -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.001518058763923601
+    },
+    {
+      "mesh": "Inset nostril -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 5.640019373316096e-06
+    },
+    {
+      "mesh": "Sculpted cheek 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.0026275965745407993
+    },
+    {
+      "mesh": "Angular brow root 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.0015208003984141984
+    },
+    {
+      "mesh": "Inset nostril 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 5.640019373316096e-06
+    },
+    {
+      "mesh": "Eyestalk -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.005855779879000339
+    },
+    {
+      "mesh": "Closed sculpted eye and amber lens -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.005484210896841608
+    },
+    {
+      "mesh": "Black pointed slit -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 1.263602735090807e-05
+    },
+    {
+      "mesh": "Eye glint -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 1.5540010435577157e-06
+    },
+    {
+      "mesh": "Eyestalk 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.004890442660724521
+    },
+    {
+      "mesh": "Closed sculpted eye and amber lens 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.005484212102762216
+    },
+    {
+      "mesh": "Black pointed slit 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 1.2636019483080599e-05
+    },
+    {
+      "mesh": "Eye glint 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 1.5540010435582137e-06
+    },
+    {
+      "mesh": "Leg hinge -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.0449015114762234
+    },
+    {
+      "mesh": "Bent armored thigh -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.03201849822233436
+    },
+    {
+      "mesh": "Armored shin -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.023918530287338553
+    },
+    {
+      "mesh": "Planted foot -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.00813372786661714
+    },
+    {
+      "mesh": "Toe blade (-1, -1)",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.0018001322261889563
+    },
+    {
+      "mesh": "Toe blade (-1, 1)",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.0018008576801789968
+    },
+    {
+      "mesh": "Leg hinge 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.046465172585758024
+    },
+    {
+      "mesh": "Bent armored thigh 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.03237215596064558
+    },
+    {
+      "mesh": "Armored shin 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.023944881408985614
+    },
+    {
+      "mesh": "Planted foot 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.00814441172556734
+    },
+    {
+      "mesh": "Toe blade (1, -1)",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.00180013261920807
+    },
+    {
+      "mesh": "Toe blade (1, 1)",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.0018008585907692708
+    },
+    {
+      "mesh": "Shoulder hinge -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.011495450143801884
+    },
+    {
+      "mesh": "Swept shoulder armor -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.033465399677732814
+    },
+    {
+      "mesh": "Bent upper arm -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.026483091033267302
+    },
+    {
+      "mesh": "Elbow joint -1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.008184389080931803
+    },
+    {
+      "mesh": "Shoulder hinge 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.01149544887020508
+    },
+    {
+      "mesh": "Swept shoulder armor 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.03398053685741491
+    },
+    {
+      "mesh": "Bent upper arm 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.026474610047067092
+    },
+    {
+      "mesh": "Elbow joint 1",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.008184388241449798
+    },
+    {
+      "mesh": "Shield supporting forearm",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.026427664432943393
+    },
+    {
+      "mesh": "Broad convex jagged shield claw",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.47162462997220694
+    },
+    {
+      "mesh": "Shield opposed articulated thumb",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.01174287825751511
+    },
+    {
+      "mesh": "Rapier forearm cuff",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.03358339800712266
+    },
+    {
+      "mesh": "Coral rapier knuckle",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.024512872566646134
+    },
+    {
+      "mesh": "Long ivory conch rapier",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.036734481180780605
+    },
+    {
+      "mesh": "Rapier gripping thumb",
+      "normalFacetDeviations": [],
+      "inconsistentDirectedEdges": 0,
+      "signedVolume": 0.00614462056698185
+    }
+  ],
+  "passed": true,
+  "limits": "Exported flat source triangles checked against stored normals; source sweep orientation and geometric crossing tests are separate. No likeness, rig or runtime acceptance."
+}

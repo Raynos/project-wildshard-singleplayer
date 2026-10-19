@@ -1,0 +1,70 @@
+{
+  "frozen_at_utc": "2026-10-19T15:40:12.596128+00:00",
+  "phase": "Original pixels followed by all ten individual full candidate PNGs; before comparator images, prior scores, author claims, topology or audit results.",
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "details": 0.2,
+    "facet": 0.15
+  },
+  "scores_out_of_5": {
+    "silhouette": 4.0,
+    "face": 3.8,
+    "details": 4.0,
+    "facet": 4.2
+  },
+  "weighted_score_exact": 3.97,
+  "passes_at_least_4": false,
+  "observations": {
+    "silhouette": "Strong recognisable conch helmet, shield/blade asymmetry and wide fighting stance. Shell tiers read broad flat ledges; side views are bulky with a slab-like aperture rim. Thin lower legs and long plain abdomen differ from the compact layered original.",
+    "face": "Yellow slit eyes and long red stalks communicate the character. Head is a small pinched orange mask; lacks the original cheek/jaw volume and integrated predatory expression.",
+    "details": "Good asymmetric shield and pointed blade, red arm plates and claw toes. Belly is simplified and shield is a broad polygonal slab versus the original more curved taper.",
+    "facet": "Consistent true low-poly planar treatment and coral/cream/red palette. Some shell triangles/colour bands are broad and arbitrary, and body is visually plain."
+  },
+  "inspected_files": [
+    {
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/conch-duelist-lowpoly.webp",
+      "sha256": "90073e7f4eae70b1e135c87740325d6a7a7da94c67cf761b03c5184c507a65cb"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/color-front.png",
+      "sha256": "72a80c5937cb393115f3ac929846c53c8f745e8564f45f12aebd2b2cd01f8fd2"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/color-character-refinement-back.png",
+      "sha256": "452582b1cff883c7a3c6cb66477b6e4c0b93cd36edb3c5bef4bd10a8ec18e6be"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/color-character-refinement-diag-back.png",
+      "sha256": "cc60f46821f406f5534ea20b8b8c1540e5008d9f815557bbcb2902a01cb15e4f"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/color-character-refinement-diag-front.png",
+      "sha256": "fd8cfbd3c2536e176b87be1a84672e59469885d65be926a8ac12511abf43ac5d"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/color-character-refinement-diag-left.png",
+      "sha256": "3b2bb450387a7f3d3a0710d0f2afd67a8afc5f4c6f7f2d114b2be82422db87aa"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/color-character-refinement-diag-right.png",
+      "sha256": "b2f4f6396557ac9de00df984cb4d46b40a894a566227a3ee4f9e20b2dc5d1f70"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/color-character-refinement-front.png",
+      "sha256": "ad99e5251a8cfd3165dccb337337d753ead7ba3afd870fd7fbef5bf457295ef3"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/color-character-refinement-left.png",
+      "sha256": "d98f5b576a2be5936bf6551214f8d63840ab2dae9855c5f9fe0304a51e96a4e8"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/color-character-refinement-right.png",
+      "sha256": "6b7189929d37aab1bf0dfb71beaaad19f10856484489c9da7e42cd6180a3d633"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/color-character-refinement-top.png",
+      "sha256": "c66c0077f0955907fcd5b7300956e4466facff19d0c5205e8ca0248f2187df9b"
+    }
+  ]
+}

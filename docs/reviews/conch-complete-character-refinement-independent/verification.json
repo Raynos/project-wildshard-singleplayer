@@ -1,0 +1,728 @@
+{
+  "receipts": {
+    "evidence.json": [
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/facet-normals.json",
+        "matches": true,
+        "actualSha256": "59dbf20f9f5ace98b544e6864aa1448e1963e86ad3f311ef0d313cfa74d63497"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/cameras-character-refinement.json",
+        "matches": true,
+        "actualSha256": "305663ad9378980ae5e3950a6b1d75b9057c34634304bf1994f30d5a84dc27ae"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/conch-character-refinement.glb",
+        "matches": true,
+        "actualSha256": "6a2740b1059be2ba7c20eb6e1b34ec2c5fff126202eb4a2aa16248da2ba8dbbd"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/source-sweep-check.json",
+        "matches": true,
+        "actualSha256": "26bbd877fa0725e35ec9ae81f31432c752f5322f5a657d3452a384477cd67e4e"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/color-character-refinement-diag-left.webp",
+        "matches": true,
+        "actualSha256": "fa6b8aa3d2622d4015a51292dd957f54dcc5adf955c73b91ae29396978b26ead"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/audit_character_crossings.py",
+        "matches": true,
+        "actualSha256": "151aafe55ca0eab7a543971885cd13d2dd95eb9fc3aac97be04913dfb110bcb9"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/shell-crossings.json",
+        "matches": true,
+        "actualSha256": "290a82f40adf2c0de880133d843aa758a89d6b37a1a7adbad043b7ebb1c6c49a"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/comparison-character-refinement-board.webp",
+        "matches": true,
+        "actualSha256": "ae4d16ff87527a2a7eb3ebe32515874b4acc457bb5b9e0abfc970045ab03f968"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/check_rebuild.py",
+        "matches": true,
+        "actualSha256": "60383d46a496b223cf0cf39a2030ce10a4389fcd2a5b63bf87b07326ff3fa74f"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/rejected-folded-breast-check.txt",
+        "matches": true,
+        "actualSha256": "0841c5b52eed291081299e49d60eb139d031577a6b6d385714b11196e16e7f06"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/color-character-refinement-left.webp",
+        "matches": true,
+        "actualSha256": "0b979bffd77d8ab2f248ceed95cf754dbec1b32bb2f183b5fb884aef258693df"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/all-mesh-crossings.json",
+        "matches": true,
+        "actualSha256": "ad6493853361db1b6d5873e20276cbbbc5b28d0baa75e1e159705a05056b335b"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/render_conch_character_refinement_nine.py",
+        "matches": true,
+        "actualSha256": "fb4724f0e15416bb2d3875b35fb1c4178fb9baee913168a762cfa94bcfef7171"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/topology.json",
+        "matches": true,
+        "actualSha256": "318e21679a516f3cf33623ffa954a71a49a1181cd7f2a7649f0c53a7ce951970"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/color-character-refinement-right.webp",
+        "matches": true,
+        "actualSha256": "ede2db03876538a4237c80b034fe6b93f92869e61429fa6d0321a86f071f5f55"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/rebuild-closure.json",
+        "matches": true,
+        "actualSha256": "fa75972d8cbd4131820c9383b12335ed1d4c94267767bbabf7f474bac9da9c89"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/build_conch_character_refinement.py",
+        "matches": true,
+        "actualSha256": "54c8e4aa61315c8d470be86b63428dfccc441109fe54a7f363799ff885fd18e0"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/nine-view-character-refinement-board.webp",
+        "matches": true,
+        "actualSha256": "2069a814d7aba82816f2bab94beebacad78c6690a448947fce3b5d153448f8a0"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/capture-rebuilt.glb",
+        "matches": true,
+        "actualSha256": "13ec84acd3cade9a4ef1720724be8d560215896c3fb57e803029dc1d19e00109"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/color-character-refinement-back.webp",
+        "matches": true,
+        "actualSha256": "77ee2985826db0e21f8917f97077d85dc11b051e4dece557c95172393fa5e9b5"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/rejected-folded-breast-source.py",
+        "matches": true,
+        "actualSha256": "9dcdeee54c014c4372fe9735e79fdffb6ef5baf8ac06428042dc7afe62179f37"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/board_conch_character_refinement.py",
+        "matches": true,
+        "actualSha256": "c466ba8eb45601877a7ea9e5d66b7998f8d3ec52d544c0142f56e6d551292040"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/metrics.json",
+        "matches": true,
+        "actualSha256": "953b2e15f0d2a263b46c4c46efebe16513077bcf9e5957f5bd65c8753d81b2e8"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/source-freeze.json",
+        "matches": true,
+        "actualSha256": "3e1d767f8cea3bfa0ff762291e10a6b5b2f7c4a3dcc095e23afbc63848594115"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/color-front.webp",
+        "matches": true,
+        "actualSha256": "ac29782fb51115290e7ce6adfeb76539b19a98f7984e9321a6345c53a92853b7"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/audit_facet_normals.py",
+        "matches": true,
+        "actualSha256": "d727f988a0481c301a7943ad0cc1b1d10c1233da63782c4360e421634c77d086"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/color-character-refinement-diag-front.webp",
+        "matches": true,
+        "actualSha256": "dec1ed9685cdb6b98663d1407404c9cf643bae16bc288a18cbb468242ba113cd"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/color-character-refinement-front.webp",
+        "matches": true,
+        "actualSha256": "7d8e791a8b03c0dff4a21fbc3ca46e7a17dcd1b41941d9abed627442b9146994"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/capture.sh",
+        "matches": true,
+        "actualSha256": "efc580ca7e8d4fe8b426792af18ef5ca07cd42f0f307899f84b1cc75d92fc8fe"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/color-character-refinement-diag-right.webp",
+        "matches": true,
+        "actualSha256": "15c49328579a5737d2880c783cf21a54aa30ca1038ae0af9c5f26a6ed3bae202"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/color-character-refinement-diag-back.webp",
+        "matches": true,
+        "actualSha256": "63b23c976f52ff7d8909212ed5426a35d720b5f3242f7eb076b8bc3b5b13fd33"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/color-character-refinement-top.webp",
+        "matches": true,
+        "actualSha256": "32256d88904b955f70b9837ed804ed86d6781f220ad50c361cc00f1441627ede"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/color-character-refinement-top.png",
+        "matches": true,
+        "actualSha256": "c66c0077f0955907fcd5b7300956e4466facff19d0c5205e8ca0248f2187df9b"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/color-character-refinement-diag-back.png",
+        "matches": true,
+        "actualSha256": "cc60f46821f406f5534ea20b8b8c1540e5008d9f815557bbcb2902a01cb15e4f"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/color-character-refinement-front.png",
+        "matches": true,
+        "actualSha256": "ad99e5251a8cfd3165dccb337337d753ead7ba3afd870fd7fbef5bf457295ef3"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/color-character-refinement-diag-left.png",
+        "matches": true,
+        "actualSha256": "3b2bb450387a7f3d3a0710d0f2afd67a8afc5f4c6f7f2d114b2be82422db87aa"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/color-character-refinement-diag-right.png",
+        "matches": true,
+        "actualSha256": "b2f4f6396557ac9de00df984cb4d46b40a894a566227a3ee4f9e20b2dc5d1f70"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/color-front.png",
+        "matches": true,
+        "actualSha256": "72a80c5937cb393115f3ac929846c53c8f745e8564f45f12aebd2b2cd01f8fd2"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/color-character-refinement-diag-front.png",
+        "matches": true,
+        "actualSha256": "fd8cfbd3c2536e176b87be1a84672e59469885d65be926a8ac12511abf43ac5d"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/color-character-refinement-right.png",
+        "matches": true,
+        "actualSha256": "6b7189929d37aab1bf0dfb71beaaad19f10856484489c9da7e42cd6180a3d633"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/color-character-refinement-left.png",
+        "matches": true,
+        "actualSha256": "d98f5b576a2be5936bf6551214f8d63840ab2dae9855c5f9fe0304a51e96a4e8"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/color-character-refinement-back.png",
+        "matches": true,
+        "actualSha256": "452582b1cff883c7a3c6cb66477b6e4c0b93cd36edb3c5bef4bd10a8ec18e6be"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/hero.log",
+        "matches": true,
+        "actualSha256": "6440e7b3139750d483597011778c08a4966d8484af97613e140c8f01f880748c"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/nine.log",
+        "matches": true,
+        "actualSha256": "ce78b6432523fb03946d947ac9dd9bfddb388008b5e9ddc3c4c6ab1fe8c0aca6"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/conch-source.blend",
+        "matches": true,
+        "actualSha256": "3cd094aa30a9087d52dd7785faf36c6b0adb7b050f609ce2bb8516fde4957960"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/conch-study.glb",
+        "matches": true,
+        "actualSha256": "13ec84acd3cade9a4ef1720724be8d560215896c3fb57e803029dc1d19e00109"
+      },
+      {
+        "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/conch-duelist-lowpoly.webp",
+        "matches": true,
+        "actualSha256": "90073e7f4eae70b1e135c87740325d6a7a7da94c67cf761b03c5184c507a65cb"
+      },
+      {
+        "path": "tmp/conch-complete-pass2/color-complete-pass2-top.png",
+        "matches": true,
+        "actualSha256": "d5b5884924294c80b17abd882205cb96d36a83867be5b013bb0c795f0bf82d09"
+      },
+      {
+        "path": "tmp/conch-complete-pass2/color-complete-pass2-front.png",
+        "matches": true,
+        "actualSha256": "6eb2df61a6b6169b92f195e9cf66c6b9c4508632eb70274766b9c43bcde249f5"
+      },
+      {
+        "path": "tmp/conch-complete-pass2/color-complete-pass2-diag-right.png",
+        "matches": true,
+        "actualSha256": "64077a90545f57a7f404dbf77d341990841d5ca93b62b551a55e5c53a8c1f752"
+      },
+      {
+        "path": "tmp/conch-complete-pass2/color-complete-pass2-diag-back.png",
+        "matches": true,
+        "actualSha256": "12d90911cc4b407fa179f7050d7d63fa4090ef67de54d9dad42c5635c838d204"
+      },
+      {
+        "path": "tmp/conch-complete-pass2/color-complete-pass2-left.png",
+        "matches": true,
+        "actualSha256": "1c119df848954f12e429832a98bd8a68916eaa1080745493e7fb6431927ef54c"
+      },
+      {
+        "path": "tmp/conch-complete-pass2/color-front.png",
+        "matches": true,
+        "actualSha256": "c285e8beaa4d4f13d1c6537b1ea92a4f92e7573f9c409002af44fe12bf0030da"
+      },
+      {
+        "path": "tmp/conch-complete-pass2/color-complete-pass2-diag-left.png",
+        "matches": true,
+        "actualSha256": "e7986eb4e5f217ae61026a2ad90d98814d3a2623caee77c50f35658383ac2c4c"
+      },
+      {
+        "path": "tmp/conch-complete-pass2/color-complete-pass2-back.png",
+        "matches": true,
+        "actualSha256": "31a39e360d2b6f3043d79be2d0839c55e48adb071d0aa98cbf7c19936a0de6cb"
+      },
+      {
+        "path": "tmp/conch-complete-pass2/color-complete-pass2-right.png",
+        "matches": true,
+        "actualSha256": "1fb43ff1e391bd2aa2d1c1ef2b3bd03f7f329d29ca47115970391be8e4efea4d"
+      },
+      {
+        "path": "tmp/conch-complete-pass2/color-complete-pass2-diag-front.png",
+        "matches": true,
+        "actualSha256": "20c8cbe64b1f089561d124dfc656cd009be78e0e66f4dac397a8723d77fe735b"
+      }
+    ],
+    "source-freeze.json": [
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/build_conch_character_refinement.py",
+        "matches": true,
+        "actualSha256": "54c8e4aa61315c8d470be86b63428dfccc441109fe54a7f363799ff885fd18e0"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/render_conch_character_refinement_nine.py",
+        "matches": true,
+        "actualSha256": "fb4724f0e15416bb2d3875b35fb1c4178fb9baee913168a762cfa94bcfef7171"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-character-refinement/conch-character-refinement.glb",
+        "matches": true,
+        "actualSha256": "6a2740b1059be2ba7c20eb6e1b34ec2c5fff126202eb4a2aa16248da2ba8dbbd"
+      },
+      {
+        "path": "tmp/conch-complete-character-refinement/conch-source.blend",
+        "matches": false,
+        "actualSha256": "3cd094aa30a9087d52dd7785faf36c6b0adb7b050f609ce2bb8516fde4957960"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-pass2/conch-complete-pass2-study.glb",
+        "matches": true,
+        "actualSha256": "a795444bb6d0db207d280c5eb9236197f44be1a701e7c153056b9b871528a8ab"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-pass2/build_conch_complete_pass2.py",
+        "matches": true,
+        "actualSha256": "523529889cd3402645f9dd9308f4562503defad520eb86bb1cf1e940811782a5"
+      },
+      {
+        "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/conch-duelist-lowpoly.webp",
+        "matches": true,
+        "actualSha256": "90073e7f4eae70b1e135c87740325d6a7a7da94c67cf761b03c5184c507a65cb"
+      },
+      {
+        "path": "art/driftwood-isle/approved-conch/complete-pass1/cameras-complete-pass1.json",
+        "matches": true,
+        "actualSha256": "305663ad9378980ae5e3950a6b1d75b9057c34634304bf1994f30d5a84dc27ae"
+      }
+    ]
+  },
+  "glbMetadataIdentical": true,
+  "glbAccessorDifferences": [
+    {
+      "accessor": 96,
+      "indexOnly": true,
+      "sameOrientedTriangles": true
+    }
+  ],
+  "topology": [
+    {
+      "mesh": "Unified angular whorls lip and recessed throat",
+      "triangles": 466,
+      "weldedVertices": 235,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Compact thorax core",
+      "triangles": 76,
+      "weldedVertices": 40,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Raised breast carapace -1",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Raised breast carapace 1",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Continuous tucked abdomen",
+      "triangles": 68,
+      "weldedVertices": 36,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Hooked coral cranium and keel",
+      "triangles": 76,
+      "weldedVertices": 40,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Sculpted cheek -1",
+      "triangles": 36,
+      "weldedVertices": 20,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Angular brow root -1",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Inset nostril -1",
+      "triangles": 8,
+      "weldedVertices": 6,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Sculpted cheek 1",
+      "triangles": 36,
+      "weldedVertices": 20,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Angular brow root 1",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Inset nostril 1",
+      "triangles": 8,
+      "weldedVertices": 6,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Eyestalk -1",
+      "triangles": 52,
+      "weldedVertices": 28,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Closed sculpted eye and amber lens -1",
+      "triangles": 58,
+      "weldedVertices": 31,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Black pointed slit -1",
+      "triangles": 12,
+      "weldedVertices": 8,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Eye glint -1",
+      "triangles": 8,
+      "weldedVertices": 6,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Eyestalk 1",
+      "triangles": 52,
+      "weldedVertices": 28,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Closed sculpted eye and amber lens 1",
+      "triangles": 58,
+      "weldedVertices": 31,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Black pointed slit 1",
+      "triangles": 12,
+      "weldedVertices": 8,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Eye glint 1",
+      "triangles": 8,
+      "weldedVertices": 6,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Leg hinge -1",
+      "triangles": 44,
+      "weldedVertices": 24,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Bent armored thigh -1",
+      "triangles": 60,
+      "weldedVertices": 32,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Armored shin -1",
+      "triangles": 44,
+      "weldedVertices": 24,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Planted foot -1",
+      "triangles": 32,
+      "weldedVertices": 18,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Toe blade (-1, -1)",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Toe blade (-1, 1)",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Leg hinge 1",
+      "triangles": 44,
+      "weldedVertices": 24,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Bent armored thigh 1",
+      "triangles": 60,
+      "weldedVertices": 32,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Armored shin 1",
+      "triangles": 44,
+      "weldedVertices": 24,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Planted foot 1",
+      "triangles": 32,
+      "weldedVertices": 18,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Toe blade (1, -1)",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Toe blade (1, 1)",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Shoulder hinge -1",
+      "triangles": 24,
+      "weldedVertices": 14,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Swept shoulder armor -1",
+      "triangles": 52,
+      "weldedVertices": 28,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Bent upper arm -1",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Elbow joint -1",
+      "triangles": 24,
+      "weldedVertices": 14,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Shoulder hinge 1",
+      "triangles": 24,
+      "weldedVertices": 14,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Swept shoulder armor 1",
+      "triangles": 52,
+      "weldedVertices": 28,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Bent upper arm 1",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Elbow joint 1",
+      "triangles": 24,
+      "weldedVertices": 14,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Shield supporting forearm",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Broad convex jagged shield claw",
+      "triangles": 48,
+      "weldedVertices": 26,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Shield opposed articulated thumb",
+      "triangles": 52,
+      "weldedVertices": 28,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Rapier forearm cuff",
+      "triangles": 44,
+      "weldedVertices": 24,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Coral rapier knuckle",
+      "triangles": 32,
+      "weldedVertices": 18,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Long ivory conch rapier",
+      "triangles": 56,
+      "weldedVertices": 30,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Rapier gripping thumb",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    }
+  ],
+  "topologyMatchesStored": true,
+  "meshCount": 47,
+  "triangles": 2210,
+  "skins": 0,
+  "animations": 0,
+  "heroCameraLightRenderBlockIdentical": true,
+  "nineRenderSourceIdenticalAfterVariantNames": true,
+  "nineCameraReceiptsIdentical": true,
+  "limits": "Read-only retained capture comparison, no fresh renders. Source parity plus camera receipts supports capture match; original concept is not matched-camera evidence. Per-mesh topology does not test intersections between anatomical parts or animation."
+}

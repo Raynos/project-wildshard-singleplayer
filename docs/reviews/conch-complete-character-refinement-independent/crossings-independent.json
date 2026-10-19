@@ -1,0 +1,288 @@
+{
+  "file": "conch-character-refinement.glb",
+  "meshes": [
+    {
+      "mesh": "Unified angular whorls lip and recessed throat",
+      "triangles": 466,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Compact thorax core",
+      "triangles": 76,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Raised breast carapace -1",
+      "triangles": 38,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Raised breast carapace 1",
+      "triangles": 38,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Continuous tucked abdomen",
+      "triangles": 68,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Hooked coral cranium and keel",
+      "triangles": 76,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Sculpted cheek -1",
+      "triangles": 36,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Angular brow root -1",
+      "triangles": 26,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Inset nostril -1",
+      "triangles": 8,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Sculpted cheek 1",
+      "triangles": 36,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Angular brow root 1",
+      "triangles": 26,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Inset nostril 1",
+      "triangles": 8,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Eyestalk -1",
+      "triangles": 52,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Closed sculpted eye and amber lens -1",
+      "triangles": 58,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Black pointed slit -1",
+      "triangles": 12,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Eye glint -1",
+      "triangles": 8,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Eyestalk 1",
+      "triangles": 52,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Closed sculpted eye and amber lens 1",
+      "triangles": 58,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Black pointed slit 1",
+      "triangles": 12,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Eye glint 1",
+      "triangles": 8,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Leg hinge -1",
+      "triangles": 44,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Bent armored thigh -1",
+      "triangles": 60,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Armored shin -1",
+      "triangles": 44,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Planted foot -1",
+      "triangles": 32,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Toe blade (-1, -1)",
+      "triangles": 26,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Toe blade (-1, 1)",
+      "triangles": 26,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Leg hinge 1",
+      "triangles": 44,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Bent armored thigh 1",
+      "triangles": 60,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Armored shin 1",
+      "triangles": 44,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Planted foot 1",
+      "triangles": 32,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Toe blade (1, -1)",
+      "triangles": 26,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Toe blade (1, 1)",
+      "triangles": 26,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Shoulder hinge -1",
+      "triangles": 24,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Swept shoulder armor -1",
+      "triangles": 52,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Bent upper arm -1",
+      "triangles": 38,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Elbow joint -1",
+      "triangles": 24,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Shoulder hinge 1",
+      "triangles": 24,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Swept shoulder armor 1",
+      "triangles": 52,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Bent upper arm 1",
+      "triangles": 38,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Elbow joint 1",
+      "triangles": 24,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Shield supporting forearm",
+      "triangles": 38,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Broad convex jagged shield claw",
+      "triangles": 48,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Shield opposed articulated thumb",
+      "triangles": 52,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Rapier forearm cuff",
+      "triangles": 44,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Coral rapier knuckle",
+      "triangles": 32,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Long ivory conch rapier",
+      "triangles": 56,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    },
+    {
+      "mesh": "Rapier gripping thumb",
+      "triangles": 38,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    }
+  ],
+  "limits": "All named meshes checked individually. Bidirectional segment/triangle check of actual GLB. Shared-vertex pairs and coplanar contacts excluded. No rig, motion, runtime or likeness acceptance implied."
+}
