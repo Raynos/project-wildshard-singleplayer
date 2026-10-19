@@ -46,16 +46,12 @@ export function stormWind(wind: SteppeWindPort): StormWind { return { calm: { sp
  * own heading (building and after keep the calm heading), and once the storm stops asking it eases back to the calm.
  */
 export function stepStorm(weather: Lightning, ask: StormWind, wind: SteppeWindPort, dt: number, titanHeld: boolean): void {
-  weather.update(dt);
-  if (titanHeld && weather.weather.state === 'storm' && weather.phaseLeft < 30) weather.weather.phaseT = weather.weather.phaseLen - 30;   // it rages on
-  if (weather.windSpeed !== null) {
-    const dir = weather.weather.state === 'building' ? ask.calm.dir : weather.weather.state === 'after' ? ask.calm.dir : STORM_HEADING;
-    wind.setTarget(weather.windSpeed, dir, weather.windGustiness, weather.weather.state === 'gust' ? 6 : 10);
-    ask.asked = weather.windSpeed;
-  } else if (ask.asked !== null) {
-    wind.setTarget(ask.calm.speed, ask.calm.dir, ask.calm.gust, 30);
-    ask.asked = null;
-  }
+  if (!weather.update(dt)) return;
+  const action = weather.windDecision(ask, titanHeld);
+  weather.weather.phaseT = action['phaseT'] ?? weather.weather.phaseT;
+  ask.asked = (action['asked'] ?? -1) < 0 ? null : action['asked'] ?? null;
+  if (action['speed'] !== undefined) wind.setTarget(action['speed'], action['dir'] ?? ask.calm.dir,
+    action['gustiness'] ?? ask.calm.gust, action['seconds'] ?? 10);
 }
 
 /** What the creatures read from the hour and the storm: the light (dimmed by an active storm) and whether one is on. */
@@ -145,6 +141,14 @@ export class StormReactions {
     return 0;
   }
 
+  /** Ten-Hz policy projection; native code applies only the returned wind command. */
+  windDecision(ask: StormWind, titanHeld: boolean): Readonly<Record<string, number>> {
+    return this.decisions.project('wind', { titanHeld: Number(titanHeld), storm: Number(this.weather.state === 'storm'),
+      gust: Number(this.weather.state === 'gust'), building: Number(this.weather.state === 'building'), after: Number(this.weather.state === 'after'),
+      phaseT: this.weather.phaseT, phaseLen: this.weather.phaseLen, asked: ask.asked ?? -1, calmSpeed: ask.calm.speed,
+      calmDir: ask.calm.dir, calmGust: ask.calm.gust, windSpeed: this.windSpeed ?? -1, windGustiness: this.windGustiness });
+  }
+
   onTelegraph(fn: Fn<[Strike]>): void { this.telegraphFns.push(fn); }
   onStrike(fn: Fn<[Strike]>): void { this.strikeFns.push(fn); }
   /** (distance m, world bearing atan2(z, x) of the flash seen from the player) */
@@ -180,10 +184,10 @@ export class StormReactions {
   }
 
 
-  update(dt: number): void {
-    if (dt <= 0) return;
+  update(dt: number): boolean {
+    if (dt <= 0) return false;
     this.weather.update(dt); this.getLowTick -= dt;
-    if (this.getLowTick > 1e-9) return;
+    if (this.getLowTick > 1e-9) return false;
     const elapsed = .1 - this.getLowTick; this.getLowTick = .1;
     const pending = this.pending;
     if (pending === null) this.weather.applyActions('lightning', elapsed);
@@ -205,6 +209,7 @@ export class StormReactions {
         active:Number(this.stormActive),blocked:Number(low['low']===0),count:chunk.length},undefined,chunk);
     }
     this.getLow = low['low'] === 1; this.getLowFor = low['lowFor'] ?? 0;
+    return true;
   }
   private playerFields(pl: LightningPlayer): Record<string, number> {
     return { px: pl.x, py: pl.y, pz: pl.z, crouched: Number(pl.crouched), mounted: Number(pl.mounted), sheltered: Number(pl.sheltered) };
@@ -237,9 +242,9 @@ export class StormReactions {
 }
 
 /** The storm on the level's seed, coming FROM the opposite of its heading. */
-export function steppeStorm(seed: number, world: LightningWorld, program:WeatherProgram,host?:SimHost): Lightning {
+export function steppeStorm(seed: number, world: LightningWorld, program:WeatherProgram,host?:SimHost,owner?:Parameters<typeof ReturnProgram.page>[1]): Lightning {
   const decision=weatherScripts.get(program);if(decision===undefined)throw new Error('Weather reaction script was not admitted');
-  const weather = new StormReactions(installWeatherContinuation(host??{seed},program,{phase:0},undefined),world,host===undefined?ReturnProgram.page(decision):ReturnProgram.native(host,decision));
+  const weather = new StormReactions(installWeatherContinuation(host??{seed},program,{phase:0},undefined),world,host===undefined?ReturnProgram.page(decision,owner):ReturnProgram.native(host,decision));
   weather.stormFrom = Math.atan2(Math.cos(STORM_HEADING), Math.sin(STORM_HEADING));
   return weather;
 }

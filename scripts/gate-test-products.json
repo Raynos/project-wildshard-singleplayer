@@ -232,5 +232,6 @@
   "test/nalati-roster-decisions.test.ts": [],
   "test/nalati-startup.test.ts": [
     "nalati-grasslands"
-  ]
+  ],
+  "test/nalati-night-decisions.test.ts": []
 }

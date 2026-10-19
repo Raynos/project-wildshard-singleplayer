@@ -12,9 +12,10 @@ import * as THREE from 'three';
 
 
 
-import type { PackController, PackPrey, HerdController } from '../runtime/groupRegistry';
+import { Pack, HorseHerd, type PackController, type PackPrey, type HerdController } from '../runtime/groupRegistry';
 import { declaredGroupFactories } from '../runtime/groupDeclared';
-import { APP_GROUP_HOST } from '../runtime/groupHost';
+import { PAGE_GROUP_WORLD } from '../runtime/groupPorts';
+import { app } from '@wildshard/engine/app/runtime';
 import { type Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
 import { wildEnv } from './env';
 import { pushWildMovers } from '../look/trampleMovers';
@@ -80,8 +81,20 @@ export class Wildlife {
   constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.pastureAuthor = ReturnProgram.page(opts.pasture); this.rng = new Rng(opts.seed ^ 0x3a17); this.placement = ReturnProgram.page(opts.admission); this.controllers = opts.controllers ?? this.declaredControllers(); }
 
   private declaredControllers(): WildlifeControllers {
-    return declaredGroupFactories({ preyIdentity: prey => this.preyIdentity(prey), resolvePrey: id => this.resolvePrey(id),
-      resolveActor: id => this.animals.animals.find(actor => actor.entityId === id) ?? null }, APP_GROUP_HOST);
+    const factory = declaredGroupFactories({ preyIdentity: prey => this.preyIdentity(prey), resolvePrey: id => this.resolvePrey(id),
+      resolveActor: id => this.animals.animals.find(actor => actor.entityId === id) ?? null },
+      { sharedRng: () => app.rng.stream('ai'), register: (a, director) => { app.aggression.register(a, director); } }, PAGE_GROUP_WORLD);
+    return {
+      pack: (members, x, z) => { const p = factory.pack(members, x, z); Pack.register(p); return p; },
+      herd: members => {
+        const view: Pick<HerdController, 'findWolf'> = { findWolf: undefined };
+        const h = Object.assign(factory.herd(members), view);
+        h.findThreat = (x, z, r) => h.findWolf?.(x, z, r) ?? null;
+        const adopt = h.adoptStallion.bind(h);
+        h.adoptStallion = actor => { adopt(actor); HorseHerd.register(h); };
+        HorseHerd.register(h); return h;
+      },
+    };
   }
 
   build(controllers = this.opts.controllers): this {

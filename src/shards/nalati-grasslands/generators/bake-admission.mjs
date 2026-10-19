@@ -3,9 +3,9 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const fields=['x','z','radius','normal','height','water','wet','clash','coats','mares','foals','stallion','index','start',
-  'elite','packs','groups','variants','bodies','bonds','px','py','pz','cx','cz','dt','bark','rest','wolf','distance','wx','wy','wz','straggler','sx','sy','sz','playerX','playerY','playerZ','elites','retired','dormant','unique','herd','expected','id','initial','nextId','variant','speed','awareness'];
-const channels=['x','z','accept','attempts','yaw','start','count','variant','radius','place','mother','scale','bark','rest','snarl','low','speed','turn','path','state','lookX','lookY','lookZ','look','emit','awareness'];
-const signals=['spot','accept','begin','yaw','packPlan','dogPlan','herdStart','herdMember','foal','pack','bond','dog','restoreBounds','restorePack','restoreBody','restoreBond','speed','whistle','scare'];
+  'elite','packs','groups','variants','bodies','bonds','px','py','pz','cx','cz','dt','bark','rest','wolf','distance','wx','wy','wz','straggler','sx','sy','sz','playerX','playerY','playerZ','elites','retired','dormant','unique','herd','expected','id','initial','nextId','variant','speed','awareness','owned','health','held','dog'];
+const channels=['x','z','accept','attempts','yaw','start','count','variant','radius','place','mother','scale','bark','rest','snarl','low','speed','turn','path','state','lookX','lookY','lookZ','look','emit','awareness','time'];
+const signals=['spot','accept','begin','yaw','packPlan','dogPlan','herdStart','herdMember','foal','pack','bond','dog','restoreBounds','restorePack','restoreBody','restoreBond','speed','whistle','scare','firstRaid','damage','dispatch'];
 const aliases=values=>Object.fromEntries(values.map(name=>[name,name]));
 const registry=values=>new Map([...values].sort((a,b)=>a<b?-1:a>b?1:0).map((name,index)=>[name,index+1]));
 const source={id:'nalati.admission',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/admission.as',

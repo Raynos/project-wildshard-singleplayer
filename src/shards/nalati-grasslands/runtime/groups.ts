@@ -1,12 +1,14 @@
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import admission from '../behaviour/admission.generated.json' with {type:'json'};
+import * as v from 'valibot';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
-import { PackBrain, type PackPorts, type PackPrey } from '@wildshard/engine/ai/pack';
-import { HerdBrain } from '@wildshard/engine/ai/herd';
+import type { PackBrain, PackPorts, PackPrey } from '@wildshard/engine/ai/pack';
+import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
-import { nativeGroupBrain } from '@wildshard/format/groupBrains';
-import brainRows from '../data/brains.json' with { type: 'json' };
+import { declaredGroupFactories } from './groupDeclared';
 import { wildEnv, type WildEnv } from '../creatures/env';
-import { nativeHerdPorts, nativePackPorts, passThroughPlayer, type NativeGroupHost, type NativeGroupWorld } from './groupPorts';
+import { passThroughPlayer, type NativeGroupHost, type NativeGroupWorld } from './groupPorts';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { NalatiBody } from './headless';
 
@@ -90,6 +92,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
     resolvePrey: (id: string): PackPrey | null => id.startsWith('actor:') ? byId.get(id.slice(6)) ?? null : preyById.get(id) ?? null,
     resolveActor: (id: string): AnimalSim | null => byId.get(id) ?? null,
   };
+  const factory = declaredGroupFactories(identity, group, world);
   const packs: PackBrain<AnimalSim>[] = [], herds: HerdBrain<AnimalSim>[] = [], wolves: AnimalSim[] = [];
   const herdOf = (index: number, kind: string): AnimalSim[] => {
     const row = ports.herds[index];
@@ -104,11 +107,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   const nearestFoal = (x: number, z: number, r: number): AnimalSim | null => nearest(herds.flatMap(h => h.foals), x, z, r);
   const nearestWolf = (x: number, z: number, r: number): AnimalSim | null => nearest(wolves, x, z, r);
   const herd = (members: AnimalSim[]): HerdBrain<AnimalSim> => {
-    const data = nativeGroupBrain({ ...brainRows.herd, members: members.map(a => a.entityId) });
-    if (data.kind !== 'herd') throw new Error('Invalid herd declaration');
-    const policy = new HerdBrain(members, data, { ...nativeHerdPorts(group, world), resolveActor: identity.resolveActor });
-    policy.findThreat = nearestWolf;
-    policy.initialize(); herds.push(policy);
+    const policy = factory.herd(members); policy.findThreat = nearestWolf; herds.push(policy);
     return policy;
   };
   // the saddled horses are owned (no herd AI, can't die): the camp's two at the rail (ride.ts, Mount.addMountable) and the
@@ -117,31 +116,21 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   // Wildlife.build: its one pack, then its one wild herd
   const den = ecology.wildlife.packs[0];
   if (den === undefined || ecology.wildlife.packs.length !== 1 || ecology.wildlife.herds.length !== 1) throw new Error('Nalati headless models one pack and one wild herd');
-  const pack = herdOf(0, 'wolf');
-  wolves.push(...pack);
-  const data = nativeGroupBrain({ ...brainRows.pack, home: [den.x, den.z], members: pack.map(a => a.entityId) });
-  if (data.kind !== 'pack') throw new Error('Invalid pack declaration');
-  const policy = new PackBrain(pack, den.x, den.z, data, { ...nativePackPorts(group, world), preyIdentity: identity.preyIdentity, resolvePrey: identity.resolvePrey });
-  policy.findPrey = nearestFoal;
-  policy.initialize(); packs.push(policy);
-  pack.forEach(w => { packOf.set(w, policy); });
+  const addPack = (members: AnimalSim[], x: number, z: number): PackBrain<AnimalSim> => {
+    members.forEach(a => { byId.set(a.entityId, a); preyIds.set(a, `actor:${a.entityId}`); wolves.push(a); });
+    const p = factory.pack(members, x, z); p.findPrey = nearestFoal;
+    packs.push(p); members.forEach(a => { packOf.set(a, p); }); return p;
+  };
+  addPack(herdOf(0, 'wolf'), den.x, den.z);
   herd(herdOf(1, 'horse'));
   // Two load-time draws the page takes before Argymaq's herd: the hosted raid director's first raid
   // clock (creatures/sheepRaid.ts `raidT = rand(FIRST_RAID)`, as ride.ts builds the shepherd), then the Golden King's
   // reset(0) burst cooldown (combat/goldenKing.ts, his body parked)
-  const firstRaid = 150 + host.rng.stream('ai').next() * 90; host.rng.stream('ai').next();
+  const firstRaid = v.parse(v.number(), ReturnProgram.native(host, admission).project('firstRaid', {}, host.rng.stream('ai'))['time']);
   // Argymaq's herd: the mares and foal Wildlife places for him, then him as its stallion
   const lair = herdOf(3, 'horse'), argymaq = lair.find(a => a.kind === ecology.argymaq);
   if (argymaq === undefined || lair[lair.length - 1] !== argymaq) throw new Error('Argymaq\'s herd has no Argymaq');
   herd(lair.slice(0, -1)).adoptStallion(argymaq);
-  const addPack = (members: AnimalSim[], x: number, z: number): PackBrain<AnimalSim> => {
-    members.forEach(a => { if (byId.has(a.entityId)) throw new Error('Duplicate Nalati raid actor'); byId.set(a.entityId, a); preyIds.set(a, `actor:${a.entityId}`); wolves.push(a); });
-    const row = nativeGroupBrain({ ...brainRows.pack, home: [x, z], members: members.map(a => a.entityId) });
-    if (row.kind !== 'pack') throw new Error('Invalid raid pack declaration');
-    const p = new PackBrain(members, x, z, row, { ...nativePackPorts(group, world), preyIdentity: identity.preyIdentity, resolvePrey: identity.resolvePrey });
-    p.findPrey = nearestFoal; // Wildlife.spawnPack uses the same foal query as its boot pack.
-    p.initialize(); packs.push(p); members.forEach(a => { packOf.set(a, p); }); return p;
-  };
   const bindPrey = (id: string, prey: PackPrey): void => {
     if (preyById.has(id) || preyIds.has(prey)) throw new Error('Duplicate Nalati flock prey');
     preyById.set(id, prey); preyIds.set(prey, id);

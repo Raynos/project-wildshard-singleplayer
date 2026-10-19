@@ -14,6 +14,13 @@ import { Signal, Field, Channel, Read, List, Do } from './generated/nalatiAdmiss
   } else if(signal==Signal.scare) {
     const dx=get(Field.x)-get(Field.px),dz=get(Field.z)-get(Field.pz),r=get(Field.radius);
     Do.channel(Channel.accept,dx*dx+dz*dz<r*r?1:0);
+  } else if(signal==Signal.firstRaid) {
+    Do.channel(Channel.time,150+Read.random()*90);Read.random();
+  } else if(signal==Signal.damage) {
+    const floor=get(Field.owned)!=0?.1:get(Field.stallion)!=0?.2:0;
+    Do.channel(Channel.scale,floor==0?1:Math.max(0,Math.min(1,(get(Field.health)-floor)/(1-floor))));
+  } else if(signal==Signal.dispatch) {
+    Do.channel(Channel.state,get(Field.elite)!=0?1:get(Field.wolf)!=0?2:get(Field.dog)!=0?3:get(Field.held)==0?4:0);
   } else if(signal==Signal.spot) {
     const angle=(Math.PI*2)*Read.random(),radius=Math.sqrt(Read.random())*get(Field.radius);
     if(Read.radial(angle,radius)!=2)unreachable();

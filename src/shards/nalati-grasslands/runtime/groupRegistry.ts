@@ -1,8 +1,10 @@
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import type { Scope } from '@wildshard/engine/app/scope';
+import * as v from 'valibot';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { Vector3 } from 'three';
-import type { NativeGroupHost } from './groupPorts';
 
 /** Native flock or actor prey; decisions and tuning live in the declared engine policy. */
 export interface PackPrey {
@@ -19,6 +21,7 @@ export type HerdController = Pick<HerdBrain<Animal>, 'members' | 'lead' | 'stall
   & { findWolf?: ((x: number, z: number, r: number) => Animal | null) | undefined };
 // SF57: the lookups are keyed by member only. A module-level list of every controller (`Pack.all`, `HorseHerd.all`)
 // kept each visit's packs and herds, their members and the AnimalManager behind them, for the page's life.
+let damagePolicy: ReturnProgram | null = null;
 const packOf = new WeakMap<Animal, PackController>(), herdOf = new WeakMap<Animal, HerdController>();
 
 /** One lookup for species and raid recipes; no scheduler or RNG ownership. */
@@ -28,21 +31,14 @@ export const Pack = {
 };
 /** Native riders and adopted elites share this lookup; registration performs no setup draws. */
 export const HorseHerd = {
+  bind(input: unknown, owner: Scope): void {
+    const policy = ReturnProgram.page(input, owner); damagePolicy = policy;
+  },
+  sense(actor: Animal): void {
+    if (damagePolicy === null) throw new Error('Unbound Nalati horse damage policy');
+    actor.mem['damageScale'] = v.parse(v.number(), damagePolicy.project('damage', { owned: Number(actor.mem['owned'] === 1), stallion: Number(actor.variant === 'stallion'), health: actor.hp / actor.maxHp })['scale']);
+  },
+  damage(actor: Animal): number { return actor.mem['damageScale'] ?? 1; },
   of(actor: Animal): HerdController | null { return herdOf.get(actor) ?? null; },
   register(controller: HerdController): void { for (const actor of controller.members) herdOf.set(actor, controller); },
 };
-
-let fallbackHost: NativeGroupHost | null = null;
-/**
- * Bind the group services a manager-only fallback group asks (runtime/groupDispatch.ts): the page binds the app's
- * (runtime/groupHost.ts) when its creatures attach, a trusted Node host its own. Returns the unbind for the caller's scope.
- */
-export function bindFallbackGroupHost(host: NativeGroupHost): () => void {
-  fallbackHost = host;
-  return () => { if (fallbackHost === host) fallbackHost = null; };
-}
-/** The bound fallback group host; an unbound one refuses rather than inventing a decision stream. */
-export function fallbackGroupHost(): NativeGroupHost {
-  if (fallbackHost === null) throw new Error('Nalati fallback group has no bound host');
-  return fallbackHost;
-}

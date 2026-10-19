@@ -11,7 +11,7 @@ import * as THREE from 'three';
 
 
 
-import { thinkHorse, actHorse, horseDamageMul } from '../runtime/groupDispatch';
+import { HorseHerd } from '../runtime/groupRegistry';
 
 import { nalatiBody, poseNalatiCreature } from './presentation';
 import { wildEnv } from '../creatures/env';
@@ -97,7 +97,13 @@ export const HORSE_SPECIES: SpeciesDef = {
   ...horseRows.definition, fur: NO_FUR,
   build: variant => nalatiBody('horse', variant),
   postPose: c => { poseNalatiHorse(c, wildEnv.wind); },
-  act: actHorse,
-  think: thinkHorse,
-  damageMul: horseDamageMul,
+  act: (a, c) => { if (a.alive) HorseHerd.of(a)?.drive(a, c, true); },
+  think: (a, c) => {
+    const last = a.mem['groupThinkAt']; if (last !== undefined && c.t - last < .1 - 1e-9) return;
+    a.mem['groupThinkAt'] = c.t; HorseHerd.sense(a);
+    if (a.mem['ridden'] === 1 || a.mem['owned'] === 1) return;
+    const herd = HorseHerd.of(a); if (herd === null || !a.alive) { a.setMotion(a.yaw, 0, 1); return; }
+    const step = { ...c, dt: last === undefined ? c.dt : c.t - last }; herd.tick(step); herd.drive(a, step);
+  },
+  damageMul: a => HorseHerd.damage(a),
 };

@@ -143,7 +143,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       lp.sheltered = indoors || held || yurtShelters(yurts, p.x, p.z);
       return lp;
     },
-  }, program);
+  }, program, undefined, game.levelScope);
   const wq = qs.get('weather');
   if (wq) {
     const [ph = '', at = '0'] = wq.split(':');

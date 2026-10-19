@@ -52,8 +52,7 @@ import { windEnv } from '../world/weatherStep';
 
 import type { NalatiLoadout } from '../weapons/loadout';
 import { nalatiWetAt } from '../wet';
-import { bindFallbackGroupHost } from './groupRegistry';
-import { APP_GROUP_HOST } from './groupHost';
+import { HorseHerd } from './groupRegistry';
 import { wireNightEnemies } from '../combat/night';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
 import { wireSound, type NalatiSound } from './audio/sound';
@@ -133,6 +132,7 @@ export interface Nalati {
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
   const { admission, pasture } = v.parse(v.object({ admission: v.unknown(), pasture: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   const ridingPrograms = await plugin.product.json<RidingPrograms>('ride/rules.json');
+  HorseHerd.bind(admission, plugin.scope);
   const flockBody = await readFlockBody(plugin.product); plugin.scope.own(flockBody.geometry);
   const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
   if (namePanel === undefined) throw new Error('Nalati requires its named horse panel');
@@ -363,7 +363,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   let painter: NalatiSkinPainter | null = null, syncT = 0;
   const prepareWildlife = (animals: AnimalManager): Wildlife => {
     attachedAnimals = animals;
-    plugin.scope.onDispose(bindFallbackGroupHost(APP_GROUP_HOST)); // the manager-only fallback groups' decision stream and director
     animals.wetAt = nalatiWetAt;
     animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
     declaredCrowds = createNativeFlocks(sky, ctx.chunk.seed, flockBody);

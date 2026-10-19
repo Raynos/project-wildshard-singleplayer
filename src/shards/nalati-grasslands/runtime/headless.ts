@@ -1,6 +1,6 @@
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { castRay } from '@wildshard/engine/physics/query';
+import { creatureFloor } from '@wildshard/game/shardfile/homeKeeper';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, type NalatiBake, type NalatiBakedActor, type NalatiBootBody, type NalatiBootHerd, type NalatiBootRows } from './baked';
@@ -25,13 +25,10 @@ import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import { Vector3 } from 'three';
 import { ATTACK_TURN } from '@wildshard/engine/ai/hunt';
 
-/** The manifest's sun (manifest.ts `sky.sun`, test-pinned): the page's clock starts on it (world/installWeather.ts
- *  the generated day-clock row, 16.2 h, the day phase), so its first frame is the look the shard was painted with. */
-export const NALATI_SUN = { azimuth: 250, elevation: 26 } as const;
 /** The page's clock, resolved from the same generated manifest sun and schedule. */
 export function nalatiDayClock(): DayCycle<SkyKey> {
   return new DayCycle({ ...bootMetadata.dayClock, units: 'hour',
-    schedule: bootMetadata.dayClock.schedule.map(row => ({ from: row.from, to: row.to, minutes: row.minutes, phase: v.parse(v.picklist(['dawn', 'day', 'golden', 'dusk', 'night']), row.phase) })) });
+    schedule: bootMetadata.dayClock.schedule.map(row => ({ ...row, phase: v.parse(v.picklist(['dawn', 'day', 'golden', 'dusk', 'night']), row.phase) })) });
 }
 /** The boot's clock for the roster's elite rules (combat/elites.ts `condition`): the clock's day phase at install and no
  *  storm (the weather starts clear; the storm state machine is not hosted yet). */
@@ -215,22 +212,15 @@ export function installNalatiRoster(host: SimHost, ports: { boot: NalatiBootRows
   const roster = structuredClone(ports.boot.roster);
   if (roster.bodies.length !== bake.actors.length || JSON.stringify(roster.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.id) }))) !== JSON.stringify(bake.herds))
     throw new Error('Nalati roster diverges from the page\'s list');
-  const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const;
-  const creatureFloor = (x: number, z: number, fromY: number): { y: number; structure: boolean } => {
-    const terrain = s.heightAt(x, z);
-    origin.x = x; origin.y = fromY; origin.z = z;
-    const hit = castRay(host.physics, origin, down, Math.max(201, fromY - terrain + 1), sees);
-    if (hit === null || (hit.material === 'ground' && hit.collider.shape.type === host.physics.R.ShapeType.HeightField)) return { y: terrain, structure: false };
-    return { y: hit.point.y, structure: true };
-  };
+  const floorAt = creatureFloor(host, s.heightAt);
   const bodies = roster.bodies.map((boot, i) => {
     const row = bake.actors[i];
     // the bake is the page's own roll: a divergent draw anywhere refuses the roster rather than simulating another world
     if (row?.id !== boot.id || row.kind !== boot.kind || row.variant !== boot.variant.id || row.seed !== boot.seed || row.scale !== boot.scale || row.herd !== boot.herd) throw new Error(`Nalati roster diverges from the page at ${boot.id}`);
-    const { x, z } = boot.position, at = creatureFloor(x, z, Math.max(ports.spawnY, s.heightAt(x, z)) + 1);
+    const { x, z } = boot.position, at = floorAt(x, z, Math.max(ports.spawnY, s.heightAt(x, z)) + 1);
     const actor = host.spawn({ id: boot.id, spec: row.spec, seed: boot.seed, scale: boot.scale, at: { x, y: at.y, z }, yaw: boot.yaw });
     actor.levelGround = at.structure;
-    if (at.structure) actor.groundHeight = (px, pz, py) => creatureFloor(px, pz, py).y;
+    if (at.structure) actor.groundHeight = (px, pz, py) => floorAt(px, pz, py).y;
     actor.herd = boot.herd; actor.scripted = row.scripted;
     // a melee shard's manager caps an attacking body's turn (AnimalManager.spawnAnimal: ATTACK_TURN)
     actor.attackTurnCap = ATTACK_TURN;

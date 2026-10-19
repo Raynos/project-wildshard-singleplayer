@@ -62,5 +62,5 @@ export interface NalatiBootRows {
   readonly streamSeed: number; readonly phases: readonly string[];
   readonly roster: { readonly bodies: readonly NalatiBootBody[]; readonly herds: readonly NalatiBootHerd[];
     readonly stream: RngState; readonly wildStream: RngState };
-  readonly species: Readonly<Record<string, unknown>>; readonly recipes: readonly AnimalSimSpec[];
+  readonly species: Readonly<Record<string, unknown>>; readonly hunt: Readonly<Record<string, unknown>>; readonly recipes: readonly AnimalSimSpec[];
 }
