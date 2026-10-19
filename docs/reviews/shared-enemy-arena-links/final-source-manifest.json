@@ -1,0 +1,36 @@
+{
+  "schema": "wildshard.shared-arena.url-roster-source.v1",
+  "scope": "Initial allowlisted URL selection; nine identities, four admitted and five disabled; no autostart or gameplay changes",
+  "sourceFiles": {
+    "practice/shared-arena/README.md": "5d22793a5093a3f471dd847bbf5096cccdcf1ede9f5993884d77ba10868a4de4",
+    "practice/shared-arena/arena.html": "9f19c0fb2b8dedc28605174959caf40cb77c2c916f90ec7e926b4f4d21fc567a",
+    "practice/shared-arena/boot.ts": "9de9ee8d7cbbca118e44fcb54158fd62eb2d8b743775cd659651cfd8776b167c",
+    "practice/shared-arena/content.ts": "c12d9884bfb81c4fd09c788a84f4c66f997d1b46a18efcb684c4e575aa6deac2",
+    "practice/shared-arena/controller.ts": "dd3f6064b4b49a30d73caedbe0a1e551a321a0ac2c02a97b3de040fbcda2d014",
+    "practice/shared-arena/page.css": "803a292430277fdf511f41d5eccb83a496fc67338993c185f0763128f9b7869f",
+    "practice/shared-arena/page.ts": "98ba6b07de10973d54b8487adee72ba5b89764b71d6acc396e2ae0bfc4cb8b9e",
+    "practice/shared-arena/pins.json": "84eda28aed8fcc65ae2551b9c3f82694344a8c80732d0a596362f8289b1add95",
+    "practice/shared-arena/runtime.ts": "dd76301f52979367803111019172b2d8fb0c4219eb7ef15f4b7e44443fca00fa",
+    "practice/shared-arena/tsconfig.json": "01c70830605ab0c85ab5f687e2c3c1c48bb7fe61795a8a3d582184a803cf6f0b",
+    "practice/shared-arena/types.ts": "f23c304bb598964309cca61f962154658049872a6a12b6b305605cd0a994a23a",
+    "practice/shared-arena/validate.ts": "77b42917c28c19020a3fb041c8fce4ba951d7d4a7c860c40a0e8cb8713904c95",
+    "scripts/shared-arena/admission.mjs": "da65cf5082455b3b9a4bf1690bec3fe9e634e0ce2a679274234cd80e7bac9ad7",
+    "scripts/shared-arena/admission.test.mjs": "3b0aee5f8bc7564118f0b975a9c8f5406bf426106e198aed30bf04fd880c8270",
+    "scripts/shared-arena/build.mjs": "4b6907399b6a05bbb2ba1e960a9636a31862108f9bde7563d6cf070920cd330e",
+    "scripts/shared-arena/qa.mjs": "f1a48337225ae4b085f27d4add7e9389ad0908b6d6a8fbc3eee21a7bd0cdb0b8",
+    "test/shared-arena-page.test.ts": "62cc497a37852348bc558a4afc1d1f9813afd22e0dc0f69b461d9809ef6b53ee",
+    "practice/shared-arena/selection.ts": "907c35a43190bf177a3bc1c5101e32402b87d85f5177cc80f389a7cc97a2cbc6",
+    "test/shared-arena-selection.test.ts": "d0648f27785ba5be7371a81c08a5df6fa5db17c6e85cb3801eef0d6e68de6ba2",
+    "scripts/shared-arena/build-served.mjs": "8f1ed2961c2c0ac705c92b34f88bbcea9b0fd8ea65e045309935390afb45cbd0",
+    "scripts/shared-arena/qa-links.mjs": "f4cc0e8a013d22b3970a5139c96b3a8986efbc154b83567b93552ed1162b03c7"
+  },
+  "priorManifestSha256": "facc4b2f102f16ca6a3743dcdedb11f3f51384fbd7616b42d1def9f74c661825",
+  "tests": {
+    "focusedLifecycleAndAliases": 26,
+    "admission": 3,
+    "strictTypeScript": "passed",
+    "focusedLint": "passed"
+  },
+  "priorSourceCheckpointSha256": "c6773c48d478d19f7ffcf64eafd36029935c5e7c26ea151a78696341458726c2",
+  "probeCorrection": "Fresh documents per initial URL, because same-document hash navigation does not reload the controller. Runtime build inputs unchanged."
+}

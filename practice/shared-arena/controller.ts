@@ -1,4 +1,5 @@
 import { replacePracticeCanvas } from '../../src/practiceCanvas';
+import { arenaUrlOpponent } from './selection';
 import type { PracticeDemo } from './runtime';
 
 export type ArenaControllerDemo = Pick<PracticeDemo, 'choices' | 'select' | 'retry' | 'back' | 'dispose'>;
@@ -15,6 +16,11 @@ export function installArenaPage(boot: (canvas: HTMLCanvasElement, status: (mess
       !(back instanceof HTMLButtonElement) || !(retry instanceof HTMLButtonElement) ||
       !(canvas instanceof HTMLCanvasElement) || status === null) throw new Error('Arena page is incomplete');
   const controls = { start, select, back, retry, status };
+  const requested = arenaUrlOpponent(location.search, location.hash);
+  if (requested !== undefined) controls.select.value = requested;
+  const unavailable = (): boolean => Array.from(controls.select.options).find(option => option.value === controls.select.value)?.disabled !== false;
+  const unavailableMessage = (): string => controls.select.value === 'bellback' ? 'Bellback is unavailable pending admission. Choose another enemy.' : 'This enemy is mockup only and unavailable for play. Choose another enemy.';
+  if (unavailable()) controls.status.textContent = unavailableMessage();
   let demo: ArenaControllerDemo | null = null;
   let busy = false;
   let active = false;
@@ -25,13 +31,13 @@ export function installArenaPage(boot: (canvas: HTMLCanvasElement, status: (mess
     controls.start.hidden = active;
     controls.back.hidden = !active;
     controls.retry.hidden = !active;
-    controls.start.disabled = busy;
+    controls.start.disabled = busy || unavailable();
     controls.select.disabled = busy;
     controls.retry.disabled = busy;
     controls.back.disabled = busy;
   }
   async function begin(): Promise<void> {
-    if (busy || disposed || !(canvas instanceof HTMLCanvasElement)) return;
+    if (busy || disposed || unavailable() || !(canvas instanceof HTMLCanvasElement)) return;
     busy = true; update(); report('Loading the shared arena…');
     try {
       if (demo === null) {
@@ -50,7 +56,11 @@ export function installArenaPage(boot: (canvas: HTMLCanvasElement, status: (mess
     } finally { busy = false; update(); }
   }
   controls.start.addEventListener('click', () => { void begin(); });
-  controls.select.addEventListener('change', () => { if (active) void begin(); });
+  controls.select.addEventListener('change', () => {
+    update();
+    if (active) void begin();
+    else report(unavailable() ? unavailableMessage() : 'Choose an enemy, then Start.');
+  });
   controls.retry.addEventListener('click', () => { if (!busy && active) demo?.retry(); });
   controls.back.addEventListener('click', () => {
     if (busy) return;

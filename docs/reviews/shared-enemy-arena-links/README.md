@@ -1,0 +1,11 @@
+# Shared arena URL continuity and roster
+
+The nine-identity selector has four admitted playable opponents, Bellback awaiting admission, and four disabled mockup-only identities: Brine Pitcher Matriarch, Pearlglass Medusa, Keelmaw, and Bloomthroat Iguana. This does not admit new gameplay products.
+
+Initial URL selection accepts only explicit allowlisted aliases. The `opponent` query key takes precedence over `enemy`, followed by a bare hash if neither query key exists. Unknown, empty, malformed, double-encoded, inherited-property and executable-looking values keep the default. No URL input starts play or executes code. An unavailable identity can be selected by URL but Start stays disabled; selecting an admitted identity enables Start without booting it.
+
+Known aliases include each selector value and the short names mantis, conch, colossus, puffer, matriarch, medusa and iguana. The additional `tide-root-colossus` alias identifies the admitted Colossus. This is initial navigation handling, not a hash-change listener.
+
+Source changes are limited to selector markup, a pure alias resolver and controller availability/initial-selection handling. Physics, AI, timing, damage, products and routing of exact opaque assets remain unchanged. Prior builds and manifests are preserved. `source-manifest.json` is the stable source checkpoint.
+
+Focused tests cover 26 lifecycle/selection cases; three exact-admission tests also pass. Focused lint and strict TypeScript checks pass. The unchanged fresh served candidate passed 48/48 mounted browser checks, including all 14 initial URL cases, actual Start from #puffer, four-enemy incoming/outgoing damage, change/Retry/Back/reload, and empty stores. Build size is 5,136,501 bytes. `build-manifest.json` pins the candidate; `final-source-manifest.json` pins the corrected diagnostic probe and unchanged runtime source. `qa.json` is the successful immutable browser report. An early browser invocation before the heavy build lease became available failed against missing output; it is not acceptance evidence. A subsequent probe incorrectly used consecutive same-document hash navigations; `failed-same-document-probe.json` preserves that failure. The corrected probe used fresh documents without changing the candidate. No same-document hash reactivity is claimed.

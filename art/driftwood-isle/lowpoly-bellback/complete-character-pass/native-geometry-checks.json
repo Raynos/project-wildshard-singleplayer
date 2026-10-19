@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "glb_sha256": "137f14c636f5a81717d3a06cfef612bb8517b7c465df1c23b60417d960389cce",
+  "triangles": 4834,
+  "min_triangle_area": 0.00014030262427508947,
+  "min_geometric_normal_dot": 0.00028060524957114285,
+  "failures": []
+}

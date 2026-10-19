@@ -1,0 +1,3813 @@
+{
+  "schema": "wildshard.shared-arena.qa.v1",
+  "startedAt": "2026-10-19T18:04:07.331Z",
+  "errors": [],
+  "checks": {
+    "link:#mantis": true,
+    "link:#conch": true,
+    "link:#colossus": true,
+    "link:#puffer": true,
+    "link:?enemy=conch": true,
+    "link:?opponent=%70uffer": true,
+    "link:#%": true,
+    "link:?enemy=%E0%A4%A": true,
+    "link:#unknown": true,
+    "link:#bellback": true,
+    "link:?enemy=brine-pitcher-matriarch": true,
+    "link:#pearlglass-medusa": true,
+    "link:?opponent=keelmaw": true,
+    "link:#bloomthroat-iguana": true,
+    "lazy": true,
+    "basisOpaqueBytes": true,
+    "aliasActualStart": true,
+    "back": true,
+    "restartSameGame": true,
+    "restartFresh": true,
+    "reloadFresh": true,
+    "persistence": true,
+    "bellbackUnavailable": true,
+    "noErrors": true,
+    "noMissingRequests": true,
+    "allJavaScriptOwned": true,
+    "allProductsRetained": true,
+    "physicsRetained": true
+  },
+  "enemies": [
+    {
+      "kind": "splinter-mantis",
+      "entry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 0.8926000000089406,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "splinter-mantis",
+          "hp": 55,
+          "maxHp": 55,
+          "alive": true,
+          "state": "stalk",
+          "mem": {
+            "mantis-st": 0,
+            "mantis-beat": 0,
+            "regular-clock": 0.2,
+            "mantis-pose-phase": 0,
+            "mantis-pose-clock": 0.2
+          },
+          "position": [
+            -6.092037629912284e-8,
+            900,
+            -6.90089008025825
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "samples": [
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 1.0672000000029802,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 0,
+              "mantis-pose-phase": 0,
+              "mantis-pose-clock": 0.30000000000000004
+            },
+            "position": [
+              -6.092037629912284e-8,
+              900,
+              -6.90089008025825
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 1.2672000000029804,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 0.2,
+              "mantis-pose-phase": 1,
+              "mantis-pose-clock": 0.1
+            },
+            "position": [
+              -6.092037629912284e-8,
+              900,
+              -6.90089008025825
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 1.2672000000029804,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 0.2,
+              "mantis-pose-phase": 1,
+              "mantis-pose-clock": 0.1
+            },
+            "position": [
+              -6.092037629912284e-8,
+              900,
+              -6.90089008025825
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 1.5672000000029807,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 0.5,
+              "mantis-pose-phase": 1,
+              "mantis-pose-clock": 0.4
+            },
+            "position": [
+              -6.092037629912284e-8,
+              900,
+              -6.90089008025825
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 1.867200000002981,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 0.7999999999999999,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0
+            },
+            "position": [
+              1.4601770637057143e-7,
+              900,
+              -6.690890079364181
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 2.067200000002981,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 0.9999999999999999,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.2
+            },
+            "position": [
+              0.00013831486521986847,
+              900,
+              -6.200958928093314
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 2.3600999999940404,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.3,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.5
+            },
+            "position": [
+              0.00013952185308063747,
+              900,
+              -4.980366071686149
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 2.6335999999940407,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.6000000000000003,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.7999999999999999
+            },
+            "position": [
+              0.03318863735675315,
+              900,
+              -4.435553106595762
+            ]
+          },
+          "player": {
+            "health": 90,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 3.90869999997318,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 43,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 0.4,
+              "mantis-pose-phase": 1,
+              "mantis-pose-clock": 0.30000000000000004
+            },
+            "position": [
+              -4.6343702209128423e-8,
+              900,
+              -6.922634879592806
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Fresh practice bout."
+        }
+      ],
+      "placements": [
+        {
+          "reason": "Diagnostic player placement for real enemy attack",
+          "position": [
+            -6.092037629912284e-8,
+            900,
+            -3.9008900802582502
+          ]
+        },
+        {
+          "reason": "Diagnostic sword range; actual touch attack",
+          "position": [
+            -4.6343702209128423e-8,
+            900,
+            -5.122634879592806
+          ]
+        }
+      ],
+      "checks": {
+        "singleInstance": true,
+        "fresh": true,
+        "actualPlayerDamage": true,
+        "retry": true,
+        "actualEnemyDamage": true
+      },
+      "defense": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 2.6335999999940407,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "splinter-mantis",
+          "hp": 55,
+          "maxHp": 55,
+          "alive": true,
+          "state": "attack",
+          "mem": {
+            "mantis-st": 1,
+            "mantis-beat": 1,
+            "regular-clock": 1.6000000000000003,
+            "mantis-pose-phase": 2,
+            "mantis-pose-clock": 0.7999999999999999
+          },
+          "position": [
+            0.03318863735675315,
+            900,
+            -4.435553106595762
+          ]
+        },
+        "player": {
+          "health": 90,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "retry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 3.2335999999940412,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "splinter-mantis",
+          "hp": 55,
+          "maxHp": 55,
+          "alive": true,
+          "state": "stalk",
+          "mem": {
+            "mantis-st": 0,
+            "mantis-beat": 0,
+            "regular-clock": 0,
+            "mantis-pose-phase": 0,
+            "mantis-pose-clock": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "attack": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 4.016599999964239,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "splinter-mantis",
+          "hp": 43,
+          "maxHp": 55,
+          "alive": true,
+          "state": "alert",
+          "mem": {
+            "mantis-st": 2,
+            "mantis-beat": 0,
+            "regular-clock": 0,
+            "mantis-pose-phase": 0,
+            "mantis-pose-clock": 0
+          },
+          "position": [
+            -0.21476488258798732,
+            900,
+            -7.267361173871905
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "storage": {
+        "local": [],
+        "session": [],
+        "caches": [],
+        "databases": [],
+        "workers": 0
+      }
+    },
+    {
+      "kind": "conch-duelist",
+      "entry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 5.964099999964232,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "conch-duelist",
+          "hp": 60,
+          "maxHp": 60,
+          "alive": true,
+          "state": "stalk",
+          "mem": {
+            "conch-st": 0,
+            "conch-guard": 0,
+            "regular-clock": 0.1
+          },
+          "position": [
+            -4.284155252776145e-8,
+            900,
+            -6.929999999701977
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "samples": [
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 6.379299999967212,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "conch-st": 0,
+              "conch-guard": 0,
+              "regular-clock": 0.5
+            },
+            "position": [
+              2.2281058287276778e-7,
+              900,
+              -6.577880927361548
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 6.878899999976151,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "conch-st": 0,
+              "conch-guard": 0,
+              "regular-clock": 0.9999999999999999
+            },
+            "position": [
+              5.431801839428374e-7,
+              900,
+              -6.268938449211419
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 7.078899999976151,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "conch-st": 0,
+              "conch-guard": 0,
+              "regular-clock": 1.2
+            },
+            "position": [
+              6.186113510331381e-7,
+              900,
+              -6.200471364893019
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 7.491499999970189,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "conch-st": 1,
+              "conch-guard": 1,
+              "regular-clock": 0.30000000000000004
+            },
+            "position": [
+              6.484122434535777e-7,
+              900,
+              -6.173732195980847
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 7.891499999970187,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "conch-st": 1,
+              "conch-guard": 0,
+              "regular-clock": 0.7
+            },
+            "position": [
+              6.484122434535777e-7,
+              900,
+              -6.173732195980847
+            ]
+          },
+          "player": {
+            "health": 86,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 9.258999999970184,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 57,
+            "maxHp": 60,
+            "alive": true,
+            "state": "alert",
+            "mem": {
+              "conch-st": 4,
+              "conch-guard": 0,
+              "regular-clock": 0
+            },
+            "position": [
+              -0.3045763494417062,
+              900,
+              -7.407871355302632
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Fresh practice bout."
+        }
+      ],
+      "placements": [
+        {
+          "reason": "Diagnostic player placement for real enemy attack",
+          "position": [
+            -4.7497211941305295e-8,
+            900,
+            -3.9222159292548895
+          ]
+        },
+        {
+          "reason": "Diagnostic sword range; actual touch attack",
+          "position": [
+            -4.610022785733747e-8,
+            900,
+            -5.124436680041254
+          ]
+        }
+      ],
+      "checks": {
+        "singleInstance": true,
+        "fresh": true,
+        "actualPlayerDamage": true,
+        "retry": true,
+        "actualEnemyDamage": true
+      },
+      "defense": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 7.891499999970187,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "conch-duelist",
+          "hp": 60,
+          "maxHp": 60,
+          "alive": true,
+          "state": "attack",
+          "mem": {
+            "conch-st": 1,
+            "conch-guard": 0,
+            "regular-clock": 0.7
+          },
+          "position": [
+            6.484122434535777e-7,
+            900,
+            -6.173732195980847
+          ]
+        },
+        "player": {
+          "health": 86,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "retry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 8.391499999970186,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "conch-duelist",
+          "hp": 60,
+          "maxHp": 60,
+          "alive": true,
+          "state": "stalk",
+          "mem": {
+            "conch-st": 0,
+            "conch-guard": 0,
+            "regular-clock": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "attack": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 9.258999999970184,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "conch-duelist",
+          "hp": 57,
+          "maxHp": 60,
+          "alive": true,
+          "state": "alert",
+          "mem": {
+            "conch-st": 4,
+            "conch-guard": 0,
+            "regular-clock": 0
+          },
+          "position": [
+            -0.3045763494417062,
+            900,
+            -7.407871355302632
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "storage": {
+        "local": [],
+        "session": [],
+        "caches": [],
+        "databases": [],
+        "workers": 0
+      }
+    },
+    {
+      "kind": "tideRootColossus",
+      "entry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 11.234699999958258,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "tideRootColossus",
+          "hp": 480,
+          "maxHp": 480,
+          "alive": true,
+          "state": "idle",
+          "mem": {
+            "tg-state": 0,
+            "tg-clock": 0.1,
+            "tg-awake": 1,
+            "tg-phase": 1,
+            "tg-exposed": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "samples": [
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 11.681999999955277,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "idle",
+            "mem": {
+              "tg-state": 0,
+              "tg-clock": 0.6,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 12.105699999958256,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "idle",
+            "mem": {
+              "tg-state": 0,
+              "tg-clock": 0.9999999999999999,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 12.402499999970177,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "tg-state": 1,
+              "tg-clock": 0.2,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 12.645199999973157,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "tg-state": 1,
+              "tg-clock": 0.4,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 12.961799999982096,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "tg-state": 1,
+              "tg-clock": 0.7999999999999999,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 13.361799999982095,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "tg-state": 1,
+              "tg-clock": 1.2,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 82,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 14.62039999997613,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 468,
+            "maxHp": 480,
+            "alive": true,
+            "state": "idle",
+            "mem": {
+              "tg-state": 0,
+              "tg-clock": 0,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              -0.19685931503772736,
+              900,
+              -7.3297004997730255
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Fresh practice bout."
+        }
+      ],
+      "placements": [
+        {
+          "reason": "Diagnostic player placement for real enemy attack",
+          "position": [
+            0,
+            900,
+            -3
+          ]
+        },
+        {
+          "reason": "Diagnostic sword range; actual touch attack",
+          "position": [
+            0,
+            900,
+            -4.2
+          ]
+        }
+      ],
+      "checks": {
+        "singleInstance": true,
+        "fresh": true,
+        "actualPlayerDamage": true,
+        "retry": true,
+        "actualEnemyDamage": true
+      },
+      "defense": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 13.361799999982095,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "tideRootColossus",
+          "hp": 480,
+          "maxHp": 480,
+          "alive": true,
+          "state": "attack",
+          "mem": {
+            "tg-state": 1,
+            "tg-clock": 1.2,
+            "tg-awake": 1,
+            "tg-phase": 1,
+            "tg-exposed": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 82,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "retry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 13.861799999982093,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "tideRootColossus",
+          "hp": 480,
+          "maxHp": 480,
+          "alive": true,
+          "state": "idle",
+          "mem": {
+            "tg-state": 0,
+            "tg-clock": 0,
+            "tg-awake": 1,
+            "tg-phase": 1,
+            "tg-exposed": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "attack": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 14.62039999997613,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "tideRootColossus",
+          "hp": 468,
+          "maxHp": 480,
+          "alive": true,
+          "state": "idle",
+          "mem": {
+            "tg-state": 0,
+            "tg-clock": 0,
+            "tg-awake": 1,
+            "tg-phase": 1,
+            "tg-exposed": 0
+          },
+          "position": [
+            -0.19685931503772736,
+            900,
+            -7.3297004997730255
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "storage": {
+        "local": [],
+        "session": [],
+        "caches": [],
+        "databases": [],
+        "workers": 0
+      }
+    },
+    {
+      "kind": "brine-puffer",
+      "entry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 16.531499999999973,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "brine-puffer",
+          "hp": 45,
+          "maxHp": 45,
+          "alive": true,
+          "state": "stalk",
+          "mem": {
+            "puffer-st": 0,
+            "regular-clock": 0.1
+          },
+          "position": [
+            0.000012446747859939933,
+            900,
+            -6.929999999701977
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "samples": [
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 16.921999999985076,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "puffer-st": 0,
+              "regular-clock": 0.5
+            },
+            "position": [
+              0.000012442316258053261,
+              900,
+              -6.830923316534609
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 17.22199999998508,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "puffer-st": 1,
+              "regular-clock": 0.1
+            },
+            "position": [
+              0.000012442780965686746,
+              900,
+              -6.81467194436118
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 17.585899999976142,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "puffer-st": 1,
+              "regular-clock": 0.5
+            },
+            "position": [
+              0.000012442780965686746,
+              900,
+              -6.81467194436118
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 17.685899999976144,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "puffer-st": 1,
+              "regular-clock": 0.6
+            },
+            "position": [
+              0.000012442780965686746,
+              900,
+              -6.81467194436118
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 17.985899999976148,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "puffer-st": 1,
+              "regular-clock": 0.8999999999999999
+            },
+            "position": [
+              0.000012442780965686746,
+              900,
+              -6.81467194436118
+            ]
+          },
+          "player": {
+            "health": 88,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 19.077399999976162,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 33,
+            "maxHp": 45,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "puffer-st": 1,
+              "regular-clock": 0.5
+            },
+            "position": [
+              -0.19987179338932037,
+              900,
+              -7.325923830270767
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Fresh practice bout."
+        }
+      ],
+      "placements": [
+        {
+          "reason": "Diagnostic player placement for real enemy attack",
+          "position": [
+            0.000012442323124250976,
+            900,
+            -4.722579999547452
+          ]
+        },
+        {
+          "reason": "Diagnostic sword range; actual touch attack",
+          "position": [
+            0,
+            900,
+            -5.2
+          ]
+        }
+      ],
+      "checks": {
+        "singleInstance": true,
+        "fresh": true,
+        "actualPlayerDamage": true,
+        "retry": true,
+        "actualEnemyDamage": true
+      },
+      "defense": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 17.985899999976148,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "brine-puffer",
+          "hp": 45,
+          "maxHp": 45,
+          "alive": true,
+          "state": "attack",
+          "mem": {
+            "puffer-st": 1,
+            "regular-clock": 0.8999999999999999
+          },
+          "position": [
+            0.000012442780965686746,
+            900,
+            -6.81467194436118
+          ]
+        },
+        "player": {
+          "health": 88,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "retry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 18.37059999997913,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "brine-puffer",
+          "hp": 45,
+          "maxHp": 45,
+          "alive": true,
+          "state": "idle",
+          "mem": {
+            "puffer-st": 0,
+            "regular-clock": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "attack": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 19.077399999976162,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "brine-puffer",
+          "hp": 33,
+          "maxHp": 45,
+          "alive": true,
+          "state": "attack",
+          "mem": {
+            "puffer-st": 1,
+            "regular-clock": 0.5
+          },
+          "position": [
+            -0.19987179338932037,
+            900,
+            -7.325923830270767
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "storage": {
+        "local": [],
+        "session": [],
+        "caches": [],
+        "databases": [],
+        "workers": 0
+      }
+    }
+  ],
+  "caveat": "Muted cloud Chromium portrait diagnostic, not physical iPhone performance or visual acceptance. Only diagnostic player positioning and real attack input; no enemy clocks/health/AI injection.",
+  "storageBefore": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "databases": [],
+    "workers": 0
+  },
+  "back": {
+    "gameExists": true,
+    "entered": false,
+    "frame": 20.799599999994065,
+    "targets": 0,
+    "canvas": 1,
+    "iframes": 0,
+    "enemy": null,
+    "status": "Choose an enemy, then Start. Bellback is awaiting admission."
+  },
+  "restart": {
+    "gameExists": true,
+    "entered": true,
+    "frame": 21.461399999991094,
+    "targets": 1,
+    "canvas": 1,
+    "iframes": 0,
+    "enemy": {
+      "kind": "brine-puffer",
+      "hp": 45,
+      "maxHp": 45,
+      "alive": true,
+      "state": "stalk",
+      "mem": {
+        "puffer-st": 0,
+        "regular-clock": 0.1
+      },
+      "position": [
+        0.000012446747859939933,
+        900,
+        -6.929999999701977
+      ]
+    },
+    "player": {
+      "health": 100,
+      "maxHealth": 100
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Practice bout. Health and rewards stay in this page."
+  },
+  "storageAfter": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "databases": [],
+    "workers": 0
+  },
+  "reload": {
+    "gameExists": false,
+    "canvas": 1,
+    "iframes": 0,
+    "enemy": null,
+    "status": "Choose an enemy, then Start."
+  },
+  "storageAfterReload": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "databases": [],
+    "workers": 0
+  },
+  "requests": [
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    },
+    {
+      "url": "/mantis-engine/assets/basis_transcoder-VXdx5NbI.wasm",
+      "status": 200,
+      "bytes": 527333,
+      "source": "retained"
+    },
+    {
+      "url": "/shared-arena/assets/boot-4zGLznn8.js",
+      "status": 200,
+      "bytes": 763989,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200,
+      "bytes": 158,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/three.core-BNyAOcZ3.js",
+      "status": 200,
+      "bytes": 295588,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200,
+      "bytes": 355979,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200,
+      "bytes": 48974,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/memoryResources-ConTL0Oo.js",
+      "status": 200,
+      "bytes": 487,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200,
+      "bytes": 2686,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/Settings-C4_dpDIE.js",
+      "status": 200,
+      "bytes": 47092,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/runtimeProduct-BPa5YC1Q.js",
+      "status": 200,
+      "bytes": 1032937,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/geometryBounds--_lnxvYh.js",
+      "status": 200,
+      "bytes": 42212,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/registry-BdrupVGz.js",
+      "status": 200,
+      "bytes": 93192,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/toon-D5mySyTj.js",
+      "status": 200,
+      "bytes": 14099,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/clock-B53qIMMf.js",
+      "status": 200,
+      "bytes": 5278,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/runtime-B9OsYl_x.js",
+      "status": 200,
+      "bytes": 81865,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200,
+      "bytes": 26473,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/json-Dr12Y27u.js",
+      "status": 200,
+      "bytes": 723,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/build-CehzHm6x.js",
+      "status": 200,
+      "bytes": 190130,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/Stems-BVzQ2DyQ.js",
+      "status": 200,
+      "bytes": 22831,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/materialGraph-CteREh-_.js",
+      "status": 200,
+      "bytes": 32819,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/dataLook-zgKXPT73.js",
+      "status": 200,
+      "bytes": 14215,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/graphBackend-DTCnVN01.js",
+      "status": 200,
+      "bytes": 2925,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/dayCycle-e1TDlXAt.js",
+      "status": 200,
+      "bytes": 6203,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/Atmosphere-Cg0jwFdm.js",
+      "status": 200,
+      "bytes": 8410,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/declaredBank-C51UBdyh.js",
+      "status": 200,
+      "bytes": 16929,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/audioLog-DDd08KrP.js",
+      "status": 200,
+      "bytes": 239,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-GcxgW55m.js",
+      "status": 200,
+      "bytes": 4396,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/audioFiles-Dpm1MgcA.js",
+      "status": 200,
+      "bytes": 1228,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/Cues-CfIrbONV.js",
+      "status": 200,
+      "bytes": 6096,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/Weapon-CNKF6Yh8.js",
+      "status": 200,
+      "bytes": 2072,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/SetScore-AxfKxGcq.js",
+      "status": 200,
+      "bytes": 10831,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/presets-CAdLuhMG.js",
+      "status": 200,
+      "bytes": 27869,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/channels-D5Hybscq.js",
+      "status": 200,
+      "bytes": 23866,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/precompile-C2zmmlnz.js",
+      "status": 200,
+      "bytes": 20805,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/shadowChunks-CJAHqUD2.js",
+      "status": 200,
+      "bytes": 3114,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/postPreparation-BM0ovkLk.js",
+      "status": 200,
+      "bytes": 1702,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200,
+      "bytes": 87,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/emptyLook-D2dy-xuz.js",
+      "status": 200,
+      "bytes": 744,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200,
+      "bytes": 1872,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/lowpolyKit-DaOl_1-4.js",
+      "status": 200,
+      "bytes": 39615,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/wind-CDg_obA2.js",
+      "status": 200,
+      "bytes": 1276,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/Tool-jTOctduU.js",
+      "status": 200,
+      "bytes": 75,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/cascadeLights-WDPTe4JY.js",
+      "status": 200,
+      "bytes": 5668,
+      "source": "candidate"
+    },
+    {
+      "url": "/mantis-engine/practice-product/shard.json",
+      "status": 200,
+      "bytes": 9948,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/actors/creatures.json",
+      "status": 200,
+      "bytes": 52,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/actors/crowds.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/actors/moves.json",
+      "status": 200,
+      "bytes": 193,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/actors/spawns.json",
+      "status": 200,
+      "bytes": 163,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/actors/species.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200,
+      "bytes": 1346,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/audio/audio.json",
+      "status": 200,
+      "bytes": 68,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/combat/encounters.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/combat/items.json",
+      "status": 200,
+      "bytes": 103,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/combat/strikes.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/economy/ledger.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/actors/strikes.json",
+      "status": 200,
+      "bytes": 589,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/economy/loot.json",
+      "status": 200,
+      "bytes": 435,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/held/arms.json",
+      "status": 200,
+      "bytes": 895,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/look/look.json",
+      "status": 200,
+      "bytes": 6557,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/look/materials.json",
+      "status": 200,
+      "bytes": 22,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/quests/quests.json",
+      "status": 200,
+      "bytes": 64,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200,
+      "bytes": 46,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/sim/hooks.json",
+      "status": 200,
+      "bytes": 40,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/sim/scripts.json",
+      "status": 200,
+      "bytes": 1347,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/sim/sim.json",
+      "status": 200,
+      "bytes": 111,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/state/migrations.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/state/state.json",
+      "status": 200,
+      "bytes": 564,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/ui/card.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/ui/compendium.json",
+      "status": 200,
+      "bytes": 28,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/ui/ui.json",
+      "status": 200,
+      "bytes": 52,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/collision.json",
+      "status": 200,
+      "bytes": 23,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/days.json",
+      "status": 200,
+      "bytes": 21,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/edge.json",
+      "status": 200,
+      "bytes": 16835,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/movers.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/navigation.json",
+      "status": 200,
+      "bytes": 20,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/props.json",
+      "status": 200,
+      "bytes": 15,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/spawn.json",
+      "status": 200,
+      "bytes": 38,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/terrain.json",
+      "status": 200,
+      "bytes": 37,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/tiles.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/traversal.json",
+      "status": 200,
+      "bytes": 30,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/water.json",
+      "status": 200,
+      "bytes": 13,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/sections/world/weather.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "status": 200,
+      "bytes": 450,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/shard.json",
+      "status": 200,
+      "bytes": 9932,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/actors/creatures.json",
+      "status": 200,
+      "bytes": 52,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/actors/crowds.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/actors/moves.json",
+      "status": 200,
+      "bytes": 195,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/actors/spawns.json",
+      "status": 200,
+      "bytes": 157,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/actors/species.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200,
+      "bytes": 1289,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/actors/strikes.json",
+      "status": 200,
+      "bytes": 492,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/audio/audio.json",
+      "status": 200,
+      "bytes": 68,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/combat/encounters.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/combat/items.json",
+      "status": 200,
+      "bytes": 103,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/combat/strikes.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/economy/ledger.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/look/look.json",
+      "status": 200,
+      "bytes": 6557,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/look/materials.json",
+      "status": 200,
+      "bytes": 22,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/quests/quests.json",
+      "status": 200,
+      "bytes": 64,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200,
+      "bytes": 46,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/economy/loot.json",
+      "status": 200,
+      "bytes": 433,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/held/arms.json",
+      "status": 200,
+      "bytes": 895,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/sim/hooks.json",
+      "status": 200,
+      "bytes": 40,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/sim/scripts.json",
+      "status": 200,
+      "bytes": 1109,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/sim/sim.json",
+      "status": 200,
+      "bytes": 111,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/state/migrations.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/state/state.json",
+      "status": 200,
+      "bytes": 366,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/ui/card.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/ui/compendium.json",
+      "status": 200,
+      "bytes": 28,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/ui/ui.json",
+      "status": 200,
+      "bytes": 52,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/collision.json",
+      "status": 200,
+      "bytes": 23,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/days.json",
+      "status": 200,
+      "bytes": 21,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/edge.json",
+      "status": 200,
+      "bytes": 16835,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/movers.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/navigation.json",
+      "status": 200,
+      "bytes": 20,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/props.json",
+      "status": 200,
+      "bytes": 15,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/spawn.json",
+      "status": 200,
+      "bytes": 38,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/terrain.json",
+      "status": 200,
+      "bytes": 37,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/tiles.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/traversal.json",
+      "status": 200,
+      "bytes": 30,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/water.json",
+      "status": 200,
+      "bytes": 13,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/sections/world/weather.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/blobs/json/b7e14cdb83814eefa02227a7aac22fce01f2c58392f6a0b2d66e4a6443295235.json",
+      "status": 200,
+      "bytes": 447,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/shard.json",
+      "status": 200,
+      "bytes": 9947,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/actors/creatures.json",
+      "status": 200,
+      "bytes": 52,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/actors/crowds.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/actors/moves.json",
+      "status": 200,
+      "bytes": 187,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/actors/spawns.json",
+      "status": 200,
+      "bytes": 160,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/actors/species.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200,
+      "bytes": 1624,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/actors/strikes.json",
+      "status": 200,
+      "bytes": 751,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/economy/loot.json",
+      "status": 200,
+      "bytes": 437,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/audio/audio.json",
+      "status": 200,
+      "bytes": 68,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/combat/encounters.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/combat/items.json",
+      "status": 200,
+      "bytes": 103,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/combat/strikes.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/economy/ledger.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/held/arms.json",
+      "status": 200,
+      "bytes": 895,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/look/look.json",
+      "status": 200,
+      "bytes": 6557,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/look/materials.json",
+      "status": 200,
+      "bytes": 22,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/quests/quests.json",
+      "status": 200,
+      "bytes": 64,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200,
+      "bytes": 46,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/sim/hooks.json",
+      "status": 200,
+      "bytes": 40,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/sim/scripts.json",
+      "status": 200,
+      "bytes": 1393,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/sim/sim.json",
+      "status": 200,
+      "bytes": 111,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/state/migrations.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/state/state.json",
+      "status": 200,
+      "bytes": 539,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/ui/card.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/ui/compendium.json",
+      "status": 200,
+      "bytes": 28,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/ui/ui.json",
+      "status": 200,
+      "bytes": 52,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/collision.json",
+      "status": 200,
+      "bytes": 23,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/days.json",
+      "status": 200,
+      "bytes": 21,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/edge.json",
+      "status": 200,
+      "bytes": 16835,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/movers.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/navigation.json",
+      "status": 200,
+      "bytes": 20,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/props.json",
+      "status": 200,
+      "bytes": 15,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/spawn.json",
+      "status": 200,
+      "bytes": 38,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/terrain.json",
+      "status": 200,
+      "bytes": 37,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/tiles.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/traversal.json",
+      "status": 200,
+      "bytes": 30,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/water.json",
+      "status": 200,
+      "bytes": 13,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/sections/world/weather.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json",
+      "status": 200,
+      "bytes": 493,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/shard.json",
+      "status": 200,
+      "bytes": 9930,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/actors/creatures.json",
+      "status": 200,
+      "bytes": 52,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/actors/crowds.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/actors/moves.json",
+      "status": 200,
+      "bytes": 189,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/actors/spawns.json",
+      "status": 200,
+      "bytes": 154,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/actors/species.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200,
+      "bytes": 965,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/audio/audio.json",
+      "status": 200,
+      "bytes": 68,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/combat/encounters.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/combat/items.json",
+      "status": 200,
+      "bytes": 103,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/combat/strikes.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/actors/strikes.json",
+      "status": 200,
+      "bytes": 240,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/economy/loot.json",
+      "status": 200,
+      "bytes": 432,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/held/arms.json",
+      "status": 200,
+      "bytes": 895,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/look/look.json",
+      "status": 200,
+      "bytes": 6557,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/look/materials.json",
+      "status": 200,
+      "bytes": 22,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/quests/quests.json",
+      "status": 200,
+      "bytes": 64,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/economy/ledger.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200,
+      "bytes": 46,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/sim/hooks.json",
+      "status": 200,
+      "bytes": 40,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/sim/scripts.json",
+      "status": 200,
+      "bytes": 1040,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/sim/sim.json",
+      "status": 200,
+      "bytes": 111,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/state/migrations.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/state/state.json",
+      "status": 200,
+      "bytes": 275,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/ui/card.json",
+      "status": 200,
+      "bytes": 18,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/ui/compendium.json",
+      "status": 200,
+      "bytes": 28,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/ui/ui.json",
+      "status": 200,
+      "bytes": 52,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/collision.json",
+      "status": 200,
+      "bytes": 23,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/days.json",
+      "status": 200,
+      "bytes": 21,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/edge.json",
+      "status": 200,
+      "bytes": 16835,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/movers.json",
+      "status": 200,
+      "bytes": 14,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/navigation.json",
+      "status": 200,
+      "bytes": 20,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/props.json",
+      "status": 200,
+      "bytes": 15,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/spawn.json",
+      "status": 200,
+      "bytes": 38,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/terrain.json",
+      "status": 200,
+      "bytes": 37,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/tiles.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/traversal.json",
+      "status": 200,
+      "bytes": 30,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/water.json",
+      "status": 200,
+      "bytes": 13,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/sections/world/weather.json",
+      "status": 200,
+      "bytes": 24,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/blobs/json/414e7ae4167dd766b4b4f57c0d826aadfc0b144ef567eb8a229b9cf2173d67d0.json",
+      "status": 200,
+      "bytes": 495,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/assets/physics/rapier.wasm",
+      "status": 200,
+      "bytes": 3292228,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200,
+      "bytes": 2520,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "status": 200,
+      "bytes": 450,
+      "source": "retained"
+    },
+    {
+      "url": "/shared-arena/assets/engineNodesHandler-D8m50pmF.js",
+      "status": 200,
+      "bytes": 85,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/engineNodesHandler-DsrX_SoM.js",
+      "status": 200,
+      "bytes": 428326,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200,
+      "bytes": 95,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/compile-AiiQfUDX.js",
+      "status": 200,
+      "bytes": 32454,
+      "source": "candidate"
+    },
+    {
+      "url": "/mantis-engine/practice-product/blobs/json/ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe.json",
+      "status": 200,
+      "bytes": 8213,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin",
+      "status": 200,
+      "bytes": 28370,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/blobs/json/9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329.json",
+      "status": 200,
+      "bytes": 60570,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/blobs/json/9cbdeb364506d8d045534931cc1a16b4f5e8c46b6f0e24702210f06b4c9b3d40.json",
+      "status": 200,
+      "bytes": 5284,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/assets/driftwood-isle/conch-canonical-a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610.bin",
+      "status": 200,
+      "bytes": 25392,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/blobs/json/e6b33444700b2e7b1f93dcfa84af73c338bcedc0740007873b59dcd110dc1ff5.json",
+      "status": 200,
+      "bytes": 47890,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/blobs/json/939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6.json",
+      "status": 200,
+      "bytes": 4815,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/assets/driftwood-isle/colossus-native-bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46.bin",
+      "status": 200,
+      "bytes": 76711,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/blobs/json/dee09b58bd61c1a30594b2223f90242667c77c04b034f7a788adc3dbf248a01f.json",
+      "status": 200,
+      "bytes": 45530,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/blobs/json/6265cdf7dc0ae093c341fa9754d4205b8ac1f4705c97052b9c71f41617a8925f.json",
+      "status": 200,
+      "bytes": 2955,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+      "status": 200,
+      "bytes": 53440,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/blobs/json/cf98695e901d32720a0434084c553b4f91ac2b01e58c0a0b224105ee10dfed17.json",
+      "status": 200,
+      "bytes": 66547,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200,
+      "bytes": 373240,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/blobs/wasm/d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071.wasm",
+      "status": 200,
+      "bytes": 7083,
+      "source": "retained"
+    },
+    {
+      "url": "/mantis-engine/practice-product/blobs/wasm/45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1.wasm",
+      "status": 200,
+      "bytes": 8810,
+      "source": "retained"
+    },
+    {
+      "url": "/conch-engine/practice-product/blobs/wasm/2393ffa90be5023cc70b69978b4328579091e171481b06b2ad25c5e63affae02.wasm",
+      "status": 200,
+      "bytes": 9255,
+      "source": "retained"
+    },
+    {
+      "url": "/colossus-engine/practice-product/blobs/wasm/26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699.wasm",
+      "status": 200,
+      "bytes": 13557,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/blobs/wasm/d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071.wasm",
+      "status": 200,
+      "bytes": 7083,
+      "source": "retained"
+    },
+    {
+      "url": "/puffer-engine/practice-product/blobs/wasm/d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071.wasm",
+      "status": 200,
+      "bytes": 7083,
+      "source": "retained"
+    },
+    {
+      "url": "/shared-arena/arena.html",
+      "status": 200,
+      "bytes": 1879,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/practice-D3mA_axD.js",
+      "status": 200,
+      "bytes": 269778,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/style-CVMSSTOC.css",
+      "status": 200,
+      "bytes": 102827,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/environment-Dlk3bCln.js",
+      "status": 200,
+      "bytes": 589,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/tables-BovtVlAx.js",
+      "status": 200,
+      "bytes": 430,
+      "source": "candidate"
+    },
+    {
+      "url": "/shared-arena/assets/preload-helper-uBIymjUX.js",
+      "status": 200,
+      "bytes": 1233,
+      "source": "candidate"
+    }
+  ],
+  "endedAt": "2026-10-19T18:04:59.507Z"
+}

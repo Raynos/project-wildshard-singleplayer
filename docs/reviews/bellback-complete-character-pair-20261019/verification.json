@@ -1,0 +1,30 @@
+{
+  "source_sha256": "ff889c90fb5c7c0a0974678cc2cf59ccc7cbcdaee38da2ff823809613b78b131",
+  "glb_sha256": "137f14c636f5a81717d3a06cfef612bb8517b7c465df1c23b60417d960389cce",
+  "glb_bytes": 362648,
+  "meshes": 94,
+  "triangles": 4834,
+  "minimum_triangle_area": 0.00014030262427508947,
+  "minimum_geometric_normal_dot": 0.00028060524957114285,
+  "baseline_exact_rgb_views": [
+    "hero",
+    "01-front",
+    "02-left",
+    "03-right",
+    "04-back",
+    "05-top",
+    "06-diag-front",
+    "07-diag-left",
+    "08-diag-right",
+    "09-diag-back"
+  ],
+  "capture_script_byte_identical": true,
+  "final_capture_exports_byte_identical": true,
+  "clapper_inventory_as_recorded": {
+    "Clapper stem | Clapper weight": 20,
+    "Clapper stem | Hollow cast bell": 10
+  },
+  "cross_object_triangle_pairs_as_recorded": 10989,
+  "preserved_failed_attempts": true,
+  "limits": "No build or render; native/source geometry audits inspected and pinned, not rerun. Exported normal/area and RGB comparisons independently recomputed."
+}

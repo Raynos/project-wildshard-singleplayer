@@ -1,0 +1,12 @@
+{
+  "model": "Bellback complete character pass",
+  "mesh_objects": 94,
+  "rigid_pivots": 7,
+  "triangles": 4834,
+  "glb_bytes": 362648,
+  "palette": "sRGB swatches explicitly decoded to linear Blender Base Color",
+  "hollow_bell": true,
+  "rigged": false,
+  "runtime_integrated": false,
+  "accepted": false
+}

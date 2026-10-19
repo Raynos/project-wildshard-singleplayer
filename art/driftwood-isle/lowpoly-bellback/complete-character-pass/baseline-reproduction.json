@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "views": [
+    {
+      "view": "hero",
+      "same_rgb_pixels": true,
+      "new_png_sha256": "47dfd97ce919e5b31484c861098535030380dfed9db93f0d82a81eb28e70f6e1",
+      "original_png_sha256": "2e8fc25c5255e2f278e786231004fa1d633a7a182cbb4e25e6924c24bf93af1f"
+    },
+    {
+      "view": "01-front",
+      "same_rgb_pixels": true,
+      "new_png_sha256": "f2312b716a4b32cd4c5e61d6349d85dc8eb8f3d810f2804332fe55f2f22facf8",
+      "original_png_sha256": "bbd197fd7615b4103eb696ee2dae05673d7e2d4faff47744a9b2d6659db88056"
+    },
+    {
+      "view": "02-left",
+      "same_rgb_pixels": true,
+      "new_png_sha256": "9e9238c19ddfa13a91bfeafd85e4b5ef5ffb4a893bad397ba20b382db0cf4a82",
+      "original_png_sha256": "9f41e41a550f9636c86ed8d15066cefca07171a55d235ca0c01ecd725e7974d6"
+    },
+    {
+      "view": "03-right",
+      "same_rgb_pixels": true,
+      "new_png_sha256": "43f2b71714ff69213fa9d632b9288d87189df8c01437f49779935d8337512e6f",
+      "original_png_sha256": "9f087656ce8aa24ea8fd4060515ffc6a5c1d4d34b8393f80f83da16fe05e83e8"
+    },
+    {
+      "view": "04-back",
+      "same_rgb_pixels": true,
+      "new_png_sha256": "1293329c86e51404661f7803f11d443a758abfeec9d79334856e683a62fe29be",
+      "original_png_sha256": "f003633286744d255c1a4e29a4c866302addd63e912d974521952ea69892c106"
+    },
+    {
+      "view": "05-top",
+      "same_rgb_pixels": true,
+      "new_png_sha256": "562e26de761a7539fc6aa36e8cea27d4a68703ee4600835a3ddeb363028b9e9f",
+      "original_png_sha256": "6fb1c70f1f58a2c33b54aea76b6beaa1c16516593bd84348c5687cb115d33107"
+    },
+    {
+      "view": "06-diag-front",
+      "same_rgb_pixels": true,
+      "new_png_sha256": "65409d21e8e888b18d78ccea71c9dffbe38bfc4b20ce78407fabbd4944d7e892",
+      "original_png_sha256": "1d31b785f760a5061c9aed9e89a2c260b1fcea0db012388c5cefdd364f668ad7"
+    },
+    {
+      "view": "07-diag-left",
+      "same_rgb_pixels": true,
+      "new_png_sha256": "7712f128c4b1e77d2b5bdf519f4ab2e84b759b69cab984a62a1bd5e214b5ffb0",
+      "original_png_sha256": "3e5f6dc9ccbdcef31fb3468c8a8f74c301eb1989b7cda75a808c9111fefb469c"
+    },
+    {
+      "view": "08-diag-right",
+      "same_rgb_pixels": true,
+      "new_png_sha256": "5c1a01eb71cd94fffed4e8cc1851ebf6c4a0600d58de48fb94e2f6c717171c41",
+      "original_png_sha256": "61354c5cb74b94bf883f6c85de561721303b6fd76cd0a5e415353632edefc853"
+    },
+    {
+      "view": "09-diag-back",
+      "same_rgb_pixels": true,
+      "new_png_sha256": "f6c866fe53f76a20c639bc0a092ba460a12af326f40c3792021ca6504794505f",
+      "original_png_sha256": "4248f7384b22d031283228e0d603bd0e6388b1897604e60c5ef24f8320c1f532"
+    }
+  ],
+  "notes": "All ten baseline rerenders reproduce exact retained RGB pixels. PNG file hashes differ because Blender embeds render timestamps and timing metadata; no PNG bytes rewritten."
+}

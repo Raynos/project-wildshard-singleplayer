@@ -1,0 +1,30 @@
+{
+  "schema": "wildshard.shared-arena.url-roster-proof.v1",
+  "passed": 48,
+  "total": 48,
+  "errors": [],
+  "buildManifestSha256": "95d29e77ad238e9f501ad844dd15b5888c30066c89b60aaf0cbd1bde0d072bd5",
+  "finalSourceManifestSha256": "e07b7786a7024dd57f73e7986b5aa73024336e2ba989dc89b2fb354f10a841ee",
+  "qaSha256": "4d700304281d08a5cef7f29db4560ddded512fb220560eccbfb83f8463cdd873",
+  "failedProbeSha256": "20fd95da39c336d25165a5b42e29489153a807bd95c96c81ad2e9ba80a159691",
+  "initialNavigationOnly": true,
+  "candidateChangedAfterBuild": false,
+  "files": {
+    "README.md": "c8ad36f42dd11eaf918d497056265874961701e3b165622f460ccc117f255109",
+    "brine-puffer.jpg": "9902347e74ec437a02a16db04905bd3e373c5f6d3bc05b4e38e5951c3b4ea8c3",
+    "build-manifest.json": "95d29e77ad238e9f501ad844dd15b5888c30066c89b60aaf0cbd1bde0d072bd5",
+    "conch-duelist.jpg": "b90a2a71e0d8bea17ebd01a1c09048c438a1d684f63d62c789d6a2b11a4fcfd5",
+    "failed-same-document-probe.json": "20fd95da39c336d25165a5b42e29489153a807bd95c96c81ad2e9ba80a159691",
+    "final-source-manifest.json": "e07b7786a7024dd57f73e7986b5aa73024336e2ba989dc89b2fb354f10a841ee",
+    "qa.json": "4d700304281d08a5cef7f29db4560ddded512fb220560eccbfb83f8463cdd873",
+    "source-manifest.json": "c6773c48d478d19f7ffcf64eafd36029935c5e7c26ea151a78696341458726c2",
+    "splinter-mantis.jpg": "aa4fdf062c34f893fb11c6db240c4a9f29027bf19bdb185910d7fd9c51da9a82",
+    "tideRootColossus.jpg": "1d0de3aac47e877585d9d25e91013c9e3416edc868e10cb8a52f6738171c0515"
+  },
+  "limits": [
+    "URL aliases are handled on initial navigation only; no same-document hash reactivity.",
+    "Five unavailable identities never boot or admit products.",
+    "Cloud portrait Chromium functional proof, not physical Safari or performance acceptance.",
+    "Full kill/loot/player-defeat cycles remain the prior shared-runtime evidence; this UI-only candidate reran four-enemy damage and lifecycle checks."
+  ]
+}

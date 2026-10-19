@@ -1,0 +1,9 @@
+{
+  "baseline": {
+    "coplanar_positive_area_overlaps": []
+  },
+  "candidate": {
+    "coplanar_positive_area_overlaps": []
+  },
+  "status": "PASS"
+}

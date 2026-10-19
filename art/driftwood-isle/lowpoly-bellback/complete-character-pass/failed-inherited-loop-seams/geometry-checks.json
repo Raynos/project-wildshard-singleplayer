@@ -1,0 +1,949 @@
+{
+  "status": "PASS",
+  "source_sha256": "3cd8f2d13b8ec07f77137e673f5e5aa81b845208997009c80490d5184b89fd52",
+  "meshes": 94,
+  "failures": [],
+  "components": [
+    {
+      "name": "Barrel timber hull",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 2.28515932186761,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left fore timber leg",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.5103214775370598,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left fore shoulder cap",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.3243501941937495,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left fore stone foot",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.16920981739688057,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left fore toe -0.23",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.01757809737468109,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left fore toe 0.23",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.017578100172663237,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left fore shoulder lashing",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.027005428059252382,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left fore shoulder lashing.001",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.027007034457418935,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left hind timber leg",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.4794905826480862,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left hind shoulder cap",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.30393599789682896,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left hind stone foot",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.15913791645411293,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left hind toe -0.23",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.016523107487997443,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left hind toe 0.23",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.016523112522663724,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left hind shoulder lashing",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.025386148728630792,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left hind shoulder lashing.001",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.02538613713452346,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Broken ship rib -1 0",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.12074623322954972,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Broken ship rib -1 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.14353874142286038,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Broken ship rib -1 2",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.13383308601927044,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Rooted lower hull rib -1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.10501254867502824,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Sweeping upper wreck rib -1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.05206380024876044,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Haunch overlapping strake -1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.12534615396406829,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Frame rope knot",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.018208404072417174,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Frame rope knot.001",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.018208403594814012,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Frame rope knot.002",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.018208408553226488,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Frame rope knot.003",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.018208406709345582,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Diagonal binding -1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.01870041940680844,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right fore timber leg",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.5097596447499642,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right fore shoulder cap",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.3251212149667915,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right fore stone foot",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.1693077992316738,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right fore toe -0.23",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.017576012120925154,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right fore toe 0.23",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.01757600972291827,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right fore shoulder lashing",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.027005427756652167,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right fore shoulder lashing.001",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.027003828151796753,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right hind timber leg",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.4791093850366413,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right hind shoulder cap",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.3039602896143967,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right hind stone foot",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.15946579748313394,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right hind toe -0.23",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.016523107487997447,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right hind toe 0.23",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.016523110870100187,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right hind shoulder lashing",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.025386147807994495,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right hind shoulder lashing.001",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.025386136213887196,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Broken ship rib 1 0",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.13012165560446912,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Broken ship rib 1 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.15293831342122727,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Broken ship rib 1 2",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.14298515592549893,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Rooted lower hull rib 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.10619824713237877,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Sweeping upper wreck rib 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.0501181286564918,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Haunch overlapping strake 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.12145064834416457,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Frame rope knot.004",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.01820840387537429,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Frame rope knot.005",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.018208403413966553,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Frame rope knot.006",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.01820840808278955,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Frame rope knot.007",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.018208405791406604,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Diagonal binding 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.01870041940680844,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Lower broken side strake -1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.11727867111202829,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Middle broken side strake -1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.07497377606308589,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Stern diagonal wreck plank -1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.10502414493379177,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left fore outer timber shield",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.22047463304085063,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Lower broken side strake 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.11770330948995358,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Middle broken side strake 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.07913070400253636,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Stern diagonal wreck plank 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.12073547968469317,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right fore outer timber shield",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.22153718554781865,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Tall stern plank",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.09684412375609704,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Arch left",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.11100652748922528,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Arch right",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.11100652748922525,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Crown tie",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.014937968983382354,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Hollow cast bell",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.6409773558290186,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Clapper stem",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.02587264457274092,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Clapper weight",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.05271622371480085,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Solid timber cranium",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.5724970592842245,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Pointed central face keel",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.17800493637160208,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Shaped orbital brow timber",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.03788891916360877,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Lower cheek timber",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.06853367830025416,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Swept cheek horn",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.08599639847290365,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Recessed eye shadow",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.0031616531386245888,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Inset amber eye",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.0005678997449898129,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Crown wood splinter -1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.00028730813979994507,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left fore neck gusset",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.06540941307653586,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Shaped orbital brow timber.001",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.03788891916360882,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Lower cheek timber.001",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.0671398069772113,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Swept cheek horn.001",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.0859963984729036,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Recessed eye shadow.001",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.0031616531386245914,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Inset amber eye.001",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.0005678997449898126,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Crown wood splinter 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.00041628162072475015,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right fore neck gusset",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.06821251207335265,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Mouth dark pocket",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.056278484814873395,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Lower timber jaw",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.06885046310559892,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Ivory upper fang -1 0",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.0013786109534465753,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Ivory upper fang -1 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.0011521821926540447,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Ivory lower jaw -1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.006313053223597392,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Ivory upper fang 1 0",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.001378610953446574,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Ivory upper fang 1 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.0011521821926540454,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Ivory lower jaw 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.006313053223597369,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Left fore connected chest strake",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.15916303027876,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Stern fan broad plank -1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.1261850595019063,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Right fore connected chest strake",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.15852539736770727,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    },
+    {
+      "name": "Stern fan broad plank 1",
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "zero_area_triangles": 0,
+      "signed_volume": 0.14519874889321502,
+      "opposing_native_facets": 0,
+      "smooth_polygons": 0,
+      "invalid_materials": 0
+    }
+  ],
+  "limitations": "No intersection/animation/likeness acceptance; purposeful overlapping closed components"
+}

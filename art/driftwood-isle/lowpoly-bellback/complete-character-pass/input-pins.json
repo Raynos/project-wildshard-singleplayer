@@ -1,0 +1,32 @@
+{
+  "reference": {
+    "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/bellback-lowpoly.webp",
+    "bytes": 198854,
+    "sha256": "92b3a72c20b2e820d843956f8d076fb981af9d4ec9e5669794cb717dd552f4ae"
+  },
+  "baseline_source": {
+    "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/build_bellback_complete.py",
+    "bytes": 17385,
+    "sha256": "e67b9e3ea01996bc5f0dfb9da07ed8800bb3d0052c7d3cc08c77c985732f0aa3"
+  },
+  "baseline_glb": {
+    "path": "art/driftwood-isle/lowpoly-bellback/woody-character-integration/bellback-woody-character-integration.glb",
+    "bytes": 369500,
+    "sha256": "efaf7ebf07d6f18d0c71185ebd2d696e2554af2df57128a484bd7e9d5089135a"
+  },
+  "candidate_source": {
+    "path": "art/driftwood-isle/lowpoly-bellback/complete-character-pass/build_bellback_complete.py",
+    "bytes": 20473,
+    "sha256": "ff889c90fb5c7c0a0974678cc2cf59ccc7cbcdaee38da2ff823809613b78b131"
+  },
+  "candidate_glb": {
+    "path": "art/driftwood-isle/lowpoly-bellback/complete-character-pass/bellback-complete-character-pass.glb",
+    "bytes": 362648,
+    "sha256": "137f14c636f5a81717d3a06cfef612bb8517b7c465df1c23b60417d960389cce"
+  },
+  "capture_script": {
+    "path": "art/driftwood-isle/lowpoly-bellback/complete-character-pass/capture_review.py",
+    "bytes": 5500,
+    "sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+  }
+}

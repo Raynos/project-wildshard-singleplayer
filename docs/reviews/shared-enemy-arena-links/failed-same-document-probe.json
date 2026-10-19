@@ -1,0 +1,34 @@
+{
+  "schema": "wildshard.shared-arena.qa.v1",
+  "startedAt": "2026-10-19T18:01:38.789Z",
+  "errors": [],
+  "checks": {
+    "link:#mantis": true,
+    "link:#conch": false,
+    "link:#colossus": false,
+    "link:#puffer": false,
+    "link:?enemy=conch": true,
+    "link:?opponent=%70uffer": true,
+    "link:#%": true,
+    "link:?enemy=%E0%A4%A": true,
+    "link:#unknown": true,
+    "link:#bellback": false,
+    "link:?enemy=brine-pitcher-matriarch": true,
+    "link:#pearlglass-medusa": true,
+    "link:?opponent=keelmaw": true,
+    "link:#bloomthroat-iguana": true,
+    "lazy": true,
+    "basisOpaqueBytes": true
+  },
+  "enemies": [],
+  "caveat": "Muted cloud Chromium portrait diagnostic, not physical iPhone performance or visual acceptance. Only diagnostic player positioning and real attack input; no enemy clocks/health/AI injection.",
+  "storageBefore": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "databases": [],
+    "workers": 0
+  },
+  "fatal": "locator.tap: Timeout 120000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#arena-start')\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" id=\"arena-start\">Start</button>\u001b[22m\n\u001b[2m  - attempting tap action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying tap action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying tap action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    226 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m        - element is not enabled\u001b[22m\n\u001b[2m      - retrying tap action\u001b[22m\n\u001b[2m        - waiting 500ms\u001b[22m\n",
+  "endedAt": "2026-10-19T18:03:41.525Z"
+}
