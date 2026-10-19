@@ -1,0 +1,45 @@
+{
+  "frozen_at_utc": "2026-10-19T13:23:26.136940+00:00",
+  "scope": "Candidate versus approved original; before matched baseline images or prior score/review records. Construction report was read and contains qualitative historical summaries; this is not a fully blinded review.",
+  "reference": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/splinter-mantis-lowpoly.webp",
+  "inspected_candidate_pngs": [
+    "hero",
+    "front",
+    "back",
+    "left",
+    "right",
+    "top",
+    "diag-front",
+    "diag-back",
+    "diag-left",
+    "diag-right"
+  ],
+  "scores_out_of_5": {
+    "silhouette_proportion": 3.7,
+    "face_expression": 3.6,
+    "defining_details": 4.1,
+    "facet_style": 4.2
+  },
+  "weights": {
+    "silhouette_proportion": 0.35,
+    "face_expression": 0.3,
+    "defining_details": 0.2,
+    "facet_style": 0.15
+  },
+  "exact_weighted_score": 3.825,
+  "target": 4,
+  "meets_target": false,
+  "judgment": "Recognizably the reference creature and cohesive low-poly wood/leaf construction, but long linear armored thorax, thick elbow/shoulder geometry, mask-like narrow beak, regular straight-sided leaf fan and broad flat ivory blade surfaces remain materially less organic and lively than the original.",
+  "view_notes": {
+    "hero": "Strong iconography; mask and chest planes conspicuous, heavy shoulders despite narrowed arms.",
+    "front": "Symmetric humanoid raised-arm read; clear green eyes but rigid mask and triangular chest slabs.",
+    "back": "Leaf color/facets work, still orderly paddle fan with blunt low-poly abdomen.",
+    "left": "Long straight neck dominates; crown spikes and extended pointed mask remain.",
+    "right": "Same long armored diagonal; root fan feels constructed rather than growing.",
+    "top": "Full spatial geometry visible; massive continuous thorax and regular four-leaf arrangement.",
+    "diag-front": "Green eyes readable; inward blade teeth broad, arms angular and heavy.",
+    "diag-back": "Back anatomy plausible interpretation; mostly flat broad leaf panels.",
+    "diag-left": "Paired toes improve feet; side silhouette has a rodlike armored thorax.",
+    "diag-right": "Facets coherent; cheek/jaw and brow still hard planar mask rather than reference expression."
+  }
+}

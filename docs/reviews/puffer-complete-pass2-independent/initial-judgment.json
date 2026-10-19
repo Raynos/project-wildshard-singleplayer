@@ -1,0 +1,41 @@
+{
+  "frozen_at_utc": "2026-10-19T13:23:11.835061+00:00",
+  "phase": "Candidate and approved original inspected; no V71 images or dedicated prior review opened",
+  "blinding_limitation": "Construction report was read to locate the original and exposed historical V71 3.60, paired V71 3.8625, first complete 3.65 and prior V71 preference. This is not fully score-blind. Scores below are independently assigned before actual V71 comparison.",
+  "approved_original": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/brine-puffer-lowpoly.webp",
+  "candidate_views_inspected": [
+    "hero",
+    "01-front",
+    "02-left",
+    "03-right",
+    "04-back",
+    "05-top",
+    "06-elevated-front",
+    "07-elevated-left",
+    "08-elevated-right",
+    "09-elevated-back"
+  ],
+  "scores": {
+    "silhouette_proportion": 3.75,
+    "face_expression": 4.0,
+    "defining_details": 4.0,
+    "facet_style": 3.25
+  },
+  "weights": {
+    "silhouette_proportion": 0.35,
+    "face_expression": 0.3,
+    "defining_details": 0.2,
+    "facet_style": 0.15
+  },
+  "exact_weighted_score": 3.8,
+  "threshold": 4,
+  "threshold_met": false,
+  "observations": [
+    "Recognizable angry teal puffer with dominant crown spike, cream pouch, orange brow and fins, cream-orange tail rim.",
+    "Hero retains a broad flat upper cranial panel and boxy cream jaw, unlike the reference diagonal overlapping crown facets and rounded hanging pouch.",
+    "Side and elevated side frames show horizontal teal flank courses and relatively cylindrical rear fin roots; colour coherence does not solve planar stripe rhythm.",
+    "Front is convincingly angry but eyes and beak read as a narrow horizontal facial band above an oversized squared pouch; reference eyes nest deeper under a downward roof.",
+    "Top and elevated back show orderly sparse diamond spikes and long uniform crown faces rather than the reference irregular broad faceted mass. Hidden rear detail is not exactly determined by original."
+  ],
+  "scope": "Static likeness only; no animation/runtime/admission conclusions"
+}

@@ -1,0 +1,15 @@
+{
+  "frozen_at_utc": "2026-10-19T13:24:30.068700+00:00",
+  "scope": "Matched V7 after all ten baseline PNGs; before reading earlier independent scores.",
+  "scores_out_of_5": {
+    "silhouette_proportion": 3.5,
+    "face_expression": 3.4,
+    "defining_details": 3.9,
+    "facet_style": 4.1
+  },
+  "exact_weighted_score": 3.64,
+  "candidate_exact_weighted_score": 3.825,
+  "candidate_delta": 0.185,
+  "retain_static_best": "complete-pass1",
+  "runtime_baseline": "V7 remains untouched; static preference is not native admission"
+}

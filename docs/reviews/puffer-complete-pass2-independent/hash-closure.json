@@ -1,0 +1,632 @@
+{
+  "verified_at_utc": "2026-10-19T13:26:01.341344+00:00",
+  "original": {
+    "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/brine-puffer-lowpoly.webp",
+    "sha256": "01ba7d0fbfb66bbdd929c975eb75729d7b28cd3aa023db0581df94a718e3d028",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "visually_inspected": true
+  },
+  "initial_judgment_sha256": "4470078dab92e72db308afd4069b0f83fc77c84a0aacf7f1a00eeab8bb2f9b50",
+  "passed": 98,
+  "total": 98,
+  "checks": [
+    {
+      "name": "Exactly twenty captures",
+      "passed": true
+    },
+    {
+      "name": "Raw and published receipts identical",
+      "passed": true
+    },
+    {
+      "name": "v71 native source pin",
+      "passed": true,
+      "path": "art/driftwood-isle/approved-puffer/unaccepted-native-v71.json",
+      "sha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338"
+    },
+    {
+      "name": "pass2 native source pin",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-native.json",
+      "sha256": "15a8a65ed0303e24982799ab395e77cd1d50920e964bbe81a099308e9ffdb762"
+    },
+    {
+      "name": "Render script pin",
+      "passed": true,
+      "sha256": "0b31f44867a28a2b45530e5ba0e28149123242bb240a7dfff0abca371bed38c9"
+    },
+    {
+      "name": "Raw v71-hero.png",
+      "passed": true,
+      "sha256": "fa5096210546f55df7e65088b7b4b2d9b25ecc6c2428c1f627e48cb46a7cee52",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw pass2-hero.png",
+      "passed": true,
+      "sha256": "87d856b67a1b7f6341e0659671723637d5ff86d36581687838919102881f9112",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw v71-01-front.png",
+      "passed": true,
+      "sha256": "598679f0a5b0826219b607968a303ae652f4c52612c19c8504c0f5d8e3ee938e",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw pass2-01-front.png",
+      "passed": true,
+      "sha256": "6ea0cda7847ef14dbdd8277b119ce6487de15318d64093f1705150a37673fbf2",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw v71-02-left.png",
+      "passed": true,
+      "sha256": "3a0dfcba7b2edb74875606e1722257fbd5cdcaa50173629e8f335b69103f8ce1",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw pass2-02-left.png",
+      "passed": true,
+      "sha256": "8a744ffa4d2601f2b881b43a978acb05612390f3c100c54974ddd56e9c86cd72",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw v71-03-right.png",
+      "passed": true,
+      "sha256": "4cda1758c929faf71a3392f6d60631531d3b4859ae9543d2ac1cb65e8d30b86d",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw pass2-03-right.png",
+      "passed": true,
+      "sha256": "d9b2d611affb0bd172af4a5dc4f90d49a94c8f5779e0c7d2e9af44d33d933fce",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw v71-04-back.png",
+      "passed": true,
+      "sha256": "7ec265da4e2314c5f2b492196e590963a3182cee24811702d454a5cf0411f38d",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw pass2-04-back.png",
+      "passed": true,
+      "sha256": "455e3c0793fb8f5635849fde3a0a9bc7c96913a5de088b64aa44f2a2a85aa1e1",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw v71-05-top.png",
+      "passed": true,
+      "sha256": "d72186773a0032f38b1ea192fe41ebe1dd7bb12544880959ee70d318392cc084",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw pass2-05-top.png",
+      "passed": true,
+      "sha256": "4bced294acea0e6baeadad620163e6d6112339bb258ddca6f943e55e0d04ebf7",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw v71-06-elevated-front.png",
+      "passed": true,
+      "sha256": "8136fe72ae24b77e07fc6b8e09b6a98da3ad82788c24b457e0ec7fff15a3c0f7",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw pass2-06-elevated-front.png",
+      "passed": true,
+      "sha256": "909509c7858b38f4b456f2829795e848fbe6a6ad774b99164a4298c1a078ebc0",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw v71-07-elevated-left.png",
+      "passed": true,
+      "sha256": "b7e0a3a07d7b29c0cbd06b39720f03bcf8fe956b24972b3b481bae1b96524ddb",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw pass2-07-elevated-left.png",
+      "passed": true,
+      "sha256": "406d52d1629c766fca98951f4609c675c59f6ad1fba6f813e84d182afee41754",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw v71-08-elevated-right.png",
+      "passed": true,
+      "sha256": "f9fb4c1ca3e0c9a62e8a68cdc890ba3b26abf7258335939b5c531be8e41492a3",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw pass2-08-elevated-right.png",
+      "passed": true,
+      "sha256": "4e7fa0c51d1cea4db8bc3d42e5d78038bb35a0dea68b9282bee3f1bcff195d91",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw v71-09-elevated-back.png",
+      "passed": true,
+      "sha256": "34ce6cb99b2f3d64a4bef235c4841e46b4d86946b1a805b2fd8829bab2858329",
+      "visually_inspected": true
+    },
+    {
+      "name": "Raw pass2-09-elevated-back.png",
+      "passed": true,
+      "sha256": "e1b942e308872327f97cdf9ad3963f1f1cf3f294e9085962978e83479c9bf789",
+      "visually_inspected": true
+    },
+    {
+      "name": "Preview v71-hero.webp",
+      "passed": true,
+      "sha256": "28076c28cabf402c33e8e743a5551429985533ed7e84a3d634c4ee2535e945fb"
+    },
+    {
+      "name": "Preview pass2-hero.webp",
+      "passed": true,
+      "sha256": "a645327c301c6304985c3b64dce67299f6a5f502bb7a9de337cc06c7c5d89e40"
+    },
+    {
+      "name": "Preview v71-01-front.webp",
+      "passed": true,
+      "sha256": "2c30ea5f041d95e6fc9d8f8f1614d1163bd65784bae4375edb63df42df8d53fa"
+    },
+    {
+      "name": "Preview pass2-01-front.webp",
+      "passed": true,
+      "sha256": "1010d86771e4a64cfb10c70d052efa8a168a8123d20c7db0fd5629b1b0123374"
+    },
+    {
+      "name": "Preview v71-02-left.webp",
+      "passed": true,
+      "sha256": "dfd9d712fdd5d092018dd9b48fb555680bad28f8ff63fb2eae378d0c8068cf83"
+    },
+    {
+      "name": "Preview pass2-02-left.webp",
+      "passed": true,
+      "sha256": "076c2091c04bc9677e486344f9b89b0c4e9c9094c0a59d07aa6a76d288ba0d9e"
+    },
+    {
+      "name": "Preview v71-03-right.webp",
+      "passed": true,
+      "sha256": "60638fad960df323f95cfb018d5a4e134c6fea20461789d60bc6ac472359276f"
+    },
+    {
+      "name": "Preview pass2-03-right.webp",
+      "passed": true,
+      "sha256": "e7703e13c0623fb3031c2ff52f3eb10ce9d443994f1415dc515d774d03d40941"
+    },
+    {
+      "name": "Preview v71-04-back.webp",
+      "passed": true,
+      "sha256": "9bc17e8386e72d3e9621121effbdf0f7e08150e12af61d7db2150d3abe269a48"
+    },
+    {
+      "name": "Preview pass2-04-back.webp",
+      "passed": true,
+      "sha256": "b7b877a6871eb2b49a6eb93bca7f432e59775bf46131b413d00c7a4fe534863d"
+    },
+    {
+      "name": "Preview v71-05-top.webp",
+      "passed": true,
+      "sha256": "016755c8e2435dbc703ffd25978d5097d0df77db4a02aa6b17b666199d5892f2"
+    },
+    {
+      "name": "Preview pass2-05-top.webp",
+      "passed": true,
+      "sha256": "59eb1f80d53d526cebb727e809d506e892066ee966b1a47d5a251b459cdc2a17"
+    },
+    {
+      "name": "Preview v71-06-elevated-front.webp",
+      "passed": true,
+      "sha256": "ba75887d14a8eb7574e27850a8413dca2d1defcc819f529038d21c2f59bb5f57"
+    },
+    {
+      "name": "Preview pass2-06-elevated-front.webp",
+      "passed": true,
+      "sha256": "62de3967b3f5fca7b2a309e32410eebaa5525cf999a5bebea190f04565f2c701"
+    },
+    {
+      "name": "Preview v71-07-elevated-left.webp",
+      "passed": true,
+      "sha256": "60f6a8a9da3ad1f8e916c9123e048865307f35827eed87b2a6328920a19ae344"
+    },
+    {
+      "name": "Preview pass2-07-elevated-left.webp",
+      "passed": true,
+      "sha256": "a1b937573ace4e74f2ba7be30a97e9cac3925b38237ba95611603008d8548874"
+    },
+    {
+      "name": "Preview v71-08-elevated-right.webp",
+      "passed": true,
+      "sha256": "a9e03a6f8bbcc78c2da8e0ac0caff9664d1df3f79a4ecb1660c8a9677c4c210a"
+    },
+    {
+      "name": "Preview pass2-08-elevated-right.webp",
+      "passed": true,
+      "sha256": "bb09eb3162e7eb5a372cf77d85a9f757ad537e79568cc5719629630df18e02dd"
+    },
+    {
+      "name": "Preview v71-09-elevated-back.webp",
+      "passed": true,
+      "sha256": "5e2d2b545e3137f2e7f7d7b61206b633f8361fb8c8217860cbac421d5d4ff24e"
+    },
+    {
+      "name": "Preview pass2-09-elevated-back.webp",
+      "passed": true,
+      "sha256": "a48eaf4a659cdde1fbb36a5e59b8196d586f50fe6dbf56ed1c584330f0da1c2a"
+    },
+    {
+      "name": "Output closure audit_fin_roots.py",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/audit_fin_roots.py"
+    },
+    {
+      "name": "Output closure audit_glb_roundtrip.py",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/audit_glb_roundtrip.py"
+    },
+    {
+      "name": "Output closure audit_topology.py",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/audit_topology.py"
+    },
+    {
+      "name": "Output closure build_candidate.py",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/build_candidate.py"
+    },
+    {
+      "name": "Output closure capture-receipt.json",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/capture-receipt.json"
+    },
+    {
+      "name": "Output closure construction-receipt.json",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/construction-receipt.json"
+    },
+    {
+      "name": "Output closure evidence-manifest.json",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/evidence-manifest.json"
+    },
+    {
+      "name": "Output closure export_glb.py",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/export_glb.py"
+    },
+    {
+      "name": "Output closure fin-root-audit.json",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/fin-root-audit.json"
+    },
+    {
+      "name": "Output closure focused-tests.json",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/focused-tests.json"
+    },
+    {
+      "name": "Output closure glb-export-receipt.json",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/glb-export-receipt.json"
+    },
+    {
+      "name": "Output closure glb-roundtrip-audit.json",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/glb-roundtrip-audit.json"
+    },
+    {
+      "name": "Output closure glb-validation.json",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/glb-validation.json"
+    },
+    {
+      "name": "Output closure hero-comparison-board.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/hero-comparison-board.webp"
+    },
+    {
+      "name": "Output closure pass2-01-front.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-01-front.webp"
+    },
+    {
+      "name": "Output closure pass2-02-left.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-02-left.webp"
+    },
+    {
+      "name": "Output closure pass2-03-right.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-03-right.webp"
+    },
+    {
+      "name": "Output closure pass2-04-back.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-04-back.webp"
+    },
+    {
+      "name": "Output closure pass2-05-top.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-05-top.webp"
+    },
+    {
+      "name": "Output closure pass2-06-elevated-front.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-06-elevated-front.webp"
+    },
+    {
+      "name": "Output closure pass2-07-elevated-left.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-07-elevated-left.webp"
+    },
+    {
+      "name": "Output closure pass2-08-elevated-right.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-08-elevated-right.webp"
+    },
+    {
+      "name": "Output closure pass2-09-elevated-back.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-09-elevated-back.webp"
+    },
+    {
+      "name": "Output closure pass2-hero.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-hero.webp"
+    },
+    {
+      "name": "Output closure pass2-native.json",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-native.json"
+    },
+    {
+      "name": "Output closure pass2-nine-view-sheet.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-nine-view-sheet.webp"
+    },
+    {
+      "name": "Output closure pass2-study.glb",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/pass2-study.glb"
+    },
+    {
+      "name": "Output closure prepare_evidence.py",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/prepare_evidence.py"
+    },
+    {
+      "name": "Output closure render_matched.py",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/render_matched.py"
+    },
+    {
+      "name": "Output closure test_static.py",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/test_static.py"
+    },
+    {
+      "name": "Output closure topology-preflight-failure.json",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/topology-preflight-failure.json"
+    },
+    {
+      "name": "Output closure v71-01-front.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-01-front.webp"
+    },
+    {
+      "name": "Output closure v71-02-left.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-02-left.webp"
+    },
+    {
+      "name": "Output closure v71-03-right.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-03-right.webp"
+    },
+    {
+      "name": "Output closure v71-04-back.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-04-back.webp"
+    },
+    {
+      "name": "Output closure v71-05-top.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-05-top.webp"
+    },
+    {
+      "name": "Output closure v71-06-elevated-front.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-06-elevated-front.webp"
+    },
+    {
+      "name": "Output closure v71-07-elevated-left.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-07-elevated-left.webp"
+    },
+    {
+      "name": "Output closure v71-08-elevated-right.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-08-elevated-right.webp"
+    },
+    {
+      "name": "Output closure v71-09-elevated-back.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-09-elevated-back.webp"
+    },
+    {
+      "name": "Output closure v71-hero.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-hero.webp"
+    },
+    {
+      "name": "Output closure v71-nine-view-sheet.webp",
+      "passed": true,
+      "path": "art/driftwood-isle/puffer-complete-remaster/pass2/v71-nine-view-sheet.webp"
+    },
+    {
+      "name": "Output closure puffer-complete-pass2-construction.md",
+      "passed": true,
+      "path": "docs/reviews/puffer-complete-pass2-construction.md"
+    },
+    {
+      "name": "Matched camera 01-front",
+      "passed": true,
+      "camera": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2
+    },
+    {
+      "name": "Matched camera 02-left",
+      "passed": true,
+      "camera": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2
+    },
+    {
+      "name": "Matched camera 03-right",
+      "passed": true,
+      "camera": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2
+    },
+    {
+      "name": "Matched camera 04-back",
+      "passed": true,
+      "camera": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2
+    },
+    {
+      "name": "Matched camera 05-top",
+      "passed": true,
+      "camera": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2
+    },
+    {
+      "name": "Matched camera 06-elevated-front",
+      "passed": true,
+      "camera": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2
+    },
+    {
+      "name": "Matched camera 07-elevated-left",
+      "passed": true,
+      "camera": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2
+    },
+    {
+      "name": "Matched camera 08-elevated-right",
+      "passed": true,
+      "camera": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2
+    },
+    {
+      "name": "Matched camera 09-elevated-back",
+      "passed": true,
+      "camera": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2
+    },
+    {
+      "name": "Matched camera hero",
+      "passed": true,
+      "camera": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ],
+      "target": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ],
+      "scale": 3.2
+    }
+  ],
+  "source_review": "render_matched.py loads both pinned native arrays before capture loop; fixed shared vertex-colour material, three lights, cameras, seed 0, 24 Cycles samples and AgX. Object visibility selects complete variants, with no per-camera geometry edits. Native axes reordered consistently, triangle winding corrected. Source inspected, not re-rendered.",
+  "limits": [
+    "Receipt, bytes and renderer consistency verified; no independent rerender or inspection.blend dependency audit.",
+    "No runtime, animation, continuous attachment, collider or admission claims."
+  ]
+}
