@@ -345,7 +345,8 @@
         "src/sdk/bake/source-loader.mjs",
         "scripts/bake-output.mjs",
         "package.json",
-        "pnpm-lock.yaml"
+        "pnpm-lock.yaml",
+        "src/shards/nalati-grasslands/behaviour"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/species.generated.json",
