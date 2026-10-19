@@ -10572,7 +10572,6 @@
         "src/shards/nine-dragon-stack/generators/physicsPlacements.ts",
         "src/shards/nine-dragon-stack/generators/portalFloors.ts",
         "src/shards/nine-dragon-stack/generators/stairPlan.ts",
-        "src/shards/nine-dragon-stack/layout.ts",
         "src/format/inputDeclarations.ts"
       ],
       "outputs": [
