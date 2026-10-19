@@ -49,6 +49,29 @@ export type DressPlan = v.InferOutput<typeof DRESSING_PLAN>;
 export const CAMP_CLUTTER = v.array(v.object({ x: dressNumber, z: dressNumber, yaw: dressNumber, kind: dressNumber }));
 export type ClutterSpots = v.InferOutput<typeof CAMP_CLUTTER>;
 
+/** Decode the numeric placement table without rounding its authored doubles. */
+export function readDressingTable(bytes: Uint8Array): Record<string, number>[] {
+  const invalid = new Error('Invalid dressing placement table');
+  if (bytes.byteLength < 16) throw invalid;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (view.getUint32(0, true) !== 0x3150444e) throw invalid;
+  const count = view.getUint32(4, true), width = view.getUint32(8, true), header = view.getUint32(12, true);
+  if (count > 100_000 || width < 1 || width > 32 || header > 2048 || header < 1 || bytes.length !== 16 + header + count * width * 8) throw invalid;
+  const keys = new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(16, 16 + header)).split('\0');
+  if (keys.length !== width || new Set(keys).size !== width || keys.some(key => !/^[a-zA-Z][a-zA-Z0-9]{0,30}$/u.test(key))) throw invalid;
+  return Array.from({ length: count }, (_, row) => Object.fromEntries(keys.map((key, column) => {
+    const value = view.getFloat64(16 + header + (row * width + column) * 8, true);
+    if (!Number.isFinite(value)) throw invalid;
+    return [key, value];
+  })));
+}
+
+/** Only the two dense numeric scatter tables use the binary wire. */
+export async function readDressingRows(product: { file: (name: string) => Promise<Uint8Array> }, key: string): Promise<unknown> {
+  if (key === 'stone' || key === 'daisy') return readDressingTable(await product.file(`world/dressing-${key}.bin`));
+  return JSON.parse(new TextDecoder().decode(await product.file(`world/dressing-${key}.json`)));
+}
+
 function dressingGeo(key: string): THREE.BufferGeometry {
   const geometry = bakedDressingGeo(key); if (geometry === null) throw new Error(`Missing dressing shape ${key}`); return geometry;
 }
@@ -120,8 +143,7 @@ export class NalatiDressing {
   async build(product: { file: (name: string) => Promise<Uint8Array> }, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
     let t0 = diagnosticNow();
     const lap = (k: string) => { const t = diagnosticNow(); this.timings[k] = Math.round(t - t0); t0 = t; };
-    const read = async (key: string): Promise<unknown> => JSON.parse(new TextDecoder().decode(await product.file(`world/dressing-${key}.json`)));
-    const entries = await Promise.all(Object.keys(DRESSING_PLAN.entries).map(async key => [key, await read(key)]));
+    const entries = await Promise.all(Object.keys(DRESSING_PLAN.entries).map(async key => [key, await readDressingRows(product, key)]));
     const plan = this.plan = v.parse(DRESSING_PLAN, Object.fromEntries(entries));
     lap('plan');
     await yieldTask();

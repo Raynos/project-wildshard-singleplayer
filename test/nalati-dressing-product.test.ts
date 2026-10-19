@@ -1,7 +1,10 @@
 import { expect, test } from 'vitest';
+import { packDressingTable } from '../src/shards/nalati-grasslands/generators/dressingTable';
+import stone from '../src/shards/nalati-grasslands/data/dressing-stone.generated.json' with { type: 'json' };
+import daisy from '../src/shards/nalati-grasslands/data/dressing-daisy.generated.json' with { type: 'json' };
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
-import { DRESSING_PLAN, CAMP_CLUTTER } from '../src/shards/nalati-grasslands/world/declaredDressing';
+import { DRESSING_PLAN, CAMP_CLUTTER, readDressingRows, readDressingTable } from '../src/shards/nalati-grasslands/world/declaredDressing';
 import cover from '../src/shards/nalati-grasslands/boot/cover.generated.json' with { type: 'json' };
 import { AmbientGroup } from '../src/game/ambient/flock';
 import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
@@ -29,14 +32,15 @@ test('prepared ambient rows keep both tier populations and finite flight at 10 H
 
 test('Nalati admits every shipping dressing groups and camp keep-out population', async () => {
   const loaded = await readProjectAssets('src/shards/nalati-grasslands');
-  const read = (key: string): unknown => {
-    const file = loaded.output.namedFiles?.find(row => row.name === `world/dressing-${key}.json`);
+  const read = (key: string): Uint8Array => {
+    const file = loaded.output.namedFiles?.find(row => row.name === key);
     const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
     if (bytes === undefined) throw new Error(`Missing admitted dressing ${key}`);
-    return JSON.parse(new TextDecoder().decode(bytes));
+    return bytes;
   };
-  const plan = v.parse(DRESSING_PLAN, Object.fromEntries(Object.keys(DRESSING_PLAN.entries).map(key => [key, read(key)])));
-  const clutter = v.parse(CAMP_CLUTTER, read('clutter'));
+  const product = { file: (name: string) => Promise.resolve(read(name)) };
+  const plan = v.parse(DRESSING_PLAN, Object.fromEntries(await Promise.all(Object.keys(DRESSING_PLAN.entries).map(async key => [key, await readDressingRows(product, key)]))));
+  const clutter = v.parse(CAMP_CLUTTER, await readDressingRows(product, 'clutter'));
   const populations = {
     boulder: 1900, slab: 1579, stone: 19791, juniper: 278, rose: 136, willow: 230,
     lupin: 2778, daisy: 8811, reed: 1050, logs: 17, stumps: 11, ovoos: 9,
@@ -50,3 +54,19 @@ test('Nalati admits every shipping dressing groups and camp keep-out population'
   }
   expect(clutter).toHaveLength(48);
 }, 30_000);
+
+
+test('numeric dressing tables retain every authored double and reject corrupt payloads', () => {
+  for (const rows of [stone, daisy]) {
+    const packed = packDressingTable(rows);
+    expect(readDressingTable(packed)).toEqual(rows);
+    expect(packed.length).toBeLessThan(new TextEncoder().encode(JSON.stringify(rows)).length);
+    expect(() => readDressingTable(packed.subarray(1))).toThrow();
+    expect(() => readDressingTable(packed.subarray(0, -1))).toThrow();
+    const corrupt = packed.slice();
+    new DataView(corrupt.buffer).setFloat64(corrupt.length - 8, Number.NaN, true);
+    expect(() => readDressingTable(corrupt)).toThrow();
+  }
+  expect(() => packDressingTable([{ x: 1 }, { x: 2, y: 3 }])).toThrow();
+  expect(() => packDressingTable([{ x: Infinity }])).toThrow();
+});
