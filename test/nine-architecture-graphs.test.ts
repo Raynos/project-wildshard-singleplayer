@@ -4,8 +4,10 @@ import { heldGraphFiles } from '../src/shards/nine-dragon-stack/generators/heldG
 import { compositeRows } from '../src/shards/nine-dragon-stack/generators/composite';
 import { postRows } from '../src/shards/nine-dragon-stack/generators/postGraphs';
 import { haloGraph } from '../src/shards/nine-dragon-stack/generators/haloGraph';
-import { ScaledPostPass, prepareScaledPost } from '../src/game/looks/scaledPost';
+import { PostRowEffect, postChainEffects, postChainPasses, ScaledPostPass, prepareScaledPost } from '../src/game/looks/scaledPost';
 import type { ScaledPostRow } from '../src/format/scaledPost';
+import { postChainRows } from '../src/shards/nalati-grasslands/generators/postChain';
+import { BloomEffect, EffectPass, RenderPass, EffectAttribute } from 'postprocessing';
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
@@ -173,7 +175,7 @@ test('a second shard fixture drives resized post targets and skips gated outputs
 
 
 test('the final ink Effect source is fully expanded by the boot author', () => {
-  const { source, bleed } = compositeRows();
+  const { effect: { source }, bleed } = compositeRows();
   expect(source).not.toMatch(/@\{|\$\{|undefined/);
   expect(source).toContain('void mainImage(');
   expect(source).toContain('vec4 silkFog(');
@@ -193,4 +195,31 @@ test('held draw rows compile aliased GLB buffers and ribbon channels', () => {
     if (id === 'nine-vm-trail') expect(shaders.vertex, id).toContain('aAge');
     if (id === 'nine-vm-edge') expect(shaders.vertex, id).toContain('aTan');
   }
+});
+
+
+test('both shard post rows retain tier schedules and live uniform replacements', () => {
+  const render = renderer(), camera = new THREE.PerspectiveCamera(), scene = new THREE.Scene();
+  const target = new THREE.WebGLRenderTarget(400, 800), rows = postChainRows();
+  const gain = { value: 1 }, image = { value: new THREE.Texture() };
+  const ink = new PostRowEffect(compositeRows().effect, { gain, image });
+  const desktop = postChainPasses(rows.chain, { scene, camera, tier: 'desktop' }, { gain });
+  const phone = postChainPasses(rows.chain, { scene, camera, tier: 'phone' }, { gain });
+  const desktopEffects = postChainEffects(rows.chain, 'desktop', { gain }), phoneEffects = postChainEffects(rows.chain, 'phone', { gain });
+  try {
+    expect(ink.getAttributes() & EffectAttribute.DEPTH).toBe(EffectAttribute.DEPTH);
+    expect(ink.u.gain).toBe(gain);
+    gain.value = 0.4; const oldImage = image.value; image.value = new THREE.Texture();
+    ink.update(render, target);
+    expect(ink.uniforms.get('gain')?.value).toBe(0.4);
+    expect(ink.uniforms.get('image')?.value).toBe(image.value);
+    expect(desktop[0]).toBeInstanceOf(RenderPass); expect(phone[0]).toBeInstanceOf(RenderPass);
+    expect(desktop[1]).toBeInstanceOf(EffectPass); expect(phone[1]).toBeInstanceOf(EffectPass);
+    expect(desktopEffects.filter(effect => effect instanceof BloomEffect)).toHaveLength(1);
+    expect(phoneEffects.filter(effect => effect instanceof BloomEffect)).toHaveLength(0);
+    expect(phoneEffects.filter(effect => effect instanceof PostRowEffect)).toHaveLength(1);
+    expect(rows.chain.effect.source).toContain('void mainImage(');
+    expect(rows.chain.effect.source).not.toMatch(/@\{|undefined/);
+    oldImage.dispose(); image.value.dispose();
+  } finally { ink.dispose(); for (const effect of [...desktopEffects, ...phoneEffects]) effect.dispose(); for (const pass of [...desktop, ...phone]) pass.dispose(); target.dispose(); }
 });

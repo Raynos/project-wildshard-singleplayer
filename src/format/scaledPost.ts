@@ -23,3 +23,25 @@ export interface ScaledPostRow {
   readonly outputs: Readonly<Record<string, string>>;
   readonly drawnOnly?: boolean;
 }
+
+/** A terminal colour program authored before the client loads its chain. */
+export interface PostEffectRow {
+  readonly name: string;
+  readonly source: string;
+  readonly depth?: boolean;
+  readonly blend?: 'src' | 'normal';
+}
+/** Full replacement chains and side-target chains use the same terminal effect. */
+export interface PostChainRow {
+  readonly scene: boolean;
+  readonly effect: PostEffectRow;
+  readonly bloom?: {
+    readonly tiers: readonly string[];
+    readonly intensity: number;
+    readonly threshold: number;
+    readonly smoothing: number;
+    readonly radius: number;
+    /** Omitted: the live engine tier's bloom quality. */
+    readonly levels?: number;
+  };
+}

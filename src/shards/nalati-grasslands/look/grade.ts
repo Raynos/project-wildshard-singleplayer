@@ -11,35 +11,20 @@
  * (`V2_UNGRADE` in GLSL, `ungrade()` on the CPU): they write the scene-linear value the grade maps back onto the
  * painting. The dome and the fog share it, so 3D fades into the painting with no step.
  */
-import type * as THREE from 'three';
-import { Effect, BlendFunction, RenderPass, EffectPass, BloomEffect, type Pass } from 'postprocessing';
-import { TIER_CONFIG, type Tier } from '@wildshard/engine/core/tier';
+import type { Pass } from 'postprocessing';
 import type { EngineKnobs, LookReplaceContext } from '@wildshard/engine/render/look';
+import type { Tier } from '@wildshard/engine/core/tier';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { GRADE_GLSL } from '../runtime/looks/gradeGlsl';
+import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
+import { PostRowEffect, postChainPasses } from '@wildshard/game/looks/scaledPost';
+import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 
-/** the GLSL below is trusted custom code (runtime/looks/gradeGlsl.ts); `@{name}` splices the fragments this module passes */
-const GRADE_GLSL_FAMILY = new ShaderFamily(GRADE_GLSL, {});
-
-/** the grade's live knobs (shared uniform objects: the grade effect and every inverse read them) */
-export const gradeUniforms = {
-  uV2Exposure: { value: 1.0 },
-  uV2Sat: { value: 1.05 },
-  /** the hour's saturation on top (the rig's keys: night greys out), applied last — outside what the inverse undoes, so it
-   *  greys the painted sky with the world instead of being cancelled on it */
-  uV2LookSat: { value: 1.0 },
-};
+const rows = metadata.postChain;
+export const gradeUniforms = uniformsFrom(rows.uniforms);
 if (typeof window !== 'undefined') Object.assign(window, { __gradeV2: gradeUniforms });
+const { shadow: SHADOW, light: LIGHT, lum: LUM } = rows;
 
-const SHADOW = [0.92, 0.96, 1.05] as const;
-const LIGHT = [1.07, 0.99, 0.84] as const;
-const LUM = [0.2126, 0.7152, 0.0722] as const;
-
-/** GLSL: `vec3 v2Grade(vec3 sceneLinear)` → display-linear, `vec3 v2Ungrade(vec3 displayLinear)` → scene-linear */
-export const V2_GRADE_GLSL = GRADE_GLSL_FAMILY.glsl(GRADE_GLSL.V2_GRADE_GLSL, { SHADOW_TONE: SHADOW.join(', '), LIGHT_TONE: LIGHT.join(', ') });
-
-const lum = (c: readonly [number, number, number]): number => c[0] * LUM[0] + c[1] * LUM[1] + c[2] * LUM[2];
+const lum = (c: readonly [number, number, number]): number => c[0] * (LUM[0] ?? 0) + c[1] * (LUM[1] ?? 0) + c[2] * (LUM[2] ?? 0);
 
 /** the CPU copy of `v2Ungrade` (display-linear → scene-linear), in place on a 3-tuple */
 export function ungrade(y: [number, number, number]): [number, number, number] {
@@ -64,44 +49,11 @@ export function ungrade(y: [number, number, number]): [number, number, number] {
   return y;
 }
 
-/** the grade as the v2 chain's one effect */
-export class GradeV2Effect extends Effect {
-  /** `blendFunction`: SRC in its own chain; NORMAL where another chain fades it in (`lookV2EngineKnobs`) */
-  constructor(blendFunction: BlendFunction = BlendFunction.SRC) {
-    super('GradeV2Effect', GRADE_GLSL_FAMILY.glsl(GRADE_GLSL.effect, { V2_GRADE_GLSL }), {
-      blendFunction,
-      uniforms: new Map<string, THREE.Uniform>([
-        ['uV2Exposure', gradeUniforms.uV2Exposure as THREE.Uniform],
-        ['uV2Sat', gradeUniforms.uV2Sat as THREE.Uniform],
-        ['uV2LookSat', gradeUniforms.uV2LookSat as THREE.Uniform],
-      ]),
-    });
-  }
-}
-
-/** the v2 chain's desktop bloom (the phone blooms nothing) */
-const V2_BLOOM = { intensity: 0.28, threshold: 0.95, smoothing: 0.3 } as const;
-
-/**
- * The v2 chain as engine knobs (SF63, `ReplaceLook.engineKnobs`): what a page's engine chain carries inside Nalati's grid
- * cell — the desktop bloom, no vignette, no god rays, no AO, and its own grade in place of the engine's tone mapping.
- */
+/** Grid cells retain the same engine knobs and live display uniforms. */
 export function lookV2EngineKnobs(tier: Tier): EngineKnobs {
-  return { bloom: tier === 'desktop' ? V2_BLOOM : null, vignette: 0, rays: 0, ao: false, display: () => new GradeV2Effect(BlendFunction.NORMAL) };
+  return { bloom: rows.chain.bloom.tiers.includes(tier) ? rows.chain.bloom : null, vignette: 0, rays: 0, ao: false,
+    display: () => new PostRowEffect({ ...rows.chain.effect, blend: 'normal' }, gradeUniforms) };
 }
 
-/**
- * The v2 chain, the look's `mode: 'replace'` compose (render.ts): RenderPass → one EffectPass (desktop: bloom, then the
- * grade; phone: the grade alone). The engine's one composer holds them; its MSAA (×4, phone ×2 — the fill rate of ×4 at
- * DPR 1.5 on a tile GPU, for edges the grass hides anyway — none while the player turned anti-aliasing off) is the
- * manifest's `msaa` tier knob.
- */
-export function lookV2Passes(c: Pick<LookReplaceContext, 'scene' | 'camera' | 'tier'>): Pass[] {
-  const scene = new RenderPass(c.scene, c.camera);
-  const grade = new GradeV2Effect();
-  if (c.tier === 'desktop') {
-    const bloom = new BloomEffect({ intensity: V2_BLOOM.intensity, luminanceThreshold: V2_BLOOM.threshold, luminanceSmoothing: V2_BLOOM.smoothing, mipmapBlur: true, radius: 0.7, levels: TIER_CONFIG.bloomLevels });
-    return [scene, new EffectPass(c.camera, bloom, grade)];
-  }
-  return [scene, new EffectPass(c.camera, grade)];
-}
+/** Native view context and observations bind to the authored post schedule. */
+export const lookV2Passes = (c: Pick<LookReplaceContext, 'scene' | 'camera' | 'tier'>): Pass[] => postChainPasses(rows.chain, c, gradeUniforms);

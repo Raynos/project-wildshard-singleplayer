@@ -1,12 +1,41 @@
-import { Color, HalfFloatType, LinearFilter, NearestFilter, type PerspectiveCamera, Texture, UnsignedByteType, Vector2, Vector3, Vector4, WebGLRenderTarget, type Material, type TextureDataType } from 'three';
-import { Pass } from 'postprocessing';
+import { Color, HalfFloatType, LinearFilter, NearestFilter, type PerspectiveCamera, type Scene, Texture, Uniform, UnsignedByteType, Vector2, Vector3, Vector4, WebGLRenderTarget, type Material, type TextureDataType } from 'three';
+import { Pass, Effect, BlendFunction, EffectAttribute, BloomEffect, EffectPass, RenderPass } from 'postprocessing';
 import { loadGraphCompiler, type GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { validateGraph } from '@wildshard/format/materialGraph';
-import type { PostPackTerm, ScaledPostRow } from '@wildshard/format/scaledPost';
+import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import type { PostChainRow, PostEffectRow, PostPackTerm, ScaledPostRow } from '@wildshard/format/scaledPost';
 import { BLEND_ADD_KEEP_ALPHA, type UniformMap } from '../plugin/shaderFamily';
 
 const compilers = new WeakMap<Renderer, GraphCompiler>();
+/** Client-only terminal program. Linked observations retain their live identity;
+ * only the postprocessing Uniform wrappers are owned by this effect. */
+export class PostRowEffect<U extends UniformMap> extends Effect {
+  private readonly bindings: readonly { readonly row: UniformMap[string]; readonly uniform: Uniform<unknown> }[];
+  constructor(row: PostEffectRow, readonly u: U) {
+    const bindings = Object.entries(u).map(([name, linked]) => ({ name, row: linked, uniform: new Uniform<unknown>(linked.value) }));
+    super(row.name, row.source, { blendFunction: row.blend === 'normal' ? BlendFunction.NORMAL : BlendFunction.SRC,
+      attributes: row.depth === true ? EffectAttribute.DEPTH : EffectAttribute.NONE,
+      uniforms: new Map(bindings.map(({ name, uniform }) => [name, uniform])) });
+    this.bindings = bindings;
+  }
+  override update(_renderer: Renderer, _input: WebGLRenderTarget, _deltaTime?: number): void {
+    for (const binding of this.bindings) binding.uniform.value = binding.row.value;
+  }
+}
+/** Colour effects in their declared tier order, with live uniform observations. */
+export function postChainEffects(row: PostChainRow, tier: string, uniforms: UniformMap): Effect[] {
+  const effects: Effect[] = [];
+  const b = row.bloom;
+  if (b?.tiers.includes(tier) === true) effects.push(new BloomEffect({ intensity: b.intensity,
+    luminanceThreshold: b.threshold, luminanceSmoothing: b.smoothing, mipmapBlur: true, radius: b.radius, levels: b.levels ?? TIER_CONFIG.bloomLevels }));
+  effects.push(new PostRowEffect(row.effect, uniforms));
+  return effects;
+}
+/** Construct a declared scene/bloom/colour chain; no shard factories or callbacks. */
+export function postChainPasses(row: PostChainRow, context: { readonly scene: Scene; readonly camera: PerspectiveCamera; readonly tier: string }, uniforms: UniformMap): Pass[] {
+  return [...(row.scene ? [new RenderPass(context.scene, context.camera)] : []), new EffectPass(context.camera, ...postChainEffects(row, context.tier, uniforms))];
+}
 /** Prepare the client backend during async world loading, before synchronous composer construction. */
 export async function prepareScaledPost(renderer: Renderer): Promise<void> { compilers.set(renderer, await loadGraphCompiler(renderer)); }
 /** Generic client-only post executor: all differences between shards are graphs and rows. */

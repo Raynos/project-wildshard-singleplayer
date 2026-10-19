@@ -4,8 +4,8 @@
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
 // `window.__wildshard.shard['nd.render']` (captures / A/B, no URL switch): the live pieces and their switches.
-import { Color, Fog, Matrix4, Mesh, type Object3D, PerspectiveCamera, ShaderMaterial, type Texture, Uniform, type Vector2, Vector4 } from 'three';
-import { Pass, Effect, BlendFunction, EffectAttribute } from 'postprocessing';
+import { Color, Fog, Matrix4, type Object3D, PerspectiveCamera, type Texture, type Vector2, Vector4 } from 'three';
+import { Pass } from 'postprocessing';
 import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
 import type { Tier } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -17,7 +17,7 @@ import metadata, { composite, PLAZA, STAIR, STREET, WELL, Y0 } from '../boot/met
 import type { LookRows, CompositeRows } from '../boot/lookTypes.generated';
 import { clearLanterns } from './lanterns';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
-import { ScaledPostPass as RowRenderPass, prepareScaledPost } from '@wildshard/game/looks/scaledPost';
+import { PostRowEffect, ScaledPostPass as RowRenderPass, prepareScaledPost } from '@wildshard/game/looks/scaledPost';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 
@@ -101,10 +101,6 @@ export interface NdRenderHandle {
 
 /** how much of an on-screen emitter's streak card stays once the reflection mirrors it */
 const CARD_ON = 0.6;
-/** (E281) the phone has no screen-space reflection: its cards are the whole wet-ground reflection, at full strength
- *  (pass 2's ×1.5 drew a curtain of colour over the stone the mockups keep visible) */
-const PHONE_CARD_GAIN = 1;
-
 /** (E281) the painted sky draws after the world's opaques (the viewmodels' depth clearer sits at 999): with its depth
  *  test at the far plane it then shades only where the sky shows — the skyline's layers cost nothing under the city */
 const SKY_ORDER = 900;
@@ -115,10 +111,10 @@ function jiehuaEffect(view: PerspectiveCamera, shared: Shared, glow: ReturnType<
   const u = { ...uniformsFrom((composite as CompositeRows).uniforms), ...s, ...glow, ...grade, uInk: s.uInk0,
     uInvProj: { value: view.projectionMatrixInverse }, uCamWorld: { value: view.matrixWorld },
     tTight: { value: null as Texture | null }, tWide: { value: null as Texture | null }, tHaze: { value: null as Texture | null }, tRefl: { value: null as Texture | null } };
-  const bindings = Object.entries(u).map(([name, row]) => ({ name, row, uniform: new Uniform<unknown>(row.value) }));
-  const effect = Object.assign(new Effect('NdJiehuaEffect', composite.source, { blendFunction: BlendFunction.SRC, attributes: EffectAttribute.DEPTH, uniforms: new Map(bindings.map(({ name, uniform }) => [name, uniform])) }),
+  const effect = Object.assign(new PostRowEffect((composite as CompositeRows).effect, u),
     { u, source: null as RowRenderPass | null, haze: null as RowRenderPass | null, refl: null as RowRenderPass | null, rainHaze: 6, sharpen: 0.35, pose: null as (() => void) | null });
-  effect.update = (renderer, input): void => {
+  const sync = effect.update.bind(effect);
+  effect.update = (renderer, input, deltaTime): void => {
     effect.pose?.();
     u.tTight.value = effect.source?.output('tight') ?? null; u.tWide.value = effect.source?.output('wide') ?? null;
     u.uHasBleed.value = u.tTight.value === null || u.tWide.value === null ? 0 : 1;
@@ -126,7 +122,7 @@ function jiehuaEffect(view: PerspectiveCamera, shared: Shared, glow: ReturnType<
     u.tRefl.value = effect.refl?.output('reflection') ?? null; u.uReflK.value = u.tRefl.value === null ? 0 : effect.refl?.debugGain ?? 1;
     u.uTexel.value.set(1 / input.width, 1 / input.height); u.uNF.value.set(view.near, view.far);
     u.uRain.value.w = renderer.getPixelRatio(); u.uSharp.value = renderer.getPixelRatio() < 2.5 ? effect.sharpen : 0;
-    for (const binding of bindings) binding.uniform.value = binding.row.value;
+    sync(renderer, input, deltaTime);
   };
   return effect;
 }
@@ -201,14 +197,6 @@ function buildComposite(camera: PerspectiveCamera, tier: Tier, glow: ReturnType<
 /** the drawing buffer the screen-space pieces measure: what `frame` reads of a renderer */
 interface Buffer { getPixelRatio: () => number; getDrawingBufferSize: (target: Vector2) => Vector2 }
 
-/** (E281) the phone's streak cards at their full wet-ground gain */
-function phoneCardGain(streaks: readonly Object3D[]): void {
-  for (const o of streaks) {
-    const k = o instanceof Mesh && o.material instanceof ShaderMaterial ? o.material.uniforms['uCardK'] : undefined;
-    if (k !== undefined && k.value instanceof Vector4) k.value.x *= PHONE_CARD_GAIN;
-  }
-}
-
 export function shardRender(): LookStrategy {
   let handle: NdRenderHandle | null = null;
   // the painted sky (world/build.ts, the 'nine-sky' look) is a sphere round the eye: it stands on uCam (the root's frame)
@@ -254,10 +242,9 @@ export function shardRender(): LookStrategy {
         const { reflect, haze, bleed, jiehua, pose } = buildComposite(c.camera, c.tier, glow, grade, c.renderer, ndRuntime().world.root);
         // its scene-side parts, as compose sets them: the streak cards' gain (the whole wet-floor reflection where no
         // reflection pass runs) and, without the bleed pyramid, the phone's light halos
-        const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.root, 'uCardOn');
+        const { uniforms: cardOns } = meshesWithUniform(c.root, 'uCardOn');
         for (const u of cardOns) u.value = reflect === null ? 1 : CARD_ON;
         setStreakOn(reflect === null ? 1 : CARD_ON);
-        if (reflect === null) phoneCardGain(streaks);
         return { display: jiehua, passes: reflect === null || haze === null || bleed === null ? [] : [...(pose === null ? [] : [new PoseView(pose)]), reflect, haze, bleed] };
       },
     },
@@ -280,7 +267,6 @@ export function shardRender(): LookStrategy {
       const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.scene, 'uCardOn');
       const setCardOn = (v: number): void => { for (const u of cardOns) u.value = v; setStreakOn(v); };
       setCardOn(reflect === null ? 1 : CARD_ON);
-      if (reflect === null) phoneCardGain(streaks);
       // the phone's glow: no bleed pyramid, so every light gets a halo in the drizzle
       const sky = world.root.getObjectByName('sky');
       if (sky !== undefined) sky.renderOrder = SKY_ORDER;
@@ -293,25 +279,13 @@ export function shardRender(): LookStrategy {
       const rt = ndRuntime();
       rt.cull();
       const world = rt.world;
-      if (handle === null) {
-        // (SF63) a grid cell: its line widths, buffer size and lanterns as standalone, the lanterns bucketed for the camera
-        // in the world's own frame (the runtime's world update writes uCam there)
-        if (cellBuffer !== null) lines(cellBuffer, world.shared);
-        const view = rt.camera;
-        world.shared.u.uCam.value.setFromMatrixPosition(view.matrixWorld);
-        world.shared.bandWindow();
-        onEye(world.root, world.shared, view);
-        world.shared.u.uNear.value = view.near;
-        return;
-      }
-      lines(handle.renderer, world.shared);
-      // the eye the materials' silk fog is measured from: the camera as it is drawn (the world's updater runs before the
-      // late hooks pose the camera, so it lags a frame — and a posed capture camera would fog from the player's eye)
-      world.shared.u.uCam.value.setFromMatrixPosition(handle.camera.matrixWorld);
+      const buffer = handle?.renderer ?? cellBuffer, view = handle?.camera ?? rt.camera;
+      if (buffer !== null) lines(buffer, world.shared);
+      // Pose the shared fog and sky from the drawn eye in either composition.
+      world.shared.u.uCam.value.setFromMatrixPosition(view.matrixWorld);
       world.shared.bandWindow();
-      onEye(world.root, world.shared, handle.camera);
-      world.shared.u.uNear.value = handle.camera.near;
-      // the paper lanterns in view, bucketed near / far for this camera (look/lanterns.ts LOD)
+      onEye(world.root, world.shared, view);
+      world.shared.u.uNear.value = view.near;
     },
     dispose(): void {
       handle = null;

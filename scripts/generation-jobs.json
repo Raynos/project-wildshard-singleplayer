@@ -376,6 +376,8 @@
       ],
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs",
+        "src/shards/nalati-grasslands/generators/gradeProgram.ts",
+        "src/shards/nalati-grasslands/generators/postChain.ts",
         "src/shards/nalati-grasslands/generators/bootInventory.ts",
         "src/shards/nalati-grasslands/generators/dayClock.ts",
         "src/shards/nalati-grasslands/generators/manifestRows.ts",
