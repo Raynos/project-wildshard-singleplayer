@@ -2,7 +2,7 @@
 // `@{name}` splices another fragment here, or what models/cragRock.ts passes (another module's GLSL, a number from the layout).
 export const CRAG_GLSL = {
   CRAG_FRAG_PARS: /* glsl */`
-uniform sampler2D tCragRock; uniform sampler2D tCragSnow;
+uniform sampler2D tCragRock; uniform sampler2D tCragSnow; uniform vec3 uPSunDir;
 uniform vec3 uCragRockMean; uniform vec2 uCragScale; // 1 / metres: rock, snow
 varying vec3 vCragW; varying vec3 vCragN;
 float cHash( vec2 p ) { p = fract( p * vec2( 123.34, 456.21 ) ); p += dot( p, p + 45.32 ); return fract( p.x * p.y ); }

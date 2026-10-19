@@ -25,7 +25,7 @@ import { assetBytes } from '@wildshard/sdk/assets';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { defineModel } from '@wildshard/engine/models/model';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { CRAG_GLSL } from '../runtime/looks/cragGlsl';
@@ -46,6 +46,7 @@ export function cragMaterial(sky: Sky): THREE.MeshLambertMaterial {
   const white = new THREE.DataTexture(new Uint8Array([200, 200, 200, 255]), 1, 1);
   white.colorSpace = THREE.SRGBColorSpace; white.wrapS = white.wrapT = THREE.RepeatWrapping; white.needsUpdate = true;
   const uniforms = {
+    uPSunDir: painterlyUniforms.uPSunDir,
     tCragRock: { value: white as THREE.Texture }, tCragSnow: { value: white as THREE.Texture },
     uCragRockMean: { value: new THREE.Vector3(...paintedTextures.mean.rock) },
     uCragScale: { value: new THREE.Vector2(1 / paintedTextures.metres.rock, 1 / paintedTextures.metres.snow) },

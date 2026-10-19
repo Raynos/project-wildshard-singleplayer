@@ -4,7 +4,7 @@ export const BOWL_GLSL = {
   GALLOP_GLSL: /* glsl */`
 #ifdef USE_INSTANCING
 {
-  float gPh = uPTime * @{GALLOP_HZ} + float( gl_InstanceID ) * @{GALLOP_SPREAD};
+  float gPh = famPaintTime * @{GALLOP_HZ} + float( gl_InstanceID ) * @{GALLOP_SPREAD};
   float legK = 1.0 - smoothstep( 0.35, 0.9, position.y );
   float lp = gPh + step( 0.0, position.z ) * 3.1416 + sign( position.x ) * 0.45;
   float fromHip = max( 0.0, 0.95 - position.y );
