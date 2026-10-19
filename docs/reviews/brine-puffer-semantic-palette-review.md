@@ -66,3 +66,29 @@ optimizing it. Require a deliberate tapered orange cheek/brow shape, no tiny
 isolated region islands or rectangular stair steps, readable eyes, and flat
 facets without cross-region smears. Then validate the optimized combined asset
 separately rather than inferring runtime suitability from this paint study.
+
+## Tapered orange revision — 2026-10-19, 02:52 UTC
+
+**Orange cleanup succeeds, but reject the full layout for integration until
+the cream boundary is corrected.** The isolated teal island is gone and orange
+is more local to the eyes. Front keeps the angry read. Hero/side now expose a
+large rectangular cream patch, with a nearly horizontal top and abrupt
+vertical rear cutoff. This reads as a white bib attached to the flank rather
+than the reference's cheek transition wrapping diagonally toward the fin root.
+
+Preserve the compact orange brow/eye region. Replace the cream L-corner with a
+continuous rearward-descending diagonal cheek seam. A narrow tapered ochre
+accent can accompany that seam where useful; do not restore the previous broad
+mask. The issue is region layout, not a need to alter the underlying volume.
+
+All three actual revision images were inspected beside the preceding semantic
+images listed above:
+
+- `tmp/puffer-remaster-guided/semantic-face-tapered-color/color-hero.png`
+- `tmp/puffer-remaster-guided/semantic-face-tapered-color/color-front.png`
+- `tmp/puffer-remaster-guided/semantic-face-tapered-color/color-side.png`
+
+This paired study keeps geometry, palette constants and lighting unchanged
+according to the builder. The revision is reported at 5,811 triangles, with
+optimization and runtime testing still pending. No full-model score or
+performance acceptance is given.

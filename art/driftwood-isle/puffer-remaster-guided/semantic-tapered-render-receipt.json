@@ -1,0 +1,129 @@
+{
+  "status": "unaccepted tapered semantic paint; review pending",
+  "session": 23443,
+  "exitCode": 0,
+  "terminalUtc": "2026-10-19T02:50:05Z",
+  "native": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/semantic-face-tapered-native.json",
+    "bytes": 2335950,
+    "sha256": "6ff09470ad48b1f9c49b7a05a7ab36c99b46f68940927e84573217cc55f79ce4"
+  },
+  "images": [
+    {
+      "path": "tmp/puffer-remaster-guided/semantic-face-tapered-color/color-hero.png",
+      "bytes": 427480,
+      "sha256": "5fd8d990dca5790db825ac987b4f94038d2270cc22ad47352aa1ec2200bcac39"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/semantic-face-tapered-color/color-front.png",
+      "bytes": 382890,
+      "sha256": "0e8d2b70e742dadb4bc97a8d4eec56e6d670971fff32f05cb048e3ef22c4be6a"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/semantic-face-tapered-color/color-side.png",
+      "bytes": 393422,
+      "sha256": "288333f41755941d0df10d39eb9e8c3e1daa28bdffe4db5d0133cd243b86e69c"
+    }
+  ],
+  "parts": [
+    {
+      "name": "Continuous mantle cheek and pouch",
+      "before": {
+        "triangles": 1142,
+        "expandedVertices": 3426,
+        "uniquePositions": 591
+      },
+      "after": {
+        "triangles": 4010,
+        "expandedVertices": 12030,
+        "uniquePositions": 2025
+      },
+      "exactPayload": false
+    },
+    {
+      "name": "Dark recessed palate",
+      "before": {
+        "triangles": 1069,
+        "expandedVertices": 3207,
+        "uniquePositions": 565
+      },
+      "after": {
+        "triangles": 1069,
+        "expandedVertices": 3207,
+        "uniquePositions": 565
+      },
+      "exactPayload": false
+    },
+    {
+      "name": "Tail root",
+      "before": {
+        "triangles": 140,
+        "expandedVertices": 420,
+        "uniquePositions": 74
+      },
+      "after": {
+        "triangles": 140,
+        "expandedVertices": 420,
+        "uniquePositions": 74
+      },
+      "exactPayload": true
+    },
+    {
+      "name": "Volumetric connected finL",
+      "before": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "after": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "exactPayload": true
+    },
+    {
+      "name": "Volumetric connected finR",
+      "before": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "after": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "exactPayload": true
+    },
+    {
+      "name": "Volumetric connected rearL",
+      "before": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "after": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "exactPayload": true
+    },
+    {
+      "name": "Volumetric connected rearR",
+      "before": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "after": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "exactPayload": true
+    }
+  ],
+  "note": "Orange side mask shortened and teal island removed; lateral cream border remains visually squared. No performance acceptance."
+}

@@ -1,0 +1,9 @@
+{
+  "failure": "46 unmatched micro-edges where ideal seam crossed existing float32 semantic boundary vertices",
+  "failedSourceSha256": "8a7c0a9b701b8d631dc9a1f20daa8c6f724f065485fc264d0daee40848d5ec20",
+  "repair": "Classify points within1e-7m of seam as already on boundary, without moving coordinates; avoid duplicate all-on-plane pieces.",
+  "structuralToleranceChanges": false,
+  "closedEdgesOrientationAreaAndVolumeChecks": "unchanged and passed",
+  "classificationToleranceMeters": 1e-07,
+  "geometryMovementMeters": 0
+}
