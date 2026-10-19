@@ -1,0 +1,6 @@
+{
+  "triangles": 466,
+  "properNonadjacentCrossings": 0,
+  "pairs": [],
+  "limits": "Source cage segment/triangle checks exclude shared vertices and coplanar contacts; does not replace actual GLB validation."
+}

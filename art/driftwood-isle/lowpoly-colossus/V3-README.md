@@ -60,6 +60,9 @@ position welding at 1e-6. This checks each component separately and does not
 assert absence of intersections between the intentionally overlapping roots.
 The large material-primitive count needs separate native batching before admission.
 
-The repaired hero/nine capture is in progress. A fresh independent complete-model
-score remains pending. No rig, animation, performance, phone, combat or
+The repaired hero and all nine actual captures completed with terminal exit 0;
+the author opened every image. Hero and nine exports are byte-identical. See
+`v3-repair-capture-receipt.json`, labelled `v3-repair-*.webp` previews and
+`tide-root-colossus-v3-repair.glb`. A fresh independent complete-model score
+remains pending. No rig, animation, performance, phone, combat or
 runtime-admission claim.

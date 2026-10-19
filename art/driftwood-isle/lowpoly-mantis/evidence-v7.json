@@ -1,0 +1,91 @@
+{
+  "status": "actual unaccepted V7 capture; independent score pending",
+  "sourceSha256": "442540438fc5c1f9fb38c396854338b3ea049931ad28c0b0c15003911d940330",
+  "artifacts": [
+    {
+      "path": "tmp/mantis-v7/mantis-study-v7.glb",
+      "bytes": 287744,
+      "sha256": "6f63fff9d162a02a4b650aeefa4ccb370fb8fe818c23e51c2d45575ac3c3ea6f"
+    },
+    {
+      "path": "tmp/mantis-v7/mantis-mesh-v7.json",
+      "bytes": 133347,
+      "sha256": "b5960e2cb48fb004343fef62b0aa75a91f96b0563ed7420fb3558a3124ee1282"
+    },
+    {
+      "path": "tmp/mantis-v7/metrics-v7.json",
+      "bytes": 2341,
+      "sha256": "2a26550bd6a0b46c3337b1efac896a9986a78a64f075a08847bdd46617bb049d"
+    },
+    {
+      "path": "tmp/mantis-v7/actual-v7-preview.webp",
+      "bytes": 77826,
+      "sha256": "684d42e4e6d1ed11019f583b6631d8ba96ec6d6ed6708ced5bb7a96a87ef190f"
+    },
+    {
+      "path": "tmp/mantis-v7/comparison-v7-board.webp",
+      "bytes": 78150,
+      "sha256": "80dbb5e60940ff542d5a3ed73b65bb267e7b1fa88d85d90017f9ebe1ee7defdd"
+    },
+    {
+      "path": "tmp/mantis-v7/nine-view-v7-board.webp",
+      "bytes": 153278,
+      "sha256": "effe1085e45dd3d992b243f5f728b0000372bc4e28cd595b1f1179417551d87f"
+    },
+    {
+      "path": "tmp/mantis-v7/cameras-v7.json",
+      "bytes": 265,
+      "sha256": "8a66db6d43b14c266de20d929722fe708cb758c1abae259ec3110f5977be65aa"
+    },
+    {
+      "path": "tmp/mantis-v7-nine/cameras-v7.json",
+      "bytes": 2455,
+      "sha256": "e718b92a1c21c737db7e03b916cb9e142c80b2c772f62227e561bc0ed6b71612"
+    },
+    {
+      "path": "tmp/mantis-v7-nine/color-v7-front.png",
+      "bytes": 406966,
+      "sha256": "177c5287dbf834bdf2fb4685df19f076429a90459a2a69c244d651b1631a450c"
+    },
+    {
+      "path": "tmp/mantis-v7-nine/color-v7-left.png",
+      "bytes": 350645,
+      "sha256": "42cf30f84cf0be6cf503c6314d4f60b0349664761d2d2a8d4b9e5a7637abee43"
+    },
+    {
+      "path": "tmp/mantis-v7-nine/color-v7-right.png",
+      "bytes": 347463,
+      "sha256": "b0a304e93a021c2f559f428069c7a72f3c71ed1c7f1932115fd5dbddb5113152"
+    },
+    {
+      "path": "tmp/mantis-v7-nine/color-v7-back.png",
+      "bytes": 398148,
+      "sha256": "09f7920045cfed21aef8b39111ecab51a42e70d9b8ffe065cc886298d1506d04"
+    },
+    {
+      "path": "tmp/mantis-v7-nine/color-v7-top.png",
+      "bytes": 651662,
+      "sha256": "cc3aeb7d62d73c33ef326f6c43d8f7301732fa63a47d010008fd239c78a5f35c"
+    },
+    {
+      "path": "tmp/mantis-v7-nine/color-v7-diag-front.png",
+      "bytes": 646459,
+      "sha256": "d649ea716d63aeb8df1b816e0a1cc2ac97a306fb7b22bfe00069ed147e493ccd"
+    },
+    {
+      "path": "tmp/mantis-v7-nine/color-v7-diag-left.png",
+      "bytes": 678070,
+      "sha256": "d4587230367f2d964702d1cade5a7908c81a95b27c11f7a524e6793eb9806098"
+    },
+    {
+      "path": "tmp/mantis-v7-nine/color-v7-diag-right.png",
+      "bytes": 629779,
+      "sha256": "7c7bf89c567772535baa49ee20f0857e6996665fe218713e8223d778166f6577"
+    },
+    {
+      "path": "tmp/mantis-v7-nine/color-v7-diag-back.png",
+      "bytes": 661603,
+      "sha256": "c0ecae16cac887c364907afcdda506d1c7ea5919ea70211a143b36260877902c"
+    }
+  ]
+}

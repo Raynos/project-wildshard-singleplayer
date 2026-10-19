@@ -1,0 +1,126 @@
+{
+  "status": "exact exported vertex equality",
+  "parts": [
+    {
+      "part": "Leaf wing wing-1_0",
+      "vertexCount": 22,
+      "v6EqualsV7": true,
+      "verticesSha256": "c4e7ed2fb3a36f5a69aa5364d62b152c26d7aad0138969ef29c443250fce28bb"
+    },
+    {
+      "part": "Leaf wing wing-1_1",
+      "vertexCount": 22,
+      "v6EqualsV7": true,
+      "verticesSha256": "7ca3a636b6ddc0fdca578ea8c419f3adfac7085ae022e804d0b8afd7fecb351b"
+    },
+    {
+      "part": "Leaf wing wing1_0",
+      "vertexCount": 22,
+      "v6EqualsV7": true,
+      "verticesSha256": "57e6698593e8248ced1b77a6f904a4c3c1ff2929dc0dbf6b70999b10435f90e0"
+    },
+    {
+      "part": "Leaf wing wing1_1",
+      "vertexCount": 22,
+      "v6EqualsV7": true,
+      "verticesSha256": "a3fa292baa7e96245e802ead41cbc35d48e953eeb619fc7b52956bc5aebf1d9f"
+    },
+    {
+      "part": "Seated folded wing midrib wing-1_0",
+      "vertexCount": 35,
+      "v6EqualsV7": true,
+      "verticesSha256": "1eab12fd90bfcc163f5f9d1ba21471b07895b932c29cd9ec933c30d0dd367ad2"
+    },
+    {
+      "part": "Seated folded wing midrib wing-1_1",
+      "vertexCount": 35,
+      "v6EqualsV7": true,
+      "verticesSha256": "52dd1b25281ba022fd915a386aa9b56fb5422a46c0d11d4604fd1c82c67d7af0"
+    },
+    {
+      "part": "Seated folded wing midrib wing1_0",
+      "vertexCount": 35,
+      "v6EqualsV7": true,
+      "verticesSha256": "d5b1f6cfe46acbc3002298a0a2d54fa4996591475e530eb51a569ec10b68dab4"
+    },
+    {
+      "part": "Seated folded wing midrib wing1_1",
+      "vertexCount": 35,
+      "v6EqualsV7": true,
+      "verticesSha256": "a5b30fdb13fc5e33a60f960e1deb8c1c5e0cb22c13728ac5b8e6e53e0df8d573"
+    },
+    {
+      "part": "Walking femur leg-1_0",
+      "vertexCount": 20,
+      "v6EqualsV7": true,
+      "verticesSha256": "2d7d4ab0c9c38ddb1aa2fdc568839ea33bb60b20fa04688e6409ead288ff9101"
+    },
+    {
+      "part": "Walking femur leg-1_1",
+      "vertexCount": 20,
+      "v6EqualsV7": true,
+      "verticesSha256": "66f034d90ab0915e36421760065a27a2a464274849fdc2f6474272c4d2c7e429"
+    },
+    {
+      "part": "Walking femur leg1_0",
+      "vertexCount": 20,
+      "v6EqualsV7": true,
+      "verticesSha256": "742ff11e5fbfa26648fc632f5fca703715a1e818379aad0ca94a0c7800cb3be8"
+    },
+    {
+      "part": "Walking femur leg1_1",
+      "vertexCount": 20,
+      "v6EqualsV7": true,
+      "verticesSha256": "d25f4ddbc0e564186bd1cc842c4e0a47b16bfb43efdf8566ead08f721b4bf8df"
+    },
+    {
+      "part": "Walking tibia leg-1_0",
+      "vertexCount": 20,
+      "v6EqualsV7": true,
+      "verticesSha256": "f6d9aa1c157cbac5d700f6db72fc7dfdc9a29b268f44b3209ccfb21441d6ed86"
+    },
+    {
+      "part": "Walking tibia leg-1_1",
+      "vertexCount": 20,
+      "v6EqualsV7": true,
+      "verticesSha256": "8486a573a96dfcc90ecf469844c36b568e5f4706b99ff9f78916a05a7240f40d"
+    },
+    {
+      "part": "Walking tibia leg1_0",
+      "vertexCount": 20,
+      "v6EqualsV7": true,
+      "verticesSha256": "451b4208c662b1d7814a5b3e07674f9fa75d2969b7d00a0407f27f3eba25d9a8"
+    },
+    {
+      "part": "Walking tibia leg1_1",
+      "vertexCount": 20,
+      "v6EqualsV7": true,
+      "verticesSha256": "b56a89f01a7d5d4879fa12c974418bc2fa973b8d90cc7b7837f126663093d0f2"
+    },
+    {
+      "part": "Ground tarsus leg-1_0",
+      "vertexCount": 15,
+      "v6EqualsV7": true,
+      "verticesSha256": "005f43158aafb69634a30b9d970aea390094d5c0ba8d44f587eed4cce2f49e97"
+    },
+    {
+      "part": "Ground tarsus leg-1_1",
+      "vertexCount": 15,
+      "v6EqualsV7": true,
+      "verticesSha256": "4a16c789411b2af47d639cad5c7c27e40d430995f0672cd8a1c862fbf2371dd7"
+    },
+    {
+      "part": "Ground tarsus leg1_0",
+      "vertexCount": 15,
+      "v6EqualsV7": true,
+      "verticesSha256": "07e12e07d148e1375e93c23651b8dcf93be8f6c12cdf4000deb55b087faef507"
+    },
+    {
+      "part": "Ground tarsus leg1_1",
+      "vertexCount": 15,
+      "v6EqualsV7": true,
+      "verticesSha256": "809d4feddc5993373bab65062a639396c05556cf549b749719632a2b54cb8812"
+    }
+  ],
+  "scope": "Wing surfaces, seated ribs and grounded femur/tibia/tarsus geometry; material assignments and selected wood face triangulation may differ."
+}

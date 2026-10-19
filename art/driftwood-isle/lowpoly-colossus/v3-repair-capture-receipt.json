@@ -1,0 +1,132 @@
+{
+  "status": "Actual V3 repair hero and canonical nine complete; independent likeness review pending",
+  "heroExit": 0,
+  "nineExit": 0,
+  "authorOpenedEveryView": true,
+  "sourceSHA256": "5894cd199ead0318fe45cdd656430f007de52e8b4ba99389da1f81e9387b90c1",
+  "rendererSHA256": "771a4a8c37d43e8a1edd017490991190b66f0000607fd3fe7bf90ae5cade50a2",
+  "heroAndNineGLBIdentical": true,
+  "geometryAuditExit": 0,
+  "files": [
+    {
+      "path": "tmp/colossus-v3-repair/three-quarter.png",
+      "bytes": 1771703,
+      "sha256": "4b4331e20003a01ee8af573992dbb8c6c83a8587054c2bcf2162243b48002259"
+    },
+    {
+      "path": "tmp/colossus-v3-repair-nine/color-v3-repair-back.png",
+      "bytes": 470174,
+      "sha256": "d93c48b4183164b78e05718c5381aef1cfd516660716638659240d2ff50efd96"
+    },
+    {
+      "path": "tmp/colossus-v3-repair-nine/color-v3-repair-diag-back.png",
+      "bytes": 678620,
+      "sha256": "7c330f251b769fecd23e8fa1cff82be25a4e427f7abb9ea4c5bc4311567a983b"
+    },
+    {
+      "path": "tmp/colossus-v3-repair-nine/color-v3-repair-diag-front.png",
+      "bytes": 709129,
+      "sha256": "a40d36dc60f6ac2203124a4b7bc2cdfad1e9550bcfa2eef88de01026da26b0c2"
+    },
+    {
+      "path": "tmp/colossus-v3-repair-nine/color-v3-repair-diag-left.png",
+      "bytes": 682621,
+      "sha256": "64ccd8a85967f1b89aa6cbe4ebea2367749f7fb93ee7318d76c183e33e60e159"
+    },
+    {
+      "path": "tmp/colossus-v3-repair-nine/color-v3-repair-diag-right.png",
+      "bytes": 691798,
+      "sha256": "e6a7613c79138bd865b8e5652f272e8a2fc8f9b749c64115f23a91bb13421d07"
+    },
+    {
+      "path": "tmp/colossus-v3-repair-nine/color-v3-repair-front.png",
+      "bytes": 474490,
+      "sha256": "20faec21abc52022f29d2af110e494f4e1c2ef951a81a58e7e58a4117933bd01"
+    },
+    {
+      "path": "tmp/colossus-v3-repair-nine/color-v3-repair-left.png",
+      "bytes": 335399,
+      "sha256": "b79d9bb90162373e7d084e055c6d1fb81e2fa9c47ef9790621bf6442601ecbd2"
+    },
+    {
+      "path": "tmp/colossus-v3-repair-nine/color-v3-repair-right.png",
+      "bytes": 337264,
+      "sha256": "f3fb485724651d04aa514e29e981a8b223fd63a32bb98f90c10eb2e352f90b38"
+    },
+    {
+      "path": "tmp/colossus-v3-repair-nine/color-v3-repair-top.png",
+      "bytes": 660518,
+      "sha256": "31a8d83d0654b99c32a123c167d614577b2b5bc7eaa3d8469d4ea9fcf4d3afbf"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/tide-root-colossus-v3-repair.glb",
+      "bytes": 597484,
+      "sha256": "62627e25edb8a0ce751d6d0e2afc4415c58632da7108b2b4ab247a8bd9dcf576"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/validation-v3-repair.json",
+      "bytes": 48514,
+      "sha256": "a28ef4fc4a016fc68318e18b263b65511ced0b6f229bbd3eb6ac6576d841977b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/cameras-v3-repair.json",
+      "bytes": 2861,
+      "sha256": "2f47dbc68247481dabe4aa2c57d241340a5ee474adf687addea70a73c75ffcda"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-01-front.webp",
+      "bytes": 47260,
+      "sha256": "294d7337dcc3fdb0aaf7ffe5d93d28190c03aed73026b1a27247d066f1656b1f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-02-left.webp",
+      "bytes": 25506,
+      "sha256": "025eef15155363ea8ffc3e0537db44017dbd9e7cb9d84c292df58cdfab97eaeb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-03-right.webp",
+      "bytes": 26400,
+      "sha256": "09ed0df724bb35ce5e5256a6940bb8c4e17074e74c8b19ec297dca7f198398b0"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-04-back.webp",
+      "bytes": 52096,
+      "sha256": "769950d2a7270920f15ca40a2b8062897df0b9010abddc62ae12da7173a8d15c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-05-top.webp",
+      "bytes": 76098,
+      "sha256": "6c269360cdf9e24bdacad127fe5796a00a677eb1c19cb96f8a14603156c7268d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-06-diag-front.webp",
+      "bytes": 75696,
+      "sha256": "7f5b3d08b16f71b43247853cbdb7fffc4f7bc978ff6766d9b587ee7f958bbc41"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-07-diag-left.webp",
+      "bytes": 64010,
+      "sha256": "3b58947c57ad8ca74b11b12c5006d4c69347b02e20e322f1216d33680fb6d1e8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-08-diag-right.webp",
+      "bytes": 67706,
+      "sha256": "f4be513f8126deb4ba43c88d5e5ee2637a90b1c06d7a80ec1cd4b0f6ec915d18"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-09-diag-back.webp",
+      "bytes": 65744,
+      "sha256": "5921dc40e13734322ecef1dff11c4846168956ac3a1b1ca8b040f6dfa16f33e4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-hero.webp",
+      "bytes": 101784,
+      "sha256": "dad83fc828064bcfd6a5c420147556863b29bd274e482307df416b071f03d315"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-nine-board.webp",
+      "bytes": 342428,
+      "sha256": "2ed1e3517a202d4036518201f60da2b28c495bfcda0ad482a69866ac575cdd39"
+    }
+  ]
+}

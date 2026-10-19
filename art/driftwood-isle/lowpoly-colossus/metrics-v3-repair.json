@@ -1,0 +1,21 @@
+{
+  "status": "unaccepted V3 complete root anatomy study",
+  "objects": 195,
+  "triangles": 4032,
+  "bounds": {
+    "min": [
+      -2.552576780319214,
+      -0.9361549615859985,
+      0.01899999938905239
+    ],
+    "max": [
+      2.5588948726654053,
+      1.0807245969772339,
+      5.8114824295043945
+    ]
+  },
+  "front": "-Y",
+  "glbBytes": 597484,
+  "sourceSHA256": "5894cd199ead0318fe45cdd656430f007de52e8b4ba99389da1f81e9387b90c1",
+  "rendered": true
+}

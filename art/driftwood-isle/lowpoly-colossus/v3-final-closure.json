@@ -1,0 +1,132 @@
+{
+  "status": "Frozen V3 and bounded repaired V3, actual hero/nine complete, independent score pending",
+  "version": "V3 repair",
+  "scope": "Colossus only; no engine, playable, Site, remote or Mac changes",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/build_colossus_v3.py",
+      "bytes": 19895,
+      "sha256": "0daea9d6c2914574d19fa5415f10258cd63bd49eaea181a9e3d71db4369972cf"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/render_colossus_v3_nine.py",
+      "bytes": 2747,
+      "sha256": "6bb679cea49435c3510b2f2dc99c31c3651fdbd3842c66d17a6e4678ae34c780"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/build_colossus_v3_repair.py",
+      "bytes": 19940,
+      "sha256": "5894cd199ead0318fe45cdd656430f007de52e8b4ba99389da1f81e9387b90c1"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/render_colossus_v3_repair_nine.py",
+      "bytes": 2768,
+      "sha256": "771a4a8c37d43e8a1edd017490991190b66f0000607fd3fe7bf90ae5cade50a2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/validate_colossus_v3.py",
+      "bytes": 4008,
+      "sha256": "5a64375e837b9ab91a2f9b49271c863d057b2a3787bd910841d7a5fc4a06ffea"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/V3-README.md",
+      "bytes": 3834,
+      "sha256": "eac768df4745e04ebb763a3a624d6f577c9fc32bc51ab6a4d123f24752ca5abe"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-source-closure.json",
+      "bytes": 484,
+      "sha256": "cfb85e8808633711c5ac27e360cfcbd21e38fa69ee6b3da40019497bc820772a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-original-capture-receipt.json",
+      "bytes": 2344,
+      "sha256": "17ece76c465ce7c1474093f8406c8ea02ee73f2219bd8b3df84cee034de03ca7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-source-closure.json",
+      "bytes": 725,
+      "sha256": "c9319edaaa4818b9f7c4ef3836fe2f196c973c8f9f810023790dcce97df8e5e2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-capture-receipt.json",
+      "bytes": 5080,
+      "sha256": "8bdfd4d77836e8a4961ab632a7d5a3113f0b485b301664cdfd3fb3a181f04ed1"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/metrics-v3-repair.json",
+      "bytes": 458,
+      "sha256": "ba42c42487739477232db08d7c3a1624ddd24d8b2a9a90ced3b43d8dda1e58e9"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/validation-v3-repair.json",
+      "bytes": 48514,
+      "sha256": "a28ef4fc4a016fc68318e18b263b65511ced0b6f229bbd3eb6ac6576d841977b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/cameras-v3-repair.json",
+      "bytes": 2861,
+      "sha256": "2f47dbc68247481dabe4aa2c57d241340a5ee474adf687addea70a73c75ffcda"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/tide-root-colossus-v3-repair.glb",
+      "bytes": 597484,
+      "sha256": "62627e25edb8a0ce751d6d0e2afc4415c58632da7108b2b4ab247a8bd9dcf576"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-01-front.webp",
+      "bytes": 47260,
+      "sha256": "294d7337dcc3fdb0aaf7ffe5d93d28190c03aed73026b1a27247d066f1656b1f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-02-left.webp",
+      "bytes": 25506,
+      "sha256": "025eef15155363ea8ffc3e0537db44017dbd9e7cb9d84c292df58cdfab97eaeb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-03-right.webp",
+      "bytes": 26400,
+      "sha256": "09ed0df724bb35ce5e5256a6940bb8c4e17074e74c8b19ec297dca7f198398b0"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-04-back.webp",
+      "bytes": 52096,
+      "sha256": "769950d2a7270920f15ca40a2b8062897df0b9010abddc62ae12da7173a8d15c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-05-top.webp",
+      "bytes": 76098,
+      "sha256": "6c269360cdf9e24bdacad127fe5796a00a677eb1c19cb96f8a14603156c7268d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-06-diag-front.webp",
+      "bytes": 75696,
+      "sha256": "7f5b3d08b16f71b43247853cbdb7fffc4f7bc978ff6766d9b587ee7f958bbc41"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-07-diag-left.webp",
+      "bytes": 64010,
+      "sha256": "3b58947c57ad8ca74b11b12c5006d4c69347b02e20e322f1216d33680fb6d1e8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-08-diag-right.webp",
+      "bytes": 67706,
+      "sha256": "f4be513f8126deb4ba43c88d5e5ee2637a90b1c06d7a80ec1cd4b0f6ec915d18"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-09-diag-back.webp",
+      "bytes": 65744,
+      "sha256": "5921dc40e13734322ecef1dff11c4846168956ac3a1b1ca8b040f6dfa16f33e4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-hero.webp",
+      "bytes": 101784,
+      "sha256": "dad83fc828064bcfd6a5c420147556863b29bd274e482307df416b071f03d315"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v3-repair-nine-board.webp",
+      "bytes": 342428,
+      "sha256": "2ed1e3517a202d4036518201f60da2b28c495bfcda0ad482a69866ac575cdd39"
+    }
+  ]
+}

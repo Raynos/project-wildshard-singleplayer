@@ -1,0 +1,68 @@
+{
+  "status": "Frozen V3 failed topology preflight; no independent score",
+  "heroExit": 0,
+  "nineExit": 0,
+  "geometryAudit": "failed: three boundary edges and nonpositive signed volume on open mask top only",
+  "files": [
+    {
+      "path": "tmp/colossus-v3/three-quarter.png",
+      "bytes": 1710274,
+      "sha256": "74c3f7ada33be1d3ba696f2629b68a51e0ae7e08837aa90a0fa8162503f16800"
+    },
+    {
+      "path": "tmp/colossus-v3/tide-root-colossus-v3.glb",
+      "bytes": 597508,
+      "sha256": "5ebcbb08e3f2eeaf61687d7cdf495e37465a2ced661cbea0bf8259f64f1dac8a"
+    },
+    {
+      "path": "tmp/colossus-v3/validation.json",
+      "bytes": 48531,
+      "sha256": "849b871b37e66a1f93d9c56eb375f34bd7f93fa752c00426d623e19e8bca01c3"
+    },
+    {
+      "path": "tmp/colossus-v3-nine/color-v3-back.png",
+      "bytes": 461159,
+      "sha256": "3eb0226c9c5b439607b1ca20198d0ad9a629d6a3b3771f86f816bde99e51955d"
+    },
+    {
+      "path": "tmp/colossus-v3-nine/color-v3-diag-back.png",
+      "bytes": 670682,
+      "sha256": "244d98972c0aaa51439653ec28a71cee5175f0bc7c91ce1d38b2dd4df2a576ed"
+    },
+    {
+      "path": "tmp/colossus-v3-nine/color-v3-diag-front.png",
+      "bytes": 689952,
+      "sha256": "9f1771f809ff766630c1fe70092334b44b6427ebf5cbc50decb4c63e35202c10"
+    },
+    {
+      "path": "tmp/colossus-v3-nine/color-v3-diag-left.png",
+      "bytes": 665641,
+      "sha256": "62d39375e174bb3e49c42a79c50500974c4fb756f2d7f350198a26f075419699"
+    },
+    {
+      "path": "tmp/colossus-v3-nine/color-v3-diag-right.png",
+      "bytes": 676045,
+      "sha256": "0a97f8a16e54d377d465e46f936bee92f6be1d0c9a0833b64e995132963d94c1"
+    },
+    {
+      "path": "tmp/colossus-v3-nine/color-v3-front.png",
+      "bytes": 446899,
+      "sha256": "71125dc86cedc35ccc01563a5091c37474fed8b3f7ddcefb600e15139a49b140"
+    },
+    {
+      "path": "tmp/colossus-v3-nine/color-v3-left.png",
+      "bytes": 331442,
+      "sha256": "fe346d2edacf57ba7a4fb44c81b83fbd331a32b61b6e254275d7b784db28299c"
+    },
+    {
+      "path": "tmp/colossus-v3-nine/color-v3-right.png",
+      "bytes": 333202,
+      "sha256": "0dd30064514dd66e3b5a95e065cbef7024c9f588b0ccf04dbae544cb2dac76b9"
+    },
+    {
+      "path": "tmp/colossus-v3-nine/color-v3-top.png",
+      "bytes": 655865,
+      "sha256": "81ec56df8a603e7370b43841e86e8782ae8055cfd7dfe04047c2e1078452f609"
+    }
+  ]
+}

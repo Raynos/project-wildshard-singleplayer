@@ -1,0 +1,18 @@
+{
+  "status": "V4 source compiles; export and renders pending",
+  "capturedUTC": "2026-10-19T03:43:54.033932+00:00",
+  "scope": "Colossus V4 static study; no playable changes",
+  "V3PreservationMismatches": [],
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/build_colossus_v4.py",
+      "bytes": 21954,
+      "sha256": "f10cdec46537f8d579fa7af687890aebe6c2f0e9d82c962e64a478567e3a0218"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/render_colossus_v4_nine.py",
+      "bytes": 2747,
+      "sha256": "3b8c9e59d6cc34f93e77fcf4b03aa8b962becfcdba3378a08d8f84b47f328da4"
+    }
+  ]
+}

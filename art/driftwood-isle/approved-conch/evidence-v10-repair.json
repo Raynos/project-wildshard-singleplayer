@@ -1,0 +1,74 @@
+{
+  "heroTerminal": 0,
+  "nineTerminal": 0,
+  "renderSession": "60946",
+  "runtimeIntegrated": false,
+  "independentReview": "pending",
+  "files": [
+    {
+      "path": "tmp/conch-v10_repair/conch-study.glb",
+      "bytes": 173940,
+      "sha256": "a2b10ba9e6fc4d29f41b644ac484e51fc4cc02755abe6d889455f057413c30b2"
+    },
+    {
+      "path": "tmp/conch-v10_repair/color-front.png",
+      "bytes": 1306559,
+      "sha256": "67bf98274f360671fc4bd6d05f4820820a17a69ba73fe31535174a1def180a9c"
+    },
+    {
+      "path": "tmp/conch-v10_repair/comparison-v10_repair-board.webp",
+      "bytes": 55270,
+      "sha256": "6b510e9d203601620e2cfc9340236b0eeb54922ffe5c30e2faf4ea08f19502b3"
+    },
+    {
+      "path": "tmp/conch-v10_repair/nine-view-v10_repair-board.webp",
+      "bytes": 84508,
+      "sha256": "fc8acdb447f853705af0781da89fa18d30b870c9d71c115b47444024093224e1"
+    },
+    {
+      "path": "tmp/conch-v10_repair/color-v10_repair-back.png",
+      "bytes": 415939,
+      "sha256": "b407f26b28eb0db7842f2e6338c8249b09f6c5143b31f7fab23c9e696c551999"
+    },
+    {
+      "path": "tmp/conch-v10_repair/color-v10_repair-diag-back.png",
+      "bytes": 613035,
+      "sha256": "7834da364521b5fc36e8fe340ab8075b43b50ceb9b59941ad9d4e76aabcfdd37"
+    },
+    {
+      "path": "tmp/conch-v10_repair/color-v10_repair-diag-front.png",
+      "bytes": 642473,
+      "sha256": "e1700a4999a5ab735fc0f20b2252eae313c1665ace53b080e35b75223515abac"
+    },
+    {
+      "path": "tmp/conch-v10_repair/color-v10_repair-diag-left.png",
+      "bytes": 663433,
+      "sha256": "39345cb544663ee9c4d0e710aab14f172555ee1bae42de92a05cd72fb9e00ed9"
+    },
+    {
+      "path": "tmp/conch-v10_repair/color-v10_repair-diag-right.png",
+      "bytes": 596347,
+      "sha256": "5059ec8465f34340705566b956bf3377fcd36478ef1d3bedbc7319efec7998eb"
+    },
+    {
+      "path": "tmp/conch-v10_repair/color-v10_repair-front.png",
+      "bytes": 434024,
+      "sha256": "6291b703deb03e01083863c79a63228f1caf6183525a73c8b1a02631f22da088"
+    },
+    {
+      "path": "tmp/conch-v10_repair/color-v10_repair-left.png",
+      "bytes": 368085,
+      "sha256": "d09fdfec623a4d9d659d47eebe4fcf547515aad68ca3db1ca06db68f2ea4bcc1"
+    },
+    {
+      "path": "tmp/conch-v10_repair/color-v10_repair-right.png",
+      "bytes": 355523,
+      "sha256": "86136af1627e7af34482d51b8a3bf42c46d1397a970fdd4e3b41ad702af09291"
+    },
+    {
+      "path": "tmp/conch-v10_repair/color-v10_repair-top.png",
+      "bytes": 609786,
+      "sha256": "439707f165def30970b7e60f289e2736f12561a8ae44f21c556e4b713277d0a1"
+    }
+  ]
+}
