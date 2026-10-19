@@ -1,0 +1,9 @@
+{
+  "executedSourceSha256": "ec5645e1dda1aa88df12043f2361e39b98291544e2588314d9ce628b0349fb0e",
+  "publicSourceSha256": "ec5645e1dda1aa88df12043f2361e39b98291544e2588314d9ce628b0349fb0e",
+  "exactSourceExecutedForFinalCapture": true,
+  "failedExecutedSourceSha256": "8b7ec347eb5e8f9888a2a6bc17b146ee1918d4349c5d6f837f232904537e020e",
+  "failedNormalizedSourceSha256": "8f2bd3da69b7fe9acfa4155c1086c02c1d450eb7ac7a65eee00a582658f91bcd",
+  "failedWhitespaceNormalizationAstEquivalent": true,
+  "correction": "Both shoulder roots move from (side*.14,-.22,1.94) to (side*.12,.10,1.94) to seat inside the curved prothorax. No other geometry changes."
+}

@@ -1,0 +1,321 @@
+{
+  "status": "PASS",
+  "frames": [
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/hero.png",
+      "sha256": "47325e99e7225ad4a053dc535329540b701a33c1d3809b309d3418ec828aed01",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/front.png",
+      "sha256": "e6cf63dbb1f9175c5590e8617a17c1ea528783f8adb95f055974840553c34096",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/left.png",
+      "sha256": "9b8c57d7c7b70f4861c9aaef39f20bd8002ae3234e3031e7b0a00a4de5888f51",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/right.png",
+      "sha256": "03587c144b714e0cd02afe24e86d2fb0936f63d873e3b285ac11c09592b4a739",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/back.png",
+      "sha256": "ed872299d6acc8060e4e069ac55df686e578bba6a94a1dcbf2f26fe25d6cd1d4",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/top.png",
+      "sha256": "dfaba937c330f779a28bdababf3788922fb8792408c7874e9a9fd0942d49e476",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/diag-front.png",
+      "sha256": "7b564116e5721cf190f0898cc93895a39d8296626cee32ac1155e2c4f020362a",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/diag-left.png",
+      "sha256": "0a927bbbc81059125ece9d45272f20effef7dbd87adec3e9a0570ca55df0c0a8",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/diag-right.png",
+      "sha256": "db2b77fcdf061b6cbc341b97335da80ca3a63185ec0b9d036b5742f1a5948f0e",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/diag-back.png",
+      "sha256": "bc6ecfe6f951ba8064f0fb1eaf23fe6fd6713641a0fdf80db58d4d5440af42cf",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/hero.png",
+      "sha256": "5af73da02b504c921e32b653d1cd4d7bdbb72ba7ef6159e745cf31c7c5230488",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/front.png",
+      "sha256": "14a1da82a4ea282b9ce76d395aa33005861ce6b9e250654095fc42f540f0fefb",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/left.png",
+      "sha256": "ea5e4feaa3a5176b041ec4055e515503edbbc6494043a228cff6211cca203b0f",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/right.png",
+      "sha256": "58e35fe8cc5bf4962712e1574c388fde2a70c4fe22b902f3a731948574747e5c",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/back.png",
+      "sha256": "90c5e3d08f22b0db80cfd0875c96c924c9462ff84a5670e9c6d6effb52ab8f88",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/top.png",
+      "sha256": "8326ab403d4442d7d1ee7530748878e9f1df0ac04aa88490b12248126c5ad70c",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/diag-front.png",
+      "sha256": "c003ed9497dad80f213ebad57de433f63f315cb21cf2521cf86d1e31bdd669a9",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/diag-left.png",
+      "sha256": "81de13645503793f57875960b4b97c2638df667febdc535d11d4f42527d0c109",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/diag-right.png",
+      "sha256": "8581f8d3976c982ca150642595001d0ff1e28d0613b3b9ff70b8251ab515b044",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/diag-back.png",
+      "sha256": "837492924411d65372a52550429fd76ac144e8d0564f9670fd25a43fe2cc7eed",
+      "size": [
+        638,
+        900
+      ]
+    }
+  ],
+  "historicPass1GlbSha256": "fdb5872d81e9b6e59c3a08bf4d23c064e87de1ea45e3c88d3a994fb356c29989",
+  "matchedRebuiltPass1GlbSha256": "0adddeb15f637766e68cfb237d4dd37509bac03e3bb1f0fe7fd9e8eb1eb5fb8b",
+  "baselineGlbDifference": "Only material/mesh datablock name .001 suffixes; binary chunk and all other JSON identical; portable mesh and metrics byte-identical",
+  "candidateGlbSha256": "3566ee1301fd6461d59ff5627ae922856f952667310f6d36463c2ff706927604",
+  "candidateSourceSha256": "ec5645e1dda1aa88df12043f2361e39b98291544e2588314d9ce628b0349fb0e",
+  "executedSourceSha256": "ec5645e1dda1aa88df12043f2361e39b98291544e2588314d9ce628b0349fb0e",
+  "resolution": [
+    638,
+    900
+  ],
+  "projectionFits": [
+    {
+      "role": "baseline",
+      "view": "front",
+      "maxNormalizedX": 0.7625607854276554,
+      "maxNormalizedY": 0.7587911346128574,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "baseline",
+      "view": "left",
+      "maxNormalizedX": 0.8931113024401783,
+      "maxNormalizedY": 0.7587906808340046,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "baseline",
+      "view": "right",
+      "maxNormalizedX": 0.8931113749607389,
+      "maxNormalizedY": 0.7587906885859313,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "baseline",
+      "view": "back",
+      "maxNormalizedX": 0.7625607708595338,
+      "maxNormalizedY": 0.7587909651616646,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "baseline",
+      "view": "top",
+      "maxNormalizedX": 0.7625607854276554,
+      "maxNormalizedY": 0.6331164871426973,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "baseline",
+      "view": "diag-front",
+      "maxNormalizedX": 0.7625607854276554,
+      "maxNormalizedY": 0.7704051430144548,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "baseline",
+      "view": "diag-left",
+      "maxNormalizedX": 0.8931117091493826,
+      "maxNormalizedY": 0.8464107694902887,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "baseline",
+      "view": "diag-right",
+      "maxNormalizedX": 0.8931115853134102,
+      "maxNormalizedY": 0.846391277253306,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "baseline",
+      "view": "diag-back",
+      "maxNormalizedX": 0.7625613845880136,
+      "maxNormalizedY": 0.8830634829577619,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "baseline",
+      "view": "hero",
+      "maxNormalizedX": 0.8931115998462723,
+      "maxNormalizedY": 0.6364949335386206,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "candidate",
+      "view": "front",
+      "maxNormalizedX": 0.75869380506889,
+      "maxNormalizedY": 0.7587911346128574,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "candidate",
+      "view": "left",
+      "maxNormalizedX": 0.8931108104930723,
+      "maxNormalizedY": 0.7587906808340046,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "candidate",
+      "view": "right",
+      "maxNormalizedX": 0.893110679702213,
+      "maxNormalizedY": 0.7587906885859313,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "candidate",
+      "view": "back",
+      "maxNormalizedX": 0.7586936437552266,
+      "maxNormalizedY": 0.7587909651616646,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "candidate",
+      "view": "top",
+      "maxNormalizedX": 0.75869380506889,
+      "maxNormalizedY": 0.6331164871426973,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "candidate",
+      "view": "diag-front",
+      "maxNormalizedX": 0.75869380506889,
+      "maxNormalizedY": 0.7704051430144548,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "candidate",
+      "view": "diag-left",
+      "maxNormalizedX": 0.8931104648764022,
+      "maxNormalizedY": 0.8464107694902887,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "candidate",
+      "view": "diag-right",
+      "maxNormalizedX": 0.893110530442076,
+      "maxNormalizedY": 0.846391277253306,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "candidate",
+      "view": "diag-back",
+      "maxNormalizedX": 0.7586941634115842,
+      "maxNormalizedY": 0.8830634829577619,
+      "geometryInsideFrame": true
+    },
+    {
+      "role": "candidate",
+      "view": "hero",
+      "maxNormalizedX": 0.8733231670747996,
+      "maxNormalizedY": 0.6364949335386206,
+      "geometryInsideFrame": true
+    }
+  ],
+  "baselineGeometryPreserved": true,
+  "storageCapsPass": true,
+  "jsonArtifactNormalization": "One terminal LF added to copied mesh/metrics/camera JSON; parsed values equal raw outputs. GLB untouched.",
+  "independentLikenessReview": "pending; no builder score"
+}

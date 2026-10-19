@@ -1,0 +1,578 @@
+{
+  "status": "NOT NATIVE ADMITTED; mapping proposal only",
+  "staticPivotCount": 20,
+  "nativeJointCount": 22,
+  "missingDerivedJoints": [
+    "abdomen",
+    "neck"
+  ],
+  "unmappedByExistingSemanticAdapter": [
+    "Integrated pale throat",
+    "Overlapping dorsal curved neck shell 0",
+    "Overlapping dorsal curved neck shell 1",
+    "Overlapping dorsal curved neck shell 2",
+    "Overlapping dorsal curved neck shell 3",
+    "Curved lateral chest splinter -1",
+    "Curved lateral chest splinter 1"
+  ],
+  "partMap": [
+    {
+      "part": "Abdomen core",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "abdomen",
+      "proposedNativeJoint": "abdomen"
+    },
+    {
+      "part": "Abdominal tergite 0",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "abdomen",
+      "proposedNativeJoint": "abdomen"
+    },
+    {
+      "part": "Abdominal tergite 1",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "abdomen",
+      "proposedNativeJoint": "abdomen"
+    },
+    {
+      "part": "Abdominal tergite 2",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "abdomen",
+      "proposedNativeJoint": "abdomen"
+    },
+    {
+      "part": "Rising prothorax curved cervical arch",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Integrated pale throat",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": null,
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Imbricated thorax bark (-1, 0)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Imbricated thorax bark (-1, 1)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Imbricated thorax bark (-1, 2)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Imbricated thorax bark (-1, 3)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Imbricated thorax bark (-1, 4)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Rear neck collar -1",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Imbricated thorax bark (1, 0)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Imbricated thorax bark (1, 1)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Imbricated thorax bark (1, 2)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Imbricated thorax bark (1, 3)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Imbricated thorax bark (1, 4)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Rear neck collar 1",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "neck",
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Overlapping dorsal curved neck shell 0",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": null,
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Overlapping dorsal curved neck shell 1",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": null,
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Overlapping dorsal curved neck shell 2",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": null,
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Overlapping dorsal curved neck shell 3",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": null,
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Volumetric pointed insect skull",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Inset green compound eye -1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Integrated eye socket rim -1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Tucked cheek shell -1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Swept crown splinter -1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Compact mandible -1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Twig antenna -1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Antenna leaf -1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Leaf wing wing-1_0",
+      "authoredJoint": "wing-1_0",
+      "oldAdapterSemanticMatch": "wing-1_0",
+      "proposedNativeJoint": "wing-1_0"
+    },
+    {
+      "part": "Seated folded wing midrib wing-1_0",
+      "authoredJoint": "wing-1_0",
+      "oldAdapterSemanticMatch": "wing-1_0",
+      "proposedNativeJoint": "wing-1_0"
+    },
+    {
+      "part": "Leaf wing wing-1_1",
+      "authoredJoint": "wing-1_1",
+      "oldAdapterSemanticMatch": "wing-1_1",
+      "proposedNativeJoint": "wing-1_1"
+    },
+    {
+      "part": "Seated folded wing midrib wing-1_1",
+      "authoredJoint": "wing-1_1",
+      "oldAdapterSemanticMatch": "wing-1_1",
+      "proposedNativeJoint": "wing-1_1"
+    },
+    {
+      "part": "Walking femur leg-1_0",
+      "authoredJoint": "leg-1_0",
+      "oldAdapterSemanticMatch": "leg-1_0",
+      "proposedNativeJoint": "leg-1_0"
+    },
+    {
+      "part": "Walking tibia leg-1_0",
+      "authoredJoint": "leg-1_0_knee",
+      "oldAdapterSemanticMatch": "leg-1_0_knee",
+      "proposedNativeJoint": "leg-1_0_knee"
+    },
+    {
+      "part": "Ground tarsus leg-1_0",
+      "authoredJoint": "leg-1_0_knee",
+      "oldAdapterSemanticMatch": "leg-1_0_knee",
+      "proposedNativeJoint": "leg-1_0_knee"
+    },
+    {
+      "part": "Angular ankle cuff leg-1_0",
+      "authoredJoint": "leg-1_0_knee",
+      "oldAdapterSemanticMatch": "leg-1_0_knee",
+      "proposedNativeJoint": "leg-1_0_knee"
+    },
+    {
+      "part": "Articulated foot claw leg-1_0_-1",
+      "authoredJoint": "leg-1_0_knee",
+      "oldAdapterSemanticMatch": "leg-1_0_knee",
+      "proposedNativeJoint": "leg-1_0_knee"
+    },
+    {
+      "part": "Articulated foot claw leg-1_0_1",
+      "authoredJoint": "leg-1_0_knee",
+      "oldAdapterSemanticMatch": "leg-1_0_knee",
+      "proposedNativeJoint": "leg-1_0_knee"
+    },
+    {
+      "part": "Femur leaf plate leg-1_0",
+      "authoredJoint": "leg-1_0",
+      "oldAdapterSemanticMatch": "leg-1_0",
+      "proposedNativeJoint": "leg-1_0"
+    },
+    {
+      "part": "Walking femur leg-1_1",
+      "authoredJoint": "leg-1_1",
+      "oldAdapterSemanticMatch": "leg-1_1",
+      "proposedNativeJoint": "leg-1_1"
+    },
+    {
+      "part": "Walking tibia leg-1_1",
+      "authoredJoint": "leg-1_1_knee",
+      "oldAdapterSemanticMatch": "leg-1_1_knee",
+      "proposedNativeJoint": "leg-1_1_knee"
+    },
+    {
+      "part": "Ground tarsus leg-1_1",
+      "authoredJoint": "leg-1_1_knee",
+      "oldAdapterSemanticMatch": "leg-1_1_knee",
+      "proposedNativeJoint": "leg-1_1_knee"
+    },
+    {
+      "part": "Angular ankle cuff leg-1_1",
+      "authoredJoint": "leg-1_1_knee",
+      "oldAdapterSemanticMatch": "leg-1_1_knee",
+      "proposedNativeJoint": "leg-1_1_knee"
+    },
+    {
+      "part": "Articulated foot claw leg-1_1_-1",
+      "authoredJoint": "leg-1_1_knee",
+      "oldAdapterSemanticMatch": "leg-1_1_knee",
+      "proposedNativeJoint": "leg-1_1_knee"
+    },
+    {
+      "part": "Articulated foot claw leg-1_1_1",
+      "authoredJoint": "leg-1_1_knee",
+      "oldAdapterSemanticMatch": "leg-1_1_knee",
+      "proposedNativeJoint": "leg-1_1_knee"
+    },
+    {
+      "part": "Femur leaf plate leg-1_1",
+      "authoredJoint": "leg-1_1",
+      "oldAdapterSemanticMatch": "leg-1_1",
+      "proposedNativeJoint": "leg-1_1"
+    },
+    {
+      "part": "Raptorial upper arm -1",
+      "authoredJoint": "raptor-1",
+      "oldAdapterSemanticMatch": "raptor-1",
+      "proposedNativeJoint": "raptor-1"
+    },
+    {
+      "part": "Raised raptorial forearm -1",
+      "authoredJoint": "raptor-1_elbow",
+      "oldAdapterSemanticMatch": "raptor-1_elbow",
+      "proposedNativeJoint": "raptor-1_elbow"
+    },
+    {
+      "part": "Swept bevelled wood sickle -1",
+      "authoredJoint": "raptor-1_hook",
+      "oldAdapterSemanticMatch": "raptor-1_hook",
+      "proposedNativeJoint": "raptor-1_hook"
+    },
+    {
+      "part": "Bevelled continuous ivory teeth -1",
+      "authoredJoint": "raptor-1_hook",
+      "oldAdapterSemanticMatch": "raptor-1_hook",
+      "proposedNativeJoint": "raptor-1_hook"
+    },
+    {
+      "part": "Inset green compound eye 1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Integrated eye socket rim 1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Tucked cheek shell 1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Swept crown splinter 1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Compact mandible 1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Twig antenna 1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Antenna leaf 1",
+      "authoredJoint": "head",
+      "oldAdapterSemanticMatch": "head",
+      "proposedNativeJoint": "head"
+    },
+    {
+      "part": "Leaf wing wing1_0",
+      "authoredJoint": "wing1_0",
+      "oldAdapterSemanticMatch": "wing1_0",
+      "proposedNativeJoint": "wing1_0"
+    },
+    {
+      "part": "Seated folded wing midrib wing1_0",
+      "authoredJoint": "wing1_0",
+      "oldAdapterSemanticMatch": "wing1_0",
+      "proposedNativeJoint": "wing1_0"
+    },
+    {
+      "part": "Leaf wing wing1_1",
+      "authoredJoint": "wing1_1",
+      "oldAdapterSemanticMatch": "wing1_1",
+      "proposedNativeJoint": "wing1_1"
+    },
+    {
+      "part": "Seated folded wing midrib wing1_1",
+      "authoredJoint": "wing1_1",
+      "oldAdapterSemanticMatch": "wing1_1",
+      "proposedNativeJoint": "wing1_1"
+    },
+    {
+      "part": "Walking femur leg1_0",
+      "authoredJoint": "leg1_0",
+      "oldAdapterSemanticMatch": "leg1_0",
+      "proposedNativeJoint": "leg1_0"
+    },
+    {
+      "part": "Walking tibia leg1_0",
+      "authoredJoint": "leg1_0_knee",
+      "oldAdapterSemanticMatch": "leg1_0_knee",
+      "proposedNativeJoint": "leg1_0_knee"
+    },
+    {
+      "part": "Ground tarsus leg1_0",
+      "authoredJoint": "leg1_0_knee",
+      "oldAdapterSemanticMatch": "leg1_0_knee",
+      "proposedNativeJoint": "leg1_0_knee"
+    },
+    {
+      "part": "Angular ankle cuff leg1_0",
+      "authoredJoint": "leg1_0_knee",
+      "oldAdapterSemanticMatch": "leg1_0_knee",
+      "proposedNativeJoint": "leg1_0_knee"
+    },
+    {
+      "part": "Articulated foot claw leg1_0_-1",
+      "authoredJoint": "leg1_0_knee",
+      "oldAdapterSemanticMatch": "leg1_0_knee",
+      "proposedNativeJoint": "leg1_0_knee"
+    },
+    {
+      "part": "Articulated foot claw leg1_0_1",
+      "authoredJoint": "leg1_0_knee",
+      "oldAdapterSemanticMatch": "leg1_0_knee",
+      "proposedNativeJoint": "leg1_0_knee"
+    },
+    {
+      "part": "Femur leaf plate leg1_0",
+      "authoredJoint": "leg1_0",
+      "oldAdapterSemanticMatch": "leg1_0",
+      "proposedNativeJoint": "leg1_0"
+    },
+    {
+      "part": "Walking femur leg1_1",
+      "authoredJoint": "leg1_1",
+      "oldAdapterSemanticMatch": "leg1_1",
+      "proposedNativeJoint": "leg1_1"
+    },
+    {
+      "part": "Walking tibia leg1_1",
+      "authoredJoint": "leg1_1_knee",
+      "oldAdapterSemanticMatch": "leg1_1_knee",
+      "proposedNativeJoint": "leg1_1_knee"
+    },
+    {
+      "part": "Ground tarsus leg1_1",
+      "authoredJoint": "leg1_1_knee",
+      "oldAdapterSemanticMatch": "leg1_1_knee",
+      "proposedNativeJoint": "leg1_1_knee"
+    },
+    {
+      "part": "Angular ankle cuff leg1_1",
+      "authoredJoint": "leg1_1_knee",
+      "oldAdapterSemanticMatch": "leg1_1_knee",
+      "proposedNativeJoint": "leg1_1_knee"
+    },
+    {
+      "part": "Articulated foot claw leg1_1_-1",
+      "authoredJoint": "leg1_1_knee",
+      "oldAdapterSemanticMatch": "leg1_1_knee",
+      "proposedNativeJoint": "leg1_1_knee"
+    },
+    {
+      "part": "Articulated foot claw leg1_1_1",
+      "authoredJoint": "leg1_1_knee",
+      "oldAdapterSemanticMatch": "leg1_1_knee",
+      "proposedNativeJoint": "leg1_1_knee"
+    },
+    {
+      "part": "Femur leaf plate leg1_1",
+      "authoredJoint": "leg1_1",
+      "oldAdapterSemanticMatch": "leg1_1",
+      "proposedNativeJoint": "leg1_1"
+    },
+    {
+      "part": "Raptorial upper arm 1",
+      "authoredJoint": "raptor1",
+      "oldAdapterSemanticMatch": "raptor1",
+      "proposedNativeJoint": "raptor1"
+    },
+    {
+      "part": "Raised raptorial forearm 1",
+      "authoredJoint": "raptor1_elbow",
+      "oldAdapterSemanticMatch": "raptor1_elbow",
+      "proposedNativeJoint": "raptor1_elbow"
+    },
+    {
+      "part": "Swept bevelled wood sickle 1",
+      "authoredJoint": "raptor1_hook",
+      "oldAdapterSemanticMatch": "raptor1_hook",
+      "proposedNativeJoint": "raptor1_hook"
+    },
+    {
+      "part": "Bevelled continuous ivory teeth 1",
+      "authoredJoint": "raptor1_hook",
+      "oldAdapterSemanticMatch": "raptor1_hook",
+      "proposedNativeJoint": "raptor1_hook"
+    },
+    {
+      "part": "Coxal bark shield (-1, 0)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "body",
+      "proposedNativeJoint": "body"
+    },
+    {
+      "part": "Coxal bark shield (-1, 1)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "body",
+      "proposedNativeJoint": "body"
+    },
+    {
+      "part": "Lateral tail splinter -1",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "abdomen",
+      "proposedNativeJoint": "abdomen"
+    },
+    {
+      "part": "Coxal bark shield (1, 0)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "body",
+      "proposedNativeJoint": "body"
+    },
+    {
+      "part": "Coxal bark shield (1, 1)",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "body",
+      "proposedNativeJoint": "body"
+    },
+    {
+      "part": "Lateral tail splinter 1",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": "abdomen",
+      "proposedNativeJoint": "abdomen"
+    },
+    {
+      "part": "Curved lateral chest splinter -1",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": null,
+      "proposedNativeJoint": "neck"
+    },
+    {
+      "part": "Curved lateral chest splinter 1",
+      "authoredJoint": "body",
+      "oldAdapterSemanticMatch": null,
+      "proposedNativeJoint": "neck"
+    }
+  ],
+  "requiredParentChanges": {
+    "head": "body -> neck",
+    "raptor-1": "body -> neck",
+    "raptor1": "body -> neck"
+  },
+  "proposedDerivedPivotsBlender": {
+    "neck": [
+      0,
+      0.36,
+      1.4
+    ],
+    "abdomen": [
+      0,
+      0.14,
+      1.47
+    ]
+  },
+  "limits": [
+    "Old adapter pins exact V7 hashes and must refuse this source.",
+    "No weights, skeleton, animation or native runtime output generated.",
+    "Rebuilt neck, arm pivots and overlapping leaves require fresh articulation/contact tests.",
+    "Existing V7 runtime scores and admission cannot transfer.",
+    "Static manifold checks do not exclude inter-part or self-intersections."
+  ]
+}

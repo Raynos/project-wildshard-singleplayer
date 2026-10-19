@@ -1,0 +1,12 @@
+{
+  "status": "FAILED: visible upper-arm attachment gap; never accepted",
+  "executedSourceSha256": "8b7ec347eb5e8f9888a2a6bc17b146ee1918d4349c5d6f837f232904537e020e",
+  "normalizedSourceSha256": "8f2bd3da69b7fe9acfa4155c1086c02c1d450eb7ac7a65eee00a582658f91bcd",
+  "whitespaceOnlyAstEquivalent": true,
+  "rawCaptureDirectory": "tmp/mantis-complete-pass2-failed-root-gap",
+  "normalizedSourceDidNotDirectlyProduceCapture": true,
+  "normalization": "Trailing whitespace only; AST without location attributes compared exactly",
+  "editableSource": "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/build_mantis_complete.py",
+  "exactExecutedSource": "tmp/mantis-complete-pass2-failed-root-gap/build_mantis_complete.capture.py",
+  "exactRenderSource": "tmp/mantis-complete-pass2-failed-root-gap/render_matched.capture.py"
+}
