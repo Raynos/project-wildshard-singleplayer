@@ -1,6 +1,6 @@
 {
   "reviewed_at": "2026-10-19T17:01:00Z",
-  "scope": "Three corrected sheets; supplements original audit without replacing it",
+  "scope": "Four corrected sheets; supplements original audit without replacing it",
   "disclaimer": "AI concept references, not game/model captures. Hidden geometry inferred; exact angles and rigid anatomy are not proven.",
   "replacement_choices": [
     {
@@ -41,6 +41,21 @@
         "Exact orthographic/elevation claims unproven"
       ],
       "silhouette_crop": "No obvious creature silhouette clipping observed"
+    },
+    {
+      "original": "pitcherWorldGen.png",
+      "selected": "corrections/pitcherWorldCorrectedGen-v2.png",
+      "reviewed_at": "2026-10-19T17:25:00Z",
+      "status": "usable_with_caveats",
+      "context_present": true,
+      "finding": "03 RIGHT and 07 ELEVATED LEFT have improved side-oblique coverage; strict profiles and rigid anatomy remain unproven.",
+      "remaining_issues": [
+        "03 and 07 remain three-quarter rather than proven strict side views",
+        "Branch/head overlap, foliage density and roots vary",
+        "Other panels look compositionally similar; pixel preservation was not tested"
+      ],
+      "silhouette_crop": "No obvious creature silhouette clipping observed"
     }
-  ]
+  ],
+  "latest_reviewed_at": "2026-10-19T17:25:00Z"
 }

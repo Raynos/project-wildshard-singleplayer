@@ -260,3 +260,18 @@ Verdict: BETTER than original; select corrected. All nine now use a dark grid/cy
 7. Elevated left: now screen-left, consistent with 2; high-oblique.
 8. Elevated right: now screen-right, consistent with 3; high-oblique.
 9. Elevated back: plausible rear-high, tail curl broadly agrees with 4.
+
+# Focused Pitcher World correction, 2026-10-19 17:25 UTC
+
+## Brine Pitcher: World corrected v2
+File: corrections/pitcherWorldCorrectedGen-v2.png
+Compared directly with pitcherWorldGen.png. Verdict: BETTER than original; select corrected v2 as usable_with_caveats. Both targeted panels are more distinct from the frontal category: 03 is narrower and more side-oblique, while 07 is an elevated opposing oblique rather than a near-duplicate of elevated front. Neither is a proven strict side view. The rich faceted coastal context, palette, three-pitcher identity and complete silhouette remain useful. Branch/head overlap, foliage density and root shapes change, so this remains an AI reference rather than a rigid-model turnaround. Other panels are compositionally similar on visual inspection; no pixel-preservation claim is made.
+1. Front: good frontal composition, three heads visible; no apparent crop issue.
+2. Left: side-oblique, far head mostly occluded; strict profile remains unproven.
+3. Right: improved narrower side-oblique view, three pitchers overlap toward the right. Central rim and substantial red body remain visible, so still three-quarter rather than strict side proof. Branch positions, leaf density and head overlap drift from other views.
+4. Back: plausible inferred rear; no apparent crop issue.
+5. Top: convincing overhead category with lid surfaces visible; exact camera and hidden construction unproven.
+6. Elevated front: clear elevated frontal composition, mouths visible; no apparent crop issue.
+7. Elevated left: improved opposing high-oblique, increased lid visibility and stronger branch overlap; more differentiated from 6. Still three-quarter; all three mouths remain exposed and root/foliage arrangement changes.
+8. Elevated right: side-oblique higher view, as in original at composition level; not a rigidly matched opposite of 7.
+9. Elevated back: plausible high rear, full roots/lids visible.

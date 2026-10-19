@@ -1,0 +1,11 @@
+{
+  "hashPins": 40,
+  "evidenceFileHashes": 54,
+  "rawHashes": 20,
+  "pairedCameraSettings": true,
+  "rebuiltFrozenGlbByteEquality": true,
+  "rebuiltMeshMetricsEquality": true,
+  "check_geometry.py": "Recomputed result exactly matches stored audit; no source writes",
+  "check_scope.py": "Recomputed result exactly matches stored audit; no source writes",
+  "check_intersections.py": "Recomputed result exactly matches stored audit; no source writes"
+}
