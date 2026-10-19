@@ -219,7 +219,8 @@
     "./riding/mount": "./riding/mount.ts",
     "./riding/ride.css": "./riding/ride.css",
     "./boss/arenaRoom": "./boss/arenaRoom.ts",
-    "./boss/arenaFire": "./boss/arenaFire.ts"
+    "./boss/arenaFire": "./boss/arenaFire.ts",
+    "./looks/scaledPost": "./looks/scaledPost.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

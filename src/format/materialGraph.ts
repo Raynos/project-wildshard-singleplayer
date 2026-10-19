@@ -206,7 +206,7 @@ export interface GraphStages {
   readonly surface?: GraphSurface;
   readonly lighting?: GraphLighting;
   readonly outline?: GraphOutline;
-  readonly post?: { readonly colour: GraphRef };
+  readonly post?: { readonly colour: GraphRef; readonly alpha?: GraphRef };
   /** a fog graph's only stage: the fogged colour (vec3) from `fogInput` / `engineFogged`; alpha passes through */
   readonly fog?: { readonly colour: GraphRef };
 }
@@ -490,7 +490,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   textureArray: { arity: [2, 2], rule: 'texture', cost: 6 },
   // Explicit mip and screen gradients keep painted panoramas continuous at a wrap.
   // Trilinear volume read; a lent Data3DTexture, coordinates in [0,1].
-  texture3D: { arity: [1, 1], rule: 'texture', cost: 4, places: MESH },
+  texture3D: { arity: [1, 1], rule: 'texture', cost: 4, places: [...MESH, 'post'] },
   textureLod: { arity: [2, 2], rule: 'texture', cost: 4, places: MESH },
   textureGrad: { arity: [3, 3], rule: 'texture', cost: 4, places: FRAG },
   // the constant-count loop
@@ -1003,7 +1003,10 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     for (const k of ['vertex.offset', 'vertex.position', 'vertex.clip', 'vertex.normal', 'vertex.scale', 'shadow.offset', 'surface', 'lighting', 'outline', 'points'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
     const p = stages.post;
     if (!isRecord(p)) fail('stages.post: a post graph needs { colour }');
-    else want(p.colour, 'post', 'vec3', 'stages.post.colour');
+    else {
+      want(p.colour, 'post', 'vec3', 'stages.post.colour');
+      if (p['alpha'] !== undefined) want(p['alpha'], 'post', 'float', 'stages.post.alpha');
+    }
   } else if (kind === 'fog') {
     for (const k of Object.keys(stages)) if (k !== 'fog') fail(`stages.${k}: a fog graph has only a fog stage`);
     const f = stages.fog;
@@ -1089,7 +1092,7 @@ function toStages(raw: Raw): GraphStages {
     ...(isRecord(vp) ? { 'vertex.position': { position: toRef(vp.position), ...(typeof vp.shadow === 'boolean' ? { shadow: vp.shadow } : {}) } } : {}),
     ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(typeof vo.shadow === 'boolean' ? { shadow: vo.shadow } : {}) } } : {}),
     ...(isRecord(s) ? { surface } : {}),
-    ...(isRecord(p) ? { post: { colour: toRef(p.colour) } } : {}),
+    ...(isRecord(p) ? { post: { colour: toRef(p.colour), ...(p['alpha'] === undefined ? {} : { alpha: toRef(p['alpha']) }) } } : {}),
     ...(isRecord(raw.fog) ? { fog: { colour: toRef(raw.fog.colour) } } : {}),
     ...(isRecord(o) ? { outline: { offset: toRef(o.offset), colour: toRef(o.colour) } } : {}),
     ...(isRecord(l) ? { lighting: {

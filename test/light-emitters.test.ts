@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Color, DataTexture, Group, Matrix4, MeshStandardMaterial, PerspectiveCamera, PointLight, ShaderMaterial, Vector3, Vector4 } from 'three';
+import { Color, DataTexture, Group, Matrix4, MeshStandardMaterial, PointLight, Vector3, Vector4 } from 'three';
 import { LightEmitters } from '../src/engine/fx/lightEmitters';
 import { Scope } from '../src/engine/app/scope';
 import { applyGround, updateGround } from '../src/engine/render/families/ground';
@@ -18,13 +18,10 @@ import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
 import { sceneVectors } from '../src/game/shardfile/sceneInputs';
 import { SIGNAL_EMITTERS } from '../src/shards/sunscar-dunes/generators/lightEmitters';
 import POOL from '../src/shards/nine-dragon-stack/data/lightPools.json' with { type: 'json' };
-import { Shared, restoreWeave } from '../src/shards/nine-dragon-stack/look/style';
+import { restoreWeave } from '../src/shards/nine-dragon-stack/look/style';
 import { Shared as SealedShared } from '../src/shards/nine-dragon-stack-legacy/look/style';
 import { plainWeaveBytes, silkWeaveBytes } from '../src/shards/nine-dragon-stack/generators/silkWeave';
 import { weaveTexture as sealedPlainWeave } from '../src/shards/nine-dragon-stack-legacy/world/hero/vm-material';
-import { RowRenderPass } from '../src/shards/nine-dragon-stack/runtime/looks/renderPass';
-import { HAZE_PASS } from '../src/shards/nine-dragon-stack/runtime/looks/passes';
-import { PASS_FAMILY } from '../src/shards/nine-dragon-stack/look/render/family';
 import { canopyGraphs } from '../src/shards/nine-dragon-stack/generators/canopyGraphs';
 import NINE_GRAPHS from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 import { validateGraph, type GraphRef } from '../src/format/materialGraph';
@@ -166,19 +163,6 @@ test('Nine weave bakes retain every texel and the sealed samplers', () => {
   }
   expect(() => restoreWeave(new Uint8Array(1))).toThrow('256 × 256');
 });
-
-test('Nine haze borrows the same baked normalization as world materials', () => {
-  const shared = new Shared(restoreWeave(silkWeaveBytes()));
-  const pass = new RowRenderPass(HAZE_PASS, { family: PASS_FAMILY, camera: new PerspectiveCamera(), links: shared.u });
-  try {
-    const material: unknown = Reflect.get(pass, 'material:hazeMarch');
-    if (!(material instanceof ShaderMaterial)) throw new Error('Missing haze material');
-    expect(material.uniforms['uLpMax']).toBe(shared.u.uLpMax);
-    shared.u.uLpMax.value = POOL.maximum;
-    expect(material.uniforms['uLpMax']?.value).toBe(12);
-  } finally { pass.dispose(); }
-});
-
 
 test('Nine canopy graphs retain vertex fog and fit both catalogue caps', () => {
   const rows = canopyGraphs(NINE_GRAPHS);

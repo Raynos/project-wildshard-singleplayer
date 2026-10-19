@@ -3,23 +3,15 @@
 // (@wildshard/sdk/looks/shaderFamily); this module makes the family (the splices the data cannot hold), the live shared
 // uniforms and each material.
 import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type Material, type Texture, type IUniform } from 'three';
-import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
+import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { syncArchitecture } from './facadeMaterial';
-import { Y0 } from '../layout';
 import { paintUniforms } from './paint';
-import { FLAG } from '../runtime/looks/paint';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
 import { lightVolUniforms } from './light/lightvol';
-import { LIGHTVOL_GLSL } from '../runtime/looks/light';
 import { METAL, SUTRA } from '../util';
 import { fogBandWindow } from '../runtime/looks/fogBands';
-import { SHARED_UNIFORMS } from '../runtime/looks/look';
-
-/** the splices only the shard knows (the datum, the flagstones, paint, light) */
-export const LOOK_FRAGMENTS: Readonly<Record<string, string>> = { y0: String(Y0), flagRh: FLAG.rh.toFixed(3), lightvol: LIGHTVOL_GLSL };
-/** the family: the data's programs, with the splices only the shard knows (the datum, the flagstones, paint, light) */
-
+import type { SharedUniformRows } from './uniformTypes';
 
 const c = (hex: number): Color => new Color(hex);
 
@@ -36,11 +28,9 @@ export function restoreWeave(data: Uint8Array): DataTexture {
   return texture;
 }
 
-function sharedUniforms(silk: Texture): UniformsOf<typeof SHARED_UNIFORMS> & {
-  uSilver: { value: Color }; uGold: { value: Color }; uPaper: { value: Color }; uPaperDeep: { value: Color }; uSilk: { value: Texture };
-} & ReturnType<typeof paintUniforms> & ReturnType<typeof lightVolUniforms> {
+function sharedUniforms(silk: Texture, rows: SharedUniformRows) {
   return {
-    ...uniformsFrom(SHARED_UNIFORMS),
+    ...uniformsFrom({ ...rows }),
     uSilver: { value: c(METAL.silver) },
     uGold: { value: c(METAL.gold) },
     uPaper: { value: c(SUTRA.indigo) },
@@ -55,7 +45,8 @@ function sharedUniforms(silk: Texture): UniformsOf<typeof SHARED_UNIFORMS> & {
 /** uniforms every world program shares (one object each, so a write reaches every material) */
 export class Shared {
   readonly u;
-  constructor(silk: Texture) { this.u = sharedUniforms(silk); }
+  readonly baseBandDepth: number;
+  constructor(silk: Texture, rows: SharedUniformRows) { this.u = sharedUniforms(silk, rows); this.baseBandDepth = rows.uBands.v4s[0]?.[2] ?? 1; }
 
   /**
    * (E283) the silk fog's band window for the eye at uCam (call it after every uCam write): the bands run top to bottom,

@@ -553,6 +553,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   countRef(st.points?.size);
   for (const k of ['colour', 'alpha', 'targetAlpha', 'emissive', 'roughness', 'metalness', 'occlusion', 'normal'] as const) countRef(st.surface?.[k]);
   countRef(st.post?.colour);
+  countRef(st.post?.alpha);
   countRef(st.fog?.colour);
   for (const k of ['sun', 'sunSpecular', 'ambient', 'grade'] as const) countRef(st.lighting?.[k]);
   /** the instructions only this side of a select would run */
@@ -940,7 +941,10 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const out = (r: GraphRef | undefined): Val | null => (r === undefined ? null : ref(r, root));
   /** a post graph: a fullscreen quad's material (its own pass), unfogged */
   const postMaterial = (): NodeMaterial => {
-    const m = new MeshBasicNodeMaterial({ depthTest: false, depthWrite: false });
+    const alpha = out(st.post?.alpha);
+    const m = alpha === null ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial();
+    m.depthTest = false; m.depthWrite = false;
+    if (alpha !== null && m instanceof GraphUnlitNormalMaterial) m.graphTargetAlpha = asFloat(alpha);
     const colour = out(st.post?.colour);
     if (colour !== null) {
       const own = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');

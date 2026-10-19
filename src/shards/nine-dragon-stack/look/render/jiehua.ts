@@ -13,7 +13,7 @@ import type { gradeUniforms } from '../light/grade';
 import { BLEED, JIEHUA_FS } from '../../runtime/looks/passes';
 import { PASS_FAMILY } from './family';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import type { RowRenderPass as RowRenderPassView } from '../../runtime/looks/renderPass';
+import type { ScaledPostPass as RowRenderPassView } from '@wildshard/game/looks/scaledPost';
 
 type Glow = ReturnType<typeof glowUniforms>;
 type Grade = ReturnType<typeof gradeUniforms>;

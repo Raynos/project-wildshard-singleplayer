@@ -1,4 +1,7 @@
+import { postRows } from '../src/shards/nine-dragon-stack/generators/postGraphs';
 import { haloGraph } from '../src/shards/nine-dragon-stack/generators/haloGraph';
+import { ScaledPostPass, prepareScaledPost } from '../src/game/looks/scaledPost';
+import type { ScaledPostRow } from '../src/format/scaledPost';
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
@@ -20,7 +23,7 @@ function renderer(): THREE.WebGLRenderer {
   const result: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(result instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
   const fields: Record<string, unknown> = {
-    getDrawingBufferSize: (target: THREE.Vector2) => target.set(400, 800), getViewport: (target: THREE.Vector4) => target.set(0, 0, 400, 800),
+    setNodesHandler: () => undefined, getDrawingBufferSize: (target: THREE.Vector2) => target.set(400, 800), getViewport: (target: THREE.Vector4) => target.set(0, 0, 400, 800),
     extensions: { has: () => false, get: () => null }, getContext: () => ({ getParameter: () => 65536 }), getRenderTarget: () => null,
     toneMapping: THREE.NoToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
     coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
@@ -125,4 +128,37 @@ test('held toon and hull graphs compile rigid and skinned without adding draws',
       if (id === 'nine-vm-hull') expect(shader.vertex).toContain('aHullN');
     }
   }
+});
+
+
+test('scaled post graphs retain the existing draws, target scales and sampler bounds', () => {
+  const rows = postRows();
+  expect([rows.bleed.draws.length, rows.reflect.draws.length, rows.haze.draws.length]).toEqual([5, 2, 2]);
+  for (const row of Object.values(rows)) for (const program of Object.values(row.programs)) {
+    expect(program.graph.budget?.nodes).toBeLessThanOrEqual(4096);
+    expect(new TextEncoder().encode(JSON.stringify(program.graph)).length).toBeLessThanOrEqual(64000);
+    const shader = build(program.graph, false);
+    expect(shader.fragment).not.toContain('NaN');
+  }
+});
+
+test('a second shard fixture drives resized post targets and skips gated outputs', async () => {
+  const render = renderer();
+  await prepareScaledPost(render);
+  const scene = new THREE.WebGLRenderTarget(800, 1600), camera = new THREE.PerspectiveCamera();
+  const fixture: ScaledPostRow = { name: 'FixturePost', programs: { copy: { graph: { version: 1, kind: 'post', nodes: { uv: { op: 'screenUV' }, colour: { op: 'texture', in: ['uv'], param: 'source' }, rgb: { op: 'swizzle', in: ['colour'], mask: 'xyz' } }, params: { source: { type: 'texture', role: 'lent', value: 'source' } }, stages: { post: { colour: 'rgb', alpha: .4 } } } } },
+    targets: { small: { name: 'Fixture.small', of: 'input', scale: .5, filter: 'linear' }, quarter: { name: 'Fixture.quarter', of: 'small', scale: .5, filter: 'nearest' } },
+    draws: [{ program: 'copy', to: 'small', textures: { source: 'input' } }, { program: 'copy', to: 'quarter', textures: { source: 'small' } }], settings: { gain: 1 }, when: 'gain', outputs: { final: 'quarter' }, drawnOnly: true };
+  const pass = new ScaledPostPass(fixture, { renderer: render, camera }), draws: [number, number][] = [];
+  Reflect.set(render, 'setRenderTarget', (target: THREE.WebGLRenderTarget) => { draws.push([target.width, target.height]); });
+  Reflect.set(render, 'render', () => undefined);
+  try {
+    pass.setSize(800, 1600); pass.render(render, scene);
+    expect(draws).toEqual([[400, 800], [200, 400]]);
+    expect(pass.output('final')?.image).toMatchObject({ width: 200, height: 400 });
+    pass.set({ gain: 0 }); pass.render(render, scene); expect(pass.output('final')).toBeNull();
+    pass.set({ gain: 1 }); pass.setSize(400, 800); draws.length = 0; pass.render(render, scene);
+    expect(draws).toEqual([[200, 400], [100, 200]]);
+    expect(() => new ScaledPostPass({ ...fixture, targets: { bad: { name: 'cycle', of: 'bad', scale: .5, filter: 'linear' } } }, { renderer: render, camera })).toThrow('target');
+  } finally { pass.dispose(); scene.dispose(); }
 });

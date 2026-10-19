@@ -20,19 +20,26 @@ import { type Halos, buildHalos } from './light/halos';
 import { STREAK_PERF, setStreakOn } from './streaks';
 import { clearLanterns, updateLanterns } from './lanterns';
 import { JiehuaEffect } from './render/jiehua';
-import { PASS_FAMILY } from './render/family';
-import { BLEED_PASS, HAZE_PASS, REFLECT_PASS } from '../runtime/looks/passes';
-import { RowRenderPass, type RowRenderPass as RowRenderPassView } from '../runtime/looks/renderPass';
-import { tuneAo } from '../runtime/looks/aoTuning';
+import { ScaledPostPass as RowRenderPass, prepareScaledPost } from '@wildshard/game/looks/scaledPost';
+import type { ScaledPostRow } from '@wildshard/format/scaledPost';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
+
+import { tuneAo, type AoTuning } from '../runtime/looks/aoTuning';
 import { meshesWithUniform } from '../runtime/looks/uniformScan';
-import { AO_TUNING } from '../data/aoLook';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import type { Shared } from './style';
 import { hasLentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { syncArchitecture } from './facadeMaterial';
-import { BANDS } from '../runtime/looks/look';
 
 const light = metadata.looks.light as LookRows['light'];
+
+let post: Readonly<Record<'bleed' | 'reflect' | 'haze', ScaledPostRow>> & { readonly ao: AoTuning } | null = null;
+/** Load the admitted post rows while the world stage may await. */
+export async function prepareNinePost(renderer: Renderer): Promise<void> {
+  await prepareScaledPost(renderer);
+  const rows = await (await loadFirstPartyProduct('nine-dragon-stack')).json<{ readonly look: { readonly post: Readonly<Record<'bleed' | 'reflect' | 'haze', ScaledPostRow>>; readonly ao: AoTuning } }>('weapons/jian-row.json');
+  post = { ...rows.look.post, ao: rows.look.ao };
+}
 
 /**
  * The silk fog for the look graphs (O11): data/lookGraphs.json 'nine-silk-fog' is FOG_GLSL's silkFog as a `kind: 'fog'`
@@ -54,7 +61,7 @@ function syncSilkFog(shared: Shared): void {
     setLentParam(id, 'rootAt', u.uRootAt.value.toArray(o.v3));
     if (id.startsWith('nine-architecture') || id.startsWith('nine-facade') || id === 'nine-windows') continue;
     setLentParam(id, 'datum', Y0);
-    setLentParam(id, 'bandDepth', (u.uBands.value[0]?.z ?? 0) / (BANDS[0]?.d ?? 1));
+    setLentParam(id, 'bandDepth', (u.uBands.value[0]?.z ?? 0) / shared.baseBandDepth);
     setLentParam(id, 'fogBase', u.uFogBase.value);
     setLentParam(id, 'fogStart', u.uFogStart.value);
     setLentParam(id, 'fogBaseCol', u.uFogBaseCol.value.toArray(o.col));
@@ -75,9 +82,9 @@ function syncSilkFog(shared: Shared): void {
 }
 
 export interface NdRenderHandle {
-  reflect: RowRenderPassView | null;
-  haze: RowRenderPassView | null;
-  bleed: RowRenderPassView | null;
+  reflect: RowRenderPass | null;
+  haze: RowRenderPass | null;
+  bleed: RowRenderPass | null;
   jiehua: JiehuaEffect;
   camera: PerspectiveCamera;
   renderer: Renderer;
@@ -105,7 +112,7 @@ const PHONE_CARD_GAIN = 1;
 const SKY_ORDER = 900;
 
 /** The Jiehua composite and the side passes it reads (the wet floor, the haze march, the bleed pyramid; none on the phone). */
-interface Composite { reflect: RowRenderPassView | null; haze: RowRenderPassView | null; bleed: RowRenderPassView | null; jiehua: JiehuaEffect; pose: (() => void) | null }
+interface Composite { reflect: RowRenderPass | null; haze: RowRenderPass | null; bleed: RowRenderPass | null; jiehua: JiehuaEffect; pose: (() => void) | null }
 
 /**
  * (SF63) the page camera seen from the world's root: inside a grid cell the root stands at the cell's render offset and the
@@ -141,13 +148,13 @@ class PoseView extends Pass {
  * Build the composite for a camera on a tier: standalone (compose) and inside a grid cell (`cell`, `root`: the world's root,
  * whose frame the cell's reconstruction runs in) build the same one.
  */
-function buildComposite(camera: PerspectiveCamera, tier: Tier, glow: ReturnType<typeof glowUniforms>, grade: ReturnType<typeof gradeUniforms>, root: Object3D | null = null): Composite {
+function buildComposite(camera: PerspectiveCamera, tier: Tier, glow: ReturnType<typeof glowUniforms>, grade: ReturnType<typeof gradeUniforms>, renderer: Renderer, root: Object3D | null = null): Composite {
   const world = ndRuntime().world;
   const framed = root === null ? null : rootView(camera, root);
   const view = framed?.view ?? camera;
-  let reflect: RowRenderPassView | null = null;
-  let haze: RowRenderPassView | null = null;
-  let bleed: RowRenderPassView | null = null;
+  let reflect: RowRenderPass | null = null;
+  let haze: RowRenderPass | null = null;
+  let bleed: RowRenderPass | null = null;
   // Emergency phone profile: avoid the three custom passes while isolating the iPhone load failure.
   // At 402×812, DPR 2, their half-float RGBA targets total an estimated 7,550,992 bytes (7.20 MiB);
   // actual driver allocation and whether this causes the crash remain unconfirmed.
@@ -156,11 +163,11 @@ function buildComposite(camera: PerspectiveCamera, tier: Tier, glow: ReturnType<
     const rect = new Vector4(WELL.x0 - 2, STREET.z0, Math.max(PLAZA.x1, STAIR.x0) + 4, PLAZA.z1 + 10);
     // (dome C2) and the stair-street's treads and landings, any height: x 22 … 102, z 2 … 10
     const stairRect = new Vector4(STAIR.x0, STAIR.z0, 102, STAIR.z1);
-    const s = world.shared.u, time = (): number => s.uTime.value;
-    const family = PASS_FAMILY;
-    reflect = new RowRenderPass(REFLECT_PASS, { family, camera: view, params: { time }, links: { uRect: { value: rect }, uRect2: { value: stairRect }, uK: { value: new Vector4(Y0, 1, 0.045, 0.12) } } });
-    haze = new RowRenderPass(HAZE_PASS, { family, camera: view, params: { time }, links: { ...s, uGroundY: { value: Y0 } } });
-    bleed = new RowRenderPass(BLEED_PASS, { family, camera: view, links: glow });
+    if (post === null) throw new Error('Nine post rows have not loaded');
+    const s = world.shared.u, params = { time: s.uTime, ground: { value: Y0 } };
+    reflect = new RowRenderPass(post.reflect, { renderer, camera: view, params, links: { uFlagJoint: s.uFlagJoint, uRect: { value: rect }, uRect2: { value: stairRect }, uK: { value: new Vector4(Y0, 1, 0.045, 0.12) } } });
+    haze = new RowRenderPass(post.haze, { renderer, camera: view, params, links: { ...s, uGroundY: { value: Y0 } } });
+    bleed = new RowRenderPass(post.bleed, { renderer, camera: view, links: glow });
   }
   const jiehua = new JiehuaEffect(view, world.shared, glow, grade);
   jiehua.source = bleed;
@@ -223,7 +230,7 @@ export function shardRender(): LookStrategy {
       build: (c) => {
         cellBuffer = c.renderer;
         c.scope.onDispose(() => { cellBuffer = null; });
-        const { reflect, haze, bleed, jiehua, pose } = buildComposite(c.camera, c.tier, glow, grade, ndRuntime().world.root);
+        const { reflect, haze, bleed, jiehua, pose } = buildComposite(c.camera, c.tier, glow, grade, c.renderer, ndRuntime().world.root);
         // its scene-side parts, as compose sets them: the streak cards' gain (the whole wet-floor reflection where no
         // reflection pass runs) and, without the bleed pyramid, the phone's light halos
         const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.root, 'uCardOn');
@@ -241,9 +248,10 @@ export function shardRender(): LookStrategy {
     },
     compose(c: LookComposeContext): LookComposition {
       const world = ndRuntime().world;
+      if (post === null) throw new Error('Nine post rows have not loaded');
       // AO at the city's scale, faded with the fog (data/aoLook.ts)
-      tuneAo(c.fx.ao, AO_TUNING, c.tier === 'phone', c.scene);
-      const { reflect, haze, bleed, jiehua } = buildComposite(c.camera, c.tier, glow, grade);
+      tuneAo(c.fx.ao, post.ao, c.tier === 'phone', c.scene);
+      const { reflect, haze, bleed, jiehua } = buildComposite(c.camera, c.tier, glow, grade, c.renderer);
       const beforeChain: NonNullable<LookComposition['beforeChain']> = reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed];
       // the streak cards (look/streaks.ts): found by their own uniform
       const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.scene, 'uCardOn');

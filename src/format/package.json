@@ -208,7 +208,8 @@
     "./clientTrails": "./clientTrails.ts",
     "./clientCues": "./clientCues.ts",
     "./practiceCourse": "./practiceCourse.ts",
-    "./riding": "./riding.ts"
+    "./riding": "./riding.ts",
+    "./scaledPost": "./scaledPost.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

@@ -1,3 +1,4 @@
+import { prepareNinePost } from './look/render';
 import type { GrappleRows } from './data/grappleTypes';
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { Sword } from '@wildshard/game/weapons/Sword';
@@ -43,6 +44,7 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), compiled and lent first
   const source = ctx.product.shardfile;
   lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, render, source, Object.keys(source.look.materials)));
+  await prepareNinePost(render.renderer);
   // G200: `caps` standalone (no grid cube): each deck's open end is closed by its balustrade; in a grid cell the road continues
   const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
     ctx.progress.set(fraction, 1);

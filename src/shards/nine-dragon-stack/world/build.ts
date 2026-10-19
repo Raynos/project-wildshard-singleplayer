@@ -117,7 +117,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const worldData = new Float64Array(Uint8Array.from(await product.file('geometry/world-f64.bin')).buffer);
   if (worldData.length !== worldRows.records) throw new Error('Nine world record inventory differs');
   const { shaft: SHAFT } = worldRows;
-  const shared = new Shared(restoreWeave(await (await loadFirstPartyProduct('nine-dragon-stack')).file('looks/silk-weave.r8')));
+  const shared = new Shared(restoreWeave(await product.file('looks/silk-weave.r8')), (await product.json<{ readonly look: { readonly shared: ConstructorParameters<typeof Shared>[1] } }>('weapons/jian-row.json')).look.shared);
   const root = new Group();
   root.name = 'nine-dragon-stack';
   const phaseProfile: { name: string; ms: number }[] = [];

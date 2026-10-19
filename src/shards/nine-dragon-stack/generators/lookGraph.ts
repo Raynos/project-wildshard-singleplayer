@@ -54,7 +54,7 @@ export class LookGraph {
     Object.assign(this.params, graph.params); Object.assign(this.arrays, graph.arrays);
     return rename(transmission);
   }
-  finish(stages: GraphStages, state?: GraphIr['effectState']): GraphIr {
+  finish(stages: GraphStages, state?: GraphIr['effectState'], kind: 'material' | 'post' = 'material'): GraphIr {
     const used = new Set<string>();
     const visit = (ref: unknown): void => {
       if (typeof ref === 'string' && this.nodes[ref] !== undefined && !used.has(ref)) { used.add(ref); for (const input of this.nodes[ref].in ?? []) visit(input);
@@ -72,8 +72,10 @@ export class LookGraph {
       : Array.isArray(value) ? value.map(compact) : typeof value === 'object' && value !== null ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, compact(item)])) : value;
     const compactStages = compact(stages) as GraphStages;
     const nodes = Object.fromEntries(live.map(([id, row]) => [ids.get(id) ?? id, node(row)]));
-    const names = new Set(Object.values(nodes).map(entry => entry.param));
-    const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit', doubleSided: true, effectState: state ?? { fog: false, blend: 'additive', depthWrite: false },
+    const names = new Set<string | undefined>();
+    const parameters = (rows: Readonly<Record<string, GraphNode>>): void => { for (const entry of Object.values(rows)) { names.add(entry.param); if (entry.body !== undefined) parameters(entry.body.nodes); } };
+    parameters(nodes);
+    const graph: GraphIr = { version: 1, kind, ...(kind === 'post' ? {} : { model: 'unlit', doubleSided: true, effectState: state ?? { fog: false, blend: 'additive', depthWrite: false } }),
       budget: { nodes: 4096, samplers: 8, instructions: 8192 }, nodes, arrays: this.arrays, params: Object.fromEntries(Object.entries(this.params).filter(([id]) => names.has(id))), stages: compactStages };
     const checked = validateGraph(graph, { trustedBudget: true });
     if (!checked.ok) throw new Error([...new Set(checked.errors)].slice(0, 12).join('\n'));
