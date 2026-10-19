@@ -1,0 +1,366 @@
+{
+  "status": "All twenty actual matched captures completed",
+  "nativePins": {
+    "v71": {
+      "path": "art/driftwood-isle/approved-puffer/unaccepted-native-v71.json",
+      "sha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338"
+    },
+    "complete": {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-native.json",
+      "sha256": "322dac35e093fddb4b44a5bc7332d4c1187dd002bdb59091c583b4df3717f370"
+    }
+  },
+  "scriptSha256": "c17050a438415cc7ad296daed4aa2b861a2cab928fcbe21db3382177369007e8",
+  "resolution": [
+    600,
+    740
+  ],
+  "samples": 24,
+  "denoising": false,
+  "viewTransform": "AgX",
+  "lighting": "V71 three area lights, unchanged between variants",
+  "geometry": "native bind pose, identity transforms, no camera-dependent changes",
+  "captures": [
+    {
+      "variant": "v71",
+      "view": "hero",
+      "camera": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ],
+      "target": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ],
+      "scale": 3.2,
+      "filename": "v71-hero.png",
+      "sha256": "ffbaf76f4605fefead5ba72304c805b2506cd64e23013d8d3f3531bfd306440a"
+    },
+    {
+      "variant": "complete",
+      "view": "hero",
+      "camera": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ],
+      "target": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ],
+      "scale": 3.2,
+      "filename": "complete-hero.png",
+      "sha256": "70659f4333c5de464f3ee38483e7cd5248ee3005c30e4653d7e3aba76335cecb"
+    },
+    {
+      "variant": "v71",
+      "view": "01-front",
+      "camera": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "v71-01-front.png",
+      "sha256": "f08ff003806e19eb257078355222e87478518b54aab185c21a268f0944bd4538"
+    },
+    {
+      "variant": "complete",
+      "view": "01-front",
+      "camera": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "complete-01-front.png",
+      "sha256": "7508d570d9e9c1bce5a6ff5953c268bd05e6b91fa942692db165810ddc9ee64c"
+    },
+    {
+      "variant": "v71",
+      "view": "02-left",
+      "camera": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "v71-02-left.png",
+      "sha256": "03b24414fbb907d58854f04eeac742805fcbd70eea51430ac896e1c6ba9ff63f"
+    },
+    {
+      "variant": "complete",
+      "view": "02-left",
+      "camera": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "complete-02-left.png",
+      "sha256": "acbfd778b66618285ad600001b3c56144af0c417f3ad5cd0bf53a14e02ff8e24"
+    },
+    {
+      "variant": "v71",
+      "view": "03-right",
+      "camera": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "v71-03-right.png",
+      "sha256": "4308405eaf3d0c308621cee567efa6e8a204ae5929b32b92c77197135a781ce4"
+    },
+    {
+      "variant": "complete",
+      "view": "03-right",
+      "camera": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "complete-03-right.png",
+      "sha256": "a7ece8bc4de31c986349d6410ec98da9f66ff50b2630e42f3f1e2a235c5885d3"
+    },
+    {
+      "variant": "v71",
+      "view": "04-back",
+      "camera": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "v71-04-back.png",
+      "sha256": "18c96c961d7b8821171b572a99c7f3c719b088579948fab0b757e13c9fa4e4cc"
+    },
+    {
+      "variant": "complete",
+      "view": "04-back",
+      "camera": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "complete-04-back.png",
+      "sha256": "c1ab39a29b3896708d4ce21eadb7f804a544679b78b80c1cf2748708958b2067"
+    },
+    {
+      "variant": "v71",
+      "view": "05-top",
+      "camera": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "v71-05-top.png",
+      "sha256": "d50b5a0f83a6911463e29c471ced4c47c0903a4857d165b0dd1830750cbea655"
+    },
+    {
+      "variant": "complete",
+      "view": "05-top",
+      "camera": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "complete-05-top.png",
+      "sha256": "77a08127ed2b8c67cd80209503b1ff31b07465354a9e93730b55fd695dbf1592"
+    },
+    {
+      "variant": "v71",
+      "view": "06-elevated-front",
+      "camera": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "v71-06-elevated-front.png",
+      "sha256": "a98c835cfde41a5d67f9c66b316e84570fd67ef3d06cc91369d3448ed6b0e46c"
+    },
+    {
+      "variant": "complete",
+      "view": "06-elevated-front",
+      "camera": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "complete-06-elevated-front.png",
+      "sha256": "813511fa478ce1954403302f8386eecab3c608c090928adc02f4e30ff6004c8d"
+    },
+    {
+      "variant": "v71",
+      "view": "07-elevated-left",
+      "camera": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "v71-07-elevated-left.png",
+      "sha256": "0488a7f526fb8487c855470e609aa8f1b325328c39198848c0046a4b5bfe1832"
+    },
+    {
+      "variant": "complete",
+      "view": "07-elevated-left",
+      "camera": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "complete-07-elevated-left.png",
+      "sha256": "628b8f6e5f966d782997a6f569c7b799bf31616dde5df634ae6ac8f7c2165a3e"
+    },
+    {
+      "variant": "v71",
+      "view": "08-elevated-right",
+      "camera": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "v71-08-elevated-right.png",
+      "sha256": "8c17743f352443c54ebd8a3feb6f5c68121833a5f68b171ac74ebe88c1ded8a5"
+    },
+    {
+      "variant": "complete",
+      "view": "08-elevated-right",
+      "camera": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "complete-08-elevated-right.png",
+      "sha256": "c26b166d8434ea4c54c8cce586c1077c51f602f63c47d78fc011d512deb1bd08"
+    },
+    {
+      "variant": "v71",
+      "view": "09-elevated-back",
+      "camera": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "v71-09-elevated-back.png",
+      "sha256": "d480dcf6557b4337d5728f3d1447f7f62226f02faa2a4e5b4120f84534c58440"
+    },
+    {
+      "variant": "complete",
+      "view": "09-elevated-back",
+      "camera": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "complete-09-elevated-back.png",
+      "sha256": "fb4d32fa24195898b23724c4de3171c170384c4d9e667feb633f2699e20da622"
+    }
+  ],
+  "runtimeValidated": false
+}

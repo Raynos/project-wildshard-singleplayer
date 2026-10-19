@@ -1,0 +1,10 @@
+{
+  "scope": "Exact source shell with fan triangulation; exported GLB audit still required",
+  "vertices": 244,
+  "triangles": 466,
+  "boundaryEdges": 0,
+  "nonmanifoldEdges": 0,
+  "properNonadjacentCrossings": 0,
+  "crossingPairs": [],
+  "degenerateTriangles": 0
+}

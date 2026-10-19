@@ -1,0 +1,8 @@
+{
+  "command": "PYTHONDONTWRITEBYTECODE=1 python art/driftwood-isle/puffer-complete-remaster/test_static.py",
+  "tests": 6,
+  "failures": 0,
+  "errors": 0,
+  "status": "PASS",
+  "scope": "focused static composition only; no runtime or artistic acceptance"
+}

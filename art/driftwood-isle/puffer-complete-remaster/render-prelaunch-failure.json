@@ -1,0 +1,8 @@
+{
+  "stage": "heavy-lane lock directory setup, before Blender launch",
+  "status": "FAILED",
+  "error": "OSError: [Errno 30] Read-only file system: default home heavy-lane directory",
+  "logSha256": "fcbce79cafe5bb0b7ac9d2b1822c1104a48a113048a163fca5dfbe680afed827",
+  "captureStarted": false,
+  "resolutionPending": "Coordinator supplies shared writable WS_HEAVY_ROOT; no script/candidate change"
+}

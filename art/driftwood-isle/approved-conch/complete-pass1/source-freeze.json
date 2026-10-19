@@ -1,0 +1,25 @@
+{
+  "status": "Source frozen before first actual render; no acceptance claim",
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass1/board_conch_complete_pass1.py",
+      "bytes": 1890,
+      "sha256": "3e85c2de69a3e9cf0f7176c0607c567f90c10abb64ad8a8aee84db873772813c"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass1/build_conch_complete_pass1.py",
+      "bytes": 17357,
+      "sha256": "2049f3d5a72f52cb9eac66e93b3ceb6a7aff538a483cf26d9b1bfd1a3a2490dc"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass1/render_conch_complete_pass1_nine.py",
+      "bytes": 3135,
+      "sha256": "fd8847f7811dbe9a565522b1ac35b315c6c1a314493c7474d5297dfaee7a7a88"
+    },
+    {
+      "path": "docs/reviews/conch-complete-pass1-construction.md",
+      "bytes": 3375,
+      "sha256": "4e80108fba86b3c8f7aeea573f6c37e24c7037db8afeeb8c326c30786af21c0c"
+    }
+  ]
+}
