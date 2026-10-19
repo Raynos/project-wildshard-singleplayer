@@ -25,10 +25,12 @@ function put(root: string, path: string, bytes: string | Uint8Array): void {
 }
 async function fixture(): Promise<string> {
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp/catalog-build-')); owned.push(root);
+  put(root, 'scripts/generation-jobs.json', JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT: fixture', jobs: [] }));
   const placements = [];
   for (const [order, slug] of ['alpha', 'beta'].entries()) {
     const project = resolve(root, 'src/shards', slug), image = `public/assets/${slug}/map/top.webp`;
     put(project, 'shard.config.ts', 'export default {};\n');
+    put(project, 'look/map.json', JSON.stringify({ why: 'Synthetic map uses the normal project inputs' }));
     put(project, 'runtime/index.ts', `// ${slug} client\nexport const client = '${slug}';\n`);
     put(root, image, png);
     put(project, 'look/map.baked.json', JSON.stringify({ image: `/assets/${slug}/map/top.webp`, tilesHash: mapTilesHash(project), pixelHash: await mapPixelHash(resolve(root, image)) }));
@@ -128,6 +130,7 @@ it('reports exact changed map inputs while still refusing publication', async ()
     await expect(buildShardfiles(root, { strict: true, catalog: true, build: builder(calls) })).rejects.toThrow('does not match its world');
     expect(existsSync(resolve(root, 'out/catalog.json'))).toBe(false);
     expect(error).toHaveBeenCalledWith(`wildshard map inputs: ${JSON.stringify({ shard: 'alpha', expected, actual, files: {
+      'look/map.json': hashImmutableBytes(Uint8Array.from(readFileSync(resolve(project, 'look/map.json')))),
       'shard.config.ts': hashImmutableBytes(new TextEncoder().encode('export default {};\n')),
       'world/changed.ts': hashImmutableBytes(new TextEncoder().encode('export const placement = 2;\n')),
     } })}`);
