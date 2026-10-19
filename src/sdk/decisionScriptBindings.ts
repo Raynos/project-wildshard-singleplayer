@@ -51,7 +51,7 @@ const namespaces = {actors:'Actor',moves:'Move',strikes:'Strike',cues:'Cue',fiel
 /** Safe generated filename shared by the compiler and author imports. */
 export function decisionBindingsPath(row: Pick<DecisionScriptRow,'id'>): string { return `behaviour/generated/${scriptV1Identifier(row.id)}.ts`; }
 /** Allocation-free, capability-specific AssemblyScript bindings plus the only ABI entry point. */
-export function generateDecisionBindings(input: unknown, registries: DecisionRegistries, options: { development?: boolean } = {}): {
+export function generateDecisionBindings(input: unknown, registries: DecisionRegistries, options: { development?: boolean; singleSignal?: boolean } = {}): {
   row: DecisionScriptRow; map: DecisionBindingMap; path: string; bindings: string; glue: string; sources: Readonly<Record<string,string>>;
 } {
   const row = parseDecisionScripts([input])[0]; if (row === undefined) throw new Error('Missing decision row');
@@ -88,11 +88,17 @@ export function generateDecisionBindings(input: unknown, registries: DecisionReg
     '  @inline static io():i32{return core.io();}','  @inline static begin():void{core.begin();}','  @inline static end():i32{return core.finish();}',
     '  @inline static count():i32{return core.events();}','  @inline static select(index:i32):void{core.selectEvent(index);}','  @inline static value(field:i32):f64{return core.event(field);}','}');
   const path=decisionBindingsPath(row),handlers=row.on.map(name=>DECISION_HANDLERS[name]);
-  const glue=[`import {${handlers.map(handler=>handler.name).join(',')}} from './${row.source.slice(0,-3)}';`,
+  let glue=[`import {${handlers.map(handler=>handler.name).join(',')}} from './${row.source.slice(0,-3)}';`,
     `import {__ws,Clock} from './${path.slice(0,-3)}';`,'export function ws_abi():i32{return 1;}',
     'export function ws_init(lo:i32,hi:i32):void{__ws.init();}','export function ws_io():i32{return __ws.io();}',
     'export function ws_handle():i32{__ws.begin();for(let index:i32=0;index<__ws.count();index++){__ws.select(index);switch(i32(__ws.value(0))){',
     ...row.on.map(name=>`case ${SCRIPT_V1_EVENTS[name]}:${DECISION_HANDLERS[name].name}(${DECISION_HANDLERS[name].args});break;`),
     'default:unreachable();}}return __ws.end();}'].join('\n');
+  // Return projections already submit exactly one stateless signal per request.
+  // Emit their fixed transport directly; general ABI inboxes keep their loop.
+  if(options.singleSignal===true){
+    if(row.on.length!==1||row.on[0]!=='signal'||row.state.length>0||row.tick!==null||row.timers.length>0||row.commands.some(command=>command!=='channel'))throw new Error('Single-signal transport requires a stateless return projection');
+    glue=`${glue.slice(0,glue.indexOf('export function ws_handle'))}export function ws_handle():i32{__ws.begin();assert(__ws.count()==1);__ws.select(0);assert(i32(__ws.value(0))==${SCRIPT_V1_EVENTS.signal});onSignal(${DECISION_HANDLERS.signal.args});return __ws.end();}`;
+  }
   const bindings=lines.join('\n');return {row,map,path,bindings,glue,sources:{[path]:bindings,'sdk/as/ws.ts':WS_CORE}};
 }

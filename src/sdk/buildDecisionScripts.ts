@@ -14,7 +14,7 @@ import { hashImmutableBytes } from './immutable';
 import { WS_CORE } from './as/ws';
 
 /** Root adapters supply the sealed legacy count; standalone authors declare their explicit ceiling. */
-export interface DecisionBuildOptions { decisionLegacyLines?: number; asLineCeiling?: number; development?: boolean }
+export interface DecisionBuildOptions { decisionLegacyLines?: number; asLineCeiling?: number; development?: boolean; singleSignal?: boolean }
 /** No SDK import reaches repo policy. An explicit legacy denominator overrides a standalone declaration. */
 export function decisionLineCeiling(options: DecisionBuildOptions): number {
   const count = options.decisionLegacyLines ?? options.asLineCeiling;

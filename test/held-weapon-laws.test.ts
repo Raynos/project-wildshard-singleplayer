@@ -85,3 +85,13 @@ it('binds unrelated native polearm, blade and power rows without shard callbacks
   expect(reward.applied).toBe(false);
  }finally{load.mockRestore();material.dispose();geometry.dispose();}
 });
+
+it('shares one module across all weapon signals and isolates their channels',async()=>{
+ const {Scope}=await import('../src/engine/app/scope');const scope=new Scope('combined-weapon-fixture');
+ const spear=new HeldDecision(rows.programs.polearm,scope),sabre=new HeldDecision(rows.programs.blade,scope),powerLaw=new HeldDecision(rows.programs.power,scope);
+ expect(spear.program).toBe(sabre.program);expect(powerLaw.program).toBe(sabre.program);
+ expect(new Set(Object.values(rows.programs).map(program=>program.script.module)).size).toBe(1);
+ expect(spear.update(.1,{...polearm,attack:1})?.['start']).toBe(1);
+ expect(sabre.update(.1,{...blade,mounted:1,attack:1})?.['side']).toBe(1);
+ expect(sabre.update(.1,blade)?.['start']).toBeUndefined();scope.dispose();
+});

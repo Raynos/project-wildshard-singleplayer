@@ -1,4 +1,4 @@
-import { Signal, Field, Channel, Read, List, Do } from './generated/nalatiPasture';
+import { Signal, Field, Channel, Read, List, Do } from './generated/nalatiPastureWind';
 @inline function get(field:i32):f64 { return Read.field(0,field); }
 // Fixed arithmetic bounds patrol bearings without libm argument-reduction work.
 @inline function bearing(y:f64,x:f64):f64 {
@@ -8,7 +8,7 @@ import { Signal, Field, Channel, Read, List, Do } from './generated/nalatiPastur
   return y<0?-a:a;
 }
 // Event-only actor law. The native owner publishes decisions at ten Hz.
-export function onSignal(signal:i32,value:f64,source:i32):void {
+@inline export function pastureEntry(signal:i32,value:f64,source:i32):void {
   if(signal==Signal.raidFirst) {
     Do.channel(Channel.raidT,150+Read.random()*90);
   } else if(signal==Signal.shepherdSite) {

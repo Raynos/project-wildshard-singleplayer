@@ -1,14 +1,43 @@
-import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanRules';
+import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombined';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
 // Event projections; retained state belongs to the native binding at <= 10 Hz.
-export function onSignal(signal:i32,value:f64,source:i32):void {
+@inline export function rulesEntry(signal:i32,value:f64,source:i32):void {
 if(signal==Signal.couple){
     let mask:i32=0,left:i32=0,aiming=false,index:i32=-1,hp=f(Field.hp),cd=f(Field.cd)-f(Field.dt);
-    for(let i:i32=1;i<=i32(f(Field.count));i++){
-      if(Read.field(i,Field.hit)==0){mask|=1<<(i-1);if(f(Field.invuln)==0)hp=Math.max(1,hp-f(Field.chip));continue;}
-      left++;const mode=Read.field(i,Field.mode);if(mode==1||mode==2)aiming=true;if(mode==0&&index<0)index=i-1;
-    }
+    { const i:i32=1;if(i<=i32(f(Field.count))){
+ if(Read.field(i,Field.hit)==0){mask|=1<<(i-1);if(f(Field.invuln)==0)hp=Math.max(1,hp-f(Field.chip));}
+ else{left++;const mode=Read.field(i,Field.mode);if(mode==1||mode==2)aiming=true;if(mode==0&&index<0)index=i-1;}
+}}
+{ const i:i32=2;if(i<=i32(f(Field.count))){
+ if(Read.field(i,Field.hit)==0){mask|=1<<(i-1);if(f(Field.invuln)==0)hp=Math.max(1,hp-f(Field.chip));}
+ else{left++;const mode=Read.field(i,Field.mode);if(mode==1||mode==2)aiming=true;if(mode==0&&index<0)index=i-1;}
+}}
+{ const i:i32=3;if(i<=i32(f(Field.count))){
+ if(Read.field(i,Field.hit)==0){mask|=1<<(i-1);if(f(Field.invuln)==0)hp=Math.max(1,hp-f(Field.chip));}
+ else{left++;const mode=Read.field(i,Field.mode);if(mode==1||mode==2)aiming=true;if(mode==0&&index<0)index=i-1;}
+}}
+{ const i:i32=4;if(i<=i32(f(Field.count))){
+ if(Read.field(i,Field.hit)==0){mask|=1<<(i-1);if(f(Field.invuln)==0)hp=Math.max(1,hp-f(Field.chip));}
+ else{left++;const mode=Read.field(i,Field.mode);if(mode==1||mode==2)aiming=true;if(mode==0&&index<0)index=i-1;}
+}}
+{ const i:i32=5;if(i<=i32(f(Field.count))){
+ if(Read.field(i,Field.hit)==0){mask|=1<<(i-1);if(f(Field.invuln)==0)hp=Math.max(1,hp-f(Field.chip));}
+ else{left++;const mode=Read.field(i,Field.mode);if(mode==1||mode==2)aiming=true;if(mode==0&&index<0)index=i-1;}
+}}
+{ const i:i32=6;if(i<=i32(f(Field.count))){
+ if(Read.field(i,Field.hit)==0){mask|=1<<(i-1);if(f(Field.invuln)==0)hp=Math.max(1,hp-f(Field.chip));}
+ else{left++;const mode=Read.field(i,Field.mode);if(mode==1||mode==2)aiming=true;if(mode==0&&index<0)index=i-1;}
+}}
+{ const i:i32=7;if(i<=i32(f(Field.count))){
+ if(Read.field(i,Field.hit)==0){mask|=1<<(i-1);if(f(Field.invuln)==0)hp=Math.max(1,hp-f(Field.chip));}
+ else{left++;const mode=Read.field(i,Field.mode);if(mode==1||mode==2)aiming=true;if(mode==0&&index<0)index=i-1;}
+}}
+{ const i:i32=8;if(i<=i32(f(Field.count))){
+ if(Read.field(i,Field.hit)==0){mask|=1<<(i-1);if(f(Field.invuln)==0)hp=Math.max(1,hp-f(Field.chip));}
+ else{left++;const mode=Read.field(i,Field.mode);if(mode==1||mode==2)aiming=true;if(mode==0&&index<0)index=i-1;}
+}}
+
     if(aiming||cd>0)index=-1;
     if(index>=0){
       const x=Read.field(index+1,Field.x),z=Read.field(index+1,Field.z),dx=f(Field.px)-x,dz=f(Field.pz)-z,l=Math.max(.00001,Math.sqrt(dx*dx+dz*dz));

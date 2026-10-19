@@ -1,16 +1,44 @@
-import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanFire';
+import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombined';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
 // Event projections; retained state belongs to the native binding at <= 10 Hz.
-export function onSignal(signal:i32,value:f64,source:i32):void {
+@inline export function fireEntry(signal:i32,value:f64,source:i32):void {
 if(signal==Signal.ignite){put(Channel.burn,f(Field.burn)*(.8+Read.random()*.4));} else if(signal==Signal.fire){
     const burn=f(Field.burn)-f(Field.dt);let mask:i32=0;
     if(burn>0&&f(Field.spread)>0){
-      for(let i:i32=1;i<=i32(f(Field.count));i++){
-        if(Read.field(i,Field.mode)!=0)continue;
-        const dx=Read.field(i,Field.x),dz=Read.field(i,Field.z),along=(dx*f(Field.wx)+dz*f(Field.wz))/Math.sqrt(dx*dx+dz*dz);
-        if(Read.random()<(along>.5?.16:along>-.2?.035:.004))mask|=1<<(i-1);
-      }
+      { const i:i32=1;if(i<=i32(f(Field.count))&&Read.field(i,Field.mode)==0){
+ const dx=Read.field(i,Field.x),dz=Read.field(i,Field.z),along=(dx*f(Field.wx)+dz*f(Field.wz))/Math.sqrt(dx*dx+dz*dz);
+ if(Read.random()<(along>.5?.16:along>-.2?.035:.004))mask|=1<<(i-1);
+}}
+{ const i:i32=2;if(i<=i32(f(Field.count))&&Read.field(i,Field.mode)==0){
+ const dx=Read.field(i,Field.x),dz=Read.field(i,Field.z),along=(dx*f(Field.wx)+dz*f(Field.wz))/Math.sqrt(dx*dx+dz*dz);
+ if(Read.random()<(along>.5?.16:along>-.2?.035:.004))mask|=1<<(i-1);
+}}
+{ const i:i32=3;if(i<=i32(f(Field.count))&&Read.field(i,Field.mode)==0){
+ const dx=Read.field(i,Field.x),dz=Read.field(i,Field.z),along=(dx*f(Field.wx)+dz*f(Field.wz))/Math.sqrt(dx*dx+dz*dz);
+ if(Read.random()<(along>.5?.16:along>-.2?.035:.004))mask|=1<<(i-1);
+}}
+{ const i:i32=4;if(i<=i32(f(Field.count))&&Read.field(i,Field.mode)==0){
+ const dx=Read.field(i,Field.x),dz=Read.field(i,Field.z),along=(dx*f(Field.wx)+dz*f(Field.wz))/Math.sqrt(dx*dx+dz*dz);
+ if(Read.random()<(along>.5?.16:along>-.2?.035:.004))mask|=1<<(i-1);
+}}
+{ const i:i32=5;if(i<=i32(f(Field.count))&&Read.field(i,Field.mode)==0){
+ const dx=Read.field(i,Field.x),dz=Read.field(i,Field.z),along=(dx*f(Field.wx)+dz*f(Field.wz))/Math.sqrt(dx*dx+dz*dz);
+ if(Read.random()<(along>.5?.16:along>-.2?.035:.004))mask|=1<<(i-1);
+}}
+{ const i:i32=6;if(i<=i32(f(Field.count))&&Read.field(i,Field.mode)==0){
+ const dx=Read.field(i,Field.x),dz=Read.field(i,Field.z),along=(dx*f(Field.wx)+dz*f(Field.wz))/Math.sqrt(dx*dx+dz*dz);
+ if(Read.random()<(along>.5?.16:along>-.2?.035:.004))mask|=1<<(i-1);
+}}
+{ const i:i32=7;if(i<=i32(f(Field.count))&&Read.field(i,Field.mode)==0){
+ const dx=Read.field(i,Field.x),dz=Read.field(i,Field.z),along=(dx*f(Field.wx)+dz*f(Field.wz))/Math.sqrt(dx*dx+dz*dz);
+ if(Read.random()<(along>.5?.16:along>-.2?.035:.004))mask|=1<<(i-1);
+}}
+{ const i:i32=8;if(i<=i32(f(Field.count))&&Read.field(i,Field.mode)==0){
+ const dx=Read.field(i,Field.x),dz=Read.field(i,Field.z),along=(dx*f(Field.wx)+dz*f(Field.wz))/Math.sqrt(dx*dx+dz*dz);
+ if(Read.random()<(along>.5?.16:along>-.2?.035:.004))mask|=1<<(i-1);
+}}
+
     }
     put(Channel.burn,burn);put(Channel.mask,mask);
   } else if(signal==Signal.fireContact){

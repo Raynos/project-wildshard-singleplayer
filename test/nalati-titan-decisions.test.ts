@@ -90,6 +90,7 @@ test('the native world receives bounded wind positions and doorway decisions', (
   const wind = ReturnProgram.page(program.wind), rules = ReturnProgram.page(program.rules);
   const w = wind.project('whirl', { dt: .1, t: 2, index: 0, x: 100, z: 0, vx: 0, vz: 0, cx: 0, cz: 0, radius: 68, wx: 1, wz: 0, cd: 0, hit: 1, px: 0, pz: 0, flank: 3.2, open: 1 });
   expect(Math.hypot(w['x'] ?? 0,w['z'] ?? 0)).toBeCloseTo(60);
+  for(const [x,z]of [[33,19],[-51,27],[.2,-.7],[100,100]]){const row=wind.project('whirl',{dt:.1,t:2,index:1,x:x??0,z:z??0,vx:0,vz:0,cx:0,cz:0,radius:68,wx:1,wz:0,cd:0,hit:1,px:0,pz:0,flank:3.2,open:1});expect(Math.hypot(row['x']??0,row['z']??0)).toBeLessThanOrEqual(60.0000001);}
   const door = { px: 0, pz: 2, y: 0, ex: 0, ey: 0, ez: 0, facing: 0, volume: 1, inside: 0, corridor: 0, land: 22.5, engaged: 0, sand: 0, floor: 140, cy: 140 };
   expect(rules.project('kingDoor',door)).toEqual({ enter: 1, exit: 0, slow: 0 });
   expect(rules.project('kingDoor',{ ...door, inside: 1, volume: 0 })).toMatchObject({ exit: 1 });

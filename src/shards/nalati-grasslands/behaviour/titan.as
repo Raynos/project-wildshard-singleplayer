@@ -1,8 +1,9 @@
-import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitan';
+import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombined';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
+@inline function length2(x:f64,z:f64):f64{return Math.sqrt(x*x+z*z);}
 // Event projections; retained state belongs to the native binding at <= 10 Hz.
-export function onSignal(signal:i32,value:f64,source:i32):void {
+@inline export function attackEntry(signal:i32,value:f64,source:i32):void {
 if(signal==Signal.spear){
     const dt=f(Field.dt),phase=f(Field.phase);let mode=f(Field.mode),t=f(Field.t)+dt,cd=f(Field.cd),x=f(Field.x),z=f(Field.z),strike=0.0,stuck=0.0;
     if(mode==0){cd-=dt;if(cd<=0&&f(Field.chain)==0){mode=1;t=0;x=f(Field.px);z=f(Field.pz);}}
@@ -19,10 +20,10 @@ if(signal==Signal.spear){
     else if(mode==1){x=x0;z=z0;speed=.5;turn=5;show=1;alpha=.9*(.65+.35*Math.sin(t*18));if(t>=f(Field.lane)){mode=2;t=0;hit=0;}}
     else if(mode==2){
       x=x1;z=z1;speed=21;turn=6;show=1;alpha=Math.max(0,.5-t*.3);
-      if(hit==0&&Math.hypot(px-ax,pz-az)<3.4){hit=1;hurt=1;}
-      if(Math.hypot(x1-ax,z1-az)<4||t>3.2){mode=3;t=0;show=0;}
+      if(hit==0&&length2(px-ax,pz-az)<3.4){hit=1;hurt=1;}
+      if(length2(x1-ax,z1-az)<4||t>3.2){mode=3;t=0;show=0;}
     }else if(mode==3){
-      const dx=x1-x0,dz=z1-z0,d=Math.hypot(dx,dz),length=d==0?1:d;
+      const dx=x1-x0,dz=z1-z0,d=length2(dx,dz),length=d==0?1:d;
       x=x1+dx/length*14;z=z1+dz/length*14;speed=7;turn=2;
       if(t>=f(Field.flank)){mode=0;t=0;theta=Math.atan2(ax-px,az-pz);}
     }
@@ -35,6 +36,6 @@ if(signal==Signal.spear){
     put(Channel.cd,cd);put(Channel.left,left);put(Channel.t,step);put(Channel.strike,strike);put(Channel.index,Math.max(0,f(Field.count)-5));
   } else if(signal==Signal.chainLand){
     const t=f(Field.t)+f(Field.dt),land=t>=f(Field.land);
-    put(Channel.t,t);put(Channel.strike,land?1:0);put(Channel.hurt,land&&Math.hypot(f(Field.px)-f(Field.x),f(Field.pz)-f(Field.z))<f(Field.radius)?1:0);
+    put(Channel.t,t);put(Channel.strike,land?1:0);put(Channel.hurt,land&&length2(f(Field.px)-f(Field.x),f(Field.pz)-f(Field.z))<f(Field.radius)?1:0);
   }
 }

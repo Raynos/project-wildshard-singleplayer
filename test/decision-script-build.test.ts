@@ -58,3 +58,18 @@ test('emits the exact source SHA and replaces a stale producer claim', async () 
   expect(rebuilt.rows[0]?.sourceHash).not.toBe(original.rows[0]?.sourceHash);
   expect(() => parseDecisionScripts([{ ...raw, sourceHash: 'not-a-sha' }])).toThrow();
 });
+
+test('single-signal return packaging preserves results and refuses stateful inbox owners',async()=>{
+  const row={id:'test.projection',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/projection.as',binding:{shard:true},onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],params:{},reads:['field'],commands:['channel'],fields:{value:'value'},channels:{result:'result'},signals:{step:'step'}};
+  const authored=new Map([['behaviour/projection.as',"import {Field,Channel,Read,Do} from './generated/testProjection';\n@inline export function onSignal(signal:i32,value:f64,source:i32):void{Do.channel(Channel.result,Read.field(0,Field.value)*2);}"]]);
+  const ids={fields:new Map([['value',1]]),channels:new Map([['result',1]]),signals:new Map([['step',1]])};
+  const {ReturnProgram}=await import('../src/game/population/returnProgram');
+  for(const singleSignal of [false,true]){
+    const built=await compileDecisionScripts([row],ids,authored,{asLineCeiling:10,singleSignal}),script=built.rows[0],blob=built.blobs[0];
+    if(script===undefined||blob===undefined)throw new Error('Missing return fixture');
+    const law=ReturnProgram.page({script,bytes:btoa(Array.from(blob.bytes,byte=>String.fromCodePoint(byte)).join(''))});
+    expect(law.project('step',{value:3})).toEqual({result:6});
+    expect(law.project('step',{value:-7})).toEqual({result:-14});
+  }
+  expect(()=>generateDecisionBindings(raw,registries,{singleSignal:true})).toThrow('stateless return');
+});

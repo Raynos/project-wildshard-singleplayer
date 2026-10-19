@@ -1,14 +1,42 @@
-import { Signal, Field, Channel, Params, Read, Do } from './generated/nalatiTamingApproach';
+import { Signal, Field, Channel, Params, Read, Do } from './generated/nalatiMounts';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,n:f64):void{Do.channel(id,n);}
-export function onSignal(signal:i32,value:f64,source:i32):void {
+@inline export function approachEntry(signal:i32,value:f64,source:i32):void {
   if(signal==Signal.select){
     let index:i32=-1,best:f64=1e12;
-    for(let i:i32=1;i<=i32(f(Field.count));i++){
-      if(Read.field(i,Field.alive)==0||(f(Field.bonded)>0&&(f(Field.argymaq)>0||Read.field(i,Field.argymaq)==0)))continue;
-      const dx=Read.field(i,Field.x)-f(Field.px),dy=Read.field(i,Field.y)-f(Field.py),dz=Read.field(i,Field.z)-f(Field.pz),d=Math.sqrt(dx*dx+dy*dy+dz*dz);
-      if(d<best){best=d;index=i-1;}
-    }
+    { const i:i32=1;if(i<=i32(f(Field.count))&&Read.field(i,Field.alive)!=0&&!(f(Field.bonded)>0&&(f(Field.argymaq)>0||Read.field(i,Field.argymaq)==0))){
+ const dx=Read.field(i,Field.x)-f(Field.px),dy=Read.field(i,Field.y)-f(Field.py),dz=Read.field(i,Field.z)-f(Field.pz),d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+ if(d<best){best=d;index=i-1;}
+}}
+{ const i:i32=2;if(i<=i32(f(Field.count))&&Read.field(i,Field.alive)!=0&&!(f(Field.bonded)>0&&(f(Field.argymaq)>0||Read.field(i,Field.argymaq)==0))){
+ const dx=Read.field(i,Field.x)-f(Field.px),dy=Read.field(i,Field.y)-f(Field.py),dz=Read.field(i,Field.z)-f(Field.pz),d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+ if(d<best){best=d;index=i-1;}
+}}
+{ const i:i32=3;if(i<=i32(f(Field.count))&&Read.field(i,Field.alive)!=0&&!(f(Field.bonded)>0&&(f(Field.argymaq)>0||Read.field(i,Field.argymaq)==0))){
+ const dx=Read.field(i,Field.x)-f(Field.px),dy=Read.field(i,Field.y)-f(Field.py),dz=Read.field(i,Field.z)-f(Field.pz),d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+ if(d<best){best=d;index=i-1;}
+}}
+{ const i:i32=4;if(i<=i32(f(Field.count))&&Read.field(i,Field.alive)!=0&&!(f(Field.bonded)>0&&(f(Field.argymaq)>0||Read.field(i,Field.argymaq)==0))){
+ const dx=Read.field(i,Field.x)-f(Field.px),dy=Read.field(i,Field.y)-f(Field.py),dz=Read.field(i,Field.z)-f(Field.pz),d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+ if(d<best){best=d;index=i-1;}
+}}
+{ const i:i32=5;if(i<=i32(f(Field.count))&&Read.field(i,Field.alive)!=0&&!(f(Field.bonded)>0&&(f(Field.argymaq)>0||Read.field(i,Field.argymaq)==0))){
+ const dx=Read.field(i,Field.x)-f(Field.px),dy=Read.field(i,Field.y)-f(Field.py),dz=Read.field(i,Field.z)-f(Field.pz),d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+ if(d<best){best=d;index=i-1;}
+}}
+{ const i:i32=6;if(i<=i32(f(Field.count))&&Read.field(i,Field.alive)!=0&&!(f(Field.bonded)>0&&(f(Field.argymaq)>0||Read.field(i,Field.argymaq)==0))){
+ const dx=Read.field(i,Field.x)-f(Field.px),dy=Read.field(i,Field.y)-f(Field.py),dz=Read.field(i,Field.z)-f(Field.pz),d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+ if(d<best){best=d;index=i-1;}
+}}
+{ const i:i32=7;if(i<=i32(f(Field.count))&&Read.field(i,Field.alive)!=0&&!(f(Field.bonded)>0&&(f(Field.argymaq)>0||Read.field(i,Field.argymaq)==0))){
+ const dx=Read.field(i,Field.x)-f(Field.px),dy=Read.field(i,Field.y)-f(Field.py),dz=Read.field(i,Field.z)-f(Field.pz),d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+ if(d<best){best=d;index=i-1;}
+}}
+{ const i:i32=8;if(i<=i32(f(Field.count))&&Read.field(i,Field.alive)!=0&&!(f(Field.bonded)>0&&(f(Field.argymaq)>0||Read.field(i,Field.argymaq)==0))){
+ const dx=Read.field(i,Field.x)-f(Field.px),dy=Read.field(i,Field.y)-f(Field.py),dz=Read.field(i,Field.z)-f(Field.pz),d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+ if(d<best){best=d;index=i-1;}
+}}
+
     put(Channel.index,index);put(Channel.distance,best);put(Channel.active,best<=Params.range?1:0);
   } else if(signal==Signal.approach){
     const dt=f(Field.dt),distance=f(Field.distance),beaten=f(Field.beaten)>0,mounted=f(Field.mounted)>0,speed=mounted?Math.max(f(Field.speed),6):f(Field.speed);

@@ -1,8 +1,8 @@
-import { Signal, Field, Channel, Params, Read, Do } from './generated/nalatiTamingBreak';
+import { Signal, Field, Channel, Params, Read, Do } from './generated/nalatiMounts';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,n:f64):void{Do.channel(id,n);}
 // One bounded integration and one public telegraph per 100 ms; native code owns the horse.
-export function onSignal(signal:i32,value:f64,source:i32):void {
+@inline export function breakingEntry(signal:i32,value:f64,source:i32):void {
   if(signal==Signal.start){put(Channel.kind,f(Field.r0)<.5?0:f(Field.r0)<.78?1:2);put(Channel.dir,f(Field.r1)<.5?-1:1);return;}
   const dt=f(Field.dt),t=f(Field.roundT)+dt,round=f(Field.round),lead=f(Field.next)-t,kind=f(Field.kind),dir=f(Field.dir),power=f(Field.power);
   let bv=f(Field.bv),spinT=f(Field.spinT),spinF=f(Field.spinF),rearAt=f(Field.rearAt),rearDir=f(Field.rearDir),shake=Math.max(0,f(Field.shake)-dt*2.5),buck:f64=0,rear:f64=-1,kick:f64=0,toss:f64=0;

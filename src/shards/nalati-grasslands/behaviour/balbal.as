@@ -1,7 +1,7 @@
-import { Signal, Field, Channel, Read, Do } from './generated/nalatiBalbal';
+import { Signal, Field, Channel, Read, Do } from './generated/nalatiHeldWeapons';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
-export function onSignal(signal:i32,value:f64,source:i32):void {
+@inline export function balbalEntry(signal:i32,value:f64,source:i32):void {
   if(signal==Signal.damage){
     const open=f(Field.open)==1?1.25:1;
     put(Channel.damage,f(Field.field)==1&&f(Field.rise)<.6?.25:f(Field.range)>4.2?.5*open:f(Field.piercing)==1?(f(Field.crack)==1?2.5:1)*open:1.5*open);return;

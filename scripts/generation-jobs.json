@@ -1171,17 +1171,22 @@
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "src/shards/nalati-grasslands/behaviour/titanCombined.as",
+        "src/shards/nalati-grasslands/behaviour/pasture.as",
+        "src/shards/nalati-grasslands/behaviour/pastureWind.as"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/stormTitanFight.generated.json",
         "src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json",
-        "src/shards/nalati-grasslands/behaviour/titan.generated.json"
+        "src/shards/nalati-grasslands/behaviour/titan.generated.json",
+        "src/shards/nalati-grasslands/behaviour/pasture.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/stormTitanFight.generated.json",
         "src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json",
-        "src/shards/nalati-grasslands/behaviour/titan.generated.json"
+        "src/shards/nalati-grasslands/behaviour/titan.generated.json",
+        "src/shards/nalati-grasslands/behaviour/pasture.generated.json"
       ],
       "platform": "portable",
       "catalogueDependencies": []
@@ -20533,32 +20538,6 @@
       "platform": "portable"
     },
     {
-      "id": "nalati-pasture",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-pasture.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-pasture.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/nalati-grasslands/behaviour",
-        "src/shards/nalati-grasslands/generators/bake-pasture.mjs"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/behaviour/pasture.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/pasture.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "nine-paint-array",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/bake-paint-array.mjs",
@@ -21456,35 +21435,6 @@
       "catalogueDependencies": []
     },
     {
-      "id": "nalati-stealth",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-stealth.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-stealth.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-stealth.mjs",
-        "src/shards/nalati-grasslands/behaviour/stealth.as",
-        "src/shards/nalati-grasslands/data/stealth.json",
-        "src/sdk",
-        "src/format",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/stealth.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/stealth.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "nalati-held-weapons",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-held-weapons.mjs",
@@ -21503,15 +21453,17 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "src/shards/nalati-grasslands/behaviour/heldPolearm.as",
-        "src/shards/nalati-grasslands/behaviour/heldBlade.as",
-        "src/shards/nalati-grasslands/behaviour/heldPower.as"
+        "src/shards/nalati-grasslands/data/species.generated.json",
+        "src/shards/nalati-grasslands/behaviour/heldWeapons.as",
+        "src/shards/nalati-grasslands/data/stealth.json"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/data/heldWeapons.generated.json"
+        "src/shards/nalati-grasslands/data/heldWeapons.generated.json",
+        "src/shards/nalati-grasslands/data/stealth.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/heldWeapons.generated.json"
+        "src/shards/nalati-grasslands/data/heldWeapons.generated.json",
+        "src/shards/nalati-grasslands/data/stealth.generated.json"
       ],
       "platform": "portable"
     },
@@ -21536,7 +21488,8 @@
         "scripts/bake-loader.mjs",
         "scripts/bake-output.mjs",
         "package.json",
-        "pnpm-lock.yaml"
+        "pnpm-lock.yaml",
+        "src/shards/nalati-grasslands/behaviour/mounts.as"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/behaviour/riding.generated.json"

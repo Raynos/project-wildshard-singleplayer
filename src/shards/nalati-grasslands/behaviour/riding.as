@@ -1,6 +1,6 @@
-import { Signal, Field, Channel, Params, Read, Do } from './generated/nalatiRiding';
+import { Signal, Field, Channel, Params, Read, Do } from './generated/nalatiMounts';
 @inline function f(id:i32):f64{return Read.field(0,id);}
-export function onSignal(signal:i32,value:f64,source:i32):void {
+@inline export function ridingEntry(signal:i32,value:f64,source:i32):void {
   if(signal==Signal.panic){
     const dx=f(Field.x)-f(Field.px),dz=f(Field.z)-f(Field.pz),d=Math.sqrt(dx*dx+dz*dz);
     Do.channel(Channel.duration,f(Field.bite)>0?Params.bitePanic:f(Field.practice)>0||d>=Params.boltRange?0:d<Params.boltNear?Params.boltLong:Params.boltShort);

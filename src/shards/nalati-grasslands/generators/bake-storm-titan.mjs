@@ -14,18 +14,22 @@ const source = { id:'nalati.titan',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'
   binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],params:{},
   reads:['field','random'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals) };
 const authored = readDecisionSources(fileURLToPath(new URL('../', import.meta.url)));
-const programs = {};
-for (const key of ['attack','fire','wind','rules']) {
-  const suffix = key === 'attack' ? '' : key[0].toUpperCase() + key.slice(1);
-  const row = { ...source, id: key === 'attack' ? source.id : `${source.id}.${key}`, source: `behaviour/titan${suffix}.as` };
-  const built = await compileDecisionScripts([row], {fields:registry(fields),channels:registry(channels),signals:registry(signals)}, authored, {asLineCeiling:2837});
-  const script = built.rows.at(0), blob = built.blobs.at(0);
-  if (script === undefined || blob === undefined) throw new Error('Missing Titan decision program');
-  programs[key] = {script, bytes:Buffer.from(blob.bytes).toString('base64')};
-}
+const row={...source,id:'nalati.titan-combined',source:'behaviour/titanCombined.as'};
+const built=await compileDecisionScripts([row],{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837,singleSignal:true});
+const script=built.rows.at(0),blob=built.blobs.at(0);if(script===undefined||blob===undefined)throw new Error('Missing Titan decision program');
+const program={script,bytes:Buffer.from(blob.bytes).toString('base64')};
+const pastureText=['pastureWind','pasture','titanWind'].map(name=>authored.get(`behaviour/${name}.as`)).join('\n');
+const names=prefix=>[...new Set([...pastureText.matchAll(new RegExp(`${prefix}\\.([A-Za-z0-9_]+)`,'g'))].map(match=>match[1]))];
+const pf=names('Field'),pc=names('Channel'),ps=names('Signal');
+const pastureSource={...source,id:'nalati.pasture-wind',source:'behaviour/pastureWind.as',reads:['field','random','radial'],fields:aliases(pf),channels:aliases(pc),signals:aliases(ps)};
+const pastureBuilt=await compileDecisionScripts([pastureSource],{fields:registry(pf),channels:registry(pc),signals:registry(ps)},authored,{asLineCeiling:2837,singleSignal:true});
+const pastureScript=pastureBuilt.rows.at(0),pastureBlob=pastureBuilt.blobs.at(0);if(pastureScript===undefined||pastureBlob===undefined)throw new Error('Missing pasture/wind decision program');
+const wind={script:pastureScript,bytes:Buffer.from(pastureBlob.bytes).toString('base64')};
+const programs={attack:program,fire:program,wind,rules:program};
 
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-storm-titan');
 writer.put(fileURLToPath(new URL('../data/stormTitanFight.generated.json', import.meta.url)), jsonBytes(fight));
 writer.put(fileURLToPath(new URL('../data/stormTitanGeometry.generated.json', import.meta.url)), jsonBytes({ ...titanGeometry(), body: titanBodyRows(), poses: [...titanPoseRows(), ...titanFightPoseRows()], arena: titanArenaRows(fight.TITAN_PLACE.arenaRadius, fight.TITAN_TUNING.cell, fight.TITAN_ARENA.grid) }, 0));
 writer.put(fileURLToPath(new URL('../behaviour/titan.generated.json', import.meta.url)), jsonBytes(programs));
+writer.put(fileURLToPath(new URL('../behaviour/pasture.generated.json', import.meta.url)),jsonBytes(wind));
 writer.finish();
