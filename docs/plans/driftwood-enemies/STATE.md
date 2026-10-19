@@ -1,21 +1,21 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-19 09:42 UTC. All four static milestones passed; runtime remains WIP.
+Updated 2026-10-19 10:04 UTC. Static milestones complete; runtime remains WIP.
 
-OWNER at02:54: park Puffer polishing; get EACH other enemy strictly above3.5/5. Supersedes Puffer-first4/5-or-V100. Twenty extras parked. No rounding or art-score chasing. Rubric silhouette35/face30/details20/style15 unchanged; approved originals control. Plan: docs/reviews/driftwood-four-enemy-resume-plan.md.
+OWNER: Get EACH other enemy strictly above3.5/5. Puffer polishing and twenty extra concepts parked; supersedes Puffer4/5-or-V100. No rounding or art-score chasing. Rubric silhouette35/face30/details20/style15; approved originals control. Plan: docs/reviews/driftwood-four-enemy-resume-plan.md.
 
 Full-nine independent static: Bellback V6 3.5625; Mantis V7 3.6025; Colossus V4 3.65; Conch character3.57. Zero quality-complete enemies or physical-phone/human-fun acceptance.
 
-PUBLIC: Site54 live09:41:47UTC, source be0c16e4fee12c2688b1b1221ea239819fec41a7. Conch motion4 build2 is labeled WIP Play; Colossus2, Mantis4 and Puffer70 hosts unchanged. Original Conch3 host retained in native source. Five tabs and responsive layout verified; all4460 video delivery frames/PTS exact. No Bellback Play.
+PUBLIC: Site54 live09:41:47UTC, source be0c16e4fee12c2688b1b1221ea239819fec41a7. Conch motion4 build2 is labeled WIP Play; Colossus2, Mantis4 and Puffer70 hosts unchanged. Original Conch3 host retained. No Bellback Play.
 
-BELLBACK: Candidate4 following eight convex shapes fails22mm rendered/24mm fixed contact. Candidate5 captures lethal local poses with immediate root physics:157focused+3native tests,28combat+15walk checks pass. All3637frames reviewed. Still fails5.834mm rendered/10.302mm fixed contact; stiff upright death1.5/5 regresses from3/5. Reject promotion. Native terrain13/28; inherited MAX_T moving/airborne freezes remain.
+CONCH4: Product e41d1e7600a94074384a00fca22b58f634c060f5eb0458c5d34ec2bf44db6cb8 passes34 mounted checks. All4460 encoded frames/1444 weighted poses independently reviewed. Tells3/5 from2.5; hit/recovery2.5, death3, grounding3. Legal early/late guarded hits through counter/recovery pass. Unguarded windup is unreachable; mistaken reviewer gate corrected/preserved. Sliding, angular jumps, collider limits and cloud cadence remain. Whole evidence protected in native Site.
 
-Negative studies preserved: candidate4 solver0/2/4 and one timing study failed. Candidate5 proposed0/2/4 NEVER RUN. Full-life CCD baseline diverged after57steps; exact0–56step CCD shows no improvement. Stop parameter trials; no padding/root-lift/global changes.
+MANTIS5: Isolated extra active-hold removal preserves geometry/AI/clocks.16focused+3admission tests and independent replay pass, but moves1.1rad/~1.2m snap earlier. Product984bfeb67b6fbd80371783923ccfbdff0a942d77ab83b3fcc4ad616a1ac5e962 captured4066frames/1355poses. Fresh death frame390 penetrates102.23mm; independent reconstruction confirms stage5 unchanged-anatomy risk under new trajectory/host. HOLD promotion.18/19 harness checks; terminal HP assertion fails after natural regeneration, history proves100→90 damage. Full-frame review underway. No struck-windup claim. Public candidate4 stays.
 
-PENDING OWNER DECISION:08:38 requested isolated five-body/four-joint prototype using existing Ragdolls: carrier plus four physical legs, unchanged eight shapes. Do not implement before approval. docs/reviews/bellback-next-design/REVIEW.md.
+BELLBACK: Candidate4 following hulls fails22mm rendered/24mm fixed. Candidate5 captured lethal pose passes157focused+3native/28combat/15walk but fails5.834mm rendered/10.302mm fixed; death1.5/5 regresses from3. All3637frames reviewed. Terrain13/28; inherited MAX_T moving/airborne freezes. Both rejected.
 
-CONCH MOTION4: Exact build2 e41d1e7600a94074384a00fca22b58f634c060f5eb0458c5d34ec2bf44db6cb8 passes34 mounted checks. All4460 encoded frames/1444 weighted poses independently reviewed; final review approves labeled WIP replacement. Tells3/5 from2.5, hit/recovery2.5, death3, grounding3. True early/late guarded hits through counters/recovery pass. Unguarded windup is unreachable; mistaken review gate corrected and preserved. Sliding, source angular jumps, collider limits and cloud cadence remain. Whole streams and original videos protected in native Site.
+Negative studies preserved: candidate4 solver0/2/4 and timing failed. Candidate5 proposed0/2/4 NEVER RUN. Full-life CCD baseline diverged at57; exact0–56 CCD no improvement. Stop knobs, no padding/root-lift/global changes.
 
-NEXT: Mantis candidate-local active-onset study. Existing10Hz observation resets phase clock0, and clips hold fully cocked for another sampled tick. New isolated candidate removes only this extra observed-active hold; preserve windup/recovery/gait/death and all combat clocks. No cadence/AI/engine exemptions. Measure onset snaps and world contact; build/review not yet admitted. Preserve candidate4.
+OWNER DECISION PENDING since08:38: isolated Bellback five-body/four-joint prototype, existing Ragdolls, eight unchanged shapes. Do not implement before approval or repeat unchanged question. docs/reviews/bellback-next-design/REVIEW.md.
 
-Puffer70 stays tested; V71 static3.60/remaster parked. Six-shard work open. Source 97db914922d8ba02e92934898d120c87da864513 verified. Root connector gamedev-dot only; preserve unrelated/sparse work.
+Puffer70 tested; V71 static3.60/remaster parked. Six-shard work open. Source89ecc640f4ddd4cc97f7a593b6e6e58871de0eac verified. Root connector gamedev-dot only; preserve unrelated/sparse work.

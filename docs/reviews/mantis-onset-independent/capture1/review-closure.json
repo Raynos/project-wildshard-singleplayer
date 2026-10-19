@@ -1,0 +1,34 @@
+{
+  "schema": "wildshard.mantis.independent-capture-review.v1",
+  "decision": "HOLD promotion; diagnostic capture complete",
+  "files": {
+    "docs/reviews/mantis-onset-independent/capture1/REVIEW.md": {
+      "sha256": "038874836bc14a45a6ca140893cbe8ab25218e62da6fdc03af534cc4cfc5d997",
+      "bytes": 7447
+    },
+    "docs/reviews/mantis-onset-independent/capture1/capture-verification.json": {
+      "sha256": "4cecf8dee246f3672c626fd56827f06dddace459946c9f9c79fede7162a0c19c",
+      "bytes": 16724
+    },
+    "docs/reviews/mantis-onset-independent/capture1/check_contact.py": {
+      "sha256": "10b235f92e6e88383873b681a79f378bd805c1cc331a8221903bc7be763b4bbd",
+      "bytes": 2180
+    },
+    "docs/reviews/mantis-onset-independent/capture1/inspect_video.py": {
+      "sha256": "aa4380d3a4d092de3d304ab74fc5920c44b84ca99f5134314c9216bcf9f47880",
+      "bytes": 1884
+    },
+    "docs/reviews/mantis-onset-independent/capture1/verify_capture.py": {
+      "sha256": "e071a9bbc238fc4a0ac8f5440445bc617522bd5bdc48f5577d92f1da09e14b2f",
+      "bytes": 2542
+    },
+    "docs/reviews/mantis-onset-independent/capture1/video-index.json": {
+      "sha256": "c45d7311e0b536bf7cad3953b29ed3029862029ad80c383c7ff18fa86718bcef",
+      "bytes": 694699
+    },
+    "docs/reviews/mantis-onset-independent/capture1/world-contact-independent.json": {
+      "sha256": "59f70ff7073314c9b21ff921068e01d693447afb75d1b38caaf53c7321c96c73",
+      "bytes": 454123
+    }
+  }
+}
