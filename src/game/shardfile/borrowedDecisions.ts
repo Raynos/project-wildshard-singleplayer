@@ -92,7 +92,9 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
     const body = bodyInput === undefined ? undefined : v.parse(CreatureBodyRecipeSchema, bodyInput);
     if (parsed.group !== undefined) {
       if (parsed.guard !== undefined) throw new Error('Guard requires a single admitted actor owner');
-      const control = groups.bind(actor, parsed, body); controls.set(actor, control); return control;
+      const control = groups.bind(actor, parsed, body); controls.set(actor, control);
+      ports.scope.onDispose(() => { if (controls.get(actor) === control) controls.delete(actor); });
+      return control;
     }
     if (parsed.actor === undefined) throw new Error('Missing borrowed actor');
     const row = { ...parsed, actor: parsed.actor };
@@ -137,6 +139,8 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
     const admission: { owner?: ShardDecisions; initial?: string } = {};
     const owner = (): ShardDecisions => { if (admission.owner === undefined) throw new Error('Decision body is not admitted'); return admission.owner; };
     const control: BorrowedSpeciesControl = {
+      get strikeState() { return runner.state; }, get strikeTime() { return runner.time; },
+      get strikeIds() { return Object.freeze(Object.values(script.strikes).filter(id => catalogue.has(id))); },
       get phase() { return row.marks === undefined ? state.phase : actor.mem[row.marks.phase] ?? 0; },
       set phase(value) { if (row.marks === undefined) state.phase = value; else actor.mem[row.marks.phase] = value; },
       get fighting() { return row.marks === undefined ? state.fighting : (actor.mem[row.marks.fight] ?? 0) >= 1; },
@@ -278,6 +282,8 @@ function spawnGroupDecisionAuthority(source: Shardfile, assets: ReadonlyMap<stri
       if (previous?.actor === actor) return previous.control;
       const runner = new StrikeRunner();
       const control: BorrowedSpeciesControl = {
+        get strikeState() { return runner.state; }, get strikeTime() { return runner.time; },
+        get strikeIds() { return Object.freeze(Object.values(script.strikes).filter(id => catalogue.has(id))); },
         phase: 0, fighting: true, get current() { return runner.spec; }, get windup() { return owner().strikeObservation(actor.entityId).windup; }, get aim() { return runner.yaw; },
         observe: observation => { const member = members.get(actor.entityId); if (member?.actor === actor) member.observation = observation; },
         restart: () => { runner.cancel(); actor.cancelAttack(); owner().restartActor(actor.entityId); },

@@ -7,7 +7,7 @@ import { HURT_ARC, type HuntBody, type HuntGround, type HuntNav, type HuntConfig
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import type { AnimalSimSpec, AnimalSim } from "@wildshard/engine/entities/AnimalSim";
 import type { SimStrike, SimValue, SimHost } from "@wildshard/engine/sim";
-import { type StrikeSpec, StrikeRunner, type StrikeContext } from "@wildshard/engine/ai/strikes";
+import { type StrikeSpec, StrikeRunner, type StrikeContext, type StrikePhase } from "@wildshard/engine/ai/strikes";
 import type { ShardRows } from "@wildshard/format/rows";
 import { parseScriptSpecies, type ScriptSpeciesSchema, type ScriptSpeciesData } from "@wildshard/format/speciesScripts";
 import { parseEliteScript, type EliteScriptData } from "@wildshard/format/eliteScripts";
@@ -856,7 +856,13 @@ export interface HeldSpeciesControl {
 }
 /** Existing contact observations refreshed by the body's actual page/native owner. */
 export type SpeciesDecisionObservation = Pick<SpeciesBodyObservation, 'calm' | 'reach' | 'claim' | 'hurt'> & Partial<Pick<SpeciesBodyObservation, 'shove'>>;
-export interface BorrowedSpeciesControl extends HeldSpeciesControl { observe: (ports: SpeciesDecisionObservation) => void }
+export interface BorrowedSpeciesControl extends HeldSpeciesControl {
+  observe: (ports: SpeciesDecisionObservation) => void;
+  /** Read-only projection of the same admitted runner; no presentation clock or state. */
+  readonly strikeState: StrikePhase;
+  readonly strikeTime: number;
+  readonly strikeIds: readonly string[];
+}
 /** Internal game authority; authored rows carry only the admitted selection and numeric recipes. */
 export interface SpeciesDecisionAuthority { bind: (actor: AnimalSim, row: BorrowedDecision, body?: CreatureBodyRecipe) => BorrowedSpeciesControl }
 /** Preparing a held controller constructs it once without advancing perception, movement or a clock. */

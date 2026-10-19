@@ -1,0 +1,38 @@
+{
+  "schema": "wildshard.mantis.complete-motion.source.v1",
+  "evidenceOnly": true,
+  "productBuilt": false,
+  "sourceMotionAcceptance": false,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "colliderAcceptance": false,
+  "files": {
+    "docs/reviews/mantis-complete-motion-plan/PLAN.md": "6fd5bc73ff5d8b704570d0a2847c25d1611421dd3215b658f57f5241df91f741",
+    "docs/reviews/mantis-complete-motion-plan/REVIEW.md": "0f5ac3bc848c8ad95083d554354c548190da75b02f3c7484b210d9de6fd7e08c",
+    "docs/reviews/mantis-complete-motion-plan/analyze-motion.py": "e01dbd387d751c144b3433cd9ed3f53a44fbae3596999e6ff90b3d6740553b98",
+    "docs/reviews/mantis-complete-motion-plan/gate.mjs": "6730dee3d1f7df03351a0702639dfff43e2e7bfb67ec1555d0fffb2b8b05b0a3",
+    "docs/reviews/mantis-complete-motion-plan/motion-results.json": "bcf82bd4950608a5665ba8fc3873b840029021c9db14563aa9c1ca2a97ed0b28",
+    "docs/reviews/mantis-complete-motion-plan/stance-results.json": "15e5c9838d054dfd7ef01fbd14c2e09167b3ad11c6577a0d06a97517f9367c84",
+    "docs/reviews/mantis-complete-motion-plan/tsconfig.json": "3d887d0d23fbcb19063182ab05d1fea8d8eba5e2344cf32dfc296d595bd40d23",
+    "docs/reviews/mantis-complete-motion-plan/vitest.config.ts": "6168111b52e930941cda14c775754a6bf23bb42393769e3b16ae5e0394082fd7",
+    "src/game/plugin/brain.ts": "a1d42343ca09f4303c4c8801e1d0475fa684f25a6ccf1117aa7d8781ba6cc39d",
+    "src/game/plugin/channelPrograms.ts": "cb92376833e49b75453252098c3da6059bd0ad03eb156a0de1ae1f3f6b9247c2",
+    "src/game/shardfile/borrowedDecisions.ts": "a7d37b1a5f75f363699e8de15c200dd1bb9a7c79d4ae20e0310585a4cf7e1cf4",
+    "src/shards/driftwood-isle/generators/mantisCompleteMotionClips.ts": "40821e93a500f5f9b412a3e4be34a728187f5e076a63f7cef3f3bf1e9232a71e",
+    "src/shards/driftwood-isle/generators/mantisCompleteMotionPreview.ts": "786b06444244bbd0bc53a5eb74320d61b9ee18caeaed421641e5ebba38a400df",
+    "test/mantis-complete-authority.test.ts": "885c2f41b34c702551edec533c408d197360c889a80206a67c897509cdd1fb78",
+    "test/mantis-complete-fixture.ts": "a0f8ff968542d55e692715f0124d74b092be2b5ff1c9971cf0a1e6ff704ca15f",
+    "test/mantis-complete-motion.test.ts": "096f657edb1a644198763bd98ab198272ebaee2bdbf1cfaae11ed3ca28beb6f5",
+    "test/mantis-complete-preview.test.ts": "e2663c1fc8cb18bca27246d7d8e4abe0b314ddebbf537a13c801b060ab230323"
+  },
+  "privateEvidence": {
+    "docs/reviews/mantis-complete-motion-plan/authority-test-01.txt": "17cba9dae7223baad41b5b31881b8c1946b3bcd39d5d39b2e23886dbcd084146",
+    "docs/reviews/mantis-complete-motion-plan/focused-tests-02.txt": "625ba9ab8dd5d4a991120e0d27a512769ca6921ff061117a87efe1c4b837dac1",
+    "docs/reviews/mantis-complete-motion-plan/focused-tests-03.txt": "a597e46f22389b9753b40297b2d5585a2dd0591932268ab49d271aa5ee71d57c",
+    "docs/reviews/mantis-complete-motion-plan/lint-01.txt": "09e321d3d066919b238b20f97ed34b6ae423da205b10504d9e51740c2054dfb2",
+    "docs/reviews/mantis-complete-motion-plan/lint-02.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/reviews/mantis-complete-motion-plan/stance-analysis.txt": "15e5c9838d054dfd7ef01fbd14c2e09167b3ad11c6577a0d06a97517f9367c84",
+    "docs/reviews/mantis-complete-motion-plan/typecheck-01.txt": "a6afe397ab5075f78d381702fed632b18089901f17aebe281595ac63f5a58b25",
+    "docs/reviews/mantis-complete-motion-plan/typecheck-02.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

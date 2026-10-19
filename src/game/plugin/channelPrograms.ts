@@ -3,6 +3,7 @@ import * as poseSchema from 'valibot';
 import { ClientChannelsSchema, parseClientChannels } from '@wildshard/format/clientChannels';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
+import { borrowedDecisionControl } from '../shardfile/borrowedDecisions';
 import {createClientChannels,bindClientChannelInputs} from './channels';
 
 /** Copied values may be an existing common read vector or a named observation for independently authored DAGs. */
@@ -41,7 +42,12 @@ export function installChannelPrograms(input:unknown,group:string,owners:Readonl
  });
 }
 
+/** Stable read-only pose encoding; these numbers never drive the strike runner. */
+const STRIKE_POSE_PHASE = { idle: 0, windup: 1, active: 2, recover: 3, cooldown: 4 } as const;
 const numericPoseSchema = poseSchema.strictObject({
+  strikeIds: poseSchema.exactOptional(poseSchema.pipe(poseSchema.array(poseSchema.pipe(poseSchema.string(),
+    poseSchema.regex(/^[a-z][a-zA-Z0-9.:-]{0,127}$/u))), poseSchema.minLength(1), poseSchema.maxLength(2),
+    poseSchema.check(ids => new Set(ids).size === ids.length, 'Unique strike identities'))),
   programs: ClientChannelsSchema,
   group: poseSchema.pipe(poseSchema.string(), poseSchema.minLength(1), poseSchema.maxLength(128)),
   states: poseSchema.optional(poseSchema.pipe(poseSchema.array(poseSchema.pipe(poseSchema.string(), poseSchema.maxLength(128))), poseSchema.maxLength(64)), []),
@@ -75,11 +81,23 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
     frame: Record<string, unknown>; look: { yaw: number; pitch: number }; scalars: Record<string, number>;
     copies: { source: AnimalRigJoint; rotation: { x: number; y: number; z: number } }[];
     observation: { time: number; delta: number; values: Record<string, number> };
+    strike: { phase: number; elapsed: number; index: number };
     lane: ReturnType<typeof installChannelPrograms> | null;
   }>();
   const animate = (c: AnimalRigContext): void => {
     if ((row.alive !== undefined && row.alive !== c.alive)
       || (row.variant !== undefined && Reflect.get(c.animal, 'variant') !== row.variant)) return;
+    // Strict opt-in, sampled before any joint writes. Authority lookup never creates or advances an owner.
+    const strike = { phase: 0, elapsed: 0, index: 0 };
+    if (row.strikeIds !== undefined) {
+      const control = borrowedDecisionControl(c.animal), admitted = control.strikeIds;
+      if (row.strikeIds.some(id => !admitted.includes(id))) throw new Error('Unadmitted creature pose strike');
+      const phase = STRIKE_POSE_PHASE[control.strikeState], elapsed = control.strikeTime, current = control.current;
+      const index = current === null ? -1 : row.strikeIds.indexOf(current.id);
+      if (!Object.hasOwn(STRIKE_POSE_PHASE, control.strikeState) || !Number.isFinite(elapsed) || elapsed < 0 || elapsed > 1e12
+        || (current !== null && index < 0) || (current === null && phase !== 0)) throw new Error('Invalid creature pose strike observation');
+      strike.phase = phase; strike.elapsed = elapsed; strike.index = index + 1;
+    }
     // Detached observations only: missing old-save memory can supply an authored default without a write.
     const scalarValues = row.scalars.map(scalar => {
       const [key, field] = scalar.path;
@@ -103,6 +121,8 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
       ]));
       const scalars: Record<string, number> = Object.fromEntries(row.scalars.map((scalar, i) => [scalar.name, scalarValues[i] ?? Number.NaN]));
       owners.set('frame', frame); owners.set('look', look); owners.set('scalars', scalars);
+      const strikeValues = { ...strike };
+      if (row.strikeIds !== undefined) owners.set('strike', strikeValues);
       const copies = Object.entries(c.bones).map(([name, source]) => {
         const rotation = { x: source.rotation.x, y: source.rotation.y, z: source.rotation.z };
         owners.set(`read.joint.${name.replaceAll('_', '.')}`, { rotation });
@@ -114,10 +134,11 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
         if (targets.size !== 1 || program.numeric?.group !== row.group) throw new Error('Invalid creature pose target');
         return [...targets].every(target => owners.has(target));
       });
-      rig = { frame, look, scalars, copies, observation: { time: c.t, delta: c.dt, values: {} },
+      rig = { frame, look, scalars, copies, strike: strikeValues, observation: { time: c.t, delta: c.dt, values: {} },
         lane: programs.length === 0 ? null : installChannelPrograms(programs, row.group, owners) };
       rigs.set(c.bones, rig);
     }
+    Object.assign(rig.strike, strike);
     Object.assign(rig.frame, c);
     row.scalars.forEach((scalar, i) => { rig.scalars[scalar.name] = scalarValues[i] ?? Number.NaN; });
     rig.frame['stateIndex'] = row.states.indexOf(c.state);

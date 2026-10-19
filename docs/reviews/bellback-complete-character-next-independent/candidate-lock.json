@@ -1,0 +1,20 @@
+{
+  "locked_at_utc": "2026-10-19T22:16:24.977064+00:00",
+  "inspection_order": "Approved hero; all ten candidate original PNGs individually at original detail; World and corrected Explorer reference sheets; lock before any baseline images or old review reports.",
+  "historical_exposure": "STATE exposed Bellback 3.585; candidate reference-audit exposed historical 3.73 and selected 3.585. No old review report or baseline image read before lock.",
+  "weights": {
+    "silhouette": ".35",
+    "face": ".30",
+    "details": ".20",
+    "style": ".15"
+  },
+  "scores": {
+    "silhouette": "3.70",
+    "face": "3.50",
+    "details": "3.55",
+    "style": "4.35"
+  },
+  "exact_total": "3.7075",
+  "status": "Below 4/5 likeness; static art only, animation/readability untested",
+  "basis": "Complete iconic bell/wreck creature; face remains broad planar mask, chin now central but pale tooth fan; wraps read smooth straps, rear cross over-neat, boxlike underside and angular haunch transition persist."
+}

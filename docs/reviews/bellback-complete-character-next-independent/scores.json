@@ -1,0 +1,27 @@
+{
+  "weights": {
+    "silhouette": "0.35",
+    "face": "0.30",
+    "details": "0.20",
+    "style": "0.15"
+  },
+  "candidate": {
+    "silhouette": "3.70",
+    "face": "3.50",
+    "details": "3.55",
+    "style": "4.35"
+  },
+  "fresh_baseline": {
+    "silhouette": "3.65",
+    "face": "3.35",
+    "details": "3.15",
+    "style": "4.35"
+  },
+  "candidate_exact_total": "3.7075",
+  "fresh_baseline_exact_total": "3.5650",
+  "preferred": "complete-character-next",
+  "target_met": false,
+  "animation": "Not evaluated: still images only",
+  "gameplay_readability": "Not evaluated: no live game evidence",
+  "historical_scores": "3.585 and 3.73 exposed before scoring; kept separate, no averaging or rounding"
+}

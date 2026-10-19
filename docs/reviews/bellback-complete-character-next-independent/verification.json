@@ -1,0 +1,194 @@
+{
+  "input_pins": [
+    {
+      "name": "world_reference",
+      "verified": true,
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/bellbackWorldGen.png",
+      "bytes": 2457755,
+      "sha256": "4823cac55b9a0c84062709315c4155ba83ea20d345891709f6335a22d33500aa"
+    },
+    {
+      "name": "explorer_reference",
+      "verified": true,
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/corrections/bellbackExplorerCorrectedGen-v2.png",
+      "bytes": 2017087,
+      "sha256": "d253f9f72acfc796e0d8de9a7a73194842ef0be80d03d9cb99e907845a622563"
+    },
+    {
+      "name": "reference",
+      "verified": true,
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/bellback-lowpoly.webp",
+      "bytes": 198854,
+      "sha256": "92b3a72c20b2e820d843956f8d076fb981af9d4ec9e5669794cb717dd552f4ae"
+    },
+    {
+      "name": "baseline_source",
+      "verified": true,
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-character-pass/build_bellback_complete.py",
+      "bytes": 20473,
+      "sha256": "ff889c90fb5c7c0a0974678cc2cf59ccc7cbcdaee38da2ff823809613b78b131"
+    },
+    {
+      "name": "baseline_glb",
+      "verified": true,
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-character-pass/bellback-complete-character-pass.glb",
+      "bytes": 362648,
+      "sha256": "137f14c636f5a81717d3a06cfef612bb8517b7c465df1c23b60417d960389cce"
+    },
+    {
+      "name": "candidate_source",
+      "verified": true,
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-character-next/build_bellback_complete.py",
+      "bytes": 23893,
+      "sha256": "5eb834576958c5da3707d37830c26a77e0e4992f21c0c3c3f4c5495453287177"
+    },
+    {
+      "name": "candidate_glb",
+      "verified": true,
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-character-next/bellback-complete-character-next.glb",
+      "bytes": 448412,
+      "sha256": "1bb2267368f160b19fef8a15f1d6146b43cb3a8caf510512648386265e475850"
+    },
+    {
+      "name": "capture_script",
+      "verified": true,
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-character-next/capture_review.py",
+      "bytes": 5500,
+      "sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    }
+  ],
+  "pairs": [
+    {
+      "view": "hero",
+      "candidate_minimum_normalized_margin": 0.018230529502034187,
+      "baseline_minimum_normalized_margin": 0.02789033204317093,
+      "pin_and_receipt_match": true,
+      "camera_target_scale_lights_equal": true,
+      "pair_full_rgb_equal": true,
+      "baseline_prior_candidate_rgb_equal": true,
+      "dimensions": [
+        768,
+        960
+      ]
+    },
+    {
+      "view": "01-front",
+      "candidate_minimum_normalized_margin": 0.08973143994808197,
+      "baseline_minimum_normalized_margin": 0.09299662709236145,
+      "pin_and_receipt_match": true,
+      "camera_target_scale_lights_equal": true,
+      "pair_full_rgb_equal": true,
+      "baseline_prior_candidate_rgb_equal": true,
+      "dimensions": [
+        520,
+        640
+      ]
+    },
+    {
+      "view": "02-left",
+      "candidate_minimum_normalized_margin": 0.09574144333600998,
+      "baseline_minimum_normalized_margin": 0.09574144333600998,
+      "pin_and_receipt_match": true,
+      "camera_target_scale_lights_equal": true,
+      "pair_full_rgb_equal": true,
+      "baseline_prior_candidate_rgb_equal": true,
+      "dimensions": [
+        520,
+        640
+      ]
+    },
+    {
+      "view": "03-right",
+      "candidate_minimum_normalized_margin": 0.09574145078659058,
+      "baseline_minimum_normalized_margin": 0.09574145078659058,
+      "pin_and_receipt_match": true,
+      "camera_target_scale_lights_equal": true,
+      "pair_full_rgb_equal": true,
+      "baseline_prior_candidate_rgb_equal": true,
+      "dimensions": [
+        520,
+        640
+      ]
+    },
+    {
+      "view": "04-back",
+      "candidate_minimum_normalized_margin": 0.08973151445388794,
+      "baseline_minimum_normalized_margin": 0.09299665689468384,
+      "pin_and_receipt_match": true,
+      "camera_target_scale_lights_equal": true,
+      "pair_full_rgb_equal": true,
+      "baseline_prior_candidate_rgb_equal": true,
+      "dimensions": [
+        520,
+        640
+      ]
+    },
+    {
+      "view": "05-top",
+      "candidate_minimum_normalized_margin": 0.08973145484924316,
+      "baseline_minimum_normalized_margin": 0.09299665689468384,
+      "pin_and_receipt_match": true,
+      "camera_target_scale_lights_equal": true,
+      "pair_full_rgb_equal": true,
+      "baseline_prior_candidate_rgb_equal": true,
+      "dimensions": [
+        520,
+        640
+      ]
+    },
+    {
+      "view": "06-diag-front",
+      "candidate_minimum_normalized_margin": 0.08973143994808197,
+      "baseline_minimum_normalized_margin": 0.09299662709236145,
+      "pin_and_receipt_match": true,
+      "camera_target_scale_lights_equal": true,
+      "pair_full_rgb_equal": true,
+      "baseline_prior_candidate_rgb_equal": true,
+      "dimensions": [
+        520,
+        640
+      ]
+    },
+    {
+      "view": "07-diag-left",
+      "candidate_minimum_normalized_margin": 0.06771205365657806,
+      "baseline_minimum_normalized_margin": 0.06780792772769928,
+      "pin_and_receipt_match": true,
+      "camera_target_scale_lights_equal": true,
+      "pair_full_rgb_equal": true,
+      "baseline_prior_candidate_rgb_equal": true,
+      "dimensions": [
+        520,
+        640
+      ]
+    },
+    {
+      "view": "08-diag-right",
+      "candidate_minimum_normalized_margin": 0.0641099140048027,
+      "baseline_minimum_normalized_margin": 0.06457151472568512,
+      "pin_and_receipt_match": true,
+      "camera_target_scale_lights_equal": true,
+      "pair_full_rgb_equal": true,
+      "baseline_prior_candidate_rgb_equal": true,
+      "dimensions": [
+        520,
+        640
+      ]
+    },
+    {
+      "view": "09-diag-back",
+      "candidate_minimum_normalized_margin": 0.08973133563995361,
+      "baseline_minimum_normalized_margin": 0.09299653768539429,
+      "pin_and_receipt_match": true,
+      "camera_target_scale_lights_equal": true,
+      "pair_full_rgb_equal": true,
+      "baseline_prior_candidate_rgb_equal": true,
+      "dimensions": [
+        520,
+        640
+      ]
+    }
+  ],
+  "closure_verified_count": 98,
+  "note": "Read-only byte/pixel/receipt verification. No render or topology test rerun. Framing verified visually plus retained full-vertex projection receipts; no independent geometry reprojection."
+}

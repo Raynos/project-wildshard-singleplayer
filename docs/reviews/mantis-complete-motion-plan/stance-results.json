@@ -1,0 +1,27 @@
+{
+  "scope": "Coherent straight source fixture at1.15m/s; NOT actual game contact/turn/stop validation",
+  "phaseHz": 0.7228540648913977,
+  "perFoot": {
+    "leg-1_0_knee": {
+      "intervals": 62,
+      "footRootRatio": 0.8158865281569386,
+      "medianFootSpeed": 0.9380406677894731
+    },
+    "leg-1_1_knee": {
+      "intervals": 61,
+      "footRootRatio": 0.26222559924288835,
+      "medianFootSpeed": 0.29774634959019713
+    },
+    "leg1_0_knee": {
+      "intervals": 61,
+      "footRootRatio": 0.7996249004860693,
+      "medianFootSpeed": 0.9236276886819645
+    },
+    "leg1_1_knee": {
+      "intervals": 62,
+      "footRootRatio": 0.269520838553896,
+      "medianFootSpeed": 0.30983164997360746
+    }
+  },
+  "gate": false
+}
