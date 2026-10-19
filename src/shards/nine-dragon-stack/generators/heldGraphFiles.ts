@@ -1,12 +1,11 @@
-import { bakeRawColourTexture } from '@wildshard/sdk/bake/texture';
-import { writeImagePixels } from '@wildshard/sdk/bake/image';
+import profile from '../data/heldProfile.generated.json' with { type: 'json' };
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { assetCost } from '@wildshard/format/product';
 import { viewmodelGraphs } from './viewmodelGraphs';
 
 // Standard material-file references keep the catalogue's JSON walk bounded.
 // These are look.materials assets, read by the graph host's file reader.
-const standIn = await bakeRawColourTexture(await writeImagePixels({ width: 1, height: 1, pixels: new Uint8ClampedArray([0, 0, 0, 255]) }), { colourSpace: 'linear' });
+const standIn = Uint8Array.from(atob(profile.standIn), character => character.codePointAt(0) ?? 0);
 const texture = hashImmutableBytes(standIn);
 const graphs = Object.fromEntries(Object.entries(viewmodelGraphs()).map(([id, graph]) => [id, { ...graph,
   params: Object.fromEntries(Object.entries(graph.params ?? {}).map(([name, param]) => [name, param.type === 'texture' ? { ...param, value: texture } : param])),

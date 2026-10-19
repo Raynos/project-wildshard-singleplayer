@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { byteWriter } from '../../../../scripts/bake-output.mjs';
+import { bakeRawColourTexture } from '@wildshard/sdk/bake/texture';
+import { writeImagePixels } from '@wildshard/sdk/bake/image';
 
 // Read declarations only: the shipped GLB and its compressed maps stay intact.
 const bytes = readFileSync(new URL('../../../../public/assets/nine-dragon/viewmodel/fp-rig.glb', import.meta.url));
@@ -17,7 +19,8 @@ const rows = source.nodes.filter(node => node.mesh !== undefined).map((node, ind
 });
 if (rows.length === 0 || rows.length > 64) throw new Error('Held rig mesh bound exceeded');
 const writer = byteWriter(process.argv.includes('--check'), 'nine-held-profile');
-writer.put(fileURLToPath(new URL('../data/heldProfile.generated.json', import.meta.url)), JSON.stringify(rows));
+const standIn = await bakeRawColourTexture(await writeImagePixels({ width: 1, height: 1, pixels: new Uint8ClampedArray([0, 0, 0, 255]) }), { colourSpace: 'linear' });
+writer.put(fileURLToPath(new URL('../data/heldProfile.generated.json', import.meta.url)), JSON.stringify({ meshes: rows, standIn: Buffer.from(standIn).toString('base64') }));
 writer.put(fileURLToPath(new URL('../data/heldProfile.generated.d.json.ts', import.meta.url)),
-  'declare const rows: readonly { readonly name: string; readonly look: string; readonly attributes: readonly string[]; readonly channels: Readonly<Record<string,string>>; readonly hull: boolean; readonly width: number; readonly maps: string; readonly rotation: readonly number[]; readonly doubleSide: boolean }[];\nexport default rows;\n');
+  'declare const profile: { readonly standIn: string; readonly meshes: readonly { readonly name: string; readonly look: string; readonly attributes: readonly string[]; readonly channels: Readonly<Record<string,string>>; readonly hull: boolean; readonly width: number; readonly maps: string; readonly rotation: readonly number[]; readonly doubleSide: boolean }[] };\nexport default profile;\n');
 writer.finish();
