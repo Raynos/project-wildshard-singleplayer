@@ -1,0 +1,85 @@
+{
+  "status": "Actual static evidence; independent likeness review pending",
+  "files": [
+    {
+      "path": "tmp/conch-complete-pass1/color-complete-pass1-back.png",
+      "bytes": 407237,
+      "sha256": "8b59b5e4fbe7a0cb2737e5ac888be6e577c2c4b6219dc5ffc54355f5dce6db41"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/color-complete-pass1-diag-back.png",
+      "bytes": 608129,
+      "sha256": "14a7ae1a8308ff1fb69028be8b4b392c19120b169d8f6c3dc789eec70d8d2154"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/color-complete-pass1-diag-front.png",
+      "bytes": 642215,
+      "sha256": "71b0f667307cfff5e465224d7031a1b109a69af1885436675c5ac517fbe33e6c"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/color-complete-pass1-diag-left.png",
+      "bytes": 663453,
+      "sha256": "7994bc506b57f0b22817816942d5b3d55c0869519a22350359c33bdc7770f919"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/color-complete-pass1-diag-right.png",
+      "bytes": 598568,
+      "sha256": "55945975a9008f5db4cec0e4bb7be94a8b1026aed2f3c149d95821efc9cab8a9"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/color-complete-pass1-front.png",
+      "bytes": 431378,
+      "sha256": "f4e3d0b340ed79851f55eed69343ad0d6ebe121e7aeba3047040d63b0c746f39"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/color-complete-pass1-left.png",
+      "bytes": 365139,
+      "sha256": "184e40fd3517db7412bdd77111fef0d7e460553bb6a3bdb550d39b61d90d724d"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/color-complete-pass1-right.png",
+      "bytes": 357243,
+      "sha256": "fc45c472d6593a59860d70ce1dfc679d5fc4808c4aa1c7b02d49cd89b8e2022c"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/color-complete-pass1-top.png",
+      "bytes": 614890,
+      "sha256": "8da3454f215905c67fff3103f7d77bd09402631c197ead6cbe19f14723275ebc"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/color-front.png",
+      "bytes": 1312963,
+      "sha256": "23d9d7425f1b105c2af8f53d7a4d57173b09359201f78bda57aaaf7b25d01277"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/comparison-complete-pass1-board.webp",
+      "bytes": 56950,
+      "sha256": "82019724e21126472773143bb05b1c6388ab5e7c666b1c90c82f87c7de1c7e36"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/nine-view-complete-pass1-board.webp",
+      "bytes": 88364,
+      "sha256": "6357c68e56b3021cf4fb35ad10eedc7a41186e10da0baa457399ac621475582c"
+    },
+    {
+      "path": "tmp/conch-complete-pass1/conch-study.glb",
+      "bytes": 241260,
+      "sha256": "96eca1a716b3726bf25b9c005c31c5dc2ec6ba74b3828ae5b7684a7e6527fc8f"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass1/board_conch_complete_pass1.py",
+      "bytes": 1890,
+      "sha256": "3e85c2de69a3e9cf0f7176c0607c567f90c10abb64ad8a8aee84db873772813c"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass1/build_conch_complete_pass1.py",
+      "bytes": 17357,
+      "sha256": "2049f3d5a72f52cb9eac66e93b3ceb6a7aff538a483cf26d9b1bfd1a3a2490dc"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass1/render_conch_complete_pass1_nine.py",
+      "bytes": 3135,
+      "sha256": "fd8847f7811dbe9a565522b1ac35b315c6c1a314493c7474d5297dfaee7a7a88"
+    }
+  ]
+}

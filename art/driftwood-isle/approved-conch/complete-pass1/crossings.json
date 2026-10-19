@@ -1,0 +1,12 @@
+{
+  "file": "conch-study.glb",
+  "meshes": [
+    {
+      "mesh": "Unified angular whorls lip and recessed throat",
+      "triangles": 466,
+      "properNonadjacentCrossings": 0,
+      "trianglePairs": []
+    }
+  ],
+  "limits": "Bidirectional segment/triangle check of actual GLB. Shared-vertex pairs and coplanar contacts excluded. No rig, motion, runtime or likeness acceptance implied."
+}

@@ -1,0 +1,704 @@
+{
+  "reviewDateUTC": "2026-10-19T12:54:47.291655+00:00",
+  "scope": "Independent static visual review only; no rerender or geometry-audit rerun",
+  "completeScoreExact": "3.65",
+  "v71IndependentScoreExact": "3.8625",
+  "historicalV71ScorePreserved": "3.60",
+  "runtimeAccepted": false,
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-puffer/unaccepted-native-v71.json",
+      "bytes": 1416764,
+      "sha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338"
+    },
+    {
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/brine-puffer-lowpoly.webp",
+      "bytes": 222292,
+      "sha256": "01ba7d0fbfb66bbdd929c975eb75729d7b28cd3aa023db0581df94a718e3d028"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/assemble_static.py",
+      "bytes": 2402,
+      "sha256": "3d2c1e3a815947eb1bf600d85865575580486b93168ae7685cb13ded62f1ceca"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/assembly-receipt.json",
+      "bytes": 874,
+      "sha256": "6862cb6203138ec3b764037e0297b6519a166f417a6d8666f0309fd346d091be"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/audit_sources.py",
+      "bytes": 4090,
+      "sha256": "608cf0751b58142ca9a23289c4906a1d282f42fdc0dfd0214a9815d67a98c2e1"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/audit_topology.py",
+      "bytes": 1682,
+      "sha256": "0f462d9653ba0c5ecb5c3dd6cd2f31cf7ebe4f98b77a50d975ef22bc0addc7eb"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/capture-receipt.json",
+      "bytes": 9088,
+      "sha256": "1b17365939dba19c6a1aa95e85bfd3609816911e87542bba35db65289fdc8ade"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-01-front.webp",
+      "bytes": 12122,
+      "sha256": "4128ff97eb9752ed970de208b0366c748e3b9fb55e91b3b709fad72791585775"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-02-left.webp",
+      "bytes": 12372,
+      "sha256": "08c7b8699211c297615001c90f389648b1d4fad8cb36bfdf999570b2ad7d056b"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-03-right.webp",
+      "bytes": 13634,
+      "sha256": "3cb289fcf60170f51718e384f9dcdf207e96ab8d43ac4c2a18275ff6f7616e31"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-04-back.webp",
+      "bytes": 9560,
+      "sha256": "703f0a58326cea016d5191428e61ef7eaf33c68a3b0928474781a34d39b65171"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-05-top.webp",
+      "bytes": 41354,
+      "sha256": "056c9d5cb1c7da3aa5c189a2b49a05926675976212f933f96e5ea26ea1e37ab1"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-06-elevated-front.webp",
+      "bytes": 47886,
+      "sha256": "4e4f9c3c5eda88547988ed0600254e0a077d3217528d0a8433ce28ee208e70a9"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-07-elevated-left.webp",
+      "bytes": 37312,
+      "sha256": "b3a93eed46412c5921f1e9a75b3fa4027421ae8f2b501e1cdb49df477e679c7c"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-08-elevated-right.webp",
+      "bytes": 60870,
+      "sha256": "af3a03280da30bdff8153fb0e17d1969b1d940b412596bec7f026ac6bf241a26"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-09-elevated-back.webp",
+      "bytes": 39146,
+      "sha256": "f4ee341d15369e64a27cd643c21b13a94646e154d5e19e16c6ec2e4377dc7ac6"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-hero.webp",
+      "bytes": 43372,
+      "sha256": "0a2331a8f43a951ea55af6cdd3518557cdc8c3f54e3519d83bd3695d0ea18952"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-native.json",
+      "bytes": 2673062,
+      "sha256": "322dac35e093fddb4b44a5bc7332d4c1187dd002bdb59091c583b4df3717f370"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/evidence-manifest.json",
+      "bytes": 12460,
+      "sha256": "1e1991445bfd9f7ffa20b41725d7b27c5c933d3cb45bb47bed7899ad5d505061"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/focused-tests.json",
+      "bytes": 258,
+      "sha256": "777b3ff7c830f2fd8cd1995a7a3074ef5df6d5364e90dffed5d3c6b6ce4e1c35"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/hero-comparison-board.webp",
+      "bytes": 18278,
+      "sha256": "d94200fcb3b899858f8ac2b98b225be153fbfa72616cbd35501f6ec5bf983222"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/output-closure.json",
+      "bytes": 7581,
+      "sha256": "e55c914b04b0ed1338888160ac0d43c54064e733868cd64987cfa1c148747850"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/prepare_evidence.py",
+      "bytes": 2056,
+      "sha256": "9a4d9b7d55cea9bde2d5ef45ddc0b9f847305826146db535f80fd8424e2de03a"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/render-prelaunch-failure.json",
+      "bytes": 400,
+      "sha256": "eb9495cdb419b7e7370ddc45aefe35a9b006cc012d8b6505526df95c1f13be36"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/render_matched.py",
+      "bytes": 4979,
+      "sha256": "c17050a438415cc7ad296daed4aa2b861a2cab928fcbe21db3382177369007e8"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/source-attachment-audit.json",
+      "bytes": 58838,
+      "sha256": "5761f5b2e953dfcc30fed1b566f6bd79032de431cf5b3d0305a38106d0da4537"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/static-study-approval.json",
+      "bytes": 2066,
+      "sha256": "a0d6b49ca04f3491fb08eb72c3032618fc4e6e4306fb4a7e3aa84af4d7b5ae0c"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/test_static.py",
+      "bytes": 2048,
+      "sha256": "22526ebee985643d47f36ee0081716f85c498a20a5dbdc43c52fd7e21ba07094"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/topology-preflight-failure.json",
+      "bytes": 30499,
+      "sha256": "e9e5a5c213de12b89764a7eb69db59a7a4915a58375eb5d2309d4d58f39a4c4d"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-01-front.webp",
+      "bytes": 12538,
+      "sha256": "2c30ea5f041d95e6fc9d8f8f1614d1163bd65784bae4375edb63df42df8d53fa"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-02-left.webp",
+      "bytes": 13028,
+      "sha256": "dfd9d712fdd5d092018dd9b48fb555680bad28f8ff63fb2eae378d0c8068cf83"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-03-right.webp",
+      "bytes": 13930,
+      "sha256": "60638fad960df323f95cfb018d5a4e134c6fea20461789d60bc6ac472359276f"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-04-back.webp",
+      "bytes": 9702,
+      "sha256": "9bc17e8386e72d3e9621121effbdf0f7e08150e12af61d7db2150d3abe269a48"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-05-top.webp",
+      "bytes": 42736,
+      "sha256": "016755c8e2435dbc703ffd25978d5097d0df77db4a02aa6b17b666199d5892f2"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-06-elevated-front.webp",
+      "bytes": 48400,
+      "sha256": "ba75887d14a8eb7574e27850a8413dca2d1defcc819f529038d21c2f59bb5f57"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-07-elevated-left.webp",
+      "bytes": 37992,
+      "sha256": "60f6a8a9da3ad1f8e916c9123e048865307f35827eed87b2a6328920a19ae344"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-08-elevated-right.webp",
+      "bytes": 61684,
+      "sha256": "a9e03a6f8bbcc78c2da8e0ac0caff9664d1df3f79a4ecb1660c8a9677c4c210a"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-09-elevated-back.webp",
+      "bytes": 39280,
+      "sha256": "5e2d2b545e3137f2e7f7d7b61206b633f8361fb8c8217860cbac421d5d4ff24e"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-hero.webp",
+      "bytes": 45092,
+      "sha256": "28076c28cabf402c33e8e743a5551429985533ed7e84a3d634c4ee2535e945fb"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/terminal-fin-native-study.json",
+      "bytes": 287965,
+      "sha256": "755d8e2d7605cfe9331ae064fe6f301602709ed542e8ee73f3d56f6687f0159e"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-remaster-guided/semantic-face-diagonal-native.json",
+      "bytes": 2523625,
+      "sha256": "483b47367ddbad0e4872f357f786fc0cca778380a07bd536428923aadd3046cb"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-spike-study/spike-native-study.json",
+      "bytes": 1416932,
+      "sha256": "f49fb808735792d5945d8ac2991e89c5e8f013b4e4e8dcfe6ee51cfc189e90dd"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-spike-study/spikes-indexed.json",
+      "bytes": 18905,
+      "sha256": "107075e5258bd2f94bade9ac9cdc23082c5a185c70f008251149d30055f1419f"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-tail-study/tail-native-study.json",
+      "bytes": 65970,
+      "sha256": "c8f2ef68d0860539b93d3a343a54a05369b3278d239d5e871715a6f3abb17d35"
+    },
+    {
+      "path": "docs/reviews/puffer-complete-independent/initial-assessment.md",
+      "bytes": 3848,
+      "sha256": "da97b4bf7bf511c293f85463424ce70b823915c4b9b0ec0441fa1352033f6f7f"
+    },
+    {
+      "path": "docs/reviews/puffer-complete-independent/report.md",
+      "bytes": 6890,
+      "sha256": "1d683e3fc26a0d00c0bd0faf716630cb07dfdf9999b09b4076e1f59da27bcab6"
+    }
+  ],
+  "existingOutputClosureChecks": [
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/assemble_static.py",
+      "expectedSha256": "3d2c1e3a815947eb1bf600d85865575580486b93168ae7685cb13ded62f1ceca",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/assembly-receipt.json",
+      "expectedSha256": "6862cb6203138ec3b764037e0297b6519a166f417a6d8666f0309fd346d091be",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/audit_sources.py",
+      "expectedSha256": "608cf0751b58142ca9a23289c4906a1d282f42fdc0dfd0214a9815d67a98c2e1",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/audit_topology.py",
+      "expectedSha256": "0f462d9653ba0c5ecb5c3dd6cd2f31cf7ebe4f98b77a50d975ef22bc0addc7eb",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/capture-receipt.json",
+      "expectedSha256": "1b17365939dba19c6a1aa95e85bfd3609816911e87542bba35db65289fdc8ade",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-01-front.webp",
+      "expectedSha256": "4128ff97eb9752ed970de208b0366c748e3b9fb55e91b3b709fad72791585775",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-02-left.webp",
+      "expectedSha256": "08c7b8699211c297615001c90f389648b1d4fad8cb36bfdf999570b2ad7d056b",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-03-right.webp",
+      "expectedSha256": "3cb289fcf60170f51718e384f9dcdf207e96ab8d43ac4c2a18275ff6f7616e31",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-04-back.webp",
+      "expectedSha256": "703f0a58326cea016d5191428e61ef7eaf33c68a3b0928474781a34d39b65171",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-05-top.webp",
+      "expectedSha256": "056c9d5cb1c7da3aa5c189a2b49a05926675976212f933f96e5ea26ea1e37ab1",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-06-elevated-front.webp",
+      "expectedSha256": "4e4f9c3c5eda88547988ed0600254e0a077d3217528d0a8433ce28ee208e70a9",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-07-elevated-left.webp",
+      "expectedSha256": "b3a93eed46412c5921f1e9a75b3fa4027421ae8f2b501e1cdb49df477e679c7c",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-08-elevated-right.webp",
+      "expectedSha256": "af3a03280da30bdff8153fb0e17d1969b1d940b412596bec7f026ac6bf241a26",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-09-elevated-back.webp",
+      "expectedSha256": "f4ee341d15369e64a27cd643c21b13a94646e154d5e19e16c6ec2e4377dc7ac6",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-hero.webp",
+      "expectedSha256": "0a2331a8f43a951ea55af6cdd3518557cdc8c3f54e3519d83bd3695d0ea18952",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-native.json",
+      "expectedSha256": "322dac35e093fddb4b44a5bc7332d4c1187dd002bdb59091c583b4df3717f370",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/evidence-manifest.json",
+      "expectedSha256": "1e1991445bfd9f7ffa20b41725d7b27c5c933d3cb45bb47bed7899ad5d505061",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/focused-tests.json",
+      "expectedSha256": "777b3ff7c830f2fd8cd1995a7a3074ef5df6d5364e90dffed5d3c6b6ce4e1c35",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/hero-comparison-board.webp",
+      "expectedSha256": "d94200fcb3b899858f8ac2b98b225be153fbfa72616cbd35501f6ec5bf983222",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/prepare_evidence.py",
+      "expectedSha256": "9a4d9b7d55cea9bde2d5ef45ddc0b9f847305826146db535f80fd8424e2de03a",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/render-prelaunch-failure.json",
+      "expectedSha256": "eb9495cdb419b7e7370ddc45aefe35a9b006cc012d8b6505526df95c1f13be36",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/render_matched.py",
+      "expectedSha256": "c17050a438415cc7ad296daed4aa2b861a2cab928fcbe21db3382177369007e8",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/source-attachment-audit.json",
+      "expectedSha256": "5761f5b2e953dfcc30fed1b566f6bd79032de431cf5b3d0305a38106d0da4537",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/static-study-approval.json",
+      "expectedSha256": "a0d6b49ca04f3491fb08eb72c3032618fc4e6e4306fb4a7e3aa84af4d7b5ae0c",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/test_static.py",
+      "expectedSha256": "22526ebee985643d47f36ee0081716f85c498a20a5dbdc43c52fd7e21ba07094",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/topology-preflight-failure.json",
+      "expectedSha256": "e9e5a5c213de12b89764a7eb69db59a7a4915a58375eb5d2309d4d58f39a4c4d",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-01-front.webp",
+      "expectedSha256": "2c30ea5f041d95e6fc9d8f8f1614d1163bd65784bae4375edb63df42df8d53fa",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-02-left.webp",
+      "expectedSha256": "dfd9d712fdd5d092018dd9b48fb555680bad28f8ff63fb2eae378d0c8068cf83",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-03-right.webp",
+      "expectedSha256": "60638fad960df323f95cfb018d5a4e134c6fea20461789d60bc6ac472359276f",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-04-back.webp",
+      "expectedSha256": "9bc17e8386e72d3e9621121effbdf0f7e08150e12af61d7db2150d3abe269a48",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-05-top.webp",
+      "expectedSha256": "016755c8e2435dbc703ffd25978d5097d0df77db4a02aa6b17b666199d5892f2",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-06-elevated-front.webp",
+      "expectedSha256": "ba75887d14a8eb7574e27850a8413dca2d1defcc819f529038d21c2f59bb5f57",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-07-elevated-left.webp",
+      "expectedSha256": "60f6a8a9da3ad1f8e916c9123e048865307f35827eed87b2a6328920a19ae344",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-08-elevated-right.webp",
+      "expectedSha256": "a9e03a6f8bbcc78c2da8e0ac0caff9664d1df3f79a4ecb1660c8a9677c4c210a",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-09-elevated-back.webp",
+      "expectedSha256": "5e2d2b545e3137f2e7f7d7b61206b633f8361fb8c8217860cbac421d5d4ff24e",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-hero.webp",
+      "expectedSha256": "28076c28cabf402c33e8e743a5551429985533ed7e84a3d634c4ee2535e945fb",
+      "matches": true
+    },
+    {
+      "path": "docs/reviews/brine-puffer-complete-remaster.md",
+      "expectedSha256": "885b87dbab327660cbf8980aeda2f27591ec296710273ed2da742d33caca4e7c",
+      "matches": true
+    }
+  ],
+  "previewChecks": [
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-hero.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-hero.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-01-front.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-01-front.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-02-left.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-02-left.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-03-right.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-03-right.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-04-back.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-04-back.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-05-top.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-05-top.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-06-elevated-front.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-06-elevated-front.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-07-elevated-left.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-07-elevated-left.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-08-elevated-right.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-08-elevated-right.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/v71-09-elevated-back.webp",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-09-elevated-back.webp",
+      "matches": true
+    }
+  ],
+  "rawCaptureChecks": [
+    {
+      "path": "tmp/puffer-complete-remaster/matched/v71-hero.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/complete-hero.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/v71-01-front.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/complete-01-front.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/v71-02-left.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/complete-02-left.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/v71-03-right.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/complete-03-right.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/v71-04-back.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/complete-04-back.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/v71-05-top.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/complete-05-top.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/v71-06-elevated-front.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/complete-06-elevated-front.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/v71-07-elevated-left.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/complete-07-elevated-left.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/v71-08-elevated-right.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/complete-08-elevated-right.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/v71-09-elevated-back.png",
+      "present": true,
+      "matches": true
+    },
+    {
+      "path": "tmp/puffer-complete-remaster/matched/complete-09-elevated-back.png",
+      "present": true,
+      "matches": true
+    }
+  ],
+  "cameraPairChecks": [
+    {
+      "view": "01-front",
+      "variants": [
+        "v71",
+        "complete"
+      ],
+      "matched": true
+    },
+    {
+      "view": "02-left",
+      "variants": [
+        "v71",
+        "complete"
+      ],
+      "matched": true
+    },
+    {
+      "view": "03-right",
+      "variants": [
+        "v71",
+        "complete"
+      ],
+      "matched": true
+    },
+    {
+      "view": "04-back",
+      "variants": [
+        "v71",
+        "complete"
+      ],
+      "matched": true
+    },
+    {
+      "view": "05-top",
+      "variants": [
+        "v71",
+        "complete"
+      ],
+      "matched": true
+    },
+    {
+      "view": "06-elevated-front",
+      "variants": [
+        "v71",
+        "complete"
+      ],
+      "matched": true
+    },
+    {
+      "view": "07-elevated-left",
+      "variants": [
+        "v71",
+        "complete"
+      ],
+      "matched": true
+    },
+    {
+      "view": "08-elevated-right",
+      "variants": [
+        "v71",
+        "complete"
+      ],
+      "matched": true
+    },
+    {
+      "view": "09-elevated-back",
+      "variants": [
+        "v71",
+        "complete"
+      ],
+      "matched": true
+    },
+    {
+      "view": "hero",
+      "variants": [
+        "v71",
+        "complete"
+      ],
+      "matched": true
+    }
+  ],
+  "nativePinChecks": [
+    {
+      "path": "art/driftwood-isle/approved-puffer/unaccepted-native-v71.json",
+      "matches": true
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/complete-native.json",
+      "matches": true
+    }
+  ],
+  "renderScriptPinMatches": true
+}
