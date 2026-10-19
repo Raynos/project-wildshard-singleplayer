@@ -1,0 +1,128 @@
+{
+  "schema": "wildshard.brine-pitcher.capsule-measurement.v1",
+  "runtimeAcceptance": false,
+  "colliderAcceptance": false,
+  "frames": 726,
+  "weightedVertices": 7662204,
+  "sampling": "121 samples per phase; idle 0..5s, attacks/hit/death 0..3s. Body-axis contradiction is analytic for the fixed body part, independent of sampling.",
+  "phases": [
+    "idle",
+    "crown telegraph/snap/recovery",
+    "left telegraph/snap/recovery",
+    "right telegraph/snap/recovery",
+    "hit",
+    "death"
+  ],
+  "source": "v3/native-source.json",
+  "poseSource": "src/shards/driftwood-isle/generators/brinePitcherNativeClips.ts",
+  "rootBind": [
+    0,
+    0.7,
+    0
+  ],
+  "rootTranslationChanged": false,
+  "fullCycleBounds": {
+    "body": {
+      "min": [
+        -1.4643610715866089,
+        0.013932550325989723,
+        -1.4516541957855225
+      ],
+      "max": [
+        1.411458134651184,
+        3.3186755180358887,
+        1.4334635734558105
+      ]
+    },
+    "head": {
+      "min": [
+        -0.689,
+        1.9512492690214893,
+        -0.674243626663499
+      ],
+      "max": [
+        0.689,
+        3.590968498760334,
+        1.187289217848228
+      ]
+    },
+    "leftHead": {
+      "min": [
+        -1.9489484203386633,
+        1.5273857345543063,
+        -0.47588566647207203
+      ],
+      "max": [
+        -0.7730000000000001,
+        2.7338194515288015,
+        0.8777783542668653
+      ]
+    },
+    "rightHead": {
+      "min": [
+        0.8255000000000001,
+        1.40787868302181,
+        -0.4348453038951257
+      ],
+      "max": [
+        1.9258289093772918,
+        2.5490315963505106,
+        0.8517646775874015
+      ]
+    },
+    "headLid": {
+      "min": [
+        -0.8225657939910889,
+        2.4467689357045295,
+        -1.0434318317694613
+      ],
+      "max": [
+        0.7208057641983032,
+        4.546423991311771,
+        1.3080977011565904
+      ]
+    },
+    "leftHeadLid": {
+      "min": [
+        -2.0644936693667577,
+        1.888336535991137,
+        -0.7664297349802301
+      ],
+      "max": [
+        -0.7495957612991333,
+        3.4733786391972097,
+        0.94502918598268
+      ]
+    },
+    "rightHeadLid": {
+      "min": [
+        0.7335159778594971,
+        1.7692695080123597,
+        -0.7314370155094794
+      ],
+      "max": [
+        1.9533272950374383,
+        3.2685091287148165,
+        0.9050045501951297
+      ]
+    }
+  },
+  "minimumWeightedY": 0.013932550325989723,
+  "bodyRadiusLowerBoundForAnyHorizontalHalfLength": 2.6188945840329425,
+  "bodyRadiusLowerBoundForAnyUprightHalfLength": 1.5362216494095022,
+  "maximumGroundSafeHorizontalRadius": 0.6860674496740102,
+  "minimumFullMainHeadSphereRadius": 2.511924136406635,
+  "mainHeadSphereBottom": -0.4619241364066351,
+  "provisionalUprightCapsuleBottom": -1.5,
+  "fullEnclosureWithFixedBindAndNoGroundPenetrationFeasible": false,
+  "diagnosticHorizontalProposal": {
+    "bodyY": 0.7,
+    "bodyHalfLen": 1.4516541957855225,
+    "bodyRadius": 0.6860674496740102,
+    "capsuleAxis": "z",
+    "bottom": 0.013932550325989723,
+    "accepted": false,
+    "reason": "Ground-safe but cannot cover weighted trunk/root geometry; not a gameplay-ready replacement."
+  },
+  "reason": "At fixed body bind Y=.7, a ground-safe capsule radius cannot exceed .7. For a Z capsule, distance to its infinite axis already exceeds this bound; for a Y capsule, lateral radial extent already exceeds it. No half-length can repair either contradiction."
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "wildshard.brine-pitcher.rejected-capsule.v1",
+  "accepted": false,
+  "productBuilt": false,
+  "rootLift": 0,
+  "sourceGeometryChanged": false,
+  "groundSafeHorizontalCandidateBodyUniqueVertices": 843,
+  "uncoveredBodyUniqueVertices": 458,
+  "uncoveredBodyFraction": 0.5432977461447213,
+  "headRadiusRetainedDiagnostic": 0.75,
+  "requiredFullHeadRadius": 2.511924136406635,
+  "reason": "Metadata-only full fit is infeasible under fixed bind and no ground penetration. This horizontal variant fixes the underground body but does not enclose the body; the retained head sphere does not enclose moving canopy. It is explicitly rejected.",
+  "files": {
+    "art/driftwood-isle/approved-brine-pitcher/capsule-measurement/measurement.json": "b41cdaf17c9df7da97b9f6fcd3a4cfa6cab9a98060b73298431929fe1cd4669c",
+    "test/brine-pitcher-capsule-measurement.test.ts": "68bc7586d35cafb3181f804d0796c3b0b965888cb1843fc0c7e79771eec66f9a",
+    "src/shards/driftwood-isle/generators/brinePitcherNativeClips.ts": "fd31acc10bb645cb9aba40546675aa0c87517e951ee78d652241b1146cd617f8",
+    "art/driftwood-isle/approved-brine-pitcher/v3/native-source.json": "68f88cb3a5e5c008736ece6e72cfece99516210d3e241c20d698cc055a2aff94",
+    "art/driftwood-isle/approved-brine-pitcher/v3/metadata.json": "2faa7fb3782856aa52fbf802af15eb069cca23bf13dbd642f9b506cdd3bf1d58",
+    "art/driftwood-isle/approved-brine-pitcher/capsule-measurement/metadata-horizontal-rejected.json": "8a29acba27ffc059e3a69fe3b0b18cd1fb4d896af7b29f7da3f76bb6f81edcd1"
+  }
+}

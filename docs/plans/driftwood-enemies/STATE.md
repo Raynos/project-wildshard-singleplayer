@@ -1,8 +1,8 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-19 19:26 UTC. No quality-complete enemy.
+Updated 2026-10-19 19:52 UTC. No quality-complete enemy.
 
-OWNER: Original five still target separate >=4/5 likeness and animation/readability. At19:13 owner explicitly authorized building Brine Pitcher DI-N16, Pearlglass Medusa DI-N17, Keelmaw DI-N19 and Bloomthroat Iguana DI-N10 in game. Other16 rejected. All9 need two nine-angle mockup contexts; original heroes authoritative, AI hidden surfaces inferred. Current Pitcher and Medusa complete model/native source writers are active; Keelmaw/Iguana next. Finish bounded writers, do not race.
+OWNER: Original five still target separate >=4/5 likeness and animation/readability. At19:13 owner explicitly authorized building Brine Pitcher DI-N16, Pearlglass Medusa DI-N17, Keelmaw DI-N19 and Bloomthroat Iguana DI-N10 in game. Other16 rejected. All9 need two nine-angle mockup contexts; original heroes authoritative, AI hidden surfaces inferred. Pitcher and Medusa complete source models protected; Keelmaw/Iguana next. Neither new model is runtime-admitted.
 
 UI: Owner19:12–19:15 wants Approved/In-Game as clean RIGHT-NOW nine-enemy overviews. Approved main hero + both full3x3 sheets inline; individual angles in Details. SIXTH Devlog holds historical experiments/failures/technical logs. Site75 source98be80ea49ceb8f667e62bf87cfbf2e7d8ad1d89 deployed19:25. Six tabs/two mobile rows, nine cards,18 sheets/162 panels; old anchors/assets preserved. Compact Arena active panel top-right218x105 at402; realStart/Retry/change/Back pass, onecanvas/empty stores. Four admitted WIP unchanged: Mantis7/Conch4/Colossus2/Puffer70; Bellback +new4 unavailable. Old hosts retained. No phone claim.
 
@@ -12,4 +12,6 @@ CONCH: Fixed-rest tent filter visibly reduces stippling. Normal-clock exact-publ
 
 BELLBACK: Owner asked again19:13; specific5body/4joint approval still absent at19:19. No architecture expansion or repeated solver studies. Six-shard Explorer coverage open.
 
-PRESERVATION: Wildshardd0d649eb386aab8d2dd0381cf9f8ef9efc399799 exact verified; newer reviews/CSS checkpoint pending. NativeSite raw evidence protected separately; source backups never wait for publication. Hourly cleanup uses verified disjoint regenerable caches only.
+NEW MODELS: Pitcher v3 outward/single-sided source passes geometry checks; measured full weighted capsule fit fails ground/enclosure constraints, rejected source-only fit retained. Medusa v2 live pose bounds pass; standard flight death penetrates1.192m. No product/app build or Play promotion.
+
+PRESERVATION: Wildshardc250aa183507baddf414f16034869b06c4ddfd51 exact verified. NativeSite1ebefec9 protects60 original model PNGs;4d47af protects Conch attempt2 movies/review. Source-only pushes leave Site75 unchanged. Cleanup19:27 removed1.142GB verified regenerable caches.
