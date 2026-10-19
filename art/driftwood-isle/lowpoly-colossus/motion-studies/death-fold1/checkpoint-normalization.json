@@ -1,0 +1,20 @@
+{
+  "scope": "Diagnostic checkout prefix and terminal whitespace only. Original closure still records reviewed pre-normalization log bytes; raw logs retained locally. Source and evidence JSON unchanged.",
+  "changes": [
+    {
+      "path": "test-direct.log",
+      "originalSha256": "dc9c1064311a1de38a44822f051bbc8b9d3aa94a947035c40376d2deed906df4",
+      "sha256": "c6e069833071bd0f0250dcdab6df6cb0f5c083c415d34c8e2f92797591cbf4b3"
+    },
+    {
+      "path": "native-consumer.log",
+      "originalSha256": "422dd7dec16d36609aaabb4253b8b8a094310b7b06036db0807c9588079d9b86",
+      "sha256": "93be018b9b9c0bedac546b40abc7489cccdeb431edfb1af38fa8b957fe96612d"
+    },
+    {
+      "path": "test.log",
+      "originalSha256": "0d1f61a223d8cf29b29a482592ea6e3f6909730f9fd3da4dce57115ebcebd68c",
+      "sha256": "6e39f6edeb3b0e4540d18c57df4d45d979cfed18b57d1e40f6e8351cddf64a79"
+    }
+  ]
+}

@@ -1,0 +1,1145 @@
+{
+  "sourceTrace": "docs/reviews/colossus-native-motion2-build3/render-trace.json",
+  "traceSha256": "7669564e64059676d86ac95bf7ec83e8e6719e2478d2b0a2d3259abd3e57815e",
+  "actualNewCapture": false,
+  "method": "Captured motion2 mesh-world trajectory; baseline captured 22 local TRS versus full candidate numeric evaluator. All 15600 source-native vertices and four weights. Three SkinnedMesh versus independent weighted matrices. Geometry floor test only; changed pose does not change existing rigid box.",
+  "summary": {
+    "frames": 141,
+    "vertices": 15600,
+    "multiweight": 4384,
+    "oracleError": 0.000026884813072471322,
+    "baselineMin": 0.018563022046578226,
+    "candidateMin": -2.353892661483542,
+    "framesBelow": 135
+  },
+  "evidence": [
+    {
+      "frame": 706,
+      "deathT": 0,
+      "baselineMin": 0.027000000700354576,
+      "candidateMin": 0.027000000700354576,
+      "below": 0,
+      "worstPart": 4
+    },
+    {
+      "frame": 707,
+      "deathT": 0.125,
+      "baselineMin": 0.018563022046578226,
+      "candidateMin": 0.11203556515079072,
+      "below": 0,
+      "worstPart": 4
+    },
+    {
+      "frame": 708,
+      "deathT": 0.25,
+      "baselineMin": 0.16003791002276557,
+      "candidateMin": 0.5799550150960613,
+      "below": 0,
+      "worstPart": 4
+    },
+    {
+      "frame": 709,
+      "deathT": 0.375,
+      "baselineMin": 0.32788618355209564,
+      "candidateMin": 0.7843378036862987,
+      "below": 0,
+      "worstPart": 4
+    },
+    {
+      "frame": 710,
+      "deathT": 0.49862499999813736,
+      "baselineMin": 0.46891528343633126,
+      "candidateMin": 0.4593396649171382,
+      "below": 0,
+      "worstPart": 4
+    },
+    {
+      "frame": 711,
+      "deathT": 0.6236249999981374,
+      "baselineMin": 0.5984156638324976,
+      "candidateMin": 0.11696149515512388,
+      "below": 0,
+      "worstPart": 4
+    },
+    {
+      "frame": 712,
+      "deathT": 0.7486249999981374,
+      "baselineMin": 0.7110025847085808,
+      "candidateMin": -0.0886901117578418,
+      "below": 46,
+      "worstPart": 4
+    },
+    {
+      "frame": 713,
+      "deathT": 0.8736249999981374,
+      "baselineMin": 0.8078458522768415,
+      "candidateMin": -0.7740724942993893,
+      "below": 533,
+      "worstPart": 2
+    },
+    {
+      "frame": 714,
+      "deathT": 0.9986249999981374,
+      "baselineMin": 0.9009393772042813,
+      "candidateMin": -0.8291255320619939,
+      "below": 543,
+      "worstPart": 2
+    },
+    {
+      "frame": 715,
+      "deathT": 1,
+      "baselineMin": 0.9496130663603708,
+      "candidateMin": -0.7442848776985329,
+      "below": 503,
+      "worstPart": 2
+    },
+    {
+      "frame": 716,
+      "deathT": 1,
+      "baselineMin": 0.9913638118332528,
+      "candidateMin": -0.6681741541676729,
+      "below": 429,
+      "worstPart": 2
+    },
+    {
+      "frame": 717,
+      "deathT": 1,
+      "baselineMin": 1.0271353309918823,
+      "candidateMin": -0.6008437082659839,
+      "below": 351,
+      "worstPart": 2
+    },
+    {
+      "frame": 718,
+      "deathT": 1,
+      "baselineMin": 1.057459915556251,
+      "candidateMin": -0.5421369958721698,
+      "below": 303,
+      "worstPart": 2
+    },
+    {
+      "frame": 719,
+      "deathT": 1,
+      "baselineMin": 1.0724162929528802,
+      "candidateMin": -0.5126032932038243,
+      "below": 291,
+      "worstPart": 2
+    },
+    {
+      "frame": 720,
+      "deathT": 1,
+      "baselineMin": 1.0950787318683979,
+      "candidateMin": -0.4670475713738824,
+      "below": 268,
+      "worstPart": 2
+    },
+    {
+      "frame": 721,
+      "deathT": 1,
+      "baselineMin": 1.1132923232106577,
+      "candidateMin": -0.42961669872090624,
+      "below": 262,
+      "worstPart": 2
+    },
+    {
+      "frame": 722,
+      "deathT": 1,
+      "baselineMin": 1.127269754870099,
+      "candidateMin": -0.4001741259405662,
+      "below": 256,
+      "worstPart": 2
+    },
+    {
+      "frame": 723,
+      "deathT": 1,
+      "baselineMin": 1.1369165276357762,
+      "candidateMin": -0.3793534633988429,
+      "below": 245,
+      "worstPart": 2
+    },
+    {
+      "frame": 724,
+      "deathT": 1,
+      "baselineMin": 1.141877683594771,
+      "candidateMin": -0.3681928416954179,
+      "below": 245,
+      "worstPart": 2
+    },
+    {
+      "frame": 725,
+      "deathT": 1,
+      "baselineMin": 1.1460084197954075,
+      "candidateMin": -0.35815735763242174,
+      "below": 239,
+      "worstPart": 2
+    },
+    {
+      "frame": 726,
+      "deathT": 1,
+      "baselineMin": 1.1464920538886645,
+      "candidateMin": -0.35655374375141946,
+      "below": 239,
+      "worstPart": 2
+    },
+    {
+      "frame": 727,
+      "deathT": 1,
+      "baselineMin": 1.1435227633485283,
+      "candidateMin": -0.36046009084020625,
+      "below": 239,
+      "worstPart": 2
+    },
+    {
+      "frame": 728,
+      "deathT": 1,
+      "baselineMin": 1.140967812591498,
+      "candidateMin": -0.3646729944030085,
+      "below": 239,
+      "worstPart": 2
+    },
+    {
+      "frame": 729,
+      "deathT": 1,
+      "baselineMin": 1.1329361011879655,
+      "candidateMin": -0.37891546479716,
+      "below": 250,
+      "worstPart": 2
+    },
+    {
+      "frame": 730,
+      "deathT": 1,
+      "baselineMin": 1.121296699136451,
+      "candidateMin": -0.3997626827431304,
+      "below": 256,
+      "worstPart": 2
+    },
+    {
+      "frame": 731,
+      "deathT": 1,
+      "baselineMin": 1.105981297186304,
+      "candidateMin": -0.4270789513885802,
+      "below": 262,
+      "worstPart": 2
+    },
+    {
+      "frame": 732,
+      "deathT": 1,
+      "baselineMin": 1.0869766676677273,
+      "candidateMin": -0.46051518345859677,
+      "below": 268,
+      "worstPart": 2
+    },
+    {
+      "frame": 733,
+      "deathT": 1,
+      "baselineMin": 1.0640681475987321,
+      "candidateMin": -0.4999068346403419,
+      "below": 296,
+      "worstPart": 2
+    },
+    {
+      "frame": 734,
+      "deathT": 1,
+      "baselineMin": 1.0072207948254572,
+      "candidateMin": -0.592775070110406,
+      "below": 355,
+      "worstPart": 2
+    },
+    {
+      "frame": 735,
+      "deathT": 1,
+      "baselineMin": 0.9721469271917158,
+      "candidateMin": -0.6467978079738259,
+      "below": 417,
+      "worstPart": 2
+    },
+    {
+      "frame": 736,
+      "deathT": 1,
+      "baselineMin": 0.9310957351026445,
+      "candidateMin": -0.7070282683490632,
+      "below": 494,
+      "worstPart": 2
+    },
+    {
+      "frame": 737,
+      "deathT": 1,
+      "baselineMin": 0.8906053006164711,
+      "candidateMin": -0.7633278793433647,
+      "below": 555,
+      "worstPart": 2
+    },
+    {
+      "frame": 738,
+      "deathT": 1,
+      "baselineMin": 0.8390002679419695,
+      "candidateMin": -0.8309399850894579,
+      "below": 635,
+      "worstPart": 2
+    },
+    {
+      "frame": 739,
+      "deathT": 1,
+      "baselineMin": 0.8134352627071166,
+      "candidateMin": -0.8627974499601123,
+      "below": 742,
+      "worstPart": 2
+    },
+    {
+      "frame": 740,
+      "deathT": 1,
+      "baselineMin": 0.7599328839730788,
+      "candidateMin": -0.9259134035568195,
+      "below": 985,
+      "worstPart": 2
+    },
+    {
+      "frame": 741,
+      "deathT": 1,
+      "baselineMin": 0.6929853460028426,
+      "candidateMin": -0.9986808567762182,
+      "below": 1295,
+      "worstPart": 2
+    },
+    {
+      "frame": 742,
+      "deathT": 1,
+      "baselineMin": 0.623136351640369,
+      "candidateMin": -1.0675898515867175,
+      "below": 1668,
+      "worstPart": 2
+    },
+    {
+      "frame": 743,
+      "deathT": 1,
+      "baselineMin": 0.5421097096146923,
+      "candidateMin": -1.3384361661620687,
+      "below": 2245,
+      "worstPart": 3
+    },
+    {
+      "frame": 744,
+      "deathT": 1,
+      "baselineMin": 0.43486726594130687,
+      "candidateMin": -1.6553700337962027,
+      "below": 2915,
+      "worstPart": 3
+    },
+    {
+      "frame": 745,
+      "deathT": 1,
+      "baselineMin": 0.40416705485779403,
+      "candidateMin": -1.715097367735325,
+      "below": 3048,
+      "worstPart": 3
+    },
+    {
+      "frame": 746,
+      "deathT": 1,
+      "baselineMin": 0.24962179511078375,
+      "candidateMin": -2.014386947726848,
+      "below": 3527,
+      "worstPart": 3
+    },
+    {
+      "frame": 747,
+      "deathT": 1,
+      "baselineMin": 0.1329469733973383,
+      "candidateMin": -2.210270707693212,
+      "below": 4118,
+      "worstPart": 3
+    },
+    {
+      "frame": 748,
+      "deathT": 1,
+      "baselineMin": 0.02691785780848477,
+      "candidateMin": -2.353892661483542,
+      "below": 5032,
+      "worstPart": 3
+    },
+    {
+      "frame": 749,
+      "deathT": 1,
+      "baselineMin": 0.026020970516583475,
+      "candidateMin": -2.3471232619323246,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 750,
+      "deathT": 1,
+      "baselineMin": 0.02602075408606197,
+      "candidateMin": -2.347280537514621,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 751,
+      "deathT": 1,
+      "baselineMin": 0.026023187596933894,
+      "candidateMin": -2.3472855509102146,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 752,
+      "deathT": 1,
+      "baselineMin": 0.02602366798817002,
+      "candidateMin": -2.347286533639817,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 753,
+      "deathT": 1,
+      "baselineMin": 0.026026197533838058,
+      "candidateMin": -2.3472919235916834,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 754,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 755,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 756,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 757,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 758,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 759,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 760,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 761,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 762,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 763,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 764,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 765,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 766,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 767,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 768,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 769,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 770,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 771,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 772,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 773,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 774,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 775,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 776,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 777,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 778,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 779,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 780,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 781,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 782,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 783,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 784,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 785,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 786,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 787,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 788,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 789,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 790,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 791,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 792,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 793,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 794,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 795,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 796,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 797,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 798,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 799,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 800,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 801,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 802,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 803,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 804,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 805,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 806,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 807,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 808,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 809,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 810,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 811,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 812,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 813,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 814,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 815,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 816,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 817,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 818,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 819,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 820,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 821,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 822,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 823,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 824,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 825,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 826,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 827,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 828,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 829,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 830,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 831,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 832,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 833,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 834,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 835,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 836,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 837,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 838,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 839,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 840,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 841,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 842,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 843,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 844,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 845,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    },
+    {
+      "frame": 846,
+      "deathT": 1,
+      "baselineMin": 0.02601845138894987,
+      "candidateMin": -2.3473150847031548,
+      "below": 5125,
+      "worstPart": 3
+    }
+  ]
+}

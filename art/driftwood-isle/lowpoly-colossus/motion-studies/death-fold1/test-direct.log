@@ -1,0 +1,55 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../../../vitest.config" without a file extension (art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 .
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/death-fold.test.ts (3 tests | 2 failed) 3243ms
+   × record exact all-weight world replay and fail promotion if any recorded frame penetrates 2717ms
+   × retain the active-lethal onset failure caused by resetting stage/clock 38ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/death-fold.test.ts > record exact all-weight world replay and fail promotion if any recorded frame penetrates
+AssertionError: Promotion gate: any weighted geometry below floor rejects candidate: expected 135 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 135
+
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/death-fold.test.ts:113:102
+    111|   r.meshes.forEach(m => m.geometry.dispose()); r.material.dispose(); r…
+    112|   expect(oracleError).toBeLessThan(.0001); expect(summary.baselineMin)…
+    113|   expect(summary.framesBelow, 'Promotion gate: any weighted geometry b…
+       |                                                                                                      ^
+    114| });
+    115|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/death-fold.test.ts > retain the active-lethal onset failure caused by resetting stage/clock
+AssertionError: Promotion gate: lethal onset must retain the interrupted pose: expected 0.5226872289306591 to be less than 0.001
+ ❯ art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/death-fold.test.ts:129:128
+    127|   r.meshes.forEach(m => m.geometry.dispose()); r.material.dispose(); r…
+    128|   expect(evidence.every(row => row.retainedInputJump === 0)).toBe(true…
+    129|   expect(Math.max(...evidence.map(row => row.transformJump)), 'Promoti…
+       |                                                                                                                                ^
+    130| });
+    131|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  11:16:13
+   Duration  13.89s (transform 57%, tests 24%, setup 19%)
+
+  Transform  transforming modules took 7.76s · 57% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

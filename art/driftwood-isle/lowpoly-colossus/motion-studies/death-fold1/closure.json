@@ -1,0 +1,137 @@
+{
+  "schema": "wildshard.colossus.death-fold1-source-study.v1",
+  "status": "rejected-source-study",
+  "buildRun": false,
+  "browserRun": false,
+  "visualAcceptance": false,
+  "worldContactAccepted": false,
+  "sourceChecks": {
+    "passed": 1,
+    "failed": 2,
+    "nativeConsumerPassed": 4
+  },
+  "inputs": [
+    {
+      "path": "src/shards/driftwood-isle/generators/colossusNativeClips.ts",
+      "sha256": "d08b8c09adfd8148d6562ac26c8a830d2e9d737e0b4af36e484ab481c8d7ec45",
+      "bytes": 5764
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/colossusNativePreview.ts",
+      "sha256": "412e5c9c630cf29a072ae42b26526a3f44ed05f90891c8421376064ce3ce1582",
+      "bytes": 7576
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/tidalGiantsCombat.ts",
+      "sha256": "a94b7d52f9df2f43eab6e98dfe645f5093d1db3a6d8398098230549c5585946e",
+      "bytes": 5832
+    },
+    {
+      "path": "src/shards/driftwood-isle/behaviour/tide-root-colossus.as",
+      "sha256": "f95eeb9abd37f25c9fa493b98e09adf65ab71406a978d5ed4bad944784ffd774",
+      "bytes": 2893
+    },
+    {
+      "path": "src/engine/entities/rigidCorpsePose.ts",
+      "sha256": "c8e6957432df0ad3f6cdc673c655ec720e58656e74b99938e38e155dd99cb5b6",
+      "bytes": 5372
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "sha256": "4f54ab8d7159634c6f7cea5e88e91182693c351821be03f195d3ef3a5cb7484c",
+      "bytes": 30374
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/colossus-v4-native.json",
+      "sha256": "32c4f9b55c5303e75877c8abae7765947a3814c39bb15d3c7a0046e61cb93641",
+      "bytes": 2395775
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/payload.bin",
+      "sha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46",
+      "bytes": 76711
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/metadata.json",
+      "sha256": "f948d9e00ad762c7dfbdc1cc4bbe406398a82ba0dcd902ffde1a2e24acc81a79",
+      "bytes": 15815
+    },
+    {
+      "path": "docs/reviews/colossus-native-motion2-build3/render-trace.json",
+      "sha256": "7669564e64059676d86ac95bf7ec83e8e6719e2478d2b0a2d3259abd3e57815e",
+      "bytes": 3309077
+    },
+    {
+      "path": "docs/reviews/colossus-motion2-independent-cycles/README.md",
+      "sha256": "45981687767fe6dcc5ed45c57906c2325a755b07e9e7692c46215cadd172e662",
+      "bytes": 7438
+    }
+  ],
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/clips.json",
+      "sha256": "7cb4c5e188cb8a763ade67b340df1ea867dd5de570611c9821af2110d1ebdc9a",
+      "bytes": 166687
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/colossusDeathFoldClips.ts",
+      "sha256": "b5d7650ab7e2981c10f5e2041a9aaa6463c005b7664fe827b18067a5f3fef383",
+      "bytes": 6794
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/death-fold.test.ts",
+      "sha256": "1b0b0c1b7b517c324742a88c455267e52746ab12525f971be47b0a573db9db49",
+      "bytes": 11014
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/lint.log",
+      "sha256": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c",
+      "bytes": 69
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/motion2-baseline.ts",
+      "sha256": "d08b8c09adfd8148d6562ac26c8a830d2e9d737e0b4af36e484ab481c8d7ec45",
+      "bytes": 5764
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/native-consumer.log",
+      "sha256": "422dd7dec16d36609aaabb4253b8b8a094310b7b06036db0807c9588079d9b86",
+      "bytes": 1178
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/onset-failure.json",
+      "sha256": "5ac492a1b577ffab2fa6088735f40686b3d11896bf1a65bc24c5c253de3a0ecf",
+      "bytes": 679
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/source-checks.json",
+      "sha256": "b01ec9b593f7fca4e10f7cd49044a9c7dc833f155c5448aa9c10bdd524f7ca7b",
+      "bytes": 222
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/test-direct.log",
+      "sha256": "dc9c1064311a1de38a44822f051bbc8b9d3aa94a947035c40376d2deed906df4",
+      "bytes": 3344
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/test.log",
+      "sha256": "0d1f61a223d8cf29b29a482592ea6e3f6909730f9fd3da4dce57115ebcebd68c",
+      "bytes": 2907
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/vitest.config.ts",
+      "sha256": "8afb43f0b35ffe3bd409badb00863a491ba55c3eec810e34c70e0755c8bdb8d9",
+      "bytes": 265
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/world-replay.json",
+      "sha256": "fb4feeb81f37ac8d80ca718e318449f3b4dfd0f712715a0ad9bdcc8fc97bff8b",
+      "bytes": 26008
+    },
+    {
+      "path": "docs/reviews/colossus-death-fold1-source-study.md",
+      "sha256": "d42849402a8be0b0ec9a73e4a9cbddee8b18d4f7bf30c803e7e9df82a595ee05",
+      "bytes": 8706
+    }
+  ]
+}

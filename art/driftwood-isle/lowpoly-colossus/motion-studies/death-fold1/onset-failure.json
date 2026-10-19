@@ -1,0 +1,29 @@
+{
+  "method": "Same-time exact lethal limit: living stage/clock then deathT=0; compare retained inputs and actual handler reset6/0. Not a rendered simulation.",
+  "evidence": [
+    {
+      "stage": 1,
+      "clock": 0.72,
+      "transformJump": 0.26807854488015587,
+      "retainedInputJump": 0
+    },
+    {
+      "stage": 2,
+      "clock": 0.72,
+      "transformJump": 0.26807854488015587,
+      "retainedInputJump": 0
+    },
+    {
+      "stage": 3,
+      "clock": 0.88,
+      "transformJump": 0.5226872289306591,
+      "retainedInputJump": 0
+    },
+    {
+      "stage": 3,
+      "clock": 1.2,
+      "transformJump": 0.24650671219700065,
+      "retainedInputJump": 0
+    }
+  ]
+}

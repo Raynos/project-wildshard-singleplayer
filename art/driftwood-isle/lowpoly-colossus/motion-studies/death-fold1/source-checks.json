@@ -1,0 +1,9 @@
+{
+  "livingSamples": 644,
+  "livingError": 0,
+  "deathSamples": 1001,
+  "maxSmallStep": 0.002874992605452764,
+  "finalHoldExact": true,
+  "curveContinuityIsNotInterruptedLethalContinuity": true,
+  "candidatePrograms": 33
+}
