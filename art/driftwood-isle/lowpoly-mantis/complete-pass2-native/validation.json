@@ -1,0 +1,52 @@
+{
+  "status": "CORRESPONDENCE PASS; CLEAN-NORMAL ADMISSION FAIL",
+  "pythonTests": {
+    "passed": 8,
+    "failed": 0
+  },
+  "actualConsumerTests": {
+    "passed": 4,
+    "failed": 0
+  },
+  "structuralExport": true,
+  "sourceNormalPreservation": true,
+  "cleanNormalOrientation": false,
+  "admissionExit": 1,
+  "admissionCause": "Four opposed stored source normals in Rising prothorax curved cervical arch; unchanged source, no repair",
+  "visualAcceptance": false,
+  "animationAcceptance": false,
+  "worldContactAcceptance": false,
+  "runtimeAcceptance": false,
+  "promotion": false,
+  "files": {
+    "admission-test.log": "9c28eca6130dab4387c45f53cf636a3da4914b9ef5075b5a04905d818df9fbc1",
+    "admission.json": "f0dc4c177fde10b9f280e34dc06740bf0343d408cea6de6645f77f64b2dce492",
+    "admit_native.py": "c87b7eb5048d606fdadf0a4a7d0492f10b165feaa8d0dbe20aa04c7a7aa04a00",
+    "authored-mapping.json": "49d6a7bddcb6e3d1ffd84d4f9d8c8dbaffef44239aeab3a5bdf9ef384659e426",
+    "closure.json": "dac02ec2f6881ed8ca65f936c17ed15e5a4896d2f7c739c4f6baaf73c0ac2660",
+    "consumer-direct-test.log": "8868c696914455b02a6c9029b58e559fb49ee282cd7efcb6061e08902bb6ee7a",
+    "consumer-focused-test.log": "ab6ca4609dccd14f7e05b6441d79c24b46a99616a7ca4acb88232a5f4ffa809a",
+    "consumer-test.log": "0d1f61a223d8cf29b29a482592ea6e3f6909730f9fd3da4dce57115ebcebd68c",
+    "diagnostic-dimensions.json": "2b6ce670547ba9126dfed26f049fbc9243c101e7ba049a4920bc8ddcf5ba041f",
+    "export-test.log": "d669840ec52faf8e5a7a8c6088c6499c05e5ef4ac60f293e72d5fb8be408db36",
+    "export_native.py": "84cb0ef2854a855a7fc83351a3d0d9c747895d414a10bbf90aa6803b648c7de8",
+    "input-pins.json": "6d6cefffb31c12354075752731849d6463fcc1ebb679d24dca3380d99582af17",
+    "lint-explicit-test.log": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c",
+    "lint-test.log": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c",
+    "mantis-native.json": "7177c84b1735b5945ce120392cefbb6d85c792e61935454abf3e1cd6a39839ef",
+    "mesh-map.json": "1af11ffb2de0a51ba3031c73cd7fa0567157de219a57f3ecdfcf2155d2aaa514",
+    "metadata.json": "86929177c1bfec0ac18109b2649262ba45e977b7d3e3d73ba5722639b8113401",
+    "native-consumer.test.ts": "8501487659ea3925524fd1cf084da28a8d9f9f3b68b1b215c9688eb89ac4d8a3",
+    "normal-audit.json": "41f683cabd736f26aed520a92e27f807f8ae6d32792979ddabe7de1d62e16a10",
+    "payload.bin": "91d30ca5d6f3d2a3f542676b27307f2c5ff222680bc94dbf276b2856a1776bb4",
+    "python-test.log": "398ed83992a3b150064b0f73b9c24563dc32cb367a93e2eefd2bef34ac5e46b9",
+    "test_export_native.py": "752fe274ba6999d3133c8d6b90f2c1b4722f055ce8c9284de734fd0dd3750521",
+    "vitest.config.ts": "5f74e0f65ab49528c08d7ff47ed5195cd25b9771b32d0918bde7d0ae48c1b4be"
+  },
+  "lint": {
+    "status": "NOT RUN",
+    "reason": "Repository oxlint ignores art files, including explicit --no-ignore invocation; no lint-pass claim."
+  },
+  "consumerVerified": true,
+  "typecheck": "Not independently run; actual Vitest/consumer execution passed."
+}

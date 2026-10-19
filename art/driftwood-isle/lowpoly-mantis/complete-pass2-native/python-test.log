@@ -1,0 +1,13 @@
+test_all_geometry_and_authored_mapping (test_export_native.CandidateNative.test_all_geometry_and_authored_mapping) ... ok
+test_complete_packed_roundtrip_all_six_channels (test_export_native.CandidateNative.test_complete_packed_roundtrip_all_six_channels) ... ok
+test_fail_closed_for_wrong_rig_weights_normals (test_export_native.CandidateNative.test_fail_closed_for_wrong_rig_weights_normals) ... ok
+test_frozen_outputs_reproduce (test_export_native.CandidateNative.test_frozen_outputs_reproduce) ... ok
+test_no_transform_schema_exemption (test_export_native.CandidateNative.test_no_transform_schema_exemption) ... ok
+test_rest_transform_preservation_every_vertex (test_export_native.CandidateNative.test_rest_transform_preservation_every_vertex) ... ok
+test_source_normal_defects_are_preserved_not_accepted (test_export_native.CandidateNative.test_source_normal_defects_are_preserved_not_accepted) ... ok
+test_strict_clean_normal_admission_preserves_failure (test_export_native.CandidateNative.test_strict_clean_normal_admission_preserves_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 1.155s
+
+OK

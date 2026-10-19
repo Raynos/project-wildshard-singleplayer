@@ -1,0 +1,616 @@
+{
+  "all_checks_pass": true,
+  "checks": [
+    {
+      "check": "pass2/hero source",
+      "pass": true
+    },
+    {
+      "check": "pass2/hero capture script",
+      "pass": true
+    },
+    {
+      "check": "pass2/hero packaged receipt",
+      "pass": true
+    },
+    {
+      "check": "pass2/hero/hero PNG",
+      "pass": true
+    },
+    {
+      "check": "pass2/hero GLB",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine source",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine capture script",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine packaged receipt",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine/01-front PNG",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine/02-left PNG",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine/03-right PNG",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine/04-back PNG",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine/05-top PNG",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine/06-diag-front PNG",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine/07-diag-left PNG",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine/08-diag-right PNG",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine/09-diag-back PNG",
+      "pass": true
+    },
+    {
+      "check": "pass2/nine GLB",
+      "pass": true
+    },
+    {
+      "check": "pass3/hero source",
+      "pass": true
+    },
+    {
+      "check": "pass3/hero capture script",
+      "pass": true
+    },
+    {
+      "check": "pass3/hero packaged receipt",
+      "pass": true
+    },
+    {
+      "check": "pass3/hero/hero PNG",
+      "pass": true
+    },
+    {
+      "check": "pass3/hero GLB",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine source",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine capture script",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine packaged receipt",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine/01-front PNG",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine/02-left PNG",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine/03-right PNG",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine/04-back PNG",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine/05-top PNG",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine/06-diag-front PNG",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine/07-diag-left PNG",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine/08-diag-right PNG",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine/09-diag-back PNG",
+      "pass": true
+    },
+    {
+      "check": "pass3/nine GLB",
+      "pass": true
+    },
+    {
+      "check": "hero lighting parity",
+      "pass": true
+    },
+    {
+      "check": "hero/hero camera parity",
+      "pass": true
+    },
+    {
+      "check": "nine lighting parity",
+      "pass": true
+    },
+    {
+      "check": "nine/01-front camera parity",
+      "pass": true
+    },
+    {
+      "check": "nine/02-left camera parity",
+      "pass": true
+    },
+    {
+      "check": "nine/03-right camera parity",
+      "pass": true
+    },
+    {
+      "check": "nine/04-back camera parity",
+      "pass": true
+    },
+    {
+      "check": "nine/05-top camera parity",
+      "pass": true
+    },
+    {
+      "check": "nine/06-diag-front camera parity",
+      "pass": true
+    },
+    {
+      "check": "nine/07-diag-left camera parity",
+      "pass": true
+    },
+    {
+      "check": "nine/08-diag-right camera parity",
+      "pass": true
+    },
+    {
+      "check": "nine/09-diag-back camera parity",
+      "pass": true
+    },
+    {
+      "check": "capture script byte parity",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/01-front.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/02-left.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/03-right.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/04-back.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/05-top.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/06-diag-front.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/07-diag-left.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/08-diag-right.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/09-diag-back.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/audit_evidence.py",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/bellback-complete-pass3.glb",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/build_bellback_complete.py",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/capture-hero.json",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/capture-nine.json",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/capture_review.py",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/comparison-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/derive_pass3.py",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/hero.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/metrics.json",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/nine-view-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/package_evidence.py",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/pair_evidence.py",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-01-front-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-02-left-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-03-right-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-04-back-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-05-top-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-06-diag-front-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-07-diag-left-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-08-diag-right-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-09-diag-back-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-captures.json",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-hero-board.webp",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/structural-audit.json",
+      "pass": true
+    },
+    {
+      "check": "package art/driftwood-isle/lowpoly-bellback/complete-pass3/validation.json",
+      "pass": true
+    }
+  ],
+  "files": {
+    "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/bellback-lowpoly.webp": {
+      "sha256": "92b3a72c20b2e820d843956f8d076fb981af9d4ec9e5669794cb717dd552f4ae",
+      "bytes": 198854
+    },
+    "tmp/bellback-complete-pass2/hero/capture-hero.json": {
+      "sha256": "c9bb9efe95b2df65059a24aaa357e61e33a045f29af3ff5a21b5a93980247dd5",
+      "bytes": 11544
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass2/build_bellback_complete.py": {
+      "sha256": "2b4a4e9cd1ebeafe42bd77f1136474effbdca311b3507972681687febce2c94e",
+      "bytes": 15881
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass2/capture_review.py": {
+      "sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66",
+      "bytes": 5500
+    },
+    "tmp/bellback-complete-pass2/hero/hero.png": {
+      "sha256": "b62664db289f26bfe9f383d0655debd52dfec74362265b971fcae87d2dd44a15",
+      "bytes": 1202231
+    },
+    "tmp/bellback-complete-pass2/hero/bellback-complete-pass2.glb": {
+      "sha256": "6ca935dfe053d6804b48754e491ecd9f675882345ba904563ecf07a77a9e742d",
+      "bytes": 324112
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass2/bellback-complete-pass2.glb": {
+      "sha256": "6ca935dfe053d6804b48754e491ecd9f675882345ba904563ecf07a77a9e742d",
+      "bytes": 324112
+    },
+    "tmp/bellback-complete-pass2/nine/capture-nine.json": {
+      "sha256": "ba5ca8737faca8df09630f3740aa056c6d4ecf3091d0140bcc0f92b8fd962d3e",
+      "bytes": 21035
+    },
+    "tmp/bellback-complete-pass2/nine/01-front.png": {
+      "sha256": "706009caf02ce2726e8af556ed80cd3e73770f7f4d8036bc4721970e751a19c9",
+      "bytes": 372094
+    },
+    "tmp/bellback-complete-pass2/nine/02-left.png": {
+      "sha256": "703da0b63ffa76b5100c618a269d5b10b8251dcdca2dcc28104f9b1026ab2f83",
+      "bytes": 362573
+    },
+    "tmp/bellback-complete-pass2/nine/03-right.png": {
+      "sha256": "56e5c156fd0201fac154398422a05ee7953a53643bc7691d64af99cc99efed59",
+      "bytes": 367136
+    },
+    "tmp/bellback-complete-pass2/nine/04-back.png": {
+      "sha256": "316acde1da2fcf6e8c62f36ee19c173957dd44eb7bc2ba4fd71b4d444cba05f1",
+      "bytes": 361246
+    },
+    "tmp/bellback-complete-pass2/nine/05-top.png": {
+      "sha256": "3353498009358378035bd562ddcf18c909370731eb0fa401895e6a2c1521ae4b",
+      "bytes": 637789
+    },
+    "tmp/bellback-complete-pass2/nine/06-diag-front.png": {
+      "sha256": "126676d49494f997419d836a3498ee528177834ac90a5140dc06067a1eb6b24c",
+      "bytes": 652244
+    },
+    "tmp/bellback-complete-pass2/nine/07-diag-left.png": {
+      "sha256": "fb9cce71c54936ac9bb9f17ed79c708bd1310678daade50f29b7ec9b4fbb8d58",
+      "bytes": 635443
+    },
+    "tmp/bellback-complete-pass2/nine/08-diag-right.png": {
+      "sha256": "1cc9d0219352d635a3995a9b78ae73dbbedf85a959092ca1b125b97cc1891016",
+      "bytes": 637686
+    },
+    "tmp/bellback-complete-pass2/nine/09-diag-back.png": {
+      "sha256": "9997882a6ce57cb9e4ad1654ab3d57654ba3a490acc9ed97d89780043abae5b0",
+      "bytes": 637531
+    },
+    "tmp/bellback-complete-pass2/nine/bellback-complete-pass2.glb": {
+      "sha256": "6ca935dfe053d6804b48754e491ecd9f675882345ba904563ecf07a77a9e742d",
+      "bytes": 324112
+    },
+    "tmp/bellback-complete-pass3/hero/capture-hero.json": {
+      "sha256": "32ccb4cb942c7b12e76f53d125a249980a66ce35f68b3c22ab1962759c56a000",
+      "bytes": 13827
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/build_bellback_complete.py": {
+      "sha256": "f3f285d3463c21e922d0de8a7a9683326902df72ae00763c5f42ccfeeaa55040",
+      "bytes": 16153
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/capture_review.py": {
+      "sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66",
+      "bytes": 5500
+    },
+    "tmp/bellback-complete-pass3/hero/hero.png": {
+      "sha256": "cd8caf246fc9679bd7645c169ea8e4c8b8bb9684e85b07fb3ba684ef2ce746c4",
+      "bytes": 1231296
+    },
+    "tmp/bellback-complete-pass3/hero/bellback-complete-pass3.glb": {
+      "sha256": "7f5f31a1c39dc4a7768d012d485bca996c927585c87bc6876fee625ec16ea796",
+      "bytes": 365744
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/bellback-complete-pass3.glb": {
+      "sha256": "7f5f31a1c39dc4a7768d012d485bca996c927585c87bc6876fee625ec16ea796",
+      "bytes": 365744
+    },
+    "tmp/bellback-complete-pass3/nine/capture-nine.json": {
+      "sha256": "e98036cb14ea5e4b231a0a2ac4f860199590576a0507ab64fee39651eaf5b5a2",
+      "bytes": 23294
+    },
+    "tmp/bellback-complete-pass3/nine/01-front.png": {
+      "sha256": "3dd9bf2cba2a635fb3b16f87d28e2f13dc2a618e2301d6a5975cc2b046c0f128",
+      "bytes": 389281
+    },
+    "tmp/bellback-complete-pass3/nine/02-left.png": {
+      "sha256": "8591eb763f808c2f2ea1f3b655f21c672939b32e67b411ca407f3be6fba99bc4",
+      "bytes": 383423
+    },
+    "tmp/bellback-complete-pass3/nine/03-right.png": {
+      "sha256": "e637e7610eab91d2f2ed168c05b5e86ab811d57af7db3d462663c761712b5c4f",
+      "bytes": 389940
+    },
+    "tmp/bellback-complete-pass3/nine/04-back.png": {
+      "sha256": "8459f122c02b4440d0254347ffed11c3bfdf084e4bacd4392b5ec7e5ff9f510c",
+      "bytes": 368327
+    },
+    "tmp/bellback-complete-pass3/nine/05-top.png": {
+      "sha256": "d7f60469d036fd39a11b44b568fdae308520d5f1d1bd456233a8cd6c3be35a1f",
+      "bytes": 655095
+    },
+    "tmp/bellback-complete-pass3/nine/06-diag-front.png": {
+      "sha256": "835b414cc633e4d758f8c88477f7b8570a74c037c74824df127eb06091a45d74",
+      "bytes": 669035
+    },
+    "tmp/bellback-complete-pass3/nine/07-diag-left.png": {
+      "sha256": "307695fb1a4687a45272a4f9c916ae50587c8a27b2ccd8035d26b3b547658dab",
+      "bytes": 646817
+    },
+    "tmp/bellback-complete-pass3/nine/08-diag-right.png": {
+      "sha256": "c7c4e2c4751f9a55ea935dab7775d624681624f7d58deac9934fec5d6d1728aa",
+      "bytes": 649703
+    },
+    "tmp/bellback-complete-pass3/nine/09-diag-back.png": {
+      "sha256": "5ede422d01eb87f3b776333eb75ecbd2b13d94ccd8b87accc9fe8c614ec995c6",
+      "bytes": 638329
+    },
+    "tmp/bellback-complete-pass3/nine/bellback-complete-pass3.glb": {
+      "sha256": "7f5f31a1c39dc4a7768d012d485bca996c927585c87bc6876fee625ec16ea796",
+      "bytes": 365744
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/01-front.webp": {
+      "sha256": "4a7e60ccdd8832e07b264d8e83169d2cd4caf95de35fa95545299b5f711c2da3",
+      "bytes": 38442
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/02-left.webp": {
+      "sha256": "c259d18119d2bf0a5f0660426a98337482c2822cf9803a26ea4acc4d5ba99044",
+      "bytes": 36456
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/03-right.webp": {
+      "sha256": "2f51e260d7e91684e1c618547a6f4f57f6b2ba16ca21d13c2977907414a66a5d",
+      "bytes": 39576
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/04-back.webp": {
+      "sha256": "900f2a1c807d28ee71b70a413dae934feb506234b50cdeb9eb4ce5184667c9a0",
+      "bytes": 30128
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/05-top.webp": {
+      "sha256": "f0d255ef7b8a1a71963310c3e90ef36b48af6ddc3b1cc69ef52d72111db79f1b",
+      "bytes": 86092
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/06-diag-front.webp": {
+      "sha256": "711b2c131a291d4572045521b77577fa8229db8c3043adcac373f51a66dec0c6",
+      "bytes": 81910
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/07-diag-left.webp": {
+      "sha256": "69ccf9f14e609d8fbc2b83c21e4c47f4dc453b729988172aad8c701195cb1cd8",
+      "bytes": 71536
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/08-diag-right.webp": {
+      "sha256": "07a6d64bb6e139fc33c2efc53f93e67eed752589b12b1effe4486cbc72f721f7",
+      "bytes": 79390
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/09-diag-back.webp": {
+      "sha256": "4be273c76dc3d0e340c459756f2425d9929e3f0a8d126521611a1005817c90e6",
+      "bytes": 89074
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/audit_evidence.py": {
+      "sha256": "3e576a417f895f55fcca784eebecbea4622ec468454c6356971c97e941bb6924",
+      "bytes": 2224
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/capture-hero.json": {
+      "sha256": "32ccb4cb942c7b12e76f53d125a249980a66ce35f68b3c22ab1962759c56a000",
+      "bytes": 13827
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/capture-nine.json": {
+      "sha256": "e98036cb14ea5e4b231a0a2ac4f860199590576a0507ab64fee39651eaf5b5a2",
+      "bytes": 23294
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/comparison-board.webp": {
+      "sha256": "5a913ea2f0ad5eb27868320b2f21b0a21feabdc2e6cae264f58cd9fad6a3f7a1",
+      "bytes": 59862
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/derive_pass3.py": {
+      "sha256": "59749cdd9a9e382be97c87e910a10a23841049039c8e89f15eff24cd6d0d9c89",
+      "bytes": 5400
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/hero.webp": {
+      "sha256": "a18c71a4a725a8e6c688717c191ec1c330d1202ec5c4e993569b9e211810010b",
+      "bytes": 93800
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/metrics.json": {
+      "sha256": "641587ffb340411abafd7f2ee22a68cb1c26cdcf2acd4563ba1e3b71804d8b8e",
+      "bytes": 301
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/nine-view-board.webp": {
+      "sha256": "086cb757fd27be1296206fca10a15ed3af62f422892d8f9447015789fba55c62",
+      "bytes": 100290
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/package_evidence.py": {
+      "sha256": "c4026489474160856c21b541ddc0050f656ea0caecf0ab5e0d2325ee4c2bda81",
+      "bytes": 2288
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/pair_evidence.py": {
+      "sha256": "423eef87690440106845bf4ac7527313efabe9389fcb0dcfcd55318c5d5827dc",
+      "bytes": 2267
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-01-front-board.webp": {
+      "sha256": "aa1aa764e41808c1f7749d2ff64be7181cf06d65048821151606780e8c8b5781",
+      "bytes": 30168
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-02-left-board.webp": {
+      "sha256": "6f6660432792693184f34964f69ae08c7a5b3caed7c3bfde307ce167a3d28edf",
+      "bytes": 27146
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-03-right-board.webp": {
+      "sha256": "cb868cc1d3e57a3dc767f0202f3653b3ffd14e4a28f487224c7710fa586e8831",
+      "bytes": 30476
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-04-back-board.webp": {
+      "sha256": "d10c3d2f8d7d1300cf1a1bdd92d934be874a161d7e6b9c01f290d9f584acd221",
+      "bytes": 25250
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-05-top-board.webp": {
+      "sha256": "55142946e05e77d2a9e6d56e8b8ee4aade62dc216a43784870866151811f31a1",
+      "bytes": 48040
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-06-diag-front-board.webp": {
+      "sha256": "b2e2a250e37e3b8acb6873d20ac4b23f998e7cc03a3bb509f4ab7567f6b4d416",
+      "bytes": 48404
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-07-diag-left-board.webp": {
+      "sha256": "ed434ab00a821a0c2248916b34139c341038b244d1dac3787ee5a89f9f1d21f4",
+      "bytes": 46412
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-08-diag-right-board.webp": {
+      "sha256": "ffd10f293a310d43ff98347a1f465f7d41ba7afb6ad2aa97fb5e30725a974ca5",
+      "bytes": 48132
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-09-diag-back-board.webp": {
+      "sha256": "94e92a8655e245d2447c59aded3088969d12a6194e78186923493b556a8fd8e0",
+      "bytes": 58506
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-captures.json": {
+      "sha256": "2dd736fa99a6523d69eb4a75e3fcd53ba9a07270dcdcaf54dfc29c58944e499d",
+      "bytes": 8468
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/paired-hero-board.webp": {
+      "sha256": "bfe4792abcd5bbc21f54c27bb7930faddbf3f3203b60acac5a77450e6c00dcc7",
+      "bytes": 35658
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/structural-audit.json": {
+      "sha256": "67da3126bbf58ca2957a3a39124d6bc56aad22a7d05f498ad1b088710f9905c1",
+      "bytes": 959
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/validation.json": {
+      "sha256": "eb56cca2be3a2d8e992a54f99ff370877b0c5bc22ed3a5af3ceb0ac771f59223",
+      "bytes": 451
+    },
+    "art/driftwood-isle/lowpoly-bellback/complete-pass3/closure.json": {
+      "sha256": "572109dd37a262b17124457faf02ba0d1e70ca35d31b8604f9a8eb59a9576625",
+      "bytes": 7313
+    }
+  },
+  "limits": "Read-only receipt/source/hash verification, no rerender or independent GLB regeneration. Capture executes generator and renders scene directly; GLB export was not independently reimported. Static likeness only."
+}

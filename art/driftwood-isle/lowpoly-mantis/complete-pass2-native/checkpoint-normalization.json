@@ -1,0 +1,22 @@
+{
+  "reason": "Redact local absolute paths and normalize log whitespace only; test outcomes and native source/assets unchanged",
+  "originalCheckpointSha256": "d1f75c6e5d0332a59dcc2640085ce2f5e262b9269b30f2732a103db972a7f37d",
+  "originalsRetainedLocally": true,
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/consumer-focused-test.log",
+      "beforeSha256": "ab6ca4609dccd14f7e05b6441d79c24b46a99616a7ca4acb88232a5f4ffa809a",
+      "afterSha256": "9925dc439209c790f3003c2cde9e8a990bade66d5d1c6ed8cc26d22bed1ebe6c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/consumer-test.log",
+      "beforeSha256": "0d1f61a223d8cf29b29a482592ea6e3f6909730f9fd3da4dce57115ebcebd68c",
+      "afterSha256": "3b63f401e646ea26ce496bac802fd1ef5fd843779cf72454d40f1495c21d3da0"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/consumer-direct-test.log",
+      "beforeSha256": "8868c696914455b02a6c9029b58e559fb49ee282cd7efcb6061e08902bb6ee7a",
+      "afterSha256": "7eedb482020f876a6d8afe69930fed56d970f1ad723bc18ad6e4b54b51a73f03"
+    }
+  ]
+}

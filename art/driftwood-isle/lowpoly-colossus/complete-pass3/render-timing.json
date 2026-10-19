@@ -1,0 +1,18 @@
+{
+  "queuedAtEpoch": 1792419658.0201073,
+  "acquisitionWaitSeconds": 0.03,
+  "approximateAcquiredUTC": "2026-10-19T14:20:58Z",
+  "buildTicket": 60,
+  "blenderThreads": 2,
+  "overlap": "Separate Conch cloud-browser recording was active when render began. Build and browser leases are separate.",
+  "performanceClaims": false,
+  "completedUTC": "2026-10-19T14:29:36Z",
+  "initialCompletedUTCApproximate": "2026-10-19T14:24:35Z",
+  "initialDurationSeconds": 217.25,
+  "overlapWindowUTC": [
+    "2026-10-19T14:20:58Z",
+    "2026-10-19T14:24:35Z"
+  ],
+  "conchRecordingEndedUTC": "2026-10-19T14:25:39Z",
+  "correctedStartedUTC": "2026-10-19T14:28:14Z"
+}

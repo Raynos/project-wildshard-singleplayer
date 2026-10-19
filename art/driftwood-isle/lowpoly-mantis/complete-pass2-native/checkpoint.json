@@ -1,0 +1,184 @@
+{
+  "status": "stable-source checkpoint; no visual or runtime promotion",
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/admission-test.log": {
+      "bytes": 5968,
+      "sha256": "9c28eca6130dab4387c45f53cf636a3da4914b9ef5075b5a04905d818df9fbc1"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/admission.json": {
+      "bytes": 3327,
+      "sha256": "f0dc4c177fde10b9f280e34dc06740bf0343d408cea6de6645f77f64b2dce492"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/admit_native.py": {
+      "bytes": 3001,
+      "sha256": "c87b7eb5048d606fdadf0a4a7d0492f10b165feaa8d0dbe20aa04c7a7aa04a00"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/authored-mapping.json": {
+      "bytes": 21817,
+      "sha256": "49d6a7bddcb6e3d1ffd84d4f9d8c8dbaffef44239aeab3a5bdf9ef384659e426"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/closure.json": {
+      "bytes": 2477,
+      "sha256": "dac02ec2f6881ed8ca65f936c17ed15e5a4896d2f7c739c4f6baaf73c0ac2660"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/consumer-direct-test.log": {
+      "bytes": 1576,
+      "sha256": "7eedb482020f876a6d8afe69930fed56d970f1ad723bc18ad6e4b54b51a73f03"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/consumer-focused-test.log": {
+      "bytes": 1119,
+      "sha256": "9925dc439209c790f3003c2cde9e8a990bade66d5d1c6ed8cc26d22bed1ebe6c"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/consumer-test.log": {
+      "bytes": 2909,
+      "sha256": "3b63f401e646ea26ce496bac802fd1ef5fd843779cf72454d40f1495c21d3da0"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/diagnostic-dimensions.json": {
+      "bytes": 371,
+      "sha256": "2b6ce670547ba9126dfed26f049fbc9243c101e7ba049a4920bc8ddcf5ba041f"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/export-test.log": {
+      "bytes": 740,
+      "sha256": "d669840ec52faf8e5a7a8c6088c6499c05e5ef4ac60f293e72d5fb8be408db36"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/export_native.py": {
+      "bytes": 12545,
+      "sha256": "84cb0ef2854a855a7fc83351a3d0d9c747895d414a10bbf90aa6803b648c7de8"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/input-pins.json": {
+      "bytes": 1168,
+      "sha256": "6d6cefffb31c12354075752731849d6463fcc1ebb679d24dca3380d99582af17"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/lint-explicit-test.log": {
+      "bytes": 69,
+      "sha256": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/lint-test.log": {
+      "bytes": 69,
+      "sha256": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/mantis-native.json": {
+      "bytes": 1789432,
+      "sha256": "7177c84b1735b5945ce120392cefbb6d85c792e61935454abf3e1cd6a39839ef"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/mesh-map.json": {
+      "bytes": 35653,
+      "sha256": "1af11ffb2de0a51ba3031c73cd7fa0567157de219a57f3ecdfcf2155d2aaa514"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/metadata.json": {
+      "bytes": 8983,
+      "sha256": "86929177c1bfec0ac18109b2649262ba45e977b7d3e3d73ba5722639b8113401"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/native-consumer.test.ts": {
+      "bytes": 10694,
+      "sha256": "8501487659ea3925524fd1cf084da28a8d9f9f3b68b1b215c9688eb89ac4d8a3"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/normal-audit.json": {
+      "bytes": 94144,
+      "sha256": "41f683cabd736f26aed520a92e27f807f8ae6d32792979ddabe7de1d62e16a10"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/payload.bin": {
+      "bytes": 58648,
+      "sha256": "91d30ca5d6f3d2a3f542676b27307f2c5ff222680bc94dbf276b2856a1776bb4"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/python-test.log": {
+      "bytes": 1154,
+      "sha256": "398ed83992a3b150064b0f73b9c24563dc32cb367a93e2eefd2bef34ac5e46b9"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/test_export_native.py": {
+      "bytes": 5233,
+      "sha256": "752fe274ba6999d3133c8d6b90f2c1b4722f055ce8c9284de734fd0dd3750521"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/validation.json": {
+      "bytes": 3019,
+      "sha256": "7085e6e3d1b34f9e753d04c3ba331f2289317a95fcb2d1b027c41171b3316f36"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/vitest.config.ts": {
+      "bytes": 238,
+      "sha256": "5f74e0f65ab49528c08d7ff47ed5195cd25b9771b32d0918bde7d0ae48c1b4be"
+    },
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/checkpoint-normalization.json": {
+      "bytes": 1142,
+      "sha256": "8fc5d12d88ba6e7f379d1f99af351ee8944651d14f069d7fe9b379caf8ee6792"
+    }
+  },
+  "protectedReadOnlyCurrentHashes": {
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/assemble_evidence.py": "05ff836629e0ef7d6a53ba956840d3bc5992d4fee4722c3451d1ce7c9c561258",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-back.webp": "97661125cfa9774938b5725a3e09a6c08aafc6669c8575b2cff1c1ce9d0fd378",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-diag-back.webp": "a8d7ffb32b12e5eebf7c9440841238433897ac84024f5102d5c7cc274bfb051f",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-diag-front.webp": "fb6c5b86f6c359301b11069e984e1509cf5dd97f87ae285ce0259bef78473cda",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-diag-left.webp": "582336ff3b1a1211d61c201f6145b89f88c8fd8a5ea323c136f62e78958cdefb",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-diag-right.webp": "5b169c6f2cb7493135e9dfad4ce25da7290cb128829a732653b41917acb3d4cd",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-front.webp": "e39ef016ab75d06f3fd6d0a180ff9e261c7a2583c01f6eef3be15c5dc3d04eae",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-hero.webp": "f30072f273a320293afc40a911c3d4f9fa11a4554ffd983272d37fe203524fa3",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-left.webp": "8d91c1f0ccafe167d5540732e05b489f9279f666248a4bf7055141e3fd2fbeed",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-name-differences.json": "f2b99fffb0d52ee2a29e72a41beefc300605bb78b07ffc0b3c24eb33373bfc63",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-nine-board.webp": "d72f2a971c3d884136432f8e6104dfe1d8d8f8c57dd2d34d0eaa14c924ee9059",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-right.webp": "8519d674abf02cdba18ae4f96586cf95be8d5b13fd60cb7dac783c3eeb1b13ac",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/baseline-top.webp": "5e2c5ace15e69a07473cfbcfe50fa96d15efd2d021cfdb7ce83a252294b335be",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/build_mantis_complete.py": "ec5645e1dda1aa88df12043f2361e39b98291544e2588314d9ce628b0349fb0e",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/cameras.json": "090cf27540f8ddef2968a6865ba8e674a177db9d39c14f4271ab6753f60feb1e",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-back.webp": "3a8176df106d4587451072180884425155a1e2dd0f86162099ee988ece19b95a",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-diag-back.webp": "9158afd204954a5163c9f4fbad51d2c59a9c740a59d247bf27b836845afc38dc",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-diag-front.webp": "60da4e784cc296d3a9228112c943953171fca3e4c530c8e45877db4dc58d8e40",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-diag-left.webp": "a21493a532ed051bf37874ae7736c25bb19bfb9fa6c5122ac89586f7379ae198",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-diag-right.webp": "6dbd8807c4a9c5b3a27d82e45ebf694b263fc813183e435d70198fdd9c7990b8",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-front.webp": "2fff3effc6e7da1860c59b72a2c9698ccc29642c20d8cb5a30c7819e0697eb92",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-hero.webp": "71823a021b59d7d866fae305f19c3aeee32031616c9d50b84220a8b6affafd37",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-left.webp": "6bbb80a4ed47df86691d57d51f8cb0dc77ba618453555dea5616d8212704f32e",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-nine-board.webp": "8d6e8c2b9d6c6108cffa4a04fca3ac733905fc7c77ec3683307bd735f118d53d",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-right.webp": "00d11f5ba2941481473cf8df2d7795ba520081a53e6e30538921ef783237d3a5",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/candidate-top.webp": "4953b9a841d099bcca975363a7f60ed4bd25752ddf06362dc11d4b1faf304b25",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/capture-check.json": "b6fc841247cc6cff83d22e1bcc1bfacff17580f1bebc1f348f32cb2a64de2969",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/capture-source-provenance.json": "1fdd79deecfae410527fae0b89f59eeec3191160fc60faf275b536d881337e39",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/evidence.json": "f4ddf0990781b0ccc0d16ed47370868156179e5296a7ee8164aebb3e29461758",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/README.md": "240634408e9975c71189bf7b5cdac0b0b975cce39ed36b3e5e2891b5ea97222c",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-back.webp": "97661125cfa9774938b5725a3e09a6c08aafc6669c8575b2cff1c1ce9d0fd378",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-diag-back.webp": "a8d7ffb32b12e5eebf7c9440841238433897ac84024f5102d5c7cc274bfb051f",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-diag-front.webp": "fb6c5b86f6c359301b11069e984e1509cf5dd97f87ae285ce0259bef78473cda",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-diag-left.webp": "582336ff3b1a1211d61c201f6145b89f88c8fd8a5ea323c136f62e78958cdefb",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-diag-right.webp": "5b169c6f2cb7493135e9dfad4ce25da7290cb128829a732653b41917acb3d4cd",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-front.webp": "e39ef016ab75d06f3fd6d0a180ff9e261c7a2583c01f6eef3be15c5dc3d04eae",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-hero.webp": "f30072f273a320293afc40a911c3d4f9fa11a4554ffd983272d37fe203524fa3",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-left.webp": "8d91c1f0ccafe167d5540732e05b489f9279f666248a4bf7055141e3fd2fbeed",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-nine-board.webp": "d72f2a971c3d884136432f8e6104dfe1d8d8f8c57dd2d34d0eaa14c924ee9059",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-right.webp": "8519d674abf02cdba18ae4f96586cf95be8d5b13fd60cb7dac783c3eeb1b13ac",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/baseline-top.webp": "5e2c5ace15e69a07473cfbcfe50fa96d15efd2d021cfdb7ce83a252294b335be",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/build_mantis_complete.py": "8f2bd3da69b7fe9acfa4155c1086c02c1d450eb7ac7a65eee00a582658f91bcd",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/cameras.json": "090cf27540f8ddef2968a6865ba8e674a177db9d39c14f4271ab6753f60feb1e",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-back.webp": "aec16a2c71816624cece1d207a8a1f816d5a85785469d87c22240183f2153ccc",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-diag-back.webp": "b705f63c1f8af3810e5863c7b8285b213db2afc34bf7281bdd9b90691e8d2541",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-diag-front.webp": "92532e8a9e009abfef203eef8903c949cddde42388684aff08368b4a5f9180bf",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-diag-left.webp": "d8742b7f26f8e2039e5baaa74222d44fc001d5e0aa1adee471b383f3468b2bd4",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-diag-right.webp": "835549b03b019f4747865f8fa21e808a9f511a612b101ccef9cc1051e01af19f",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-front.webp": "4e71e94d214b499d17243ffbe95f08120cf050680a07a45285b18f9d8303bc63",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-hero.webp": "421ee8438d8e00c202438a6b3f956865d28a0a53d661cdf904819c3a73b8b7be",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-left.webp": "614112e15c11c3a5211afebffe330b32bbeca74c991d545bdf7792b7165d7f43",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-nine-board.webp": "c0d15a67e61b93cc19b3a8650c34fb6cdece6283098c577879c5dd03153739b5",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-right.webp": "b45888aa5e62025140b20c121e4aad1f3009848f2656853ed1f39e083cfcf972",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/candidate-top.webp": "19274b0cc9f04efd9075bb51edbcba22aa2ee8d9414d6ae3223719e2180937a4",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/evidence.json": "9eb82210ce520519ec978f4ba08c7fdadfe170a933f5038c8e00fe9e5a6f22b9",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/mantis-mesh-complete-pass2.json": "b6de6ca8b1b93c135a02b0d9c1221e83dfca216d5af3d99cf1a3c94d280b7b7d",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/mantis-study-complete-pass2.glb": "f88911a21417bc4b1b9b859586b2ccd15390cb1612829476f7187bf59205abb3",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/matched-hero-board.webp": "c5fc066dcc2d7a9156bc31a7732f77c93d61cf9b4587e806bfafebad6d68b743",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/metrics-complete-pass2.json": "eef84f64015cd823213e8d113bf0ee95451966d75c7ecf61c5d87d85d9c679ef",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/preflight.json": "6b6af41e474ac31813c85875b43bf734b076be365e58aab19fb83cb3bdc35111",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/source-provenance.json": "52a3dee59bdbb058cda088961e28db4b3e7088ffbed5002f250e8d5e08b18ee4",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/mantis-mesh-complete-pass2.json": "9658e2c4cfc7821483c66c73e0a44e341763517cc15608673cddd18c4eafcf4f",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/mantis-study-complete-pass2.glb": "3566ee1301fd6461d59ff5627ae922856f952667310f6d36463c2ff706927604",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/mapping-limits.json": "2a5ee6a8e7359d9debb2d0f3c7537c2c30ecec642edeaa2de65fa3d0a0776078",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/matched-hero-board.webp": "fb1ca5afa3af2ec73f4b5e6682b9a13398082b60b489d0b2298413037d50f9e2",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/metrics-complete-pass2.json": "0e1473d80bf363ffaf6ba2e96337c18cd450e824bf4736c1340ecc8f3707ea1c",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/preflight.json": "72077146cbcd9ad7a142a8c2b6454f52f872e7c648e1b01b556f1a8166add4f3",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/preflight.py": "994f7e0ba23ec2d697bac1a8c563738e63fe74ef369424ae5e97c8f7ced4a306",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/preserve_failed.py": "7a7368b1f9392758cc5c2f1fd28b6fecb48115fa76d25de3f545a94bcb267500",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/preserved-inputs.json": "28e3d61b8bd74a076414b7627bb3c42799df811fd46df231a217084c6caffe48",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/render_matched.py": "57c326f482e68fa0503eee8f9130066f42ffec5f22536a0b9eb557794463e91d",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/verify_capture.py": "7e7eb09f01a2482cb05b4594db453318a8911146d190162afc56ffd5dd7aa6bd",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/admission.json": "5b4d993d4d16f41406cd8e4757d56a5582fcc302eee145c93a15284ad958d004",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/dimension-measurement.json": "4b8e0cb9115a152425c5dddbb856de4862e2f27ea41368c6b2809437767924f8",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/dimensions.json": "e0bd5afc3bee321177aabe6caa2aaa87afd79c1152e3fe94c467d4a842c3a7cc",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/metadata.json": "66f5398fd85336b407ee14a7f249d90dace499d0fb55695771aaebf9aa28e88f"
+  },
+  "reviewDocSha256": "1cf1cbbbf0f5644cd4ba1f7914a0066c919ca56f6e885cdff5a0c7608858c79a"
+}

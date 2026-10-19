@@ -1,0 +1,14 @@
+failed to load config from ./art/driftwood-isle/lowpoly-mantis/complete-pass2-native/vitest.config.ts
+
+⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯
+Error: Run this through python3 scripts/heavy-lane.py full-test -- <command>; focused Vitest file runs remain unrestricted.
+    at assertHeavyLease (file://./node_modules/.vite-temp/vitest.config.ts.timestamp-1792419972040-863aef5b9b4e6.mjs:36:194)
+    at assertVitestLane (file://./node_modules/.vite-temp/vitest.config.ts.timestamp-1792419972040-863aef5b9b4e6.mjs:70:26)
+    at file://./node_modules/.vite-temp/vitest.config.ts.timestamp-1792419972040-863aef5b9b4e6.mjs:107:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async loadConfigFromBundledFile (file://./node_modules/.pnpm/vite@8.3.0_@types+node@24.13.6/node_modules/vite/dist/node/chunks/node.js:37499:12)
+    at async bundleAndLoadConfigFile (file://./node_modules/.pnpm/vite@8.3.0_@types+node@24.13.6/node_modules/vite/dist/node/chunks/node.js:37345:21)
+    at async loadConfigFromFile (file://./node_modules/.pnpm/vite@8.3.0_@types+node@24.13.6/node_modules/vite/dist/node/chunks/node.js:37305:42)
+    at async resolveConfig (file://./node_modules/.pnpm/vite@8.3.0_@types+node@24.13.6/node_modules/vite/dist/node/chunks/node.js:36906:22)
+    at async resolveConfig$1 (file://./node_modules/.pnpm/vitest@5.0.1_@types+node@24.13.6_@vitest+coverage-v8@5.0.1_happy-dom@20.14.5_vite@8.3.0_@types+node@24.13.6_/node_modules/vitest/dist/chunks/index.DzobfTyw.js:14777:25)

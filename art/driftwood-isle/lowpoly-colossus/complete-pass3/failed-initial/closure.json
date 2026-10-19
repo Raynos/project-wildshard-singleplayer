@@ -1,0 +1,135 @@
+{
+  "status": "Failed initial construction, unaccepted, no likeness score. Shoulder lobes read as a regular row of peaked tents. Preserved before bounded correction.",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/back.webp",
+      "bytes": 36994,
+      "sha256": "6bf6e10057c90a218cdedb181b901b357e7b4c29171b9e97e3bed0a08036a20b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/build_colossus_complete.py",
+      "bytes": 24352,
+      "sha256": "f5daaa99f7feb3c8d408da424b29a347cec7062bb250ebe5ac0ff5f601019067"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/diag-back.webp",
+      "bytes": 43242,
+      "sha256": "ab5f2c3b6b949628f6335323f26566a0ffec144d60ba7ccf52d114bb36cecbc3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/diag-front.webp",
+      "bytes": 44222,
+      "sha256": "367b96ae2a0e22629ee08803d1f74a2f49338248da167c67cb4e8346b138e66e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/diag-left.webp",
+      "bytes": 38680,
+      "sha256": "92da8887481a53c64e559ae26719bad58b9c97cb2e4a78db52855363405aaf2d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/diag-right.webp",
+      "bytes": 42472,
+      "sha256": "444cb732c8aad8c88995a3c49ec760422ecc2f514b9f933e73d38f48eda971bc"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/front.webp",
+      "bytes": 33652,
+      "sha256": "70ced3666777510e56c641aee2897805385f852e6036fcc84bc7909456887a40"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/hero.webp",
+      "bytes": 43868,
+      "sha256": "92040b327ccd21e6555fab0e204f4f1c01c7997f314a15bf039be9ba117299c8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/left.webp",
+      "bytes": 19462,
+      "sha256": "81e090a640d4f0339862c117fd5ec4de93daf75194ddf66dc24f32e5eda56fef"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/metrics-complete-pass3.json",
+      "bytes": 467,
+      "sha256": "1db1477590409d5c3a6a882ccf2fa523b5916514f3db803c9eed229cbedc70ea"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/right.webp",
+      "bytes": 20982,
+      "sha256": "2d33d70973dd2167157ff0eda1f4d2de2bebaf3048e07d287cd8356eb3a5eaa7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/tide-root-colossus-complete-pass3.glb",
+      "bytes": 945824,
+      "sha256": "49abcadfffe46d934d4e77311b6204fa58f42574595eb048c9457e280a1ce7e5"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/top.webp",
+      "bytes": 36780,
+      "sha256": "e006bbd3f05bc923a38b8c168f76d09cb48b32f7b5e18fcce77bdb5372d59a19"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/failed-initial/validation.json",
+      "bytes": 78684,
+      "sha256": "4d3cb1e528927e21293a7871b4cf1e8c30ef96ea1bb66b2b98824946d89deddd"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/back.png",
+      "bytes": 508732,
+      "sha256": "0fb8721049c6eaef7f03f885bc47602b58bade1e9dc89cdac329e63255b8dfaa"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/cameras.json",
+      "bytes": 8077,
+      "sha256": "3bcdd25516e86b42bfc3675e3177eda09d59ed87c1753218aeba49bdb8cfa889"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/diag-back.png",
+      "bytes": 702353,
+      "sha256": "c83b52393e006bc8be47940e46f48b206a9e26162f2cd885a42b7d32a4a1f4ec"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/diag-front.png",
+      "bytes": 717911,
+      "sha256": "a2fbf01bc8ee9fd941855ab1fac194b670070ce3a5183f0bd8173aacfb3625f9"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/diag-left.png",
+      "bytes": 690628,
+      "sha256": "04aa8680e0d3133427488ad45072699c051ca4967a58b872a04986f367a2836a"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/diag-right.png",
+      "bytes": 702971,
+      "sha256": "8502bf1f71fad6f4837e7609b4209767daf6b23e38e80b23a9ba307c332feddb"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/front.png",
+      "bytes": 510461,
+      "sha256": "dc796b80e1fe18268fce0dfed171506c634092d60025cb533db993fc427ac82c"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/hero.png",
+      "bytes": 670718,
+      "sha256": "70f1f19fafcb494dc47ed7ccc2ac5f32ac55f504c5146f74061b0091f2c618f6"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/left.png",
+      "bytes": 387636,
+      "sha256": "388208e997b6fc30390e6b229e8361df29adee80a6e5284b28fca4146457ab46"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/render.log",
+      "bytes": 1046021,
+      "sha256": "b58648b87fcd5ee412dc9a2a1af56a2dd6f77e60bf8ff9e4e505a4f4a631ae6e"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/right.png",
+      "bytes": 391563,
+      "sha256": "cdcfd4f5a54dff812abb7f52fa918948e4a893cf6e7d9ad88f71220500293c20"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/failed-initial/top.png",
+      "bytes": 678001,
+      "sha256": "38d98a8923a8721644b706eeafbe5a154c39bb9e0607e6d8e0d0b52036f20c3d"
+    }
+  ]
+}
