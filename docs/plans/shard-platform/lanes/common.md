@@ -26,6 +26,9 @@ Jake (G506): *"What the fuck is all that proof work? … I don't know why you're
   envelopes, all-ten source-product runs, Simulator or iPhone progression runs, proof receipts in `progress/` or
   `.git/proofs/`, receipt or ack relays between lanes over herdr.
 - Similar, not identical (G415). A fragile test that blocks a cut is deleted (G416).
+- **No polling in the model** (G510, Jake, after the E488 usage audit counted ~1 B tokens of status/wait polls):
+  push, CI, deploy, build and status waits run in a script that wakes you only on a NEW actionable failure, never
+  for a success, a queue change or a status tick. Never poll git, CI or a proof in a model loop; reasoning stays high.
 - Heavy proofs run only at a W3 milestone or before a grid deploy, once, by one lane.
 - Commit bodies say what changed and the line count (`net -N shard lines (<shard> -N, ...)`), nothing more.
 - Cuts are big (G468): the largest uncut mini-plan batch first; no sub-200 cuts while big ones remain.
