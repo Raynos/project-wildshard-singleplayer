@@ -10,7 +10,7 @@
 
 **Lanes (G505 + painter; Opus 0 until Mon 10-19):** sp-x1, sp-x5, sp-x6, sp-x8, sp-x9 W3; sp-x4 G508 painter; sp-x10 maps; sp-x7 deploy.
 
-**G508 (Jake):** the next lane to finish builds a data map painter (map/top.webp from terrain + ground types + scene rows, in the normal build, no browser, exactly accurate); data shards switch first, Pine/DW after C1; then bake windows, seals and freezes go. **G507 mega-build (Jake):** lanes only cut and land code; no lane-to-lane messages, receipts, boards, captures or soaks; lanes message the coordinator only for blockers. **Pace:** W3 ~55 lines per lane-hour. From each lane's next task: largest uncut batch first, no sub-200 cuts while big ones remain (G468); G506 (Jake): a batch lands on types + lint + focused tests + the push gate, nothing else; heavy proofs once per W3 milestone or grid deploy (lanes/common.md); a red gate gets sp-x7's fast revert (G493).
+**G508 map painter (sp-x4):** templates, Signal, Sky, Nalati a2e6d3964a, Nine 9b41c00b4f paint from data in the normal build; their bake windows, seals and freezes are retired (21:20). Pine/DW still browser-baked by sp-x10 when their inputs change; sp-x4 is trying them.
 
 **Attribution SHAs (G496):** G499 d5a456d5e, ruler key 7b326dcb4, cue director c3ff4774b, section seal 68eb6e360, admin ruler e2a214cdc, W3 classifier df6bab26d; G478 keys c9cb5d2b8, c208e4ce4, d27df7e1f (portal ride), 15485dd84 (audio), 5d021eabb (stealth).
 
