@@ -1,0 +1,496 @@
+{
+  "status": "original failure preserved; read-only trial coordinates",
+  "failure": "Blockout fin cap is exposed: {'part': 'fore fan -1', 'vertex': 1, 'classification': {'classification': 'outside', 'winding': 7.868559758829013e-17, 'signedEuclideanDistance': 0.012354661710560322, 'boundaryTolerance': 1e-06}, 'distance': 0.012354661710560322}",
+  "candidate": "study-a",
+  "meshAudits": [
+    {
+      "name": "Integrated anatomical cage",
+      "vertices": 100,
+      "triangles": 196,
+      "volume": 1.0103666212543247,
+      "closedManifold": true
+    },
+    {
+      "name": "fore fan -1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.039385496745457604,
+      "closedManifold": true
+    },
+    {
+      "name": "rear fan -1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.017704124412398166,
+      "closedManifold": true
+    },
+    {
+      "name": "fore fan 1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.039385496745457604,
+      "closedManifold": true
+    },
+    {
+      "name": "rear fan 1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.017704124412398166,
+      "closedManifold": true
+    },
+    {
+      "name": "Amber eye -1",
+      "vertices": 24,
+      "triangles": 44,
+      "volume": 0.0003409404884748053,
+      "closedManifold": true
+    },
+    {
+      "name": "Pupil -1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 2.6518804826634688e-05,
+      "closedManifold": true
+    },
+    {
+      "name": "Amber eye 1",
+      "vertices": 24,
+      "triangles": 44,
+      "volume": 0.00032658504928462077,
+      "closedManifold": true
+    },
+    {
+      "name": "Pupil 1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 2.540224186458425e-05,
+      "closedManifold": true
+    }
+  ],
+  "results": [
+    {
+      "part": "fore fan -1",
+      "before": [
+        {
+          "vertex": 0,
+          "point": [
+            -0.3449999988079071,
+            0.12999999523162842,
+            0.5699999928474426
+          ],
+          "classification": "inside",
+          "winding": 1.0000000000000007,
+          "signedEuclideanDistance": -0.12362600862979889,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 1,
+          "point": [
+            -0.5149999856948853,
+            0.12999999523162842,
+            0.5699999928474426
+          ],
+          "classification": "outside",
+          "winding": 7.868559758829013e-17,
+          "signedEuclideanDistance": 0.012354661710560322,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 2,
+          "point": [
+            -0.5149999856948853,
+            0.27000001072883606,
+            0.5699999928474426
+          ],
+          "classification": "inside",
+          "winding": 1.0000000000000004,
+          "signedEuclideanDistance": -0.00784741248935461,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 3,
+          "point": [
+            -0.3449999988079071,
+            0.27000001072883606,
+            0.5699999928474426
+          ],
+          "classification": "inside",
+          "winding": 0.9999999999999993,
+          "signedEuclideanDistance": -0.1438281089067459,
+          "boundaryTolerance": 1e-06
+        }
+      ],
+      "trialRecommendation": {
+        "inwardShift": 0.035,
+        "queries": [
+          {
+            "vertex": 0,
+            "point": [
+              -0.3100000023841858,
+              0.12999999523162842,
+              0.5699999928474426
+            ],
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.15162205696105957,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 1,
+            "point": [
+              -0.47999998927116394,
+              0.12999999523162842,
+              0.5699999928474426
+            ],
+            "classification": "inside",
+            "winding": 0.9999999999999994,
+            "signedEuclideanDistance": -0.015641313046216965,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 2,
+            "point": [
+              -0.47999998927116394,
+              0.27000001072883606,
+              0.5699999928474426
+            ],
+            "classification": "inside",
+            "winding": 0.9999999999999994,
+            "signedEuclideanDistance": -0.035843439400196075,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 3,
+            "point": [
+              -0.3100000023841858,
+              0.27000001072883606,
+              0.5699999928474426
+            ],
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.1718241423368454,
+            "boundaryTolerance": 1e-06
+          }
+        ]
+      }
+    },
+    {
+      "part": "rear fan -1",
+      "before": [
+        {
+          "vertex": 0,
+          "point": [
+            -0.3149999976158142,
+            -0.3799999952316284,
+            0.49000000953674316
+          ],
+          "classification": "inside",
+          "winding": 1.0000000000000002,
+          "signedEuclideanDistance": -0.021590691059827805,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 1,
+          "point": [
+            -0.48500001430511475,
+            -0.3799999952316284,
+            0.49000000953674316
+          ],
+          "classification": "outside",
+          "winding": -5.38375141393564e-18,
+          "signedEuclideanDistance": 0.11007238924503326,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 2,
+          "point": [
+            -0.48500001430511475,
+            -0.23999999463558197,
+            0.49000000953674316
+          ],
+          "classification": "outside",
+          "winding": 6.03256248176891e-17,
+          "signedEuclideanDistance": 0.08835293352603912,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 3,
+          "point": [
+            -0.3149999976158142,
+            -0.23999999463558197,
+            0.49000000953674316
+          ],
+          "classification": "inside",
+          "winding": 1.0000000000000004,
+          "signedEuclideanDistance": -0.04357805848121643,
+          "boundaryTolerance": 1e-06
+        }
+      ],
+      "trialRecommendation": {
+        "inwardShift": 0.165,
+        "queries": [
+          {
+            "vertex": 0,
+            "point": [
+              -0.14999999105930328,
+              -0.3799999952316284,
+              0.49000000953674316
+            ],
+            "classification": "inside",
+            "winding": 0.9999999999999996,
+            "signedEuclideanDistance": -0.10800112038850784,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 1,
+            "point": [
+              -0.320000022649765,
+              -0.3799999952316284,
+              0.49000000953674316
+            ],
+            "classification": "inside",
+            "winding": 1.0000000000000004,
+            "signedEuclideanDistance": -0.017718225717544556,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 2,
+            "point": [
+              -0.320000022649765,
+              -0.23999999463558197,
+              0.49000000953674316
+            ],
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.03970557451248169,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 3,
+            "point": [
+              -0.14999999105930328,
+              -0.23999999463558197,
+              0.49000000953674316
+            ],
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.12561015784740448,
+            "boundaryTolerance": 1e-06
+          }
+        ]
+      }
+    },
+    {
+      "part": "fore fan 1",
+      "before": [
+        {
+          "vertex": 0,
+          "point": [
+            0.3449999988079071,
+            0.12999999523162842,
+            0.5699999928474426
+          ],
+          "classification": "inside",
+          "winding": 1.0000000000000007,
+          "signedEuclideanDistance": -0.12362600862979889,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 1,
+          "point": [
+            0.5149999856948853,
+            0.12999999523162842,
+            0.5699999928474426
+          ],
+          "classification": "outside",
+          "winding": 1.054663097499187e-16,
+          "signedEuclideanDistance": 0.012354658916592598,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 2,
+          "point": [
+            0.5149999856948853,
+            0.27000001072883606,
+            0.5699999928474426
+          ],
+          "classification": "inside",
+          "winding": 1.0,
+          "signedEuclideanDistance": -0.00784737803041935,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 3,
+          "point": [
+            0.3449999988079071,
+            0.27000001072883606,
+            0.5699999928474426
+          ],
+          "classification": "inside",
+          "winding": 1.0000000000000004,
+          "signedEuclideanDistance": -0.14382809400558472,
+          "boundaryTolerance": 1e-06
+        }
+      ],
+      "trialRecommendation": {
+        "inwardShift": 0.035,
+        "queries": [
+          {
+            "vertex": 0,
+            "point": [
+              0.3100000023841858,
+              0.12999999523162842,
+              0.5699999928474426
+            ],
+            "classification": "inside",
+            "winding": 1.0,
+            "signedEuclideanDistance": -0.15162205696105957,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 1,
+            "point": [
+              0.47999998927116394,
+              0.12999999523162842,
+              0.5699999928474426
+            ],
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.015641340985894203,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 2,
+            "point": [
+              0.47999998927116394,
+              0.27000001072883606,
+              0.5699999928474426
+            ],
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.03584343194961548,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 3,
+            "point": [
+              0.3100000023841858,
+              0.27000001072883606,
+              0.5699999928474426
+            ],
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.1718241274356842,
+            "boundaryTolerance": 1e-06
+          }
+        ]
+      }
+    },
+    {
+      "part": "rear fan 1",
+      "before": [
+        {
+          "vertex": 0,
+          "point": [
+            0.3149999976158142,
+            -0.3799999952316284,
+            0.49000000953674316
+          ],
+          "classification": "inside",
+          "winding": 0.9999999999999994,
+          "signedEuclideanDistance": -0.021590691059827805,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 1,
+          "point": [
+            0.48500001430511475,
+            -0.3799999952316284,
+            0.49000000953674316
+          ],
+          "classification": "outside",
+          "winding": 1.7393658414253608e-17,
+          "signedEuclideanDistance": 0.11007238924503326,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 2,
+          "point": [
+            0.48500001430511475,
+            -0.23999999463558197,
+            0.49000000953674316
+          ],
+          "classification": "outside",
+          "winding": 4.141347241488954e-18,
+          "signedEuclideanDistance": 0.08835290372371674,
+          "boundaryTolerance": 1e-06
+        },
+        {
+          "vertex": 3,
+          "point": [
+            0.3149999976158142,
+            -0.23999999463558197,
+            0.49000000953674316
+          ],
+          "classification": "inside",
+          "winding": 1.0000000000000004,
+          "signedEuclideanDistance": -0.04357805848121643,
+          "boundaryTolerance": 1e-06
+        }
+      ],
+      "trialRecommendation": {
+        "inwardShift": 0.165,
+        "queries": [
+          {
+            "vertex": 0,
+            "point": [
+              0.14999999105930328,
+              -0.3799999952316284,
+              0.49000000953674316
+            ],
+            "classification": "inside",
+            "winding": 0.9999999999999997,
+            "signedEuclideanDistance": -0.10800112038850784,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 1,
+            "point": [
+              0.320000022649765,
+              -0.3799999952316284,
+              0.49000000953674316
+            ],
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.017718225717544556,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 2,
+            "point": [
+              0.320000022649765,
+              -0.23999999463558197,
+              0.49000000953674316
+            ],
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.03970557451248169,
+            "boundaryTolerance": 1e-06
+          },
+          {
+            "vertex": 3,
+            "point": [
+              0.14999999105930328,
+              -0.23999999463558197,
+              0.49000000953674316
+            ],
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.12561015784740448,
+            "boundaryTolerance": 1e-06
+          }
+        ]
+      }
+    }
+  ]
+}

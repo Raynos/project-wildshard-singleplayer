@@ -1,0 +1,17 @@
+{
+  "status": "unaccepted shape studies; all three pass structural checks but visible box-like face architecture remains",
+  "mapping": {
+    "I": "c",
+    "II": "a",
+    "III": "b"
+  },
+  "frames": [
+    "clay-hero",
+    "clay-front",
+    "clay-side",
+    "flat-color-hero",
+    "flat-color-front",
+    "flat-color-side"
+  ],
+  "geometryUnchangedDuringCapture": true
+}

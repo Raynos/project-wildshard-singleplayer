@@ -1,0 +1,341 @@
+{
+  "status": "unaccepted anatomical blockout",
+  "candidate": "study-c",
+  "design": "high integrated shoulder hood; upright lower cheek and tucked short fans",
+  "landmarks": {
+    "eye--1": [
+      -0.3025,
+      0.5685310838604466,
+      1.06625
+    ],
+    "eye-1": [
+      0.3025,
+      0.5685310838604466,
+      1.06625
+    ],
+    "mouth": [
+      0,
+      0.685,
+      0.825
+    ]
+  },
+  "meshAudits": [
+    {
+      "name": "Integrated anatomical cage",
+      "vertices": 100,
+      "triangles": 196,
+      "volume": 1.0724972791341172,
+      "closedManifold": true
+    },
+    {
+      "name": "fore fan -1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.04058622119171647,
+      "closedManifold": true
+    },
+    {
+      "name": "rear fan -1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.01846971705737614,
+      "closedManifold": true
+    },
+    {
+      "name": "fore fan 1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.04058622119171647,
+      "closedManifold": true
+    },
+    {
+      "name": "rear fan 1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 0.01846971705737614,
+      "closedManifold": true
+    },
+    {
+      "name": "Amber eye -1",
+      "vertices": 24,
+      "triangles": 44,
+      "volume": 0.00038261951845922255,
+      "closedManifold": true
+    },
+    {
+      "name": "Pupil -1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 2.9760841084390008e-05,
+      "closedManifold": true
+    },
+    {
+      "name": "Amber eye 1",
+      "vertices": 24,
+      "triangles": 44,
+      "volume": 0.000367760452283728,
+      "closedManifold": true
+    },
+    {
+      "name": "Pupil 1",
+      "vertices": 16,
+      "triangles": 28,
+      "volume": 2.8605055082544376e-05,
+      "closedManifold": true
+    }
+  ],
+  "finCapQueries": [
+    {
+      "part": "fore fan -1",
+      "vertex": 0,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.1597297340631485,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.1597297340631485
+    },
+    {
+      "part": "fore fan -1",
+      "vertex": 1,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999993,
+        "signedEuclideanDistance": -0.018676502630114555,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.018676502630114555
+    },
+    {
+      "part": "fore fan -1",
+      "vertex": 2,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.03860021382570267,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.03860021382570267
+    },
+    {
+      "part": "fore fan -1",
+      "vertex": 3,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.17965340614318848,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.17965340614318848
+    },
+    {
+      "part": "rear fan -1",
+      "vertex": 0,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999994,
+        "signedEuclideanDistance": -0.11163881421089172,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.11163881421089172
+    },
+    {
+      "part": "rear fan -1",
+      "vertex": 1,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0,
+        "signedEuclideanDistance": -0.015244823880493641,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.015244823880493641
+    },
+    {
+      "part": "rear fan -1",
+      "vertex": 2,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.03564431145787239,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.03564431145787239
+    },
+    {
+      "part": "rear fan -1",
+      "vertex": 3,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0,
+        "signedEuclideanDistance": -0.12594543397426605,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.12594543397426605
+    },
+    {
+      "part": "fore fan 1",
+      "vertex": 0,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.1597297340631485,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.1597297340631485
+    },
+    {
+      "part": "fore fan 1",
+      "vertex": 1,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.018676504492759705,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.018676504492759705
+    },
+    {
+      "part": "fore fan 1",
+      "vertex": 2,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.038600217550992966,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.038600217550992966
+    },
+    {
+      "part": "fore fan 1",
+      "vertex": 3,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0000000000000009,
+        "signedEuclideanDistance": -0.17965340614318848,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.17965340614318848
+    },
+    {
+      "part": "rear fan 1",
+      "vertex": 0,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.11163881421089172,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.11163881421089172
+    },
+    {
+      "part": "rear fan 1",
+      "vertex": 1,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.999999999999999,
+        "signedEuclideanDistance": -0.015244823880493641,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.015244823880493641
+    },
+    {
+      "part": "rear fan 1",
+      "vertex": 2,
+      "classification": {
+        "classification": "inside",
+        "winding": 0.9999999999999997,
+        "signedEuclideanDistance": -0.03564431145787239,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.03564431145787239
+    },
+    {
+      "part": "rear fan 1",
+      "vertex": 3,
+      "classification": {
+        "classification": "inside",
+        "winding": 1.0,
+        "signedEuclideanDistance": -0.12594543397426605,
+        "boundaryTolerance": 1e-06
+      },
+      "distance": 0.12594543397426605
+    }
+  ],
+  "restPivots": {
+    "body": [
+      [
+        0,
+        0,
+        0.7
+      ],
+      null
+    ],
+    "belly": [
+      [
+        0,
+        0,
+        0.7
+      ],
+      "body"
+    ],
+    "head": [
+      [
+        0,
+        0.5,
+        0.93
+      ],
+      "belly"
+    ],
+    "tail": [
+      [
+        0,
+        -0.63,
+        0.68
+      ],
+      "body"
+    ],
+    "finL": [
+      [
+        -0.37,
+        0.12,
+        0.56
+      ],
+      "body"
+    ],
+    "finR": [
+      [
+        0.37,
+        0.12,
+        0.56
+      ],
+      "body"
+    ],
+    "rearL": [
+      [
+        -0.24500000000000002,
+        -0.32,
+        0.48
+      ],
+      "body"
+    ],
+    "rearR": [
+      [
+        0.24500000000000002,
+        -0.32,
+        0.48
+      ],
+      "body"
+    ]
+  },
+  "sourcePins": {
+    "control_cages_seated.json": "b5da67f15fccf9c4d71a8e84f1e1ff94076b3f49e12a658622f8220fd750fbe4",
+    "cage_geometry.py": "199f4818098ad8cf5485ae4e1d341ba6e9a245336a60b112a3df18667bea0d73",
+    "build_blockouts_seated.py": "6de0b78a30fde3009325f79d0a456163c117eac7eb9778b5f43f9fc3b81cf83a"
+  },
+  "limitations": [
+    "rigid draft weights; no deformation test",
+    "no tail or spine detail; judge anatomy separately",
+    "no runtime admission"
+  ]
+}

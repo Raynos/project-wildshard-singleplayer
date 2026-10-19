@@ -1,0 +1,27 @@
+{
+  "schema": "puffer-gray-v2-real-strafe-clip-v1",
+  "sourceVideoSha256": "e3e29c3379ff79bdbfb4eacfa267f1c5383ec70e8035e2290f9cc28ed65c7218",
+  "clipName": "gray-v2-real-strafe.mp4",
+  "clipSha256": "2c73e15218ac2990f80dea6ba76c80246d37ef6a78870c414dc8bb0d18b0d93a",
+  "bytes": 267814,
+  "previewLimitBytes": 1000000,
+  "sourceFrameFirst": 800,
+  "sourceFrameLastInclusive": 1180,
+  "encodedFrameCount": 381,
+  "fps": 25,
+  "ffprobeContainerDurationSeconds": 15.2,
+  "sourceOverlayFirstSeconds": 24.358,
+  "sourceOverlayLastSeconds": 39.508,
+  "width": 390,
+  "height": 844,
+  "transforms": [
+    "contiguous trim",
+    "PTS rebased",
+    "two-line scope label in top 48 pixels",
+    "H264 lossy compression"
+  ],
+  "timing": "Original cadence retained; no interpolation or speed change. Held software-render frames remain.",
+  "scope": "Genuine input strafe in cloud Chromium phone policy; normal three post passes, renderer DPR2, one shadow cascade, no AO. Not physical-phone performance evidence. Enemy faces player; not a full anatomical orbit.",
+  "inspection": "All source frames in clip were included in full selected-range manual inspection; encoded first and last images also visually checked.",
+  "distribution": "Preview stored separately for Site/Library; no binary copied into repository."
+}
