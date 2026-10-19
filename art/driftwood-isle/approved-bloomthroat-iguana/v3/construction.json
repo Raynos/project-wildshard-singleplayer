@@ -1,0 +1,896 @@
+{
+  "vertices": 13446,
+  "triangles": 4482,
+  "bones": 27,
+  "parts": 16,
+  "components": [
+    {
+      "name": "Broad golden iguana trunk",
+      "triangles": 196,
+      "part": "body",
+      "signedVolume": 0.9221088208093227,
+      "minTriangleArea": 0.013168233848918597
+    },
+    {
+      "name": "Rising tapered cervical chest",
+      "triangles": 144,
+      "part": "neck",
+      "signedVolume": 0.4534071108355419,
+      "minTriangleArea": 0.009618858267577529
+    },
+    {
+      "name": "Angular iguana skull",
+      "triangles": 120,
+      "part": "head",
+      "signedVolume": 0.15991697329930796,
+      "minTriangleArea": 0.00810166853557241
+    },
+    {
+      "name": "Broad blunt muzzle",
+      "triangles": 80,
+      "part": "head",
+      "signedVolume": 0.03978385417334113,
+      "minTriangleArea": 0.005835643403309403
+    },
+    {
+      "name": "Separated lower jaw",
+      "triangles": 80,
+      "part": "jaw",
+      "signedVolume": 0.03333981758138789,
+      "minTriangleArea": 0.005724703712906386
+    },
+    {
+      "name": "Dark closed mouth seam -1",
+      "triangles": 48,
+      "part": "head",
+      "signedVolume": 0.0007061083645870351,
+      "minTriangleArea": 0.0009301194568961212
+    },
+    {
+      "name": "Eye recessed socket -1",
+      "triangles": 100,
+      "part": "head",
+      "signedVolume": 0.004581135445429634,
+      "minTriangleArea": 0.0007369570790647234
+    },
+    {
+      "name": "Amber alert eye -1",
+      "triangles": 100,
+      "part": "head",
+      "signedVolume": 0.0008079194036933304,
+      "minTriangleArea": 0.00021246814195735982
+    },
+    {
+      "name": "Vertical dark pupil -1",
+      "triangles": 64,
+      "part": "head",
+      "signedVolume": 4.885089583694933e-05,
+      "minTriangleArea": 4.454094580442379e-05
+    },
+    {
+      "name": "Eye catchlight -1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 3.6641819557796153e-06,
+      "minTriangleArea": 2.1520687446409565e-05
+    },
+    {
+      "name": "Heavy upper brow -1",
+      "triangles": 48,
+      "part": "head",
+      "signedVolume": 0.0026480555340337264,
+      "minTriangleArea": 0.0012884348033620624
+    },
+    {
+      "name": "Nostril -1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 3.199098864570266e-05,
+      "minTriangleArea": 9.806567649247534e-05
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 0 0",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994980311797312,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 0 1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994969349354507,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 0 2",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994695518689696,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 1 0",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994980020759008,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 1 1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994599924733237,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 1 2",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994733026251199,
+      "minTriangleArea": 0.0007040755855843929
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 2 0",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994890332454821,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 2 1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994963334562886,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 2 2",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004995055108641582,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 3 0",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994956155618037,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 3 1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994823448214445,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale -1 3 2",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994858269734929,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Dark closed mouth seam 1",
+      "triangles": 48,
+      "part": "head",
+      "signedVolume": 0.0007060760787377719,
+      "minTriangleArea": 0.0009301194568961212
+    },
+    {
+      "name": "Eye recessed socket 1",
+      "triangles": 100,
+      "part": "head",
+      "signedVolume": 0.004581046659344186,
+      "minTriangleArea": 0.0007369570790647234
+    },
+    {
+      "name": "Amber alert eye 1",
+      "triangles": 100,
+      "part": "head",
+      "signedVolume": 0.0008079030885710358,
+      "minTriangleArea": 0.0002124683593323214
+    },
+    {
+      "name": "Vertical dark pupil 1",
+      "triangles": 64,
+      "part": "head",
+      "signedVolume": 4.886776878265675e-05,
+      "minTriangleArea": 4.454094580442379e-05
+    },
+    {
+      "name": "Eye catchlight 1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 3.706799664845069e-06,
+      "minTriangleArea": 2.1520715175286387e-05
+    },
+    {
+      "name": "Heavy upper brow 1",
+      "triangles": 48,
+      "part": "head",
+      "signedVolume": 0.002648032629319155,
+      "minTriangleArea": 0.0012884348033620624
+    },
+    {
+      "name": "Nostril 1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 3.200691814223918e-05,
+      "minTriangleArea": 9.806567649247534e-05
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 0 0",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994833531479038,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 0 1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994800935188928,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 0 2",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994813486215806,
+      "minTriangleArea": 0.0007040755855843929
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 1 0",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004995135386707268,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 1 1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994938693319757,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 1 2",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994948976673187,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 2 0",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994837120951471,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 2 1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.000499488271695251,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 2 2",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994831979274755,
+      "minTriangleArea": 0.0007040755855843929
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 3 0",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004994807241018872,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 3 1",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004995074947752681,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "Overlapping turquoise cheek scale 1 3 2",
+      "triangles": 36,
+      "part": "head",
+      "signedVolume": 0.0004995195292091609,
+      "minTriangleArea": 0.0007040753875317485
+    },
+    {
+      "name": "legFL continuous articulated limb",
+      "triangles": 68,
+      "part": "legFL",
+      "signedVolume": 0.0883188001268233,
+      "minTriangleArea": 0.00216552549193974
+    },
+    {
+      "name": "legFL planted palm",
+      "triangles": 48,
+      "part": "legFL",
+      "signedVolume": 0.016240217591985132,
+      "minTriangleArea": 0.004861870662782354
+    },
+    {
+      "name": "legFL finger 0",
+      "triangles": 26,
+      "part": "legFL",
+      "signedVolume": 0.0010070643135501696,
+      "minTriangleArea": 0.00021292102635318735
+    },
+    {
+      "name": "legFL dark claw 0",
+      "triangles": 16,
+      "part": "legFL",
+      "signedVolume": 0.0002585267035707754,
+      "minTriangleArea": 1.6429072422850128e-05
+    },
+    {
+      "name": "legFL finger 1",
+      "triangles": 26,
+      "part": "legFL",
+      "signedVolume": 0.0009838624731249481,
+      "minTriangleArea": 0.0002129211197533832
+    },
+    {
+      "name": "legFL dark claw 1",
+      "triangles": 16,
+      "part": "legFL",
+      "signedVolume": 0.0002519984045648015,
+      "minTriangleArea": 1.6429074706204393e-05
+    },
+    {
+      "name": "legFL finger 2",
+      "triangles": 26,
+      "part": "legFL",
+      "signedVolume": 0.0009760281585234528,
+      "minTriangleArea": 0.00021292131991524014
+    },
+    {
+      "name": "legFL dark claw 2",
+      "triangles": 16,
+      "part": "legFL",
+      "signedVolume": 0.00024978793286815437,
+      "minTriangleArea": 1.6428954429234128e-05
+    },
+    {
+      "name": "legFL finger 3",
+      "triangles": 26,
+      "part": "legFL",
+      "signedVolume": 0.0009839302292675707,
+      "minTriangleArea": 0.00021292075286570686
+    },
+    {
+      "name": "legFL dark claw 3",
+      "triangles": 16,
+      "part": "legFL",
+      "signedVolume": 0.00025199841214392356,
+      "minTriangleArea": 1.64290746402115e-05
+    },
+    {
+      "name": "legFL finger 4",
+      "triangles": 26,
+      "part": "legFL",
+      "signedVolume": 0.0010071918271326772,
+      "minTriangleArea": 0.00021292050362418894
+    },
+    {
+      "name": "legFL dark claw 4",
+      "triangles": 16,
+      "part": "legFL",
+      "signedVolume": 0.00025852465872352076,
+      "minTriangleArea": 1.6429080447585098e-05
+    },
+    {
+      "name": "legFL turquoise wrist scute 0",
+      "triangles": 36,
+      "part": "legFL",
+      "signedVolume": 0.0009228129371573843,
+      "minTriangleArea": 0.0008393795313930535
+    },
+    {
+      "name": "legFL turquoise wrist scute 1",
+      "triangles": 36,
+      "part": "legFL",
+      "signedVolume": 0.000922809277350704,
+      "minTriangleArea": 0.0008393795313930535
+    },
+    {
+      "name": "legFL turquoise wrist scute 2",
+      "triangles": 36,
+      "part": "legFL",
+      "signedVolume": 0.0009228171838913109,
+      "minTriangleArea": 0.0008393795313930535
+    },
+    {
+      "name": "legBL continuous articulated limb",
+      "triangles": 68,
+      "part": "legBL",
+      "signedVolume": 0.09180833680936001,
+      "minTriangleArea": 0.002165524638838964
+    },
+    {
+      "name": "legBL planted palm",
+      "triangles": 48,
+      "part": "legBL",
+      "signedVolume": 0.016240216156196155,
+      "minTriangleArea": 0.004861870662782354
+    },
+    {
+      "name": "legBL finger 0",
+      "triangles": 26,
+      "part": "legBL",
+      "signedVolume": 0.0010070611339566917,
+      "minTriangleArea": 0.00021292108188492075
+    },
+    {
+      "name": "legBL dark claw 0",
+      "triangles": 16,
+      "part": "legBL",
+      "signedVolume": 0.0002585234448512591,
+      "minTriangleArea": 1.6429102885145622e-05
+    },
+    {
+      "name": "legBL finger 1",
+      "triangles": 26,
+      "part": "legBL",
+      "signedVolume": 0.0009838647744497087,
+      "minTriangleArea": 0.00021292076753079753
+    },
+    {
+      "name": "legBL dark claw 1",
+      "triangles": 16,
+      "part": "legBL",
+      "signedVolume": 0.0002519999831444393,
+      "minTriangleArea": 1.642909488681874e-05
+    },
+    {
+      "name": "legBL finger 2",
+      "triangles": 26,
+      "part": "legBL",
+      "signedVolume": 0.0009760325583556552,
+      "minTriangleArea": 0.00021292118538775468
+    },
+    {
+      "name": "legBL dark claw 2",
+      "triangles": 16,
+      "part": "legBL",
+      "signedVolume": 0.0002497868048673505,
+      "minTriangleArea": 1.6429014876939668e-05
+    },
+    {
+      "name": "legBL finger 3",
+      "triangles": 26,
+      "part": "legBL",
+      "signedVolume": 0.0009839312360782062,
+      "minTriangleArea": 0.00021292078317355982
+    },
+    {
+      "name": "legBL dark claw 3",
+      "triangles": 16,
+      "part": "legBL",
+      "signedVolume": 0.0002520001296488773,
+      "minTriangleArea": 1.6429089251031616e-05
+    },
+    {
+      "name": "legBL finger 4",
+      "triangles": 26,
+      "part": "legBL",
+      "signedVolume": 0.0010071875391683232,
+      "minTriangleArea": 0.00021292047885644895
+    },
+    {
+      "name": "legBL dark claw 4",
+      "triangles": 16,
+      "part": "legBL",
+      "signedVolume": 0.0002585242812832197,
+      "minTriangleArea": 1.6429097816899337e-05
+    },
+    {
+      "name": "legBL turquoise wrist scute 0",
+      "triangles": 36,
+      "part": "legBL",
+      "signedVolume": 0.000922821714387586,
+      "minTriangleArea": 0.0008393805810641599
+    },
+    {
+      "name": "legBL turquoise wrist scute 1",
+      "triangles": 36,
+      "part": "legBL",
+      "signedVolume": 0.0009228188040045401,
+      "minTriangleArea": 0.0008393798022760453
+    },
+    {
+      "name": "legBL turquoise wrist scute 2",
+      "triangles": 36,
+      "part": "legBL",
+      "signedVolume": 0.0009228196383143465,
+      "minTriangleArea": 0.0008393798022760453
+    },
+    {
+      "name": "legFR continuous articulated limb",
+      "triangles": 68,
+      "part": "legFR",
+      "signedVolume": 0.08838497294709668,
+      "minTriangleArea": 0.002165524100729071
+    },
+    {
+      "name": "legFR planted palm",
+      "triangles": 48,
+      "part": "legFR",
+      "signedVolume": 0.01624022309745972,
+      "minTriangleArea": 0.004861870662782354
+    },
+    {
+      "name": "legFR finger 0",
+      "triangles": 26,
+      "part": "legFR",
+      "signedVolume": 0.0010070606076624242,
+      "minTriangleArea": 0.0002129208052689596
+    },
+    {
+      "name": "legFR dark claw 0",
+      "triangles": 16,
+      "part": "legFR",
+      "signedVolume": 0.00025852307468691554,
+      "minTriangleArea": 1.6429072422850128e-05
+    },
+    {
+      "name": "legFR finger 1",
+      "triangles": 26,
+      "part": "legFR",
+      "signedVolume": 0.0009838692809959562,
+      "minTriangleArea": 0.00021292073657116047
+    },
+    {
+      "name": "legFR dark claw 1",
+      "triangles": 16,
+      "part": "legFR",
+      "signedVolume": 0.00025199830452038473,
+      "minTriangleArea": 1.6429074706204393e-05
+    },
+    {
+      "name": "legFR finger 2",
+      "triangles": 26,
+      "part": "legFR",
+      "signedVolume": 0.0009760355897014964,
+      "minTriangleArea": 0.00021292131991524014
+    },
+    {
+      "name": "legFR dark claw 2",
+      "triangles": 16,
+      "part": "legFR",
+      "signedVolume": 0.0002497895954244693,
+      "minTriangleArea": 1.6428954429234128e-05
+    },
+    {
+      "name": "legFR finger 3",
+      "triangles": 26,
+      "part": "legFR",
+      "signedVolume": 0.0009839351890453447,
+      "minTriangleArea": 0.00021292053686509864
+    },
+    {
+      "name": "legFR dark claw 3",
+      "triangles": 16,
+      "part": "legFR",
+      "signedVolume": 0.00025200025023271617,
+      "minTriangleArea": 1.64290746402115e-05
+    },
+    {
+      "name": "legFR finger 4",
+      "triangles": 26,
+      "part": "legFR",
+      "signedVolume": 0.0010071828243477896,
+      "minTriangleArea": 0.00021291987165484834
+    },
+    {
+      "name": "legFR dark claw 4",
+      "triangles": 16,
+      "part": "legFR",
+      "signedVolume": 0.00025852986982499693,
+      "minTriangleArea": 1.642907838860742e-05
+    },
+    {
+      "name": "legFR turquoise wrist scute 0",
+      "triangles": 36,
+      "part": "legFR",
+      "signedVolume": 0.0009228207369839461,
+      "minTriangleArea": 0.0008393798022760453
+    },
+    {
+      "name": "legFR turquoise wrist scute 1",
+      "triangles": 36,
+      "part": "legFR",
+      "signedVolume": 0.0009228360916798311,
+      "minTriangleArea": 0.0008393795313930535
+    },
+    {
+      "name": "legFR turquoise wrist scute 2",
+      "triangles": 36,
+      "part": "legFR",
+      "signedVolume": 0.0009228264098055665,
+      "minTriangleArea": 0.0008393795313930535
+    },
+    {
+      "name": "legBR continuous articulated limb",
+      "triangles": 68,
+      "part": "legBR",
+      "signedVolume": 0.09177144837546317,
+      "minTriangleArea": 0.0021655236676161337
+    },
+    {
+      "name": "legBR planted palm",
+      "triangles": 48,
+      "part": "legBR",
+      "signedVolume": 0.01624021947160751,
+      "minTriangleArea": 0.004861870662782354
+    },
+    {
+      "name": "legBR finger 0",
+      "triangles": 26,
+      "part": "legBR",
+      "signedVolume": 0.0010070612242998322,
+      "minTriangleArea": 0.00021292047781359667
+    },
+    {
+      "name": "legBR dark claw 0",
+      "triangles": 16,
+      "part": "legBR",
+      "signedVolume": 0.00025852349070495023,
+      "minTriangleArea": 1.6429097816899337e-05
+    },
+    {
+      "name": "legBR finger 1",
+      "triangles": 26,
+      "part": "legBR",
+      "signedVolume": 0.0009838658537167548,
+      "minTriangleArea": 0.00021292076753079753
+    },
+    {
+      "name": "legBR dark claw 1",
+      "triangles": 16,
+      "part": "legBR",
+      "signedVolume": 0.00025200033299673435,
+      "minTriangleArea": 1.6429088973861707e-05
+    },
+    {
+      "name": "legBR finger 2",
+      "triangles": 26,
+      "part": "legBR",
+      "signedVolume": 0.0009760312210952784,
+      "minTriangleArea": 0.00021292118538775468
+    },
+    {
+      "name": "legBR dark claw 2",
+      "triangles": 16,
+      "part": "legBR",
+      "signedVolume": 0.00024978650921525525,
+      "minTriangleArea": 1.6429014876939668e-05
+    },
+    {
+      "name": "legBR finger 3",
+      "triangles": 26,
+      "part": "legBR",
+      "signedVolume": 0.000983930096936092,
+      "minTriangleArea": 0.00021292078317355982
+    },
+    {
+      "name": "legBR dark claw 3",
+      "triangles": 16,
+      "part": "legBR",
+      "signedVolume": 0.0002520002246152824,
+      "minTriangleArea": 1.6429095018804363e-05
+    },
+    {
+      "name": "legBR finger 4",
+      "triangles": 26,
+      "part": "legBR",
+      "signedVolume": 0.0010071875788829248,
+      "minTriangleArea": 0.00021292030496076174
+    },
+    {
+      "name": "legBR dark claw 4",
+      "triangles": 16,
+      "part": "legBR",
+      "signedVolume": 0.0002585227318074131,
+      "minTriangleArea": 1.6429108058978762e-05
+    },
+    {
+      "name": "legBR turquoise wrist scute 0",
+      "triangles": 36,
+      "part": "legBR",
+      "signedVolume": 0.0009228207103054349,
+      "minTriangleArea": 0.0008393798022760453
+    },
+    {
+      "name": "legBR turquoise wrist scute 1",
+      "triangles": 36,
+      "part": "legBR",
+      "signedVolume": 0.0009228093840647489,
+      "minTriangleArea": 0.0008393798022760453
+    },
+    {
+      "name": "legBR turquoise wrist scute 2",
+      "triangles": 36,
+      "part": "legBR",
+      "signedVolume": 0.0009228191265719941,
+      "minTriangleArea": 0.0008393798022760453
+    },
+    {
+      "name": "Continuous curled two-tone tail",
+      "triangles": 156,
+      "part": "tail",
+      "signedVolume": 0.48489728870845317,
+      "minTriangleArea": 0.000550057010170929
+    },
+    {
+      "name": "Dorsal triangular scute 00",
+      "triangles": 4,
+      "part": "neck",
+      "signedVolume": 0.0006486649314562483,
+      "minTriangleArea": 0.012043253316244775
+    },
+    {
+      "name": "Dorsal triangular scute 01",
+      "triangles": 4,
+      "part": "neck",
+      "signedVolume": 0.0007764914383490882,
+      "minTriangleArea": 0.01349971562286515
+    },
+    {
+      "name": "Dorsal triangular scute 02",
+      "triangles": 4,
+      "part": "neck",
+      "signedVolume": 0.0009477681014686819,
+      "minTriangleArea": 0.015542522949161587
+    },
+    {
+      "name": "Dorsal triangular scute 03",
+      "triangles": 4,
+      "part": "neck",
+      "signedVolume": 0.000878166601372262,
+      "minTriangleArea": 0.014702825854910713
+    },
+    {
+      "name": "Dorsal triangular scute 04",
+      "triangles": 4,
+      "part": "body",
+      "signedVolume": 0.000683228718116879,
+      "minTriangleArea": 0.012429798413277987
+    },
+    {
+      "name": "Dorsal triangular scute 05",
+      "triangles": 4,
+      "part": "body",
+      "signedVolume": 0.0006865658021221561,
+      "minTriangleArea": 0.012467419026018056
+    },
+    {
+      "name": "Dorsal triangular scute 06",
+      "triangles": 4,
+      "part": "body",
+      "signedVolume": 0.0008826374347942565,
+      "minTriangleArea": 0.014756466954331153
+    },
+    {
+      "name": "Dorsal triangular scute 07",
+      "triangles": 4,
+      "part": "body",
+      "signedVolume": 0.0009459539627035456,
+      "minTriangleArea": 0.015521936142261787
+    },
+    {
+      "name": "Dorsal triangular scute 08",
+      "triangles": 4,
+      "part": "body",
+      "signedVolume": 0.0007714040499801431,
+      "minTriangleArea": 0.013440442032632699
+    },
+    {
+      "name": "Throat bloom thick petal 0",
+      "triangles": 26,
+      "part": "bloom0",
+      "signedVolume": 0.010633239881523569,
+      "minTriangleArea": 0.001994506750970145
+    },
+    {
+      "name": "Throat bloom thick petal 1",
+      "triangles": 26,
+      "part": "bloom1",
+      "signedVolume": 0.013905012983741468,
+      "minTriangleArea": 0.002253031175471221
+    },
+    {
+      "name": "Throat bloom thick petal 2",
+      "triangles": 26,
+      "part": "bloom2",
+      "signedVolume": 0.015521322153896715,
+      "minTriangleArea": 0.0022530319828231553
+    },
+    {
+      "name": "Throat bloom thick petal 3",
+      "triangles": 26,
+      "part": "bloom3",
+      "signedVolume": 0.017160966138665853,
+      "minTriangleArea": 0.0022530263565833457
+    },
+    {
+      "name": "Throat bloom thick petal 4",
+      "triangles": 26,
+      "part": "bloom4",
+      "signedVolume": 0.015305781077283125,
+      "minTriangleArea": 0.0022530319828231553
+    },
+    {
+      "name": "Throat bloom thick petal 5",
+      "triangles": 26,
+      "part": "bloom5",
+      "signedVolume": 0.013427242753095935,
+      "minTriangleArea": 0.002253031175471221
+    },
+    {
+      "name": "Throat bloom thick petal 6",
+      "triangles": 26,
+      "part": "bloom6",
+      "signedVolume": 0.009846551976806945,
+      "minTriangleArea": 0.001994506750970145
+    },
+    {
+      "name": "Tail attached scute 1",
+      "triangles": 4,
+      "part": "tail",
+      "signedVolume": 0.0004876684931029258,
+      "minTriangleArea": 0.00793697773135616
+    },
+    {
+      "name": "Tail attached scute 2",
+      "triangles": 4,
+      "part": "tail",
+      "signedVolume": 0.0004466037886838121,
+      "minTriangleArea": 0.007852488100061283
+    },
+    {
+      "name": "Tail attached scute 3",
+      "triangles": 4,
+      "part": "tail",
+      "signedVolume": 0.0004231507579485578,
+      "minTriangleArea": 0.007812323970774317
+    },
+    {
+      "name": "Tail attached scute 4",
+      "triangles": 4,
+      "part": "tail",
+      "signedVolume": 0.00039962803324063677,
+      "minTriangleArea": 0.007778168828128346
+    },
+    {
+      "name": "Tail attached scute 5",
+      "triangles": 4,
+      "part": "tail",
+      "signedVolume": 0.00038792689641316963,
+      "minTriangleArea": 0.0077633825070976634
+    },
+    {
+      "name": "Tail attached scute 6",
+      "triangles": 4,
+      "part": "tail",
+      "signedVolume": 0.00036441721022129146,
+      "minTriangleArea": 0.007738409275884497
+    }
+  ],
+  "nativeBytes": 1856696,
+  "packedBytes": 40836,
+  "glbBytes": 905500,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "sourceSha256": "80866749d0706c0c14f228acbbc3499b2f5ac919ab1ccf79ec58bb586426ea0f"
+}

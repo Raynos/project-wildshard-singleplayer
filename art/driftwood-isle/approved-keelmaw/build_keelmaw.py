@@ -6,7 +6,7 @@ import argparse,sys,math,json,hashlib,importlib.util
 from pathlib import Path
 import bpy
 from mathutils import Vector
-p=argparse.ArgumentParser();p.add_argument('--out',required=True);p.add_argument('--render',action='store_true');a=p.parse_args(sys.argv[sys.argv.index('--')+1:]);out=Path(a.out).resolve();out.mkdir(parents=True,exist_ok=True)
+p=argparse.ArgumentParser();p.add_argument('--out',required=True);p.add_argument('--render',action='store_true');p.add_argument('--view');a=p.parse_args(sys.argv[sys.argv.index('--')+1:]);out=Path(a.out).resolve();out.mkdir(parents=True,exist_ok=True)
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[2]
 spec=importlib.util.spec_from_file_location('codec',ROOT/'art/driftwood-isle/approved-puffer/native_export.py');codec=importlib.util.module_from_spec(spec);spec.loader.exec_module(codec)
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
@@ -162,8 +162,9 @@ if a.render:
  bpy.ops.object.camera_add();camera=bpy.context.object;scene.camera=camera;camera.data.type='ORTHO';camera.data.ortho_scale=7.1;target=Vector((-.18,0,.90))
  views=[('hero',-38,23),('front',0,7),('left',90,7),('right',-90,7),('back',180,7),('top',0,89.9),('elevated-front',0,39),('elevated-left',55,30),('elevated-right',-55,30),('elevated-back',180,39)];cameras=[]
  for name,az,el in views:
+  if a.view and name!=a.view:continue
   ar=math.radians(az);er=math.radians(el);camera.location=target+Vector((10*math.sin(ar)*math.cos(er),-10*math.cos(ar)*math.cos(er),10*math.sin(er)));camera.rotation_euler=(target-camera.location).to_track_quat('-Z','Y').to_euler();
-  if name=='top':camera.rotation_euler.rotate_axis('Z',-math.pi/2)
-  scene.render.filepath=str(out/(name+'.png'));bpy.ops.render.render(write_still=True);cameras.append({'name':name,'azimuthDegrees':az,'elevationDegrees':el,'orthoScale':7.1,'actualRender':True})
+  if name=='top':camera.rotation_euler.rotate_axis('Z',math.pi/2)
+  scene.render.filepath=str(out/(name+'.png'));bpy.ops.render.render(write_still=True);cameras.append({'name':name,'azimuthDegrees':az,'elevationDegrees':el,'orthoScale':7.1,'cameraRollDegrees':90 if name=='top' else 0,'actualRender':True})
  (out/'cameras.json').write_text(json.dumps(cameras,indent=2)+'\n')
 print('KEELMAW_SOURCE_COMPLETE',json.dumps({k:v for k,v in report.items() if k!='components'}))

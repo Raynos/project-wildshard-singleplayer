@@ -1,0 +1,10 @@
+{
+  "triangles": 4482,
+  "maxPositionError": 1.075793665235927e-07,
+  "maxColorError": 2.7919488276850757e-08,
+  "paintTolerance": 1e-06,
+  "weightsTolerance": 1e-06,
+  "windingPreserved": true,
+  "skinAndMaterialEquivalence": true,
+  "runtimeAcceptance": false
+}

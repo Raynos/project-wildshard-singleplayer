@@ -1,0 +1,25 @@
+{
+  "proof": "existing body capsule/head sphere fit to core parts only; no new volumes or root lift",
+  "parts": {
+    "body": {
+      "measuredMaximum": 0.6224473093589784,
+      "radius": 0.623,
+      "vertices": 648
+    },
+    "head": {
+      "measuredMaximum": 0.5739504568315489,
+      "radius": 0.574,
+      "vertices": 5784
+    }
+  },
+  "bodyCapsuleBottom": 0.15700000000000003,
+  "rootLift": 0,
+  "excluded": [
+    "legs",
+    "tail",
+    "throat bloom"
+  ],
+  "physicalDeathTested": false,
+  "runtimeAcceptance": false,
+  "nativeSha256": "a0dc22f77c8b761b847899302b3bdc9f194e54cd69a1e3e9504b904d4750df16"
+}

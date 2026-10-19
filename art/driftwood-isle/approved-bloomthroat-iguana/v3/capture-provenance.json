@@ -1,0 +1,57 @@
+{
+  "sourceVersion": "v3",
+  "context": "Blender source only; no runtime scene",
+  "views": [
+    {
+      "view": "hero",
+      "rawSha256": "c9b922a9815efa7a7a4a33d3d95c1448d8cd2069e0556e03018836bbe09aed38",
+      "output": "hero.webp"
+    },
+    {
+      "view": "front",
+      "rawSha256": "614fca4526a86bf148106400c33e6ea5cfc5d43037968548500b5c049f6aa9cd",
+      "output": "front.webp"
+    },
+    {
+      "view": "left",
+      "rawSha256": "a5635979f5865a5b4c804c70722b6079b6e6e346ab87c8a03e936c6025a495a4",
+      "output": "left.webp"
+    },
+    {
+      "view": "right",
+      "rawSha256": "d133828c9ffadf3257f2e8f8d37d738060b6a4d60a1568f9ce3ea0caa3435e18",
+      "output": "right.webp"
+    },
+    {
+      "view": "back",
+      "rawSha256": "75746ec26d4e58061b9305c81e35d65c5d27f3deca428b824e6ec65e925eee97",
+      "output": "back.webp"
+    },
+    {
+      "view": "top",
+      "rawSha256": "c629e8c45fc19e7f18733e94554efe9ca339a34f15e054328ad2ed464a21c4ac",
+      "output": "top.webp"
+    },
+    {
+      "view": "elevated-front",
+      "rawSha256": "49c4e897f2a5549749d998e5c1115ea45d4c2b86e5e486214fd1cd6c42e91ed9",
+      "output": "elevated-front.webp"
+    },
+    {
+      "view": "elevated-left",
+      "rawSha256": "e00be6ca5171af5691850cb46faf000ccdbdcefddd000193b0994c678a6b8061",
+      "output": "elevated-left.webp"
+    },
+    {
+      "view": "elevated-right",
+      "rawSha256": "97db69acf6de4d4ae4b69d398a77307cfa54dcd2fd7ce5ea6d24b96c30ef20a5",
+      "output": "elevated-right.webp"
+    },
+    {
+      "view": "elevated-back",
+      "rawSha256": "8931d6a227bfde6c77588aee0d9c1d2c8d997b1d5c45fcc04d6334b77041a48d",
+      "output": "elevated-back.webp"
+    }
+  ],
+  "referenceHeroSha256": "11d3253bc8c57660e7f3a034957376af91638b9ff7b9673da861b78fb51dd9d4"
+}

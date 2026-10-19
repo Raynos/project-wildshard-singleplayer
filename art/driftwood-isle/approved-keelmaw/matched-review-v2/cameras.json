@@ -1,0 +1,73 @@
+[
+  {
+    "name": "hero",
+    "azimuthDegrees": -38,
+    "elevationDegrees": 23,
+    "orthoScale": 7.1,
+    "actualRender": true
+  },
+  {
+    "name": "front",
+    "azimuthDegrees": 0,
+    "elevationDegrees": 7,
+    "orthoScale": 7.1,
+    "actualRender": true
+  },
+  {
+    "name": "left",
+    "azimuthDegrees": 90,
+    "elevationDegrees": 7,
+    "orthoScale": 7.1,
+    "actualRender": true
+  },
+  {
+    "name": "right",
+    "azimuthDegrees": -90,
+    "elevationDegrees": 7,
+    "orthoScale": 7.1,
+    "actualRender": true
+  },
+  {
+    "name": "back",
+    "azimuthDegrees": 180,
+    "elevationDegrees": 7,
+    "orthoScale": 7.1,
+    "actualRender": true
+  },
+  {
+    "name": "top",
+    "azimuthDegrees": 0,
+    "elevationDegrees": 89.9,
+    "orthoScale": 7.1,
+    "cameraRollDegrees": 90,
+    "actualRender": true
+  },
+  {
+    "name": "elevated-front",
+    "azimuthDegrees": 0,
+    "elevationDegrees": 39,
+    "orthoScale": 7.1,
+    "actualRender": true
+  },
+  {
+    "name": "elevated-left",
+    "azimuthDegrees": 55,
+    "elevationDegrees": 30,
+    "orthoScale": 7.1,
+    "actualRender": true
+  },
+  {
+    "name": "elevated-right",
+    "azimuthDegrees": -55,
+    "elevationDegrees": 30,
+    "orthoScale": 7.1,
+    "actualRender": true
+  },
+  {
+    "name": "elevated-back",
+    "azimuthDegrees": 180,
+    "elevationDegrees": 39,
+    "orthoScale": 7.1,
+    "actualRender": true
+  }
+]
