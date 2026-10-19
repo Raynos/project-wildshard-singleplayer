@@ -1,0 +1,6 @@
+{
+  "executedHarnessSha256": "2a67673df54448b6103ab3f10df3b81437341938aefdea0e4d21e52385234ad9",
+  "currentHarnessSha256": "3bc9e3d1c86d20fe3f0f457e797e46c1f97595341ddeefcb6de5a90c32a6638c",
+  "change": "Remove unused local trace binding; preserve call unchanged. Exact executed harness remains in attempt2.",
+  "appChanged": false
+}

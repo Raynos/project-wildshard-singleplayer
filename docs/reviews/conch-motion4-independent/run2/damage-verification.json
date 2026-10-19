@@ -1,0 +1,716 @@
+{
+  "tipVertex": 5761,
+  "events": [
+    {
+      "eventSample": 123,
+      "frame": 126,
+      "callbackLane": {
+        "along": 1.986174128576612,
+        "perpendicular": -0.00943654283921753
+      },
+      "followingRenderFrame": 126,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766124,
+        "perpendicular": -0.00943654283921764
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 86,
+      "callbackPose": 122,
+      "followingPose": 123
+    },
+    {
+      "eventSample": 189,
+      "frame": 187,
+      "callbackLane": {
+        "along": 1.986174128576612,
+        "perpendicular": -0.009436542839217518
+      },
+      "followingRenderFrame": 187,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.009436542839217629
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 86,
+      "callbackPose": 183,
+      "followingPose": 184
+    },
+    {
+      "eventSample": 234,
+      "frame": 226,
+      "callbackLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.009436542839217516
+      },
+      "followingRenderFrame": 226,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.009436542839217571
+      },
+      "playerHpBefore": 86,
+      "playerHpFollowing": 72,
+      "callbackPose": 222,
+      "followingPose": 223
+    },
+    {
+      "eventSample": 249,
+      "frame": 237,
+      "callbackLane": {
+        "along": 1.9861741285766124,
+        "perpendicular": -0.009436542839217441
+      },
+      "followingRenderFrame": 237,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766124,
+        "perpendicular": -0.009436542839217497
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 86,
+      "callbackPose": 233,
+      "followingPose": 234
+    },
+    {
+      "eventSample": 292,
+      "frame": 274,
+      "callbackLane": {
+        "along": 1.9861741285766124,
+        "perpendicular": -0.009436542839217663
+      },
+      "followingRenderFrame": 274,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766124,
+        "perpendicular": -0.009436542839217719
+      },
+      "playerHpBefore": 86,
+      "playerHpFollowing": 72,
+      "callbackPose": 270,
+      "followingPose": 271
+    },
+    {
+      "eventSample": 323,
+      "frame": 298,
+      "callbackLane": {
+        "along": 1.986174128576612,
+        "perpendicular": -0.009436542839217658
+      },
+      "followingRenderFrame": 298,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.986174128576612,
+        "perpendicular": -0.009436542839217658
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 84,
+      "callbackPose": 294,
+      "followingPose": 295
+    },
+    {
+      "eventSample": 378,
+      "frame": 349,
+      "callbackLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.009436542839217556
+      },
+      "followingRenderFrame": 349,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.009436542839217556
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 86,
+      "callbackPose": 345,
+      "followingPose": 346
+    },
+    {
+      "eventSample": 424,
+      "frame": 388,
+      "callbackLane": {
+        "along": 1.9871161433205677,
+        "perpendicular": 0.926042120572788
+      },
+      "followingRenderFrame": 388,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.009436542839217691
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 84,
+      "callbackPose": 384,
+      "followingPose": 385
+    },
+    {
+      "eventSample": 494,
+      "frame": 450,
+      "callbackLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.009436542839217668
+      },
+      "followingRenderFrame": 450,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.00943654283921778
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 86,
+      "callbackPose": 446,
+      "followingPose": 447
+    },
+    {
+      "eventSample": 540,
+      "frame": 489,
+      "callbackLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.009436542839217445
+      },
+      "followingRenderFrame": 489,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.009436542839217556
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 86,
+      "callbackPose": 485,
+      "followingPose": 486
+    },
+    {
+      "eventSample": 589,
+      "frame": 531,
+      "callbackLane": {
+        "along": 1.9861741285766126,
+        "perpendicular": -0.00943654283921746
+      },
+      "followingRenderFrame": 531,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.00943654283921746
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 86,
+      "callbackPose": 527,
+      "followingPose": 528
+    },
+    {
+      "eventSample": 670,
+      "frame": 602,
+      "callbackLane": {
+        "along": 1.9861741285766124,
+        "perpendicular": -0.009436542839217889
+      },
+      "followingRenderFrame": 602,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766124,
+        "perpendicular": -0.009436542839217889
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 84,
+      "callbackPose": 598,
+      "followingPose": 599
+    },
+    {
+      "eventSample": 911,
+      "frame": 824,
+      "callbackLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.009436542839217535
+      },
+      "followingRenderFrame": 824,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.009436542839217646
+      },
+      "playerHpBefore": 100,
+      "playerHpFollowing": 86,
+      "callbackPose": 820,
+      "followingPose": 821
+    },
+    {
+      "eventSample": 954,
+      "frame": 864,
+      "callbackLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.00943654283921747
+      },
+      "followingRenderFrame": 864,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.009436542839217748
+      },
+      "playerHpBefore": 86,
+      "playerHpFollowing": 72,
+      "callbackPose": 860,
+      "followingPose": 861
+    },
+    {
+      "eventSample": 998,
+      "frame": 905,
+      "callbackLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217282
+      },
+      "followingRenderFrame": 905,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.986174128576613,
+        "perpendicular": -0.009436542839217504
+      },
+      "playerHpBefore": 72,
+      "playerHpFollowing": 58,
+      "callbackPose": 901,
+      "followingPose": 902
+    },
+    {
+      "eventSample": 1039,
+      "frame": 943,
+      "callbackLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.009436542839217505
+      },
+      "followingRenderFrame": 943,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766117,
+        "perpendicular": -0.009436542839217616
+      },
+      "playerHpBefore": 58,
+      "playerHpFollowing": 44,
+      "callbackPose": 939,
+      "followingPose": 940
+    },
+    {
+      "eventSample": 1080,
+      "frame": 981,
+      "callbackLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.009436542839217677
+      },
+      "followingRenderFrame": 981,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.009436542839217677
+      },
+      "playerHpBefore": 44,
+      "playerHpFollowing": 30,
+      "callbackPose": 977,
+      "followingPose": 978
+    },
+    {
+      "eventSample": 1121,
+      "frame": 1019,
+      "callbackLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.009436542839217287
+      },
+      "followingRenderFrame": 1019,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766128,
+        "perpendicular": -0.009436542839217398
+      },
+      "playerHpBefore": 30,
+      "playerHpFollowing": 16,
+      "callbackPose": 1015,
+      "followingPose": 1016
+    },
+    {
+      "eventSample": 1161,
+      "frame": 1056,
+      "callbackLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.00943654283921729
+      },
+      "followingRenderFrame": 1056,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766121,
+        "perpendicular": -0.009436542839217457
+      },
+      "playerHpBefore": 16,
+      "playerHpFollowing": 2,
+      "callbackPose": 1052,
+      "followingPose": 1053
+    },
+    {
+      "eventSample": 1201,
+      "frame": 1093,
+      "callbackLane": {
+        "along": 1.9861741285766124,
+        "perpendicular": -0.009436542839217568
+      },
+      "followingRenderFrame": 1093,
+      "followingRenderLaneAgainstDamageLane": {
+        "along": 1.9861741285766124,
+        "perpendicular": -0.009436542839217679
+      },
+      "playerHpBefore": 2,
+      "playerHpFollowing": 0,
+      "callbackPose": 1089,
+      "followingPose": 1090
+    }
+  ],
+  "actualEnemyHitPhases": [
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 187,
+      "phase": "guard-counter",
+      "stage": 1,
+      "clock": 0.6,
+      "guard": 0,
+      "hp": 48,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.03333333333333333,
+        "speedMul": 1,
+        "clock": 0.8333333333333343,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": -7,
+        "x1": 1.7082788751886848e-06,
+        "z1": -4.600000000000608,
+        "yaw": 7.11782864662012e-07,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 237,
+      "phase": "guard-counter",
+      "stage": 1,
+      "clock": 0.6,
+      "guard": 0,
+      "hp": 48,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.06666666666666667,
+        "speedMul": 1,
+        "clock": 0.7666666666666674,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": -7,
+        "x1": 0.0011363890559654588,
+        "z1": -4.600000269037533,
+        "yaw": 0.0004734954576783927,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 285,
+      "phase": "guard-counter",
+      "stage": 1,
+      "clock": 0.5,
+      "guard": 1,
+      "hp": 57,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.5666666666666668,
+        "speedMul": 1,
+        "clock": 0.7666666666666674,
+        "deadlines": [],
+        "scores": [],
+        "x0": 7.302226458705263e-05,
+        "z0": -6.984808363835327,
+        "x1": 0.012606956323207593,
+        "z1": -4.584841093121618,
+        "yaw": 0.0052224962645267235,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 377,
+      "phase": "interruption-idle",
+      "stage": 1,
+      "clock": 0.30000000000000004,
+      "guard": 1,
+      "hp": 57,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.35,
+        "speedMul": 1,
+        "clock": 0.55,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": -7,
+        "x1": 1.7082788751886848e-06,
+        "z1": -4.600000000000608,
+        "yaw": 7.11782864662012e-07,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 414,
+      "phase": "interruption-early-windup",
+      "stage": 1,
+      "clock": 0.5,
+      "guard": 1,
+      "hp": 57,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.8000000000000008,
+        "deadlines": [],
+        "scores": [],
+        "x0": 2.3841432300608645e-13,
+        "z0": -6.925626329611987,
+        "x1": -1.0487230643564902e-06,
+        "z1": -4.525626329612216,
+        "yaw": -4.3696804282118597e-07,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 454,
+      "phase": "interruption-late-windup",
+      "stage": 1,
+      "clock": 0.9999999999999999,
+      "guard": 0,
+      "hp": 48,
+      "strike": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.3,
+        "speedMul": 1,
+        "clock": 1.3166666666666669,
+        "deadlines": [],
+        "scores": [],
+        "x0": 2.3841432300608645e-13,
+        "z0": -6.926401929697022,
+        "x1": 4.8367480716641723e-11,
+        "z1": -4.5264019296970215,
+        "yaw": 2.005377766401485e-11,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 495,
+      "phase": "interruption-active",
+      "stage": 1,
+      "clock": 1.0999999999999999,
+      "guard": 0,
+      "hp": 48,
+      "strike": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.4333333333333333,
+        "speedMul": 1,
+        "clock": 1.35,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": -7,
+        "x1": 1.7082805100361304e-06,
+        "z1": -4.600000000000608,
+        "yaw": 7.117835458484478e-07,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 550,
+      "phase": "interruption-recovery",
+      "stage": 2,
+      "clock": 0.6,
+      "guard": 0,
+      "hp": 48,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 2.5999999999999956,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 1.9166666666666647
+          }
+        ],
+        "scores": [],
+        "x0": -3.576063598888235e-13,
+        "z0": -6.915670409798622,
+        "x1": -4.883235720802672e-07,
+        "z1": -4.5156704097986715,
+        "yaw": -2.0346800603079608e-07,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 589,
+      "phase": "sword-death",
+      "stage": 1,
+      "clock": 0.4,
+      "guard": 1,
+      "hp": 57,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": false,
+        "elapsed": 0.49999999999999994,
+        "speedMul": 1,
+        "clock": 1.100000000000001,
+        "deadlines": [],
+        "scores": [],
+        "x0": -1.0847606667085952e-11,
+        "z0": -6.6490079974755645,
+        "x1": -1.0847561248871302e-11,
+        "z1": -4.249007997475564,
+        "yaw": 1.892425610385799e-17,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 603,
+      "phase": "sword-death",
+      "stage": 3,
+      "clock": 0.6,
+      "guard": 0,
+      "hp": 45,
+      "strike": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.conch-duelist.counter",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 2.2666666666666635,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.3178964341167803,
+        "z0": -7.157871290110052,
+        "x1": 0.043914251949441985,
+        "z1": -4.785300315945467,
+        "yaw": 0.15133140311428755,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 615,
+      "phase": "sword-death",
+      "stage": 2,
+      "clock": 0.7,
+      "guard": 0,
+      "hp": 33,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 3.433333333333326,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.3178964341167803,
+        "z0": -7.157871290110052,
+        "x1": 0.043914251949441985,
+        "z1": -4.785300315945467,
+        "yaw": 0.15133140311428755,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 630,
+      "phase": "sword-death",
+      "stage": 2,
+      "clock": 0.7999999999999999,
+      "guard": 0,
+      "hp": 21,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 4.7499999999999885,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.3178964341167803,
+        "z0": -7.157871290110052,
+        "x1": 0.043914251949441985,
+        "z1": -4.785300315945467,
+        "yaw": 0.15133140311428755,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 643,
+      "phase": "sword-death",
+      "stage": 2,
+      "clock": 0.7,
+      "guard": 0,
+      "hp": 9,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 5.949999999999984,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.3178964341167803,
+        "z0": -7.157871290110052,
+        "x1": 0.043914251949441985,
+        "z1": -4.785300315945467,
+        "yaw": 0.15133140311428755,
+        "length": 2.4
+      }
+    },
+    {
+      "kind": "enemy-damage-before-presentation",
+      "frame": 658,
+      "phase": "sword-death",
+      "stage": 2,
+      "clock": 0.7999999999999999,
+      "guard": 0,
+      "hp": 0,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 7.299999999999979,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.3178964341167803,
+        "z0": -7.157871290110052,
+        "x1": 0.043914251949441985,
+        "z1": -4.785300315945467,
+        "yaw": 0.15133140311428755,
+        "length": 2.4
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "conch.motion4.windup-supplement.v1",
+  "buildManifestSha256": "faa5e042547e36ad4f72fe65f89451a35ce9265465a731213e7c5ac51de9cdaa",
+  "verifiedAppFilesAfterCapture": 137,
+  "sourceHash": "e41d1e7600a94074384a00fca22b58f634c060f5eb0458c5d34ec2bf44db6cb8",
+  "files": {
+    "scripts/qa-conch-readable-windup-interruptions.mjs": {
+      "bytes": 13283,
+      "sha256": "2a67673df54448b6103ab3f10df3b81437341938aefdea0e4d21e52385234ad9"
+    },
+    "scripts/qa-conch-readable-observation.mjs": {
+      "bytes": 7065,
+      "sha256": "a63a140e38713e0d4ad8b937acd1f7b2ebda0466d340e4f412e8aac8a219deb0"
+    },
+    "src/shards/driftwood-isle/behaviour/conchDuelist.as": {
+      "bytes": 1898,
+      "sha256": "07ded78edf914ccc41c2d636b1d9e99d08f5fd4617a509fc3b3c0b3caea93714"
+    },
+    "src/game/shardfile/borrowedGuard.ts": {
+      "bytes": 1032,
+      "sha256": "4f947d513cbc6e06959a203c40e0bd5075b1ec6c9d684ea59c1b96f5e6684b79"
+    },
+    "src/shards/driftwood-isle/generators/driftwoodRegularCombat.ts": {
+      "bytes": 5525,
+      "sha256": "1d440026e146b9d46ab58098e9517165ba3290365f1317e0a6f8fe169ade72ff"
+    }
+  },
+  "gameChanges": false,
+  "runtimeAcceptance": false,
+  "visualAcceptance": false
+}

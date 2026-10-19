@@ -1,0 +1,77 @@
+{
+  "schema": "conch.motion4.evidence.v1",
+  "sourceDirectory": "tmp/conch-readable-qa/motion4-windup-interruptions-run2",
+  "files": {
+    "damage-geometry.json": {
+      "bytes": 34052,
+      "sha256": "eea4cc41193d97cfa89e9de2dea44f1978d7f4930dc8121bb91e34f56ff1a91e",
+      "wholeFile": true,
+      "publicCopySha256": "eea4cc41193d97cfa89e9de2dea44f1978d7f4930dc8121bb91e34f56ff1a91e",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt2/damage-geometry.json"
+    },
+    "early-ordinary.jpg": {
+      "bytes": 60831,
+      "sha256": "bb6b8bfe9474784408c031509678e5199f3f7bc801cf36efa2cf196b3f189810",
+      "wholeFile": true,
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt2/early-ordinary.jpg"
+    },
+    "events.json": {
+      "bytes": 165910,
+      "sha256": "c13708b46618fdad084e36a8c1a14bfca87af7b0e7296fce69bf579e48c97c30",
+      "wholeFile": true,
+      "publicCopySha256": "c13708b46618fdad084e36a8c1a14bfca87af7b0e7296fce69bf579e48c97c30",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt2/events.json"
+    },
+    "executed-harness.mjs": {
+      "bytes": 13283,
+      "sha256": "2a67673df54448b6103ab3f10df3b81437341938aefdea0e4d21e52385234ad9",
+      "wholeFile": true,
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt2/executed-harness.mjs"
+    },
+    "geometry.json": {
+      "bytes": 548510,
+      "sha256": "e6972a551bfa53bb139626086d8a1724d1b7d764c3ec6666948ed586d833e351",
+      "wholeFile": true,
+      "publicCopySha256": "e6972a551bfa53bb139626086d8a1724d1b7d764c3ec6666948ed586d833e351",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt2/geometry.json"
+    },
+    "late-ordinary.jpg": {
+      "bytes": 60447,
+      "sha256": "b57145dcf8784637c315930f53f6e93bb672459904cb139b8bce9a2434e6c821",
+      "wholeFile": true,
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt2/late-ordinary.jpg"
+    },
+    "report.json": {
+      "bytes": 39601,
+      "sha256": "959374a009cc767ca102d109791e0938faa547f20181f2bd304089c3e2cb49bd",
+      "wholeFile": true,
+      "publicCopySha256": "fe1c0b03da2f81cf638995134f127cefdf01154c67e1e9e16566062cb8376df8",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt2/report.json"
+    },
+    "trace.json": {
+      "bytes": 2003392,
+      "sha256": "9acc2b83aaf529bffe80d6ed462b8b0d68b2ef7efbbb1b90d5027c1458a3ba59",
+      "wholeFile": true,
+      "publicCopySha256": "9acc2b83aaf529bffe80d6ed462b8b0d68b2ef7efbbb1b90d5027c1458a3ba59",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt2/trace.json"
+    },
+    "video/page@389821c0fdbd8490a3d5f617beae779c.webm": {
+      "bytes": 3067499,
+      "sha256": "f06cdd0cb0328a77f6e5089465f4e37be7fc21dc4fb2c4f939d795764eec9624",
+      "wholeFile": true
+    },
+    "video-timebase.json": {
+      "bytes": 442236,
+      "sha256": "8fed58621418f040b83a58df5ed4329465de7a1ff6a5d55a3e1db20d1a7ae047",
+      "wholeFile": true,
+      "publicCopySha256": "0031e20e4e5a2fb634e550869982f9e46c3374c9e4565d3732afdada77ee8949",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt2/video-timebase.json"
+    }
+  }
+}

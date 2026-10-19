@@ -1,0 +1,51 @@
+{
+  "schema": "conch.motion4.independent-capture-review-freeze.v1",
+  "status": "Awaiting legal early-windup supplemental capture; unguarded ordinary gate withdrawn",
+  "files": [
+    {
+      "path": "docs/reviews/conch-motion4-independent/run2/REVIEW.md",
+      "sha256": "182b4bdb7d7dd853459537c1be6beec07cb5aaf538f186fd7894b4fd2a101e23",
+      "bytes": 10489
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/run2/damage-verification.json",
+      "sha256": "a0541e13ee8e21661d29478fb23b669046b7cdc2960aefa32af76a2aac79b4ad",
+      "bytes": 18730
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/run2/extract-sheets.py",
+      "sha256": "8e2baaf255176e2f65ebadad472ce588f6e031edce9a903110144bd5be3f8af4",
+      "bytes": 1554
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/run2/numeric-verification.json",
+      "sha256": "978d68da34e9db2f3a7c190621b5ae89cd8a4f310e9c057b92911661889c4c0a",
+      "bytes": 1800911
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/run2/verify-damage.py",
+      "sha256": "5165cd8c03a3df3ce4be39020eef2e2165ea187d1cfe564b47c4ae95f450dfe6",
+      "bytes": 1708
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/run2/verify.py",
+      "sha256": "26b332c27bb0aa8a55b030054bb3943eda9715e813218848b1f23b7702748bb4",
+      "bytes": 4722
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/stop-resume/extract-sheets.py",
+      "sha256": "af6b148c13f7ac31512c14dad770fc503703db580fe4780dcf55e6da4adb65b9",
+      "bytes": 1561
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/stop-resume/numeric-verification.json",
+      "sha256": "e7df8587da3ecc35e99fef9c9fac4732c58f3f34884bc07bb22f956210e300ed",
+      "bytes": 143616
+    },
+    {
+      "path": "docs/reviews/conch-motion4-independent/stop-resume/verify.py",
+      "sha256": "af6b696b1b8683fd1ff6fd615768f7f2c78bfb565783ef70f79ed9e6e9dcfe9c",
+      "bytes": 4689
+    }
+  ]
+}

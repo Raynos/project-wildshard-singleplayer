@@ -1,0 +1,77 @@
+{
+  "schema": "conch.motion4.evidence.v1",
+  "sourceDirectory": "tmp/conch-readable-qa/motion4-windup-interruptions",
+  "files": {
+    "damage-geometry.json": {
+      "bytes": 41120,
+      "sha256": "6fa48029f60824ffb3420c9b54e78d6691b4ea49b4c5dc139af22a0856c2991b",
+      "wholeFile": true,
+      "publicCopySha256": "6fa48029f60824ffb3420c9b54e78d6691b4ea49b4c5dc139af22a0856c2991b",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt1/damage-geometry.json"
+    },
+    "early-ordinary.jpg": {
+      "bytes": 60804,
+      "sha256": "9b9c02588d832b490fdf704a9f5aed43b4e4f4ccf1d6f0ba86ddc321c9ec6ec3",
+      "wholeFile": true,
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt1/early-ordinary.jpg"
+    },
+    "events.json": {
+      "bytes": 193193,
+      "sha256": "910e54aa78f292e92d334e4cf904d6d7f2d4a6e74b95538e19bccead2d501ab3",
+      "wholeFile": true,
+      "publicCopySha256": "910e54aa78f292e92d334e4cf904d6d7f2d4a6e74b95538e19bccead2d501ab3",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt1/events.json"
+    },
+    "executed-harness.mjs": {
+      "bytes": 13132,
+      "sha256": "79d010587787222172c20888815f8b97a4d38031d6aefe2e539a473f896c6944",
+      "wholeFile": true,
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt1/executed-harness.mjs"
+    },
+    "geometry.json": {
+      "bytes": 548465,
+      "sha256": "49f21f8f6ec530a7d61dcf4a3f019847cdd09b1292f79165c5eebff7924e3d8e",
+      "wholeFile": true,
+      "publicCopySha256": "49f21f8f6ec530a7d61dcf4a3f019847cdd09b1292f79165c5eebff7924e3d8e",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt1/geometry.json"
+    },
+    "late-ordinary.jpg": {
+      "bytes": 60473,
+      "sha256": "a19216dfe14697614cff8a6b14cc7023a963d9be81d116153c639ff10a6c8a36",
+      "wholeFile": true,
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt1/late-ordinary.jpg"
+    },
+    "report.json": {
+      "bytes": 38884,
+      "sha256": "5732ec99031947b6c70b7c9ea5e5653c2b203992cadfd5e4abad7813d3942d5d",
+      "wholeFile": true,
+      "publicCopySha256": "cd588647a96f3711f1ec0064e568594b8b98eb0afaaa959991e63ae97f85a15a",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt1/report.json"
+    },
+    "trace.json": {
+      "bytes": 1861030,
+      "sha256": "eba7a0b4e65c17c147068e06d0f773c27d6162b68697ea4fd53788698104ce55",
+      "wholeFile": true,
+      "publicCopySha256": "eba7a0b4e65c17c147068e06d0f773c27d6162b68697ea4fd53788698104ce55",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt1/trace.json"
+    },
+    "video/page@6dc64f8279c62b2298616ac7e839ade7.webm": {
+      "bytes": 2879896,
+      "sha256": "5e82b00972f005a1a0433651f656015138d13aa793480d7f1ae552c562286cfc",
+      "wholeFile": true
+    },
+    "video-timebase.json": {
+      "bytes": 379587,
+      "sha256": "edd5272c0c8ca5bbc88ee60c32595f6255a32276b6de1d13258b77274971708b",
+      "wholeFile": true,
+      "publicCopySha256": "5bf36e53562f68d77514ddac30200e8d330446337887c9a5d01476284bd5fce4",
+      "redaction": "Repository-root prefix removed; originals unchanged",
+      "repositoryCopy": "docs/reviews/conch-motion4-capture/windup-interruptions/attempt1/video-timebase.json"
+    }
+  }
+}
