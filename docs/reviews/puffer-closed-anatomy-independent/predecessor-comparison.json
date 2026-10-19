@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "silhouette": "3.65",
+    "face": "3.65",
+    "details": "3.65",
+    "facet": "3.30"
+  },
+  "weightedExact": "3.5975",
+  "preferred": "closed-anatomy-study",
+  "predecessorViews": {
+    "hero": "Pouch is wider, blockier and more vertically flat at edges than candidate. Same eyes, brow projection, shallow feet and tail identity.",
+    "01-front": "Broad rectangular cream midsection less rounded than candidate; same face expression and shelf feet.",
+    "02-left": "Same narrow forefoot and tall rear support; thin diagonal seam at pouch/teal boundary more conspicuous.",
+    "03-right": "Flat pouch front and long straight pale side edge; unchanged crown, tail and legs.",
+    "04-back": "Essentially same silhouette; lower side cream extent differs, no meaningful rear improvement.",
+    "05-top": "Pouch protrudes more broadly ahead of crown; same body, spines, feet and tail.",
+    "06-elevated-front": "Wider, more block-like lower face than candidate; eyes and toe repetition shared.",
+    "07-elevated-left": "More abrupt pouch side/front facet and seam; same banded crown and legs.",
+    "08-elevated-right": "Pouch appears flatter with sharper vertical edge; same feet/tail geometry impression.",
+    "09-elevated-back": "No material likeness advantage; same spines and narrow supports."
+  },
+  "delta": "0.0400",
+  "confidence": "Small preference, not perceptually measured precision. Both materially short of original. No comparison to uninspected historical versions is claimed."
+}

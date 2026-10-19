@@ -1,0 +1,40 @@
+{
+  "frozen_at_utc": "2026-10-19T15:20:19.694630+00:00",
+  "inspection_order": "Approved original, all ten candidate full PNGs individually; this freeze precedes baseline images and author/prior scoring reports. Only input-pins metadata was read.",
+  "scale": {
+    "1": "Identity largely absent",
+    "2": "Major identity/proportion failures",
+    "3": "Recognizable subject with material mismatches",
+    "4": "Strong likeness with only minor mismatches",
+    "5": "Faithful translation of reference; no material mismatch"
+  },
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "details": 0.2,
+    "facet": 0.15
+  },
+  "criteria": {
+    "silhouette": "Overall posture/proportions, arch and throat bulk, wing fan size/shape, limb and blade rhythm; reference UI/background excluded.",
+    "face": "Head wedge, brow/crest, eye shape/placement, mandibles, antenna proportions and character.",
+    "details": "Leaf veins/tips, bark collar overlap, leg leaves, scythe tooth count/rhythm and readable assembled anatomy.",
+    "facet": "Intentional low-poly plane hierarchy, warm bark/lime leaf/cream palette, readable lighting and coherent faceting rather than random geometry."
+  },
+  "rules": [
+    "Global scores from all views, not best-camera score.",
+    "Rear/top are coherence checks, not exact unseen-reference comparisons.",
+    "No rounding a sub-4 total into acceptance.",
+    "Structural correspondence is not visual acceptance.",
+    "Static captures cannot establish animation/deformation fitness."
+  ],
+  "target": 4,
+  "candidate_first_pass": {
+    "silhouette": 3.6,
+    "face": 3.7,
+    "details": 3.8,
+    "facet": 3.6,
+    "weighted_total": 3.67,
+    "observations": "Clearly recognizable. Hero is strongest. Wing leaves are broader and more billboard-like; side views expose an overly long curved neck and low horizontal abdomen compared with original lifted compact chest. Large polygonal eyes and broad flat forehead lose some narrow predatory wedge. Throat reads as narrow cream strip, collar as layered bark; diagonal-right reveals long pale zigzag seam. Facet palette matches but bark has elongated planar ribbons."
+  },
+  "arithmetic_correction": "Weighted total corrected from initial arithmetic typo 3.675 to exact 3.670 after verification; frozen category scores and rubric unchanged."
+}

@@ -1,0 +1,49 @@
+{
+  "candidate": "cervical-frame-repair",
+  "baseline": "complete-pass2",
+  "scores": {
+    "candidate": {
+      "silhouette": 3.6,
+      "face": 3.7,
+      "details": 3.8,
+      "facet": 3.6
+    },
+    "baseline": {
+      "silhouette": 3.6,
+      "face": 3.7,
+      "details": 3.8,
+      "facet": 3.6
+    }
+  },
+  "weighted_total": {
+    "candidate": 3.670,
+    "baseline": 3.670
+  },
+  "target": 4,
+  "accepted": false,
+  "best": "Candidate narrowly preferred for local neck-to-skull visual continuity; global likeness is a tie at this rubric precision. Neither meets target.",
+  "score_delta": 0,
+  "confidence": "Moderate for subjective likeness, high for no material static visual regression; no motion/contact acceptance.",
+  "view_notes": {
+    "hero": "Strongest reference-facing presentation: bark, bright eyes, leaf fan and two cream serrated scythes all read. Broad leaves and open long forearms are less compact than the concept. Repair not materially apparent at full-frame scale.",
+    "front": "Clear symmetric predatory read, but eyes are broad polygons and upper face is comparatively flat; narrow pale throat reads as a strip. No new silhouette damage.",
+    "back": "Leaf fan dominates, bark abdomen/legs remain coherent. Reference offers no exact rear view; no material repair effect visible.",
+    "left": "Long arched neck and horizontal abdomen are pronounced. Baseline ends with a more apparent dark break/ledge at neck-to-skull underside; candidate closes it modestly. Candidate does not worsen the outer arch.",
+    "right": "Pale strip runs up underside of arch. Candidate extends terminal connection nearer skull; predecessor has a small exposed terminal ledge. A clean visual join is modestly improved, not proof of articulation clearance.",
+    "top": "Paired appendages and wing roots read consistently. Overlapping plate ribbons remain at neck. No material repair effect at this full-frame view.",
+    "diag-front": "Face and blades read aggressively; large leaf backdrop dominates. Neck is foreshortened and cannot be accepted on this flattering view alone.",
+    "diag-back": "Back of skull and dorsal arch remain continuous in appearance; fan and abdomen have consistent construction. No direct concept counterpart.",
+    "diag-left": "Exposed layered collar remains jagged but visually plausible bark. Candidate is slightly fuller under skull. Forearms overlap behind head in projection, not independently a mesh defect.",
+    "diag-right": "Long pale zigzag throat/ribbon and angular collar remain visible. Candidate local closure is preferable but does not change the elongated neck character."
+  },
+  "inspection_order": [
+    "approved-original",
+    "candidate hero/front/back/left/right/top/diag-front/diag-back/diag-left/diag-right",
+    "rubric frozen with candidate first-pass score",
+    "baseline same order",
+    "provenance, renderer, README and structural reports"
+  ],
+  "historical_disagreement": "Historical 3.935 was encountered only after the independent score freeze and all 20 inspections. This review scores both 3.670: larger deductions for broad planar leaf fan, long curved neck/low abdomen and broad facial planes. No historical score transferred.",
+  "anatomy": "No new gross visible gap, detached head or material silhouette harm in these static views. Modest terminal continuity benefit. Recorded skull/collar/throat intersections prevent calling this usable articulated anatomy; movement, collision/contact and combat readability are untested.",
+  "structural_separation": "Source/native correspondence and zero reported opposed normals are not likeness acceptance. Opposed-normal figures are read from packet, not independently recomputed here."
+}

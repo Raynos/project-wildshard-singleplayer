@@ -1,0 +1,209 @@
+{
+  "all_pins_match": {
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/build_mantis_complete.py": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/mantis-study-complete-pass2.glb": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/mantis-mesh-complete-pass2.json": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/metrics-complete-pass2.json": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/mapping-limits.json": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/authored-mapping.json": true,
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/export_native.py": true,
+    "art/driftwood-isle/approved-puffer/native_export.py": true,
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/build_mantis_complete.py": true,
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/authored-mapping.json": true,
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/mantis-study-cervical-frame-repair.glb": true,
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/mantis-mesh-cervical-frame-repair.json": true,
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/metrics-cervical-frame-repair.json": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/mantis-native.json": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/payload.bin": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/metadata.json": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/mesh-map.json": true,
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/mantis-native.json": true,
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/payload.bin": true,
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/metadata.json": true,
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/mesh-map.json": true,
+    "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/splinter-mantis-lowpoly.webp": true
+  },
+  "roles": {
+    "baseline": {
+      "source_sha256": "ec5645e1dda1aa88df12043f2361e39b98291544e2588314d9ce628b0349fb0e",
+      "frozen_glb_sha256": "3566ee1301fd6461d59ff5627ae922856f952667310f6d36463c2ff706927604",
+      "rebuilt_glb_sha256": "eb5ca75ade327ae8c0eeb1cdae3166e65b0cbdea3f7be9b63e626f0d15798100",
+      "byte_exact": false,
+      "all_other_json_and_binary_exact": true,
+      "name_suffix_difference_count": 90,
+      "mesh_and_metrics_equal": true
+    },
+    "candidate": {
+      "source_sha256": "1b9cef26207dbf1acbf09f258fd625d50ae97b52b3ff63bc4db6520aa81f1025",
+      "frozen_glb_sha256": "f2c8a05301e00f0cb2c41dc0efe67c1ed162f606ee8aecf7f1446a317165fd67",
+      "rebuilt_glb_sha256": "f2c8a05301e00f0cb2c41dc0efe67c1ed162f606ee8aecf7f1446a317165fd67",
+      "byte_exact": true,
+      "all_other_json_and_binary_exact": true,
+      "name_suffix_difference_count": 0,
+      "mesh_and_metrics_equal": true
+    }
+  },
+  "frames": [
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/hero.png",
+      "sha256": "01215cd1c73a4589a368b0a54fffe66c24d6d0773571336851606498d7e56157",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/hero.png",
+      "sha256": "88ea3589c61babf90e12b4858091653b7f7a929658074309cf66225632843c8f",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/front.png",
+      "sha256": "fe83286322ad838276c84d0ddc0faf7ac5859546934cc2d2487fee11743eb2b2",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/front.png",
+      "sha256": "10ed9d829cbfa75ece048f34f7c8a7ab7c441ee6be66a7f52aff709107b00afa",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/left.png",
+      "sha256": "0c9c8f41e7bbf0cc2dfa5f5c700bb40aaf933db2116d0324c65a3fbf0d1ef572",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/left.png",
+      "sha256": "f85cad35ce51a542666f2bebec1bb2a2bf04c56b340378cd8629bb02bd77edbb",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/right.png",
+      "sha256": "011084a2d30b9224b84507ea7baedff9d69d3ffb9d837492d2683bcd6c4dbef6",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/right.png",
+      "sha256": "977aab8f22e40c760ea6cbf47afced36f3485362a08203fea3f8ce834615b1d5",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/back.png",
+      "sha256": "38a9e494a9d0caf2ecac0f88f3f58e38a107c1f0b38c18b6e1bad39a864fdf80",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/back.png",
+      "sha256": "53d16c603a303259639391a610263402a4ae05407523e1b14ed61d3cd30df73d",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/top.png",
+      "sha256": "fb3dc644a825e304ea4a6cc22f68d983a0fad324b3f53f1a6b01c5c7e746a086",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/top.png",
+      "sha256": "43b17e72a6a047e92f72a631cc0701a71ce14150e325db212084ba0d6932481b",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/diag-front.png",
+      "sha256": "a4a2d8fcf8d6f2b7b63a568b2c690d339221a34ce10dc075d5b005288cec58e5",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/diag-front.png",
+      "sha256": "b75b472a382778446c692342d913ca73108ff05bfa2e141e0f70588accc9e7d9",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/diag-left.png",
+      "sha256": "e84e7ef64ba2b9b0d7d8f3c774e965bb98f5d0cfa38b2acda1b9d75b4516beae",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/diag-left.png",
+      "sha256": "cd5fb113c79c5ad2d8448326d8bbf5bc6de5934bec6af2601bae4e2840c21c5e",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/diag-right.png",
+      "sha256": "4b4f00e992f02149611a07554d94ebdfcc0251c8a816460591f9b9197b480b3c",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/diag-right.png",
+      "sha256": "b17d718900fe923d7faa07ec65e73aa8c96071bf2d3324d408ca78020e4818e5",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/baseline/diag-back.png",
+      "sha256": "151e6ba6730519338bdce02103324f2e5320763e056a5d21fa4da601ab474592",
+      "hash_size_camera_settings_match": true
+    },
+    {
+      "path": "tmp/mantis-cervical-frame-visual/candidate/diag-back.png",
+      "sha256": "850932bdb4745dce6698cb50495ddd8f17d12c7ff6282990f4e7f97718cd4090",
+      "hash_size_camera_settings_match": true
+    }
+  ],
+  "paired_camera_lighting_parity": true,
+  "settings": {
+    "engine": "CYCLES",
+    "samples": 20,
+    "denoising": false,
+    "seed": 0,
+    "resolution": [
+      638,
+      900
+    ],
+    "worldColor": [
+      0.15,
+      0.15,
+      0.15
+    ],
+    "viewTransform": "AgX",
+    "groundDiffuse": [
+      0.00209,
+      0.00286,
+      0.0035,
+      1
+    ],
+    "lights": [
+      [
+        "Key",
+        [
+          -3,
+          -4,
+          7
+        ],
+        700,
+        4
+      ],
+      [
+        "Fill",
+        [
+          4,
+          -2,
+          4
+        ],
+        400,
+        4
+      ],
+      [
+        "Rim",
+        [
+          0,
+          5,
+          5
+        ],
+        850,
+        3
+      ]
+    ],
+    "lightTarget": [
+      0,
+      0,
+      1.7
+    ]
+  },
+  "scope": "Verified present frozen/rebuilt artifacts and capture receipts; renderer source inspected, not rerun. Structural/native correspondence reports read, not independently rerun."
+}

@@ -1,0 +1,24 @@
+{
+  "stage": "After original pixels and all ten candidate PNGs; before any pass2 pixels or technical audit",
+  "scores": {
+    "silhouette": "3.70",
+    "face": "3.70",
+    "details": "3.65",
+    "facet": "3.35"
+  },
+  "weightedExact": "3.6375",
+  "judgment": "Recognizable and coherent full character, but broad pale flattened lower face, shallow nearly planar feet, regular smooth crown bands and long rear supports differ materially from the primary original. No acceptance.",
+  "views": {
+    "hero": "Broad brow and visible eyes hold attitude; lower face is very wide and angular, feet form long shallow flippers with uniform pale wedge toes; teal crown is comparatively plain.",
+    "01-front": "Compact symmetric body but broad angular pouch dominates and low feet form a horizontal shelf; pointed mouth survives.",
+    "02-left": "Rear support tall and near vertical; forefoot narrow from side; muzzle projects abruptly with fine upper bridge; tail rooted and legible.",
+    "03-right": "Same coherent profile on opposite side; brow appears as block projecting from crown, dark cheek/underside band strong.",
+    "04-back": "Continuous back and seated spine silhouettes; tail correctly edge-on, paired rear supports narrow tall cones.",
+    "05-top": "Broad regular crown planes with sparse spines; four feet and continuous tail stem show stable anatomy.",
+    "06-elevated-front": "Expression narrows under brows; cream face becomes sharp wide diamond; repeated toe wedges prominent.",
+    "07-elevated-left": "Tail fan is coherent and rooted; crown latitude-like bands and stretched shallow forefeet dominate.",
+    "08-elevated-right": "Opposite elevated side retains same volume; flank dark bands, separate-looking leg roots visible, no major obvious opening.",
+    "09-elevated-back": "Spines and tail remain seated; bilateral feet read as four independent narrow supports rather than original broad compact stance."
+  },
+  "originalEvidence": "Primary large left figure used; small hidden-angle thumbnails approximate. Original includes no dark nodules, so rubric detail shorthand does not create an invented nodule requirement."
+}

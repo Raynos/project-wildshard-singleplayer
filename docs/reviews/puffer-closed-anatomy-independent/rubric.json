@@ -1,0 +1,18 @@
+{
+  "frozenBeforeCandidatePixels": true,
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "details": 0.2,
+    "facet": 0.15
+  },
+  "scale": 5,
+  "criteria": {
+    "silhouette": "Compact inflated body, broad low planted stance, taper and proportion of tail, silhouette of spines; full-nine coherent volume.",
+    "face": "Integrated heavy orange brows, recessed expressive eyes, compact bridge and dark open mouth with warm interior.",
+    "details": "Crown spines, dark nodules, feet/toes, tail fan and structural seat of appendages matching original visible evidence.",
+    "facet": "Broad purposeful low-poly planes, warm ivory/orange with deep teal contrast; no distracting regular bands or wafer surfaces."
+  },
+  "aggregation": "Single whole-candidate judgment from hero plus all nine; arithmetic exact decimal, no rounding to threshold. Hidden regions judged for plausible consistency, not imagined exact original geometry.",
+  "procedureLimitation": "Historical V23\u2013V68 review scores unintentionally exposed by original-location search before freeze. No candidate or pass2 score read; scores will be independently assigned from pixels. Cannot certify strict prior-score-blind procedure."
+}
