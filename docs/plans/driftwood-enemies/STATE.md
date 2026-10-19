@@ -1,12 +1,12 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-19 11:49 UTC. Static milestones complete; runtime WIP.
+Updated 2026-10-19 12:35 UTC. Static milestones complete; runtime WIP.
 
-OWNER: Each other enemy strictly above 3.5/5. Puffer polishing and twenty extra concepts stay parked; this supersedes Puffer's 4/5-or-V100 gate. No score chasing. Rubric: silhouette35/face30/details20/style15. Approved originals control. Plan: docs/reviews/driftwood-four-enemy-resume-plan.md.
+OWNER12:32: Loop ALL FIVE until4/5, including Puffer again. Separate likeness, animation and combat-readability gates; no rounding or overall average. Supersedes four-enemy>3.5, Puffer parking and historical V100 stop. Twenty extras stay parked. Current plan: docs/reviews/five-enemy-four-star-loop.md.
 
 Independent full-nine static: Bellback V6 3.5625; Mantis V7 3.6025; Colossus V4 3.65; Conch character 3.57. Zero quality-complete enemies, physical-phone or human-fun acceptance.
 
-PUBLIC: Site61 live at11:49:04UTC; source8535087411be6839b751fd18b88d650f4562a7a3. Mantis7 replaces6 as UNACCEPTED diagnostic WIP; original6 host retained. Conch4, Colossus2 and Puffer70 unchanged. No Bellback Play.
+PUBLIC: Site62 live12:29:30UTC, source d7386dd4559b919f91a7e9895b00163b331587ad. Same four hosts;23 historical images losslessly compacted with browser pixel equality and retained originals. Owner requests one pinned Arena entry/all-five selector: implemented locally, browser QA pending. Bellback disabled. No host changes.
 
 MANTIS7: Product123eab925eca95a5275637259803235c85c670cb85c184e186334a3c24f8c9f7. Authoritative frame.attack drives precontact sweep; AI/strike clocks, geometry, gait and accelerated knee death remain unchanged. Source10+independent15 tests, strict admission3 and mounted24 checks pass. Root typecheck resource-killed137, not passed. Actual run2 is17/19: both named early/late-hit checks fail. The early-labelled attempt actually lands a late-sweep hit; the other lands active. No early-windup hit or death during sweep observed.
 
@@ -16,4 +16,4 @@ CONCH4: Mounted34 checks and4460 frames reviewed. Tells3/5 from2.5; hit/recovery
 
 BELLBACK: Candidates4/5 rejected for contact;5 also regresses death to1.5/5. Solver/timing/CCD failures preserved; do not repeat parameter chasing. OWNER DECISION pending since08:38: isolated five-body/four-joint Ragdolls prototype with eight shapes. No implementation before approval; do not repeat question.
 
-Six-shard work remains open. Sources verified through c606ef2dc2a4027fa037129eb5343ca000139169. Root connector gamedev-dot only; preserve unrelated/sparse work.
+Mantis gait audit: stance slip1.010x root travel; pointwise fit fails0.217rad seam and20.408mm speed-blend contact. One global periodic fit underway, unaccepted. Six-shard work open. Sources verified through9cce68423723afccad887039ae5621be71252bca. Root connector gamedev-dot only; preserve unrelated/sparse work.

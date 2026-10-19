@@ -1,6 +1,10 @@
 # Four approved Driftwood enemies: resumed build plan
 
-## Owner priority, 19 October 2026
+## Superseded scope — 19 October 2026, 12:32 UTC
+
+The owner requests all five enemies loop until4/5, including Puffer again. This page preserves the earlier four-enemy milestone; follow [the current five-enemy loop](five-enemy-four-star-loop.md).
+
+## Historical owner priority, 19 October 2026
 
 The owner moved on from Puffer polishing because of diminishing returns and requested each of the other four enemies above 3.5/5. This supersedes the former Puffer-first 4/5-or-V100 gate. Preserve Puffer's unfinished studies and best tested V70 playable. All twenty extra concepts stay deferred.
 

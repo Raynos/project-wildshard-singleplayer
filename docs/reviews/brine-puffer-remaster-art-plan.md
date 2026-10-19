@@ -1,6 +1,10 @@
 # Brine Puffer: artistic remaster plan
 
-## Parked by owner — 2026-10-19 02:54 UTC
+## Resumed in the five-enemy rotation — 2026-10-19 12:32 UTC
+
+The owner now requests all five enemies loop until4/5. Resume this retained remaster as a complete pass alongside the other four; the earlier parking and historical V100 stopping condition are superseded. See [the current loop](five-enemy-four-star-loop.md). Preserve the best tested V70 fallback until any complete replacement passes independent native/motion review.
+
+## Historical parking — 2026-10-19 02:54 UTC
 
 The owner explicitly moved priority to Conch Duelist, Splinter Mantis, Bellback and Tide-Root Colossus, each above 3.5/5 independent likeness, because Puffer polishing showed diminishing returns. Preserve this unfinished remaster and best tested playable. The prior Puffer-first stopping condition below is historical and superseded. No further Puffer polishing is scheduled.
 
