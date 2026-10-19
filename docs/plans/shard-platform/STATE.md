@@ -8,7 +8,7 @@
 
 **Batches:** twentieth 9f77d61bd LIVE (16:54 Cancun). Twenty-first sealed 2ba606e3d, pushed. Twenty-second window open to 19:30 Cancun, no landing order. Mega-build (G506/G507) 17:18 to 18:50: −6,284 shard lines from commit bodies (Nalati −3,482, Nine −2,713, DW −67, Pine −22), ~4,000 lines/h against ~400 before. Twenty-second closed 19:21, re-baking on 632a0d1fd after three reds fixed by sp-x7 (Nine 35 MB paint payload 61da69439, Nine practice row 4ddf67036, Nalati night-roster revert 632a0d1fd); 39 commits wait to push.
 
-**P0:** display-encode lift on main (b835bba67, 13acb03ba, 0ccd5c900). Nine B8 is 5,153 nodes / ~186 KB against the 4,096-node and 64,000-byte graph caps, which stay; sampler3D adoption is row N3D.
+**P0:** display-encode lift on main (b835bba67, 13acb03ba, 0ccd5c900); Nine architecture graphs fit the caps in 077b7eeb59 (row N3D only for any op still missing).
 
 **Lanes (G505: 5 Codex builders + sp-x7 deploy + sp-x10 maps; Opus 0 until Mon 10-19):** sp-x1 Nalati native actors · sp-x9 Nalati B8 world · sp-x8 Nalati weapons · sp-x6 Nalati weather · sp-x5 Nalati cover/ambient life · sp-x4 holds Nine world rows (−335) for the release, then stops.
 
