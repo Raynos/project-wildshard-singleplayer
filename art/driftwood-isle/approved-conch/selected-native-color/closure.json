@@ -1,0 +1,22 @@
+{
+  "animationAcceptance": false,
+  "extraUncompressedBytes": 78840,
+  "files": {
+    "graph.json": {
+      "bytes": 537,
+      "sha256": "6f8e43b848546c5cd99e3da32a89913450d2fda66dd9803e80d522bffa0e9b97"
+    },
+    "metadata.json": {
+      "bytes": 22018,
+      "sha256": "99a4920df2bb3fa4368e456b38b40e27e85d905bcccdee8e93776bf0902ae219"
+    },
+    "payload.bin": {
+      "bytes": 47157,
+      "sha256": "640861d7e12003814917b45d38d622a3e796084cf0b86bf88d01353ecfdc4cbb"
+    }
+  },
+  "note": "One paint channel only. Native tint, toon, faceting and all old channels retained.",
+  "runtimeAcceptance": false,
+  "schema": "wildshard.conch.authored-color.v1",
+  "visualAcceptance": false
+}

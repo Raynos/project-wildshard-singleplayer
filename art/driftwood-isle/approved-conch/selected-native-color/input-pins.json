@@ -1,0 +1,14 @@
+{
+  "art/driftwood-isle/approved-conch/selected-native-normals/native/metadata.json": "8b5ee001154cf9d781214d97231af3b7ddaf9e97199e7b641fd684cbc754bd58",
+  "art/driftwood-isle/approved-conch/selected-native-normals/native/payload.bin": "cfd4a13e900eaea9675c047b73759411eaa6d2f484d2bc110fb32669d9e3d544",
+  "art/driftwood-isle/approved-conch/selected-native-normals/native/conch-character-pass-native.json": "3dddaf6a2845ffea0c372fe46d8d422baaa2864bfaf5cc5f4c4cd98a9faa0929",
+  "art/driftwood-isle/approved-conch/selected-native-normals/freeze.json": "a1e13c4fb4a62a5bba2ab978621d9cf955c031e0eed8b1d237cbec8811baba60",
+  "art/driftwood-isle/approved-conch/selected-native-view/poses.json": "b25e8fb107f73d73f6e51acdbacb1be9b2c932375cf9d1e99d96eb73a8708ea3",
+  "art/driftwood-isle/approved-conch/selected-native-view/conchSelectedViewPreview.ts": "2b3b86fa8a1ca50df471f94f5b5b1772cace7a2d5bd8d62f4c9d0a9c03d19f61",
+  "src/shards/driftwood-isle/data/lookGraphs.json": "c74633abb6c1558ef7092f2fba4b3df7e48272517e4241a0f2b52f25661443fb",
+  "src/engine/entities/lowpoly.ts": "7a0ab5527c4b4f4623bdfa391000eb6aae3984e94b74a4510471627c04015c8b",
+  "src/game/plugin/geometry.ts": "ddcae285f9e7f5327d521eefba3fe8f3c4ea677f70562d62b5a410d54fe28efd",
+  "src/engine/models/animalGeometry.ts": "dad745ee0fe448a310275ac4695708f3275afeac527e0c2b900a804e20c1ea69",
+  "src/format/materialGraph.ts": "afb52df885fccc171600d65df796b337a794f72812edbb3cef011e7b216f7cfc",
+  "src/engine/render/graph/compile.ts": "0eb8aab651372400562d0fec5f8ebc484a59d99b980fc3b7611921a77875ec8e"
+}

@@ -1,0 +1,1170 @@
+{
+  "schema": "wildshard.shared-arena.served-composition.v1",
+  "mount": "/shared-arena/",
+  "productBases": {
+    "mantis": "/mantis-engine/practice-product/",
+    "conch": "/conch-engine/practice-product/",
+    "colossus": "/colossus-engine/practice-product/",
+    "puffer": "/puffer-engine/practice-product/"
+  },
+  "opaqueRoutes": {
+    "/assets/driftwood-isle/colossus-native-bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46.bin": "/colossus-engine/assets/driftwood-isle/colossus-native-bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46.bin",
+    "/assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin": "/mantis-engine/assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin",
+    "/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin": "/puffer-engine/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+    "/assets/driftwood-isle/conch-canonical-a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610.bin": "/conch-engine/assets/driftwood-isle/conch-canonical-a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610.bin",
+    "/assets/physics/rapier.wasm": "/mantis-engine/assets/physics/rapier.wasm",
+    "/assets/models/driftwood-fp/fp-arms.glb": "/mantis-engine/assets/models/driftwood-fp/fp-arms.glb"
+  },
+  "bundledOpaque": [
+    {
+      "path": "assets/basis_transcoder-VXdx5NbI.wasm",
+      "bytes": 527333,
+      "sha256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a",
+      "candidateUrl": "/mantis-engine/assets/basis_transcoder-VXdx5NbI.wasm",
+      "status": "proposal only; requires bundler-supported URL linking and recursive exact dependency closure, then mounted browser QA"
+    }
+  ],
+  "reused": [
+    {
+      "path": "products/conch/shard.json",
+      "bytes": 9932,
+      "sha256": "92cafdda1b9df70e5b0ecff93545dce30c31b3e595dcd21717c28e6babca87d0",
+      "url": "/conch-engine/practice-product/shard.json"
+    },
+    {
+      "path": "products/conch/validation.json",
+      "bytes": 853,
+      "sha256": "e117a7a947b89037b420fbd1652fb2f4dca4f5c57aa8ad5b95e8403375101e66",
+      "url": "/conch-engine/practice-product/validation.json"
+    },
+    {
+      "path": "products/puffer/shard.json",
+      "bytes": 9930,
+      "sha256": "77f7d1ddcef69ec9e0063c30c502cef408023394c5011e3f06e18a625ada00d6",
+      "url": "/puffer-engine/practice-product/shard.json"
+    },
+    {
+      "path": "products/puffer/validation.json",
+      "bytes": 853,
+      "sha256": "9e85ab5e4b80c979014f95be38822684a698b65b4e124888e9c26b3dad0f0bd3",
+      "url": "/puffer-engine/practice-product/validation.json"
+    },
+    {
+      "path": "products/colossus/shard.json",
+      "bytes": 9947,
+      "sha256": "c3dd5bed55a56f07b9d1d1343c549f7f262b0ced0a2d43fe3d536aff781d05ec",
+      "url": "/colossus-engine/practice-product/shard.json"
+    },
+    {
+      "path": "products/colossus/validation.json",
+      "bytes": 853,
+      "sha256": "cb753b356a04368cd58e079ae0b516e995b82058df365fe3e137aaba6edf6748",
+      "url": "/colossus-engine/practice-product/validation.json"
+    },
+    {
+      "path": "products/mantis/shard.json",
+      "bytes": 9948,
+      "sha256": "dd9668637405fbf924c8d7d2e9a0000c5ee17760a7843841e98a99753d0145a1",
+      "url": "/mantis-engine/practice-product/shard.json"
+    },
+    {
+      "path": "products/mantis/validation.json",
+      "bytes": 853,
+      "sha256": "063174afec5aae5c736a5f5f2f61a97c0d200b66b5ece854359678829f748c65",
+      "url": "/mantis-engine/practice-product/validation.json"
+    },
+    {
+      "path": "products/conch/sections/sim/client-scripts.json",
+      "bytes": 46,
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+      "url": "/conch-engine/practice-product/sections/sim/client-scripts.json"
+    },
+    {
+      "path": "products/conch/sections/sim/scripts.json",
+      "bytes": 1109,
+      "sha256": "027cbd43dcbd498716e20efa43f96365d383beee584ed517a1480c963b02883e",
+      "url": "/conch-engine/practice-product/sections/sim/scripts.json"
+    },
+    {
+      "path": "products/conch/sections/sim/plumbing.json",
+      "bytes": 18,
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+      "url": "/conch-engine/practice-product/sections/sim/plumbing.json"
+    },
+    {
+      "path": "products/conch/sections/sim/hooks.json",
+      "bytes": 40,
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+      "url": "/conch-engine/practice-product/sections/sim/hooks.json"
+    },
+    {
+      "path": "products/conch/sections/sim/sim.json",
+      "bytes": 111,
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+      "url": "/conch-engine/practice-product/sections/sim/sim.json"
+    },
+    {
+      "path": "products/conch/sections/state/migrations.json",
+      "bytes": 18,
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+      "url": "/conch-engine/practice-product/sections/state/migrations.json"
+    },
+    {
+      "path": "products/conch/sections/state/state.json",
+      "bytes": 366,
+      "sha256": "1e4d782422e10da385de58c95ac2ac8270b9336557b0c45b2138954695d0ed00",
+      "url": "/conch-engine/practice-product/sections/state/state.json"
+    },
+    {
+      "path": "products/conch/sections/world/tiles.json",
+      "bytes": 24,
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+      "url": "/conch-engine/practice-product/sections/world/tiles.json"
+    },
+    {
+      "path": "products/conch/sections/world/props.json",
+      "bytes": 15,
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+      "url": "/conch-engine/practice-product/sections/world/props.json"
+    },
+    {
+      "path": "products/conch/sections/world/weather.json",
+      "bytes": 24,
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+      "url": "/conch-engine/practice-product/sections/world/weather.json"
+    },
+    {
+      "path": "products/conch/sections/world/movers.json",
+      "bytes": 14,
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+      "url": "/conch-engine/practice-product/sections/world/movers.json"
+    },
+    {
+      "path": "products/conch/sections/world/water.json",
+      "bytes": 13,
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+      "url": "/conch-engine/practice-product/sections/world/water.json"
+    },
+    {
+      "path": "products/conch/sections/world/edge.json",
+      "bytes": 16835,
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+      "url": "/conch-engine/practice-product/sections/world/edge.json"
+    },
+    {
+      "path": "products/conch/sections/world/days.json",
+      "bytes": 21,
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+      "url": "/conch-engine/practice-product/sections/world/days.json"
+    },
+    {
+      "path": "products/conch/sections/world/traversal.json",
+      "bytes": 30,
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+      "url": "/conch-engine/practice-product/sections/world/traversal.json"
+    },
+    {
+      "path": "products/conch/sections/world/spawn.json",
+      "bytes": 38,
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+      "url": "/conch-engine/practice-product/sections/world/spawn.json"
+    },
+    {
+      "path": "products/conch/sections/world/terrain.json",
+      "bytes": 37,
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+      "url": "/conch-engine/practice-product/sections/world/terrain.json"
+    },
+    {
+      "path": "products/conch/sections/world/collision.json",
+      "bytes": 23,
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+      "url": "/conch-engine/practice-product/sections/world/collision.json"
+    },
+    {
+      "path": "products/conch/sections/world/navigation.json",
+      "bytes": 20,
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+      "url": "/conch-engine/practice-product/sections/world/navigation.json"
+    },
+    {
+      "path": "products/conch/sections/combat/encounters.json",
+      "bytes": 18,
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+      "url": "/conch-engine/practice-product/sections/combat/encounters.json"
+    },
+    {
+      "path": "products/conch/sections/combat/items.json",
+      "bytes": 103,
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+      "url": "/conch-engine/practice-product/sections/combat/items.json"
+    },
+    {
+      "path": "products/conch/sections/combat/strikes.json",
+      "bytes": 24,
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+      "url": "/conch-engine/practice-product/sections/combat/strikes.json"
+    },
+    {
+      "path": "products/conch/sections/look/look.json",
+      "bytes": 6557,
+      "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+      "url": "/conch-engine/practice-product/sections/look/look.json"
+    },
+    {
+      "path": "products/conch/sections/look/materials.json",
+      "bytes": 22,
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+      "url": "/conch-engine/practice-product/sections/look/materials.json"
+    },
+    {
+      "path": "products/conch/sections/ui/card.json",
+      "bytes": 18,
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+      "url": "/conch-engine/practice-product/sections/ui/card.json"
+    },
+    {
+      "path": "products/conch/sections/ui/ui.json",
+      "bytes": 52,
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+      "url": "/conch-engine/practice-product/sections/ui/ui.json"
+    },
+    {
+      "path": "products/conch/sections/ui/compendium.json",
+      "bytes": 28,
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+      "url": "/conch-engine/practice-product/sections/ui/compendium.json"
+    },
+    {
+      "path": "products/conch/sections/actors/creatures.json",
+      "bytes": 52,
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+      "url": "/conch-engine/practice-product/sections/actors/creatures.json"
+    },
+    {
+      "path": "products/conch/sections/actors/crowds.json",
+      "bytes": 14,
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+      "url": "/conch-engine/practice-product/sections/actors/crowds.json"
+    },
+    {
+      "path": "products/conch/sections/actors/strikes.json",
+      "bytes": 492,
+      "sha256": "44e3ebaee7038ba4ecd043278503c2ce974a57677f8ac63f4ba443ca0eecb2a9",
+      "url": "/conch-engine/practice-product/sections/actors/strikes.json"
+    },
+    {
+      "path": "products/conch/sections/actors/moves.json",
+      "bytes": 195,
+      "sha256": "26388540e77f2265ea67420ad7290e8dc31df59fe2e1b43256ab08a819e2fbe3",
+      "url": "/conch-engine/practice-product/sections/actors/moves.json"
+    },
+    {
+      "path": "products/conch/sections/actors/species-programs.json",
+      "bytes": 1289,
+      "sha256": "ba3940b39e54b4f335edf0120b15d83a969ea822e1371d5d0f8b08400c88dd29",
+      "url": "/conch-engine/practice-product/sections/actors/species-programs.json"
+    },
+    {
+      "path": "products/conch/sections/actors/species.json",
+      "bytes": 24,
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+      "url": "/conch-engine/practice-product/sections/actors/species.json"
+    },
+    {
+      "path": "products/conch/sections/actors/spawns.json",
+      "bytes": 157,
+      "sha256": "eb965a7b5ed99570f67bb6aed8c6fba31354a4b94f228f52c4765b351047a601",
+      "url": "/conch-engine/practice-product/sections/actors/spawns.json"
+    },
+    {
+      "path": "products/conch/sections/audio/audio.json",
+      "bytes": 68,
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+      "url": "/conch-engine/practice-product/sections/audio/audio.json"
+    },
+    {
+      "path": "products/conch/sections/quests/quests.json",
+      "bytes": 64,
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+      "url": "/conch-engine/practice-product/sections/quests/quests.json"
+    },
+    {
+      "path": "products/conch/sections/held/arms.json",
+      "bytes": 895,
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+      "url": "/conch-engine/practice-product/sections/held/arms.json"
+    },
+    {
+      "path": "products/conch/sections/economy/ledger.json",
+      "bytes": 14,
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+      "url": "/conch-engine/practice-product/sections/economy/ledger.json"
+    },
+    {
+      "path": "products/conch/sections/economy/loot.json",
+      "bytes": 433,
+      "sha256": "a0dbf3744309a7ad6edaf1968f36574100e9bf64b10b23c22ee9763c76e91806",
+      "url": "/conch-engine/practice-product/sections/economy/loot.json"
+    },
+    {
+      "path": "products/conch/blobs/wasm/2393ffa90be5023cc70b69978b4328579091e171481b06b2ad25c5e63affae02.wasm",
+      "bytes": 9255,
+      "sha256": "2393ffa90be5023cc70b69978b4328579091e171481b06b2ad25c5e63affae02",
+      "url": "/conch-engine/practice-product/blobs/wasm/2393ffa90be5023cc70b69978b4328579091e171481b06b2ad25c5e63affae02.wasm"
+    },
+    {
+      "path": "products/conch/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "bytes": 2520,
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+      "url": "/conch-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json"
+    },
+    {
+      "path": "products/conch/blobs/json/e6b33444700b2e7b1f93dcfa84af73c338bcedc0740007873b59dcd110dc1ff5.json",
+      "bytes": 47890,
+      "sha256": "e6b33444700b2e7b1f93dcfa84af73c338bcedc0740007873b59dcd110dc1ff5",
+      "url": "/conch-engine/practice-product/blobs/json/e6b33444700b2e7b1f93dcfa84af73c338bcedc0740007873b59dcd110dc1ff5.json"
+    },
+    {
+      "path": "products/conch/blobs/json/9cbdeb364506d8d045534931cc1a16b4f5e8c46b6f0e24702210f06b4c9b3d40.json",
+      "bytes": 5284,
+      "sha256": "9cbdeb364506d8d045534931cc1a16b4f5e8c46b6f0e24702210f06b4c9b3d40",
+      "url": "/conch-engine/practice-product/blobs/json/9cbdeb364506d8d045534931cc1a16b4f5e8c46b6f0e24702210f06b4c9b3d40.json"
+    },
+    {
+      "path": "products/conch/blobs/json/b7e14cdb83814eefa02227a7aac22fce01f2c58392f6a0b2d66e4a6443295235.json",
+      "bytes": 447,
+      "sha256": "b7e14cdb83814eefa02227a7aac22fce01f2c58392f6a0b2d66e4a6443295235",
+      "url": "/conch-engine/practice-product/blobs/json/b7e14cdb83814eefa02227a7aac22fce01f2c58392f6a0b2d66e4a6443295235.json"
+    },
+    {
+      "path": "products/puffer/sections/sim/client-scripts.json",
+      "bytes": 46,
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+      "url": "/puffer-engine/practice-product/sections/sim/client-scripts.json"
+    },
+    {
+      "path": "products/puffer/sections/sim/scripts.json",
+      "bytes": 1040,
+      "sha256": "849531b9719c0a10f9dca394d2654f3a0ba1085041397c88fc9b8330088fd288",
+      "url": "/puffer-engine/practice-product/sections/sim/scripts.json"
+    },
+    {
+      "path": "products/puffer/sections/sim/plumbing.json",
+      "bytes": 18,
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+      "url": "/puffer-engine/practice-product/sections/sim/plumbing.json"
+    },
+    {
+      "path": "products/puffer/sections/sim/hooks.json",
+      "bytes": 40,
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+      "url": "/puffer-engine/practice-product/sections/sim/hooks.json"
+    },
+    {
+      "path": "products/puffer/sections/sim/sim.json",
+      "bytes": 111,
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+      "url": "/puffer-engine/practice-product/sections/sim/sim.json"
+    },
+    {
+      "path": "products/puffer/sections/state/migrations.json",
+      "bytes": 18,
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+      "url": "/puffer-engine/practice-product/sections/state/migrations.json"
+    },
+    {
+      "path": "products/puffer/sections/state/state.json",
+      "bytes": 275,
+      "sha256": "390f48e1e77ba193359bb7337d43cc41536cac37d0072ebc4bb4f10592f4376b",
+      "url": "/puffer-engine/practice-product/sections/state/state.json"
+    },
+    {
+      "path": "products/puffer/sections/world/tiles.json",
+      "bytes": 24,
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+      "url": "/puffer-engine/practice-product/sections/world/tiles.json"
+    },
+    {
+      "path": "products/puffer/sections/world/props.json",
+      "bytes": 15,
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+      "url": "/puffer-engine/practice-product/sections/world/props.json"
+    },
+    {
+      "path": "products/puffer/sections/world/weather.json",
+      "bytes": 24,
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+      "url": "/puffer-engine/practice-product/sections/world/weather.json"
+    },
+    {
+      "path": "products/puffer/sections/world/movers.json",
+      "bytes": 14,
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+      "url": "/puffer-engine/practice-product/sections/world/movers.json"
+    },
+    {
+      "path": "products/puffer/sections/world/water.json",
+      "bytes": 13,
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+      "url": "/puffer-engine/practice-product/sections/world/water.json"
+    },
+    {
+      "path": "products/puffer/sections/world/edge.json",
+      "bytes": 16835,
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+      "url": "/puffer-engine/practice-product/sections/world/edge.json"
+    },
+    {
+      "path": "products/puffer/sections/world/days.json",
+      "bytes": 21,
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+      "url": "/puffer-engine/practice-product/sections/world/days.json"
+    },
+    {
+      "path": "products/puffer/sections/world/traversal.json",
+      "bytes": 30,
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+      "url": "/puffer-engine/practice-product/sections/world/traversal.json"
+    },
+    {
+      "path": "products/puffer/sections/world/spawn.json",
+      "bytes": 38,
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+      "url": "/puffer-engine/practice-product/sections/world/spawn.json"
+    },
+    {
+      "path": "products/puffer/sections/world/terrain.json",
+      "bytes": 37,
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+      "url": "/puffer-engine/practice-product/sections/world/terrain.json"
+    },
+    {
+      "path": "products/puffer/sections/world/collision.json",
+      "bytes": 23,
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+      "url": "/puffer-engine/practice-product/sections/world/collision.json"
+    },
+    {
+      "path": "products/puffer/sections/world/navigation.json",
+      "bytes": 20,
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+      "url": "/puffer-engine/practice-product/sections/world/navigation.json"
+    },
+    {
+      "path": "products/puffer/sections/combat/encounters.json",
+      "bytes": 18,
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+      "url": "/puffer-engine/practice-product/sections/combat/encounters.json"
+    },
+    {
+      "path": "products/puffer/sections/combat/items.json",
+      "bytes": 103,
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+      "url": "/puffer-engine/practice-product/sections/combat/items.json"
+    },
+    {
+      "path": "products/puffer/sections/combat/strikes.json",
+      "bytes": 24,
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+      "url": "/puffer-engine/practice-product/sections/combat/strikes.json"
+    },
+    {
+      "path": "products/puffer/sections/look/look.json",
+      "bytes": 6557,
+      "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+      "url": "/puffer-engine/practice-product/sections/look/look.json"
+    },
+    {
+      "path": "products/puffer/sections/look/materials.json",
+      "bytes": 22,
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+      "url": "/puffer-engine/practice-product/sections/look/materials.json"
+    },
+    {
+      "path": "products/puffer/sections/ui/card.json",
+      "bytes": 18,
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+      "url": "/puffer-engine/practice-product/sections/ui/card.json"
+    },
+    {
+      "path": "products/puffer/sections/ui/ui.json",
+      "bytes": 52,
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+      "url": "/puffer-engine/practice-product/sections/ui/ui.json"
+    },
+    {
+      "path": "products/puffer/sections/ui/compendium.json",
+      "bytes": 28,
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+      "url": "/puffer-engine/practice-product/sections/ui/compendium.json"
+    },
+    {
+      "path": "products/puffer/sections/actors/creatures.json",
+      "bytes": 52,
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+      "url": "/puffer-engine/practice-product/sections/actors/creatures.json"
+    },
+    {
+      "path": "products/puffer/sections/actors/crowds.json",
+      "bytes": 14,
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+      "url": "/puffer-engine/practice-product/sections/actors/crowds.json"
+    },
+    {
+      "path": "products/puffer/sections/actors/strikes.json",
+      "bytes": 240,
+      "sha256": "2966a2ce0e6eec7c8e7f26eb4dcabe801a30a69bdd0d2141a17c8129e46c5d59",
+      "url": "/puffer-engine/practice-product/sections/actors/strikes.json"
+    },
+    {
+      "path": "products/puffer/sections/actors/moves.json",
+      "bytes": 189,
+      "sha256": "2671be9b3545536768227a417ff0d00412e28e5a513cf1a781538a2e97bca690",
+      "url": "/puffer-engine/practice-product/sections/actors/moves.json"
+    },
+    {
+      "path": "products/puffer/sections/actors/species-programs.json",
+      "bytes": 965,
+      "sha256": "f2dcd75abf89e1097133618927091a0de28f2bfce2e633c9bc07702cc148cc0b",
+      "url": "/puffer-engine/practice-product/sections/actors/species-programs.json"
+    },
+    {
+      "path": "products/puffer/sections/actors/species.json",
+      "bytes": 24,
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+      "url": "/puffer-engine/practice-product/sections/actors/species.json"
+    },
+    {
+      "path": "products/puffer/sections/actors/spawns.json",
+      "bytes": 154,
+      "sha256": "22eae19428dcf1716265c80a8fb629657f5c51fbfd3af7aa1ec0cd6d82f66020",
+      "url": "/puffer-engine/practice-product/sections/actors/spawns.json"
+    },
+    {
+      "path": "products/puffer/sections/audio/audio.json",
+      "bytes": 68,
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+      "url": "/puffer-engine/practice-product/sections/audio/audio.json"
+    },
+    {
+      "path": "products/puffer/sections/quests/quests.json",
+      "bytes": 64,
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+      "url": "/puffer-engine/practice-product/sections/quests/quests.json"
+    },
+    {
+      "path": "products/puffer/sections/held/arms.json",
+      "bytes": 895,
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+      "url": "/puffer-engine/practice-product/sections/held/arms.json"
+    },
+    {
+      "path": "products/puffer/sections/economy/ledger.json",
+      "bytes": 14,
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+      "url": "/puffer-engine/practice-product/sections/economy/ledger.json"
+    },
+    {
+      "path": "products/puffer/sections/economy/loot.json",
+      "bytes": 432,
+      "sha256": "7a807395f56fead1b9edb09ee310fa122576c6c2b8f5e54627c9826654c40d63",
+      "url": "/puffer-engine/practice-product/sections/economy/loot.json"
+    },
+    {
+      "path": "products/puffer/blobs/wasm/d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071.wasm",
+      "bytes": 7083,
+      "sha256": "d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071",
+      "url": "/puffer-engine/practice-product/blobs/wasm/d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071.wasm"
+    },
+    {
+      "path": "products/puffer/blobs/json/cf98695e901d32720a0434084c553b4f91ac2b01e58c0a0b224105ee10dfed17.json",
+      "bytes": 66547,
+      "sha256": "cf98695e901d32720a0434084c553b4f91ac2b01e58c0a0b224105ee10dfed17",
+      "url": "/puffer-engine/practice-product/blobs/json/cf98695e901d32720a0434084c553b4f91ac2b01e58c0a0b224105ee10dfed17.json"
+    },
+    {
+      "path": "products/puffer/blobs/json/6265cdf7dc0ae093c341fa9754d4205b8ac1f4705c97052b9c71f41617a8925f.json",
+      "bytes": 2955,
+      "sha256": "6265cdf7dc0ae093c341fa9754d4205b8ac1f4705c97052b9c71f41617a8925f",
+      "url": "/puffer-engine/practice-product/blobs/json/6265cdf7dc0ae093c341fa9754d4205b8ac1f4705c97052b9c71f41617a8925f.json"
+    },
+    {
+      "path": "products/puffer/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "bytes": 2520,
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+      "url": "/puffer-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json"
+    },
+    {
+      "path": "products/puffer/blobs/json/414e7ae4167dd766b4b4f57c0d826aadfc0b144ef567eb8a229b9cf2173d67d0.json",
+      "bytes": 495,
+      "sha256": "414e7ae4167dd766b4b4f57c0d826aadfc0b144ef567eb8a229b9cf2173d67d0",
+      "url": "/puffer-engine/practice-product/blobs/json/414e7ae4167dd766b4b4f57c0d826aadfc0b144ef567eb8a229b9cf2173d67d0.json"
+    },
+    {
+      "path": "products/colossus/sections/sim/client-scripts.json",
+      "bytes": 46,
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+      "url": "/colossus-engine/practice-product/sections/sim/client-scripts.json"
+    },
+    {
+      "path": "products/colossus/sections/sim/scripts.json",
+      "bytes": 1393,
+      "sha256": "553231793d1bf472aa448b05ee21887b373e73e57e85ccbc9bc3b8ed2bb12323",
+      "url": "/colossus-engine/practice-product/sections/sim/scripts.json"
+    },
+    {
+      "path": "products/colossus/sections/sim/plumbing.json",
+      "bytes": 18,
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+      "url": "/colossus-engine/practice-product/sections/sim/plumbing.json"
+    },
+    {
+      "path": "products/colossus/sections/sim/hooks.json",
+      "bytes": 40,
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+      "url": "/colossus-engine/practice-product/sections/sim/hooks.json"
+    },
+    {
+      "path": "products/colossus/sections/sim/sim.json",
+      "bytes": 111,
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+      "url": "/colossus-engine/practice-product/sections/sim/sim.json"
+    },
+    {
+      "path": "products/colossus/sections/state/migrations.json",
+      "bytes": 18,
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+      "url": "/colossus-engine/practice-product/sections/state/migrations.json"
+    },
+    {
+      "path": "products/colossus/sections/state/state.json",
+      "bytes": 539,
+      "sha256": "86cc6e3942d5976324ee7a2006b490991bc665d454880b4328392693a38da6ec",
+      "url": "/colossus-engine/practice-product/sections/state/state.json"
+    },
+    {
+      "path": "products/colossus/sections/world/tiles.json",
+      "bytes": 24,
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+      "url": "/colossus-engine/practice-product/sections/world/tiles.json"
+    },
+    {
+      "path": "products/colossus/sections/world/props.json",
+      "bytes": 15,
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+      "url": "/colossus-engine/practice-product/sections/world/props.json"
+    },
+    {
+      "path": "products/colossus/sections/world/weather.json",
+      "bytes": 24,
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+      "url": "/colossus-engine/practice-product/sections/world/weather.json"
+    },
+    {
+      "path": "products/colossus/sections/world/movers.json",
+      "bytes": 14,
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+      "url": "/colossus-engine/practice-product/sections/world/movers.json"
+    },
+    {
+      "path": "products/colossus/sections/world/water.json",
+      "bytes": 13,
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+      "url": "/colossus-engine/practice-product/sections/world/water.json"
+    },
+    {
+      "path": "products/colossus/sections/world/edge.json",
+      "bytes": 16835,
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+      "url": "/colossus-engine/practice-product/sections/world/edge.json"
+    },
+    {
+      "path": "products/colossus/sections/world/days.json",
+      "bytes": 21,
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+      "url": "/colossus-engine/practice-product/sections/world/days.json"
+    },
+    {
+      "path": "products/colossus/sections/world/traversal.json",
+      "bytes": 30,
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+      "url": "/colossus-engine/practice-product/sections/world/traversal.json"
+    },
+    {
+      "path": "products/colossus/sections/world/spawn.json",
+      "bytes": 38,
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+      "url": "/colossus-engine/practice-product/sections/world/spawn.json"
+    },
+    {
+      "path": "products/colossus/sections/world/terrain.json",
+      "bytes": 37,
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+      "url": "/colossus-engine/practice-product/sections/world/terrain.json"
+    },
+    {
+      "path": "products/colossus/sections/world/collision.json",
+      "bytes": 23,
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+      "url": "/colossus-engine/practice-product/sections/world/collision.json"
+    },
+    {
+      "path": "products/colossus/sections/world/navigation.json",
+      "bytes": 20,
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+      "url": "/colossus-engine/practice-product/sections/world/navigation.json"
+    },
+    {
+      "path": "products/colossus/sections/combat/encounters.json",
+      "bytes": 18,
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+      "url": "/colossus-engine/practice-product/sections/combat/encounters.json"
+    },
+    {
+      "path": "products/colossus/sections/combat/items.json",
+      "bytes": 103,
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+      "url": "/colossus-engine/practice-product/sections/combat/items.json"
+    },
+    {
+      "path": "products/colossus/sections/combat/strikes.json",
+      "bytes": 24,
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+      "url": "/colossus-engine/practice-product/sections/combat/strikes.json"
+    },
+    {
+      "path": "products/colossus/sections/look/look.json",
+      "bytes": 6557,
+      "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+      "url": "/colossus-engine/practice-product/sections/look/look.json"
+    },
+    {
+      "path": "products/colossus/sections/look/materials.json",
+      "bytes": 22,
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+      "url": "/colossus-engine/practice-product/sections/look/materials.json"
+    },
+    {
+      "path": "products/colossus/sections/ui/card.json",
+      "bytes": 18,
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+      "url": "/colossus-engine/practice-product/sections/ui/card.json"
+    },
+    {
+      "path": "products/colossus/sections/ui/ui.json",
+      "bytes": 52,
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+      "url": "/colossus-engine/practice-product/sections/ui/ui.json"
+    },
+    {
+      "path": "products/colossus/sections/ui/compendium.json",
+      "bytes": 28,
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+      "url": "/colossus-engine/practice-product/sections/ui/compendium.json"
+    },
+    {
+      "path": "products/colossus/sections/actors/creatures.json",
+      "bytes": 52,
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+      "url": "/colossus-engine/practice-product/sections/actors/creatures.json"
+    },
+    {
+      "path": "products/colossus/sections/actors/crowds.json",
+      "bytes": 14,
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+      "url": "/colossus-engine/practice-product/sections/actors/crowds.json"
+    },
+    {
+      "path": "products/colossus/sections/actors/strikes.json",
+      "bytes": 751,
+      "sha256": "bbfeec9fee2d33773bd8411186033b381c85c04b10832a2bdd0eacca29577659",
+      "url": "/colossus-engine/practice-product/sections/actors/strikes.json"
+    },
+    {
+      "path": "products/colossus/sections/actors/moves.json",
+      "bytes": 187,
+      "sha256": "54b09ff761dfbd430c15c163cd39db5c244479bc157efbc3fef81922c7eb6ae6",
+      "url": "/colossus-engine/practice-product/sections/actors/moves.json"
+    },
+    {
+      "path": "products/colossus/sections/actors/species-programs.json",
+      "bytes": 1624,
+      "sha256": "d0f83d5128ff4d503fa8108b0d7f8976e34a602ad8cf86f97935001e33e6b6c0",
+      "url": "/colossus-engine/practice-product/sections/actors/species-programs.json"
+    },
+    {
+      "path": "products/colossus/sections/actors/species.json",
+      "bytes": 24,
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+      "url": "/colossus-engine/practice-product/sections/actors/species.json"
+    },
+    {
+      "path": "products/colossus/sections/actors/spawns.json",
+      "bytes": 160,
+      "sha256": "4469702b9f3383e77f6ba7b02f97c92cee0191121929ad7462e53b009238ba80",
+      "url": "/colossus-engine/practice-product/sections/actors/spawns.json"
+    },
+    {
+      "path": "products/colossus/sections/audio/audio.json",
+      "bytes": 68,
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+      "url": "/colossus-engine/practice-product/sections/audio/audio.json"
+    },
+    {
+      "path": "products/colossus/sections/quests/quests.json",
+      "bytes": 64,
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+      "url": "/colossus-engine/practice-product/sections/quests/quests.json"
+    },
+    {
+      "path": "products/colossus/sections/held/arms.json",
+      "bytes": 895,
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+      "url": "/colossus-engine/practice-product/sections/held/arms.json"
+    },
+    {
+      "path": "products/colossus/sections/economy/ledger.json",
+      "bytes": 14,
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+      "url": "/colossus-engine/practice-product/sections/economy/ledger.json"
+    },
+    {
+      "path": "products/colossus/sections/economy/loot.json",
+      "bytes": 437,
+      "sha256": "6de02e5f66db07ed2e5681cc3ab004a80bbd4fa5ec34fccc204e7e00dc8bc741",
+      "url": "/colossus-engine/practice-product/sections/economy/loot.json"
+    },
+    {
+      "path": "products/colossus/blobs/wasm/26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699.wasm",
+      "bytes": 13557,
+      "sha256": "26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699",
+      "url": "/colossus-engine/practice-product/blobs/wasm/26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699.wasm"
+    },
+    {
+      "path": "products/colossus/blobs/json/939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6.json",
+      "bytes": 4815,
+      "sha256": "939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6",
+      "url": "/colossus-engine/practice-product/blobs/json/939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6.json"
+    },
+    {
+      "path": "products/colossus/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json",
+      "bytes": 493,
+      "sha256": "4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76",
+      "url": "/colossus-engine/practice-product/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json"
+    },
+    {
+      "path": "products/colossus/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "bytes": 2520,
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+      "url": "/colossus-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json"
+    },
+    {
+      "path": "products/colossus/blobs/json/dee09b58bd61c1a30594b2223f90242667c77c04b034f7a788adc3dbf248a01f.json",
+      "bytes": 45530,
+      "sha256": "dee09b58bd61c1a30594b2223f90242667c77c04b034f7a788adc3dbf248a01f",
+      "url": "/colossus-engine/practice-product/blobs/json/dee09b58bd61c1a30594b2223f90242667c77c04b034f7a788adc3dbf248a01f.json"
+    },
+    {
+      "path": "products/mantis/sections/sim/client-scripts.json",
+      "bytes": 46,
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+      "url": "/mantis-engine/practice-product/sections/sim/client-scripts.json"
+    },
+    {
+      "path": "products/mantis/sections/sim/scripts.json",
+      "bytes": 1347,
+      "sha256": "99fa420a290764601680ea806c3e2ea468d00db83f30892a0b89831a7dc4017d",
+      "url": "/mantis-engine/practice-product/sections/sim/scripts.json"
+    },
+    {
+      "path": "products/mantis/sections/sim/plumbing.json",
+      "bytes": 18,
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+      "url": "/mantis-engine/practice-product/sections/sim/plumbing.json"
+    },
+    {
+      "path": "products/mantis/sections/sim/hooks.json",
+      "bytes": 40,
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+      "url": "/mantis-engine/practice-product/sections/sim/hooks.json"
+    },
+    {
+      "path": "products/mantis/sections/sim/sim.json",
+      "bytes": 111,
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+      "url": "/mantis-engine/practice-product/sections/sim/sim.json"
+    },
+    {
+      "path": "products/mantis/sections/state/migrations.json",
+      "bytes": 18,
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+      "url": "/mantis-engine/practice-product/sections/state/migrations.json"
+    },
+    {
+      "path": "products/mantis/sections/state/state.json",
+      "bytes": 564,
+      "sha256": "7e19f30b5eda8a7799d568cc668e3cb5e557d3684006df599cb13166c91655b4",
+      "url": "/mantis-engine/practice-product/sections/state/state.json"
+    },
+    {
+      "path": "products/mantis/sections/world/tiles.json",
+      "bytes": 24,
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+      "url": "/mantis-engine/practice-product/sections/world/tiles.json"
+    },
+    {
+      "path": "products/mantis/sections/world/props.json",
+      "bytes": 15,
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+      "url": "/mantis-engine/practice-product/sections/world/props.json"
+    },
+    {
+      "path": "products/mantis/sections/world/weather.json",
+      "bytes": 24,
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+      "url": "/mantis-engine/practice-product/sections/world/weather.json"
+    },
+    {
+      "path": "products/mantis/sections/world/movers.json",
+      "bytes": 14,
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+      "url": "/mantis-engine/practice-product/sections/world/movers.json"
+    },
+    {
+      "path": "products/mantis/sections/world/water.json",
+      "bytes": 13,
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+      "url": "/mantis-engine/practice-product/sections/world/water.json"
+    },
+    {
+      "path": "products/mantis/sections/world/edge.json",
+      "bytes": 16835,
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+      "url": "/mantis-engine/practice-product/sections/world/edge.json"
+    },
+    {
+      "path": "products/mantis/sections/world/days.json",
+      "bytes": 21,
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+      "url": "/mantis-engine/practice-product/sections/world/days.json"
+    },
+    {
+      "path": "products/mantis/sections/world/traversal.json",
+      "bytes": 30,
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+      "url": "/mantis-engine/practice-product/sections/world/traversal.json"
+    },
+    {
+      "path": "products/mantis/sections/world/spawn.json",
+      "bytes": 38,
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+      "url": "/mantis-engine/practice-product/sections/world/spawn.json"
+    },
+    {
+      "path": "products/mantis/sections/world/terrain.json",
+      "bytes": 37,
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+      "url": "/mantis-engine/practice-product/sections/world/terrain.json"
+    },
+    {
+      "path": "products/mantis/sections/world/collision.json",
+      "bytes": 23,
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+      "url": "/mantis-engine/practice-product/sections/world/collision.json"
+    },
+    {
+      "path": "products/mantis/sections/world/navigation.json",
+      "bytes": 20,
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+      "url": "/mantis-engine/practice-product/sections/world/navigation.json"
+    },
+    {
+      "path": "products/mantis/sections/combat/encounters.json",
+      "bytes": 18,
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+      "url": "/mantis-engine/practice-product/sections/combat/encounters.json"
+    },
+    {
+      "path": "products/mantis/sections/combat/items.json",
+      "bytes": 103,
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+      "url": "/mantis-engine/practice-product/sections/combat/items.json"
+    },
+    {
+      "path": "products/mantis/sections/combat/strikes.json",
+      "bytes": 24,
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+      "url": "/mantis-engine/practice-product/sections/combat/strikes.json"
+    },
+    {
+      "path": "products/mantis/sections/look/look.json",
+      "bytes": 6557,
+      "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+      "url": "/mantis-engine/practice-product/sections/look/look.json"
+    },
+    {
+      "path": "products/mantis/sections/look/materials.json",
+      "bytes": 22,
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+      "url": "/mantis-engine/practice-product/sections/look/materials.json"
+    },
+    {
+      "path": "products/mantis/sections/ui/card.json",
+      "bytes": 18,
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+      "url": "/mantis-engine/practice-product/sections/ui/card.json"
+    },
+    {
+      "path": "products/mantis/sections/ui/ui.json",
+      "bytes": 52,
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+      "url": "/mantis-engine/practice-product/sections/ui/ui.json"
+    },
+    {
+      "path": "products/mantis/sections/ui/compendium.json",
+      "bytes": 28,
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+      "url": "/mantis-engine/practice-product/sections/ui/compendium.json"
+    },
+    {
+      "path": "products/mantis/sections/actors/creatures.json",
+      "bytes": 52,
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+      "url": "/mantis-engine/practice-product/sections/actors/creatures.json"
+    },
+    {
+      "path": "products/mantis/sections/actors/crowds.json",
+      "bytes": 14,
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+      "url": "/mantis-engine/practice-product/sections/actors/crowds.json"
+    },
+    {
+      "path": "products/mantis/sections/actors/strikes.json",
+      "bytes": 589,
+      "sha256": "877fd248257fc656bd87d11ffb51f532e238fdf9a94887c9003f371984dcb5c3",
+      "url": "/mantis-engine/practice-product/sections/actors/strikes.json"
+    },
+    {
+      "path": "products/mantis/sections/actors/moves.json",
+      "bytes": 193,
+      "sha256": "26bbbe45c93635f1d17e54dbb9139385b383d73b7ec0a524de950a0a0181d742",
+      "url": "/mantis-engine/practice-product/sections/actors/moves.json"
+    },
+    {
+      "path": "products/mantis/sections/actors/species-programs.json",
+      "bytes": 1346,
+      "sha256": "7a0e6e1d2e47ce3a0c4e1ad7519d7abe7b6ffc5be1fd545d69e78333b116c848",
+      "url": "/mantis-engine/practice-product/sections/actors/species-programs.json"
+    },
+    {
+      "path": "products/mantis/sections/actors/species.json",
+      "bytes": 24,
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+      "url": "/mantis-engine/practice-product/sections/actors/species.json"
+    },
+    {
+      "path": "products/mantis/sections/actors/spawns.json",
+      "bytes": 163,
+      "sha256": "ca60e280d81a9d05f3747edab3d5a8e5a4d94588035a7f3d122762709755f74e",
+      "url": "/mantis-engine/practice-product/sections/actors/spawns.json"
+    },
+    {
+      "path": "products/mantis/sections/audio/audio.json",
+      "bytes": 68,
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+      "url": "/mantis-engine/practice-product/sections/audio/audio.json"
+    },
+    {
+      "path": "products/mantis/sections/quests/quests.json",
+      "bytes": 64,
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+      "url": "/mantis-engine/practice-product/sections/quests/quests.json"
+    },
+    {
+      "path": "products/mantis/sections/held/arms.json",
+      "bytes": 895,
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+      "url": "/mantis-engine/practice-product/sections/held/arms.json"
+    },
+    {
+      "path": "products/mantis/sections/economy/ledger.json",
+      "bytes": 14,
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+      "url": "/mantis-engine/practice-product/sections/economy/ledger.json"
+    },
+    {
+      "path": "products/mantis/sections/economy/loot.json",
+      "bytes": 435,
+      "sha256": "a15429ab370c63a3fb7b3f5b3eb61854ff335c06eb1d49b2aa827c1d29e0b97d",
+      "url": "/mantis-engine/practice-product/sections/economy/loot.json"
+    },
+    {
+      "path": "products/mantis/blobs/wasm/45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1.wasm",
+      "bytes": 8810,
+      "sha256": "45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1",
+      "url": "/mantis-engine/practice-product/blobs/wasm/45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1.wasm"
+    },
+    {
+      "path": "products/mantis/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json",
+      "bytes": 450,
+      "sha256": "730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40",
+      "url": "/mantis-engine/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json"
+    },
+    {
+      "path": "products/mantis/blobs/json/9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329.json",
+      "bytes": 60570,
+      "sha256": "9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329",
+      "url": "/mantis-engine/practice-product/blobs/json/9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329.json"
+    },
+    {
+      "path": "products/mantis/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "bytes": 2520,
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+      "url": "/mantis-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json"
+    },
+    {
+      "path": "products/mantis/blobs/json/ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe.json",
+      "bytes": 8213,
+      "sha256": "ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe",
+      "url": "/mantis-engine/practice-product/blobs/json/ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe.json"
+    },
+    {
+      "path": "assets/driftwood-isle/colossus-native-bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46.bin",
+      "bytes": 76711,
+      "sha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46",
+      "url": "/colossus-engine/assets/driftwood-isle/colossus-native-bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46.bin"
+    },
+    {
+      "path": "assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin",
+      "bytes": 28370,
+      "sha256": "dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2",
+      "url": "/mantis-engine/assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin"
+    },
+    {
+      "path": "assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+      "bytes": 53440,
+      "sha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15",
+      "url": "/puffer-engine/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin"
+    },
+    {
+      "path": "assets/driftwood-isle/conch-canonical-a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610.bin",
+      "bytes": 25392,
+      "sha256": "a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610",
+      "url": "/conch-engine/assets/driftwood-isle/conch-canonical-a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610.bin"
+    },
+    {
+      "path": "assets/physics/rapier.wasm",
+      "bytes": 3292228,
+      "sha256": "2935a533335952cf160de69186d03e8b3ad2895b65d20df1b74d197a7498bd6f",
+      "url": "/mantis-engine/assets/physics/rapier.wasm"
+    },
+    {
+      "path": "assets/models/driftwood-fp/fp-arms.glb",
+      "bytes": 373240,
+      "sha256": "2c233b8c91c82a26c8fbfd3867095cbfec6cec81caa9bd9a12b243075236550a",
+      "url": "/mantis-engine/assets/models/driftwood-fp/fp-arms.glb"
+    }
+  ],
+  "allJavaScriptOwned": true
+}

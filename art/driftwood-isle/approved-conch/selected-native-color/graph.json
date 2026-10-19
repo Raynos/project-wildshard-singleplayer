@@ -1,0 +1,34 @@
+{
+  "flatShading": true,
+  "kind": "material",
+  "model": "toon",
+  "nodes": {
+    "coat": {
+      "in": [
+        "paint",
+        "tint"
+      ],
+      "op": "mul"
+    },
+    "flash": {
+      "op": "materialEmissive"
+    },
+    "paint": {
+      "name": "aAuthoredColour",
+      "op": "attribute",
+      "type": "vec3"
+    },
+    "tint": {
+      "op": "materialColour"
+    }
+  },
+  "stages": {
+    "surface": {
+      "colour": "coat",
+      "emissive": "flash",
+      "metalness": 0,
+      "roughness": 0.85
+    }
+  },
+  "version": 1
+}

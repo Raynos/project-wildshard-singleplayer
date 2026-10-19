@@ -1,0 +1,91 @@
+{
+  "schema": "wildshard.shared-arena.full-cycle-proof.v1",
+  "probe": "scripts/shared-arena/qa-cycles.mjs",
+  "probeSha256": "574007d5a2fb5f7c0154e95cc593389348581a09634f397a0f19ecb4f07d3bbb",
+  "testedBuild": "shared-arena-build3",
+  "byteIdenticalRuntimeSuccessor": "shared-arena-build4",
+  "build3SourceBuildManifestSha256": "a302ac50277d55b6d5a0ce0988070b52255b499133caa1faa2c460b54db34718",
+  "build4EquivalenceSha256": "8bf7a351e5a8ff481d55ee25a3f251d65586096b10773b7eda2341ae91ab747e",
+  "passed": 49,
+  "total": 49,
+  "fatal": null,
+  "pageErrors": [],
+  "enemyOrder": [
+    "splinter-mantis",
+    "conch-duelist",
+    "tideRootColossus",
+    "brine-puffer"
+  ],
+  "cadence": [
+    {
+      "kind": "splinter-mantis",
+      "displaySamples": 471,
+      "wallSeconds": 114.29540000000001,
+      "simulationSeconds": 44.895300000027184,
+      "medianFrameMs": 216.59999999999127,
+      "p95FrameMs": 483.3000000000029,
+      "averageDisplayFPS": 4.112151495160785
+    },
+    {
+      "kind": "conch-duelist",
+      "displaySamples": 378,
+      "wallSeconds": 69.91380000000001,
+      "simulationSeconds": 35.46610000000827,
+      "medianFrameMs": 166.70000000001164,
+      "p95FrameMs": 366.6000000000058,
+      "averageDisplayFPS": 5.392354585217797
+    },
+    {
+      "kind": "tideRootColossus",
+      "displaySamples": 577,
+      "wallSeconds": 127.0116,
+      "simulationSeconds": 54.989699999955235,
+      "medianFrameMs": 200.10000000003492,
+      "p95FrameMs": 400.0,
+      "averageDisplayFPS": 4.53501884867209
+    },
+    {
+      "kind": "brine-puffer",
+      "displaySamples": 521,
+      "wallSeconds": 92.67970000000001,
+      "simulationSeconds": 48.58719999997058,
+      "medianFrameMs": 166.59999999997672,
+      "p95FrameMs": 366.70000000001164,
+      "averageDisplayFPS": 5.610721657493496
+    }
+  ],
+  "recording": {
+    "file": "page@20435a87662812f4b3c71773a1cd2620.webm",
+    "bytes": 45923620,
+    "sha256": "801a6a42da25f4ec31fc5db014ac8f5aa127e3d8c4b6a4cf5dfa3a1fb4ea1a64",
+    "width": 402,
+    "height": 874,
+    "codec": "vp8",
+    "containerFPS": 25,
+    "durationSeconds": 416.08,
+    "note": "Complete continuous capture retained with cloud QA output, not copied into public Site or repository. Container FPS includes repeated display frames; actual display cadence is separately preserved."
+  },
+  "evidenceFiles": {
+    "brine-puffer-final-retry.jpg": "7a43592fc688dc2c0fad30d651b732c2fd92c73c88e528a17ca434acb27c30a1",
+    "brine-puffer-frames.json": "b1824bc338e5e565af926739e4913d476a518224e1f51b9227ea1d846de9219d",
+    "brine-puffer-kill.jpg": "8b31a9a3796d974f1e9281981599c9a0def60fcbc2b35ff35a15a6678ec06f51",
+    "brine-puffer-loot.jpg": "1026bc0ceced21a5a00fa4c8b2d1f903b791e722c6d8bdb306e2bc278b6a802c",
+    "brine-puffer-player-defeat.jpg": "7fb3e4e6a2677bb7aa41c24130688bf3dd1b2d350ffdba946dcb3ce363f4f704",
+    "conch-duelist-final-retry.jpg": "33430a69e6a1597719da5df3a740216c640c99621c2fed63e8bc5172b459b9f3",
+    "conch-duelist-frames.json": "6fa3a8ea1bcc736bd0e66eec01551dcb6cf877b485082f27c48d477591fe85bb",
+    "conch-duelist-kill.jpg": "68ef70c7f94eb78b6838295fa5db8017e7938d5c1d4eeee5c6f2ec982c35485e",
+    "conch-duelist-loot.jpg": "2364e55de148f556257097c57870675b13b01bcaa6e1262cf940f80ac83b4238",
+    "conch-duelist-player-defeat.jpg": "9bb63ca273add46606e56056c0ed5e1cf735f8961257402134e4f6fc5aefca84",
+    "report.json": "42555b1909b31a7c36f53e8f9cf1cc2115e771c0ee75474a1d2e63620d16e3a1",
+    "splinter-mantis-final-retry.jpg": "664773adc566962f9cb6110022f2410d08bcc6e46ad13230757e35a2db11be3a",
+    "splinter-mantis-frames.json": "d28e4f56239910a3efa47c2226da8995311ca27a9970164deae917cdf9970e77",
+    "splinter-mantis-kill.jpg": "566b52b3f87ce40bd63033302545c4d32065e0382a259bf73a1a2fcf77af38aa",
+    "splinter-mantis-loot.jpg": "66776bae250fc40fbb7e1f347351d742dc677227efd494e96083c2401819bcc8",
+    "splinter-mantis-player-defeat.jpg": "84a7ab7e403716a0f8a232264989a85a1d634dad80d3b4b1061a1b320669410e",
+    "tideRootColossus-final-retry.jpg": "6476e3b2c62674ec02b1aaf2617b6c16affbc4561265874e426b9d0330798605",
+    "tideRootColossus-frames.json": "3a7721ed29a8e9bcd2437152cbc3c6b17e6814d3361e5eba6023cbfc6ecc8ce4",
+    "tideRootColossus-kill.jpg": "be8eddb0e2b57ffd4986577ab04d4955e876851346db895c6be499b553aade48",
+    "tideRootColossus-loot.jpg": "19b57acc8925bc5f376f0f98f9a2323cb425df5e80e0d84df3203f4553513b51",
+    "tideRootColossus-player-defeat.jpg": "2dc0b21cdea69ddd571b1626c8adace66da00d86be9387cd04c445450e5b7956"
+  }
+}
