@@ -74,7 +74,6 @@ export class NineDragonArms {
       const texture = await loading;
       ownSceneResource(texture, owner, app.assets); return texture;
     }))] as const)));
-    const result = new NineDragonArms(rig, looks, params);
     for (const [id, names] of params) {
       if (names.has('uSilk')) looks.setTexture(id, 'uSilk', silk);
       if (names.has('uDecal')) looks.setTexture(id, 'uDecal', decal);
@@ -93,6 +92,7 @@ export class NineDragonArms {
       if (map !== undefined) looks.setTexture(row.look, 'uMapsTex', map);
       if (normal !== undefined) looks.setTexture(row.look, 'uNrmTex', normal);
     }
+    const result = new NineDragonArms(rig, looks, params);
     const loader = new BufferGeometryLoader(), parts = await product.json<Record<string, unknown>>('weapons/jian-cloth.json');
     const geometry = new Map(Object.entries(parts).map(([key, value]) => [key, owner.own(loader.parse(value))]));
     const halo = await product.json<{ readonly geometry: unknown }>('weapons/jian-halo.json');
