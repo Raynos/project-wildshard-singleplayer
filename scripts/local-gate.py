@@ -58,7 +58,9 @@ def main():
         # Four workers for the short related-test phase (the full suite ran on two); only Vitest reads it.
         # Production refusals (including stale map stamps) must fail here just
         # as they do in Actions; local capture previews retain warning mode.
-        env = dict(os.environ, CI='true', WS_VITEST_MAX_WORKERS='4')
+        # Gate readers parse the raw diagnostics for green-prefix selection.
+        # Keep nested entry points verbose; only an explicit outer --quiet logs them.
+        env = dict(os.environ, CI='true', WS_VITEST_MAX_WORKERS='4', WS_QUIET_ACTIVE='1')
         env.pop('WS_GATE_REPO', None)
         for key in subprocess.check_output(['git', 'rev-parse', '--local-env-vars'], cwd=root, text=True).splitlines():
             env.pop(key, None)
@@ -129,4 +131,8 @@ def main():
 
 
 if __name__ == '__main__':
+    from quiet_logs import requested, run_logged
+    if '--quiet' in sys.argv[1:] and requested(sys.argv[1:]):
+        sys.exit(run_logged('vercel-gate', [sys.executable, __file__,
+                            *[arg for arg in sys.argv[1:] if arg != '--quiet']]))
     sys.exit(main())

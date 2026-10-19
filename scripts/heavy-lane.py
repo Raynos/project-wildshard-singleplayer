@@ -160,8 +160,15 @@ def status(root):
 
 
 def main():
+    from quiet_logs import requested, run_logged
+    args_before_command = sys.argv[1:sys.argv.index('--')] if '--' in sys.argv else sys.argv[1:]
+    if requested(args_before_command):
+        return run_logged('heavy-lane', [sys.executable, __file__,
+                          *[arg for arg in args_before_command if arg != '--quiet'],
+                          *([] if '--' not in sys.argv else sys.argv[sys.argv.index('--'):])])
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('kind', choices=[*RESOURCES, 'status'])
+    parser.add_argument('--quiet', action='store_true', help='log output; print only a verdict or failing tail')
     parser.add_argument('--max', type=float, default=30, help='owned command timeout in minutes; queue time is separate')
     argv = sys.argv[1:]
     separator = argv.index('--') if '--' in argv else len(argv)

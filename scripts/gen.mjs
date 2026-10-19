@@ -9,6 +9,9 @@ import { genStarterBag } from './gen-starter-bag.mjs';
 import { genStarterEffects } from './gen-starter-effects.mjs';
 import { writeGeneratorInventory } from './generator-inventory.mjs';
 import { execFileSync } from 'node:child_process';
+import { quietCli } from './quiet-cli.mjs';
+
+quietCli('gen');
 
 const buildInputs = process.argv.includes('--build-inputs');
 // --proof (fast proofs: serve-build.sh, `pnpm build:proof`): the game's build inputs only, with the pre-commit's parallel

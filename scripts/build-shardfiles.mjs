@@ -13,6 +13,7 @@ import { legacyInventory } from './legacy-shards.mjs';
 import { mapInputHashes, mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
 import { readBuildKey, publishProduct, reuseOrBuild, shardfileKey, treeHashes } from './shardfile-cache.mjs';
 import { prepareDataMaps } from './bake-data-maps.mjs';
+import { quietCli } from './quiet-cli.mjs';
 
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
 // the slot or the shared content-keyed cache (scripts/shardfile-cache.mjs). The plain `pnpm build` (the push gate)
@@ -118,6 +119,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  quietCli('build-shardfiles');
   const only = process.argv.find(arg => arg.startsWith('--shard='))?.slice('--shard='.length).split(',').filter(Boolean);
   try { await buildShardfiles(resolve(import.meta.dirname, '..'), { catalog: process.argv.includes('--catalog'), copyRuntime: process.argv.includes('--copy-runtime'), reuse: process.argv.includes('--reuse'), ...(only === undefined ? {} : { only }) }); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }

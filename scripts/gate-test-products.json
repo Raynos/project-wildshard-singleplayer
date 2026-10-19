@@ -236,5 +236,6 @@
   "test/nalati-night-decisions.test.ts": [],
   "test/audio-voice-patches.test.ts": [],
   "test/field-presentation.test.ts": [],
-  "test/nalati-flock-view.test.ts": []
+  "test/nalati-flock-view.test.ts": [],
+  "test/batch-check.test.ts": []
 }
