@@ -1,0 +1,22 @@
+{
+  "status": "PASS static codec and bind skin only; geometry support separately FAILS",
+  "vertices": 10458,
+  "sourceSha256": "ee21804ced710ea153e6e51b95824efa8b79b9b668e6cfa1405ef7c9daa66272",
+  "packedSha256": "9c39242cbe651560e75d433fca56b1e16cad1bcd7933d83ff3aff738ee8cba36",
+  "originalSourceSha256": "38e0ad4de8a25827ace7a366e70c3c21a860ce9221de64f4b4afaf0c27ec2b61",
+  "originalPackedSha256": "c1901ca16cd8efecaf839117ce9efef3b128008d571c89d586896e7f10220bb8",
+  "exactPositionsColorsFurAndDiagnosticFlatNormals": true,
+  "exactBonesAndNumericDimensions": true,
+  "unitWeights": true,
+  "maxBindPositionError": 0,
+  "maxBindNormalError": 0,
+  "sourcePins": {
+    "geometry": "ddcae285f9e7f5327d521eefba3fe8f3c4ea677f70562d62b5a410d54fe28efd",
+    "factory": "3150a92ee756e5afb7035751d48cf2d1b63de806e919d16f5f23176df3119f8c",
+    "codec": "210ee9b812655509dcbf869e91db945cc17df40da2ccc07ffdc9d2f292043416"
+  },
+  "limitations": [
+    "No rendered image, GPU shader execution, motion, normal correctness after cross-owner deformation, physics, product or app tested.",
+    "At bind, unchanged geometry and explicitly computed diagnostic normals are exact. Neither source nor the direct packed decoder supplies stored normals; this test computes them, without claiming a full factory/GPU render."
+  ]
+}
