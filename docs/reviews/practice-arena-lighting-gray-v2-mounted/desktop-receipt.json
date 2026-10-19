@@ -1,0 +1,798 @@
+{
+  "schema": "wildshard.puffer.v70-neutral-gray-v2-mounted-qa.v1",
+  "tier": "desktop",
+  "sourceCheckpoint": "56b8cc15ddf871f0f2451f346b9ed234e0e0453b",
+  "cleanEngineBaseline": "c4339d90a93ccc289540e3a72c1e9cbf221d98fb",
+  "scope": "Isolated local exact /puffer-engine/ mount, not published Site",
+  "start": "2026-10-19T01:00:30.539Z",
+  "errors": [],
+  "httpErrors": [],
+  "requests": [
+    {
+      "path": "/puffer-engine/",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/style-3STfMJLR.css",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/practice-CbgfSCB6.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/tables-BovtVlAx.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/preload-helper-uBIymjUX.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/scope-CDMJThrF.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/memoryResources-ConTL0Oo.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/json-Dr12Y27u.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/geometryBounds-DX3m95Jv.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/Settings-ZqzvhABD.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/clock-B53qIMMf.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/Cues-B7t1uKK2.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/preload-CkniRUvX.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/audioFiles-CrqQiWyk.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/Stems-4N3NViWk.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/declaredBank-Df7FkkK1.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/registry-DMm-_Q8N.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/three.core-BNyAOcZ3.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/SetScore-CJ_Nadni.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/runtime-C4-65G-U.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/audioLog-DDd08KrP.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/toon-EDKstha_.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/graphBackend-CroKLe1S.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/dayCycle-e1TDlXAt.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/materialGraph-CteREh-_.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/presets-69eO_3yD.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/dataLook-Bwnc7GvM.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/Weapon-CNKF6Yh8.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/nodeLayerFrame-PqqyriBq.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/precompile-DiGvo67D.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/time-DcQ7RmXA.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/emptyLook-D2dy-xuz.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/Tool-jTOctduU.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/shadowChunks-CHHPA98x.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/postPreparation-BM0ovkLk.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/lastEnd-Do7Iq_3l.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/wind-CDg_obA2.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/build-CehzHm6x.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/lentLooks-Bt3qrxLC.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/practiceBoot-Dy99ali7.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/runtimeProduct-tynk7lul.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/shard.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/actors/creatures.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/actors/crowds.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/actors/moves.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/actors/spawns.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/actors/species.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/actors/strikes.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/audio/audio.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/combat/encounters.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/combat/items.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/combat/strikes.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/economy/ledger.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/economy/loot.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/held/arms.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/look/look.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/look/materials.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/sim/sim.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/sim/scripts.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/quests/quests.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/sim/hooks.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/state/migrations.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/days.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/state/state.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/ui/card.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/ui/compendium.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/ui/ui.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/collision.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/edge.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/movers.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/navigation.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/props.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/spawn.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/tiles.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/traversal.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/water.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/weather.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/sections/world/terrain.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/physics/rapier.wasm",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/blobs/json/414e7ae4167dd766b4b4f57c0d826aadfc0b144ef567eb8a229b9cf2173d67d0.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/blobs/json/414e7ae4167dd766b4b4f57c0d826aadfc0b144ef567eb8a229b9cf2173d67d0.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/engineNodesHandler-D_bqrCQ0.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/engineNodesHandler-CR1AiNTU.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/compile-42EU3GS3.js",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/blobs/json/6265cdf7dc0ae093c341fa9754d4205b8ac1f4705c97052b9c71f41617a8925f.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/blobs/json/cf98695e901d32720a0434084c553b4f91ac2b01e58c0a0b224105ee10dfed17.json",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200
+    },
+    {
+      "path": "/puffer-engine/practice-product/blobs/wasm/d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071.wasm",
+      "status": 200
+    }
+  ],
+  "title": "Puffer V70 · UNACCEPTED WIP",
+  "preview": {
+    "schema": "wildshard.puffer.native-preview.v1",
+    "candidate": "V70",
+    "mode": "gait5",
+    "rigAdmission": {
+      "profile": "v70-rig1-gait5",
+      "originalSourceSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+      "equivalenceSha256": "5cb9e2b3128f5b87ef4ed7c89816c324d79bd57bc6b947d25b23c46bea567b06",
+      "poseSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+      "gaitSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0"
+    },
+    "rootFlinch": "authored-pose",
+    "arenaLighting": "neutral-gray-v2",
+    "arenaLightingProfileSha256": "b0871ebc6bb4b1584cc3b970861dd9d577dd1d6f03c59b752f4d937571c29101",
+    "arenaOcclusion": "contact-v1",
+    "visualAdapter": "puffer-gait5-continuity",
+    "visualAdapterSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+    "source": "art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json",
+    "measurementSha256": "a923ca6c0ca4ba7d853da3b871d536e2b2a3106202a21c3673f22a8eaa6c6f27",
+    "sourceSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+    "metadataSha256": "55f188d53546dd06537c12ba64a29a36b0569a1d72930146605aaa0a43b86673",
+    "dimensionsSha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e",
+    "colliderAcceptance": false,
+    "visualAcceptance": false,
+    "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+    "packedSha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15",
+    "bodyFile": "/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+    "sourceHash": "80e39ff9f9af3b1e0bcaf3565e9282aa042a33af32298850c6085be7396cf895"
+  },
+  "storageBefore": {
+    "local": {},
+    "session": {},
+    "cookies": "",
+    "cacheKeys": [],
+    "serviceWorkers": [],
+    "indexedDBNames": []
+  },
+  "actualStart": {
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.8059.84 Safari/537.36",
+    "platform": "Linux x86_64",
+    "devicePixelRatio": 1,
+    "ao": {
+      "aoSamples": 16,
+      "aoRadius": 0.4,
+      "aoTones": 0,
+      "denoiseSamples": 8,
+      "denoiseRadius": 12,
+      "distanceFalloff": 1,
+      "intensity": 1,
+      "denoiseIterations": 2,
+      "renderMode": 0,
+      "biasOffset": 0,
+      "biasMultiplier": 0,
+      "color": {
+        "isColor": true,
+        "r": 0.05,
+        "g": 0.06,
+        "b": 0.05
+      },
+      "gammaCorrection": false,
+      "depthBufferType": 1,
+      "screenSpaceRadius": false,
+      "halfRes": true,
+      "depthAwareUpsampling": true,
+      "colorMultiply": true,
+      "transparencyAware": true,
+      "accumulate": false,
+      "neuralDenoise": false
+    },
+    "cascades": 3,
+    "normalBias": [
+      0.05,
+      0.05,
+      0.05
+    ],
+    "hemis": [
+      {
+        "color": [
+          0.7835377915215659,
+          0.7835377915215659,
+          0.7835377915215659
+        ],
+        "ground": [
+          0.37626212298046485,
+          0.37626212298046485,
+          0.37626212298046485
+        ],
+        "intensity": 1.15
+      }
+    ],
+    "actor": [
+      0,
+      900,
+      -7
+    ],
+    "yaw": 0,
+    "camera": [
+      0,
+      901.68,
+      -0.3369392262650166
+    ],
+    "frame": 2,
+    "status": "Practice bout. Health and rewards stay in this page.",
+    "health": [
+      "100/ 100"
+    ],
+    "enemyHP": 45,
+    "alive": true,
+    "rootFlinch": "authored-pose",
+    "vertices": 9993,
+    "boneNames": [
+      "body",
+      "belly",
+      "tail",
+      "finL",
+      "finR",
+      "rearL",
+      "rearR",
+      "head"
+    ],
+    "pixelRatio": 1,
+    "buffer": [
+      390,
+      844
+    ],
+    "shadows": true,
+    "passes": [
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": true
+      }
+    ]
+  },
+  "actualStartAt": "2026-10-19T01:00:33.108Z",
+  "storageAfterStart": {
+    "local": {},
+    "session": {},
+    "cookies": "",
+    "cacheKeys": [],
+    "serviceWorkers": [],
+    "indexedDBNames": []
+  },
+  "afterRealStrafe": {
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.8059.84 Safari/537.36",
+    "platform": "Linux x86_64",
+    "devicePixelRatio": 1,
+    "ao": {
+      "aoSamples": 16,
+      "aoRadius": 0.4,
+      "aoTones": 0,
+      "denoiseSamples": 8,
+      "denoiseRadius": 12,
+      "distanceFalloff": 1,
+      "intensity": 1,
+      "denoiseIterations": 2,
+      "renderMode": 0,
+      "biasOffset": 0,
+      "biasMultiplier": 0,
+      "color": {
+        "isColor": true,
+        "r": 0.05,
+        "g": 0.06,
+        "b": 0.05
+      },
+      "gammaCorrection": false,
+      "depthBufferType": 1,
+      "screenSpaceRadius": false,
+      "halfRes": true,
+      "depthAwareUpsampling": true,
+      "colorMultiply": true,
+      "transparencyAware": true,
+      "accumulate": false,
+      "neuralDenoise": false
+    },
+    "cascades": 3,
+    "normalBias": [
+      0.05,
+      0.05,
+      0.05
+    ],
+    "hemis": [
+      {
+        "color": [
+          0.7835377915215659,
+          0.7835377915215659,
+          0.7835377915215659
+        ],
+        "ground": [
+          0.37626212298046485,
+          0.37626212298046485,
+          0.37626212298046485
+        ],
+        "intensity": 1.15
+      }
+    ],
+    "actor": [
+      1.0806380267822124,
+      900,
+      -4.663549887249246
+    ],
+    "yaw": 1.2497093204402985,
+    "camera": [
+      5.689537763690201,
+      901.6651247183058,
+      -3.0736612637900973
+    ],
+    "frame": 64,
+    "status": "Practice bout. Health and rewards stay in this page.",
+    "health": [
+      "100/ 100"
+    ],
+    "enemyHP": 45,
+    "alive": true,
+    "rootFlinch": "authored-pose",
+    "vertices": 9993,
+    "boneNames": [
+      "body",
+      "belly",
+      "tail",
+      "finL",
+      "finR",
+      "rearL",
+      "rearR",
+      "head"
+    ],
+    "pixelRatio": 1,
+    "buffer": [
+      390,
+      844
+    ],
+    "shadows": true,
+    "passes": [
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": true
+      }
+    ]
+  },
+  "retry": {
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.8059.84 Safari/537.36",
+    "platform": "Linux x86_64",
+    "devicePixelRatio": 1,
+    "ao": {
+      "aoSamples": 16,
+      "aoRadius": 0.4,
+      "aoTones": 0,
+      "denoiseSamples": 8,
+      "denoiseRadius": 12,
+      "distanceFalloff": 1,
+      "intensity": 1,
+      "denoiseIterations": 2,
+      "renderMode": 0,
+      "biasOffset": 0,
+      "biasMultiplier": 0,
+      "color": {
+        "isColor": true,
+        "r": 0.05,
+        "g": 0.06,
+        "b": 0.05
+      },
+      "gammaCorrection": false,
+      "depthBufferType": 1,
+      "screenSpaceRadius": false,
+      "halfRes": true,
+      "depthAwareUpsampling": true,
+      "colorMultiply": true,
+      "transparencyAware": true,
+      "accumulate": false,
+      "neuralDenoise": false
+    },
+    "cascades": 3,
+    "normalBias": [
+      0.05,
+      0.05,
+      0.05
+    ],
+    "hemis": [
+      {
+        "color": [
+          0.7835377915215659,
+          0.7835377915215659,
+          0.7835377915215659
+        ],
+        "ground": [
+          0.37626212298046485,
+          0.37626212298046485,
+          0.37626212298046485
+        ],
+        "intensity": 1.15
+      }
+    ],
+    "actor": [
+      0.0003720487803831607,
+      900,
+      -6.7053700517863035
+    ],
+    "yaw": -0.000002049258369069335,
+    "camera": [
+      -0.0000011366906766006092,
+      901.6816205900063,
+      -0.3369403442827822
+    ],
+    "frame": 88,
+    "status": "Fresh practice bout.",
+    "health": [
+      "100/ 100"
+    ],
+    "enemyHP": 45,
+    "alive": true,
+    "rootFlinch": "authored-pose",
+    "vertices": 9993,
+    "boneNames": [
+      "body",
+      "belly",
+      "tail",
+      "finL",
+      "finR",
+      "rearL",
+      "rearR",
+      "head"
+    ],
+    "pixelRatio": 1,
+    "buffer": [
+      390,
+      844
+    ],
+    "shadows": true,
+    "passes": [
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": true
+      }
+    ]
+  },
+  "storageAfterRetry": {
+    "local": {},
+    "session": {},
+    "cookies": "",
+    "cacheKeys": [],
+    "serviceWorkers": [],
+    "indexedDBNames": []
+  },
+  "appInventorySha256": "ad7f27374600070e9dfc1223c17c6fa53fc039bb7ebe4fb4609ec3070ce08b69",
+  "passed": true,
+  "end": "2026-10-19T01:00:49.860Z"
+}

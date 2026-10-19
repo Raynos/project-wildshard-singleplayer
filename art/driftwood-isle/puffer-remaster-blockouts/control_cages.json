@@ -1,0 +1,41 @@
+{
+  "status": "unrendered anatomical alternatives; no selected or accepted candidate",
+  "reference": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/brine-puffer-lowpoly.webp",
+  "axes": "Blender X right, Y forward, Z up",
+  "columns": [-1, -0.70, -0.30, 0, 0.30, 0.70, 1],
+  "candidates": [
+    {
+      "id": "study-a", "design": "compact pear; forward lower pouch with wide low shoulders",
+      "rowZ": [1.42, 1.16, 0.94, 0.63, 0.27],
+      "rowWidth": [0.25, 0.57, 0.65, 0.61, 0.37],
+      "rowFrontY": [0.08, 0.52, 0.66, 0.72, 0.42],
+      "sideSetback": [0.04, 0.16, 0.20, 0.22, 0.12],
+      "rearY": -0.58, "rearWidthScale": 0.72, "rearHeightScale": 0.78,
+      "foreRoot": [0.43, 0.20, 0.57], "foreFan": [0.65, 0.40, 0.085],
+      "fanWidth": 0.28, "fanDepth": 0.19,
+      "rearRoot": [0.40, -0.31, 0.49], "rearFan": [0.52, -0.32, 0.07]
+    },
+    {
+      "id": "study-b", "design": "broad low cheek; shallow pouch projection and outward paddles",
+      "rowZ": [1.29, 1.10, 0.91, 0.60, 0.26],
+      "rowWidth": [0.30, 0.64, 0.70, 0.67, 0.41],
+      "rowFrontY": [0.10, 0.53, 0.60, 0.59, 0.35],
+      "sideSetback": [0.04, 0.15, 0.18, 0.19, 0.10],
+      "rearY": -0.49, "rearWidthScale": 0.77, "rearHeightScale": 0.78,
+      "foreRoot": [0.48, 0.15, 0.48], "foreFan": [0.77, 0.28, 0.085],
+      "fanWidth": 0.29, "fanDepth": 0.20,
+      "rearRoot": [0.43, -0.27, 0.44], "rearFan": [0.58, -0.32, 0.07]
+    },
+    {
+      "id": "study-c", "design": "high integrated shoulder hood; upright lower cheek and tucked short fans",
+      "rowZ": [1.47, 1.18, 0.94, 0.62, 0.28],
+      "rowWidth": [0.29, 0.59, 0.62, 0.58, 0.38],
+      "rowFrontY": [0.16, 0.60, 0.65, 0.59, 0.35],
+      "sideSetback": [0.05, 0.19, 0.21, 0.17, 0.11],
+      "rearY": -0.63, "rearWidthScale": 0.72, "rearHeightScale": 0.83,
+      "foreRoot": [0.43, 0.12, 0.56], "foreFan": [0.59, 0.37, 0.085],
+      "fanWidth": 0.28, "fanDepth": 0.21,
+      "rearRoot": [0.39, -0.32, 0.48], "rearFan": [0.49, -0.36, 0.07]
+    }
+  ]
+}

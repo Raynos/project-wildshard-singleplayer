@@ -1,0 +1,13 @@
+# Gray-v2 exact mounted-route QA
+
+Both desktop and phone-policy cloud Chromium checks pass at the exact isolated /puffer-engine/ mount. This is a temporary staging mount of the frozen app, not a published-Site claim. Source checkpoint: 56b8cc15ddf871f0f2451f346b9ed234e0e0453b; clean engine baseline: c4339d90a93ccc289540e3a72c1e9cbf221d98fb.
+
+Before serving, every one of the 137 files is checked against the app inventory, SHA256 ad7f27374600070e9dfc1223c17c6fa53fc039bb7ebe4fb4609ec3070ce08b69. Runtime admission reads V70 gait5, authored-pose root flinch, neutral-gray-v2 lighting, contact-v1 optional AO, weighted native b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762 and unchanged wrapper 54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d. Product sourceHash remains 80e39ff9f9af3b1e0bcaf3565e9282aa042a33af32298850c6085be7396cf895.
+
+Desktop runs 01:00:30.539–01:00:49.860 UTC; actual Start at 01:00:33.108. Phone-policy runs 01:00:53.627–01:01:14.347; actual Start at 01:00:56.412. Both return terminal 0. Start and Retry restore player 100/enemy 45 alive, exact 9,993 vertices and eight named bones. Real W approach, Lock and six-second right strafe execute between Start and Retry; screenshots and world/camera coordinates are recorded.
+
+Desktop selects DPR 1, 390x844 buffer, three shadow cascades, four normal passes and existing AO with radius 0.4 m/intensity 1. Phone policy selects DPR 2, 780x1688 buffer, one cascade and three normal passes without AO. The phone check is iPhone-UA emulation on Linux Chromium, not physical iPhone/Safari behavior or performance. Both read exact equal-channel hemisphere colors/intensity 1.15 and unchanged shadow normalBias 0.05. Shadows remain enabled. Every observed asset request resolves under /puffer-engine/ with status 200. There are no page/HTTP errors.
+
+localStorage, sessionStorage, IndexedDB, CacheStorage, service workers and cookies remain empty before Start, after Start and after Retry. No new combat-quality, full opponent-attack-cycle or floor-clearance claim is made by this mounted smoke check. The separate gray-v2 app-root run verifies hit/defeat/two local coins/Retry; prior exact-gait cycle and living-floor evidence remains the reference. Dark-tan half-face, fin stippling, corpse contact and overall model/animation quality remain open.
+
+The four screenshots are full-size WebP quality 90 conversions; original PNG and final image hashes are pinned. They are review-Site evidence, separate from the text-only repository closure. The portable script uses CHROMIUM_EXECUTABLE and runs through the browser lane with desktop or phone as its first argument.

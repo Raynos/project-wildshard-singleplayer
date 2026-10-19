@@ -1,0 +1,38 @@
+[
+  {
+    "path": "desktop-start.webp",
+    "sha256": "cbdd0121a87d763ebd9356c01354e321a684cf79c1814061f6ecb94deacdd4e8",
+    "sourcePngSha256": "d5c93e3511cdb51ef1e856c9a1768216e9b1cde5a07ce5e108a354c1ef7baaba",
+    "width": 390,
+    "height": 844,
+    "quality": 90,
+    "lossless": false
+  },
+  {
+    "path": "desktop-strafe.webp",
+    "sha256": "cd99a1d089b14fd8c20545708567f408402df12a3b4580c02b2a2c8d2f4dacc5",
+    "sourcePngSha256": "89d826f5fe4dab8f4c2fc4f06a767bbd4b1da9684a47104939c35bcf628b2ae5",
+    "width": 390,
+    "height": 844,
+    "quality": 90,
+    "lossless": false
+  },
+  {
+    "path": "phone-start.webp",
+    "sha256": "dc270c93b734e7ae505f664f2a1f1450806be36a019b082211c4891731c9030d",
+    "sourcePngSha256": "b7e5a8e630d2fb285bc30fb4242e8cd46c190686644d60dae1418fb0222a959c",
+    "width": 1170,
+    "height": 2532,
+    "quality": 90,
+    "lossless": false
+  },
+  {
+    "path": "phone-strafe.webp",
+    "sha256": "4e03fe2c8418a9a5676c8bc3a722699c7cfef5b07c95d24fcf80e92a56539078",
+    "sourcePngSha256": "f9a7e5e2646aeec2cd71c34374118095c3e4eb895fdb3cc6afc98383a8d6e865",
+    "width": 1170,
+    "height": 2532,
+    "quality": 90,
+    "lossless": false
+  }
+]
