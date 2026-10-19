@@ -6,7 +6,7 @@ Each task is a fresh Codex session with only this file and the task (G511). AGEN
 - **Queue (G504, G468):** biggest uncut mini-plan batch first; whole modules onto existing hosts or data; a new host
   needs a real second shard (G454) and HOST-BAR ≥ 5/6 (G482); single-shard logic to AS + data at ≤ 10 Hz (G470, G503).
 - **Per batch (G506, G509):** `scripts/batch-check.sh <shard…>` (types, lint, focused tests, one headless boot of
-  each touched shard) + the push gate. No replays, witnesses, old-save sweeps or receipts. Similar, not identical
+  each touched shard; by hand until it lands) + the push gate. No replays, witnesses, old-save sweeps or receipts. Similar, not identical
   (G415); delete a fragile test that blocks a cut (G416). Heavy proofs: once per W3 milestone, by one lane.
 - **No polling (G510):** waits run in a script that wakes you only on a new actionable failure. Logs go to a file;
   read the failure before any rerun and never launch an identical job twice in a row (G511).
