@@ -1,0 +1,108 @@
+{
+  "status": "unaccepted; genuine fixed-camera Blender native-bind evidence, no runtime proof",
+  "sourcePins": [
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/build_refined_fins.py",
+      "bytes": 5881,
+      "sha256": "392c85649002d763016c96e0bde4c28fb7f097cdb0f418e87e34b1291b64f6c7"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/check_refined_fins.py",
+      "bytes": 2789,
+      "sha256": "9aa7a7422730bfb76340a14be72a5f71dda3f6938eace126b9effdf4c3c55f69"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/render_refined_comparison.py",
+      "bytes": 4156,
+      "sha256": "13331fb0822183786f049a9061d5946d84662a817ddcf277c81e492309f51f6c"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/refined-fin-fans-indexed.json",
+      "bytes": 99884,
+      "sha256": "e542e355304f0c59b3dcfcc6ecebe51f2fb2d63319689f369453b08473aaa2fc"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/refined-fin-native-study.json",
+      "bytes": 292967,
+      "sha256": "7b581d46442f45221674c62b4e78dd033cfb702f52d316fa1b5ee645e578be95"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/refined-structural-audit.json",
+      "bytes": 2436,
+      "sha256": "4d53c42ec98725a3029e43d192c5f4ea51515e949f495bcece6217079b250178"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/REFINEMENT.md",
+      "bytes": 1354,
+      "sha256": "261546bfcfb909ff36273eda93437ebd550cdfe2ec50ca189054a0e851cab57a"
+    }
+  ],
+  "images": [
+    {
+      "rawPath": "tmp/puffer-fin-study-refined/compact-base-front.png",
+      "rawSha256": "17add00ce2ec367652b4603947ed4008af16958d9625f0580c1531562ff73e11",
+      "path": "tmp/puffer-fin-study-refined/compact-base-front-labelled.webp",
+      "bytes": 14306,
+      "sha256": "c519d95eae695738e5fa7e4203610d05be3cd3571eadf72e44d813362bfb1e88"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-refined/compact-base-hero.png",
+      "rawSha256": "5c96c587bdfceb6aba2c3984e1f6d2fb63b4f83d2133fee2519559cc84d5e556",
+      "path": "tmp/puffer-fin-study-refined/compact-base-hero-labelled.webp",
+      "bytes": 55742,
+      "sha256": "0ae81676243c7055d3eef5e92fc8728f5c953c694cb03ca9495f679e6d692add"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-refined/compact-base-side.png",
+      "rawSha256": "75318e7211cb371c90579bbc96f4647cbbec01ad0bf0c2fb01e42d908b75cf7c",
+      "path": "tmp/puffer-fin-study-refined/compact-base-side-labelled.webp",
+      "bytes": 14816,
+      "sha256": "f5f7d31c6bfdc7a0fc10e77e70465e7286ca776f4e473c2322c41359d7eb37a5"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-refined/fin-study-front.png",
+      "rawSha256": "bc128ee2334b260c6e700fbe1091f3ae8eeb392c7a77f54a568adc4c10dc9e4f",
+      "path": "tmp/puffer-fin-study-refined/fin-study-front-labelled.webp",
+      "bytes": 15004,
+      "sha256": "44e432573efadbdbd449b35d92ea8b986facd0986dc2fd1e58289105174580b3"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-refined/fin-study-hero.png",
+      "rawSha256": "5294853194658ff1fc46733b2b5121001e9443ca9eafde5caccaec9f1ff02b75",
+      "path": "tmp/puffer-fin-study-refined/fin-study-hero-labelled.webp",
+      "bytes": 56716,
+      "sha256": "0d776e4f3b0dbf57f37c1e9a6d07339e0f8ed075275d1146dcc3bd6e2e14399d"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-refined/fin-study-side.png",
+      "rawSha256": "c48093bdeaff12ad50885081f3e0f0aed0c86ab28c41eac54bef148c41755305",
+      "path": "tmp/puffer-fin-study-refined/fin-study-side-labelled.webp",
+      "bytes": 15314,
+      "sha256": "b5e578bdc82e1e7ee971e7e0650e8fa40001eedd1934d2101a9ffbd00fee153d"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-refined/v71-front.png",
+      "rawSha256": "738734a42e4997a6ed7faa8024b1f9bf63b9a67ced485cb8475c68cf05e18f4e",
+      "path": "tmp/puffer-fin-study-refined/v71-front-labelled.webp",
+      "bytes": 13856,
+      "sha256": "be5d3c3f03a582dd7cd08fb665aea76543a5a237ab34d3acec02b07a6478af64"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-refined/v71-hero.png",
+      "rawSha256": "c7ad6d5d7d44d4c4418a0bf0c3bab75330908b09ef952b8beb16bc381ba19408",
+      "path": "tmp/puffer-fin-study-refined/v71-hero-labelled.webp",
+      "bytes": 55748,
+      "sha256": "a1d3d978c34fe86413f087d98e733432658f8711bbb4a95c01542d5d47d73e21"
+    },
+    {
+      "rawPath": "tmp/puffer-fin-study-refined/v71-side.png",
+      "rawSha256": "5acaff154730e30cc2bd4dce1dd378fd38ee50b6416d44379b85088840207ded",
+      "path": "tmp/puffer-fin-study-refined/v71-side-labelled.webp",
+      "bytes": 14116,
+      "sha256": "add175b7f5df6046ee14e8f2a406fc4b1966a590910201119c4ba07ab4d0506b"
+    }
+  ],
+  "visualRead": "More triangular cream tips and broader shoulder, but narrow distal dorsal grooves returned. Do not prefer over retained smooth compact base without independent review. No score or acceptance claimed.",
+  "preservation": "V71 body, face, rear feet, tail, bones and scene unchanged in paired captures; only two forefins replaced in memory",
+  "checks": "Static topology/root/floor audit passes; self-intersection and motion not established"
+}

@@ -1,0 +1,24 @@
+{
+  "status": "rendered-unaccepted-clay-study",
+  "sourceSha256": "43fe5079040261ab7b4b7b1f440df2c8678ed9cb43d4a52ecb0b564a1c8d6b09",
+  "session": 93037,
+  "exitCode": 0,
+  "frames": [
+    {
+      "path": "tmp/puffer-remaster-guided/supported-surface/clay-hero.png",
+      "bytes": 389984,
+      "sha256": "33c20b6e31cad5a3ea461ceced8a89b6f10bb3fbd34d53b0d3077e4e41f8a74b"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/supported-surface/clay-front.png",
+      "bytes": 355992,
+      "sha256": "2526246601e80fce24d4db2bd2acc20cf88c1fa78d0468635eafaa61c1c5bbff"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/supported-surface/clay-side.png",
+      "bytes": 357562,
+      "sha256": "d84369c4f67997192e192bf35ffcc04cfc503419652050c2da1dfe3597cf49e2"
+    }
+  ],
+  "imagesKeptOutsideRepoBinaryBudget": true
+}

@@ -1,0 +1,26 @@
+{
+  "status": "unchanged V71 matching clay baseline",
+  "sourceNativeSha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338",
+  "geometryChanges": false,
+  "session": 60374,
+  "exitCode": 0,
+  "rendererSha256": "c52b03cd55b194d432b44e9e242390aaa44b2be10140d8e04538861b7099164c",
+  "frames": [
+    {
+      "path": "tmp/puffer-remaster-guided/v71-matching-clay/clay-hero.png",
+      "bytes": 389254,
+      "sha256": "92da4a357a1a34940244798ecbf96f25c589a0dd779802963597a74f4bdf8eb2"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/v71-matching-clay/clay-front.png",
+      "bytes": 355305,
+      "sha256": "dadf100a2ac92ddeaa67c430781009d0218e44c158f083daae223a9a013ad596"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/v71-matching-clay/clay-side.png",
+      "bytes": 357410,
+      "sha256": "98059852f469a20299f59504b3895f324f5b2d7bb469d0360090efe50b4eae1a"
+    }
+  ],
+  "comparisonSettingsIdentical": true
+}

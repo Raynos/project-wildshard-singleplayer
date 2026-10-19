@@ -1,0 +1,101 @@
+{
+  "status": "static checks only; animation and independent visual acceptance pending",
+  "bonesExact": true,
+  "meshes": [
+    {
+      "name": "Volumetric connected finL",
+      "checks": {
+        "finite": true,
+        "closedTwoFacesPerEdge": true,
+        "consistentOrientation": true,
+        "positiveVolume": true,
+        "nondegenerate": true,
+        "exactRootCorners": true,
+        "rootAndMidpointsInsideV71": true,
+        "floorPreserved": true,
+        "noBelowFloor": true,
+        "compactReachAndSoleExact": true
+      },
+      "vertices": 182,
+      "triangles": 360,
+      "volume": 0.050967938037319575,
+      "minArea": 3.203599128246814e-06,
+      "rootWindingRange": [
+        0.9999999999999997,
+        1.0000000000000002
+      ],
+      "bounds": [
+        [
+          0.18000000715255737,
+          0.004000000189989805,
+          0.08500000089406967
+        ],
+        [
+          0.8699999999999999,
+          0.47999998927116394,
+          0.675
+        ]
+      ],
+      "baselineBounds": [
+        [
+          0.18000000715255737,
+          0.004000000189989805,
+          0.08500000089406967
+        ],
+        [
+          0.9789999723434448,
+          0.47999998927116394,
+          0.9581454992294312
+        ]
+      ]
+    },
+    {
+      "name": "Volumetric connected finR",
+      "checks": {
+        "finite": true,
+        "closedTwoFacesPerEdge": true,
+        "consistentOrientation": true,
+        "positiveVolume": true,
+        "nondegenerate": true,
+        "exactRootCorners": true,
+        "rootAndMidpointsInsideV71": true,
+        "floorPreserved": true,
+        "noBelowFloor": true,
+        "compactReachAndSoleExact": true
+      },
+      "vertices": 182,
+      "triangles": 360,
+      "volume": 0.05096793803731956,
+      "minArea": 3.203599128246719e-06,
+      "rootWindingRange": [
+        0.9999999999999999,
+        1.0000000000000002
+      ],
+      "bounds": [
+        [
+          -0.8699999999999999,
+          0.004000000189989805,
+          0.08500000089406967
+        ],
+        [
+          -0.18000000715255737,
+          0.47999998927116394,
+          0.675
+        ]
+      ],
+      "baselineBounds": [
+        [
+          -0.9789999723434448,
+          0.004000000189989805,
+          0.08500000089406967
+        ],
+        [
+          -0.18000000715255737,
+          0.47999998927116394,
+          0.9581454992294312
+        ]
+      ]
+    }
+  ],
+  "allPassed": true
+}
