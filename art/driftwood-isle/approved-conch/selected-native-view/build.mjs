@@ -13,9 +13,9 @@ export const ROOT = resolve(import.meta.dirname, '../../../..');
 export const CANDIDATE = 'art/driftwood-isle/approved-conch/selected-native-view';
 export const FREEZE_SHA256 = NORMAL_FREEZE_SHA256;
 export const FACTORY = `${CANDIDATE}/conchSelectedViewPreview.ts`;
-export const BUILD_PIN = 'tmp/conch-selected-view/reviewed-build-pin.json';
-export const PREVIEW = 'tmp/conch-selected-view/candidate';
-export const DIST = 'tmp/conch-selected-view-dist';
+export const BUILD_PIN = 'tmp/conch-selected-view-attempt3/reviewed-build-pin.json';
+export const PREVIEW = 'tmp/conch-selected-view-attempt3/candidate';
+export const DIST = 'tmp/conch-selected-view-dist-attempt3';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const canonical = value => {
   const sorted = input => Array.isArray(input) ? input.map(sorted)
@@ -47,7 +47,11 @@ export function inventory(root, directory) {
   return files;
 }
 /** Source-only native admission. It never treats the older motion4 build GO as selected-view permission. */
-export function admitConchSelectedView(root = ROOT) { return admitSelectedNative(root); }
+export function admitConchSelectedView(root = ROOT) {
+  const arena=read(root,'src/engine/practice/TrainingArena.ts').toString();
+  if(!arena.includes('const HALF_WIDTH = 50, HALF_DEPTH = 50, WALL_HEIGHT = 9;') || !arena.includes('const Y = 900;') || !arena.includes('floor.position.y = -0.03;')) throw new Error('Camera room bounds no longer match actual arena source');
+  return admitSelectedNative(root);
+}
 export function buildInputs(root = ROOT) {
   const files = {};
   // Deliberately conservative: additions and removals invalidate permission too.

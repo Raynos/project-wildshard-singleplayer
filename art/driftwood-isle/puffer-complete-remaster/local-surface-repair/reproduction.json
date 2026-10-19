@@ -1,0 +1,9 @@
+{
+  "deterministicNativeAndGlb": true,
+  "sha256": {
+    "local-repair-native.json": "89e897b7644b67ade5dddb89af0d830d51fb44233f6c0826b3e26e3dedb8d3cd",
+    "local-repair-study.glb": "8e1ee9d7cca7573d0ee53962a978286c11d1d0bdba467f534f52b78dbeff8cf3"
+  },
+  "originalSourceRetained": true,
+  "attempts": 1
+}

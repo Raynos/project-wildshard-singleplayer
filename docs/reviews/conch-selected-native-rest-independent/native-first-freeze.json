@@ -1,0 +1,44 @@
+{
+  "frozen_at_utc": "2026-10-19T16:38:24.137892+00:00",
+  "inspection_order": [
+    "approved original",
+    "front-native",
+    "back-native",
+    "left-native",
+    "right-native",
+    "top-native",
+    "diag-front-native",
+    "diag-back-native",
+    "diag-left-native",
+    "diag-right-native"
+  ],
+  "source_pairs_or_prior_scores_seen": false,
+  "scope": "Actual engine-context REST appearance, not gameplay",
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "details": 0.2,
+    "facet": 0.15
+  },
+  "scores": {
+    "silhouette": 72,
+    "face": 55,
+    "details": 65,
+    "facet": 64
+  },
+  "weighted_score": 64.75,
+  "observations": {
+    "silhouette": "Recognizable giant spiral shell, asymmetric shield/claw and blade; shell reads broad bonnet/dish rather than reference tall rising stacked spiral, small compressed body and stance. All nine fit frame; top and rear naturally self-occlude face.",
+    "face": "Amber eyes and stalks discernible frontally but tiny/dark, face orange-red with visible fine stippling; beak and predatory expression less clean than reference.",
+    "details": "Shell stripes and asymmetric arm tools retained; reference crisp limb armor, purple-red material separation, beak and feet not matched at this capture scale.",
+    "facet": "Shell has readable large planes; dark body fine noisy/dither-like shading obscures intended clean faceted planes. Palette markedly darker, more ochre/orange and less cream/coral than approved image."
+  },
+  "not_scored": [
+    "structural admission",
+    "Blender fidelity",
+    "animation",
+    "combat",
+    "physical phone performance",
+    "human fun"
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "source": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-study/closed-anatomy-native.json",
+  "sourceSha256": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006",
+  "candidateSha256": "89e897b7644b67ade5dddb89af0d830d51fb44233f6c0826b3e26e3dedb8d3cd",
+  "method": "Uniform discrete harmonic interior solve inside three fixed-boundary disks, retaining listed macro and cavity anchors; topology and semantic face ownership unchanged.",
+  "patches": [
+    {
+      "patch": "leftLowerFlank",
+      "movedVertexIds": [
+        173,
+        174,
+        423
+      ],
+      "fixedMacroAnchors": [
+        148,
+        175,
+        180,
+        431
+      ],
+      "maxDisplacement": 0.04156719896243051
+    },
+    {
+      "patch": "positiveXOrbitalMouth",
+      "movedVertexIds": [
+        280,
+        281,
+        282,
+        283,
+        439,
+        445,
+        463,
+        464,
+        465,
+        468
+      ],
+      "fixedMacroAnchors": [
+        234,
+        429,
+        494
+      ],
+      "maxDisplacement": 0.1095369125814273
+    },
+    {
+      "patch": "negativeXOrbitalMouth",
+      "movedVertexIds": [
+        284,
+        285,
+        286,
+        288,
+        436,
+        437,
+        441,
+        442,
+        443,
+        447,
+        462,
+        469,
+        470,
+        471,
+        473,
+        474
+      ],
+      "fixedMacroAnchors": [
+        243,
+        245,
+        246,
+        255,
+        433,
+        477
+      ],
+      "maxDisplacement": 0.14517792510766114
+    }
+  ],
+  "runtimeAdmitted": false
+}

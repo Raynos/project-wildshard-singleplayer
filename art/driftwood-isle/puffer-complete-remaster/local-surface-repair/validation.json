@@ -1,0 +1,923 @@
+{
+  "checks": {
+    "883 outside faces exact": true,
+    "all non-hull components exact": true,
+    "all paint skin fur bones exact": true,
+    "fixed boundaries exact": true,
+    "all part counts and face counts exact": true,
+    "native zero proper crossings": true,
+    "native zero nonincident contacts": false,
+    "native manifold winding positive volume": true,
+    "float32 zero proper crossings": true,
+    "float32 zero nonincident contacts": false,
+    "float32 manifold winding positive volume": true,
+    "exact volume preserved": false,
+    "sampled exterior support preserved": true,
+    "no corresponding normal hemisphere reversal": false,
+    "all finite root samples interior": true
+  },
+  "runtimeAdmitted": false,
+  "tolerances": {
+    "contactDistance": 1e-09,
+    "coplanarOverlapArea": 1e-12
+  },
+  "formats": {
+    "native": {
+      "properCrossings": [],
+      "contacts": {
+        "nonincidentVertexFace": [
+          {
+            "vertex": 281,
+            "face": 1012,
+            "distance": 0.0,
+            "barycentric": [
+              0.08975868470961201,
+              5.545758109680591e-07,
+              0.910240760714577
+            ]
+          },
+          {
+            "vertex": 281,
+            "face": 1013,
+            "distance": 0.0,
+            "barycentric": [
+              0.5848051609167633,
+              0.4132922181474023,
+              0.0019026209358343638
+            ]
+          },
+          {
+            "vertex": 291,
+            "face": 1012,
+            "distance": 0.0,
+            "barycentric": [
+              0.2125761384223389,
+              1.341849148274512e-06,
+              0.7874225197285128
+            ]
+          },
+          {
+            "vertex": 293,
+            "face": 1012,
+            "distance": 0.0,
+            "barycentric": [
+              0.2621817216975798,
+              1.4588955759363152e-06,
+              0.7378168194068443
+            ]
+          }
+        ],
+        "coplanarAreaOverlap": [
+          {
+            "faces": [
+              1009,
+              1012
+            ],
+            "projectedArea": 1.227859303815082e-09
+          },
+          {
+            "faces": [
+              1010,
+              1012
+            ],
+            "projectedArea": 1.9749224824949785e-11
+          },
+          {
+            "faces": [
+              1010,
+              1013
+            ],
+            "projectedArea": 1.9749224824949785e-11
+          },
+          {
+            "faces": [
+              1012,
+              1013
+            ],
+            "projectedArea": 1.0380009997368322e-08
+          }
+        ],
+        "nonincidentEdgeEdge": []
+      },
+      "topology": [
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 1.9749224338752873e-11,
+          "components": [
+            {
+              "faces": 1022,
+              "volume": 1.2027783436603938
+            },
+            {
+              "faces": 20,
+              "volume": 0.004756054875511809
+            },
+            {
+              "faces": 192,
+              "volume": 0.002048075239343486
+            },
+            {
+              "faces": 192,
+              "volume": 0.002114593572593748
+            },
+            {
+              "faces": 6,
+              "volume": 0.003019250017312935
+            },
+            {
+              "faces": 6,
+              "volume": 0.003918198732078756
+            },
+            {
+              "faces": 6,
+              "volume": 0.0014089935096237513
+            },
+            {
+              "faces": 6,
+              "volume": 0.0030976904290528746
+            },
+            {
+              "faces": 6,
+              "volume": 0.0030976904290528733
+            },
+            {
+              "faces": 6,
+              "volume": 0.0019628773721888757
+            },
+            {
+              "faces": 6,
+              "volume": 0.0019628773721888856
+            },
+            {
+              "faces": 6,
+              "volume": 0.0005820765343557575
+            }
+          ]
+        },
+        {
+          "part": "Dark recessed palate",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": false,
+          "minimumArea": 2.9032776183157694e-10,
+          "components": [
+            {
+              "faces": 32,
+              "volume": 0.0013270118240453297
+            },
+            {
+              "faces": 12,
+              "volume": 0.0003383574601168526
+            },
+            {
+              "faces": 36,
+              "volume": 0.0022157695406540795
+            },
+            {
+              "faces": 4,
+              "volume": 8.133312870114593e-06
+            },
+            {
+              "faces": 12,
+              "volume": 1.944000737877314e-06
+            },
+            {
+              "faces": 12,
+              "volume": 1.9440007378764466e-06
+            },
+            {
+              "faces": 56,
+              "volume": 0.001207200204130146
+            },
+            {
+              "faces": 124,
+              "volume": 6.817271195850026e-05
+            },
+            {
+              "faces": 124,
+              "volume": 0.00010945338888816723
+            },
+            {
+              "faces": 124,
+              "volume": 5.708324768916391e-06
+            },
+            {
+              "faces": 124,
+              "volume": 1.880301684601864e-07
+            },
+            {
+              "faces": 14,
+              "volume": 0.003255609892771442
+            },
+            {
+              "faces": 124,
+              "volume": 6.817271195850055e-05
+            },
+            {
+              "faces": 124,
+              "volume": 0.00010945338888816504
+            },
+            {
+              "faces": 124,
+              "volume": 5.708324768917143e-06
+            },
+            {
+              "faces": 124,
+              "volume": 1.8803016846057265e-07
+            },
+            {
+              "faces": 14,
+              "volume": 0.003255610431800403
+            }
+          ]
+        },
+        {
+          "part": "Tail root",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 0.0005293668187145832,
+          "components": [
+            {
+              "faces": 44,
+              "volume": 0.00820526639279844
+            },
+            {
+              "faces": 192,
+              "volume": 0.02783138563166665
+            }
+          ]
+        },
+        {
+          "part": "Volumetric connected finL",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 0.0007188561041982746,
+          "components": [
+            {
+              "faces": 92,
+              "volume": 0.051183114528206834
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522834934299452
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522832502926703
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522832502926727
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522832502926727
+            }
+          ]
+        },
+        {
+          "part": "Volumetric connected finR",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 0.0007188561041982746,
+          "components": [
+            {
+              "faces": 92,
+              "volume": 0.05118311453519408
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522832502926736
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522832502926712
+            },
+            {
+              "faces": 18,
+              "volume": 0.001152283250292671
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522834934299458
+            }
+          ]
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 0.00027141116784701325,
+          "components": [
+            {
+              "faces": 92,
+              "volume": 0.020991849639038926
+            },
+            {
+              "faces": 10,
+              "volume": 0.0003835644831494257
+            },
+            {
+              "faces": 10,
+              "volume": 0.00038356457194693646
+            },
+            {
+              "faces": 10,
+              "volume": 0.0003835644685914889
+            },
+            {
+              "faces": 10,
+              "volume": 0.0003835644831494257
+            }
+          ]
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 0.00027141116784701325,
+          "components": [
+            {
+              "faces": 92,
+              "volume": 0.02099184963903897
+            },
+            {
+              "faces": 10,
+              "volume": 0.00038356448314942566
+            },
+            {
+              "faces": 10,
+              "volume": 0.0003835644685914884
+            },
+            {
+              "faces": 10,
+              "volume": 0.00038356457194693656
+            },
+            {
+              "faces": 10,
+              "volume": 0.0003835644831494257
+            }
+          ]
+        }
+      ]
+    },
+    "float32": {
+      "properCrossings": [],
+      "contacts": {
+        "nonincidentVertexFace": [
+          {
+            "vertex": 281,
+            "face": 1012,
+            "distance": 0.0,
+            "barycentric": [
+              0.08975868952134392,
+              5.542821454682638e-07,
+              0.9102407561965106
+            ]
+          },
+          {
+            "vertex": 281,
+            "face": 1013,
+            "distance": 0.0,
+            "barycentric": [
+              0.584882766483074,
+              0.4131936591157974,
+              0.001923574401128485
+            ]
+          },
+          {
+            "vertex": 291,
+            "face": 1012,
+            "distance": 0.0,
+            "barycentric": [
+              0.21257614482317,
+              1.3414584983355697e-06,
+              0.7874225137183317
+            ]
+          },
+          {
+            "vertex": 293,
+            "face": 1012,
+            "distance": 0.0,
+            "barycentric": [
+              0.26218172658834094,
+              1.4585970872945896e-06,
+              0.7378168148145717
+            ]
+          }
+        ],
+        "coplanarAreaOverlap": [
+          {
+            "faces": [
+              1009,
+              1012
+            ],
+            "projectedArea": 1.2282707073651977e-09
+          },
+          {
+            "faces": [
+              1010,
+              1012
+            ],
+            "projectedArea": 1.9960907926552807e-11
+          },
+          {
+            "faces": [
+              1010,
+              1013
+            ],
+            "projectedArea": 1.9960907926552807e-11
+          },
+          {
+            "faces": [
+              1012,
+              1013
+            ],
+            "projectedArea": 1.0376987713556218e-08
+          }
+        ],
+        "nonincidentEdgeEdge": []
+      },
+      "topology": [
+        {
+          "part": "Continuous mantle cheek and pouch",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 1.9960907926552807e-11,
+          "components": [
+            {
+              "faces": 1022,
+              "volume": 1.2027783410081774
+            },
+            {
+              "faces": 20,
+              "volume": 0.004756054875511809
+            },
+            {
+              "faces": 192,
+              "volume": 0.002048075239343486
+            },
+            {
+              "faces": 192,
+              "volume": 0.002114593572593748
+            },
+            {
+              "faces": 6,
+              "volume": 0.0030192497676039295
+            },
+            {
+              "faces": 6,
+              "volume": 0.003918198607792433
+            },
+            {
+              "faces": 6,
+              "volume": 0.0014089937352376556
+            },
+            {
+              "faces": 6,
+              "volume": 0.003097690097230586
+            },
+            {
+              "faces": 6,
+              "volume": 0.003097690097230585
+            },
+            {
+              "faces": 6,
+              "volume": 0.001962877490771024
+            },
+            {
+              "faces": 6,
+              "volume": 0.0019628774907710215
+            },
+            {
+              "faces": 6,
+              "volume": 0.0005820765701721221
+            }
+          ]
+        },
+        {
+          "part": "Dark recessed palate",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": false,
+          "minimumArea": 2.9032776183157694e-10,
+          "components": [
+            {
+              "faces": 32,
+              "volume": 0.001327012715673732
+            },
+            {
+              "faces": 12,
+              "volume": 0.000338357655296926
+            },
+            {
+              "faces": 36,
+              "volume": 0.0022157695406540795
+            },
+            {
+              "faces": 4,
+              "volume": 8.133312870114593e-06
+            },
+            {
+              "faces": 12,
+              "volume": 1.944001458853128e-06
+            },
+            {
+              "faces": 12,
+              "volume": 1.944001458853128e-06
+            },
+            {
+              "faces": 56,
+              "volume": 0.001207200204130146
+            },
+            {
+              "faces": 124,
+              "volume": 6.817271195850026e-05
+            },
+            {
+              "faces": 124,
+              "volume": 0.00010945338888816723
+            },
+            {
+              "faces": 124,
+              "volume": 5.708324768916391e-06
+            },
+            {
+              "faces": 124,
+              "volume": 1.880301684601864e-07
+            },
+            {
+              "faces": 14,
+              "volume": 0.003255609892771442
+            },
+            {
+              "faces": 124,
+              "volume": 6.817271195850055e-05
+            },
+            {
+              "faces": 124,
+              "volume": 0.00010945338888816504
+            },
+            {
+              "faces": 124,
+              "volume": 5.708324768917143e-06
+            },
+            {
+              "faces": 124,
+              "volume": 1.8803016846057265e-07
+            },
+            {
+              "faces": 14,
+              "volume": 0.003255610431800403
+            }
+          ]
+        },
+        {
+          "part": "Tail root",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 0.000529366834079303,
+          "components": [
+            {
+              "faces": 44,
+              "volume": 0.00820526639279844
+            },
+            {
+              "faces": 192,
+              "volume": 0.027831386611099237
+            }
+          ]
+        },
+        {
+          "part": "Volumetric connected finL",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 0.0007188561041982746,
+          "components": [
+            {
+              "faces": 92,
+              "volume": 0.051183114528206834
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522834934299452
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522832502926703
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522832502926727
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522832502926727
+            }
+          ]
+        },
+        {
+          "part": "Volumetric connected finR",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 0.0007188561041982746,
+          "components": [
+            {
+              "faces": 92,
+              "volume": 0.05118311453519408
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522832502926736
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522832502926712
+            },
+            {
+              "faces": 18,
+              "volume": 0.001152283250292671
+            },
+            {
+              "faces": 18,
+              "volume": 0.0011522834934299458
+            }
+          ]
+        },
+        {
+          "part": "Volumetric connected rearL",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 0.00027141116784701325,
+          "components": [
+            {
+              "faces": 92,
+              "volume": 0.020991849639038926
+            },
+            {
+              "faces": 10,
+              "volume": 0.0003835644831494257
+            },
+            {
+              "faces": 10,
+              "volume": 0.00038356457194693646
+            },
+            {
+              "faces": 10,
+              "volume": 0.0003835644685914889
+            },
+            {
+              "faces": 10,
+              "volume": 0.0003835644831494257
+            }
+          ]
+        },
+        {
+          "part": "Volumetric connected rearR",
+          "edgeManifoldOriented": true,
+          "vertexManifold": true,
+          "weldedUnionVertexManifold": true,
+          "minimumArea": 0.00027141116784701325,
+          "components": [
+            {
+              "faces": 92,
+              "volume": 0.02099184963903897
+            },
+            {
+              "faces": 10,
+              "volume": 0.00038356448314942566
+            },
+            {
+              "faces": 10,
+              "volume": 0.0003835644685914884
+            },
+            {
+              "faces": 10,
+              "volume": 0.00038356457194693656
+            },
+            {
+              "faces": 10,
+              "volume": 0.0003835644831494257
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "shape": {
+    "hullVolumeBefore": 1.2046563494517943,
+    "hullVolumeAfter": 1.2027783436603938,
+    "volumeRelativeChange": -0.001558955624361369,
+    "maximumSampledSupportDelta": 0.0,
+    "supportDirections": 4102,
+    "changedFaces": [
+      301,
+      426,
+      427,
+      428,
+      429,
+      430,
+      431,
+      432,
+      706,
+      707,
+      708,
+      726,
+      727,
+      728,
+      736,
+      737,
+      740,
+      742,
+      743,
+      744,
+      746,
+      747,
+      748,
+      749,
+      751,
+      776,
+      781,
+      809,
+      810,
+      813,
+      814,
+      817,
+      820,
+      838,
+      839,
+      847,
+      848,
+      849,
+      863,
+      865,
+      866,
+      867,
+      870,
+      875,
+      876,
+      877,
+      878,
+      879,
+      880,
+      883,
+      884,
+      885,
+      886,
+      887,
+      888,
+      889,
+      890,
+      891,
+      894,
+      895,
+      896,
+      897,
+      898,
+      932,
+      933,
+      934,
+      935,
+      986,
+      990,
+      994,
+      995,
+      996,
+      997,
+      998,
+      1014,
+      1016,
+      1017,
+      1018,
+      1019,
+      1020,
+      1021
+    ],
+    "maximumCornerMovement": 0.14517792510766114
+  },
+  "correspondingNormalHemispheres": {
+    "minimumDot": -0.9911375489604815,
+    "reversedFaces": [
+      301,
+      426,
+      429,
+      726,
+      748,
+      849,
+      867,
+      875,
+      876,
+      877,
+      878,
+      884,
+      886,
+      888,
+      889,
+      891,
+      933,
+      995,
+      996
+    ],
+    "indicesOrNormalFlagsReversed": false
+  },
+  "rootSamples": [
+    {
+      "spike": 0,
+      "maximumBefore": -0.004079527806992252,
+      "maximumAfter": -0.004079527806992252,
+      "sampleCount": 21
+    },
+    {
+      "spike": 1,
+      "maximumBefore": -0.0041945634086865205,
+      "maximumAfter": -0.0041945634086865205,
+      "sampleCount": 21
+    },
+    {
+      "spike": 2,
+      "maximumBefore": -0.004060427089713919,
+      "maximumAfter": -0.004060427089713919,
+      "sampleCount": 21
+    },
+    {
+      "spike": 3,
+      "maximumBefore": -0.006001887600997745,
+      "maximumAfter": -0.006001887600997745,
+      "sampleCount": 21
+    },
+    {
+      "spike": 4,
+      "maximumBefore": -0.006001887600997745,
+      "maximumAfter": -0.006001887600997745,
+      "sampleCount": 21
+    },
+    {
+      "spike": 5,
+      "maximumBefore": -0.007408194160472013,
+      "maximumAfter": -0.007408194160472013,
+      "sampleCount": 21
+    },
+    {
+      "spike": 6,
+      "maximumBefore": -0.007423595255719869,
+      "maximumAfter": -0.007423595255719869,
+      "sampleCount": 21
+    },
+    {
+      "spike": 7,
+      "maximumBefore": -0.004914652619162371,
+      "maximumAfter": -0.004914652619162371,
+      "sampleCount": 21
+    },
+    {
+      "part": "Tail root",
+      "maximumBefore": -0.07141678495683666,
+      "maximumAfter": -0.07141678495683666,
+      "sampleCount": 73
+    },
+    {
+      "part": "Volumetric connected finL",
+      "maximumBefore": -0.07156909417491202,
+      "maximumAfter": -0.07156909417491202,
+      "sampleCount": 157
+    },
+    {
+      "part": "Volumetric connected finR",
+      "maximumBefore": -0.07256311025793336,
+      "maximumAfter": -0.07256311025793336,
+      "sampleCount": 157
+    },
+    {
+      "part": "Volumetric connected rearL",
+      "maximumBefore": -0.03284311255815542,
+      "maximumAfter": -0.03284311255815542,
+      "sampleCount": 157
+    },
+    {
+      "part": "Volumetric connected rearR",
+      "maximumBefore": -0.03284311255815542,
+      "maximumAfter": -0.03284311255815542,
+      "sampleCount": 157
+    }
+  ],
+  "limitations": [
+    "Contact checks use documented finite tolerances, not exact arithmetic certification.",
+    "Finite root and support samples are not continuous attachment or full silhouette proofs.",
+    "No matched visual review, animation, render, runtime or aesthetic admission."
+  ],
+  "allGatesPass": false,
+  "sourceSha256": "89e897b7644b67ade5dddb89af0d830d51fb44233f6c0826b3e26e3dedb8d3cd"
+}

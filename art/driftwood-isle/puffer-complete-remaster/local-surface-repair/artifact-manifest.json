@@ -1,0 +1,97 @@
+{
+  "status": "failed gates; preserved unaccepted attempt",
+  "files": [
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/audit_glb_roundtrip.py",
+      "bytes": 2162,
+      "sha256": "199dd5d946370d4699ebab4316127c2e78a94bea573d20ce20298d5b1de6691a"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/build_candidate.py",
+      "bytes": 2748,
+      "sha256": "b255cffd9807021d530fa6aa4de59ad825bc9af22d0806557ca0c057ded271aa"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/construction-receipt.json",
+      "bytes": 1559,
+      "sha256": "0b258ce4e8b633d6953f670c865e2bb8d166e129ed447e487cb653ef73319c0b"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/export_glb.py",
+      "bytes": 3482,
+      "sha256": "2d4b1a9b74f5788d06cbd6e86e80c9f794522ca421ac7371bfbc70f49093f761"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/float32-proper-crossings.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/glb-export-receipt.json",
+      "bytes": 478,
+      "sha256": "d462c524f15441e0a4bbfecdfd65bfa264cf119cc1770cf312f4f00ee1b9f3a2"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/glb-roundtrip-audit.json",
+      "bytes": 2138,
+      "sha256": "a5f557a8358d80d384807046fe901ae68922ad4b1d3f717f45a68cc7b95d8a89"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/intersections.py",
+      "bytes": 1690,
+      "sha256": "c2bd3cc1fc14407c592201009247c5b44f9b86610b51b0a668b4662ddb009dc4"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/local-repair-native.json",
+      "bytes": 1442947,
+      "sha256": "89e897b7644b67ade5dddb89af0d830d51fb44233f6c0826b3e26e3dedb8d3cd"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/local-repair-study.glb",
+      "bytes": 636280,
+      "sha256": "8e1ee9d7cca7573d0ee53962a978286c11d1d0bdba467f534f52b78dbeff8cf3"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/native-proper-crossings.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/reproduction.json",
+      "bytes": 307,
+      "sha256": "bfa3fb5a1e1068c2754ba79a0a0fb6827f8ff820a2841cbf6f5340fba5cc1f58"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/scope-blockers-log.txt",
+      "bytes": 1486,
+      "sha256": "706f6319ecbb2c00c12d43a28f67d0787db010589fdb64c4d0cfb76e12841341"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/scope-blockers.json",
+      "bytes": 9125,
+      "sha256": "c0c3c4f0c4bea7da23f548281145c3ebc1c2d369aae1722bbb50c98b82b97faa"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/validate.py",
+      "bytes": 9925,
+      "sha256": "71e8a5b663e16e5147ebeea08f28b6cfbd8eb37b5eb63eb418d2c4aa588117fd"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/validation-log.txt",
+      "bytes": 4108,
+      "sha256": "f700617830ef70501d6dd6f00b3dbed6baaf195b07b6e99b7473304224a493fc"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/validation.json",
+      "bytes": 22736,
+      "sha256": "564505e95574268147192c8c65347c12482dbf078926ab10bc9b8fa15f1ddf92"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/verify_scope_blockers.py",
+      "bytes": 2258,
+      "sha256": "3c2698f492c1b94af234130b388ff98b23c3126f1dfbe0a1b16605dced177ae1"
+    }
+  ],
+  "totalBytes": 2143435,
+  "budgetBytes": 10485760
+}

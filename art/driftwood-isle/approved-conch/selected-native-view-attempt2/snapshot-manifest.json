@@ -1,0 +1,20 @@
+{
+  "allExact": true,
+  "missing": [],
+  "files": {
+    "admission-test.log": "aa2ff631210a1c93eabc23ab68af2ed9066ba49d28b72a38d5255a9ec20aaa3f",
+    "admission.mjs": "a2f55af2589939be1a9d882539e0618aa6bac611fc46c48425b56b8280f7561a",
+    "admission.test.mjs": "efefc4ff97bec3e61f5dfd21a87285cd86b0e2f809d803d9e894d72344bb66e5",
+    "build.mjs": "0c0ff7cc4fe02b3dfea41391ca8a65cb73d19de793d640986366d79bce862d8c",
+    "capture.mjs": "e4c5e526089db970ed0d654753eb5aad72bd743e6d667a63899407c955f8c8c7",
+    "comparison.mjs": "d6b09acb497127945b0b66e779228887970417a16f58f853487cb64f8e5e297e",
+    "conchSelectedViewPreview.ts": "2b3b86fa8a1ca50df471f94f5b5b1772cace7a2d5bd8d62f4c9d0a9c03d19f61",
+    "identity.mjs": "71e909442c7cd93080d73a143a49e340b00bc95ff955f1335b0bf0ab84cef6e8",
+    "lint.log": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c",
+    "native-pins.json": "38ad23566f67e38457ec7210c682e9ed18d7a2c7bfacd59c82a8e368d32965be",
+    "poses.json": "b25e8fb107f73d73f6e51acdbacb1be9b2c932375cf9d1e99d96eb73a8708ea3",
+    "rest-test.log": "bf5c23d47432c77e22629d007df5a4ed107004bd92a22f7b1298757d4896e409",
+    "rest.test.ts": "7193e8342b6697f7700c5ee06bcdc6b965a885f60add4d1d9596a756cea9b279",
+    "vitest.config.ts": "2e28033dcf44e9def4c950f7a7b9bd5d654dfd4a06cf66491891a20c242daf57"
+  }
+}

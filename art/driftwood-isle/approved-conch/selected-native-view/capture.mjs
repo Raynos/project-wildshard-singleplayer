@@ -1,4 +1,5 @@
 /** Nine exact synchronous source/native pairs from the actual isolated faceted arena. No movie. */
+import { execFileSync } from 'node:child_process';
 import { chromium, devices } from 'playwright';
 import { createServer } from 'node:http';
 import { readFileSync, writeFileSync, statSync } from 'node:fs';
@@ -9,7 +10,7 @@ import { DIST, ROOT } from './build.mjs';
 if(process.env.CHROME_PATH!==resolve('tmp/dot-audit/tools/chrome-headless-shell-linux64/chrome-headless-shell')) throw new Error('Only the approved installed Chrome may be used');
 if(process.env.CONCH_QA_URL || process.env.CONCH_QA_DIST) throw new Error('No alternate host allowed');
 const before=verifySelectedViewCaptureIdentity();
-const output=newCaptureDirectory(process.env.CONCH_QA_OUT ?? 'tmp/conch-selected-view-qa/attempt1');
+const output=newCaptureDirectory(process.env.CONCH_QA_OUT ?? 'tmp/conch-selected-view-qa/attempt3');
 const report={schema:'wildshard.conch.selected-native-view.capture.v1',startedAt:new Date().toISOString(),identityBefore:before,
   appearance:'Exact corrected source GLB/source materials versus actual unchanged faceted host; post-facet normals/colors intentionally measured, not claimed preserved.',
   scope:'Paired rest diagnostic; no animation, visual admission, gameplay cadence or physical-phone claim.',pairs:[],errors:[],completed:false};
@@ -51,13 +52,19 @@ try {
     const result=await page.evaluate(()=>({error:window.__selectedComparison.error,pair:window.__selectedComparison.pair}));
     if(result.error)throw new Error(result.error);
     const pair=result.pair;
+    const {captures:pendingPixels,...observation}=pair;
+    if(!pendingPixels)throw new Error('Missing paired image payloads');
+    writeFileSync(`${output}/${view}-observation.json`,JSON.stringify(observation,null,2)+'\n',{flag:'wx'});
     if(JSON.stringify(pair.nativeRoot)!==JSON.stringify(pair.sourceRoot))throw new Error('Source/native root mismatch');
-    if(JSON.stringify(pair.lightState.before)!==JSON.stringify(pair.lightState.after))throw new Error('Light state changed within matched pair');
+    if(JSON.stringify(pair.lightState.native)!==JSON.stringify(pair.lightState.source) || JSON.stringify(pair.lightState.source)!==JSON.stringify(pair.lightState.after))throw new Error('Light state changed within matched pair');
     const images={};
     for(const variant of ['native','source']) {
       const data=pair.captures[variant];if(!data.startsWith('data:image/png;base64,'))throw new Error('Missing actual canvas PNG');
       const bytes=Buffer.from(data.slice('data:image/png;base64,'.length),'base64'),name=`${view}-${variant}.png`;
-      writeFileSync(`${output}/${name}`,bytes,{flag:'wx'});images[variant]={file:name,bytes:bytes.length,sha256:hash(bytes)};
+      writeFileSync(`${output}/${name}`,bytes,{flag:'wx'});
+      const visibility=JSON.parse(execFileSync('python3',['art/driftwood-isle/approved-conch/selected-native-view/visible_pixels.py',`${output}/${name}`],{encoding:'utf8',env:{...process.env,PYTHONDONTWRITEBYTECODE:'1'}}));
+      images[variant]={file:name,bytes:bytes.length,sha256:hash(bytes),visibility};
+      if(!visibility.visibleCandidate)throw new Error(`Blank/occluded character view: ${view} ${variant}`);
     }
     delete pair.captures;report.pairs.push({...pair,images});save();
   }

@@ -1,0 +1,474 @@
+{
+  "verified": true,
+  "source_sha256": "21a6fd0d5e300c58952408913c69824228304141daab461fcb0122a388e27f1a",
+  "host_inventory_sha256": "6b9375aa5b718f1c52ea10a0bfb04b3c16f9e066fecd8c693e06cdb4e3bdb00a",
+  "build_pin_sha256": "3c21d5a45e2e308471097263769de54e514196e19ce424aedbb13362d9cdad57",
+  "approved_original_sha256": "90073e7f4eae70b1e135c87740325d6a7a7da94c67cf761b03c5184c507a65cb",
+  "attributes": {
+    "position": {
+      "components": 19710,
+      "changed": 0,
+      "maxAbs": 0.0
+    },
+    "normal": {
+      "components": 19710,
+      "changed": 19503,
+      "maxAbs": 0.9947603344917297
+    },
+    "color": {
+      "components": 19710,
+      "changed": 19710,
+      "maxAbs": 0.11659270524978638
+    },
+    "skinIndex": {
+      "components": 26280,
+      "changed": 0,
+      "maxAbs": 0.0
+    },
+    "skinWeight": {
+      "components": 26280,
+      "changed": 0,
+      "maxAbs": 0.0
+    },
+    "furLen": {
+      "components": 6570,
+      "changed": 0,
+      "maxAbs": 0.0
+    }
+  },
+  "normal_angles": {
+    "vertices_gt1degree": 75,
+    "triangles_any_vertex_gt1degree": 25,
+    "max_degrees": 84.13826629267662
+  },
+  "views": [
+    {
+      "view": "front",
+      "camera": [
+        0.018484305434524496,
+        901.8223942667246,
+        -12.813175457986235
+      ],
+      "quaternion": [
+        0,
+        1,
+        0,
+        5.101874842948405e-09
+      ],
+      "root": [
+        1,
+        0,
+        1.0203749685789961e-08,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1.0203749685789961e-08,
+        0,
+        1,
+        0,
+        4.4509473571554235e-09,
+        900,
+        -6.327941726893187,
+        1
+      ],
+      "warm_union_bbox": [
+        89,
+        331,
+        318,
+        561
+      ],
+      "bbox_rgb_mae_255": 3.945281944180748,
+      "warm_union_rgb_mae_255": 8.389064277588169,
+      "warm_union_pixels_delta_gt8_percent": 49.08276450511945,
+      "whole_frame_changed_pixels": 26250,
+      "before_light_equals_rendered": false
+    },
+    {
+      "view": "left",
+      "camera": [
+        6.501646148686154,
+        901.8223942667246,
+        -5.695481914091457
+      ],
+      "quaternion": [
+        0,
+        0.7070174634488613,
+        0,
+        0.7071960876435462
+      ],
+      "root": [
+        0.9999999680933971,
+        0,
+        0.0002526127566764029,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.0002526127566764029,
+        0,
+        0.9999999680933971,
+        0,
+        0.0013592009293802061,
+        900,
+        -5.693692291621119,
+        1
+      ],
+      "warm_union_bbox": [
+        123,
+        294,
+        285,
+        569
+      ],
+      "bbox_rgb_mae_255": 6.414485596707819,
+      "warm_union_rgb_mae_255": 14.465197095435684,
+      "warm_union_pixels_delta_gt8_percent": 61.6390041493776,
+      "whole_frame_changed_pixels": 20216,
+      "before_light_equals_rendered": false
+    },
+    {
+      "view": "right",
+      "camera": [
+        -6.470772007623387,
+        901.8223942667246,
+        -5.031082944447379
+      ],
+      "quaternion": [
+        0,
+        -0.7068473978465218,
+        0,
+        0.707366069413568
+      ],
+      "root": [
+        0.9999997309798055,
+        0,
+        -0.0007335123152015106,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0007335123152015106,
+        0,
+        0.9999997309798055,
+        0,
+        -0.0074534105549787615,
+        900,
+        -5.032392190769315,
+        1
+      ],
+      "warm_union_bbox": [
+        124,
+        343,
+        264,
+        579
+      ],
+      "bbox_rgb_mae_255": 4.471216707021791,
+      "warm_union_rgb_mae_255": 10.165180164109882,
+      "warm_union_pixels_delta_gt8_percent": 55.46914020692115,
+      "whole_frame_changed_pixels": 15761,
+      "before_light_equals_rendered": false
+    },
+    {
+      "view": "back",
+      "camera": [
+        0.028525478842406835,
+        901.8223942667246,
+        1.9840418880828192
+      ],
+      "quaternion": [
+        0,
+        0.0021879092222370647,
+        0,
+        0.9999976065237532
+      ],
+      "root": [
+        0.9999904261064705,
+        0,
+        -0.004375807971056623,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.004375807971056623,
+        0,
+        0.9999904261064705,
+        0,
+        -0.01830668373057735,
+        900,
+        -4.494185580871999,
+        1
+      ],
+      "warm_union_bbox": [
+        112,
+        316,
+        300,
+        546
+      ],
+      "bbox_rgb_mae_255": 7.303168362627197,
+      "warm_union_rgb_mae_255": 13.491847666136913,
+      "warm_union_pixels_delta_gt8_percent": 68.0778739184178,
+      "whole_frame_changed_pixels": 24745,
+      "before_light_equals_rendered": false
+    },
+    {
+      "view": "top",
+      "camera": [
+        0.0008826889222214446,
+        908.304196320188,
+        -3.9545433896627182
+      ],
+      "quaternion": [
+        -0.707104718055592,
+        0.0017081286607267363,
+        0.0017081286607267363,
+        0.7071047180555922
+      ],
+      "root": [
+        0.9999883291859136,
+        0,
+        -0.004831303340183421,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.004831303340183421,
+        0,
+        0.9999883291859136,
+        0,
+        -0.01758475068508007,
+        900,
+        -3.951022448949516,
+        1
+      ],
+      "warm_union_bbox": [
+        122,
+        376,
+        318,
+        507
+      ],
+      "bbox_rgb_mae_255": 9.042893493275173,
+      "warm_union_rgb_mae_255": 16.702025676229013,
+      "warm_union_pixels_delta_gt8_percent": 78.16316207818484,
+      "whole_frame_changed_pixels": 14081,
+      "before_light_equals_rendered": false
+    },
+    {
+      "view": "diag-front",
+      "camera": [
+        -0.023493029303222408,
+        905.8715439087513,
+        -8.514795635086774
+      ],
+      "quaternion": [
+        0.0008479312494777217,
+        0.9436252230334499,
+        0.3310058553728049,
+        -0.0024172663456490163
+      ],
+      "root": [
+        0.9999868756720207,
+        0,
+        -0.005123327406150019,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.005123327406150019,
+        0,
+        0.9999868756720207,
+        0,
+        -0.016028040745175092,
+        900,
+        -3.4498986769467592,
+        1
+      ],
+      "warm_union_bbox": [
+        99,
+        317,
+        297,
+        550
+      ],
+      "bbox_rgb_mae_255": 6.356707273016286,
+      "warm_union_rgb_mae_255": 12.554168479048862,
+      "warm_union_pixels_delta_gt8_percent": 68.3340582862114,
+      "whole_frame_changed_pixels": 24396,
+      "before_light_equals_rendered": false
+    },
+    {
+      "view": "diag-left",
+      "camera": [
+        5.066404778628609,
+        905.8715439087513,
+        -2.981835924949522
+      ],
+      "quaternion": [
+        -0.2334609269319109,
+        0.6689416579814906,
+        0.2346520634355876,
+        0.6655459885976989
+      ],
+      "root": [
+        0.9999870506232655,
+        0,
+        -0.005089065315209173,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.005089065315209173,
+        0,
+        0.9999870506232655,
+        0,
+        -0.013433262867499723,
+        900,
+        -2.952552240341902,
+        1
+      ],
+      "warm_union_bbox": [
+        126,
+        341,
+        274,
+        557
+      ],
+      "bbox_rgb_mae_255": 9.321456873540207,
+      "warm_union_rgb_mae_255": 17.061459052882032,
+      "warm_union_pixels_delta_gt8_percent": 69.87681326272163,
+      "whole_frame_changed_pixels": 17656,
+      "before_light_equals_rendered": false
+    },
+    {
+      "view": "diag-right",
+      "camera": [
+        -5.0553968995289065,
+        905.8715439087513,
+        -2.584393555561192
+      ],
+      "quaternion": [
+        -0.23463710117420186,
+        -0.6655888576064216,
+        -0.23347596456820427,
+        0.6688990038501272
+      ],
+      "root": [
+        0.9999876946936275,
+        0,
+        -0.004960893198250254,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.004960893198250254,
+        0,
+        0.9999876946936275,
+        0,
+        -0.012489112697755916,
+        900,
+        -2.605979470303282,
+        1
+      ],
+      "warm_union_bbox": [
+        142,
+        295,
+        266,
+        587
+      ],
+      "bbox_rgb_mae_255": 6.363777802327294,
+      "warm_union_rgb_mae_255": 15.757882103125144,
+      "warm_union_pixels_delta_gt8_percent": 72.59382357014263,
+      "whole_frame_changed_pixels": 15002,
+      "before_light_equals_rendered": false
+    },
+    {
+      "view": "diag-back",
+      "camera": [
+        0.03354172559370612,
+        905.8715439087513,
+        2.4518502223127867
+      ],
+      "quaternion": [
+        -0.3310057141733931,
+        0.0025696008874023847,
+        0.0009013673214108165,
+        0.9436248205048409
+      ],
+      "root": [
+        0.9999851693764628,
+        0,
+        -0.005446193820200602,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.005446193820200602,
+        0,
+        0.9999851693764628,
+        0,
+        -0.012489112697755916,
+        900,
+        -2.605979470303282,
+        1
+      ],
+      "warm_union_bbox": [
+        122,
+        343,
+        309,
+        511
+      ],
+      "bbox_rgb_mae_255": 8.636925982514217,
+      "warm_union_rgb_mae_255": 13.791534769733483,
+      "warm_union_pixels_delta_gt8_percent": 69.38629633411621,
+      "whole_frame_changed_pixels": 19829,
+      "before_light_equals_rendered": false
+    }
+  ],
+  "preserved_attempt_files": {
+    "1": {
+      "actual-runtime-geometry.json": "a086d970909286d4024f626cb6d57c748ef4058c138b45706e5f84f31472cede",
+      "report.json": "fb7bbb4bcefe80e44e97bbef89960d40e762f5ab115e5778d74d44243c8b8241",
+      "light-diagnosis.json": "f237ea4f6a5823df7fe37aabe5f6780cf6d48c4fe5b39fead66df108e6d38375"
+    },
+    "2": {
+      "front-native.png": "a62f1faf3cec5df2d5cad7434e1c80eb73212c26674734fb8fc2e40223337e0d",
+      "left-observation.json": "279dfa5bd2c5c5ec02ac40bec95ffa096c69020664c8abda0033852ee9885868",
+      "top-native.png": "d1bc411ff3fcd4c69c8daaa996d675604e4c119bcd1d49fed28a61887b9d9dda",
+      "diag-left-source.png": "29448fb9ba7ddd7a912cea05904f8d6fe39184261ca869c05e1d949380599e6c",
+      "diag-front-native.png": "7e4928a6ee8a9b1575991b7f15631eed4a792b4ab29225ecf38cd618ba5cf62c",
+      "diag-left-native.png": "29448fb9ba7ddd7a912cea05904f8d6fe39184261ca869c05e1d949380599e6c",
+      "diag-front-source.png": "7e4928a6ee8a9b1575991b7f15631eed4a792b4ab29225ecf38cd618ba5cf62c",
+      "actual-runtime-geometry.json": "a086d970909286d4024f626cb6d57c748ef4058c138b45706e5f84f31472cede",
+      "phone-rest-diagnostic.png": "a7121c8b41f0d4f8e97869bb03148d2055ffd7e76e186faf2773fe67c6ecf91c",
+      "diag-left-observation.json": "024adc1cdfc55ea3185f9d197d4b090b7894d2913a3848f1e49d8a8630d9777c",
+      "left-source.png": "adb812da4c4cc8ca5fa3b79d2192e5c72eed87213a8240fc1f0c4259fdc4bd4e",
+      "front-observation.json": "d01e7144e77ad16d945fef9427665b68f19a2e19a28e7c0b3e066c5df0e7d66f",
+      "back-native.png": "83f7fd78af649fa5c9d013aea8e7a0a04f9896084d1b73243d842ff9c7f36b74",
+      "left-native.png": "dfd05993fe668b0f4abf93aa0ed7f8e6f61ed07689d9db5aefba494e9e34a867",
+      "diag-front-observation.json": "84423aa81a6a9c66d80df39e4cf0b8ef29c1e7b3841f05107270c9a0c78e9b91",
+      "diag-back-observation.json": "2383f1d56eabf90ea36e7ecf6bbfa66ccfb89871775a880384c1cc42d267a494",
+      "top-observation.json": "6418a1bc7c43eefc1e3660214a15ce2162147e43a61c4a33cde070edb02a09b0",
+      "diag-right-observation.json": "cbaead9133d5ec28e85d420d23544a3f1df28f3a840601c63b77dc50c0cac9f1",
+      "back-observation.json": "5a0d394a0fa50b5f82bae6279b0b30e545cd4b7de134594978555d25765af55b",
+      "top-source.png": "d1bc411ff3fcd4c69c8daaa996d675604e4c119bcd1d49fed28a61887b9d9dda",
+      "diag-right-native.png": "467b45d4cf6a584e62be09cebfe2b85ea051353318abe12f25862bdf1c81da40",
+      "report.json": "c5028c9fbb30c8a71fcdc21c0e21a70ec73466276080ed493219f443b49817b1",
+      "diag-back-source.png": "5b6a29793ef478892eb3c4162fc6c65bcafe50e3116b3a2afcbe8c183c021d62",
+      "right-source.png": "c9f1a9ffa4eed329b95c188671d4b560b39c415a13dd8d623d8cc81bb1a1bd62",
+      "front-source.png": "db2f0728669ed5982147b405be9501e3e1e9bce5e0550f983ea82bac985ec2ab",
+      "right-native.png": "852ad6b6e3756010ea263efc00663e2dfbf2646c22fd64fc15fe90470ed2fdc1",
+      "diag-back-native.png": "5b6a29793ef478892eb3c4162fc6c65bcafe50e3116b3a2afcbe8c183c021d62",
+      "diag-right-source.png": "467b45d4cf6a584e62be09cebfe2b85ea051353318abe12f25862bdf1c81da40",
+      "visual-completeness.json": "3a5c93ecc3e9b5c07decb50c23368e015873f0b3fc6f85a7eaf55bea31e2e8c6",
+      "right-observation.json": "eac3b0a733f47526d9b983e3d3a6bdf0bda5ad5bb374ea6dd2bd9a4cc61538c1",
+      "back-source.png": "7befdf1d9dbecd5d45b5ad084494715dd321e4ad4fdbb3035814597d146a32b3"
+    }
+  },
+  "metric_caveat": "Warm-color union is a heuristic, not a perfect silhouette mask or quality score. Bbox includes background. No resizing or image modification."
+}
