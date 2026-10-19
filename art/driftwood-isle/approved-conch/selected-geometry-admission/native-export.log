@@ -1,0 +1,48 @@
+{
+  "schema": "wildshard.conch.native-preparation.v1",
+  "sourceSha256": "ecfcfa03a123b5b81343a96409ed769a7b85be03530c4ef30e2bd56a3ba95a0e",
+  "glbSha256": "21a6fd0d5e300c58952408913c69824228304141daab461fcb0122a388e27f1a",
+  "exporterSha256": "aaa86086ffb94517bb2f571b461d42b68fce7f17f1b2ddefe228d69d86ef29b0",
+  "codecSha256": "210ee9b812655509dcbf869e91db945cc17df40da2ccc07ffdc9d2f292043416",
+  "stats": {
+    "vertices": 6570,
+    "triangles": 2190,
+    "bones": 15,
+    "parts": 15
+  },
+  "sourceMeshes": 56,
+  "sourcePrimitives": 108,
+  "files": {
+    "conch-character-pass-native.json": {
+      "sha256": "7a656a3c25667af88a952fcb03569d14075caa0e60aea40b2592133df42f6dec",
+      "bytes": 901992
+    },
+    "diagnostic-dimensions.json": {
+      "sha256": "118a7dd28ea4d3265aff4f38238540f90f41f88cc376d1b8754d6054a4a3877d",
+      "bytes": 266
+    },
+    "mesh-map.json": {
+      "sha256": "de24524ebe1ec8e606b4e9b7e26b9f739d2be971f14bd85437214844f121e8b1",
+      "bytes": 11802
+    },
+    "rig-provenance.json": {
+      "sha256": "3b61be6a075f95406e872a1c75cba10e64d46193f9e6f7453ec98a63150887b0",
+      "bytes": 3311
+    },
+    "metadata.json": {
+      "sha256": "208e5f66bd1802012ab4b0aa5aab41d3f5b408a1fd301df8b4ba9ae80d5c7734",
+      "bytes": 5208
+    },
+    "payload.bin": {
+      "sha256": "b3979da86f3fa5fe9caafce1ad1b4fca4680be524f47ac9cd7f28740389fa6d5",
+      "bytes": 23218
+    }
+  },
+  "geometryAcceptance": false,
+  "animationAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false,
+  "phonePerformanceAcceptance": false,
+  "materialNote": "Linear factors retained; engine toon/flat shader differs from Blender Standard. GLB doubleSided is not a per-part packed-body field.",
+  "dimensionsNote": "Conservative full rest hull only; not gameplay tuning. Motion/contacts untested."
+}

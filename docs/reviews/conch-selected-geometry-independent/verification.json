@@ -1,0 +1,468 @@
+{
+  "hashFilesVerified": 78,
+  "approvedOriginalSha256": "90073e7f4eae70b1e135c87740325d6a7a7da94c67cf761b03c5184c507a65cb",
+  "cameraReceiptsIdentical": true,
+  "heroLightingCameraSamplesIdentical": true,
+  "sourceSweepRecomputedFromIndexedCoordinates": {
+    "baseline": [
+      {
+        "mesh": "Compact thorax core",
+        "minimumRadialCosine": 0.8364779079125415,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Raised breast carapace -1",
+        "minimumRadialCosine": -0.9564137302471115,
+        "opposed": 3,
+        "foldedPairs": 3
+      },
+      {
+        "mesh": "Raised breast carapace 1",
+        "minimumRadialCosine": -0.8832836264645094,
+        "opposed": 4,
+        "foldedPairs": 2
+      },
+      {
+        "mesh": "Continuous tucked abdomen",
+        "minimumRadialCosine": 0.833489688159066,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Sculpted cheek -1",
+        "minimumRadialCosine": 0.6135342509224034,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Angular brow root -1",
+        "minimumRadialCosine": 0.79645973776455,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Sculpted cheek 1",
+        "minimumRadialCosine": 0.542834458392116,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Angular brow root 1",
+        "minimumRadialCosine": 0.7585729808733034,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Eyestalk -1",
+        "minimumRadialCosine": 0.9278772762758073,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Eyestalk 1",
+        "minimumRadialCosine": 0.925056419063479,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Leg hinge -1",
+        "minimumRadialCosine": 0.9132568714792358,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Bent armored thigh -1",
+        "minimumRadialCosine": 0.44456294224858633,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Armored shin -1",
+        "minimumRadialCosine": 0.8850232782380761,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Planted foot -1",
+        "minimumRadialCosine": 0.593054756178631,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Toe blade (-1, -1)",
+        "minimumRadialCosine": 0.8148265800519388,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Toe blade (-1, 1)",
+        "minimumRadialCosine": 0.5528801599999766,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Leg hinge 1",
+        "minimumRadialCosine": 0.9053780956611918,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Bent armored thigh 1",
+        "minimumRadialCosine": 0.5451694151486649,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Armored shin 1",
+        "minimumRadialCosine": 0.8933087807255896,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Planted foot 1",
+        "minimumRadialCosine": 0.4652076997624002,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Toe blade (1, -1)",
+        "minimumRadialCosine": 0.8148227692996671,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Toe blade (1, 1)",
+        "minimumRadialCosine": 0.5528765998074197,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Shoulder hinge -1",
+        "minimumRadialCosine": 0.9536631409706697,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Swept shoulder armor -1",
+        "minimumRadialCosine": -0.004869080476856885,
+        "opposed": 1,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Bent upper arm -1",
+        "minimumRadialCosine": 0.9022199617007204,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Elbow joint -1",
+        "minimumRadialCosine": 0.9569836655815134,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Shoulder hinge 1",
+        "minimumRadialCosine": 0.9536631866983692,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Swept shoulder armor 1",
+        "minimumRadialCosine": -0.911638087023558,
+        "opposed": 1,
+        "foldedPairs": 3
+      },
+      {
+        "mesh": "Bent upper arm 1",
+        "minimumRadialCosine": 0.9062246149238486,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Elbow joint 1",
+        "minimumRadialCosine": 0.9569836456257016,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Shield supporting forearm",
+        "minimumRadialCosine": 0.9179752694910858,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Shield opposed articulated thumb",
+        "minimumRadialCosine": 0.625115081386038,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Rapier forearm cuff",
+        "minimumRadialCosine": 0.8904176911255343,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Coral rapier knuckle",
+        "minimumRadialCosine": 0.830216380138811,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Long ivory conch rapier",
+        "minimumRadialCosine": 0.7803802105494153,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Rapier gripping thumb",
+        "minimumRadialCosine": 0.8446485096013577,
+        "opposed": 0,
+        "foldedPairs": 0
+      }
+    ],
+    "corrected": [
+      {
+        "mesh": "Compact thorax core",
+        "minimumRadialCosine": 0.8364779079125415,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Raised breast carapace -1",
+        "minimumRadialCosine": 0.03505957733126575,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Raised breast carapace 1",
+        "minimumRadialCosine": 0.02476507410583861,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Continuous tucked abdomen",
+        "minimumRadialCosine": 0.833489688159066,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Sculpted cheek -1",
+        "minimumRadialCosine": 0.6135342509224034,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Angular brow root -1",
+        "minimumRadialCosine": 0.79645973776455,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Sculpted cheek 1",
+        "minimumRadialCosine": 0.542834458392116,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Angular brow root 1",
+        "minimumRadialCosine": 0.7585729808733034,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Eyestalk -1",
+        "minimumRadialCosine": 0.9278772762758073,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Eyestalk 1",
+        "minimumRadialCosine": 0.925056419063479,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Leg hinge -1",
+        "minimumRadialCosine": 0.9132568714792358,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Bent armored thigh -1",
+        "minimumRadialCosine": 0.44456294224858633,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Armored shin -1",
+        "minimumRadialCosine": 0.8850232782380761,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Planted foot -1",
+        "minimumRadialCosine": 0.593054756178631,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Toe blade (-1, -1)",
+        "minimumRadialCosine": 0.8148265800519388,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Toe blade (-1, 1)",
+        "minimumRadialCosine": 0.5528801599999766,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Leg hinge 1",
+        "minimumRadialCosine": 0.9053780956611918,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Bent armored thigh 1",
+        "minimumRadialCosine": 0.5451694151486649,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Armored shin 1",
+        "minimumRadialCosine": 0.8933087807255896,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Planted foot 1",
+        "minimumRadialCosine": 0.4652076997624002,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Toe blade (1, -1)",
+        "minimumRadialCosine": 0.8148227692996671,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Toe blade (1, 1)",
+        "minimumRadialCosine": 0.5528765998074197,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Shoulder hinge -1",
+        "minimumRadialCosine": 0.9536631409706697,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Swept shoulder armor -1",
+        "minimumRadialCosine": 0.027635568755956817,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Bent upper arm -1",
+        "minimumRadialCosine": 0.9022199617007204,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Elbow joint -1",
+        "minimumRadialCosine": 0.9569836655815134,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Shoulder hinge 1",
+        "minimumRadialCosine": 0.9536631866983692,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Swept shoulder armor 1",
+        "minimumRadialCosine": 0.023567376914673907,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Bent upper arm 1",
+        "minimumRadialCosine": 0.9062246149238486,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Elbow joint 1",
+        "minimumRadialCosine": 0.9569836456257016,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Shield supporting forearm",
+        "minimumRadialCosine": 0.9179752694910858,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Shield opposed articulated thumb",
+        "minimumRadialCosine": 0.625115081386038,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Rapier forearm cuff",
+        "minimumRadialCosine": 0.8904176911255343,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Coral rapier knuckle",
+        "minimumRadialCosine": 0.830216380138811,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Long ivory conch rapier",
+        "minimumRadialCosine": 0.7803802105494153,
+        "opposed": 0,
+        "foldedPairs": 0
+      },
+      {
+        "mesh": "Rapier gripping thumb",
+        "minimumRadialCosine": 0.8446485096013577,
+        "opposed": 0,
+        "foldedPairs": 0
+      }
+    ]
+  },
+  "nativeTrianglePositionsAndLinearColorsExact": 2190,
+  "actualGLBCounts": {
+    "meshes": 51,
+    "primitives": 95
+  },
+  "nativeClosureClaim": {
+    "sourceMeshes": 56,
+    "sourcePrimitives": 108
+  },
+  "tests": [
+    {
+      "test": "test_source_gate.py",
+      "output": "test_cap_shading_preserved_not_repaired (__main__.SourceGate.test_cap_shading_preserved_not_repaired) ... ok\ntest_corrected_source_no_opposed_triangles_or_pairs (__main__.SourceGate.test_corrected_source_no_opposed_triangles_or_pairs) ... ok\ntest_exact_glb_indices_materials_and_untouched_parts (__main__.SourceGate.test_exact_glb_indices_materials_and_untouched_parts) ... ok\ntest_exact_indexed_four_mesh_scope (__main__.SourceGate.test_exact_indexed_four_mesh_scope) ... ok\ntest_no_crossings (__main__.SourceGate.test_no_crossings) ... ok\ntest_selected_baseline_negative_control (__main__.SourceGate.test_selected_baseline_negative_control) ... ok\ntest_transport_only_negative_control (__main__.SourceGate.test_transport_only_negative_control) ... ok\n\n----------------------------------------------------------------------\nRan 7 tests in 0.003s\n\nOK\n"
+    },
+    {
+      "test": "test_export_native.py",
+      "output": "test_axes_and_bind_are_rest_preserving (__main__.ConchNative.test_axes_and_bind_are_rest_preserving) ... ok\ntest_dimensions_are_conservative_not_old_tuning (__main__.ConchNative.test_dimensions_are_conservative_not_old_tuning) ... ok\ntest_exact_rigid_partition (__main__.ConchNative.test_exact_rigid_partition) ... ok\ntest_existing_codec_roundtrip_every_attribute (__main__.ConchNative.test_existing_codec_roundtrip_every_attribute) ... ok\ntest_frozen_outputs_are_reproducible (__main__.ConchNative.test_frozen_outputs_are_reproducible) ... ok\ntest_hinge_weights_share_positions_and_only_leg_chain (__main__.ConchNative.test_hinge_weights_share_positions_and_only_leg_chain) ... ok\ntest_layered_eye_shells_close_without_repair (__main__.ConchNative.test_layered_eye_shells_close_without_repair) ... ok\ntest_malformed_rig_weights_and_attributes_refused (__main__.ConchNative.test_malformed_rig_weights_and_attributes_refused) ... ok\ntest_pinned_inputs_fail_closed (__main__.ConchNative.test_pinned_inputs_fail_closed) ... ok\ntest_pivot_provenance_matches_exact_rig (__main__.ConchNative.test_pivot_provenance_matches_exact_rig) ... ok\ntest_source_normal_audit_retains_facet_caveats (__main__.ConchNative.test_source_normal_audit_retains_facet_caveats) ... ok\ntest_transform_features_refused (__main__.ConchNative.test_transform_features_refused) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.304s\n\nOK\n"
+    }
+  ],
+  "limits": [
+    "No fresh Blender generation or render",
+    "Crossing report hash verified; triangle crossing scan not independently rerun",
+    "Camera/light provenance is source/receipt consistency, not a signed renderer attestation"
+  ]
+}

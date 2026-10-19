@@ -1,0 +1,210 @@
+{
+  "Raised breast carapace -1": {
+    "radiusScales": [
+      1.0,
+      0.6,
+      0.6,
+      1.0
+    ],
+    "sourceAudit": {
+      "mesh": "Raised breast carapace -1",
+      "minimumOutwardRadialCosine": 0.03505988232791424,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": [],
+      "profile": [
+        [
+          [
+            -0.05,
+            0.13,
+            1.38
+          ],
+          0.14,
+          0.16
+        ],
+        [
+          [
+            -0.21,
+            0.16,
+            1.3
+          ],
+          0.23,
+          0.18
+        ],
+        [
+          [
+            -0.27,
+            0.13,
+            1.17
+          ],
+          0.2,
+          0.15
+        ],
+        [
+          [
+            -0.16,
+            0.12,
+            1.09
+          ],
+          0.11,
+          0.1
+        ]
+      ]
+    }
+  },
+  "Raised breast carapace 1": {
+    "radiusScales": [
+      1.0,
+      0.69,
+      0.69,
+      1.0
+    ],
+    "sourceAudit": {
+      "mesh": "Raised breast carapace 1",
+      "minimumOutwardRadialCosine": 0.02476510964334011,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": [],
+      "profile": [
+        [
+          [
+            0.05,
+            0.13,
+            1.38
+          ],
+          0.14,
+          0.16
+        ],
+        [
+          [
+            0.21,
+            0.16,
+            1.3
+          ],
+          0.23,
+          0.18
+        ],
+        [
+          [
+            0.27,
+            0.13,
+            1.17
+          ],
+          0.2,
+          0.15
+        ],
+        [
+          [
+            0.16,
+            0.12,
+            1.09
+          ],
+          0.11,
+          0.1
+        ]
+      ]
+    }
+  },
+  "Swept shoulder armor -1": {
+    "radiusScales": [
+      1.0,
+      1.0,
+      0.97,
+      0.98
+    ],
+    "sourceAudit": {
+      "mesh": "Swept shoulder armor -1",
+      "minimumOutwardRadialCosine": 0.027637328952550888,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": [],
+      "profile": [
+        [
+          [
+            -0.23,
+            -0.03,
+            1.43
+          ],
+          0.13,
+          0.16
+        ],
+        [
+          [
+            -0.43,
+            0.045,
+            1.44
+          ],
+          0.24,
+          0.23
+        ],
+        [
+          [
+            -0.6,
+            0.1,
+            1.3
+          ],
+          0.21,
+          0.2
+        ],
+        [
+          [
+            -0.57,
+            0.16,
+            1.2
+          ],
+          0.12,
+          0.12
+        ]
+      ]
+    }
+  },
+  "Swept shoulder armor 1": {
+    "radiusScales": [
+      1.0,
+      1.0,
+      0.98,
+      0.97
+    ],
+    "sourceAudit": {
+      "mesh": "Swept shoulder armor 1",
+      "minimumOutwardRadialCosine": 0.0235644169151783,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": [],
+      "profile": [
+        [
+          [
+            0.23,
+            -0.03,
+            1.43
+          ],
+          0.13,
+          0.16
+        ],
+        [
+          [
+            0.43,
+            0.045,
+            1.44
+          ],
+          0.24,
+          0.23
+        ],
+        [
+          [
+            0.6,
+            0.1,
+            1.3
+          ],
+          0.21,
+          0.2
+        ],
+        [
+          [
+            0.57,
+            0.16,
+            1.2
+          ],
+          0.12,
+          0.12
+        ]
+      ]
+    }
+  }
+}

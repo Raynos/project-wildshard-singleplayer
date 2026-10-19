@@ -1,0 +1,17 @@
+test_axes_and_bind_are_rest_preserving (test_export_native.ConchNative.test_axes_and_bind_are_rest_preserving) ... ok
+test_dimensions_are_conservative_not_old_tuning (test_export_native.ConchNative.test_dimensions_are_conservative_not_old_tuning) ... ok
+test_exact_rigid_partition (test_export_native.ConchNative.test_exact_rigid_partition) ... ok
+test_existing_codec_roundtrip_every_attribute (test_export_native.ConchNative.test_existing_codec_roundtrip_every_attribute) ... ok
+test_frozen_outputs_are_reproducible (test_export_native.ConchNative.test_frozen_outputs_are_reproducible) ... ok
+test_hinge_weights_share_positions_and_only_leg_chain (test_export_native.ConchNative.test_hinge_weights_share_positions_and_only_leg_chain) ... ok
+test_layered_eye_shells_close_without_repair (test_export_native.ConchNative.test_layered_eye_shells_close_without_repair) ... ok
+test_malformed_rig_weights_and_attributes_refused (test_export_native.ConchNative.test_malformed_rig_weights_and_attributes_refused) ... ok
+test_pinned_inputs_fail_closed (test_export_native.ConchNative.test_pinned_inputs_fail_closed) ... ok
+test_pivot_provenance_matches_exact_rig (test_export_native.ConchNative.test_pivot_provenance_matches_exact_rig) ... ok
+test_source_normal_audit_retains_facet_caveats (test_export_native.ConchNative.test_source_normal_audit_retains_facet_caveats) ... ok
+test_transform_features_refused (test_export_native.ConchNative.test_transform_features_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.383s
+
+OK

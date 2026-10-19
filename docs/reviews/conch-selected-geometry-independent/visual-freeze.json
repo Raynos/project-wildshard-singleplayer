@@ -1,0 +1,35 @@
+{
+  "frozenAtUtc": "2026-10-19T15:53:22.478222+00:00",
+  "inspectionOrder": [
+    "approved original WEBP",
+    "all 10 corrected PNGs individually"
+  ],
+  "baselineOrAuthorReportsRead": false,
+  "scale": 5,
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "details": 0.2,
+    "facet": 0.15
+  },
+  "scores": {
+    "silhouette": 4.1,
+    "face": 4.0,
+    "details": 4.0,
+    "facet": 4.1
+  },
+  "weightedExact": "4.05",
+  "threshold": "4.0",
+  "passes": true,
+  "notes": {
+    "silhouette": "Recognizable tall stepped spiral, flared aperture, broad shield and long opposed blade, low stance. Side/back shell volume credible; shell is more upright and planar at lip than the reference.",
+    "face": "Broad salmon brow and cheek mask, stalk eyes and pointed mandibles clearly read as a full face. More symmetrical and beak-like than the organic reference; dark breast stack remains visually dense.",
+    "details": "Cream/coral shell bands, burgundy articulated limbs, amber slit eyes and asymmetric weapons carry the approved identity. Shoulders read as armor blocks; breast framing is angular and crowded but coherent.",
+    "facet": "Broad shell planes and smaller limb facets make a coherent low-poly hierarchy. Some long lip planes and dark recess triangles feel less deliberately composed than the original."
+  },
+  "limitations": [
+    "No visual score credit for topology, test status, provenance or render throughput.",
+    "A 2D concept supplies no authoritative hidden-side geometry.",
+    "No original baseline images, prior-review scores or author quality claims consulted before this freeze."
+  ]
+}

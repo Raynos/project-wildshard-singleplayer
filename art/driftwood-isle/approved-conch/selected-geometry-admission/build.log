@@ -1,0 +1,109 @@
+ERROR Draco mesh compression is not available because library could not be found at /usr/bin/4.3/python/lib/python3.13/site-packages/libextern_draco.so
+11:47:08 | INFO: Starting glTF 2.0 export
+11:47:08 | INFO: Extracting primitive: Unified angular whorls lip and recessed throat
+11:47:08 | INFO: Primitives created: 6
+11:47:08 | INFO: Extracting primitive: Compact thorax core
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Raised breast carapace -1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Raised breast carapace 1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Continuous tucked abdomen
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Hooked coral cranium and keel
+11:47:08 | INFO: Primitives created: 3
+11:47:08 | INFO: Extracting primitive: Sculpted cheek -1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Angular brow root -1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Inset nostril -1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Sculpted cheek 1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Angular brow root 1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Inset nostril 1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Eyestalk -1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Pointed sculpted eye socket -1
+11:47:08 | INFO: Primitives created: 3
+11:47:08 | INFO: Extracting primitive: Closed socket back -1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Convex inset amber lens -1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Black pointed slit -1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Eye glint -1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Eyestalk 1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Pointed sculpted eye socket 1
+11:47:08 | INFO: Primitives created: 3
+11:47:08 | INFO: Extracting primitive: Closed socket back 1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Convex inset amber lens 1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Black pointed slit 1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Eye glint 1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Leg hinge -1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Bent armored thigh -1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Armored shin -1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Planted foot -1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Toe blade (-1, -1)
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Toe blade (-1, 1)
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Leg hinge 1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Bent armored thigh 1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Armored shin 1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Planted foot 1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Toe blade (1, -1)
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Toe blade (1, 1)
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Shoulder hinge -1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Swept shoulder armor -1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Bent upper arm -1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Elbow joint -1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Shoulder hinge 1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Swept shoulder armor 1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Bent upper arm 1
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Elbow joint 1
+11:47:08 | INFO: Primitives created: 1
+11:47:08 | INFO: Extracting primitive: Shield supporting forearm
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Broad convex jagged shield claw
+11:47:08 | INFO: Primitives created: 4
+11:47:08 | INFO: Extracting primitive: Shield opposed articulated thumb
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Rapier forearm cuff
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Coral rapier knuckle
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Long ivory conch rapier
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Extracting primitive: Rapier gripping thumb
+11:47:08 | INFO: Primitives created: 2
+11:47:08 | INFO: Finished glTF 2.0 export in 0.24350666999816895 s
+
+Blender 4.3.2
+
+Blender quit

@@ -1,0 +1,21 @@
+{
+  "scope": "Receipt metadata only; hardcoded inherited counts replaced by actual mapping-derived counts. No source model, GLB, native geometry, weights, clips or packed payload changed. Original reviewed producer, closure and freeze retained as *-reviewed files.",
+  "actualCounts": {
+    "sourceMeshes": 51,
+    "sourcePrimitives": 95
+  },
+  "originalCounts": {
+    "sourceMeshes": 56,
+    "sourcePrimitives": 108
+  },
+  "changed": {
+    "export_native.py": {
+      "sha256": "73bf3804c6d8916f7f7e76f3ca9799f07f5e572996bed60dd94d922c9e0257bb",
+      "bytes": 17090
+    },
+    "native/closure.json": {
+      "sha256": "ce5dba7e8940dde543576585abc51ae2e93f9ea4a0fdc606ae1ddbc75891c27e",
+      "bytes": 1566
+    }
+  }
+}

@@ -1,0 +1,12 @@
+test_cap_shading_preserved_not_repaired (__main__.SourceGate.test_cap_shading_preserved_not_repaired) ... ok
+test_corrected_source_no_opposed_triangles_or_pairs (__main__.SourceGate.test_corrected_source_no_opposed_triangles_or_pairs) ... ok
+test_exact_glb_indices_materials_and_untouched_parts (__main__.SourceGate.test_exact_glb_indices_materials_and_untouched_parts) ... ok
+test_exact_indexed_four_mesh_scope (__main__.SourceGate.test_exact_indexed_four_mesh_scope) ... ok
+test_no_crossings (__main__.SourceGate.test_no_crossings) ... ok
+test_selected_baseline_negative_control (__main__.SourceGate.test_selected_baseline_negative_control) ... ok
+test_transport_only_negative_control (__main__.SourceGate.test_transport_only_negative_control) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.004s
+
+OK

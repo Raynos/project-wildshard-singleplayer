@@ -1,0 +1,192 @@
+{
+  "passed": true,
+  "rawPNGCount": 20,
+  "rawPNGBytesUnmodified": true,
+  "identicalNineViewCameraReceipts": true,
+  "matchesSelectedPass2Cameras": true,
+  "footprintBytesAtVerification": 14418324,
+  "limitBytes": 20971520,
+  "images": [
+    {
+      "path": "captures/baseline/color-complete-pass2-top.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "431f4f492f4b2ff8f2972714fd80b1e3f6231687e2b0dae0923ae411515e09c3",
+      "bytes": 625998
+    },
+    {
+      "path": "captures/baseline/color-complete-pass2-front.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "1c72c983b8a4b4cfd379c94108889d4e57c967ef27d0d9f3e2392c96036d0a46",
+      "bytes": 430366
+    },
+    {
+      "path": "captures/baseline/color-complete-pass2-diag-right.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "f928002eaec8058277215e434439c711d698cdc959639fca33b216c3ac4d76db",
+      "bytes": 603100
+    },
+    {
+      "path": "captures/baseline/color-complete-pass2-diag-back.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "ace4c91d6101611b45f90d3d43feaf6e55224937ace07c32f0c6d52659bf9bf3",
+      "bytes": 618882
+    },
+    {
+      "path": "captures/baseline/color-complete-pass2-left.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "3651a06d0b6879c3ad33078e23b3bbfad0417fd8986d918d835f3640c112a34d",
+      "bytes": 355290
+    },
+    {
+      "path": "captures/baseline/color-front.png",
+      "dimensions": [
+        780,
+        960
+      ],
+      "sha256": "8667da0ca294528cd532e1104bfa9ce516bf6b07b5438f869c370d5523ee236b",
+      "bytes": 1317040
+    },
+    {
+      "path": "captures/baseline/color-complete-pass2-diag-left.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "89b581fd8122f5ebb4294a1ebe88d39e2066c6cb321926492c86e434feeb50ee",
+      "bytes": 670936
+    },
+    {
+      "path": "captures/baseline/color-complete-pass2-back.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "ea8a93c3c385c7f69db7d7ea0c50af856736f61cea4f732b34c639b469376cb1",
+      "bytes": 407456
+    },
+    {
+      "path": "captures/baseline/color-complete-pass2-right.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "805faf02e5296c3ba48b63520565a93644a9b6d81e066703b92bb2bb3c1490d1",
+      "bytes": 347556
+    },
+    {
+      "path": "captures/baseline/color-complete-pass2-diag-front.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "b13226a33b658bc354ba8e181e911759a5fb006f0dd727403fcb09f4555031f0",
+      "bytes": 643413
+    },
+    {
+      "path": "captures/corrected/color-complete-pass2-top.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "b8642721a38919a1f8305fdded88bdb0da6da875e32ed2d8a9b2655d050b1e15",
+      "bytes": 626088
+    },
+    {
+      "path": "captures/corrected/color-complete-pass2-front.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "746289dc9ce5b56abca656ac377cacc640eb1e1d02e7e19650d5b1ac7b4722ce",
+      "bytes": 430125
+    },
+    {
+      "path": "captures/corrected/color-complete-pass2-diag-right.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "a03d71f662fa229fbc794b9252f0bdffb405597a8414fd17c8227a8e6a4b5349",
+      "bytes": 603032
+    },
+    {
+      "path": "captures/corrected/color-complete-pass2-diag-back.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "16ae42d2bd31323c397d9617080705fb7a100de718c3a0cca998ed5ee615bf09",
+      "bytes": 618918
+    },
+    {
+      "path": "captures/corrected/color-complete-pass2-left.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "93b866aa3471a6c15dfbd44e7e4e6275a59e944ed11554e6115fde6f8c436e3e",
+      "bytes": 355155
+    },
+    {
+      "path": "captures/corrected/color-front.png",
+      "dimensions": [
+        780,
+        960
+      ],
+      "sha256": "e391149b28456a556ce2670ce5a6e58045c1efbd015ddfd8fd9cc80c2713c792",
+      "bytes": 1317202
+    },
+    {
+      "path": "captures/corrected/color-complete-pass2-diag-left.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "5c278c25596735ad6713e4ca55d7fb6bee319a33662a1b2fcb32ca314ecf67da",
+      "bytes": 670669
+    },
+    {
+      "path": "captures/corrected/color-complete-pass2-back.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "13e2003698efbc1508b347ab6ecb0c4264c2ccaf27f8e928319ff884a2eb43fb",
+      "bytes": 407111
+    },
+    {
+      "path": "captures/corrected/color-complete-pass2-right.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "6842c3c64994a6614b18fab3837f91f890ffbf57e9628a4408ba4ae1c13513c7",
+      "bytes": 347568
+    },
+    {
+      "path": "captures/corrected/color-complete-pass2-diag-front.png",
+      "dimensions": [
+        496,
+        700
+      ],
+      "sha256": "2175786a8d98bb6f6ea98db3520244409fe380cf2f4c2b2424ca004132f280de",
+      "bytes": 643202
+    }
+  ],
+  "limits": "No self-score or runtime promotion. Camera/light/sample blocks reused directly from original sources; geometry closure separately decoded."
+}

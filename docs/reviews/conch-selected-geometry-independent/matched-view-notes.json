@@ -1,0 +1,24 @@
+{
+  "individuallyInspectedCorrectedAndBaseline": {
+    "color-front": "Hero: fuller cheeks/brow and two-eyed expression retained. Corrected breast is narrower, shoulder planes fuller and less wedge-like; silhouette unchanged in character.",
+    "color-complete-pass2-front": "Frontal whole-character: same shield/rapier asymmetry and face. Breast less broad but not hollow or disconnected.",
+    "color-complete-pass2-diag-front": "Elevated front: smaller breast mass retains connection under cheeks. Shell and weapons dominate equally in both.",
+    "color-complete-pass2-right": "Side: shell, shield depth and planted leg remain convincing. Shoulder is the only appreciable localized change.",
+    "color-complete-pass2-diag-right": "Raised side: broad shell planes and coral bands unchanged; face is naturally obscured by shell.",
+    "color-complete-pass2-back": "Back: corrected shoulder cap looks more volumetric; shell/body/leg outline remains coherent.",
+    "color-complete-pass2-diag-back": "Rear diagonal: no meaningful loss of cohesion or facet hierarchy.",
+    "color-complete-pass2-left": "Opposite side: shoulder shape changes without creating a visibly detached limb or losing rapier silhouette.",
+    "color-complete-pass2-diag-left": "High opposite side: same long blade, shell lip and head layering. Shoulder retains anatomical link.",
+    "color-complete-pass2-top": "Top: shell dominates both; body/weapon spread consistent and no new obvious protrusion."
+  },
+  "baselineScores": {
+    "silhouette": 4.1,
+    "face": 4.0,
+    "details": 4.0,
+    "facet": 4.1
+  },
+  "baselineWeightedExact": "4.05",
+  "correctedWeightedExact": "4.05",
+  "actualBestVisual": "tie at rubric resolution",
+  "preferredAdmissibleCandidate": "corrected, because source folds are removed without a material visual regression; this adds zero likeness points"
+}

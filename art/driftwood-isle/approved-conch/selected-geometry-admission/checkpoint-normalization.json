@@ -1,0 +1,15 @@
+{
+  "scope": "Diagnostic prefixes and terminal whitespace only. Reviewed freeze/logs retained; source and assets unchanged.",
+  "changes": [
+    {
+      "path": "capture.log",
+      "originalSha256": "361b3ffadd31f6b7b8590197d3e79355e0c4c7c9d9ef95eed68e3690d2dda238",
+      "sha256": "d457b21ffbd4f222b2997c6b7e394f5fa27283e369ca8978d8789d25167a947b"
+    },
+    {
+      "path": "initial-source-tests-failed.log",
+      "originalSha256": "18650c69b77834580dcd9ab5ce891cd38a7c66e366f3945a04f8bb5990fb5862",
+      "sha256": "bd2f20ef58820a2819d393e95961e394d2d390a82b41d1bffada507c9eddcac2"
+    }
+  ]
+}
