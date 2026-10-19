@@ -83,3 +83,6 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 - G478 grapple traversal: `game/grapple/sim`, `game/grapple/course`, `game/grapple/headless`, `game/grapple/tool`, and `game/grapple/ribbon` consume course/profile rows; client presentation is labelled.
 - G478 practice courses: `game/practice/hookCourse` consumes the admitted room layout and the equipped native grapple tool.
+
+- G478 audio patches: `game/audio/voicePatches` consumes voice, bed, scheduler and layer rows; client-only presentation, with an unrelated cavern fixture in `test/audio-voice-patches.test.ts`.
+- G478 audio scenes: `game/audio/sceneDirector` consumes zone probes, surface maps, event cues, bed controls and score observations; client-only presentation.

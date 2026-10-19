@@ -128,4 +128,16 @@ programs['native.steelRing']=[[2380,1,.9],[3710,.6,.7],[5160,.35,.5],[5190,.3,.5
  if(f===undefined||g===undefined||d===undefined)throw new Error('Missing steel partial');
  return tone({t:'at',type:'sine',f0:mul(f,random(.99,1.01)),gain:mul('gain',g),attack:.003,decay:d,pan:'pan'});
 });
+programs['sheep_bleat']=[value('dur',random(.5,.85)),value('f',random(300,460)),value('rate',random(6.5,8.5)),value('form',random(1000,1300)),
+ {kind:'bus',id:'bleat',out:'out',gain:1,pan:0,filter:{type:'bandpass',frequency:'form',q:1.2}},
+ {kind:'gainLfo',out:'bleat',t:'at',duration:add('dur',.2),rate:'rate',depth:.6},
+ {...tone({t:'at',type:'sawtooth',f0:mul('f',1.08),f1:mul('f',.92),glide:'dur',gain:.8,attack:.05,hold:mul('dur',.6),decay:mul('dur',.4)}),out:'bleat'},
+ tone({t:'at',type:'sawtooth',f0:mul('f',1.08),f1:mul('f',.92),glide:'dur',gain:.2,attack:.05,hold:mul('dur',.6),decay:mul('dur',.4),lowpass:900})];
+programs['native.arrowWhoosh']=[burst({when:['not','swing'],t:add('at',.01),type:'bandpass',freq:2600,freqEnd:700,q:1.4,gain:add(.12,mul(.12,'power')),attack:.02,decay:.22}),burst({when:'swing',t:'at',type:'bandpass',freq:1800,freqEnd:4200,q:1.4,gain:.28,attack:.03,decay:.16})];
+programs['native.sabreHit']=[burst({when:'wood',t:'at',type:'bandpass',freq:1400,q:2,gain:mul(.5,'gain'),decay:.05,pan:'pan'}),
+ tone({when:'wood',t:'at',type:'triangle',f0:520,f1:300,glide:.05,gain:mul(.25,'gain'),decay:.1,pan:'pan'}),
+ burst({when:['not','wood'],t:'at',type:'lowpass',freq:420,gain:mul(.7,'gain'),decay:.11,pan:'pan'}),
+ burst({when:['not','wood'],t:'at',type:'bandpass',freq:1100,q:1,gain:mul(.25,'gain'),decay:.03,pan:'pan'}),
+ tone({t:'at',type:'sine',f0:160,f1:60,glide:.09,gain:mul(.7,'gain'),decay:.18,pan:'pan'}),burst({t:add('at',.004),type:'highpass',freq:2800,gain:mul(.18,'gain'),decay:.012,pan:'pan'})];
+programs['native.stampede']=[burst({t:'at',type:'lowpass',freq:110,q:.7,gain:.9,attack:.6,hold:2.2,decay:1.4,rate:.6}),burst({t:'at',type:'bandpass',freq:260,q:.6,gain:.35,attack:.5,hold:2,decay:1.2})];
 export const NALATI_PHRASES:Readonly<Record<string,AudioPhraseProgram>>=Object.fromEntries(Object.entries(programs).map(([name,steps])=>[name,v.parse(AudioPhraseProgramSchema,{steps:ordered(steps)})]));

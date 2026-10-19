@@ -109,6 +109,10 @@ export abstract class Synth {
         if(step.filter){const filter=this.ctx.createBiquadFilter();filter.type=step.filter.type;filter.frequency.value=value(step.filter.frequency);if(step.filter.q!==undefined)filter.Q.value=value(step.filter.q);bus.connect(filter);tail=filter;}
         const pan=value(step.pan),outNode=target(step.out);if(step.alwaysPan===true){const p=this.ctx.createStereoPanner();p.pan.value=pan;tail.connect(p).connect(outNode);}else this.route(tail,pan,outNode);nodes.set(step.id,bus);return;
       }
+      if(step.kind==='gainLfo'){
+        const node=target(step.out);if(!(node instanceof GainNode))throw new Error('Gain LFO requires a gain');
+        const time=value(step.t),source=ownAudioSource(this.ctx.createOscillator()),gain=this.ctx.createGain();source.frequency.value=value(step.rate);gain.gain.value=value(step.depth);source.connect(gain).connect(node.gain);source.start(time);source.stop(time+value(step.duration));return;
+      }
       if(step.kind==='envelope'){
         const node=target(step.out);if(!(node instanceof GainNode))throw new Error('Envelope requires a gain');
         const time=value(step.t),gain=node.gain;gain.cancelScheduledValues(time);gain.setValueAtTime(gain.value,time);
