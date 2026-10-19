@@ -2085,3 +2085,7 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /src/shards/pastel-plain/look/map.baked.json
 /src/shards/pastel-plain/data/productMap.json
 /src/shards/pastel-plain/assets/map.webp
+
+# G508: ink-cel-valley data map outputs.
+/public/assets/ink-cel-valley/map/top.webp
+/src/shards/ink-cel-valley/look/map.baked.json
