@@ -1,0 +1,66 @@
+{
+  "art/driftwood-isle/approved-conch/selected-native-color/README.md": {
+    "bytes": 2198,
+    "sha256": "099ffc9a400dc7a88850cb0c8111e295f8a1aa45e65584153f978568c2dab301"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/closure.json": {
+    "bytes": 689,
+    "sha256": "b064ec67c14956df26529d7691fe84e104755a0dfc77bf10a54cb7e62670436f"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/color.test.ts": {
+    "bytes": 9299,
+    "sha256": "af0c4e7dcf6ee7de6e4d2c76f4f88db04cbf2ec6882ba9fb8441c2d2d0af9876"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/conchColorPreview.ts": {
+    "bytes": 1521,
+    "sha256": "6e10737b42b522be6cfa32fb171beb1f04d6eee7e7f373a0031d0f22a93a3435"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/graph.json": {
+    "bytes": 537,
+    "sha256": "6f8e43b848546c5cd99e3da32a89913450d2fda66dd9803e80d522bffa0e9b97"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/input-pins.json": {
+    "bytes": 1557,
+    "sha256": "1e21f95e0e86311339b2757552c85aef295e0d27b203a23cb99d0cac4dced170"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/lint.log": {
+    "bytes": 69,
+    "sha256": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/metadata.json": {
+    "bytes": 22018,
+    "sha256": "99a4920df2bb3fa4368e456b38b40e27e85d905bcccdee8e93776bf0902ae219"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/payload.bin": {
+    "bytes": 47157,
+    "sha256": "640861d7e12003814917b45d38d622a3e796084cf0b86bf88d01353ecfdc4cbb"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/prepare.py": {
+    "bytes": 2920,
+    "sha256": "fa5bf4c2374b91ac7e97a471bd4e0e4fbf1e1e8f86de04522595f302b5a37faf"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/python-test.log": {
+    "bytes": 455,
+    "sha256": "ec787c9242aa404744ff5d54ed6bc2e0b30d8c7aeccd8895c4606495a2037b42"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/shader-assertion-failure.log": {
+    "bytes": 4860,
+    "sha256": "204671014fa6885635b5984c9621cde7e7e4076ebd31c784bf5053e4170ddf20"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/test-launch-failure.log": {
+    "bytes": 2907,
+    "sha256": "0d1f61a223d8cf29b29a482592ea6e3f6909730f9fd3da4dce57115ebcebd68c"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/test.log": {
+    "bytes": 1193,
+    "sha256": "cef4d40ac4db7fa886b3e85bd3bfa4ea1915e438b6c1ad4ffcb9387aa27f94ad"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/test_prepare.py": {
+    "bytes": 2206,
+    "sha256": "d812473fd820aa21d14293870feebf0b3c1b4deb66ac067fa67e3605d3671f4a"
+  },
+  "art/driftwood-isle/approved-conch/selected-native-color/vitest.config.ts": {
+    "bytes": 237,
+    "sha256": "e6f5a73c4680523a366332ba5553895b5d37f2cfdae053f18ff6363e9d943e16"
+  }
+}

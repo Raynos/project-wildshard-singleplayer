@@ -1,0 +1,11 @@
+# Conch authored-color REST comparison
+
+Source-ready isolated diagnostic, 2026-10-19. Not built or captured yet. No visual, runtime, animation, collider or gameplay acceptance. Retained native likeness remains 64.75/100; this candidate has no score.
+
+The new `selected-native-color-view` adapter uses the existing selected-native-color product factory and admitted appended aAuthoredColour payload. Existing host, pins, engine, schemas, geometry, lights and AI remain unchanged. Input inventory includes the complete candidate, retained native source, src/vite/lint, root build scripts and exact dependency manifests. Read-only admission checks original native freeze/pins and a separately fixed candidate inventory. Product admission and fixed-new-output restrictions are retained.
+
+Capture reuses the tested nine-view camera-room fit and synchronous composer sampling. A third baseline diagnostic pass compiles the original graph using unchanged compileGraph with the exact live neutral-gray-v2 ToonLook retrieved through lentToon, sharing its uniform clock. Public material properties (including live actor tint and emissive) are copied from the actual candidate actor, whose materials are restored after each capture. Only this comparison switches materials; no renderer internals or shader functions are patched. Source GLB retains its own source materials. All three passes share actor/root, camera, simulation observation and rendered lights. The graph difference is asserted to be exactly nodes.paint. The top camera remains true overhead and inside the room; full projected bounds and visible-pixel checks remain required.
+
+Capture must verify all six old runtime channels exactly against retained attempt3 geometry, and all 19,710 aAuthoredColour components exactly against admitted Float32 authored colors. This does not claim unchanged default color/normal relative to pre-facet inputs: those historical differences remain.
+
+Prepared checks: three camera containment tests and three fail-closed admission/closure tests. All six authored-color Vitest and three Python checks also pass. No heavy build has run at this checkpoint. Root must pin reviewed input closure and authorize the build lane before product/app execution. Final capture results and independent assessment remain pending.
