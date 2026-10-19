@@ -1,0 +1,60 @@
+{
+  "accepted": false,
+  "rejection": "All observed vertices clear, but hind feet .83m above floor and no supporting foot within2cm at settle. Numeric clearance is not contact.",
+  "summary": {
+    "deadMinimum": 0,
+    "frames": 418,
+    "minimum": -1.1368683772161603e-13,
+    "framesBelow": 0
+  },
+  "settledParts": [
+    {
+      "name": "body",
+      "minHeight": 0.32495916565221705,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "head",
+      "minHeight": 0.22160600515076112,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "bell",
+      "minHeight": 1.044892090461076,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "clapper",
+      "minHeight": 0.9676148796237385,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "leg0",
+      "minHeight": 0.04435307648134312,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "leg1",
+      "minHeight": 0.027351326971484013,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "leg2",
+      "minHeight": 0.8297263321640003,
+      "below": 0,
+      "near": 0
+    },
+    {
+      "name": "leg3",
+      "minHeight": 0.8297309851487853,
+      "below": 0,
+      "near": 0
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "schema": "wildshard.mantis.independent-review-closure.v1",
+  "frozenAtUtc": "2026-10-19T05:16:30Z",
+  "verdict": "Usable labeled WIP playable candidate; full visual acceptance remains open.",
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/independent-review/check_contact.py": {
+      "sha256": "25d1974041354b06c21d8db84a9bf07b92a8221bfcd49500b801fcafeebf504b",
+      "bytes": 2057
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/independent-review/combat-frame-index.json": {
+      "sha256": "6b763cbdd8707a5b665d676c59d32096ffc15ed31408a811bb1d0fc9648290be",
+      "bytes": 1046
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/independent-review/combat-hud-map.json": {
+      "sha256": "974131215f8d9df1044fe5334446fd123291bf826a18b9eee43c334e701e3461",
+      "bytes": 186800
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/independent-review/combat-world-crosscheck.json": {
+      "sha256": "d753b53e1c1fa9ba4ec699e45ec49a6b68eda30c5ffecac3640243aa754a292e",
+      "bytes": 94379
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/independent-review/inspect_frames.py": {
+      "sha256": "b093da58d59dbb81c2b2328c917eecf5a7553f8b829119bce83f1efa8b1e2d21",
+      "bytes": 1254
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/independent-review/map_hud.py": {
+      "sha256": "57e8578487357e13f3785108aada8aad2646e61d28854391f4718c60475180cc",
+      "bytes": 995
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/independent-review/review-receipt.json": {
+      "sha256": "5d635b6ad2575746cdaae67f311c6869387563fdb56429b66887487ee5e895d6",
+      "bytes": 3029
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/independent-review/verify_closure.py": {
+      "sha256": "068925002d9c74367187dec9564ecc3c8e94291598b2bcb5d3d0ef4a64301387",
+      "bytes": 613
+    },
+    "docs/reviews/mantis-native-candidate4-motion-review.md": {
+      "sha256": "a9f3aab9dad20146afa67a3cffe4df1492d9cbc3ee97a632854d711b0f5aa9a2",
+      "bytes": 9181
+    }
+  },
+  "temporaryVisualInventory": {
+    "tmp/mantis-candidate4-independent-review/boundaries.jpg": {
+      "sha256": "0b27081eb281c55ea28d47df97b70c877280aade4eb47674edd168221fdd14e6",
+      "bytes": 249168
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-00.webp": {
+      "sha256": "6b8ae38b5ebf22929e903f2fe8412489f37d57323b4fcc082e3cc485b4671eb9",
+      "bytes": 28880
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-01.webp": {
+      "sha256": "17c63679155701aed87e8bfdd4c0d6c6b279ce7474439ade5d17b94a352a254c",
+      "bytes": 199822
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-02.webp": {
+      "sha256": "5a421ff450c7331d777bbeb8b9bf44291989c37346785a08e430c853dfcf52db",
+      "bytes": 474624
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-03.webp": {
+      "sha256": "ccfa35ba135bffa4f5045d846347b58f045721cc50e5bedbd8df83c2e29a9cd1",
+      "bytes": 474742
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-04.webp": {
+      "sha256": "c80f895c4f18dc4164aedb3158d26bc0572b1d907aa198a7caac41dce50b2b04",
+      "bytes": 478530
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-05.webp": {
+      "sha256": "218688a0aff213f4759098340cde2dd06756db2f92b413a96254dfc048abb440",
+      "bytes": 474380
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-06.webp": {
+      "sha256": "5db64566a88ec493399d13604aada5f7074cd7e69fb70f0e21c154344011d94f",
+      "bytes": 486574
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-07.webp": {
+      "sha256": "00ee760bb6452e9e9340e55651b7d9c37ce7fea326b39e42c14537d07b2306d0",
+      "bytes": 494868
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-08.webp": {
+      "sha256": "200db476f825e40da7c27a19671f4d328da26aa1d636004a5b975abce7e7bf2e",
+      "bytes": 487530
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-09.webp": {
+      "sha256": "ad0ca69ebc75428c3ed06e517f5ad47f49a3f9910ed32555989a68c0aca7d0e0",
+      "bytes": 490462
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-10.webp": {
+      "sha256": "c5f5e5c7d2160ab479eba4e581d4df10bcce01589298c72d5c7ed81387a09455",
+      "bytes": 475082
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-11.webp": {
+      "sha256": "450981f5e52ac014d8ee65c77a9278810546afabf0876be89c533f8ef94f960a",
+      "bytes": 473694
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-12.webp": {
+      "sha256": "09a71c43a6f6edd1059de06b7966c1ed114090195dfc62ed66f82835027dd6a2",
+      "bytes": 487948
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-13.webp": {
+      "sha256": "4f27c61fd2e6306f034a9c3afa63d8d18d77e0e113048a92afb238464463b19d",
+      "bytes": 451172
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-14.webp": {
+      "sha256": "a5fa221924c3bf18800376f32e1adc44e4608d3ef8583f7daf204b7870420fbb",
+      "bytes": 445696
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-15.webp": {
+      "sha256": "7f4b2d7e0c4766239094d96fd7214093f99c91bd97ad0bf625e491ae7bcf2961",
+      "bytes": 435058
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-16.webp": {
+      "sha256": "1fbca20ebb4a2ee12b58b9ee1657f8c33e5b17707ae5abd44e7f393287379fc2",
+      "bytes": 439758
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-17.webp": {
+      "sha256": "a83d4739e4fcb218b27ea88889785d1334ff97ba71bd7721241f8305932ba5aa",
+      "bytes": 459890
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-18.webp": {
+      "sha256": "6d75a2677fb8a770d6ca753828ab87ed1a585a231fd905cf292224423c7d124c",
+      "bytes": 469504
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-19.webp": {
+      "sha256": "97e3fda9e21e1ac2bffcecd2119e74441e5d5a2bb3b3f991b024a79972d9c11c",
+      "bytes": 468560
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-20.webp": {
+      "sha256": "31375fcd35ac4257e371434230ff47b7ae689f03ec39d1a12355ecd1b68fd327",
+      "bytes": 469668
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-21.webp": {
+      "sha256": "bb463050036da96f914d9bd19e29c7609fdd284254776fae87dc6dd2975079f7",
+      "bytes": 470336
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-22.webp": {
+      "sha256": "0ff7316e3811e13ad4596e49ec8f557cf0defccdd50b8dfe5dd598266849895d",
+      "bytes": 497048
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-23.webp": {
+      "sha256": "dd80728ca7d6b36b62cf4bfc7229859df93ad4e1e88040237c46c4bf933b876d",
+      "bytes": 483358
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-24.webp": {
+      "sha256": "39fda0fbedb8e316f27942dbc23ab5d50ceb6f17ed25a6a161c8609378a9398f",
+      "bytes": 480930
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-25.webp": {
+      "sha256": "9920d14742c24285996896e8ce01a005d41ecb83228b1c46274d57d914bbd6fe",
+      "bytes": 474408
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-26.webp": {
+      "sha256": "dd02c1aaf84ebdaff2131f76b6f35058d603940206bb2e01da81f00adbfc6653",
+      "bytes": 475688
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-27.webp": {
+      "sha256": "95d87e62f7fe565a94ec413cd60854528fbafb2d8f4ecc0657c69de070205222",
+      "bytes": 558406
+    },
+    "tmp/mantis-candidate4-independent-review/combat-all-28.webp": {
+      "sha256": "d02f149099513b38ded01a1a6e7872e19a407cccc275eb767f459d4b4486adb6",
+      "bytes": 460142
+    },
+    "tmp/mantis-candidate4-independent-review/combat-frame-index.json": {
+      "sha256": "6b763cbdd8707a5b665d676c59d32096ffc15ed31408a811bb1d0fc9648290be",
+      "bytes": 1046
+    },
+    "tmp/mantis-candidate4-independent-review/combat-full-0000.jpg": {
+      "sha256": "0a594d1ea5265594f86cac543d95f999e1808b927e217543bbecb5688e1415f7",
+      "bytes": 22674
+    },
+    "tmp/mantis-candidate4-independent-review/combat-full-0150.jpg": {
+      "sha256": "f2d1797c6f80f24f3facfebd7acc1df3f52e19b9c7b501b7f0b791c20f34bb31",
+      "bytes": 59478
+    },
+    "tmp/mantis-candidate4-independent-review/combat-full-0300.jpg": {
+      "sha256": "8e4cb7d2db629c1e43e929bc1432332fc2f67fe0b60b0bed201836363f3b1677",
+      "bytes": 58961
+    },
+    "tmp/mantis-candidate4-independent-review/combat-full-0456.jpg": {
+      "sha256": "da9d4e31e2592051a67b6f8b5fa943aab793f990048a6656af22f44241b85db9",
+      "bytes": 61297
+    },
+    "tmp/mantis-candidate4-independent-review/combat-full-0500.jpg": {
+      "sha256": "087a9b58f4edc53676d9eb46580f15b10d58230e3a0913f18e24b1025e1fa078",
+      "bytes": 61157
+    },
+    "tmp/mantis-candidate4-independent-review/combat-full-0750.jpg": {
+      "sha256": "22cc10fa2aec78d6cb3b292c26da744d0c21920f583198574e31e96f0c9557d6",
+      "bytes": 55226
+    },
+    "tmp/mantis-candidate4-independent-review/combat-full-1000.jpg": {
+      "sha256": "6e982c7463a4df52eed8294f71f361c4c6011b1757c4d6f45a2683c91332dca8",
+      "bytes": 56331
+    },
+    "tmp/mantis-candidate4-independent-review/combat-full-1250.jpg": {
+      "sha256": "5bdd48ebb72fbc4a1a5048138e00ebdc7f1901c6518dbab91c34d6ea5f9fec67",
+      "bytes": 59431
+    }
+  },
+  "note": "Large visual inventory is temporary review material, excluded from native Site source. Original MP4 remains authoritative. Run scripts from repository root; no private absolute paths."
+}

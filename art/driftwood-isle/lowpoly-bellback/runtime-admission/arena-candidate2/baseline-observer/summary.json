@@ -1,0 +1,454 @@
+{
+  "schema": "wildshard.bellback.actual-corpse-evidence.v2",
+  "accepted": false,
+  "sourceHash": "2193cde3e47ba8d17a3dcfb642cbaf3458f12bde60f39d1268d58e7ff957a87a",
+  "host": "original build1 before PracticeCreature early applied-hit drain",
+  "summary": {
+    "deadMinimum": -0.8711471774169013,
+    "frames": 418,
+    "minimum": -0.8711471774169013,
+    "framesBelow": 133
+  },
+  "deadFrames": 134,
+  "originalMeshMinima": {
+    "Clapper stem": {
+      "height": 1.1568076925249215,
+      "joint": "clapper",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Clapper weight": {
+      "height": 0.9676047084996071,
+      "joint": "clapper",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Hollow cast bell": {
+      "height": 0.923997168166693,
+      "joint": "bell",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Arch left": {
+      "height": 1.7147709633177328,
+      "joint": "body",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Arch right": {
+      "height": 2.0033466724712525,
+      "joint": "body",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Barrel timber hull": {
+      "height": 0.3249530155469529,
+      "joint": "body",
+      "frame": 275,
+      "deathT": 1
+    },
+    "Broken ship rib -1 0": {
+      "height": 0.4949645005218599,
+      "joint": "body",
+      "frame": 277,
+      "deathT": 1
+    },
+    "Broken ship rib -1 1": {
+      "height": 0.24415950253057872,
+      "joint": "body",
+      "frame": 246,
+      "deathT": 1
+    },
+    "Broken ship rib 1 0": {
+      "height": 0.4917169604834726,
+      "joint": "body",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Broken ship rib 1 1": {
+      "height": 0.4917770177141847,
+      "joint": "body",
+      "frame": 273,
+      "deathT": 1
+    },
+    "Crown tie": {
+      "height": 2.4205594801168218,
+      "joint": "body",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Diagonal binding -1": {
+      "height": 0.7319879671819081,
+      "joint": "body",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Diagonal binding 1": {
+      "height": 1.180816384001787,
+      "joint": "body",
+      "frame": 273,
+      "deathT": 1
+    },
+    "Frame rope knot": {
+      "height": 1.4813784977845899,
+      "joint": "body",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Frame rope knot.001": {
+      "height": 1.557958916274174,
+      "joint": "body",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Frame rope knot.002": {
+      "height": 0.4740000197441532,
+      "joint": "body",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Frame rope knot.003": {
+      "height": 0.5505805786815472,
+      "joint": "body",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Frame rope knot.004": {
+      "height": 1.8028847047826275,
+      "joint": "body",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Frame rope knot.005": {
+      "height": 1.9328848187461745,
+      "joint": "body",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Frame rope knot.006": {
+      "height": 1.0429595268138883,
+      "joint": "body",
+      "frame": 273,
+      "deathT": 1
+    },
+    "Frame rope knot.007": {
+      "height": 1.1729595219567273,
+      "joint": "body",
+      "frame": 273,
+      "deathT": 1
+    },
+    "Lower angled rail -1": {
+      "height": 0.5077633460233528,
+      "joint": "body",
+      "frame": 246,
+      "deathT": 1
+    },
+    "Lower angled rail 1": {
+      "height": 0.8847272216005422,
+      "joint": "body",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Tall stern plank": {
+      "height": 0.8325960865442994,
+      "joint": "body",
+      "frame": 246,
+      "deathT": 1
+    },
+    "Upper angled rail -1": {
+      "height": 1.1728973992145484,
+      "joint": "body",
+      "frame": 246,
+      "deathT": 1
+    },
+    "Upper angled rail 1": {
+      "height": 1.8355564756474223,
+      "joint": "body",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Brow ivory splinter": {
+      "height": 1.1880488437266195,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Brow ivory splinter.001": {
+      "height": 1.188416033404792,
+      "joint": "head",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Continuous ivory W jaw": {
+      "height": 0.4040649430442045,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Inset amber eye": {
+      "height": 0.8102849604480298,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Inset amber eye.001": {
+      "height": 0.8109647929443327,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Ivory upper fang -1": {
+      "height": 0.518703359336655,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Ivory upper fang 1": {
+      "height": 0.5189759267799445,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Lower cheek timber": {
+      "height": 0.4953974692987231,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Lower cheek timber.001": {
+      "height": 0.5090841034295863,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Lower timber jaw": {
+      "height": 0.22076135648876516,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Mouth dark pocket": {
+      "height": 0.4601599902870248,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Pointed central face keel": {
+      "height": 0.6330411027090577,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Recessed eye shadow": {
+      "height": 0.7551402591788019,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Recessed eye shadow.001": {
+      "height": 0.7558213991064804,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Shaped orbital brow timber": {
+      "height": 0.8160990859374806,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Shaped orbital brow timber.001": {
+      "height": 0.8164912970230489,
+      "joint": "head",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Solid timber cranium": {
+      "height": 0.5356505233474991,
+      "joint": "head",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Swept cheek horn": {
+      "height": 0.6244801291386466,
+      "joint": "head",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Swept cheek horn.001": {
+      "height": 0.6244139742609605,
+      "joint": "head",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Left fore shoulder cap": {
+      "height": 0.565734850592321,
+      "joint": "leg0",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Left fore shoulder lashing": {
+      "height": 1.0011752872508168,
+      "joint": "leg0",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Left fore shoulder lashing.001": {
+      "height": 1.130128128501724,
+      "joint": "leg0",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Left fore stone foot": {
+      "height": -0.12164656184950218,
+      "joint": "leg0",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Left fore timber leg": {
+      "height": 0.06075350633648213,
+      "joint": "leg0",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Left fore toe -0.23": {
+      "height": 0,
+      "joint": "leg0",
+      "frame": 226,
+      "deathT": 0
+    },
+    "Left fore toe 0.23": {
+      "height": 0,
+      "joint": "leg0",
+      "frame": 226,
+      "deathT": 0
+    },
+    "Left hind shoulder cap": {
+      "height": 0.13498469898775056,
+      "joint": "leg2",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Left hind shoulder lashing": {
+      "height": 0.6213453434650091,
+      "joint": "leg2",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Left hind shoulder lashing.001": {
+      "height": 0.7284432341550655,
+      "joint": "leg2",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Left hind stone foot": {
+      "height": -0.8711471774169013,
+      "joint": "leg2",
+      "frame": 246,
+      "deathT": 1
+    },
+    "Left hind timber leg": {
+      "height": -0.5218022345354711,
+      "joint": "leg2",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Left hind toe -0.23": {
+      "height": -0.7867477131341047,
+      "joint": "leg2",
+      "frame": 247,
+      "deathT": 1
+    },
+    "Left hind toe 0.23": {
+      "height": -0.5237908605547545,
+      "joint": "leg2",
+      "frame": 246,
+      "deathT": 1
+    },
+    "Right fore shoulder cap": {
+      "height": 0.5656638991659975,
+      "joint": "leg1",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Right fore shoulder lashing": {
+      "height": 1.0011223974106542,
+      "joint": "leg1",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Right fore shoulder lashing.001": {
+      "height": 1.1300752386615613,
+      "joint": "leg1",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Right fore stone foot": {
+      "height": -0.12028689685666905,
+      "joint": "leg1",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Right fore timber leg": {
+      "height": 0.0784829351141525,
+      "joint": "leg1",
+      "frame": 270,
+      "deathT": 1
+    },
+    "Right fore toe -0.23": {
+      "height": 0,
+      "joint": "leg1",
+      "frame": 226,
+      "deathT": 0
+    },
+    "Right fore toe 0.23": {
+      "height": 0,
+      "joint": "leg1",
+      "frame": 226,
+      "deathT": 0
+    },
+    "Right hind shoulder cap": {
+      "height": 0.4409076989975347,
+      "joint": "leg3",
+      "frame": 273,
+      "deathT": 1
+    },
+    "Right hind shoulder lashing": {
+      "height": 1.032351668085198,
+      "joint": "leg3",
+      "frame": 273,
+      "deathT": 1
+    },
+    "Right hind shoulder lashing.001": {
+      "height": 1.1612977089980632,
+      "joint": "leg3",
+      "frame": 271,
+      "deathT": 1
+    },
+    "Right hind stone foot": {
+      "height": -0.12003788256811276,
+      "joint": "leg3",
+      "frame": 273,
+      "deathT": 1
+    },
+    "Right hind timber leg": {
+      "height": 0.08093711905632972,
+      "joint": "leg3",
+      "frame": 273,
+      "deathT": 1
+    },
+    "Right hind toe -0.23": {
+      "height": -0.0732172875678998,
+      "joint": "leg3",
+      "frame": 275,
+      "deathT": 1
+    },
+    "Right hind toe 0.23": {
+      "height": -0.07321797951874487,
+      "joint": "leg3",
+      "frame": 273,
+      "deathT": 1
+    }
+  },
+  "scope": "Observed actual root trajectory only; one real sword death. Geometry unchanged. Carrier did not penetrate in this run; local source box inadequacy alone does not justify engine changes."
+}

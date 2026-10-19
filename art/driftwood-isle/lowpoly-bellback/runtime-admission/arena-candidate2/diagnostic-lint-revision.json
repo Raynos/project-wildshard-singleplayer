@@ -1,0 +1,21 @@
+{
+  "schema": "wildshard.bellback.diagnostic-lint-revision.v1",
+  "originalCaptureScriptSha256": "34617bf499a89a9680d6732b68bff3c852395fb909515db33b52418ccf98ea77",
+  "originalAnalysisScriptSha256": "6f4f6f64cf074ea2f75afc73fdf69e5736c2cb97712d387cf9df508d514e5827",
+  "change": "Remove unused aim helper; rename shadowed analysis locals without changing output keys or arithmetic; add required import spacing in replay test. Preserved recorded measurements unchanged. Await node test promises explicitly.",
+  "recomputedFullWorldContactDeepEqual": true,
+  "files": {
+    "scripts/qa-bellback-corpse-observer.mjs": {
+      "sha256": "84db0ab4c01901afb3bc14ce90584445f36d253550c7cc9c7e9330514e76820e",
+      "bytes": 12474
+    },
+    "scripts/measure-bellback-world-contact.mjs": {
+      "sha256": "eea4ec77728ec79e75d24848a7f5a54e3059fd9cc6b7f9729eda3e7994382b04",
+      "bytes": 4887
+    },
+    "scripts/measure-bellback-world-contact.test.mjs": {
+      "sha256": "0f6267948417714c3f52ba9cb2ee05edb24fafd6504fe37bc1fd77da4a7a5aa5",
+      "bytes": 2212
+    }
+  }
+}

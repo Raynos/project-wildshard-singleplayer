@@ -1,0 +1,37 @@
+{
+  "schema": "wildshard.bellback.corpse-evidence-closure.v1",
+  "files": {
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate2/baseline-observer/corpse-reward.jpg": {
+      "sha256": "5133c1f41eda1483b91e149203d612e12ab6d6fde4dffa63eb443376cd44ad37",
+      "bytes": 55401
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate2/baseline-observer/entry.jpg": {
+      "sha256": "e98f4389576a5bc387f914f7a4091b626b6c08429b2b5279065c38d3cabb7d0d",
+      "bytes": 60200
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate2/baseline-observer/render-trace.json": {
+      "sha256": "206c50a9cf83535ab3fe07116a776d634258f82e7fe7385921deab0d66b1a27e",
+      "bytes": 565286
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate2/baseline-observer/report.json": {
+      "sha256": "16a76b090b4bd6cb563fff0960437d22feeb3e88ef552e0d91c8f5e7fcde95b8",
+      "bytes": 489993
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate2/baseline-observer/retry.jpg": {
+      "sha256": "74fad96aeeb102e273f1055067897b4ecfd977618807f75bf7ffc53649b9b7fc",
+      "bytes": 59181
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate2/baseline-observer/summary.json": {
+      "sha256": "67812db293fae1f25cb526bc0f4454558c75dc0437df20343eec52243c4d1989",
+      "bytes": 10370
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate2/baseline-observer/sword-result.jpg": {
+      "sha256": "203d7e1766d981f12102a2672bb00c83cce363ec9e1f1b1483b37871658dccbf",
+      "bytes": 54915
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate2/baseline-observer/world-contact.json": {
+      "sha256": "32d2ae2cb2db8329da3c7c20ddde2dd74138c474a1b9c5040aed57088de46be8",
+      "bytes": 3880636
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "video": "tmp/mantis-phase-idle-qa/video/page@5933bd6aa786bcad0750a16e8cff9c0d.webm",
+  "sha256": "b8c48e427a637d1d050ce65d16a137609041a553a1ffc07eb91920cfd3cf870f",
+  "frames": 457,
+  "range": [
+    0,
+    456
+  ],
+  "fps": 25,
+  "crop": [
+    70,
+    290,
+    320,
+    580
+  ],
+  "sheets": [
+    "idle-all-00.webp",
+    "idle-all-01.webp",
+    "idle-all-02.webp",
+    "idle-all-03.webp",
+    "idle-all-04.webp",
+    "idle-all-05.webp",
+    "idle-all-06.webp",
+    "idle-all-07.webp",
+    "idle-all-08.webp",
+    "idle-all-09.webp"
+  ]
+}

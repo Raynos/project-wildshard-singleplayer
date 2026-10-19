@@ -1,0 +1,161 @@
+{
+  "captureClosureSha256": "333c168f88ead84112193c14db4051adf1ee67a01261ecef49c4b2a19b3f2a99",
+  "captureFilesVerified": 16,
+  "sourceFilesVerified": 18,
+  "admissionFilesVerified": 14,
+  "testedProductSourceHash": "8ffdee515e3426653e8ebc74f8ccefc229f35ceb00c869e743615e27b792b89c",
+  "hostScope": "Original captured 137-file build only; later PracticeCreature event-drain change not validated.",
+  "deadSamples": 129,
+  "stationaryTail": {
+    "frames": [
+      276,
+      352
+    ],
+    "count": 77,
+    "maximumWorldComponentRange": 0.0,
+    "minimumHeight": 0.013627155145854886,
+    "maximumMinimumHeight": 0.013627155145854886,
+    "nearVertexRange": [
+      8,
+      8
+    ]
+  },
+  "phaseBoundaryMismatchFrames": [
+    69,
+    77,
+    97,
+    99,
+    100,
+    104,
+    130,
+    182,
+    391,
+    418,
+    419,
+    420,
+    421,
+    443,
+    456
+  ],
+  "wallIntervalMs": {
+    "min": 5.5999999940395355,
+    "median": 97.84999999776483,
+    "max": 354.0
+  },
+  "inspectedEncodedFrames": [
+    0,
+    1382
+  ],
+  "encodedCount": 1383,
+  "contactSheets": "tmp/mantis-candidate4-independent-review/combat-all-00.webp through combat-all-28.webp",
+  "visualVerdict": "Usable labeled WIP playable candidate; not quality-complete or production visually admitted.",
+  "encodedIntervals": [
+    {
+      "name": "startup/front view",
+      "frames": [
+        0,
+        106
+      ]
+    },
+    {
+      "name": "approach",
+      "frames": [
+        107,
+        282
+      ]
+    },
+    {
+      "name": "first windup",
+      "frames": [
+        283,
+        305
+      ]
+    },
+    {
+      "name": "first active",
+      "frames": [
+        306,
+        359
+      ]
+    },
+    {
+      "name": "first recovery",
+      "frames": [
+        360,
+        366
+      ]
+    },
+    {
+      "name": "first return idle",
+      "frames": [
+        367,
+        372
+      ]
+    },
+    {
+      "name": "second windup",
+      "frames": [
+        373,
+        380
+      ]
+    },
+    {
+      "name": "second active",
+      "frames": [
+        381,
+        416
+      ]
+    },
+    {
+      "name": "second recovery",
+      "frames": [
+        417,
+        453
+      ]
+    },
+    {
+      "name": "stationary recovery",
+      "frames": [
+        454,
+        512
+      ]
+    },
+    {
+      "name": "resume/reset/hits",
+      "frames": [
+        513,
+        751
+      ]
+    },
+    {
+      "name": "kill/collapse",
+      "frames": [
+        752,
+        781
+      ]
+    },
+    {
+      "name": "corpse settling",
+      "frames": [
+        782,
+        876
+      ]
+    },
+    {
+      "name": "stationary corpse tail",
+      "frames": [
+        877,
+        1068
+      ]
+    },
+    {
+      "name": "Retry and fresh bout",
+      "frames": [
+        1069,
+        1382
+      ]
+    }
+  ],
+  "encodedBoundaryValidation": "Direct visual inspection of burned-in HUD at each listed boundary; raw combat-hud-map OCR is unvalidated and contains numeral errors. Some trace frames, including77,100,352, are not encoded.",
+  "nativeRigidBindingIndependentlyVerified": true
+}

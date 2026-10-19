@@ -1,0 +1,47 @@
+{
+  "video": "public/review-evidence/mantis-v7-candidate4/live-observer.mp4",
+  "sha256": "2bf1755eb44815720131ed2b0afde107210202bbfa600ef114c443fd5907b88c",
+  "frames": 1383,
+  "range": [
+    0,
+    1382
+  ],
+  "fps": 25,
+  "crop": [
+    70,
+    290,
+    320,
+    580
+  ],
+  "sheets": [
+    "combat-all-00.webp",
+    "combat-all-01.webp",
+    "combat-all-02.webp",
+    "combat-all-03.webp",
+    "combat-all-04.webp",
+    "combat-all-05.webp",
+    "combat-all-06.webp",
+    "combat-all-07.webp",
+    "combat-all-08.webp",
+    "combat-all-09.webp",
+    "combat-all-10.webp",
+    "combat-all-11.webp",
+    "combat-all-12.webp",
+    "combat-all-13.webp",
+    "combat-all-14.webp",
+    "combat-all-15.webp",
+    "combat-all-16.webp",
+    "combat-all-17.webp",
+    "combat-all-18.webp",
+    "combat-all-19.webp",
+    "combat-all-20.webp",
+    "combat-all-21.webp",
+    "combat-all-22.webp",
+    "combat-all-23.webp",
+    "combat-all-24.webp",
+    "combat-all-25.webp",
+    "combat-all-26.webp",
+    "combat-all-27.webp",
+    "combat-all-28.webp"
+  ]
+}

@@ -1,0 +1,298 @@
+{
+  "verdict": "not admitted",
+  "combatEncodedFramesInspected": [
+    0,
+    1597
+  ],
+  "idleEncodedFramesInspected": [
+    0,
+    456
+  ],
+  "sheetsInspectedBeforeReceiptCompression": true,
+  "rigidWeightPerPartIndependentlyVerified": true,
+  "staticLikenessRerated": false,
+  "physicalPhoneTested": false,
+  "humanFunTested": false,
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-all-06.webp": {
+      "sha256": "f40996e3d6ca45b7da102f59236beb89c5dd5f9669074e27df9a8e0dac227abf",
+      "bytes": 162520
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/map_hud.py": {
+      "sha256": "79bc73b1610b85b58aa448dee5c5cc09ded68cb3790dd8ff1a7e05e406a88346",
+      "bytes": 1006
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-full-0500.jpg": {
+      "sha256": "33951375e845021f893f4a21c6e61b8910820e2c79f1a2c4806c2a9c8b9b939e",
+      "bytes": 67249
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-12.webp": {
+      "sha256": "493dd7e565175b45e548d7676c9ed418ad59d5e7449450c21817281765abf383",
+      "bytes": 176566
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-08.webp": {
+      "sha256": "2caa5e5c7dabbacb5450ccb2ed2aaf5fbefb15d5c57cc526bfa6659e1b9e6da3",
+      "bytes": 159434
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-04.webp": {
+      "sha256": "c64020fa3326018d0811777e9a7fd19fc53416501dd594e5b5579fa28a65ee8d",
+      "bytes": 161724
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-10.webp": {
+      "sha256": "5272ef0b08be836a437363880c0a2e81baad051eace20667aa4511aab63b70f3",
+      "bytes": 154178
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-29.webp": {
+      "sha256": "7f6f68feb4b0ee2d6466a8c0647824aecb836c85284cc533b4a2dc04cb48f95e",
+      "bytes": 163902
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-06.webp": {
+      "sha256": "d57e3a912b8805cb3e722b42fa3271ba572cb3811cdbff879a24cb366edf4917",
+      "bytes": 164914
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-full-0150.jpg": {
+      "sha256": "8e9da2b3f941f73bb080a443c87117ee9563729b3d2d55990d84f89548565d60",
+      "bytes": 64748
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-18.webp": {
+      "sha256": "d71c965f0bf35de16f240ff1cfe9b3a03077468f3bb1fb8b9ab0c4f3a440413d",
+      "bytes": 149486
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-full-0150.jpg": {
+      "sha256": "d8cd7aee55b7074cee34da8214a42f2c1ac72e2a18fd620c1d18716cf0ba4ef3",
+      "bytes": 66149
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-26.webp": {
+      "sha256": "f3a35478ef10ca1e32d17964a628689860b8116fb2bf4a737d2e38bc34dea30b",
+      "bytes": 154948
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-14.webp": {
+      "sha256": "b6790c5efcb801318ebbeeb5e8b207ec8de274d8a98cd42b2645ae2524968f72",
+      "bytes": 172800
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-hud-map.json": {
+      "sha256": "4b763d0073e9a4bfc8cb78c2e56995c0058422fe30be28fd7c3207381617eeb5",
+      "bytes": 216749
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-all-00.webp": {
+      "sha256": "e640eecfeda30c973892f8bc6ebcac431a7b8953bf64e9e4ba87f7f7e360e704",
+      "bytes": 10810
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-23.webp": {
+      "sha256": "640c2b2849cd31c573d9d0fd9540c1c2850bedf4451fb90337630b6ed28ed993",
+      "bytes": 149176
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-all-09.webp": {
+      "sha256": "810e275f15538ab585782c94e24001e07e28be9ede832f2b060fc362003c11a4",
+      "bytes": 80570
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-validated-map.json": {
+      "sha256": "8bd85f0003d4d7aa7202e71c2d06dc7cfa2ab1645f03afded2c3900adbe90b38",
+      "bytes": 233396
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-all-02.webp": {
+      "sha256": "8e71f884f57259b226ed3426e7f328099ed7e75503420e04ed02aa805773f2ec",
+      "bytes": 154814
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-11.webp": {
+      "sha256": "83f9793053ca61091442c7b71593bc20179f9da28d5aa7ddf8aa6f9a55e11571",
+      "bytes": 174264
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-full-1000.jpg": {
+      "sha256": "193b48873a897a8faa9f84791fb20b998a8c419775fe3798cd4ed33e20908f57",
+      "bytes": 62323
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-all-01.webp": {
+      "sha256": "5476e94dc202d8a40599bddf3adf6f2d86cc2339dc6da442837e63f293bb07e9",
+      "bytes": 56620
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-full-0000.jpg": {
+      "sha256": "d5d55e1a4cc5eeef893e767bd187e311141195c0eb9dc9d648dde2a9a8231452",
+      "bytes": 23045
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-13.webp": {
+      "sha256": "ccf10f1fa80e86168414b882e897cde0548f2dacd03f73495d30607b4b4c58ce",
+      "bytes": 177460
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-19.webp": {
+      "sha256": "5c159cdd5ff6f7ca59089a4a2a939f9b308188848ad2bf2764f64a3e1544881b",
+      "bytes": 151540
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-full-1597.jpg": {
+      "sha256": "74f308b4b6b6481ab8be87fb3b1f1bf27021d441ef3c05e70609f168ec4ba4ef",
+      "bytes": 66771
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-frame-index.json": {
+      "sha256": "55a434c280e795c9eeebf5a34d856e25a62d10e5f8e6e0cdf297766b2d51ef68",
+      "bytes": 542
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-full-1250.jpg": {
+      "sha256": "6f521d051b46f8a0b710ff5e5de9e09f224bc78c44977c809a58d8309b14463e",
+      "bytes": 62927
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-33.webp": {
+      "sha256": "b82c01c249873118d9f02102bfd80011d01f9766c956c501b2c6c84b58b4b257",
+      "bytes": 43668
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/inspect_frames.py": {
+      "sha256": "60e1b71feea065edc7323a7c20e210c7dfa2f0dcf2ea2f052c241361ffb1cce7",
+      "bytes": 1238
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-all-05.webp": {
+      "sha256": "340ff9c214dbfbf3b7c80153e3ccb0c68de5682d294610cfc6414cbb11bd0183",
+      "bytes": 161760
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-31.webp": {
+      "sha256": "f01939a73de5242c855d0500c4507f42ee904c7f1ac7c2a3a8601e0891e35789",
+      "bytes": 157610
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-09.webp": {
+      "sha256": "444a87baf24e1d6e987b15e25875056ce21707b2076b3bf11fb11f8ae56c6d09",
+      "bytes": 157306
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-all-03.webp": {
+      "sha256": "93a8b773f1a9e1931b3f31788786c078f1881b32f3d8a98c65fb2253601ae838",
+      "bytes": 161946
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-20.webp": {
+      "sha256": "3f6a1ca3ada943f203452a310d77ba768b0ecfdb9f0ed9c473fc402302656edc",
+      "bytes": 143520
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-27.webp": {
+      "sha256": "76dad9165d62f07a2d86d2b4b19e7e21a3cb3d0b102c985ac98d44f0ec1aa11a",
+      "bytes": 164340
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-full-0750.jpg": {
+      "sha256": "75ac34d66ab01e61a34f4d80237b9faa2febebecc034d88db6d5361e5c83710d",
+      "bytes": 72460
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-full-0300.jpg": {
+      "sha256": "86df5172b31229ebd33a186b2e6bce95046489a2cf7984799cd546b415dfef4f",
+      "bytes": 67326
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-05.webp": {
+      "sha256": "fc0bddec4ca54426c10bbace08d27662eeaac331fa6cd00769ced1cfb3a5ea6e",
+      "bytes": 163464
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-02.webp": {
+      "sha256": "50e2189113d1e4bf0b47c599cc62e3ee11176c90cd8b9d5c40a6e5d3dcf3a99b",
+      "bytes": 153092
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-32.webp": {
+      "sha256": "d31c2dd1e4eba140820663d29ea3855686c74414fd41adce5d10ee5d238b6ec5",
+      "bytes": 153762
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-07.webp": {
+      "sha256": "e542a6226e3f6649887643f0211e0fd6a0aeb0aca3b608d35ce5a97847ee2d25",
+      "bytes": 157746
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-03.webp": {
+      "sha256": "15e0cea6719fd8133c6e8497d2e05bfd1b2daaf1aee6429de6baa84f23c2bf44",
+      "bytes": 162840
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-16.webp": {
+      "sha256": "3ff154987949f71ba7495071dbf586060a6a586bc6463063adbb827483971b8c",
+      "bytes": 168852
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-01.webp": {
+      "sha256": "2132b29b563c3a98a7e676c8cdfa0c85ca8a2ce528847f7eaadd30954a1f76e4",
+      "bytes": 50962
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-frame-index.json": {
+      "sha256": "8c1b7c486f741d79a5db2861ad9204bec347aa60565fef3b13484c5554b26877",
+      "bytes": 1190
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-world-crosscheck.json": {
+      "sha256": "4f19d99b90f27c0c88d040aa5a0a38f5b78c9ebd2ee50b4729b70ad228a04910",
+      "bytes": 11211
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-full-0300.jpg": {
+      "sha256": "1e893dd8fd73d2d0994d8f19c109c1ea58f4b4b541af63ec516d0fc86b085535",
+      "bytes": 65903
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-22.webp": {
+      "sha256": "b74cbb7c3a8954ffd9c5aaaaf1512b8ea82e5a1462cfab4f459583cb9c38f8f7",
+      "bytes": 150188
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-all-08.webp": {
+      "sha256": "c3dffa95862c7ce082e96e3ab7227db66f27c21afb33e55fe7deb6f135e8aa56",
+      "bytes": 162520
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-world-crosscheck.json": {
+      "sha256": "c4ea692764ce92e24a623ed2f6aca92aa521e61f17ca780fa5bd8bd2e8342b5b",
+      "bytes": 68619
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-17.webp": {
+      "sha256": "7ff6d63d100651eae5a9e17f6af7372f2bc652a2f95859f8a9f41409aa583252",
+      "bytes": 154620
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-all-07.webp": {
+      "sha256": "de4740f55f69138ad1bd2d2763f7243fbc06b59def026ff9c0633e66170343a8",
+      "bytes": 163112
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-00.webp": {
+      "sha256": "6435456ca822da1d3dfd78c7727235d28c083f57460bdc410269d0beb1fe84e7",
+      "bytes": 11532
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-25.webp": {
+      "sha256": "7594fbf242f4686ba6b15cbfca6de80ec9f271585c954e96c3c75ba42388e349",
+      "bytes": 149212
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-full-0456.jpg": {
+      "sha256": "a087c68e040a65574fb53a356207596aea0ec58a81eaeeb1c7d9cbc9b3d4f5cd",
+      "bytes": 66214
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-30.webp": {
+      "sha256": "837b0ff27a640c250441ee58042f52007f6ed896fa105fc675323aa5b948cd23",
+      "bytes": 159816
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/phase-source-crosscheck.json": {
+      "sha256": "ba5522b32f977c70f44deeb916cb89af18c2ed5951d01159cb6ca8b5240a8f1e",
+      "bytes": 10524
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-24.webp": {
+      "sha256": "0a9f0c7934f3b99aea278aa6795e039ae4d252ff6c855e0d48cd72c5e3603074",
+      "bytes": 148848
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-28.webp": {
+      "sha256": "458404c43c185374fc9ab9cf8ff695a08161d26a9ced1610e069cee3a1252e47",
+      "bytes": 161598
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-hud-map.json": {
+      "sha256": "50e0816c062fdf737bb86be68df932237e4d4c76c9c39ef8b8fe2dde9987225f",
+      "bytes": 51461
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-21.webp": {
+      "sha256": "21271bcaff6a0673c9fb3f9c505c46caf776d884737fe6cf2763d37840554909",
+      "bytes": 151650
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-all-04.webp": {
+      "sha256": "5da189dfc27c7ca1a04fbcef6adc5e94ae062056c57ba22075a8233291f53a9c",
+      "bytes": 162412
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-full-0456.jpg": {
+      "sha256": "c6ec24174448a382a02bbb1d30dcf15ca9a65b2b9d25cc96703a43e2fe17bb92",
+      "bytes": 68086
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-all-15.webp": {
+      "sha256": "0b0799e60167fc4758e6f73f44209bb7ffaa1fb28c413abd94a043067e7e85e2",
+      "bytes": 165880
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/idle-full-0000.jpg": {
+      "sha256": "8350117013a04f7fc5070461d94da2e8b493e9c3b685b5571805ac8b4d276eb9",
+      "bytes": 9803
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/check_contact.py": {
+      "sha256": "c54d822d1894db22870f4444f7054024a9e2c3d304476042dca96624d9d01fb8",
+      "bytes": 1951
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/independent-review/combat-full-1500.jpg": {
+      "sha256": "46644d7f0f158a8153d1f95e1c2ac226f7af8e31993f214d66919cd0f7e29cbd",
+      "bytes": 66806
+    },
+    "docs/reviews/mantis-native-candidate3-motion-review.md": {
+      "sha256": "18416a0ee9cc6b898fb09be631d2b86c94963cce6acb052dc96ce694a9c8df66",
+      "bytes": 11388
+    }
+  }
+}

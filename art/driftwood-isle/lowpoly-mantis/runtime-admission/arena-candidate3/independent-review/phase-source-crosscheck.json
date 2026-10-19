@@ -1,0 +1,398 @@
+{
+  "admissionHashes": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/metadata.json": true,
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/payload.bin": true,
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/mantis-v7-native.json": true,
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/diagnostic-dimensions.json": true,
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/metadata.json": true,
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/dimensions.json": true,
+    "src/shards/driftwood-isle/generators/mantisPhaseClips.ts": true,
+    "src/shards/driftwood-isle/generators/mantisPhasePreview.ts": true,
+    "src/shards/driftwood-isle/generators/driftwoodRegularCombat.ts": true,
+    "src/shards/driftwood-isle/behaviour/splinterMantis.as": true,
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/dimension-measurement.json": true,
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/measure_dimensions.py": true,
+    "src/shards/driftwood-isle/generators/mantisPhaseDecision.ts": true,
+    "src/shards/driftwood-isle/behaviour/splinterMantisPhase.as": true
+  },
+  "phaseMismatches": [
+    {
+      "frame": 65,
+      "gameTime": 5.703699999988076,
+      "stage": 1,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.09999999999999999,
+        "speedMul": 1,
+        "clock": 5.699999999999985,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0.0019458535731221444,
+        "z0": -0.9334231205284595,
+        "x1": 0.0017520559465481619,
+        "z1": 2.5665768741061807,
+        "yaw": -5.537075047800302e-05,
+        "length": 3.5
+      },
+      "posePhase": 0,
+      "poseClock": 5.599999999999996
+    },
+    {
+      "frame": 72,
+      "gameTime": 6.403699999988073,
+      "stage": 1,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 6.399999999999983,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0.0019458535731221444,
+        "z0": -0.9334231205284595,
+        "x1": 0.0017520559465481619,
+        "z1": 2.5665768741061807,
+        "yaw": -5.537075047800302e-05,
+        "length": 3.5
+      },
+      "posePhase": 1,
+      "poseClock": 0.6
+    },
+    {
+      "frame": 90,
+      "gameTime": 8.095699999995519,
+      "stage": 1,
+      "strike": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 8.083333333333314,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0.0019458535731221444,
+        "z0": -0.9334231205284595,
+        "x1": 0.0017520559465481619,
+        "z1": 2.5665768741061807,
+        "yaw": -5.537075047800302e-05,
+        "length": 3.5
+      },
+      "posePhase": 2,
+      "poseClock": 1.6000000000000003
+    },
+    {
+      "frame": 92,
+      "gameTime": 8.295699999995518,
+      "stage": 1,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 8.283333333333324,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.199999999999987
+          }
+        ],
+        "scores": [],
+        "x0": 0.0019458535731221444,
+        "z0": -0.9334231205284595,
+        "x1": 0.0017520559465481619,
+        "z1": 2.5665768741061807,
+        "yaw": -5.537075047800302e-05,
+        "length": 3.5
+      },
+      "posePhase": 3,
+      "poseClock": 0.1
+    },
+    {
+      "frame": 93,
+      "gameTime": 8.395699999995518,
+      "stage": 3,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 8.38333333333333,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.199999999999987
+          }
+        ],
+        "scores": [],
+        "x0": -0.8154735771555831,
+        "z0": 3.4312085170386126,
+        "x1": 2.1247516374861104,
+        "z1": 1.5325048310504041,
+        "yaw": 2.1441908271599073,
+        "length": 3.5
+      },
+      "posePhase": 0,
+      "poseClock": 0
+    },
+    {
+      "frame": 97,
+      "gameTime": 8.795699999995517,
+      "stage": 3,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 8.78333333333335,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.199999999999987
+          }
+        ],
+        "scores": [],
+        "x0": -0.8154735771555831,
+        "z0": 3.4312085170386126,
+        "x1": 2.1247516374861104,
+        "z1": 1.5325048310504041,
+        "yaw": 2.1441908271599073,
+        "length": 3.5
+      },
+      "posePhase": 1,
+      "poseClock": 0.30000000000000004
+    },
+    {
+      "frame": 115,
+      "gameTime": 10.509299999989551,
+      "stage": 3,
+      "strike": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 10.500000000000101,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.199999999999987
+          }
+        ],
+        "scores": [],
+        "x0": -0.8154735771555831,
+        "z0": 3.4312085170386126,
+        "x1": 2.1247516374861104,
+        "z1": 1.5325048310504041,
+        "yaw": 2.1441908271599073,
+        "length": 3.5
+      },
+      "posePhase": 2,
+      "poseClock": 1.6000000000000003
+    },
+    {
+      "frame": 174,
+      "gameTime": 16.116200000002944,
+      "stage": 1,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.09999999999999999,
+        "speedMul": 1,
+        "clock": 0.39999999999999997,
+        "deadlines": [],
+        "scores": [],
+        "x0": 1.7631583855686611e-12,
+        "z0": -6.92024367954582,
+        "x1": -1.395882058677214e-10,
+        "z1": -3.4202436795458198,
+        "yaw": -4.0386104072368586e-11,
+        "length": 3.5
+      },
+      "posePhase": 0,
+      "poseClock": 0.30000000000000004
+    },
+    {
+      "frame": 179,
+      "gameTime": 16.61620000000295,
+      "stage": 1,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.9000000000000011,
+        "deadlines": [],
+        "scores": [],
+        "x0": 1.7631583855686611e-12,
+        "z0": -6.92024367954582,
+        "x1": -1.395882058677214e-10,
+        "z1": -3.4202436795458198,
+        "yaw": -4.0386104072368586e-11,
+        "length": 3.5
+      },
+      "posePhase": 1,
+      "poseClock": 0.4
+    },
+    {
+      "frame": 341,
+      "gameTime": 31.2515999999867,
+      "stage": 1,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 3.183333333333327,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.00022727237990509533,
+        "z0": -3.703020492102951,
+        "x1": 6.723711616065753e-06,
+        "z1": -0.20302049992497473,
+        "yaw": 6.685602619870786e-05,
+        "length": 3.5
+      },
+      "posePhase": 0,
+      "poseClock": 3.1000000000000014
+    },
+    {
+      "frame": 348,
+      "gameTime": 31.95159999998671,
+      "stage": 1,
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.03333333333333333,
+        "speedMul": 1,
+        "clock": 3.8833333333333244,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.00022727237990509533,
+        "z0": -3.703020492102951,
+        "x1": 6.723711616065753e-06,
+        "z1": -0.20302049992497473,
+        "yaw": 6.685602619870786e-05,
+        "length": 3.5
+      },
+      "posePhase": 1,
+      "poseClock": 0.6
+    },
+    {
+      "frame": 367,
+      "gameTime": 33.77019999998077,
+      "stage": 1,
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 5.716666666666652,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.699999999999985
+          }
+        ],
+        "scores": [],
+        "x0": -0.00022727237990509533,
+        "z0": -3.703020492102951,
+        "x1": 6.723711616065753e-06,
+        "z1": -0.20302049992497473,
+        "yaw": 6.685602619870786e-05,
+        "length": 3.5
+      },
+      "posePhase": 3,
+      "poseClock": 0.1
+    },
+    {
+      "frame": 368,
+      "gameTime": 33.87019999998077,
+      "stage": 3,
+      "strike": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 5.816666666666651,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.699999999999985
+          }
+        ],
+        "scores": [],
+        "x0": -0.6758554838625086,
+        "z0": -0.28260665509151295,
+        "x1": 2.1350781656841744,
+        "z1": 1.8027355273443018,
+        "yaw": 0.932519939994753,
+        "length": 3.5
+      },
+      "posePhase": 0,
+      "poseClock": 0
+    }
+  ],
+  "completeFirst": {
+    "windup": [
+      65,
+      71
+    ],
+    "active": [
+      72,
+      89
+    ],
+    "recover": [
+      90,
+      91
+    ],
+    "idle": [
+      92,
+      92
+    ]
+  },
+  "completeSecond": {
+    "windup": [
+      93,
+      96
+    ],
+    "active": [
+      97,
+      114
+    ],
+    "recover": [
+      115,
+      126
+    ],
+    "idle": [
+      127,
+      143
+    ]
+  }
+}
