@@ -1,0 +1,94 @@
+{
+  "HERO_MATERIAL_CLASSES": {
+    "brass": 20,
+    "steel": 21,
+    "lacquer": 22,
+    "matte": 23,
+    "silk": 24,
+    "paper": 25,
+    "glow": 26,
+    "darkBrass": 27
+  },
+  "WEAPON_LOOKS": {
+    "brass": {
+      "wash": 10255418,
+      "kind": 20,
+      "line": 1
+    },
+    "darkBrass": {
+      "wash": 7756074,
+      "kind": 27,
+      "line": 1
+    },
+    "steel": {
+      "wash": 1645602,
+      "kind": 21,
+      "line": 1
+    },
+    "bevel": {
+      "wash": 3818062,
+      "kind": 21,
+      "line": 1
+    },
+    "glow": {
+      "wash": 14285823,
+      "kind": 26,
+      "emit": 4.2,
+      "line": 0
+    },
+    "lacquer": {
+      "wash": 1184535,
+      "kind": 22,
+      "col": 0.011,
+      "line": 1
+    },
+    "glove": {
+      "wash": 2368811,
+      "kind": 23,
+      "line": 1
+    },
+    "leather": {
+      "wash": 1907744,
+      "kind": 23,
+      "line": 1
+    },
+    "cloth": {
+      "wash": 14998988,
+      "kind": 23,
+      "row": 0.03,
+      "line": 1
+    },
+    "sleeve": {
+      "wash": 2764088,
+      "kind": 23,
+      "row": 0.05,
+      "line": 1
+    },
+    "silk": {
+      "wash": 12725534,
+      "kind": 24,
+      "line": 1
+    },
+    "silkDark": {
+      "wash": 9313556,
+      "kind": 24,
+      "line": 1
+    },
+    "paper": {
+      "wash": 16777215,
+      "kind": 25,
+      "line": 1
+    },
+    "eye": {
+      "wash": 16734778,
+      "kind": 26,
+      "emit": 2.5,
+      "line": 0
+    },
+    "fang": {
+      "wash": 15920868,
+      "kind": 23,
+      "line": 1
+    }
+  }
+}

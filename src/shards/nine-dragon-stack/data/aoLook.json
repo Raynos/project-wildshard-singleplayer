@@ -1,0 +1,28 @@
+{
+  "radius": 2.2,
+  "falloff": 1,
+  "intensity": 5,
+  "samples": [
+    6,
+    16
+  ],
+  "denoiseSamples": [
+    4,
+    8
+  ],
+  "denoiseIterations": [
+    1,
+    2
+  ],
+  "denoiseRadius": 8,
+  "color": [
+    0.07,
+    0.08,
+    0.13
+  ],
+  "halfRes": true,
+  "fog": [
+    25,
+    80
+  ]
+}

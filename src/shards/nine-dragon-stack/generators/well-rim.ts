@@ -6,7 +6,7 @@
 import { Vector3 } from 'three';
 import { dressWall } from './facadeGrammar';
 import { K, type Kit } from './kit';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { dragonHook, stool } from './props';
 import { relief } from './gate';
 import { placeLion } from './props3d';

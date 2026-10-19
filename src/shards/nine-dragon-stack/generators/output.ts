@@ -1,5 +1,5 @@
 import sharedUniforms from '../data/sharedUniforms.json' with { type: 'json' };
-import { AO_TUNING } from '../data/aoLook';
+import AO_TUNING from '../data/aoLook.json' with { type: 'json' };
 import { postRows } from './postGraphs';
 import viewmodelUniforms from '../data/viewmodelUniforms.json' with { type: 'json' };
 import filamentRows from '../data/filament.json' with { type: 'json' };
@@ -25,10 +25,12 @@ import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json'
 import fixedKits from '../data/fixedKits.generated.json' with { type: 'json' };
 import { lightVolumeBlobs } from './lightVolumes';
 import lantern from '../data/lantern.json' with { type: 'json' };
-import { CAST_CHANNELS } from '../data/casts';
+import castRows from '../data/casts.json' with { type: 'json' };
 import { signAtlasBlobs } from './signAtlasOutput';
 import { spillBlobs } from './spillBlobs';
 import { plainWeaveBytes, silkWeaveBytes } from './silkWeave';
+
+const { CAST_CHANNELS } = castRows;
 
 const burstSchema = v.strictObject({ name: v.string(), shape: v.picklist(['flake', 'streak']), count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(24)), life: v.pipe(v.number(), v.minValue(0.001), v.maxValue(1)) });
 const effectRows = v.parse(v.strictObject({ muzzle: burstSchema, bite: burstSchema, dock: burstSchema, sparks: burstSchema }), bursts);

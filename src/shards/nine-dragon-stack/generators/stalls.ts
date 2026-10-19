@@ -7,14 +7,15 @@
 import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, Kit, type Look } from './kit';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import type { Rng } from '@wildshard/sdk/random';
 import paint from '../data/paint.json' with { type: 'json' };
 import { person } from './heroFigures';
 import { KitX, curve, merge } from './kitx';
 import { curvedRoof } from './gate';
 import { placeSet } from './props3d';
-import { BOOTH, PAV, type StallRect } from '../data/specimenDims';
+import dims from '../data/specimenDims.json' with { type: 'json' };
+import type { StallRect } from '../data/specimenDims';
 
 const SURF = paint.surfaces;
 
@@ -394,7 +395,7 @@ function warmSpill(g: BufferGeometry, at: Vector3, color: Color, r: number, powe
  */
 export function boothSet(rng: Rng): BufferGeometry {
   const k = new Kit(), x = new KitX();
-  const W = BOOTH.w, D = BOOTH.d, hw = W / 2;
+  const W = dims.BOOTH.w, D = dims.BOOTH.d, hw = W / 2;
   const POST: Look = { wash: 0x4a1a12, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
   for (const [px, pz, h] of [[-hw + 0.06, -0.12, 2.32], [hw - 0.06, -0.12, 2.32], [-hw + 0.06, -D + 0.06, 2.46], [hw - 0.06, -D + 0.06, 2.46]] as const) {
     k.box(px, 0, pz, 0.11, h, 0.11, POST, { bottom: null });
@@ -507,7 +508,7 @@ export function marketRow(ctx: Ctx, rng: Rng): void {
       const p = w(-0.7 + c * 1.1 + rng.range(-0.2, 0.2), 0, 0.55 + rng.range(0, 0.25));
       ctx.walkers.push(new Matrix4().compose(p, new Quaternion().setFromAxisAngle(UP, Math.PI / 2 + rng.range(-0.35, 0.35)), new Vector3(1, 1, 1)));
     }
-    ctx.map.push({ x0: bx, z0: bz - BOOTH.w / 2, x1: bx + BOOTH.d, z1: bz + BOOTH.w / 2, kind: 'block' });
+    ctx.map.push({ x0: bx, z0: bz - dims.BOOTH.w / 2, x1: bx + dims.BOOTH.d, z1: bz + dims.BOOTH.w / 2, kind: 'block' });
   });
   for (const [tx, tz, q] of PARASOLS) {
     const r = (q * Math.PI) / 2;
@@ -560,7 +561,7 @@ export function marketDiners(ctx: Ctx): void {
  */
 export function pavilionSet(): BufferGeometry {
   const k = new Kit(), x = new KitX();
-  const hh = PAV.half, H = PAV.h;
+  const hh = dims.PAV.half, H = dims.PAV.h;
   const POST: Look = { wash: 0x4a1a12, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
   for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) k.box(lx * hh, 0, lz * hh, 0.1, H, 0.1, POST, { bottom: null });
   for (const sz of [-1, 1]) {
@@ -599,10 +600,10 @@ export function pavilions(ctx: Ctx): void {
     const m = new Matrix4().compose(new Vector3(px, Y0, pz), new Quaternion().setFromAxisAngle(UP, r), new Vector3(1, 1, 1));
     placeSet('pavilion', pavilionSet, m);
     const w = (lx: number, ly: number, lz: number): Vector3 => new Vector3(lx, ly, lz).applyMatrix4(m);
-    for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) { const p = w(lx * (PAV.half + 0.3), PAV.h - 0.05, lz * (PAV.half + 0.3)); ctx.lantern(p.x, p.y, p.z, 0.6); }
+    for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) { const p = w(lx * (dims.PAV.half + 0.3), dims.PAV.h - 0.05, lz * (dims.PAV.half + 0.3)); ctx.lantern(p.x, p.y, p.z, 0.6); }
     ctx.emitters.push({ at: w(0, 1.4, 0), color: new Color(0xffb070), w: 2.2, h: 1.2, power: 0.35, spill: 0.55 });
     ctx.steam.push(w(0, 1.05, 0), w(0.1, 1.7, 0.05));
-    ctx.map.push({ x0: px - PAV.half, z0: pz - PAV.half, x1: px + PAV.half, z1: pz + PAV.half, kind: 'block' });
+    ctx.map.push({ x0: px - dims.PAV.half, z0: pz - dims.PAV.half, x1: px + dims.PAV.half, z1: pz + dims.PAV.half, kind: 'block' });
   }
 }
 

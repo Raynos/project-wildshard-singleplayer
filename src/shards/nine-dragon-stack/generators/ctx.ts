@@ -7,7 +7,7 @@ import { KitX } from './kitx';
 import { KitSet } from './kit/kitSet';
 import type { SignSink } from '../assets/contracts/signPlacement';
 import { Rng } from '@wildshard/sdk/random';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import type { AuthoredPlacement } from '../assets/contracts/modelPlacement';
 
 interface Emitter { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }

@@ -50,3 +50,17 @@ export interface SharedUniformRows {
   readonly uWetSky: { readonly v2: readonly [number, number]; };
   readonly uDry: number;
 }
+
+/** The admitted ambient-occlusion and fog tuning row. */
+export interface AoTuning {
+  readonly radius: number;
+  readonly falloff: number;
+  readonly intensity: number;
+  readonly samples: readonly [number, number];
+  readonly denoiseSamples: readonly [number, number];
+  readonly denoiseIterations: readonly [number, number];
+  readonly denoiseRadius: number;
+  readonly color: readonly [number, number, number];
+  readonly halfRes: boolean;
+  readonly fog: readonly [number, number] | null;
+}

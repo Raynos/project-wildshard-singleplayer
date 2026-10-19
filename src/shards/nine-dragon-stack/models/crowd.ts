@@ -10,7 +10,7 @@
  */
 import type { BufferGeometry } from 'three';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
-import { LOD_FAR, LOD_NEAR, MID_FROM } from '../data/lod';
+import { lod as lodRows } from '../boot/metadata.generated.json' with { type: 'json' };
 import { loadCast, loadCastLods } from '../world/casts';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
@@ -25,7 +25,7 @@ export async function loadCrowd(look: NdLook): Promise<void> {
   await Promise.all(names.map(async key => {
     const base = await loadCast(key);
     look.geo.set(key, base);
-    await loadCastLods(look.geo, key, base, [...MID_FROM, 'far']);
+    await loadCastLods(look.geo, key, base, [...lodRows.MID_FROM, 'far']);
   }));
 }
 
@@ -41,16 +41,16 @@ export function sitterGeometry(ctx: ModelContext, pick: SitterPick): BufferGeome
 const figure = (ctx: ModelContext, geometry: BufferGeometry): readonly ModelPart[] => [{ geometry, material: need(ndLook(ctx).mat, 'the Jiehua program') }];
 
 /** the levels past full detail: the middle copies (the full geometry without the simplifier: the culler leaves them
- *  out), the clustered far copy, none past LOD_FAR */
+ *  out), the clustered far copy, none past lodRows.LOD_FAR */
 function levels<P extends object>(key: (p: P) => string): readonly ModelLod<P>[] {
   const mid = (d: number): ModelLod<P> => ({
     from: d,
     build: (ctx, p) => figure(ctx, need(ndLook(ctx).geo.get(`${key(p)}:mid${d}`), 'the prepared crowd LOD')),
   });
   return [
-    ...MID_FROM.map(mid),
-    { from: LOD_NEAR, build: (ctx, p) => figure(ctx, need(ndLook(ctx).geo.get(`${key(p)}:far`), 'the prepared far crowd')) },
-    { from: LOD_FAR, build: () => [] },
+    ...lodRows.MID_FROM.map(mid),
+    { from: lodRows.LOD_NEAR, build: (ctx, p) => figure(ctx, need(ndLook(ctx).geo.get(`${key(p)}:far`), 'the prepared far crowd')) },
+    { from: lodRows.LOD_FAR, build: () => [] },
   ];
 }
 

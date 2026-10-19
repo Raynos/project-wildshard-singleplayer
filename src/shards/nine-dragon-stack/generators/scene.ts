@@ -5,9 +5,12 @@ import { partitionWholeGeometry, wholePartitionRuns } from '@wildshard/sdk/bake/
 import { nineLayoutSource } from './layout';
 import { bootSpecimen, specimenRecipes } from './specimens';
 import { mistSheetsGeometry, steamPuffsGeometry } from './mistGeometry';
-import { SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
+import worldDressingRows from '../data/worldDressing.json' with { type: 'json' };
 import { WELL_RECTS } from './wellBounds';
 import { banyanOut } from './banyanPlan';
+
+const { SHEET_LAYERS, STEAM_PUFFS } = worldDressingRows;
+
 
 /** Channels of Nine's unchanged material fallback, retained as ordinary GLB application attributes. */
 export function nineChannels(geometry: BufferGeometry): Record<string, string> {

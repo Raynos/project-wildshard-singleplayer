@@ -1,5 +1,5 @@
 import manifest from '../data/manifest.json' with { type: 'json' };
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { NINE_DRAGON_PLACES } from './places';
 
 const { PLAZA, STAIR, STREET, WELL, Y0 } = NINE_LAYOUT_PLAN;

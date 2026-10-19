@@ -24,7 +24,7 @@ import { KitX } from './kitx';
 import { buildGuardProcedural } from './guard';
 import { K, Kit, type Look } from './kit';
 import paint from '../data/paint.json' with { type: 'json' };
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { MIN, NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
 import { FACE_N, FACE_S, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, SQ_CORNER, STAIR_GATE, stairFloor } from './stairPlan';

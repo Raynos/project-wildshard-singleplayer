@@ -1,25 +1,19 @@
 // Authored sizes and specs Nine Dragon's code-built models share with their build-time builders (G285): the models collide and
 // stand by them at load (../models/), the builders (../generators/) draw by them, and the geometry is baked
 // (world/specimens.ts), so the numbers live here, on the page's side.
-import { NINE_LAYOUT_PLAN } from './layoutPlan';
 
-const { PLAZA, Y0 } = NINE_LAYOUT_PLAN;
 
 /** a stall's footprint (x0 … x1 along its front, z0 its back, z1 its front) */
 export interface StallRect { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number }
 
 /** a booth's footprint: `w` along its counter, `d` deep behind its front */
-export const BOOTH = { w: 2.6, d: 1.7 } as const;
 
 /** a dining pavilion's size: half its span between posts, its height to the eave (the dining pavilion model collides
  *  with its table and posts, ../models/market.ts) */
-export const PAV = { half: 1.3, h: 2.4 } as const;
 
 /** a landing planter's size (w along the landing, d out from its wall) */
-export const PLANTER = { w: 1.1, d: 0.5 } as const;
 
 /** where the Well's balustrade model stands: the corner where the square's run and the street's meet */
-export const WELL_BALUSTRADE_AT = { x: PLAZA.x0, y: Y0, z: PLAZA.z0 } as const;
 
 /** which laundry the laundry line model's copy is (../models/laundry.ts): strung between gallery posts (`laundry`), along
  *  a lower-Well front (well-lower-life.ts `laundryLine`), a pole out from a wall (`laundryPole`) */

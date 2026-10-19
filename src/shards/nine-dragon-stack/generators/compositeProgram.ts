@@ -1,6 +1,6 @@
 // The existing Effect boundary still owns the city's final ink composite.
-import { FOG_GLSL, NOISE_GLSL } from './look';
-import { GLOW_COMP_GLSL, GRADE_GLSL } from './light';
+import { FOG_GLSL, NOISE_GLSL } from './compositeFog';
+import { GLOW_COMP_GLSL, GRADE_GLSL } from './compositeLight';
 
 const VM_SLICE = 0.3;
 
@@ -166,12 +166,4 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   outputColor = vec4(fromSRGB(o), inputColor.a);
 }
 `;
-
-export const BLEED = {
-  threshold: 1.0, knee: 0.08, tight: 0.16, wide: 0.4, stain: 0.5, stainResponse: 2.2, weave: 0.5, warp: 0.004, edge: 0.12,
-  exposure: 1, rain: 0.55, rainAngle: 0.14, rainSpeed: 520, vignette: 0.3, grain: 2.5, shadowBlue: 0.12,
-  /** (render, E281) the toe (see the composite), the vibrance and the lit side's warmth. Pass 1's toe (0.5 to 0.32) sank
-   *  the mockup cameras into a purple night: the mockups are high key, so only the deepest darks take a light toe */
-  toe: 0.8, toeEnd: 0.22, vibrance: 0.15, warm: 0.06,
-};
 

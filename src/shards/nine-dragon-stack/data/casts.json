@@ -1,0 +1,42 @@
+{
+  "CASTS": [
+    "walker-dark",
+    "walker-light",
+    "sitter-dark",
+    "sitter-light",
+    "lion",
+    "guard"
+  ],
+  "CAST_CHANNELS": [
+    {
+      "name": "aFace",
+      "source": "_face",
+      "width": 4
+    },
+    {
+      "name": "aPat",
+      "source": "_pat",
+      "width": 4
+    },
+    {
+      "name": "aMisc",
+      "source": "_misc",
+      "width": 4
+    },
+    {
+      "name": "aOff",
+      "source": "_off",
+      "width": 2
+    },
+    {
+      "name": "aSpill",
+      "source": "_spill",
+      "width": 3
+    }
+  ],
+  "FIXED_KITS": [
+    "entries-open",
+    "entries-capped",
+    "facade-signs"
+  ]
+}

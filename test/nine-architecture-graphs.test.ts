@@ -1,3 +1,4 @@
+import { compositeRows } from '../src/shards/nine-dragon-stack/generators/composite';
 import { postRows } from '../src/shards/nine-dragon-stack/generators/postGraphs';
 import { haloGraph } from '../src/shards/nine-dragon-stack/generators/haloGraph';
 import { ScaledPostPass, prepareScaledPost } from '../src/game/looks/scaledPost';
@@ -162,4 +163,17 @@ test('a second shard fixture drives resized post targets and skips gated outputs
     expect(draws).toEqual([[200, 400], [100, 200]]);
     expect(() => new ScaledPostPass({ ...fixture, targets: { bad: { name: 'cycle', of: 'bad', scale: .5, filter: 'linear' } } }, { renderer: render, camera })).toThrow('target');
   } finally { pass.dispose(); scene.dispose(); }
+});
+
+
+test('the final ink Effect source is fully expanded by the boot author', () => {
+  const { source, bleed } = compositeRows();
+  expect(source).not.toMatch(/@\{|\$\{|undefined/);
+  expect(source).toContain('void mainImage(');
+  expect(source).toContain('vec4 silkFog(');
+  expect(source).toContain('vec3 gradeLut(');
+  expect(source).toContain('uniform sampler2D uSilk;');
+  expect(source).toContain('texture(depthBuffer, p).r');
+  expect(bleed.rain).toBe(0.55);
+  expect(bleed.wide).toBeGreaterThan(bleed.tight);
 });

@@ -87,3 +87,28 @@ test('unvisited lazy variants stay in the native template pool', () => {
     for (const part of built as readonly ModelPart[]) part.geometry.dispose();
   } finally { owner.dispose(); source.dispose(); }
 });
+
+test.each(['marketBooth', 'parasolTable', 'diningPavilion', 'guardianLion'])('%s uses authored draws and collider choices', key => {
+  const row = data.catalogue.models.find(model => model.key === key);
+  if (row === undefined) throw new Error('Missing authored model');
+  const model = nativeSpecimen(key), owner = new Scope(key), source = fixture(false, owner);
+  try {
+    for (const choice of row.choices) {
+      const built = withOwner(owner, () => model.build(source.ctx, choice.params, new Rng(0)));
+      if (!Array.isArray(built)) throw new Error('Prepared catalogue needs its native parts');
+      expect(built).toHaveLength(1);
+      expect((built as readonly ModelPart[])[0]?.material).toBe(source.look.mat);
+      expect(model.colliders?.(choice.params, source.ctx) ?? []).toEqual(choice.colliders);
+    }
+    if (key === 'guardianLion') expect(model.lods?.map(level => level.from)).toEqual([10, 30]);
+    if (key === 'diningPavilion') {
+      expect(row.choices).toHaveLength(4);
+      for (const choice of row.choices) {
+        expect(choice.colliders).toHaveLength(5);
+        const turn: unknown = Reflect.get(choice.params, 'turn');
+        if (typeof turn !== 'number') throw new Error('Pavilion needs its turn');
+        expect(choice.colliders.every(collider => Reflect.get(collider, 'yaw') === -turn)).toBe(true);
+      }
+    }
+  } finally { owner.dispose(); source.dispose(); }
+});

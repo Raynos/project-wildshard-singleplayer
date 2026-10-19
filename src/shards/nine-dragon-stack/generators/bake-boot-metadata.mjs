@@ -1,16 +1,19 @@
+import { compositeRows } from './composite.ts';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
+import lod from '../data/lod.json' with { type: 'json' };
+import ledgerFacts from '../data/ledgerFacts.json' with { type: 'json' };
 import paint from '../data/paint.json' with { type: 'json' };
 import light from '../data/light.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
 import filament from '../data/filament.json' with { type: 'json' };
 import { manifestDeclaration } from '../../../../scripts/manifest-declaration.mjs';
 import discovery from '../data/discovery.json' with { type: 'json' };
-import { ND_BUDGET_INPUTS } from '../data/budgets.ts';
+import ND_BUDGET_INPUTS from '../data/budgets.json' with { type: 'json' };
 import { MOCKUP_CAMERAS } from './mockupCameras.ts';
 import { NINE_MANIFEST_ROWS } from './manifestRows.ts';
 import { bootSources } from './bootFiles.ts';
 import manifest from '../data/manifest.json' with { type: 'json' };
 import strings from '../data/strings.json' with { type: 'json' };
-import ceilings from '../data/budgetCeilings.json' with { type: 'json' };
 import runtimeCost from '../data/runtimeCost.json' with { type: 'json' };
 import samples from '../data/audioSamples.json' with { type: 'json' };
 import explorerModels from '../data/explorerModels.json' with { type: 'json' };
@@ -19,6 +22,8 @@ import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import * as v from 'valibot';
+
+const ceilings = ND_BUDGET_INPUTS.ceilings;
 
 const root = fileURLToPath(new URL('../../../../', import.meta.url));
 /** Only these authored public trees affect recipe presence and phone fallbacks. */
@@ -48,7 +53,7 @@ const sources = { modes: {
   desktop: { img: resolveMode('desktop', 'img'), ktx2: resolveMode('desktop', 'ktx2') },
 } };
 const writer = byteWriter(process.argv.includes('--check'), 'nine-boot-metadata');
-const metadata = { sources, manifest: { BOOT_FILES: manifest.BOOT_FILES, COMPARE_ROWS: manifest.COMPARE_ROWS }, ceilings, runtimeCost, samples, strings, rows: NINE_MANIFEST_ROWS, explorerModels, looks: { paint, light, canopy, filament } };
+const metadata = { composite: compositeRows(), ...NINE_LAYOUT_PLAN, CROWD_LEVELS: lod.CROWD_LEVELS, lod, ledgerFacts, sources, manifest: { BOOT_FILES: manifest.BOOT_FILES, COMPARE_ROWS: manifest.COMPARE_ROWS }, ceilings, runtimeCost, samples, strings, rows: NINE_MANIFEST_ROWS, explorerModels, looks: { paint, light, canopy, filament } };
 writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/metadata.generated.json'), jsonBytes(metadata));
 const shape = value => Array.isArray(value) ? `[${value.map(shape).join(',')}]` : value !== null && typeof value === 'object' ? `{${Object.entries(value).map(([key, child]) => `readonly ${JSON.stringify(key)}:${shape(child)}`).join(';')}}` : JSON.stringify(value);
 writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/lookTypes.generated.d.ts'), `export type LookRows = ${shape(metadata.looks)};\n`);

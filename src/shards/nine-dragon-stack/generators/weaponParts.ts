@@ -9,7 +9,10 @@
 import { Vector3 } from 'three';
 import { E, type Kit } from './kit';
 import { type KitX, type XLook, curve } from './kitx';
-import { WEAPON_LOOKS } from '../data/weaponLooks';
+import weaponLooksRows from '../data/weaponLooks.json' with { type: 'json' };
+
+const { WEAPON_LOOKS } = weaponLooksRows;
+
 
 const v = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
 

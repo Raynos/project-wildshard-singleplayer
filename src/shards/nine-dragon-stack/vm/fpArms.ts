@@ -21,7 +21,7 @@
 // light = SLASH, light2 = BACKHAND, light3 = FINISHER, heavy = HEAVY (after `charge`, CHARGE_BLEND 0.16 s). Chain a
 // combo by calling play(next) at slashEnd: the crossfade carries the arm from the follow-through into the next cut.
 import { type BufferGeometry, BufferGeometryLoader, MaterialLoader, ShaderMaterial, DoubleSide, type Matrix3, Mesh, type Texture, type Material, Matrix4, Vector3, Vector2 } from 'three';
-import { ARMS, ARMS_BASE, ARMS_MAPS } from '../data/arms';
+import rigRows from '../data/arms.json' with { type: 'json' };
 import { restoreWeave } from '../look/style';
 import * as v from 'valibot';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -82,7 +82,7 @@ void main() {
 `;
 
 
-export const RIG_URL = `${ARMS_BASE}fp-rig.glb`;
+export const RIG_URL = `${rigRows.ARMS_BASE}fp-rig.glb`;
 
 export const ARMS_CONTRACT: RigContract = { skeleton: 'nine-dragon-fp', clips: armClipNames(ARM_CLIPS), sockets: ['R_weapon', 'L_claw'] };
 export const ARMS_BAKE: RigBake = { skeleton: 'nine-dragon-fp', clips: ARM_CLIPS, joints: ['R', 'L'].map(side => ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand'].map(joint => `${side}_${joint}`)) };
@@ -101,7 +101,7 @@ function sharedDecals(tier: NdTier): Decals {
 
 /** the living parts: the tassel's knot + cap, the strands, the talisman (root space), the halo on the weapon */
 function dressParts(rig: NineDragonArms, u: VmUniforms, haloRows: HaloRows, geometry: ClothGeometry): Mesh {
-  const weapon = rig.bones.get(ARMS.weapon);
+  const weapon = rig.bones.get(rigRows.ARMS.weapon);
   if (weapon === undefined) throw new Error('Jian pendant socket is missing');
   const hullThin = inkHullMaterial(u, 0.55, true);
   // the tassel's strands are 5–7 px wide on the phone: a full brush hull would ink them solid black
@@ -122,7 +122,7 @@ function dressParts(rig: NineDragonArms, u: VmUniforms, haloRows: HaloRows, geom
   halo.frustumCulled = false;
   halo.renderOrder = 4;
   rig.materials.push(material);
-  rig.bones.get(ARMS.weapon)?.add(halo);
+  rig.bones.get(rigRows.ARMS.weapon)?.add(halo);
   return halo;
 }
 
@@ -141,7 +141,7 @@ export class NineDragonArms {
     this.u = vmUniforms(silk, sharedDecals(tier));
     const look = { body: (maps: Texture | null, nrm: Texture | null, rot: Matrix3 | null) => vmMaterial(this.u, maps, nrm, rot), hull: (k: number) => inkHullMaterial(this.u, k) };
     for (const mesh of rig.meshes()) {
-      prepRigGeometry(mesh.geometry, ARMS.rename);
+      prepRigGeometry(mesh.geometry, rigRows.ARMS.rename);
       dressInkedMesh(mesh, mesh.userData, this, look, textures);
     }
     this.halo = dressParts(this, this.u, halo, geometry);
@@ -157,28 +157,28 @@ export class NineDragonArms {
     const parts = v.parse(v.strictObject({ knot: v.unknown(), tassel: v.unknown(), sheet: v.unknown(), cord: v.unknown() }), JSON.parse(new TextDecoder().decode(await product.file('weapons/jian-cloth.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
     const loader = new BufferGeometryLoader();
     const geometry = { knot: loader.parse(parts.knot), tassel: loader.parse(parts.tassel), sheet: loader.parse(parts.sheet), cord: loader.parse(parts.cord) };
-    const rig = await RigArms.load(url, ARMS_CONTRACT, ARMS_BAKE, false, { aliases: ARM_CLIPS, holdRight: ARMS.holdRight, holdLeft: ARMS.holdLeft, walkRate: ARMS.walkRate, lag: ARMS.lag });
-    const textures = await loadInkedRigMaps(ARMS_BASE, ARMS_MAPS);
+    const rig = await RigArms.load(url, ARMS_CONTRACT, ARMS_BAKE, false, { aliases: ARM_CLIPS, holdRight: rigRows.ARMS.holdRight, holdLeft: rigRows.ARMS.holdLeft, walkRate: rigRows.ARMS.walkRate, lag: rigRows.ARMS.lag });
+    const textures = await loadInkedRigMaps(rigRows.ARMS_BASE, rigRows.ARMS_MAPS);
     return new NineDragonArms(rig, textures, restoreWeave(await product.file('looks/plain-weave.r8')), tier, halo, geometry);
   }
 
   /** start a right-arm move (crossfade `fade` s). 'charge' and 'sheathe' hold their last pose until the next play. */
   beginTrail(): void {
     const name = this.rig.move ?? 'light';
-    this.trail.begin((this.rig.meta.clips[name]?.timing?.total ?? ARMS.trail.total) * ARMS.trail.life, Math.random() * 100);
+    this.trail.begin((this.rig.meta.clips[name]?.timing?.total ?? rigRows.ARMS.trail.total) * rigRows.ARMS.trail.life, Math.random() * 100);
   }
 
   /** the left arm: the grapple's poses, or 'idle' to fade back */
   playLeft(name: LeftName, fade = 0.1): void { this.rig.playLeft(name, fade); }
 
-  setClawVisible(on: boolean): void { for (const mesh of this.rig.meshes()) if (mesh.name.startsWith(ARMS.claw)) mesh.visible = on; }
+  setClawVisible(on: boolean): void { for (const mesh of this.rig.meshes()) if (mesh.name.startsWith(rigRows.ARMS.claw)) mesh.visible = on; }
 
   blade(base: Vector3, tip: Vector3, from = 0): void {
-    const weapon = this.bones.get(ARMS.weapon); if (weapon === undefined) return;
+    const weapon = this.bones.get(rigRows.ARMS.weapon); if (weapon === undefined) return;
     this.root.updateMatrixWorld(true);
     this.matrix.copy(this.root.matrixWorld).invert().multiply(weapon.matrixWorld);
-    base.set(0, ARMS.bladeBase + (ARMS.bladeTip - ARMS.bladeBase) * from, 0).applyMatrix4(this.matrix);
-    tip.set(0, ARMS.bladeTip, 0).applyMatrix4(this.matrix);
+    base.set(0, rigRows.ARMS.bladeBase + (rigRows.ARMS.bladeTip - rigRows.ARMS.bladeBase) * from, 0).applyMatrix4(this.matrix);
+    tip.set(0, rigRows.ARMS.bladeTip, 0).applyMatrix4(this.matrix);
   }
 
   /** buffer size + pixel ratio: the ink widths and the halo are in pixels */
@@ -205,7 +205,7 @@ export class NineDragonArms {
     const timing = clip?.timing;
     if (timing !== null && timing !== undefined && this.rig.time >= timing.windup && this.rig.time <= timing.slashEnd) {
       const base = new Vector3(), tip = new Vector3();
-      const trailFrom = clip !== undefined && 'trailFrom' in clip && typeof clip.trailFrom === 'number' ? clip.trailFrom : ARMS.trail.from;
+      const trailFrom = clip !== undefined && 'trailFrom' in clip && typeof clip.trailFrom === 'number' ? clip.trailFrom : rigRows.ARMS.trail.from;
       this.blade(base, tip, trailFrom); this.trail.sample(base, tip);
     }
     this.trail.update(dt);
@@ -219,6 +219,10 @@ export async function jianArms(): Promise<ShardSword> {
   const arms = swordArmsOf(rig.rig, {});
   return { arms: { ...arms, engineTrail: false,
     play: move => { arms.play(move); rig.beginTrail(); },
+    blade: (base, tip) => {
+      rig.blade(base, tip); rig.root.updateMatrix();
+      base.applyMatrix4(rig.root.matrix); tip.applyMatrix4(rig.root.matrix);
+    },
     playLeft: name => { rig.playLeft(name); },
     setClawVisible: visible => { rig.setClawVisible(visible); },
     update: (dt, state) => {

@@ -8,16 +8,20 @@ import { buildGate } from './gate';
 import paint from '../data/paint.json' with { type: 'json' };
 import { BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions, stallDiners } from './stalls';
 import { K, type Kit, type Look } from './kit';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
+import * as v from 'valibot';
 import { walkable } from './layoutMath';
 import { dragonHook, scooter } from './props';
 import { WELL_RUNS, balustrade, mahjongTable } from './squareParts';
-import { BOOTH, WELL_BALUSTRADE_AT } from '../data/specimenDims';
+import dims from '../data/specimenDims.json' with { type: 'json' };
 import { Rng } from '@wildshard/sdk/random';
+
+const GATE = { ...NINE_LAYOUT_PLAN.GATE, posts: v.parse(v.tuple([v.number(), v.number(), v.number(), v.number()]), NINE_LAYOUT_PLAN.GATE.posts) };
+
 
 const SURF = paint.surfaces;
 
-const { GATE, PLAZA, STALL, STREET, Y0 } = NINE_LAYOUT_PLAN;
+const { PLAZA, STALL, STREET, Y0 } = NINE_LAYOUT_PLAN;
 
 const UPV = new Vector3(0, 1, 0);
 /** a figure's placement on the square's floor */
@@ -127,7 +131,7 @@ export function buildSquare(ctx: Ctx): void {
   // the Well's balustrade (its model, models/wellBalustrade.ts, drawn into the square cluster's kit: one copy, both runs)
   const b0 = props.vertexCount;
   for (const r of WELL_RUNS) balustrade(props, r.at, r.a0, r.a1, Y0, false, true, r.lions, bud);
-  ctx.inKit.push({ model: 'nine-dragon-stack/well-balustrade', kit: props, at: { ...WELL_BALUSTRADE_AT }, box: props.boundsFrom(b0, new Box3()) });
+  ctx.inKit.push({ model: 'nine-dragon-stack/well-balustrade', kit: props, at: { x: PLAZA.x0, y: Y0, z: PLAZA.z0 }, box: props.boundsFrom(b0, new Box3()) });
   ctx.map.push({ x0: PLAZA.x0, z0: PLAZA.z0, x1: PLAZA.x1, z1: PLAZA.z1, kind: 'plaza' });
   ctx.map.push({ x0: STREET.x0, z0: -140, x1: STREET.x1, z1: STREET.z1, kind: 'street' });
   paifang(ctx);
@@ -167,7 +171,7 @@ export function buildSquare(ctx: Ctx): void {
     if (x > STALL.x0 - 0.4 && x < STALL.x1 + 0.4 && z > STALL.z1 && z < STALL.z1 + 3.4) return false; // the stall's tables
     if (x > 18 && x < 22 && z > 3.5 && z < 8.5) return false; // dome C1: the cone east of its camera, to the stair's foot
     // E281: the market booths and their customers' strip, the parasol tables and their sitters
-    for (const [bx0, bz0] of BOOTHS) if (x > bx0 - 1.1 && Math.abs(z - bz0) < BOOTH.w / 2 + 0.3) return false;
+    for (const [bx0, bz0] of BOOTHS) if (x > bx0 - 1.1 && Math.abs(z - bz0) < dims.BOOTH.w / 2 + 0.3) return false;
     for (const [px0, pz0] of PARASOLS) if ((x - px0) ** 2 + (z - pz0) ** 2 < 1.5 * 1.5) return false;
     // dome A2 (the anchor 4.5 m before the gate): its east and south foregrounds stay open (targets 6 and 7)
     if (x > 8 && x < 10.5 && z > -22.5 && z < -17.5) return false;

@@ -1,0 +1,131 @@
+{
+  "ARMS": {
+    "weapon": "R_weapon",
+    "claw": "L_claw",
+    "pendants": {
+      "tassel": [
+        -0.026,
+        -0.048,
+        0.014
+      ],
+      "talisman": [
+        0.05,
+        -0.036,
+        0.022
+      ]
+    },
+    "muzzle": [
+      0,
+      0.006,
+      0
+    ],
+    "bladeBase": 0.05,
+    "bladeTip": 0.81,
+    "rename": {
+      "_amat": "aMat",
+      "_aface": "aFace",
+      "_ans": "aNs",
+      "_ahulln": "aHullN"
+    },
+    "colliders": [
+      {
+        "a": {
+          "bone": "R_weapon",
+          "at": [
+            0,
+            -0.125,
+            0
+          ]
+        },
+        "b": {
+          "bone": "R_weapon",
+          "at": [
+            0,
+            -0.2,
+            0
+          ]
+        },
+        "r": 0.042
+      },
+      {
+        "a": {
+          "bone": "R_weapon",
+          "at": [
+            0.02,
+            -0.14,
+            0.015
+          ]
+        },
+        "b": {
+          "bone": "R_weapon",
+          "at": [
+            0.023,
+            -0.216,
+            0.026
+          ]
+        },
+        "r": 0.036
+      },
+      {
+        "a": {
+          "bone": "R_hand"
+        },
+        "b": {
+          "bone": "R_forearm"
+        },
+        "r": 0.042
+      },
+      {
+        "a": {
+          "bone": "R_weapon",
+          "at": [
+            -0.02,
+            -0.01,
+            0
+          ]
+        },
+        "b": {
+          "bone": "R_weapon",
+          "at": [
+            0.01,
+            0.02,
+            0
+          ]
+        },
+        "r": 0.03
+      }
+    ],
+    "holdRight": [
+      "charge",
+      "sheathe",
+      "sheathed"
+    ],
+    "holdLeft": [
+      "grapple_aim",
+      "grapple_hold"
+    ],
+    "restWeights": [
+      1,
+      1,
+      0.4
+    ],
+    "lag": {
+      "pitch": 0.01,
+      "yaw": 0.012,
+      "max": 0.05
+    },
+    "walkRate": 6,
+    "trail": {
+      "life": 0.45,
+      "total": 0.35,
+      "from": 0.4
+    }
+  },
+  "ARMS_BASE": "/assets/nine-dragon/viewmodel/",
+  "ARMS_MAPS": [
+    "hand-r",
+    "arm-r",
+    "fist-l",
+    "gauntlet"
+  ]
+}

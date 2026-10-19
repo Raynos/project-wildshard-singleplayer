@@ -7,7 +7,7 @@ import paint from '../data/paint.json' with { type: 'json' };
 import { lionOnPost, placeSet } from './props3d';
 import { KitX, merge } from './kitx';
 import { K, Kit, type Look } from './kit';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import type { Rng } from '@wildshard/sdk/random';
 
 const SURF = paint.surfaces;

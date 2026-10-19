@@ -1,5 +1,4 @@
-import { NINE_FLOOR_PLAN } from '../data/floorPlan';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { stairPlanData } from './stairPlan';
 import { wellFloor } from './wellBounds';
 
@@ -8,7 +7,7 @@ const stairPlan = stairPlanData();
 const { PLAZA, STAIR, STREET, Y0 } = NINE_LAYOUT_PLAN;
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
-export const STREET_END = NINE_FLOOR_PLAN.fronts.streetEnd;
+export const STREET_END = NINE_LAYOUT_PLAN.FRONTS.streetEnd;
 /** the stair-street's top landing: past the last tread, then its end wall */
 export const STAIR_TOP = { x1: STAIR.x1 + 8, y: Y0 + STAIR.rise } as const;
 

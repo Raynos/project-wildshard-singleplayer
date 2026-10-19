@@ -4,7 +4,7 @@
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
 // `window.__wildshard.shard['nd.render']` (captures / A/B, no URL switch): the live pieces and their switches.
-import { Matrix4, Mesh, type Object3D, PerspectiveCamera, ShaderMaterial, type Vector2, Vector4 } from 'three';
+import { Color, Fog, Matrix4, Mesh, type Object3D, PerspectiveCamera, ShaderMaterial, type Vector2, Vector4 } from 'three';
 import { Pass } from 'postprocessing';
 import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
 import type { Tier } from '@wildshard/engine/core/tier';
@@ -14,7 +14,7 @@ import { ndRuntime } from '../runtime/state';
 import { glowUniforms } from './light/glow';
 import { gradeUniforms, loadLut } from './light/grade';
 import { lightSources } from './light/install';
-import metadata from '../boot/metadata.generated.json' with { type: 'json' };
+import metadata, { PLAZA, STAIR, STREET, WELL, Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
 import { type Halos, buildHalos } from './light/halos';
 import { STREAK_PERF, setStreakOn } from './streaks';
@@ -24,9 +24,8 @@ import { ScaledPostPass as RowRenderPass, prepareScaledPost } from '@wildshard/g
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 
-import { tuneAo, type AoTuning } from '../runtime/looks/aoTuning';
+import type { AoTuning } from './uniformTypes';
 import { meshesWithUniform } from '../runtime/looks/uniformScan';
-import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import type { Shared } from './style';
 import { hasLentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { syncArchitecture, setDeclaredGraphParam } from './facadeMaterial';
@@ -249,8 +248,16 @@ export function shardRender(): LookStrategy {
     compose(c: LookComposeContext): LookComposition {
       const world = ndRuntime().world;
       if (post === null) throw new Error('Nine post rows have not loaded');
-      // AO at the city's scale, faded with the fog (data/aoLook.ts)
-      tuneAo(c.fx.ao, post.ao, c.tier === 'phone', c.scene);
+      // AO at the city's scale, faded with the admitted fog distances.
+      if (c.fx.ao !== null) {
+        const row = post.ao, tier = c.tier === 'phone' ? 0 : 1;
+        Object.assign(c.fx.ao.configuration, {
+          aoRadius: row.radius, distanceFalloff: row.falloff, intensity: row.intensity,
+          aoSamples: row.samples[tier], denoiseSamples: row.denoiseSamples[tier], denoiseIterations: row.denoiseIterations[tier],
+          denoiseRadius: row.denoiseRadius, color: new Color(...row.color), halfRes: row.halfRes,
+        });
+        if (row.fog !== null && c.scene.fog instanceof Fog) { c.scene.fog.near = row.fog[0]; c.scene.fog.far = row.fog[1]; }
+      }
       const { reflect, haze, bleed, jiehua } = buildComposite(c.camera, c.tier, glow, grade, c.renderer);
       const beforeChain: NonNullable<LookComposition['beforeChain']> = reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed];
       // the streak cards (look/streaks.ts): found by their own uniform

@@ -2,7 +2,7 @@ import { Group } from 'three';
 import { BoxCollider, type BoxColliderData } from '@wildshard/sdk/physics';
 import { readScene } from '@wildshard/sdk/scene';
 import decks from './decks.json' with { type: 'json' };
-import { NINE_FLOOR_PLAN } from '../data/floorPlan';
+import NINE_FLOOR_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 
 const { DECK, DECK_CAP } = decks;
 
@@ -24,7 +24,7 @@ function span(name: string, x0: number, y0: number, z0: number, x1: number, y1: 
 
 function deckBox(edge: Edge, name: string, a0: number, a1: number, c0: number, c1: number, y0: number, y1: number): BoxCollider {
   const inward = INWARD[edge];
-  const midpointX = -inward.x * NINE_FLOOR_PLAN.cellHalf, midpointZ = -inward.z * NINE_FLOOR_PLAN.cellHalf;
+  const midpointX = -inward.x * NINE_FLOOR_PLAN.CELL_HALF, midpointZ = -inward.z * NINE_FLOOR_PLAN.CELL_HALF;
   const ax0 = midpointX + inward.x * a0, ax1 = midpointX + inward.x * a1;
   const az0 = midpointZ + inward.z * a0, az1 = midpointZ + inward.z * a1;
   const xs = inward.x === 0 ? [c0, c1] : [ax0, ax1], zs = inward.x === 0 ? [az0, az1] : [c0, c1];
@@ -34,9 +34,9 @@ function deckBox(edge: Edge, name: string, a0: number, a1: number, c0: number, c
 /** The four road-height decks and Lantern Square, as ordinary Groups with SDK box declarations. */
 export function portalFloorScene(): Group {
   const scene = new Group(); scene.name = 'nine.portal-floors';
-  const h = NINE_FLOOR_PLAN.openingHalf, c0 = -h - DECK.railT, c1 = h + DECK.railT;
+  const h = NINE_FLOOR_PLAN.OPENING_HALF, c0 = -h - DECK.railT, c1 = h + DECK.railT;
   for (const edge of EDGES) {
-    const deck = new Group(); deck.name = `${NINE_FLOOR_PLAN.ids.deckPrefix}${edge}`;
+    const deck = new Group(); deck.name = `${NINE_FLOOR_PLAN.IDS.deckPrefix}${edge}`;
     deck.add(
       deckBox(edge, `${deck.name}.slab`, 0, DECK.depth, c0, c1, -DECK.slab, 0),
       deckBox(edge, `${deck.name}.rail-left`, 0, DECK.depth, -h - DECK.railT, -h, 0, DECK.railH),
@@ -45,8 +45,8 @@ export function portalFloorScene(): Group {
     );
     scene.add(deck);
   }
-  const square = new Group(); square.name = NINE_FLOOR_PLAN.ids.square;
-  const p = NINE_FLOOR_PLAN.square, y = NINE_FLOOR_PLAN.datum;
+  const square = new Group(); square.name = NINE_FLOOR_PLAN.IDS.square;
+  const p = NINE_FLOOR_PLAN.PLAZA, y = NINE_FLOOR_PLAN.Y0;
   square.add(span(`${square.name}.slab`, p.x0, y - DECK.slab, p.z0, p.x1 + 0.6, y, p.z1 + 0.6));
   scene.add(square);
   return scene;
@@ -66,7 +66,7 @@ export function portalFloorRows(): { id: string; panel: null; initialActive: tru
 /** The standalone-only rail, beacon pedestal and two pillars at each road deck's open end. */
 export function deckCapScene(): Group {
   const scene = new Group(); scene.name = 'nine.deck-caps';
-  const h = NINE_FLOOR_PLAN.openingHalf, c = h + DECK.railT / 2, p = DECK_CAP.pillar / 2;
+  const h = NINE_FLOOR_PLAN.OPENING_HALF, c = h + DECK.railT / 2, p = DECK_CAP.pillar / 2;
   for (const edge of EDGES) {
     const deck = new Group(); deck.name = edge;
     deck.add(

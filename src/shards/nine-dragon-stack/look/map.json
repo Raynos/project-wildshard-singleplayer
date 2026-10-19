@@ -2,16 +2,14 @@
   "why": "Nine Dragon's map as its floors seen from above (G252, Jake's pick B): the stack's towers rise far over the playable levels and from straight up their roofs and the bridge blocks hide the square, the stair-street and the street, so the bake clips everything above 153 m (just over the deck at Y0 + 24) and the cut towers drop out; what is left is granite floors in cool greys, the plaza's cinnabar neon picked out, every change of level inked, the Well's drop dark with a blue lip, and the void transparent so the map's own dark frame shows through (as Sky Reach); the Well's dark water is only the Well (\"within\" its rectangle, layout.ts WELL plus 6 m): the road's four portal decks stand at road height, far under the 100 m water line, and were painted as water, black on the dark frame (SF66)",
   "inputs": [
     "shard.config.ts",
-    "layout.ts",
+    "data/layoutPlan.json",
     "world",
     "generators",
     "models",
-    "data/floorPlan.ts",
     "data/specimenProfiles.json",
-    "data/layoutPlan.ts",
     "data/explorerModels.json",
-    "data/specimenDims.ts",
-    "data/weaponLooks.ts",
+    "data/specimenDims.json",
+    "data/weaponLooks.json",
     "data/plumbing.json",
     "data/lightPools.json",
     "runtime/looks/light.ts",
@@ -65,7 +63,9 @@
     "data/sharedUniforms.json",
     "data/viewmodelUniforms.json",
     "data/world.generated.json",
-    "data/worldRows.generated.json"
+    "data/worldRows.generated.json",
+    "data/lod.json",
+    "data/worldDressing.json"
   ],
   "clipAbove": 153,
   "style": {

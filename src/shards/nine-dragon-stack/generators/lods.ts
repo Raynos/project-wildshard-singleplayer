@@ -2,7 +2,10 @@ import { type BufferGeometry, Color, Float32BufferAttribute, Mesh, type Object3D
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { castGeometry, packGeometry } from './casts';
 import { lodReady, simplifiedCopy, clusterLod, PX_PER_M } from './meshLod';
-import { MID_FROM, MID_PX, SCULPT_PX, LOD_TRIS } from '../data/lod';
+import lodRows from '../data/lod.json' with { type: 'json' };
+
+const { MID_FROM, MID_PX, SCULPT_PX, LOD_TRIS } = lodRows;
+
 
 export function tintAbove(src: BufferGeometry, color: number, above = 1.8): BufferGeometry {
   const g = src.clone();

@@ -6,7 +6,8 @@ import { beforeAll, expect, test } from 'vitest';
 import { BufferAttribute, Float32BufferAttribute, Mesh, type Object3D, type BufferGeometry } from 'three';
 import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
-import { CASTS, FIXED_KITS, CAST_CHANNELS, type PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/casts';
+import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/casts';
+import castRows from '../../src/shards/nine-dragon-stack/data/casts.json' with { type: 'json' };
 import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';
 import { bakeCasts, bakeFixedKits, castGeometry } from '../../src/shards/nine-dragon-stack/generators/casts';
 import { layoutReviver, restoreLayoutZeros } from '../../src/shards/nine-dragon-stack/world/layoutBake';
@@ -17,6 +18,10 @@ import { floorAtRects } from '../../src/engine/physics/box';
 import deckFloors from '../../src/shards/nine-dragon-stack/data/deckFloors.generated.json' with { type: 'json' };
 import lodBasis from '../fixtures/nine-lods.json' with { type: 'json' };
 import baseline from '../fixtures/nine-casts.json' with { type: 'json' };
+
+const { CAST_CHANNELS } = castRows;
+const names = v.parse(v.array(v.picklist(['walker-dark', 'walker-light', 'sitter-dark', 'sitter-light', 'lion', 'guard', 'entries-open', 'entries-capped', 'facade-signs'])), [...castRows.CASTS, ...castRows.FIXED_KITS]);
+
 
 let packs: Map<PreparedGeometry, Uint8Array>;
 let fixed: ReturnType<typeof bakeFixedKits>;
@@ -44,7 +49,7 @@ function channels(geometry: BufferGeometry): unknown {
 }
 
 // Captured from the parent runtime prop loader, including signed zero, every packed channel and both bounds.
-test.each([...CASTS, ...FIXED_KITS])('%s preserves the original geometry through the existing rest-pool host', async name => {
+test.each(names)('%s preserves the original geometry through the existing rest-pool host', async name => {
   const bytes = packs.get(name);
   if (bytes === undefined) throw new Error(`Missing cast ${name}`);
   const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,

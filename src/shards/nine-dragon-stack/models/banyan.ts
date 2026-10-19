@@ -12,7 +12,7 @@
  */
 import { defineModel, type ModelBuild, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { BANYAN } from '../layout';
+import { BANYAN } from '../boot/metadata.generated.json' with { type: 'json' };
 import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/banyan.ts';

@@ -2,9 +2,9 @@
 // stairstreet-upper.ts build its look at layout time, baked: ./layoutBake.ts): three flights of 20 steps, two 4 m landings,
 // the top landing, the paifang's place, the tower faces either side; `stairColliders()` (rise 0.35 ≤ 0.35, tread
 // 0.667 ≥ 0.36, PHYSICS.md) and `stairFloor(x)`, which ./colliders.ts takes, and the constants build.ts's stair streaks read.
-import { NINE_FLOOR_PLAN } from '../data/floorPlan';
+import NINE_FLOOR_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 
-const { square: PLAZA, stair: STAIR, datum: Y0 } = NINE_FLOOR_PLAN;
+const { PLAZA, STAIR, Y0 } = NINE_FLOOR_PLAN;
 
 // ── the plan: three flights of 20 steps, two 4 m landings, the top landing ──
 

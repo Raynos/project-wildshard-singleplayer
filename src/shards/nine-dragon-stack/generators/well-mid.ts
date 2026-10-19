@@ -9,7 +9,7 @@
 import { Vector3 } from 'three';
 import { spanStreet } from './facadeGrammar';
 import { E, K, type Kit, type Look } from './kit';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { dragonHook } from './props';
 import { NEONS } from './towers';
 import { WORDS } from './words';

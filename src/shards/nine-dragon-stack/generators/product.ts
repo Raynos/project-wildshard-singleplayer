@@ -6,12 +6,13 @@ import { burstGraphs } from './burstGraphs';
 import { streakGraph } from './streakGraph';
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
-import { NINE_MODES } from '../data/modes';
+import NINE_MODES from '../data/modes.json' with { type: 'json' };
 import NINE_DRAGON_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import NINE_ITEMS from '../data/items.json' with { type: 'json' };
-import { NINE_LEDGER } from '../data/ledger';
+import ledgerRows from '../data/ledger.json' with { type: 'json' };
+import { parseLedgerRules } from '@wildshard/sdk/ledger';
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
 import world from '../data/world.generated.json' with { type: 'json' };
 import portalStages from '../data/portalStages.json' with { type: 'json' };
@@ -19,6 +20,8 @@ import portalEntries from '../data/portalEntries.generated.json' with { type: 'j
 import portalFloors from '../data/portalFloors.generated.json' with { type: 'json' };
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import presentationGraphs from '../data/scrollGraph.json' with { type: 'json' };
+
+const NINE_LEDGER = parseLedgerRules(ledgerRows);
 
 // The trusted runtime preserves today's fragment geometry; audio is selected by its declared section. G285: its two feats
 // are ledger rows (data/ledger.ts) the runtime emits as they are played (world/feats.ts); the platform grants each once.

@@ -10,7 +10,7 @@
 import { Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import type { Kit } from './kit';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { CABLE, EXT, RIM } from './wellBounds';
 import { FLOOR_H, type GalleryProfile, galleryWall } from './well-galleries';
 import type { BridgeKind } from './well-bridges';

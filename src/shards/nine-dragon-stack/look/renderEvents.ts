@@ -1,6 +1,6 @@
 import type { LookComposeContext } from '@wildshard/engine/render/look';
 import type { NdRenderHandle } from './render';
-import { BLEED } from '../runtime/looks/passes';
+import { composite } from '../boot/metadata.generated.json' with { type: 'json' };
 
 /** Each composition owns its listeners and restores the studio's temporary air changes on unload. */
 export function installRenderEvents(c: Pick<LookComposeContext, 'app' | 'scope'>, handle: Pick<NdRenderHandle, 'jiehua' | 'shared'>): void {
@@ -13,12 +13,12 @@ export function installRenderEvents(c: Pick<LookComposeContext, 'app' | 'scope'>
     air = null;
   };
   c.app.events.on('practice.active', (active) => {
-    handle.jiehua.u.uRain.value.x = active ? 0 : BLEED.rain;
+    handle.jiehua.u.uRain.value.x = active ? 0 : composite.bleed.rain;
     handle.jiehua.blendMode.opacity.value = active ? 0 : 1;
   }, c.scope);
   c.app.events.on('explore.studio', (on) => {
     const u = handle.shared.u;
-    handle.jiehua.u.uRain.value.x = on ? 0 : BLEED.rain;
+    handle.jiehua.u.uRain.value.x = on ? 0 : composite.bleed.rain;
     if (on && air === null) {
       air = { base: u.uFogBase.value, depths: u.uBands.value.map((band) => band.z) };
       u.uFogBase.value = 0;

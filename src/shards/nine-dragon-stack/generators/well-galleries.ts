@@ -13,7 +13,7 @@ import paint from '../data/paint.json' with { type: 'json' };
 import { laundry, stool } from './props';
 import { NEONS } from './towers';
 import { WORDS } from './words';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { Rng } from '@wildshard/sdk/random';
 
 const SURF = paint.surfaces;

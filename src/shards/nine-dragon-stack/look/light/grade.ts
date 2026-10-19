@@ -23,6 +23,3 @@ export async function loadLut(url: string): Promise<Data3DTexture> {
   if (texture === null) throw new Error(`Missing Nine grade LUT: ${url}`);
   return texture;
 }
-
-/** the LUT's texel-centre mapping, spliced into data/light.ts' GRADE_GLSL (`@{lutScale}`, `@{lutBias}`) */
-export const LUT_SPLICES: Readonly<Record<string, string>> = { lutScale: ((LUT_SIZE - 1) / LUT_SIZE).toFixed(6), lutBias: (0.5 / LUT_SIZE).toFixed(6) };

@@ -10,8 +10,7 @@ import { BlendFunction, Effect, EffectAttribute } from 'postprocessing';
 import type { Shared } from '../style';
 import type { glowUniforms } from '../light/glow';
 import type { gradeUniforms } from '../light/grade';
-import { BLEED, JIEHUA_FS } from '../../runtime/looks/passes';
-import { PASS_FAMILY } from './family';
+import { composite } from '../../boot/metadata.generated.json' with { type: 'json' };
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { ScaledPostPass as RowRenderPassView } from '@wildshard/game/looks/scaledPost';
 
@@ -23,7 +22,7 @@ export class JiehuaEffect extends Effect {
   private readonly shared: Shared;
 
   constructor(private readonly view: PerspectiveCamera, shared: Shared, glow: Glow, grade: Grade) {
-    const s = shared.u, B = BLEED;
+    const s = shared.u, B = composite.bleed;
     const u = {
       tTight: new Uniform<Texture | null>(null), tWide: new Uniform<Texture | null>(null), uHasBleed: new Uniform(0), tHaze: new Uniform<Texture | null>(null), uRainHaze: new Uniform(6), tRefl: new Uniform<Texture | null>(null), uReflK: new Uniform(0), uSilk: new Uniform(s.uSilk.value),
       uTexel: new Uniform(new Vector2()), uTime: new Uniform(0), uLineScale: new Uniform(1), uLines: new Uniform(1),
@@ -41,7 +40,7 @@ export class JiehuaEffect extends Effect {
       uGlow2: new Uniform(glow.uGlow2.value), uGlowCol: new Uniform<Color>(glow.uGlowCol.value),
       uLut: new Uniform(grade.uLut.value), uLutAmt: new Uniform(grade.uLutAmt.value),
     };
-    super('NdJiehuaEffect', PASS_FAMILY.glsl(JIEHUA_FS), {
+    super('NdJiehuaEffect', composite.source, {
       blendFunction: BlendFunction.SRC,
       attributes: EffectAttribute.DEPTH,
       uniforms: new Map<string, Uniform>(Object.entries(u)),

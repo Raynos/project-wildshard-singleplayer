@@ -1,6 +1,7 @@
 import { type BufferGeometry, MeshStandardMaterial, Vector3 } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { CASTS, CAST_CHANNELS, type Cast, type PreparedGeometry } from '../data/casts';
+import type { Cast, PreparedGeometry } from '../data/casts';
+import castRows from '../data/casts.json' with { type: 'json' };
 import { loadPropGlb, propGlbBox } from './propGlb';
 import { guardMatrix } from './propFrame';
 import { SignRecorder } from './layout';
@@ -9,6 +10,10 @@ import { Ctx } from './ctx';
 import { buildEntryDecks } from './entries';
 import { Rng } from '@wildshard/sdk/random';
 import { WORDS } from './words';
+
+const { CAST_CHANNELS } = castRows;
+const CASTS = v.parse(v.array(v.picklist(['walker-dark', 'walker-light', 'sitter-dark', 'sitter-light', 'lion', 'guard'])), castRows.CASTS);
+
 
 const HUES = { skin: 0xc9a58a, red: 0xa23a28, blue: 0x5d7f9e, green: 0x3e5a4a };
 const DARK = [0x1f2126, 0x2a2c31, 0x3b3f4a, 0x55585f, 0x6b6f78, 0x8a8f96];

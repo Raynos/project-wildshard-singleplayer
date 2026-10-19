@@ -1,7 +1,10 @@
 // Author-only dragon guard; native-byte equality is permanent.
 import { Vector3 } from 'three';
 import { type KitX, curve } from './kitx';
-import { WEAPON_LOOKS as LOOK } from '../data/weaponLooks';
+import weaponLooksRows from '../data/weaponLooks.json' with { type: 'json' };
+
+const { WEAPON_LOOKS: LOOK } = weaponLooksRows;
+
 
 const v = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
 

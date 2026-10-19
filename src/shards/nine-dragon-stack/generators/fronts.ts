@@ -1,9 +1,9 @@
 import { Group } from 'three';
 import { BoxCollider, type BoxColliderData } from '@wildshard/sdk/physics';
 import { readScene } from '@wildshard/sdk/scene';
-import { NINE_FLOOR_PLAN } from '../data/floorPlan';
+import NINE_FLOOR_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 
-const { datum: Y0, square: PLAZA, stair: STAIR, street: STREET, well: WELL, fronts } = NINE_FLOOR_PLAN;
+const { Y0, PLAZA, STAIR, STREET, WELL, FRONTS: fronts } = NINE_FLOOR_PLAN;
 const { streetEnd: STREET_END, wallHeight: WALL_H, depth: DEEP, shop: SHOP } = fronts;
 const STAIR_TOP = { x1: STAIR.x1 + 8, y: Y0 + STAIR.rise };
 

@@ -8,7 +8,7 @@ import { type DressOptions, dressTower, dressWall, spanStreet } from './facadeGr
 import { Dressing } from './facadeDressing';
 import type { PieceId } from './facadeIds';
 import { K, type Kit, type Look } from './kit';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { dragonHook, person } from './props';
 import { lanternString } from './lanternGeometry';
 import { hipRoof } from './hipRoof';

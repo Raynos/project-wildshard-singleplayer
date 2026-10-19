@@ -1,0 +1,22 @@
+{
+  "threshold": 1,
+  "knee": 0.08,
+  "tight": 0.16,
+  "wide": 0.4,
+  "stain": 0.5,
+  "stainResponse": 2.2,
+  "weave": 0.5,
+  "warp": 0.004,
+  "edge": 0.12,
+  "exposure": 1,
+  "rain": 0.55,
+  "rainAngle": 0.14,
+  "rainSpeed": 520,
+  "vignette": 0.3,
+  "grain": 2.5,
+  "shadowBlue": 0.12,
+  "toe": 0.8,
+  "toeEnd": 0.22,
+  "vibrance": 0.15,
+  "warm": 0.06
+}

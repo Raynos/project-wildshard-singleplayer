@@ -1,4 +1,4 @@
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import type { StallRect } from '../data/specimenDims';
 
 const { PLAZA, STREET, STAIR, BANYAN, STALL, HAWKER, GATE } = NINE_LAYOUT_PLAN;

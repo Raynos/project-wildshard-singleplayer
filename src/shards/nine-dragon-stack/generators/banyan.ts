@@ -14,7 +14,7 @@ import { Box3, Color, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { curvedRoof, relief } from './gate';
 import { E, K, type Kit, type Look } from './kit';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { Rng } from '@wildshard/sdk/random';
 import paint from '../data/paint.json' with { type: 'json' };
 import { type KitX, curve } from './kitx';

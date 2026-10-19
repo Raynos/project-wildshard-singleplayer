@@ -11,12 +11,12 @@
 import { type BufferGeometry, Vector3 } from 'three';
 import { lanternLathe } from './lanternGeometry';
 import { Rng } from '@wildshard/sdk/random';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { Ctx } from './ctx';
 import { Kit } from './kit';
 import { KitX, merge } from './kitx';
 import type { SignSink } from '../assets/contracts/signPlacement';
-import { PLANTER, WELL_BALUSTRADE_AT as O } from '../data/specimenDims';
+import dims from '../data/specimenDims.json' with { type: 'json' };
 import { centred } from './layoutMath';
 import type { CanopyLump } from './banyanPlan';
 import { boothSet, hawkerStall, noodleStall, parasolSet, pavilionSet } from './stalls';
@@ -35,7 +35,7 @@ import { PIECE_IDS } from './facadeIds';
 import type { SpecimenProfile } from '../data/specimenTypes';
 import profiles from '../data/specimenProfiles.json' with { type: 'json' };
 
-const { HAWKER, STALL } = NINE_LAYOUT_PLAN;
+const { HAWKER, STALL, PLAZA } = NINE_LAYOUT_PLAN;
 
 /** the signs a specimen's builder would hang (a plaque, couplets, menu strips, eave neon): counted, not drawn — signs are
  *  their own models, drawn by the page's sign builder (the specimens' old `NoSigns`) */
@@ -116,9 +116,9 @@ export function specimenRecipes(lumps: readonly CanopyLump[]): [string, () => Bu
   // the crossings' posts (models/bridgePosts.ts), the landing planter, the lotus finial, the Well's balustrade
   for (const p of each(profiles.LOTUS_PROFILE)) add(`bridge-post:lotus:${String(p.capped)}`, () => kit((k) => { lotusPost(k, 0, 0, 0, p.capped); }));
   add('bridge-post:lamp', () => kit((k) => { lampPostStone(k, 0, 0, 0, 1); }));
-  add('landing-planter', () => kit((k) => { landingPlanter(k, new Rng(23), { x: 0, y: 0, z: 0, ...PLANTER }); }));
+  add('landing-planter', () => kit((k) => { landingPlanter(k, new Rng(23), { x: 0, y: 0, z: 0, ...dims.PLANTER }); }));
   add('lotus-finial', () => kit((k) => { lotusBud(k, 0, 0, 0); }));
-  add('well-balustrade', () => kit((k) => { for (const r of WELL_RUNS) balustrade(k, r.at - O.x, r.a0 - O.z, r.a1 - O.z, 0, false, false, undefined, undefined, false); }));
+  add('well-balustrade', () => kit((k) => { for (const r of WELL_RUNS) balustrade(k, r.at - PLAZA.x0, r.a0 - PLAZA.z0, r.a1 - PLAZA.z0, 0, false, false, undefined, undefined, false); }));
   // the balustrade panel (models/balustradePanel.ts: the square's copies draw the layout's set) and its far copy
   add('panel', () => carvedPanel(false));
   add('panel:far', () => carvedPanel(true));

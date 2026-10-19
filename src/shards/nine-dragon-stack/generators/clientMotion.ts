@@ -1,13 +1,16 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { NINE_FLOOR_PLAN } from '../data/floorPlan';
-import { MOVERS } from '../data/worldDressing';
+import NINE_FLOOR_PLAN from '../data/layoutPlan.json' with { type: 'json' };
+import worldDressingRows from '../data/worldDressing.json' with { type: 'json' };
 
-const datum = NINE_FLOOR_PLAN.datum;
+const { MOVERS } = worldDressingRows;
+
+
+const datum = NINE_FLOOR_PLAN.Y0;
 const train = new ClientChannels('nds-train'), trainTime = train.clock('time');
 train.output('x', train.binary('add', train.constant(MOVERS.train.x), train.binary('mod', train.binary('mul', trainTime, train.constant(MOVERS.train.speed)), train.constant(MOVERS.train.length))));
 train.output('y', train.constant(datum + MOVERS.train.y)); train.output('z', train.constant(MOVERS.train.z));
 
-const cable = { z: -12, y: datum - 16, x0: NINE_FLOOR_PLAN.well.x0, x1: NINE_FLOOR_PLAN.well.x1 };
+const cable = { z: -12, y: datum - 16, x0: NINE_FLOOR_PLAN.WELL.x0, x1: NINE_FLOOR_PLAN.WELL.x1 };
 const gondola = new ClientChannels('nds-gondola'), gondolaTime = gondola.clock('time');
 const swing = gondola.unary('sin', gondola.binary('add', gondola.binary('mul', gondolaTime, gondola.constant(MOVERS.gondola.rate)), gondola.constant(MOVERS.gondola.phase)));
 const gondolaX = gondola.binary('add', gondola.constant(cable.x0 + MOVERS.gondola.margin),

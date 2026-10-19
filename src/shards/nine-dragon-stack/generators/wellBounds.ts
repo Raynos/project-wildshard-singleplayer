@@ -3,8 +3,7 @@
 // rim, the gondola's cable; the rim's colliders and floor (./colliders.ts), and the two records the layout fills that the
 // page keeps — the crossings' colliders and the fog sheets' heights.
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { NINE_FLOOR_PLAN } from '../data/floorPlan';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 
 const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 
@@ -16,7 +15,7 @@ export const EXT = { x0: WELL.x0, x1: -12, z0: -104, z1: WELL.z0 } as const;
 export const FAR = { x0: EXT.x0, x1: EXT.x1, z0: -190, z1: EXT.z0 } as const;
 
 /** the south rim: the ledge at the square's datum the mockup B / D cameras stand on, its balustrade at z0 */
-export const RIM = { z0: NINE_FLOOR_PLAN.rim.z0, z1: WELL.z1 } as const;
+export const RIM = { z0: NINE_LAYOUT_PLAN.RIM.z0, z1: WELL.z1 } as const;
 
 /** the box the shaft's silk mist fills (look/style.ts uShaft) and the rectangles its fog sheets span */
 export const SHAFT = { x0: WELL.x0, z0: FAR.z0, x1: WELL.x1, z1: WELL.z1 } as const;

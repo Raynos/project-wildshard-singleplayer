@@ -2196,6 +2196,466 @@
             "lods": []
           }
         ]
+      },
+      {
+        "key": "marketBooth",
+        "id": "nine-dragon-stack/market-booth",
+        "name": "Market booth (roast ducks, steamers, a cook)",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "set:booth",
+                "material": "kit"
+              }
+            ],
+            "colliders": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 1.2,
+                "z": -0.85,
+                "hx": 1.3,
+                "hy": 1.2,
+                "hz": 0.85,
+                "surface": "wood"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "parasolTable",
+        "id": "nine-dragon-stack/parasol-table",
+        "name": "Parasol table",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "set:parasol",
+                "material": "kit"
+              }
+            ],
+            "colliders": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0.4,
+                "z": 0,
+                "hx": 0.75,
+                "hy": 0.4,
+                "hz": 0.75,
+                "surface": "metal"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "diningPavilion",
+        "id": "nine-dragon-stack/dining-pavilion",
+        "name": "Dining pavilion (hot pot)",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {
+          "turn": 0
+        },
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {
+              "turn": 0
+            },
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "set:pavilion",
+                "material": "kit"
+              }
+            ],
+            "colliders": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0.45,
+                "z": 0,
+                "hx": 0.85,
+                "hy": 0.45,
+                "hz": 0.85,
+                "surface": "wood",
+                "yaw": 0
+              },
+              {
+                "kind": "box",
+                "x": -1.3,
+                "y": 1.2,
+                "z": -1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": 0
+              },
+              {
+                "kind": "box",
+                "x": 1.3,
+                "y": 1.2,
+                "z": -1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": 0
+              },
+              {
+                "kind": "box",
+                "x": 1.3,
+                "y": 1.2,
+                "z": 1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": 0
+              },
+              {
+                "kind": "box",
+                "x": -1.3,
+                "y": 1.2,
+                "z": 1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": 0
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "1",
+            "params": {
+              "turn": 0.19999999999999998
+            },
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "set:pavilion",
+                "material": "kit"
+              }
+            ],
+            "colliders": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0.45,
+                "z": 0,
+                "hx": 0.85,
+                "hy": 0.45,
+                "hz": 0.85,
+                "surface": "wood",
+                "yaw": -0.19999999999999998
+              },
+              {
+                "kind": "box",
+                "x": -1.3,
+                "y": 1.2,
+                "z": -1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": -0.19999999999999998
+              },
+              {
+                "kind": "box",
+                "x": 1.3,
+                "y": 1.2,
+                "z": -1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": -0.19999999999999998
+              },
+              {
+                "kind": "box",
+                "x": 1.3,
+                "y": 1.2,
+                "z": 1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": -0.19999999999999998
+              },
+              {
+                "kind": "box",
+                "x": -1.3,
+                "y": 1.2,
+                "z": 1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": -0.19999999999999998
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "2",
+            "params": {
+              "turn": -0.3
+            },
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "set:pavilion",
+                "material": "kit"
+              }
+            ],
+            "colliders": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0.45,
+                "z": 0,
+                "hx": 0.85,
+                "hy": 0.45,
+                "hz": 0.85,
+                "surface": "wood",
+                "yaw": 0.3
+              },
+              {
+                "kind": "box",
+                "x": -1.3,
+                "y": 1.2,
+                "z": -1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": 0.3
+              },
+              {
+                "kind": "box",
+                "x": 1.3,
+                "y": 1.2,
+                "z": -1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": 0.3
+              },
+              {
+                "kind": "box",
+                "x": 1.3,
+                "y": 1.2,
+                "z": 1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": 0.3
+              },
+              {
+                "kind": "box",
+                "x": -1.3,
+                "y": 1.2,
+                "z": 1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": 0.3
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "3",
+            "params": {
+              "turn": 0.5
+            },
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "set:pavilion",
+                "material": "kit"
+              }
+            ],
+            "colliders": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0.45,
+                "z": 0,
+                "hx": 0.85,
+                "hy": 0.45,
+                "hz": 0.85,
+                "surface": "wood",
+                "yaw": -0.5
+              },
+              {
+                "kind": "box",
+                "x": -1.3,
+                "y": 1.2,
+                "z": -1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": -0.5
+              },
+              {
+                "kind": "box",
+                "x": 1.3,
+                "y": 1.2,
+                "z": -1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": -0.5
+              },
+              {
+                "kind": "box",
+                "x": 1.3,
+                "y": 1.2,
+                "z": 1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": -0.5
+              },
+              {
+                "kind": "box",
+                "x": -1.3,
+                "y": 1.2,
+                "z": 1.3,
+                "hx": 0.08,
+                "hy": 1.2,
+                "hz": 0.08,
+                "surface": "wood",
+                "yaw": -0.5
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "guardianLion",
+        "id": "nine-dragon-stack/guardian-lion",
+        "name": "Guardian lion",
+        "category": "props",
+        "pipeline": "trellis",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "lion",
+                "material": "kit"
+              }
+            ],
+            "colliders": [],
+            "lods": [
+              {
+                "from": 10,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "lion:mid10",
+                    "material": "kit"
+                  }
+                ]
+              },
+              {
+                "from": 30,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "lion:mid30",
+                    "material": "kit"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -2558,6 +3018,36 @@
     {
       "id": "stall:noodle",
       "key": "stall:noodle"
+    },
+    {
+      "id": "set:booth",
+      "key": "set:booth",
+      "resident": "set:booth"
+    },
+    {
+      "id": "set:parasol",
+      "key": "set:parasol",
+      "resident": "set:parasol"
+    },
+    {
+      "id": "set:pavilion",
+      "key": "set:pavilion",
+      "resident": "set:pavilion"
+    },
+    {
+      "id": "lion",
+      "key": "lion",
+      "resident": "lion"
+    },
+    {
+      "id": "lion:mid10",
+      "key": "lion:mid10",
+      "resident": "lion:mid10"
+    },
+    {
+      "id": "lion:mid30",
+      "key": "lion:mid30",
+      "resident": "lion:mid30"
     }
   ],
   "colliding": [
@@ -2565,7 +3055,10 @@
     "landingPlanterModel",
     "paifang",
     "hawkerStallModel",
-    "noodleStallModel"
+    "noodleStallModel",
+    "marketBooth",
+    "parasolTable",
+    "diningPavilion"
   ],
   "lazy": [
     "lampPostModel",

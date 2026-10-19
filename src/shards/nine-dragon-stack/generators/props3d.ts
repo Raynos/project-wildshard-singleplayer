@@ -11,9 +11,13 @@
 // (E306 M4) the lion and the sets are models (../models/lion.ts, market.ts, balustradePanel.ts); this file keeps where
 // they stand — the queues the square's builders fill — and squareProps.ts places them.
 import { type BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
+import * as v from 'valibot';
 
-const { GATE, PLAZA, STREET, WELL, Y0 } = NINE_LAYOUT_PLAN;
+const GATE = { ...NINE_LAYOUT_PLAN.GATE, posts: v.parse(v.tuple([v.number(), v.number(), v.number(), v.number()]), NINE_LAYOUT_PLAN.GATE.posts) };
+
+
+const { PLAZA, STREET, WELL, Y0 } = NINE_LAYOUT_PLAN;
 
 /**
  * which balustrade posts carry a lion (balustrade() leaves their lotus finial off): the two ends of the street run.

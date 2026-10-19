@@ -27,9 +27,9 @@ import { type Hole, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, 
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from './stairPlan';
 import paint from '../data/paint.json' with { type: 'json' };
 import type { SignPlace, SignSink, SignBoardKit } from '../assets/contracts/signPlacement';
-import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { ASHLAR, COPING, FLOWER_COLS, ICO0, landingPlanter, leafBush, leafLook, leafQuad, tint } from './landingPlanter';
-import { PLANTER } from '../data/specimenDims';
+import dims from '../data/specimenDims.json' with { type: 'json' };
 import { MIN, NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
 
@@ -632,7 +632,7 @@ function landingPlanters(): { x: number; y: number; z: number; w: number; d: num
   const out: { x: number; y: number; z: number; w: number; d: number }[] = [];
   for (const l of LANDINGS) {
     for (const [ze, dz] of [[STAIR.z0, 1], [STAIR.z1, -1]] as const) {
-      for (const t of [0.22, 0.78]) out.push({ x: l.x0 + (l.x1 - l.x0) * t, y: l.y, z: ze + dz * 0.26, w: PLANTER.w, d: PLANTER.d });
+      for (const t of [0.22, 0.78]) out.push({ x: l.x0 + (l.x1 - l.x0) * t, y: l.y, z: ze + dz * 0.26, w: dims.PLANTER.w, d: dims.PLANTER.d });
     }
   }
   return out;

@@ -1,0 +1,22 @@
+{
+  "CROWD_LEVELS": {
+    "near": 35,
+    "far": 130,
+    "mids": [
+      12,
+      22
+    ],
+    "radius": 1.3,
+    "lift": 1,
+    "name": "crowd"
+  },
+  "LOD_FAR": 130,
+  "LOD_NEAR": 35,
+  "LOD_TRIS": 320,
+  "MID_FROM": [
+    12,
+    22
+  ],
+  "MID_PX": 0.8,
+  "SCULPT_PX": 0.7
+}

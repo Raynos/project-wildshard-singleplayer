@@ -1,0 +1,32 @@
+[
+  {
+    "fact": "nine-dragon-stack.lantern-square",
+    "origin": {
+      "kind": "engine",
+      "source": "portal.ride"
+    },
+    "rewards": [
+      {
+        "kind": "achievement",
+        "id": "nine-dragon-stack.lantern-square",
+        "title": "Lantern Square",
+        "threshold": 1
+      }
+    ]
+  },
+  {
+    "fact": "nine-dragon-stack.well",
+    "origin": {
+      "kind": "engine",
+      "source": "fei-zhua.crossing"
+    },
+    "rewards": [
+      {
+        "kind": "achievement",
+        "id": "nine-dragon-stack.well",
+        "title": "Over the Well",
+        "threshold": 1
+      }
+    ]
+  }
+]

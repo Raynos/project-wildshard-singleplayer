@@ -9,9 +9,7 @@ import { ModelPlacementBatch } from '@wildshard/engine/models/placementBatch';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { type Placed, copiesAt, placeSliced } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';
-import { guardianLion, loadLion } from '../models/lion';
-import { diningPavilion, marketBooth, parasolTable } from '../models/market';
-import { balustradePanel } from '../models/catalogue';
+import { guardianLion, loadLion, diningPavilion, marketBooth, parasolTable, balustradePanel } from '../models/catalogue';
 import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
 import type { NdLook } from './modelLook';
 

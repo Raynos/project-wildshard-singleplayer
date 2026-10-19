@@ -2,11 +2,11 @@ import { Group } from 'three';
 import { BoxCollider, type BoxColliderData } from '@wildshard/sdk/physics';
 import { readScene } from '@wildshard/sdk/scene';
 import decks from './decks.json' with { type: 'json' };
-import { NINE_FLOOR_PLAN } from '../data/floorPlan';
+import NINE_FLOOR_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 
 const { DECK } = decks;
 
-const { datum: Y0, square: PLAZA, stair: STAIR, street: STREET, well: WELL, rim: RIM, balustrade } = NINE_FLOOR_PLAN;
+const { Y0, PLAZA, STAIR, STREET, WELL, RIM, BALUSTRADE: balustrade } = NINE_FLOOR_PLAN;
 const STAIR_TOP = { x1: STAIR.x1 + 8, y: Y0 + STAIR.rise };
 const LANDING = 4, RISE = STAIR.rise / 60, RUN = (STAIR.x1 - STAIR.x0 - 2 * LANDING) / 60;
 
@@ -21,7 +21,7 @@ function span(name: string, x0: number, y0: number, z0: number, x1: number, y1: 
 export function floorBoxScene(): Group {
   const scene = new Group(); scene.name = 'nine.floor-boxes';
   const street = new Group(); street.name = 'street';
-  street.add(span('street.slab', STREET.x0, Y0 - DECK.slab, NINE_FLOOR_PLAN.fronts.streetEnd - 1, STREET.x1, Y0, PLAZA.z0));
+  street.add(span('street.slab', STREET.x0, Y0 - DECK.slab, NINE_FLOOR_PLAN.FRONTS.streetEnd - 1, STREET.x1, Y0, PLAZA.z0));
   const top = new Group(); top.name = 'stairTop';
   top.add(span('stairTop.slab', STAIR.x1, STAIR_TOP.y - DECK.slab, STAIR.z0, STAIR_TOP.x1, STAIR_TOP.y, STAIR.z1));
   const well = new Group(); well.name = 'well';

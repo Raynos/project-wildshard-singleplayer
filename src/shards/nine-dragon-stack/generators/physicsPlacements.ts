@@ -1,6 +1,6 @@
 import { Group } from 'three';
 import type { BoxColliderData, ColliderPoint } from '@wildshard/sdk/physics';
-import { NINE_FLOOR_PLAN } from '../data/floorPlan';
+import NINE_FLOOR_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { floorBoxRows } from './floorBoxes';
 import { frontRows } from './fronts';
 import { deckCapRows, portalFloorRows } from './portalFloors';
@@ -30,7 +30,7 @@ function piece(id: string, name: string, file: string, colliders: NinePhysicsPla
  */
 export function ninePhysicsPlacements(withCaps = true): NinePhysicsPlacement[] {
   const boxes = floorBoxRows(), caps = deckCapRows();
-  const { stair, datum } = NINE_FLOOR_PLAN;
+  const { STAIR: stair, Y0: datum } = NINE_FLOOR_PLAN;
   const rise = stair.rise / 60, landing = 4, run = (stair.x1 - stair.x0 - 2 * landing) / 60;
   const center = (stair.z0 + stair.z1) / 2, width = stair.z1 - stair.z0;
   const flights: TreadFlight[] = [0, 1, 2].map(index => {
@@ -45,7 +45,7 @@ export function ninePhysicsPlacements(withCaps = true): NinePhysicsPlacement[] {
     ...(withCaps ? [...nativeBoxes(caps.north), ...nativeBoxes(caps.south), ...nativeBoxes(caps.east), ...nativeBoxes(caps.west)] : []),
   ]);
   const portals = portalFloorRows().map(row => {
-    const result = piece(`nds-${row.id}`, row.id === NINE_FLOOR_PLAN.ids.square ? 'Lantern Square slab' : `Landing deck (${row.id})`,
+    const result = piece(`nds-${row.id}`, row.id === NINE_FLOOR_PLAN.IDS.square ? 'Lantern Square slab' : `Landing deck (${row.id})`,
       'src/shards/nine-dragon-stack/world/entries.ts', nativeBoxes(row.shapes));
     result.colliderOwner = row.id;
     return result;
