@@ -10,7 +10,7 @@
 
 **Lanes (G505 + painter; Opus 0 until Mon 10-19):** sp-x1, sp-x5, sp-x6, sp-x8, sp-x9 W3; sp-x4 G508 painter; sp-x10 maps; sp-x7 deploy.
 
-**G508 map painter (sp-x4):** templates, Signal, Sky, Nalati a2e6d3964a, Nine 9b41c00b4f paint from data in the normal build; their bake windows, seals and freezes are retired (21:20). Pine/DW still browser-baked by sp-x10 when their inputs change; sp-x4 is trying them.
+**G508 map painter (sp-x4):** templates, Signal, Sky, Nalati a2e6d3964a, Nine 9b41c00b4f paint from data in the normal build; their bake windows, seals and freezes are retired (21:20). Pine/DW still browser-baked by sp-x10 when their inputs change; sp-x4 is trying them. **G507/G506/G509 (Jake):** lanes only cut and land code; per batch types + lint + focused tests + one headless boot of each touched shard + the push gate; no receipts, captures or lane-to-lane messages; biggest batch first (G468); a red gets sp-x7's fast fix or revert (G493).
 
 **Attribution SHAs (G496):** G499 d5a456d5e, ruler key 7b326dcb4, cue director c3ff4774b, section seal 68eb6e360, admin ruler e2a214cdc, W3 classifier df6bab26d; G478 keys c9cb5d2b8, c208e4ce4, d27df7e1f (portal ride), 15485dd84 (audio), 5d021eabb (stealth).
 
