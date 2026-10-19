@@ -2075,3 +2075,7 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 
 /src/shards/nalati-grasslands/boot/geography.generated.d.json.ts
 /src/shards/nalati-grasslands/data/tamingPoses.generated.json
+# G508: data maps are normal build outputs.
+/public/assets/_template/map/top.webp
+/src/shards/_template/data/productMap.json
+/src/shards/_template/assets/map.webp

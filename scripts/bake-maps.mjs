@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { saveFixture } from './debug-settings.mjs';
 import { installInit } from './parity/init.mjs';
-import { MAP_METRES, mapPixelHash, mapSettings, mapStampPath, mapShards, mapTilesHash, writeMapStamp } from './map-hash.mjs';
+import { MAP_METRES, mapPixelHash, mapSettings, mapSettingsPath, mapStampPath, mapShards, mapTilesHash, writeMapStamp } from './map-hash.mjs';
 
 const option = (name) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3);
 const root = resolve(import.meta.dirname, '..');
@@ -31,6 +31,7 @@ const TILE = 1000, HEIGHT = 900, OUT = 1000;
 
 const stampPath = mapStampPath;
 const todo = mapShards(root).filter(({ slug, dir }) => {
+  if (JSON.parse(readFileSync(mapSettingsPath(dir), 'utf8')).painter !== undefined) return false;
   // G320: a map with "from" (its world GLB) is baked by scripts/bake-map-glb.mjs in Node, never from the game page
   if (mapSettings(dir).from !== null) return false;
   if (only) return only.includes(slug);

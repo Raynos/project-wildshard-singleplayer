@@ -12,6 +12,7 @@ import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { mapInputHashes, mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
 import { readBuildKey, publishProduct, reuseOrBuild, shardfileKey, treeHashes } from './shardfile-cache.mjs';
+import { prepareDataMaps } from './bake-data-maps.mjs';
 
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
 // the slot or the shared content-keyed cache (scripts/shardfile-cache.mjs). The plain `pnpm build` (the push gate)
@@ -23,6 +24,7 @@ import { readBuildKey, publishProduct, reuseOrBuild, shardfileKey, treeHashes } 
  * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], catalog?:boolean, copyRuntime?:boolean|'closed'}} options */
 export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, catalog = false, copyRuntime = false } = {}) {
   if (catalog && only !== undefined) throw new Error('wildshard build: --catalog requires every project; --shard cannot publish a catalog');
+  await prepareDataMaps(root, strict ? undefined : only);
   const outputRoot = resolve(root, 'out');
   // A partial/ordinary build cannot leave a previous complete catalog vouching for changed products.
   if (!catalog) rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
