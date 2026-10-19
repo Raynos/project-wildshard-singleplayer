@@ -85,28 +85,24 @@ test('lantern sway seed follows the instance pose through native LOD packing', (
   compiled.material.dispose();
 });
 
-test('baked facade windows restore bounded native instance rows', async () => {
-  const [{ facadeWindowBlobs }, { BufferGeometryLoader, InstancedBufferAttribute }, { createClientScene }, v] = await Promise.all([
-    import('../src/shards/nine-dragon-stack/generators/facadeWindows'), import('three'), import('../src/game/plugin/ui'), import('valibot'),
+test('facade window packets preserve bounded native channels', async () => {
+  const [{ facadeWindowBlobs }, { default: layout }] = await Promise.all([
+    import('../src/shards/nine-dragon-stack/generators/facadeWindows'), import('../src/shards/nine-dragon-stack/data/layout.generated.json'),
   ]);
-  const geometryLoader = new BufferGeometryLoader(), material = new MeshBasicMaterial();
+  const c = layout.rows.counts, start = (c.walkers + c.sitters + c.lanterns + c.acs) * 16
+    + c.hooks * 3 + c.hookMounts * 6 + c.steam * 3 + c.pieces * 19;
   let windows = 0;
   for (const blob of facadeWindowBlobs()) {
-    const row = v.parse(v.object({ geometry: v.object({ uuid: v.string(), type: v.string(), data: v.object({
-      attributes: v.record(v.string(), v.object({ itemSize: v.number(), type: v.string(), array: v.array(v.number()), normalized: v.boolean(), isInstancedBufferAttribute: v.optional(v.boolean()) })),
-      index: v.optional(v.object({ type: v.string(), array: v.array(v.number()) })),
-    }) }), scene: v.unknown() }), JSON.parse(new TextDecoder().decode(blob.bytes)));
-    const geometry = geometryLoader.parse(row.geometry), light = geometry.getAttribute('aWindowLight');
-    expect(light).toBeInstanceOf(InstancedBufferAttribute);
-    const made = createClientScene(row.scene, { geometry: new Map([['quad', geometry]]), materials: new Map([['window', material]]) });
-    if (!(made.root instanceof InstancedMesh)) throw new Error('Window recipe lost instancing');
-    const count = made.root.count; windows += count;
-    expect(count).toBeLessThanOrEqual(4096);
-    expect(geometry.getAttribute('aWin').count).toBe(count);
-    expect(geometry.getAttribute('aWall').count).toBe(count);
-    expect(light.count).toBe(count);
-    expect(made.root.instanceMatrix.array.every(Number.isFinite)).toBe(true);
-    geometry.dispose(); made.dispose();
+    expect(blob.file.kind).toBe('bin'); expect(blob.bytes.length).toBeLessThanOrEqual(1_000_000);
+    const words = new Float32Array(Uint8Array.from(blob.bytes).buffer), count = words.length / 26;
+    expect(Number.isInteger(count)).toBe(true); expect(count).toBeGreaterThan(0); expect(count).toBeLessThanOrEqual(4096);
+    expect(words.every(Number.isFinite)).toBe(true);
+    for (const i of [0, count - 1]) {
+      const original = Float32Array.from(layout.records.slice(start + (windows + i) * 26, start + (windows + i + 1) * 26).map(Number));
+      expect([...words.subarray(i * 16, i * 16 + 16), ...words.subarray(count * 16 + i * 4, count * 16 + i * 4 + 4),
+        ...words.subarray(count * 20 + i * 3, count * 20 + i * 3 + 3), ...words.subarray(count * 23 + i * 3, count * 23 + i * 3 + 3)]).toEqual([...original]);
+    }
+    windows += count;
   }
-  expect(windows).toBe(9912); material.dispose();
+  expect(windows).toBe(9912);
 });

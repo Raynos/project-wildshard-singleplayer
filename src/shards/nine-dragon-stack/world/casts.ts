@@ -1,6 +1,5 @@
-import { BufferGeometryLoader, InstancedBufferAttribute, InstancedMesh, type Material, type Object3D, type BufferGeometryJSON, type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3, LinearFilter, LinearMipmapLinearFilter } from 'three';
+import { PlaneGeometry, InstancedBufferAttribute, InstancedMesh, type Material, type Object3D, type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3, LinearFilter, LinearMipmapLinearFilter } from 'three';
 import type { GeometryBoot } from '../runtime/productSections.generated';
-import { createClientScene } from '@wildshard/game/plugin/ui';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { BASIS_PATH, detectKtx2Support } from '@wildshard/engine/core/ktx2';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
@@ -171,11 +170,15 @@ export async function loadFacadeWindows(material: Material): Promise<Object3D[]>
   const product = await loadFirstPartyProduct('nine-dragon-stack');
   const { rows } = await product.json<GeometryBoot>('geometry/layout.json');
   return Promise.all(Array.from({ length: Math.ceil(rows.counts.windows / 4096) }, async (_, index) => {
-    const row = await product.json<{ readonly geometry: BufferGeometryJSON; readonly scene: unknown }>(`geometry/facade-windows-${index}.json`);
-    const quad = new BufferGeometryLoader().parse(row.geometry), light = quad.getAttribute('aWindowLight');
-    const made = createClientScene(row.scene, { geometry: new Map([['quad', quad]]), materials: new Map([['window', material]]) }).root;
-    if (!(made instanceof InstancedMesh) || !(light instanceof InstancedBufferAttribute)) throw new Error('Nine window instance channels differ');
-    made.instanceColor = light; quad.deleteAttribute('aWindowLight'); made.computeBoundingSphere(); made.computeBoundingBox();
+    const bytes = Uint8Array.from(await product.file(`geometry/facade-windows-${index}.bin`));
+    const count = Math.min(4096, rows.counts.windows - index * 4096);
+    if (bytes.byteLength !== count * 26 * 4) throw new Error('Nine window instance packet differs');
+    const channel = (offset: number, width: number): InstancedBufferAttribute => new InstancedBufferAttribute(new Float32Array(bytes.buffer, count * offset * 4, count * width), width);
+    const quad = new PlaneGeometry(1, 1); quad.translate(0, 0.5, 0);
+    quad.setAttribute('aWin', channel(16, 4)); quad.setAttribute('aWall', channel(20, 3));
+    const made = new InstancedMesh(quad, material, count); made.name = 'facade-windows';
+    made.instanceMatrix = channel(0, 16); made.instanceColor = channel(23, 3);
+    made.computeBoundingSphere(); made.computeBoundingBox();
     return made;
   }));
 }
