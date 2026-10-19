@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "scripts/heavy-lane.py", line 244, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "scripts/heavy-lane.py", line 171, in main
+    root.mkdir(parents=True, exist_ok=True)
+  File "<python>/pathlib.py", line 1311, in mkdir
+    os.mkdir(self, mode)
+OSError: [Errno 30] Read-only file system: '<home>/.wildshard-heavy-lanes'
+heavy-lane: queued build ticket 32
+heavy-lane: acquired build after 0.00s queue
+{"slug":"driftwood-isle","sourceHash":"052535ba72fa042ee5895194390d31b489123494143c27f837bafaa112bcb349","files":5,"wasm":1,"visualAcceptance":false,"colliderAcceptance":false}
+heavy-lane: finished build in 4.04s

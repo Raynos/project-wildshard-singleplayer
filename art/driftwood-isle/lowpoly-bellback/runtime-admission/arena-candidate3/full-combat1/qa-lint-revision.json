@@ -1,0 +1,17 @@
+{
+  "method": "Rename shadowed callback parameters, use exact index sentinel comparison, remove unused functions from unrun supplemental script. Capture outcomes and all raw evidence unchanged; full fight predates this mechanical source revision.",
+  "files": [
+    {
+      "path": "scripts/qa-bellback-full-combat.mjs",
+      "capturedSourceSha256": "22b40b37366643ecc9bf69b286d657e9d28a90942f2b41af6503a5870ccd7438",
+      "currentSourceSha256": "fa047deb3cc4e8f7c472069409b785ee6ed86e0ccee84e3373de1c26553eaccd",
+      "bytes": 18077
+    },
+    {
+      "path": "scripts/qa-bellback-natural-approach.mjs",
+      "capturedSourceSha256": "da029f34c041c7b7a2c685fb60fab3835743a2ef1ea7905934a3e93d190aeb36",
+      "currentSourceSha256": "50420e5765de8eca9c133d53643975d3954db2f068229b71d1873750a52c8886",
+      "bytes": 10719
+    }
+  ]
+}

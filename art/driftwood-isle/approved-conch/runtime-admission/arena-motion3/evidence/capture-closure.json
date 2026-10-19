@@ -1,0 +1,283 @@
+{
+  "schema": "conch.motion3.capture-closure.v1",
+  "checkpoint": "a9dfb2632368842b18b4ffc75a2fcc3ee4530132",
+  "candidateClosureSha256": "bb2493b4797134096c931dc6a56ce64b3cdcaaaebcc4730b628473944e04c06c",
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/evidence/README.md": {
+      "sha256": "0d5f6cb234c457d85d586eae909ba131da14badfaaf2c84560cbb1b3bdeb3e79",
+      "bytes": 1641
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion3/evidence/actual-summary.json": {
+      "sha256": "40ee8df4b8fe98c79aca0feba10c9d6a12654d83a108c1121ceb5b481c3c04b2",
+      "bytes": 28967
+    },
+    "scripts/measure-conch-world-contact.mjs": {
+      "sha256": "1983d86ccba0266e3b81be5e5b8cd67696f92bcab32c820db585a8a76d7c5da5",
+      "bytes": 6590
+    },
+    "scripts/qa-conch-planted-motion.mjs": {
+      "sha256": "7d174aa3d893b128545aff8d07bd8733595115842fcf9f292e4cd0575977f8bf",
+      "bytes": 19602
+    },
+    "scripts/review-conch-motion-frames.py": {
+      "sha256": "7b82ff09e4fe1ff69107b69ce3ca7bf7797fbc31cd4f6dcd49c9e674efc32c3c",
+      "bytes": 1852
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/both-strikes-observation.jpg": {
+      "sha256": "9ccb9fe61bc86e4b77ec8c33bcd87fafacb1ffc3772d8706af870294c8c8c5ef",
+      "bytes": 61289
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/corpse-reward.jpg": {
+      "sha256": "a3c9d737411487329adc724c6ec3833f875eb2285a0220b144eceb49710fad45",
+      "bytes": 56495
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/entry.jpg": {
+      "sha256": "636735583892e00581811d678560d83cec19ea8c6083980a40bf752bbec8876a",
+      "bytes": 59434
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-01.jpg": {
+      "sha256": "287c71a4f8f26a88b8ecaea480498262a33be3dc3f2fc0b3daf67704cbb6da7f",
+      "bytes": 78150
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-02.jpg": {
+      "sha256": "c0805a2416af1e91c6ade5aded68b565824c29eff57b93bdbaee7c4895185a95",
+      "bytes": 311539
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-03.jpg": {
+      "sha256": "311d5f57959a356892d1c5d39c365cbac7d56101d8f590f41671b4e46554d7d0",
+      "bytes": 401900
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-04.jpg": {
+      "sha256": "49fa1c7ae6e4db677b1542c411a9a9246ae74920178a43d817617120c0e14c41",
+      "bytes": 386531
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-05.jpg": {
+      "sha256": "c0876e2ee085b5ff5dd4f39d3f6028de08aab0cf8131d1cb24c4c4a2a22ec072",
+      "bytes": 386096
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-06.jpg": {
+      "sha256": "5cb39e22cba15ffd5b8a2018183028a8a05b9d914bdcd1333206372906bc5989",
+      "bytes": 391918
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-07.jpg": {
+      "sha256": "44fe9e6747d12593752c0d3f7ec628af5382f3d9cc275bf358f7977a0518c3a9",
+      "bytes": 396244
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-08.jpg": {
+      "sha256": "1903516c768eb05514021182001c9a2de7c77a6303fa986fc58562cd9ceb52bd",
+      "bytes": 394791
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-09.jpg": {
+      "sha256": "28c09fa90c4ff78babbce14bbc7dd9b8238be035919efbab88f2fc43e6115a83",
+      "bytes": 395547
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-10.jpg": {
+      "sha256": "b5c2679fca32a19fa435cee0d8d32c977ca6b51f2dc3c73857292e74ad72b176",
+      "bytes": 393589
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-11.jpg": {
+      "sha256": "3c1d70ffe19f5a456c2f200468044625931c8fbe71cd1bde133617f26c2141a9",
+      "bytes": 374752
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-12.jpg": {
+      "sha256": "d59c99523b9d7b39285137177d77f3672358248ae73d707325a22400d1802a85",
+      "bytes": 388212
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-13.jpg": {
+      "sha256": "e9e2745d90d31df28ec8fb11c0cb4ae4d405b399f948447b3b7f27cc132a264d",
+      "bytes": 391093
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-14.jpg": {
+      "sha256": "1a7e0b22eaf473a0f1d9b16323298707a7825559fe8b7bdfc153b644e3ad1caf",
+      "bytes": 378692
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-15.jpg": {
+      "sha256": "7777c2da29d865412fa2e12c6afcf18a3c5ac35f4bf2efbf75ec45627c0bfbe7",
+      "bytes": 391211
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-16.jpg": {
+      "sha256": "e7ac4100634124049d22e750232c7a9938a0091253b8a1a551d513367d532fdc",
+      "bytes": 392390
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-17.jpg": {
+      "sha256": "04ef02d6c2417a23536029b79060f4208289fe18bf4286b24766f65b60ed1c8c",
+      "bytes": 392040
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-18.jpg": {
+      "sha256": "6c62794341ff06ca137e0a40e54f353e75b95e86a8af1099252c2e74732610ca",
+      "bytes": 373907
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-19.jpg": {
+      "sha256": "295d2e55d7a4b60af53d8eedbdb77be8909d273a8b5a3c613a6228da4d0f7fb0",
+      "bytes": 361638
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-20.jpg": {
+      "sha256": "8e5db042bd1881509a8eb2ebff993eecebda7ef75f015059492b51f1f663bf0d",
+      "bytes": 381308
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-21.jpg": {
+      "sha256": "5caa8f893157567867e7a796485a4a8ca12b70f0b30fc7a762e9e099f3c7e83a",
+      "bytes": 385730
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-22.jpg": {
+      "sha256": "233127da01c814f0316d97ebdf17eb6be4421254818467c5ca7a9496b672836a",
+      "bytes": 381645
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-23.jpg": {
+      "sha256": "78a4086d81b01c14f5c68fa136f65429a7012ff65c962d665fbeb21ae25337ee",
+      "bytes": 389598
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-24.jpg": {
+      "sha256": "e0f68c7774da8c1bd194d645b2dbfba901be2ee0330fb660fc9a0bd3343a9670",
+      "bytes": 389554
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-25.jpg": {
+      "sha256": "ef10cbdc8741cb0099f16fe5e3825eeef7cd9d3b249d3c633979834ce9835a0f",
+      "bytes": 387704
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-26.jpg": {
+      "sha256": "b5c194f8afbf63f8708831937df6f2bcab996e30d8e38529f4cfa13fef4dabb7",
+      "bytes": 388252
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-27.jpg": {
+      "sha256": "b6d0591353377cc5f7a913628f1376222ec00a7bc262b1ce0d1a475eb014c112",
+      "bytes": 387729
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-28.jpg": {
+      "sha256": "5a15ebd14ae76fe7ead87ff6f46367ad9748ba0d2ac16b2671ce701abe41e239",
+      "bytes": 389257
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-29.jpg": {
+      "sha256": "9f3c8683f84d10e5d5d2cb5bdb185a381278890a82405ae202d4474d250849a9",
+      "bytes": 393818
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-30.jpg": {
+      "sha256": "b0106b91b3c4379084600fb6b339467bdd2e338c217b0bc03f79bf32ecf84668",
+      "bytes": 393782
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-31.jpg": {
+      "sha256": "c6cc25b7276a24668ee13ace377ea195cbe78ed8635114b4252cb1caeaa38c72",
+      "bytes": 394411
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-32.jpg": {
+      "sha256": "36fa3cfa421bd772315447fb9c0c1e736c2a8991576443fc595e28c5017d50ca",
+      "bytes": 394600
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-33.jpg": {
+      "sha256": "3edff97cfd1250241b624fb66128f98256fa97d5cc397f148d98e33e5c0d1104",
+      "bytes": 394124
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-34.jpg": {
+      "sha256": "f7c3830b1209bb73d6928f9016f725beb83a082ece5afb5845528a1302460dac",
+      "bytes": 393945
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-35.jpg": {
+      "sha256": "f49ef0efc70d01f06f6f9d7351e683845d9cc1e1cd4e9db5c5e3b9c54d007854",
+      "bytes": 393831
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-36.jpg": {
+      "sha256": "7f025e61e05807246bca914c80b878ec6a926ca2581e6ff147f7d2e978fc97cd",
+      "bytes": 394594
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-37.jpg": {
+      "sha256": "dc3cf522b54da0c68e72c743d0cc18fcd90fb358e46c42f15e6b62bcc06bf4d5",
+      "bytes": 394150
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-38.jpg": {
+      "sha256": "3c656080bbc76173b3ca217bbc6a370049e5984a22faa5dc12ad7f06736d65b5",
+      "bytes": 394377
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-39.jpg": {
+      "sha256": "8f485606b9df354a58e4491223292808886b07bc1159429620903dad9e79924e",
+      "bytes": 394628
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-40.jpg": {
+      "sha256": "3c0b5958d41d3a6a93788e5d0490335ca9bcd5c65a79ec15a9c663f7a118242b",
+      "bytes": 394609
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-41.jpg": {
+      "sha256": "ff6709ec04a14eb43549416cb7350e945e93874637bc9b1e0705a24827c2e5f3",
+      "bytes": 392469
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-42.jpg": {
+      "sha256": "540c5e0062d5eb3fbf6d1a5c16ac0e49cedc992d48a7090cb942234e18cd92ec",
+      "bytes": 396050
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-43.jpg": {
+      "sha256": "d01449d6a87dc31e7fc3a6bbf4665dd114b5fadf58e0388c70c86195122a47cb",
+      "bytes": 394949
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-44.jpg": {
+      "sha256": "8c9fae67ab203014a9e509e361553591608ea578830ef91e8f296f8e17cb8ca3",
+      "bytes": 395776
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-45.jpg": {
+      "sha256": "c7d8a1fa2776a0acf69ce58b8869411b3bc0743201d86d21704def63c93e1a2d",
+      "bytes": 395713
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-46.jpg": {
+      "sha256": "0323e4a1a0f4244c5f2a00fab92bf34fe760c709ada1b2a1753f054aefee54a1",
+      "bytes": 393904
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-47.jpg": {
+      "sha256": "81f670bd3f28bf57bcb7ee6d967ac9180d58fbe3aa6539cc2a2901236734fcdf",
+      "bytes": 393014
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-48.jpg": {
+      "sha256": "dbdf6a85299b167e72ee97a50fdf5a11f49e8e7c2a4e81a6c5247e510e01cedc",
+      "bytes": 390167
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-49.jpg": {
+      "sha256": "ae6d51a1f159fd37dd3e1b0acca8a0b507190298307bd74d66e48f07659122bb",
+      "bytes": 183961
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/allframes-50.jpg": {
+      "sha256": "cdecbfeb643b784e2ccd70f68fa22f7cec53b29bc2ef67b279af337f1cf0526e",
+      "bytes": 34023
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/frame-review/index.json": {
+      "sha256": "e7441ca9d903883dbcc71561e8ce0d43a97f8108bb9e1c297692b4884b9632a1",
+      "bytes": 5134
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/guard-counter.jpg": {
+      "sha256": "c7f9de774e694288d33af00091fc291cfcb438c81aa07af2dd1bb771e0aec82e",
+      "bytes": 59365
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/player-defeat.jpg": {
+      "sha256": "4ab6395073e87bbccbeb8f7756ac338a89dd0a3a78e8fa1923ba6a56755dcb96",
+      "bytes": 59163
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/render-trace.json": {
+      "sha256": "d4d2936eed8227e9b91512782ebe49af3f985d9f201e86fc0ee25ba863bf8511",
+      "bytes": 7188579
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/report.json": {
+      "sha256": "1eabd95c6fae4ddab22d0a7ce90c1f914707b092d4229c70c74e9a1fbfc70f44",
+      "bytes": 510884
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/runtime-geometry.json": {
+      "sha256": "1c3a375c98c5278794daa43cde18afe6bc4839d222e3740d5b680a3bd5ad186d",
+      "bytes": 548451
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/sword-result.jpg": {
+      "sha256": "3d2346e92608b9105d298d56a761de0a9e65d30ebe09b9f37cf4ddb5bed64f06",
+      "bytes": 59367
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/video/page@931827a29a1880d2c00837610c02a746.webm": {
+      "sha256": "993a84c9402ed29f7fb1917599ea7b415e49ecf6f7cd23c410d77ef390fe7c92",
+      "bytes": 8265994
+    },
+    "tmp/conch-motion-observer-motion3-build1-run2/weighted-contact.json": {
+      "sha256": "d756e8df586965cc132c087f670d909e0631024ba299fac7c3fa6ab7e6e45ead",
+      "bytes": 8741045
+    },
+    "tmp/conch-motion-observer-motion3-build1/report.json": {
+      "sha256": "2a5968c82d148676a0cf6e09ef49c8e7981983488ac0d662be5f7fb7db3f0062",
+      "bytes": 5635
+    },
+    "tmp/conch-planted-preview/motion3-build1/served-build-manifest.json": {
+      "sha256": "fad1d00d83e2f91e394695e23276c6f4f674354c651da29784765b7d68929ba3",
+      "bytes": 28247
+    }
+  }
+}

@@ -1,0 +1,1525 @@
+{
+  "schema": "conch.motion3.actual-capture.v1",
+  "checkpoint": "a9dfb2632368842b18b4ffc75a2fcc3ee4530132",
+  "servedManifest": "tmp/conch-planted-preview/motion3-build1/served-build-manifest.json",
+  "checks": {
+    "onlyConch": true,
+    "thrust": true,
+    "actualPlayerDamage": true,
+    "counter": true,
+    "guardObserved": true,
+    "actualEnemyDamage": true,
+    "enemyDefeated": true,
+    "retainedOwnDeathDelivered": true,
+    "boutLocalReward": true,
+    "retry": true,
+    "playerDefeated": true,
+    "defeatedAttackBlocked": true,
+    "finalRetry": true,
+    "emptyStorage": true,
+    "emptyUnchangedStateStore": true,
+    "counterPending": true,
+    "noPostDeathStrike": true,
+    "settledOwnDeathDelivered": true,
+    "playerDeathDoesNotKillEnemy": true,
+    "renderedPoseInputRecorded": true,
+    "all15Bones": true,
+    "reentry": true,
+    "reentryPersistence": true,
+    "errors": true
+  },
+  "weighted": {
+    "vertices": 7338,
+    "blendedVertices": 94,
+    "canonicalGeometryExact": true,
+    "thresholds": {
+      "below": -0.005,
+      "nearAbsolute": 0.02
+    },
+    "summary": {
+      "frames": 833,
+      "minimum": 0.002986063675280093,
+      "maximumMinimum": 0.004977697014965088,
+      "framesBelow": 0,
+      "framesWithoutNearContact": 0
+    },
+    "living": {
+      "frames": 684,
+      "minimum": 0.0029999999998153726,
+      "maximumMinimum": 0.004977697014965088,
+      "framesBelow": 0,
+      "framesWithoutNearContact": 0
+    },
+    "settledCorpse": {
+      "frames": 139,
+      "minimum": 0.0029999999998153726,
+      "maximumMinimum": 0.0029999999998153726,
+      "framesBelow": 0,
+      "framesWithoutNearContact": 0
+    }
+  },
+  "video": {
+    "encodedFrames": 2357,
+    "fps": 25.0,
+    "crop": [
+      40,
+      240,
+      322,
+      360
+    ],
+    "note": "Every encoded frame, including loading/duplicates. Creature crop only; original portrait video authoritative. Encoded frame E is not engine render frame R.",
+    "sheets": [
+      {
+        "sheet": "allframes-01.jpg",
+        "firstFrame": 0,
+        "lastFrame": 47
+      },
+      {
+        "sheet": "allframes-02.jpg",
+        "firstFrame": 48,
+        "lastFrame": 95
+      },
+      {
+        "sheet": "allframes-03.jpg",
+        "firstFrame": 96,
+        "lastFrame": 143
+      },
+      {
+        "sheet": "allframes-04.jpg",
+        "firstFrame": 144,
+        "lastFrame": 191
+      },
+      {
+        "sheet": "allframes-05.jpg",
+        "firstFrame": 192,
+        "lastFrame": 239
+      },
+      {
+        "sheet": "allframes-06.jpg",
+        "firstFrame": 240,
+        "lastFrame": 287
+      },
+      {
+        "sheet": "allframes-07.jpg",
+        "firstFrame": 288,
+        "lastFrame": 335
+      },
+      {
+        "sheet": "allframes-08.jpg",
+        "firstFrame": 336,
+        "lastFrame": 383
+      },
+      {
+        "sheet": "allframes-09.jpg",
+        "firstFrame": 384,
+        "lastFrame": 431
+      },
+      {
+        "sheet": "allframes-10.jpg",
+        "firstFrame": 432,
+        "lastFrame": 479
+      },
+      {
+        "sheet": "allframes-11.jpg",
+        "firstFrame": 480,
+        "lastFrame": 527
+      },
+      {
+        "sheet": "allframes-12.jpg",
+        "firstFrame": 528,
+        "lastFrame": 575
+      },
+      {
+        "sheet": "allframes-13.jpg",
+        "firstFrame": 576,
+        "lastFrame": 623
+      },
+      {
+        "sheet": "allframes-14.jpg",
+        "firstFrame": 624,
+        "lastFrame": 671
+      },
+      {
+        "sheet": "allframes-15.jpg",
+        "firstFrame": 672,
+        "lastFrame": 719
+      },
+      {
+        "sheet": "allframes-16.jpg",
+        "firstFrame": 720,
+        "lastFrame": 767
+      },
+      {
+        "sheet": "allframes-17.jpg",
+        "firstFrame": 768,
+        "lastFrame": 815
+      },
+      {
+        "sheet": "allframes-18.jpg",
+        "firstFrame": 816,
+        "lastFrame": 863
+      },
+      {
+        "sheet": "allframes-19.jpg",
+        "firstFrame": 864,
+        "lastFrame": 911
+      },
+      {
+        "sheet": "allframes-20.jpg",
+        "firstFrame": 912,
+        "lastFrame": 959
+      },
+      {
+        "sheet": "allframes-21.jpg",
+        "firstFrame": 960,
+        "lastFrame": 1007
+      },
+      {
+        "sheet": "allframes-22.jpg",
+        "firstFrame": 1008,
+        "lastFrame": 1055
+      },
+      {
+        "sheet": "allframes-23.jpg",
+        "firstFrame": 1056,
+        "lastFrame": 1103
+      },
+      {
+        "sheet": "allframes-24.jpg",
+        "firstFrame": 1104,
+        "lastFrame": 1151
+      },
+      {
+        "sheet": "allframes-25.jpg",
+        "firstFrame": 1152,
+        "lastFrame": 1199
+      },
+      {
+        "sheet": "allframes-26.jpg",
+        "firstFrame": 1200,
+        "lastFrame": 1247
+      },
+      {
+        "sheet": "allframes-27.jpg",
+        "firstFrame": 1248,
+        "lastFrame": 1295
+      },
+      {
+        "sheet": "allframes-28.jpg",
+        "firstFrame": 1296,
+        "lastFrame": 1343
+      },
+      {
+        "sheet": "allframes-29.jpg",
+        "firstFrame": 1344,
+        "lastFrame": 1391
+      },
+      {
+        "sheet": "allframes-30.jpg",
+        "firstFrame": 1392,
+        "lastFrame": 1439
+      },
+      {
+        "sheet": "allframes-31.jpg",
+        "firstFrame": 1440,
+        "lastFrame": 1487
+      },
+      {
+        "sheet": "allframes-32.jpg",
+        "firstFrame": 1488,
+        "lastFrame": 1535
+      },
+      {
+        "sheet": "allframes-33.jpg",
+        "firstFrame": 1536,
+        "lastFrame": 1583
+      },
+      {
+        "sheet": "allframes-34.jpg",
+        "firstFrame": 1584,
+        "lastFrame": 1631
+      },
+      {
+        "sheet": "allframes-35.jpg",
+        "firstFrame": 1632,
+        "lastFrame": 1679
+      },
+      {
+        "sheet": "allframes-36.jpg",
+        "firstFrame": 1680,
+        "lastFrame": 1727
+      },
+      {
+        "sheet": "allframes-37.jpg",
+        "firstFrame": 1728,
+        "lastFrame": 1775
+      },
+      {
+        "sheet": "allframes-38.jpg",
+        "firstFrame": 1776,
+        "lastFrame": 1823
+      },
+      {
+        "sheet": "allframes-39.jpg",
+        "firstFrame": 1824,
+        "lastFrame": 1871
+      },
+      {
+        "sheet": "allframes-40.jpg",
+        "firstFrame": 1872,
+        "lastFrame": 1919
+      },
+      {
+        "sheet": "allframes-41.jpg",
+        "firstFrame": 1920,
+        "lastFrame": 1967
+      },
+      {
+        "sheet": "allframes-42.jpg",
+        "firstFrame": 1968,
+        "lastFrame": 2015
+      },
+      {
+        "sheet": "allframes-43.jpg",
+        "firstFrame": 2016,
+        "lastFrame": 2063
+      },
+      {
+        "sheet": "allframes-44.jpg",
+        "firstFrame": 2064,
+        "lastFrame": 2111
+      },
+      {
+        "sheet": "allframes-45.jpg",
+        "firstFrame": 2112,
+        "lastFrame": 2159
+      },
+      {
+        "sheet": "allframes-46.jpg",
+        "firstFrame": 2160,
+        "lastFrame": 2207
+      },
+      {
+        "sheet": "allframes-47.jpg",
+        "firstFrame": 2208,
+        "lastFrame": 2255
+      },
+      {
+        "sheet": "allframes-48.jpg",
+        "firstFrame": 2256,
+        "lastFrame": 2303
+      },
+      {
+        "sheet": "allframes-49.jpg",
+        "firstFrame": 2304,
+        "lastFrame": 2351
+      },
+      {
+        "sheet": "allframes-50.jpg",
+        "firstFrame": 2352,
+        "lastFrame": 2356
+      }
+    ]
+  },
+  "eventRanges": [
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        5,
+        80
+      ],
+      "gameTime": [
+        0.25090000000596047,
+        5.982999999977649
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        81,
+        86
+      ],
+      "gameTime": [
+        6.077599999979139,
+        6.552699999980628
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        87,
+        87
+      ],
+      "gameTime": [
+        6.652699999980627,
+        6.652699999980627
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrames": [
+        88,
+        97
+      ],
+      "gameTime": [
+        6.752699999980627,
+        7.528999999977647
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        98,
+        98
+      ],
+      "gameTime": [
+        7.619499999977647,
+        7.619499999977647
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        99,
+        116
+      ],
+      "gameTime": [
+        7.719499999977646,
+        9.091199999973174
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        117,
+        120
+      ],
+      "gameTime": [
+        9.182999999970194,
+        9.482999999970193
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        121,
+        126
+      ],
+      "gameTime": [
+        9.582999999970193,
+        9.989399999968702
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        127,
+        138
+      ],
+      "gameTime": [
+        10.089399999968702,
+        10.887699999973169
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        139,
+        144
+      ],
+      "gameTime": [
+        10.987699999973168,
+        11.424599999979128
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        145,
+        145
+      ],
+      "gameTime": [
+        11.524599999979127,
+        11.524599999979127
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        146,
+        165
+      ],
+      "gameTime": [
+        11.616999999977637,
+        13.475899999976141
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        166,
+        175
+      ],
+      "gameTime": [
+        13.57259999997167,
+        14.36799999997763
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        176,
+        181
+      ],
+      "gameTime": [
+        14.46799999997763,
+        14.94309999997912
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        182,
+        182
+      ],
+      "gameTime": [
+        15.04309999997912,
+        15.04309999997912
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrames": [
+        183,
+        186
+      ],
+      "gameTime": [
+        15.14309999997912,
+        15.44189999998359
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        187,
+        187
+      ],
+      "gameTime": [
+        15.53769999998061,
+        15.53769999998061
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        188,
+        195
+      ],
+      "gameTime": [
+        15.63769999998061,
+        16.05319999998061
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        196,
+        196
+      ],
+      "gameTime": [
+        16.15319999998061,
+        16.15319999998061
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 4,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        197,
+        200
+      ],
+      "gameTime": [
+        16.253199999980612,
+        16.493599999979125
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "windup",
+      "renderFrames": [
+        201,
+        205
+      ],
+      "gameTime": [
+        16.586499999977637,
+        16.986499999977642
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "active",
+      "renderFrames": [
+        206,
+        207
+      ],
+      "gameTime": [
+        17.083499999977644,
+        17.113799999974663
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "recover",
+      "renderFrames": [
+        208,
+        217
+      ],
+      "gameTime": [
+        17.213799999974665,
+        17.946699999965734
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        218,
+        218
+      ],
+      "gameTime": [
+        18.046699999965735,
+        18.046699999965735
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        219,
+        237
+      ],
+      "gameTime": [
+        18.079699999965737,
+        19.38069999996574
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        238,
+        248
+      ],
+      "gameTime": [
+        19.464099999964247,
+        20.330399999968723
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        249,
+        252
+      ],
+      "gameTime": [
+        20.421599999964254,
+        20.687999999962766
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        253,
+        260
+      ],
+      "gameTime": [
+        20.720999999962768,
+        21.189299999967243
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        261,
+        265
+      ],
+      "gameTime": [
+        21.287599999971714,
+        21.60919999997321
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 4,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        266,
+        270
+      ],
+      "gameTime": [
+        21.70919999997321,
+        22.021299999967255
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "windup",
+      "renderFrames": [
+        271,
+        275
+      ],
+      "gameTime": [
+        22.115699999973216,
+        22.50659999997173
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "active",
+      "renderFrames": [
+        276,
+        276
+      ],
+      "gameTime": [
+        22.59729999997471,
+        22.59729999997471
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "strike": "strike.conch-duelist.counter",
+      "phase": "recover",
+      "renderFrames": [
+        277,
+        278
+      ],
+      "gameTime": [
+        22.69729999997471,
+        22.79729999997471
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 3,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        279,
+        279
+      ],
+      "gameTime": [
+        22.897299999974713,
+        22.897299999974713
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        280,
+        329
+      ],
+      "gameTime": [
+        22.997299999974715,
+        27.205399999968797
+      ]
+    },
+    {
+      "alive": false,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        330,
+        331
+      ],
+      "gameTime": [
+        27.302999999970286,
+        27.402999999970287
+      ]
+    },
+    {
+      "alive": false,
+      "stage": 5,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        332,
+        478
+      ],
+      "gameTime": [
+        27.50299999997029,
+        39.1319999999778
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        479,
+        487
+      ],
+      "gameTime": [
+        39.22529999997482,
+        39.72779999997483
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        488,
+        493
+      ],
+      "gameTime": [
+        39.81589999997632,
+        40.261799999974826
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        494,
+        495
+      ],
+      "gameTime": [
+        40.36179999997483,
+        40.37159999997185
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrames": [
+        496,
+        506
+      ],
+      "gameTime": [
+        40.44999999997781,
+        41.32189999996888
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        507,
+        507
+      ],
+      "gameTime": [
+        41.409599999964406,
+        41.409599999964406
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        508,
+        524
+      ],
+      "gameTime": [
+        41.49049999997037,
+        42.835399999961425
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        525,
+        525
+      ],
+      "gameTime": [
+        42.91329999995993,
+        42.91329999995993
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        526,
+        533
+      ],
+      "gameTime": [
+        42.99669999996589,
+        43.50719999996589
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        534,
+        534
+      ],
+      "gameTime": [
+        43.58849999996291,
+        43.58849999996291
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrames": [
+        535,
+        545
+      ],
+      "gameTime": [
+        43.669599999964404,
+        44.511799999967394
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        546,
+        546
+      ],
+      "gameTime": [
+        44.60289999996888,
+        44.60289999996888
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        547,
+        560
+      ],
+      "gameTime": [
+        44.70259999996441,
+        45.957799999967406
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        561,
+        561
+      ],
+      "gameTime": [
+        46.05779999996741,
+        46.05779999996741
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        562,
+        569
+      ],
+      "gameTime": [
+        46.15779999996741,
+        46.67009999997188
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        570,
+        570
+      ],
+      "gameTime": [
+        46.77009999997188,
+        46.77009999997188
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrames": [
+        571,
+        579
+      ],
+      "gameTime": [
+        46.858199999965926,
+        47.65819999996594
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        580,
+        580
+      ],
+      "gameTime": [
+        47.75819999996594,
+        47.75819999996594
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        581,
+        595
+      ],
+      "gameTime": [
+        47.85639999996147,
+        49.17339999996148
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        596,
+        596
+      ],
+      "gameTime": [
+        49.273399999961484,
+        49.273399999961484
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        597,
+        602
+      ],
+      "gameTime": [
+        49.371199999958506,
+        49.86759999995702
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        603,
+        603
+      ],
+      "gameTime": [
+        49.96359999995702,
+        49.96359999995702
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrames": [
+        604,
+        615
+      ],
+      "gameTime": [
+        50.06359999995702,
+        50.89639999995405
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        616,
+        616
+      ],
+      "gameTime": [
+        50.96539999995405,
+        50.96539999995405
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        617,
+        632
+      ],
+      "gameTime": [
+        51.06539999995405,
+        52.42839999996151
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        633,
+        633
+      ],
+      "gameTime": [
+        52.517299999960024,
+        52.517299999960024
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        634,
+        640
+      ],
+      "gameTime": [
+        52.617299999960025,
+        53.10519999995854
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        641,
+        641
+      ],
+      "gameTime": [
+        53.19599999995556,
+        53.19599999995556
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrames": [
+        642,
+        652
+      ],
+      "gameTime": [
+        53.28629999996003,
+        54.13839999996153
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        653,
+        653
+      ],
+      "gameTime": [
+        54.225299999960036,
+        54.225299999960036
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        654,
+        669
+      ],
+      "gameTime": [
+        54.30449999995557,
+        55.63309999996453
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        670,
+        670
+      ],
+      "gameTime": [
+        55.73309999996453,
+        55.73309999996453
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        671,
+        678
+      ],
+      "gameTime": [
+        55.79549999996304,
+        56.278499999963046
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        679,
+        680
+      ],
+      "gameTime": [
+        56.34199999996304,
+        56.441999999963045
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrames": [
+        681,
+        691
+      ],
+      "gameTime": [
+        56.527899999961555,
+        57.28929999996752
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        692,
+        692
+      ],
+      "gameTime": [
+        57.36979999996752,
+        57.36979999996752
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        693,
+        711
+      ],
+      "gameTime": [
+        57.45509999996454,
+        58.84839999996903
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        712,
+        712
+      ],
+      "gameTime": [
+        58.948399999969034,
+        58.948399999969034
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        713,
+        719
+      ],
+      "gameTime": [
+        59.02949999996307,
+        59.438099999964564
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        720,
+        722
+      ],
+      "gameTime": [
+        59.538099999964565,
+        59.64829999996755
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "recover",
+      "renderFrames": [
+        723,
+        732
+      ],
+      "gameTime": [
+        59.72339999996904,
+        60.462399999969044
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        733,
+        734
+      ],
+      "gameTime": [
+        60.55909999996457,
+        60.64129999996755
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 2,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        735,
+        749
+      ],
+      "gameTime": [
+        60.716899999969044,
+        62.00219999996608
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        750,
+        750
+      ],
+      "gameTime": [
+        62.09139999996161,
+        62.09139999996161
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "windup",
+      "renderFrames": [
+        751,
+        759
+      ],
+      "gameTime": [
+        62.17729999996012,
+        62.72179999995267
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": "strike.conch-duelist.thrust",
+      "phase": "active",
+      "renderFrames": [
+        760,
+        760
+      ],
+      "gameTime": [
+        62.821799999952674,
+        62.821799999952674
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 1,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        761,
+        830
+      ],
+      "gameTime": [
+        62.84139999995416,
+        68.34339999993922
+      ]
+    },
+    {
+      "alive": true,
+      "stage": 0,
+      "strike": null,
+      "phase": "idle",
+      "renderFrames": [
+        831,
+        837
+      ],
+      "gameTime": [
+        68.43079999994518,
+        68.80999999995561
+      ]
+    }
+  ],
+  "guardAttempts": [
+    {
+      "phase": "before-guard-hit",
+      "enemyHP": 60,
+      "playerHP": 100
+    },
+    {
+      "phase": "after-guard-hit",
+      "enemyHP": 48,
+      "playerHP": 72
+    },
+    {
+      "phase": "before-guard-hit",
+      "enemyHP": 60,
+      "playerHP": 100
+    },
+    {
+      "phase": "after-guard-hit",
+      "enemyHP": 57,
+      "playerHP": 84
+    }
+  ],
+  "scope": "Actual updated-host capture, no physical-phone/performance, no human fun, no independent visual/no-slip/collider acceptance. All actual world transforms are upright yaw-only; no arbitrary-ragdoll claim."
+}

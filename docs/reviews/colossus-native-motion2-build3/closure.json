@@ -1,0 +1,158 @@
+{
+  "schema": "wildshard.colossus.motion2-actual-closure.v1",
+  "candidate": "V4-skin1-native22-motion2",
+  "productSourceHash": "052535ba72fa042ee5895194390d31b489123494143c27f837bafaa112bcb349",
+  "hostProvenance": "Fresh current working-tree build after retained-dead/subject repair; exact host byte manifest included. No Git action performed by this worker.",
+  "sourceClosure": {
+    "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/source-closure.json",
+    "sha256": "5505a8fe6e39d82ce2ad36e87c17225011ef82c68b06799d0c37a68be054808d",
+    "bytes": 5768
+  },
+  "observer": {
+    "path": "scripts/qa-colossus-native-observer-v3.mjs",
+    "sha256": "361ef0626bda1505c3a8ce2f922102ae65999710786f909666da66a506e1b335",
+    "bytes": 17235
+  },
+  "geometryScript": {
+    "path": "scripts/measure-colossus-world-contact.mjs",
+    "sha256": "c581e587a69884124781270f96c1d5d83d61f5eafa7ac35753ba9a98c533f3e9",
+    "bytes": 4592
+  },
+  "checks": {
+    "combat": 20,
+    "lifecycle": 7,
+    "frames": 1080,
+    "deadFrames": 141,
+    "completeAttacks": 10,
+    "worldContactFramesBelow": 0,
+    "deadMinimum": 0.01856302204646454,
+    "livingMinimum": 0.027000000700354576
+  },
+  "acceptance": {
+    "measuredWorldContactClear": true,
+    "finalVisual": false,
+    "finalAnimation": false,
+    "collider": false,
+    "physicalPhone": false
+  },
+  "evidence": [
+    {
+      "path": "README.md",
+      "sha256": "2ea477e1f076b28ed9c937afc9bd597683fbe5e77bb2eaf4a0179f62a45319e5",
+      "bytes": 4077
+    },
+    {
+      "path": "analyze.py",
+      "sha256": "73767ff42b3609ef450a6c29ae33c5e85a72ad45e61d8040f0a2968919cc8a66",
+      "bytes": 3974
+    },
+    {
+      "path": "both-strikes-observation.jpg",
+      "sha256": "7483cdfe055f40a6a23e23f5dc5642a4e728f21e3494d7c00cf01d359976cf86",
+      "bytes": 68373
+    },
+    {
+      "path": "browser.log",
+      "sha256": "e661ac83eb0140979d9170d6e38016092b55745dd642bd7ac07cd744d081c3af",
+      "bytes": 617
+    },
+    {
+      "path": "combat-events.json",
+      "sha256": "f8963f639aa61a103153ae15b27fdf445038a2ddaa4b2ae301bc88e2127bd27c",
+      "bytes": 8843
+    },
+    {
+      "path": "corpse-reward.jpg",
+      "sha256": "1b5889002e36164459bf59243175062b003707c253053c8bfc8bc5f63464d8db",
+      "bytes": 53840
+    },
+    {
+      "path": "entry.jpg",
+      "sha256": "2222b9727094fe5c961ef05baf27a5ed3fb628f8c669b37df4cc64277fbeb547",
+      "bytes": 66566
+    },
+    {
+      "path": "host-build.log",
+      "sha256": "aaf0444c8977bf8edf73fb4dbab6e21101135c14422a8f47feae3ec2dde1d82a",
+      "bytes": 12134
+    },
+    {
+      "path": "host-files.json",
+      "sha256": "04015048dbf252c6ad725dbd5ec50c022db95222c9cbbf3daebdb22940a82e36",
+      "bytes": 21995
+    },
+    {
+      "path": "independent-world-contact.json",
+      "sha256": "69ee04146a4ecc6dd6c568070cdbd522c03cd2d0eb0a7d82fa22703192697394",
+      "bytes": 672493
+    },
+    {
+      "path": "player-defeat.jpg",
+      "sha256": "07c88e7df9a0b89bd540b030f96dd5d3121463a639924aea76a22ebfd2c7ad3c",
+      "bytes": 65873
+    },
+    {
+      "path": "preview.json",
+      "sha256": "96e9d68e25fed1c2cb15c586e4066a92711aba370ab8329104322eb2d51b9c50",
+      "bytes": 4253
+    },
+    {
+      "path": "product-build.log",
+      "sha256": "83a006d8d59294612e4731e5c88be66616c298098134999b5d1bd4f6534fc57a",
+      "bytes": 667
+    },
+    {
+      "path": "product-files.json",
+      "sha256": "01ad5c71a5621eee750997b128853b194269ab0c37506479c8a04b5b97423144",
+      "bytes": 7940
+    },
+    {
+      "path": "render-trace.json",
+      "sha256": "7669564e64059676d86ac95bf7ec83e8e6719e2478d2b0a2d3259abd3e57815e",
+      "bytes": 3309077
+    },
+    {
+      "path": "report.json",
+      "sha256": "56e580c7826d68ee5e103919dfa920316d5fdff7dbbb1979670f42181c93db8f",
+      "bytes": 3593579
+    },
+    {
+      "path": "retry-test.log",
+      "sha256": "128156bd0ac679a938dc76ab08be5a985a3897f123efac32b9b38fb044ae1171",
+      "bytes": 969
+    },
+    {
+      "path": "summary.json",
+      "sha256": "e672772c45994f24137612ff1170a5a6ced5444eb8458959bca7b9dbda77ef9a",
+      "bytes": 23767
+    },
+    {
+      "path": "sword-result.jpg",
+      "sha256": "351e6debc38064c340e76f0d87bb2ce22e34c9df103f8dc4f6e4a2531eef17f9",
+      "bytes": 52258
+    },
+    {
+      "path": "verify_world.py",
+      "sha256": "261ca0bce9583575a30efc4a44ad48b2be8d9ae882cf1d41f63bdb157118e697",
+      "bytes": 2787
+    },
+    {
+      "path": "world-contact.json",
+      "sha256": "96165dbf8a2d4f71097f9c415f774795abbf16842568670fd4bafd8bdc560645",
+      "bytes": 2732899
+    },
+    {
+      "path": "log-whitespace-normalization.json",
+      "bytes": 632,
+      "sha256": "d4b51360e11b1015aadc6b9a8d749a45ffb2de02b44e0178489351469afdb08f"
+    }
+  ],
+  "videoPreservedLocally": [
+    {
+      "path": "page@1f5a6ee7a15927a3f979bbf9806288b0.webm",
+      "sha256": "b89f79ba8c4bd78cf4db9af99274325dd2e80e213b71190c4405e296dad916c1",
+      "bytes": 13770066
+    }
+  ],
+  "screening": "Repository-relative source references; diagnostic logs replace project/home/python installation prefixes with generic labels. No credentials or personal information. Raw failure logs remain locally. Player/camera placement explicit; no health, enemy state, clocks, damage or RNG injection."
+}

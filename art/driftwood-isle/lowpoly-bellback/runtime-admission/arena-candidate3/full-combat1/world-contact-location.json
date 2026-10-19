@@ -1,0 +1,9 @@
+{
+  "completeMeasurement": {
+    "nativeSiteSourcePath": "source-evidence/bellback-anatomy3-full-combat/world-contact.json",
+    "sha256": "9bbe27a59f77db230b6dca93a80315a191b80000af0262dbf584699d1239a04b",
+    "bytes": 7133376
+  },
+  "method": "Complete original measurement retained as one ordinary JSON source file; split measurement copies excluded. Concatenated prior frame arrays verified exactly equal to original before duplicate split files removed. Native Site source checkpoint pending.",
+  "frames": 778
+}

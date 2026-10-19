@@ -1,0 +1,1006 @@
+{
+  "deathDrain": {
+    "firstDeadFrame": 706,
+    "firstState6Frame": 707,
+    "gameSecondsToState6": 0.09999999999999432,
+    "wallMsToState6": 115.10000000149012,
+    "allSubsequentDeadRowsState6": true
+  },
+  "checks": {
+    "ownDeathReachesState6": true,
+    "noLivingDeathState6": true,
+    "noDeadStrike": true,
+    "retryFreshMesh": true,
+    "retryFreshState": true,
+    "observedEnemyAndPlayerDeath": true,
+    "survivingEnemyAfterPlayerDeath": true
+  },
+  "combatChecks": {
+    "onlyColossus": true,
+    "leftSweep": true,
+    "rightSweep": true,
+    "slam": true,
+    "actualPlayerDamage": true,
+    "exposedSwordMultiplier": true,
+    "actualEnemyDamage": true,
+    "enemyDefeated": true,
+    "noPostDeathStrike": true,
+    "boutLocalReward": true,
+    "retry": true,
+    "playerDefeated": true,
+    "defeatedAttackBlocked": true,
+    "finalRetry": true,
+    "emptyStorage": true,
+    "emptyUnchangedStateStore": true,
+    "reentry": true,
+    "reentryPersistence": true,
+    "exposed": true,
+    "errors": true
+  },
+  "actors": [
+    {
+      "instance": 1,
+      "actorIds": [
+        "practice.tideRootColossus"
+      ],
+      "meshUuids": [
+        "2eb415bf-7e43-4468-9e94-f9c083f36a19"
+      ],
+      "frames": 109,
+      "first": {
+        "gameTime": 0.25229999999701974,
+        "hp": 480,
+        "stage": 0,
+        "alive": true
+      },
+      "last": {
+        "gameTime": 9.249400000013399,
+        "hp": 480,
+        "stage": 0,
+        "alive": true
+      },
+      "deaths": [],
+      "deadStates": [],
+      "deadStrikePhases": []
+    },
+    {
+      "instance": 2,
+      "actorIds": [
+        "practice.tideRootColossus"
+      ],
+      "meshUuids": [
+        "c72e8687-27ff-4ec5-9dca-d5e1d55bbfd0"
+      ],
+      "frames": 733,
+      "first": {
+        "gameTime": 9.349400000013398,
+        "hp": 480,
+        "stage": 0,
+        "alive": true
+      },
+      "last": {
+        "gameTime": 75.83310000000911,
+        "hp": 0,
+        "stage": 6,
+        "alive": false
+      },
+      "deaths": [
+        {
+          "event": "actor.died",
+          "actorInstance": 2,
+          "gameTime": 64.34700000001537,
+          "target": {
+            "id": "practice.tideRootColossus",
+            "isCurrentEnemy": true,
+            "isCurrentPlayer": false
+          }
+        }
+      ],
+      "deadStates": [
+        0,
+        6
+      ],
+      "deadStrikePhases": [
+        "idle"
+      ]
+    },
+    {
+      "instance": 3,
+      "actorIds": [
+        "practice.tideRootColossus"
+      ],
+      "meshUuids": [
+        "a08048c4-70cd-456f-8574-1e7aaa675962"
+      ],
+      "frames": 231,
+      "first": {
+        "gameTime": 75.92640000000613,
+        "hp": 480,
+        "stage": 0,
+        "alive": true
+      },
+      "last": {
+        "gameTime": 95.84680000003395,
+        "hp": 480,
+        "stage": 3,
+        "alive": true
+      },
+      "deaths": [
+        {
+          "event": "actor.died",
+          "actorInstance": 3,
+          "gameTime": 93.02420000003998,
+          "target": {
+            "id": "actor.player",
+            "isCurrentEnemy": false,
+            "isCurrentPlayer": true
+          }
+        }
+      ],
+      "deadStates": [],
+      "deadStrikePhases": []
+    },
+    {
+      "instance": 4,
+      "actorIds": [
+        "practice.tideRootColossus"
+      ],
+      "meshUuids": [
+        "933c0fc6-88b2-475b-8c86-6b63694066cc"
+      ],
+      "frames": 7,
+      "first": {
+        "gameTime": 95.944400000028,
+        "hp": 480,
+        "stage": 0,
+        "alive": true
+      },
+      "last": {
+        "gameTime": 96.35110000003097,
+        "hp": 480,
+        "stage": 0,
+        "alive": true
+      },
+      "deaths": [],
+      "deadStates": [],
+      "deadStrikePhases": []
+    }
+  ],
+  "geometry": {
+    "livingMinimum": 0.027000000700354576,
+    "deadMinimum": 0.01856302204646454,
+    "frames": 1080,
+    "minimum": 0.01856302204646454,
+    "framesBelow": 0
+  },
+  "cadence": {
+    "frames": 1080,
+    "medianIntervalMs": 105.30000000074506,
+    "p95IntervalMs": 258.1000000014901,
+    "maxIntervalMs": 823.0,
+    "aggregateFps": 8.045774173962828,
+    "wallSeconds": 134.028,
+    "gameSeconds": 96.09880000003395,
+    "caveat": "Cloud SwiftShader actual render cadence, not a physical-phone performance claim."
+  },
+  "cycles": [
+    {
+      "actorInstance": 1,
+      "id": "strike.colossus.left",
+      "startGame": 1.12479999999702,
+      "startWall": 5011.5,
+      "phases": [
+        "windup",
+        "active",
+        "recover",
+        "idle"
+      ],
+      "endGame": 2.6666999999955308,
+      "endWall": 7017.70000000298,
+      "gameSeconds": 1.5418999999985108,
+      "wallSeconds": 2.00620000000298,
+      "complete": true
+    },
+    {
+      "actorInstance": 1,
+      "id": "strike.colossus.slam",
+      "startGame": 3.440299999997021,
+      "startWall": 7983.20000000298,
+      "phases": [
+        "windup",
+        "active",
+        "recover",
+        "idle"
+      ],
+      "endGame": 6.2798000000044665,
+      "endWall": 11768.70000000298,
+      "gameSeconds": 2.8395000000074453,
+      "wallSeconds": 3.7855,
+      "complete": true
+    },
+    {
+      "actorInstance": 1,
+      "id": "strike.colossus.right",
+      "startGame": 7.429100000001483,
+      "startWall": 13071.80000000447,
+      "phases": [
+        "windup",
+        "active",
+        "recover",
+        "idle"
+      ],
+      "endGame": 8.948800000011909,
+      "endWall": 15153.5,
+      "gameSeconds": 1.5197000000104257,
+      "wallSeconds": 2.0816999999955295,
+      "complete": true
+    },
+    {
+      "actorInstance": 2,
+      "id": "strike.colossus.left",
+      "startGame": 10.383000000014887,
+      "startWall": 16971.70000000298,
+      "phases": [
+        "windup",
+        "active",
+        "recover",
+        "idle"
+      ],
+      "endGame": 11.903200000010413,
+      "endWall": 18822.60000000149,
+      "gameSeconds": 1.5201999999955262,
+      "wallSeconds": 1.8508999999985098,
+      "complete": true
+    },
+    {
+      "actorInstance": 2,
+      "id": "strike.colossus.slam",
+      "startGame": 12.73470000001041,
+      "startWall": 19904,
+      "phases": [
+        "windup",
+        "active",
+        "recover",
+        "idle"
+      ],
+      "endGame": 14.589200000002956,
+      "endWall": 22022.30000000447,
+      "gameSeconds": 1.8544999999925462,
+      "wallSeconds": 2.1183000000044703,
+      "complete": true
+    },
+    {
+      "actorInstance": 2,
+      "id": "strike.colossus.right",
+      "startGame": 53.29679999999742,
+      "startWall": 83898.70000000298,
+      "phases": [
+        "windup",
+        "idle"
+      ],
+      "endGame": 53.49679999999742,
+      "endWall": 84101.70000000298,
+      "gameSeconds": 0.20000000000000284,
+      "wallSeconds": 0.203,
+      "complete": false
+    },
+    {
+      "actorInstance": 2,
+      "id": "strike.colossus.left",
+      "startGame": 56.42629999999745,
+      "startWall": 87983.30000000447,
+      "phases": [
+        "windup",
+        "idle"
+      ],
+      "endGame": 56.52629999999745,
+      "endWall": 88102.30000000447,
+      "gameSeconds": 0.10000000000000142,
+      "wallSeconds": 0.119,
+      "complete": false
+    },
+    {
+      "actorInstance": 2,
+      "id": "strike.colossus.right",
+      "startGame": 59.58819999999599,
+      "startWall": 92602.30000000447,
+      "phases": [
+        "windup",
+        "idle"
+      ],
+      "endGame": 59.688199999995994,
+      "endWall": 92710.30000000447,
+      "gameSeconds": 0.10000000000000142,
+      "wallSeconds": 0.108,
+      "complete": false
+    },
+    {
+      "actorInstance": 2,
+      "id": "strike.colossus.left",
+      "startGame": 61.283200000003454,
+      "startWall": 94874.20000000298,
+      "phases": [
+        "windup",
+        "idle"
+      ],
+      "endGame": 61.383200000003455,
+      "endWall": 94986.10000000149,
+      "gameSeconds": 0.10000000000000142,
+      "wallSeconds": 0.11189999999850989,
+      "complete": false
+    },
+    {
+      "actorInstance": 3,
+      "id": "strike.colossus.left",
+      "startGame": 77.0129000000061,
+      "startWall": 114759.5,
+      "phases": [
+        "windup",
+        "active",
+        "recover",
+        "idle"
+      ],
+      "endGame": 78.54480000001205,
+      "endWall": 116378.20000000298,
+      "gameSeconds": 1.5319000000059475,
+      "wallSeconds": 1.6187000000029803,
+      "complete": true
+    },
+    {
+      "actorInstance": 3,
+      "id": "strike.colossus.slam",
+      "startGame": 79.33040000000608,
+      "startWall": 117243.30000000447,
+      "phases": [
+        "windup",
+        "active",
+        "recover",
+        "idle"
+      ],
+      "endGame": 82.05910000000156,
+      "endWall": 120354.40000000596,
+      "gameSeconds": 2.7286999999954844,
+      "wallSeconds": 3.11110000000149,
+      "complete": true
+    },
+    {
+      "actorInstance": 3,
+      "id": "strike.colossus.right",
+      "startGame": 83.30780000000453,
+      "startWall": 121725.90000000596,
+      "phases": [
+        "windup",
+        "active",
+        "recover",
+        "idle"
+      ],
+      "endGame": 84.84300000000749,
+      "endWall": 123511.90000000596,
+      "gameSeconds": 1.535200000002959,
+      "wallSeconds": 1.786,
+      "complete": true
+    },
+    {
+      "actorInstance": 3,
+      "id": "strike.colossus.slam",
+      "startGame": 85.63460000000896,
+      "startWall": 124468.40000000596,
+      "phases": [
+        "windup",
+        "active",
+        "recover",
+        "idle"
+      ],
+      "endGame": 88.37540000002073,
+      "endWall": 128048.30000000447,
+      "gameSeconds": 2.740800000011774,
+      "wallSeconds": 3.57989999999851,
+      "complete": true
+    },
+    {
+      "actorInstance": 3,
+      "id": "strike.colossus.left",
+      "startGame": 89.55150000002963,
+      "startWall": 129419.5,
+      "phases": [
+        "windup",
+        "active",
+        "recover",
+        "idle"
+      ],
+      "endGame": 91.05300000003704,
+      "endWall": 131282.40000000596,
+      "gameSeconds": 1.501500000007411,
+      "wallSeconds": 1.8629000000059606,
+      "complete": true
+    },
+    {
+      "actorInstance": 3,
+      "id": "strike.colossus.slam",
+      "startGame": 91.93000000004446,
+      "startWall": 132205.20000000298,
+      "phases": [
+        "windup",
+        "active",
+        "idle"
+      ],
+      "endGame": 93.124000000037,
+      "endWall": 133580.30000000447,
+      "gameSeconds": 1.193999999992542,
+      "wallSeconds": 1.3751000000014901,
+      "complete": false
+    }
+  ],
+  "events": [
+    {
+      "event": "damage.dealt",
+      "actorInstance": 1,
+      "gameTime": 2.0710999999940403,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      },
+      "dealt": 18
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 1,
+      "gameTime": 4.536500000000001,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      },
+      "dealt": 22
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 11.355400000013395,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      },
+      "dealt": 18
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 13.814500000007428,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      },
+      "dealt": 22
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 14.589200000002956,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 18
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 15.494900000005936,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 16.53620000001041,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 17.956600000001483,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 19.25790000000596,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 20.46880000000448,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 21.800700000010455,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 23.30789999999855,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 24.554399999998562,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 25.99739999999858,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 27.5798999999986,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 28.979099999994144,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 30.461399999991176,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 31.84909999999417,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 33.024799999997164,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 34.17489999999867,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 35.333000000000176,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 36.53300000000019,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 37.87029999999723,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 38.903100000001714,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 39.90310000000173,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 41.103100000001746,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 42.12039999999878,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 43.41860000000178,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 44.45660000000179,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 45.3351000000018,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 46.13510000000181,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 46.83510000000182,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 47.635100000001835,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 16
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 48.82500000000036,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 50.415000000000376,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 51.73760000000187,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 53.49679999999742,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 54.93829999999743,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 56.52629999999745,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 58.03360000000194,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 59.688199999995994,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 61.383200000003455,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 62.87680000000495,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 2,
+      "gameTime": 64.34700000001537,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      },
+      "dealt": 12
+    },
+    {
+      "event": "actor.died",
+      "actorInstance": 2,
+      "gameTime": 64.34700000001537,
+      "target": {
+        "id": "practice.tideRootColossus",
+        "isCurrentEnemy": true,
+        "isCurrentPlayer": false
+      }
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 3,
+      "gameTime": 77.85350000000759,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      },
+      "dealt": 18
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 3,
+      "gameTime": 80.39629999999715,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      },
+      "dealt": 22
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 3,
+      "gameTime": 84.1600000000075,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      },
+      "dealt": 18
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 3,
+      "gameTime": 86.65180000001189,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      },
+      "dealt": 22
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 3,
+      "gameTime": 90.52080000003407,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      },
+      "dealt": 18
+    },
+    {
+      "event": "damage.dealt",
+      "actorInstance": 3,
+      "gameTime": 93.02420000003998,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      },
+      "dealt": 22
+    },
+    {
+      "event": "actor.died",
+      "actorInstance": 3,
+      "gameTime": 93.02420000003998,
+      "target": {
+        "id": "actor.player",
+        "isCurrentEnemy": false,
+        "isCurrentPlayer": true
+      }
+    }
+  ]
+}

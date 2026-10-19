@@ -1,0 +1,1539 @@
+{
+  "scope": "Sampled union of exact two captured corpse sequences plus last living pose, NOT a complete dense animation admission envelope. Fixed-orientation support gaps assume vertical translation only, not a prediction of new physics orientation.",
+  "minimum": [
+    -1.9146101709064225,
+    0.0,
+    -1.590221881866455
+  ],
+  "maximum": [
+    1.889983237402568,
+    3.4821503162384033,
+    1.8364860585794887
+  ],
+  "center": [
+    -0.012313466751927238,
+    1.7410751581192017,
+    0.12313208835651679
+  ],
+  "halfExtents": [
+    1.9022967041544954,
+    1.7410751581192017,
+    1.7133539702229719
+  ],
+  "observations": 187,
+  "maximumSupportGap": 1.1982676047974792,
+  "worstGap": {
+    "capture": 0,
+    "frame": 267,
+    "gameTime": 22.826600000008984,
+    "meshMinimum": 0.20504686804304129,
+    "boxMinimum": -0.9932207367544379,
+    "supportGap": 1.1982676047974792
+  },
+  "newWorstPenetrationFrame": {
+    "capture": 1,
+    "frame": 449,
+    "gameTime": 40.902700000025604,
+    "meshMinimum": -0.8564556849935343,
+    "boxMinimum": -0.9252700547702943,
+    "supportGap": 0.06881436977676003
+  },
+  "rows": [
+    {
+      "capture": 0,
+      "frame": 244,
+      "gameTime": 20.92390000000598,
+      "meshMinimum": 0.0,
+      "boxMinimum": 0.0,
+      "supportGap": 0.0
+    },
+    {
+      "capture": 0,
+      "frame": 245,
+      "gameTime": 21.02390000000598,
+      "meshMinimum": 0.0,
+      "boxMinimum": 0.0,
+      "supportGap": 0.0
+    },
+    {
+      "capture": 0,
+      "frame": 246,
+      "gameTime": 21.123900000005982,
+      "meshMinimum": 0.1318794730971149,
+      "boxMinimum": -0.13904291311200723,
+      "supportGap": 0.2709223862091221
+    },
+    {
+      "capture": 0,
+      "frame": 247,
+      "gameTime": 21.223900000005983,
+      "meshMinimum": 0.37688741822682914,
+      "boxMinimum": -0.37238740701320694,
+      "supportGap": 0.7492748252400361
+    },
+    {
+      "capture": 0,
+      "frame": 248,
+      "gameTime": 21.323900000005985,
+      "meshMinimum": 0.3829485074729746,
+      "boxMinimum": -0.45158832919537417,
+      "supportGap": 0.8345368366683488
+    },
+    {
+      "capture": 0,
+      "frame": 249,
+      "gameTime": 21.348300000004496,
+      "meshMinimum": 0.39434895600038544,
+      "boxMinimum": -0.5278994703481885,
+      "supportGap": 0.922248426348574
+    },
+    {
+      "capture": 0,
+      "frame": 250,
+      "gameTime": 21.448300000004497,
+      "meshMinimum": 0.342598413566634,
+      "boxMinimum": -0.6163725021782511,
+      "supportGap": 0.9589709157448851
+    },
+    {
+      "capture": 0,
+      "frame": 251,
+      "gameTime": 21.5483000000045,
+      "meshMinimum": 0.28156427179987986,
+      "boxMinimum": -0.7199910759194381,
+      "supportGap": 1.001555347719318
+    },
+    {
+      "capture": 0,
+      "frame": 252,
+      "gameTime": 21.6483000000045,
+      "meshMinimum": 0.2445372278383502,
+      "boxMinimum": -0.7805144100802863,
+      "supportGap": 1.0250516379186365
+    },
+    {
+      "capture": 0,
+      "frame": 253,
+      "gameTime": 21.7483000000045,
+      "meshMinimum": 0.22601299933478458,
+      "boxMinimum": -0.8235307245114427,
+      "supportGap": 1.0495437238462273
+    },
+    {
+      "capture": 0,
+      "frame": 254,
+      "gameTime": 21.75970000000301,
+      "meshMinimum": 0.22593588310144241,
+      "boxMinimum": -0.835658540398299,
+      "supportGap": 1.0615944234997414
+    },
+    {
+      "capture": 0,
+      "frame": 255,
+      "gameTime": 21.84310000000897,
+      "meshMinimum": 0.22448658847497427,
+      "boxMinimum": -0.8594997402481113,
+      "supportGap": 1.0839863287230855
+    },
+    {
+      "capture": 0,
+      "frame": 256,
+      "gameTime": 21.85000000000748,
+      "meshMinimum": 0.22624040879429685,
+      "boxMinimum": -0.872545569399449,
+      "supportGap": 1.098785978193746
+    },
+    {
+      "capture": 0,
+      "frame": 257,
+      "gameTime": 21.95000000000748,
+      "meshMinimum": 0.22607031765460306,
+      "boxMinimum": -0.8995042337541008,
+      "supportGap": 1.1255745514087039
+    },
+    {
+      "capture": 0,
+      "frame": 258,
+      "gameTime": 22.050000000007483,
+      "meshMinimum": 0.22230877178117225,
+      "boxMinimum": -0.9216917270032354,
+      "supportGap": 1.1440004987844077
+    },
+    {
+      "capture": 0,
+      "frame": 259,
+      "gameTime": 22.150000000007484,
+      "meshMinimum": 0.21883671881153077,
+      "boxMinimum": -0.9399411660823489,
+      "supportGap": 1.1587778848938797
+    },
+    {
+      "capture": 0,
+      "frame": 260,
+      "gameTime": 22.250000000007486,
+      "meshMinimum": 0.21570281725496443,
+      "boxMinimum": -0.9548057675503969,
+      "supportGap": 1.1705085848053614
+    },
+    {
+      "capture": 0,
+      "frame": 261,
+      "gameTime": 22.350000000007487,
+      "meshMinimum": 0.21302872799913075,
+      "boxMinimum": -0.9666823805787317,
+      "supportGap": 1.1797111085778624
+    },
+    {
+      "capture": 0,
+      "frame": 262,
+      "gameTime": 22.374300000004506,
+      "meshMinimum": 0.21225022416831507,
+      "boxMinimum": -0.9698336628326842,
+      "supportGap": 1.1820838870009993
+    },
+    {
+      "capture": 0,
+      "frame": 263,
+      "gameTime": 22.474300000004508,
+      "meshMinimum": 0.2104209257565799,
+      "boxMinimum": -0.9769187810318272,
+      "supportGap": 1.187339706788407
+    },
+    {
+      "capture": 0,
+      "frame": 264,
+      "gameTime": 22.561400000006,
+      "meshMinimum": 0.20816956344697246,
+      "boxMinimum": -0.9850936582337226,
+      "supportGap": 1.193263221680695
+    },
+    {
+      "capture": 0,
+      "frame": 265,
+      "gameTime": 22.63560000000898,
+      "meshMinimum": 0.20747290823817366,
+      "boxMinimum": -0.9874534677942393,
+      "supportGap": 1.194926376032413
+    },
+    {
+      "capture": 0,
+      "frame": 266,
+      "gameTime": 22.726600000008983,
+      "meshMinimum": 0.20574044245995537,
+      "boxMinimum": -0.9921169194146842,
+      "supportGap": 1.1978573618746395
+    },
+    {
+      "capture": 0,
+      "frame": 267,
+      "gameTime": 22.826600000008984,
+      "meshMinimum": 0.20504686804304129,
+      "boxMinimum": -0.9932207367544379,
+      "supportGap": 1.1982676047974792
+    },
+    {
+      "capture": 0,
+      "frame": 268,
+      "gameTime": 22.910200000010473,
+      "meshMinimum": 0.20470790452100118,
+      "boxMinimum": -0.9926428230825195,
+      "supportGap": 1.1973507276035207
+    },
+    {
+      "capture": 0,
+      "frame": 269,
+      "gameTime": 22.926600000008982,
+      "meshMinimum": 0.20459061725387073,
+      "boxMinimum": -0.9917096595627299,
+      "supportGap": 1.1963002768166007
+    },
+    {
+      "capture": 0,
+      "frame": 270,
+      "gameTime": 23.00810000000898,
+      "meshMinimum": 0.20467904460417685,
+      "boxMinimum": -0.9898014373118258,
+      "supportGap": 1.1944804819160026
+    },
+    {
+      "capture": 0,
+      "frame": 271,
+      "gameTime": 23.09890000001345,
+      "meshMinimum": 0.20531677110557212,
+      "boxMinimum": -0.9831329705315284,
+      "supportGap": 1.1884497416371005
+    },
+    {
+      "capture": 0,
+      "frame": 272,
+      "gameTime": 23.18250000001494,
+      "meshMinimum": 0.20629874795884007,
+      "boxMinimum": -0.975889891129782,
+      "supportGap": 1.182188639088622
+    },
+    {
+      "capture": 0,
+      "frame": 273,
+      "gameTime": 23.26140000001345,
+      "meshMinimum": 0.20710880457647818,
+      "boxMinimum": -0.9692847162729095,
+      "supportGap": 1.1763935208493876
+    },
+    {
+      "capture": 0,
+      "frame": 274,
+      "gameTime": 23.347800000011958,
+      "meshMinimum": 0.20870311909652628,
+      "boxMinimum": -0.9563233657271439,
+      "supportGap": 1.1650264848236702
+    },
+    {
+      "capture": 0,
+      "frame": 275,
+      "gameTime": 23.426300000011956,
+      "meshMinimum": 0.20987590731556338,
+      "boxMinimum": -0.946606420972671,
+      "supportGap": 1.1564823282882344
+    },
+    {
+      "capture": 0,
+      "frame": 276,
+      "gameTime": 23.523400000013446,
+      "meshMinimum": 0.21140412766771988,
+      "boxMinimum": -0.9335704881463016,
+      "supportGap": 1.1449746158140215
+    },
+    {
+      "capture": 0,
+      "frame": 277,
+      "gameTime": 23.609300000011956,
+      "meshMinimum": 0.21374480773795312,
+      "boxMinimum": -0.911558853348879,
+      "supportGap": 1.125303661086832
+    },
+    {
+      "capture": 0,
+      "frame": 278,
+      "gameTime": 23.709300000011957,
+      "meshMinimum": 0.2131967696625452,
+      "boxMinimum": -0.888313910052716,
+      "supportGap": 1.1015106797152612
+    },
+    {
+      "capture": 0,
+      "frame": 279,
+      "gameTime": 23.727000000014936,
+      "meshMinimum": 0.2099153912319025,
+      "boxMinimum": -0.8705753692651115,
+      "supportGap": 1.080490760497014
+    },
+    {
+      "capture": 0,
+      "frame": 280,
+      "gameTime": 23.827000000014937,
+      "meshMinimum": 0.20546281494580398,
+      "boxMinimum": -0.8481164660530567,
+      "supportGap": 1.0535792809988607
+    },
+    {
+      "capture": 0,
+      "frame": 281,
+      "gameTime": 23.908300000011955,
+      "meshMinimum": 0.19948858941882008,
+      "boxMinimum": -0.8172758249465915,
+      "supportGap": 1.0167644143654115
+    },
+    {
+      "capture": 0,
+      "frame": 282,
+      "gameTime": 23.985400000013446,
+      "meshMinimum": 0.19481536279590728,
+      "boxMinimum": -0.7925471314564447,
+      "supportGap": 0.987362494252352
+    },
+    {
+      "capture": 0,
+      "frame": 283,
+      "gameTime": 24.081800000011956,
+      "meshMinimum": 0.17759435514938104,
+      "boxMinimum": -0.7046368868087711,
+      "supportGap": 0.8822312419581522
+    },
+    {
+      "capture": 0,
+      "frame": 284,
+      "gameTime": 24.153300000011956,
+      "meshMinimum": 0.17413474263230455,
+      "boxMinimum": -0.6876771468043898,
+      "supportGap": 0.8618118894366944
+    },
+    {
+      "capture": 0,
+      "frame": 285,
+      "gameTime": 24.238300000011957,
+      "meshMinimum": 0.15947744464608604,
+      "boxMinimum": -0.6157333948544874,
+      "supportGap": 0.7752108395005735
+    },
+    {
+      "capture": 0,
+      "frame": 286,
+      "gameTime": 24.26850000001494,
+      "meshMinimum": 0.1476550203781244,
+      "boxMinimum": -0.5565849739099349,
+      "supportGap": 0.7042399942880593
+    },
+    {
+      "capture": 0,
+      "frame": 287,
+      "gameTime": 24.323800000011957,
+      "meshMinimum": 0.1207756879448425,
+      "boxMinimum": -0.46759740139475525,
+      "supportGap": 0.5883730893395978
+    },
+    {
+      "capture": 0,
+      "frame": 288,
+      "gameTime": 24.406500000014937,
+      "meshMinimum": 0.07954055761058498,
+      "boxMinimum": -0.3705576369134178,
+      "supportGap": 0.4500981945240028
+    },
+    {
+      "capture": 0,
+      "frame": 289,
+      "gameTime": 24.486500000014935,
+      "meshMinimum": 0.04172098201922836,
+      "boxMinimum": -0.2802214005557744,
+      "supportGap": 0.32194238257500274
+    },
+    {
+      "capture": 0,
+      "frame": 290,
+      "gameTime": 24.577100000008976,
+      "meshMinimum": 0.009722635911430189,
+      "boxMinimum": -0.14564575125154988,
+      "supportGap": 0.15536838716298007
+    },
+    {
+      "capture": 0,
+      "frame": 291,
+      "gameTime": 24.644300000011956,
+      "meshMinimum": 0.013128192708222741,
+      "boxMinimum": -0.12449916593925536,
+      "supportGap": 0.1376273586474781
+    },
+    {
+      "capture": 0,
+      "frame": 292,
+      "gameTime": 24.744300000011958,
+      "meshMinimum": 0.0059918437618762255,
+      "boxMinimum": -0.1216304317047161,
+      "supportGap": 0.12762227546659233
+    },
+    {
+      "capture": 0,
+      "frame": 293,
+      "gameTime": 24.763600000008978,
+      "meshMinimum": 0.0023947305180627154,
+      "boxMinimum": -0.12010207805724349,
+      "supportGap": 0.1224968085753062
+    },
+    {
+      "capture": 0,
+      "frame": 294,
+      "gameTime": 24.86360000000898,
+      "meshMinimum": 0.002402010101832275,
+      "boxMinimum": -0.12010135499394892,
+      "supportGap": 0.12250336509578119
+    },
+    {
+      "capture": 0,
+      "frame": 295,
+      "gameTime": 24.96360000000898,
+      "meshMinimum": 0.0023998181982278766,
+      "boxMinimum": -0.12009818259684835,
+      "supportGap": 0.12249800079507622
+    },
+    {
+      "capture": 0,
+      "frame": 296,
+      "gameTime": 25.04820000000302,
+      "meshMinimum": 0.0023930882531431052,
+      "boxMinimum": -0.120088979749994,
+      "supportGap": 0.1224820680031371
+    },
+    {
+      "capture": 0,
+      "frame": 297,
+      "gameTime": 25.134700000003022,
+      "meshMinimum": 0.002391656536701703,
+      "boxMinimum": -0.12008703026697276,
+      "supportGap": 0.12247868680367446
+    },
+    {
+      "capture": 0,
+      "frame": 298,
+      "gameTime": 25.211100000008983,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 299,
+      "gameTime": 25.292900000006004,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 300,
+      "gameTime": 25.392900000006005,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 301,
+      "gameTime": 25.492900000006006,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 302,
+      "gameTime": 25.585000000007497,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 303,
+      "gameTime": 25.672800000004518,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 304,
+      "gameTime": 25.756600000001537,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 305,
+      "gameTime": 25.853200000003028,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 306,
+      "gameTime": 25.923900000006007,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 307,
+      "gameTime": 25.940400000006008,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 308,
+      "gameTime": 26.04040000000601,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 309,
+      "gameTime": 26.13040000000601,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 310,
+      "gameTime": 26.23010000000154,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 311,
+      "gameTime": 26.31870000000303,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 312,
+      "gameTime": 26.40820000000303,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 313,
+      "gameTime": 26.502000000000052,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 314,
+      "gameTime": 26.580300000004524,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 315,
+      "gameTime": 26.663600000001544,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 316,
+      "gameTime": 26.747100000001545,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 317,
+      "gameTime": 26.835700000003037,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 318,
+      "gameTime": 26.920100000001547,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 319,
+      "gameTime": 27.02010000000155,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 320,
+      "gameTime": 27.103700000003037,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 321,
+      "gameTime": 27.12490000000602,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 322,
+      "gameTime": 27.22490000000602,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 323,
+      "gameTime": 27.32490000000602,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 324,
+      "gameTime": 27.424900000006023,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 325,
+      "gameTime": 27.48750000000751,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 326,
+      "gameTime": 27.56480000001198,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 327,
+      "gameTime": 27.659600000009,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 328,
+      "gameTime": 27.74990000000602,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 329,
+      "gameTime": 27.837400000006017,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 330,
+      "gameTime": 27.915800000011977,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 331,
+      "gameTime": 28.006400000006018,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 332,
+      "gameTime": 28.084600000008997,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 333,
+      "gameTime": 28.166100000008996,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 334,
+      "gameTime": 28.247800000011974,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 335,
+      "gameTime": 28.329200000010484,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 336,
+      "gameTime": 28.415500000007505,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 337,
+      "gameTime": 28.495300000011976,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 338,
+      "gameTime": 28.509400000006018,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 339,
+      "gameTime": 28.60940000000602,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 340,
+      "gameTime": 28.68820000000304,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 341,
+      "gameTime": 28.76540000000602,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 342,
+      "gameTime": 28.854900000006023,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 343,
+      "gameTime": 28.948500000007513,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 344,
+      "gameTime": 29.038000000007514,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 345,
+      "gameTime": 29.110200000003044,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 346,
+      "gameTime": 29.195900000006024,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 347,
+      "gameTime": 29.295900000006025,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 348,
+      "gameTime": 29.385800000004537,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 349,
+      "gameTime": 29.471800000004535,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 350,
+      "gameTime": 29.554200000003046,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 351,
+      "gameTime": 29.568500000007518,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 352,
+      "gameTime": 29.66850000000752,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 353,
+      "gameTime": 29.76850000000752,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 354,
+      "gameTime": 29.860100000009012,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 355,
+      "gameTime": 29.9452000000105,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 356,
+      "gameTime": 30.03010000000901,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 357,
+      "gameTime": 30.12740000000603,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 358,
+      "gameTime": 30.227400000006032,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 359,
+      "gameTime": 30.32170000000305,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 360,
+      "gameTime": 30.406700000003053,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 361,
+      "gameTime": 30.48600000000007,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 362,
+      "gameTime": 30.57730000000454,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 363,
+      "gameTime": 30.587100000001563,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 364,
+      "gameTime": 30.667000000000073,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 365,
+      "gameTime": 30.767000000000074,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 366,
+      "gameTime": 30.807000000000073,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 367,
+      "gameTime": 30.897000000000073,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 368,
+      "gameTime": 30.971599999994112,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 369,
+      "gameTime": 31.051199999995603,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 370,
+      "gameTime": 31.130599999994114,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 371,
+      "gameTime": 31.230599999994116,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 372,
+      "gameTime": 31.313899999991136,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 373,
+      "gameTime": 31.393899999991135,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 374,
+      "gameTime": 31.485899999991133,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 375,
+      "gameTime": 31.566999999992625,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 376,
+      "gameTime": 31.651099999994116,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 377,
+      "gameTime": 31.749499999992626,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 378,
+      "gameTime": 31.824099999994115,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 379,
+      "gameTime": 31.907299999989643,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 380,
+      "gameTime": 31.992099999994114,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 381,
+      "gameTime": 32.078299999989646,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 382,
+      "gameTime": 32.15719999998816,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 383,
+      "gameTime": 32.25719999998816,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 384,
+      "gameTime": 32.33879999998965,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 385,
+      "gameTime": 32.42339999998369,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 386,
+      "gameTime": 32.512999999985176,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 387,
+      "gameTime": 32.528999999985174,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 388,
+      "gameTime": 32.60519999998815,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 0,
+      "frame": 389,
+      "gameTime": 32.68369999998815,
+      "meshMinimum": 0.002395423196844604,
+      "boxMinimum": -0.12009208358449541,
+      "supportGap": 0.12248750678134002
+    },
+    {
+      "capture": 1,
+      "frame": 411,
+      "gameTime": 37.42580000002705,
+      "meshMinimum": 0.0,
+      "boxMinimum": 0.0,
+      "supportGap": 0.0
+    },
+    {
+      "capture": 1,
+      "frame": 412,
+      "gameTime": 37.525800000027054,
+      "meshMinimum": 0.0,
+      "boxMinimum": 0.0,
+      "supportGap": 0.0
+    },
+    {
+      "capture": 1,
+      "frame": 413,
+      "gameTime": 37.59660000003152,
+      "meshMinimum": -0.06594738008527656,
+      "boxMinimum": -0.2552430484880688,
+      "supportGap": 0.18929566840279222
+    },
+    {
+      "capture": 1,
+      "frame": 414,
+      "gameTime": 37.69660000003152,
+      "meshMinimum": 0.46277252440097527,
+      "boxMinimum": -0.38477919223555546,
+      "supportGap": 0.8475517166365307
+    },
+    {
+      "capture": 1,
+      "frame": 415,
+      "gameTime": 37.796600000031525,
+      "meshMinimum": 0.49127510891514703,
+      "boxMinimum": -0.46100808367805257,
+      "supportGap": 0.9522831925931996
+    },
+    {
+      "capture": 1,
+      "frame": 416,
+      "gameTime": 37.896600000031526,
+      "meshMinimum": 0.4936419137596886,
+      "boxMinimum": -0.5463600176706223,
+      "supportGap": 1.0400019314303108
+    },
+    {
+      "capture": 1,
+      "frame": 417,
+      "gameTime": 37.99660000003153,
+      "meshMinimum": 0.46332981220314196,
+      "boxMinimum": -0.6398852942480744,
+      "supportGap": 1.1032151064512163
+    },
+    {
+      "capture": 1,
+      "frame": 418,
+      "gameTime": 38.09660000003153,
+      "meshMinimum": 0.3912687344082997,
+      "boxMinimum": -0.7218468320372722,
+      "supportGap": 1.1131155664455719
+    },
+    {
+      "capture": 1,
+      "frame": 419,
+      "gameTime": 38.19660000003153,
+      "meshMinimum": 0.33083217637636153,
+      "boxMinimum": -0.7713710677529662,
+      "supportGap": 1.1022032441293277
+    },
+    {
+      "capture": 1,
+      "frame": 420,
+      "gameTime": 38.29660000003153,
+      "meshMinimum": 0.29359017092599515,
+      "boxMinimum": -0.8068000577450221,
+      "supportGap": 1.1003902286710172
+    },
+    {
+      "capture": 1,
+      "frame": 421,
+      "gameTime": 38.33810000003153,
+      "meshMinimum": 0.2824684168542717,
+      "boxMinimum": -0.8216544908308379,
+      "supportGap": 1.1041229076851096
+    },
+    {
+      "capture": 1,
+      "frame": 422,
+      "gameTime": 38.43810000003153,
+      "meshMinimum": 0.26251213242426275,
+      "boxMinimum": -0.8475652502995672,
+      "supportGap": 1.11007738272383
+    },
+    {
+      "capture": 1,
+      "frame": 423,
+      "gameTime": 38.538100000031534,
+      "meshMinimum": 0.24373869520786684,
+      "boxMinimum": -0.8682366698153601,
+      "supportGap": 1.111975365023227
+    },
+    {
+      "capture": 1,
+      "frame": 424,
+      "gameTime": 38.638100000031535,
+      "meshMinimum": 0.22600932898171777,
+      "boxMinimum": -0.8842934540355145,
+      "supportGap": 1.1103027830172323
+    },
+    {
+      "capture": 1,
+      "frame": 425,
+      "gameTime": 38.73810000003154,
+      "meshMinimum": 0.20914727800402488,
+      "boxMinimum": -0.8963169625329783,
+      "supportGap": 1.1054642405370032
+    },
+    {
+      "capture": 1,
+      "frame": 426,
+      "gameTime": 38.83810000003154,
+      "meshMinimum": 0.192777714724798,
+      "boxMinimum": -0.9047914649286213,
+      "supportGap": 1.0975691796534193
+    },
+    {
+      "capture": 1,
+      "frame": 427,
+      "gameTime": 38.93810000003154,
+      "meshMinimum": 0.17689139034507662,
+      "boxMinimum": -0.9097409844505364,
+      "supportGap": 1.086632374795613
+    },
+    {
+      "capture": 1,
+      "frame": 428,
+      "gameTime": 39.03810000003154,
+      "meshMinimum": 0.16113384613038306,
+      "boxMinimum": -0.9114324752762286,
+      "supportGap": 1.0725663214066117
+    },
+    {
+      "capture": 1,
+      "frame": 429,
+      "gameTime": 39.13810000003154,
+      "meshMinimum": 0.14525493766734598,
+      "boxMinimum": -0.9098966563424256,
+      "supportGap": 1.0551515940097715
+    },
+    {
+      "capture": 1,
+      "frame": 430,
+      "gameTime": 39.19350000003005,
+      "meshMinimum": 0.123461295512584,
+      "boxMinimum": -0.9027630216538682,
+      "supportGap": 1.0262243171664522
+    },
+    {
+      "capture": 1,
+      "frame": 431,
+      "gameTime": 39.29350000003005,
+      "meshMinimum": 0.10619571089068813,
+      "boxMinimum": -0.8932985267247204,
+      "supportGap": 0.9994942376154086
+    },
+    {
+      "capture": 1,
+      "frame": 432,
+      "gameTime": 39.39350000003005,
+      "meshMinimum": 0.0877144975745523,
+      "boxMinimum": -0.8801044397030182,
+      "supportGap": 0.9678189372775705
+    },
+    {
+      "capture": 1,
+      "frame": 433,
+      "gameTime": 39.49350000003005,
+      "meshMinimum": 0.06776336178768361,
+      "boxMinimum": -0.8626800119076279,
+      "supportGap": 0.9304433736953115
+    },
+    {
+      "capture": 1,
+      "frame": 434,
+      "gameTime": 39.593500000030055,
+      "meshMinimum": 0.039960226389325726,
+      "boxMinimum": -0.8403770972352049,
+      "supportGap": 0.8803373236245307
+    },
+    {
+      "capture": 1,
+      "frame": 435,
+      "gameTime": 39.693500000030056,
+      "meshMinimum": -0.007663866639518346,
+      "boxMinimum": -0.8126014826791561,
+      "supportGap": 0.8049376160396378
+    },
+    {
+      "capture": 1,
+      "frame": 436,
+      "gameTime": 39.70830000002707,
+      "meshMinimum": -0.036536792691208575,
+      "boxMinimum": -0.7939954469992472,
+      "supportGap": 0.7574586543080386
+    },
+    {
+      "capture": 1,
+      "frame": 437,
+      "gameTime": 39.808300000027074,
+      "meshMinimum": -0.0729915569578452,
+      "boxMinimum": -0.7701007873492927,
+      "supportGap": 0.6971092303914475
+    },
+    {
+      "capture": 1,
+      "frame": 438,
+      "gameTime": 39.908300000027076,
+      "meshMinimum": -0.13251239015426108,
+      "boxMinimum": -0.7268770622207512,
+      "supportGap": 0.5943646720664901
+    },
+    {
+      "capture": 1,
+      "frame": 439,
+      "gameTime": 40.00830000002708,
+      "meshMinimum": -0.19453487777377632,
+      "boxMinimum": -0.6743411014962248,
+      "supportGap": 0.4798062237224485
+    },
+    {
+      "capture": 1,
+      "frame": 440,
+      "gameTime": 40.02170000002559,
+      "meshMinimum": -0.2379567491935859,
+      "boxMinimum": -0.6548540226257273,
+      "supportGap": 0.41689727343214145
+    },
+    {
+      "capture": 1,
+      "frame": 441,
+      "gameTime": 40.12170000002559,
+      "meshMinimum": -0.2635871608747493,
+      "boxMinimum": -0.6605582383446063,
+      "supportGap": 0.39697107746985694
+    },
+    {
+      "capture": 1,
+      "frame": 442,
+      "gameTime": 40.22170000002559,
+      "meshMinimum": -0.36591498702364333,
+      "boxMinimum": -0.6699474206160403,
+      "supportGap": 0.30403243359239696
+    },
+    {
+      "capture": 1,
+      "frame": 443,
+      "gameTime": 40.321700000025594,
+      "meshMinimum": -0.5543192581657195,
+      "boxMinimum": -0.6620167100879826,
+      "supportGap": 0.1076974519222631
+    },
+    {
+      "capture": 1,
+      "frame": 444,
+      "gameTime": 40.421700000025595,
+      "meshMinimum": -0.6732048677645253,
+      "boxMinimum": -0.7492450425166908,
+      "supportGap": 0.07604017475216551
+    },
+    {
+      "capture": 1,
+      "frame": 445,
+      "gameTime": 40.5217000000256,
+      "meshMinimum": -0.7612116190621236,
+      "boxMinimum": -0.8135437804596677,
+      "supportGap": 0.05233216139754404
+    },
+    {
+      "capture": 1,
+      "frame": 446,
+      "gameTime": 40.6217000000256,
+      "meshMinimum": -0.8031341313958364,
+      "boxMinimum": -0.8636555799720327,
+      "supportGap": 0.060521448576196235
+    },
+    {
+      "capture": 1,
+      "frame": 447,
+      "gameTime": 40.7217000000256,
+      "meshMinimum": -0.8340135797632229,
+      "boxMinimum": -0.8986139218028484,
+      "supportGap": 0.0646003420396255
+    },
+    {
+      "capture": 1,
+      "frame": 448,
+      "gameTime": 40.8217000000256,
+      "meshMinimum": -0.850979983905404,
+      "boxMinimum": -0.9187623801326481,
+      "supportGap": 0.06778239622724413
+    },
+    {
+      "capture": 1,
+      "frame": 449,
+      "gameTime": 40.902700000025604,
+      "meshMinimum": -0.8564556849935343,
+      "boxMinimum": -0.9252700547702943,
+      "supportGap": 0.06881436977676003
+    },
+    {
+      "capture": 1,
+      "frame": 450,
+      "gameTime": 41.002700000025605,
+      "meshMinimum": -0.85131127108491,
+      "boxMinimum": -0.9191480886607906,
+      "supportGap": 0.06783681757588056
+    },
+    {
+      "capture": 1,
+      "frame": 451,
+      "gameTime": 41.09540000002114,
+      "meshMinimum": -0.8189194161033129,
+      "boxMinimum": -0.8806506846935918,
+      "supportGap": 0.06173126859027889
+    }
+  ]
+}

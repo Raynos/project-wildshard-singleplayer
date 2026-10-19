@@ -1,0 +1,114 @@
+{
+  "schema": "wildshard.bellback.full-combat-evidence.v1",
+  "files": {
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/build-files.json": {
+      "sha256": "b5f00549dda51258469daeb6e879ce856a9abec632fd69a618dec4040b6b8795",
+      "bytes": 37519
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/closure.json": {
+      "sha256": "85b676f9c68a5659bdd4e38a7cc13e244c50c132c918e7ca7d9b592d668839a1",
+      "bytes": 2646
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/closure.json": {
+      "sha256": "295e2fa160cd2883be69508c69b88f5525d35cb1795fe95a1f3b38525ab7c712",
+      "bytes": 4944
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/analysis.json": {
+      "sha256": "9a9918e5c6e295b5f30e9d84cb1ddacf1567a0305e50774683cf658671213e56",
+      "bytes": 34260
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/both-strikes-observation.jpg": {
+      "sha256": "38014c8f80b319258d25fe8fd6b62b4bb28de27f44610f730b27f9646c542a89",
+      "bytes": 61725
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/corpse-reward.jpg": {
+      "sha256": "48d0973282d6c81aaa13300b6cfa669f5720c11cfeca18b0f231b12fcb407172",
+      "bytes": 52923
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/corpse-transforms.json": {
+      "sha256": "fc2a01b088bb4d745b73bb4a0842fc84b1d25295f03a9eb91eea942723b43a86",
+      "bytes": 16260
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/entry.jpg": {
+      "sha256": "a2067576ad7bbbb860c6e5618326f1b6322def91fdd5a0b295118100a5e8169f",
+      "bytes": 60299
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/independent-contact.json": {
+      "sha256": "e7216aae456aad867475382607eb7dcb486324057051e391421940bfbc2ff33d",
+      "bytes": 266067
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/interruption-recovery.jpg": {
+      "sha256": "2608ead471d205758557af7c3ca1f4a85ad7ddf9ffa947f530040bbd4f681662",
+      "bytes": 59203
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/late-roll-context.jpg": {
+      "sha256": "a5f37970c1e88aa5cacd6a74d80754784fe952b342a0fa49d7ca4ee366a325df",
+      "bytes": 51979
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/player-defeat.jpg": {
+      "sha256": "3030e233e730bdc309c10d35e89f2859ef68348d7cf16fb698ceb9f90ac0440e",
+      "bytes": 59882
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/render-trace.json": {
+      "sha256": "21654700da662f6b54887b4e21493a5fcb3d7666de2a34eb0eedd68dc34720a5",
+      "bytes": 1119748
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/report.json": {
+      "sha256": "df8972180160524693bef3705f2977d1755383e36d8104b8d467de614f4da5ae",
+      "bytes": 719374
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/summarize.py": {
+      "sha256": "6f12c93f6b232e18eafb14376ab6c18551d730fa6b4dbbba4ee9d04cfebbb10e",
+      "bytes": 1366
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/sword-result.jpg": {
+      "sha256": "83af7ce451ae38031d254ba02983d0b401420467ca6d8e8ea6b768629724b3b3",
+      "bytes": 55957
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/video.json": {
+      "sha256": "2bdc9da75633e1c58eaf4c3cb3527ee9e29ffa55e11bd585485e49d207d45713",
+      "bytes": 396
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/worst-roll-context.jpg": {
+      "sha256": "d70ce130ee774bb4c08f2a4895776821dfe4d29c02e6e2893df7971fd1a42064",
+      "bytes": 54475
+    },
+    "docs/reviews/bellback-anatomy3-full-combat.md": {
+      "bytes": 6576,
+      "sha256": "3991d6fbce9c259391bb5914ed37ffb4b1a1b3de6ea0fe3f2a2bcd0cdde826b4"
+    },
+    "scripts/analyze-bellback-full-combat.py": {
+      "sha256": "8c551dab6fb18e188941c60eb8fb97f0132af003f0afbdd3e28096e57a525b5a",
+      "bytes": 3258
+    },
+    "scripts/qa-bellback-full-combat.mjs": {
+      "sha256": "fa047deb3cc4e8f7c472069409b785ee6ed86e0ccee84e3373de1c26553eaccd",
+      "bytes": 18077
+    },
+    "scripts/qa-bellback-natural-approach.mjs": {
+      "sha256": "50420e5765de8eca9c133d53643975d3954db2f068229b71d1873750a52c8886",
+      "bytes": 10719
+    },
+    "tmp/bellback-anatomy3-full-combat/video/page@3d92574d3b68676ea868654acd8d2bc6.webm": {
+      "sha256": "9a2db7ae33b77921c246851b462237b2c8fa2650987438aefee2e9fb99166ada",
+      "bytes": 9123215,
+      "storage": "ignored raw capture; not copied to ordinary repository"
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/sampled-box-support.json": {
+      "sha256": "624e9f51b044429dda3f4036fc097e98579800fddfbe820ea7bc491e6f9338a8",
+      "bytes": 40966
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/box-support.py": {
+      "sha256": "f16461a10f581a9bfb61efd123ea144287a8c3c0c67ff24de758495580b4ec16",
+      "bytes": 2492
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/world-contact-location.json": {
+      "sha256": "8a53474a53a9dedf44be7be0d69eff01458ad6335142d5b9f457fc66d49e4349",
+      "bytes": 518
+    },
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/qa-lint-revision.json": {
+      "bytes": 836,
+      "sha256": "e4769c965d6d75756bcd74f52e78d8500a5415ae7c930726562256d376033d87"
+    }
+  }
+}

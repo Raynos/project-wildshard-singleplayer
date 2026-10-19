@@ -1,0 +1,91 @@
+{
+  "schema": "wildshard.colossus.native-preview.v1",
+  "candidate": "V4-skin1-native22-motion2",
+  "mode": "motion2",
+  "admission": {
+    "schema": "wildshard.colossus.arena-candidate.v1",
+    "candidate": "V4-skin1-native22-motion2",
+    "visualAcceptance": false,
+    "colliderAcceptance": false,
+    "runtimeAcceptance": false,
+    "worldCorpseContactAccepted": false,
+    "rootFlinch": "authored-pose",
+    "files": {
+      "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/payload.bin": {
+        "sha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46",
+        "bytes": 76711
+      },
+      "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/metadata.json": {
+        "sha256": "1ddb3e8fc73496e44434b325b66ea2c2f39bce5acecae0507b3fc22eb762c8ce",
+        "bytes": 4811
+      },
+      "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/colossus-v4-native.json": {
+        "sha256": "32c4f9b55c5303e75877c8abae7765947a3814c39bb15d3c7a0046e61cb93641",
+        "bytes": 2395775
+      },
+      "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/mesh-map.json": {
+        "sha256": "6549ca21f174ac4e5eb045d869eb1f755eddebf6c42d9850b26a0906fe92f79b",
+        "bytes": 91837
+      },
+      "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/rig-provenance.json": {
+        "sha256": "3fd81746ae148eb7cf4db4f35551a4df4c0f53d336e69c7664d63515a561ca83",
+        "bytes": 4908
+      },
+      "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/source-materials.json": {
+        "sha256": "538e98a7788861362dac53737b40f36188424d61fea176bda8e6c409ee2ce4e3",
+        "bytes": 3252
+      },
+      "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/metadata.json": {
+        "sha256": "f948d9e00ad762c7dfbdc1cc4bbe406398a82ba0dcd902ffde1a2e24acc81a79",
+        "bytes": 15815
+      },
+      "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/dimension-measurement.json": {
+        "sha256": "912ad3330bcafeeb8fd32bc7bb8b55b6b5b92c91304ec20620cd3096e1fc6524",
+        "bytes": 1522
+      },
+      "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/measure.py": {
+        "sha256": "481565baa947149f69b6f893ec25fc722053ca660619a3052b0276cc714eaea1",
+        "bytes": 2160
+      },
+      "art/driftwood-isle/lowpoly-colossus/build_colossus_v4.py": {
+        "sha256": "f10cdec46537f8d579fa7af687890aebe6c2f0e9d82c962e64a478567e3a0218",
+        "bytes": 21954
+      },
+      "src/shards/driftwood-isle/generators/colossusNativeClips.ts": {
+        "sha256": "d08b8c09adfd8148d6562ac26c8a830d2e9d737e0b4af36e484ab481c8d7ec45",
+        "bytes": 5764
+      },
+      "src/shards/driftwood-isle/generators/colossusNativePreview.ts": {
+        "sha256": "412e5c9c630cf29a072ae42b26526a3f44ed05f90891c8421376064ce3ce1582",
+        "bytes": 7576
+      },
+      "src/shards/driftwood-isle/generators/tidalGiantsCombat.ts": {
+        "sha256": "a94b7d52f9df2f43eab6e98dfe645f5093d1db3a6d8398098230549c5585946e",
+        "bytes": 5832
+      },
+      "src/shards/driftwood-isle/behaviour/tide-root-colossus.as": {
+        "sha256": "f95eeb9abd37f25c9fa493b98e09adf65ab71406a978d5ed4bad944784ffd774",
+        "bytes": 2893
+      },
+      "scripts/colossus-native-admission.mjs": {
+        "sha256": "823b550817357a224f638a0e721a41909b9e670e3c577cc3d0f5abf711092bde",
+        "bytes": 3500
+      },
+      "scripts/build-colossus-native-preview.mjs": {
+        "sha256": "2d7461d87360a7578c31a6e889fcbde88ddc6ce689ab9114a410870dc6604d9b",
+        "bytes": 5207
+      },
+      "vite/colossus-native-preview.config.ts": {
+        "sha256": "6fff4aae27c1583fedbc03cf7383e35a63bcbad9d22b7229d454bec29a127ff8",
+        "bytes": 7781
+      }
+    }
+  },
+  "metadataSha256": "2c9cc2a5085b752b8828379bd2faa5d79ade30d3904415e2154d91dc82e6c2f5",
+  "packedSha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46",
+  "bodyFile": "/assets/driftwood-isle/colossus-native-bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46.bin",
+  "sourceHash": "052535ba72fa042ee5895194390d31b489123494143c27f837bafaa112bcb349",
+  "colliderAcceptance": false,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false
+}

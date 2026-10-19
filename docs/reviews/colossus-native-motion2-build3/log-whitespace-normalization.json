@@ -1,0 +1,19 @@
+{
+  "method": "Trailing whitespace only; test/build outcomes unchanged.",
+  "files": [
+    {
+      "path": "host-build.log",
+      "originalSha256": "1d95735bfe751d356c9f91290e0d5fa0c05e11688fbe10aa45ea4757f7ba68d3",
+      "originalBytes": 12135,
+      "sha256": "aaf0444c8977bf8edf73fb4dbab6e21101135c14422a8f47feae3ec2dde1d82a",
+      "bytes": 12134
+    },
+    {
+      "path": "retry-test.log",
+      "originalSha256": "88ffd54582350c8ade1740b84b48758615bffad84e125e720d781ff0b96f7582",
+      "originalBytes": 970,
+      "sha256": "128156bd0ac679a938dc76ab08be5a985a3897f123efac32b9b38fb044ae1171",
+      "bytes": 969
+    }
+  ]
+}

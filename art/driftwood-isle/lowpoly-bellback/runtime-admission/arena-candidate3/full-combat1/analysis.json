@@ -1,0 +1,1537 @@
+{
+  "schema": "wildshard.bellback.full-combat-analysis.v1",
+  "checks": {
+    "onlyBellback": true,
+    "pulse": true,
+    "echo": true,
+    "stomp": true,
+    "actualPlayerDamage": true,
+    "actualEnemyDamage": true,
+    "enemyDefeated": true,
+    "noPostDeathStrike": true,
+    "boutLocalReward": true,
+    "retry": true,
+    "playerDefeated": true,
+    "defeatedAttackBlocked": true,
+    "finalRetry": true,
+    "emptyStorage": true,
+    "emptyUnchangedStateStore": true,
+    "allEightBonesPerFrame": true,
+    "pulseCompletePhases": true,
+    "echoCompletePhases": true,
+    "stompCompletePhases": true,
+    "singleInterruptionRecovered": true,
+    "approachStopResume": false,
+    "reentry": true,
+    "reentryPersistence": true,
+    "errors": true
+  },
+  "observations": 778,
+  "scenarios": {
+    "entry": 18,
+    "moving-approach": 27,
+    "uninterrupted-cycles": 98,
+    "approach-stop-resume": 52,
+    "single-interruption-recovery": 79,
+    "enemy-defeat": 178,
+    "player-defeat": 326
+  },
+  "runs": [
+    {
+      "key": [
+        "entry",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 3,
+      "firstGameTime": 0.2263999999985099,
+      "firstWallTime": 4660,
+      "count": 18,
+      "lastFrame": 20,
+      "lastGameTime": 1.4314000000059608,
+      "lastWallTime": 8384.30000000447
+    },
+    {
+      "key": [
+        "moving-approach",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 21,
+      "firstGameTime": 1.5314000000059609,
+      "firstWallTime": 8502.89999999851,
+      "count": 27,
+      "lastFrame": 47,
+      "lastGameTime": 4.0493000000193735,
+      "lastWallTime": 12017.70000000298
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        1,
+        "strike.bellback.pulse",
+        "windup",
+        true
+      ],
+      "firstFrame": 48,
+      "firstGameTime": 4.149300000019373,
+      "firstWallTime": 12133.60000000149,
+      "count": 12,
+      "lastFrame": 59,
+      "lastGameTime": 5.249300000019369,
+      "lastWallTime": 13855.70000000298
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        1,
+        "strike.bellback.pulse",
+        "active",
+        true
+      ],
+      "firstFrame": 60,
+      "firstGameTime": 5.349300000019369,
+      "firstWallTime": 13996.39999999851,
+      "count": 1,
+      "lastFrame": 60,
+      "lastGameTime": 5.349300000019369,
+      "lastWallTime": 13996.39999999851
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        1,
+        "strike.bellback.pulse",
+        "recover",
+        true
+      ],
+      "firstFrame": 61,
+      "firstGameTime": 5.4493000000193685,
+      "firstWallTime": 14097.30000000447,
+      "count": 3,
+      "lastFrame": 63,
+      "lastGameTime": 5.649300000019368,
+      "lastWallTime": 14311.39999999851
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        1,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 64,
+      "firstGameTime": 5.669300000019367,
+      "firstWallTime": 14331.5,
+      "count": 1,
+      "lastFrame": 64,
+      "lastGameTime": 5.669300000019367,
+      "lastWallTime": 14331.5
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        2,
+        "strike.bellback.echo",
+        "windup",
+        true
+      ],
+      "firstFrame": 65,
+      "firstGameTime": 5.766700000017877,
+      "firstWallTime": 14429.10000000149,
+      "count": 9,
+      "lastFrame": 73,
+      "lastGameTime": 6.475000000022345,
+      "lastWallTime": 15538.30000000447
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        2,
+        "strike.bellback.echo",
+        "active",
+        true
+      ],
+      "firstFrame": 74,
+      "firstGameTime": 6.575000000022345,
+      "firstWallTime": 15715.10000000149,
+      "count": 2,
+      "lastFrame": 75,
+      "lastGameTime": 6.611900000020855,
+      "lastWallTime": 15751.89999999851
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        2,
+        "strike.bellback.echo",
+        "recover",
+        true
+      ],
+      "firstFrame": 76,
+      "firstGameTime": 6.711900000020854,
+      "firstWallTime": 15998.89999999851,
+      "count": 7,
+      "lastFrame": 82,
+      "lastGameTime": 7.255500000022343,
+      "lastWallTime": 16832.5
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        2,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 83,
+      "firstGameTime": 7.355500000022342,
+      "firstWallTime": 16955.60000000149,
+      "count": 1,
+      "lastFrame": 83,
+      "lastGameTime": 7.355500000022342,
+      "lastWallTime": 16955.60000000149
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 84,
+      "firstGameTime": 7.455500000022342,
+      "firstWallTime": 17222.70000000298,
+      "count": 14,
+      "lastFrame": 97,
+      "lastGameTime": 8.617200000025319,
+      "lastWallTime": 18915.80000000447
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        3,
+        "strike.bellback.stomp",
+        "windup",
+        true
+      ],
+      "firstFrame": 98,
+      "firstGameTime": 8.717200000025318,
+      "firstWallTime": 19020.20000000298,
+      "count": 10,
+      "lastFrame": 107,
+      "lastGameTime": 9.529800000019359,
+      "lastWallTime": 20443.39999999851
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        3,
+        "strike.bellback.stomp",
+        "active",
+        true
+      ],
+      "firstFrame": 108,
+      "firstGameTime": 9.615700000025319,
+      "firstWallTime": 20530,
+      "count": 1,
+      "lastFrame": 108,
+      "lastGameTime": 9.615700000025319,
+      "lastWallTime": 20530
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        3,
+        "strike.bellback.stomp",
+        "recover",
+        true
+      ],
+      "firstFrame": 109,
+      "firstGameTime": 9.715700000025318,
+      "firstWallTime": 20636.60000000149,
+      "count": 8,
+      "lastFrame": 116,
+      "lastGameTime": 10.300900000020848,
+      "lastWallTime": 21221
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        3,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 117,
+      "firstGameTime": 10.400900000020847,
+      "firstWallTime": 21340.10000000149,
+      "count": 3,
+      "lastFrame": 119,
+      "lastGameTime": 10.509200000017866,
+      "lastWallTime": 21448.5
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 120,
+      "firstGameTime": 10.590800000019357,
+      "firstWallTime": 21530,
+      "count": 14,
+      "lastFrame": 133,
+      "lastGameTime": 11.765400000020842,
+      "lastWallTime": 23381.70000000298
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        1,
+        "strike.bellback.pulse",
+        "windup",
+        true
+      ],
+      "firstFrame": 134,
+      "firstGameTime": 11.865400000020841,
+      "firstWallTime": 23583.89999999851,
+      "count": 6,
+      "lastFrame": 139,
+      "lastGameTime": 12.25810000001637,
+      "lastWallTime": 23981.10000000149
+    },
+    {
+      "key": [
+        "uninterrupted-cycles",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 140,
+      "firstGameTime": 12.35600000001488,
+      "firstWallTime": 24079.60000000149,
+      "count": 6,
+      "lastFrame": 145,
+      "lastGameTime": 12.693600000016371,
+      "lastWallTime": 24565.20000000298
+    },
+    {
+      "key": [
+        "approach-stop-resume",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 146,
+      "firstGameTime": 12.79360000001637,
+      "firstWallTime": 24693.10000000149,
+      "count": 22,
+      "lastFrame": 167,
+      "lastGameTime": 14.61630000001935,
+      "lastWallTime": 27076.89999999851
+    },
+    {
+      "key": [
+        "approach-stop-resume",
+        1,
+        "strike.bellback.pulse",
+        "windup",
+        true
+      ],
+      "firstFrame": 168,
+      "firstGameTime": 14.71630000001935,
+      "firstWallTime": 27185.5,
+      "count": 14,
+      "lastFrame": 181,
+      "lastGameTime": 15.857200000025308,
+      "lastWallTime": 28860.39999999851
+    },
+    {
+      "key": [
+        "approach-stop-resume",
+        1,
+        "strike.bellback.pulse",
+        "active",
+        true
+      ],
+      "firstFrame": 182,
+      "firstGameTime": 15.948900000028289,
+      "firstWallTime": 28953.39999999851,
+      "count": 1,
+      "lastFrame": 182,
+      "lastGameTime": 15.948900000028289,
+      "lastWallTime": 28953.39999999851
+    },
+    {
+      "key": [
+        "approach-stop-resume",
+        1,
+        "strike.bellback.pulse",
+        "recover",
+        true
+      ],
+      "firstFrame": 183,
+      "firstGameTime": 16.04890000002829,
+      "firstWallTime": 29108.10000000149,
+      "count": 2,
+      "lastFrame": 184,
+      "lastGameTime": 16.13950000002978,
+      "lastWallTime": 29198.70000000298
+    },
+    {
+      "key": [
+        "approach-stop-resume",
+        1,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 185,
+      "firstGameTime": 16.239500000029782,
+      "firstWallTime": 29301.39999999851,
+      "count": 1,
+      "lastFrame": 185,
+      "lastGameTime": 16.239500000029782,
+      "lastWallTime": 29301.39999999851
+    },
+    {
+      "key": [
+        "approach-stop-resume",
+        2,
+        "strike.bellback.echo",
+        "windup",
+        true
+      ],
+      "firstFrame": 186,
+      "firstGameTime": 16.331000000029782,
+      "firstWallTime": 29392.89999999851,
+      "count": 10,
+      "lastFrame": 195,
+      "lastGameTime": 17.056200000032767,
+      "lastWallTime": 30581.70000000298
+    },
+    {
+      "key": [
+        "approach-stop-resume",
+        2,
+        "strike.bellback.echo",
+        "active",
+        true
+      ],
+      "firstFrame": 196,
+      "firstGameTime": 17.152400000035747,
+      "firstWallTime": 30677.10000000149,
+      "count": 2,
+      "lastFrame": 197,
+      "lastGameTime": 17.251100000031276,
+      "lastWallTime": 30776.20000000298
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        2,
+        "strike.bellback.echo",
+        "recover",
+        true
+      ],
+      "firstFrame": 198,
+      "firstGameTime": 17.351100000031277,
+      "firstWallTime": 30876.39999999851,
+      "count": 6,
+      "lastFrame": 203,
+      "lastGameTime": 17.8149000000283,
+      "lastWallTime": 31340.60000000149
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        2,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 204,
+      "firstGameTime": 17.9044000000283,
+      "firstWallTime": 31429.60000000149,
+      "count": 2,
+      "lastFrame": 205,
+      "lastGameTime": 17.92760000003128,
+      "lastWallTime": 31452.70000000298
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 206,
+      "firstGameTime": 18.0069000000283,
+      "firstWallTime": 31532.10000000149,
+      "count": 14,
+      "lastFrame": 219,
+      "lastGameTime": 19.22640000002831,
+      "lastWallTime": 33200
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        1,
+        "strike.bellback.pulse",
+        "windup",
+        true
+      ],
+      "firstFrame": 220,
+      "firstGameTime": 19.32360000003129,
+      "firstWallTime": 33298.10000000149,
+      "count": 7,
+      "lastFrame": 226,
+      "lastGameTime": 19.884700000025337,
+      "lastWallTime": 33869.60000000149
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        4,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 227,
+      "firstGameTime": 19.984700000025338,
+      "firstWallTime": 33970.39999999851,
+      "count": 18,
+      "lastFrame": 244,
+      "lastGameTime": 21.50060000003131,
+      "lastWallTime": 36434.10000000149
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 245,
+      "firstGameTime": 21.60060000003131,
+      "firstWallTime": 36547.60000000149,
+      "count": 13,
+      "lastFrame": 257,
+      "lastGameTime": 22.720000000029835,
+      "lastWallTime": 38096.5
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        1,
+        "strike.bellback.pulse",
+        "windup",
+        true
+      ],
+      "firstFrame": 258,
+      "firstGameTime": 22.820000000029836,
+      "firstWallTime": 38210.10000000149,
+      "count": 13,
+      "lastFrame": 270,
+      "lastGameTime": 23.900000000029852,
+      "lastWallTime": 39851.60000000149
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        1,
+        "strike.bellback.pulse",
+        "active",
+        true
+      ],
+      "firstFrame": 271,
+      "firstGameTime": 24.000000000029853,
+      "firstWallTime": 39964,
+      "count": 1,
+      "lastFrame": 271,
+      "lastGameTime": 24.000000000029853,
+      "lastWallTime": 39964
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        1,
+        "strike.bellback.pulse",
+        "recover",
+        true
+      ],
+      "firstFrame": 272,
+      "firstGameTime": 24.100000000029855,
+      "firstWallTime": 40084.10000000149,
+      "count": 3,
+      "lastFrame": 274,
+      "lastGameTime": 24.213000000029854,
+      "lastWallTime": 40197.20000000298
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        1,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 275,
+      "firstGameTime": 24.313000000029856,
+      "firstWallTime": 40444.60000000149,
+      "count": 1,
+      "lastFrame": 275,
+      "lastGameTime": 24.313000000029856,
+      "lastWallTime": 40444.60000000149
+    },
+    {
+      "key": [
+        "single-interruption-recovery",
+        2,
+        "strike.bellback.echo",
+        "windup",
+        true
+      ],
+      "firstFrame": 276,
+      "firstGameTime": 24.413000000029857,
+      "firstWallTime": 40584.5,
+      "count": 1,
+      "lastFrame": 276,
+      "lastGameTime": 24.413000000029857,
+      "lastWallTime": 40584.5
+    },
+    {
+      "key": [
+        "enemy-defeat",
+        2,
+        "strike.bellback.echo",
+        "windup",
+        true
+      ],
+      "firstFrame": 277,
+      "firstGameTime": 24.51300000002986,
+      "firstWallTime": 40717.20000000298,
+      "count": 6,
+      "lastFrame": 282,
+      "lastGameTime": 24.940600000031356,
+      "lastWallTime": 41476.80000000447
+    },
+    {
+      "key": [
+        "enemy-defeat",
+        4,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 283,
+      "firstGameTime": 25.040600000031358,
+      "firstWallTime": 41964.20000000298,
+      "count": 129,
+      "lastFrame": 411,
+      "lastGameTime": 37.42580000002705,
+      "lastWallTime": 67336.89999999851
+    },
+    {
+      "key": [
+        "enemy-defeat",
+        4,
+        null,
+        "idle",
+        false
+      ],
+      "firstFrame": 412,
+      "firstGameTime": 37.525800000027054,
+      "firstWallTime": 67730.70000000298,
+      "count": 1,
+      "lastFrame": 412,
+      "lastGameTime": 37.525800000027054,
+      "lastWallTime": 67730.70000000298
+    },
+    {
+      "key": [
+        "enemy-defeat",
+        6,
+        null,
+        "idle",
+        false
+      ],
+      "firstFrame": 413,
+      "firstGameTime": 37.59660000003152,
+      "firstWallTime": 67823.89999999851,
+      "count": 39,
+      "lastFrame": 451,
+      "lastGameTime": 41.09540000002114,
+      "lastWallTime": 76654
+    },
+    {
+      "key": [
+        "enemy-defeat",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 452,
+      "firstGameTime": 41.195000000022624,
+      "firstWallTime": 76752,
+      "count": 3,
+      "lastFrame": 454,
+      "lastGameTime": 41.320300000027096,
+      "lastWallTime": 77285.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 455,
+      "firstGameTime": 41.4203000000271,
+      "firstWallTime": 77635.30000000447,
+      "count": 12,
+      "lastFrame": 466,
+      "lastGameTime": 41.96900000003008,
+      "lastWallTime": 78792.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "windup",
+        true
+      ],
+      "firstFrame": 467,
+      "firstGameTime": 42.06900000003008,
+      "firstWallTime": 78968.89999999851,
+      "count": 14,
+      "lastFrame": 480,
+      "lastGameTime": 43.10380000002711,
+      "lastWallTime": 80311.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "active",
+        true
+      ],
+      "firstFrame": 481,
+      "firstGameTime": 43.20380000002711,
+      "firstWallTime": 80521.10000000149,
+      "count": 2,
+      "lastFrame": 482,
+      "lastGameTime": 43.30380000002711,
+      "lastWallTime": 80948
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "recover",
+        true
+      ],
+      "firstFrame": 483,
+      "firstGameTime": 43.40380000002711,
+      "firstWallTime": 81282,
+      "count": 3,
+      "lastFrame": 485,
+      "lastGameTime": 43.511300000027106,
+      "lastWallTime": 81374.70000000298
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 486,
+      "firstGameTime": 43.59760000002412,
+      "firstWallTime": 81461.60000000149,
+      "count": 1,
+      "lastFrame": 486,
+      "lastGameTime": 43.59760000002412,
+      "lastWallTime": 81461.60000000149
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        "strike.bellback.echo",
+        "windup",
+        true
+      ],
+      "firstFrame": 487,
+      "firstGameTime": 43.686800000027105,
+      "firstWallTime": 81550,
+      "count": 9,
+      "lastFrame": 495,
+      "lastGameTime": 44.36120000002562,
+      "lastWallTime": 82409.5
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        "strike.bellback.echo",
+        "active",
+        true
+      ],
+      "firstFrame": 496,
+      "firstGameTime": 44.46120000002562,
+      "firstWallTime": 82516.60000000149,
+      "count": 2,
+      "lastFrame": 497,
+      "lastGameTime": 44.55500000003009,
+      "lastWallTime": 82610.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        "strike.bellback.echo",
+        "recover",
+        true
+      ],
+      "firstFrame": 498,
+      "firstGameTime": 44.65500000003009,
+      "firstWallTime": 82717.20000000298,
+      "count": 6,
+      "lastFrame": 503,
+      "lastGameTime": 45.1550000000301,
+      "lastWallTime": 83536
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 504,
+      "firstGameTime": 45.2550000000301,
+      "firstWallTime": 84008,
+      "count": 1,
+      "lastFrame": 504,
+      "lastGameTime": 45.2550000000301,
+      "lastWallTime": 84008
+    },
+    {
+      "key": [
+        "player-defeat",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 505,
+      "firstGameTime": 45.3550000000301,
+      "firstWallTime": 84334.20000000298,
+      "count": 17,
+      "lastFrame": 521,
+      "lastGameTime": 46.6031000000316,
+      "lastWallTime": 86082
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        "strike.bellback.stomp",
+        "windup",
+        true
+      ],
+      "firstFrame": 522,
+      "firstGameTime": 46.703100000031604,
+      "firstWallTime": 86280.80000000447,
+      "count": 9,
+      "lastFrame": 530,
+      "lastGameTime": 47.414500000030124,
+      "lastWallTime": 87579.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        "strike.bellback.stomp",
+        "active",
+        true
+      ],
+      "firstFrame": 531,
+      "firstGameTime": 47.514500000030125,
+      "firstWallTime": 87721.10000000149,
+      "count": 1,
+      "lastFrame": 531,
+      "lastGameTime": 47.514500000030125,
+      "lastWallTime": 87721.10000000149
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        "strike.bellback.stomp",
+        "recover",
+        true
+      ],
+      "firstFrame": 532,
+      "firstGameTime": 47.61450000003013,
+      "firstWallTime": 87844.20000000298,
+      "count": 8,
+      "lastFrame": 539,
+      "lastGameTime": 48.259000000030134,
+      "lastWallTime": 88717.5
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 540,
+      "firstGameTime": 48.35800000003013,
+      "firstWallTime": 88817.80000000447,
+      "count": 1,
+      "lastFrame": 540,
+      "lastGameTime": 48.35800000003013,
+      "lastWallTime": 88817.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 541,
+      "firstGameTime": 48.45140000002864,
+      "firstWallTime": 88910.5,
+      "count": 13,
+      "lastFrame": 553,
+      "lastGameTime": 49.65140000002866,
+      "lastWallTime": 90760.70000000298
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "windup",
+        true
+      ],
+      "firstFrame": 554,
+      "firstGameTime": 49.75140000002866,
+      "firstWallTime": 90899,
+      "count": 12,
+      "lastFrame": 565,
+      "lastGameTime": 50.81640000002868,
+      "lastWallTime": 92543.60000000149
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "active",
+        true
+      ],
+      "firstFrame": 566,
+      "firstGameTime": 50.91640000002868,
+      "firstWallTime": 92651.39999999851,
+      "count": 2,
+      "lastFrame": 567,
+      "lastGameTime": 51.01640000002868,
+      "lastWallTime": 92774.30000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "recover",
+        true
+      ],
+      "firstFrame": 568,
+      "firstGameTime": 51.11640000002868,
+      "firstWallTime": 92886.80000000447,
+      "count": 2,
+      "lastFrame": 569,
+      "lastGameTime": 51.216400000028685,
+      "lastWallTime": 93000.10000000149
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        "strike.bellback.echo",
+        "windup",
+        true
+      ],
+      "firstFrame": 570,
+      "firstGameTime": 51.316400000028686,
+      "firstWallTime": 93109.10000000149,
+      "count": 10,
+      "lastFrame": 579,
+      "lastGameTime": 52.127000000030186,
+      "lastWallTime": 94441.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        "strike.bellback.echo",
+        "active",
+        true
+      ],
+      "firstFrame": 580,
+      "firstGameTime": 52.22700000003019,
+      "firstWallTime": 94575.5,
+      "count": 1,
+      "lastFrame": 580,
+      "lastGameTime": 52.22700000003019,
+      "lastWallTime": 94575.5
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        "strike.bellback.echo",
+        "recover",
+        true
+      ],
+      "firstFrame": 581,
+      "firstGameTime": 52.32700000003019,
+      "firstWallTime": 94708.30000000447,
+      "count": 6,
+      "lastFrame": 586,
+      "lastGameTime": 52.82390000002871,
+      "lastWallTime": 95304.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 587,
+      "firstGameTime": 52.92390000002871,
+      "firstWallTime": 95424.39999999851,
+      "count": 1,
+      "lastFrame": 587,
+      "lastGameTime": 52.92390000002871,
+      "lastWallTime": 95424.39999999851
+    },
+    {
+      "key": [
+        "player-defeat",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 588,
+      "firstGameTime": 53.02390000002871,
+      "firstWallTime": 95574,
+      "count": 15,
+      "lastFrame": 602,
+      "lastGameTime": 54.26990000002127,
+      "lastWallTime": 97267.60000000149
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        "strike.bellback.stomp",
+        "windup",
+        true
+      ],
+      "firstFrame": 603,
+      "firstGameTime": 54.369900000021275,
+      "firstWallTime": 97501.10000000149,
+      "count": 9,
+      "lastFrame": 611,
+      "lastGameTime": 55.10350000002278,
+      "lastWallTime": 98359.60000000149
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        "strike.bellback.stomp",
+        "active",
+        true
+      ],
+      "firstFrame": 612,
+      "firstGameTime": 55.20220000001831,
+      "firstWallTime": 98459.80000000447,
+      "count": 1,
+      "lastFrame": 612,
+      "lastGameTime": 55.20220000001831,
+      "lastWallTime": 98459.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        "strike.bellback.stomp",
+        "recover",
+        true
+      ],
+      "firstFrame": 613,
+      "firstGameTime": 55.30220000001831,
+      "firstWallTime": 98565.39999999851,
+      "count": 7,
+      "lastFrame": 619,
+      "lastGameTime": 55.90220000001832,
+      "lastWallTime": 99445.20000000298
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 620,
+      "firstGameTime": 56.00220000001832,
+      "firstWallTime": 99574.20000000298,
+      "count": 2,
+      "lastFrame": 621,
+      "lastGameTime": 56.10220000001832,
+      "lastWallTime": 99726.30000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 622,
+      "firstGameTime": 56.20220000001832,
+      "firstWallTime": 99928.89999999851,
+      "count": 14,
+      "lastFrame": 635,
+      "lastGameTime": 57.32490000001387,
+      "lastWallTime": 101573.60000000149
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "windup",
+        true
+      ],
+      "firstFrame": 636,
+      "firstGameTime": 57.42490000001387,
+      "firstWallTime": 101695.39999999851,
+      "count": 13,
+      "lastFrame": 648,
+      "lastGameTime": 58.52610000002432,
+      "lastWallTime": 102998
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "active",
+        true
+      ],
+      "firstFrame": 649,
+      "firstGameTime": 58.62610000002432,
+      "firstWallTime": 103297,
+      "count": 2,
+      "lastFrame": 650,
+      "lastGameTime": 58.726100000024324,
+      "lastWallTime": 103412.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "recover",
+        true
+      ],
+      "firstFrame": 651,
+      "firstGameTime": 58.826100000024326,
+      "firstWallTime": 103678.60000000149,
+      "count": 2,
+      "lastFrame": 652,
+      "lastGameTime": 58.92610000002433,
+      "lastWallTime": 103913.70000000298
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        "strike.bellback.echo",
+        "windup",
+        true
+      ],
+      "firstFrame": 653,
+      "firstGameTime": 59.02610000002433,
+      "firstWallTime": 104010.70000000298,
+      "count": 9,
+      "lastFrame": 661,
+      "lastGameTime": 59.79320000002583,
+      "lastWallTime": 104843.5
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        "strike.bellback.echo",
+        "active",
+        true
+      ],
+      "firstFrame": 662,
+      "firstGameTime": 59.89320000002583,
+      "firstWallTime": 104968.60000000149,
+      "count": 2,
+      "lastFrame": 663,
+      "lastGameTime": 59.99320000002583,
+      "lastWallTime": 105077.20000000298
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        "strike.bellback.echo",
+        "recover",
+        true
+      ],
+      "firstFrame": 664,
+      "firstGameTime": 60.09060000002434,
+      "firstWallTime": 105174.60000000149,
+      "count": 6,
+      "lastFrame": 669,
+      "lastGameTime": 60.56160000001689,
+      "lastWallTime": 105734.89999999851
+    },
+    {
+      "key": [
+        "player-defeat",
+        2,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 670,
+      "firstGameTime": 60.66160000001689,
+      "firstWallTime": 105858.5,
+      "count": 1,
+      "lastFrame": 670,
+      "lastGameTime": 60.66160000001689,
+      "lastWallTime": 105858.5
+    },
+    {
+      "key": [
+        "player-defeat",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 671,
+      "firstGameTime": 60.76160000001689,
+      "firstWallTime": 106283.60000000149,
+      "count": 13,
+      "lastFrame": 683,
+      "lastGameTime": 61.96160000001691,
+      "lastWallTime": 110413
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        "strike.bellback.stomp",
+        "windup",
+        true
+      ],
+      "firstFrame": 684,
+      "firstGameTime": 62.06160000001691,
+      "firstWallTime": 110530.39999999851,
+      "count": 9,
+      "lastFrame": 692,
+      "lastGameTime": 62.83770000001841,
+      "lastWallTime": 111969.10000000149
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        "strike.bellback.stomp",
+        "active",
+        true
+      ],
+      "firstFrame": 693,
+      "firstGameTime": 62.93770000001841,
+      "firstWallTime": 112095.10000000149,
+      "count": 1,
+      "lastFrame": 693,
+      "lastGameTime": 62.93770000001841,
+      "lastWallTime": 112095.10000000149
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        "strike.bellback.stomp",
+        "recover",
+        true
+      ],
+      "firstFrame": 694,
+      "firstGameTime": 63.03770000001841,
+      "firstWallTime": 112205.39999999851,
+      "count": 8,
+      "lastFrame": 701,
+      "lastGameTime": 63.653700000018425,
+      "lastWallTime": 112899.70000000298
+    },
+    {
+      "key": [
+        "player-defeat",
+        3,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 702,
+      "firstGameTime": 63.753700000018426,
+      "firstWallTime": 113007.80000000447,
+      "count": 1,
+      "lastFrame": 702,
+      "lastGameTime": 63.753700000018426,
+      "lastWallTime": 113007.80000000447
+    },
+    {
+      "key": [
+        "player-defeat",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 703,
+      "firstGameTime": 63.83830000001991,
+      "firstWallTime": 113092,
+      "count": 16,
+      "lastFrame": 718,
+      "lastGameTime": 65.08400000001542,
+      "lastWallTime": 114739.89999999851
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "windup",
+        true
+      ],
+      "firstFrame": 719,
+      "firstGameTime": 65.17540000001394,
+      "firstWallTime": 114832.30000000447,
+      "count": 16,
+      "lastFrame": 734,
+      "lastGameTime": 66.28450000001541,
+      "lastWallTime": 116082
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        "strike.bellback.pulse",
+        "active",
+        true
+      ],
+      "firstFrame": 735,
+      "firstGameTime": 66.38450000001541,
+      "firstWallTime": 116611.89999999851,
+      "count": 1,
+      "lastFrame": 735,
+      "lastGameTime": 66.38450000001541,
+      "lastWallTime": 116611.89999999851
+    },
+    {
+      "key": [
+        "player-defeat",
+        1,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 736,
+      "firstGameTime": 66.4845000000154,
+      "firstWallTime": 116734,
+      "count": 38,
+      "lastFrame": 773,
+      "lastGameTime": 69.34870000001088,
+      "lastWallTime": 120238.70000000298
+    },
+    {
+      "key": [
+        "player-defeat",
+        0,
+        null,
+        "idle",
+        true
+      ],
+      "firstFrame": 774,
+      "firstGameTime": 69.44870000001087,
+      "firstWallTime": 120343.39999999851,
+      "count": 7,
+      "lastFrame": 780,
+      "lastGameTime": 69.85700000000787,
+      "lastWallTime": 120884.80000000447
+    }
+  ],
+  "enemyAtPlayerDefeat": {
+    "kind": "bellback",
+    "hp": 180,
+    "maxHp": 180,
+    "alive": true,
+    "state": "attack",
+    "mem": {
+      "tg-state": 1,
+      "tg-clock": 1.2,
+      "tg-awake": 1,
+      "tg-phase": 1,
+      "tg-exposed": 0
+    },
+    "position": [
+      0,
+      900,
+      -7
+    ],
+    "yaw": 0,
+    "bones": {
+      "body": {
+        "position": [
+          0,
+          1.2000000476837158,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "head": {
+        "position": [
+          0,
+          0,
+          0.6499999761581421
+        ],
+        "rotation": [
+          -0.01809359217752604,
+          0,
+          0
+        ]
+      },
+      "bell": {
+        "position": [
+          0,
+          1.8499999046325684,
+          -0.4749999940395355
+        ],
+        "rotation": [
+          -0.14775439664751117,
+          0,
+          0
+        ]
+      },
+      "clapper": {
+        "position": [
+          0,
+          -0.13942972181280222,
+          0.07999999403953556
+        ],
+        "rotation": [
+          -0.718093592177526,
+          0,
+          0
+        ]
+      },
+      "leg0": {
+        "position": [
+          -0.6000000238418579,
+          0.25999999046325684,
+          0.5699999928474426
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "leg1": {
+        "position": [
+          0.6000000238418579,
+          0.25999999046325684,
+          0.5699999928474426
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "leg2": {
+        "position": [
+          -0.6000000238418579,
+          0.25999999046325684,
+          -0.8600000143051147
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "leg3": {
+        "position": [
+          0.6000000238418579,
+          0.25999999046325684,
+          -0.8600000143051147
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "nativeObserver": "Eight-bone world-transform trace; exact existing product/host; diagnostic player placement logged; full-body camera offset only during render. No simulation time/health/AI edits.",
+  "playerDeathWronglyReachedLivingEnemy": false
+}

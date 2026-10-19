@@ -1,0 +1,247 @@
+[
+  {
+    "path": "pack/metadata.json",
+    "sha256": "2c9cc2a5085b752b8828379bd2faa5d79ade30d3904415e2154d91dc82e6c2f5",
+    "bytes": 4814
+  },
+  {
+    "path": "pack/payload.bin",
+    "sha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46",
+    "bytes": 76711
+  },
+  {
+    "path": "preview.json",
+    "sha256": "96e9d68e25fed1c2cb15c586e4066a92711aba370ab8329104322eb2d51b9c50",
+    "bytes": 4253
+  },
+  {
+    "path": "product/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json",
+    "sha256": "4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76",
+    "bytes": 493
+  },
+  {
+    "path": "product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+    "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+    "bytes": 2520
+  },
+  {
+    "path": "product/blobs/json/939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6.json",
+    "sha256": "939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6",
+    "bytes": 4815
+  },
+  {
+    "path": "product/blobs/json/dee09b58bd61c1a30594b2223f90242667c77c04b034f7a788adc3dbf248a01f.json",
+    "sha256": "dee09b58bd61c1a30594b2223f90242667c77c04b034f7a788adc3dbf248a01f",
+    "bytes": 45530
+  },
+  {
+    "path": "product/blobs/wasm/26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699.wasm",
+    "sha256": "26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699",
+    "bytes": 13557
+  },
+  {
+    "path": "product/sections/actors/creatures.json",
+    "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+    "bytes": 52
+  },
+  {
+    "path": "product/sections/actors/crowds.json",
+    "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+    "bytes": 14
+  },
+  {
+    "path": "product/sections/actors/moves.json",
+    "sha256": "54b09ff761dfbd430c15c163cd39db5c244479bc157efbc3fef81922c7eb6ae6",
+    "bytes": 187
+  },
+  {
+    "path": "product/sections/actors/spawns.json",
+    "sha256": "4469702b9f3383e77f6ba7b02f97c92cee0191121929ad7462e53b009238ba80",
+    "bytes": 160
+  },
+  {
+    "path": "product/sections/actors/species-programs.json",
+    "sha256": "d0f83d5128ff4d503fa8108b0d7f8976e34a602ad8cf86f97935001e33e6b6c0",
+    "bytes": 1624
+  },
+  {
+    "path": "product/sections/actors/species.json",
+    "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+    "bytes": 24
+  },
+  {
+    "path": "product/sections/actors/strikes.json",
+    "sha256": "bbfeec9fee2d33773bd8411186033b381c85c04b10832a2bdd0eacca29577659",
+    "bytes": 751
+  },
+  {
+    "path": "product/sections/audio/audio.json",
+    "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+    "bytes": 68
+  },
+  {
+    "path": "product/sections/combat/encounters.json",
+    "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+    "bytes": 18
+  },
+  {
+    "path": "product/sections/combat/items.json",
+    "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+    "bytes": 103
+  },
+  {
+    "path": "product/sections/combat/strikes.json",
+    "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+    "bytes": 24
+  },
+  {
+    "path": "product/sections/economy/ledger.json",
+    "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+    "bytes": 14
+  },
+  {
+    "path": "product/sections/economy/loot.json",
+    "sha256": "6de02e5f66db07ed2e5681cc3ab004a80bbd4fa5ec34fccc204e7e00dc8bc741",
+    "bytes": 437
+  },
+  {
+    "path": "product/sections/held/arms.json",
+    "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+    "bytes": 895
+  },
+  {
+    "path": "product/sections/look/look.json",
+    "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+    "bytes": 6557
+  },
+  {
+    "path": "product/sections/look/materials.json",
+    "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+    "bytes": 22
+  },
+  {
+    "path": "product/sections/quests/quests.json",
+    "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+    "bytes": 64
+  },
+  {
+    "path": "product/sections/sim/client-scripts.json",
+    "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+    "bytes": 46
+  },
+  {
+    "path": "product/sections/sim/hooks.json",
+    "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+    "bytes": 40
+  },
+  {
+    "path": "product/sections/sim/plumbing.json",
+    "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+    "bytes": 18
+  },
+  {
+    "path": "product/sections/sim/scripts.json",
+    "sha256": "553231793d1bf472aa448b05ee21887b373e73e57e85ccbc9bc3b8ed2bb12323",
+    "bytes": 1393
+  },
+  {
+    "path": "product/sections/sim/sim.json",
+    "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+    "bytes": 111
+  },
+  {
+    "path": "product/sections/state/migrations.json",
+    "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+    "bytes": 18
+  },
+  {
+    "path": "product/sections/state/state.json",
+    "sha256": "86cc6e3942d5976324ee7a2006b490991bc665d454880b4328392693a38da6ec",
+    "bytes": 539
+  },
+  {
+    "path": "product/sections/ui/card.json",
+    "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+    "bytes": 18
+  },
+  {
+    "path": "product/sections/ui/compendium.json",
+    "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+    "bytes": 28
+  },
+  {
+    "path": "product/sections/ui/ui.json",
+    "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+    "bytes": 52
+  },
+  {
+    "path": "product/sections/world/collision.json",
+    "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+    "bytes": 23
+  },
+  {
+    "path": "product/sections/world/days.json",
+    "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+    "bytes": 21
+  },
+  {
+    "path": "product/sections/world/edge.json",
+    "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+    "bytes": 16835
+  },
+  {
+    "path": "product/sections/world/movers.json",
+    "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+    "bytes": 14
+  },
+  {
+    "path": "product/sections/world/navigation.json",
+    "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+    "bytes": 20
+  },
+  {
+    "path": "product/sections/world/props.json",
+    "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+    "bytes": 15
+  },
+  {
+    "path": "product/sections/world/spawn.json",
+    "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+    "bytes": 38
+  },
+  {
+    "path": "product/sections/world/terrain.json",
+    "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+    "bytes": 37
+  },
+  {
+    "path": "product/sections/world/tiles.json",
+    "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+    "bytes": 24
+  },
+  {
+    "path": "product/sections/world/traversal.json",
+    "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+    "bytes": 30
+  },
+  {
+    "path": "product/sections/world/water.json",
+    "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+    "bytes": 13
+  },
+  {
+    "path": "product/sections/world/weather.json",
+    "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+    "bytes": 24
+  },
+  {
+    "path": "product/shard.json",
+    "sha256": "c3dd5bed55a56f07b9d1d1343c549f7f262b0ced0a2d43fe3d536aff781d05ec",
+    "bytes": 9947
+  },
+  {
+    "path": "product/validation.json",
+    "sha256": "cb753b356a04368cd58e079ae0b516e995b82058df365fe3e137aaba6edf6748",
+    "bytes": 853
+  }
+]
