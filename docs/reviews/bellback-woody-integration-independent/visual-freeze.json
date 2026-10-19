@@ -1,0 +1,25 @@
+{
+  "frozen_at_utc": "2026-10-19T16:08:10.392375+00:00",
+  "sequence": "Original viewed first, then hero and all nine individual candidate PNGs; no baseline, prior scores or construction prose read before freeze.",
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "details": 0.2,
+    "facet": 0.15
+  },
+  "candidate_scores": {
+    "silhouette": 3.6,
+    "face": 3.7,
+    "details": 3.8,
+    "facet": 4.0
+  },
+  "candidate_exact_total": 3.73,
+  "target": 4,
+  "passed": false,
+  "observations": {
+    "silhouette": "Recognizable bell-bearing wreck guardian with stout feet and tall broken timbers, but side views read a long, boxy quadruped carrying a fence. Original is a more compact, heavy crab-like mass with crouched splayed limbs and irregular scaffold.",
+    "face": "Descending woody central muzzle and orange squint are readable, especially hero/front. Long narrow wedge and nearly horizontal lower jaw in side views still read reptilian. Ivory forms cluster as two long pendant tusks instead of the original broad jagged interlocking jaw; brow plates dominate the eye.",
+    "details": "Bell flare, bands, clapper, rope wraps, angular feet and wreck beams survive. Cage rails are overly parallel and regular; back has large plain end-cap shapes and sparse lashings relative to original tangled wreck character.",
+    "facet": "Strong coherent flat-shaded warm wood, teal bell, pale bindings and dark stone feet. Some large planar planks and shallow ornamental chips remain mechanically regular; this score does not credit geometry proofs."
+  }
+}

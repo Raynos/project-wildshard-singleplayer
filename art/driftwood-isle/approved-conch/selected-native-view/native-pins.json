@@ -1,0 +1,94 @@
+{
+  "art/driftwood-isle/approved-conch/selected-native-normals/native-consumer.test.ts": {
+    "sha256": "d625608a90436f944d1cfcffa8da7ba7622d2215d29cbf0cffa43ccbfed822d2",
+    "bytes": 13504
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/checkpoint-normalization.json": {
+    "sha256": "1cefa233b89c9288ee683ee63a0636211a9d1bd7d127d3e22b29427c0fad7895",
+    "bytes": 387
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/export_native.py": {
+    "sha256": "e97d13091b52ba2073df1e0927162f4ffc85d9321cd3d7e536942d1c390e2687",
+    "bytes": 18866
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/vitest.config.ts": {
+    "sha256": "7c76b30747ea251678964fa9a0ba28b5a4555d7ebe0a464045d738bf8ccd883c",
+    "bytes": 240
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/consumer-test.log": {
+    "sha256": "2b9015ae84d7fd78e42f746e343cbb291f008dafbe72d3be9dd14ddd600fb479",
+    "bytes": 1121
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/normal-audit.json": {
+    "sha256": "8752c492f5ebf5036f99efe0b8f261ae286897622906e2a41f4ac65eebf2b5d8",
+    "bytes": 5517
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/export-test.log": {
+    "sha256": "af96fe87ad04e564a79fd381be382b3de731c3de8d75dac2e4bb7177f1d18940",
+    "bytes": 1849
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/freeze.json": {
+    "sha256": "a1e13c4fb4a62a5bba2ab978621d9cf955c031e0eed8b1d237cbec8811baba60",
+    "bytes": 4307
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/python-test.log": {
+    "sha256": "60b8b49787b10afc4b145d3031e8dd143b2ccb800c88e5e5fa8d505316811412",
+    "bytes": 1017
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/test_export_native.py": {
+    "sha256": "832993829bb51217071e29ab1ef8ae7540e500e7c766e7a183e8a50385392603",
+    "bytes": 4033
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/input-pins.json": {
+    "sha256": "0e037e1cbfa6367f31ac9cdf31325f943e57c4567af9a18047a685613a3c11b9",
+    "bytes": 923
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/README.md": {
+    "sha256": "6a740af911ed780a4f70ab95efe98744c46af3369664d3ebc949b188016e17f4",
+    "bytes": 997
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/audit_normals.py": {
+    "sha256": "fe76b841deb07dc923d77775b1a75e49e4badcc7f5df033d4fb65f476228946b",
+    "bytes": 2159
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/native/closure.json": {
+    "sha256": "6cf1c6150eb8404de266fc9cf1b9fc04a0b097c0d3fbf45ad7acee211d54affe",
+    "bytes": 1592
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/native/conch-character-pass-native.json": {
+    "sha256": "3dddaf6a2845ffea0c372fe46d8d422baaa2864bfaf5cc5f4c4cd98a9faa0929",
+    "bytes": 1286235
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/native/metadata.json": {
+    "sha256": "8b5ee001154cf9d781214d97231af3b7ddaf9e97199e7b641fd684cbc754bd58",
+    "bytes": 5697
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/native/diagnostic-dimensions.json": {
+    "sha256": "118a7dd28ea4d3265aff4f38238540f90f41f88cc376d1b8754d6054a4a3877d",
+    "bytes": 266
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/native/mesh-map.json": {
+    "sha256": "f6bb1437095c4f13c268b35d25f4710bbf7d6b728eacbeef825506d0fb2a60d6",
+    "bytes": 13607
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/native/rig-provenance.json": {
+    "sha256": "3b61be6a075f95406e872a1c75cba10e64d46193f9e6f7453ec98a63150887b0",
+    "bytes": 3311
+  },
+  "art/driftwood-isle/approved-conch/selected-native-normals/native/payload.bin": {
+    "sha256": "cfd4a13e900eaea9675c047b73759411eaa6d2f484d2bc110fb32669d9e3d544",
+    "bytes": 46511
+  },
+  "art/driftwood-isle/approved-conch/selected-geometry-admission/conch-study.glb": {
+    "sha256": "21a6fd0d5e300c58952408913c69824228304141daab461fcb0122a388e27f1a",
+    "bytes": 217020
+  },
+  "art/driftwood-isle/approved-conch/selected-geometry-admission/build_selected_conch.py": {
+    "sha256": "ecfcfa03a123b5b81343a96409ed769a7b85be03530c4ef30e2bd56a3ba95a0e",
+    "bytes": 18786
+  },
+  "docs/reviews/conch-selected-geometry-independent/REPORT.md": {
+    "sha256": "42e6e16d3194ef5df940ec579c31763ebd7a02905723dd1a8857cf4802f69397",
+    "bytes": 5111
+  }
+}

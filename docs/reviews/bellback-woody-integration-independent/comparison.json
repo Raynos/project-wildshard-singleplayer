@@ -1,0 +1,15 @@
+{
+  "frozen_at_utc": "2026-10-19T16:09:03.527399+00:00",
+  "baseline_scores": {
+    "silhouette": 3.55,
+    "face": 3.5,
+    "details": 3.75,
+    "facet": 4.0
+  },
+  "baseline_exact_total": 3.6425,
+  "candidate_exact_total": 3.73,
+  "exact_delta": 0.0875,
+  "retain": "woody-character-integration",
+  "target_reached": false,
+  "reason": "Candidate removes distracting pale forehead spikes, makes a more descending woody muzzle and stronger low squint. It is modestly closer to the original, though its narrowed two-tusk mouth loses some of pass3 broad jagged jaw. Cage, feet and overall mass are nearly unchanged; back views do not demonstrate a material identity gain. Neither reaches four."
+}

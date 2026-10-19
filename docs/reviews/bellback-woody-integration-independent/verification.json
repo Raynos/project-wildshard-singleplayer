@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "hash_checked_files": 48,
+  "pairs": 10,
+  "camera_light_parity": true,
+  "candidate_glb_matches_both_capture_exports": true,
+  "triangles": 4806,
+  "meshes": 90,
+  "primitives": 214,
+  "minimum_triangle_area": 0.0001484441916394952,
+  "minimum_geometric_normal_dot": 0.0002968884174532834,
+  "maximum_unit_normal_error": 1.2827242001911543e-07,
+  "original_sha256": "92b3a72c20b2e820d843956f8d076fb981af9d4ec9e5669794cb717dd552f4ae",
+  "candidate_source_sha256": "e67b9e3ea01996bc5f0dfb9da07ed8800bb3d0052c7d3cc08c77c985732f0aa3",
+  "candidate_glb_sha256": "efaf7ebf07d6f18d0c71185ebd2d696e2554af2df57128a484bd7e9d5089135a",
+  "limitations": "Existing source-to-render receipts and byte closure verified; source was not executed or re-rendered. No runtime, animation, intersection or performance acceptance. Structural checks do not alter visual scores."
+}
