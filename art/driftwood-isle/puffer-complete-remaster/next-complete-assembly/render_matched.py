@@ -8,8 +8,11 @@ import bpy
 from mathutils import Vector
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[3]
 p=argparse.ArgumentParser();p.add_argument('--candidate',required=True,type=Path);p.add_argument('--out',required=True,type=Path);a=p.parse_args(sys.argv[sys.argv.index('--')+1:])
-a.out.mkdir(parents=True,exist_ok=True)
-if list(a.out.glob('*.png')):raise RuntimeError('Fresh capture directory required')
+a.out=a.out.resolve();a.out.mkdir(parents=True,exist_ok=True)
+recovery=json.loads((HERE/'render-recovery-receipt.json').read_text()) if (HERE/'render-recovery-receipt.json').exists() else None
+if list(a.out.glob('*.png')) and not recovery:raise RuntimeError('Unexpected pre-existing capture directory')
+if recovery:
+ raw=ROOT/recovery['rawPreserved'];assert hashlib.sha256(raw.read_bytes()).hexdigest()==recovery['rawSha256']
 paths={'selected':HERE.parent/'closed-anatomy-study/closed-anatomy-native.json','candidate':a.candidate.resolve()}
 data={k:json.loads(v.read_text()) for k,v in paths.items()}
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
@@ -47,11 +50,13 @@ for shot,yaw,elevation in [('hero',None,None)]+shots:
   for key,obs in objects.items():
    for ob in obs:ob.hide_render=key!=label
   if sum(p.stat().st_size for p in a.out.glob('*')if p.is_file())>24*1024*1024:raise RuntimeError('Allocated raw capture reservation exceeded; preserve originals and report')
-  raw=a.out/f'{label}-{shot}.png';s.render.filepath=str(raw.resolve());bpy.ops.render.render(write_still=True)
+  raw=a.out/f'{label}-{shot}.png';s.render.filepath=str(raw.resolve())
+  if not raw.exists():bpy.ops.render.render(write_still=True)
+  elif not recovery or str(raw.relative_to(ROOT))!=recovery['rawPreserved']:raise RuntimeError('Only exact preserved first capture may be resumed')
   dest=HERE/f'{label}-{shot}.webp'
   subprocess.run(['/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python',str(HERE.parent/'closed-anatomy-study/save_preview.py'),str(raw),str(dest),label+' | '+shot],check=True)
   # Retain exact PNG pixels for independent visual review.
-  receipt['captures'].append({'variant':label,'view':shot,'camera':list(position),'target':list(look),'scale':scale,'filename':dest.name,'sha256':hashlib.sha256(dest.read_bytes()).hexdigest(),'rawPath':str(raw.relative_to(ROOT)),'rawBytes':raw.stat().st_size,'rawSha256':hashlib.sha256(raw.read_bytes()).hexdigest()})
+  receipt['captures'].append({'variant':label,'view':shot,'camera':list(position),'target':list(look),'scale':scale,'filename':dest.name,'sha256':hashlib.sha256(dest.read_bytes()).hexdigest(),'rawPath':str(raw.relative_to(ROOT)),'rawBytes':raw.stat().st_size,'rawSha256':hashlib.sha256(raw.read_bytes()).hexdigest(),'rendererSha256':recovery['firstRendererSha256'] if recovery and str(raw.relative_to(ROOT))==recovery['rawPreserved'] else receipt['scriptSha256']})
   (HERE/'capture-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
 receipt['status']='All twenty actual matched captures completed'
 (HERE/'capture-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')

@@ -1,0 +1,461 @@
+{
+  "checks": {
+    "outsideNamedCarrierAndSpikeEnvelopesExact": true,
+    "bonesAndPivotsExact": true,
+    "headExposedPositionsExact": true,
+    "eyePalateTongueNostrilColorsExact": true,
+    "tailFullPayloadExact": true,
+    "paintChangesNoPositions": true,
+    "allPatchBoundariesExact": true,
+    "allReplacementFacesCarrierOriented": true
+  },
+  "violations": [],
+  "regions": [
+    {
+      "name": "lower-left-fold-connected-sheet",
+      "oldFaces": 26,
+      "newFaces": 12,
+      "minimumBoundaryOrientedProjectedTriangleArea": 0.000178720247196118,
+      "allReplacementFacesAgreeWithCarrierProjection": true,
+      "boundaryExact": true,
+      "newControlDepthComparisons": [],
+      "sourceBounds": [
+        [
+          -0.5701960325241089,
+          0.18759837746620178,
+          -0.08750000596046448
+        ],
+        [
+          -0.2495328038930893,
+          0.6151196956634521,
+          0.3969522714614868
+        ]
+      ],
+      "replacementBounds": [
+        [
+          -0.5701960325241089,
+          0.18759837746620178,
+          -0.08750000596046448
+        ],
+        [
+          -0.2495328038930893,
+          0.6151196956634521,
+          0.3969522714614868
+        ]
+      ]
+    },
+    {
+      "name": "orbital-back-wall--1",
+      "oldFaces": 16,
+      "newFaces": 14,
+      "minimumBoundaryOrientedProjectedTriangleArea": 0.00011267085500721308,
+      "allReplacementFacesAgreeWithCarrierProjection": true,
+      "boundaryExact": true,
+      "newControlDepthComparisons": [],
+      "sourceBounds": [
+        [
+          -0.4480000138282776,
+          0.8091400265693665,
+          0.675000011920929
+        ],
+        [
+          -0.23199999332427979,
+          0.9383260607719421,
+          0.675000011920929
+        ]
+      ],
+      "replacementBounds": [
+        [
+          -0.4480000138282776,
+          0.8091400265693665,
+          0.675000011920929
+        ],
+        [
+          -0.23199999332427979,
+          0.9383260607719421,
+          0.675000011920929
+        ]
+      ]
+    },
+    {
+      "name": "orbital-back-wall-1",
+      "oldFaces": 16,
+      "newFaces": 14,
+      "minimumBoundaryOrientedProjectedTriangleArea": 0.00011267085500721308,
+      "allReplacementFacesAgreeWithCarrierProjection": true,
+      "boundaryExact": true,
+      "newControlDepthComparisons": [],
+      "sourceBounds": [
+        [
+          0.23199999332427979,
+          0.8091400265693665,
+          0.675000011920929
+        ],
+        [
+          0.4480000138282776,
+          0.9383260607719421,
+          0.675000011920929
+        ]
+      ],
+      "replacementBounds": [
+        [
+          0.23199999332427979,
+          0.8091400265693665,
+          0.675000011920929
+        ],
+        [
+          0.4480000138282776,
+          0.9383260607719421,
+          0.675000011920929
+        ]
+      ]
+    },
+    {
+      "name": "descending-interlocked-crown",
+      "oldFaces": 43,
+      "newFaces": 31,
+      "minimumBoundaryOrientedProjectedTriangleArea": 5.356884572901563e-05,
+      "allReplacementFacesAgreeWithCarrierProjection": true,
+      "boundaryExact": true,
+      "newControlDepthComparisons": [
+        {
+          "control": [
+            -0.025,
+            1.265,
+            -0.08
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            0.021357751578239936
+          ]
+        },
+        {
+          "control": [
+            0.255,
+            1.174,
+            -0.025
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            -0.01193112417077602
+          ]
+        },
+        {
+          "control": [
+            -0.265,
+            1.195,
+            0.075
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            0.021036417871565627
+          ]
+        },
+        {
+          "control": [
+            0.02,
+            1.198,
+            0.115
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            -0.02601797390102578
+          ]
+        },
+        {
+          "control": [
+            -0.26,
+            1.14,
+            0.22
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            -0.022175598463431978
+          ]
+        },
+        {
+          "control": [
+            0.26,
+            1.12,
+            0.22
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            -0.04217559927786185
+          ]
+        },
+        {
+          "control": [
+            0.025,
+            1.13,
+            -0.26
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            -0.016112566276293094
+          ]
+        }
+      ],
+      "sourceBounds": [
+        [
+          -0.4743395149707794,
+          0.9452724456787109,
+          -0.41749998927116394
+        ],
+        [
+          0.4743395149707794,
+          1.25,
+          0.33992448449134827
+        ]
+      ],
+      "replacementBounds": [
+        [
+          -0.4743395149707794,
+          0.9452724456787109,
+          -0.41749998927116394
+        ],
+        [
+          0.4743395149707794,
+          1.265,
+          0.33992448449134827
+        ]
+      ]
+    },
+    {
+      "name": "broad-flank--1",
+      "oldFaces": 47,
+      "newFaces": 27,
+      "minimumBoundaryOrientedProjectedTriangleArea": 3.5588303859412918e-06,
+      "allReplacementFacesAgreeWithCarrierProjection": true,
+      "boundaryExact": true,
+      "newControlDepthComparisons": [
+        {
+          "control": [
+            -0.593,
+            0.64,
+            0.025
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            -0.002588266299102804
+          ]
+        },
+        {
+          "control": [
+            -0.601,
+            0.79,
+            0.14
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            -0.011429305129475043
+          ]
+        },
+        {
+          "control": [
+            -0.554,
+            0.755,
+            -0.13
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            0.006975872332076305
+          ]
+        }
+      ],
+      "sourceBounds": [
+        [
+          -0.5929591655731201,
+          0.5110161900520325,
+          -0.26749998331069946
+        ],
+        [
+          -0.45050281286239624,
+          0.898103654384613,
+          0.3452458083629608
+        ]
+      ],
+      "replacementBounds": [
+        [
+          -0.601,
+          0.5110161900520325,
+          -0.26749998331069946
+        ],
+        [
+          -0.45050281286239624,
+          0.898103654384613,
+          0.3452458083629608
+        ]
+      ]
+    },
+    {
+      "name": "broad-flank-1",
+      "oldFaces": 50,
+      "newFaces": 32,
+      "minimumBoundaryOrientedProjectedTriangleArea": 3.735754283695769e-08,
+      "allReplacementFacesAgreeWithCarrierProjection": true,
+      "boundaryExact": true,
+      "newControlDepthComparisons": [
+        {
+          "control": [
+            0.593,
+            0.64,
+            0.025
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            0.0025882785782919138
+          ]
+        },
+        {
+          "control": [
+            0.601,
+            0.79,
+            0.14
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            0.011421937037363605
+          ]
+        },
+        {
+          "control": [
+            0.554,
+            0.755,
+            -0.13
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            -0.006975858328134077
+          ]
+        }
+      ],
+      "sourceBounds": [
+        [
+          0.45050281286239624,
+          0.5110161900520325,
+          -0.26749998331069946
+        ],
+        [
+          0.5929591655731201,
+          0.898103654384613,
+          0.3455386161804199
+        ]
+      ],
+      "replacementBounds": [
+        [
+          0.45050281286239624,
+          0.5110161900520325,
+          -0.26749998331069946
+        ],
+        [
+          0.601,
+          0.898103654384613,
+          0.3455386161804199
+        ]
+      ]
+    },
+    {
+      "name": "forward-hanging-pouch-center",
+      "oldFaces": 23,
+      "newFaces": 29,
+      "minimumBoundaryOrientedProjectedTriangleArea": 0.00018444724354977927,
+      "allReplacementFacesAgreeWithCarrierProjection": true,
+      "boundaryExact": true,
+      "newControlDepthComparisons": [
+        {
+          "control": [
+            -0.16,
+            0.39,
+            0.924
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            0.02461747293136829
+          ]
+        },
+        {
+          "control": [
+            0.1,
+            0.405,
+            0.945
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            0.03882043238493327
+          ]
+        },
+        {
+          "control": [
+            0.018,
+            0.525,
+            0.93
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            0.013021381315869052
+          ]
+        },
+        {
+          "control": [
+            0.3,
+            0.465,
+            0.862
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            0.027725448929487584
+          ]
+        },
+        {
+          "control": [
+            -0.3,
+            0.485,
+            0.867
+          ],
+          "signedAxisDistancesToSourceSheet": [
+            0.0510528965025151
+          ]
+        }
+      ],
+      "sourceBounds": [
+        [
+          -0.5295488238334656,
+          0.32734930515289307,
+          0.6042860150337219
+        ],
+        [
+          0.4907310903072357,
+          0.6290916204452515,
+          0.9181897640228271
+        ]
+      ],
+      "replacementBounds": [
+        [
+          -0.5295488238334656,
+          0.32734930515289307,
+          0.6042860150337219
+        ],
+        [
+          0.4907310903072357,
+          0.6290916204452515,
+          0.945
+        ]
+      ]
+    }
+  ],
+  "hullVolumeBefore": 1.059838621695561,
+  "hullVolumeAfter": 1.0527636015181867,
+  "hullVolumeRelativeChange": -0.006675563649544691,
+  "dependencyPins": [
+    {
+      "path": "art/driftwood-isle/puffer-remaster-guided/paint_semantic_face_diagonal_robust.py",
+      "sha256": "70cfbabc73a72277636c517737f158ffe48a89c27edf298e3fbf4257c74c6d96"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-spike-study/build_spikes.py",
+      "sha256": "ca57ec38ef34576adaa1ece0c72cca343cc99c33360bb8829b8d54e27210b4a9"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/validate.py",
+      "sha256": "71e8a5b663e16e5147ebeea08f28b6cfbd8eb37b5eb63eb418d2c4aa588117fd"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/local-surface-repair/intersections.py",
+      "sha256": "c2bd3cc1fc14407c592201009247c5b44f9b86610b51b0a668b4662ddb009dc4"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-study/save_preview.py",
+      "sha256": "8fbfd2a33d10d6b63788f4eb4435a538bc96b9a7fdedb38c970525f04dff46c2"
+    },
+    {
+      "path": "art/driftwood-isle/puffer-fin-study/terminal-fin-fans-indexed.json",
+      "sha256": "10f7aa739ad1980345936a329d82cec8f35fd268fc07b2cb835b60f2ba66f953"
+    }
+  ],
+  "allChecksPass": true,
+  "runtimeAdmitted": false
+}

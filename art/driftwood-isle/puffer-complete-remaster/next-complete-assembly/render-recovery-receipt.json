@@ -1,0 +1,31 @@
+{
+  "reason": "Receipt path serialization failed after first raw render; no image rerender required",
+  "firstRendererSha256": "3dcff53dd20c68914a9bae176aa4a7125bea0252db11cc20bbda89c5f7a9c720",
+  "rawPreserved": "tmp/puffer-next-complete-assembly/selected-hero.png",
+  "rawSha256": "405408c18f48cd16683a13f4d2df82835baacdaee4d3674f60f6e08a91db89db",
+  "firstFreezeReceipt": {
+    "status": "capture in progress",
+    "nativePins": {
+      "selected": {
+        "path": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-study/closed-anatomy-native.json",
+        "sha256": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006"
+      },
+      "candidate": {
+        "path": "art/driftwood-isle/puffer-complete-remaster/next-complete-assembly/candidate-native.json",
+        "sha256": "b48589944bf7b85b05b1ef612969095f5d73941576a4a78c915770922e9a2e20"
+      }
+    },
+    "scriptSha256": "3dcff53dd20c68914a9bae176aa4a7125bea0252db11cc20bbda89c5f7a9c720",
+    "resolution": [
+      600,
+      740
+    ],
+    "samples": 24,
+    "denoising": false,
+    "viewTransform": "AgX",
+    "lighting": "V71 three area lights, unchanged between variants",
+    "geometry": "native bind pose, identity transforms, no camera-dependent changes",
+    "captures": [],
+    "runtimeValidated": false
+  }
+}

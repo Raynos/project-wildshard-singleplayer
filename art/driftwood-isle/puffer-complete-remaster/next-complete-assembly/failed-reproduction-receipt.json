@@ -1,0 +1,9 @@
+{
+  "status": "exact failed native reproduced",
+  "expectedFailedNativeSha256": "b63af117dc08fe505f7604c40fbdd16e6ca338b5f5e53ce609ad24bef80b3702",
+  "reproducedFailedNativeSha256": "b63af117dc08fe505f7604c40fbdd16e6ca338b5f5e53ce609ad24bef80b3702",
+  "matches": true,
+  "reconstruction": "Restore only rootAfter coordinates to their rootBefore in shoulder-controls.json; all other prepaint arrays exact. Run retained failed_partition_paint.py.",
+  "frozenCandidateUntouched": true,
+  "temporaryNativeCopiesRetained": false
+}

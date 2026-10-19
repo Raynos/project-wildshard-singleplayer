@@ -1,0 +1,446 @@
+{
+  "status": "All twenty actual matched captures completed",
+  "nativePins": {
+    "selected": {
+      "path": "art/driftwood-isle/puffer-complete-remaster/closed-anatomy-study/closed-anatomy-native.json",
+      "sha256": "98c4855852fc77ef385b0998e98dc5bdbabf40bb32b815f598c9a922525e5006"
+    },
+    "candidate": {
+      "path": "art/driftwood-isle/puffer-complete-remaster/next-complete-assembly/candidate-native.json",
+      "sha256": "b48589944bf7b85b05b1ef612969095f5d73941576a4a78c915770922e9a2e20"
+    }
+  },
+  "scriptSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf",
+  "resolution": [
+    600,
+    740
+  ],
+  "samples": 24,
+  "denoising": false,
+  "viewTransform": "AgX",
+  "lighting": "V71 three area lights, unchanged between variants",
+  "geometry": "native bind pose, identity transforms, no camera-dependent changes",
+  "captures": [
+    {
+      "variant": "selected",
+      "view": "hero",
+      "camera": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ],
+      "target": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ],
+      "scale": 3.2,
+      "filename": "selected-hero.webp",
+      "sha256": "dfdbc020b586962c130e18efbdc3d64b3847e71128c2cd7fbf78a32b69ab4968",
+      "rawPath": "tmp/puffer-next-complete-assembly/selected-hero.png",
+      "rawBytes": 766976,
+      "rawSha256": "405408c18f48cd16683a13f4d2df82835baacdaee4d3674f60f6e08a91db89db",
+      "rendererSha256": "3dcff53dd20c68914a9bae176aa4a7125bea0252db11cc20bbda89c5f7a9c720"
+    },
+    {
+      "variant": "candidate",
+      "view": "hero",
+      "camera": [
+        3.0,
+        4.599999904632568,
+        2.25
+      ],
+      "target": [
+        0.0,
+        -0.029999999329447746,
+        0.8399999737739563
+      ],
+      "scale": 3.2,
+      "filename": "candidate-hero.webp",
+      "sha256": "8c9183010c493600342de50d85e88d47b488f6b9c7b5afe33475c6e272bcdf93",
+      "rawPath": "tmp/puffer-next-complete-assembly/candidate-hero.png",
+      "rawBytes": 757246,
+      "rawSha256": "32d7d8d3224ea9645602452986225089acf531064f3302ce4f87ef98f443ae29",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "selected",
+      "view": "01-front",
+      "camera": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "selected-01-front.webp",
+      "sha256": "00e61fadcc0b6de1959f7c84a9cfa375ec32332d121c82ac2a46bf749756f3ee",
+      "rawPath": "tmp/puffer-next-complete-assembly/selected-01-front.png",
+      "rawBytes": 338528,
+      "rawSha256": "07aa74351ca4b0b14306b715c81acaf76a99f453da89af7e9ec075953ce88769",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "candidate",
+      "view": "01-front",
+      "camera": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "candidate-01-front.webp",
+      "sha256": "dcfc6b04a1499aa47c9198629cf3b0a78a7787783b14083ee278114165611c3b",
+      "rawPath": "tmp/puffer-next-complete-assembly/candidate-01-front.png",
+      "rawBytes": 323047,
+      "rawSha256": "51a6d32534c8add6654d3a84a6c50da5ac2ef36fb37db657d4e59c4d26d9cb05",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "selected",
+      "view": "02-left",
+      "camera": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "selected-02-left.webp",
+      "sha256": "0247cb925a1090d46a3d15e7bcd23f1d1a9c9b15f8c046c8b72a5387772cb220",
+      "rawPath": "tmp/puffer-next-complete-assembly/selected-02-left.png",
+      "rawBytes": 340605,
+      "rawSha256": "b5867b82c9a14a3cece75216704c2bfbf59ff15266f0fd85f55b70c6a3625aa4",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "candidate",
+      "view": "02-left",
+      "camera": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "candidate-02-left.webp",
+      "sha256": "f87daa2da77a0a7f5ff013d840683084b0c8c0848cbab19d92f563bb3cc173fb",
+      "rawPath": "tmp/puffer-next-complete-assembly/candidate-02-left.png",
+      "rawBytes": 330438,
+      "rawSha256": "f0c55cd70dfba30ad2863adbe44dab9ba3593c1d3abf5baef798d29b6f55cdef",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "selected",
+      "view": "03-right",
+      "camera": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "selected-03-right.webp",
+      "sha256": "10718da5454ed0e58f81ecd585fb1c43df91f2f2f603a568c11a400d7e4168d8",
+      "rawPath": "tmp/puffer-next-complete-assembly/selected-03-right.png",
+      "rawBytes": 349416,
+      "rawSha256": "b535899fb662da5da4ec2f7a980e861fd6f3118d5f6a5980df3fa88bb41c95e3",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "candidate",
+      "view": "03-right",
+      "camera": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "candidate-03-right.webp",
+      "sha256": "4fbfa87412475d6a4b7e1cc6ac59841e90ebf9608d320aba1abfe53ed713e543",
+      "rawPath": "tmp/puffer-next-complete-assembly/candidate-03-right.png",
+      "rawBytes": 338101,
+      "rawSha256": "dff81142cc12d7c6ddfb1873d641655b3a33ef87504e9f8e036c94b18ee95aa5",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "selected",
+      "view": "04-back",
+      "camera": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "selected-04-back.webp",
+      "sha256": "a66d377c2ad3c692100db735ab7a8b24a17308d869e9412faf081d4f0a7ecf28",
+      "rawPath": "tmp/puffer-next-complete-assembly/selected-04-back.png",
+      "rawBytes": 329879,
+      "rawSha256": "2893f859507192d8cb799fa8f8a021e137e4c51f8d5c48b902a4640eea4b9803",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "candidate",
+      "view": "04-back",
+      "camera": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "candidate-04-back.webp",
+      "sha256": "6c60914b46c439d6fd419540597e5f568bc08dbe15e7f01b64af4bf78c93e0b2",
+      "rawPath": "tmp/puffer-next-complete-assembly/candidate-04-back.png",
+      "rawBytes": 318201,
+      "rawSha256": "3524de29a1ece604e78ddf8c0734819d022f0333c613a6b979faa71f4d406448",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "selected",
+      "view": "05-top",
+      "camera": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "selected-05-top.webp",
+      "sha256": "1fe73b8edf6d81f8c091d8296d5318d86b00cb169d550d0c160db3749e17814f",
+      "rawPath": "tmp/puffer-next-complete-assembly/selected-05-top.png",
+      "rawBytes": 782509,
+      "rawSha256": "03db20bacf107ae8739f6a746920fe2b03fa52e38ccceb068d251a10468d6ec2",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "candidate",
+      "view": "05-top",
+      "camera": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "candidate-05-top.webp",
+      "sha256": "49b0008ff353c0c61222de06acb89f8bdf36350797adeabe110745a261f30923",
+      "rawPath": "tmp/puffer-next-complete-assembly/candidate-05-top.png",
+      "rawBytes": 775147,
+      "rawSha256": "227e840aff3b7064b927932a9c1fa0ba68a5ac36141c38b43736d4eb579c708f",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "selected",
+      "view": "06-elevated-front",
+      "camera": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "selected-06-elevated-front.webp",
+      "sha256": "b35c60ec9c1054c87dc7a8a6d31c02cf89df2c6ed5f818b5666b10a85d609591",
+      "rawPath": "tmp/puffer-next-complete-assembly/selected-06-elevated-front.png",
+      "rawBytes": 776905,
+      "rawSha256": "b629795d95bfc53488a2c538d9876b7e9ebfd0a5f6aa10e85bfe1b34a57125b3",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "candidate",
+      "view": "06-elevated-front",
+      "camera": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "candidate-06-elevated-front.webp",
+      "sha256": "12844b08172a3d62654a1a26b71798aff31412b99fb8a2c810f1abfba428a621",
+      "rawPath": "tmp/puffer-next-complete-assembly/candidate-06-elevated-front.png",
+      "rawBytes": 769994,
+      "rawSha256": "6675a1a34b265659b19f3329370e4163ee9fec28666824e64dc84fc3c624ab5c",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "selected",
+      "view": "07-elevated-left",
+      "camera": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "selected-07-elevated-left.webp",
+      "sha256": "a83d20af70ed3c6fcc44418055ae7d7a7354306fe5a13e3fca4a054c544ecdd4",
+      "rawPath": "tmp/puffer-next-complete-assembly/selected-07-elevated-left.png",
+      "rawBytes": 770455,
+      "rawSha256": "4ecfcc0f2439718d8c6f90bd2ae0dc40d4093f73dd34c5f6b0bb3a85135474f3",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "candidate",
+      "view": "07-elevated-left",
+      "camera": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "candidate-07-elevated-left.webp",
+      "sha256": "22e4fd3387696a1d3d53a8d1dd264d695f9f681afb1573ec71b0ccb948424335",
+      "rawPath": "tmp/puffer-next-complete-assembly/candidate-07-elevated-left.png",
+      "rawBytes": 764201,
+      "rawSha256": "3b895f544a4007881532411b77c2441ef65bc0d45b9ebc107c98d5a999f3de17",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "selected",
+      "view": "08-elevated-right",
+      "camera": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "selected-08-elevated-right.webp",
+      "sha256": "676fe7f5b7c2a78b396a0888cc8bcabe4d4bde8401c8ea9b95dacfd429cb5e91",
+      "rawPath": "tmp/puffer-next-complete-assembly/selected-08-elevated-right.png",
+      "rawBytes": 788654,
+      "rawSha256": "84580e070b7ce823a7e8398d6dabb6dbecd5e8012edc0b6d410cee2f6a288693",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "candidate",
+      "view": "08-elevated-right",
+      "camera": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "candidate-08-elevated-right.webp",
+      "sha256": "aabdf11a659128cf8fb17c3cbbb44fce9f47e6da25a3a50889dc57173a6e83ee",
+      "rawPath": "tmp/puffer-next-complete-assembly/candidate-08-elevated-right.png",
+      "rawBytes": 781695,
+      "rawSha256": "92ff48c844b7ea0086a67d91fc8c1533ddfeb67ea8c67636b4925cd137ede642",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "selected",
+      "view": "09-elevated-back",
+      "camera": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "selected-09-elevated-back.webp",
+      "sha256": "14dd71c0321e6b2c10fd610f8e15af441e96933f2102c673625c4f64ca517c16",
+      "rawPath": "tmp/puffer-next-complete-assembly/selected-09-elevated-back.png",
+      "rawBytes": 770925,
+      "rawSha256": "a0018894f35ab69d1306efb16010617bd2ee5a9ff43e1690f6fec941fcaf1de2",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    },
+    {
+      "variant": "candidate",
+      "view": "09-elevated-back",
+      "camera": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "target": [
+        0.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "scale": 4.2,
+      "filename": "candidate-09-elevated-back.webp",
+      "sha256": "dc8a1b76930cfd7d13fef33ea61cdae7f7e087df5b3aff1e97044b9252d3616d",
+      "rawPath": "tmp/puffer-next-complete-assembly/candidate-09-elevated-back.png",
+      "rawBytes": 765658,
+      "rawSha256": "0dd5c66d0d4c17806dbb6e53cc4f97b7b66bf1cb43677a4a0e8306bb0b5060d6",
+      "rendererSha256": "a456ff10b3eee42d1880fda1a5b16d7a3980eefdcaae42c4c7d14fdc4ea949bf"
+    }
+  ],
+  "runtimeValidated": false
+}
