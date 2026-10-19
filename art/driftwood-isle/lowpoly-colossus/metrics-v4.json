@@ -1,0 +1,21 @@
+{
+  "status": "unaccepted V4 integrated growth study",
+  "objects": 227,
+  "triangles": 5200,
+  "bounds": {
+    "min": [
+      -2.552576780319214,
+      -0.9361549615859985,
+      0.027000000700354576
+    ],
+    "max": [
+      2.5588948726654053,
+      1.2337346076965332,
+      5.8114824295043945
+    ]
+  },
+  "front": "-Y",
+  "glbBytes": 704108,
+  "sourceSHA256": "f10cdec46537f8d579fa7af687890aebe6c2f0e9d82c962e64a478567e3a0218",
+  "rendered": true
+}

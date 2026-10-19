@@ -1,0 +1,134 @@
+{
+  "candidate": "Conch full-character anatomy pass",
+  "dateUTC": "2026-10-19",
+  "status": "actual full-nine rendered; fresh independent review pending",
+  "reference": {
+    "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/conch-duelist-lowpoly.webp",
+    "bytes": 209288,
+    "sha256": "90073e7f4eae70b1e135c87740325d6a7a7da94c67cf761b03c5184c507a65cb"
+  },
+  "sources": [
+    {
+      "path": "art/driftwood-isle/approved-conch/build_conch_character_pass.py",
+      "bytes": 17107,
+      "sha256": "3c5771598f49b41d5bd3dde55977d693fc42b4ca921cc7eafa93a13542c00d5b"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/render_conch_character_pass_nine.py",
+      "bytes": 3134,
+      "sha256": "9d7c0349b854f3ae27c4d4921fb99aa5e95ee1911503abc468bc83501d074e29"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/review_conch_character_pass.py",
+      "bytes": 1887,
+      "sha256": "0cc51f39a599419c3b08bdaeb474d5b1671e7865e6a1259e6f4d71aa36ef2434"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/audit_conch_glb.py",
+      "bytes": 1948,
+      "sha256": "3333bb36bf08fb9640287461a82f53c101543edff7631da4d6566c0188a82a67"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/audit_conch_crossings.py",
+      "bytes": 2712,
+      "sha256": "f42569956ab66008415edf47b089f5a5e5a20660d0cd9e52e6e5081903680a2b"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "tmp/conch-character-pass/conch-study.glb",
+      "bytes": 241240,
+      "sha256": "214617350694ee61e43127eecf2ffe11ae484cff9ee1edfd86e3574ce4252c5d"
+    },
+    {
+      "path": "tmp/conch-character-pass/color-front.png",
+      "bytes": 1314527,
+      "sha256": "7dbb5af0b45177a86d9bfcc87fdfe736162b24829fcc1792082a0f85a5c17d7b"
+    },
+    {
+      "path": "tmp/conch-character-pass/color-character-pass-front.png",
+      "bytes": 439006,
+      "sha256": "78fc3b4e9b834466259ef8d7654a35574e6c278b6e4170ef5d4281497e47d3c3"
+    },
+    {
+      "path": "tmp/conch-character-pass/color-character-pass-left.png",
+      "bytes": 374742,
+      "sha256": "84f6f6955959ff64386c44661137e116354044048b5c485f8d8ee65429b0628c"
+    },
+    {
+      "path": "tmp/conch-character-pass/color-character-pass-right.png",
+      "bytes": 364118,
+      "sha256": "5183279e1c811f610dbeed3ea29e9acebca281cc2a0301e01198610066822202"
+    },
+    {
+      "path": "tmp/conch-character-pass/color-character-pass-back.png",
+      "bytes": 415635,
+      "sha256": "62f9dd40ffde5760e4f3933115d5f346a1ee6269393f8bca61e18138166e4065"
+    },
+    {
+      "path": "tmp/conch-character-pass/color-character-pass-top.png",
+      "bytes": 617764,
+      "sha256": "f2acf3f6c2c8b1503cfe7da95ef5614ac0f7483a8f6ae2cf76f0c6791ee0bd07"
+    },
+    {
+      "path": "tmp/conch-character-pass/color-character-pass-diag-front.png",
+      "bytes": 646935,
+      "sha256": "70f5352112d50b7a7ff509cf56347cad29189919c5504bb626db1cb1bd56f08e"
+    },
+    {
+      "path": "tmp/conch-character-pass/color-character-pass-diag-left.png",
+      "bytes": 670068,
+      "sha256": "9a1fd40d9ed8cbb50ad9347c643b9a8c8982c6b00ac02a08a173d9f0b2837d04"
+    },
+    {
+      "path": "tmp/conch-character-pass/color-character-pass-diag-right.png",
+      "bytes": 602404,
+      "sha256": "47ece6950f8036dc9a47ddf90e3fb952a43368631220c3d621bc516c59926f96"
+    },
+    {
+      "path": "tmp/conch-character-pass/color-character-pass-diag-back.png",
+      "bytes": 613952,
+      "sha256": "4a83210cd23a9a5ebd13b0e3b9b42a9a551a69899772824d7828c525c1266c23"
+    },
+    {
+      "path": "tmp/conch-character-pass/comparison-character-pass-board.webp",
+      "bytes": 56582,
+      "sha256": "4935167d02df6146d698ca7aec36c328a423de60a6704ddb5390cd126a79f555"
+    },
+    {
+      "path": "tmp/conch-character-pass/nine-view-character-pass-board.webp",
+      "bytes": 90326,
+      "sha256": "9c7a17a7063b5c77782c110ad54b51af1087b0bf8ea406cb06b0f3f7c0f1c2cb"
+    },
+    {
+      "path": "tmp/conch-character-pass/cameras-character-pass.json",
+      "bytes": 2592,
+      "sha256": "639765965d7234408505d2a3f728c0c9db6b764143fbe95b201df1b662b1d990"
+    },
+    {
+      "path": "tmp/conch-character-pass/topology-audit.json",
+      "bytes": 10765,
+      "sha256": "d4067507d0cb965ba7a6dd82a168ef67e6c9c18a6540a9220087594e64606159"
+    },
+    {
+      "path": "tmp/conch-character-pass/crossings-audit.json",
+      "bytes": 390,
+      "sha256": "290a82f40adf2c0de880133d843aa758a89d6b37a1a7adbad043b7ebb1c6c49a"
+    }
+  ],
+  "terminal": {
+    "preflight": 0,
+    "hero": 0,
+    "fixedNine": 0
+  },
+  "geometry": {
+    "triangles": 2446,
+    "meshes": 56,
+    "shellUnchangedFromV10Repair": true,
+    "shellBoundaryEdges": 0,
+    "shellNonManifoldEdges": 0,
+    "shellDegenerateTriangles": 0,
+    "shellProperNonadjacentCrossings": 0
+  },
+  "limits": "Static study only. No self-score, likeness acceptance, rigging, animation, native packing, combat, gameplay or physical phone performance claim."
+}

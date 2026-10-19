@@ -1,0 +1,113 @@
+{
+  "status": "V4 sources and actual static evidence frozen; independent review pending",
+  "capturedUTC": "2026-10-19T03:47:19.170833+00:00",
+  "V3PreservationMismatches": [],
+  "scope": "No changes to playable, runtime assets, animation, Site or Mac",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/build_colossus_v4.py",
+      "bytes": 21954,
+      "sha256": "f10cdec46537f8d579fa7af687890aebe6c2f0e9d82c962e64a478567e3a0218"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/cameras-v4.json",
+      "bytes": 2853,
+      "sha256": "39b010631bbbd6648b6a774e4d62a9641dd6efa9b1fee4066716f3aab7787678"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/metrics-v4.json",
+      "bytes": 455,
+      "sha256": "f4100cd18d20b8764b7a5f1474e6377a69a40eb9dc4854fdf0d95668d53d01c9"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/package_colossus_v4.py",
+      "bytes": 4016,
+      "sha256": "86c65e912dd53beba169c8dda2f15bcc9ed01b3018b625d26b6e2bb1fb51dc81"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/render_colossus_v4_nine.py",
+      "bytes": 2747,
+      "sha256": "3b8c9e59d6cc34f93e77fcf4b03aa8b962becfcdba3378a08d8f84b47f328da4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/tide-root-colossus-v4.glb",
+      "bytes": 704108,
+      "sha256": "8c94ed4a452f10ca5c9e1e663c7437c2905e42b90bf5abe9faaf970391a8189b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-01-front.webp",
+      "bytes": 40350,
+      "sha256": "22e36a8cd9a3e41b0f8d8a0f8dd6764e7e08d1d24233f18ec20601f0236996d9"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-02-left.webp",
+      "bytes": 21292,
+      "sha256": "8491be90721a84a9c12a0ed8dc7947ce748974f8f5b7bef3d4d835996eb760b7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-03-right.webp",
+      "bytes": 22478,
+      "sha256": "0242436d28cd18786d42ce59c6fa80d39c5b89581b7c2bd89f3528708d5a0ece"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-04-back.webp",
+      "bytes": 45452,
+      "sha256": "5b4370d45fec6df7fa1765373704c466a1b1f5ff8ebe4874a42631633c625627"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-05-top.webp",
+      "bytes": 57984,
+      "sha256": "3e041f6fbda2b14d3149dc899c675900adaa24c4d12f577e1912b617347eb521"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-06-diag-front.webp",
+      "bytes": 59484,
+      "sha256": "9c48f7aa2538b1e55471c3b1f8b07cfd4e6ba5a5a8e58a2097f6cd9b2b800e06"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-07-diag-left.webp",
+      "bytes": 51070,
+      "sha256": "8c5ca7153f56dd67e3375d18547ddeaed961045945b3b70135f184808476549c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-08-diag-right.webp",
+      "bytes": 54318,
+      "sha256": "ca6ab7400f4042c7394ad470fb446e4f90ff99666c09927d92d22e04b29905ad"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-09-diag-back.webp",
+      "bytes": 53696,
+      "sha256": "f30671fd5d1d70233dbb1597010df0461a0769d6f6808c0bf2517509c27539bb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-capture-receipt.json",
+      "bytes": 2902,
+      "sha256": "5ae0ce6feacc8463fceeae73ec42bdcf49b99ca053068599657f093d05af1adb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-hero.webp",
+      "bytes": 90752,
+      "sha256": "0db2baecc765fdd1941a815aba797dc012f3b5e239afaf18dbe51214b3d8e615"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-nine-board.webp",
+      "bytes": 259712,
+      "sha256": "a90a7ded924900d94d227fa1f00cedcaab8df4574be716a634b0a26edbe6e5f6"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/v4-source-closure.json",
+      "bytes": 618,
+      "sha256": "18a277d2db5774e10ada0c2ad9cb0e5b0699878f07cb4df7e6f0726618e3605e"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/validation-v4.json",
+      "bytes": 57509,
+      "sha256": "7cd2090c20808cab276e71439596c22b748b2a4c61f306fcdef18264580b0e98"
+    },
+    {
+      "path": "docs/reviews/colossus-v4-construction.md",
+      "bytes": 1820,
+      "sha256": "874e5f101d03bff6afe1a4484edf953cb9906ecbee122bc99f2fee24fd5bbe6f"
+    }
+  ]
+}

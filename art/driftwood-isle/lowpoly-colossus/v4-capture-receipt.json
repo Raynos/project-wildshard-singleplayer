@@ -1,0 +1,82 @@
+{
+  "status": "Actual V4 hero and full canonical nine captured; independent likeness review pending",
+  "capturedUTC": "2026-10-19T03:47:19.144831+00:00",
+  "heroExit": 0,
+  "nineExit": 0,
+  "geometryAuditExit": 0,
+  "heroAndNineGLBIdentical": true,
+  "sourceSHA256": "f10cdec46537f8d579fa7af687890aebe6c2f0e9d82c962e64a478567e3a0218",
+  "rendererSHA256": "3b8c9e59d6cc34f93e77fcf4b03aa8b962becfcdba3378a08d8f84b47f328da4",
+  "files": [
+    {
+      "path": "tmp/colossus-v4/three-quarter.png",
+      "bytes": 1765749,
+      "sha256": "a104ebe062154062ed3f6c109670553ba0f24d0dc169db316f10e0a0548a99c0"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-front.png",
+      "bytes": 475433,
+      "sha256": "19aab19267f59d3532798f567aca2a55fda887e58e0acdb21e4c99929f7be246"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-left.png",
+      "bytes": 333827,
+      "sha256": "9944c6fc74300e426662a2bb22a9207e90808ceb1653b566ac1ad8112fce953b"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-right.png",
+      "bytes": 338044,
+      "sha256": "2096c8fa1f1277e21a7094df647a9d6b0bf00c7753bd9558cf862cd7feba53ae"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-back.png",
+      "bytes": 477087,
+      "sha256": "e86a068107362ec1678549007f5df1bd6ca6ae787c7f2056cd6982f38eee519e"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-top.png",
+      "bytes": 659739,
+      "sha256": "ed5486d1aca4fea4cdd343c6b6c76a50b359e43411b494bfbead3ce2238b6d7b"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-diag-front.png",
+      "bytes": 708828,
+      "sha256": "86fe1e43bd4d604f43b997af673223766a18d18d717b19b69bd1f307b7249bfd"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-diag-left.png",
+      "bytes": 682012,
+      "sha256": "94debbf1c05f9a1b9ccbf303316f1b4642da34008bbaf5bc2c1be47ff71d083d"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-diag-right.png",
+      "bytes": 694969,
+      "sha256": "d1ba1da3740b686c56a29716b96d1005c323006c80bb9ff388c675696e00c375"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-diag-back.png",
+      "bytes": 677400,
+      "sha256": "d16253bf7cdb8fb6aaf4053e41b83d99ab8c8ead1889252b5e06bb1547984231"
+    },
+    {
+      "path": "tmp/colossus-v4/render.log",
+      "bytes": 60927,
+      "sha256": "0bd811e3148e37f44471b1eb899802fa09202e68d42fb240a2948e238b338d34"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/render.log",
+      "bytes": 311624,
+      "sha256": "1e167cb91714fa48210f20bfa10c76117f333e1443d752ec9c0ad32dc85d7163"
+    },
+    {
+      "path": "tmp/colossus-v4/tide-root-colossus-v4.glb",
+      "bytes": 704108,
+      "sha256": "8c94ed4a452f10ca5c9e1e663c7437c2905e42b90bf5abe9faaf970391a8189b"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/tide-root-colossus-v4.glb",
+      "bytes": 704108,
+      "sha256": "8c94ed4a452f10ca5c9e1e663c7437c2905e42b90bf5abe9faaf970391a8189b"
+    }
+  ]
+}
