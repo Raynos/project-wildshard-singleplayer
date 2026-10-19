@@ -144,3 +144,18 @@ cardinal), with the same frozen object and lighting. These are real static
 Blender renders, not game captures. The approved concept is one oblique view;
 hidden anatomy is explicitly inferred. Full runtime and motion checks remain
 separate and pending.
+
+
+## V6 complete static candidate, 2026-10-19 03:20 UTC
+
+V5 received an independent 3.385/5 likeness score and failed the >3.5 gate.
+V6's complete hero and nine views are now rendered and inspected; fresh
+independent likeness scoring is pending. See
+`../../../docs/reviews/bellback-v6-candidate.md` for the complete evidence,
+reproduction command and limits. `closure-v6-final.json` freezes exact files.
+V6 has 4,458 triangles, 73 manifold mesh components, seven rigid pivots,
+grounded soles and a 325,032-byte self-contained GLB. Eyes now clear the shaped
+brow in front and side inspection. The two bronze bands and real bell cavity
+remain visible. No rig, animation, runtime, performance or user acceptance is
+claimed. Model source remains frozen for fresh review; no further revision
+was started after the nine-view capture.

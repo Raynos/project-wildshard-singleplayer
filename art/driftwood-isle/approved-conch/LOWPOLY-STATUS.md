@@ -33,3 +33,30 @@ spiral band boundaries but retains a basal collar, overly smooth whorl form
 and schematic face/stance. `build_conch_lowpoly_v6.py` is syntax-checked but
 never built or rendered. It remains unverified source. No rig, animation,
 runtime replacement, arena acceptance or physical-device proof was added.
+
+## 2026-10-19 resumed four-enemy work
+
+Owner resumed Conch, Mantis, Bellback and Colossus with independent likeness
+strictly above 3.5/5 required for each; Puffer refinement is parked. This
+supersedes the Conch parking note above. None of these source revisions alone
+constitutes acceptance or a playable replacement.
+
+V7 is an actual complete rebuild, captured in a hero and the full nine-view
+half-dome. 1,962 triangles, 42 meshes, 173,600-byte GLB. Independent coordinator
+review: **2.985/5**, weighted from silhouette 3.2 / face 3.0 / details 2.8 /
+style 2.7. Its regular flange tiers, pale shield and striped belly remain below
+reference. See `docs/reviews/conch-v7-nine-view-audit.md`.
+
+V8 actual hero and all nine views completed successfully: 2,682 triangles,
+40 meshes, 226,928-byte GLB. Coral shield and compact abdomen improved, but
+its over-pinched helix and boolean-exposed flat basal collar still fail.
+A coordinate-welded audit found 12 shell boundary edges, so topology admission
+also remains blocked. It is preserved as failed WIP, not promoted.
+
+V9 source replaces the pinched sinusoid with broad authored shoulder/flank
+control profiles, a real hollow wall, front-only opening and a phase-split top
+cap. It is frozen and syntax-checked but still awaits actual build and review.
+The V7/V8 GLBs, hero, all nine actual renders, camera records, boards and
+read-only topology audits remain under their temporary version directories
+pending coordinator storage. All previous source and failure evidence stays.
+No rig, motion, runtime, arena or physical-device acceptance has been added.
