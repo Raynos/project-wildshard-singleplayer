@@ -181,7 +181,6 @@ export const AudioOneShotScheduleSchema = v.pipe(v.strictObject({mark:id,tick:id
 export type AudioOneShotSchedule = v.InferOutput<typeof AudioOneShotScheduleSchema>;
 /** A scoped ambient scheduler for an admitted phrase. */
 export const AudioPhraseScheduleSchema = v.strictObject({tick:id,wait:v.pipe(v.tuple([finite,finite]),v.check(values=>values[0]>0&&values[1]>=values[0]&&values[1]<=600)),program:AudioPhraseProgramSchema});
-export type AudioPhraseSchedule = v.InferOutput<typeof AudioPhraseScheduleSchema>;
 
 const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(finite, v.minValue(0), v.maxValue(2000)), outer: v.pipe(finite, v.minValue(0), v.maxValue(2000)), gain,
   fade: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))), open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer && (row.fade === undefined || row.outer === row.inner + row.fade), 'audio zone fade must extend outside its inner radius'));

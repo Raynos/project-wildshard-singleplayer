@@ -44,9 +44,6 @@ export type PostPass = v.InferOutput<typeof PostPassSchema>;
 /** What a stack costs: its passes' per-pixel instructions, the pre-pass when any reads the normal, and the inputs read. */
 export interface PostStackCost { readonly passes: number; readonly instructions: number; readonly inputs: PostInputs }
 
-/** The empty stack's cost. */
-export const NO_POST: PostStackCost = Object.freeze({ passes: 0, instructions: 0, inputs: Object.freeze({ colour: false, depth: false, normal: false }) });
-
 /**
  * Validate and cost a stack: each pass under the author caps against the shard's admitted bindings (a graph file read
  * through `bytes`; undefined bytes are refused), the sum against the stack budget. Returns the cost and every refusal.

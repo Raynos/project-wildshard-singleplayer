@@ -23,8 +23,6 @@ const relabel = v.strictObject({ kind: v.literal('relabel'), id, spot: v.picklis
 export const UiSchema = v.pipe(v.array(v.variant('kind', [marker, counter, bagPanel, bossPanel, relabel])), v.maxLength(UI_DECLARATIONS_MAX));
 /** a validated `ui` section */
 export type ShardUi = v.InferOutput<typeof UiSchema>;
-/** one validated UI declaration */
-export type ShardUiDeclaration = ShardUi[number];
 
 interface StateField { name: string; type: 'bool' | 'i32' | 'f64' | 'string' }
 /** Reference rules: unique ids, counters read a declared numeric field, one boss panel per encounter, one relabel per disc, one spec per bag tab. */

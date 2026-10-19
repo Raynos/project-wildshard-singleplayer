@@ -63,8 +63,6 @@ export const PlaceholderSourceSchema = v.strictObject({
 });
 /** One admitted stand-in tree shape (`PlaceholderTreeSchema`): species, optional stem, crown rings and colour, unit high. */
 export type PlaceholderTree = v.InferOutput<typeof PlaceholderTreeSchema>;
-/** A shard's far-proxy steer (`PlaceholderFarSchema`): module exports for its look, grid and parts. */
-export type PlaceholderFar = v.InferOutput<typeof PlaceholderFarSchema>;
 /** A shard's admitted placeholder steer (`PlaceholderSourceSchema`), as the near / far bake reads it. */
 export type PlaceholderSource = v.InferOutput<typeof PlaceholderSourceSchema>;
 

@@ -27,8 +27,6 @@ const textureRef = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 
 /** The families v1 knows. */
 export const FAMILY_IDS = ['toon', 'pbr', 'painterly', 'emissive'] as const;
-/** A family id a material entry names. */
-export type FamilyId = (typeof FAMILY_IDS)[number];
 
 /** An sRGB or linear colour as three numbers. */
 export type Rgb = readonly [number, number, number];
@@ -282,8 +280,6 @@ const ptXz = v.tuple([finite, finite]);
 
 /** The five painted layers, in their uniform order. */
 export const PAINTED_TERRAIN_LAYERS = ['base', 'track', 'gravel', 'rock', 'snow'] as const;
-/** One painted layer's name. */
-export type PaintedTerrainLayerName = (typeof PAINTED_TERRAIN_LAYERS)[number];
 
 /**
  * The per-vertex inputs a painted-terrain mesh carries besides position, normal and colour (a baked tile keeps them
@@ -454,8 +450,6 @@ export const FamilyMaterialSchema = v.pipe(
 );
 /** Any family's validated material entry (what a compiler receives). */
 export type FamilyMaterialParams = v.InferOutput<typeof FamilyMaterialSchema>;
-/** What an author or a build writes: omitted fields take the family's defaults. */
-export type FamilyMaterialInput = v.InferInput<typeof FamilyMaterialSchema>;
 
 /** the preset reference version a material names (`{ family: "graph", preset, version }`); another version is refused */
 export const GRAPH_PRESET_VERSION = 1;

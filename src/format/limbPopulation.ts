@@ -9,4 +9,3 @@ export const LimbPopulationSchema = v.strictObject({
   near: v.pipe(v.number(), v.finite(), v.minValue(0)),
   head: key, collision: LimbCollisionBake, blend: LimbBlendSchema, clips: BakedClipTable,
 });
-export type LimbPopulation = v.InferOutput<typeof LimbPopulationSchema>;

@@ -30,8 +30,6 @@ const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 export const MaterialsSchema = v.pipe(v.record(id, v.union([FamilyMaterialSchema, graphMaterial, graphFile, graphPreset])), v.check((rows) => Object.keys(rows).length <= 256, 'bounded material catalogue'));
 /** An admitted catalogue entry. */
 export type MaterialEntry = v.InferOutput<typeof MaterialsSchema>[string];
-/** An admitted graph entry: inline IR, a graph file of the library closure or a built-in preset reference. */
-export type GraphMaterialRef = Extract<MaterialEntry, { family: 'graph' }>;
 
 /** The family looks a preset reads: the shard's own, defaults filled. */
 export function presetLooks(familyLooks: Shardfile['look']['familyLooks']): { toon: ToonLookParams; painterly: PainterlyLookParams; emissive: EmissiveLookParams } {
@@ -245,8 +243,6 @@ export function curveAt(curve: Curve, d: number): number {
 export const MaterialCurvesSchema = v.pipe(v.record(id, v.pipe(v.array(v.strictObject({
   param: v.pipe(v.string(), v.regex(/^[a-zA-Z]\w*(?:\.\w+)*$/u), v.maxLength(96)), state: v.pipe(v.string(), v.regex(/^(?:shared|player)\.[A-Za-z_]\w*$/u)), curve: CurveSchema,
 })), v.minLength(1), v.maxLength(32))), v.check((rows) => Object.keys(rows).length <= 32, 'bounded material curves'));
-/** The admitted material curves. */
-export type MaterialCurves = v.InferOutput<typeof MaterialCurvesSchema>;
 /** What each family moves without a new program: a path prefix (`ground.` the whole ground layer) or an exact name. */
 export const MOVABLE_FAMILY_PARAMS: Readonly<Partial<Record<FamilyMaterialParams['family'], readonly string[]>>> = { pbr: ['roughness', 'metalness', 'ground.'] };
 

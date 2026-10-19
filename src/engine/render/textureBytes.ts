@@ -172,8 +172,3 @@ export function composerAllocations(composer: object, renderer: THREE.WebGLRende
   }
   return [...allocations].map(([identity, bytes]) => ({ identity, bytes, kind: 'gpu' }));
 }
-
-/** Actual composer target allocation total; native handle identity is also available for independent reconciliation. */
-export function composerAllocationBytes(composer: object, renderer: THREE.WebGLRenderer): number {
-  return composerAllocations(composer, renderer).reduce((sum, row) => sum + row.bytes, 0);
-}

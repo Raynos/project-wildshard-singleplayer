@@ -29,7 +29,6 @@ export const OutputIndexSchema = v.strictObject({
 });
 export type OutputIndex = v.InferOutput<typeof OutputIndexSchema>;
 export type OutputFile = OutputIndex['files'][number];
-export type OutputSection = OutputIndex['sections'][number];
 interface SectionMapping { readonly name: PlatformSectionName; readonly fields: readonly (keyof Shardfile)[]; readonly row?: keyof Shardfile['rows']; readonly spawns?: true; }
 /** Root-key envelopes preserve optional-field absence and every existing host's values. */
 const ROW_SECTION_NAMES = {species:'actors/species',strikes:'combat/strikes',loot:'economy/loot',days:'world/days',weather:'world/weather',looks:'look/materials',compendiums:'ui/compendium'} as const;

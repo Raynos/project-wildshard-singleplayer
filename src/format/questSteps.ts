@@ -19,7 +19,6 @@ export const QuestSceneEffectSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('emitter'), target: name, value: v.boolean() }),
   v.strictObject({ kind: v.literal('mark'), target: name, value: v.boolean() }),
 ]);
-export type QuestSceneEffect = v.InferOutput<typeof QuestSceneEffectSchema>;
 /** Ordered effects, admitted identically for page actions and quest step rows. */
 export const QuestEffectSchema = v.union([QuestSceneEffectSchema, v.variant('kind', [
   toast, sting,

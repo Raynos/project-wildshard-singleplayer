@@ -75,7 +75,6 @@ export const NativeHuntSchema = v.strictObject({
   bands: v.strictObject({ states: names, scripted: v.exactOptional(v.boolean()), legacyKinds: names }),
   hit: v.strictObject({ namespace: id, tags: v.pipe(v.array(tag), v.maxLength(32)) }), memoryFields: v.exactOptional(names),
 });
-export type NativeHuntData = v.InferOutput<typeof NativeHuntSchema>;
 
 /** Page and native registration order is authored explicitly; empty sides install no rows. */
 export const SpeciesProgramsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Species programs must be plain JSON'),

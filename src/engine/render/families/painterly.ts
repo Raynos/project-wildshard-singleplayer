@@ -17,7 +17,7 @@
  */
 import * as THREE from 'three';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
-import { parsePainterlyLook, type GradeParams, type PainterlyLookParams, type PainterlyMaterialParams } from '@wildshard/format/materialFamilies';
+import { parsePainterlyLook, type PainterlyLookParams, type PainterlyMaterialParams } from '@wildshard/format/materialFamilies';
 import type { TextureResolver } from './pbr';
 import { applyPaintedTerrain } from './paintedTerrain';
 
@@ -168,24 +168,6 @@ export function injectPainterly(vertexShader: string, fragmentShader: string, gr
     .replace('#include <envmap_fragment>', '');
   if (graded) fs = fs.replace('#include <tonemapping_fragment>', FRAG_GRADE);
   return { vertexShader: vs, fragmentShader: fs };
-}
-
-/**
- * The grade on the CPU, scene-linear → display-linear (the same maths as the shader): to check a colour a look will
- * display, or to author a backdrop that must display as painted.
- */
-export function gradeRgb(g: GradeParams, rgb: readonly [number, number, number]): [number, number, number] {
-  const lum = (c: readonly number[]): number => 0.2126 * (c[0] ?? 0) + 0.7152 * (c[1] ?? 0) + 0.0722 * (c[2] ?? 0);
-  const ss = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-  const c = rgb.map((v) => { const x = Math.max(v, 0) * g.gain * g.exposure; return (x * (1 + x / g.shoulder)) / (1 + x); });
-  const l = lum(c), t = ss(g.split[0], g.split[1], l);
-  const out = c.map((v, k) => {
-    const sat = l + (v - l) * g.saturation;
-    const tinted = Math.min(1, Math.max(0, sat * ((g.shadowTint[k] ?? 1) + ((g.lightTint[k] ?? 1) - (g.shadowTint[k] ?? 1)) * t)));
-    return tinted * tinted * (3 - 2 * tinted) * g.contrast + tinted * (1 - g.contrast);
-  });
-  const l2 = lum(out);
-  return [l2 + ((out[0] ?? 0) - l2) * g.lookSaturation, l2 + ((out[1] ?? 0) - l2) * g.lookSaturation, l2 + ((out[2] ?? 0) - l2) * g.lookSaturation];
 }
 
 /** The uniforms one painterly look shares with every material made under it. */

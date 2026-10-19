@@ -2,7 +2,6 @@ import * as v from 'valibot';
 import type { SaveStore, InstanceSaveSlot } from '@wildshard/engine/saves/store';
 import type { ItemRuntime } from '@wildshard/engine/combat/items';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
-import type { Scope } from '@wildshard/engine/app/scope';
 import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
 import { inventoryKey, purseKey } from '../localSaveKeys';
 
@@ -103,27 +102,4 @@ export interface GridLoadout {
   checkpoint: () => boolean;
   stow: () => void;
   interior: () => void;
-}
-/** Restore one instance's held selection and bind reversible border stow to the existing equipment and scope. */
-export function installGridLoadout(wallet: GridWallet, equipment: EquipmentService, runtimes: ReadonlyMap<string, ItemRuntime>, scope: Scope, tick = -1): GridLoadout {
-  const selected = wallet.restore(runtimes, tick);
-  const weapon = equipment.list.find((item) => item.row.id === selected);
-  if (weapon !== undefined && runtimes.has(equipment.current.row.id)) equipment.select(weapon.id, true);
-  let before: { stowed: boolean; visible: boolean; tools: readonly { tool: EquipmentService['tools'][number]; enabled: boolean }[] } | undefined;
-  const interior = (): void => {
-    if (before === undefined) return;
-    const prior = before; before = undefined;
-    equipment.stowed = prior.stowed; equipment.visible = prior.visible;
-    for (const { tool, enabled } of prior.tools) tool.enabled = enabled;
-  };
-  scope.onDispose(() => { before = undefined; });
-  return {
-    checkpoint: () => wallet.checkpoint(runtimes.has(equipment.current.row.id) ? equipment.current.row.id : null, runtimes),
-    stow: () => {
-      if (scope.disposed || before !== undefined) return;
-      before = { stowed: equipment.stowed, visible: equipment.visible, tools: equipment.tools.filter((tool) => runtimes.has(tool.row.id)).map((tool) => ({ tool, enabled: tool.enabled })) };
-      stowGridEquipment(equipment, runtimes);
-    },
-    interior: () => { if (!scope.disposed) interior(); },
-  };
 }

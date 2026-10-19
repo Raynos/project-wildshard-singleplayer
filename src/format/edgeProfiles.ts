@@ -8,5 +8,3 @@ export const EdgeProfileSchema = v.pipe(v.strictObject({
 }), v.check((p) => (p.heights.length === 256 || p.heights.length === 257) && p.colours.length === p.heights.length, 'full native 256 or 257 boundary row'));
 /** North is positive z; every boundary lists samples in increasing x or z. */
 export const EdgeProfilesSchema = v.strictObject({ north: EdgeProfileSchema, east: EdgeProfileSchema, south: EdgeProfileSchema, west: EdgeProfileSchema });
-/** Validated immutable wire values, with no analytic terrain closures. */
-export type NativeEdgeProfiles = v.InferOutput<typeof EdgeProfilesSchema>;
