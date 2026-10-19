@@ -1,0 +1,2493 @@
+{
+  "baselineNativeSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+  "attachments": [
+    {
+      "name": "Volumetric connected finR",
+      "samples": [
+        {
+          "signedBefore": -0.27167755365371704,
+          "signedAfter": -0.27167755365371704,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999993,
+            "signedEuclideanDistance": -0.27167755365371704,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.27167755365371704,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.2505733594298363,
+          "normalProjectionAfterDiagnosticOnly": -0.2505733594298363,
+          "normalBefore": [
+            -0.5802341103553772,
+            -0.6533939242362976,
+            -0.48621487617492676
+          ],
+          "normalAfter": [
+            -0.5802341103553772,
+            -0.6533939242362976,
+            -0.48621487617492676
+          ],
+          "faceBefore": 515,
+          "faceAfter": 708
+        },
+        {
+          "signedBefore": -0.2890979051589966,
+          "signedAfter": -0.2890979051589966,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.999999999999999,
+            "signedEuclideanDistance": -0.2890979051589966,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999997,
+            "signedEuclideanDistance": -0.2890979051589966,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.28465043753385544,
+          "normalProjectionAfterDiagnosticOnly": -0.28465043753385544,
+          "normalBefore": [
+            -0.5802341103553772,
+            -0.6533939242362976,
+            -0.48621487617492676
+          ],
+          "normalAfter": [
+            -0.5802341103553772,
+            -0.6533939242362976,
+            -0.48621487617492676
+          ],
+          "faceBefore": 515,
+          "faceAfter": 708
+        },
+        {
+          "signedBefore": -0.2694226801395416,
+          "signedAfter": -0.26942184567451477,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999997,
+            "signedEuclideanDistance": -0.2694226801395416,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999984,
+            "signedEuclideanDistance": -0.26942184567451477,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.21147608943283558,
+          "normalProjectionAfterDiagnosticOnly": -0.2114741401746869,
+          "normalBefore": [
+            -0.8617281317710876,
+            0.12890376150608063,
+            -0.4907222390174866
+          ],
+          "normalAfter": [
+            -0.8617208003997803,
+            0.12891116738319397,
+            -0.4907332956790924
+          ],
+          "faceBefore": 504,
+          "faceAfter": 309
+        },
+        {
+          "signedBefore": -0.2074155956506729,
+          "signedAfter": -0.20741555094718933,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.2074155956506729,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000013,
+            "signedEuclideanDistance": -0.20741555094718933,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.20739744587626774,
+          "normalProjectionAfterDiagnosticOnly": -0.20739740022690967,
+          "normalBefore": [
+            -0.9336843490600586,
+            -0.35731041431427,
+            -0.023721393197774887
+          ],
+          "normalAfter": [
+            -0.9336843490600586,
+            -0.35731041431427,
+            -0.023720979690551758
+          ],
+          "faceBefore": 521,
+          "faceAfter": 848
+        },
+        {
+          "signedBefore": -0.1306692212820053,
+          "signedAfter": -0.1306692212820053,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.000000000000001,
+            "signedEuclideanDistance": -0.1306692212820053,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.1306692212820053,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.1306692258149269,
+          "normalProjectionAfterDiagnosticOnly": -0.1306692112411838,
+          "normalBefore": [
+            -0.9336843490600586,
+            -0.35731041431427,
+            -0.023721393197774887
+          ],
+          "normalAfter": [
+            -0.9336843490600586,
+            -0.35731041431427,
+            -0.023720979690551758
+          ],
+          "faceBefore": 521,
+          "faceAfter": 848
+        },
+        {
+          "signedBefore": -0.06131400913000107,
+          "signedAfter": -0.061312537640333176,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.06131400913000107,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.061312537640333176,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.041510174865834415,
+          "normalProjectionAfterDiagnosticOnly": -0.041510120732709765,
+          "normalBefore": [
+            -0.8617281317710876,
+            0.12890376150608063,
+            -0.4907222390174866
+          ],
+          "normalAfter": [
+            -0.8617208003997803,
+            0.12891116738319397,
+            -0.4907332956790924
+          ],
+          "faceBefore": 504,
+          "faceAfter": 309
+        },
+        {
+          "signedBefore": -0.03265583887696266,
+          "signedAfter": -0.03265759348869324,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999989,
+            "signedEuclideanDistance": -0.03265583887696266,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.000000000000001,
+            "signedEuclideanDistance": -0.03265759348869324,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.03265583800202876,
+          "normalProjectionAfterDiagnosticOnly": -0.032657594186957795,
+          "normalBefore": [
+            -0.9239763617515564,
+            0.009573285467922688,
+            -0.38232964277267456
+          ],
+          "normalAfter": [
+            -0.9239043593406677,
+            0.00974908098578453,
+            -0.3824993073940277
+          ],
+          "faceBefore": 508,
+          "faceAfter": 779
+        },
+        {
+          "signedBefore": -0.057854823768138885,
+          "signedAfter": -0.05786851793527603,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.057854823768138885,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.05786851793527603,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.05785482213832438,
+          "normalProjectionAfterDiagnosticOnly": -0.05786851933225989,
+          "normalBefore": [
+            -0.8401991724967957,
+            0.19771507382392883,
+            -0.5049496293067932
+          ],
+          "normalAfter": [
+            -0.8402361869812012,
+            0.19750086963176727,
+            -0.5049718618392944
+          ],
+          "faceBefore": 497,
+          "faceAfter": 304
+        },
+        {
+          "signedBefore": -0.1140550896525383,
+          "signedAfter": -0.11405991017818451,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.1140550896525383,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999993,
+            "signedEuclideanDistance": -0.11405991017818451,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.11405509058386087,
+          "normalProjectionAfterDiagnosticOnly": -0.11405990924686193,
+          "normalBefore": [
+            -0.8401991724967957,
+            0.19771507382392883,
+            -0.5049496293067932
+          ],
+          "normalAfter": [
+            -0.8402361869812012,
+            0.19750086963176727,
+            -0.5049718618392944
+          ],
+          "faceBefore": 497,
+          "faceAfter": 304
+        },
+        {
+          "signedBefore": -0.178438201546669,
+          "signedAfter": -0.178438201546669,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.178438201546669,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000004,
+            "signedEuclideanDistance": -0.178438201546669,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.17843820340931416,
+          "normalProjectionAfterDiagnosticOnly": -0.17843820340931416,
+          "normalBefore": [
+            -0.5238488912582397,
+            0.22651554644107819,
+            -0.8211413621902466
+          ],
+          "normalAfter": [
+            -0.5238488912582397,
+            0.22651554644107819,
+            -0.8211413621902466
+          ],
+          "faceBefore": 506,
+          "faceAfter": 775
+        },
+        {
+          "signedBefore": -0.2148086577653885,
+          "signedAfter": -0.2148086577653885,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.000000000000001,
+            "signedEuclideanDistance": -0.2148086577653885,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.2148086577653885,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.21454041823744774,
+          "normalProjectionAfterDiagnosticOnly": -0.1280391328036785,
+          "normalBefore": [
+            -0.5238488912582397,
+            0.22651554644107819,
+            -0.8211413621902466
+          ],
+          "normalAfter": [
+            -0.5802341103553772,
+            -0.6533939242362976,
+            -0.48621487617492676
+          ],
+          "faceBefore": 506,
+          "faceAfter": 708
+        },
+        {
+          "signedBefore": -0.2443946897983551,
+          "signedAfter": -0.2443946897983551,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999997,
+            "signedEuclideanDistance": -0.2443946897983551,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999991,
+            "signedEuclideanDistance": -0.2443946897983551,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.23176466906443238,
+          "normalProjectionAfterDiagnosticOnly": -0.19317529257386923,
+          "normalBefore": [
+            -0.5238488912582397,
+            0.22651554644107819,
+            -0.8211413621902466
+          ],
+          "normalAfter": [
+            -0.5802341103553772,
+            -0.6533939242362976,
+            -0.48621487617492676
+          ],
+          "faceBefore": 506,
+          "faceAfter": 708
+        }
+      ],
+      "minimumBurialBefore": 0.03265583887696266,
+      "minimumBurialAfter": 0.03265759348869324
+    },
+    {
+      "name": "Volumetric connected rearR",
+      "samples": [
+        {
+          "signedBefore": -0.13365916907787323,
+          "signedAfter": -0.13365916907787323,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000004,
+            "signedEuclideanDistance": -0.13365916907787323,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.13365916907787323,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.13365916721522808,
+          "normalProjectionAfterDiagnosticOnly": -0.13365916721522808,
+          "normalBefore": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 923,
+          "faceAfter": 144
+        },
+        {
+          "signedBefore": -0.1452193260192871,
+          "signedAfter": -0.1452193260192871,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999996,
+            "signedEuclideanDistance": -0.1452193260192871,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.1452193260192871,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.14521931670606136,
+          "normalProjectionAfterDiagnosticOnly": -0.14521931670606136,
+          "normalBefore": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 923,
+          "faceAfter": 144
+        },
+        {
+          "signedBefore": -0.13998857140541077,
+          "signedAfter": -0.13998857140541077,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0,
+            "signedEuclideanDistance": -0.13998857140541077,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000018,
+            "signedEuclideanDistance": -0.13998857140541077,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.13998857885599136,
+          "normalProjectionAfterDiagnosticOnly": -0.13998857885599136,
+          "normalBefore": [
+            -0.7506064176559448,
+            -0.5031834840774536,
+            -0.4282481074333191
+          ],
+          "normalAfter": [
+            -0.7506064176559448,
+            -0.5031834840774536,
+            -0.4282481074333191
+          ],
+          "faceBefore": 926,
+          "faceAfter": 202
+        },
+        {
+          "signedBefore": -0.11611996591091156,
+          "signedAfter": -0.11611996591091156,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.11611996591091156,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.11611996591091156,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.11611996591091156,
+          "normalProjectionAfterDiagnosticOnly": -0.11611996591091156,
+          "normalBefore": [
+            -0.7506064176559448,
+            -0.5031834840774536,
+            -0.4282481074333191
+          ],
+          "normalAfter": [
+            -0.7506064176559448,
+            -0.5031834840774536,
+            -0.4282481074333191
+          ],
+          "faceBefore": 926,
+          "faceAfter": 202
+        },
+        {
+          "signedBefore": -0.08481898158788681,
+          "signedAfter": -0.08481898158788681,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.08481898158788681,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000004,
+            "signedEuclideanDistance": -0.08481898158788681,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.08481899090111256,
+          "normalProjectionAfterDiagnosticOnly": -0.08481899090111256,
+          "normalBefore": [
+            -0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "normalAfter": [
+            -0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "faceBefore": 924,
+          "faceAfter": 201
+        },
+        {
+          "signedBefore": -0.05447273701429367,
+          "signedAfter": -0.05447273701429367,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.05447273701429367,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999991,
+            "signedEuclideanDistance": -0.05447273701429367,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.05447273701429367,
+          "normalProjectionAfterDiagnosticOnly": -0.05447273701429367,
+          "normalBefore": [
+            -0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "normalAfter": [
+            -0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "faceBefore": 924,
+          "faceAfter": 201
+        },
+        {
+          "signedBefore": -0.03321240097284317,
+          "signedAfter": -0.03321240097284317,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.03321240097284317,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000013,
+            "signedEuclideanDistance": -0.03321240097284317,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.03321240562945604,
+          "normalProjectionAfterDiagnosticOnly": -0.03321240562945604,
+          "normalBefore": [
+            -0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "normalAfter": [
+            -0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "faceBefore": 924,
+          "faceAfter": 201
+        },
+        {
+          "signedBefore": -0.025523625314235687,
+          "signedAfter": -0.025523625314235687,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.025523625314235687,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000013,
+            "signedEuclideanDistance": -0.025523625314235687,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.025523625779896975,
+          "normalProjectionAfterDiagnosticOnly": -0.025523625779896975,
+          "normalBefore": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 923,
+          "faceAfter": 144
+        },
+        {
+          "signedBefore": -0.029999643564224243,
+          "signedAfter": -0.029999643564224243,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.029999643564224243,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999994,
+            "signedEuclideanDistance": -0.029999643564224243,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.02999964216724038,
+          "normalProjectionAfterDiagnosticOnly": -0.02999964216724038,
+          "normalBefore": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 923,
+          "faceAfter": 144
+        },
+        {
+          "signedBefore": -0.04931247979402542,
+          "signedAfter": -0.04931247979402542,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.000000000000001,
+            "signedEuclideanDistance": -0.04931247979402542,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.04931247979402542,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.04931247513741255,
+          "normalProjectionAfterDiagnosticOnly": -0.04931247513741255,
+          "normalBefore": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 923,
+          "faceAfter": 144
+        },
+        {
+          "signedBefore": -0.07828735560178757,
+          "signedAfter": -0.07828735560178757,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999993,
+            "signedEuclideanDistance": -0.07828735560178757,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999976,
+            "signedEuclideanDistance": -0.07828735560178757,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.0782873472198844,
+          "normalProjectionAfterDiagnosticOnly": -0.0782873472198844,
+          "normalBefore": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 923,
+          "faceAfter": 144
+        },
+        {
+          "signedBefore": -0.10916037112474442,
+          "signedAfter": -0.10916037112474442,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.10916037112474442,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.10916037112474442,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.10916037112474442,
+          "normalProjectionAfterDiagnosticOnly": -0.10916037112474442,
+          "normalBefore": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            -0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 923,
+          "faceAfter": 144
+        }
+      ],
+      "minimumBurialBefore": 0.025523625314235687,
+      "minimumBurialAfter": 0.025523625314235687
+    },
+    {
+      "name": "Volumetric connected finL",
+      "samples": [
+        {
+          "signedBefore": -0.029799217358231544,
+          "signedAfter": -0.0298121590167284,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.029799217358231544,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.0298121590167284,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.029799218202242628,
+          "normalProjectionAfterDiagnosticOnly": -0.029812158027198166,
+          "normalBefore": [
+            0.8836740255355835,
+            0.11499324440956116,
+            -0.45375847816467285
+          ],
+          "normalAfter": [
+            0.8835968375205994,
+            0.11504299938678741,
+            -0.4538961350917816
+          ],
+          "faceBefore": 105,
+          "faceAfter": 766
+        },
+        {
+          "signedBefore": -0.061434343457221985,
+          "signedAfter": -0.06143433228135109,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.061434343457221985,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999996,
+            "signedEuclideanDistance": -0.06143433228135109,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.055328193247987656,
+          "normalProjectionAfterDiagnosticOnly": -0.055335238874249626,
+          "normalBefore": [
+            0.936091959476471,
+            -0.1395978480577469,
+            -0.32286888360977173
+          ],
+          "normalAfter": [
+            0.9361246824264526,
+            -0.13979008793830872,
+            -0.3226906955242157
+          ],
+          "faceBefore": 960,
+          "faceAfter": 769
+        },
+        {
+          "signedBefore": -0.13408894836902618,
+          "signedAfter": -0.134088933467865,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.13408894836902618,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.134088933467865,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.13408895628526807,
+          "normalProjectionAfterDiagnosticOnly": -0.1340889350976795,
+          "normalBefore": [
+            0.8651350736618042,
+            -0.496235728263855,
+            0.07274319231510162
+          ],
+          "normalAfter": [
+            0.865135133266449,
+            -0.49623551964759827,
+            0.07274331152439117
+          ],
+          "faceBefore": 955,
+          "faceAfter": 725
+        },
+        {
+          "signedBefore": -0.2089265137910843,
+          "signedAfter": -0.2089264839887619,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999989,
+            "signedEuclideanDistance": -0.2089265137910843,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.2089264839887619,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.18670195422600955,
+          "normalProjectionAfterDiagnosticOnly": -0.18672668881481513,
+          "normalBefore": [
+            0.936091959476471,
+            -0.1395978480577469,
+            -0.32286888360977173
+          ],
+          "normalAfter": [
+            0.9361246824264526,
+            -0.13979008793830872,
+            -0.3226906955242157
+          ],
+          "faceBefore": 960,
+          "faceAfter": 769
+        },
+        {
+          "signedBefore": -0.2686938941478729,
+          "signedAfter": -0.2686755657196045,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.2686938941478729,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999997,
+            "signedEuclideanDistance": -0.2686755657196045,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.21468293014913797,
+          "normalProjectionAfterDiagnosticOnly": -0.2179864840582013,
+          "normalBefore": [
+            0.883672297000885,
+            0.11499705910682678,
+            -0.4537608027458191
+          ],
+          "normalAfter": [
+            0.5486981272697449,
+            -0.809415340423584,
+            0.20923003554344177
+          ],
+          "faceBefore": 106,
+          "faceAfter": 294
+        },
+        {
+          "signedBefore": -0.2932661771774292,
+          "signedAfter": -0.2932661771774292,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999989,
+            "signedEuclideanDistance": -0.2932661771774292,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.2932661771774292,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.29294871538877487,
+          "normalProjectionAfterDiagnosticOnly": -0.20005251094698906,
+          "normalBefore": [
+            0.6843385696411133,
+            -0.5320430397987366,
+            -0.4986088275909424
+          ],
+          "normalAfter": [
+            0.5238488912582397,
+            0.22651556134223938,
+            -0.8211413621902466
+          ],
+          "faceBefore": 949,
+          "faceAfter": 771
+        },
+        {
+          "signedBefore": -0.27311089634895325,
+          "signedAfter": -0.27311089634895325,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999994,
+            "signedEuclideanDistance": -0.27311089634895325,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.27311089634895325,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.22643589787185192,
+          "normalProjectionAfterDiagnosticOnly": -0.25067567080259323,
+          "normalBefore": [
+            0.523848831653595,
+            0.22651568055152893,
+            -0.8211413025856018
+          ],
+          "normalAfter": [
+            0.4734910726547241,
+            -0.6917452812194824,
+            -0.5452473759651184
+          ],
+          "faceBefore": 787,
+          "faceAfter": 831
+        },
+        {
+          "signedBefore": -0.2453462779521942,
+          "signedAfter": -0.2453462779521942,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000013,
+            "signedEuclideanDistance": -0.2453462779521942,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.2453462779521942,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.19273813255131245,
+          "normalProjectionAfterDiagnosticOnly": -0.19273813255131245,
+          "normalBefore": [
+            0.4734910726547241,
+            -0.6917452812194824,
+            -0.5452473759651184
+          ],
+          "normalAfter": [
+            0.4734910726547241,
+            -0.6917452812194824,
+            -0.5452473759651184
+          ],
+          "faceBefore": 790,
+          "faceAfter": 831
+        },
+        {
+          "signedBefore": -0.21536482870578766,
+          "signedAfter": -0.21536482870578766,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.21536482870578766,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.21536482870578766,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.21454040380194783,
+          "normalProjectionAfterDiagnosticOnly": -0.21454040380194783,
+          "normalBefore": [
+            0.523848831653595,
+            0.22651568055152893,
+            -0.8211413025856018
+          ],
+          "normalAfter": [
+            0.523848831653595,
+            0.22651568055152893,
+            -0.8211413025856018
+          ],
+          "faceBefore": 787,
+          "faceAfter": 296
+        },
+        {
+          "signedBefore": -0.178438201546669,
+          "signedAfter": -0.178438201546669,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.000000000000001,
+            "signedEuclideanDistance": -0.178438201546669,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.178438201546669,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.17843820806592703,
+          "normalProjectionAfterDiagnosticOnly": -0.17843820806592703,
+          "normalBefore": [
+            0.5238488912582397,
+            0.22651556134223938,
+            -0.8211413621902466
+          ],
+          "normalAfter": [
+            0.5238488912582397,
+            0.22651556134223938,
+            -0.8211413621902466
+          ],
+          "faceBefore": 797,
+          "faceAfter": 771
+        },
+        {
+          "signedBefore": -0.11405584961175919,
+          "signedAfter": -0.1140606626868248,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0,
+            "signedEuclideanDistance": -0.11405584961175919,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0,
+            "signedEuclideanDistance": -0.1140606626868248,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.11405583191663027,
+          "normalProjectionAfterDiagnosticOnly": -0.11406066827476025,
+          "normalBefore": [
+            0.8402049541473389,
+            0.1976810097694397,
+            -0.5049530863761902
+          ],
+          "normalAfter": [
+            0.8402420878410339,
+            0.19746679067611694,
+            -0.504975438117981
+          ],
+          "faceBefore": 103,
+          "faceAfter": 288
+        },
+        {
+          "signedBefore": -0.05785698443651199,
+          "signedAfter": -0.05787069350481033,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999993,
+            "signedEuclideanDistance": -0.05785698443651199,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999997,
+            "signedEuclideanDistance": -0.05787069350481033,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.05785698187537491,
+          "normalProjectionAfterDiagnosticOnly": -0.05787069606594741,
+          "normalBefore": [
+            0.8402049541473389,
+            0.1976810097694397,
+            -0.5049530863761902
+          ],
+          "normalAfter": [
+            0.8402420878410339,
+            0.19746679067611694,
+            -0.504975438117981
+          ],
+          "faceBefore": 103,
+          "faceAfter": 288
+        }
+      ],
+      "minimumBurialBefore": 0.029799217358231544,
+      "minimumBurialAfter": 0.0298121590167284
+    },
+    {
+      "name": "Volumetric connected rearL",
+      "samples": [
+        {
+          "signedBefore": -0.033212389796972275,
+          "signedAfter": -0.033212389796972275,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.033212389796972275,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.033212389796972275,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.03321239259094,
+          "normalProjectionAfterDiagnosticOnly": -0.03321239259094,
+          "normalBefore": [
+            0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "normalAfter": [
+            0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "faceBefore": 74,
+          "faceAfter": 177
+        },
+        {
+          "signedBefore": -0.054472748190164566,
+          "signedAfter": -0.054472748190164566,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999993,
+            "signedEuclideanDistance": -0.054472748190164566,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999988,
+            "signedEuclideanDistance": -0.054472748190164566,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.054472750052809715,
+          "normalProjectionAfterDiagnosticOnly": -0.054472750052809715,
+          "normalBefore": [
+            0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "normalAfter": [
+            0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "faceBefore": 74,
+          "faceAfter": 177
+        },
+        {
+          "signedBefore": -0.08481898158788681,
+          "signedAfter": -0.08481898158788681,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.08481898158788681,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.08481898158788681,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.08481899090111256,
+          "normalProjectionAfterDiagnosticOnly": -0.08481899090111256,
+          "normalBefore": [
+            0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "normalAfter": [
+            0.7506065964698792,
+            -0.5031836628913879,
+            -0.4282476305961609
+          ],
+          "faceBefore": 74,
+          "faceAfter": 177
+        },
+        {
+          "signedBefore": -0.11611995100975037,
+          "signedAfter": -0.11611995100975037,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999994,
+            "signedEuclideanDistance": -0.11611995100975037,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.11611995100975037,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.11611994728446007,
+          "normalProjectionAfterDiagnosticOnly": -0.11611994728446007,
+          "normalBefore": [
+            0.7506064772605896,
+            -0.5031834840774536,
+            -0.42824786901474
+          ],
+          "normalAfter": [
+            0.7506064772605896,
+            -0.5031834840774536,
+            -0.42824786901474
+          ],
+          "faceBefore": 75,
+          "faceAfter": 179
+        },
+        {
+          "signedBefore": -0.13998857140541077,
+          "signedAfter": -0.13998857140541077,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999983,
+            "signedEuclideanDistance": -0.13998857140541077,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999991,
+            "signedEuclideanDistance": -0.13998857140541077,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.1399885807186365,
+          "normalProjectionAfterDiagnosticOnly": -0.1399885807186365,
+          "normalBefore": [
+            0.7506063580513,
+            -0.5031835436820984,
+            -0.4282480776309967
+          ],
+          "normalAfter": [
+            0.7506063580513,
+            -0.5031835436820984,
+            -0.4282480776309967
+          ],
+          "faceBefore": 62,
+          "faceAfter": 178
+        },
+        {
+          "signedBefore": -0.1452193260192871,
+          "signedAfter": -0.1452193260192871,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999989,
+            "signedEuclideanDistance": -0.1452193260192871,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.1452193260192871,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.14521931670606136,
+          "normalProjectionAfterDiagnosticOnly": -0.14521931670606136,
+          "normalBefore": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 67,
+          "faceAfter": 132
+        },
+        {
+          "signedBefore": -0.13365916907787323,
+          "signedAfter": -0.13365916907787323,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999993,
+            "signedEuclideanDistance": -0.13365916907787323,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999997,
+            "signedEuclideanDistance": -0.13365916907787323,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.13365916721522808,
+          "normalProjectionAfterDiagnosticOnly": -0.13365916721522808,
+          "normalBefore": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 67,
+          "faceAfter": 132
+        },
+        {
+          "signedBefore": -0.10916038602590561,
+          "signedAfter": -0.10916038602590561,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.999999999999999,
+            "signedEuclideanDistance": -0.10916038602590561,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.10916038602590561,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.10916038230061531,
+          "normalProjectionAfterDiagnosticOnly": -0.10916038230061531,
+          "normalBefore": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 67,
+          "faceAfter": 132
+        },
+        {
+          "signedBefore": -0.07828735560178757,
+          "signedAfter": -0.07828735560178757,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.07828735560178757,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000013,
+            "signedEuclideanDistance": -0.07828735560178757,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.0782873472198844,
+          "normalProjectionAfterDiagnosticOnly": -0.0782873472198844,
+          "normalBefore": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 67,
+          "faceAfter": 132
+        },
+        {
+          "signedBefore": -0.04931246489286423,
+          "signedAfter": -0.04931246489286423,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999979,
+            "signedEuclideanDistance": -0.04931246489286423,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.04931246489286423,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.0493124658241868,
+          "normalProjectionAfterDiagnosticOnly": -0.0493124658241868,
+          "normalBefore": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 67,
+          "faceAfter": 132
+        },
+        {
+          "signedBefore": -0.029999632388353348,
+          "signedAfter": -0.029999632388353348,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999988,
+            "signedEuclideanDistance": -0.029999632388353348,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999986,
+            "signedEuclideanDistance": -0.029999632388353348,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.029999630991369486,
+          "normalProjectionAfterDiagnosticOnly": -0.029999630991369486,
+          "normalBefore": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 67,
+          "faceAfter": 132
+        },
+        {
+          "signedBefore": -0.025523614138364792,
+          "signedAfter": -0.025523614138364792,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000004,
+            "signedEuclideanDistance": -0.025523614138364792,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.000000000000001,
+            "signedEuclideanDistance": -0.025523614138364792,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.02552361460402608,
+          "normalProjectionAfterDiagnosticOnly": -0.02552361460402608,
+          "normalBefore": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "normalAfter": [
+            0.6569755673408508,
+            -0.6541308164596558,
+            -0.3748278319835663
+          ],
+          "faceBefore": 67,
+          "faceAfter": 132
+        }
+      ],
+      "minimumBurialBefore": 0.025523614138364792,
+      "minimumBurialAfter": 0.025523614138364792
+    },
+    {
+      "name": "Cream crown spine 0",
+      "samples": [
+        {
+          "signedBefore": -0.006945467088371515,
+          "signedAfter": -0.006945467088371515,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000004,
+            "signedEuclideanDistance": -0.006945467088371515,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.006945467088371515,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.0069454666881938465,
+          "normalProjectionAfterDiagnosticOnly": -0.0069454666881938465,
+          "normalBefore": [
+            -0.13049599528312683,
+            -0.7931590676307678,
+            0.5948692560195923
+          ],
+          "normalAfter": [
+            -0.13049599528312683,
+            -0.7931590676307678,
+            0.5948692560195923
+          ],
+          "faceBefore": 848,
+          "faceAfter": 159
+        },
+        {
+          "signedBefore": 0.028771018609404564,
+          "signedAfter": 0.028771018609404564,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": -1.2211717424571683e-16,
+            "signedEuclideanDistance": 0.028771018609404564,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": 2.1422844167952237e-17,
+            "signedEuclideanDistance": 0.028771018609404564,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.028524992987513542,
+          "normalProjectionAfterDiagnosticOnly": 0.028524992987513542,
+          "normalBefore": [
+            0.13049601018428802,
+            -0.7931590676307678,
+            0.5948692560195923
+          ],
+          "normalAfter": [
+            0.13049601018428802,
+            -0.7931590676307678,
+            0.5948692560195923
+          ],
+          "faceBefore": 849,
+          "faceAfter": 109
+        },
+        {
+          "signedBefore": -0.00694546801969409,
+          "signedAfter": -0.00694546801969409,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.00694546801969409,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999986,
+            "signedEuclideanDistance": -0.00694546801969409,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.006945467677724082,
+          "normalProjectionAfterDiagnosticOnly": -0.006945467677724082,
+          "normalBefore": [
+            0.13049601018428802,
+            -0.7931590676307678,
+            0.5948692560195923
+          ],
+          "normalAfter": [
+            0.13049601018428802,
+            -0.7931590676307678,
+            0.5948692560195923
+          ],
+          "faceBefore": 849,
+          "faceAfter": 109
+        },
+        {
+          "signedBefore": -0.07131374627351761,
+          "signedAfter": -0.07131374627351761,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.07131374627351761,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.07131374627351761,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.07131374487653375,
+          "normalProjectionAfterDiagnosticOnly": -0.07131374487653375,
+          "normalBefore": [
+            0.24992182850837708,
+            -0.47023168206214905,
+            0.846416711807251
+          ],
+          "normalAfter": [
+            0.24992182850837708,
+            -0.47023168206214905,
+            0.846416711807251
+          ],
+          "faceBefore": 850,
+          "faceAfter": 161
+        }
+      ],
+      "minimumBurialBefore": -0.028771018609404564,
+      "minimumBurialAfter": -0.028771018609404564
+    },
+    {
+      "name": "Cream crown spine 1",
+      "samples": [
+        {
+          "signedBefore": 0.006194781977683306,
+          "signedAfter": 0.006194781977683306,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": -1.908905193081201e-17,
+            "signedEuclideanDistance": 0.006194781977683306,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": -8.431092759131262e-17,
+            "signedEuclideanDistance": 0.006194781977683306,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.00619478175030963,
+          "normalProjectionAfterDiagnosticOnly": 0.00619478175030963,
+          "normalBefore": [
+            -0.23081792891025543,
+            0.05413881689310074,
+            0.9714896082878113
+          ],
+          "normalAfter": [
+            -0.23081792891025543,
+            0.05413881689310074,
+            0.9714896082878113
+          ],
+          "faceBefore": 432,
+          "faceAfter": 283
+        },
+        {
+          "signedBefore": -0.02836219035089016,
+          "signedAfter": -0.02836219035089016,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000004,
+            "signedEuclideanDistance": -0.02836219035089016,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999983,
+            "signedEuclideanDistance": -0.02836219035089016,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.028362188953906298,
+          "normalProjectionAfterDiagnosticOnly": -0.028362188953906298,
+          "normalBefore": [
+            -0.24992182850837708,
+            -0.47023168206214905,
+            0.846416711807251
+          ],
+          "normalAfter": [
+            -0.24992182850837708,
+            -0.47023168206214905,
+            0.846416711807251
+          ],
+          "faceBefore": 845,
+          "faceAfter": 228
+        },
+        {
+          "signedBefore": -0.05022254213690758,
+          "signedAfter": -0.05022254213690758,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.05022254213690758,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.05022254213690758,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.05022254353389144,
+          "normalProjectionAfterDiagnosticOnly": -0.05022254353389144,
+          "normalBefore": [
+            0.24992182850837708,
+            -0.47023168206214905,
+            0.846416711807251
+          ],
+          "normalAfter": [
+            0.24992182850837708,
+            -0.47023168206214905,
+            0.846416711807251
+          ],
+          "faceBefore": 850,
+          "faceAfter": 161
+        },
+        {
+          "signedBefore": -0.02728630229830742,
+          "signedAfter": -0.02728630229830742,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.02728630229830742,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.02728630229830742,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.027286301890853792,
+          "normalProjectionAfterDiagnosticOnly": -0.027286301890853792,
+          "normalBefore": [
+            0.19475026428699493,
+            0.10403404384851456,
+            0.975320041179657
+          ],
+          "normalAfter": [
+            0.19475026428699493,
+            0.10403404384851456,
+            0.975320041179657
+          ],
+          "faceBefore": 411,
+          "faceAfter": 233
+        }
+      ],
+      "minimumBurialBefore": -0.006194781977683306,
+      "minimumBurialAfter": -0.006194781977683306
+    },
+    {
+      "name": "Cream crown spine 2",
+      "samples": [
+        {
+          "signedBefore": -0.01754027046263218,
+          "signedAfter": -0.018911434337496758,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999989,
+            "signedEuclideanDistance": -0.01754027046263218,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999993,
+            "signedEuclideanDistance": -0.018911434337496758,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.017540270724566653,
+          "normalProjectionAfterDiagnosticOnly": -0.01891143514876603,
+          "normalBefore": [
+            -0.19423015415668488,
+            0.12687648832798004,
+            0.9727163314819336
+          ],
+          "normalAfter": [
+            -0.26035717129707336,
+            0.050244320183992386,
+            0.9642041921615601
+          ],
+          "faceBefore": 423,
+          "faceAfter": 612
+        },
+        {
+          "signedBefore": -0.06344727426767349,
+          "signedAfter": -0.06414996087551117,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000004,
+            "signedEuclideanDistance": -0.06344727426767349,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000013,
+            "signedEuclideanDistance": -0.06414996087551117,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.06344727787654847,
+          "normalProjectionAfterDiagnosticOnly": -0.06414996169041842,
+          "normalBefore": [
+            0.19423015415668488,
+            0.12687648832798004,
+            0.9727163314819336
+          ],
+          "normalAfter": [
+            -0.1276564747095108,
+            0.12828142940998077,
+            0.9834874868392944
+          ],
+          "faceBefore": 422,
+          "faceAfter": 610
+        },
+        {
+          "signedBefore": -0.017540154978632927,
+          "signedAfter": -0.018911436200141907,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999983,
+            "signedEuclideanDistance": -0.017540154978632927,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.018911436200141907,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.017540156695758924,
+          "normalProjectionAfterDiagnosticOnly": -0.018911438361101318,
+          "normalBefore": [
+            0.19423015415668488,
+            0.12687648832798004,
+            0.9727163314819336
+          ],
+          "normalAfter": [
+            0.26035717129707336,
+            0.050244320183992386,
+            0.9642041921615601
+          ],
+          "faceBefore": 422,
+          "faceAfter": 530
+        },
+        {
+          "signedBefore": -0.010479140095412731,
+          "signedAfter": -0.010595194064080715,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.010479140095412731,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.999999999999999,
+            "signedEuclideanDistance": -0.010595194064080715,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.010479140270035714,
+          "normalProjectionAfterDiagnosticOnly": -0.010595194340567105,
+          "normalBefore": [
+            0.19423015415668488,
+            0.12687648832798004,
+            0.9727163314819336
+          ],
+          "normalAfter": [
+            0.12766101956367493,
+            0.1282813549041748,
+            0.9834869503974915
+          ],
+          "faceBefore": 422,
+          "faceAfter": 527
+        }
+      ],
+      "minimumBurialBefore": 0.010479140095412731,
+      "minimumBurialAfter": 0.010595194064080715
+    },
+    {
+      "name": "Cream crown spine 3",
+      "samples": [
+        {
+          "signedBefore": 0.0345383919775486,
+          "signedAfter": 0.0345383919775486,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": 2.3276916658032124e-16,
+            "signedEuclideanDistance": 0.0345383919775486,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": 7.548468128288929e-17,
+            "signedEuclideanDistance": 0.0345383919775486,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.03453838964924216,
+          "normalProjectionAfterDiagnosticOnly": 0.03453838964924216,
+          "normalBefore": [
+            -0.7720590829849243,
+            -0.5083611011505127,
+            0.381436288356781
+          ],
+          "normalAfter": [
+            -0.7720590829849243,
+            -0.5083611011505127,
+            0.381436288356781
+          ],
+          "faceBefore": 836,
+          "faceAfter": 222
+        },
+        {
+          "signedBefore": 0.011615957133471966,
+          "signedAfter": 0.011615957133471966,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": -1.4880106371076016e-16,
+            "signedEuclideanDistance": 0.011615957133471966,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": 1.523929506800404e-16,
+            "signedEuclideanDistance": 0.011615957133471966,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.011615955736488104,
+          "normalProjectionAfterDiagnosticOnly": 0.011615955736488104,
+          "normalBefore": [
+            -0.7319663166999817,
+            -0.5462134480476379,
+            0.4072788655757904
+          ],
+          "normalAfter": [
+            -0.7319663166999817,
+            -0.5462134480476379,
+            0.4072788655757904
+          ],
+          "faceBefore": 838,
+          "faceAfter": 219
+        },
+        {
+          "signedBefore": -0.03832373023033142,
+          "signedAfter": -0.03832373023033142,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.03832373023033142,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999973,
+            "signedEuclideanDistance": -0.03832373023033142,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.03832373209297657,
+          "normalProjectionAfterDiagnosticOnly": -0.03832373209297657,
+          "normalBefore": [
+            -0.4298890233039856,
+            -0.5229126811027527,
+            0.7360420227050781
+          ],
+          "normalAfter": [
+            -0.4298890233039856,
+            -0.5229126811027527,
+            0.7360420227050781
+          ],
+          "faceBefore": 844,
+          "faceAfter": 230
+        },
+        {
+          "signedBefore": -0.039711762219667435,
+          "signedAfter": -0.039711762219667435,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0,
+            "signedEuclideanDistance": -0.039711762219667435,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.039711762219667435,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.03971176128834486,
+          "normalProjectionAfterDiagnosticOnly": -0.03971176128834486,
+          "normalBefore": [
+            -0.7319663166999817,
+            -0.5462134480476379,
+            0.4072788655757904
+          ],
+          "normalAfter": [
+            -0.7319663166999817,
+            -0.5462134480476379,
+            0.4072788655757904
+          ],
+          "faceBefore": 838,
+          "faceAfter": 219
+        }
+      ],
+      "minimumBurialBefore": -0.0345383919775486,
+      "minimumBurialAfter": -0.0345383919775486
+    },
+    {
+      "name": "Cream crown spine 4",
+      "samples": [
+        {
+          "signedBefore": -0.038323745131492615,
+          "signedAfter": -0.038323745131492615,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000002,
+            "signedEuclideanDistance": -0.038323745131492615,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000013,
+            "signedEuclideanDistance": -0.038323745131492615,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.038323741871863604,
+          "normalProjectionAfterDiagnosticOnly": -0.038323741871863604,
+          "normalBefore": [
+            0.4298889935016632,
+            -0.5229126214981079,
+            0.7360419631004333
+          ],
+          "normalAfter": [
+            0.4298889935016632,
+            -0.5229126214981079,
+            0.7360419631004333
+          ],
+          "faceBefore": 854,
+          "faceAfter": 163
+        },
+        {
+          "signedBefore": 0.01161597017198801,
+          "signedAfter": 0.01161597017198801,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": 9.36914367596881e-17,
+            "signedEuclideanDistance": 0.01161597017198801,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": 2.4186330670970805e-16,
+            "signedEuclideanDistance": 0.01161597017198801,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.011615969939157367,
+          "normalProjectionAfterDiagnosticOnly": 0.011615969939157367,
+          "normalBefore": [
+            0.7319666743278503,
+            -0.5462130308151245,
+            0.4072789251804352
+          ],
+          "normalAfter": [
+            0.7319666743278503,
+            -0.5462130308151245,
+            0.4072789251804352
+          ],
+          "faceBefore": 862,
+          "faceAfter": 164
+        },
+        {
+          "signedBefore": 0.0345383919775486,
+          "signedAfter": 0.0345383919775486,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": -2.239201227249036e-16,
+            "signedEuclideanDistance": 0.0345383919775486,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": 1.4923517340840508e-16,
+            "signedEuclideanDistance": 0.0345383919775486,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.03453838964924216,
+          "normalProjectionAfterDiagnosticOnly": 0.03453838964924216,
+          "normalBefore": [
+            0.7720590829849243,
+            -0.5083611011505127,
+            0.381436288356781
+          ],
+          "normalAfter": [
+            0.7720590829849243,
+            -0.5083611011505127,
+            0.381436288356781
+          ],
+          "faceBefore": 858,
+          "faceAfter": 171
+        },
+        {
+          "signedBefore": -0.03971172124147415,
+          "signedAfter": -0.03971172124147415,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000007,
+            "signedEuclideanDistance": -0.03971172124147415,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999994,
+            "signedEuclideanDistance": -0.03971172124147415,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.03971172124147415,
+          "normalProjectionAfterDiagnosticOnly": -0.03971172124147415,
+          "normalBefore": [
+            0.7319664359092712,
+            -0.5462134480476379,
+            0.40727871656417847
+          ],
+          "normalAfter": [
+            0.7319664359092712,
+            -0.5462134480476379,
+            0.40727871656417847
+          ],
+          "faceBefore": 857,
+          "faceAfter": 165
+        }
+      ],
+      "minimumBurialBefore": -0.0345383919775486,
+      "minimumBurialAfter": -0.0345383919775486
+    },
+    {
+      "name": "Cream crown spine 5",
+      "samples": [
+        {
+          "signedBefore": 0.034816984087228775,
+          "signedAfter": 0.03470464050769806,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": 7.380402623406806e-17,
+            "signedEuclideanDistance": 0.034816984087228775,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": 7.114489448607899e-17,
+            "signedEuclideanDistance": 0.03470464050769806,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.034816983999917284,
+          "normalProjectionAfterDiagnosticOnly": 0.03470463836856652,
+          "normalBefore": [
+            -0.8769571781158447,
+            0.07414291054010391,
+            0.47481465339660645
+          ],
+          "normalAfter": [
+            -0.876340925693512,
+            0.07066749781370163,
+            0.4764793813228607
+          ],
+          "faceBefore": 458,
+          "faceAfter": 549
+        },
+        {
+          "signedBefore": -0.019267063587903976,
+          "signedAfter": -0.019267063587903976,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999997,
+            "signedEuclideanDistance": -0.019267063587903976,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.019267063587903976,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.019267065750682377,
+          "normalProjectionAfterDiagnosticOnly": -0.019267065750682377,
+          "normalBefore": [
+            -0.8652312159538269,
+            -0.03277719393372536,
+            0.5003006458282471
+          ],
+          "normalAfter": [
+            -0.8652312159538269,
+            -0.03277719393372536,
+            0.5003006458282471
+          ],
+          "faceBefore": 450,
+          "faceAfter": 280
+        },
+        {
+          "signedBefore": -0.04612673074007034,
+          "signedAfter": -0.046282291412353516,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.04612673074007034,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999994,
+            "signedEuclideanDistance": -0.046282291412353516,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.0461267313658027,
+          "normalProjectionAfterDiagnosticOnly": -0.04628229447553167,
+          "normalBefore": [
+            -0.8646950721740723,
+            0.04808130860328674,
+            0.49999067187309265
+          ],
+          "normalAfter": [
+            -0.8648152351379395,
+            0.04510454088449478,
+            0.5000602602958679
+          ],
+          "faceBefore": 452,
+          "faceAfter": 542
+        },
+        {
+          "signedBefore": 0.007895959541201591,
+          "signedAfter": 0.007585299201309681,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": -4.331893870237867e-16,
+            "signedEuclideanDistance": 0.007895959541201591,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": -8.993625759433513e-17,
+            "signedEuclideanDistance": 0.007585299201309681,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.007895959315646905,
+          "normalProjectionAfterDiagnosticOnly": 0.007585298799313023,
+          "normalBefore": [
+            -0.8646954298019409,
+            0.04808010533452034,
+            0.49998995661735535
+          ],
+          "normalAfter": [
+            -0.8648150563240051,
+            0.04510410502552986,
+            0.5000604391098022
+          ],
+          "faceBefore": 454,
+          "faceAfter": 540
+        }
+      ],
+      "minimumBurialBefore": -0.034816984087228775,
+      "minimumBurialAfter": -0.03470464050769806
+    },
+    {
+      "name": "Cream crown spine 6",
+      "samples": [
+        {
+          "signedBefore": -0.04612678289413452,
+          "signedAfter": -0.046282343566417694,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999996,
+            "signedEuclideanDistance": -0.04612678289413452,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 1.0000000000000009,
+            "signedEuclideanDistance": -0.046282343566417694,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.04612678444391349,
+          "normalProjectionAfterDiagnosticOnly": -0.04628234123811126,
+          "normalBefore": [
+            0.864695131778717,
+            0.0480806902050972,
+            0.49999067187309265
+          ],
+          "normalAfter": [
+            0.8648152351379395,
+            0.045104511082172394,
+            0.5000600814819336
+          ],
+          "faceBefore": 406,
+          "faceAfter": 458
+        },
+        {
+          "signedBefore": -0.019267035648226738,
+          "signedAfter": -0.019267035648226738,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999999,
+            "signedEuclideanDistance": -0.019267035648226738,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999996,
+            "signedEuclideanDistance": -0.019267035648226738,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.019267035941084032,
+          "normalProjectionAfterDiagnosticOnly": -0.019267035941084032,
+          "normalBefore": [
+            0.8652312159538269,
+            -0.03277718275785446,
+            0.5003006458282471
+          ],
+          "normalAfter": [
+            0.8652312159538269,
+            -0.03277718275785446,
+            0.5003006458282471
+          ],
+          "faceBefore": 405,
+          "faceAfter": 240
+        },
+        {
+          "signedBefore": 0.034817032516002655,
+          "signedAfter": 0.03470468521118164,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": -1.2851058758318058e-16,
+            "signedEuclideanDistance": 0.034817032516002655,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": -2.5883420259305965e-19,
+            "signedEuclideanDistance": 0.03470468521118164,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.034817030595149845,
+          "normalProjectionAfterDiagnosticOnly": 0.03470468588056974,
+          "normalBefore": [
+            0.8769561648368835,
+            0.07414079457521439,
+            0.4748167097568512
+          ],
+          "normalAfter": [
+            0.8763406872749329,
+            0.07066694647073746,
+            0.4764799177646637
+          ],
+          "faceBefore": 395,
+          "faceAfter": 468
+        },
+        {
+          "signedBefore": 0.007895930670201778,
+          "signedAfter": 0.00758524751290679,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": 4.720040486140243e-16,
+            "signedEuclideanDistance": 0.007895930670201778,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": -1.2208346555639313e-16,
+            "signedEuclideanDistance": 0.00758524751290679,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.007895929855294526,
+          "normalProjectionAfterDiagnosticOnly": 0.007585247209135559,
+          "normalBefore": [
+            0.864696204662323,
+            0.048081617802381516,
+            0.4999886453151703
+          ],
+          "normalAfter": [
+            0.8648151755332947,
+            0.04510439187288284,
+            0.5000602006912231
+          ],
+          "faceBefore": 403,
+          "faceAfter": 459
+        }
+      ],
+      "minimumBurialBefore": -0.034817032516002655,
+      "minimumBurialAfter": -0.03470468521118164
+    },
+    {
+      "name": "Cream crown spine 7",
+      "samples": [
+        {
+          "signedBefore": -0.045554596930742264,
+          "signedAfter": -0.045554596930742264,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 1.0000000000000004,
+            "signedEuclideanDistance": -0.045554596930742264,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.9999999999999988,
+            "signedEuclideanDistance": -0.045554596930742264,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.045554596930742264,
+          "normalProjectionAfterDiagnosticOnly": -0.045554596930742264,
+          "normalBefore": [
+            0.5191910862922668,
+            -0.8168025016784668,
+            0.25154373049736023
+          ],
+          "normalAfter": [
+            0.5191910862922668,
+            -0.8168025016784668,
+            0.25154373049736023
+          ],
+          "faceBefore": 873,
+          "faceAfter": 116
+        },
+        {
+          "signedBefore": 0.029523063451051712,
+          "signedAfter": 0.029523063451051712,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": 1.4840706829207415e-16,
+            "signedEuclideanDistance": 0.029523063451051712,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": -1.9012410213460212e-16,
+            "signedEuclideanDistance": 0.029523063451051712,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.029523063476204925,
+          "normalProjectionAfterDiagnosticOnly": 0.029523063476204925,
+          "normalBefore": [
+            0.6350125670433044,
+            -0.7725004553794861,
+            -0.0014545791782438755
+          ],
+          "normalAfter": [
+            0.6350125670433044,
+            -0.7725004553794861,
+            -0.0014545791782438755
+          ],
+          "faceBefore": 69,
+          "faceAfter": 121
+        },
+        {
+          "signedBefore": 0.03442317619919777,
+          "signedAfter": 0.03442317619919777,
+          "classificationBefore": {
+            "classification": "outside",
+            "winding": 2.725435789244986e-16,
+            "signedEuclideanDistance": 0.03442317619919777,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "outside",
+            "winding": -1.7833002511259222e-16,
+            "signedEuclideanDistance": 0.03442317619919777,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": 0.034423176383761245,
+          "normalProjectionAfterDiagnosticOnly": 0.034423176383761245,
+          "normalBefore": [
+            0.6350125670433044,
+            -0.7725004553794861,
+            -0.0014545791782438755
+          ],
+          "normalAfter": [
+            0.6350125670433044,
+            -0.7725004553794861,
+            -0.0014545791782438755
+          ],
+          "faceBefore": 69,
+          "faceAfter": 121
+        },
+        {
+          "signedBefore": -0.041566114872694016,
+          "signedAfter": -0.041566114872694016,
+          "classificationBefore": {
+            "classification": "inside",
+            "winding": 0.9999999999999988,
+            "signedEuclideanDistance": -0.041566114872694016,
+            "boundaryTolerance": 1e-06
+          },
+          "classificationAfter": {
+            "classification": "inside",
+            "winding": 0.999999999999998,
+            "signedEuclideanDistance": -0.041566114872694016,
+            "boundaryTolerance": 1e-06
+          },
+          "normalProjectionBeforeDiagnosticOnly": -0.04156611341673866,
+          "normalProjectionAfterDiagnosticOnly": -0.04156611341673866,
+          "normalBefore": [
+            0.6351072192192078,
+            -0.7724230885505676,
+            -0.0011629594955593348
+          ],
+          "normalAfter": [
+            0.6351072192192078,
+            -0.7724230885505676,
+            -0.0011629594955593348
+          ],
+          "faceBefore": 70,
+          "faceAfter": 123
+        }
+      ],
+      "minimumBurialBefore": -0.03442317619919777,
+      "minimumBurialAfter": -0.03442317619919777
+    }
+  ],
+  "finalMaximumSupportDrift": 0.00855730351474615,
+  "minimumCoreExtent": 1.179206408560276,
+  "inheritedSpineCapCaveat": "Some baseline spine corners are outside the core; no all-spine-cap-buried claim. Compare signed Euclidean clearance and retain actual view review.",
+  "scope": "actual final static hull with solid-angle containment and Euclidean clearance; does not certify animated deformation or render appearance"
+}

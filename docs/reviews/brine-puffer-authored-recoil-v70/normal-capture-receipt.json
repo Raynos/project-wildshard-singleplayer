@@ -1,0 +1,557 @@
+{
+  "start": "2026-10-18T23:59:18.569Z",
+  "errors": [],
+  "httpErrors": [],
+  "inputs": [
+    {
+      "label": "Real LOOK drag down 48px over300ms",
+      "wall": "2026-10-18T23:59:22.247Z",
+      "t": 0.01630000000447035
+    },
+    {
+      "label": "real approach W 1200ms",
+      "wall": "2026-10-18T23:59:27.589Z",
+      "t": 5.3655
+    },
+    {
+      "label": "normal renderer full-cycle observation 25s; no attacks or state changes",
+      "wall": "2026-10-18T23:59:28.819Z",
+      "t": 6.592900000005961
+    },
+    {
+      "label": "real touch attack",
+      "wall": "2026-10-18T23:59:53.849Z",
+      "t": 31.6175
+    },
+    {
+      "label": "real touch attack",
+      "wall": "2026-10-18T23:59:55.288Z",
+      "t": 33.0635
+    },
+    {
+      "label": "real touch attack",
+      "wall": "2026-10-18T23:59:56.555Z",
+      "t": 34.32920000000298
+    },
+    {
+      "label": "real touch attack",
+      "wall": "2026-10-18T23:59:58.017Z",
+      "t": 35.78520000000298
+    },
+    {
+      "label": "real touch attack",
+      "wall": "2026-10-18T23:59:59.583Z",
+      "t": 37.35230000000447
+    },
+    {
+      "label": "real approach W 250ms",
+      "wall": "2026-10-19T00:00:00.583Z",
+      "t": 38.35120000000298
+    },
+    {
+      "label": "real Retry button",
+      "wall": "2026-10-19T00:00:06.416Z",
+      "t": 44.18970000000298
+    }
+  ],
+  "preview": {
+    "schema": "wildshard.puffer.native-preview.v1",
+    "candidate": "V70",
+    "mode": "gait5",
+    "rigAdmission": {
+      "profile": "v70-rig1-gait5",
+      "originalSourceSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+      "equivalenceSha256": "5cb9e2b3128f5b87ef4ed7c89816c324d79bd57bc6b947d25b23c46bea567b06",
+      "poseSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+      "gaitSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0"
+    },
+    "rootFlinch": "authored-pose",
+    "visualAdapter": "puffer-gait5-continuity",
+    "visualAdapterSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+    "source": "art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json",
+    "measurementSha256": "a923ca6c0ca4ba7d853da3b871d536e2b2a3106202a21c3673f22a8eaa6c6f27",
+    "sourceSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+    "metadataSha256": "55f188d53546dd06537c12ba64a29a36b0569a1d72930146605aaa0a43b86673",
+    "dimensionsSha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e",
+    "colliderAcceptance": false,
+    "visualAcceptance": false,
+    "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+    "packedSha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15",
+    "bodyFile": "/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+    "sourceHash": "dc782161a48db9e811415641e1272f70f5c4f86e456672bf3d07bf8bfd4a1106"
+  },
+  "title": "Puffer V70 \u00b7 UNACCEPTED WIP",
+  "before": {
+    "pixelRatio": 1,
+    "buffer": [
+      390,
+      844
+    ],
+    "canvas": [
+      390,
+      844
+    ],
+    "shadows": true,
+    "passes": [
+      {
+        "name": "Bh",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "op",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": true,
+        "renderToScreen": true
+      }
+    ],
+    "camera": [
+      -1.1836795772085068e-06,
+      901.6815463900643,
+      -0.33694040317962703
+    ],
+    "t": 0.0033000000044703486
+  },
+  "distanceSamples": [],
+  "storageBefore": {
+    "local": {},
+    "session": {},
+    "cookies": "",
+    "cacheKeys": [],
+    "serviceWorkers": [],
+    "indexedDBNames": []
+  },
+  "combat": [
+    {
+      "t": 31.60930000000447,
+      "hp": 45,
+      "alive": true,
+      "flinch": 0,
+      "status": "Practice bout. Health and rewards stay in this page.",
+      "health": [
+        "76/ 100"
+      ]
+    },
+    {
+      "t": 33.05410000000149,
+      "hp": 33,
+      "alive": true,
+      "flinch": 1,
+      "status": "Practice bout. Health and rewards stay in this page.",
+      "health": [
+        "76/ 100"
+      ]
+    },
+    {
+      "t": 34.31680000000447,
+      "hp": 21,
+      "alive": true,
+      "flinch": 1,
+      "status": "Practice bout. Health and rewards stay in this page.",
+      "health": [
+        "76/ 100"
+      ]
+    },
+    {
+      "t": 35.78270000000298,
+      "hp": 21,
+      "alive": true,
+      "flinch": 0.08324227060646401,
+      "status": "Practice bout. Health and rewards stay in this page.",
+      "health": [
+        "76/ 100"
+      ]
+    },
+    {
+      "t": 37.34980000000447,
+      "hp": 5,
+      "alive": true,
+      "flinch": 0.06392786120670756,
+      "status": "Practice bout. Health and rewards stay in this page.",
+      "health": [
+        "76/ 100"
+      ]
+    },
+    {
+      "t": 39.11580000000447,
+      "hp": 0,
+      "alive": false,
+      "flinch": 0.5769498103804866,
+      "status": "Opponent defeated. Collect the practice coins.",
+      "health": [
+        "76/ 100"
+      ]
+    }
+  ],
+  "after": {
+    "pixelRatio": 1,
+    "buffer": [
+      390,
+      844
+    ],
+    "canvas": [
+      390,
+      844
+    ],
+    "shadows": true,
+    "passes": [
+      {
+        "name": "Bh",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "op",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": true,
+        "renderToScreen": true
+      }
+    ],
+    "camera": [
+      -0.11349351305991298,
+      901.6980545118034,
+      -2.8652166581911356
+    ],
+    "t": 40.7245
+  },
+  "storageAfterCombat": {
+    "local": {},
+    "session": {},
+    "cookies": "",
+    "cacheKeys": [],
+    "serviceWorkers": [],
+    "indexedDBNames": []
+  },
+  "preRetryStatus": "Collected 2 local practice coins.",
+  "storageAfterRetry": {
+    "local": {},
+    "session": {},
+    "cookies": "",
+    "cacheKeys": [],
+    "serviceWorkers": [],
+    "indexedDBNames": []
+  },
+  "retryHealth": [
+    "100/ 100"
+  ],
+  "status": "Fresh practice bout.",
+  "end": "2026-10-19T00:00:14.485Z",
+  "schema": "wildshard.puffer.v70-authored-recoil-capture.v1",
+  "sourceCheckpoint": "a617d3d718e34437104d28842f97d2d713772479",
+  "rawTelemetry": "tmp/v70-authored-flinch-normal-combat-capture.json",
+  "rawTelemetrySha256": "917c3aabed6cea6f00952b7bf01ad45030e89a952e1be19e824749f35b0b267d",
+  "video": "tmp/v70-authored-flinch-normal-combat-video/page@4b6eb23d3dc91f7adf2dea0694e9c358.webm",
+  "videoSha256": "f6f92e0db51ffa0af66c9206e71be80c0cc6f2977d58890e01970d59c8a44df9",
+  "actualSamples": 209,
+  "captureTerminal": 0,
+  "sampleIntervalMs": {
+    "median": 223.84999999776412,
+    "p95LinearInterpolation": 403.1949999984373,
+    "max": 808.1999999955301
+  },
+  "healthBoundaries": [
+    {
+      "t": 0.00040000000596046445,
+      "hp": 45,
+      "alive": true,
+      "stage": 0,
+      "clock": 0.5
+    },
+    {
+      "t": 33.05080000000447,
+      "hp": 33,
+      "alive": true,
+      "stage": 2,
+      "clock": 0.7999999999999999
+    },
+    {
+      "t": 34.13260000000149,
+      "hp": 21,
+      "alive": true,
+      "stage": 2,
+      "clock": 0.2
+    },
+    {
+      "t": 36.11180000000447,
+      "hp": 5,
+      "alive": true,
+      "stage": 2,
+      "clock": 0.1
+    },
+    {
+      "t": 38.85870000000298,
+      "hp": 0,
+      "alive": false,
+      "stage": 2,
+      "clock": 0.5
+    },
+    {
+      "t": 45.32960000000149,
+      "hp": 45,
+      "alive": true,
+      "stage": 0,
+      "clock": 0
+    }
+  ],
+  "captureScope": "App root /; read-only actual runtime transforms; real input; no camera or actor-state edits.",
+  "renderMode": "normal four passes and shadows",
+  "timeBasis": "Overlay t is seconds since capture performance clock; stage/clock are authoritative controller state. Encoded video timestamps have a leading offset; align by burned-in overlay. Encoded frames do not imply unique renderer samples.",
+  "runtimeSkin": {
+    "arena": {
+      "colliders": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 898,
+          "z": 0,
+          "hx": 50,
+          "hy": 2,
+          "hz": 50
+        },
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 904.5,
+          "z": -50,
+          "hx": 50,
+          "hy": 4.5,
+          "hz": 0.22
+        },
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 904.5,
+          "z": 50,
+          "hx": 50,
+          "hy": 4.5,
+          "hz": 0.22
+        },
+        {
+          "kind": "box",
+          "x": -50,
+          "y": 904.5,
+          "z": 0,
+          "hx": 0.22,
+          "hy": 4.5,
+          "hz": 50
+        },
+        {
+          "kind": "box",
+          "x": 50,
+          "y": 904.5,
+          "z": 0,
+          "hx": 0.22,
+          "hy": 4.5,
+          "hz": 50
+        }
+      ],
+      "groundAtActor": 900,
+      "renderedPlaneWorldY": 899.97
+    },
+    "rootFlinch": "authored-pose",
+    "bindMode": "attached",
+    "bindMatrix": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "boneNames": [
+      "body",
+      "belly",
+      "tail",
+      "finL",
+      "finR",
+      "rearL",
+      "rearR",
+      "head"
+    ],
+    "boneInverses": [
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.6000000238418579,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.6000000238418579,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.5799999833106995,
+        0.5174999833106995,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -0.4300000071525574,
+        -0.5,
+        -0.1599999964237213,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.4300000071525574,
+        -0.5,
+        -0.1599999964237213,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -0.4300000071525574,
+        -0.5,
+        0.36000001430511475,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.4300000071525574,
+        -0.5,
+        0.36000001430511475,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.8299999833106995,
+        -0.5,
+        1
+      ]
+    ]
+  },
+  "runtimeBufferCounts": {
+    "positions": 29979,
+    "skinIndices": 39972,
+    "skinWeights": 39972
+  },
+  "physicalKnockbackObservation": "No sampled hasImpulse=true. Physical knockback code is unchanged, but these samples do not independently establish an impulse.",
+  "sampledImpulseFrames": 0,
+  "ordinaryTelemetry": "All actual rAF rows and local bone p/r/s retained; full runtime buffers and world matrices remain in hash-pinned raw telemetry.",
+  "captureSourceRawSha256": "73bd495c1fee0650200accfa22ed6adf039a46b92d8e2e9775961df7915816ac",
+  "captureSourcePortableSha256": "e09b0852190a72a3160954433ebac059c51a81189cd7e0d0d3e0d1fa5815b4e1",
+  "portableSourceChange": "Only absolute Chromium executable path replaced by CHROMIUM_EXECUTABLE."
+}

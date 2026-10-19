@@ -1,0 +1,20 @@
+{
+  "baseline": {
+    "triangles": 1018,
+    "edges": 1527,
+    "minimumTriangleArea": 1.1210969525403784e-10,
+    "boundaryEdges": 0,
+    "nonmanifoldEdges": 0,
+    "inconsistentOrientationEdges": 0,
+    "positionWeld": "exact coordinates only"
+  },
+  "candidate": {
+    "triangles": 1022,
+    "edges": 1533,
+    "minimumTriangleArea": 1.1210969525403784e-10,
+    "boundaryEdges": 0,
+    "nonmanifoldEdges": 0,
+    "inconsistentOrientationEdges": 0,
+    "positionWeld": "exact coordinates only"
+  }
+}

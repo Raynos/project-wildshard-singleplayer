@@ -1,0 +1,64 @@
+"""Read-only audit of actual V70 runtime buffers/bind inverses and captured world poses."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import numpy as np
+
+p=argparse.ArgumentParser();p.add_argument('native');p.add_argument('capture');p.add_argument('capture_sha256');p.add_argument('output');a=p.parse_args()
+def load(path,pin):
+    raw=Path(path).read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=pin: raise ValueError('Pinned input mismatch')
+    return json.loads(raw)
+native=load(a.native,'b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762')
+capture=load(a.capture,a.capture_sha256)
+if capture['preview']['sourceSha256']!='b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762' or capture['preview']['rootFlinch']!='authored-pose':raise ValueError('Wrong runtime candidate/policy')
+runtime=capture['runtimeSkin'];names=[b['name']for b in native['bones']]
+if runtime['rootFlinch']!='authored-pose' or runtime['boneNames']!=names or runtime['bindMode']!='attached':raise ValueError('Wrong runtime binding/policy')
+bind=np.array(runtime['bindMatrix']).reshape(4,4).T
+if not np.array_equal(bind,np.eye(4)):raise ValueError('Unexpected runtime bind matrix')
+inverses=[]
+for d,v in zip(native['bones'],runtime['boneInverses'],strict=True):
+    inverse=np.array(v).reshape(4,4).T;expected=np.eye(4);expected[:3,3]=-np.array(d['pos'])
+    if not np.array_equal(inverse,expected):raise ValueError('Actual inverse differs from exact native bind')
+    inverses.append(inverse)
+for key,source,dtype in [('positions','positions',np.float32),('skinWeights','skinWeights',np.float32),('skinIndices','skinIndices',np.uint16)]:
+    expected=np.concatenate([np.array(part[source],dtype=dtype)for part in native['parts']])
+    if not np.array_equal(np.array(runtime[key]),expected):raise ValueError('Actual runtime vertex channel mismatch: '+key)
+slabs=[r for r in runtime['arena']['colliders']if r['kind']=='box' and r['hx']>r['hy'] and r['hz']>r['hy']]
+if len(slabs)!=1:raise ValueError('Ambiguous actual floor collider')
+floor=slabs[0]['y']+slabs[0]['hy'];rendered=runtime['arena']['renderedPlaneWorldY']
+if floor!=runtime['arena']['groundAtActor'] or abs(rendered-(floor-.03))>1e-9:raise ValueError('Runtime arena geometry/collider disagreement')
+positions=np.array(runtime['positions']).reshape(-1,3);ids=np.array(runtime['skinIndices']).reshape(-1,4);weights=np.array(runtime['skinWeights']).reshape(-1,4)
+parts=[];offset=0
+for p in native['parts']:
+    count=len(p['positions'])//3
+    point=positions[offset:offset+count];tri=point.reshape(-1,3,3);area=np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1)
+    if np.any(area<=0):raise ValueError('Degenerate reference triangle')
+    parts.append((p['name'],point,ids[offset:offset+count],weights[offset:offset+count],area))
+    offset+=count
+minimum={'all':float('inf'),'living':float('inf'),'dead':float('inf')};worst={};minimum_area=float('inf');cap_error=0.;frames=0;living_hit_frames=0;max_root_tilt=0.;max_body_hit_pitch=0.;max_flash=0.;records=[]
+belly=names.index('belly')
+for row in capture['capture']['samples']:
+    if not row.get('bones'):continue
+    if [b['name']for b in row['bones']]!=names:raise ValueError('Capture bone order mismatch')
+    matrices=[np.array(b['world']).reshape(4,4).T@inverse@bind for b,inverse in zip(row['bones'],inverses,strict=True)]
+    phase='living'if row['alive']else'dead';low=float('inf')
+    for name,point,skin_ids,skin_weights,area in parts:
+        shown=np.zeros_like(point)
+        for i,matrix in enumerate(matrices):
+            w=np.where(skin_ids==i,skin_weights,0).sum(axis=1)
+            shown+=(point@matrix[:3,:3].T+matrix[:3,3])*w[:,None]
+        part_low=float(shown[:,1].min()-floor);low=min(low,part_low)
+        for bucket in ('all',phase):
+            if part_low<minimum[bucket]:minimum[bucket]=part_low;worst[bucket]={'t':row['t'],'stage':row['stage'],'clock':row['clock'],'alive':row['alive'],'part':name}
+        if name.startswith('Volumetric connected '):
+            m=matrices[belly];attached=point@m[:3,:3].T+m[:3,3];protected=point[:,1]>.4
+            cap_error=max(cap_error,float(np.linalg.norm(shown[protected]-attached[protected],axis=1).max()))
+        tri=shown.reshape(-1,3,3);shown_area=np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1);minimum_area=min(minimum_area,float((shown_area/area).min()))
+    if row['alive']and row['flinch']>0:
+        living_hit_frames+=1;max_root_tilt=max(max_root_tilt,abs(row['rootRotation'][0]),abs(row['rootRotation'][2]));max_body_hit_pitch=max(max_body_hit_pitch,abs(row['bones'][0]['r'][0]))
+    max_flash=max(max_flash,row.get('flash',0));frames+=1;records.append({'t':row['t'],'alive':row['alive'],'clearance':low})
+result={'schema':'wildshard.puffer.v70-authored-recoil-capture-audit.v1','weightedNativeSha256':'b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762','rawCaptureSha256':a.capture_sha256,'runtimePolicy':'authored-pose','actualRuntimeBuffersAndBindInversesExact':True,'actualColliderFloorY':floor,'actualRenderedFloorY':rendered,'frames':frames,'testedVertices':len(positions),'testedTriangles':len(positions)//3,'testedParts':[part[0] for part in parts],'minimumColliderClearance':minimum,'minimumRenderedFloorClearance':{k:v+(floor-rendered)for k,v in minimum.items()},'worstSamples':worst,'maximumCapToBellyError':cap_error,'minimumTriangleAreaRatio':minimum_area,'livingHitFrames':living_hit_frames,'maximumLivingHitRootTilt':max_root_tilt,'maximumLivingHitAuthoredBodyPitch':max_body_hit_pitch,'maximumObservedHitFlash':max_flash,'livingContactPassed':minimum['living']>=.00399 and cap_error<1e-9 and minimum_area>1e-6,'allPhaseContactPassed':minimum['all']>=.00399,'scope':'Actual read-only runtime buffers, bind inverses and world matrices; fixed practice arena. Dead/ragdoll contact is reported separately and not corrected by living-hit root ownership. No phone/terrain/visual acceptance.','sampleClearances':records}
+Path(a.output).write_text(json.dumps(result,indent=2)+'\n');print(json.dumps({k:v for k,v in result.items()if k!='sampleClearances'}))
+if not result['livingContactPassed']:raise SystemExit(1)

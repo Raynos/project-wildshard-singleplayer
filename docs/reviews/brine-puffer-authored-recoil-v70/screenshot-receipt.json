@@ -1,0 +1,32 @@
+{
+  "sourceCheckpoint": "a617d3d718e34437104d28842f97d2d713772479",
+  "screenshots": [
+    {
+      "file": "normal-local-reward.webp",
+      "source": "tmp/v70-authored-flinch-normal-combat-after.png",
+      "sourceSha256": "6f314ea757a2cb5ba687e6801e5a1a5db4b6ade0c57cb248ca8d1920afb34839",
+      "sha256": "ef6dc467ec2df2eda13d9699d956ecf4da6206fbfdd3329881fef62bdb701fc4",
+      "width": 390,
+      "height": 844,
+      "conversion": "Lossless WebP; exact RGB pixel equality verified; no crop, rescale, retouch, relight, or geometry change."
+    },
+    {
+      "file": "normal-retry.webp",
+      "source": "tmp/v70-authored-flinch-normal-combat-standoff.png",
+      "sourceSha256": "7aea7868c9bc058e884fa1fc121ddbdb65fce73a48d8bb594105852f41334c03",
+      "sha256": "3b958ab25195373afc3cd8a4fcdb8e19b32be849a7598e35e388df3bb92498d5",
+      "width": 390,
+      "height": 844,
+      "conversion": "Lossless WebP; exact RGB pixel equality verified; no crop, rescale, retouch, relight, or geometry change."
+    },
+    {
+      "file": "mounted-start.webp",
+      "source": "tmp/v70-authored-recoil-mounted-qa-start.png",
+      "sourceSha256": "620c22a2312fbe55ad49d2fa52de70ee1b20665a30a802f297820c414d52ebae",
+      "sha256": "709c773e88c653575dc4be59d6cb7fe04730139b45954ff73bb6ca3029a6b254",
+      "width": 390,
+      "height": 844,
+      "conversion": "Lossless WebP; exact RGB pixel equality verified; no crop, rescale, retouch, relight, or geometry change."
+    }
+  ]
+}

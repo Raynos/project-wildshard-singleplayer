@@ -1,0 +1,28 @@
+import { chromium } from 'playwright';
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import crypto from 'node:crypto';
+const root=path.resolve('tmp/puffer-native-preview-v70-authored-flinch-dist');
+const prefix='/puffer-engine/';
+const out='tmp/v70-authored-recoil-mounted-qa';
+const report={schema:'wildshard.puffer.v70-authored-recoil-mounted-qa.v1',sourceCheckpoint:'a617d3d718e34437104d28842f97d2d713772479',cleanEngineBaseline:'c4339d90a93ccc289540e3a72c1e9cbf221d98fb',scope:'Isolated local exact /puffer-engine/ mount, not published Site',start:new Date().toISOString(),errors:[],httpErrors:[],requests:[]};
+const server=http.createServer((req,res)=>{const u=(req.url??'/').split('?')[0];if(!u.startsWith(prefix)){res.writeHead(404).end();return;}const relative=decodeURIComponent(u.slice(prefix.length)||'index.html');const p=path.resolve(root,relative);if(!p.startsWith(root+path.sep)){res.writeHead(403).end();return;}try{res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.json':'application/json','.wasm':'application/wasm','.css':'text/css'})[path.extname(p)]??'application/octet-stream');res.end(fs.readFileSync(p));}catch{res.writeHead(404).end();}});
+await new Promise(r=>server.listen(4498,'127.0.0.1',r));
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE,headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--mute-audio','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});const page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));page.on('response',r=>{report.requests.push({path:new URL(r.url()).pathname,status:r.status()});if(r.status()>=400)report.httpErrors.push(new URL(r.url()).pathname);});
+const storage=()=>page.evaluate(async()=>({local:Object.fromEntries(Object.entries(localStorage)),session:Object.fromEntries(Object.entries(sessionStorage)),cookies:document.cookie,cacheKeys:await caches.keys(),serviceWorkers:(await navigator.serviceWorker.getRegistrations()).map(r=>r.scope),indexedDBNames:typeof indexedDB.databases==='function'?(await indexedDB.databases()).map(d=>d.name):null}));
+const state=()=>page.evaluate(()=>{const d=window.__practiceDemo,a=d.arena.activeTargets[0],g=d.game,r=g.renderer,gl=r.getContext();return {status:document.querySelector('#practice-status').textContent,health:[...document.querySelectorAll('.ws-game-hval')].map(x=>x.textContent),enemyHP:a.hp,alive:a.alive,rootFlinch:a.model.species.rootFlinch,vertices:a.mesh.geometry.getAttribute('position').count,boneNames:a.mesh.skeleton.bones.map(b=>b.name),pixelRatio:r.getPixelRatio(),buffer:[gl.drawingBufferWidth,gl.drawingBufferHeight],shadows:r.shadowMap.enabled,passes:g.composer.passes.map(p=>({enabled:p.enabled,renderToScreen:p.renderToScreen}))};});
+try{
+await page.goto('http://127.0.0.1:4498'+prefix,{waitUntil:'load'});report.title=await page.title();report.preview=await(await page.request.get('http://127.0.0.1:4498'+prefix+'puffer-preview.json')).json();report.storageBefore=await storage();
+if(report.preview.candidate!=='V70'||report.preview.rootFlinch!=='authored-pose'||report.preview.sourceSha256!=='b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762')throw Error('Mounted identity mismatch');
+await page.getByRole('button',{name:'Start practice',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#practice-status')?.textContent?.startsWith('Practice bout.'));report.actualStart=await state();report.actualStartAt=new Date().toISOString();
+if(report.actualStart.enemyHP!==45||report.actualStart.health[0]!=='100/ 100'||report.actualStart.rootFlinch!=='authored-pose'||report.actualStart.vertices!==9993)throw Error('Actual mounted start mismatch');
+if(!report.actualStart.shadows||report.actualStart.passes.length!==4||report.actualStart.passes.some(p=>!p.enabled))throw Error('Not normal renderer');
+await page.evaluate(()=>{const e=document.createElement('div');e.textContent='V70 AUTHORED RECOIL · MOUNTED START';e.style.cssText='position:fixed;top:64px;right:4px;z-index:99999;background:#000d;color:white;font:10px monospace';document.body.append(e);});await page.screenshot({path:out+'-start.png'});report.storageAfterStart=await storage();
+await page.getByRole('button',{name:'Retry',exact:true}).click();await page.waitForTimeout(1000);report.retry=await state();report.storageAfterRetry=await storage();
+if(report.retry.enemyHP!==45||report.retry.health[0]!=='100/ 100'||report.retry.status!=='Fresh practice bout.')throw Error('Mounted Retry mismatch');
+for(const key of ['storageBefore','storageAfterStart','storageAfterRetry'])if(JSON.stringify(report[key])!==JSON.stringify({local:{},session:{},cookies:'',cacheKeys:[],serviceWorkers:[],indexedDBNames:[]}))throw Error('Persistence changed');
+if(report.errors.length||report.httpErrors.length||report.requests.some(r=>!r.path.startsWith(prefix)))throw Error('Mounted request/runtime error');
+report.appInventorySha256=crypto.createHash('sha256').update(fs.readFileSync('tmp/v70-authored-flinch-app-inventory.json')).digest('hex');report.passed=true;
+}finally{report.end=new Date().toISOString();await context.close();await browser.close();await new Promise(r=>server.close(r));fs.writeFileSync(out+'.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));}

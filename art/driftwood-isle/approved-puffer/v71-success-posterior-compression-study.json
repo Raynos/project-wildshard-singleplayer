@@ -1,0 +1,152 @@
+{
+  "base": "V67",
+  "map": "Y=.10+.75*(Y-.10) for Y<.10; otherwise exact",
+  "noCrownHeightChange": true,
+  "beforeCore": {
+    "geometrySHA256": "8018e7a1eeb3e262ed95ea9fa10180af26138b02182dd8bb19a2482f920b481b",
+    "vertices": 513,
+    "faces": 794,
+    "volume": 1.195762190456004,
+    "nonManifoldEdges": 0,
+    "bounds": [
+      [
+        -0.5929591655731201,
+        0.5929591655731201
+      ],
+      [
+        -0.7599999904632568,
+        0.9181897640228271
+      ],
+      [
+        0.1707935929298401,
+        1.350000023841858
+      ]
+    ]
+  },
+  "afterCore": {
+    "geometrySHA256": "3648a76512d999982a6853c551260c158c8f009b25b6b9e0bd01cf1023782482",
+    "vertices": 513,
+    "faces": 794,
+    "volume": 1.0566605761531394,
+    "nonManifoldEdges": 0,
+    "bounds": [
+      [
+        -0.5929591655731201,
+        0.5929591655731201
+      ],
+      [
+        -0.5450000166893005,
+        0.9181897640228271
+      ],
+      [
+        0.1707935929298401,
+        1.350000023841858
+      ]
+    ]
+  },
+  "beforeProjectedCore": {
+    "Q": 1.082752117802726,
+    "A": 0.43896549699830617,
+    "sideDepth": 1.678189754486084,
+    "height": 1.1792064309120178,
+    "frontWidth": 1.1859183311462402
+  },
+  "afterProjectedCore": {
+    "Q": 1.0416188595694285,
+    "A": 0.43326188808165145,
+    "sideDepth": 1.4631897807121277,
+    "height": 1.1792064309120178,
+    "frontWidth": 1.1859183311462402
+  },
+  "appendageRigidYDeltas": {
+    "Tail root": 0.1825,
+    "Full angular tail fan with ochre face border": 0.1825,
+    "Cream crown spine 0": 0.1325,
+    "Cream crown spine 1": 0.05499999999999999,
+    "Cream crown spine 3": 0.09250000000000005,
+    "Cream crown spine 4": 0.09250000000000005,
+    "Cream crown spine 7": 0.15749999999999997
+  },
+  "finCaps": [
+    {
+      "joint": "finR",
+      "signedCapDistances": [
+        -0.2505733296275139,
+        -0.28465040773153305,
+        -0.21147397719323635,
+        -0.20739740889985114,
+        -0.13066921776771778,
+        -0.04151006322354078,
+        -0.03265762734713462,
+        -0.05786854354664683,
+        -0.11405987851321697,
+        -0.17843820061534643,
+        -0.12803911603987217,
+        -0.19317526370286942
+      ],
+      "distalVerticesExact": true,
+      "pivotUnchanged": true
+    },
+    {
+      "joint": "rearR",
+      "signedCapDistances": [
+        -0.1336591336876154,
+        -0.14521928131580353,
+        -0.13998859003186226,
+        -0.11611996032297611,
+        -0.08481897320598364,
+        -0.05447273422032595,
+        -0.03321237675845623,
+        -0.02552362368442118,
+        -0.029999637510627508,
+        -0.0493124732747674,
+        -0.07828733138740063,
+        -0.10916034411638975
+      ],
+      "distalVerticesExact": true,
+      "pivotUnchanged": true
+    },
+    {
+      "joint": "finL",
+      "signedCapDistances": [
+        -0.029812145861797035,
+        -0.05533518605079735,
+        -0.1340889175189659,
+        -0.18672655010595918,
+        -0.21798388473689556,
+        -0.2000526376068592,
+        -0.25067564845085144,
+        -0.1927381046116352,
+        -0.21454038424417377,
+        -0.17843819502741098,
+        -0.11406066687777638,
+        -0.057870675809681416
+      ],
+      "distalVerticesExact": true,
+      "pivotUnchanged": true
+    },
+    {
+      "joint": "rearL",
+      "signedCapDistances": [
+        -0.033212400041520596,
+        -0.054472736082971096,
+        -0.0848190002143383,
+        -0.11611996032297611,
+        -0.13998859003186226,
+        -0.1452193185687065,
+        -0.13365917839109898,
+        -0.10916035808622837,
+        -0.07828734442591667,
+        -0.04931245790794492,
+        -0.02999962167814374,
+        -0.02552360761910677
+      ],
+      "distalVerticesExact": true,
+      "pivotUnchanged": true
+    }
+  ],
+  "tailPivotYDelta": 0.1825,
+  "facePouchFrontMouthEyesAndDistalFeetPreserved": true,
+  "cameraCaveat": "same-camera engineering bounds only; concept hero and tiny side are not calibrated 3D",
+  "status": "unaccepted macro silhouette study; actual hero and all-view review required"
+}

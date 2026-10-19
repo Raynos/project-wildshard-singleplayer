@@ -1,0 +1,26 @@
+{
+  "-1": {
+    "front": {
+      "blockedBySurroundingSkin": false,
+      "hit": null,
+      "faceIndex": null
+    },
+    "hero": {
+      "blockedBySurroundingSkin": false,
+      "hit": null,
+      "faceIndex": null
+    }
+  },
+  "1": {
+    "front": {
+      "blockedBySurroundingSkin": false,
+      "hit": null,
+      "faceIndex": null
+    },
+    "hero": {
+      "blockedBySurroundingSkin": false,
+      "hit": null,
+      "faceIndex": null
+    }
+  }
+}

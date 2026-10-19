@@ -1,0 +1,25 @@
+{
+  "status": "surface-preserving face partition",
+  "originalVertices": 281,
+  "partitionVertices": 513,
+  "before": {
+    "volume": 1.1957621905613867,
+    "nonManifoldEdges": 0
+  },
+  "after": {
+    "volume": 1.195762190456004,
+    "nonManifoldEdges": 0
+  },
+  "faceCounts": {
+    "ochre": 112,
+    "ivory": 350,
+    "retained": 332
+  },
+  "paletteChanged": false,
+  "surfaceDisplacement": 0,
+  "boundaries": {
+    "front": "Y+.4825-.55*abs(X)-.45*Z=0",
+    "cream": "intersection of Z-.96+.25*abs(X)-.08*Y<0 and Z-.83+.40*abs(X)-.35*Y<0",
+    "orangeTop": "Z-1.02+.08*abs(X)-.08*Y=0"
+  }
+}
