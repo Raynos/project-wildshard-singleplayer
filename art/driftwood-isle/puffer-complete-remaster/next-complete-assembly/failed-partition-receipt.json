@@ -1,0 +1,103 @@
+{
+  "status": "FAILED; not a candidate",
+  "script": "failed_partition_paint.py",
+  "scriptSha256": "5dbe1247ad882bee16fac0f561932340fe2afc1ed36c73c2b4e679c975f5a74f",
+  "nativeSha256": "b63af117dc08fe505f7604c40fbdd16e6ca338b5f5e53ce609ad24bef80b3702",
+  "native": {
+    "edgeManifoldOriented": false,
+    "vertexManifold": false,
+    "weldedUnionVertexManifold": false,
+    "minimumArea": 2.094714798686196e-14,
+    "components": [
+      {
+        "faces": 2019,
+        "volume": 1.052763601518184
+      },
+      {
+        "faces": 20,
+        "volume": 0.004756054875511809
+      },
+      {
+        "faces": 6,
+        "volume": 0.00147109995433851
+      },
+      {
+        "faces": 6,
+        "volume": 0.0037878750763222654
+      },
+      {
+        "faces": 6,
+        "volume": 0.0009364644073177296
+      },
+      {
+        "faces": 6,
+        "volume": 0.0010430385965848818
+      },
+      {
+        "faces": 6,
+        "volume": 0.00104303859658488
+      },
+      {
+        "faces": 6,
+        "volume": 0.0006280317130486253
+      },
+      {
+        "faces": 6,
+        "volume": 0.0006280317130486259
+      },
+      {
+        "faces": 6,
+        "volume": 0.00036345429434909635
+      }
+    ]
+  },
+  "float32": {
+    "edgeManifoldOriented": false,
+    "vertexManifold": false,
+    "weldedUnionVertexManifold": false,
+    "minimumArea": 0.0,
+    "components": [
+      {
+        "faces": 2019,
+        "volume": 1.0527636033637522
+      },
+      {
+        "faces": 20,
+        "volume": 0.004756054875511809
+      },
+      {
+        "faces": 6,
+        "volume": 0.00147109995433851
+      },
+      {
+        "faces": 6,
+        "volume": 0.0037878750763222654
+      },
+      {
+        "faces": 6,
+        "volume": 0.0009364644073177296
+      },
+      {
+        "faces": 6,
+        "volume": 0.0010430385965848818
+      },
+      {
+        "faces": 6,
+        "volume": 0.00104303859658488
+      },
+      {
+        "faces": 6,
+        "volume": 0.0006280316652028396
+      },
+      {
+        "faces": 6,
+        "volume": 0.0006280316652028401
+      },
+      {
+        "faces": 6,
+        "volume": 0.00036345429434909635
+      }
+    ]
+  },
+  "reproduction": "Run failed_partition_paint.py against prepaint-native.json; output candidate-native.json is failed. Failed source retained, no duplicate native stored."
+}

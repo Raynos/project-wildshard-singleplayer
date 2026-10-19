@@ -1,0 +1,56 @@
+{
+  "topology": {
+    "edgeManifoldOriented": true,
+    "vertexManifold": true,
+    "weldedUnionVertexManifold": true,
+    "minimumArea": 1.1210969525403784e-10,
+    "components": [
+      {
+        "faces": 1012,
+        "volume": 1.0527636015181867
+      },
+      {
+        "faces": 20,
+        "volume": 0.004756054875511809
+      },
+      {
+        "faces": 6,
+        "volume": 0.00147109995433851
+      },
+      {
+        "faces": 6,
+        "volume": 0.0037878750763222654
+      },
+      {
+        "faces": 6,
+        "volume": 0.0009364644073177296
+      },
+      {
+        "faces": 6,
+        "volume": 0.0010430385965848818
+      },
+      {
+        "faces": 6,
+        "volume": 0.00104303859658488
+      },
+      {
+        "faces": 6,
+        "volume": 0.0006280317130486253
+      },
+      {
+        "faces": 6,
+        "volume": 0.0006280317130486259
+      },
+      {
+        "faces": 6,
+        "volume": 0.00036345429434909635
+      }
+    ]
+  },
+  "crossings": [],
+  "contacts": {
+    "nonincidentVertexFace": [],
+    "coplanarAreaOverlap": [],
+    "nonincidentEdgeEdge": []
+  }
+}
