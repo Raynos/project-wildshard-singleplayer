@@ -1,0 +1,139 @@
+{
+  "status": "Completed local palette study; independently preferred region layout; parked by owner before assembly or runtime admission",
+  "session": 29530,
+  "exitCode": 0,
+  "terminalUtc": "2026-10-19T02:53:43Z",
+  "native": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/semantic-face-diagonal-native.json",
+    "bytes": 2523625,
+    "sha256": "483b47367ddbad0e4872f357f786fc0cca778380a07bd536428923aadd3046cb"
+  },
+  "images": [
+    {
+      "path": "tmp/puffer-remaster-guided/semantic-face-diagonal-color/color-hero.png",
+      "bytes": 427805,
+      "sha256": "2c5b818fd19cfa0ea3bcb3f258ea83399192201591e793020e97ce3ada328e9d"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/semantic-face-diagonal-color/color-front.png",
+      "bytes": 383007,
+      "sha256": "dbb251cbcda338aecfa2b19596b124eaae288b98d72a38fc8d6eba41951beecb"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/semantic-face-diagonal-color/color-side.png",
+      "bytes": 393517,
+      "sha256": "e8c296e95f9082ab9c433ac3eaa5c80b82b5298bd58d2a9a13951aea22bf049e"
+    }
+  ],
+  "parts": [
+    {
+      "name": "Continuous mantle cheek and pouch",
+      "before": {
+        "triangles": 1142,
+        "expandedVertices": 3426,
+        "uniquePositions": 591
+      },
+      "after": {
+        "triangles": 4448,
+        "expandedVertices": 13344,
+        "uniquePositions": 2244
+      },
+      "exactPayload": false
+    },
+    {
+      "name": "Dark recessed palate",
+      "before": {
+        "triangles": 1069,
+        "expandedVertices": 3207,
+        "uniquePositions": 565
+      },
+      "after": {
+        "triangles": 1069,
+        "expandedVertices": 3207,
+        "uniquePositions": 565
+      },
+      "exactPayload": false
+    },
+    {
+      "name": "Tail root",
+      "before": {
+        "triangles": 140,
+        "expandedVertices": 420,
+        "uniquePositions": 74
+      },
+      "after": {
+        "triangles": 140,
+        "expandedVertices": 420,
+        "uniquePositions": 74
+      },
+      "exactPayload": true
+    },
+    {
+      "name": "Volumetric connected finL",
+      "before": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "after": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "exactPayload": true
+    },
+    {
+      "name": "Volumetric connected finR",
+      "before": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "after": {
+        "triangles": 164,
+        "expandedVertices": 492,
+        "uniquePositions": 92
+      },
+      "exactPayload": true
+    },
+    {
+      "name": "Volumetric connected rearL",
+      "before": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "after": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "exactPayload": true
+    },
+    {
+      "name": "Volumetric connected rearR",
+      "before": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "after": {
+        "triangles": 132,
+        "expandedVertices": 396,
+        "uniquePositions": 76
+      },
+      "exactPayload": true
+    }
+  ],
+  "totalTrianglesBefore": 2943,
+  "totalTrianglesAfter": 6249,
+  "review": {
+    "path": "docs/reviews/brine-puffer-semantic-palette-review.md",
+    "bytes": 6467,
+    "sha256": "2fdc028a7300eff37ae129f4a4cda183dd313d4b241f62f3427cade50cf65b9a"
+  },
+  "reviewSummary": "Best of region studies: rectangular cream bib removed, compact orange and anger retained. Long straight seam and confined ochre remain. No full-model score.",
+  "performanceAcceptance": false,
+  "optimizationPerformed": false,
+  "geometryChanges": false
+}

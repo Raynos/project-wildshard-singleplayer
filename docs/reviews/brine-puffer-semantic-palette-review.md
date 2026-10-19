@@ -92,3 +92,30 @@ This paired study keeps geometry, palette constants and lighting unchanged
 according to the builder. The revision is reported at 5,811 triangles, with
 optimization and runtime testing still pending. No full-model score or
 performance acceptance is given.
+
+## Diagonal cream boundary — 2026-10-19, 02:55 UTC
+
+**Retain the diagonal layout as the best of these palette studies.** Hero/side
+lose the rectangular cream bib; the seam wraps diagonally toward the forefin.
+Compact orange and clear angry eyes remain, with no small teal island or
+interpolated smear returning. The cheek seam is still a long straight edge,
+and ochre is more confined to the orbit than the reference's broader cheek
+accent. Those limitations remain explicit; this is not a whole-model score or
+performance acceptance.
+
+Inspected all three actual revision frames beside the preceding tapered
+versions:
+
+- `tmp/puffer-remaster-guided/semantic-face-diagonal-color/color-hero.png`
+- `tmp/puffer-remaster-guided/semantic-face-diagonal-color/color-front.png`
+- `tmp/puffer-remaster-guided/semantic-face-diagonal-color/color-side.png`
+
+Geometry and lighting are unchanged according to the builder. This judgment
+concerns the visible region layout relative to the prior trial and the
+approved original, not unseen views or runtime suitability.
+
+**Work-priority boundary:** The coordinator relayed the owner's decision to
+park Puffer while this review was being completed. This verdict is frozen for
+preservation only. It does not request another Puffer trial, integration pass
+or scoring round; any earlier next-gate suggestions in this report are now
+historical rather than active work.

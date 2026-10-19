@@ -1,0 +1,26 @@
+{
+  "status": "Parked by latest owner instruction",
+  "ownerMessageId": "Sentinel_226b6f3b5c5c8191822e83549acb68af",
+  "ownerDirection": "Feeling real diminishing returns can we get the other 4 enemies above 3.5/5",
+  "lastCompletedStudy": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/semantic-face-diagonal-native.json",
+    "bytes": 2523625,
+    "sha256": "483b47367ddbad0e4872f357f786fc0cca778380a07bd536428923aadd3046cb"
+  },
+  "resultReceipt": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/semantic-diagonal-render-receipt.json",
+    "bytes": 3818,
+    "sha256": "cf7f515536f0626603b53c901a2efa246bdbf584f3045594fb74f764b30be61a"
+  },
+  "preservedFallbacks": [
+    "V71 static geometry",
+    "Existing tested V70 playable, managed by root",
+    "Baselinehood and seated-mouth diagnostic native"
+  ],
+  "openWork": [
+    "Redundant coplanar same-material paint partition optimization was not started",
+    "Component assembly with selected tail/fin/spike studies was not performed",
+    "Full candidate nine-view review and explicit native admission were not performed"
+  ],
+  "stopScope": "No further Puffer art, optimization or builds. All completed sources and failures retained."
+}
