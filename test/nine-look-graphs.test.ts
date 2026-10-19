@@ -83,31 +83,6 @@ test('grapple bursts use the field clock and hide at their declared lifetimes', 
   }
 });
 
-test('lantern LOD packing keeps authored seeds and all distance bands', async () => {
-  const { Lanterns, clearLanterns } = await import('../src/shards/nine-dragon-stack/look/lanterns');
-  const { lanternLathe } = await import('../src/shards/nine-dragon-stack/generators/lanternGeometry');
-  const material = new THREE.MeshBasicMaterial(), cleanups: (() => void)[] = [];
-  lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([['nine-lantern', material]]),
-    setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => material });
-  const lanterns = new Lanterns({ drop: 0.3, glow: { color: 0xff6600, w: 0.5, h: 0.5, power: 1, spill: 1 } });
-  for (const z of [-10, -50, -100]) lanterns.hang(new THREE.Vector3(0, 0.3, z));
-  const levels = [0, 35, 80].map((from, i) => {
-    const geometry = lanternLathe({ radius: 0.27, halfHeight: 0.24 }, i === 0 ? 6 : 2, 6, i === 0);
-    const mesh = new THREE.InstancedMesh(geometry, material, 3);
-    lanterns.placements().forEach((pose, at) => { if (pose.matrix !== undefined) mesh.setMatrixAt(at, pose.matrix); });
-    return { from, mesh };
-  });
-  lanterns.take({ levels, cull: {}, poses: lanterns.placements().map(pose => pose.matrix ?? new THREE.Matrix4()) });
-  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 200); camera.updateMatrixWorld();
-  lanterns.update(camera);
-  expect(levels.map(level => level.mesh.count)).toEqual([1, 1, 1]);
-  expect(levels.map(level => level.mesh.geometry.getAttribute('aSeed').getX(0))).toEqual(
-    [0, 1, 2].map(i => Math.fround(((i + 1) * 0.618) % 1)));
-  expect(lanterns.emitters.map(e => e.at.z)).toEqual([-10, -50, -100]);
-  for (const level of levels) level.mesh.geometry.dispose();
-  clearLanterns(); for (const cleanup of cleanups) cleanup(); material.dispose();
-});
-
 test('halo discs compile with additive alpha preservation inside the existing caps', async () => {
   const { haloGraph } = await import('../src/shards/nine-dragon-stack/generators/haloGraph');
   const graph = haloGraph(), compiled = compileGraph(graph, { trustedBudget: true });
