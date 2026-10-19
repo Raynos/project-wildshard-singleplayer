@@ -1,3 +1,4 @@
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 /**
  * The fragment's movers (E306 / E315 M4): the monorail train over the square's north side, the Well's cable gondola
  * and the two surveillance drones circling the square — Kit geometry in its own frame, drawn by the Jiehua program,
@@ -10,7 +11,7 @@ import { bakedSpecimen, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/movers.ts';
 
-const mat = (ctx: ModelContext): ModelPart['material'] => need(ndLook(ctx).mat, 'the Jiehua program');
+const mat = (ctx: ModelContext): ModelPart['material'] => lowPolyLookMaterial(ctx.sky, 'nine-architecture');
 
 export const monorailTrain = defineModel({
   id: 'nine-dragon-stack/monorail-train', name: 'Monorail train (four cars)', category: 'props', pipeline: 'code', file: FILE, defaults: {},

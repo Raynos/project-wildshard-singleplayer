@@ -14,6 +14,8 @@ import type { BakedSigns } from './casts';
 import { createOwnedGeometryBatch, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { readWholeGeometry } from '@wildshard/game/plugin/geometry';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { GeometryBoot } from '../runtime/productSections.generated';
 
@@ -39,8 +41,6 @@ export function takeSpecimen(bake: SpecimenBake, key: string): BufferGeometry {
 export interface NdLook {
   /** The explicit resident owner; Explorer requests may supply their shorter-lived view scope. */
   readonly owner: Scope;
-  /** the Jiehua kit program (build.ts `mat`): the kits, the square's props and sets, the crowd, the dressing, the movers */
-  mat: Material | null;
   /** the facade kit's programs (facade/batch.ts): the pieces, and the small clutter that shrinks into the wall far off */
   facade: { readonly mat: Material; readonly small: Material } | null;
   /** the paper lanterns' look (look/lanterns.ts: the 'nine-lantern' graph) */
@@ -67,9 +67,9 @@ export interface NdLook {
 const KEY = 'nine-dragon-stack:look';
 
 /** the fragment's model context and its (still empty) look */
-export function ndModelContext(renderer: Renderer | null, owner: Scope): { ctx: ModelContext; look: NdLook } {
-  const look: NdLook = { owner, mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null, specimens: null, explorer: null };
-  const ctx = modelContext(null, renderer);
+export function ndModelContext(renderer: Renderer | null, owner: Scope, sky: SkyRig): { ctx: ModelContext; look: NdLook } {
+  const look: NdLook = { owner, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null, specimens: null, explorer: null };
+  const ctx = modelContext(sky, renderer);
   ctx.once(KEY, () => look);
   return { ctx, look };
 }
@@ -141,7 +141,7 @@ export function nativeSpecimen(key: string): ModelDef<Record<string, unknown>> {
       book = { catalogue: catalogueRows, geometries: new Map<string, BufferGeometry>(), materials: new Map<string, Material>() };
       bindWorldSceneModelSources(ctx, catalogueRows.product, book, look.owner); sourceBooks.set(ctx, book);
     }
-    const materials = new Map([['kit', look.mat], ['facade', look.facade?.mat], ['small', look.facade?.small]]);
+    const materials = new Map([['kit', lowPolyLookMaterial(ctx.sky, 'nine-architecture')], ['facade', look.facade?.mat], ['small', look.facade?.small]]);
     for (const draw of choice.draws.concat(choice.lods.flatMap(level => level.draws))) {
       const id = JSON.stringify([draw.library, draw.model]);
       if (!book.geometries.has(id)) {

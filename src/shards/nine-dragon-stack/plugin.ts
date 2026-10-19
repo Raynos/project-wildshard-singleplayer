@@ -1,4 +1,5 @@
 import { prepareNinePost } from './look/render';
+import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { Sword } from '@wildshard/game/weapons/Sword';
@@ -39,18 +40,24 @@ const DECK_ZONE = 200;
  *  pause between stretches (worldBuildYield, op-hitch45) */
 type WorldBuilder = (ctx: ShardContext, caps: boolean, pause: () => Promise<void>) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
 
+const residentWorld = new HybridResidentWorld<NineDragonWorld>();
+
 async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise<void>): ReturnType<WorldBuilder> {
   const render = ctx.app.render;
   if (render === null) throw new Error('Nine Dragon needs the render service in its world stage');
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), compiled and lent first
   const source = ctx.product.shardfile;
-  lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, render, source, Object.keys(source.look.materials)));
-  await prepareNinePost(render.renderer);
-  // G200: `caps` standalone (no grid cube): each deck's open end is closed by its balustrade; in a grid cell the road continues
-  const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
-    ctx.progress.set(fraction, 1);
-    if (detail !== undefined) ctx.progress.detail(detail);
-  }, render.tier, { scope: ctx.scope, caps, pause });
+  const sky = ctx.game.runtime?.world?.sky;
+  if (sky === undefined) throw new Error('Nine Dragon needs its world sky');
+  const world = await residentWorld.load(ctx, async owner => {
+    lendLooks(owner, await lookGraphMaterials(owner, render, source, Object.keys(source.look.materials)));
+    await prepareNinePost(render.renderer);
+    // G200: `caps` standalone (no grid cube): each deck's open end is closed by its balustrade; in a grid cell the road continues
+    return buildNineDragonWorld(render.renderer, (fraction, detail) => {
+      ctx.progress.set(fraction, 1);
+      if (detail !== undefined) ctx.progress.detail(detail);
+    }, render.tier, { scope: owner, sky, caps, pause });
+  });
   return { world, camera: render.camera };
 }
 

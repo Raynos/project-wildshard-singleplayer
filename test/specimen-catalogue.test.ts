@@ -125,6 +125,25 @@ describe('declared specimen catalogue', () => {
     expect(mesh.castShadow).toBe(true); expect(mesh.receiveShadow).toBe(true);
   });
 
+  it('publishes packed readiness only after the specimen can be cached', async () => {
+    const catalogue = defineSpecimenCatalogue<{ ribbonPole: object }>(campData.catalogue, campData.packed, campData.materials);
+    catalogue.usePacked(binary());
+    const target = new EventTarget(), ready = vi.fn((): void => undefined);
+    const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+    Object.defineProperty(globalThis, 'document', { value: target, configurable: true });
+    target.addEventListener('ws:model-ready', ready);
+    try {
+      const built = catalogue.model('ribbonPole').build(modelContext(testSky()), {}, new Rng(1));
+      expect(built).toBeInstanceOf(THREE.Group);
+      expect(ready).not.toHaveBeenCalled();
+      await Promise.resolve();
+      expect(ready).toHaveBeenCalledOnce();
+    } finally {
+      if (previous === undefined) Reflect.deleteProperty(globalThis, 'document');
+      else Object.defineProperty(globalThis, 'document', previous);
+    }
+  });
+
   it('shares material identities with the world and recreates disposed material caches', () => {
     const sky = testSky(), row = campMaterialRows.poi;
     const material = specimenMaterial(sky, row);

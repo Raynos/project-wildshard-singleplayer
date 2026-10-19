@@ -263,7 +263,7 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
         const parts = packed.parts(specimenKey(row.model.id, params), ctx, materialRows);
         if (parts === null) return false;
         for (const part of parts) { const mesh = new THREE.Mesh(part.geometry, part.material); mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh); }
-        announceModelReady(row.model.id); return true;
+        queueMicrotask(() => { announceModelReady(row.model.id); }); return true;
       };
       if (source.kind === 'asset') {
         void (async (): Promise<void> => {

@@ -6,6 +6,7 @@ import { Rng } from '../src/engine/core/rng';
 import { modelContext, type ModelPart } from '../src/engine/models/model';
 import { createOwnedGeometryBatch, type OwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { SkyRig } from '../src/engine/world/skyRig';
+import { bindLowPolyMaterial } from '../src/engine/world/lowpolyKit';
 import { nativeSpecimen, type NdLook } from '../src/shards/nine-dragon-stack/world/modelLook';
 import data from '../src/shards/nine-dragon-stack/data/explorerModels.json' with { type: 'json' };
 import original from './fixtures/nine-explorer-models.json' with { type: 'json' };
@@ -21,15 +22,16 @@ function fixture(resident: boolean, owner: Scope) {
   const materials = ['kit', 'facade', 'small'].map(name => Object.assign(new ShaderMaterial(), { name }));
   const [mat, facade, small] = materials;
   if (mat === undefined || facade === undefined || small === undefined) throw new Error('Missing fixture looks');
+  const unbind = bindLowPolyMaterial(sky, 'nine-architecture', mat, owner);
   const geometry: BufferGeometry[] = [];
   for (const key of new Set(data.sources.map(row => row.key))) {
     const handle = batch.geometry(key), source = shape(key); geometry.push(source); handle.adopt(source); specimens.set(key, handle);
   }
   const panel = shape('resident-panel'); geometry.push(panel);
-  const look: NdLook = { owner, mat, facade: { mat: facade, small }, lantern: null, neon: null, canLod: false,
+  const look: NdLook = { owner, facade: { mat: facade, small }, lantern: null, neon: null, canLod: false,
     geo: new Map(resident ? [['set:balustrade-panel', panel]] : []), hookMat: null, canopy: null, specimens, explorer: new Map() };
   ctx.once('nine-dragon-stack:look', () => look);
-  return { ctx, look, dispose: () => { for (const source of geometry) source.dispose(); for (const material of materials) material.dispose(); } };
+  return { ctx, look, mat, dispose: () => { unbind(); for (const source of geometry) source.dispose(); for (const material of materials) material.dispose(); } };
 }
 const signature = (parts: readonly ModelPart[]) => parts.map(part => ({ position: Array.from(part.geometry.getAttribute('position').array),
   material: part.material.name, castShadow: part.castShadow ?? false, receiveShadow: part.receiveShadow ?? false, renderOrder: part.renderOrder ?? 0 }));
@@ -97,7 +99,7 @@ test.each(['marketBooth', 'parasolTable', 'diningPavilion', 'guardianLion'])('%s
       const built = withOwner(owner, () => model.build(source.ctx, choice.params, new Rng(0)));
       if (!Array.isArray(built)) throw new Error('Prepared catalogue needs its native parts');
       expect(built).toHaveLength(1);
-      expect((built as readonly ModelPart[])[0]?.material).toBe(source.look.mat);
+      expect((built as readonly ModelPart[])[0]?.material).toBe(source.mat);
       expect(model.colliders?.(choice.params, source.ctx) ?? []).toEqual(choice.colliders);
     }
     if (key === 'guardianLion') expect(model.lods?.map(level => level.from)).toEqual([10, 30]);

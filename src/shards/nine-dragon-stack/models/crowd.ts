@@ -1,3 +1,4 @@
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 /**
  * The crowd (dome B, E169; E281; E306 / E315 M4): two TRELLIS.2 casts from the lab — the umbrella walker
  * (public/assets/nine-dragon/lab/walker.glb, 2.08 m to the umbrella's crown) and the mahjong sitter (sitter.glb) —
@@ -38,7 +39,7 @@ export function sitterGeometry(ctx: ModelContext, pick: SitterPick): BufferGeome
   return need(ndLook(ctx).geo.get(`sitter-${pick}`), 'the sitter cast');
 }
 
-const figure = (ctx: ModelContext, geometry: BufferGeometry): readonly ModelPart[] => [{ geometry, material: need(ndLook(ctx).mat, 'the Jiehua program') }];
+const figure = (ctx: ModelContext, geometry: BufferGeometry): readonly ModelPart[] => [{ geometry, material: lowPolyLookMaterial(ctx.sky, 'nine-architecture') }];
 
 /** the levels past full detail: the middle copies (the full geometry without the simplifier: the culler leaves them
  *  out), the clustered far copy, none past lodRows.LOD_FAR */

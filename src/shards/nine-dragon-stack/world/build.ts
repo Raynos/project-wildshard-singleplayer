@@ -1,6 +1,8 @@
 import type { GeometryBoot } from '../runtime/productSections.generated';
 import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import type { Scope } from '@wildshard/engine/app/scope';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // The Nine Dragon Stack fragment's world (P0-5c), built for the engine: Lantern Square at +125 m, the Well's rim and its
 // upper galleries, the stair-street stub and the towers round them — what the clean room built in its page
 // (the dev labs (deleted in E357 F7)), without its camera, player, HUD, viewmodel or post. Everything is added under one
@@ -18,18 +20,18 @@ import { FACADE_BAKED, FACADE_MODELS, brassDragonHook, drumStool, mahjongTableMo
 import { banyan, earthGodShrine, kowloonSteleModel } from '../models/banyan';
 import { registerSigns } from '../models/signs';
 import { placeSet } from '@wildshard/engine/models/sets';
-import { type InKitPlaced, registerInKit } from './inKit';
+import { type DrawnPlaced as InKitPlaced, registerDrawnInto } from '../runtime/kit/drawnInto';
 import { Lanterns } from '../look/lanterns';
 import { createSceneBuffers } from '@wildshard/game/shardfile/sceneBuffers';
 import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
 import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
-import { jiehuaMaterial as facadeMaterial, windowMaterial, facadeUniforms } from '../look/facadeMaterial';
+import { jiehuaMaterial as facadeMaterial, windowMaterial, facadeUniforms, syncArchitecture } from '../look/facadeMaterial';
 import { loadPaint } from '../look/paint';
 import { loadTextureRow } from '@wildshard/engine/core/assets';
 import metadata, { Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
 import { placeSquareProps } from './squareProps';
-import { Shared, jiehuaMaterial, restoreWeave } from '../look/style';
+import { Shared, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
@@ -65,7 +67,7 @@ const WALL_KIT: Readonly<Partial<Record<Piece, ModelDef<Record<string, unknown>>
  *  their kits' meshes in this order */
 /** one model drawn into the kits: its id, and its copies registered on their kits' meshes */
 interface InKitModel { readonly id: string; readonly register: (nd: ModelContext, copies: readonly InKit[], meshOf: (k: string) => Mesh | undefined) => InKitPlaced[] }
-const inKitModel = <P extends object>(model: ModelDef<P>): InKitModel => ({ id: model.id, register: (nd, copies, meshOf) => registerInKit(nd, copies, model, meshOf) });
+const inKitModel = <P extends object>(model: ModelDef<P>): InKitModel => ({ id: model.id, register: (nd, copies, meshOf) => registerDrawnInto(nd, copies, model, meshOf, 'nds-') });
 const IN_KIT: readonly InKitModel[] = [
   inKitModel(brassDragonHook), inKitModel(drumStool), inKitModel(parkedScooter), inKitModel(mahjongTableModel), inKitModel(inkFigure), inKitModel(paifang), inKitModel(banyan), inKitModel(earthGodShrine),
   inKitModel(kowloonSteleModel), inKitModel(noodleStallModel), inKitModel(hawkerStallModel), inKitModel(lotusFinial), inKitModel(laundryLineModel), inKitModel(landingPlanterModel), inKitModel(wellBalustrade), inKitModel(lotusPostModel), inKitModel(lampPostModel),
@@ -96,7 +98,7 @@ export interface NineDragonWorld {
 
 /** build the fragment's world; `progress(0..1)` as it goes; `opts.pause` ends a stretch between phases (the plugin's
  *  paced `worldBuildYield`, op-hitch45: in play it waits for a drawn frame when one is due, else it is a timer task) */
-export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
+export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; sky: SkyRig; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
   const product = await loadFirstPartyProduct('nine-dragon-stack', opts.scope);
   const { world: worldRows, presentation: cardRows, volumes } = await product.json<GeometryBoot>('geometry/layout.json');
   const worldData = new Float64Array(Uint8Array.from(await product.file('geometry/world-f64.bin')).buffer);
@@ -135,7 +137,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   shared.u.uShaft.value.set(SHAFT.x0, SHAFT.z0, SHAFT.x1, SHAFT.z1);
   shared.u.uShaftK.value.y = Y0;
   // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
-  const nd = ndModelContext(renderer, opts.scope);
+  const nd = ndModelContext(renderer, opts.scope, opts.sky);
   // G285: the layout (the square, the towers, the Well) is an offline bake (../generators/layout.ts, world/layoutBake.ts):
   // the page restores it and has no live builders to fall back on
   const layout = await layoutReady;
@@ -161,10 +163,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.4, 'geometry conversion');
 
   // ── the kits into meshes: one merged geometry per kit, the neon spill baked into their vertices ──
-  const mat = jiehuaMaterial(shared);
-  const matA = jiehuaMaterial(shared, { alphaCut: true });
+  syncArchitecture(shared.u);
+  const mat = lentLook('nine-architecture'), matA = lentLook('nine-architecture-cut');
   const paper = new Lanterns(fixed.lantern);
-  nd.look.mat = mat;
+  bindLowPolyMaterial(opts.sky, 'nine-architecture', mat, opts.scope);
   nd.look.lantern = paper.material;
   const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
   for (const m of ctx.lanterns) { m.decompose(tmpP, tmpQ, tmpS); paper.hang(tmpP.clone(), tmpS.x); }

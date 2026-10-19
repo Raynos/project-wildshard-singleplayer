@@ -2,10 +2,8 @@
 // SHARD-PLATFORM M3: the programs and the shared uniforms are rows in runtime/looks/look.ts on the SDK shader family
 // (@wildshard/sdk/looks/shaderFamily); this module makes the family (the splices the data cannot hold), the live shared
 // uniforms and each material.
-import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type Material, type Texture, type IUniform } from 'three';
+import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type Texture, type IUniform } from 'three';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
-import { lentLook } from '@wildshard/sdk/looks/lentLooks';
-import { syncArchitecture } from './facadeMaterial';
 import { paintUniforms } from './paint';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
 import { lightVolUniforms } from './light/lightvol';
@@ -57,9 +55,4 @@ export class Shared {
    * bottom (@wildshard/sdk/looks/fogBands).
    */
   bandWindow(): void { fogBandWindow(this.u.uBands.value, this.u.uCam.value.y, this.u.uBandWin.value); }
-}
-
-export function jiehuaMaterial(shared: Shared, opt: { alphaCut?: boolean; viewmodel?: boolean; doubleSide?: boolean } = {}): Material {
-  syncArchitecture(shared.u);
-  return lentLook(opt.alphaCut === true ? 'nine-architecture-cut' : 'nine-architecture');
 }

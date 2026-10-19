@@ -1,3 +1,4 @@
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 /**
  * The banyan of Lantern Square and what stands at its foot (dome B, E169; E306 / E315 second pass) — three models the
  * square draws into its kit ('paifang', the square cluster's one merged mesh with the neon spill baked in), so they cost
@@ -13,13 +14,13 @@
 import { defineModel, type ModelBuild, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BANYAN } from '../boot/metadata.generated.json' with { type: 'json' };
-import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
+import { ndLook, specimen, withSpecimens } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/banyan.ts';
 
 /** a piece built alone in its own space (G285: baked, ../generators/specimens.ts) */
 function built(ctx: ModelContext, id: string, key: string): ModelBuild {
-  return withSpecimens(ctx, id, () => [{ geometry: specimen(ctx, `banyan:${key}`), material: need(ndLook(ctx).mat, 'the Jiehua program') }]);
+  return withSpecimens(ctx, id, () => [{ geometry: specimen(ctx, `banyan:${key}`), material: lowPolyLookMaterial(ctx.sky, 'nine-architecture') }]);
 }
 
 /** the tree and, once the world's canopy programs are in, its crown (the cards drawn twice: colour, then the depth pass) */
@@ -28,7 +29,7 @@ function tree(ctx: ModelContext): ModelBuild {
 }
 function treeParts(ctx: ModelContext): readonly ModelPart[] {
   const look = ndLook(ctx);
-  const parts: ModelPart[] = [{ geometry: specimen(ctx, 'banyan:tree'), material: need(look.mat, 'the Jiehua program') }];
+  const parts: ModelPart[] = [{ geometry: specimen(ctx, 'banyan:tree'), material: lowPolyLookMaterial(ctx.sky, 'nine-architecture') }];
   const c = look.canopy;
   if (c !== null) {
     const cards = specimen(ctx, 'banyan:crown:cards');
