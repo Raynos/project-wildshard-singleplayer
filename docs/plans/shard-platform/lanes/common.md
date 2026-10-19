@@ -17,7 +17,11 @@ coordinator's) and your commit message.
 
 Jake (G506): *"What the fuck is all that proof work? … I don't know why you're always doing so much fucking process porn."*
 
-- A batch lands on **types + lint + focused tests of what it touched + the push gate**. Nothing else per batch.
+- A batch lands on **types + lint + focused tests of what it touched + ONE headless boot of each shard the batch
+  touched, to its first frame + the push gate** (G509, Jake, amends G506: it catches startup throws before the bake).
+  Boot it muted through `scripts/browser-lane.sh` on `scripts/serve-build.sh --rev <sha> --shard <slug>` (the shard's
+  own startup check where one exists, e.g. `scripts/nalati-boot-check.mjs`, `scripts/test-nine-native-startup.mjs`).
+  Nothing else per batch.
 - **Not per batch:** exact replays (workerExact 1000/1200, replay counts), witnesses or re-recordings, old-save
   envelopes, all-ten source-product runs, Simulator or iPhone progression runs, proof receipts in `progress/` or
   `.git/proofs/`, receipt or ack relays between lanes over herdr.
