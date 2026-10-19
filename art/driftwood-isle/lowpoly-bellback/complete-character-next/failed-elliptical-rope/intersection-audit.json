@@ -1,0 +1,5381 @@
+{
+  "baseline": {
+    "source_sha256": "ff889c90fb5c7c0a0974678cc2cf59ccc7cbcdaee38da2ff823809613b78b131",
+    "tested": 111590,
+    "nonadjacent_self_intersections": [],
+    "proper_self_crossings_including_adjacent": [],
+    "cross_object_triangle_pairs": 10989,
+    "cross_object_pairs": {
+      "Arch left | Arch right": 20,
+      "Arch left | Broken ship rib -1 1": 16,
+      "Arch left | Crown tie": 48,
+      "Arch left | Frame rope knot.001": 10,
+      "Arch left | Hollow cast bell": 20,
+      "Arch left | Middle broken side strake -1": 14,
+      "Arch left | Sweeping upper wreck rib -1": 35,
+      "Arch right | Broken ship rib 1 1": 22,
+      "Arch right | Crown tie": 37,
+      "Arch right | Frame rope knot.005": 8,
+      "Arch right | Hollow cast bell": 22,
+      "Arch right | Middle broken side strake 1": 11,
+      "Arch right | Sweeping upper wreck rib 1": 32,
+      "Barrel timber hull | Broken ship rib -1 0": 28,
+      "Barrel timber hull | Broken ship rib -1 1": 22,
+      "Barrel timber hull | Broken ship rib -1 2": 8,
+      "Barrel timber hull | Broken ship rib 1 0": 24,
+      "Barrel timber hull | Broken ship rib 1 1": 20,
+      "Barrel timber hull | Broken ship rib 1 2": 12,
+      "Barrel timber hull | Frame rope knot.002": 18,
+      "Barrel timber hull | Frame rope knot.006": 20,
+      "Barrel timber hull | Haunch overlapping strake -1": 22,
+      "Barrel timber hull | Haunch overlapping strake 1": 19,
+      "Barrel timber hull | Hollow cast bell": 30,
+      "Barrel timber hull | Left fore connected chest strake": 24,
+      "Barrel timber hull | Left fore outer timber shield": 7,
+      "Barrel timber hull | Left fore shoulder cap": 14,
+      "Barrel timber hull | Left fore shoulder lashing": 26,
+      "Barrel timber hull | Left fore shoulder lashing.001": 32,
+      "Barrel timber hull | Left fore timber leg": 20,
+      "Barrel timber hull | Left hind shoulder cap": 20,
+      "Barrel timber hull | Left hind shoulder lashing": 28,
+      "Barrel timber hull | Left hind shoulder lashing.001": 32,
+      "Barrel timber hull | Left hind timber leg": 21,
+      "Barrel timber hull | Right fore connected chest strake": 21,
+      "Barrel timber hull | Right fore outer timber shield": 6,
+      "Barrel timber hull | Right fore shoulder cap": 15,
+      "Barrel timber hull | Right fore shoulder lashing": 28,
+      "Barrel timber hull | Right fore shoulder lashing.001": 30,
+      "Barrel timber hull | Right fore timber leg": 20,
+      "Barrel timber hull | Right hind shoulder cap": 19,
+      "Barrel timber hull | Right hind shoulder lashing": 28,
+      "Barrel timber hull | Right hind shoulder lashing.001": 28,
+      "Barrel timber hull | Right hind timber leg": 18,
+      "Barrel timber hull | Rooted lower hull rib -1": 14,
+      "Barrel timber hull | Rooted lower hull rib 1": 10,
+      "Barrel timber hull | Solid timber cranium": 37,
+      "Barrel timber hull | Stern diagonal wreck plank -1": 16,
+      "Barrel timber hull | Stern diagonal wreck plank 1": 19,
+      "Barrel timber hull | Stern fan broad plank -1": 22,
+      "Barrel timber hull | Stern fan broad plank 1": 20,
+      "Barrel timber hull | Swept cheek horn": 15,
+      "Barrel timber hull | Swept cheek horn.001": 17,
+      "Barrel timber hull | Tall stern plank": 13,
+      "Broken ship rib -1 0 | Diagonal binding -1": 18,
+      "Broken ship rib -1 0 | Frame rope knot": 44,
+      "Broken ship rib -1 0 | Frame rope knot.001": 40,
+      "Broken ship rib -1 0 | Hollow cast bell": 52,
+      "Broken ship rib -1 0 | Left fore shoulder lashing": 4,
+      "Broken ship rib -1 0 | Left fore shoulder lashing.001": 4,
+      "Broken ship rib -1 0 | Lower broken side strake -1": 22,
+      "Broken ship rib -1 0 | Middle broken side strake -1": 38,
+      "Broken ship rib -1 0 | Rooted lower hull rib -1": 28,
+      "Broken ship rib -1 0 | Sweeping upper wreck rib -1": 24,
+      "Broken ship rib -1 1 | Diagonal binding -1": 32,
+      "Broken ship rib -1 1 | Haunch overlapping strake -1": 32,
+      "Broken ship rib -1 1 | Hollow cast bell": 26,
+      "Broken ship rib -1 1 | Left hind shoulder cap": 19,
+      "Broken ship rib -1 1 | Left hind shoulder lashing": 24,
+      "Broken ship rib -1 1 | Left hind shoulder lashing.001": 24,
+      "Broken ship rib -1 1 | Left hind timber leg": 6,
+      "Broken ship rib -1 1 | Lower broken side strake -1": 20,
+      "Broken ship rib -1 1 | Middle broken side strake -1": 20,
+      "Broken ship rib -1 1 | Rooted lower hull rib -1": 30,
+      "Broken ship rib -1 1 | Sweeping upper wreck rib -1": 22,
+      "Broken ship rib -1 2 | Frame rope knot.002": 34,
+      "Broken ship rib -1 2 | Frame rope knot.003": 32,
+      "Broken ship rib -1 2 | Haunch overlapping strake -1": 34,
+      "Broken ship rib -1 2 | Left hind shoulder cap": 27,
+      "Broken ship rib -1 2 | Left hind shoulder lashing": 32,
+      "Broken ship rib -1 2 | Left hind shoulder lashing.001": 30,
+      "Broken ship rib -1 2 | Left hind timber leg": 24,
+      "Broken ship rib -1 2 | Lower broken side strake -1": 36,
+      "Broken ship rib -1 2 | Middle broken side strake -1": 20,
+      "Broken ship rib -1 2 | Rooted lower hull rib -1": 14,
+      "Broken ship rib -1 2 | Stern diagonal wreck plank -1": 14,
+      "Broken ship rib -1 2 | Stern fan broad plank -1": 10,
+      "Broken ship rib -1 2 | Sweeping upper wreck rib -1": 14,
+      "Broken ship rib 1 0 | Diagonal binding 1": 14,
+      "Broken ship rib 1 0 | Frame rope knot.004": 46,
+      "Broken ship rib 1 0 | Frame rope knot.005": 46,
+      "Broken ship rib 1 0 | Hollow cast bell": 56,
+      "Broken ship rib 1 0 | Lower broken side strake 1": 14,
+      "Broken ship rib 1 0 | Middle broken side strake 1": 20,
+      "Broken ship rib 1 0 | Right fore shoulder lashing": 6,
+      "Broken ship rib 1 0 | Right fore shoulder lashing.001": 4,
+      "Broken ship rib 1 0 | Rooted lower hull rib 1": 24,
+      "Broken ship rib 1 0 | Sweeping upper wreck rib 1": 23,
+      "Broken ship rib 1 1 | Diagonal binding 1": 28,
+      "Broken ship rib 1 1 | Haunch overlapping strake 1": 36,
+      "Broken ship rib 1 1 | Hollow cast bell": 18,
+      "Broken ship rib 1 1 | Lower broken side strake 1": 16,
+      "Broken ship rib 1 1 | Middle broken side strake 1": 18,
+      "Broken ship rib 1 1 | Right hind shoulder cap": 14,
+      "Broken ship rib 1 1 | Right hind shoulder lashing": 22,
+      "Broken ship rib 1 1 | Right hind shoulder lashing.001": 22,
+      "Broken ship rib 1 1 | Right hind timber leg": 8,
+      "Broken ship rib 1 1 | Rooted lower hull rib 1": 26,
+      "Broken ship rib 1 1 | Sweeping upper wreck rib 1": 24,
+      "Broken ship rib 1 2 | Frame rope knot.006": 34,
+      "Broken ship rib 1 2 | Frame rope knot.007": 30,
+      "Broken ship rib 1 2 | Haunch overlapping strake 1": 34,
+      "Broken ship rib 1 2 | Lower broken side strake 1": 36,
+      "Broken ship rib 1 2 | Middle broken side strake 1": 20,
+      "Broken ship rib 1 2 | Right hind shoulder cap": 25,
+      "Broken ship rib 1 2 | Right hind shoulder lashing": 28,
+      "Broken ship rib 1 2 | Right hind shoulder lashing.001": 28,
+      "Broken ship rib 1 2 | Right hind timber leg": 25,
+      "Broken ship rib 1 2 | Rooted lower hull rib 1": 16,
+      "Broken ship rib 1 2 | Stern diagonal wreck plank 1": 46,
+      "Broken ship rib 1 2 | Stern fan broad plank 1": 10,
+      "Broken ship rib 1 2 | Sweeping upper wreck rib 1": 18,
+      "Clapper stem | Clapper weight": 20,
+      "Clapper stem | Hollow cast bell": 10,
+      "Crown wood splinter -1 | Pointed central face keel": 6,
+      "Crown wood splinter -1 | Solid timber cranium": 9,
+      "Crown wood splinter 1 | Pointed central face keel": 6,
+      "Crown wood splinter 1 | Solid timber cranium": 9,
+      "Diagonal binding -1 | Frame rope knot": 24,
+      "Diagonal binding -1 | Frame rope knot.001": 8,
+      "Diagonal binding -1 | Frame rope knot.003": 30,
+      "Diagonal binding -1 | Lower broken side strake -1": 26,
+      "Diagonal binding -1 | Middle broken side strake -1": 24,
+      "Diagonal binding -1 | Rooted lower hull rib -1": 20,
+      "Diagonal binding -1 | Stern diagonal wreck plank -1": 12,
+      "Diagonal binding -1 | Sweeping upper wreck rib -1": 18,
+      "Diagonal binding 1 | Frame rope knot.004": 22,
+      "Diagonal binding 1 | Frame rope knot.005": 8,
+      "Diagonal binding 1 | Frame rope knot.007": 32,
+      "Diagonal binding 1 | Lower broken side strake 1": 26,
+      "Diagonal binding 1 | Middle broken side strake 1": 20,
+      "Diagonal binding 1 | Rooted lower hull rib 1": 16,
+      "Diagonal binding 1 | Stern diagonal wreck plank 1": 20,
+      "Diagonal binding 1 | Sweeping upper wreck rib 1": 18,
+      "Frame rope knot | Hollow cast bell": 64,
+      "Frame rope knot | Middle broken side strake -1": 54,
+      "Frame rope knot | Sweeping upper wreck rib -1": 6,
+      "Frame rope knot.001 | Hollow cast bell": 60,
+      "Frame rope knot.001 | Middle broken side strake -1": 24,
+      "Frame rope knot.001 | Sweeping upper wreck rib -1": 54,
+      "Frame rope knot.002 | Haunch overlapping strake -1": 10,
+      "Frame rope knot.002 | Left hind shoulder cap": 52,
+      "Frame rope knot.002 | Left hind timber leg": 38,
+      "Frame rope knot.002 | Lower broken side strake -1": 40,
+      "Frame rope knot.002 | Rooted lower hull rib -1": 47,
+      "Frame rope knot.002 | Stern diagonal wreck plank -1": 60,
+      "Frame rope knot.002 | Stern fan broad plank -1": 18,
+      "Frame rope knot.003 | Left hind shoulder cap": 6,
+      "Frame rope knot.003 | Lower broken side strake -1": 66,
+      "Frame rope knot.003 | Rooted lower hull rib -1": 78,
+      "Frame rope knot.003 | Stern diagonal wreck plank -1": 36,
+      "Frame rope knot.003 | Stern fan broad plank -1": 18,
+      "Frame rope knot.004 | Hollow cast bell": 66,
+      "Frame rope knot.004 | Middle broken side strake 1": 46,
+      "Frame rope knot.004 | Sweeping upper wreck rib 1": 14,
+      "Frame rope knot.005 | Hollow cast bell": 58,
+      "Frame rope knot.005 | Middle broken side strake 1": 26,
+      "Frame rope knot.005 | Sweeping upper wreck rib 1": 50,
+      "Frame rope knot.006 | Haunch overlapping strake 1": 10,
+      "Frame rope knot.006 | Lower broken side strake 1": 38,
+      "Frame rope knot.006 | Right hind shoulder cap": 36,
+      "Frame rope knot.006 | Right hind timber leg": 34,
+      "Frame rope knot.006 | Rooted lower hull rib 1": 51,
+      "Frame rope knot.006 | Stern diagonal wreck plank 1": 68,
+      "Frame rope knot.006 | Stern fan broad plank 1": 14,
+      "Frame rope knot.007 | Lower broken side strake 1": 54,
+      "Frame rope knot.007 | Rooted lower hull rib 1": 68,
+      "Frame rope knot.007 | Stern diagonal wreck plank 1": 68,
+      "Frame rope knot.007 | Stern fan broad plank 1": 16,
+      "Haunch overlapping strake -1 | Left hind shoulder cap": 34,
+      "Haunch overlapping strake -1 | Left hind shoulder lashing": 34,
+      "Haunch overlapping strake -1 | Left hind shoulder lashing.001": 36,
+      "Haunch overlapping strake -1 | Left hind timber leg": 43,
+      "Haunch overlapping strake -1 | Lower broken side strake -1": 6,
+      "Haunch overlapping strake -1 | Rooted lower hull rib -1": 10,
+      "Haunch overlapping strake -1 | Stern diagonal wreck plank -1": 18,
+      "Haunch overlapping strake 1 | Right hind shoulder cap": 28,
+      "Haunch overlapping strake 1 | Right hind shoulder lashing": 32,
+      "Haunch overlapping strake 1 | Right hind shoulder lashing.001": 38,
+      "Haunch overlapping strake 1 | Right hind timber leg": 41,
+      "Haunch overlapping strake 1 | Rooted lower hull rib 1": 16,
+      "Haunch overlapping strake 1 | Stern diagonal wreck plank 1": 10,
+      "Hollow cast bell | Middle broken side strake -1": 8,
+      "Hollow cast bell | Middle broken side strake 1": 6,
+      "Inset amber eye | Recessed eye shadow": 10,
+      "Inset amber eye.001 | Recessed eye shadow.001": 12,
+      "Ivory lower jaw -1 | Ivory upper fang -1 1": 25,
+      "Ivory lower jaw -1 | Lower cheek timber": 12,
+      "Ivory lower jaw -1 | Lower timber jaw": 20,
+      "Ivory lower jaw -1 | Mouth dark pocket": 29,
+      "Ivory lower jaw -1 | Pointed central face keel": 7,
+      "Ivory lower jaw -1 | Solid timber cranium": 8,
+      "Ivory lower jaw 1 | Ivory upper fang 1 1": 23,
+      "Ivory lower jaw 1 | Lower cheek timber.001": 10,
+      "Ivory lower jaw 1 | Lower timber jaw": 20,
+      "Ivory lower jaw 1 | Mouth dark pocket": 30,
+      "Ivory lower jaw 1 | Pointed central face keel": 7,
+      "Ivory lower jaw 1 | Solid timber cranium": 4,
+      "Ivory upper fang -1 0 | Lower cheek timber": 31,
+      "Ivory upper fang -1 0 | Mouth dark pocket": 18,
+      "Ivory upper fang -1 0 | Solid timber cranium": 4,
+      "Ivory upper fang -1 1 | Mouth dark pocket": 9,
+      "Ivory upper fang 1 0 | Lower cheek timber.001": 30,
+      "Ivory upper fang 1 0 | Mouth dark pocket": 18,
+      "Ivory upper fang 1 0 | Solid timber cranium": 6,
+      "Ivory upper fang 1 1 | Mouth dark pocket": 11,
+      "Left fore connected chest strake | Left fore neck gusset": 44,
+      "Left fore connected chest strake | Left fore outer timber shield": 25,
+      "Left fore connected chest strake | Left fore shoulder cap": 31,
+      "Left fore connected chest strake | Left fore shoulder lashing": 72,
+      "Left fore connected chest strake | Left fore shoulder lashing.001": 74,
+      "Left fore connected chest strake | Left fore timber leg": 38,
+      "Left fore connected chest strake | Lower cheek timber": 13,
+      "Left fore connected chest strake | Rooted lower hull rib -1": 16,
+      "Left fore connected chest strake | Shaped orbital brow timber": 22,
+      "Left fore connected chest strake | Solid timber cranium": 19,
+      "Left fore connected chest strake | Swept cheek horn": 44,
+      "Left fore neck gusset | Left fore outer timber shield": 51,
+      "Left fore neck gusset | Left fore shoulder cap": 51,
+      "Left fore neck gusset | Left fore shoulder lashing": 34,
+      "Left fore neck gusset | Left fore shoulder lashing.001": 52,
+      "Left fore neck gusset | Left fore timber leg": 49,
+      "Left fore neck gusset | Lower broken side strake -1": 20,
+      "Left fore neck gusset | Rooted lower hull rib -1": 20,
+      "Left fore neck gusset | Swept cheek horn": 47,
+      "Left fore outer timber shield | Left fore shoulder cap": 43,
+      "Left fore outer timber shield | Left fore shoulder lashing": 28,
+      "Left fore outer timber shield | Left fore shoulder lashing.001": 39,
+      "Left fore outer timber shield | Left fore stone foot": 18,
+      "Left fore outer timber shield | Left fore timber leg": 53,
+      "Left fore outer timber shield | Left fore toe -0.23": 14,
+      "Left fore outer timber shield | Lower broken side strake -1": 10,
+      "Left fore outer timber shield | Lower cheek timber": 6,
+      "Left fore outer timber shield | Rooted lower hull rib -1": 14,
+      "Left fore outer timber shield | Shaped orbital brow timber": 7,
+      "Left fore outer timber shield | Solid timber cranium": 7,
+      "Left fore outer timber shield | Swept cheek horn": 35,
+      "Left fore shoulder cap | Left fore shoulder lashing": 50,
+      "Left fore shoulder cap | Left fore shoulder lashing.001": 54,
+      "Left fore shoulder cap | Left fore stone foot": 10,
+      "Left fore shoulder cap | Left fore timber leg": 64,
+      "Left fore shoulder cap | Lower broken side strake -1": 15,
+      "Left fore shoulder cap | Lower cheek timber": 17,
+      "Left fore shoulder cap | Rooted lower hull rib -1": 18,
+      "Left fore shoulder cap | Shaped orbital brow timber": 9,
+      "Left fore shoulder cap | Solid timber cranium": 15,
+      "Left fore shoulder cap | Swept cheek horn": 32,
+      "Left fore shoulder lashing | Left fore timber leg": 55,
+      "Left fore shoulder lashing | Lower broken side strake -1": 18,
+      "Left fore shoulder lashing | Rooted lower hull rib -1": 32,
+      "Left fore shoulder lashing | Shaped orbital brow timber": 18,
+      "Left fore shoulder lashing | Solid timber cranium": 28,
+      "Left fore shoulder lashing | Swept cheek horn": 50,
+      "Left fore shoulder lashing.001 | Left fore timber leg": 58,
+      "Left fore shoulder lashing.001 | Lower broken side strake -1": 38,
+      "Left fore shoulder lashing.001 | Rooted lower hull rib -1": 40,
+      "Left fore shoulder lashing.001 | Shaped orbital brow timber": 30,
+      "Left fore shoulder lashing.001 | Solid timber cranium": 30,
+      "Left fore shoulder lashing.001 | Swept cheek horn": 54,
+      "Left fore stone foot | Left fore timber leg": 31,
+      "Left fore stone foot | Left fore toe -0.23": 37,
+      "Left fore stone foot | Left fore toe 0.23": 35,
+      "Left fore timber leg | Left fore toe -0.23": 16,
+      "Left fore timber leg | Left fore toe 0.23": 15,
+      "Left fore timber leg | Lower broken side strake -1": 17,
+      "Left fore timber leg | Lower cheek timber": 17,
+      "Left fore timber leg | Rooted lower hull rib -1": 18,
+      "Left fore timber leg | Shaped orbital brow timber": 11,
+      "Left fore timber leg | Solid timber cranium": 11,
+      "Left fore timber leg | Swept cheek horn": 32,
+      "Left hind shoulder cap | Left hind shoulder lashing": 50,
+      "Left hind shoulder cap | Left hind shoulder lashing.001": 54,
+      "Left hind shoulder cap | Left hind timber leg": 50,
+      "Left hind shoulder cap | Lower broken side strake -1": 6,
+      "Left hind shoulder cap | Rooted lower hull rib -1": 10,
+      "Left hind shoulder cap | Stern diagonal wreck plank -1": 22,
+      "Left hind shoulder cap | Stern fan broad plank -1": 9,
+      "Left hind shoulder lashing | Left hind timber leg": 42,
+      "Left hind shoulder lashing | Stern fan broad plank -1": 36,
+      "Left hind shoulder lashing.001 | Left hind timber leg": 57,
+      "Left hind shoulder lashing.001 | Stern fan broad plank -1": 34,
+      "Left hind stone foot | Left hind timber leg": 33,
+      "Left hind stone foot | Left hind toe -0.23": 37,
+      "Left hind stone foot | Left hind toe 0.23": 35,
+      "Left hind timber leg | Left hind toe -0.23": 13,
+      "Left hind timber leg | Left hind toe 0.23": 19,
+      "Left hind timber leg | Rooted lower hull rib -1": 4,
+      "Left hind timber leg | Stern diagonal wreck plank -1": 21,
+      "Left hind timber leg | Stern fan broad plank -1": 4,
+      "Lower broken side strake -1 | Rooted lower hull rib -1": 49,
+      "Lower broken side strake -1 | Stern diagonal wreck plank -1": 20,
+      "Lower broken side strake -1 | Stern fan broad plank -1": 12,
+      "Lower broken side strake 1 | Right fore connected chest strake": 10,
+      "Lower broken side strake 1 | Right fore neck gusset": 24,
+      "Lower broken side strake 1 | Right fore outer timber shield": 12,
+      "Lower broken side strake 1 | Right fore shoulder cap": 14,
+      "Lower broken side strake 1 | Right fore shoulder lashing": 22,
+      "Lower broken side strake 1 | Right fore shoulder lashing.001": 32,
+      "Lower broken side strake 1 | Right fore timber leg": 14,
+      "Lower broken side strake 1 | Right hind shoulder cap": 9,
+      "Lower broken side strake 1 | Rooted lower hull rib 1": 29,
+      "Lower broken side strake 1 | Stern diagonal wreck plank 1": 28,
+      "Lower broken side strake 1 | Stern fan broad plank 1": 8,
+      "Lower cheek timber | Mouth dark pocket": 11,
+      "Lower cheek timber | Solid timber cranium": 9,
+      "Lower cheek timber | Swept cheek horn": 13,
+      "Lower cheek timber.001 | Mouth dark pocket": 9,
+      "Lower cheek timber.001 | Right fore connected chest strake": 16,
+      "Lower cheek timber.001 | Right fore outer timber shield": 7,
+      "Lower cheek timber.001 | Right fore shoulder cap": 16,
+      "Lower cheek timber.001 | Right fore shoulder lashing": 4,
+      "Lower cheek timber.001 | Right fore timber leg": 18,
+      "Lower cheek timber.001 | Solid timber cranium": 12,
+      "Lower cheek timber.001 | Swept cheek horn.001": 13,
+      "Lower timber jaw | Mouth dark pocket": 18,
+      "Middle broken side strake -1 | Sweeping upper wreck rib -1": 28,
+      "Middle broken side strake 1 | Stern diagonal wreck plank 1": 20,
+      "Middle broken side strake 1 | Sweeping upper wreck rib 1": 26,
+      "Mouth dark pocket | Pointed central face keel": 12,
+      "Mouth dark pocket | Solid timber cranium": 21,
+      "Pointed central face keel | Shaped orbital brow timber": 9,
+      "Pointed central face keel | Shaped orbital brow timber.001": 10,
+      "Pointed central face keel | Solid timber cranium": 53,
+      "Recessed eye shadow | Shaped orbital brow timber": 6,
+      "Recessed eye shadow.001 | Shaped orbital brow timber.001": 7,
+      "Right fore connected chest strake | Right fore neck gusset": 34,
+      "Right fore connected chest strake | Right fore outer timber shield": 30,
+      "Right fore connected chest strake | Right fore shoulder cap": 25,
+      "Right fore connected chest strake | Right fore shoulder lashing": 64,
+      "Right fore connected chest strake | Right fore shoulder lashing.001": 68,
+      "Right fore connected chest strake | Right fore timber leg": 32,
+      "Right fore connected chest strake | Rooted lower hull rib 1": 18,
+      "Right fore connected chest strake | Shaped orbital brow timber.001": 17,
+      "Right fore connected chest strake | Solid timber cranium": 19,
+      "Right fore connected chest strake | Swept cheek horn.001": 38,
+      "Right fore neck gusset | Right fore outer timber shield": 41,
+      "Right fore neck gusset | Right fore shoulder cap": 37,
+      "Right fore neck gusset | Right fore shoulder lashing": 34,
+      "Right fore neck gusset | Right fore shoulder lashing.001": 44,
+      "Right fore neck gusset | Right fore timber leg": 42,
+      "Right fore neck gusset | Rooted lower hull rib 1": 19,
+      "Right fore neck gusset | Shaped orbital brow timber.001": 6,
+      "Right fore neck gusset | Swept cheek horn.001": 36,
+      "Right fore outer timber shield | Right fore shoulder cap": 42,
+      "Right fore outer timber shield | Right fore shoulder lashing": 34,
+      "Right fore outer timber shield | Right fore shoulder lashing.001": 36,
+      "Right fore outer timber shield | Right fore stone foot": 18,
+      "Right fore outer timber shield | Right fore timber leg": 40,
+      "Right fore outer timber shield | Right fore toe 0.23": 15,
+      "Right fore outer timber shield | Rooted lower hull rib 1": 14,
+      "Right fore outer timber shield | Shaped orbital brow timber.001": 6,
+      "Right fore outer timber shield | Swept cheek horn.001": 34,
+      "Right fore shoulder cap | Right fore shoulder lashing": 42,
+      "Right fore shoulder cap | Right fore shoulder lashing.001": 60,
+      "Right fore shoulder cap | Right fore stone foot": 7,
+      "Right fore shoulder cap | Right fore timber leg": 55,
+      "Right fore shoulder cap | Rooted lower hull rib 1": 17,
+      "Right fore shoulder cap | Shaped orbital brow timber.001": 13,
+      "Right fore shoulder cap | Solid timber cranium": 12,
+      "Right fore shoulder cap | Swept cheek horn.001": 32,
+      "Right fore shoulder lashing | Right fore timber leg": 58,
+      "Right fore shoulder lashing | Rooted lower hull rib 1": 34,
+      "Right fore shoulder lashing | Shaped orbital brow timber.001": 14,
+      "Right fore shoulder lashing | Solid timber cranium": 28,
+      "Right fore shoulder lashing | Swept cheek horn.001": 40,
+      "Right fore shoulder lashing.001 | Right fore timber leg": 56,
+      "Right fore shoulder lashing.001 | Rooted lower hull rib 1": 30,
+      "Right fore shoulder lashing.001 | Shaped orbital brow timber.001": 30,
+      "Right fore shoulder lashing.001 | Solid timber cranium": 30,
+      "Right fore shoulder lashing.001 | Swept cheek horn.001": 52,
+      "Right fore stone foot | Right fore timber leg": 33,
+      "Right fore stone foot | Right fore toe -0.23": 37,
+      "Right fore stone foot | Right fore toe 0.23": 37,
+      "Right fore timber leg | Right fore toe -0.23": 17,
+      "Right fore timber leg | Right fore toe 0.23": 15,
+      "Right fore timber leg | Rooted lower hull rib 1": 21,
+      "Right fore timber leg | Shaped orbital brow timber.001": 10,
+      "Right fore timber leg | Solid timber cranium": 14,
+      "Right fore timber leg | Swept cheek horn.001": 26,
+      "Right hind shoulder cap | Right hind shoulder lashing": 42,
+      "Right hind shoulder cap | Right hind shoulder lashing.001": 60,
+      "Right hind shoulder cap | Right hind timber leg": 27,
+      "Right hind shoulder cap | Rooted lower hull rib 1": 11,
+      "Right hind shoulder cap | Stern diagonal wreck plank 1": 23,
+      "Right hind shoulder cap | Stern fan broad plank 1": 6,
+      "Right hind shoulder lashing | Right hind timber leg": 54,
+      "Right hind shoulder lashing | Stern fan broad plank 1": 38,
+      "Right hind shoulder lashing.001 | Right hind timber leg": 68,
+      "Right hind shoulder lashing.001 | Stern diagonal wreck plank 1": 6,
+      "Right hind shoulder lashing.001 | Stern fan broad plank 1": 34,
+      "Right hind stone foot | Right hind timber leg": 30,
+      "Right hind stone foot | Right hind toe -0.23": 37,
+      "Right hind stone foot | Right hind toe 0.23": 37,
+      "Right hind timber leg | Right hind toe -0.23": 18,
+      "Right hind timber leg | Right hind toe 0.23": 17,
+      "Right hind timber leg | Rooted lower hull rib 1": 5,
+      "Right hind timber leg | Stern diagonal wreck plank 1": 20,
+      "Rooted lower hull rib -1 | Solid timber cranium": 11,
+      "Rooted lower hull rib -1 | Stern diagonal wreck plank -1": 32,
+      "Rooted lower hull rib -1 | Swept cheek horn": 18,
+      "Rooted lower hull rib 1 | Stern diagonal wreck plank 1": 30,
+      "Rooted lower hull rib 1 | Swept cheek horn.001": 19,
+      "Shaped orbital brow timber | Solid timber cranium": 22,
+      "Shaped orbital brow timber | Swept cheek horn": 11,
+      "Shaped orbital brow timber.001 | Solid timber cranium": 22,
+      "Shaped orbital brow timber.001 | Swept cheek horn.001": 10,
+      "Solid timber cranium | Swept cheek horn": 13,
+      "Solid timber cranium | Swept cheek horn.001": 12,
+      "Stern diagonal wreck plank -1 | Stern fan broad plank -1": 14,
+      "Stern diagonal wreck plank -1 | Tall stern plank": 30,
+      "Stern diagonal wreck plank 1 | Stern fan broad plank 1": 14,
+      "Stern diagonal wreck plank 1 | Sweeping upper wreck rib 1": 7,
+      "Stern fan broad plank -1 | Stern fan broad plank 1": 21,
+      "Stern fan broad plank -1 | Tall stern plank": 20
+    }
+  },
+  "candidate": {
+    "source_sha256": "c4cd67b818ff60fc919036d0afe1cd8d92f6fd8ec28cea17f847be8e5de06846",
+    "tested": 141819,
+    "nonadjacent_self_intersections": [
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          26,
+          33,
+          32
+        ],
+        "b": [
+          14,
+          21,
+          20
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          26,
+          33,
+          32
+        ],
+        "b": [
+          20,
+          21,
+          27
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          27,
+          34,
+          33
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          27,
+          34,
+          33
+        ],
+        "b": [
+          21,
+          22,
+          28
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          14,
+          15,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          14,
+          21,
+          20
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          20,
+          21,
+          27
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          33,
+          34,
+          40
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          33,
+          40,
+          39
+        ],
+        "b": [
+          14,
+          15,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          33,
+          40,
+          39
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          62,
+          63,
+          69
+        ],
+        "b": [
+          81,
+          88,
+          87
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          62,
+          63,
+          69
+        ],
+        "b": [
+          80,
+          81,
+          87
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          62,
+          69,
+          68
+        ],
+        "b": [
+          80,
+          81,
+          87
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          62,
+          69,
+          68
+        ],
+        "b": [
+          74,
+          81,
+          80
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          81,
+          82,
+          88
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          81,
+          88,
+          87
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          80,
+          81,
+          87
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          68,
+          69,
+          75
+        ],
+        "b": [
+          74,
+          81,
+          80
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          69,
+          70,
+          76
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          26,
+          33,
+          32
+        ],
+        "b": [
+          14,
+          21,
+          20
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          26,
+          33,
+          32
+        ],
+        "b": [
+          20,
+          21,
+          27
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          27,
+          34,
+          33
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          27,
+          34,
+          33
+        ],
+        "b": [
+          21,
+          22,
+          28
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          14,
+          15,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          14,
+          21,
+          20
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          20,
+          21,
+          27
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          33,
+          34,
+          40
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          33,
+          34,
+          40
+        ],
+        "b": [
+          21,
+          22,
+          28
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          33,
+          40,
+          39
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          62,
+          63,
+          69
+        ],
+        "b": [
+          81,
+          88,
+          87
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          62,
+          63,
+          69
+        ],
+        "b": [
+          80,
+          81,
+          87
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          62,
+          69,
+          68
+        ],
+        "b": [
+          80,
+          81,
+          87
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          62,
+          69,
+          68
+        ],
+        "b": [
+          74,
+          81,
+          80
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          81,
+          82,
+          88
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          81,
+          88,
+          87
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          68,
+          69,
+          75
+        ],
+        "b": [
+          74,
+          81,
+          80
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          69,
+          70,
+          76
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          14,
+          15,
+          21
+        ],
+        "b": [
+          33,
+          40,
+          39
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          14,
+          15,
+          21
+        ],
+        "b": [
+          32,
+          33,
+          39
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          14,
+          21,
+          20
+        ],
+        "b": [
+          32,
+          33,
+          39
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          14,
+          21,
+          20
+        ],
+        "b": [
+          26,
+          33,
+          32
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          33,
+          34,
+          40
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          33,
+          40,
+          39
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          32,
+          33,
+          39
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          27,
+          34,
+          33
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          20,
+          21,
+          27
+        ],
+        "b": [
+          26,
+          33,
+          32
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          21,
+          22,
+          28
+        ],
+        "b": [
+          33,
+          34,
+          40
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          21,
+          22,
+          28
+        ],
+        "b": [
+          27,
+          34,
+          33
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          74,
+          81,
+          80
+        ],
+        "b": [
+          62,
+          69,
+          68
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          74,
+          81,
+          80
+        ],
+        "b": [
+          68,
+          69,
+          75
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          75,
+          82,
+          81
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          75,
+          82,
+          81
+        ],
+        "b": [
+          69,
+          70,
+          76
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          62,
+          63,
+          69
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          62,
+          69,
+          68
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          81,
+          82,
+          88
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          81,
+          88,
+          87
+        ],
+        "b": [
+          62,
+          63,
+          69
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          81,
+          88,
+          87
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          14,
+          15,
+          21
+        ],
+        "b": [
+          33,
+          40,
+          39
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          14,
+          15,
+          21
+        ],
+        "b": [
+          32,
+          33,
+          39
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          14,
+          21,
+          20
+        ],
+        "b": [
+          32,
+          33,
+          39
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          14,
+          21,
+          20
+        ],
+        "b": [
+          26,
+          33,
+          32
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          33,
+          34,
+          40
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          33,
+          40,
+          39
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          27,
+          34,
+          33
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          20,
+          21,
+          27
+        ],
+        "b": [
+          32,
+          33,
+          39
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          20,
+          21,
+          27
+        ],
+        "b": [
+          26,
+          33,
+          32
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          21,
+          22,
+          28
+        ],
+        "b": [
+          33,
+          34,
+          40
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          21,
+          22,
+          28
+        ],
+        "b": [
+          27,
+          34,
+          33
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          74,
+          81,
+          80
+        ],
+        "b": [
+          62,
+          69,
+          68
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          74,
+          81,
+          80
+        ],
+        "b": [
+          68,
+          69,
+          75
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          75,
+          82,
+          81
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          75,
+          82,
+          81
+        ],
+        "b": [
+          69,
+          70,
+          76
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          62,
+          63,
+          69
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          62,
+          69,
+          68
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          81,
+          82,
+          88
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ]
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          81,
+          88,
+          87
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ]
+      }
+    ],
+    "proper_self_crossings_including_adjacent": [
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          26,
+          27,
+          33
+        ],
+        "b": [
+          20,
+          21,
+          27
+        ],
+        "length": 0.012836333143144696,
+        "midpoint": [
+          -0.9414851464082319,
+          0.9827173860321298,
+          1.9744400514915128
+        ],
+        "endpoints": [
+          [
+            -0.9429702952006495,
+            0.978773993541768,
+            1.9792812136321343
+          ],
+          [
+            -0.9399999976158142,
+            0.9866607785224915,
+            1.9695988893508911
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.06007941378678683,
+            0.500000000000008,
+            0.43992058621320523
+          ],
+          [
+            0.06007936962337834,
+            0.27917168243609664,
+            0.6607489479405251
+          ]
+        ],
+        "normalCrossLength": 0.4924278329533175
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          26,
+          33,
+          32
+        ],
+        "b": [
+          20,
+          21,
+          27
+        ],
+        "length": 0.007572820438064731,
+        "midpoint": [
+          -0.9414851315070707,
+          0.9762853961491393,
+          1.9768443972321015
+        ],
+        "endpoints": [
+          [
+            -0.9399999678134919,
+            0.9737967987565107,
+            1.9744075808320682
+          ],
+          [
+            -0.9429702952006496,
+            0.9787739935417679,
+            1.9792812136321345
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.06007941378678905,
+            0.9013671820618777,
+            0.038553404151333195
+          ],
+          [
+            0.0986327737747138,
+            0.7406182782847653,
+            0.16074894794052086
+          ]
+        ],
+        "normalCrossLength": 0.8678164391753377
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          27,
+          34,
+          33
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ],
+        "length": 5.022210647354086e-09,
+        "midpoint": [
+          -0.9399999701724954,
+          0.9762810143034641,
+          1.9606063394804505
+        ],
+        "endpoints": [
+          [
+            -0.9399999694491987,
+            0.9762810167076141,
+            1.9606063395309983
+          ],
+          [
+            -0.9399999708957919,
+            0.9762810118993143,
+            1.960606339429903
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            1.6060154084396316e-07,
+            0.07710663707005387,
+            0.9228932023284053
+          ],
+          [
+            1.5681401399625372e-08,
+            0.07710673655523877,
+            0.9228932477633598
+          ]
+        ],
+        "normalCrossLength": 0.7837353129568545
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          27,
+          34,
+          33
+        ],
+        "b": [
+          21,
+          22,
+          28
+        ],
+        "length": 0.007572838574138152,
+        "midpoint": [
+          -0.9385148085555562,
+          0.9794631433312389,
+          1.959190239856292
+        ],
+        "endpoints": [
+          [
+            -0.937029647661914,
+            0.9826452699548633,
+            1.9577741401815854
+          ],
+          [
+            -0.9399999694491986,
+            0.9762810167076142,
+            1.9606063395309985
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.16074944232637578,
+            0.09863271890772661,
+            0.7406178387658976
+          ],
+          [
+            0.9013672049734115,
+            0.03855337034592396,
+            0.06007942468066451
+          ]
+        ],
+        "normalCrossLength": 0.8678185537189279
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          14,
+          15,
+          21
+        ],
+        "length": 0.00520031548513078,
+        "midpoint": [
+          -0.940006202256613,
+          0.9664453791003312,
+          1.9674054266191978
+        ],
+        "endpoints": [
+          [
+            -0.9399999713024774,
+            0.964555228643692,
+            1.9656198979264292
+          ],
+          [
+            -0.9400124332107487,
+            0.9683355295569704,
+            1.9691909553119664
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.01564282169629372,
+            0.9378049780464663,
+            0.04655220025723991
+          ],
+          [
+            0.015642793840442315,
+            0.02926773183411158,
+            0.9550894743254461
+          ]
+        ],
+        "normalCrossLength": 0.9536447833253154
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          14,
+          21,
+          20
+        ],
+        "length": 0.007552403489813564,
+        "midpoint": [
+          -0.9400062005121202,
+          0.9710661641567406,
+          1.9717992680720176
+        ],
+        "endpoints": [
+          [
+            -0.9400124332107487,
+            0.9683355295569707,
+            1.9691909553119666
+          ],
+          [
+            -0.9399999678134918,
+            0.9737967987565107,
+            1.9744075808320682
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.054196225847631396,
+            0.9285193057292368,
+            0.01728446842313176
+          ],
+          [
+            0.01564279384044509,
+            0.945803802008221,
+            0.03855340415133395
+          ]
+        ],
+        "normalCrossLength": 0.9530117065907896
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          33,
+          34,
+          40
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ],
+        "length": 0.0075523951496768715,
+        "midpoint": [
+          -0.939993738659032,
+          0.9728122500810189,
+          1.9620987605271063
+        ],
+        "endpoints": [
+          [
+            -0.9399999708957919,
+            0.9762810118993142,
+            1.960606339429903
+          ],
+          [
+            -0.9399875064222721,
+            0.9693434882627237,
+            1.9635911816243097
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9458038909693249,
+            0.03855331646671869,
+            0.01564279256395632
+          ],
+          [
+            0.01728447818207235,
+            0.054196173099403784,
+            0.9285193487185238
+          ]
+        ],
+        "normalCrossLength": 0.9530120341537708
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          33,
+          40,
+          39
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ],
+        "length": 0.00520031493151818,
+        "midpoint": [
+          -0.9399937388623747,
+          0.966949358453208,
+          1.9646055397753694
+        ],
+        "endpoints": [
+          [
+            -0.9399875064222721,
+            0.9693434882627237,
+            1.9635911816243097
+          ],
+          [
+            -0.9399999713024773,
+            0.9645552286436923,
+            1.9656198979264294
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9550894756019367,
+            0.015642792563957304,
+            0.029267731834105987
+          ],
+          [
+            0.046552194334777974,
+            0.01564280689009356,
+            0.9378049987751285
+          ]
+        ],
+        "normalCrossLength": 0.953645179874968
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          62,
+          63,
+          69
+        ],
+        "b": [
+          80,
+          81,
+          87
+        ],
+        "length": 0.005200314052577593,
+        "midpoint": [
+          -0.9399937377910444,
+          -0.3669493913357979,
+          1.727394378953288
+        ],
+        "endpoints": [
+          [
+            -0.9399875042796115,
+            -0.3693435208818558,
+            1.7284087365930714
+          ],
+          [
+            -0.9399999713024774,
+            -0.36455526178974,
+            1.7263800213135045
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.015642802455591354,
+            0.02926773183410602,
+            0.9550894657103026
+          ],
+          [
+            0.01564279326147011,
+            0.9378050044667869,
+            0.04655220227174296
+          ]
+        ],
+        "normalCrossLength": 0.9536447768855844
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          62,
+          69,
+          68
+        ],
+        "b": [
+          80,
+          81,
+          87
+        ],
+        "length": 0.0075524076819988295,
+        "midpoint": [
+          -0.939993734499748,
+          -0.37281228890611473,
+          1.7299011591294244
+        ],
+        "endpoints": [
+          [
+            -0.9399999647198846,
+            -0.3762810569303736,
+            1.7313935816657777
+          ],
+          [
+            -0.9399875042796114,
+            -0.36934352088185585,
+            1.7284087365930714
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.015642816647604585,
+            0.9458037789792083,
+            0.038553404373187064
+          ],
+          [
+            0.05419616208404454,
+            0.9285193674783198,
+            0.017284470437635754
+          ]
+        ],
+        "normalCrossLength": 0.9530116481034151
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          62,
+          69,
+          68
+        ],
+        "b": [
+          74,
+          81,
+          80
+        ],
+        "length": 9.77786385192303e-09,
+        "midpoint": [
+          -0.9399999639650323,
+          -0.3762810608524955,
+          1.7313935844851416
+        ],
+        "endpoints": [
+          [
+            -0.9399999632101799,
+            -0.37628106477461737,
+            1.7313935873045057
+          ],
+          [
+            -0.9399999647198846,
+            -0.37628105693037367,
+            1.7313935816657777
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            1.4192013342295695e-08,
+            0.922893124713993,
+            0.07710686109399363
+          ],
+          [
+            6.002464003618257e-08,
+            0.9228932241992724,
+            0.07710671577608748
+          ]
+        ],
+        "normalCrossLength": 0.999588483368028
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          81,
+          82,
+          88
+        ],
+        "length": 0.0075524149392580675,
+        "midpoint": [
+          -0.940006201061689,
+          -0.3710661964087376,
+          1.720200643433079
+        ],
+        "endpoints": [
+          [
+            -0.9400124348873796,
+            -0.36833556075973556,
+            1.7228089633799986
+          ],
+          [
+            -0.9399999672359983,
+            -0.3737968320577396,
+            1.7175923234861594
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.01728448478005029,
+            0.05419619174916569,
+            0.928519323470784
+          ],
+          [
+            0.9458038008629601,
+            0.03855339755640541,
+            0.015642801580634486
+          ]
+        ],
+        "normalCrossLength": 0.9530116651790153
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          81,
+          88,
+          87
+        ],
+        "length": 0.005200314452795118,
+        "midpoint": [
+          -0.9400062030949284,
+          -0.36644541127473773,
+          1.7245944923467516
+        ],
+        "endpoints": [
+          [
+            -0.9399999713024774,
+            -0.36455526178974,
+            1.7263800213135045
+          ],
+          [
+            -0.9400124348873796,
+            -0.36833556075973534,
+            1.7228089633799988
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.046552208300386755,
+            0.015642791954340617,
+            0.9378049997452726
+          ],
+          [
+            0.9550894665852583,
+            0.015642801580635832,
+            0.029267731834105828
+          ]
+        ],
+        "normalCrossLength": 0.9536448402212199
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          68,
+          69,
+          75
+        ],
+        "b": [
+          74,
+          81,
+          80
+        ],
+        "length": 0.00757281418062794,
+        "midpoint": [
+          -0.9385148054864012,
+          -0.37946318109168836,
+          1.7328096808514546
+        ],
+        "endpoints": [
+          [
+            -0.9370296477626224,
+            -0.38264529740875936,
+            1.7342257743984038
+          ],
+          [
+            -0.93999996321018,
+            -0.37628106477461737,
+            1.7313935873045057
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.09863294868180561,
+            0.7406179384118305,
+            0.16074911290636384
+          ],
+          [
+            0.06007949962062087,
+            0.9013671534258663,
+            0.0385533469535129
+          ]
+        ],
+        "normalCrossLength": 0.8678175145029
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          69,
+          70,
+          76
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ],
+        "length": 0.00757281351309369,
+        "midpoint": [
+          -0.9414851316612352,
+          -0.37628542564412626,
+          1.715155505259915
+        ],
+        "endpoints": [
+          [
+            -0.9399999680029406,
+            -0.37379683446562917,
+            1.7175923226474947
+          ],
+          [
+            -0.9429702953195298,
+            -0.37877401682262335,
+            1.712718687872335
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9013672018323198,
+            0.03855340198784363,
+            0.060079396179836556
+          ],
+          [
+            0.16074943063941416,
+            0.09863274007610581,
+            0.7406178292844801
+          ]
+        ],
+        "normalCrossLength": 0.8678161048770228
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          69,
+          76,
+          75
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ],
+        "length": 0.01283631233228677,
+        "midpoint": [
+          -0.941485146467672,
+          -0.38271738575162845,
+          1.7175598553917033
+        ],
+        "endpoints": [
+          [
+            -0.9429702953195298,
+            -0.37877401682262335,
+            1.712718687872335
+          ],
+          [
+            -0.9399999976158142,
+            -0.3866607546806335,
+            1.7224010229110718
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.4399206038201655,
+            0.060079396179838734,
+            0.4999999999999957
+          ],
+          [
+            0.6607493454932671,
+            0.060079340326688706,
+            0.2791713141800442
+          ]
+        ],
+        "normalCrossLength": 0.4924286907613465
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          26,
+          27,
+          33
+        ],
+        "b": [
+          20,
+          21,
+          27
+        ],
+        "length": 0.012836343947638884,
+        "midpoint": [
+          -0.941485146408232,
+          0.9827173860321274,
+          2.7244401778628227
+        ],
+        "endpoints": [
+          [
+            -0.9429702952006499,
+            0.9787739935417635,
+            2.7292813471654647
+          ],
+          [
+            -0.9399999976158142,
+            0.9866607785224915,
+            2.7195990085601807
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.06007941378674886,
+            0.4999999999999778,
+            0.43992058621327335
+          ],
+          [
+            0.06007936962339644,
+            0.279171682436265,
+            0.6607489479403386
+          ]
+        ],
+        "normalCrossLength": 0.49242771427917187
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          26,
+          33,
+          32
+        ],
+        "b": [
+          20,
+          21,
+          27
+        ],
+        "length": 0.0075728237409831145,
+        "midpoint": [
+          -0.9414851315070709,
+          0.9762853961491375,
+          2.726844528199335
+        ],
+        "endpoints": [
+          [
+            -0.9399999678134919,
+            0.9737967987565108,
+            2.7244077092332057
+          ],
+          [
+            -0.9429702952006498,
+            0.9787739935417638,
+            2.7292813471654642
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.060079413786750635,
+            0.9013671820619171,
+            0.03855340415133218
+          ],
+          [
+            0.09863277377473112,
+            0.7406182782849006,
+            0.16074894794036831
+          ]
+        ],
+        "normalCrossLength": 0.8678160694755005
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          27,
+          34,
+          33
+        ],
+        "b": [
+          21,
+          22,
+          28
+        ],
+        "length": 0.007572829168170592,
+        "midpoint": [
+          -0.9385148064355793,
+          0.9794631399671867,
+          2.7091903501945507
+        ],
+        "endpoints": [
+          [
+            -0.9370296473556272,
+            0.9826452625518315,
+            2.707774252116696
+          ],
+          [
+            -0.9399999655155313,
+            0.9762810173825421,
+            2.7106064482724057
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.16074891008061154,
+            0.09863280836696833,
+            0.7406182815524202
+          ],
+          [
+            0.9013672427728086,
+            0.0385533779088006,
+            0.060079379318390864
+          ]
+        ],
+        "normalCrossLength": 0.8678179871956362
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          14,
+          15,
+          21
+        ],
+        "length": 0.005200305346580336,
+        "midpoint": [
+          -0.9400062003086033,
+          0.9664453837642919,
+          2.7174055447146617
+        ],
+        "endpoints": [
+          [
+            -0.9399999676141069,
+            0.9645552376955463,
+            2.715620018765048
+          ],
+          [
+            -0.9400124330030998,
+            0.9683355298330375,
+            2.7191910706642752
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.0156429004978349,
+            0.937804925290778,
+            0.04655217421138713
+          ],
+          [
+            0.015642792881829126,
+            0.02926769985814622,
+            0.9550895072600246
+          ]
+        ],
+        "normalCrossLength": 0.9536449239833967
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          14,
+          21,
+          20
+        ],
+        "length": 0.007552412302986866,
+        "midpoint": [
+          -0.9400062004082959,
+          0.9710661642947739,
+          2.7217993899487403
+        ],
+        "endpoints": [
+          [
+            -0.9400124330030998,
+            0.9683355298330372,
+            2.719191070664275
+          ],
+          [
+            -0.9399999678134918,
+            0.9737967987565107,
+            2.7244077092332057
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.054196229125242135,
+            0.9285193031396248,
+            0.017284467735133015
+          ],
+          [
+            0.015642792881833012,
+            0.9458038029668361,
+            0.03855340415133092
+          ]
+        ],
+        "normalCrossLength": 0.9530117478224339
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          32,
+          33,
+          39
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ],
+        "length": 1.6083599563287976e-08,
+        "midpoint": [
+          -0.9399999717982078,
+          0.9645552389121608,
+          2.7156200120060774
+        ],
+        "endpoints": [
+          [
+            -0.9399999759823088,
+            0.964555240128775,
+            2.715620005247106
+          ],
+          [
+            -0.939999967614107,
+            0.9645552376955465,
+            2.7156200187650485
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            7.552392911058803e-08,
+            0.9414645267371303,
+            0.058535397738940544
+          ],
+          [
+            0.05853541492982195,
+            7.552392525234921e-08,
+            0.9414645095462528
+          ]
+        ],
+        "normalCrossLength": 0.6130413244384151
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          33,
+          34,
+          40
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ],
+        "length": 0.0075524017369780205,
+        "midpoint": [
+          -0.9399937353668131,
+          0.972812253133648,
+          2.7120988720627612
+        ],
+        "endpoints": [
+          [
+            -0.9399999655155314,
+            0.976281017382542,
+            2.7106064482724057
+          ],
+          [
+            -0.9399875052180946,
+            0.9693434888847542,
+            2.7135912958531168
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9458038239681341,
+            0.03855337790880148,
+            0.015642798123064423
+          ],
+          [
+            0.017284462628475383,
+            0.05419619217443315,
+            0.9285193451970915
+          ]
+        ],
+        "normalCrossLength": 0.9530117176143307
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          33,
+          40,
+          39
+        ],
+        "b": [
+          15,
+          22,
+          21
+        ],
+        "length": 0.005200302248365318,
+        "midpoint": [
+          -0.9399937406002017,
+          0.9669493645067645,
+          2.7146056505501113
+        ],
+        "endpoints": [
+          [
+            -0.9399875052180946,
+            0.969343488884754,
+            2.7135912958531168
+          ],
+          [
+            -0.9399999759823088,
+            0.9645552401287749,
+            2.715620005247106
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9550895106142488,
+            0.015642798123064884,
+            0.029267691262686264
+          ],
+          [
+            0.04655217770015485,
+            0.015642889789559605,
+            0.9378049325102855
+          ]
+        ],
+        "normalCrossLength": 0.9536449544424251
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          62,
+          63,
+          69
+        ],
+        "b": [
+          81,
+          88,
+          87
+        ],
+        "length": 1.0303444319958999e-08,
+        "midpoint": [
+          -0.9399999652697655,
+          -0.3645552544075745,
+          2.4763801253704334
+        ],
+        "endpoints": [
+          [
+            -0.9399999625614028,
+            -0.36455525518391585,
+            2.4763801296834727
+          ],
+          [
+            -0.9399999679781282,
+            -0.3645552536312332,
+            2.476380121057394
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            4.81933410956259e-08,
+            0.05853547776555429,
+            0.9414644740411047
+          ],
+          [
+            0.9414646832412712,
+            4.819338317233742e-08,
+            0.058535268565345584
+          ]
+        ],
+        "normalCrossLength": 0.6111506179272592
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          62,
+          63,
+          69
+        ],
+        "b": [
+          80,
+          81,
+          87
+        ],
+        "length": 0.005200317512918939,
+        "midpoint": [
+          -0.9399937313906076,
+          -0.36694938500560165,
+          2.4773944911221224
+        ],
+        "endpoints": [
+          [
+            -0.9399875002198127,
+            -0.36934351482728733,
+            2.4784088525607713
+          ],
+          [
+            -0.9399999625614025,
+            -0.36455525518391596,
+            2.476380129683473
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.015642869391074066,
+            0.029267717111268785,
+            0.9550894134976572
+          ],
+          [
+            0.01564282014897811,
+            0.9378051251331921,
+            0.04655205471782975
+          ]
+        ],
+        "normalCrossLength": 0.9536450300634033
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          62,
+          69,
+          68
+        ],
+        "b": [
+          80,
+          81,
+          87
+        ],
+        "length": 0.007552381705146161,
+        "midpoint": [
+          -0.9399937331619054,
+          -0.3728122693410301,
+          2.4799012736236348
+        ],
+        "endpoints": [
+          [
+            -0.939999966103998,
+            -0.37628102385477286,
+            2.4813936946864983
+          ],
+          [
+            -0.9399875002198128,
+            -0.36934351482728733,
+            2.4784088525607713
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.01564290148567904,
+            0.9458038734496971,
+            0.038553225064623886
+          ],
+          [
+            0.05419615229301522,
+            0.9285194490433772,
+            0.017284398663607512
+          ]
+        ],
+        "normalCrossLength": 0.9530119297609347
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          62,
+          69,
+          68
+        ],
+        "b": [
+          74,
+          81,
+          80
+        ],
+        "length": 5.5315793279220316e-08,
+        "midpoint": [
+          -0.9399999618336501,
+          -0.37628104604319207,
+          2.4813937106363393
+        ],
+        "endpoints": [
+          [
+            -0.9399999575633023,
+            -0.37628106823161134,
+            2.4813937265861803
+          ],
+          [
+            -0.9399999661039979,
+            -0.3762810238547728,
+            2.4813936946864983
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            8.028795028813818e-08,
+            0.9228931734397057,
+            0.07710674627234401
+          ],
+          [
+            3.3957357403746613e-07,
+            0.9228931198559379,
+            0.077106540570488
+          ]
+        ],
+        "normalCrossLength": 0.9995884849406214
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          81,
+          82,
+          88
+        ],
+        "length": 0.0075523996503574775,
+        "midpoint": [
+          -0.9400061951685262,
+          -0.371066172330985,
+          2.4702007697427777
+        ],
+        "endpoints": [
+          [
+            -0.940012430013068,
+            -0.36833553976871786,
+            2.472809081851456
+          ],
+          [
+            -0.9399999603239845,
+            -0.3737968048932523,
+            2.467592457634099
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.017284658091425542,
+            0.054196098051062874,
+            0.9285192438575116
+          ],
+          [
+            0.9458039022999658,
+            0.03855331862172766,
+            0.015642779078306576
+          ]
+        ],
+        "normalCrossLength": 0.9530114781927852
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          81,
+          88,
+          87
+        ],
+        "length": 0.005200292260433059,
+        "midpoint": [
+          -0.9400061989955981,
+          -0.36644539669997545,
+          2.474594601454425
+        ],
+        "endpoints": [
+          [
+            -0.9399999679781282,
+            -0.36455525363123314,
+            2.476380121057394
+          ],
+          [
+            -0.940012430013068,
+            -0.3683355397687178,
+            2.472809081851456
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.046552310924228735,
+            0.015642750399606734,
+            0.9378049386761645
+          ],
+          [
+            0.9550895602171865,
+            0.01564282727168866,
+            0.029267612511124905
+          ]
+        ],
+        "normalCrossLength": 0.9536446530095332
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          63,
+          70,
+          69
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ],
+        "length": 3.453151320442771e-08,
+        "midpoint": [
+          -0.9399999652971605,
+          -0.37379682050725893,
+          2.467592452195656
+        ],
+        "endpoints": [
+          [
+            -0.9399999603239846,
+            -0.3737968048932521,
+            2.467592457634099
+          ],
+          [
+            -0.9399999702703363,
+            -0.37379683612126574,
+            2.467592446757213
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            1.0782147985555213e-07,
+            0.07710672374581429,
+            0.9228931684327059
+          ],
+          [
+            1.1042626393287236e-06,
+            0.07710666568312231,
+            0.9228922300542384
+          ]
+        ],
+        "normalCrossLength": 0.7837347876165942
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          68,
+          69,
+          75
+        ],
+        "b": [
+          74,
+          81,
+          80
+        ],
+        "length": 0.00757275684281733,
+        "midpoint": [
+          -0.9385148023594605,
+          -0.379463162373815,
+          2.482809795949158
+        ],
+        "endpoints": [
+          [
+            -0.9370296471556188,
+            -0.38264525651601844,
+            2.484225865312136
+          ],
+          [
+            -0.9399999575633023,
+            -0.37628106823161145,
+            2.4813937265861803
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.09863316098403607,
+            0.740619553245563,
+            0.160747285770401
+          ],
+          [
+            0.0600796892699057,
+            0.9013671023036469,
+            0.03855320842644741
+          ]
+        ],
+        "normalCrossLength": 0.8678149614697815
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          69,
+          70,
+          76
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ],
+        "length": 0.007572865727602962,
+        "midpoint": [
+          -0.9414851322235738,
+          -0.3762854348293778,
+          2.465155595453847
+        ],
+        "endpoints": [
+          [
+            -0.9399999702703363,
+            -0.37379683612126574,
+            2.467592446757213
+          ],
+          [
+            -0.9429702941768111,
+            -0.37877403353748984,
+            2.4627187441504814
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9013670584816535,
+            0.03855337609435637,
+            0.06007956542399003
+          ],
+          [
+            0.16075161959522932,
+            0.09863258413494827,
+            0.7406157962698224
+          ]
+        ],
+        "normalCrossLength": 0.8678196612195449
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          69,
+          76,
+          75
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ],
+        "length": 0.012836169429655708,
+        "midpoint": [
+          -0.9414851458963127,
+          -0.3827173941090617,
+          2.467559823926132
+        ],
+        "endpoints": [
+          [
+            -0.9429702941768111,
+            -0.37877403353748984,
+            2.4627187441504814
+          ],
+          [
+            -0.9399999976158142,
+            -0.3866607546806336,
+            2.4724009037017822
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.4399204345760135,
+            0.060079565423987666,
+            0.4999999999999989
+          ],
+          [
+            0.6607505153325912,
+            0.06007923707355417,
+            0.2791702475938546
+          ]
+        ],
+        "normalCrossLength": 0.4924248684586402
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          21,
+          28,
+          27
+        ],
+        "b": [
+          27,
+          34,
+          33
+        ],
+        "length": 0.012836353875705253,
+        "midpoint": [
+          -0.9385148226388642,
+          0.9846530242386775,
+          1.9636865147662383
+        ],
+        "endpoints": [
+          [
+            -0.937029647661914,
+            0.9826452699548633,
+            1.9577741401815851
+          ],
+          [
+            -0.9399999976158143,
+            0.9866607785224915,
+            1.9695988893508911
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.43992057531932116,
+            0.060079424680661464,
+            0.5000000000000174
+          ],
+          [
+            0.6607492817248284,
+            0.060079398304391504,
+            0.27917131997078015
+          ]
+        ],
+        "normalCrossLength": 0.49242746903151813
+      },
+      {
+        "name": "Heavy salvage side lashing -1 0",
+        "a": [
+          74,
+          75,
+          81
+        ],
+        "b": [
+          68,
+          69,
+          75
+        ],
+        "length": 0.01283633994134492,
+        "midpoint": [
+          -0.9385148226892183,
+          -0.3846530260446965,
+          1.7283133986547379
+        ],
+        "endpoints": [
+          [
+            -0.9370296477626223,
+            -0.38264529740875936,
+            1.734225774398404
+          ],
+          [
+            -0.9399999976158142,
+            -0.38666075468063354,
+            1.7224010229110718
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.06007943959598372,
+            0.49999999999999006,
+            0.4399205604040262
+          ],
+          [
+            0.06007949196100104,
+            0.2791713951326399,
+            0.6607491129063591
+          ]
+        ],
+        "normalCrossLength": 0.4924285617045245
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          21,
+          28,
+          27
+        ],
+        "b": [
+          27,
+          34,
+          33
+        ],
+        "length": 0.012836362963337677,
+        "midpoint": [
+          -0.9385148224857207,
+          0.9846530205371614,
+          2.7136866303384384
+        ],
+        "endpoints": [
+          [
+            -0.9370296473556272,
+            0.9826452625518314,
+            2.707774252116696
+          ],
+          [
+            -0.9399999976158141,
+            0.9866607785224915,
+            2.7195990085601807
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.439920620681606,
+            0.06007937931838903,
+            0.500000000000005
+          ],
+          [
+            0.6607489100806163,
+            0.06007943045816556,
+            0.2791716594612181
+          ]
+        ],
+        "normalCrossLength": 0.49242756901757695
+      },
+      {
+        "name": "Heavy salvage side lashing -1 1",
+        "a": [
+          74,
+          75,
+          81
+        ],
+        "b": [
+          68,
+          69,
+          75
+        ],
+        "length": 0.012836546437914986,
+        "midpoint": [
+          -0.9385148223857165,
+          -0.38465300559832605,
+          2.478313384506959
+        ],
+        "endpoints": [
+          [
+            -0.9370296471556188,
+            -0.38264525651601855,
+            2.484225865312136
+          ],
+          [
+            -0.9399999976158142,
+            -0.38666075468063354,
+            2.4724009037017822
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.06007934969632944,
+            0.500000000000005,
+            0.4399206503036655
+          ],
+          [
+            0.06007963977631503,
+            0.27917307445328216,
+            0.6607472857704028
+          ]
+        ],
+        "normalCrossLength": 0.49243041657730063
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          14,
+          15,
+          21
+        ],
+        "b": [
+          32,
+          33,
+          39
+        ],
+        "length": 0.005200314136081907,
+        "midpoint": [
+          0.9400062028441947,
+          0.9669493577041328,
+          1.9646055390213444
+        ],
+        "endpoints": [
+          [
+            0.9400124343859119,
+            0.9693434867645734,
+            1.9635911801162595
+          ],
+          [
+            0.9399999713024774,
+            0.9645552286436923,
+            1.9656198979264294
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.015642799265602858,
+            0.029267731834106168,
+            0.955089468900291
+          ],
+          [
+            0.015642793408964795,
+            0.937805011213932,
+            0.0465521953771032
+          ]
+        ],
+        "normalCrossLength": 0.9536450121557057
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          14,
+          21,
+          20
+        ],
+        "b": [
+          32,
+          33,
+          39
+        ],
+        "length": 0.0075523959090102455,
+        "midpoint": [
+          0.9400062026465056,
+          0.9728122493261818,
+          1.9620987597839747
+        ],
+        "endpoints": [
+          [
+            0.9399999709070993,
+            0.9762810118877903,
+            1.9606063394516902
+          ],
+          [
+            0.9400124343859119,
+            0.9693434867645734,
+            1.9635911801162593
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.015642813457591664,
+            0.9458038346542288,
+            0.0385533518881795
+          ],
+          [
+            0.054196109746554866,
+            0.9285194267104482,
+            0.01728446354299692
+          ]
+        ],
+        "normalCrossLength": 0.953011939684762
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          14,
+          21,
+          20
+        ],
+        "b": [
+          26,
+          33,
+          32
+        ],
+        "length": 9.777828102741637e-09,
+        "midpoint": [
+          0.939999971661948,
+          0.9762810158098982,
+          1.9606063366323365
+        ],
+        "endpoints": [
+          [
+            0.9399999724167967,
+            0.976281019732006,
+            1.9606063338129829
+          ],
+          [
+            0.9399999709070993,
+            0.9762810118877905,
+            1.9606063394516902
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            1.4191989361478363e-08,
+            0.9228932296842072,
+            0.07710675612380344
+          ],
+          [
+            6.002426389262183e-08,
+            0.9228933291693963,
+            0.07710661080633986
+          ]
+        ],
+        "normalCrossLength": 0.9995885049512147
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          33,
+          34,
+          40
+        ],
+        "length": 0.007552409596559784,
+        "midpoint": [
+          0.9399937360885362,
+          0.97106616297204,
+          1.9717992648894103
+        ],
+        "endpoints": [
+          [
+            0.9399875043635806,
+            0.9683355271875692,
+            1.9691909489467523
+          ],
+          [
+            0.9399999678134918,
+            0.9737967987565107,
+            1.9744075808320682
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.017284473976882375,
+            0.054196193709587746,
+            0.9285193323135299
+          ],
+          [
+            0.9458037937807198,
+            0.03855340415133462,
+            0.015642802067945636
+          ]
+        ],
+        "normalCrossLength": 0.953011847758724
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          33,
+          40,
+          39
+        ],
+        "length": 0.00520030940379046,
+        "midpoint": [
+          0.939993737833029,
+          0.9664453779156307,
+          1.9674054234365908
+        ],
+        "endpoints": [
+          [
+            0.9399999713024774,
+            0.9645552286436924,
+            1.9656198979264294
+          ],
+          [
+            0.9399875043635806,
+            0.9683355271875692,
+            1.9691909489467523
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.04655220581098973,
+            0.01564278955825244,
+            0.9378050046307578
+          ],
+          [
+            0.9550894660979469,
+            0.015642802067944626,
+            0.02926773183410846
+          ]
+        ],
+        "normalCrossLength": 0.9536450360305876
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          20,
+          21,
+          27
+        ],
+        "b": [
+          26,
+          33,
+          32
+        ],
+        "length": 0.007572804948559386,
+        "midpoint": [
+          0.9414851342855816,
+          0.9794631324285062,
+          1.9591902488199433
+        ],
+        "endpoints": [
+          [
+            0.9429702961543663,
+            0.9826452451250063,
+            1.957774163826904
+          ],
+          [
+            0.9399999724167967,
+            0.9762810197320061,
+            1.9606063338129829
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.09863272791043731,
+            0.7406186477195654,
+            0.16074862436999732
+          ],
+          [
+            0.06007933255932585,
+            0.9013673729719242,
+            0.038553294468750055
+          ]
+        ],
+        "normalCrossLength": 0.8678166478972454
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          21,
+          22,
+          28
+        ],
+        "b": [
+          27,
+          34,
+          33
+        ],
+        "length": 0.0075728381983142246,
+        "midpoint": [
+          0.9385148080614277,
+          0.9762854014222289,
+          1.9768444080474226
+        ],
+        "endpoints": [
+          [
+            0.9399999678134918,
+            0.9737967987565107,
+            1.9744075808320682
+          ],
+          [
+            0.9370296483093636,
+            0.9787740040879469,
+            1.9792812352627769
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9013670752781434,
+            0.0385534041513332,
+            0.06007952057052334
+          ],
+          [
+            0.16074923365191784,
+            0.0986328805583691,
+            0.7406178857897131
+          ]
+        ],
+        "normalCrossLength": 0.8678179174901888
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          21,
+          28,
+          27
+        ],
+        "b": [
+          27,
+          34,
+          33
+        ],
+        "length": 0.012836354947613704,
+        "midpoint": [
+          0.9385148229625889,
+          0.9827173913052192,
+          1.974440062306834
+        ],
+        "endpoints": [
+          [
+            0.9370296483093636,
+            0.9787740040879469,
+            1.9792812352627769
+          ],
+          [
+            0.9399999976158142,
+            0.9866607785224915,
+            1.9695988893508911
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.4399204794294792,
+            0.0600795205705229,
+            0.4999999999999979
+          ],
+          [
+            0.6607492336519105,
+            0.06007947640703575,
+            0.2791712899410538
+          ]
+        ],
+        "normalCrossLength": 0.49242736273640514
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          74,
+          75,
+          81
+        ],
+        "b": [
+          68,
+          69,
+          75
+        ],
+        "length": 0.012836334612650768,
+        "midpoint": [
+          0.938514822920886,
+          -0.38271739128416427,
+          1.7175598440442137
+        ],
+        "endpoints": [
+          [
+            0.9370296482259576,
+            -0.3787740278876949,
+            1.7127186651773554
+          ],
+          [
+            0.9399999976158142,
+            -0.38666075468063354,
+            1.7224010229110718
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.06007950821774055,
+            0.5000000000000145,
+            0.43992049178224485
+          ],
+          [
+            0.06007945585271979,
+            0.279171031570651,
+            0.6607495125766292
+          ]
+        ],
+        "normalCrossLength": 0.49242820455309133
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          74,
+          81,
+          80
+        ],
+        "b": [
+          68,
+          69,
+          75
+        ],
+        "length": 0.007572829335634967,
+        "midpoint": [
+          0.9385148073277841,
+          -0.3762854313995139,
+          1.7151554922122387
+        ],
+        "endpoints": [
+          [
+            0.9399999664296108,
+            -0.37379683491133303,
+            1.717592319247122
+          ],
+          [
+            0.9370296482259575,
+            -0.3787740278876948,
+            1.7127186651773554
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.060079540040772206,
+            0.9013670740655038,
+            0.03855338589372399
+          ],
+          [
+            0.09863287580787194,
+            0.7406176116155038,
+            0.16074951257662426
+          ]
+        ],
+        "normalCrossLength": 0.8678173871026506
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          75,
+          82,
+          81
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ],
+        "length": 5.022212756777833e-09,
+        "midpoint": [
+          0.939999965454496,
+          -0.37628105934604705,
+          1.731393581637004
+        ],
+        "endpoints": [
+          [
+            0.9399999661777992,
+            -0.3762810617501959,
+            1.7313935815864414
+          ],
+          [
+            0.939999964731193,
+            -0.37628105694189834,
+            1.7313935816875665
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            1.6060259877548333e-07,
+            0.07710674203990006,
+            0.9228930973575011
+          ],
+          [
+            1.5681430820535525e-08,
+            0.07710684152517094,
+            0.9228931427933982
+          ]
+        ],
+        "normalCrossLength": 0.7837328173901357
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          75,
+          82,
+          81
+        ],
+        "b": [
+          69,
+          70,
+          76
+        ],
+        "length": 0.00757281228573925,
+        "midpoint": [
+          0.9414851308094505,
+          -0.37946317456752904,
+          1.73280967321957
+        ],
+        "endpoints": [
+          [
+            0.9429702954411019,
+            -0.3826452873848623,
+            1.7342257648526982
+          ],
+          [
+            0.9399999661777992,
+            -0.3762810617501958,
+            1.7313935815864414
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.16074935944214974,
+            0.09863272611131656,
+            0.7406179144465337
+          ],
+          [
+            0.9013671989949577,
+            0.03855342283082004,
+            0.06007937817422225
+          ]
+        ],
+        "normalCrossLength": 0.8678164636904862
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          62,
+          63,
+          69
+        ],
+        "length": 0.005200314439554488,
+        "midpoint": [
+          0.9399937378664308,
+          -0.36644541124897595,
+          1.7245944923348586
+        ],
+        "endpoints": [
+          [
+            0.9399999713024774,
+            -0.3645552617897399,
+            1.7263800213135045
+          ],
+          [
+            0.9399875044303843,
+            -0.36833556070821194,
+            1.7228089633562127
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.015642791225023323,
+            0.9378050036501625,
+            0.04655220512481414
+          ],
+          [
+            0.015642801759544578,
+            0.029267731834108274,
+            0.9550894664063472
+          ]
+        ],
+        "normalCrossLength": 0.9536448360889286
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          62,
+          69,
+          68
+        ],
+        "length": 0.007552414941899177,
+        "midpoint": [
+          0.9399937358301935,
+          -0.3710661963821265,
+          1.7202006434276653
+        ],
+        "endpoints": [
+          [
+            0.9399875044303843,
+            -0.36833556070821205,
+            1.7228089633562127
+          ],
+          [
+            0.9399999672300027,
+            -0.3737968320560411,
+            1.717592323499118
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.054196188712956395,
+            0.9285193379963362,
+            0.017284473290707404
+          ],
+          [
+            0.015642809283675896,
+            0.9458037985140977,
+            0.038553392202226394
+          ]
+        ],
+        "normalCrossLength": 0.9530116635240986
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          81,
+          82,
+          88
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ],
+        "length": 0.007552407146756535,
+        "midpoint": [
+          0.9400061993746414,
+          -0.37281228945823736,
+          1.7299011585903477
+        ],
+        "endpoints": [
+          [
+            0.939999964731193,
+            -0.37628105694189834,
+            1.7313935816875667
+          ],
+          [
+            0.9400124340180896,
+            -0.36934352197457654,
+            1.7284087354931288
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9458038334807397,
+            0.03855336895171361,
+            0.015642797567546638
+          ],
+          [
+            0.017284487080678534,
+            0.0541962272505399,
+            0.9285192856687816
+          ]
+        ],
+        "normalCrossLength": 0.9530117156817635
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          81,
+          88,
+          87
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ],
+        "length": 0.005200314619288049,
+        "midpoint": [
+          0.9400062026602835,
+          -0.36694939188215825,
+          1.7273943784033166
+        ],
+        "endpoints": [
+          [
+            0.9400124340180896,
+            -0.36934352197457665,
+            1.7284087354931288
+          ],
+          [
+            0.9399999713024773,
+            -0.36455526178974,
+            1.7263800213135045
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9550894705983471,
+            0.01564279756754479,
+            0.02926773183410811
+          ],
+          [
+            0.046552203233354184,
+            0.015642808556190123,
+            0.9378049882104557
+          ]
+        ],
+        "normalCrossLength": 0.9536448986354966
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          14,
+          15,
+          21
+        ],
+        "b": [
+          33,
+          40,
+          39
+        ],
+        "length": 1.6146549430828827e-08,
+        "midpoint": [
+          0.939999971798205,
+          0.9645552390598526,
+          2.7156200120326615
+        ],
+        "endpoints": [
+          [
+            0.9399999760424862,
+            0.9645552402764602,
+            2.715620005273689
+          ],
+          [
+            0.939999967553924,
+            0.964555237843245,
+            2.715620018791634
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            7.552385916653748e-08,
+            0.05853533043648034,
+            0.9414645940396605
+          ],
+          [
+            0.9414646112305597,
+            7.552396406330056e-08,
+            0.05853531324547624
+          ]
+        ],
+        "normalCrossLength": 0.6111505561693419
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          14,
+          15,
+          21
+        ],
+        "b": [
+          32,
+          33,
+          39
+        ],
+        "length": 0.005200299417068011,
+        "midpoint": [
+          0.9400062059735538,
+          0.9669493627368475,
+          2.7146056496460034
+        ],
+        "endpoints": [
+          [
+            0.9400124359046215,
+            0.9693434851972347,
+            2.7135912940183173
+          ],
+          [
+            0.9399999760424861,
+            0.9645552402764602,
+            2.715620005273689
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.015642881800604802,
+            0.029267631100087683,
+            0.9550894870993075
+          ],
+          [
+            0.015642776001116188,
+            0.9378050696660717,
+            0.046552154332812117
+          ]
+        ],
+        "normalCrossLength": 0.9536446894482375
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          14,
+          21,
+          20
+        ],
+        "b": [
+          32,
+          33,
+          39
+        ],
+        "length": 0.007552404415791636,
+        "midpoint": [
+          0.9400062007100765,
+          0.9728122512898885,
+          2.7120988711453617
+        ],
+        "endpoints": [
+          [
+            0.9399999655155314,
+            0.9762810173825421,
+            2.7106064482724057
+          ],
+          [
+            0.9400124359046215,
+            0.9693434851972348,
+            2.713591294018318
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.015642806276745636,
+            0.9458038158144534,
+            0.03855337790880097
+          ],
+          [
+            0.05419615390991628,
+            0.9285193824982559,
+            0.017284463591827757
+          ]
+        ],
+        "normalCrossLength": 0.9530115672874933
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          33,
+          34,
+          40
+        ],
+        "length": 0.007552419588309434,
+        "midpoint": [
+          0.9399937350992305,
+          0.9710661616567671,
+          2.7217993874370605
+        ],
+        "endpoints": [
+          [
+            0.9399875023849692,
+            0.9683355245570235,
+            2.7191910656409153
+          ],
+          [
+            0.9399999678134918,
+            0.9737967987565107,
+            2.7244077092332057
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.017284480532597235,
+            0.05419616247836554,
+            0.9285193569890372
+          ],
+          [
+            0.9458037846464196,
+            0.03855340415133732,
+            0.015642811202243125
+          ]
+        ],
+        "normalCrossLength": 0.9530117472191267
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          15,
+          22,
+          21
+        ],
+        "b": [
+          33,
+          40,
+          39
+        ],
+        "length": 0.00520029793555743,
+        "midpoint": [
+          0.9399937349694466,
+          0.9664453812001345,
+          2.7174055422162744
+        ],
+        "endpoints": [
+          [
+            0.939999967553924,
+            0.9645552378432453,
+            2.715620018791634
+          ],
+          [
+            0.9399875023849692,
+            0.9683355245570235,
+            2.719191065640915
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.046552179868990295,
+            0.015642758327028137,
+            0.9378050618039816
+          ],
+          [
+            0.9550894907693015,
+            0.015642886726208022,
+            0.02926762250449049
+          ]
+        ],
+        "normalCrossLength": 0.9536449245556402
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          20,
+          21,
+          27
+        ],
+        "b": [
+          26,
+          33,
+          32
+        ],
+        "length": 0.007572825486420909,
+        "midpoint": [
+          0.9414851306198062,
+          0.9794631364539238,
+          2.7091903535402144
+        ],
+        "endpoints": [
+          [
+            0.942970295724081,
+            0.9826452555253056,
+            2.707774258808023
+          ],
+          [
+            0.9399999655155314,
+            0.976281017382542,
+            2.7106064482724057
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.0986327653117075,
+            0.7406184398065996,
+            0.16074879488169294
+          ],
+          [
+            0.06007933626316997,
+            0.9013672858280313,
+            0.03855337790879872
+          ]
+        ],
+        "normalCrossLength": 0.8678165753261531
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          21,
+          22,
+          28
+        ],
+        "b": [
+          27,
+          34,
+          33
+        ],
+        "length": 0.0075728415012559225,
+        "midpoint": [
+          0.9385148080614276,
+          0.9762854014222268,
+          2.7268445390146687
+        ],
+        "endpoints": [
+          [
+            0.9399999678134918,
+            0.9737967987565107,
+            2.7244077092332057
+          ],
+          [
+            0.9370296483093634,
+            0.9787740040879427,
+            2.729281368796132
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9013670752781856,
+            0.038553404151334,
+            0.06007952057048042
+          ],
+          [
+            0.1607492336517521,
+            0.098632880558384,
+            0.7406178857898639
+          ]
+        ],
+        "normalCrossLength": 0.8678175477925165
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          21,
+          28,
+          27
+        ],
+        "b": [
+          27,
+          34,
+          33
+        ],
+        "length": 0.012836365752132206,
+        "midpoint": [
+          0.9385148229625888,
+          0.9827173913052171,
+          2.7244401886781566
+        ],
+        "endpoints": [
+          [
+            0.9370296483093634,
+            0.9787740040879428,
+            2.729281368796132
+          ],
+          [
+            0.9399999976158142,
+            0.9866607785224915,
+            2.7195990085601807
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.4399204794295297,
+            0.06007952057048364,
+            0.4999999999999867
+          ],
+          [
+            0.6607492336517413,
+            0.06007947640705319,
+            0.27917128994120544
+          ]
+        ],
+        "normalCrossLength": 0.49242724406339583
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          74,
+          75,
+          81
+        ],
+        "b": [
+          68,
+          69,
+          75
+        ],
+        "length": 0.012836213514515915,
+        "midpoint": [
+          0.9385148237045406,
+          -0.3827173896360553,
+          2.467559806209887
+        ],
+        "endpoints": [
+          [
+            0.9370296497932672,
+            -0.3787740245914773,
+            2.462718708717992
+          ],
+          [
+            0.9399999976158142,
+            -0.38666075468063354,
+            2.4724009037017822
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.060079740342521615,
+            0.49999999999995914,
+            0.43992025965751924
+          ],
+          [
+            0.06007945723450481,
+            0.2791712802382308,
+            0.6607492625272644
+          ]
+        ],
+        "normalCrossLength": 0.4924243413075272
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          74,
+          81,
+          80
+        ],
+        "b": [
+          62,
+          69,
+          68
+        ],
+        "length": 6.723021184207312e-08,
+        "midpoint": [
+          0.9399999550560296,
+          -0.37379682338641623,
+          2.4675924302299856
+        ],
+        "endpoints": [
+          [
+            0.9399999602462232,
+            -0.3737968048712233,
+            2.4675924578021613
+          ],
+          [
+            0.9399999498658361,
+            -0.373796841901609,
+            2.46759240265781
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            4.12714204145459e-07,
+            0.9228931021849833,
+            0.07710648510081254
+          ],
+          [
+            9.758063712617115e-08,
+            0.9228930441242694,
+            0.07710685829509346
+          ]
+        ],
+        "normalCrossLength": 0.9995885114069585
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          74,
+          81,
+          80
+        ],
+        "b": [
+          68,
+          69,
+          75
+        ],
+        "length": 0.007572841122620133,
+        "midpoint": [
+          0.9385147998295518,
+          -0.3762854332465432,
+          2.4651555556879012
+        ],
+        "endpoints": [
+          [
+            0.9399999498658362,
+            -0.37379684190160883,
+            2.46759240265781
+          ],
+          [
+            0.9370296497932673,
+            -0.3787740245914776,
+            2.4627187087179925
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.06008015305671577,
+            0.9013666795761685,
+            0.03855316736711575
+          ],
+          [
+            0.09863306634669955,
+            0.7406176711260147,
+            0.1607492625272857
+          ]
+        ],
+        "normalCrossLength": 0.8678209090917801
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          75,
+          82,
+          81
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ],
+        "length": 2.8411928920668572e-08,
+        "midpoint": [
+          0.9399999702599277,
+          -0.37628103752083136,
+          2.4813936945236694
+        ],
+        "endpoints": [
+          [
+            0.9399999743518856,
+            -0.37628105112169374,
+            2.4813936942375787
+          ],
+          [
+            0.9399999661679697,
+            -0.3762810239199689,
+            2.48139369480976
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            9.085607618475322e-07,
+            0.07710668915200994,
+            0.9228924022872282
+          ],
+          [
+            8.871400081211789e-08,
+            0.07710663556658288,
+            0.9228932757194163
+          ]
+        ],
+        "normalCrossLength": 0.7837313325156061
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          75,
+          82,
+          81
+        ],
+        "b": [
+          69,
+          70,
+          76
+        ],
+        "length": 0.007572754124673953,
+        "midpoint": [
+          0.9414851359652685,
+          -0.3794631434202767,
+          2.4828097573871677
+        ],
+        "endpoints": [
+          [
+            0.9429702975786514,
+            -0.3826452357188598,
+            2.4842258205367562
+          ],
+          [
+            0.9399999743518855,
+            -0.37628105112169363,
+            2.4813936942375787
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.16074883932657547,
+            0.09863274969944073,
+            0.7406184109739838
+          ],
+          [
+            0.9013676089275389,
+            0.03855332948337576,
+            0.060079061589085374
+          ]
+        ],
+        "normalCrossLength": 0.8678135719490824
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          62,
+          63,
+          69
+        ],
+        "length": 0.005200312918713479,
+        "midpoint": [
+          0.9399937335525822,
+          -0.36644540432203704,
+          2.4745945946098904
+        ],
+        "endpoints": [
+          [
+            0.9399999679397246,
+            -0.3645552535369842,
+            2.476380121074359
+          ],
+          [
+            0.9399874991654398,
+            -0.3683355551070899,
+            2.4728090681454225
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.015642874399151685,
+            0.9378050584143917,
+            0.0465520671864567
+          ],
+          [
+            0.01564282606526546,
+            0.029267760987218137,
+            0.9550894129475164
+          ]
+        ],
+        "normalCrossLength": 0.9536447012529274
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          62,
+          69,
+          68
+        ],
+        "length": 0.007552378945616889,
+        "midpoint": [
+          0.9399937297058314,
+          -0.3710661799891566,
+          2.470200762973792
+        ],
+        "endpoints": [
+          [
+            0.9399874991654397,
+            -0.36833555510709015,
+            2.4728090681454225
+          ],
+          [
+            0.9399999602462231,
+            -0.37379680487122324,
+            2.4675924578021613
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.054196143939505115,
+            0.9285194549692587,
+            0.017284401091236162
+          ],
+          [
+            0.015642923645901696,
+            0.945803827171205,
+            0.03855324918289331
+          ]
+        ],
+        "normalCrossLength": 0.9530115072192762
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          80,
+          81,
+          87
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ],
+        "length": 1.026327645092806e-08,
+        "midpoint": [
+          0.9399999652697633,
+          -0.36455525431333113,
+          2.4763801253873967
+        ],
+        "endpoints": [
+          [
+            0.9399999625998018,
+            -0.36455525508967784,
+            2.4763801297004355
+          ],
+          [
+            0.9399999679397248,
+            -0.3645552535369844,
+            2.4763801210743583
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            4.8193349200253977e-08,
+            0.9414646293243103,
+            0.05853532248234052
+          ],
+          [
+            0.0585355316825209,
+            4.8193390679048644e-08,
+            0.9414644201240884
+          ]
+        ],
+        "normalCrossLength": 0.6130413503360274
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          81,
+          82,
+          88
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ],
+        "length": 0.0075524022764370535,
+        "midpoint": [
+          0.9400061978181503,
+          -0.372812260393833,
+          2.4799012686633235
+        ],
+        "endpoints": [
+          [
+            0.9399999661679695,
+            -0.3762810239199689,
+            2.48139369480976
+          ],
+          [
+            0.9400124294683311,
+            -0.369343496867697,
+            2.478408842516887
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9458038905618881,
+            0.03855333287459104,
+            0.01564277656352092
+          ],
+          [
+            0.017284632026722813,
+            0.05419607186818042,
+            0.9285192961050968
+          ]
+        ],
+        "normalCrossLength": 0.9530120350074534
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          81,
+          88,
+          87
+        ],
+        "b": [
+          63,
+          70,
+          69
+        ],
+        "length": 0.005200297149126509,
+        "midpoint": [
+          0.9400061960340665,
+          -0.3669493759786874,
+          2.477394486108661
+        ],
+        "endpoints": [
+          [
+            0.9400124294683312,
+            -0.369343496867697,
+            2.478408842516887
+          ],
+          [
+            0.9399999625998019,
+            -0.3645552550896778,
+            2.4763801297004355
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.9550895670493578,
+            0.01564277656352171,
+            0.029267656387120533
+          ],
+          [
+            0.046552314008023954,
+            0.01564281397836472,
+            0.9378048720136113
+          ]
+        ],
+        "normalCrossLength": 0.9536452166818352
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          26,
+          27,
+          33
+        ],
+        "b": [
+          20,
+          21,
+          27
+        ],
+        "length": 0.012836327963716254,
+        "midpoint": [
+          0.9414851468850903,
+          0.9846530118237489,
+          1.9636865265888974
+        ],
+        "endpoints": [
+          [
+            0.9429702961543663,
+            0.9826452451250062,
+            1.9577741638269037
+          ],
+          [
+            0.9399999976158142,
+            0.9866607785224915,
+            1.9695988893508911
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.06007927253506162,
+            0.49999999999999534,
+            0.43992072746494304
+          ],
+          [
+            0.060079323674812946,
+            0.2791720519551925,
+            0.6607486243699945
+          ]
+        ],
+        "normalCrossLength": 0.49242807733353666
+      },
+      {
+        "name": "Heavy salvage side lashing 1 0",
+        "a": [
+          69,
+          76,
+          75
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ],
+        "length": 0.012836322244333731,
+        "midpoint": [
+          0.9414851465284579,
+          -0.38465302103274795,
+          1.7283133938818849
+        ],
+        "endpoints": [
+          [
+            0.9429702954411018,
+            -0.38264528738486225,
+            1.7342257648526982
+          ],
+          [
+            0.9399999976158142,
+            -0.38666075468063354,
+            1.7224010229110718
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.4399206218257663,
+            0.060079378174219995,
+            0.5000000000000137
+          ],
+          [
+            0.6607491988395586,
+            0.06007935302312948,
+            0.2791714481373119
+          ]
+        ],
+        "normalCrossLength": 0.4924288938369056
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          26,
+          27,
+          33
+        ],
+        "b": [
+          20,
+          21,
+          27
+        ],
+        "length": 0.012836346929483433,
+        "midpoint": [
+          0.9414851466699475,
+          0.9846530170238984,
+          2.7136866336841017
+        ],
+        "endpoints": [
+          [
+            0.942970295724081,
+            0.9826452555253052,
+            2.7077742588080227
+          ],
+          [
+            0.9399999976158142,
+            0.9866607785224915,
+            2.7195990085601807
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.06007933626316997,
+            0.4999999999999837,
+            0.4399206637368464
+          ],
+          [
+            0.0600793874029093,
+            0.27917181771541705,
+            0.6607487948816737
+          ]
+        ],
+        "normalCrossLength": 0.492427845242388
+      },
+      {
+        "name": "Heavy salvage side lashing 1 1",
+        "a": [
+          69,
+          76,
+          75
+        ],
+        "b": [
+          75,
+          82,
+          81
+        ],
+        "length": 0.012836500011905727,
+        "midpoint": [
+          0.9414851475972328,
+          -0.3846529951997467,
+          2.4783133621192692
+        ],
+        "endpoints": [
+          [
+            0.9429702975786514,
+            -0.38264523571885983,
+            2.4842258205367562
+          ],
+          [
+            0.9399999976158141,
+            -0.3866607546806336,
+            2.472400903701782
+          ]
+        ],
+        "barycentricMidpoint": [
+          [
+            0.4399209384109065,
+            0.0600790615890854,
+            0.5000000000000081
+          ],
+          [
+            0.6607479307658286,
+            0.0600793934220196,
+            0.2791726758121517
+          ]
+        ],
+        "normalCrossLength": 0.49243088268674146
+      }
+    ],
+    "cross_object_triangle_pairs": 13988,
+    "cross_object_pairs": {
+      "Arch left | Arch right": 20,
+      "Arch left | Broken ship rib -1 1": 16,
+      "Arch left | Crown tie": 42,
+      "Arch left | Frame rope knot.001": 12,
+      "Arch left | Heavy salvage side lashing -1 1": 38,
+      "Arch left | Hollow cast bell": 38,
+      "Arch left | Middle broken side strake -1": 14,
+      "Arch left | Sweeping upper wreck rib -1": 35,
+      "Arch right | Broken ship rib 1 1": 22,
+      "Arch right | Crown tie": 35,
+      "Arch right | Frame rope knot.005": 10,
+      "Arch right | Heavy salvage side lashing 1 1": 38,
+      "Arch right | Hollow cast bell": 32,
+      "Arch right | Middle broken side strake 1": 11,
+      "Arch right | Sweeping upper wreck rib 1": 32,
+      "Barrel timber hull | Broken ship rib -1 0": 28,
+      "Barrel timber hull | Broken ship rib -1 1": 22,
+      "Barrel timber hull | Broken ship rib -1 2": 8,
+      "Barrel timber hull | Broken ship rib 1 0": 24,
+      "Barrel timber hull | Broken ship rib 1 1": 20,
+      "Barrel timber hull | Broken ship rib 1 2": 12,
+      "Barrel timber hull | Frame rope knot.002": 12,
+      "Barrel timber hull | Frame rope knot.006": 16,
+      "Barrel timber hull | Hanging shoulder rope -1": 16,
+      "Barrel timber hull | Hanging shoulder rope 1": 16,
+      "Barrel timber hull | Haunch overlapping strake -1": 22,
+      "Barrel timber hull | Haunch overlapping strake 1": 23,
+      "Barrel timber hull | Heavy salvage side lashing -1 0": 10,
+      "Barrel timber hull | Heavy salvage side lashing 1 0": 10,
+      "Barrel timber hull | Hollow cast bell": 28,
+      "Barrel timber hull | Left fore connected chest strake": 24,
+      "Barrel timber hull | Left fore outer timber shield": 7,
+      "Barrel timber hull | Left fore shoulder cap": 14,
+      "Barrel timber hull | Left fore shoulder lashing": 26,
+      "Barrel timber hull | Left fore shoulder lashing.001": 32,
+      "Barrel timber hull | Left fore timber leg": 20,
+      "Barrel timber hull | Left hind broad haunch shield": 7,
+      "Barrel timber hull | Left hind shoulder cap": 20,
+      "Barrel timber hull | Left hind shoulder lashing": 30,
+      "Barrel timber hull | Left hind shoulder lashing.001": 30,
+      "Barrel timber hull | Left hind timber leg": 17,
+      "Barrel timber hull | Right fore connected chest strake": 21,
+      "Barrel timber hull | Right fore outer timber shield": 6,
+      "Barrel timber hull | Right fore shoulder cap": 15,
+      "Barrel timber hull | Right fore shoulder lashing": 28,
+      "Barrel timber hull | Right fore shoulder lashing.001": 30,
+      "Barrel timber hull | Right fore timber leg": 20,
+      "Barrel timber hull | Right hind broad haunch shield": 10,
+      "Barrel timber hull | Right hind shoulder cap": 19,
+      "Barrel timber hull | Right hind shoulder lashing": 32,
+      "Barrel timber hull | Right hind shoulder lashing.001": 26,
+      "Barrel timber hull | Right hind timber leg": 18,
+      "Barrel timber hull | Rooted lower hull rib -1": 14,
+      "Barrel timber hull | Rooted lower hull rib 1": 10,
+      "Barrel timber hull | Solid timber cranium": 43,
+      "Barrel timber hull | Stern diagonal wreck plank -1": 16,
+      "Barrel timber hull | Stern diagonal wreck plank 1": 19,
+      "Barrel timber hull | Stern fan broad plank -1": 20,
+      "Barrel timber hull | Stern fan broad plank 1": 20,
+      "Barrel timber hull | Stern overlapping plate -1": 20,
+      "Barrel timber hull | Stern overlapping plate 1": 24,
+      "Barrel timber hull | Swept cheek horn": 15,
+      "Barrel timber hull | Swept cheek horn.001": 17,
+      "Barrel timber hull | Tall stern plank": 10,
+      "Broken ship rib -1 0 | Diagonal binding -1": 18,
+      "Broken ship rib -1 0 | Frame rope knot": 44,
+      "Broken ship rib -1 0 | Frame rope knot.001": 40,
+      "Broken ship rib -1 0 | Heavy salvage side lashing -1 0": 48,
+      "Broken ship rib -1 0 | Heavy salvage side lashing -1 1": 36,
+      "Broken ship rib -1 0 | Hollow cast bell": 52,
+      "Broken ship rib -1 0 | Left fore shoulder lashing": 4,
+      "Broken ship rib -1 0 | Left fore shoulder lashing.001": 4,
+      "Broken ship rib -1 0 | Lower broken side strake -1": 22,
+      "Broken ship rib -1 0 | Middle broken side strake -1": 40,
+      "Broken ship rib -1 0 | Rooted lower hull rib -1": 28,
+      "Broken ship rib -1 0 | Sweeping upper wreck rib -1": 17,
+      "Broken ship rib -1 1 | Diagonal binding -1": 32,
+      "Broken ship rib -1 1 | Haunch overlapping strake -1": 32,
+      "Broken ship rib -1 1 | Heavy salvage side lashing -1 0": 30,
+      "Broken ship rib -1 1 | Heavy salvage side lashing -1 1": 24,
+      "Broken ship rib -1 1 | Hollow cast bell": 26,
+      "Broken ship rib -1 1 | Left hind broad haunch shield": 7,
+      "Broken ship rib -1 1 | Left hind shoulder cap": 18,
+      "Broken ship rib -1 1 | Left hind shoulder lashing": 24,
+      "Broken ship rib -1 1 | Left hind shoulder lashing.001": 24,
+      "Broken ship rib -1 1 | Left hind timber leg": 6,
+      "Broken ship rib -1 1 | Lower broken side strake -1": 20,
+      "Broken ship rib -1 1 | Middle broken side strake -1": 20,
+      "Broken ship rib -1 1 | Rooted lower hull rib -1": 30,
+      "Broken ship rib -1 1 | Sweeping upper wreck rib -1": 24,
+      "Broken ship rib -1 2 | Frame rope knot.002": 34,
+      "Broken ship rib -1 2 | Frame rope knot.003": 32,
+      "Broken ship rib -1 2 | Haunch overlapping strake -1": 34,
+      "Broken ship rib -1 2 | Heavy salvage side lashing -1 0": 60,
+      "Broken ship rib -1 2 | Heavy salvage side lashing -1 1": 24,
+      "Broken ship rib -1 2 | Left hind broad haunch shield": 23,
+      "Broken ship rib -1 2 | Left hind shoulder cap": 28,
+      "Broken ship rib -1 2 | Left hind shoulder lashing": 32,
+      "Broken ship rib -1 2 | Left hind shoulder lashing.001": 30,
+      "Broken ship rib -1 2 | Left hind timber leg": 20,
+      "Broken ship rib -1 2 | Lower broken side strake -1": 36,
+      "Broken ship rib -1 2 | Middle broken side strake -1": 13,
+      "Broken ship rib -1 2 | Rear crossed rope left": 22,
+      "Broken ship rib -1 2 | Rooted lower hull rib -1": 14,
+      "Broken ship rib -1 2 | Stern diagonal wreck plank -1": 14,
+      "Broken ship rib -1 2 | Stern fan broad plank -1": 10,
+      "Broken ship rib -1 2 | Sweeping upper wreck rib -1": 7,
+      "Broken ship rib 1 0 | Diagonal binding 1": 14,
+      "Broken ship rib 1 0 | Frame rope knot.004": 46,
+      "Broken ship rib 1 0 | Frame rope knot.005": 46,
+      "Broken ship rib 1 0 | Heavy salvage side lashing 1 0": 46,
+      "Broken ship rib 1 0 | Heavy salvage side lashing 1 1": 38,
+      "Broken ship rib 1 0 | Hollow cast bell": 56,
+      "Broken ship rib 1 0 | Lower broken side strake 1": 14,
+      "Broken ship rib 1 0 | Middle broken side strake 1": 22,
+      "Broken ship rib 1 0 | Right fore shoulder lashing": 6,
+      "Broken ship rib 1 0 | Right fore shoulder lashing.001": 4,
+      "Broken ship rib 1 0 | Rooted lower hull rib 1": 24,
+      "Broken ship rib 1 0 | Sweeping upper wreck rib 1": 16,
+      "Broken ship rib 1 1 | Diagonal binding 1": 28,
+      "Broken ship rib 1 1 | Haunch overlapping strake 1": 36,
+      "Broken ship rib 1 1 | Heavy salvage side lashing 1 0": 30,
+      "Broken ship rib 1 1 | Heavy salvage side lashing 1 1": 30,
+      "Broken ship rib 1 1 | Hollow cast bell": 18,
+      "Broken ship rib 1 1 | Lower broken side strake 1": 16,
+      "Broken ship rib 1 1 | Middle broken side strake 1": 18,
+      "Broken ship rib 1 1 | Right hind shoulder cap": 14,
+      "Broken ship rib 1 1 | Right hind shoulder lashing": 22,
+      "Broken ship rib 1 1 | Right hind shoulder lashing.001": 22,
+      "Broken ship rib 1 1 | Right hind timber leg": 6,
+      "Broken ship rib 1 1 | Rooted lower hull rib 1": 26,
+      "Broken ship rib 1 1 | Sweeping upper wreck rib 1": 24,
+      "Broken ship rib 1 2 | Frame rope knot.006": 34,
+      "Broken ship rib 1 2 | Frame rope knot.007": 30,
+      "Broken ship rib 1 2 | Haunch overlapping strake 1": 34,
+      "Broken ship rib 1 2 | Heavy salvage side lashing 1 0": 58,
+      "Broken ship rib 1 2 | Heavy salvage side lashing 1 1": 28,
+      "Broken ship rib 1 2 | Lower broken side strake 1": 36,
+      "Broken ship rib 1 2 | Middle broken side strake 1": 17,
+      "Broken ship rib 1 2 | Rear crossed rope right": 16,
+      "Broken ship rib 1 2 | Right hind broad haunch shield": 26,
+      "Broken ship rib 1 2 | Right hind shoulder cap": 31,
+      "Broken ship rib 1 2 | Right hind shoulder lashing": 28,
+      "Broken ship rib 1 2 | Right hind shoulder lashing.001": 28,
+      "Broken ship rib 1 2 | Right hind timber leg": 30,
+      "Broken ship rib 1 2 | Rooted lower hull rib 1": 16,
+      "Broken ship rib 1 2 | Stern diagonal wreck plank 1": 46,
+      "Broken ship rib 1 2 | Stern fan broad plank 1": 10,
+      "Broken ship rib 1 2 | Sweeping upper wreck rib 1": 9,
+      "Clapper stem | Clapper weight": 20,
+      "Clapper stem | Hollow cast bell": 10,
+      "Crown wood splinter -1 | Pointed central face keel": 6,
+      "Crown wood splinter -1 | Solid timber cranium": 9,
+      "Crown wood splinter 1 | Pointed central face keel": 6,
+      "Crown wood splinter 1 | Solid timber cranium": 9,
+      "Diagonal binding -1 | Frame rope knot": 24,
+      "Diagonal binding -1 | Frame rope knot.001": 8,
+      "Diagonal binding -1 | Frame rope knot.003": 30,
+      "Diagonal binding -1 | Lower broken side strake -1": 26,
+      "Diagonal binding -1 | Middle broken side strake -1": 22,
+      "Diagonal binding -1 | Rooted lower hull rib -1": 20,
+      "Diagonal binding -1 | Stern diagonal wreck plank -1": 12,
+      "Diagonal binding -1 | Sweeping upper wreck rib -1": 8,
+      "Diagonal binding 1 | Frame rope knot.004": 22,
+      "Diagonal binding 1 | Frame rope knot.005": 8,
+      "Diagonal binding 1 | Frame rope knot.007": 32,
+      "Diagonal binding 1 | Lower broken side strake 1": 26,
+      "Diagonal binding 1 | Middle broken side strake 1": 22,
+      "Diagonal binding 1 | Rooted lower hull rib 1": 16,
+      "Diagonal binding 1 | Stern diagonal wreck plank 1": 20,
+      "Diagonal binding 1 | Sweeping upper wreck rib 1": 10,
+      "Frame rope knot | Hollow cast bell": 64,
+      "Frame rope knot | Middle broken side strake -1": 46,
+      "Frame rope knot | Sweeping upper wreck rib -1": 14,
+      "Frame rope knot.001 | Heavy salvage side lashing -1 1": 92,
+      "Frame rope knot.001 | Hollow cast bell": 60,
+      "Frame rope knot.001 | Middle broken side strake -1": 12,
+      "Frame rope knot.001 | Sweeping upper wreck rib -1": 49,
+      "Frame rope knot.002 | Haunch overlapping strake -1": 10,
+      "Frame rope knot.002 | Left hind broad haunch shield": 52,
+      "Frame rope knot.002 | Left hind shoulder cap": 52,
+      "Frame rope knot.002 | Left hind timber leg": 38,
+      "Frame rope knot.002 | Lower broken side strake -1": 40,
+      "Frame rope knot.002 | Rooted lower hull rib -1": 47,
+      "Frame rope knot.002 | Stern diagonal wreck plank -1": 60,
+      "Frame rope knot.002 | Stern fan broad plank -1": 18,
+      "Frame rope knot.003 | Left hind broad haunch shield": 22,
+      "Frame rope knot.003 | Left hind shoulder cap": 6,
+      "Frame rope knot.003 | Lower broken side strake -1": 66,
+      "Frame rope knot.003 | Rooted lower hull rib -1": 78,
+      "Frame rope knot.003 | Stern diagonal wreck plank -1": 36,
+      "Frame rope knot.003 | Stern fan broad plank -1": 18,
+      "Frame rope knot.004 | Hollow cast bell": 66,
+      "Frame rope knot.004 | Middle broken side strake 1": 42,
+      "Frame rope knot.004 | Sweeping upper wreck rib 1": 16,
+      "Frame rope knot.005 | Heavy salvage side lashing 1 1": 92,
+      "Frame rope knot.005 | Hollow cast bell": 58,
+      "Frame rope knot.005 | Middle broken side strake 1": 22,
+      "Frame rope knot.005 | Sweeping upper wreck rib 1": 40,
+      "Frame rope knot.006 | Haunch overlapping strake 1": 10,
+      "Frame rope knot.006 | Lower broken side strake 1": 38,
+      "Frame rope knot.006 | Right hind broad haunch shield": 50,
+      "Frame rope knot.006 | Right hind shoulder cap": 36,
+      "Frame rope knot.006 | Right hind timber leg": 34,
+      "Frame rope knot.006 | Rooted lower hull rib 1": 51,
+      "Frame rope knot.006 | Stern diagonal wreck plank 1": 68,
+      "Frame rope knot.006 | Stern fan broad plank 1": 14,
+      "Frame rope knot.007 | Lower broken side strake 1": 54,
+      "Frame rope knot.007 | Right hind broad haunch shield": 15,
+      "Frame rope knot.007 | Rooted lower hull rib 1": 68,
+      "Frame rope knot.007 | Stern diagonal wreck plank 1": 68,
+      "Frame rope knot.007 | Stern fan broad plank 1": 16,
+      "Hanging shoulder rope -1 | Heavy salvage side lashing -1 0": 56,
+      "Hanging shoulder rope -1 | Left fore connected chest strake": 24,
+      "Hanging shoulder rope -1 | Left fore neck gusset": 36,
+      "Hanging shoulder rope -1 | Left fore outer timber shield": 20,
+      "Hanging shoulder rope -1 | Left fore shoulder cap": 34,
+      "Hanging shoulder rope -1 | Left fore timber leg": 32,
+      "Hanging shoulder rope -1 | Lower broken side strake -1": 36,
+      "Hanging shoulder rope -1 | Rooted lower hull rib -1": 32,
+      "Hanging shoulder rope -1 | Swept cheek horn": 30,
+      "Hanging shoulder rope 1 | Heavy salvage side lashing 1 0": 52,
+      "Hanging shoulder rope 1 | Lower broken side strake 1": 27,
+      "Hanging shoulder rope 1 | Right fore connected chest strake": 24,
+      "Hanging shoulder rope 1 | Right fore neck gusset": 35,
+      "Hanging shoulder rope 1 | Right fore outer timber shield": 18,
+      "Hanging shoulder rope 1 | Right fore shoulder cap": 32,
+      "Hanging shoulder rope 1 | Right fore timber leg": 30,
+      "Hanging shoulder rope 1 | Rooted lower hull rib 1": 34,
+      "Hanging shoulder rope 1 | Swept cheek horn.001": 26,
+      "Haunch overlapping strake -1 | Left hind broad haunch shield": 25,
+      "Haunch overlapping strake -1 | Left hind shoulder cap": 32,
+      "Haunch overlapping strake -1 | Left hind shoulder lashing": 34,
+      "Haunch overlapping strake -1 | Left hind shoulder lashing.001": 36,
+      "Haunch overlapping strake -1 | Left hind timber leg": 40,
+      "Haunch overlapping strake -1 | Lower broken side strake -1": 6,
+      "Haunch overlapping strake -1 | Rooted lower hull rib -1": 10,
+      "Haunch overlapping strake -1 | Stern diagonal wreck plank -1": 18,
+      "Haunch overlapping strake -1 | Stern overlapping plate -1": 12,
+      "Haunch overlapping strake 1 | Right hind broad haunch shield": 26,
+      "Haunch overlapping strake 1 | Right hind shoulder cap": 30,
+      "Haunch overlapping strake 1 | Right hind shoulder lashing": 32,
+      "Haunch overlapping strake 1 | Right hind shoulder lashing.001": 38,
+      "Haunch overlapping strake 1 | Right hind timber leg": 47,
+      "Haunch overlapping strake 1 | Rooted lower hull rib 1": 16,
+      "Haunch overlapping strake 1 | Stern diagonal wreck plank 1": 10,
+      "Haunch overlapping strake 1 | Stern overlapping plate 1": 6,
+      "Heavy salvage side lashing -1 0 | Hollow cast bell": 44,
+      "Heavy salvage side lashing -1 0 | Left fore neck gusset": 4,
+      "Heavy salvage side lashing -1 0 | Left fore shoulder cap": 10,
+      "Heavy salvage side lashing -1 0 | Lower broken side strake -1": 62,
+      "Heavy salvage side lashing -1 0 | Stern diagonal wreck plank -1": 28,
+      "Heavy salvage side lashing -1 0 | Stern fan broad plank -1": 21,
+      "Heavy salvage side lashing -1 1 | Hollow cast bell": 34,
+      "Heavy salvage side lashing -1 1 | Middle broken side strake -1": 54,
+      "Heavy salvage side lashing -1 1 | Sweeping upper wreck rib -1": 68,
+      "Heavy salvage side lashing 1 0 | Hollow cast bell": 46,
+      "Heavy salvage side lashing 1 0 | Lower broken side strake 1": 48,
+      "Heavy salvage side lashing 1 0 | Right fore neck gusset": 9,
+      "Heavy salvage side lashing 1 0 | Stern diagonal wreck plank 1": 36,
+      "Heavy salvage side lashing 1 0 | Stern fan broad plank 1": 10,
+      "Heavy salvage side lashing 1 1 | Hollow cast bell": 26,
+      "Heavy salvage side lashing 1 1 | Middle broken side strake 1": 53,
+      "Heavy salvage side lashing 1 1 | Stern diagonal wreck plank 1": 28,
+      "Heavy salvage side lashing 1 1 | Sweeping upper wreck rib 1": 64,
+      "Hollow cast bell | Middle broken side strake -1": 10,
+      "Hollow cast bell | Middle broken side strake 1": 4,
+      "Inset amber eye | Recessed eye shadow": 10,
+      "Inset amber eye.001 | Recessed eye shadow.001": 12,
+      "Ivory lower jaw -1 | Ivory upper fang -1 1": 25,
+      "Ivory lower jaw -1 | Lower cheek timber": 10,
+      "Ivory lower jaw -1 | Lower timber jaw": 19,
+      "Ivory lower jaw -1 | Mouth dark pocket": 28,
+      "Ivory lower jaw -1 | Pointed central face keel": 7,
+      "Ivory lower jaw -1 | Solid timber cranium": 11,
+      "Ivory lower jaw 1 | Ivory upper fang 1 1": 26,
+      "Ivory lower jaw 1 | Lower cheek timber.001": 10,
+      "Ivory lower jaw 1 | Lower timber jaw": 20,
+      "Ivory lower jaw 1 | Mouth dark pocket": 23,
+      "Ivory upper fang -1 0 | Lower cheek timber": 31,
+      "Ivory upper fang -1 0 | Mouth dark pocket": 18,
+      "Ivory upper fang -1 0 | Solid timber cranium": 4,
+      "Ivory upper fang -1 1 | Mouth dark pocket": 9,
+      "Ivory upper fang 1 0 | Lower cheek timber.001": 30,
+      "Ivory upper fang 1 0 | Mouth dark pocket": 20,
+      "Ivory upper fang 1 0 | Solid timber cranium": 6,
+      "Ivory upper fang 1 1 | Mouth dark pocket": 9,
+      "Left fore connected chest strake | Left fore neck gusset": 44,
+      "Left fore connected chest strake | Left fore outer timber shield": 25,
+      "Left fore connected chest strake | Left fore shoulder cap": 31,
+      "Left fore connected chest strake | Left fore shoulder lashing": 72,
+      "Left fore connected chest strake | Left fore shoulder lashing.001": 74,
+      "Left fore connected chest strake | Left fore timber leg": 38,
+      "Left fore connected chest strake | Lower cheek timber": 13,
+      "Left fore connected chest strake | Rooted lower hull rib -1": 16,
+      "Left fore connected chest strake | Shaped orbital brow timber": 24,
+      "Left fore connected chest strake | Solid timber cranium": 19,
+      "Left fore connected chest strake | Swept cheek horn": 44,
+      "Left fore neck gusset | Left fore outer timber shield": 51,
+      "Left fore neck gusset | Left fore shoulder cap": 51,
+      "Left fore neck gusset | Left fore shoulder lashing": 34,
+      "Left fore neck gusset | Left fore shoulder lashing.001": 52,
+      "Left fore neck gusset | Left fore timber leg": 49,
+      "Left fore neck gusset | Lower broken side strake -1": 20,
+      "Left fore neck gusset | Rooted lower hull rib -1": 20,
+      "Left fore neck gusset | Shaped orbital brow timber": 7,
+      "Left fore neck gusset | Swept cheek horn": 47,
+      "Left fore outer timber shield | Left fore shoulder cap": 43,
+      "Left fore outer timber shield | Left fore shoulder lashing": 28,
+      "Left fore outer timber shield | Left fore shoulder lashing.001": 39,
+      "Left fore outer timber shield | Left fore stone foot": 18,
+      "Left fore outer timber shield | Left fore timber leg": 53,
+      "Left fore outer timber shield | Left fore toe -0.23": 14,
+      "Left fore outer timber shield | Lower broken side strake -1": 10,
+      "Left fore outer timber shield | Lower cheek timber": 6,
+      "Left fore outer timber shield | Rooted lower hull rib -1": 14,
+      "Left fore outer timber shield | Shaped orbital brow timber": 7,
+      "Left fore outer timber shield | Solid timber cranium": 7,
+      "Left fore outer timber shield | Swept cheek horn": 35,
+      "Left fore shoulder cap | Left fore shoulder lashing": 50,
+      "Left fore shoulder cap | Left fore shoulder lashing.001": 54,
+      "Left fore shoulder cap | Left fore stone foot": 10,
+      "Left fore shoulder cap | Left fore timber leg": 64,
+      "Left fore shoulder cap | Lower broken side strake -1": 15,
+      "Left fore shoulder cap | Lower cheek timber": 19,
+      "Left fore shoulder cap | Rooted lower hull rib -1": 18,
+      "Left fore shoulder cap | Shaped orbital brow timber": 15,
+      "Left fore shoulder cap | Solid timber cranium": 15,
+      "Left fore shoulder cap | Swept cheek horn": 32,
+      "Left fore shoulder lashing | Left fore timber leg": 55,
+      "Left fore shoulder lashing | Lower broken side strake -1": 18,
+      "Left fore shoulder lashing | Rooted lower hull rib -1": 32,
+      "Left fore shoulder lashing | Shaped orbital brow timber": 24,
+      "Left fore shoulder lashing | Solid timber cranium": 30,
+      "Left fore shoulder lashing | Swept cheek horn": 50,
+      "Left fore shoulder lashing.001 | Left fore timber leg": 58,
+      "Left fore shoulder lashing.001 | Lower broken side strake -1": 38,
+      "Left fore shoulder lashing.001 | Rooted lower hull rib -1": 40,
+      "Left fore shoulder lashing.001 | Shaped orbital brow timber": 30,
+      "Left fore shoulder lashing.001 | Solid timber cranium": 30,
+      "Left fore shoulder lashing.001 | Swept cheek horn": 54,
+      "Left fore stone foot | Left fore timber leg": 31,
+      "Left fore stone foot | Left fore toe -0.23": 37,
+      "Left fore stone foot | Left fore toe 0.23": 35,
+      "Left fore timber leg | Left fore toe -0.23": 16,
+      "Left fore timber leg | Left fore toe 0.23": 15,
+      "Left fore timber leg | Lower broken side strake -1": 17,
+      "Left fore timber leg | Lower cheek timber": 17,
+      "Left fore timber leg | Rooted lower hull rib -1": 18,
+      "Left fore timber leg | Shaped orbital brow timber": 11,
+      "Left fore timber leg | Solid timber cranium": 13,
+      "Left fore timber leg | Swept cheek horn": 32,
+      "Left hind broad haunch shield | Left hind shoulder cap": 43,
+      "Left hind broad haunch shield | Left hind shoulder lashing": 36,
+      "Left hind broad haunch shield | Left hind shoulder lashing.001": 43,
+      "Left hind broad haunch shield | Left hind stone foot": 13,
+      "Left hind broad haunch shield | Left hind timber leg": 40,
+      "Left hind broad haunch shield | Lower broken side strake -1": 12,
+      "Left hind broad haunch shield | Rooted lower hull rib -1": 12,
+      "Left hind broad haunch shield | Stern diagonal wreck plank -1": 19,
+      "Left hind shoulder cap | Left hind shoulder lashing": 54,
+      "Left hind shoulder cap | Left hind shoulder lashing.001": 56,
+      "Left hind shoulder cap | Left hind timber leg": 50,
+      "Left hind shoulder cap | Lower broken side strake -1": 6,
+      "Left hind shoulder cap | Rooted lower hull rib -1": 10,
+      "Left hind shoulder cap | Stern diagonal wreck plank -1": 22,
+      "Left hind shoulder cap | Stern fan broad plank -1": 9,
+      "Left hind shoulder lashing | Left hind timber leg": 40,
+      "Left hind shoulder lashing | Stern fan broad plank -1": 36,
+      "Left hind shoulder lashing | Stern overlapping plate -1": 12,
+      "Left hind shoulder lashing.001 | Left hind timber leg": 57,
+      "Left hind shoulder lashing.001 | Stern fan broad plank -1": 34,
+      "Left hind stone foot | Left hind timber leg": 33,
+      "Left hind stone foot | Left hind toe -0.23": 37,
+      "Left hind stone foot | Left hind toe 0.23": 33,
+      "Left hind timber leg | Left hind toe -0.23": 13,
+      "Left hind timber leg | Left hind toe 0.23": 19,
+      "Left hind timber leg | Rooted lower hull rib -1": 4,
+      "Left hind timber leg | Stern diagonal wreck plank -1": 21,
+      "Left hind timber leg | Stern overlapping plate -1": 10,
+      "Lower broken side strake -1 | Rear crossed rope right": 8,
+      "Lower broken side strake -1 | Rooted lower hull rib -1": 49,
+      "Lower broken side strake -1 | Stern diagonal wreck plank -1": 20,
+      "Lower broken side strake -1 | Stern fan broad plank -1": 12,
+      "Lower broken side strake 1 | Rear crossed rope left": 6,
+      "Lower broken side strake 1 | Right fore connected chest strake": 10,
+      "Lower broken side strake 1 | Right fore neck gusset": 24,
+      "Lower broken side strake 1 | Right fore outer timber shield": 12,
+      "Lower broken side strake 1 | Right fore shoulder cap": 14,
+      "Lower broken side strake 1 | Right fore shoulder lashing": 22,
+      "Lower broken side strake 1 | Right fore shoulder lashing.001": 32,
+      "Lower broken side strake 1 | Right fore timber leg": 14,
+      "Lower broken side strake 1 | Right hind broad haunch shield": 13,
+      "Lower broken side strake 1 | Right hind shoulder cap": 9,
+      "Lower broken side strake 1 | Rooted lower hull rib 1": 29,
+      "Lower broken side strake 1 | Stern diagonal wreck plank 1": 28,
+      "Lower broken side strake 1 | Stern fan broad plank 1": 8,
+      "Lower cheek timber | Mouth dark pocket": 13,
+      "Lower cheek timber | Solid timber cranium": 9,
+      "Lower cheek timber | Swept cheek horn": 11,
+      "Lower cheek timber.001 | Mouth dark pocket": 18,
+      "Lower cheek timber.001 | Right fore connected chest strake": 16,
+      "Lower cheek timber.001 | Right fore shoulder cap": 16,
+      "Lower cheek timber.001 | Right fore timber leg": 18,
+      "Lower cheek timber.001 | Solid timber cranium": 12,
+      "Lower cheek timber.001 | Swept cheek horn.001": 11,
+      "Lower timber jaw | Mouth dark pocket": 18,
+      "Middle broken side strake -1 | Sweeping upper wreck rib -1": 28,
+      "Middle broken side strake 1 | Stern diagonal wreck plank 1": 8,
+      "Middle broken side strake 1 | Sweeping upper wreck rib 1": 26,
+      "Mouth dark pocket | Pointed central face keel": 20,
+      "Mouth dark pocket | Solid timber cranium": 23,
+      "Pointed central face keel | Shaped orbital brow timber": 9,
+      "Pointed central face keel | Shaped orbital brow timber.001": 10,
+      "Pointed central face keel | Solid timber cranium": 53,
+      "Rear crossed rope left | Rear crossed rope right": 48,
+      "Rear crossed rope left | Stern diagonal wreck plank -1": 4,
+      "Rear crossed rope left | Stern fan broad plank 1": 18,
+      "Rear crossed rope right | Stern diagonal wreck plank 1": 20,
+      "Rear crossed rope right | Stern fan broad plank -1": 28,
+      "Rear crossed rope right | Stern fan broad plank 1": 24,
+      "Recessed eye shadow | Shaped orbital brow timber": 6,
+      "Recessed eye shadow.001 | Shaped orbital brow timber.001": 7,
+      "Right fore connected chest strake | Right fore neck gusset": 34,
+      "Right fore connected chest strake | Right fore outer timber shield": 30,
+      "Right fore connected chest strake | Right fore shoulder cap": 25,
+      "Right fore connected chest strake | Right fore shoulder lashing": 64,
+      "Right fore connected chest strake | Right fore shoulder lashing.001": 68,
+      "Right fore connected chest strake | Right fore timber leg": 32,
+      "Right fore connected chest strake | Rooted lower hull rib 1": 18,
+      "Right fore connected chest strake | Shaped orbital brow timber.001": 17,
+      "Right fore connected chest strake | Solid timber cranium": 20,
+      "Right fore connected chest strake | Swept cheek horn.001": 38,
+      "Right fore neck gusset | Right fore outer timber shield": 41,
+      "Right fore neck gusset | Right fore shoulder cap": 37,
+      "Right fore neck gusset | Right fore shoulder lashing": 34,
+      "Right fore neck gusset | Right fore shoulder lashing.001": 44,
+      "Right fore neck gusset | Right fore timber leg": 42,
+      "Right fore neck gusset | Rooted lower hull rib 1": 19,
+      "Right fore neck gusset | Shaped orbital brow timber.001": 4,
+      "Right fore neck gusset | Swept cheek horn.001": 36,
+      "Right fore outer timber shield | Right fore shoulder cap": 42,
+      "Right fore outer timber shield | Right fore shoulder lashing": 34,
+      "Right fore outer timber shield | Right fore shoulder lashing.001": 36,
+      "Right fore outer timber shield | Right fore stone foot": 18,
+      "Right fore outer timber shield | Right fore timber leg": 40,
+      "Right fore outer timber shield | Right fore toe 0.23": 15,
+      "Right fore outer timber shield | Rooted lower hull rib 1": 14,
+      "Right fore outer timber shield | Shaped orbital brow timber.001": 8,
+      "Right fore outer timber shield | Swept cheek horn.001": 34,
+      "Right fore shoulder cap | Right fore shoulder lashing": 42,
+      "Right fore shoulder cap | Right fore shoulder lashing.001": 60,
+      "Right fore shoulder cap | Right fore stone foot": 7,
+      "Right fore shoulder cap | Right fore timber leg": 55,
+      "Right fore shoulder cap | Rooted lower hull rib 1": 17,
+      "Right fore shoulder cap | Shaped orbital brow timber.001": 13,
+      "Right fore shoulder cap | Solid timber cranium": 12,
+      "Right fore shoulder cap | Swept cheek horn.001": 32,
+      "Right fore shoulder lashing | Right fore timber leg": 58,
+      "Right fore shoulder lashing | Rooted lower hull rib 1": 34,
+      "Right fore shoulder lashing | Shaped orbital brow timber.001": 22,
+      "Right fore shoulder lashing | Solid timber cranium": 28,
+      "Right fore shoulder lashing | Swept cheek horn.001": 40,
+      "Right fore shoulder lashing.001 | Right fore timber leg": 56,
+      "Right fore shoulder lashing.001 | Rooted lower hull rib 1": 30,
+      "Right fore shoulder lashing.001 | Shaped orbital brow timber.001": 30,
+      "Right fore shoulder lashing.001 | Solid timber cranium": 30,
+      "Right fore shoulder lashing.001 | Swept cheek horn.001": 52,
+      "Right fore stone foot | Right fore timber leg": 33,
+      "Right fore stone foot | Right fore toe -0.23": 37,
+      "Right fore stone foot | Right fore toe 0.23": 37,
+      "Right fore timber leg | Right fore toe -0.23": 17,
+      "Right fore timber leg | Right fore toe 0.23": 15,
+      "Right fore timber leg | Rooted lower hull rib 1": 21,
+      "Right fore timber leg | Shaped orbital brow timber.001": 12,
+      "Right fore timber leg | Solid timber cranium": 14,
+      "Right fore timber leg | Swept cheek horn.001": 26,
+      "Right hind broad haunch shield | Right hind shoulder cap": 36,
+      "Right hind broad haunch shield | Right hind shoulder lashing": 32,
+      "Right hind broad haunch shield | Right hind shoulder lashing.001": 54,
+      "Right hind broad haunch shield | Right hind stone foot": 18,
+      "Right hind broad haunch shield | Right hind timber leg": 42,
+      "Right hind broad haunch shield | Rooted lower hull rib 1": 12,
+      "Right hind broad haunch shield | Stern diagonal wreck plank 1": 19,
+      "Right hind shoulder cap | Right hind shoulder lashing": 46,
+      "Right hind shoulder cap | Right hind shoulder lashing.001": 60,
+      "Right hind shoulder cap | Right hind timber leg": 33,
+      "Right hind shoulder cap | Rooted lower hull rib 1": 11,
+      "Right hind shoulder cap | Stern diagonal wreck plank 1": 23,
+      "Right hind shoulder cap | Stern fan broad plank 1": 6,
+      "Right hind shoulder lashing | Right hind timber leg": 62,
+      "Right hind shoulder lashing | Stern fan broad plank 1": 38,
+      "Right hind shoulder lashing.001 | Right hind timber leg": 70,
+      "Right hind shoulder lashing.001 | Stern diagonal wreck plank 1": 6,
+      "Right hind shoulder lashing.001 | Stern fan broad plank 1": 34,
+      "Right hind stone foot | Right hind timber leg": 30,
+      "Right hind stone foot | Right hind toe -0.23": 37,
+      "Right hind stone foot | Right hind toe 0.23": 35,
+      "Right hind timber leg | Right hind toe -0.23": 18,
+      "Right hind timber leg | Right hind toe 0.23": 17,
+      "Right hind timber leg | Rooted lower hull rib 1": 5,
+      "Right hind timber leg | Stern diagonal wreck plank 1": 20,
+      "Rooted lower hull rib -1 | Solid timber cranium": 11,
+      "Rooted lower hull rib -1 | Stern diagonal wreck plank -1": 32,
+      "Rooted lower hull rib -1 | Swept cheek horn": 18,
+      "Rooted lower hull rib 1 | Stern diagonal wreck plank 1": 30,
+      "Rooted lower hull rib 1 | Swept cheek horn.001": 19,
+      "Shaped orbital brow timber | Solid timber cranium": 22,
+      "Shaped orbital brow timber | Swept cheek horn": 11,
+      "Shaped orbital brow timber.001 | Solid timber cranium": 22,
+      "Shaped orbital brow timber.001 | Swept cheek horn.001": 10,
+      "Solid timber cranium | Swept cheek horn": 13,
+      "Solid timber cranium | Swept cheek horn.001": 12,
+      "Stern diagonal wreck plank -1 | Stern fan broad plank -1": 14,
+      "Stern diagonal wreck plank -1 | Tall stern plank": 30,
+      "Stern diagonal wreck plank 1 | Stern fan broad plank 1": 14,
+      "Stern fan broad plank -1 | Stern fan broad plank 1": 21,
+      "Stern fan broad plank -1 | Stern overlapping plate -1": 17,
+      "Stern fan broad plank -1 | Stern overlapping plate 1": 8,
+      "Stern fan broad plank -1 | Tall stern plank": 20,
+      "Stern fan broad plank 1 | Stern overlapping plate -1": 10,
+      "Stern fan broad plank 1 | Stern overlapping plate 1": 18,
+      "Stern overlapping plate -1 | Stern overlapping plate 1": 11
+    }
+  },
+  "limitations": "Actual native triangulation tested, including coplanar nonadjacent contacts and proper shared-vertex crossings. Component overlaps inventoried, not contact/physics approval. Adjacent coplanar positive-area overlap is checked separately by check_coplanar.py.",
+  "status": "FAIL_SELF"
+}

@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "count": 10,
+  "views": [
+    {
+      "view": "hero/hero.png",
+      "exact_RGB_equal": true
+    },
+    {
+      "view": "nine/01-front.png",
+      "exact_RGB_equal": true
+    },
+    {
+      "view": "nine/02-left.png",
+      "exact_RGB_equal": true
+    },
+    {
+      "view": "nine/03-right.png",
+      "exact_RGB_equal": true
+    },
+    {
+      "view": "nine/04-back.png",
+      "exact_RGB_equal": true
+    },
+    {
+      "view": "nine/05-top.png",
+      "exact_RGB_equal": true
+    },
+    {
+      "view": "nine/06-diag-front.png",
+      "exact_RGB_equal": true
+    },
+    {
+      "view": "nine/07-diag-left.png",
+      "exact_RGB_equal": true
+    },
+    {
+      "view": "nine/08-diag-right.png",
+      "exact_RGB_equal": true
+    },
+    {
+      "view": "nine/09-diag-back.png",
+      "exact_RGB_equal": true
+    }
+  ]
+}

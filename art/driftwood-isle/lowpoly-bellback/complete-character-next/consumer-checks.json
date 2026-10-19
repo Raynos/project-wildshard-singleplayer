@@ -1,0 +1,649 @@
+{
+  "status": "PASS",
+  "consumer": "Blender 4.3.2 actual glTF importer",
+  "glb_sha256": "1bb2267368f160b19fef8a15f1d6146b43cb3a8caf510512648386265e475850",
+  "meshes": 106,
+  "triangles": 6362,
+  "max_position_error": 0.0,
+  "armatures": 0,
+  "failures": [],
+  "components": [
+    {
+      "name": "Clapper stem",
+      "triangles": 20,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Clapper weight",
+      "triangles": 60,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Hollow cast bell",
+      "triangles": 576,
+      "max_position_error": 0.0,
+      "materials": 5
+    },
+    {
+      "name": "Arch left",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Arch right",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Barrel timber hull",
+      "triangles": 60,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Broken ship rib -1 0",
+      "triangles": 36,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Broken ship rib -1 1",
+      "triangles": 36,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Broken ship rib -1 2",
+      "triangles": 36,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Broken ship rib 1 0",
+      "triangles": 36,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Broken ship rib 1 1",
+      "triangles": 36,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Broken ship rib 1 2",
+      "triangles": 36,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Crown tie",
+      "triangles": 60,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Diagonal binding -1",
+      "triangles": 32,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Diagonal binding 1",
+      "triangles": 32,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Frame rope knot",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Frame rope knot.001",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Frame rope knot.002",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Frame rope knot.003",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Frame rope knot.004",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Frame rope knot.005",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Frame rope knot.006",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Frame rope knot.007",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Hanging shoulder rope -1",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Hanging shoulder rope 1",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Haunch overlapping strake -1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Haunch overlapping strake 1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Heavy salvage side lashing -1 0",
+      "triangles": 312,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Heavy salvage side lashing -1 1",
+      "triangles": 312,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Heavy salvage side lashing 1 0",
+      "triangles": 312,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Heavy salvage side lashing 1 1",
+      "triangles": 312,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Lower broken side strake -1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Lower broken side strake 1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Middle broken side strake -1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Middle broken side strake 1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Rear crossed rope left",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Rear crossed rope right",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Rooted lower hull rib -1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Rooted lower hull rib 1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Stern diagonal wreck plank -1",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Stern diagonal wreck plank 1",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Stern fan broad plank -1",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Stern fan broad plank 1",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Stern overlapping plate -1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Stern overlapping plate 1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Sweeping upper wreck rib -1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Sweeping upper wreck rib 1",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Tall stern plank",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Crown wood splinter -1",
+      "triangles": 12,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Crown wood splinter 1",
+      "triangles": 12,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Inset amber eye",
+      "triangles": 8,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Inset amber eye.001",
+      "triangles": 8,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Ivory lower jaw -1",
+      "triangles": 32,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Ivory lower jaw 1",
+      "triangles": 32,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Ivory upper fang -1 0",
+      "triangles": 20,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Ivory upper fang -1 1",
+      "triangles": 20,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Ivory upper fang 1 0",
+      "triangles": 20,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Ivory upper fang 1 1",
+      "triangles": 20,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Lower cheek timber",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Lower cheek timber.001",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Lower timber jaw",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Mouth dark pocket",
+      "triangles": 20,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Pointed central face keel",
+      "triangles": 20,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Recessed eye shadow",
+      "triangles": 8,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Recessed eye shadow.001",
+      "triangles": 8,
+      "max_position_error": 0.0,
+      "materials": 1
+    },
+    {
+      "name": "Shaped orbital brow timber",
+      "triangles": 20,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Shaped orbital brow timber.001",
+      "triangles": 20,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Solid timber cranium",
+      "triangles": 52,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Swept cheek horn",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Swept cheek horn.001",
+      "triangles": 44,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Left fore connected chest strake",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Left fore neck gusset",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Left fore outer timber shield",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Left fore shoulder cap",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Left fore shoulder lashing",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Left fore shoulder lashing.001",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Left fore stone foot",
+      "triangles": 38,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Left fore timber leg",
+      "triangles": 52,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Left fore toe -0.23",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Left fore toe 0.23",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Left hind broad haunch shield",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Left hind shoulder cap",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Left hind shoulder lashing",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Left hind shoulder lashing.001",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Left hind stone foot",
+      "triangles": 38,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Left hind timber leg",
+      "triangles": 52,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Left hind toe -0.23",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Left hind toe 0.23",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Right fore connected chest strake",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Right fore neck gusset",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Right fore outer timber shield",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Right fore shoulder cap",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Right fore shoulder lashing",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Right fore shoulder lashing.001",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Right fore stone foot",
+      "triangles": 38,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Right fore timber leg",
+      "triangles": 52,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Right fore toe -0.23",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Right fore toe 0.23",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Right hind broad haunch shield",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Right hind shoulder cap",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Right hind shoulder lashing",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Right hind shoulder lashing.001",
+      "triangles": 120,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Right hind stone foot",
+      "triangles": 38,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Right hind timber leg",
+      "triangles": 52,
+      "max_position_error": 0.0,
+      "materials": 3
+    },
+    {
+      "name": "Right hind toe -0.23",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 2
+    },
+    {
+      "name": "Right hind toe 0.23",
+      "triangles": 26,
+      "max_position_error": 0.0,
+      "materials": 2
+    }
+  ],
+  "limits": "Actual importer preserves static source positions and full model. No game, motion, skin or physics acceptance."
+}
