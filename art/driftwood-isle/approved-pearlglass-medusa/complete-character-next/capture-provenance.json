@@ -1,0 +1,112 @@
+[
+  {
+    "view": "hero",
+    "rawSha256": "5ab1c23be7c58fc906055d13ddc63674b45a4aae5e0f1459e145527a14ee65ba",
+    "v2RawSha256": "aaae6ad35beba6a8d01a7019d7ae501b5ac65807f904e0379643788e091f6262",
+    "previewSha256": "bed7414a1aec9467a46cbc1f4cfeea4a2202308cd107c4cb20d42304631ea4a3",
+    "pairedSha256": "ce64738927e44fb0a11bd68d6fbbfe7f51e52e5d2418fe01b5960001fdd49b23",
+    "rawDimensions": [
+      600,
+      720
+    ]
+  },
+  {
+    "view": "front",
+    "rawSha256": "0f464310b5bbb7f64b5467d67c0b6e0f6b64406d51282a10a6460e48ceb693c7",
+    "v2RawSha256": "60b7ce17ffe518fd4ff170560c9c942a8995b67384df0f2f9d89ab810c1ab8f8",
+    "previewSha256": "066a99a3a61e07aef96fe22a0caa770ca5e70fef6b9dd6a09c7278343172adea",
+    "pairedSha256": "2a8a72ba9a0e4151878594e615a1d9f6b5f3e0ef899f5dd6e479f292fc6e53a9",
+    "rawDimensions": [
+      600,
+      720
+    ]
+  },
+  {
+    "view": "left",
+    "rawSha256": "f14a7884e8fd73922239d8afd9a96cd4e293887a6462c5fc25ffd7fbbb99dc42",
+    "v2RawSha256": "f5ed76fdff25c263e1e570dec17a64f4157ab2467668410fbcef6108d17ba2d2",
+    "previewSha256": "a91960f18fcba7dce092fdbae564ecf0b033ec14f3b9774555547eb87fda2491",
+    "pairedSha256": "c544e47eac45883cc37b2ea14e7ddde41c3f4216e1ab36a86933d846f6784d0a",
+    "rawDimensions": [
+      600,
+      720
+    ]
+  },
+  {
+    "view": "right",
+    "rawSha256": "81b21dfa35287d884a677b15221e17c0717d2bae19ba5230728db3a1e8f9d5b9",
+    "v2RawSha256": "adcf97526da2b6fc1fc9a976703c4bbfbbc7c0ca93ece34c5bf2ded104089a43",
+    "previewSha256": "eef7fc034a9a39269a6db08682fd3b0b6dc3a57c2a70a277bfb06175808e6b6e",
+    "pairedSha256": "8299c26e5596f82723dfd45f45d45d94e1d400fbaefc0846562d7195c878a2e3",
+    "rawDimensions": [
+      600,
+      720
+    ]
+  },
+  {
+    "view": "back",
+    "rawSha256": "947c1838e2f02bf7e5f169f926ac6ad2fbebc1a5289053f65b84f617e2972adf",
+    "v2RawSha256": "9de8564c39f79330ae7a7d5934a7cab5f86b463e1457825742d0fbdfe46c9c3a",
+    "previewSha256": "ba4c53d0efed35f07f7fe587997a22deb636df98b44b8f7efbba306bb013cc6f",
+    "pairedSha256": "f0d6eed232792c8061b753213451ddc82d5b1f94f005979b6fe1d27b05d3f601",
+    "rawDimensions": [
+      600,
+      720
+    ]
+  },
+  {
+    "view": "top",
+    "rawSha256": "d8a2826de20d09440cd86c442b1cdefbbe277a51fbf5d5116b87347480950589",
+    "v2RawSha256": "62c6715f6be2d4f16702abf99b30435fb62fb9b62c4e4a7a0fd372c40854a87a",
+    "previewSha256": "3ceda80c17b0ac88f3b23e41ea73921f179f4f31c668b3e956bf16ea3978a797",
+    "pairedSha256": "a843cc0ed1c20eccb1705da55d9b94d9fd1ad0bf30857dd5c089917c21f4ac39",
+    "rawDimensions": [
+      600,
+      720
+    ]
+  },
+  {
+    "view": "elevated-front",
+    "rawSha256": "df113e5dda527eb5ad85ab30110aba0b69e8eebde9cea6826631e0bb4115ad3c",
+    "v2RawSha256": "5f2123ccfe1196cc68deb06082071bb1bc6a73e6d91528171f75258b63016066",
+    "previewSha256": "00338edf04ed2874f0f299ba0091ef2f94131ee5e93fd773fa6365ca8bdd7248",
+    "pairedSha256": "c7eb5f50f07903fbc5971f32b4ff81131438eec2652d8de496f3a4984b1ee052",
+    "rawDimensions": [
+      600,
+      720
+    ]
+  },
+  {
+    "view": "elevated-left",
+    "rawSha256": "7d6153e21cf2489016881fa92585bd3e11b82b1ec091fab6517f10212aa6d63e",
+    "v2RawSha256": "83dd3486ac9bbec33e20fc3fc74315127eb893de9c6af233c2146a3fbc3433ce",
+    "previewSha256": "a1f61537cda925a8655eec183ac533484bb8743f469fc15b073c4293c929e083",
+    "pairedSha256": "7abb03ddb91492ece7ee05a13a59a0959dbac246bf8733d6897c76965fc2a634",
+    "rawDimensions": [
+      600,
+      720
+    ]
+  },
+  {
+    "view": "elevated-right",
+    "rawSha256": "0c0f26199a0f18c6781642cc60d9e3c58b44dbdc8e571fd12f3a2f7a1205c882",
+    "v2RawSha256": "09067872fba1d1e0ce777602a6b2ef8be431e24fd92cc53206d59bdb0c26f713",
+    "previewSha256": "ab0a38f3cd737bdc89533548f721d76e5029b8f6ffe3f7fcd1c5145a295afeaf",
+    "pairedSha256": "af2a6d7f59f3654ba0eb55618d2551c4397f5cb4bb7e3bc8423c86aad919a9ed",
+    "rawDimensions": [
+      600,
+      720
+    ]
+  },
+  {
+    "view": "elevated-back",
+    "rawSha256": "06205173eba7b4192874275688afd6067a196b5160d1af44c8a5bb14407b233a",
+    "v2RawSha256": "18f3cfd1c88188fb77c3086ee5bfbcc5e8f04643127aacd6f58a4e484605e95a",
+    "previewSha256": "82903c3038bee4689a3ae85af7d99e5862af9b09fbd75beb93522752adc385e9",
+    "pairedSha256": "4ba76084b5cbc3b9df89f9a78218768cc4b81ecf80d0f8a2567c3a181b967fc1",
+    "rawDimensions": [
+      600,
+      720
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "focusedTests": {
+    "passed": 6,
+    "failed": 0,
+    "logSha256": "a48404698e4566ff3d5561576ae7aecb78e8688418153df6b4751700f58fea76"
+  },
+  "nativeLoader": "src/game/plugin/geometry.ts packedCreatureBodies installs each typed attribute; explicit normal channel tested directly",
+  "geometry": {
+    "triangles": 5742,
+    "maxPositionError": 1.1324882498442435e-07,
+    "maxColorError": 2.6690562759945635e-08,
+    "paintTolerance": 1e-06,
+    "weightsTolerance": 1e-06,
+    "flatNormalsAgreeWithEveryTriangle": true,
+    "windingPreserved": true,
+    "skinAndMaterialEquivalence": true,
+    "runtimeAcceptance": false
+  },
+  "oldV2UnchangedAgainst": "bf6e8fce9771adccc46cc5e5e9220dc9c4fc054a",
+  "renderedGlbSha256": "3fc2f82d7248c35bffce2b716c24ee979e7de330901d5b72fa4b1a5bd967e3c3",
+  "renderedProducerSha256": "23b9c6e3be9e0ca69fb796d92f8ef7046af355ad52ddde92a3b66e34fef3b523",
+  "renderFinalGlbIdentical": true,
+  "runtimeAdmission": false,
+  "artisticAcceptance": false,
+  "browserOrGameTestsPerformed": false
+}

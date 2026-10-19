@@ -1,0 +1,9 @@
+{
+  "proof": "actual THREE weighted pose sweep; fixed existing burst contact root, not gameplay capture",
+  "minY": 0.081116245769556,
+  "maxY": 1.7038100591200669,
+  "rootY": 1.2,
+  "scale": 0.35,
+  "frames": 41,
+  "runtimeAcceptance": false
+}

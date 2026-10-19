@@ -1,0 +1,184 @@
+{
+  "status": "frozen complete editable source awaiting independent review; runtime unadmitted",
+  "frozenUtc": "2026-10-19T21:53:00Z",
+  "files": {
+    "README.md": {
+      "bytes": 5391,
+      "sha256": "da3eab94830180bd7249f4b7e3e9b75cfc6f45794795101ca31a161a5198c70d"
+    },
+    "audit.json": {
+      "bytes": 26492,
+      "sha256": "7bd40bb6cec4a31cf591736630b4d8b404a4962250e6084739185d8b75a48cc3"
+    },
+    "audit_glb.py": {
+      "bytes": 3453,
+      "sha256": "21215331550ab08111df4dffd1f6ffb42a3f3283ecb06edb9a8cf9ac275bef8e"
+    },
+    "audit_medusa.py": {
+      "bytes": 3996,
+      "sha256": "dd158610140d5b38e64fcf9cfe8df43655f79ff2860ffe872fcb29f62f3af43c"
+    },
+    "back-paired.webp": {
+      "bytes": 78630,
+      "sha256": "f0d6eed232792c8061b753213451ddc82d5b1f94f005979b6fe1d27b05d3f601"
+    },
+    "back.webp": {
+      "bytes": 44420,
+      "sha256": "ba4c53d0efed35f07f7fe587997a22deb636df98b44b8f7efbba306bb013cc6f"
+    },
+    "build_medusa.py": {
+      "bytes": 14663,
+      "sha256": "4072d28f08ab6a50b7f387a191cc76c687c6578ceab6aa41f83759fc87c87936"
+    },
+    "cameras.json": {
+      "bytes": 1121,
+      "sha256": "ad96906405df3ffecde07ca98b22f54b8710b6ec6a2541cbd5b06384282d6bf6"
+    },
+    "capture-provenance.json": {
+      "bytes": 4322,
+      "sha256": "15dbbbcf66ec19281a8b42e7c34d0ffb93809d956175ea150304ed0c21e70408"
+    },
+    "checks.json": {
+      "bytes": 1025,
+      "sha256": "770dce078f0d158af45dc22577d22ee5a6269b6b8005345bbb7b591467c30333"
+    },
+    "construction.json": {
+      "bytes": 10125,
+      "sha256": "20b88606bd65f32a5de8526f42049195bdcf59ecb07f326d5e80d12432cea7d8"
+    },
+    "elevated-back-paired.webp": {
+      "bytes": 63762,
+      "sha256": "4ba76084b5cbc3b9df89f9a78218768cc4b81ecf80d0f8a2567c3a181b967fc1"
+    },
+    "elevated-back.webp": {
+      "bytes": 35902,
+      "sha256": "82903c3038bee4689a3ae85af7d99e5862af9b09fbd75beb93522752adc385e9"
+    },
+    "elevated-front-paired.webp": {
+      "bytes": 59286,
+      "sha256": "c7eb5f50f07903fbc5971f32b4ff81131438eec2652d8de496f3a4984b1ee052"
+    },
+    "elevated-front.webp": {
+      "bytes": 32080,
+      "sha256": "00338edf04ed2874f0f299ba0091ef2f94131ee5e93fd773fa6365ca8bdd7248"
+    },
+    "elevated-left-paired.webp": {
+      "bytes": 60432,
+      "sha256": "7abb03ddb91492ece7ee05a13a59a0959dbac246bf8733d6897c76965fc2a634"
+    },
+    "elevated-left.webp": {
+      "bytes": 34734,
+      "sha256": "a1f61537cda925a8655eec183ac533484bb8743f469fc15b073c4293c929e083"
+    },
+    "elevated-right-paired.webp": {
+      "bytes": 66716,
+      "sha256": "af2a6d7f59f3654ba0eb55618d2551c4397f5cb4bb7e3bc8423c86aad919a9ed"
+    },
+    "elevated-right.webp": {
+      "bytes": 37682,
+      "sha256": "ab0a38f3cd737bdc89533548f721d76e5029b8f6ffe3f7fcd1c5145a295afeaf"
+    },
+    "front-paired.webp": {
+      "bytes": 78344,
+      "sha256": "2a8a72ba9a0e4151878594e615a1d9f6b5f3e0ef899f5dd6e479f292fc6e53a9"
+    },
+    "front.webp": {
+      "bytes": 43820,
+      "sha256": "066a99a3a61e07aef96fe22a0caa770ca5e70fef6b9dd6a09c7278343172adea"
+    },
+    "glb-equivalence.json": {
+      "bytes": 310,
+      "sha256": "1120e4a461e277a90aab298ece6fc286f8a7459f21e5a106b28dca7cd75c81e6"
+    },
+    "hero-paired.webp": {
+      "bytes": 80488,
+      "sha256": "ce64738927e44fb0a11bd68d6fbbfe7f51e52e5d2418fe01b5960001fdd49b23"
+    },
+    "hero.webp": {
+      "bytes": 44974,
+      "sha256": "bed7414a1aec9467a46cbc1f4cfeea4a2202308cd107c4cb20d42304631ea4a3"
+    },
+    "left-paired.webp": {
+      "bytes": 79176,
+      "sha256": "c544e47eac45883cc37b2ea14e7ddde41c3f4216e1ab36a86933d846f6784d0a"
+    },
+    "left.webp": {
+      "bytes": 42542,
+      "sha256": "a91960f18fcba7dce092fdbae564ecf0b033ec14f3b9774555547eb87fda2491"
+    },
+    "live-pose-bounds.json": {
+      "bytes": 244,
+      "sha256": "bdccadfd18cb103aa273c09a99a3baf2d9b1701e4c4171247de9430289a93a5d"
+    },
+    "metadata.json": {
+      "bytes": 17104,
+      "sha256": "eb1346054c4f93010ccbdedd98a7a5a933be60b36d47dcc9fb831af99357b765"
+    },
+    "native-source.json": {
+      "bytes": 3409542,
+      "sha256": "184e65010a8582051713947da9204683d14178753b65b1f1f91800653d1c78d8"
+    },
+    "native.test.ts": {
+      "bytes": 8769,
+      "sha256": "dbd3f0eb953d7f891dd5a65d1c647471ee443573035c382850165770aa787023"
+    },
+    "nine-view-board.webp": {
+      "bytes": 104968,
+      "sha256": "dc0ae356892c103689af544d791413234e40189d47a2d49779d337b6e60f5c5d"
+    },
+    "payload.bin": {
+      "bytes": 125916,
+      "sha256": "982033aaacb7d90feaa0b01ae7413df43def2157b9c6312e66f1ea75fdff0abc"
+    },
+    "pearlglass-medusa-complete-character-next.glb": {
+      "bytes": 791048,
+      "sha256": "3fc2f82d7248c35bffce2b716c24ee979e7de330901d5b72fa4b1a5bd967e3c3"
+    },
+    "prepare_review.py": {
+      "bytes": 2589,
+      "sha256": "0209f55991819abb4cbef39cdb98c36b8fb54a16313cd58ebc6afcac7b29b151"
+    },
+    "rejected-flight-death.json": {
+      "bytes": 283,
+      "sha256": "69f3c12a1d3b99cf177eb0c027f2ed059e09aba9571e98b9b7b64fa970f0270c"
+    },
+    "right-paired.webp": {
+      "bytes": 79504,
+      "sha256": "8299c26e5596f82723dfd45f45d45d94e1d400fbaefc0846562d7195c878a2e3"
+    },
+    "right.webp": {
+      "bytes": 43310,
+      "sha256": "eef7fc034a9a39269a6db08682fd3b0b6dc3a57c2a70a277bfb06175808e6b6e"
+    },
+    "top-paired.webp": {
+      "bytes": 39574,
+      "sha256": "a843cc0ed1c20eccb1705da55d9b94d9fd1ad0bf30857dd5c089917c21f4ac39"
+    },
+    "top.webp": {
+      "bytes": 22932,
+      "sha256": "3ceda80c17b0ac88f3b23e41ea73921f179f4f31c668b3e956bf16ea3978a797"
+    },
+    "vitest.config.ts": {
+      "bytes": 239,
+      "sha256": "ca73c419bfba3c7daa7d4de88acaadb11ce0f38b4975c1c6eeebb6b3effb8780"
+    }
+  },
+  "newBinaryBytes": 2090240,
+  "rawCaptureDirectory": "tmp/pearlglass-medusa-complete-next",
+  "rawCaptureHashes": {
+    "back.png": "947c1838e2f02bf7e5f169f926ac6ad2fbebc1a5289053f65b84f617e2972adf",
+    "elevated-back.png": "06205173eba7b4192874275688afd6067a196b5160d1af44c8a5bb14407b233a",
+    "elevated-front.png": "df113e5dda527eb5ad85ab30110aba0b69e8eebde9cea6826631e0bb4115ad3c",
+    "elevated-left.png": "7d6153e21cf2489016881fa92585bd3e11b82b1ec091fab6517f10212aa6d63e",
+    "elevated-right.png": "0c0f26199a0f18c6781642cc60d9e3c58b44dbdc8e571fd12f3a2f7a1205c882",
+    "front.png": "0f464310b5bbb7f64b5467d67c0b6e0f6b64406d51282a10a6460e48ceb693c7",
+    "hero.png": "5ab1c23be7c58fc906055d13ddc63674b45a4aae5e0f1459e145527a14ee65ba",
+    "left.png": "f14a7884e8fd73922239d8afd9a96cd4e293887a6462c5fc25ffd7fbbb99dc42",
+    "right.png": "81b21dfa35287d884a677b15221e17c0717d2bae19ba5230728db3a1e8f9d5b9",
+    "top.png": "d8a2826de20d09440cd86c442b1cdefbbe277a51fbf5d5116b87347480950589"
+  },
+  "failedSourceDirectories": [
+    "tmp/pearlglass-medusa-complete-next/failed-inward-ribbons",
+    "tmp/pearlglass-medusa-complete-next/failed-missing-native-normals"
+  ]
+}

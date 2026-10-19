@@ -1,0 +1,460 @@
+{
+  "vertices": 17226,
+  "triangles": 5742,
+  "bones": 27,
+  "parts": 10,
+  "components": [
+    {
+      "name": "Lobed thick closed pearlglass bell",
+      "triangles": 668,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 00",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 01",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 02",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 03",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 04",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 05",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 06",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 07",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 08",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 09",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 10",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Seated curved ivory chamber arch 11",
+      "triangles": 76,
+      "part": "bell"
+    },
+    {
+      "name": "Luminous central pearl organ",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 00",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 01",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 02",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 03",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 04",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 05",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 06",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 07",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 08",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 09",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 10",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 11",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 12",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 13",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 14",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 15",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 16",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Clustered amber organ lobe 17",
+      "triangles": 42,
+      "part": "head"
+    },
+    {
+      "name": "Short curling orange oral frond 00",
+      "triangles": 36,
+      "part": "head"
+    },
+    {
+      "name": "Short curling orange oral frond 01",
+      "triangles": 36,
+      "part": "head"
+    },
+    {
+      "name": "Short curling orange oral frond 02",
+      "triangles": 36,
+      "part": "head"
+    },
+    {
+      "name": "Short curling orange oral frond 03",
+      "triangles": 36,
+      "part": "head"
+    },
+    {
+      "name": "Short curling orange oral frond 04",
+      "triangles": 36,
+      "part": "head"
+    },
+    {
+      "name": "Short curling orange oral frond 05",
+      "triangles": 36,
+      "part": "head"
+    },
+    {
+      "name": "Short curling orange oral frond 06",
+      "triangles": 36,
+      "part": "head"
+    },
+    {
+      "name": "Short curling orange oral frond 07",
+      "triangles": 36,
+      "part": "head"
+    },
+    {
+      "name": "Sculptural curled pearl ribbon 00",
+      "triangles": 200,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 5 0",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 5 1",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 5 2",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 5 3",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 11 0",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 11 1",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 11 2",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 11 3",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Sculptural curled pearl ribbon 01",
+      "triangles": 200,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 8 0",
+      "triangles": 36,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 8 1",
+      "triangles": 36,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 8 2",
+      "triangles": 36,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Sculptural curled pearl ribbon 02",
+      "triangles": 200,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 5 0",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 5 1",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 5 2",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 11 0",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 11 1",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 11 2",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Sculptural curled pearl ribbon 03",
+      "triangles": 200,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 8 0",
+      "triangles": 36,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 8 1",
+      "triangles": 36,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 8 2",
+      "triangles": 36,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 8 3",
+      "triangles": 36,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Sculptural curled pearl ribbon 04",
+      "triangles": 200,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 5 0",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 5 1",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 5 2",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 11 0",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 11 1",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 11 2",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Sculptural curled pearl ribbon 05",
+      "triangles": 200,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 8 0",
+      "triangles": 36,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 8 1",
+      "triangles": 36,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 8 2",
+      "triangles": 36,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Sculptural curled pearl ribbon 06",
+      "triangles": 200,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 5 0",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 5 1",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 5 2",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 5 3",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 11 0",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 11 1",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 11 2",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 11 3",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Sculptural curled pearl ribbon 07",
+      "triangles": 200,
+      "part": "ribbon7"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 8 0",
+      "triangles": 36,
+      "part": "ribbon7"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 8 1",
+      "triangles": 36,
+      "part": "ribbon7"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 8 2",
+      "triangles": 36,
+      "part": "ribbon7"
+    }
+  ],
+  "nativeBytes": 3409542,
+  "packedBytes": 125916,
+  "glbBytes": 791048,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "colliderAcceptance": false,
+  "sourceSha256": "4072d28f08ab6a50b7f387a191cc76c687c6578ceab6aa41f83759fc87c87936"
+}
