@@ -1,5 +1,5 @@
-import { app } from '@wildshard/engine/app/runtime';
-import { prepareGhostVolleyDirector } from '../runtime/ghostVolleyDirector';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import type { NightRows } from './nightTypes';
 import { NALATI_STRIKES, sampleStrike } from './strikes';
 import type { TargetHit } from '@wildshard/engine/combat/types';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -53,10 +53,11 @@ export interface NightEnemies {
 
 /** Prepare the shared page/native firing rows before registering the existing night owners. */
 export async function wireNightEnemies(ctx: NightEnemiesCtx): Promise<NightEnemies> {
-  const create = await prepareGhostVolleyDirector();
+  const product = await loadFirstPartyProduct('nalati-grasslands');
+  const rows = await product.json<NightRows>('combat/night.json');
   if (ctx.game.levelScope.disposed) throw new Error('Nalati night owner was disposed during admission');
-  const balbals = new BalbalWarriors({ scene: ctx.game.scene, balbals: ctx.balbals, clock: ctx.clock, scope: ctx.game.levelScope });
-  const riders = new GhostRiders({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, clock: ctx.clock }, create(app.rng.seedValue));
+  const balbals = new BalbalWarriors({ scene: ctx.game.scene, balbals: ctx.balbals, clock: ctx.clock, scope: ctx.game.levelScope }, rows);
+  const riders = new GhostRiders({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, clock: ctx.clock }, rows);
   return {
     balbals, riders,
     update(dt, t) {

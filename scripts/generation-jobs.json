@@ -9106,46 +9106,6 @@
       }
     },
     {
-      "id": "nalati-ghost-volley-director",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/admissionLimits.ts",
-        "src/format/director.ts",
-        "src/format/directorStages.ts",
-        "src/format/directorWhen.ts",
-        "src/format/package.json",
-        "src/format/state.ts",
-        "src/sdk/assemblyscriptCompiler.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/buildBehaviour.ts",
-        "src/sdk/bake/compileScript.ts",
-        "src/sdk/directorAbi.ts",
-        "src/sdk/immutable.ts",
-        "src/sdk/package.json",
-        "src/sdk/sourceReader.ts",
-        "src/shards/nalati-grasslands/behaviour/ghostVolley.as",
-        "src/shards/nalati-grasslands/data/ghostVolleyDirector.json",
-        "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/assets/3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1",
-        "src/shards/nalati-grasslands/behaviour/ghostVolley.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/nalati-grasslands/assets/3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1": "3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1",
-        "src/shards/nalati-grasslands/behaviour/ghostVolley.generated.json": "239d2d3d994be82ee5958a10612cfa1f7907c59df8ad3dd3d6937d34b3e333ba"
-      }
-    },
-    {
       "id": "nine-fronts",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/fronts.ts",
@@ -20495,6 +20455,7 @@
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
       "command": [
+        "--experimental-transform-types",
         "--import",
         "./src/sdk/bake/source-loader.mjs",
         "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs"
@@ -20507,16 +20468,24 @@
         "src/shards/nalati-grasslands/behaviour/qaraCharge.as",
         "src/shards/nalati-grasslands/data/ecology.generated.json",
         "src/shards/nalati-grasslands/generators/eliteCharge.ts",
-        "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs"
+        "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
+        "src/shards/nalati-grasslands/behaviour/night.as",
+        "src/shards/nalati-grasslands/behaviour/nightRoster.as",
+        "src/shards/nalati-grasslands/behaviour/nightAim.as",
+        "src/shards/nalati-grasslands/generators/nightProgram.mjs",
+        "src/shards/nalati-grasslands/generators/nightGeometry.ts",
+        "src/shards/nalati-grasslands/generators/layout.ts"
       ],
       "catalogueDependencies": [
         "nalati-layout"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/data/eliteCharge.generated.json"
+        "src/shards/nalati-grasslands/data/eliteCharge.generated.json",
+        "src/shards/nalati-grasslands/data/night.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/eliteCharge.generated.json"
+        "src/shards/nalati-grasslands/data/eliteCharge.generated.json",
+        "src/shards/nalati-grasslands/data/night.generated.json"
       ],
       "platform": "portable"
     },
