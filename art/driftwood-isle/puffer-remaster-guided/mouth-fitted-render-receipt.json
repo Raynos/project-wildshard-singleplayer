@@ -1,0 +1,34 @@
+{
+  "status": "unaccepted connected mouth study; structural and final-scene guards passed; independent visual review pending",
+  "session": 91256,
+  "exitCode": 0,
+  "terminalUtc": "2026-10-19T02:18:07Z",
+  "source": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/build_integrated_face_mouth_fitted.py",
+    "bytes": 18882,
+    "sha256": "fe65446617ac49b859c95b52a96db917152441d7cc089355a7815619f54d2474"
+  },
+  "helper": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/integrated_mouth_surface_fitted.py",
+    "bytes": 5049,
+    "sha256": "c79d09eff1f0200ff6c37d8ed3b19e6553a27e7825cbf26714531cb37dd659c9"
+  },
+  "images": [
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-mouth-fitted-clay/clay-hero.png",
+      "bytes": 390100,
+      "sha256": "5ba99d27a63318d772a0b0e7a670ffde7f24c445b34c5b41844644b802b805a6"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-mouth-fitted-clay/clay-front.png",
+      "bytes": 356745,
+      "sha256": "fb730299ceecaae307a07d479c4be5e2195f02ee3cb6a0fc9cbfe11b8c2ac2ec"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-mouth-fitted-clay/clay-side.png",
+      "bytes": 358131,
+      "sha256": "5124ccd85020dbd0d3954bc631df4ce3bac9aa6f7c26180d1320536e5d513b91"
+    }
+  ],
+  "note": "Inherited orbital preflight status text refers to its earlier orbital-only stage; the separate mouth preflight is authoritative for this mouth study. No new acceptance score."
+}

@@ -1,0 +1,15 @@
+{
+  "status": "source-only depth-fit checks passed before Blender",
+  "nativeAnchorReceipt": "mouth-actual-depth-anchors.json",
+  "controlDepthDeviation": 0,
+  "maximumArchSegmentForwardDeviation": 0.002144143594051795,
+  "forwardGuard": 0.005,
+  "firstProposedOuterControl": [
+    0.205,
+    0.735
+  ],
+  "firstProposedMaximumForwardDeviation": 0.011654709224095172,
+  "correction": "Retract outer control inside original arch footprint to absX .195, Z .755; sample actual native surface Y. No depth threshold relaxation.",
+  "eyesAperturePouch": "unchanged",
+  "note": "No visual acceptance; connected surface must pass actual structural/final-scene tests and matched views."
+}

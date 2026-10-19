@@ -1,0 +1,6 @@
+{
+  "status": "rejected after three matched clay views",
+  "reason": "Depth correction reduces side plate but retains nasal/inner-eye peaks and lower central V. Ridge connectivity remains weaker than the baseline broad arch band.",
+  "fallback": "integrated-orbital-baselinehood",
+  "nextResearch": "Check explicit paired inner/outer collar stations and real boundary feasibility before further geometry."
+}

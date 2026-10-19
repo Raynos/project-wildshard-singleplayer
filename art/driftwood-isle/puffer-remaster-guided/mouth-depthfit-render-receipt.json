@@ -1,0 +1,33 @@
+{
+  "status": "unaccepted depth-derived mouth study; independent visual review pending",
+  "session": 73496,
+  "exitCode": 0,
+  "terminalUtc": "2026-10-19T02:25:34Z",
+  "source": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/build_integrated_face_mouth_depthfit.py",
+    "bytes": 18884,
+    "sha256": "c97e35662bfb6f577636af63efeb59e94f169208ce6df5ed57a472241410f208"
+  },
+  "helper": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/integrated_mouth_surface_depthfit.py",
+    "bytes": 6953,
+    "sha256": "ce00e619d05925a314ee7ffe7a23653ba9ffcbdf5e12bbfc9961c7c7c21fa91d"
+  },
+  "images": [
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-mouth-depthfit-clay/clay-hero.png",
+      "bytes": 390229,
+      "sha256": "9c929ac062af61d05c8d9c66f28d9eabba2ec00d92b99d173f445d90b91a4c1b"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-mouth-depthfit-clay/clay-front.png",
+      "bytes": 356677,
+      "sha256": "d0e119a562d535a51c664cd106bc0c6b520bf32905e0a73837daf9acdb267c17"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-mouth-depthfit-clay/clay-side.png",
+      "bytes": 357564,
+      "sha256": "4988d4a3479fe8ddcb39dbf60d38651d6988ef800aa96b7ab513a863feb19481"
+    }
+  ]
+}
