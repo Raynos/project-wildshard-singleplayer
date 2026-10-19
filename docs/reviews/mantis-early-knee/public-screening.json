@@ -1,0 +1,35 @@
+{
+  "purpose": "Remove absolute checkout paths; preserve original logs outside publication set. Lint success annotation reflects verified exit0.",
+  "files": [
+    {
+      "path": "docs/reviews/mantis-early-knee/focused-test.txt",
+      "originalSha256": "fdfe1cfb7173f9cebb393bf566b9576d6e94742f86248e5e0f56433fd1c31c77",
+      "screenedSha256": "84ae607f5427a6f5b500b844c42b66c91d2f15b50ef1bd6bd654e2c63799f743"
+    },
+    {
+      "path": "docs/reviews/mantis-early-knee/lint.txt",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "screenedSha256": "a85b4b6d13fb1b5c539151221219d9e9630eb2497cfa7057df6bbc83f22df352"
+    },
+    {
+      "path": "docs/reviews/mantis-early-knee/final-test.txt",
+      "originalSha256": "691a8af03873c483a387636cb559d381fe85b657bad9e58da1c01996cd00bd46",
+      "screenedSha256": "0f9c5e6c83149678f2d9ae9a26258dbc19ed283ec2f2efc72c6e1e9ac78449e5"
+    },
+    {
+      "path": "docs/reviews/mantis-early-knee/dag-test.txt",
+      "originalSha256": "45ebf180769d8e6837cea1b19f6059ac007aedeef0f085d10929192a1a295bca",
+      "screenedSha256": "b02ebb5dcb025946f5b9ec17a065af655d4c2ca93191a6a4923c6483ac692b19"
+    },
+    {
+      "path": "docs/reviews/mantis-early-knee/preview-test.txt",
+      "originalSha256": "4cceaa9be36a329e389a730ba9fadafdd999fd3d0469939b71f1086ad8f14f86",
+      "screenedSha256": "2ac42fcb32bdb1d95c50b489e6dda6daf16176e68ef10186e18d1ede0ba75268"
+    },
+    {
+      "path": "docs/reviews/mantis-early-knee/admission-test.txt",
+      "originalSha256": "4868b4e8b19b2acffab2191420e0778b9c59336fec2d8c0980e5780f08164127",
+      "screenedSha256": "4868b4e8b19b2acffab2191420e0778b9c59336fec2d8c0980e5780f08164127"
+    }
+  ]
+}

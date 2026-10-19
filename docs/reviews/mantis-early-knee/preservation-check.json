@@ -1,0 +1,35 @@
+{
+  "oldFilesChecked": 117,
+  "oldFilesChanged": [
+    "docs/reviews/mantis-death-contact/focused-test.txt",
+    "docs/reviews/mantis-death-contact/evidence-closure.json"
+  ],
+  "closures": [
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/source-closure.json",
+      "checked": 18,
+      "mismatches": []
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/capture-closure.json",
+      "checked": 16,
+      "mismatches": []
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate5/source-closure.json",
+      "checked": 23,
+      "mismatches": []
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate5/capture-closure.json",
+      "checked": 28,
+      "mismatches": []
+    }
+  ],
+  "externalDiagnosisChanges": {
+    "owner": "root",
+    "purpose": "Public screening of absolute path and trailing whitespace",
+    "protectedCommit": "c0dab4b3fb6e9c10e38865481f0642cb6d2636c3",
+    "noEvaluatorTestResultOrGameplayChange": true
+  }
+}

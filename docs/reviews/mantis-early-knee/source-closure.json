@@ -1,0 +1,105 @@
+{
+  "schema": "wildshard.mantis.early-knee-source-freeze.v1",
+  "frozenAtUtc": "2026-10-19T10:23:15Z",
+  "candidate": "V7-native22-motion6",
+  "built": false,
+  "acceptance": false,
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate6/ADMISSION.md": {
+      "sha256": "3bce5d11e9e279e1e69c1928da8a570ef4663872f0b1b5b0ae62895c78030b34",
+      "bytes": 665
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate6/admission.json": {
+      "sha256": "c28c8293bf423d6a9e64c9780430eca2e579dc95c1019e70cde64d7d3e3f5ebf",
+      "bytes": 3218
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate6/dimension-measurement.json": {
+      "sha256": "4b8e0cb9115a152425c5dddbb856de4862e2f27ea41368c6b2809437767924f8",
+      "bytes": 1651
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate6/dimensions.json": {
+      "sha256": "e0bd5afc3bee321177aabe6caa2aaa87afd79c1152e3fe94c467d4a842c3a7cc",
+      "bytes": 327
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate6/metadata.json": {
+      "sha256": "66f5398fd85336b407ee14a7f249d90dace499d0fb55695771aaebf9aa28e88f",
+      "bytes": 8223
+    },
+    "docs/reviews/mantis-early-knee/REVIEW.md": {
+      "sha256": "1b5031fde244b9cdbc6d3eecde8201ea40579d9e3a8790b6c0b44f46d78e17ff",
+      "bytes": 6652
+    },
+    "docs/reviews/mantis-early-knee/admission-test.txt": {
+      "sha256": "4868b4e8b19b2acffab2191420e0778b9c59336fec2d8c0980e5780f08164127",
+      "bytes": 892
+    },
+    "docs/reviews/mantis-early-knee/dag-test.txt": {
+      "sha256": "b02ebb5dcb025946f5b9ec17a065af655d4c2ca93191a6a4923c6483ac692b19",
+      "bytes": 974
+    },
+    "docs/reviews/mantis-early-knee/final-test.txt": {
+      "sha256": "0f9c5e6c83149678f2d9ae9a26258dbc19ed283ec2f2efc72c6e1e9ac78449e5",
+      "bytes": 716
+    },
+    "docs/reviews/mantis-early-knee/focused-test.txt": {
+      "sha256": "84ae607f5427a6f5b500b844c42b66c91d2f15b50ef1bd6bd654e2c63799f743",
+      "bytes": 704
+    },
+    "docs/reviews/mantis-early-knee/lint.txt": {
+      "sha256": "a85b4b6d13fb1b5c539151221219d9e9630eb2497cfa7057df6bbc83f22df352",
+      "bytes": 56
+    },
+    "docs/reviews/mantis-early-knee/preservation-before.json": {
+      "sha256": "5a9b72af29373fc8fcb92b16d8ba8f1c90ac5d4ec4bd56b6ca693f15b1123903",
+      "bytes": 17391
+    },
+    "docs/reviews/mantis-early-knee/preservation-check.json": {
+      "sha256": "e422eb20cb348b31ead9820451ade4d28e573d6344d15b4ac6397264b4d9f72c",
+      "bytes": 1102
+    },
+    "docs/reviews/mantis-early-knee/preview-test.txt": {
+      "sha256": "2ac42fcb32bdb1d95c50b489e6dda6daf16176e68ef10186e18d1ede0ba75268",
+      "bytes": 974
+    },
+    "docs/reviews/mantis-early-knee/public-screening.json": {
+      "sha256": "a6b244eaf68a4286ead55fcd01c4ce5770b2467ca6dc90af7ceb2f668f767d01",
+      "bytes": 1719
+    },
+    "docs/reviews/mantis-early-knee/results.json": {
+      "sha256": "af45e34f9f010879bd8924eaf289ca07146adad9607d2f24de88d67b5acbcfce",
+      "bytes": 1509327
+    },
+    "scripts/build-mantis-early-knee-preview.mjs": {
+      "sha256": "1a63d59eff238a73dc303572edf198b51683f50493049de42c80a7e09772d213",
+      "bytes": 5202
+    },
+    "scripts/mantis-early-knee-admission.mjs": {
+      "sha256": "d722b2671b0fda670ebc2adc532b2f7ade7457806213f5f0bca581ac3455b26b",
+      "bytes": 3435
+    },
+    "scripts/mantis-early-knee-admission.test.mjs": {
+      "sha256": "8bb8f6d6c7ea32f36c3b063f9d756b5353ed321d8a75fc7c9a8ff45fd79486c9",
+      "bytes": 3264
+    },
+    "src/shards/driftwood-isle/generators/mantisEarlyKneeClips.ts": {
+      "sha256": "8271e6784334923e8ff27b79a760a0d72d22071dcada50771094da16a0e0290f",
+      "bytes": 8409
+    },
+    "src/shards/driftwood-isle/generators/mantisEarlyKneePreview.ts": {
+      "sha256": "72c9fcb00ad1bd7af5ffaf768194e0ea7560e35d56a6b372433213d8e341578b",
+      "bytes": 7725
+    },
+    "test/mantis-early-knee-preview.test.ts": {
+      "sha256": "8a72be28b1211a89eb1c3df60339923e47863eb069c8d7a279fa18ad0906a1a5",
+      "bytes": 1387
+    },
+    "test/mantis-early-knee-study.test.ts": {
+      "sha256": "f694a41854d5da2cc3c3826c6aad56376163d92becbce959728ec0ab3766955d",
+      "bytes": 18012
+    },
+    "vite/mantis-early-knee-preview.config.ts": {
+      "sha256": "f949a7c7f2acc28cd10215f7c9f3e2fd85a93315ef5d25c0dbe68b4a40434339",
+      "bytes": 7748
+    }
+  }
+}
