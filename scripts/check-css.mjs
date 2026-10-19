@@ -42,7 +42,7 @@ const FILES = [
   { file: join(ROOT, 'src/engine/ui/styles/minimap.css'), prefix: 'ws-minimap-', strict: true },
   { file: join(ROOT, 'src/engine/ui/styles/combat.css'), prefix: 'ws-combat-', strict: true }, // hunting feedback (src/engine/ui/Combat.ts), imported by the module
   { file: join(ROOT, 'src/engine/ui/styles/feedback.css'), prefix: 'ws-fb-', strict: true }, // the review inbox: ✎ disc + the lazy composer (src/engine/ui/review.ts, Feedback.ts)
-  { file: join(ROOT, 'src/shards/nalati-grasslands/stealth.css'), prefix: 'ws-stealth-', strict: true }, // Nalati grass stealth: the eye pip, GRASS meter, vignette (src/shards/nalati-grasslands/stealth.ts, B9)
+  { file: join(ROOT, 'src/game/stealth/stealth.css'), prefix: 'ws-stealth-', strict: true }, // Shared grass stealth: the eye pip, GRASS meter, vignette (src/game/stealth/controller.ts)
   { file: join(ROOT, 'src/engine/ui/styles/boss.css'), prefix: 'ws-boss-', strict: true }, // the boss system (src/engine/ui/BossBar.ts, src/game/Boss.ts): the wide top bar, name / retry / reward cards
   { file: join(ROOT, 'src/engine/ui/styles/elite.css'), prefix: 'ws-elite-', strict: true }, // named elites (src/engine/ui/EliteBar.ts, src/game/Elite.ts): the named bar, the NEARBY banner, the edge chevron, the minimap skulls
   { file: join(ROOT, 'src/engine/ui/styles/explore.css'), prefix: 'ws-x-', strict: true }, // Explore World, the viewer (src/engine/explore/Explore.ts), imported by the lazy chunk
