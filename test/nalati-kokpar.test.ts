@@ -1,7 +1,19 @@
+import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
+import { zlibSync } from 'fflate';
 import { expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { kokparView } from '../src/shards/nalati-grasslands/quest/kokpar';
+import { CarriedQuestProp } from '../src/game/quest/carriedProp';
+import { carriedQuestRows } from '../src/shards/nalati-grasslands/generators/carriedQuest';
+import * as ridingService from '../src/game/riding/client';
+import { Mount } from '../src/game/riding/mount';
+import { WorldRegistry } from '../src/engine/world/registry';
+import { QuestState } from '../src/engine/quest/core';
+import { Flags } from '../src/engine/world/interact/flags';
+import { publishBoundQuest } from '../src/game/quest/boundState';
+import type { ShardContext } from '../src/game/plugin/context';
+import * as terrainService from '../src/engine/world/terrainHeight';
 import { Scope } from '../src/engine/app/scope';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { practiceRoom } from '../src/engine/core/practiceRoom';
@@ -15,15 +27,36 @@ it('matches frozen round rules at 10 Hz while carrying poses stay per frame', ()
   if (!(sky instanceof SkyRig)) throw new Error('Missing test sky');
   const events: string[] = [], expected: string[] = [], player = new THREE.Vector3(rows.home.x, 0, rows.home.z);
   const mount: KokparMount = { mounted: true, gait: 'gallop', horse: { position: player.clone(), yaw: 0 } };
-  const floor = (x: number, z: number): number => x * 0.001 + z * 0.002;
+  const floor = (x:number,z:number):number=>x*.001+z*.002;
+  vi.spyOn(terrainService,'terrainHeight').mockImplementation(floor);
   const original = buildKokparRound(sky, floor, { toast: text => { expected.push(text); }, sting: kind => { expected.push(kind); }, onWin: () => { expected.push('won'); } }, new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial()));
-  const current = kokparView({ ctx: { scope }, sky, player: { position: player, yaw: 0 }, ride: { mount },
-    hud: { toast: text => { events.push(text); } }, music: { sting: kind => { events.push(kind === 'chunk' ? 'win' : kind === 'death' ? 'lose' : kind); } },
-    persistence: { flags: { set: () => { events.push('won'); } } } }, floor, rows, new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial()));
+  Reflect.set(sky,'csm',{lights:[]});Reflect.set(sky,'sunDir',new THREE.Vector3(0,1,0));
+  vi.spyOn(sky,'setupMaterial').mockImplementation(()=>undefined);
+  let riding:KokparMount|null=mount;
+  const native:unknown=Object.create(Mount.prototype);
+  if(!(native instanceof Mount))throw new Error('Missing fixture mount');
+  Object.defineProperties(native,{mounted:{get:()=>riding?.mounted??false},gait:{get:()=>riding?.gait??'stand'},horse:{get:()=>riding?.horse??null}});
+  const binding=vi.spyOn(ridingService,'pageRidingMount').mockReturnValue(native);
+  const ctx={} as ShardContext,flags=new Flags('carried-fixture'),quest:unknown=Object.create(QuestState.prototype);
+  if(!(quest instanceof QuestState))throw new Error('Missing fixture quest');
+  Object.assign(quest,{flags,def:{id:'tulpar'}});publishBoundQuest(scope,quest);
+  const set=vi.spyOn(flags,'set').mockImplementation(()=>{events.push('won');});
+  Object.assign(ctx,{
+    scope,
+    game:{runtime:{
+      world:{sky,registry:new WorldRegistry(),player:{position:player,yaw:0}},
+      play:{
+        hud:{toast:(text:string)=>{events.push(text);}},
+        music:{sting:(kind:string)=>{events.push(kind==='chunk'?'win':kind==='death'?'lose':kind);}},
+      },
+    }},
+  });
+  const current=new CarriedQuestProp(ctx,carriedQuestRows);
   const requests = vi.spyOn(ReturnProgram.prototype, 'project');
   let pending = 0;
-  const project = (dt: number, riding: KokparMount | null, win = false): void => {
-    if (win) current.win(); else current.update(dt, player, riding);
+  const project = (dt: number, next: KokparMount | null, win = false): void => {
+    riding=next;
+    if (win) current.win(); else current.update(dt);
     if (win) original.win();
     else {
       pending += dt;
@@ -64,5 +97,31 @@ it('matches frozen round rules at 10 Hz while carrying poses stay per frame', ()
       const h = mount.horse; if (h !== null) { h.position.copy(player); h.yaw = n * Math.PI; }
       project([1 / 60, 1 / 30, 1 / 20, 0, 0.100001][i % 5] ?? 0, i % 29 === 0 ? null : { ...mount, gait: n < 0.5 ? 'trot' : 'canter' });
     }
-  } finally { practiceRoom.open = practiceBefore; requests.mockRestore(); scope.dispose(); }
+  } finally { practiceRoom.open = practiceBefore; requests.mockRestore(); scope.dispose(); binding.mockRestore();set.mockRestore();vi.restoreAllMocks(); }
+});
+
+
+it('an orchard delivery uses its own shape, program profile and quest effects',()=>{
+  vi.spyOn(terrainService,'terrainHeight').mockImplementation(()=>0);
+  const scope=new Scope('orchard carried prop'),sky:unknown=Object.create(SkyRig.prototype),native:unknown=Object.create(Mount.prototype),quest:unknown=Object.create(QuestState.prototype);
+  if(!(sky instanceof SkyRig)||!(native instanceof Mount)||!(quest instanceof QuestState))throw new Error('Missing native fixture');
+  Reflect.set(sky,'csm',{lights:[]});Reflect.set(sky,'sunDir',new THREE.Vector3(0,1,0));vi.spyOn(sky,'setupMaterial').mockImplementation(()=>undefined);
+  const position=new THREE.Vector3(4,0,6),horse={position:position.clone(),yaw:0},events:string[]=[],ctx={} as ShardContext;
+  Object.defineProperties(native,{mounted:{get:()=>true},gait:{get:()=>'gallop'},horse:{get:()=>horse}});vi.spyOn(ridingService,'pageRidingMount').mockReturnValue(native);
+  const flags=new Flags('orchard-carry');Object.assign(quest,{def:{id:'orchard'},flags});publishBoundQuest(scope,quest);
+  Object.assign(ctx,{scope,game:{runtime:{world:{sky,registry:new WorldRegistry(),player:{position,yaw:0}},play:{hud:{toast:(text:string)=>{events.push(text);}},music:{sting:()=>undefined}}}}});
+  const script=parseDecisionScripts([carriedQuestRows.program.script])[0],model=carriedQuestRows.model[0];if(script===undefined||model===undefined)throw new Error('Missing fixture rows');
+  const shape=new THREE.BoxGeometry(1,1,1);shape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'orchard crate');
+  let compressed='';for(const byte of zlibSync(join(blocks)))compressed+=String.fromCodePoint(byte);
+  const orchardRows={...carriedQuestRows,quest:'orchard',objectName:'harvest-crate',home:{x:4,z:6},goals:[{x:12,z:6},{x:-4,z:6}],
+    model:[{...model,model:{...model.model,id:'orchard/crate',name:'Harvest crate'},source:{kind:'inline',data:btoa(compressed),geometry:layout,material:{id:'orchard-crate',family:'painterly',rim:.2,bands:.5}}}],
+    program:{...carriedQuestRows.program,script:{...script,id:'orchard.carry',params:{...script.params,homeX:4,homeZ:6,goal0X:12,goal0Z:6,goal1X:-4,goal1Z:6}}},
+    events:[{value:1,effects:[{kind:'toast',text:'Harvest loaded'}]},{value:7,effects:[{kind:'toast',text:'Harvest delivered'},{kind:'flag',flag:'harvest:delivered'}]}],
+  };
+  try{
+    const prop=new CarriedQuestProp(ctx,orchardRows);prop.update(.1);expect(prop.carrying).toBe(true);expect(events).toEqual(['Harvest loaded']);
+    horse.position.set(12,0,6);prop.update(.1);expect(prop.carrying).toBe(false);expect(flags.has('harvest:delivered')).toBe(true);
+    expect(events).toEqual(['Harvest loaded','Harvest delivered']);expect(prop.object.position.x).toBe(12);expect(prop.object.name).toBe('harvest-crate');
+    scope.dispose();expect(()=>new CarriedQuestProp(ctx,{...orchardRows,update:()=>0})).toThrow();
+  }finally{scope.dispose();shape.dispose();vi.restoreAllMocks();}
 });

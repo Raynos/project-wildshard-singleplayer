@@ -21922,6 +21922,38 @@
         "nalati-place-runtime",
         "camp-specimen-catalogue"
       ]
+    },
+    {
+      "id": "nalati-quest-prop",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-quest-prop.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-quest-prop.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-quest-prop.mjs",
+        "src/shards/nalati-grasslands/data/placeRuntime.generated.json",
+        "src/shards/nalati-grasslands/data/specimens.generated.json",
+        "public/assets/nalati/baked/places.bin",
+        "src/format",
+        "src/sdk/bake/source-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/questProp.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/questProp.generated.json"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "nalati-place-runtime",
+        "camp-specimen-catalogue"
+      ]
     }
   ]
 }

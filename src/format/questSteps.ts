@@ -1,4 +1,7 @@
 import * as v from 'valibot';
+import { SpecimenCatalogueSchema } from './specimenCatalogue';
+import { ReturnProgramSchema } from './namedJsonContracts';
+import { isJsonData } from './json';
 import { HandleIdSchema, ObservationRefSchema } from './sceneRefs';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
@@ -129,5 +132,25 @@ export function parseQuestSpawnPage(input: unknown): QuestSpawnPageRows {
   if (new Set(rows.cues.map(row => row.id)).size !== rows.cues.length || new Set(rows.flags.map(row => row.flag)).size !== rows.flags.length
     || new Set(rows.complete.map(row => row.flag)).size !== rows.complete.length)
     throw new Error('Duplicate quest spawn binding');
+  return rows;
+}
+
+/** Mounted carried quest props project guest channels into native scene and quest services. */
+const xyz=v.tuple([finite,finite,finite]),location=v.strictObject({x:finite,z:finite});
+export const CarriedQuestSchema=v.strictObject({
+  quest:name,objectName:name,model:v.pipe(SpecimenCatalogueSchema,v.length(1)),program:ReturnProgramSchema,
+  step:v.pipe(finite,v.minValue(.1),v.maxValue(1)),home:location,goals:v.pipe(v.array(location),v.minLength(1),v.maxLength(64)),
+  state:v.pipe(v.record(name,finite),v.maxEntries(32)),signals:v.strictObject({step:name,win:name}),
+  fields:v.strictObject({dt:name,playerX:name,playerZ:name,objectX:name,objectZ:name,mounted:name,carrier:name,fast:name,practice:name,carrierX:name,carrierZ:name}),
+  outputs:v.strictObject({carrying:name,warning:name,pose:name,goal:name,event:name}),
+  poses:v.strictObject({reset:finite,carry:v.pipe(v.array(finite),v.maxLength(8)),goal:finite,
+    home:v.strictObject({height:finite,rotation:xyz}),attached:v.strictObject({out:finite,height:finite,yaw:finite,roll:finite}),delivered:v.strictObject({height:finite,rotation:xyz})}),
+  warning:v.pipe(v.array(QuestCommitEffectSchema),v.maxLength(16)),events:v.pipe(v.array(v.strictObject({value:finite,effects:v.pipe(v.array(QuestCommitEffectSchema),v.maxLength(16))})),v.maxLength(32)),
+});
+export type CarriedQuestRows=v.InferOutput<typeof CarriedQuestSchema>;
+export function parseCarriedQuest(input:unknown):CarriedQuestRows{
+  if(!isJsonData(input))throw new Error('Carried quest rows require JSON data');
+  const rows=v.parse(CarriedQuestSchema,input);
+  if(!Object.hasOwn(rows.state,rows.outputs.carrying)||new Set(rows.events.map(row=>row.value)).size!==rows.events.length)throw new Error('Invalid carried quest continuation');
   return rows;
 }
