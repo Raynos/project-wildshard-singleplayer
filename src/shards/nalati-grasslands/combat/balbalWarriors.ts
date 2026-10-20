@@ -1,3 +1,4 @@
+import { EncounterSlots } from '@wildshard/game/boss/encounterPatrol';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { NightRows } from './nightTypes';
 import { GroundTell, type GroundTellWedgeStyle } from '@wildshard/game/Elite';
@@ -40,7 +41,7 @@ import { type FxRenderer, NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW }
 
 export interface BalbalWarriorsCtx { scene: THREE.Scene; balbals: Balbals | null; clock: DayCycleClock; scope: Scope }
 interface KitLike { sabre: { model: THREE.Object3D }; spear: { model: THREE.Object3D } }
-interface Warrior { a: Animal; statue: number; deadT: number; sparkT: number; lastHp: number; wedge: GroundTell }
+interface Warrior { a: Animal; statue: number; sparkT: number; lastHp: number; wedge: GroundTell }
 
 
 const SOIL: readonly [number, number, number] = [0.26, 0.19, 0.12], TURF: readonly [number, number, number] = [0.3, 0.36, 0.14];
@@ -66,47 +67,30 @@ export class BalbalWarriors {
   private animals: AnimalManager | null = null;
   private kit: KitLike | null = null;
   private readonly wedges: GroundTell[] = [];
-  private night = 0;
+  private readonly roster: EncounterSlots;
   private soilAcc = 0;
-  private elapsed = 0;
-  private readonly author: ReturnProgram;
 
   constructor(private readonly ctx: BalbalWarriorsCtx, nightRows: NightRows) {
-    this.author = ReturnProgram.page(nightRows.program, ctx.scope);
+    this.roster = new EncounterSlots(nightRows.slots, ReturnProgram.page(nightRows.program, ctx.scope));
     balbalCombat.isPiercing = request => request === undefined || request.sourceTags.includes('dmg.legacy') ? undefined
       : request.sourceTags.includes('weapon.spear') || request.sourceTags.includes('weapon.javelin');
     this.debris = new NightParticles(ctx.scene, 'debris');
     for (let i = 0; i < 6; i++) this.wedges.push(new GroundTell(ctx.scene, 'wedge', 0, wedgeStyle(nightRows)));
-    ctx.clock.onDusk(() => { this.wake(); });
-    ctx.clock.onDawn(() => { this.dawn(); });
-    ctx.clock.onDay(() => { this.dawn(); });
     ctx.scope.onDispose(app.debug.scopedExpose('nalati.balbals', this)); // dev / screenshots
   }
 
   attach(animals: AnimalManager): void {
     this.animals = animals;
     animals.factory.model(BALBAL, 'warrior'); animals.factory.model(BALBAL, 'capped'); // build now, not at dusk
-    const ph = this.ctx.clock.dayPhase;
-    if (ph === 'dusk' || ph === 'night') this.wake();
   }
 
   bindKit(kit: KitLike | null): void { this.kit = kit; }
-
-  /** statues that wake tonight: four of the ring (rotating each night) and one crown */
-  private tonight(): number[] {
-    const count = this.ctx.balbals?.statues.length ?? 0, indices = new Set<number>();
-    for (let slot = 0; slot < 5; slot++) {
-      const index = this.author.project('tonight', { count, night: this.night, slot })['index'];
-      if (index !== undefined) indices.add(index);
-    }
-    return [...indices];
-  }
 
   /** dusk: tear the chosen statues out of the ground */
   wake(which?: number[]): void {
     const b = this.ctx.balbals, animals = this.animals;
     if (b === null || animals === null) return;
-    for (const i of which ?? this.tonight()) {
+    for (const i of which ?? this.roster.select({ count: b.statues.length, night: this.roster.cycle['t'] ?? 0 })) {
       if (this.awake.some((w) => w.statue === i)) continue;
       const s = b.statues[i];
       const wedge = this.wedges[this.awake.length % this.wedges.length];
@@ -120,13 +104,13 @@ export class BalbalWarriors {
       const m = a.mem;
       m['field'] = 1; m['homeX'] = s.x; m['homeZ'] = s.z; m['homeYaw'] = yaw; m['rise'] = 0;
       a.yOffset = -2.5 * a.scale;
-      this.awake.push({ a, statue: i, deadT: 0, sparkT: 0, lastHp: a.hp, wedge });
+      this.roster.add(a.entityId);
+      this.awake.push({ a, statue: i, sparkT: 0, lastHp: a.hp, wedge });
       // the ground splits: a first spray of turf and soil
       _v.set(s.x, heightAt(s.x, s.z) + 0.1, s.z);
       this.debris.burst(_v, 26, 2.2, 3.5, 1.6, 0.16, TURF, 0.25, FLAG_GRAVITY | FLAG_BOUNCE, 0.6);
       this.debris.burst(_v, 10, 1.2, 0.8, 2.2, 0.9, DUST, 0.15, FLAG_GROW, 0.5);
     }
-    this.night++;
   }
 
   /** dawn: send every warrior home (the species walks back and sinks); a broken one's statue stands again */
@@ -143,9 +127,11 @@ export class BalbalWarriors {
       const id = equipment !== null && equipment.visible && !equipment.stowed ? equipment.current.row.id : undefined;
       balbalCombat.melee = id === 'weapon.sabre' || id === 'weapon.naizagai' ? 'sabre' : id === 'weapon.spear' ? 'spear' : 'other';
     }
-    this.elapsed += dt;
-    const decisionDt = this.elapsed >= .1 ? this.elapsed : 0;
-    if (decisionDt > 0) this.elapsed = 0;
+    const phase = this.ctx.clock.dayPhase;
+    const step = this.roster.update(this.animals === null ? 0 : dt, { kind: Number(phase === 'dusk' || phase === 'night') },
+      this.awake.map(w => ({ id: w.a.entityId, fields: { alive: Number(w.a.alive), gone: w.a.mem['gone'] ?? 0 } })));
+    if (step.cycle['spawn'] === 1) this.wake();
+    if (step.cycle['dissolve'] === 1) this.dawn();
     this.debris.light = Math.max(0.25, light);
     this.soilAcc += dt;
     const soilTick = this.soilAcc > 0.05; if (soilTick) this.soilAcc = 0;
@@ -162,8 +148,7 @@ export class BalbalWarriors {
         if (crack || w.a.hp < w.lastHp - 40) this.debris.burst(_v, 12, 3, 2.5, 0.5, 0.05, AMBER, 0.2, FLAG_GRAVITY, 0.3);
         w.lastHp = a.hp;
       }
-      const state = decisionDt > 0 ? this.author.project('warrior', { dt: decisionDt, t: w.deadT,
-        alive: Number(a.alive), gone: m['gone'] ?? 0 }) : {};
+      const state = step.members.get(a.entityId) ?? {};
       // ── dead: rubble as it crumbles, then gone (the statue returns at dawn) ──
       if (!a.alive) {
         w.wedge.hide();
@@ -173,7 +158,6 @@ export class BalbalWarriors {
           this.debris.burst(_v, 14, 1.5, 0.6, 2.4, 1.0, DUST, 0.15, FLAG_GROW, 0.7);
           this.onBroken?.(a);
         }
-        w.deadT = state['t'] ?? w.deadT;
         if (state['retire'] === 1) { this.retire(a); this.awake.splice(i, 1); }
         continue;
       }
@@ -223,5 +207,6 @@ export class BalbalWarriors {
   /** out of the world: hidden, out of the animals list (the minimap, the harvest prompt, the aim assist) */
   private retire(a: Animal): void {
     this.animals?.retire(a);
+    this.roster.remove(a.entityId);
   }
 }

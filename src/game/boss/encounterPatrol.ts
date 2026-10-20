@@ -92,3 +92,54 @@ export class EncounterPatrol {
     return { spawn: cycle['spawn'] === 1, effects };
   }
 }
+
+const SlotRows = v.strictObject({
+  cycle: v.strictObject({ signal: v.string(), initial: numbers }),
+  member: v.strictObject({ signal: v.string(), initial: numbers }),
+  select: v.strictObject({ signal: v.string(), count: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(8)) }),
+});
+/** Static encounter slots share the same numeric observation/effect transport.
+ * The guest owns each cycle's selection and each occupied slot's lifetime. */
+export class EncounterSlots {
+  readonly cycle: Record<string, number>;
+  private readonly rows: v.InferOutput<typeof SlotRows>;
+  private readonly members = new Map<string, Record<string, number>>();
+  private elapsed = 0;
+  constructor(input: unknown, private readonly program: ReturnProgram) {
+    this.rows = v.parse(SlotRows, input); this.cycle = { ...this.rows.cycle.initial };
+  }
+  add(id: string): void {
+    if (this.members.has(id)) throw new Error('Duplicate encounter slot');
+    this.members.set(id, { ...this.rows.member.initial });
+  }
+  remove(id: string): void { this.members.delete(id); }
+  select(observations: Readonly<Record<string, number>>): number[] {
+    const selected = new Set<number>();
+    for (let slot = 0; slot < this.rows.select.count; slot++) {
+      const result = this.program.project(this.rows.select.signal, { ...this.cycle, ...observations, slot });
+      const index = result['index'];
+      if (index !== undefined) {
+        if (!Number.isSafeInteger(index) || index < 0) throw new Error('Invalid encounter slot selection');
+        selected.add(index);
+      }
+    }
+    return [...selected];
+  }
+  update(dt: number, frame: Readonly<Record<string, number>>, observed: readonly { readonly id: string; readonly fields: Readonly<Record<string, number>> }[]): {
+    cycle: Readonly<Record<string, number>>; members: ReadonlyMap<string, Readonly<Record<string, number>>>;
+  } {
+    this.elapsed += dt;
+    const results = new Map<string, Readonly<Record<string, number>>>();
+    if (this.elapsed + 1e-9 < .1) return { cycle: {}, members: results };
+    const step = this.elapsed; this.elapsed = 0;
+    const cycle = this.program.project(this.rows.cycle.signal, { ...this.cycle, ...frame, dt: step });
+    Object.assign(this.cycle, cycle);
+    for (const row of observed) {
+      const state = this.members.get(row.id);
+      if (state === undefined) throw new Error('Unknown encounter slot observation');
+      const result = this.program.project(this.rows.member.signal, { ...state, ...row.fields, dt: step });
+      Object.assign(state, result); results.set(row.id, result);
+    }
+    return { cycle, members: results };
+  }
+}

@@ -71,7 +71,12 @@ if (signal == Signal.lineStart) {
     }
     put(Channel.x, tx); put(Channel.z, tz); put(Channel.speed, speed); put(Channel.turn, turn);
   }
-if(signal==Signal.patrolFire){
+if(resultCount>0)return;
+if(signal==Signal.warriorCycle){
+ const phase=f(Field.kind),previous=f(Field.phase),wake=phase==1&&previous!=1;
+ put(Channel.phase,phase);put(Channel.spawn,wake?1:0);put(Channel.dissolve,phase==0&&previous!=0?1:0);
+ put(Channel.t,f(Field.t)+(wake?1:0));
+} else if(signal==Signal.patrolFire){
  const t=f(Field.fireT)-f(Field.dt),d=f(Field.distance);
  put(Channel.fireT,t);put(Channel.shoot,t<=0&&f(Field.quiet)==0&&d<62&&d>6&&f(Field.engaged)==1&&f(Field.dead)==0&&f(Field.dying)==0&&f(Field.hidden)==0?1:0);
 } else if(signal==Signal.patrolCycle){
@@ -101,7 +106,7 @@ if (signal == Signal.roster) {
     put(Channel.killed, killed ? 1 : 0); put(Channel.dead, killed ? 1 : f(Field.dead));
     put(Channel.dying, dying); put(Channel.fade, fade); put(Channel.fadeTarget, target); put(Channel.retire, dying >= 1.3 ? 1 : 0);
   } else if (signal == Signal.tonight) {
-    const count = i32(f(Field.count)), night = i32(f(Field.night)), slot = i32(f(Field.slot));
+    const count = i32(f(Field.count)), night = i32(Math.max(0,f(Field.night))), slot = i32(f(Field.slot));
     if (count <= 0) return;
     if (slot < 4) put(Channel.index, (night * 2 + slot * 2 + (slot >= 3 ? 1 : 0)) % (count < 9 ? count : 9));
     else if (count > 9) put(Channel.index, 9 + night % (count - 9));
@@ -116,6 +121,7 @@ if (signal == Signal.roster) {
   } else if (signal == Signal.retry) {
     put(Channel.fireT, (f(Field.first) == 1 ? 2 : 3) + Read.random() * (f(Field.first) == 1 ? 2.5 : 1.8));
   }
+if(resultCount>0)return;
 if (signal == Signal.aim) {
     const x = f(Field.x), y = f(Field.y), z = f(Field.z), t = length(f(Field.px) - x, f(Field.pz) - z) / 34;
     const dx = f(Field.px) + f(Field.vx) * t * .8 - x, dz = f(Field.pz) + f(Field.vz) * t * .8 - z, dy = f(Field.py) + 1.2 - y;
@@ -170,7 +176,7 @@ if(signal==Signal.arm){
  }
 }
 
-export function onSignal(signal:i32,value:f64,source:i32):void {
+@inline export function onSignal(signal:i32,value:f64,source:i32):void {
  resultCount=0;decide(signal,value,source);
  if(resultCount>0)Do.channel(load<i32>(RESULTS+0),load<f64>(RESULTS+8));
  if(resultCount>1)Do.channel(load<i32>(RESULTS+16),load<f64>(RESULTS+24));
