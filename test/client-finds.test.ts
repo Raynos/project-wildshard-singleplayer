@@ -17,8 +17,8 @@ test('orchard finds render the native quest flags without authored view/read hoo
   const rows={counters:[{label:'Seeds',flags:['orchard.apple']}],sections:[{title:'Harvest',items:[{label:'Apple',icon:'pin',flag:'orchard.apple'}]}]};
   const quest=new QuestState({id:'orchard.quest',title:'Seeds',completeFlag:'orchard.done',steps:[{id:'pick',objective:'Pick',done:{all:['orchard.apple']}}]},flags,undefined,scope);
   publishBoundQuest(scope,quest);
-  const runtime=legacyDouble<ShardRuntime>({play:{owned:new Owned('orchard')},hooks:{}}),product=legacyDouble<ShardProduct>({json:()=>Promise.resolve(rows)});
-  const ctx=legacyDouble<ShardContext>({scope,product,game:{runtime},bag:{fragment}}),feature={kind:'bag.finds',id:'orchard.finds',quest:'orchard.quest',file:'quests/finds.json'};
+  const runtime=legacyDouble<ShardRuntime>({play:legacyDouble<NonNullable<ShardRuntime['play']>>({owned:new Owned('orchard')}),hooks:{}}),product=legacyDouble<ShardProduct>({json:vi.fn<ShardProduct['json']>().mockResolvedValue(rows)});
+  const ctx=legacyDouble<ShardContext>({scope,product,game:legacyDouble<ShardContext['game']>({runtime}),bag:legacyDouble<ShardContext['bag']>({fragment})}),feature={kind:'bag.finds',id:'orchard.finds',quest:'orchard.quest',file:'quests/finds.json'};
   try{
     const row=parseClientPlan({version:1,features:[feature]}).features[0];if(row===undefined)throw new Error('Missing finds feature');
     await installClientFinds(ctx,row);const view=fragment.mock.calls[0]?.[1];if(view===undefined)throw new Error('Missing native fragment');
