@@ -157,8 +157,9 @@ export interface RulerShardView {
   wave: string;
   /** Goal %: 20, or 10 for Sky Reach and Signal Dunes. */
   goal: number;
-  pct: number;
-  custom: number;
+  pct: number | null;
+  custom: number | null;
+  measurementError?: string;
   legacy: number;
   /** Points since the previous measured commit (negative = custom code cut), or null without one. */
   delta: number | null;
@@ -177,10 +178,10 @@ export interface ProgressData {
   basis: string;
   /** Whole plan = 60 % M3 + 40 % M2, in %; lower ≠ upper while M2 has unknown checks. */
   plan: { lower: number; upper: number };
-  m3: { pct: number; cut: number; mustGo: number };
+  m3: { pct: number | null; cut: number | null; mustGo: number | null };
   m2: { ready: number; fail: number; unknown: number; total: number };
   frameFloor?: { ready: number; fail: number; unknown: number; total: number };
-  wave: { id: string; label: string; pct: number; until: string | null };
+  wave: { id: string; label: string; pct: number | null; until: string | null };
   shards: RulerShardView[];
   native: string[];
   previous: { revision: string; at: string } | null;

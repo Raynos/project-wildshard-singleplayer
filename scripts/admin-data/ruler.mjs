@@ -60,12 +60,13 @@ export const WAVES = [
   { id: 'NEXT', label: 'NEXT', shards: [], goal: 20, until: null, start: null },
 ];
 
-/** @typedef {{slug:string;name:string;wave:string;goal:number;custom:number;legacy:number;pct:number;grid:'pass'|'fail'|'unknown';criteria:Record<string,string>;frameFloor?:import('../shard-milestones.mjs').Criterion}} RulerShard */
+/** @typedef {{slug:string;name:string;wave:string;goal:number;custom:number|null;legacy:number;pct:number|null;grid:'pass'|'fail'|'unknown';criteria:Record<string,string>;frameFloor?:import('../shard-milestones.mjs').Criterion;measurementError?:string;productFailure?:string}} RulerShard */
 /** @typedef {{revision:string;at:string;basis:string;shards:Record<string,number>}} RulerPoint */
 /** @typedef {{id:string;startedAt:string;start:Record<string,number>;endedAt:string|null}} RulerWaveState */
 /** @typedef {{schema:string;command:string;revision:string;committedAt:string;measuredAt:string;basis:string;
- *   plan:{lower:number;upper:number};m3:{cut:number;mustGo:number;fraction:number};m2:{ready:number;fail:number;unknown:number;total:number};
- *   frameFloor?:{ready:number;fail:number;unknown:number;total:number};netLines?:import('./ruler.mjs').RulerNetLines[];customSectionFailures?:string[];shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
+ *   plan:{lower:number;upper:number};m3:{cut:number|null;mustGo:number|null;fraction:number|null};m2:{ready:number;fail:number;unknown:number;total:number};
+ *   measurementError?:string;productFailures?:Record<string,string>;
+ *   frameFloor?:{ready:number;fail:number;unknown:number;total:number};netLines?:import('./ruler.mjs').RulerNetLines[];customSectionFailures?:string[];shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number|null;shards:string[];goal:number};
  *   components?:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>;
  *   componentWaves?:{id:string;components:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>}[];
  *   waves:RulerWaveState[];history:RulerPoint[];events:{at:string;label:string}[]}} Ruler */
@@ -101,20 +102,23 @@ export function wavePercent(start, now, shards, goal) {
 export function nextRuler(raw, prev, at) {
   if (!isObject(raw) || !isObject(raw._summary)) throw new Error(`Ruler: ${RULER_COMMAND} printed no _summary`);
   const summary = raw._summary, progress = summary.progress;
-  if (!isObject(progress) || !isObject(progress.m3) || !isObject(progress.m2) || !isObject(progress.plan)) throw new Error('Ruler: _summary.progress lacks m3 / m2 / plan');
+  const measurementError=typeof summary.measurementError==='string'?summary.measurementError:null;
+  if (!isObject(progress) || !isObject(progress.m3) || !isObject(progress.m2) || (!isObject(progress.plan)&&!(progress.plan===null&&measurementError!==null))) throw new Error('Ruler: _summary.progress lacks m3 / m2 / plan');
   /** @type {string[]} */
   const bases = [];
   const shards = SHARDS.map(({ slug, name, wave, goal }) => {
     const row = raw[slug];
-    if (!isObject(row) || !isObject(row.m3)) throw new Error(`Ruler: ${slug} has no m3 row`);
-    const custom = num(row.m3.customLines, `${slug}.m3.customLines`), legacy = num(row.m3.legacyLines, `${slug}.m3.legacyLines`);
+    if (!isObject(row) || (!isObject(row.m3)&&!(row.m3===null&&typeof row.measurementError==='string'))) throw new Error(`Ruler: ${slug} has no m3 row`);
+    const m3=isObject(row.m3)?row.m3:null;
+    const custom=m3===null?null:num(m3.customLines,`${slug}.m3.customLines`),legacy=num(m3===null?row.legacyLines:m3.legacyLines,`${slug}.m3.legacyLines`);
     if (legacy === 0) throw new Error(`Ruler: ${slug} has no legacy lines`);
-    bases.push(str(row.m3.basis, `${slug}.m3.basis`));
+    bases.push(m3===null?(summary.metric==='source-progress'?'source':'output'):str(m3.basis, `${slug}.m3.basis`));
     const grid = isObject(row.gridReady) ? row.gridReady : {};
     const verdict = grid.verdict === 'pass' || grid.verdict === 'fail' ? grid.verdict : 'unknown';
     const criteria = isObject(grid.criteria) ? Object.fromEntries(Object.entries(grid.criteria).map(([k, criterion]) => [k, isObject(criterion) && typeof criterion.verdict === 'string' ? criterion.verdict : 'unknown'])) : {};
     const frameFloor=v.parse(criterionSchema,grid.frameFloor??{verdict:'unknown',evidence:'No qualified exact-SHA frame-floor receipt'});
-    return { slug, name, wave, goal, custom, legacy, pct: pct1((custom / legacy) * 100), grid: verdict, criteria,frameFloor };
+    return { slug, name, wave, goal, custom, legacy, pct:custom===null?null:pct1((custom / legacy) * 100), grid: verdict, criteria,frameFloor,
+      ...(typeof row.measurementError==='string'?{measurementError:row.measurementError}:{}),...(typeof row.productFailure==='string'?{productFailure:row.productFailure}:{}) };
   });
   const kinds = [...new Set(bases)];
   if (kinds.length !== 1) throw new Error('Ruler: the shards disagree on the basis');
@@ -122,7 +126,7 @@ export function nextRuler(raw, prev, at) {
   const native = Object.keys(raw).filter((slug) => slug !== '_summary' && !SHARDS.some((s) => s.slug === slug)).sort();
   const m2total = num(progress.m2.total, 'm2.total'), ready = num(progress.m2.ready, 'm2.ready'), unknown = num(progress.m2.unknown, 'm2.unknown');
   /** @type {Partial<Record<string,number>>} */
-  const now = Object.fromEntries(shards.map((s) => [s.slug, (s.custom / s.legacy) * 100]));
+  const now = Object.fromEntries(shards.flatMap(s=>s.custom===null?[]:[[s.slug,(s.custom/s.legacy)*100]]));
   const events = [...(prev?.events ?? [])];
   if (prev && prev.basis !== basis) events.push({ at: at.now, label: `P4 re-base: the ruler moves from the ${prev.basis} basis to ${basis}` });
   // Old reports may have closed W2 on the cancelled midnight deadline.
@@ -137,7 +141,7 @@ export function nextRuler(raw, prev, at) {
   for (const wave of WAVES) {
     let state = waves.find((w) => w.id === wave.id);
     if (!state) {
-      state = { id: wave.id, startedAt: at.now, start: wave.start ?? Object.fromEntries(wave.shards.map((slug) => [slug, last[slug] ?? now[slug] ?? 0])), endedAt: null };
+      state = { id: wave.id, startedAt: at.now, start: wave.start ?? Object.fromEntries(wave.shards.flatMap(slug=>{const value=last[slug]??now[slug];return value===undefined?[]:[[slug,value]];})), endedAt: null };
       if (wave.id === 'W2') state.startedAt = '2026-10-14T04:19:00Z';
       else events.push({ at: at.now, label: `${wave.id} starts` });
       waves.push(state);
@@ -156,8 +160,12 @@ export function nextRuler(raw, prev, at) {
   if (history.at(-1)?.revision !== at.revision) history.push({ revision: at.revision, at: at.committedAt, basis, shards: now });
   return {
     schema: RULER_SCHEMA, command: RULER_COMMAND, revision: at.revision, committedAt: at.committedAt, measuredAt: at.now, basis,
-    plan: { lower: num(progress.plan.lower, 'plan.lower'), upper: num(progress.plan.upper, 'plan.upper') },
-    m3: { cut: num(progress.m3.cut, 'm3.cut'), mustGo: num(progress.m3.mustGo, 'm3.mustGo'), fraction: num(progress.m3.fraction, 'm3.fraction') },
+    plan:isObject(progress.plan)?{lower:num(progress.plan.lower,'plan.lower'),upper:num(progress.plan.upper,'plan.upper')}:
+      {lower:.4*ready/m2total,upper:.6+.4*(ready+unknown)/m2total},
+    m3:progress.m3.fraction===null&&measurementError!==null?{cut:null,mustGo:null,fraction:null}:
+      {cut:num(progress.m3.cut,'m3.cut'),mustGo:num(progress.m3.mustGo,'m3.mustGo'),fraction:num(progress.m3.fraction,'m3.fraction')},
+    ...(measurementError===null?{}:{measurementError}),
+    productFailures:v.parse(v.record(v.string(),v.string()),summary.productFailures??{}),
     m2: { ready, fail: m2total - ready - unknown, unknown, total: m2total },
     frameFloor: {ready:shards.filter(row=>row.frameFloor.verdict==='pass').length,fail:shards.filter(row=>row.frameFloor.verdict==='fail').length,
       unknown:shards.filter(row=>row.frameFloor.verdict==='unknown').length,total:shards.length},
@@ -168,7 +176,7 @@ export function nextRuler(raw, prev, at) {
     customSectionFailures: v.parse(v.array(v.string()), summary.customSectionFailures ?? []),
     shards, native,
     wave: { id: current.id, label: current.label, until: current.until, goal: current.goal, shards: [...current.shards],
-      pct: wavePercent(currentState?.start ?? {}, now, current.shards, current.goal) },
+      pct:current.shards.some(slug=>now[slug]===undefined)?null:wavePercent(currentState?.start ?? {}, now, current.shards, current.goal) },
     waves, history: history.slice(-300), events,
   };
 }
@@ -184,13 +192,19 @@ export function readRuler(value) {
   for (const s of shards) {
     if (!isObject(s)) throw new Error('Ruler: a shard row is not an object');
     const slug = str(s.slug, 'shard slug');
-    for (const key of ['custom', 'legacy', 'pct', 'goal']) num(s[key], `${slug}.${key}`);
+    for (const key of ['legacy', 'goal']) num(s[key], `${slug}.${key}`);
+    if(s.custom===null||s.pct===null){str(s.measurementError,`${slug}.measurementError`);if(s.custom!==null||s.pct!==null)throw new Error(`Ruler: ${slug} unknown counts must agree`);}
+    else {num(s.custom,`${slug}.custom`);num(s.pct,`${slug}.pct`);}
     if(s.frameFloor!==undefined)v.parse(criterionSchema,s.frameFloor);
     if (s.grid !== 'pass' && s.grid !== 'fail' && s.grid !== 'unknown') throw new Error(`Ruler: ${slug}.grid invalid`);
   }
   if (!isObject(plan) || !isObject(m3) || !isObject(m2) || !isObject(wave)) throw new Error('Ruler: plan, m3, m2 and wave are objects');
+  if(shards.some(s=>isObject(s)&&s.custom===null)&&m3.fraction!==null)throw new Error('Ruler: unknown shard counts cannot grant M3 credit');
   for (const key of ['lower', 'upper']) if (num(plan[key], `plan.${key}`) > 1) throw new Error(`Ruler: plan.${key} above 1`);
-  num(m3.fraction, 'm3.fraction'); num(m2.total, 'm2.total'); num(wave.pct, 'wave.pct');
+  if(m3.fraction===null){str(value.measurementError,'measurementError');if(m3.cut!==null||m3.mustGo!==null)throw new Error('Ruler: unknown M3 must not claim line counts');}
+  else num(m3.fraction,'m3.fraction');
+  num(m2.total,'m2.total');if(wave.pct===null)str(value.measurementError,'measurementError');else num(wave.pct,'wave.pct');
+  if(value.productFailures!==undefined)v.parse(v.record(v.string(),v.string()),value.productFailures);
   // Existing snapshots predate G496; newly measured snapshots always carry it.
   if(value.frameFloor!==undefined)v.parse(floorSummarySchema,value.frameFloor);
   if (value.netLines !== undefined) v.parse(netLinesSchema, value.netLines);
@@ -232,5 +246,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   writeFileSync(`${file}.tmp`, `${JSON.stringify(next, null, 1)}\n`);
   renameSync(`${file}.tmp`, file);
   writePortShares(repo);
-  console.info(`ruler ${revision.slice(0, 9)}: plan ${pct1(next.plan.lower * 100)}–${pct1(next.plan.upper * 100)} %, M3 ${pct1(next.m3.fraction * 100)} %, M2 ${next.m2.ready}/${next.m2.total}; ${next.wave.id} ${next.wave.pct} % → ${RULER_PATH}`);
+  console.info(`ruler ${revision.slice(0, 9)}: plan ${pct1(next.plan.lower * 100)}–${pct1(next.plan.upper * 100)} %, M3 ${next.m3.fraction===null?'unknown':pct1(next.m3.fraction * 100)} %, M2 ${next.m2.ready}/${next.m2.total}; ${next.wave.id} ${next.wave.pct??'unknown'} % → ${RULER_PATH}`);
 }

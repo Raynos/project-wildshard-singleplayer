@@ -22,10 +22,11 @@ import { quietCli } from './quiet-cli.mjs';
 // --shard=<slug>[,<slug>] builds only those shards: another shard's product stays only while its key still matches,
 // else it is removed, so a one-shard preview never serves a stale product of a changed shard.
 /** Pack every first-party map through the existing charged SDK row; missing maps keep the old no-map build path.
- * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], catalog?:boolean, copyRuntime?:boolean|'closed'}} options */
-export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, catalog = false, copyRuntime = false } = {}) {
+ * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], catalog?:boolean, copyRuntime?:boolean|'closed',onFailure?:(slug:string,error:unknown)=>void}} options */
+export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, catalog = false, copyRuntime = false,onFailure } = {}) {
+  if(onFailure!==undefined&&(strict||catalog))throw new Error('Product failure collection is report-only; strict/catalog builds must fail');
   if (catalog && only !== undefined) throw new Error('wildshard build: --catalog requires every project; --shard cannot publish a catalog');
-  await prepareDataMaps(root, strict ? undefined : only);
+  if(onFailure===undefined)await prepareDataMaps(root, strict ? undefined : only);
   const outputRoot = resolve(root, 'out');
   // A partial/ordinary build cannot leave a previous complete catalog vouching for changed products.
   if (!catalog) rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
@@ -46,12 +47,14 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   };
   const built = readdirSync(projects, { withFileTypes: true }).filter(entry => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(resolve(projects, entry.name, 'shard.config.ts'))).map(entry => entry.name).sort();
   for (const slug of only ?? []) if (!built.includes(slug)) throw new Error(`wildshard build: --shard=${slug} is not a first-party shardfile project (${built.join(', ')})`);
-  for (const slug of only ?? built) checkHeadlessAssembly(root, slug);
+  if(onFailure===undefined)for (const slug of only ?? built) checkHeadlessAssembly(root, slug);
   if ((reuse || only !== undefined) && strict) console.warn('wildshard build: --reuse / --shard ignored in CI; building every shard');
   const files = strict ? undefined : treeHashes(root);
   for (const entry of readdirSync(projects, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
     const project = resolve(projects, entry.name);
     if (!entry.isDirectory() || Object.hasOwn(frozen.shards, entry.name) || !existsSync(resolve(project, 'shard.config.ts'))) continue;
+    try {
+    if(onFailure!==undefined){await prepareDataMaps(root,[entry.name]);checkHeadlessAssembly(root,entry.name);}
     const started = performance.now();
     const stamp = mapStampPath(project);
     const expected = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')).tilesHash : null;
@@ -88,6 +91,12 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     const how = await reuseOrBuild({ slug: entry.name, key, destination, fresh: !reuse && only === undefined, build: out => build(['build', project, out, '--product-only', '--no-placeholders', '--format=2', ...flags]) });
     console.info(`wildshard build: ${entry.name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
+    } catch(error) {
+      if(onFailure===undefined)throw error;
+      // A previous product cannot vouch for a failed rebuild or grant a census user.
+      rmSync(resolve(outputRoot,entry.name),{recursive:true,force:true});
+      onFailure(entry.name,error);
+    }
   }
   if (copyRuntime === 'closed') for (const report of runtimeReport) console.info(`runtime copy: ${JSON.stringify(report)}`);
   console.info(`wildshard build: ${count} shardfile project(s)`);

@@ -29,23 +29,24 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     let report;
     const receipts=process.argv.filter(value=>value.startsWith('--grid-receipt=')).map(value=>value.slice('--grid-receipt='.length));
     const scriptReceipts=process.argv.filter(value=>value.startsWith('--script-receipt=')).map(value=>value.slice('--script-receipt='.length));
-    try {report=await outputReport(ROOT,{build,sourceProgress,products,...(receipts.length===0?{}:{receipts}),...(scriptReceipts.length===0?{}:{scriptReceipts})});}
+    try {report=await outputReport(ROOT,{build,sourceProgress,products,reportOnly:!process.argv.includes('--check'),...(receipts.length===0?{}:{receipts}),...(scriptReceipts.length===0?{}:{scriptReceipts})});}
     finally {console.log=log;console.info=info;}
     const {rows,measures,sectionFailures,progress,netLines,dailyLines}=report;
     // Component closure in the labelled source-progress ruler must include
     // transitional shards whose standalone output has not closed yet.
-    const componentMeasures=sourceProgress?sourceProgressInventory(ROOT,products):measures;
+    const componentMeasures=report.measurementError!==null?{}:sourceProgress?sourceProgressInventory(ROOT,products):measures;
     const policy=JSON.parse(readFileSync(resolve(ROOT,'lint/ratchet.json'),'utf8'));
     const closingIds=[...new Set(Object.values(policy.closingComponents??{}).flatMap(row=>Object.keys(row)))];
     const lockedShards=[...new Set([...Object.keys(policy.closedComponents??{}),...Object.keys(policy.closingComponents??{})])];
     // G514: custom-section budgets never stop the ruler; --check keeps them hard.
     const failures=process.argv.includes('--check')?[...sectionFailures]:[];
     if (failures.length===0) for (const failure of sectionFailures) console.error(`shard-platform: FAIL (report-only) ${failure}`);
-    if (process.argv.includes('--write')) refreshOutputReports(ROOT,measures);
-    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:sourceProgress?'source-progress':'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,customSectionFailures:sectionFailures,componentBasis:sourceProgress?'source':'built-output',components:componentStates(componentMeasures,lockedShards,closingIds),waves:SHARD_WAVES.map(wave=>componentWave(componentMeasures,wave.id,closingIds))}},null,2));
+    if (process.argv.includes('--write')&&report.measurementError===null) refreshOutputReports(ROOT,measures);
+    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:sourceProgress?'source-progress':'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,customSectionFailures:sectionFailures,productFailures:report.productFailures,measurementError:report.measurementError,componentBasis:sourceProgress?'source':'built-output',components:componentStates(componentMeasures,lockedShards,closingIds),waves:SHARD_WAVES.map(wave=>componentWave(componentMeasures,wave.id,closingIds))}},null,2));
     else {
       console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  private JSON / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
       for (const [slug,row] of Object.entries(rows)) {
+        if(row.measurementError!==undefined){console.log(`${slug}: custom percentage unknown; ${row.measurementError}`);console.log(`  grid-ready ${row.gridReady.verdict}; ${JSON.stringify(row.gridReady.criteria)}; frame floor ${row.gridReady.frameFloor?.verdict??'unknown'}`);continue;}
         const m3=row.m3===null?'native':`${(100*row.m3.fraction).toFixed(1)}% ${row.m3.basis}`;
         const ready=Object.entries(row.gridReady.criteria).map(([name,value])=>`${name}:${value.verdict}`).join(', ');
         const metrics=row.scriptMetrics,delta=row.linesRemovedSince12Z;

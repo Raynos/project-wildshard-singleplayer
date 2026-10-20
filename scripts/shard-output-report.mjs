@@ -8,7 +8,8 @@ import {outputContent} from './shard-output-content.mjs';
 import {customSectionFailures} from './shard-platform-sections.mjs';
 import {outputSections} from './shard-platform-output.mjs';
 import {writeGeneratorInventory} from './generator-inventory.mjs';
-import {gridReady,m3Progress,planProgress} from './shard-milestones.mjs';
+import {gridReady,m3Progress,planProgress,unknownGridReady} from './shard-milestones.mjs';
+import {decisionLegacyLines} from './decision-legacy-lines.mjs';
 import {runtimeReceiptPaths} from './grid-runtime-evidence.mjs';
 import {netLineReport,platformLineTotals,sourceLineDelta} from './shard-net-lines.mjs';
 import {productScriptMetrics,scriptReceiptPaths} from './script-scenario-metrics.mjs';
@@ -20,24 +21,49 @@ const baseline=v.array(v.strictObject({wave:v.string(),revision:v.string(),recor
  * Each closed shard is copied strictly; an unclosed shard never gets a percent.
  * `sourceProgress` keeps the admin's historical source ruler in one unit even
  * when some runtimes close. Output closure and canonical output credit do not change.
- * @param {string} root @param {{build?:boolean,sourceProgress?:boolean,products?:string,revision?:string|null,receipts?:readonly string[],scriptReceipts?:readonly string[]}} options */
-export async function outputReport(root,{build=true,sourceProgress=false,products=resolve(root,'out'),revision=process.env.VERCEL_GIT_COMMIT_SHA??null,receipts=runtimeReceiptPaths(root),scriptReceipts=scriptReceiptPaths(root)}={}) {
+ * `reportOnly` isolates product failures without inventing ownership credit.
+ * @param {string} root @param {{build?:boolean,sourceProgress?:boolean,products?:string,revision?:string|null,receipts?:readonly string[],scriptReceipts?:readonly string[],reportOnly?:boolean,buildProduct?:(args:string[])=>Promise<void>}} options */
+export async function outputReport(root,{build=true,sourceProgress=false,products=resolve(root,'out'),revision=process.env.VERCEL_GIT_COMMIT_SHA??null,receipts=runtimeReceiptPaths(root),scriptReceipts=scriptReceiptPaths(root),reportOnly=false,buildProduct}={}) {
   const closure=runtimeClosures(root),closed=Object.keys(closure).filter(slug=>closure[slug].status==='closed');
+  /** @type {Record<string,string>} */
+  const productFailures={};
+  /** @param {string} slug @param {unknown} error */
+  const failed=(slug,error)=>{productFailures[slug]=error instanceof Error?error.message:String(error);};
   if(build) {
     if(products!==resolve(root,'out'))throw new Error('Build reports publish only to out/');
     const {buildShardfiles}=await import('./build-shardfiles.mjs');
     // Preparation copies raw-closed runtimes strictly and emits
     // unclosed products without copies. All receive actual byte-validation evidence.
-    await buildShardfiles(root,{strict:false,copyRuntime:'closed',reuse:true});
+    await buildShardfiles(root,{strict:false,copyRuntime:'closed',reuse:true,...(reportOnly?{onFailure:failed}:{}),...(buildProduct===undefined?{}:{build:buildProduct})});
   }
-  const measures=outputShardLines(root,true,products,closed);
+  const sections={},contents={};
+  for(const [slug,state] of Object.entries(closure)) {
+    if(Object.hasOwn(productFailures,slug))continue;
+    try {
+      sections[slug]=outputSections(root,slug,products);
+      if(state.status==='closed')contents[slug]=outputContent(root,slug,products);
+    } catch(error) {if(!reportOnly)throw error;failed(slug,error);}
+  }
+  const measurementError=Object.keys(productFailures).length===0?null:`Cross-shard ownership unavailable: ${Object.entries(productFailures).map(([slug,error])=>`${slug}: ${error}`).join('; ')}`;
+  // G294 needs every verified section inventory to count shared users. Partial
+  // output never supplies zeros, stale users, or a newly granted percentage.
+  const measures=measurementError===null?outputShardLines(root,true,products,closed):{};
   // The noon comparison stays source-based even after every runtime closes.
-  const source=sourceProgressLines(root,products);
+  const source=measurementError===null?sourceProgressLines(root,products):{};
   // G496: data debt applies even before a shard's runtime closes. Its budget
   // findings are report-only here (G514): the ruler always measures.
-  const sections=Object.fromEntries(Object.keys(closure).map(slug=>[slug,outputSections(root,slug,products)]));
   const dailyLines=sourceLineDelta(source,v.parse(sourceBaseline,JSON.parse(readFileSync(resolve(import.meta.dirname,'shard-line-baseline.json'),'utf8'))));
   const rows=Object.fromEntries(Object.entries(closure).map(([slug,state])=>{
+    const failure=Object.hasOwn(productFailures,slug)?productFailures[slug]:undefined;
+    if(measurementError!==null) {
+      const ready=failure===undefined?gridReady(root,slug,products,{revision,receipts}):unknownGridReady(failure);
+      if(failure!==undefined){ready.verdict='fail';ready.criteria.productBuild={verdict:'fail',evidence:failure};ready.frameFloor={verdict:'unknown',evidence:failure};}
+      return [slug,{...state,customPercent:null,port:null,m3:null,measurementError,
+        legacyLines:decisionLegacyLines(root,slug)??null,linesRemovedSince12Z:dailyLines.shards[slug]??null,
+        gridReady:ready,scriptMetrics:failure===undefined?productScriptMetrics(root,slug,products,scriptReceipts):{status:'unknown',scripts:[],scenarios:[]},
+        ...(sections[slug]===undefined?{}:{customSections:sections[slug].customSections,customSectionBytes:sections[slug].customSectionBytes}),
+        ...(contents[slug]===undefined?{}:{content:contents[slug]}),...(failure===undefined?{}:{productFailure:failure})}];
+    }
     const ready=gridReady(root,slug,products,{revision,receipts});
     const scriptMetrics=productScriptMetrics(root,slug,products,scriptReceipts);
     if(state.status==='unclosed') {
@@ -48,14 +74,14 @@ export async function outputReport(root,{build=true,sourceProgress=false,product
     }
     if(!Object.hasOwn(measures,slug))throw new Error(`${slug}: closed runtime has no output measure`);
     const measured=measures[slug];
-    const content=outputContent(root,slug,products),customPercent=measured.conversion.runtimeShare===null?null:100*measured.conversion.runtimeShare;
+    const content=contents[slug],customPercent=measured.conversion.runtimeShare===null?null:100*measured.conversion.runtimeShare;
     return [slug,{...state,...measured,customPercent,content,linesRemovedSince12Z:dailyLines.shards[slug]??null,port:portHeadline(customPercent,content),gridReady:ready,scriptMetrics,
       m3:m3Progress(slug,sourceProgress?source[slug]:{basis:'output',customLines:measured.conversion.customRuntimeLines,legacyLines:measured.conversion.legacyLines})}];
   }));
   const current=Object.fromEntries(Object.entries(rows).flatMap(([slug,row])=>row.m3===null?[]:[[slug,{customLines:row.m3.customLines,basis:row.m3.basis}]]));
   const baselines=v.parse(baseline,JSON.parse(readFileSync(resolve(import.meta.dirname,'wave-line-baselines.json'),'utf8')));
   const platform=platformLineTotals(root,(text,path)=>path.endsWith('.glsl')?shaderCodeLines(text):codeLines(text,path));
-  return {rows,measures,dailyLines,netLines:netLineReport(current,baselines,platform),progress:planProgress(rows),sectionFailures:customSectionFailures(root,sections)};
+  return {rows,measures,dailyLines,netLines:netLineReport(current,baselines,platform),progress:planProgress(rows),sectionFailures:customSectionFailures(root,sections),productFailures,measurementError};
 }
 
 /** Cycle-free post-output publication. gen calls neither the builder nor ruler.

@@ -33,6 +33,8 @@ export function portSharesText(rulerText) {
   /** @type {Record<string, number>} */
   const shares = {};
   for (const row of /** @type {unknown[]} */ (ruler.shards)) {
+    // An unmeasured shard has no numeric badge, rather than a stale or zero credit.
+    if(isObject(row)&&typeof row.slug==='string'&&row.pct===null&&typeof row.measurementError==='string'&&row.measurementError!=='')continue;
     if (!isObject(row) || typeof row.slug !== 'string' || typeof row.pct !== 'number' || !Number.isFinite(row.pct)) {
       throw new Error(`port-shares: a ${RULER_JSON} shard row has no slug or numeric pct`);
     }

@@ -2,7 +2,8 @@ import type {Criterion} from '../shard-milestones.mjs';
 
 /** One legacy shard on the ruler: custom lines ÷ frozen legacy lines (lower is better). */
 export interface RulerShard {
-  slug:string; name:string; wave:string; goal:number; custom:number; legacy:number; pct:number;
+  slug:string; name:string; wave:string; goal:number; custom:number|null; legacy:number; pct:number|null;
+  measurementError?:string;productFailure?:string;
   grid:'pass'|'fail'|'unknown'; criteria:Record<string,string>; frameFloor?:Criterion;
 }
 /** A measured commit: each shard's custom % then. */
@@ -17,7 +18,8 @@ export interface RulerNetLines {
 export interface Ruler {
   schema:string; command:string; revision:string; committedAt:string; measuredAt:string; basis:string;
   plan:{lower:number;upper:number};
-  m3:{cut:number;mustGo:number;fraction:number};
+  m3:{cut:number|null;mustGo:number|null;fraction:number|null};
+  measurementError?:string;productFailures?:Record<string,string>;
   m2:{ready:number;fail:number;unknown:number;total:number};
   frameFloor?:{ready:number;fail:number;unknown:number;total:number};
   netLines?:RulerNetLines[];
@@ -25,7 +27,7 @@ export interface Ruler {
   componentWaves?:{id:string;components:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>}[];
   customSectionFailures?:string[];
   shards:RulerShard[]; native:string[];
-  wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
+  wave:{id:string;label:string;until:string|null;pct:number|null;shards:string[];goal:number};
   waves:RulerWaveState[]; history:RulerPoint[]; events:{at:string;label:string}[];
 }
 export const RULER_PATH:string;

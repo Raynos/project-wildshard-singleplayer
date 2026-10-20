@@ -19,7 +19,7 @@ function rowEl(r: PlanRow): HTMLElement {
       h('p', {}, [r.lane ? `Lane ${r.lane}` : '', r.size === '' ? '' : `size ${r.size}`].filter(Boolean).join(' · '))));
 }
 
-const num = (n: number): string => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
+const num = (n: number | null): string => n===null?'unknown':n.toLocaleString('en-US', { maximumFractionDigits: 1 });
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -34,7 +34,7 @@ function cancun(iso: string): string {
 
 /** The custom % scale runs to 110 % so Nalati (above its legacy) still fits; 100 % is the legacy shard. */
 const SCALE = 110;
-const at = (pct: number): string => `${(Math.min(pct, SCALE) / SCALE) * 100}%`;
+const at = (pct: number | null): string => `${(Math.min(pct??0, SCALE) / SCALE) * 100}%`;
 
 function deltaEl(d: number | null): HTMLElement | null {
   if (d === null) return null;
@@ -45,7 +45,7 @@ function deltaEl(d: number | null): HTMLElement | null {
 const GRID: Record<RulerShardView['grid'], string> = { pass: 'grid ready', fail: 'grid fails', unknown: 'grid unknown' };
 
 function shardRow(r: RulerShardView): HTMLElement {
-  const met = r.pct <= r.goal;
+  const met = r.pct!==null&&r.pct <= r.goal;
   return h('li', { class: `pshard${met ? ' met' : ''}` },
     h('div', { class: 'phead' },
       h('b', {}, r.name),
@@ -59,7 +59,8 @@ function shardRow(r: RulerShardView): HTMLElement {
       h('span', {}, `${num(r.custom)} / ${num(r.legacy)} lines · goal ${r.goal} %`),
       h('span', { class: `pgrid ${r.grid}` }, GRID[r.grid]),
       h('span', {class:`pgrid ${r.frameFloor??'unknown'}`}, `frame floor ${r.frameFloor??'unknown'}`),
-      r.gridOpen.length > 0 ? h('span', {}, r.gridOpen.join(', ')) : null));
+      r.gridOpen.length > 0 ? h('span', {}, r.gridOpen.join(', ')) : null,
+      r.measurementError===undefined?null:h('span',{},r.measurementError)));
 }
 
 /** The SHARD-PLATFORM card: whole-plan %, M3, M2, the current wave, the six shards and the chart. Lower custom % is better. */
@@ -73,17 +74,17 @@ function progressCard(p: ProgressData): HTMLElement {
     h('div', { class: 'phero' },
       h('div', { class: 'plabel' }, 'Whole plan · 60 % M3 + 40 % M2'),
       h('div', { class: 'pbig' }, range),
-      p.plan.lower === p.plan.upper ? null : h('div', { class: 'small' }, 'A range until every grid-ready check has a reading.')),
+      p.plan.lower === p.plan.upper ? null : h('div', { class: 'small' }, 'A range until every required measurement has a reading.')),
     h('div', { class: 'ptiles' },
       h('div', { class: 'ptile' }, h('div', { class: 'plabel' }, 'M3 custom code cut'), h('div', { class: 'pmid' }, `${num(p.m3.pct)} %`),
-        h('div', { class: 'small' }, `${num(p.m3.cut)} of ${num(Math.round(p.m3.mustGo))} must-go lines`)),
+        h('div', { class: 'small' }, p.m3.mustGo===null?'Product failure prevents cross-shard ownership measurement':`${num(p.m3.cut)} of ${num(Math.round(p.m3.mustGo))} must-go lines`)),
       h('div', { class: 'ptile' }, h('div', { class: 'plabel' }, 'M2 grid-ready'), h('div', { class: 'pmid' }, `${p.m2.ready} of ${p.m2.total}`),
         h('div', { class: 'small' }, m2 || 'every check has a reading'),
         h('div', {class:'small'}, `Frame floor (separate): ${floor.ready} of ${floor.total} · ${floor.fail} failing · ${floor.unknown} unknown`))),
     h('div', { class: 'pwave' },
       h('div', { class: 'phead' }, h('span', { class: 'pchip now' }, p.wave.id), h('b', {}, p.wave.label.replace(/^[^·]*·\s*/, '')),
         h('span', { class: 'pnum' }, `${num(p.wave.pct)} %`)),
-      h('span', { class: 'ptrack wave', 'aria-hidden': 'true' }, h('i', { style: `width:${Math.min(100, p.wave.pct)}%` })),
+      h('span', { class: 'ptrack wave', 'aria-hidden': 'true' }, h('i', { style: `width:${Math.min(100, p.wave.pct??0)}%` })),
       h('div', { class: 'small' }, p.wave.until ? `closes ${cancun(p.wave.until)} Cancun, wherever its shards stand` : 'closes when its shards reach their goal')),
     h('div', { class: 'legend' },
       h('span', {}, h('i', { class: 'sw', style: 'background:var(--accent)' }), 'custom % of legacy, lower is better'),

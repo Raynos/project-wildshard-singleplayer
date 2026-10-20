@@ -223,7 +223,7 @@ export function progress(p: Progress, media: Map<string, Media>): ProgressData {
     measuredAt: r.measuredAt,
     basis: r.basis,
     plan: { lower: round1(r.plan.lower * 100), upper: round1(r.plan.upper * 100) },
-    m3: { pct: round1(r.m3.fraction * 100), cut: r.m3.cut, mustGo: r.m3.mustGo },
+    m3: { pct:r.m3.fraction===null?null:round1(r.m3.fraction * 100), cut: r.m3.cut, mustGo: r.m3.mustGo },
     m2: r.m2,
     frameFloor: r.frameFloor??{ready:0,fail:0,unknown:r.shards.length,total:r.shards.length},
     wave: { id: r.wave.id, label: r.wave.label, pct: r.wave.pct, until: r.wave.until },
@@ -231,7 +231,8 @@ export function progress(p: Progress, media: Map<string, Media>): ProgressData {
       const before = prev?.shards[s.slug];
       return {
         slug: s.slug, name: s.name, wave: s.wave, goal: s.goal, pct: s.pct, custom: s.custom, legacy: s.legacy,
-        delta: before === undefined ? null : round1(s.pct - before),
+        delta:before===undefined||s.pct===null?null:round1(s.pct-before),
+        ...(s.measurementError===undefined?{}:{measurementError:s.measurementError}),
         grid: s.grid,
         frameFloor:s.frameFloor?.verdict??'unknown',
         gridOpen: Object.entries(s.criteria).filter(([, v]) => v !== 'pass').map(([k, v]) => `${GRID_CHECKS[k] ?? k} ${v}`),

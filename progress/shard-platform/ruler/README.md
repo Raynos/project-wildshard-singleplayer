@@ -19,3 +19,12 @@ Frame floor does not enter M2's visual-readiness aggregation or change the
 The existing `fc38b2e417` snapshot gained explicit unknown frame-floor fields;
 its revision, source counts, history, M2 and plan percentages are unchanged.
 Future ruler runs populate the new fields from qualified receipts.
+
+Report-only ruler runs isolate product failures and still measure healthy
+shards' structural/grid criteria. The failed product records its error
+and cannot keep an old product in the ownership census. When any verified
+section inventory is unavailable, G294 shared-user attribution, custom
+percentages and M3 remain unknown, including the error, rather than stale
+or zero. History omits unknown points and port badges omit unknown shares.
+The plan keeps its 60% M3 + 40% M2 weights with a range for the unknown M3.
+Ordinary app/catalog builds and `--check` remain strict.
