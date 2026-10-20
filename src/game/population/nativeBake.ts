@@ -170,6 +170,7 @@ export function createNativeBakeReader<E extends object>(input: unknown, options
 const finite=v.pipe(v.number(),v.finite()),triple=v.tuple([finite,finite,finite]);
 const populationMetadata=v.object({
   trees:v.array(v.tuple([finite,finite,v.pipe(finite,v.minValue(0))])),tops:v.array(finite),
+  yurts:v.array(v.tuple([finite,finite,v.pipe(finite,v.minValue(0))])),grass:v.array(triple),
   spawns:v.array(v.strictObject({id:v.string(),at:triple,yaw:finite,mem:v.record(v.string(),v.nullable(finite))})),
   groups:v.array(v.strictObject({kind:v.picklist(['pack','herd']),members:v.array(v.string()),state:v.string()})),
   flocks:v.array(v.strictObject({n:v.pipe(finite,v.integer(),v.minValue(0),v.maxValue(256)),cx:finite,cz:finite,members:v.array(v.strictObject({at:triple,yaw:finite}))})),

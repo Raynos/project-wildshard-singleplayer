@@ -13,7 +13,7 @@ function input(){
   const foragers=new ForagerPopulation(v.parse(ForagerPopulationSchema,{...policy,id:'orchard-sentries'}),73);
   return {version:1,ground:{rows:1,cols:1,heights,friction:.9,groups:1,scale:{x:32,y:1,z:32},at:{x:0,y:0,z:0}},solids:[],
     actors:[{id:body.id,kind:body.spec.kind,variant:body.spec.variant,herd:0,spec:body.spec,seed:body.seed,scale:body.scale,scripted:false}],
-    herds:[{kind:'herd',members:[body.id]}],trees:[[2,3,.5]],tops:[6],
+    herds:[{kind:'herd',members:[body.id]}],trees:[[2,3,.5]],tops:[6],yurts:[[4,5,6]],grass:[[4,5,.2]],
     spawns:[{id:body.id,at:[0,0,1],yaw:0,mem:{hit:null,age:1}}],groups:[{kind:'herd',members:[body.id],state:'graze'}],
     flocks:[{n:1,cx:2,cz:3,members:[{at:[2,0,3],yaw:0}]}],ledges:[],marmots:foragers.snapshot()};
 }
@@ -24,6 +24,7 @@ test('orchard bake admission joins native identities and owns decoded buffers an
   expect(source.spawns[0]?.mem.hit).toBeNull();expect(bake.ground.heights).toEqual(new Float32Array([0,1,2,3]));
   bake.ground.heights[0]=9;expect(other.ground.heights[0]).toBe(0);
   expect(bake.actors.map(row=>row.id)).toEqual(bake.spawns.map(row=>row.id));expect(bake.marmots).toEqual(source.marmots);
+  expect(bake.yurts).toEqual(source.yurts);expect(bake.grass).toEqual(source.grass);
 });
 
 test('population intake refuses broken rosters, pose counts and executable metadata',()=>{
