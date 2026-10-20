@@ -131,7 +131,9 @@ export class AnimalSim {
       flags: { alive: this.alive, harnessHold: this.harnessHold, aggressive: this.aggressive, driven: this.driven,
         levelGround: this.levelGround, scripted: this.scripted, falling: this.falling },
       kind: this.kind, variant: this.variant, rarity: this.rarity, label: this.label, state: this.state,
-      mods: { ...this.mods }, mem: { ...this.mem },
+      // Match decoder field order regardless of the authored product's key order.
+      mods: { speed: this.mods.speed, chargeDist: this.mods.chargeDist, damageTaken: this.mods.damageTaken,
+        chargeDamage: this.mods.chargeDamage, relentless: this.mods.relentless }, mem: { ...this.mem },
       position: this.position.toArray(), lookTarget: this.lookTarget.toArray(), pushDir: this.pushDir.toArray(), impulse: this.impulseVelocity.toArray(),
       lastHitT: this.lastHitT === -Infinity ? null : this.lastHitT,
       attackTurnCap: this.attackTurnCap === Infinity ? null : this.attackTurnCap,
