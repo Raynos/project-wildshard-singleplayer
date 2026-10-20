@@ -4,7 +4,6 @@ import type { ShardContext } from '../src/game/plugin/context';
 import * as THREE from 'three';
 import { SceneDressing } from '../src/game/shardfile/sceneDressing';
 import { Scope } from '../src/engine/app/scope';
-import { WorldRegistry } from '../src/engine/world/registry';
 import { zlibSync, unzlibSync } from 'fflate';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import * as v from 'valibot';
@@ -48,7 +47,7 @@ test('the orchard fixture constructs and retires the shared client projection',a
   const shape=new THREE.BoxGeometry(1,2,1),blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'orchard');shape.dispose();
   let encoded='';for(const byte of zlibSync(join(blocks)))encoded+=String.fromCodePoint(byte);
   const scope=new Scope('orchard-row-fixture'),root=new THREE.Group(),camera=new THREE.PerspectiveCamera();
-  const ctx={} as ShardContext;Object.assign(ctx,{scope,root,app:{registry:new WorldRegistry()},product:{},game:{runtime:{world:{sky:null,game:{camera}}}}});
+  const ctx={} as ShardContext;Object.assign(ctx,{scope,root,product:{},game:{runtime:{world:{sky:null,game:{camera}}}}});
   const rows={name:'orchard',catalogues:[],packs:{},geometry:{marker:{kind:'inline',data:btoa(encoded),row:layout}},materials:{white:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],statics:[{name:'gate',tris:12,members:[],geometry:{shape:'marker'},materials:{paint:'white'},recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['marker']},{kind:'mesh',id:'marker',geometry:'shape',material:'paint',missing:'empty',position:[1,2,3]}]}}]};
   const host=await SceneDressing.install(ctx,rows);expect(root.children).toContain(host.group);
   expect(host.group.getObjectByProperty('type','Mesh')?.position.toArray()).toEqual([1,2,3]);

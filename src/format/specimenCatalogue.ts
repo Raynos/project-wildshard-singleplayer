@@ -16,14 +16,14 @@ export const SpecimenAssetSchema = v.strictObject({ url: assetPath, phoneUrl: v.
   geometrySlot: v.optional(slot), materialSlot: v.optional(slot), retainedAttribute: v.optional(text),
   instance: v.optional(v.strictObject({ name: text, lod: v.picklist(['near', 'far']) })) });
 const pipeline = v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0']);
-export const SpecimenModelMetadataSchema = v.strictObject({ id: text, name: text, file: text, category: v.picklist(['buildings', 'nature', 'creatures', 'people', 'gear', 'props']),
+const model = v.strictObject({ id: text, name: text, file: text, category: v.picklist(['buildings', 'nature', 'creatures', 'people', 'gear', 'props']),
   pipeline: v.union([pipeline, v.pipe(v.array(pipeline), v.maxLength(16))]), surface: v.optional(surfaceSchema), defaults: paramsSchema,
   variants: v.optional(v.pipe(v.array(v.strictObject({ id: text, label: text, params: paramsSchema })), v.maxLength(256))),
   seed: v.optional(finite), specimenYaw: v.optional(finite) });
 const box = v.strictObject({ kind: v.literal('box'), x: finite, y: finite, z: finite, hx: finite, hy: finite, hz: finite,
   yaw: v.optional(finite), surface: v.optional(surfaceSchema) });
 /** Complete JSON wire schema. It deliberately has no executable fields or extension callbacks. */
-export const SpecimenCatalogueSchema = v.pipe(v.array(v.strictObject({ key: text, model:SpecimenModelMetadataSchema,
+export const SpecimenCatalogueSchema = v.pipe(v.array(v.strictObject({ key: text, model,
   colliders: v.optional(v.pipe(v.array(box), v.maxLength(1024))),
   source: v.variant('kind', [v.strictObject({ kind: v.literal('packed') }), v.strictObject({ kind: v.literal('asset'), asset: SpecimenAssetSchema }),
     v.strictObject({ kind: v.literal('owned'), material: SpecimenMaterialSchema, variants: v.pipe(v.array(v.strictObject({ params: paramsSchema, url: assetPath, size: v.tuple([finite, finite, finite]) })), v.maxLength(256)) })]),

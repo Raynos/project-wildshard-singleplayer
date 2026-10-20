@@ -1,6 +1,7 @@
 import { fence, signpostBaked as signpost, windCairn, kunesBridge, yurt, cart, barrel, feltRug, tetherLine, kurtBoard, ribbonPost, kazan, chest, ribbonPole, eaglePerch, stove, campBench, rugRack, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, firewood, kumisChurn, groundSaddle, perchedEagle, graniteOutcrop, roundedBoulder, fieldstoneBaked as fieldstone, stoneStep, watchtower, cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/catalogue';
 import * as THREE from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
+import { app } from '@wildshard/engine/app/runtime';
 import { modelContext } from '@wildshard/engine/models/model';
 import type { Placed } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -12,7 +13,7 @@ import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLo
 import { Flutter } from './Flutter';
 import { preloadNalatiPlaces, bakedPlaceSliced, bakedPlaceAnchors, bakedSignLettering, placer } from './places';
 import { buildBalbals } from './Balbals';
-import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
+import { buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import type { Box } from './solid';
 import type { Plumes, PoiCtx, PoiPiece } from './types';
@@ -28,7 +29,7 @@ const EAGLE_PLACERS = new Map([placer(eagleRock)]);
 const CRAG_PLACERS = new Map([placer(cragLedge), placer(leopardCave)]);
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
-export async function buildNalatiPOIs(sky: Sky, scene: THREE.Object3D, player: { position: THREE.Vector3 }, yieldTask: () => Promise<void>, registry: WorldRegistry): Promise<NalatiPOIs> {
+export async function buildNalatiPOIs(sky: Sky, scene: THREE.Object3D, player: { position: THREE.Vector3 }, yieldTask: () => Promise<void>, registry: WorldRegistry = app.registry): Promise<NalatiPOIs> {
  const group = new THREE.Group(); group.name = 'nalati-pois';
  const flutter = new Flutter();
  const smoke: Plumes = { emitter: () => undefined };
@@ -37,9 +38,7 @@ export async function buildNalatiPOIs(sky: Sky, scene: THREE.Object3D, player: {
  const places = new Map([['camp', CAMP_PLACERS], ['kurgan', KURGAN_PLACERS], ['eagle', EAGLE_PLACERS], ['crag', CRAG_PLACERS], ['tower', new Map([placer(watchtower), placer(fieldstone), placer(stoneStep)])]]);
  const kurgan = bakedPlaceAnchors('kurgans'), crags = bakedPlaceAnchors('crags'), cairn = poiLayout.WIND_CAIRN;
  const statues = buildBalbals(ctx, kurgan.balbalSpots ?? []);
- const declared=SceneDressing.forRegistry(registry);
- const declaredPiece=(name:string):PoiPiece=>{const piece=declared.pieces.get(name);if(piece===undefined)throw new Error(`Missing declared place ${name}`);return{name,object:piece.object,tris:piece.tris,colliders:[],surface:'ground',register:()=>piece.placed};};
- const live = new Map<string, () => PoiPiece>([['balbals', () => statues.piece], ...['kokpar','farHerds','snowLotus','glacier'].map(name=>[name,()=>declaredPiece(name)] as const)]);
+ const live = new Map<string, () => PoiPiece>([['balbals', () => statues.piece], ['kokpar', () => buildKokpar(ctx)], ['farHerds', () => buildFarHerds(ctx)], ['snowLotus', () => buildSnowLotus(ctx)], ['glacier', () => buildGlacier(ctx)]]);
  await preloadNalatiPlaces();
  for (const row of prepared.view.sequence) {
   const t0 = diagnosticNow(), builder = live.get(row.name), bindings = row.placers === undefined ? undefined : places.get(row.placers);
