@@ -5,14 +5,30 @@ const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1)
 const clock = v.picklist(['t', 'phase']);
 const when = v.strictObject({ alive: v.exactOptional(v.boolean()), attacking: v.exactOptional(v.boolean()), deathAbove: v.exactOptional(n),
   mem: v.exactOptional(v.strictObject({ key: id, above: v.exactOptional(n), atLeast: v.exactOptional(n) })) });
+/** When a clip case or term applies (game/plugin/animation `ClipWhen`). */
+export interface ClipWhenRow { alive?: boolean; attacking?: boolean; deathAbove?: number; mem?: { key: string; above?: number; atLeast?: number } }
+/** One factor of a clip term: a constant, a wave, a clock, a memory or a bounded sum (nested at most three deep). */
+export type ClipFactorRow = number | { wave: 't' | 'phase'; rate: number; offset?: number; abs?: boolean } | { clock: 't' | 'phase' } | { mem: string }
+  | { bounded: ClipTermRow[]; min?: number; max?: number; divide?: number };
+/** One term of a clip sum. */
+export type ClipTermRow = number | { when?: ClipWhenRow; of: ClipFactorRow[] };
+/** One case of a clip row. */
+export interface ClipCaseRow { when?: ClipWhenRow; sum: ClipTermRow[] }
+/** A pivot's channel or an eased memory channel. */
+export type ClipRowData = { bone: string; channel: 'rotation.x' | 'rotation.y' | 'rotation.z' | 'position.x' | 'position.y' | 'position.z' | 'scale'; bind?: string; cases: ClipCaseRow[] }
+  | { mem: string; ease: number; cases: ClipCaseRow[] };
+
 const leaf = [n, v.strictObject({ wave: clock, rate: n, offset: v.exactOptional(n), abs: v.exactOptional(v.boolean()) }), v.strictObject({ clock }), v.strictObject({ mem: id })] as const;
-const termOf = <F extends v.GenericSchema>(factor: F) => v.union([n, v.strictObject({ when: v.exactOptional(when), of: v.pipe(v.array(factor), v.maxLength(16)) })]);
-const boundedOf = <T extends v.GenericSchema>(term: T) => v.strictObject({ bounded: v.pipe(v.array(term), v.maxLength(16)), min: v.exactOptional(n), max: v.exactOptional(n), divide: v.exactOptional(n) });
+const termOf = (factor: v.GenericSchema<unknown, ClipFactorRow>): v.GenericSchema<unknown, ClipTermRow> =>
+  v.union([n, v.strictObject({ when: v.exactOptional(when), of: v.pipe(v.array(factor), v.maxLength(16)) })]);
+const boundedOf = (term: v.GenericSchema<unknown, ClipTermRow>): v.GenericSchema<unknown, ClipFactorRow> =>
+  v.strictObject({ bounded: v.pipe(v.array(term), v.maxLength(16)), min: v.exactOptional(n), max: v.exactOptional(n), divide: v.exactOptional(n) });
+const leafFactor: v.GenericSchema<unknown, ClipFactorRow> = v.union(leaf);
 /** Clip terms nest `bounded` factors three deep (deeper rows are refused). */
-const term1 = termOf(v.union(leaf)), term2 = termOf(v.union([...leaf, boundedOf(term1)])), term = termOf(v.union([...leaf, boundedOf(term2)]));
+const term1 = termOf(leafFactor), term2 = termOf(v.union([...leaf, boundedOf(term1)])), term = termOf(v.union([...leaf, boundedOf(term2)]));
 const cases = v.pipe(v.array(v.strictObject({ when: v.exactOptional(when), sum: v.pipe(v.array(term), v.maxLength(16)) })), v.maxLength(16));
-/** Pose clip rows (game/plugin/animation `playClips`) as admitted JSON: a pivot's channel or an eased memory channel. */
-export const ClipRowsSchema = v.pipe(v.array(v.union([
+/** Pose clip rows (game/plugin/animation `playClips`) as admitted JSON, typed at this boundary. */
+export const ClipRowsSchema: v.GenericSchema<unknown, ClipRowData[]> = v.pipe(v.array(v.union([
   v.strictObject({ bone: id, channel: v.picklist(['rotation.x', 'rotation.y', 'rotation.z', 'position.x', 'position.y', 'position.z', 'scale']), bind: v.exactOptional(id), cases }),
   v.strictObject({ mem: id, ease: n, cases }),
 ])), v.maxLength(64));
@@ -32,7 +48,7 @@ const gestureStart = v.variant('kind', [
  * `turns: false` holds the figure's idle facing, `look` overrides the head and `offer` offsets it within `within`.
  * `hide` hides the figure and its companions past the figure row's draw distance.
  */
-export const KitFigureSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Kit figure requires plain JSON'), v.strictObject({
+export const KitFigureSchema: v.GenericSchema<unknown, KitFigureRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Kit figure requires plain JSON'), v.strictObject({
   scene: v.strictObject({ recipe: v.unknown(), parts: v.record(id, v.picklist(['group', 'object'])), bindings: v.unknown() }),
   material: id, neck: n, hide: v.boolean(),
   facing: v.strictObject({ range: n, rate: n, maxSpeed: v.exactOptional(n), wrapTarget: v.exactOptional(v.boolean()), wrapOutput: v.exactOptional(v.boolean()) }),
@@ -45,5 +61,18 @@ export const KitFigureSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Kit figu
     starts: v.pipe(v.array(gestureStart), v.minLength(1), v.maxLength(2)), turns: v.boolean(),
     look: v.exactOptional(v.strictObject({ yaw: n, pitch: n })), offer: v.exactOptional(v.strictObject({ yaw: n, pitch: n, within: n })) })), v.maxLength(8)),
 }));
-/** A validated kit figure row. */
-export type KitFigureRows = v.InferOutput<typeof KitFigureSchema>;
+type GestureStart = { kind: 'signal' } | { kind: 'approach'; inside: number; beyond: number; rearm: number }
+  | { kind: 'every'; base: number; span: number; frequency: number; first: number; from: number; to: number };
+/** A validated kit figure row (named at the schema boundary so its consumers never re-infer the clip unions). */
+export interface KitFigureRows {
+  scene: { recipe: unknown; parts: Record<string, 'group' | 'object'>; bindings: unknown };
+  material: string; neck: number; hide: boolean;
+  facing: { range: number; rate: number; maxSpeed?: number; wrapTarget?: boolean; wrapOutput?: boolean };
+  head: { range: number; yawLimit: number; pitchLimit?: number; pitchScale: number; eyeHeight: number; minimumDistance: number;
+    response: 'linear' | 'exponential'; rate: number; clampAfterOffset: boolean;
+    idle: { cadence: { kind: 'sine' | 'cycle'; base: number; frequency: number; span: number; strict?: boolean };
+      yaw: [number, number]; yawWeight?: number; pitch: number | { frequency: number; threshold: number; above: number; below: number } } };
+  pose: ClipRowData[];
+  gestures: { id: string; code: number; seconds: number; eased: boolean; starts: GestureStart[]; turns: boolean;
+    look?: { yaw: number; pitch: number }; offer?: { yaw: number; pitch: number; within: number } }[];
+}
