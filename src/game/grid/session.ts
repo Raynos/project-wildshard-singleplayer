@@ -278,6 +278,7 @@ export class GridSession {
   private readonly roadPlans = new Map<Mesh, CullPlan>();
   private readonly roadBudget: { readonly view: () => RoadViewCost | null; readonly resident: () => RoadResident };
   private readonly life: NeighbourLife;
+  private readonly admitNeighbour: ((cell: GridCell) => void) | undefined;
   /** G222 playtest #7: each neighbour's declared doors and gates, shown exactly when its region has them standing */
   private readonly panels: NeighbourPanels;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
@@ -528,7 +529,7 @@ export class GridSession {
     this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000
       : this.near.owns(id) ? null : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach });
-    if (host.renderer !== undefined) void this.admitTiles(host.renderer, roots, tiles.instances);
+    this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots, tiles.instances);
     host.scope.onDispose(() => {
       this.rings.dispose();
       for (const root of roots.values()) root.removeFromParent();
@@ -547,15 +548,16 @@ export class GridSession {
    * reader, material set and view set per slug (the template copies share them), each cell its own root. A neighbour that
    * fails to admit keeps its far proxy.
    */
-  private async admitTiles(renderer: Renderer, roots: ReadonlyMap<string, Group>, instances: Map<string, ClientRingInstance>): Promise<void> {
+  private tileAdmission(renderer: Renderer, roots: ReadonlyMap<string, Group>, instances: Map<string, ClientRingInstance>): (cell: GridCell) => void {
     const scope = this.host.scope, skins = new Map<string, Promise<ReadonlyMap<string, ClientSkin>>>();
     const shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews; bytes: ReadonlyMap<string, Uint8Array>; compile: (entry: unknown) => Material }>>();
-    for (const cell of this.neighbours) {
-      const root = roots.get(cell.instance); if (root === undefined) continue;
+    const requested = new Set<string>();
+    const admit = async (cell: GridCell): Promise<void> => {
+      const root = roots.get(cell.instance); if (root === undefined) return;
       let loading = shared.get(cell.slug);
       if (loading === undefined) {
         const product = gridShardfileProduct(cell.slug, { allocator: this.allocator, scope });
-        if (product === null) continue;
+        if (product === null) return;
         loading = (async () => {
           const retained = await product, { admitted, options } = retained, source = admitted.source;
           try {
@@ -574,7 +576,11 @@ export class GridSession {
         try { await this.life.admit(cell, root, source, bytes, compile, skins); } catch (error) { console.warn(`[grid] ${cell.instance} stays still (client scripts):`, error); }
         try { await this.panels.admit(cell, root, source, bytes, views); } catch (error) { console.warn(`[grid] ${cell.instance} draws no doors (declared panels):`, error); }
       } catch (error) { this.refuse(cell, error); } // G167 / G217: a refused shard's cell screen names the reason
-    }
+    };
+    return cell => {
+      if (scope.disposed || requested.has(cell.instance)) return;
+      requested.add(cell.instance); void admit(cell);
+    };
   }
 
   /** G167: note a neighbour whose shard can't load (an M3 wait or a closing page is not a refusal), for its cell and SHARD SELECT. */
@@ -661,6 +667,12 @@ export class GridSession {
     if (this.last !== null && dt > 0) { this.velocity = { x: (at.x - this.last.x) / dt, z: (at.z - this.last.z) / dt }; }
     this.last = at;
     const speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
+    // Match L1's 400 m reach plus the rings' four-second travel lookahead. Distant
+    // cells keep their baked proxy without admitting their full product at boot.
+    for (const cell of this.neighbours) {
+      const distance = Math.hypot(Math.max(0, Math.abs(at.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(at.z - cell.origin.z) - CHUNK_HALF));
+      if (distance <= 400 + Math.min(speed, 60) * 4) this.admitNeighbour?.(cell);
+    }
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
     for (const cell of this.neighbours) if (this.near.owns(cell.instance)) this.rings.retireRefinement(cell.instance);
     this.softWalls.step();
