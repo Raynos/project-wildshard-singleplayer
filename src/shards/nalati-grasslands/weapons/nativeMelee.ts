@@ -1,13 +1,15 @@
-import { PolearmSet, type HeldPolearm } from '@wildshard/game/weapons/heldPolearm';
-import { BladeSet } from '@wildshard/game/weapons/mountedBlade';
+import type { PolearmSet, HeldPolearm } from '@wildshard/game/weapons/heldPolearm';
+import type { BladeSet } from '@wildshard/game/weapons/mountedBlade';
+import { MountedArsenal } from '@wildshard/game/loadout/mounted';
+import rows from '../boot/mountedLoadout.generated.json' with {type:'json'};
 import type { ArcWeaponPower } from '@wildshard/game/weapons/arcPower';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { Material,BufferGeometry } from 'three';
 import type {SwordRig} from '@wildshard/engine/combat/view/melee';
 
 
-const polearm=new PolearmSet({file:'weapons/spear.json',item:'weapon.spear'});
-const blade=new BladeSet({file:'weapons/sabre.json',item:'weapon.sabre'});
+export const arsenal=new MountedArsenal(rows);
+const {polearm,blade}=arsenal;
 export const Spear=polearm.Weapon;
 export const Sabre=blade.Weapon;
 export const NaizagaiPower=blade.Power;

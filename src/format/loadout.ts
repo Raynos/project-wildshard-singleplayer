@@ -1,3 +1,4 @@
+import { isJsonData } from './json';
 import * as v from 'valibot';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(1024));
@@ -26,3 +27,14 @@ export const LoadoutSchema = v.strictObject({
 });
 /** Admitted data used by the shared held loadout host. */
 export type LoadoutRows = v.InferOutput<typeof LoadoutSchema>;
+
+const weapon = v.custom<`weapon.${string}`>(value => typeof value === 'string' && /^weapon\.[a-z0-9.-]+$/u.test(value));
+/** Mounted native weapon families and their replacement identities are authored rows. */
+export const MountedLoadoutSchema = v.pipe(v.unknown(),v.check(isJsonData),v.strictObject({
+  blade: v.strictObject({ file:text,item:weapon }),
+  polearm: v.strictObject({ file:text,item:weapon }),
+  bow: v.strictObject({ file:text,item:weapon }),
+  initial:v.picklist(['blade','polearm','bow']),
+  variants:v.strictObject({ bow:v.strictObject({id:weapon,name:text}),blade:v.strictObject({id:weapon,name:text}) }),
+}));
+export type MountedLoadoutRows = v.InferOutput<typeof MountedLoadoutSchema>;

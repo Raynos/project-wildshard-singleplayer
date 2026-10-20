@@ -1,0 +1,15 @@
+{
+  "blade": {
+    "file": "weapons/sabre.json",
+    "item": "weapon.sabre"
+  },
+  "polearm": {
+    "file": "weapons/spear.json",
+    "item": "weapon.spear"
+  },
+  "bow": {
+    "file": "/assets/nalati/baked/recurve-pool.json",
+    "item": "weapon.bow"
+  },
+  "initial": "bow"
+}
