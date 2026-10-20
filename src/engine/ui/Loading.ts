@@ -1,7 +1,7 @@
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
 import { saveStorage } from '../saves/slots';
-import { formatMB, type ProgressView } from '../boot/plan';
+import { formatMB, type ProgressView, type LogRow, type GapRow } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
@@ -171,7 +171,7 @@ export class Loading {
     set(this.els.dlFact, v.bytesTotal > 0
       ? engineString('s_9efb7c208f96', [formatMB(v.bytesRead), formatMB(v.bytesTotal), v.filesDone, v.filesTotal, v.bytes && v.bytes.done < v.bytes.total ? engineString('s_614cafefe4f0', [v.bytes.label]) : ''])
       : engineString('s_387d49323b0f'));
-    set(this.els.suFact, engineString('s_af18899b96b3', [Math.min(v.doneCount + 1, v.rows.length), v.rows.length, v.label, v.detail ? engineString('s_614cafefe4f0', [v.detail]) : '']));
+    set(this.els.suFact, engineString('s_af18899b96b3', [v.rows.findIndex(row => row.key === v.step) + 1, v.rows.length, v.label, v.detail ? engineString('s_614cafefe4f0', [v.detail]) : '']));
     this.paintRows();
   }
 
@@ -195,13 +195,19 @@ export class Loading {
   private paintRows(): void {
     const v = this.view; if (!v) return;
     // every step that has started, newest last; todo steps are not rows (nothing to say about them yet)
-    const shown = v.rows.filter((r) => r.state !== 'todo');
+    const shown: (LogRow | GapRow)[] = [];
+    for (const gap of v.gaps) if (gap.after === null) shown.push(gap);
+    for (const row of v.rows) {
+      if (row.state === 'todo') continue;
+      shown.push(row);
+      for (const gap of v.gaps) if (gap.after === row.key) shown.push(gap);
+    }
     while (this.rowsEl.children.length < shown.length) { const d = document.createElement('div'); d.innerHTML = engineString('s_a9fadf880555'); this.rowsEl.append(d); }
     shown.forEach((r, i) => {
       const el = this.rowsEl.children[i] as HTMLElement;
       const cls = r.state === 'on' ? 'on' : 'ok';
       if (el.className !== cls) el.className = cls;
-      set(el.children[0] as HTMLElement, engineString('s_dd0d06d0c0aa', [r.label]));
+      set(el.children[0] as HTMLElement, engineString('s_dd0d06d0c0aa', ['key' in r ? engineString('s_loading_step_label', [v.rows.indexOf(r) + 1, r.label]) : r.label]));
       set(el.children[1] as HTMLElement, r.detail);
       const ms = r.state === 'on' ? performance.now() - r.t0 : r.ms;
       set(el.children[2] as HTMLElement, ms >= 1000 ? engineString('s_51b784eb9dd6', [(ms / 1000).toFixed(1)]) : engineString('s_f3813306296c', [Math.round(ms)]));

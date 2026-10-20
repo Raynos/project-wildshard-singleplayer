@@ -1,5 +1,6 @@
 import type { Object3D } from 'three';
 import { resourceScope } from '../app/resources';
+import { engineString } from '../strings';
 /**
  * The boot plan — ported from game-demos/trials-gauntlet-demo `src/engine/boot/plan.ts`
  * (their docs/tasks/loading-progress-invariant.md §4):
@@ -44,6 +45,12 @@ export interface LogRow {
   ms: number; t0: number; detail: string; fraction: number; sub: number;
 }
 
+/** Wall time outside a reported step; kept separate from completed work and timing weights. */
+export interface GapRow {
+  after: BootStep | null; label: string; state: 'on' | 'ok';
+  ms: number; t0: number; detail: string;
+}
+
 export interface ProgressView {
   download: number; setup: number; done: boolean; error: string | null;
   step: BootStep; label: string; detail: string;
@@ -52,7 +59,7 @@ export interface ProgressView {
   bytesRead: number; bytesTotal: number; filesDone: number; filesTotal: number;
   /** World source bytes only; menu art and audio do not delay the building label. */
   worldBytesReady: boolean;
-  doneCount: number; rows: LogRow[];
+  doneCount: number; rows: LogRow[]; gaps: GapRow[];
 }
 export type Sink = (view: ProgressView) => void;
 
@@ -191,6 +198,13 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   const firstStep = BOOT_STEPS[0];
   if (firstStep === undefined) throw new Error('boot plan: no steps');
   let current: BootStep = firstStep;
+  const gaps: GapRow[] = [];
+  let gap: GapRow | null = { after: null, label: engineString('s_loading_gap_before', [STEP_INFO[firstStep].label]), state: 'on', t0: now(), ms: 0, detail: '' };
+  function closeGap(at: number): void {
+    if (gap === null) return;
+    gaps.push({ ...gap, state: 'ok', ms: at - gap.t0 });
+    gap = null;
+  }
   let error: string | null = null;
   let finished = false;
   let shownDownload = 0;
@@ -232,6 +246,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
       step: current, label: STEP_INFO[current].label, detail: steps[current].detail,
       bytes: lastRead && last ? { key: lastRead, label: byteLabel(lastRead), done: credited(last), total: last.total } : null,
       bytesRead: read, bytesTotal: total, filesDone, filesTotal, doneCount, rows,
+      gaps: gap === null ? [...gaps] : [...gaps, { ...gap, ms: t - gap.t0 }],
       worldBytesReady: BYTE_SOURCES.every(key => key === 'art' || key === 'music' || key === 'sfx' || credited(sources[key]) >= sources[key].total),
     };
     sink(view);
@@ -254,13 +269,13 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
     };
   }
 
-  /** While a step is running, republish every frame so the elapsed term moves the bar between events. */
+  /** Republish steps and between-step gaps while boot remains open. */
   function tick(): void {
     if (ticking || !schedule) return;
     ticking = true;
     const frame = () => {
       ticking = false;
-      if (finished || error !== null || steps[current].state !== 'on') return;
+      if (finished || error !== null) return;
       publish();
       ticking = true;
       schedule(frame);
@@ -271,11 +286,16 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   async function run<T>(key: BootStep, work: (p: StepProgress) => T | Promise<T>): Promise<T> {
     const s = Object.hasOwn(steps, key) ? steps[key] : undefined; // a key outside BOOT_STEPS (a JS caller) is unknown
     if (s?.state !== 'todo' || finished) throw new Error(`boot plan: ${key} ${s === undefined ? 'unknown' : finished ? 'after done()' : `already ${s.state}`}`);
-    s.state = 'on'; s.t0 = now(); current = key;
+    const startedAt = now(); closeGap(startedAt);
+    s.state = 'on'; s.t0 = startedAt; current = key;
     publish();
     tick();
     const value = await work(progressFor(key));
-    s.state = 'ok'; s.fraction = 1; s.sub = 1; s.ms = now() - s.t0;
+    const endedAt = now();
+    s.state = 'ok'; s.fraction = 1; s.sub = 1; s.ms = endedAt - s.t0;
+    const running = BOOT_STEPS.find(step => steps[step].state === 'on');
+    if (running !== undefined) current = running;
+    else gap = { after: key, label: engineString('s_loading_gap_after', [STEP_INFO[key].label]), state: 'on', t0: endedAt, ms: 0, detail: '' };
     for (const bk of BYTE_SOURCES) if (closedBy(bk) === key) sources[bk].closed = true;
     publish();
     return value;
@@ -293,6 +313,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
       if (finished) return;
       const missed = BOOT_STEPS.filter((k) => steps[k].state !== 'ok');
       if (missed.length > 0) throw new Error(`boot plan: ${missed.join(',')} not complete`);
+      closeGap(now());
       finished = true;
       publish();
       const measured: Timings = {};
@@ -305,6 +326,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   } as unknown as Plan<BootStep>;
   function next(value: unknown): Plan<BootStep> & { value: unknown } { return Object.assign(Object.create(api) as Plan<BootStep> & { value: unknown }, { value }); }
   publish();
+  tick();
   return api;
 }
 

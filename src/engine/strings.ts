@@ -1,5 +1,8 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
+  "s_loading_gap_before": "gap before ⟦0⟧",
+  "s_loading_gap_after": "gap after ⟦0⟧",
+  "s_loading_step_label": "⟦0⟧ · ⟦1⟧",
   "s_hover_boost": "BOOST",
   "s_hover_boost_label": "Hover boost",
   "s_interact_item_count": "⟦0⟧ ×⟦1⟧",
