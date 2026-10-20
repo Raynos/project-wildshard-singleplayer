@@ -2,7 +2,7 @@ import rock from './rock.graph.json' with { type: 'json' };
 
 /**
  * The pastel alien plain's grade (SF59 / G169): a lifted screen washed toward lilac with a soft vignette, the shard's
- * one authored post pass (`look.post`). It runs only while Settings ▸ Debug ▸ Look ▸ "Graph materials" is on.
+ * one authored post pass (`look.post`), on with the shard's graphs (`graphs: 'required'`, SF88e).
  */
 export const PASTEL_GRADE = {
   version: 1, kind: 'post', params: { lilac: { type: 'colour', value: [0.86, 0.8, 0.94] }, lift: { type: 'float', value: 0.18, min: 0, max: 0.5 } },
@@ -20,8 +20,8 @@ export const PASTEL_GRADE = {
  * The pastel alien plain (SF59's first G169 fixture): the terrain binds `ground`, an engine-owned painterly preset
  * reference in lilac; every prop binds `rock`, an authored lit material graph (`rock.graph.json`: a height gradient
  * from pink foot to peach top, a half-Lambert pastel ramp whose shadow is a cool tint, a mint rim and a sky / ground
- * ambient). With the "Graph materials" Debug row off the ground draws its painterly family and the rock its plain
- * fallback. A lilac sky over a pink horizon, a warm low sun and soft pink fog keep the frame light.
+ * ambient). The graphs are the plain's own look and compile whatever the "Graph materials" Debug row says. A lilac
+ * sky over a pink horizon, a warm low sun and soft pink fog keep the frame light.
  */
 export const PASTEL_LOOK = {
   families: ['toon', 'painterly'],
@@ -29,7 +29,7 @@ export const PASTEL_LOOK = {
     ground: { family: 'graph', preset: { family: 'painterly', colour: [0.82, 0.74, 0.9] }, version: 1 },
     rock: { family: 'graph', graph: rock },
   },
-  post: [{ graph: PASTEL_GRADE }],
+  post: [{ graph: PASTEL_GRADE }], graphs: 'required' as const,
   grade: { exposure: 0, saturation: 1, contrast: 1, lut: null }, clock: 'engine',
   day: { minutes: 12, start: 0.42, maxElevation: 50, azimuth: 35 }, dayOverride: null,
   keys: [{ time: 0, sky: { zenith: [0.6, 0.58, 0.86], horizon: [0.98, 0.84, 0.88] },

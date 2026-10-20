@@ -69,7 +69,7 @@ const rawSchema = v.strictObject({
   map: v.exactOptional(MapSchema),
   requires: RequiresSchema,
   budgets: BudgetsSchema,
-  look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), curves: v.exactOptional(MaterialCurvesSchema), samplers: v.exactOptional(TextureSamplersSchema), post: v.exactOptional(PostStackSchema), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
+  look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), curves: v.exactOptional(MaterialCurvesSchema), samplers: v.exactOptional(TextureSamplersSchema), post: v.exactOptional(PostStackSchema), graphs: v.exactOptional(v.literal('required')), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
   sim: SimSchema,
   state: StateSchema,
   migrations: v.optional(MigrationsSchema, []),
@@ -173,6 +173,8 @@ export interface Shardfile {
     curves?: v.InferOutput<typeof MaterialCurvesSchema>;
     samplers?: v.InferOutput<typeof TextureSamplersSchema>;
     post?: v.InferOutput<typeof PostStackSchema>;
+    /** `required`: this shard's graph materials and post stack are its look, compiled whatever the Graph materials Debug row says. */
+    graphs?: 'required';
     grade: { exposure: number; saturation: number; contrast: number; lut: string | null };
     clock: 'engine';
     day?: v.InferOutput<typeof day> | undefined;

@@ -218,7 +218,7 @@ export class ShardfileClient {
     // The reviewed opaque-runtime claim includes its whole home. Cache leases remain pinned above;
     // ordinary data homes account library/commons and tile parts independently in the same allocator.
     if (this.bindings.residency === undefined || this.source.runtime === null) await leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance, textures: ktx2TranscodeSupport(world.game.renderer), read: ref => this.assets.read(ref) });
-    const requiredGraphs = this.plan?.features.some(row => row.kind === 'world.scenes' && row.graphs === 'required') === true;
+    const requiredGraphs = this.source.look.graphs === 'required' || this.plan?.features.some(row => row.kind === 'world.scenes' && row.graphs === 'required') === true;
     const presentation = await clientMaterials({ ...this.source, state: this.curveState }, this.assets.retained, world.game.renderer, ctx.scope, { trustedGraphs: this.nativeFeatures || this.bindings.trustedRuntime === true, ...(requiredGraphs || this.nativeFeatures ? { graphs: requiredGraphs || setting('graphMaterials') === 'on' } : {}) });
     this.presentation = presentation;
     if (this.nativeFeatures) presentation.graphs.bind({ hour: () => world.game.sky.dayNight?.hour ?? null });
@@ -249,7 +249,7 @@ export class ShardfileClient {
     if (this.mode === 'presentation') { ctx.debug.expose('shardfileResidency', { tiles, allocator, mode: 'presentation', workers: false }); return; }
     // SF59 step 4: the shard's own post stack (Debug ▸ Look ▸ "Graph materials", default off); in the grid it fades with its
     // cell's owner weight, standalone it stays whole
-    const post = await clientPostStack(this.source, this.assets.retained, { compiler: () => loadGraphCompiler(world.game.renderer), composer: () => world.game.composer, scene: world.game.rootScene, camera: world.game.camera }, ctx.scope, { enabled: setting('graphMaterials') === 'on' });
+    const post = await clientPostStack(this.source, this.assets.retained, { compiler: () => loadGraphCompiler(world.game.renderer), composer: () => world.game.composer, scene: world.game.rootScene, camera: world.game.camera }, ctx.scope, { enabled: this.source.look.graphs === 'required' || setting('graphMaterials') === 'on' });
     this.post = post; ctx.scope.onDispose(() => { if (this.post === post) this.post = null; });
     if (post !== null) {
       const owned = frameLookOf(world.game.rootScene)?.owned;

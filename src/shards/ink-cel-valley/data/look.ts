@@ -7,9 +7,9 @@ import edge from './edge.post.json' with { type: 'json' };
  * (`rock.graph.json`: flat paper untinted by the props' grey-box vertex colours, the sun in three hard bands over a flat ink-wash shade, a
  * silhouette line, a light posterise and the outline stage's inverted hull). `look.post` is its one authored pass
  * (`edge.post.json`, the (2b) edge post): depth and normal-crease edges inked over the tone-mapped colour, faded with
- * distance; it reads colour, depth and the normal pre-pass. With Settings ▸ Debug ▸ Look ▸ "Graph materials" off the
- * ground draws its toon family, the rock its plain fallback, and the post stack is not built. A paper sky, a warm sun
- * and a teal-paper fog keep the frame a printed page.
+ * distance; it reads colour, depth and the normal pre-pass. The graphs are this valley's look (`graphs: 'required'`,
+ * SF88e): they compile whatever the "Graph materials" Debug row says. A paper sky, a warm sun and a teal-paper fog keep
+ * the frame a printed page.
  */
 export const INK_LOOK = {
   families: ['toon'],
@@ -17,7 +17,7 @@ export const INK_LOOK = {
     ground: { family: 'graph', preset: { family: 'toon', colour: [0.56, 0.61, 0.37] }, version: 1 },
     rock: { family: 'graph', graph: rock },
   },
-  post: [{ graph: edge }],
+  post: [{ graph: edge }], graphs: 'required' as const,
   grade: { exposure: 0, saturation: 1, contrast: 1, lut: null }, clock: 'engine',
   day: { minutes: 12, start: 0.45, maxElevation: 55, azimuth: 35 }, dayOverride: null,
   keys: [{ time: 0, sky: { zenith: [0.9, 0.86, 0.74], horizon: [0.96, 0.92, 0.82] },
