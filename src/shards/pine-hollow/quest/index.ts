@@ -52,7 +52,8 @@ import type { LivingPage as PineCabins } from '@wildshard/game/shardfile/forestP
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { PINE_PHASES } from '../look/dayKeys';
-import { waystoneSites, contractBoardSite, type PineLandmarks } from '../runtime/world/landmarks';
+import { waystoneSites, contractBoardSite, admitLandmarkRows } from '../runtime/world/landmarkRows';
+import type { PineLandmarks } from '../runtime/world/landmarks';
 import { ZIP_YAW } from '../runtime/world/timberSites';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import wardens from '../data/wardensHollow.json' with { type: 'json' };
@@ -90,6 +91,7 @@ async function loadQuest() {
 export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCabins | null; landmarks: PineLandmarks | null;
   loadout: HeldLoadout; compendium: ReturnType<typeof installCollectionCompendium>;
   preload?: () => Promise<void>; loadQuest?: typeof loadQuest }): Promise<PineQuest> {
+  await admitLandmarkRows(ctx.product);
   const source = ctx.product.shardfile;
   const runtime = ctx.game.runtime, enteredWorld = runtime?.world, play = runtime?.play;
   if (runtime === undefined || enteredWorld === undefined || enteredWorld === null || play === undefined || play === null) throw new Error('Pine quest requires its entered play services');

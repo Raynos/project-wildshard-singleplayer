@@ -6,6 +6,7 @@ import { scriptFailure } from './strings';
 import { observeWasmMemory } from '../core/memoryResources';
 import { constructionOwner, currentOwner, ownerOr } from '../app/ownership';
 import type { Scope } from '../app/scope';
+import { nextDrawnFrame, presenting } from '../core/framePacing';
 
 /** Existing host limit type is defined by pure format admission. */
 export type ScriptLimits = scriptLimits.ScriptLimits;
@@ -70,8 +71,7 @@ function takePreparedMemory(initial: number, maximum: number): WebAssembly.Memor
  * when their descriptor differs. No seed, initialization, call or snapshot runs before the installer. Unused references
  * are dropped on return, failure or owner disposal; allocation attribution includes every prepared memory.
  */
-export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array[], owner: Scope, pause: (() => Promise<void>) | null, install: () => T | Promise<T>): Promise<T> {
-  const wait = pause ?? (() => new Promise<void>(resolve => { owner.timeout(0, resolve); }));
+async function preparedMemoryLease(modules: readonly Uint8Array[], owner: Scope, wait: () => Promise<void>): Promise<() => void> {
   requirePreparationOwner(owner);
   if (modules.length > SCRIPT_LIMITS.instances) throw new Error('Invalid script memory preparation');
   if (preparingOwners.has(owner)) throw new Error('Script memory preparation already active');
@@ -83,8 +83,8 @@ export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array
   });
   if (plans.reduce((sum, plan) => sum + plan.initial * 65536, 0) > SCRIPT_LIMITS.memoryBytes) throw new Error('Prepared script memory allowance');
   preparingOwners.add(owner);
-  const memories: PreparedMemory[] = [];
-  const clear = (): void => { preparedMemories.delete(owner); preparingOwners.delete(owner); memories.length = 0; };
+  const memories: PreparedMemory[] = []; let active = true;
+  const clear = (): void => { if (!active) return; active = false; preparedMemories.delete(owner); preparingOwners.delete(owner); memories.length = 0; };
   const forget = owner.capture('disposers', clear);
   try {
     for (const plan of plans) {
@@ -101,11 +101,21 @@ export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array
     requirePreparationOwner(owner);
     if (preparedMemories.has(owner)) throw new Error('Script memory preparation owner unavailable');
     preparedMemories.set(owner, memories);
-    const value = await preparationWait(owner, () => owner.run(install));
-    requirePreparationOwner(owner);
-    return value;
-  } finally { clear(); forget(); }
+    return () => { clear(); forget(); };
+  } catch (error) { clear(); forget(); throw error; }
 }
+/** Allocate an owner-scoped lease using declared task/frame yields. The caller
+ * releases unused memories in finally; no installer callback enters this API. */
+export function prepareScriptMemoryLease(modules: readonly Uint8Array[], owner: Scope, yieldMode: 'frame' | 'task'): Promise<() => void> {
+  return preparedMemoryLease(modules, owner, () => yieldMode === 'frame' && presenting() ? nextDrawnFrame(owner) : new Promise<void>(resolve => { owner.timeout(0, resolve); }));
+}
+export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array[], owner: Scope, pause: (() => Promise<void>) | null, install: () => T | Promise<T>): Promise<T> {
+  const release = await preparedMemoryLease(modules, owner, pause ?? (() => new Promise<void>(resolve => { owner.timeout(0, resolve); })));
+  try {
+    const value = await preparationWait(owner, () => owner.run(install)); requirePreparationOwner(owner); return value;
+  } finally { release(); }
+}
+
 function bounds(ptr: number, bytes: number, memory: WebAssembly.Memory): void {
   if (!integer(ptr, 0, memory.buffer.byteLength) || ptr % 8 !== 0 || !integer(bytes, 0, memory.buffer.byteLength) || ptr + bytes > memory.buffer.byteLength) throw new Error('ABI buffer outside memory');
 }

@@ -26,20 +26,30 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
  *   lm.setLit('pond', true);                                                  // the quest relights a waystone
  */
 import * as THREE from 'three';
-import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
+import { admitLandmarkRows, landmarkRows, landmarkFloors } from './landmarkRows';
+import { installPineQuest } from '../../quest/index';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { type FloorRect, floorAtRects } from '@wildshard/engine/physics/box';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { type ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { LivingPage as PineCabins } from '@wildshard/game/shardfile/forestPage';
+import { forestPage, type LivingPage as PineCabins } from '@wildshard/game/shardfile/forestPage';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { emptyBuildingLifeRows } from '@wildshard/format/buildings';
 import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
 import { loadCodeParts } from './codeParts';
 import { CaveInterior } from '../kit/caveInterior';
 import { TIER } from '@wildshard/engine/core/tier';
+import { installRangedPage } from '@wildshard/game/loadout/rangedPage';
+import { finishForestPageAudio } from '@wildshard/game/audio/forestPage';
+import { installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
+import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
+import { installPageLife } from '@wildshard/sdk/looks/pageLife';
+import { RainFx } from '../looks/rainFx';
+import { pineMemoryTrim } from '../debug/options';
+import { registerPineLap } from '../dev/perfLap';
+import type { RangedPageRows } from '@wildshard/format/rangedPage';
 
 
 
@@ -53,12 +63,11 @@ import { TIER } from '@wildshard/engine/core/tier';
 
 /** Native quest readers borrow the same generated landmark facts as the world. */
 export const CANOE_SITE = { x: -67.8, z: 119 };
-export function contractBoardSite(): { x: number; z: number; yaw: number } { return { ...authored.landmarks.contractBoardSite }; }
 export type WaystoneId = 'pond' | 'ridge' | 'den';
 /** the three waystones, in their sites' order (the glow's points) */
 const WAYSTONE_IDS: readonly WaystoneId[] = ['pond', 'ridge', 'den'];
 const WAYSTONES = 3;
-export function waystoneSites(): Record<WaystoneId, { x: number; z: number; yaw: number }> { return structuredClone(authored.landmarks.waystoneSites); }
+
 
 // ───────────────────────────── the whole set ─────────────────────────────
 
@@ -87,19 +96,20 @@ export class PineLandmarks {
    * bake put them (G285: ../generators/crags.ts stepped them round the forest's trunks).
    */
   async build(cabins: PineCabins | null): Promise<this> {
+    await admitLandmarkRows(await loadFirstPartyProduct('pine-hollow'));
     const cave = CaveInterior.load(); // the kit + the cave + their textures, fetched while the timber builds
     await loadCodeParts(); // the retained cave roof still borrows its native collider part
     this.timberColliders.push(...(await this.scenes.place('timbers.fire-lookout')).colliders);
-    this.floors.push(...authored.landmarks.timberFloors['pine-lookout']);
+    this.floors.push(...landmarkFloors('pine-lookout'));
     await macrotask();
     this.timberColliders.push(...(await this.scenes.place('timbers.zipline-landing')).colliders);
-    this.floors.push(...authored.landmarks.timberFloors['pine-zip-landing']);
-    const zip = authored.landmarks.zip;
+    this.floors.push(...landmarkFloors('pine-zip-landing'));
+    const zip = landmarkRows().zip;
     this.zip = { top: new THREE.Vector3(...zip.top), bottom: new THREE.Vector3(...zip.bottom), launch: new THREE.Vector3(...zip.launch), landing: new THREE.Vector3(...zip.landing) };
     this.timberColliders.push(...(await this.scenes.place('timbers.zip-cable')).colliders);
     await macrotask();
     this.timberColliders.push(...(await this.scenes.place('timbers.creek-footbridge')).colliders);
-    this.floors.push(...authored.landmarks.timberFloors['pine-footbridge']);
+    this.floors.push(...landmarkFloors('pine-footbridge'));
     await macrotask();
     this.crags = { cave: await cave };
     await this.buildProps(cabins);
@@ -113,13 +123,13 @@ export class PineLandmarks {
 
   private async buildProps(cabins: PineCabins | null): Promise<void> {
     const product = await loadFirstPartyProduct('pine-hollow');
-    const stones = authored.landmarks.stones;
+    const stones = landmarkRows().stones;
     if (stones.length > 16) throw new Error('Standing-stone row bound exceeded');
     for (let i = 0; i < Math.min(stones.length, 16); i++) { const row = stones[i]; if (row !== undefined) this.propColliders.push(...(await this.scenes.place(`heroes.${row.kind}`)).colliders); }
     this.propColliders.push(...(await this.scenes.place('heroes.waystone')).colliders);
     this.lanterns(cabins, await (await productCoverAppearance(product, 'look/cover-appearance.json')).texture(product, 'glow'));
     this.propColliders.push(...(await this.scenes.place('heroes.beaver-dam')).colliders);
-    const drawnUp = await this.scenes.place('heroes.canoe'), canoePlace = authored.landmarks.canoe[0];
+    const drawnUp = await this.scenes.place('heroes.canoe'), canoePlace = landmarkRows().canoe[0];
     this.propColliders.push(...drawnUp.colliders);
     this.canoe = canoePlace === undefined ? null : { place: canoePlace, placed: drawnUp };
     this.propColliders.push(...(await this.scenes.place('heroes.contract-board')).colliders);
@@ -128,7 +138,7 @@ export class PineLandmarks {
 
   /** the waystones' flames (emissive, one instanced draw) and their glow (one Points draw), both on sky.lamps */
   private lanterns(cabins: PineCabins | null, glow: THREE.Texture): void {
-    const lamps = authored.landmarks.lamps, glowPos = Float32Array.from(lamps.flat());
+    const lamps = landmarkRows().lamps, glowPos = Float32Array.from(lamps.flat());
     const anchors = {} as Record<WaystoneId, THREE.Object3D>;
     lamps.forEach((w, i) => { const id = WAYSTONE_IDS[i]; if (id) { const a = new THREE.Object3D(); a.position.fromArray(w); this.group.add(a); anchors[id] = a; } });
     const g = new THREE.BufferGeometry();
@@ -146,6 +156,24 @@ export class PineLandmarks {
       rows.sites.push({ id: `waystone.${id}`, root: handle, anchors: [{ anchor: handle, color: 0xffb060, intensity: 9, distance: 12, decay: 2, seed: anchor.position.x * 0.37, kind: 'lamp', rank: 0 }] });
       cabins.life.add(rows);
     }
+  }
+
+  /** Counted custom chapter/landmark view binding. Platform services take rows. */
+  async installChapter(ctx: ShardContext, input: RangedPageRows): Promise<void> {
+    const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
+    if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Missing landmark play services');
+    const floor = forestPage(ctx.scope, input.forest), { game, player } = world, { animals, audio, music, hud } = play;
+    installRuntimeAudioEntry(ctx, 'play', { audio, music });
+    const page = await installRangedPage(ctx, { ...input, shadowBatch: !pineMemoryTrim() });
+    installEnteredRuntimeService(ctx, scope => { registerPineLap({ game, player, animals, music, hud, elites: page.fights.elites, king: page.fights.encounter }, scope); });
+    const quest = await installPineQuest(ctx, { cabins: floor.cabins, landmarks: this, loadout: page.loadout, compendium: page.compendium });
+    const ambience = await finishForestPageAudio(ctx, input.id); quest.useSfx(ambience.sfx);
+    const spots = this.crags?.cave.spots() ?? [];
+    for (let i = 0; i < Math.min(spots.length, 256); i++) { const spot = spots[i]; if (spot !== undefined) ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); }
+    await RainFx.installPage(ctx, await ctx.product.json('world/weather-observations.json'));
+    const life = await installPageLife(ctx, await ctx.product.json(input.life), page.compendium?.state ?? null, ambience.sfx);
+    Object.assign(runtime.objects, { pineLife: life });
+    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, { cabins: floor.cabins, props: floor.props, streams: floor.streams, pineLife: life });
   }
 
   /** the canoe secret (PH-C8): the drawn-up canoe is gone from the shore while you paddle it (the ride draws its own) */
@@ -185,7 +213,7 @@ export class PineLandmarks {
  * Build Pine Hollow's landmarks, register them (drawn, colliding, the decks as floors) and keep them updated. The hamlet's
  * buildings are not here: `new Cabins(sky, game.scene)` assembles them with the cabins from the bake (../generators/logCabin.ts).
  */
-export async function installPineLandmarks(ctx: ShardContext, h: { sky: Sky; registry: WorldRegistry; cabins: PineCabins | null; scenes: SceneHandles; }): Promise<PineLandmarks> {
+export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: PineCabins | null; scenes: SceneHandles; }): Promise<PineLandmarks> {
   const lm = await new PineLandmarks(h.sky, h.scenes).build(h.cabins);
   // what is left is light: the waystones' flames and anchors, the cave's shaft and drips
   h.registry.add({ id: 'pine-landmarks', name: 'Landmark lights', category: 'props', file: 'src/shards/pine-hollow/runtime/world/landmarks.ts', object: lm.group });
@@ -195,7 +223,5 @@ export async function installPineLandmarks(ctx: ShardContext, h: { sky: Sky; reg
     await macrotask();
     h.registry.add({ id: 'pine-cave', name: 'Bear cave', category: 'nature', file: 'src/shards/pine-hollow/runtime/kit/caveInterior.ts', colliders: [...crags.cave.shell, ...crags.cave.roofPatch()], surface: 'rock' });
   }
-  const run = (_dt: number, t: number): void => { lm.update(t); };
-  ctx.system({ id: 'pine.landmarks', phase: 'update', run });
   return lm;
 }

@@ -84,7 +84,9 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
     finish: async () => { if (finished) throw new Error('Forest page already finished'); finished = true;
       await step('props', async () => { for (const id of rows.props) contacts.push(...(await resources.place(id)).colliders); }); },
     roofAt: (x, z) => floorAtRects(row.floors, x, z, 'first') !== undefined,
-    update: (dt, time) => { const viewer = runtime.viewer(); carpet.grass.update(dt, viewer); carpet.under.update(dt, viewer); carpet.particles.update(dt, viewer, game.camera);
+    update: (dt, time) => { const viewer = runtime.viewer();
+      for (const binding of rows.treeLooks) { const fade = world.forest.factory.fade[binding.band].value; setLentParam(binding.look, binding.fade, [fade.x, fade.y]); setLentParam(binding.look, binding.viewer, [viewer.x, viewer.y, viewer.z]); }
+      carpet.grass.update(dt, viewer); carpet.under.update(dt, viewer); carpet.particles.update(dt, viewer, game.camera);
       sky.viewCamera.getWorldPosition(eye); cabins.life.tick(dt, time, eye, sky.lamps); sun[0] = sky.sunColor.r; sun[1] = sky.sunColor.g; sun[2] = sky.sunColor.b;
       setLentParam(row.hearth, row.sunParam, sun); setLentParam(row.hearth, row.lampsParam, sky.lamps); setLentParam(row.hearth, row.shadeParam, 1 - row.nightShade * sky.night); } };
   const book = pages.get(ctx.scope) ?? new Map<string, ForestPage>(); book.set(rows.id, page); pages.set(ctx.scope, book); ctx.scope.onDispose(() => { book.delete(rows.id); });

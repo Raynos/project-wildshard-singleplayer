@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/pageWater": "./shardfile/pageWater.ts",
+    "./shardfile/pagePreparation": "./shardfile/pagePreparation.ts",
     "./quest/nativeStory": "./quest/nativeStory.ts",
     "./quest/nativeStoryRows": "./quest/nativeStoryRows.ts",
     "./shardfile/clientMeadow": "./shardfile/clientMeadow.ts",

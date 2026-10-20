@@ -94,6 +94,9 @@ export class CaveInterior {
     return this.meta.cuts.map((c) => { const [x, z] = this.world(c.lx, c.lz); return { x, z, hw: c.hw, hd: c.hd, yaw: this.frame.yaw, below: c.below }; });
   }
 
+  /** Immutable native cut facts; the game owns triangle filtering and yields. */
+  cutRows(): { frame: YawFrame; cuts: CaveMeta['cuts']; holes: CaveMeta['holes'] } { return { frame: this.frame, cuts: this.meta.cuts, holes: this.meta.holes }; }
+
   /** the drawn terrain's hole: true for a triangle (world vertices) that reaches into the cave's passage */
   holeTest(): (ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number) => boolean {
     const holes = this.meta.holes;

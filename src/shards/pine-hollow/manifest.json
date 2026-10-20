@@ -724,7 +724,7 @@
       "r": 12
     }
   ],
-  "runtimeEntry": "runtime/index.ts",
+  "runtimeEntry": "runtime/hybrid.ts",
   "bindings": {
     "accent": "moss",
     "budgets": {
@@ -791,7 +791,7 @@
       "export": "pineKtx2"
     },
     "entry": {
-      "legacy": "./runtime/index",
+      "legacy": "./runtime/hybrid",
       "retainHomeRuntime": true,
       "stagesOwner": "runtime"
     }

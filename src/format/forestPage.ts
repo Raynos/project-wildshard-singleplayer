@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from './buildings';
 import { WorldSceneWeldSchema } from './worldSceneWeld';
+import { PageWaterBindingSchema } from './pagePreparation';
 import { isJsonData } from './json';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
@@ -9,6 +10,7 @@ const floor = v.strictObject({ ...point, hw: n, hd: n, rot: n });
 const place = v.strictObject({ ...point, nx: n, ny: n, nz: n, rot: n, scale: n, r: n, g: n, b: n, matrix: v.pipe(v.array(n), v.length(16)) });
 /** Client-only forest cover and living settlements, with native resources by id. */
 export const ForestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Forest page requires JSON rows'), v.strictObject({
+  water: PageWaterBindingSchema, treeLooks: v.pipe(v.array(v.strictObject({ look: id, band: v.picklist(['trunk', 'cards', 'twigs', 'far']), fade: id, viewer: id })), v.maxLength(4)),
   id, graphs: v.array(id), wildlife: id,
   streams: v.strictObject({ group: id, water: id, spray: id }),
   ground: v.strictObject({ appearance: id, layout: id, sources: v.array(id), kinds: v.pipe(v.array(v.strictObject({ id, geometry: id })), v.maxLength(6)),

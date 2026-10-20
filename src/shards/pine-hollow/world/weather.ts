@@ -41,7 +41,8 @@ import { installWeatherContinuation } from '@wildshard/game/plugin/weather';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weatherProgram';
 import { wetFlight } from '@wildshard/engine/combat/ammo';
-import { loadRainBake, RainFx, type RainBake } from '../runtime/looks/rainFx';
+import type { loadRainBake, RainFx, RainFxOptions } from '../runtime/looks/rainFx';
+import waterRows from '../data/waterLook.json' with { type: 'json' };
 import rainRows from '../data/rain.json' with { type: 'json' };
 import { HerdShelter, populationShelter } from '@wildshard/sdk/populationShelter';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
@@ -52,21 +53,29 @@ type ShardContext = Parameters<typeof installEnteredRuntimeService>[0];
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */
 export const weatherHold = { k: 0 };
 
-export interface PineWeatherHost extends ForestWeatherObservations { readonly rain: RainBake }
+export type PineWeatherHost = ForestWeatherObservations;
 
-/** The tier's rain bake (generators/bake-pine-rain.mjs: the puddles, the crowns' cover), fetched before `installWeather`. */
-export const loadPineRain = (): Promise<RainBake> => loadRainBake(`/assets/pine-hollow/baked/rain${TIER === 'phone' ? '.phone' : ''}.bin`, rainRows[TIER]);
+export interface PineWeatherDraw {
+  readonly host: PineWeatherHost; readonly options: Omit<RainFxOptions, 'baked'>;
+  readonly bake: { url: string; rows: Parameters<typeof loadRainBake>[1] };
+}
+/** Counted local rain/cave view facts; shared observations come from native ids. */
+export function prepareWeatherDraw(ctx: ShardContext, input: unknown): PineWeatherDraw {
+  const host = forestWeatherObservations(ctx, input);
+  const hood = { x: LAYOUT.BEAR_CAVE.x, z: LAYOUT.BEAR_CAVE.z, rot: LAYOUT.BEAR_CAVE.rot, hw: PINE_CAVE_HOOD.hw, lz0: PINE_CAVE_HOOD.lz0, lz1: PINE_CAVE_HOOD.lz1, top: terrainHeight(LAYOUT.BEAR_CAVE.x, LAYOUT.BEAR_CAVE.z) + PINE_CAVE_HOOD.up };
+  return { host, options: { name: 'pine-weather', roofAt: host.roofAt, phone: TIER === 'phone', seed: SEED, look: PINE_RAIN, programs: PINE_RAIN_PROGRAMS, hood, water: waterRows.surfaces.puddle, channels: ctx.product.shardfile.clientChannels },
+    bake: { url: `/assets/pine-hollow/baked/rain${TIER === 'phone' ? '.phone' : ''}.bin`, rows: rainRows[TIER] } };
+}
 
 export interface PineWeatherRig { weather: WeatherContinuation; fx: InstanceType<typeof RainFx>; setMode: (m: string, at?: number) => void }
 
-export async function installWeather(ctx: ShardContext, input: unknown): Promise<PineWeatherRig | null> {
+export async function installWeather(ctx: ShardContext, host: PineWeatherHost, fx: RainFx): Promise<PineWeatherRig | null> {
   const rows=parseWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.product.file('world/weather.json'))));
   const shelterRows = populationShelter(JSON.parse(new TextDecoder().decode(await ctx.product.file('actors/shelter.json'))));
-  const host = { ...forestWeatherObservations(ctx, input), rain: await loadPineRain() };
-  return installPineWeather(host, ctx, rows, shelterRows, retainsRuntimeServices(ctx) ? ctx : undefined);
+  return installPineWeather(host, fx, ctx, rows, shelterRows, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
-function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: WeatherProgram, shelterRows: ReturnType<typeof populationShelter>, entered?: ShardContext): PineWeatherRig | null {
+function installPineWeather(h: PineWeatherHost, fx: RainFx, ctx: ShardContext, rows: WeatherProgram, shelterRows: ReturnType<typeof populationShelter>, entered?: ShardContext): PineWeatherRig | null {
   const pine = keyedSkyOf(h.sky);
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
@@ -74,9 +83,6 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: Weather
   const installation={seed:SEED,system:ctx.system,state:dev};
   const weather=installWeatherContinuation(installation,rows,pine.clock,'live');
   weather.setMode(setting('weather'), atT);
-  // the rain (PH-L10, E322 F-L5): the cover map's crowns and roofs, and the bear cave's mouth under its arch, where none falls
-  const hood = { x: LAYOUT.BEAR_CAVE.x, z: LAYOUT.BEAR_CAVE.z, rot: LAYOUT.BEAR_CAVE.rot, hw: PINE_CAVE_HOOD.hw, lz0: PINE_CAVE_HOOD.lz0, lz1: PINE_CAVE_HOOD.lz1, top: terrainHeight(LAYOUT.BEAR_CAVE.x, LAYOUT.BEAR_CAVE.z) + PINE_CAVE_HOOD.up };
-  const fx = new RainFx({ name: 'pine-weather', roofAt: h.roofAt, phone: TIER === 'phone', seed: SEED, look: PINE_RAIN, programs: PINE_RAIN_PROGRAMS, baked: h.rain, hood, channels: ctx.product.shardfile.clientChannels }).build();
   h.game.scene.add(fx.group); // hidden while dry; in the scene before the boot's precompile, so the rain's program is built then
   if (entered === undefined) {
     const stopSetting = onSettingChange('weather', (m) => { weather.setMode(m, atT); });

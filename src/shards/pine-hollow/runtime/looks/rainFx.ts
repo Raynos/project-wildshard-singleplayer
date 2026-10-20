@@ -6,7 +6,11 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { pondMask, streamAt } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { pineWaterSurface, setWaterFade } from '../../world/water';
+import { installWeather, prepareWeatherDraw } from '../../world/weather';
+import { WaterSurface } from '@wildshard/game/systems/looks/waterSurface';
+import type { WaterSurfaceSchema } from '@wildshard/format/water';
+import type { InferInput } from 'valibot';
+import type { ShardContext } from '@wildshard/game/plugin/context';
 import { fetchLaneBake, GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
 import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
@@ -85,10 +89,16 @@ export interface RainFxOptions {
   hood?: RainHood;
   /** the shardfile's client channel rows (the `programs.channels` group) */
   channels: unknown;
+  water: InferInput<typeof WaterSurfaceSchema>;
 }
 
 /** The camera-local rain, the puddles, the splashes and the lens drops of a wooded level (see the module's comment). */
 export class RainFx {
+  /** Counted weather-view entry; native observations arrive as rows. */
+  static async installPage(ctx: ShardContext, input: unknown): ReturnType<typeof installWeather> {
+    const draw = prepareWeatherDraw(ctx, input), baked = await loadRainBake(draw.bake.url, draw.bake.rows);
+    return installWeather(ctx, draw.host, new RainFx({ ...draw.options, baked }).build());
+  }
   /** everything it draws (hidden while dry) */
   readonly group = new THREE.Group();
   /** the curtain */
@@ -197,7 +207,7 @@ export class RainFx {
     // the bake leaves out the normals; the puddle look (../../data/waterLook.ts) maps world x / z and sits on the ground
     const geo = this.o.baked.puddles;
     geo.computeVertexNormals();
-    const mesh = pineWaterSurface('puddle', geo);
+    const mesh = new WaterSurface(this.o.water, { material: lentLook(this.o.water.look) }).draw(geo).mesh;
     mesh.visible = false;
     return mesh;
   }
@@ -276,7 +286,7 @@ export class RainFx {
     this.rain.visible = rainOn;
     if (rainOn) this.rain.geometry.setDrawRange(0, Math.ceil(this.rainCount * Math.min(1, w.rain * 1.1)) * 6); // the streaks follow the intensity
     const puddles = THREE.MathUtils.smoothstep(w.wet, 0.05, 0.6);
-    setWaterFade('puddle', puddles);
+    setLentParam(this.o.water.look, 'fade', puddles);
     this.puddles.visible = puddles > 0.01;
     // the extras — none in a practice room (its x / z is no spot on the level)
     this.splashes.visible = rainOn;

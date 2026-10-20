@@ -1,6 +1,12 @@
 import * as THREE from 'three';
+import type { ShardContext } from '@wildshard/game/plugin/context';
+import { pineLooks, preparePineGrazers, pineGrazer } from '../../species/looks';
+import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
+import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
+import { installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
+import { registerSpecies, hasSpecies, type AnimalSpecies, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
+import { roamingBossDamage } from '@wildshard/game/boss/roamingProjection';
 import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -231,3 +237,28 @@ export const antlerKing: ModelDef<CreatureParams> = defineModel<CreatureParams>(
   ...creature(KING_KIND, { species: { label: KING_VARIANT.label, variants: [KING_VARIANT] },
     dress: (a, ctx) => { dressAntlerKing(a, ctx.once(KING_KIT, () => makeKingKit(ctx.sky))); } }), surface: 'wood',
 });
+
+/** Counted native rig/hull catalogue binding, beside its custom model view. */
+export async function preparePineModelViews(ctx: ShardContext): Promise<void> {
+  const audio = ctx.app.audio; if (audio === null) throw new Error('Missing forest audio'); installRuntimeAudioEntry(ctx, 'kit', { audio });
+  await preparePineGrazers(ctx.product); registerKing(); ctx.rows.species(ctx.product.section('actors/species-programs').page);
+  ctx.rows.speciesLook(pineLooks(ctx.product.section<CustomSections['custom/thrallLook']>('custom/thrallLook')));
+  ctx.rows.spawnTable(declaredSpawnTables(ctx.product.section('actors/species-programs').spawns));
+  const held = await HeldEquipment.prepare(ctx.product); await preloadKingKit(); held.install(ctx);
+}
+
+/** the King's species: the elk's fields re-registered as 'antler-king' — its own AI (the fight drives it), no blood (bark) —
+ *  on his own upright rig (E322 F-M1, kingOwnSpecies) */
+export function registerKing(): void {
+  if (hasSpecies(KING_KIND)) return;
+  const elk: SpeciesDef = pineGrazer('elk');
+  const def: SpeciesDef = {
+    ...elk, kind: KING_KIND, label: 'The Antler King', variants: [KING_VARIANT], aggressive: true, blood: false,
+    walkSpeed: 2.2, chargeSpeed: 13,
+    sounds: { call: 'elk_bugle', hurt: 'bear_hurt', callEvery: [600, 900] },
+    eyeGlow: [1.0, 0.55, 0.15], eyeGlowIntensity: 2.5,
+    think: () => { /* the fight's update drives him (AntlerKingFight) */ },
+    damageMul: (a, p) => roamingBossDamage(a, p),
+  };
+  registerSpecies(kingOwnSpecies(def));
+}

@@ -5,7 +5,8 @@ import { loadTexture, loadPBRArray } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { LookReplaceContext } from '@wildshard/engine/render/look';
 import { BARK_LAYERS, treeSetUrls } from '@wildshard/engine/world/forest/treeSet';
-import { TreeFactory, isTreeMaterial, type FadeBand, type TreeMaterial } from '@wildshard/engine/world/TreeFactory';
+import { TreeFactory, isTreeMaterial, type TreeMaterial } from '@wildshard/engine/world/TreeFactory';
+import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
 import treeRest from '../data/treeRest.generated.json';
@@ -14,8 +15,6 @@ import { FOREST_LOOKS } from '../data/forestLook';
 import { PINE_TREE_ASSETS, PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
 
 export interface PineTreeFactoryOptions { set: string }
-
-type ForestLooks = Awaited<ReturnType<typeof lookGraphMaterials>>;
 
 const treeLibrary = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
   geometryPools: [{url: treeRest.geometry, parts: treeRest.parts, channels: treeRest.channels}] }, '[trees]');
@@ -27,25 +26,11 @@ const treeLibrary = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrl
  * (test/shards/pine-hollow/tree-set.test.ts holds the set's files present).
  */
 export class PineTreeFactory extends TreeFactory {
-  private looks: ForestLooks | null = null;
   constructor(private readonly renderer: LookReplaceContext['renderer'], private readonly opts: PineTreeFactoryOptions) {
     super(renderer);
   }
 
   override build(): Promise<this> { return this.buildSet(this.opts.set); }
-
-  /**
-   * Each frame (runtime/index.ts): the dissolve's centre, the forest's viewer in its own frame, and each look's band
-   * (Forest sets the bands from the tier's LOD distances).
-   */
-  update(viewer: THREE.Vector3): void {
-    const looks = this.looks;
-    if (looks === null) return;
-    const at = [viewer.x, viewer.y, viewer.z];
-    const band = (id: string, b: FadeBand): void => { looks.setParam(id, 'fade', [b.value.x, b.value.y]); looks.setParam(id, 'viewer', at); };
-    band(FOREST_LOOKS.bark, this.fade.trunk); band(FOREST_LOOKS.needles, this.fade.cards);
-    band(FOREST_LOOKS.twigs, this.fade.twigs); band(FOREST_LOOKS.far, this.fade.far);
-  }
 
   // ---------------------------------------------------------------- the Blender species set (PH-B4)
   /**
@@ -68,7 +53,7 @@ export class PineTreeFactory extends TreeFactory {
       firstPartyDescriptor('pine-hollow').then(source => lookGraphMaterials(resourceScope(), { renderer: this.renderer }, source, Object.values(FOREST_LOOKS))),
     ]);
     this.tintBark = false;
-    this.looks = looks;
+    lendLooks(resourceScope(), looks);
     const look = (id: string, lent: Readonly<Record<string, THREE.Texture>>): TreeMaterial => {
       for (const [name, texture] of Object.entries(lent)) looks.setTexture(id, name, texture);
       const m = looks.materials.get(id);
@@ -99,10 +84,4 @@ export function pineFactory(renderer: LookReplaceContext['renderer']): Promise<T
   const { set } = PINE_TREE_ASSETS, glb = treeRest.geometry;
   if (!(glb in publicBytes())) throw new Error(`[trees] Pine Hollow's tree set is missing: ${glb}`);
   return new PineTreeFactory(renderer, { set }).build();
-}
-
-/** Each frame: the forest's dissolves follow its viewer (`PineTreeFactory.update`). */
-export function updatePineForest(factory: TreeFactory, viewer: THREE.Vector3): void {
-  if (!(factory instanceof PineTreeFactory)) throw new Error('[trees] Pine Hollow\'s forest is not its species set');
-  factory.update(viewer);
 }

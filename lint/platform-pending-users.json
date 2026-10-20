@@ -2,6 +2,28 @@
   "schema": "platform-pending-users/1",
   "entries": [
     {
+      "module": "src/game/shardfile/pageWater.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "declared runtime entry",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
+    },
+    {
+      "module": "src/game/shardfile/pagePreparation.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "declared runtime entry",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
+    },
+    {
       "module": "src/game/audio/forestPage.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {

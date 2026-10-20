@@ -6,9 +6,13 @@ import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
 import { cabinAmbienceRows } from './ambience';
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
+import { FOREST_LOOKS } from '../data/forestLook';
+import water from '../data/waterLook.json' with { type: 'json' };
 import looks from '../data/lookMaterials.generated.json' with { type: 'json' };
 
 export const FOREST_PAGE = v.parse(ForestPageSchema, {
+  treeLooks: [{ look: FOREST_LOOKS.bark, band: 'trunk' }, { look: FOREST_LOOKS.needles, band: 'cards' }, { look: FOREST_LOOKS.twigs, band: 'twigs' }, { look: FOREST_LOOKS.far, band: 'far' }].map(row => ({ look: row.look, band: row.band, fade: 'fade', viewer: 'viewer' })),
+  water: { object: 'pond', look: water.looks.pond, looks: Object.values(water.looks), ripples: 'ripples', skyline: 'skyline', centre: 'skyC', probe: 'waterSkyline' },
   id: 'pine.forest', graphs: looks.runtime, wildlife: 'look/wildlife-draw.json',
   streams: { group: 'streams.root', water: 'streams.water', spray: 'streams.spray' },
   ground: { appearance: 'look/cover-appearance.json', layout: 'world/floor.json', sources: timbers.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash),
@@ -22,4 +26,5 @@ export const FOREST_PAGE = v.parse(ForestPageSchema, {
     material: 'materials.', save: 'cabins', ...cabinAmbienceRows(),
   }, props: ['props.rocks', 'props.stumps', 'props.log'],
 });
+export const LANDMARK_VIEW_BLOB = nameBlob('world/landmark-view.json', 'json', new TextEncoder().encode(JSON.stringify(timbers.landmarks)));
 export const FOREST_PAGE_BLOB = nameBlob('world/forest-page.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_PAGE)));
