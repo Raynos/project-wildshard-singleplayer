@@ -1,9 +1,19 @@
+/** Fail immediately on the game's own fatal load screen instead of hiding it behind a probe timeout. */
+export async function waitForPhysicsBoot(page, entry, timeout) {
+  await page.waitForFunction(kind => {
+    const failure = document.querySelector('.ws-load-error');
+    if (failure !== null) throw new Error(failure.textContent);
+    if (document.querySelector('.ws-load') !== null) return false;
+    return kind === 'grid' ? window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady === true : window.__wildshard?.world !== undefined;
+  }, entry, { timeout, polling: 250 });
+}
+
 /** Enter through the title's real one-shot grid intent, never a URL variant. */
 export async function enterPhysicsGrid(page, base, tier, timeout) {
   await page.goto(`${base}/?tier=${tier}&mute=1&nolock=1&sw=0`, { waitUntil: 'commit', timeout });
   await page.locator('.ws-main-grid').waitFor({ timeout });
   await page.evaluate(() => { setTimeout(() => { document.querySelector('.ws-main-grid')?.click(); }, 100); });
-  await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady === true, null, { timeout });
+  await waitForPhysicsBoot(page, 'grid', timeout);
   await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
   await page.mouse.click(195, 420);
 }

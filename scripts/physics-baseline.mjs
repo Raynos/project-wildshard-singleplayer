@@ -34,7 +34,7 @@ import { resolve as resolvePath, join } from 'node:path';
 import { debugSettings, saveFixture } from './debug-settings.mjs';
 import { walkPhysicsLeg } from './physics-walk.mjs';
 import { driveGridSeam, gridSeamRoute, gridDriveFailures } from './physics-grid.mjs';
-import { enterPhysicsGrid, physicsEntryInventory, physicsEntryFailures } from './physics-grid-entry.mjs';
+import { enterPhysicsGrid, physicsEntryInventory, physicsEntryFailures, waitForPhysicsBoot } from './physics-grid-entry.mjs';
 
 const { chromium, devices } = await import('playwright');
 
@@ -180,7 +180,7 @@ async function openGame(shard, q, { cpu, video }) {
   if (cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpu });
   if (ENTRY === 'grid') await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
   await page.goto(`${BASE}/?chunk=${shard}&tier=${TIER}&skipintro=1&nolock=1&sw=0&mute=1${q ? `&${q}` : ''}${EXTRA_Q ? `&${EXTRA_Q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
-  await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.world !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
+  await waitForPhysicsBoot(page, 'standalone', TIMEOUT_MS);
   if (ENTRY === 'grid') {
     const standalone = await page.evaluate(physicsEntryInventory);
     await enterPhysicsGrid(page, BASE, TIER, TIMEOUT_MS);

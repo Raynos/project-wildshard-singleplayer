@@ -11,3 +11,4 @@ export interface EntryPhysicsInventory {
 export function enterPhysicsGrid(page: Page, base: string, tier: string, timeout: number): Promise<void>;
 export function physicsEntryInventory(): EntryPhysicsInventory;
 export function physicsEntryFailures(standalone: EntryPhysicsInventory, grid: EntryPhysicsInventory): string[];
+export function waitForPhysicsBoot(page: Page, entry: 'grid' | 'standalone', timeout: number): Promise<void>;
