@@ -8,4 +8,4 @@
 
 **Rules in force:** G465 data on existing hosts; G467 generators aren't custom code; G468 whole-module deletes; G469/G511 one task per fresh session; G470 single-shard logic to AS + data; G482 HOST-BAR >= 5/6; G492 no mid-task re-briefs; G493 sp-x7 owns reds; G496 shrink-only sections (re-based under G514); G506/G509 quick per-batch checks + one boot; G507 mega-build; G508 maps paint from data (no bake windows); G510 no polling; G512 4 Codex + sp-x7 + 5 Opus panes.
 
-**Lanes (15:55):** Opus sp-o1 SF88c far proxies; sp-o2 stale-PWA fix; sp-o3 M2 oneFrameLooks + SF88e; sp-o4 M2 baked tiles; sp-o5 Template 2 restyle (G527). Codex sp-x1 ruler crash fix -> G530; sp-x6 Nine; sp-x8 DW/Pine tail -> M2 memory; sp-x9 5x5 drive -> charged-back cuts; sp-x7 push. G531 shard select -> next free lane.
+**Lanes (15:55):** Opus sp-o1 SF88c; sp-o2 stale-PWA fix; sp-o3 M2 oneFrameLooks + SF88e; sp-o4 M2 baked tiles; sp-o5 Template 2 restyle (G527). Codex sp-x1 ruler crash fix -> G530; sp-x6 Nine; sp-x8 DW/Pine tail -> M2 memory; sp-x9 5x5 drive -> charged-back cuts; sp-x7 push. G531 -> next free lane.
