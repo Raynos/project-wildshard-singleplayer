@@ -1,6 +1,6 @@
 import { assembleOutputFields, assembleOutputShardfile, isOutputIndex, outputBlobPath, parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
 import { builtValidationReceipt, validationSourceBytes, type ValidationReceipt } from '@wildshard/format/product';
-import { isJsonData } from '@wildshard/format/json';
+import { isJsonDataWithFileSchemas } from '@wildshard/format/json';
 import { validateCustomSchema } from './customSchema';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -59,7 +59,7 @@ function buildValidatedSource(value: unknown, sourceHash: string, indexHash: str
  * remain host inputs; disk readers separately require a format-2 index.
  */
 export async function resolveOutputDescriptor(input: unknown, reader: OutputDescriptorReader): Promise<unknown> {
-  if (!isJsonData(input)) throw new Error('Shardfile descriptor requires bounded plain JSON');
+  if (!isJsonDataWithFileSchemas(input)) throw new Error('Shardfile descriptor requires bounded plain JSON');
   if (!isOutputIndex(input)) return input;
   const index = parseOutputIndex(input);
   const sections = new Map<string, unknown>();

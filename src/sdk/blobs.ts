@@ -5,7 +5,7 @@ import { parseImageAsset } from '@wildshard/format/stillImage';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { outputBlobPath, type OutputFile } from '@wildshard/format/outputIndex';
 import { hashImmutableBytes, encodeCanonicalJson } from './immutable';
-import { validateDefinedSection } from './sections';
+import { validateDefinedJson } from './sections';
 import { compileGltfSource } from './bake/gltfSource';
 import { compressGlb } from './bake/glbCompression';
 
@@ -55,7 +55,7 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
   if (kind !== 'wasm' && options.script !== undefined) throw new Error('Script contract requires a Wasm blob');
   if (options.jsonSchema !== undefined) {
     if (kind !== 'json') throw new Error('JSON schema requires a named JSON blob');
-    validateDefinedSection(new TextEncoder().encode(encodeCanonicalJson(options.jsonSchema)), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+    validateDefinedJson(new TextEncoder().encode(encodeCanonicalJson(options.jsonSchema)), bytes);
   }
   const actual = assetCost(kind === 'bin' || kind === 'tile' ? 'binary' : kind, bytes, options.script);
   const costs = { decoded: options.decoded ?? actual.decoded, gpu: options.gpu ?? actual.gpu, triangles: options.triangles ?? actual.triangles, draws: options.draws ?? actual.draws };

@@ -20,7 +20,7 @@ import { performanceTargetIssues } from './reportCard';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { readBoundedFile } from './sourceReader';
 import { validateRuntimeImports } from './runtimeImports';
-import { validateDefinedSection, type EmittedSections } from './sections';
+import { validateDefinedSection, validateDefinedJson, type EmittedSections } from './sections';
 
 const encoder = new TextEncoder();
 function jsonBytes(value: unknown): Uint8Array { return encoder.encode(encodeCanonicalJson(value)); }
@@ -52,7 +52,7 @@ function blobExtension(kind: OutputFile['kind'], bytes: Uint8Array): string {
   return kind;
 }
 function inspectBlob(file: OutputFile, bytes: Uint8Array, script?: ScriptContract): void {
-  if (file.jsonSchema !== undefined) validateDefinedSection(jsonBytes(file.jsonSchema), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+  if (file.jsonSchema !== undefined) validateDefinedJson(jsonBytes(file.jsonSchema), bytes);
   const legacy = file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind;
   if (blobKind(legacy,bytes) !== file.kind || !file.path.endsWith(`.${blobExtension(file.kind,bytes)}`)) throw new Error('Output blob bytes differ from their declared kind');
   const cost = assetCost(legacy,bytes,script);

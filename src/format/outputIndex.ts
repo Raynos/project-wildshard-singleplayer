@@ -6,7 +6,7 @@ import { RuntimeSpawnsSchema } from './runtimeSpawns';
 import { RowsSchema } from './rows';
 import { ShardHashSchema, ShardNaturalSchema, IdentitySchema, RequiresSchema, FilesSchema } from './shardSections';
 import { SHARDFILE_VERSION } from './version';
-import { isJsonData } from './json';
+import { isJsonData, isJsonDataWithFileSchemas } from './json';
 import { clientOwnershipRules } from './clientOwnership';
 import { PLATFORM_DATA_SECTIONS } from './platformDataSections';
 import type { PlatformSectionName } from './sections';
@@ -78,7 +78,7 @@ export type OutputPlatformSectionName=(typeof OUTPUT_SECTION_FIELDS)[number]['na
 export function isOutputIndex(input: unknown): boolean { return typeof input === 'object' && input !== null && 'format' in input && input.format === 'wildshard.shardfile'; }
 /** Parse the supported major and refuse duplicate, escaping or noncanonical inventory paths. */
 export function parseOutputIndex(input: unknown): OutputIndex {
-  if (!isJsonData(input)) throw new Error('Output index must contain plain JSON only');
+  if (!isJsonDataWithFileSchemas(input)) throw new Error('Output index must contain plain JSON only');
   const index = v.parse(OutputIndexSchema, input), paths = new Set(['shard.json', 'validation.json']), names = new Set<string>();
   if (index.sections.reduce((total, entry) => total + entry.bytes, 0) > limits.sourceBytes) throw new Error('Output sections exceed the source byte cap');
   for (const entry of [...index.sections, ...index.schemas, ...index.files, ...index.runtime?.files ?? []]) {

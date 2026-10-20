@@ -7,10 +7,16 @@
  * check must pass and every node is counted), an array must own exactly its indices plus `length`, and every key must be
  * an enumerable data property whose value is JSON data.
  */
-export function isJsonData(value: unknown): boolean {
+export function isJsonData(value: unknown): boolean { return boundedJsonData(value, false); }
+
+/** An output index gives each files[].jsonSchema its own unchanged plain-JSON
+ * budget. Repeated defining schemas do not spend the envelope's node budget. */
+export function isJsonDataWithFileSchemas(value: unknown): boolean { return boundedJsonData(value, true); }
+
+function boundedJsonData(value: unknown, separateSchemas: boolean): boolean {
   const active = new Set<object>();
   let nodes = 0;
-  const visit = (item: unknown, depth: number): boolean => {
+  const visit = (item: unknown, depth: number, location: 'index' | 'files' | 'file' | 'other'): boolean => {
     if (++nodes > 100000 || depth > 64) return false;
     if (item === null || typeof item === 'boolean' || typeof item === 'string') return true;
     if (typeof item === 'number') return Number.isFinite(item) && !Object.is(item, -0);
@@ -27,10 +33,23 @@ export function isJsonData(value: unknown): boolean {
     const count = array ? item.length : keys.length;
     for (let i = 0; ok && i < count; i++) {
       const descriptor = Object.getOwnPropertyDescriptor(item, array ? i : keys[i] ?? '');
-      ok = descriptor?.enumerable === true && descriptor.get === undefined && descriptor.set === undefined && visit(descriptor.value, depth + 1);
+      const key = array ? i : keys[i] ?? '';
+      const next = location === 'index' && key === 'files' ? 'files' : location === 'files' && array ? 'file' : 'other';
+      ok = descriptor?.enumerable === true && descriptor.get === undefined && descriptor.set === undefined
+        && (separateSchemas && location === 'file' && key === 'jsonSchema' ? isJsonData(descriptor.value) : visit(descriptor.value, depth + 1, next));
     }
     active.delete(item);
     return ok;
   };
-  return visit(value, 0);
+  return visit(value, 0, 'index');
+}
+
+/** Decode an already byte-bounded named payload. JSON.parse supplies only plain
+ * data; reject the numeric values JSON can decode but cannot preserve. The
+ * defining schema owns the payload's shape and bounds, without a new node cap. */
+export function parseNamedJson(bytes: Uint8Array): unknown {
+  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes), (_key: string, value: unknown): unknown => {
+    if (typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) throw new Error('Named JSON requires finite canonical numbers');
+    return value;
+  });
 }

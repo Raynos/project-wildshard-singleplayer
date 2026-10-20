@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { CustomSectionName, PlatformSectionName, PlatformSections, SectionName } from '@wildshard/format/sections';
-import { validateCustomSchema } from './customSchema';
+import { validateNamedJsonSchema } from './customSchema';
 
 /**
  * The runtime data API (SHARD-PLATFORM P2a, spec progress/shard-platform/p2a-runtime-data-api/README.md): what a shard's
@@ -130,8 +130,8 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
   function json<T>(name: string): Promise<T>;
   async function json(name: string): Promise<unknown> {
     const file = named(name);
-    const decoded: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await input.read(file.hash)));
-    if (file.jsonSchema !== undefined) validateCustomSchema(file.jsonSchema, decoded);
+    const bytes = await input.read(file.hash);
+    const decoded: unknown = file.jsonSchema === undefined ? JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) : validateNamedJsonSchema(file.jsonSchema, bytes);
     return input.check === true ? deepFreeze(decoded) : decoded;
   }
   return {
