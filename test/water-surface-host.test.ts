@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { DataTexture, DataUtils, MeshStandardMaterial, PlaneGeometry, type Texture } from 'three';
-import { WaterSurface } from '../src/sdk/looks/waterSurface';
+import { WaterSurface } from '../src/game/systems/looks/waterSurface';
 import type { GraphLiteral } from '../src/format/materialGraph';
 import { OCEAN_SURFACE } from '../src/shards/driftwood-isle/generators/oceanLook';
 import waterRows from '../src/shards/pine-hollow/data/waterLook.json' with { type: 'json' };

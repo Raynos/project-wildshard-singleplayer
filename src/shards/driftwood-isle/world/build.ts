@@ -21,7 +21,7 @@ import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import manifest from '../discovery.generated';
-import { WaterSurface, waterSurfaceLook } from '@wildshard/sdk/looks/waterSurface';
+import { WaterSurface, waterSurfaceLook } from '@wildshard/game/systems/looks/waterSurface';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { MooringLines } from '../runtime/props/mooringLines';
 import rockMetadata from '../boot/modelCatalogue.generated.json' with { type: 'json' };

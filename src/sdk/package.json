@@ -122,7 +122,6 @@
     "./looks/posedInstances": "./looks/posedInstances.ts",
     "./looks/ambientFlock": "./looks/ambientFlock.ts",
     "./looks/lentLooks": "./looks/lentLooks.ts",
-    "./looks/waterSurface": "./looks/waterSurface.ts",
     "./sections": "./sections.ts",
     "./platformSections": "./platformSections.ts",
     "./blobs": "./blobs.ts",

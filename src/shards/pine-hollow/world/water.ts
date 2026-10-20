@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Game } from '@wildshard/engine/core/Game';
 import { POND, waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { WaterView } from '@wildshard/engine/world/water/view';
-import { WaterSurface } from '@wildshard/sdk/looks/waterSurface';
+import { WaterSurface } from '@wildshard/game/systems/looks/waterSurface';
 import waterRows from '../data/waterLook.json' with { type: 'json' };
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 

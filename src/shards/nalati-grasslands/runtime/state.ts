@@ -14,9 +14,7 @@ import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { installRide } from '../ride/input';
 import { Color, Vector3, type Object3D } from 'three';
 import * as v from 'valibot';
-import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { lentLooksOf } from '@wildshard/sdk/looks/lentLooks';
-import { WaterSurface, waterSurfaceLook } from '@wildshard/sdk/looks/waterSurface';
+import { clientWaterSurfaces } from '@wildshard/game/shardfile/clientWaterSurfaces';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import type { ImpactSurface } from '@wildshard/engine/combat/Weapon';
@@ -161,14 +159,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   // ── water (world agent, B0): the braided Kunes and the plateau brook, baked (generators/waterStrips.ts), on the water-surface
   // host in their look (data/lookGraphs.json 'nalati-water', lit by world/installWeather.ts) ──
-  const strips = v.parse(v.object({ surface: v.looseObject({ look: v.string() }) }),
-    JSON.parse(new TextDecoder().decode(await plugin.product.file('world/water.json'))));
-  const waterGeometry = createOwnedGeometry('world/water.glb');
-  await waterGeometry.load(await plugin.product.file('world/water.glb'));
-  const water = new WaterSurface(strips.surface, waterSurfaceLook(lentLooksOf(strips.surface.look), strips.surface.look)).draw(waterGeometry.take());
-  game.scene.add(water.group);
-  groups['water'] = water.group;
-  updates.push((dt) => water.update(dt));
+  const river=clientWaterSurfaces(plugin).get('river');if(river===undefined)throw new Error('Missing declared river');
+  groups['water'] = river.group;
   await slice(++completed, total, 'Water');
 
   // ── rock outcrops (world agent, look pass): granite breaking out of the escarpment's steep ground ──
@@ -465,10 +457,10 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   sound.listen(plugin);nalati.sound=sound;
   updates.push(dt=>{const clock=weather.clock;sound.update(dt,{wind:wind.speed,gust:wind.gustAt(player.position.x,player.position.z),sun:clock.sunElevation,dark:Number(clock.dayPhase==='dusk'||clock.dayPhase==='night'),storm:Number(weather.weather.stormActive),inside:Number(nalati.boss.inside),engaged:Number(nalati.titan.engaged)});});
 
-  const ids = ['painterly', 'water', 'pois', 'dressing', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'ride', 'skins', 'sound'];
+  const ids = ['painterly', 'pois', 'dressing', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'ride', 'skins', 'sound'];
   let previous = 'main.world';
   if (updates.length !== ids.length) throw new Error('Nalati update registration lacks an id');
-  for (let index = 0; index < 15; index++) {
+  for (let index = 0; index < 14; index++) {
     const name = ids[index], run = updates[index];
     if (name === undefined || run === undefined) throw new Error('Nalati update registration lacks an id');
     const id = `shard.nalati.${name}`;

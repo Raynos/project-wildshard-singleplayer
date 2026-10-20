@@ -1,3 +1,4 @@
+import { installClientWaterSurfaces } from './clientWaterSurfaces';
 import { installClientCosmeticFinishes } from './clientCosmeticFinishes';
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneDressing } from './sceneDressing';
@@ -38,6 +39,7 @@ interface ClientFeature {
 }
 /** Compiled-in client-only registry. Adding a kind requires its strict format schema and a reviewed platform host. */
 export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>> = {
+  'world.water': {phase:'world',rank:42,lifetime:'entered',sections:[],install:installClientWaterSurfaces},
   'strings.register': { phase: 'world', rank: 0, lifetime: 'entered', sections: ['ui/strings'],
     install: ctx => {
       const rows = ctx.product.section('ui/strings');
@@ -106,6 +108,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
       if (rows === undefined || !product.hasFile(rows.phone) || !product.hasFile(rows.desktop)) throw new Error('Dressing requires both declared tier files');
     }
     if(plan.features.some(row=>row.kind==='held.cosmetics')&&product.section('held/finishes').cosmetics===undefined)throw new Error('Cosmetic feature requires declared finishes');
+    for(const row of plan.features)if(row.kind==='world.water')for(const water of row.rows){if(!product.hasFile(water.geometry)||product.shardfile.look.materials[water.surface.look]===undefined||water.surface.floor!==undefined)throw new Error('Water requires declared geometry and look without floor textures');}
     if (plan.features.some(row => row.kind === 'weather.fields' && !product.shardfile.quests.quests.some(quest => quest.id === row.quest))) throw new Error('Weather fields require their declared quest');
     for (const row of plan.features) for (const name of CLIENT_FEATURES[row.kind].sections) {
       if (!product.has(name)) throw new Error(`Missing feature section ${name}`);
