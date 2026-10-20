@@ -12,7 +12,6 @@ import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, type NalatiBake, type NalatiBakedActor, type NalatiBootBody, type NalatiBootHerd, type NalatiBootRows } from './baked';
 import type { EliteBindings } from '@wildshard/game/shardfile/eliteEncounters';
 import { SEED, TERRAIN, RIVER } from '../world/geography';
-import type { NalatiGrassView } from './groups';
 import { GrassField } from '@wildshard/game/systems/looks/grassField';
 import { TrampleField, installTrampleTrail } from '@wildshard/game/systems/looks/trample';
 import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
@@ -28,6 +27,8 @@ import { steppeStorm, stormEnv, windEnv } from '../world/weatherStep';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import { Vector3 } from 'three';
 import { ATTACK_TURN, type HuntGround, type HuntNav, type HuntTree } from '@wildshard/engine/ai/hunt';
+
+interface NalatiGrassView { readonly field: GrassField; readonly trample: TrampleField }
 
 /** The page's clock, resolved from the same generated manifest sun and schedule. */
 export function nalatiDayClock(): DayCycle<SkyKey> {

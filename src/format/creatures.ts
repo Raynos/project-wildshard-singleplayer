@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { ReturnProgramSchema } from './namedJsonContracts';
 import { isJsonData } from './json';
 import { StalkerSchema, GuardianPatternsSchema, SkirmisherSchema, GuardianSchema, PerchHunterSchema, ScriptBrainSchema } from './brains';
 import { GroupBrainSchema, groupBrainRules } from './groupBrains';
@@ -114,3 +115,14 @@ export const CreatureStrikesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'pl
 export type CreatureStrikes = v.InferOutput<typeof CreatureStrikesSchema>;
 /** Read an entire actors/strikes section before resolving decision handles. */
 export function readCreatureStrikes(input: unknown): CreatureStrikes { return v.parse(CreatureStrikesSchema, input); }
+
+/** Ordered native group setup. A delay projection can consume its own declared
+ * entropy between groups; adoption names a real actor outside the initial herd. */
+export const NativeGroupRowsSchema = v.strictObject({
+  id, herds: id, tokens: id, bounds: v.tuple([coord, coord, coord, coord]), owned: v.pipe(v.array(id), v.maxLength(64)),
+  contacts: v.strictObject({ pack: CreatureStrikeSchema, herd: CreatureStrikeSchema }),
+  steps: v.pipe(v.array(v.variant('kind', [
+    v.strictObject({ kind: v.literal('group'), row: GroupBrainSchema, adopt: v.nullable(id) }),
+    v.strictObject({ kind: v.literal('delay'), program: ReturnProgramSchema, signal: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), channel: id }),
+  ])), v.maxLength(17)),
+});

@@ -38,7 +38,7 @@ import chapterStory from '../data/chapterStory.json' with { type: 'json' };
 import { chapterPresentation } from './chapterBindings';
 import tamingPoses from '../data/tamingPoses.generated.json' with { type: 'json' };
 import spear from '../data/spear.generated.json' with { type: 'json' };
-import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
+import { headlessAssembly } from './nativeGroups';
 import headlessBoot from '../data/headlessBoot.json' with { type: 'json' };
 import titanFight from '../data/stormTitanFight.generated.json' with { type: 'json' };
 import titanGeometry from '../data/stormTitanGeometry.generated.json' with { type: 'json' };

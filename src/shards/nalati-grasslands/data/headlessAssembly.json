@@ -30,10 +30,6 @@
     "@wildshard/sdk/headlessRuntime": [
       "installNativeCollision"
     ],
-    "src/shards/nalati-grasslands/runtime/groups": [
-      "nalatiHeadlessEnv",
-      "installNalatiGroups"
-    ],
     "src/shards/nalati-grasslands/wet": [
       "nalatiWetAt"
     ],
@@ -51,7 +47,8 @@
       "installEliteEncounters"
     ],
     "src/shards/nalati-grasslands/runtime/argymaqKeeper": [
-      "ArgymaqKeeper"
+      "ArgymaqKeeper",
+      "bindEliteAdmission"
     ],
     "src/shards/nalati-grasslands/combat/strikes": [
       "sampleStrike",
@@ -71,6 +68,12 @@
     "@wildshard/game/riding/nativeTaming": [
       "nativeTamingOf",
       "installNativeTaming"
+    ],
+    "@wildshard/game/shardfile/groupRuntime": [
+      "installNativeGroupRows"
+    ],
+    "@wildshard/game/population/nativeManager": [
+      "NativeWildEnvironment"
     ]
   },
   "constants": {
@@ -666,17 +669,32 @@
     {
       "name": "env",
       "value": {
-        "$call": [
+        "$new": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/groups",
-              "nalatiHeadlessEnv"
+              "@wildshard/game/population/nativeManager",
+              "NativeWildEnvironment"
             ]
           },
           {
             "$ref": [
-              "grass"
+              "grass",
+              "field"
             ]
+          },
+          {
+            "$ref": [
+              "grass",
+              "trample"
+            ]
+          },
+          {
+            "wind": {
+              "x": -0.8,
+              "z": 0.6,
+              "strength": 0.5
+            },
+            "flatten": 0.85
           }
         ]
       }
@@ -754,46 +772,53 @@
     {
       "name": "groups",
       "value": {
-        "$call": [
+        "$sequence": [
           {
-            "$ref": [
-              "src/shards/nalati-grasslands/runtime/groups",
-              "installNalatiGroups"
+            "$call": [
+              {
+                "$ref": [
+                  "src/shards/nalati-grasslands/runtime/argymaqKeeper",
+                  "bindEliteAdmission"
+                ]
+              },
+              {
+                "$ref": [
+                  "constants",
+                  "groupAdmission"
+                ]
+              }
             ]
           },
           {
-            "$ref": [
-              "host"
+            "$call": [
+              {
+                "$ref": [
+                  "@wildshard/game/shardfile/groupRuntime",
+                  "installNativeGroupRows"
+                ]
+              },
+              {
+                "$ref": [
+                  "host"
+                ]
+              },
+              {
+                "$ref": [
+                  "constants",
+                  "groupRows"
+                ]
+              },
+              {
+                "$ref": [
+                  "grid"
+                ]
+              },
+              {
+                "$ref": [
+                  "env"
+                ]
+              }
             ]
-          },
-          {
-            "bodies": {
-              "$ref": [
-                "bodies"
-              ]
-            },
-            "herds": {
-              "$ref": [
-                "bake",
-                "herds"
-              ]
-            },
-            "normalY": {
-              "$ref": [
-                "queries",
-                "normalY"
-              ]
-            },
-            "grass": {
-              "$ref": [
-                "grass"
-              ]
-            },
-            "env": {
-              "$ref": [
-                "env"
-              ]
-            }
           }
         ]
       }

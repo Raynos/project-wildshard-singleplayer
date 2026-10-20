@@ -1,4 +1,11 @@
-import { NativeWildEnvironment } from '../population/nativeManager';
+import { admitNativeManagerTokens, NativeWildEnvironment } from '../population/nativeManager';
+import { ReturnProgram } from '../population/returnProgram';
+import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
+import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
+import { StrikeRunner } from '@wildshard/engine/ai/strikes';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
+import { NativeGroupRowsSchema } from '@wildshard/format/creatures';
+import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { FlockBrain } from '@wildshard/engine/ai/flock';
 import { PackBrain, type PackPorts, type PackContext, type PackPrey } from '@wildshard/engine/ai/pack';
@@ -191,4 +198,65 @@ export class NativeGroupCollection {
       this.prey.set(id, prey); this.ids.set(prey, id); return prey;
     })); return this.preyRows;
   }
+}
+
+/** G474 native group setup from admitted rows and concrete world owners. No
+ * shard contact, perception, identity or controller-factory port is accepted. */
+export function installNativeGroupRows(host: SimHost, input: unknown, grid: BakedGrid, environment: NativeWildEnvironment): NativeGroupCollection {
+  const rows = v.parse(NativeGroupRowsSchema, input), sample = bakedSamplers(grid);
+  if (!(environment instanceof NativeWildEnvironment) || collections.get(host)?.has(rows.id)) throw new Error('Invalid or installed group world');
+  const actor = (id: string): AnimalSim => { const body = host.entities.get(id); if (body === undefined) throw new Error(`Missing group actor ${id}`); return body; };
+  const declarations = rows.steps.flatMap(step => step.kind === 'group' ? [{ row: nativeGroupBrain(step.row), adopt: step.adopt }] : []);
+  const members = declarations.flatMap(({ row, adopt }) => [...row.members, ...adopt === null ? [] : [adopt]]);
+  if (new Set(members).size !== members.length || declarations.filter(({ row }) => row.kind === 'pack').length === 0
+    || declarations.filter(({ row }) => row.kind === 'pack').length > 8 || declarations.filter(({ row }) => row.kind === 'herd').length > 8
+    || declarations.some(({ row, adopt }) => row.kind === 'pack' && adopt !== null)) throw new Error('Invalid native group roster');
+  for (const id of [...members, ...rows.owned]) actor(id);
+  const actors = new Map(members.map(id => [id,actor(id)])), prey = new Map<string,PackPrey>(), ids = new WeakMap<PackPrey,string>();
+  for (const [id,body] of actors) ids.set(body, `actor:${id}`);
+  const packs: PackBrain<AnimalSim>[] = [], herds: HerdBrain<AnimalSim>[] = [], wolves: AnimalSim[] = [];
+  const packOf = new WeakMap<AnimalSim,PackBrain<AnimalSim>>(), tokens = new WeakMap<AnimalSim,Parameters<PackPorts<AnimalSim>['register']>[1]>();
+  const nearest = (bodies: readonly AnimalSim[], x: number, z: number, radius: number): AnimalSim | null => {
+    let best: AnimalSim | null = null, distance = radius;
+    for (const body of bodies) { const d = Math.hypot(body.position.x-x,body.position.z-z); if (body.alive && d < distance) { best = body; distance = d; } } return best;
+  };
+  const shared = { sharedRng: () => host.rng.stream('ai'), environment: () => environment,
+    visibility: (x: number,z: number,player: Vector3,speed: number,time: number) => environment.visibility(x,z,player,speed,time),
+    hearing: (radii: readonly [number,number,number,number],player: Vector3,speed: number) => environment.hearing(radii,player,speed),
+    downwind: (x: number,z: number,player: Vector3) => environment.downwind(x,z,player),
+    inBounds: (x: number,z: number,margin = 0) => x >= rows.bounds[0]+margin && x <= rows.bounds[1]-margin && z >= rows.bounds[2]+margin && z <= rows.bounds[3]-margin,
+    normalY: (x: number,z: number) => sample.normalAt(x,z)[1], onEvent: (name: string,x: number,z: number) => { environment.onEvent(name,x,z); } };
+  const strikes = new StrikeRunner(), packStrike = strikeFromData(rows.contacts.pack), herdStrike = strikeFromData(rows.contacts.herd);
+  interface Contact { player: Vector3; reach: (body: AnimalSim) => boolean; hurt: (damage: number) => void }
+  const hasContact = (context: { player: Vector3 }): context is Contact => 'reach' in context && typeof context.reach === 'function' && 'hurt' in context && typeof context.hurt === 'function';
+  const contact = (body: AnimalSim, context: { player: Vector3 }, radius: number, herd: boolean): void => {
+    if (!hasContact(context)) throw new Error('Missing native contact authority');
+    const { reach, hurt } = context;
+    strikes.contact({ ...herd ? herdStrike : packStrike, shape: { kind: 'point', radius, exclusive: true } }, {
+      actor: body, target: context.player, canReach: () => reach(body), hit: () => { hurt(body.mods.chargeDamage); } });
+  };
+  let firstRaid = 0;
+  for (const id of rows.owned) actor(id).mem['owned'] = 1;
+  for (const step of rows.steps) {
+    if (step.kind === 'delay') { firstRaid = v.parse(v.number(), ReturnProgram.native(host,step.program).project(step.signal,{},host.rng.stream('ai'))[step.channel]); continue; }
+    const row = nativeGroupBrain(step.row), bodies = row.members.map(actor);
+    if (row.kind === 'pack') {
+      const pack = new PackBrain(bodies,row.home[0],row.home[1],row,{ ...shared,
+        register: (body,director) => { tokens.set(body,director); }, bite: (body,context,radius) => { contact(body,context,radius,false); },
+        preyIdentity: target => { const id = ids.get(target); if (id === undefined) throw new Error('Missing native prey identity'); return id; },
+        resolvePrey: id => id.startsWith('actor:') ? actors.get(id.slice(6)) ?? null : prey.get(id) ?? null });
+      pack.initialize(); pack.findPrey = (x,z,radius) => nearest(herds.flatMap(herd => herd.foals),x,z,radius);
+      packs.push(pack); wolves.push(...bodies); for (const body of bodies) packOf.set(body,pack);
+    } else {
+      const herd = new HerdBrain(bodies,row,{ ...shared, resolveActor: id => actors.get(id) ?? null,
+        passThrough: (body,through) => { if (body.motor instanceof CharacterMotor) body.motor.passThrough(through ? ['PLAYER'] : []); },
+        chargeContact: (body,context,radius) => { contact(body,context,radius,true); },
+        scarePack: (body,radius) => { const pack = packOf.get(body); if (pack === undefined) return false; pack.scare(body.position.x,body.position.z,radius); return true; },
+        onKnockdown: (x,z,strength) => { environment.onKnockdown(x,z,strength); } });
+      herd.initialize(); herd.findThreat = (x,z,radius) => nearest(wolves,x,z,radius);
+      if (step.adopt !== null) herd.adoptStallion(actor(step.adopt)); herds.push(herd);
+    }
+  }
+  const collection = new NativeGroupCollection(host,packs,herds,actors,prey,ids,wolves,packOf,{ id: rows.id,firstRaid,environment });
+  admitNativeHerds(host,rows.herds,herds,environment.wind); admitNativeManagerTokens(host,rows.tokens,tokens); return collection;
 }

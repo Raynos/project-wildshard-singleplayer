@@ -288,6 +288,23 @@ export class NativeWildEnvironment {
   }
   grassStandingAt(x: number, z: number): number { return this.field.baseHeightAt(x,z); }
   grassHeightAt(x: number, z: number): number { return this.field.baseHeightAt(x,z)*(1-this.rows.flatten*this.trampleField.amountAt(x,z)); }
+  /** Standard grass-cover senses over this world's concrete field owners. */
+  visibility(x: number, z: number, player: Vector3, speed: number, now: number): number {
+    const cover = (height: number): number => Math.min(1, Math.max(0, (height-.15)/((this.playerCrouched ? 1.05 : 1.75)-.15)));
+    const dx = x-player.x, dz = z-player.z, distance = Math.hypot(dx,dz) || 1;
+    let screen = 0;
+    for (const step of [1.5,3,5]) { if (step > distance) break; screen += cover(this.grassHeightAt(player.x+dx/distance*step,player.z+dz/distance*step))/3; }
+    const motion = now-this.lastShotT < 1 ? 1.5 : speed < .4 ? .3 : speed <= 2.6 ? .7 : speed < 5.2 ? 1 : 1.5;
+    return (1-.9*Math.max(cover(this.grassStandingAt(player.x,player.z)),.7*screen))*motion*this.light;
+  }
+  downwind(x: number, z: number, player: Vector3): boolean {
+    const dx = x-player.x, dz = z-player.z, distance = Math.hypot(dx,dz), wind = this.wind;
+    return distance >= 1e-3 && wind.strength >= .05 && (dx*wind.x+dz*wind.z)/distance > .82;
+  }
+  hearing(radii: readonly [number,number,number,number], player: Vector3, speed: number): number {
+    return (speed < .4 ? radii[0] : speed <= 2.6 ? radii[1] : speed < 5.2 ? radii[2] : radii[3])
+      *(speed > .4 && this.grassStandingAt(player.x,player.z) >= .7 ? 1.25 : 1)*(this.storm ? .5 : 1);
+  }
   trample(x: number, z: number, radius: number, strength: number, vx: number, vz: number): void { this.trampleField.push(x,z,radius,strength,vx,vz); }
   onEvent(name: string, x: number, z: number): void {
     if (this.host === null) throw new Error('Unbound native world signal'); this.host.events.emit('creature.signal', { name,x,z });
