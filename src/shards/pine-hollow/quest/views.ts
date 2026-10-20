@@ -1,4 +1,4 @@
-/** Counted pool, lamp and canoe views. The data-only story host owns play state and draws its puffs. */
+/** Counted pool and lamp views. The data-only story host owns play state and draws its puffs. */
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import type { ForestStory } from '@wildshard/sdk/quest/forestStoryRows';
 import { installForestStory } from '@wildshard/sdk/quest/forestStory';
@@ -7,7 +7,6 @@ import { BeaverPool } from '../world/beaverPool';
 import './pinehollow.css';
 
 export class PineQuestViews {
-  private canoeAway = false;
   private readonly lit = new Map<string, boolean>();
   private readonly done;
   private constructor(readonly quest: ForestStory, private readonly landmarks: PineLandmarks, private readonly pool: BeaverPool, done: string) {
@@ -30,6 +29,5 @@ export class PineQuestViews {
   present(dt: number): void {
     const { quest } = this;
     this.pool.setOpen(quest.flags.has('open:dam-sluice')); this.pool.update(dt); this.lamps();
-    if (this.canoeAway !== quest.moverAway) { this.canoeAway = quest.moverAway; this.landmarks.setCanoeAway(this.canoeAway); }
   }
 }

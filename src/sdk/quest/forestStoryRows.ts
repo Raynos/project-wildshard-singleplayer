@@ -36,7 +36,8 @@ export interface ForestStoryRows {
   readonly payment: { readonly flag: string; readonly speaker: string; readonly action: string; readonly call: string };
   readonly cable: { readonly id: string; readonly geometry: number; readonly prompt: Triple; readonly radius: number; readonly label: string;
     readonly top: Triple; readonly launch: Triple; readonly landing: Triple; readonly arrival: string };
-  readonly mover: { readonly id: string; readonly geometry: number; readonly system: string };
+  /** `rest`: the scene object standing in for the mover at rest, hidden while it is away */
+  readonly mover: { readonly id: string; readonly geometry: number; readonly system: string; readonly rest: string };
   readonly secret: { readonly scene: string; readonly flag: string; readonly text: string; readonly floorY: number; readonly mid: Triple; readonly mouths: Triple[] };
   readonly map: { readonly pois: readonly (Point & { id: string; name: string; r: number })[];
     readonly zones: readonly { label: string; x: number; z: number; size?: number; rot?: number }[] };

@@ -2,17 +2,15 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
 /**
  * PineLandmarks — what is left of Pine Hollow's landmarks once the forest page places them (its landmark rows: the fire
  * lookout, the zipline, the footbridge, the hero props and the crags) and lights them (its lantern rows: the three
- * waystones): the bear cave's interior and its shaft and drips, the drawn-up canoe that hides while you paddle it (PH-C8),
- * and the chapter's view binding.
+ * waystones) and the story hides the drawn-up canoe while you paddle it (PH-C8): the bear cave's interior and its shaft
+ * and drips, and the chapter's view binding.
  *
  *   const lm = await installPineLandmarks({ sky, registry, page });   // registers the cave, keeps it updated
  *   lm.setLit('pond', true);                                          // the quest relights a waystone
  */
 import * as THREE from 'three';
-import { admitLandmarkRows, landmarkRows } from './landmarkRows';
 import { PineQuestViews } from '../../quest/views';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { modelPoseMatrix as placeMatrix } from '@wildshard/engine/models/placementBatch';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { forestPage, type ForestPage } from '@wildshard/game/shardfile/forestPage';
@@ -41,7 +39,6 @@ export class PineLandmarks {
   /** The placed models are the forest page's landmark rows (world/forest-page.json), placed with its props. */
   async build(): Promise<this> {
     const product = await loadFirstPartyProduct('pine-hollow');
-    await admitLandmarkRows(product);
     // the cave + its textures; its roof patch borrows the native collider part
     const cave = CaveInterior.load(await product.json('world/cave-interior.json'), this.page.resources, pineSetCap(TIER_CONFIG.maxTexture));
     await loadCodeParts(); this.page.resources.publish('pine.cave-roof', codePart('cave-roof'));
@@ -67,14 +64,6 @@ export class PineLandmarks {
     const life = await installPageLife(ctx, await ctx.product.json(input.life), page.compendium?.state ?? null, ambience.sfx);
     Object.assign(runtime.objects, { pineLife: life });
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, { cabins: floor.cabins, props: floor.props, streams: floor.streams, pineLife: life });
-  }
-
-  /** the canoe secret (PH-C8): the drawn-up canoe is gone from the shore while you paddle it (the ride draws its own) */
-  setCanoeAway(away: boolean): void {
-    const place = landmarkRows().canoe[0];
-    if (place === undefined) return;
-    const m = away ? new THREE.Matrix4().makeScale(0, 0, 0) : placeMatrix(place);
-    this.page.resources.object('heroes.canoe.root').traverse((o) => { if (o instanceof THREE.InstancedMesh) { o.setMatrixAt(0, m); o.instanceMatrix.needsUpdate = true; } });
   }
 
   setLit(id: WaystoneId, on: boolean): void { this.page.setLantern(`waystone.${id}`, on); }

@@ -292,6 +292,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
       h.weapons.visible = !event.riding; h.weapons.setEnabled(!event.riding);
       if (event.riding) moverAway = true;
       if (event.arrived === -1) moverAway = false;
+      h.cabins.resources.object(rows.mover.rest).visible = !moverAway;
       if (event.riding) {
         const at = motion.data.find(row => row.id === rows.mover.id)?.at; if (at === undefined) throw new Error('Missing canoe rest pose');
         kitSfx.interact('door', new THREE.Vector3(at.x, at.y, at.z), { gain: 0.6 });

@@ -31,7 +31,7 @@ export const FOREST_STORY: ForestStoryRows = {
   signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2 })),
   cable: { id: 'pine.zipline', geometry: packed.parts['zip-trolley'], prompt: [zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]],
     radius: 2.3, label: 'Ride the zipline', top: zip.top, launch: zip.launch, landing: zip.landing, arrival: 'Down the line and into the Hollow' },
-  mover: { id: 'pine.canoe', geometry: packed.parts.canoe, system: 'pine.movers' },
+  mover: { id: 'pine.canoe', geometry: packed.parts.canoe, system: 'pine.movers', rest: 'heroes.canoe.root' },
   secret: { ...scenes.sites.hollow, mid: triple(scenes.sites.hollow.mid), mouths: scenes.sites.hollow.mouths.map(triple), scene: 'quests.hollow-log', flag: 'secret:log', text: 'Inside the fallen giant. It smells of rain and old resin' },
   map: { pois: layout.PINE_HOLLOW_POIS, zones: layout.PINE_HOLLOW_ZONES }, jumps,
 };
