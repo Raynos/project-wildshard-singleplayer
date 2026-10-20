@@ -15,6 +15,9 @@ interface TextureRun { readonly base: TextureNode; epoch: number; flip: boolean 
 interface ReferenceParts { reference: unknown }
 interface ValueParts { value: unknown }
 type Update = { readonly kind: 'ordinary'; readonly node: Node } | {
+  /** a stock ReferenceNode reading `value` of a fixed `{ value }` holder (the engine's uniform holders) */
+  readonly kind: 'held'; readonly node: Node; readonly parts: ReferenceParts; readonly holder: ValueHolder; readonly uniform: ValueParts;
+} | {
   readonly kind: 'sample'; readonly node: FlipTexture; readonly flip: { value: boolean };
   readonly reference: Node | null; readonly run: TextureRun;
 } | {
@@ -55,18 +58,12 @@ function isModelParts(node: Node): node is Node & { object3d: Object3D | null } 
 function isGroupParts(node: Node): node is Node & { needsUpdate: boolean } { return 'needsUpdate' in node; }
 function stringList(value: unknown): value is readonly string[] { return Array.isArray(value) && value.length > 0 && value.every(p => typeof p === 'string'); }
 
-/** a holder's property as a reference node reads it (`object[property]`), the usual names without a dynamic lookup */
-function readProperty(holder: object, name: string): unknown {
-  switch (name) {
-    case 'value': return 'value' in holder ? holder.value : undefined;
-    case 'opacity': return 'opacity' in holder ? holder.opacity : undefined;
-    case 'color': return 'color' in holder ? holder.color : undefined;
-    case 'emissive': return 'emissive' in holder ? holder.emissive : undefined;
-    case 'emissiveIntensity': return 'emissiveIntensity' in holder ? holder.emissiveIntensity : undefined;
-    case 'near': return 'near' in holder ? holder.near : undefined;
-    case 'far': return 'far' in holder ? holder.far : undefined;
-    default: return Reflect.get(holder, name);
-  }
+/** a fixed `{ value }` uniform holder (its own data property): read as `holder.value`, one shape-cached load per draw */
+interface ValueHolder { readonly value: unknown }
+function isValueHolder(holder: unknown): holder is ValueHolder {
+  if (typeof holder !== 'object' || holder === null) return false;
+  const own = Object.getOwnPropertyDescriptor(holder, 'value');
+  return own !== undefined && 'value' in own;
 }
 
 /** a direct update entry for a stock reference, model-matrix or object-group node, or null (it keeps NodeFrame dispatch) */
@@ -80,6 +77,7 @@ function directUpdate(node: Node): Update | null {
     if (!material && (typeof holder !== 'object' || holder === null)) return null;
     const [first, ...rest] = properties;
     if (first === undefined) return null;
+    if (!material && first === 'value' && rest.length === 0 && isValueHolder(holder)) return { kind: 'held', node, parts: node, holder, uniform };
     return { kind: 'reference', node, parts: node, holder: typeof holder === 'object' ? holder : null, source: material ? materialSource : referenceSource, first, rest, uniform };
   }
   if (stockDispatch(node, modelStock) && Reflect.get(node, 'scope') === ModelNode.WORLD_MATRIX) {
@@ -139,10 +137,16 @@ export class TextureUpdates {
       }
       // Stock reference / model / group updates, written directly: the same values the stock update writes, without
       // NodeFrame's dispatch. None of them runs a callback or moves a sampler, so the sampler epoch holds.
-      if (entry.kind === 'reference') {
+      if (entry.kind === 'held') {
+        const node = entry.node;
+        if (node.update === referenceUpdate && node.updateReference === referenceSource) {
+          const value = entry.holder.value;
+          if (!Array.isArray(value) && value !== undefined) { entry.parts.reference = entry.holder; entry.uniform.value = value; continue; }
+        }
+      } else if (entry.kind === 'reference') {
         const holder = entry.holder ?? frame.material, node = entry.node;
         if (holder !== null && node.update === referenceUpdate && node.updateReference === entry.source) {
-          let value = readProperty(holder, entry.first);
+          let value: unknown = Reflect.get(holder, entry.first);
           for (const name of entry.rest) value = typeof value === 'object' && value !== null ? Reflect.get(value, name) : undefined;
           if (!Array.isArray(value) && value !== undefined) { entry.parts.reference = holder; entry.uniform.value = value; continue; }
         }
