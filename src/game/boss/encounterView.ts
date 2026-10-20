@@ -12,6 +12,13 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { FX, fxMaterial, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
+import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import { SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
+import { replaceSpecimenInstances } from '../models/specimenCatalogue';
 import type { CueDirector } from '../audio/cueDirector';
 import { GroundTell } from '../Elite';
 import { LightningStrip } from '../weapons/arcPower';
@@ -43,6 +50,75 @@ export const SlotViewSchema = v.strictObject({
 });
 /** A slot actor as drawn: where it stands and faces, its health and its attack's phase (−1 between attacks). */
 export interface SlotViewActor extends SlotActor { readonly position: { readonly x: number; readonly y: number; readonly z: number }; readonly yaw: number; readonly hp: number; readonly attackPhase: number }
+const hidden = new THREE.Matrix4().makeScale(0, 0, 0);
+/**
+ * The sites a slot encounter wakes from (`name`'s statues): one instanced copy of the model's `variants[k]` at each
+ * site (k: `variantCycle[i mod its length]`; `sink` × scale into the ground, leaning `tilt`), all wearing the `generated`
+ * asset once it loads, and each its
+ * own `collider` box piece (half width, half depth, top and bottom × scale; `label`, `surface`, from `file`) that stops
+ * colliding while the site is awake.
+ */
+export const EncounterSitesSchema = v.strictObject({
+  name: v.pipe(v.string(), v.minLength(1), v.maxLength(64)), label: v.string(), file: v.string(), surface: v.picklist(['stone', 'wood', 'metal', 'earth', 'ground']),
+  variants: v.pipe(v.array(v.string()), v.minLength(1), v.maxLength(8)), variantCycle: v.pipe(v.array(v.pipe(finite, v.integer(), v.minValue(0))), v.minLength(1), v.maxLength(16)),
+  sink: finite, generated: SpecimenAssetSchema,
+  collider: v.strictObject({ hw: finite, hd: finite, top: finite, bottom: finite }),
+  sites: v.pipe(v.array(v.strictObject({ x: finite, z: finite, yaw: finite, scale: finite, tilt: v.optional(finite, 0) })), v.maxLength(256)),
+});
+/** A placed site: where it stands and the copy that draws it. */
+export interface EncounterSite extends EncounterSlotSite { readonly y: number; readonly scale: number; readonly tilt: number; readonly slot: number;
+  readonly collider: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number; ghost: true } }
+/** A slot encounter's sites on the ground: drawn instanced, solid while they stand, hidden while their actor is out. */
+export class EncounterSites {
+  readonly sites: EncounterSite[] = [];
+  readonly object = new THREE.Group();
+  private readonly rows: v.InferOutput<typeof EncounterSitesSchema>;
+  private readonly awake: boolean[] = [];
+  private meshes: THREE.InstancedMesh[] = [];
+  constructor(input: unknown) {
+    const rows = this.rows = v.parse(EncounterSitesSchema, input), counts = rows.variants.map(() => 0), c = rows.collider;
+    this.object.name = rows.name;
+    for (const [i, s] of rows.sites.entries()) {
+      const variant = rows.variantCycle[i % rows.variantCycle.length] ?? 0;
+      if (rows.variants[variant] === undefined) throw new Error(`Encounter site has no variant ${String(variant)}`);
+      const slot = counts[variant] ?? 0, y = heightAt(s.x, s.z) - rows.sink * s.scale; counts[variant] = slot + 1;
+      this.sites.push({ x: s.x, y, z: s.z, yaw: s.yaw, scale: s.scale, tilt: s.tilt, variant, slot,
+        collider: { x: s.x, z: s.z, hw: c.hw * s.scale, hd: c.hd * s.scale, rot: -s.yaw, yBottom: y - c.bottom, yTop: y + c.top * s.scale, ghost: true } });
+    }
+  }
+  /** The sites' colliders as data (each is also its own registry piece once registered). */
+  get colliders(): readonly EncounterSite['collider'][] { return this.sites.map(site => site.collider); }
+  /** Place the model instanced at every site, wearing the generated asset when it lands. */
+  place<P extends object>(model: ModelDef<P>, ctx: ModelContext, registry: WorldRegistry, sky: SkyRig): Placed {
+    const placed = place(model, this.sites.map(s => ({ x: s.x, y: s.y, z: s.z, matrix: modelPoseMatrix({ x: s.x, y: s.y, z: s.z, yaw: s.yaw, scale: s.scale, roll: s.tilt }),
+      variant: this.rows.variants[s.variant] ?? '' })), { ctx, draw: 'instanced', registry });
+    this.object.add(placed.object);
+    this.meshes = this.rows.variants.map(variant => {
+      const key = `${model.id}:${variant}:0`, found: unknown = placed.object.name === key ? placed.object : placed.object.getObjectByName(key);
+      return isInstances(found) ? found : new THREE.InstancedMesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial(), 0);
+    });
+    replaceSpecimenInstances(sky, this.rows.generated, this.meshes);
+    return placed;
+  }
+  /** Each site its own piece, following the sites' group, solid only while it stands. */
+  register(registry: WorldRegistry): void {
+    this.object.updateWorldMatrix(true, false);
+    this.sites.forEach((s, i) => {
+      registry.add({ id: `${this.rows.name}-${String(i)}`, name: this.rows.label, category: 'props', file: this.rows.file, surface: this.rows.surface,
+        follows: this.object, colliders: [boxDesc(s.collider)], active: () => this.awake[i] !== true });
+    });
+  }
+  /** Apply a slot view's site changes. */
+  apply(changes: readonly SlotSiteChange[]): void { for (const change of changes) this.setAwake(change.index, change.awake === 1); }
+  isAwake(index: number): boolean { return this.awake[index] === true; }
+  private setAwake(index: number, awake: boolean): void {
+    const s = this.sites[index], mesh = this.meshes[s?.variant ?? -1];
+    if (s === undefined || mesh === undefined || this.awake[index] === awake) return;
+    this.awake[index] = awake;
+    mesh.setMatrixAt(s.slot, awake ? hidden : modelPoseMatrix({ x: s.x, y: s.y, z: s.z, yaw: s.yaw, scale: s.scale, roll: s.tilt }));
+    mesh.instanceMatrix.needsUpdate = true;
+  }
+}
 /** A site whose actor woke (`awake` 1: hide it) or is home again (0: stand it back up), for the caller's own sites. */
 export interface SlotSiteChange { readonly index: number; readonly awake: number }
 interface Awake<A> { readonly a: A; readonly site: number; lastHp: number; readonly wedge: GroundTell }

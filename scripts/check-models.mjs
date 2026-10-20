@@ -64,7 +64,6 @@ function sources(dir = join(ROOT, 'src')) {
 export const ON_CONTRACT = [
   'src/shards/nalati-grasslands/world/painted.ts',
   'src/shards/nalati-grasslands/world/places.ts',
-  'src/shards/nalati-grasslands/world/Balbals.ts',
   'src/shards/nalati-grasslands/world/Bowl.ts',
   'src/shards/nalati-grasslands/world/view.ts', 'src/shards/nalati-grasslands-legacy/world/dressing/index.ts',
   // e6b43b9aa retires the primary; its frozen copy keeps this contract.
@@ -103,7 +102,7 @@ export const DONE = {
     'src/shards/nalati-grasslands/playground/HorsePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
     'src/shards/nalati-grasslands-legacy/weapons/meleeGeo.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands-legacy/world/paint.ts': { why: "The frozen PaintKit retains its original POI merge; primary paint now runs offline.", counts: { mergeGeometries: 1 } },
-    'src/shards/nalati-grasslands/world/Balbals.ts': { why: 'the balbals are placed instanced; an empty mesh stands in for a carved variant no crown wears (B11 hides a waking warrior by instance)', counts: { InstancedMesh: 1 } },
+    'src/shards/nalati-grasslands-legacy/world/Balbals.ts': { why: 'the frozen balbals keep their instanced draw and an empty mesh for a carved variant no crown wears; the primary places them through game/boss/encounterView EncounterSites', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands/world/Bowl.ts': { why: "the kokpar riders' gallop and the herds' drift: copies their place draws and moves every frame (models placed `moving`)", counts: { InstancedMesh: 2 } },
     'src/shards/nalati-grasslands-legacy/world/dressing/index.ts': { why: 'The existing scatter draw uses CellWindow; two ambient creature draws borrow prepared shapes and platform flock rows (world, §1; M5).', counts: { InstancedMesh: 3 } },
     'src/shards/nalati-grasslands-legacy/world/dressing/layer.ts': { why: 'Frozen scatter retains its original instance draw; the primary uses authored CellWindow rows.', counts: { InstancedMesh: 1 } },
@@ -147,6 +146,7 @@ export const DONE = {
     'src/engine/render/scatterInstances.ts': { why: '2d917c567c: the existing bounded scatter draw moved from Nalati dressing; authored placements and collision remain data', counts: { InstancedMesh: 1 } },
     'src/game/ambient/wingField.ts': { why: '2d917c567c: the former two ambient wing draws share one row-owned allocation site; creatures remain model-owned', counts: { InstancedMesh: 1 } },
     'src/game/boss/arenaFire.ts': { why: 'f524ad70dc: the existing flame and smoke effect draws moved from stormTitanLook with their original ceiling', counts: { InstancedMesh: 2 } },
+    'src/game/boss/encounterView.ts': { why: 'Moved from Nalati: a cloud body\'s puffs (one row-sized draw) and an encounter site\'s empty stand-in for a variant no site wears; the sites themselves are placed through place()', counts: { InstancedMesh: 2 } },
     'src/game/practice/hookCourse.ts': { why: 'The existing grapple practice room registry piece moved from Nine runtime/tools/hookCourse; no shard world content', counts: { 'registry add with object': 1 } },
     'src/game/weapons/heldPolearm.ts': { why: '90b6eb13ce: the held spear retains its original single thrown-javelin draw; the empty placeholder allocation is retired', counts: { InstancedMesh: 1 } },
     'src/game/shardfile/worldSceneBatch.ts': { why: 'G483: one declared native batch reserves named models and ordered fixed world instances; bounded rows own capacity and material, never shard drawing callbacks', counts: { BatchedMesh: 1 } },

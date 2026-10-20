@@ -10,11 +10,10 @@ import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { encounterHit } from './damage';
 import type * as THREE from 'three';
-import type { Balbals } from '../world/Balbals';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import * as v from 'valibot';
 import { CueDirector } from '@wildshard/game/audio/cueDirector';
-import { PatrolEncounterView, SlotEncounterView } from '@wildshard/game/boss/encounterView';
+import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from '@wildshard/game/boss/encounterView';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { BALBAL_SLAM, creatureGuest } from '../species/balbal';
 import { riderGeometry } from '../species/ghostRider';
@@ -37,7 +36,7 @@ import { riderGeometry } from '../species/ghostRider';
  * Debug ▸ Creatures & NPCs ▸ Balbal warriors / Ghost riders (wake now · never); `window.__balbals`, `window.__ghosts`.
  */
 
-export interface NightEnemiesCtx { game: Game; sky: Sky; player: Player; forest: Forest; balbals: Balbals | null; clock: DayCycleClock }
+export interface NightEnemiesCtx { game: Game; sky: Sky; player: Player; forest: Forest; balbals: EncounterSites | null; clock: DayCycleClock }
 export interface NightEnemies {
   balbals: SlotEncounterView;
   riders: PatrolEncounterView;
@@ -57,14 +56,14 @@ export async function wireNightEnemies(ctx: NightEnemiesCtx): Promise<NightEnemi
   // the slam's wedge: the species' cone and reach, its wind-up and blow over the 2.9 s attack
   const tell = { ...rows.view.tell, cone: BALBAL_SLAM.cone, reach: BALBAL_SLAM.reach / 1.18, wind: BALBAL_SLAM.windup / 2.9, strike: BALBAL_SLAM.strike / 2.9 };
   const balbals = new SlotEncounterView(rows.slots, { ...rows.view, tell }, ReturnProgram.page(rows.program, ctx.game.levelScope),
-    { scene: ctx.game.scene, cues, sites: ctx.balbals?.statues ?? null, guest: creatureGuest() });
+    { scene: ctx.game.scene, cues, sites: ctx.balbals?.sites ?? null, guest: creatureGuest() });
   const rider = ctx.game.levelScope.own(riderGeometry()), captain = ctx.game.levelScope.own(riderGeometry(true));
   const riders = new PatrolEncounterView({ patrol: rows.patrol, motion: rows.motion, view: rows.ride }, ReturnProgram.page(rows.program, ctx.game.levelScope),
     { game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, cues, figures: { rider, captain, storm: rider } });
   return {
     balbals, riders,
     update(dt, t) {
-      for (const site of balbals.update(dt, { kind: Number(ctx.clock.dayPhase === 'dusk' || ctx.clock.dayPhase === 'night') })) ctx.balbals?.setAwake(site.index, site.awake === 1);
+      ctx.balbals?.apply(balbals.update(dt, { kind: Number(ctx.clock.dayPhase === 'dusk' || ctx.clock.dayPhase === 'night') }));
       // a ghost arrow hurts like any creature's blow (the pipeline: health, the red flash, the sound)
       for (const { damage, from } of riders.update(dt, t, { hold: 0, night: Number(ctx.clock.dayPhase === 'night') })) {
         const a = from ?? riders.riders[0]?.a;
