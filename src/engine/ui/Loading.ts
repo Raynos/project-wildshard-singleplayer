@@ -220,7 +220,7 @@ export class Loading {
   private downloadProgress(done: boolean) {
     for (const entry of this.downloadObserver.takeRecords()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
     const transfer = this.downloads.snapshot();
-    const fraction = done && transfer.pendingBytes === 0 && transfer.unclassifiedBytes === 0 ? 1
+    const fraction = done && transfer.filesDone === transfer.filesTotal && transfer.unclassifiedBytes === 0 ? 1
       : Math.min(0.999, transfer.networkBytes / (transfer.networkBytes + transfer.pendingBytes + 1));
     return { ...transfer, fraction };
   }
