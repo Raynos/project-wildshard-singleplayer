@@ -11,6 +11,7 @@ import { forestPageAmbience } from '@wildshard/game/audio/forestPage';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { perfLap } from '@wildshard/engine/core/perfLap';
+import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { jsonSchema } from '@wildshard/engine/saves/slots';
@@ -256,6 +257,9 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
 
 
   const stag = installChapterLead(ctx, native);
+  // the guide's and the spawns' declared puffs: shimmer domes swelling where each cue fired
+  const leadPuffs = new DomePuffs(game.scene, new THREE.Color(...stag.puffs.color), stag.puffs.count), spawnPuffs = new DomePuffs(game.scene, new THREE.Color(...thralls.puffs.color), thralls.puffs.count);
+  ctx.scope.onDispose(() => { leadPuffs.dispose(); spawnPuffs.dispose(); });
 
   const liveMarkers = (): { label: string; x: number; z: number; short: string }[] => quest.markers().map((m) => ({ label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z }));
   h.fullMap.setPois((): MapPoi[] => [
@@ -298,6 +302,9 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     if (!perfLap.active) { // E350 F-J1: the PERF LAP's teleports call no stag and no thralls
       stag.update(dt, t);
       thralls.update(dt, pp);
+      leadPuffs.update(dt, t); spawnPuffs.update(dt, t);
+      for (const puff of stag.takePuffs()) leadPuffs.burst(_v.set(puff.x, puff.y + stag.puffs.height, puff.z), ...stag.puffs[puff.kind]);
+      for (const puff of thralls.takePuffs()) spawnPuffs.burst(_v.set(puff.x, puff.y + thralls.puffs.height, puff.z), ...thralls.puffs.burst);
     }
     questChip.update(t, player);
     if (t - slowT > 0.5) {

@@ -79,7 +79,7 @@ export class PineLandmarks {
 
   setLit(id: WaystoneId, on: boolean): void { this.page.setLantern(`waystone.${id}`, on); }
 
-  update(dt: number, t: number): void { this.chapter?.present(dt, t); this.crags?.cave.presentFrame(t, this.sky); }
+  update(dt: number, t: number): void { this.chapter?.present(dt); this.crags?.cave.presentFrame(t, this.sky); }
 }
 
 /**
