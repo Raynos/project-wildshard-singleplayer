@@ -3,8 +3,19 @@ import { isJsonData } from './json';
 import { SpeciesSchema } from './speciesPrograms';
 import { RidingPresentationSchema } from './riding';
 import { SkinClipNameSchema } from './skinData';
+import { NumericPoseSchema } from './clientChannels';
 
 const text=v.pipe(v.string(),v.minLength(1),v.maxLength(4096)),number=v.pipe(v.number(),v.finite()),rgb=v.tuple([number,number,number]);
+/** Client-only rest looks over an admitted packed body and numeric joint poses. */
+export const PackedCreatureLooksSchema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
+  poses: v.record(text, NumericPoseSchema),
+  rows: v.pipe(v.array(v.strictObject({ id: text, species: text, kind: text, skeleton: text,
+    sockets: v.array(text), clips: v.array(SkinClipNameSchema), pose: v.exactOptional(text),
+    rig: v.exactOptional(v.picklist(['quadruped', 'custom'])), family: v.exactOptional(text), variants: v.exactOptional(v.record(text, text)),
+    standMem: v.exactOptional(v.record(text, number)), eyeGlow: v.exactOptional(rgb), eyeGlowIntensity: v.exactOptional(number),
+    lift: v.exactOptional(v.tuple([number, number, number, number])),
+  })), v.maxLength(256)),
+}));
 /** Native group slot binding; 0.1 seconds is the fastest admitted decision cadence. */
 export const SpeciesGroupSchema = v.strictObject({ kind: v.picklist(['pack', 'herd']), clock: text,
   every: v.pipe(number, v.minValue(.1), v.maxValue(10)), confine: v.boolean(), observeDamage: v.boolean(),

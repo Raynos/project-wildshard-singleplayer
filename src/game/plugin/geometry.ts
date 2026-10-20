@@ -19,7 +19,9 @@ import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
 import type { SpeciesLook } from "@wildshard/engine/entities/species/look";
 import { NO_FUR } from "@wildshard/engine/entities/species/rigs";
-import { clipAnimate, type SpeciesClips } from "./animation";
+import { clipAnimate, stepCreatureLift, type SpeciesClips } from "./animation";
+import { numericCreaturePose } from './channelPrograms';
+import { PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { NpcMotion, NpcRow } from "./quests";
 
@@ -1299,6 +1301,8 @@ export function readBakedGeometry(bytes: Uint8Array, offset: number, row: BakedG
 export interface PackedCreatureBodies {
   preload: () => Promise<void>;
   copy: (kind: string, variant: string) => AnimalSpecies;
+  /** Bind inert look rows; a missing body family or numeric pose refuses admission. */
+  looks: (input: unknown) => { all: readonly SpeciesLook[]; get: (kind: string) => SpeciesLook };
 }
 
 /**
@@ -1337,8 +1341,33 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
     }
   }
   let compressed: Uint8Array | null = null, loading: Promise<void> | null = null;
-  return {
+  const catalogue: PackedCreatureBodies = {
     preload: () => { loading ??= fetchBuildFile(bake.file).then(bytes => { compressed = bytes; return undefined; }); return loading; },
+    looks: lookInput => {
+      const book = wholeV.parse(PackedCreatureLooksSchema, lookInput);
+      if (new Set(book.rows.map(row => row.id)).size !== book.rows.length || new Set(book.rows.map(row => row.kind)).size !== book.rows.length) throw new Error('Duplicate packed creature look');
+      const all = book.rows.map((row): SpeciesLook => {
+        const family = row.family ?? row.kind;
+        if (!bake.bodies.some(body => body.kind === family) || Object.values(row.variants ?? {}).some(variant => !keys.has(JSON.stringify([family, variant])))) throw new Error('Missing packed creature look body');
+        const poseRows = row.pose === undefined ? undefined : book.poses[row.pose];
+        if (row.pose !== undefined && poseRows === undefined) throw new Error('Missing packed creature joint pose');
+        const pose = poseRows === undefined ? undefined : numericCreaturePose(poseRows);
+        const look: SpeciesLook = { id: row.id, species: row.species, kind: row.kind, fur: NO_FUR,
+          rigContract: { skeleton: row.skeleton, sockets: row.sockets, clips: row.clips },
+          build: variant => { const key = row.variants === undefined ? variant.id : row.variants[variant.id]; if (key === undefined) throw new Error('Unknown packed creature look variant'); return catalogue.copy(family, key); },
+        };
+        if (row.rig !== undefined) look.rig = row.rig;
+        if (row.standMem !== undefined) look.standMem = row.standMem;
+        if (row.eyeGlow !== undefined) look.eyeGlow = row.eyeGlow;
+        if (row.eyeGlowIntensity !== undefined) look.eyeGlowIntensity = row.eyeGlowIntensity;
+        if (pose !== undefined || row.lift !== undefined) look.animate = context => {
+            if (row.lift !== undefined) stepCreatureLift(context.animal, context.dt, ...row.lift);
+            pose?.(context);
+        };
+        return look;
+      });
+      return { all, get: kind => { const look = all.find(row => row.kind === kind); if (look === undefined) throw new Error('Unknown packed creature look'); return look; } };
+    },
     copy: (kind, variant) => {
       const body = bake.bodies.find(row => row.kind === kind && row.variant === variant);
       if (body === undefined) throw new Error(`no baked creature body ${kind}.${variant}`);
@@ -1367,6 +1396,7 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
         dims: { ...dims, feet: dims.feet.map((foot): [number, number] => [foot[0], foot[1]]), ...(capsuleAxis === undefined ? {} : { capsuleAxis }) } };
     },
   };
+  return catalogue;
 }
 
 /** a typed array of `a`'s kind holding `a` then `b` */

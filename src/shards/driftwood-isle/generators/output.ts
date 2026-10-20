@@ -9,6 +9,7 @@ import { populationProjectionRows } from './populationProjection';
 import mixedPopulation from '../data/mixedPopulation.json' with { type: 'json' };
 import crabClips from '../data/crabClips.generated.json' with { type: 'json' };
 import sailorClips from '../data/sailorClips.generated.json' with { type: 'json' };
+import creatureLookRows from '../data/creatureLookRows.json' with { type: 'json' };
 import captainClips from '../data/captainClips.generated.json' with { type: 'json' };
 import { ATTACK_TURN } from '@wildshard/engine/ai/hunt';
 import { driftwoodJsonBlob as nameBlob } from './namedSchemas';
@@ -126,6 +127,7 @@ const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'jso
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR))),
   nameBlob('quests/wake-boss.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WAKE_ENCOUNTER))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
+  nameBlob('look/creature-looks.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ rows: creatureLookRows, poses: { sailor: sailorClips } }))),
   nameBlob('poses/monkey.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ clips: monkeyClips, program: RETURN_PROGRAM, perch: mixedPopulation.perch }))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),
   nameBlob('quests/trader.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(TRADER_PAGE)))),

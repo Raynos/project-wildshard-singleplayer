@@ -58,7 +58,7 @@ installKitProps();
 const { readLootTables, registerLootTable } = await import('../src/game/loot/tables');
 const { default: loot } = await import('../src/shards/driftwood-isle/data/loot.generated.json');
 for (const row of readLootTables(loot.economy.tables)) registerLootTable(row);
-const { DRIFTWOOD_LOOKS } = await import('../src/shards/driftwood-isle/species/install');
+const { DRIFTWOOD_LOOKS } = await import('./fake/driftwoodLooks');
 const { DRIFTWOOD_SPECIES } = await import('./fake/driftwoodSpecies');
 const { MONKEY_CLIPS } = await import('../src/shards/driftwood-isle/generators/monkeyClips');
 const { PerchBodyBinding } = await import('@wildshard/game/population/perchBody');

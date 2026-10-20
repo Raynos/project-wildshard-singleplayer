@@ -1,0 +1,43 @@
+[
+  {
+    "id": "driftwood.look.monkey",
+    "species": "creature.monkey",
+    "kind": "monkey",
+    "skeleton": "monkey.v1",
+    "rig": "custom",
+    "sockets": [
+      "body",
+      "head"
+    ],
+    "clips": []
+  },
+  {
+    "id": "driftwood.look.sailor",
+    "species": "creature.sailor",
+    "kind": "sailor",
+    "skeleton": "sailor.v1",
+    "rig": "custom",
+    "sockets": [
+      "body",
+      "head"
+    ],
+    "clips": [],
+    "standMem": {
+      "init": 1,
+      "rise": 1
+    },
+    "eyeGlow": [
+      0.2,
+      1.0,
+      1.0
+    ],
+    "eyeGlowIntensity": 1.0,
+    "pose": "sailor",
+    "lift": [
+      1.5,
+      1.5,
+      -2.3,
+      6
+    ]
+  }
+]

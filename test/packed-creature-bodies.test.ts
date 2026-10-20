@@ -1,6 +1,7 @@
 import { zlibSync } from 'fflate';
 import { afterAll, expect, test, vi } from 'vitest';
 import { packedCreatureBodies } from '../src/game/plugin/geometry';
+import { Rng } from '../src/engine/core/rng';
 
 const file = `/assets/test/bodies-${'a'.repeat(64)}.bin`;
 const row = () => ({ file, bytes: 36, bodies: [{ kind: 'bird', variant: 'small',
@@ -24,6 +25,15 @@ test('preloads once and gives each spawned body independent geometry, bones and 
   expect(a.bones[0]).not.toBe(b.bones[0]); expect(a.dims.feet[0]).not.toBe(b.dims.feet[0]);
   expect(fetcher).toHaveBeenCalledOnce();
   expect(() => bodies.copy('bird', 'missing')).toThrow('no baked creature body');
+  const view = { id: 'look.finch', species: 'species.finch', kind: 'finch', family: 'bird', variants: { juvenile: 'small' }, skeleton: 'bird.v1', sockets: ['body'], clips: [] };
+  const looks = bodies.looks({ poses: {}, rows: [view] }), look = looks.get('finch');
+  const copied = look.build({ id: 'juvenile', label: 'Juvenile', weight: 1, rarity: 'common', scale: [1, 1] }, new Rng(1));
+  expect(copied.bones).toEqual(b.bones); expect(copied.hardParts[0]).not.toBe(second);
+  expect(() => looks.get('missing')).toThrow('Unknown packed creature look');
+  expect(() => bodies.looks({ poses: {}, rows: [view, { ...view, id: 'another' }] })).toThrow('Duplicate');
+  expect(() => bodies.looks({ poses: {}, rows: [{ ...view, variants: { juvenile: 'absent' } }] })).toThrow('Missing packed creature look body');
+  expect(() => bodies.looks({ poses: {}, rows: [{ ...view, pose: 'absent' }] })).toThrow('Missing packed creature joint pose');
+  expect(() => bodies.looks({ poses: {}, rows: [{ ...view, build: () => copied }] })).toThrow();
 });
 
 test('refuses unsafe paths, invalid metadata, failed fetches and mismatched payloads', async () => {

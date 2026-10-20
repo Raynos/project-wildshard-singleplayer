@@ -1,13 +1,12 @@
 import { PerchBodyBinding } from '@wildshard/game/population/perchBody';
-import { MONKEY_LOOK } from '../species/monkey';
 import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { DRIFTWOOD_LOOKS } from '../species/install';
+import { driftwoodLooks } from '../species/install';
 import { ISLAND_BEAR_LOOK, ISLAND_BOAR_LOOK } from '../species/fauna';
 import { readLootTables, registerLootTable } from '@wildshard/game/loot/tables';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { installPopulationProjection } from '@wildshard/game/shardfile/clientPopulationProjection';
-import { preloadSailorHead } from '../species/sailor';
+import { preloadCreatureBodies } from '../species/bodies';
 import { CAPTAIN_LOOK } from '../species/captain';
 import { captainMesh } from '../species/captainMesh';
 import { graphCaptainLook, graphCreatureLook } from '../runtime/looks/creatureLooks';
@@ -21,11 +20,11 @@ export async function installDriftwoodCreatures(ctx: ShardContext, decisions: Sp
   if (program === undefined || respawn === undefined) throw new Error('Driftwood requires its admitted creature recipes');
   ctx.rows.species([...monkey.species(ctx, program, decisions), ...section.page]);
   // the boar and bear from the bake; every creature on the graph toon look, the Drowned Captain on his painted coat
-  ctx.rows.speciesLook([...DRIFTWOOD_LOOKS, ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK].map((look) => (look === CAPTAIN_LOOK ? graphCaptainLook(look, () => captainMesh.textureFor()) : graphCreatureLook(look === MONKEY_LOOK ? { ...look, animate: monkey.animate } : look))));
+  ctx.rows.speciesLook([...await driftwoodLooks(ctx.product), ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK].map((look) => (look === CAPTAIN_LOOK ? graphCaptainLook(look, () => captainMesh.textureFor()) : graphCreatureLook(look.kind === 'monkey' ? { ...look, animate: monkey.animate } : look))));
   ctx.rows.spawnTable(declaredSpawnTables(section.spawns));
   const loot = readLootTables(ctx.product.section('economy/loot').rows.loot[0]?.economy?.tables);
   ctx.rows.lootTable(loot);
   for (const row of loot) registerLootTable(row, ctx.scope);
-  await preloadSailorHead();
+  await preloadCreatureBodies();
   installPopulationProjection(ctx, await ctx.product.json('actors/projection.json'));
 }

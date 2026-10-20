@@ -11,7 +11,6 @@ import { productRiggedHulls } from './riggedHulls';
 import { SpeciesLookBookSchema } from '@wildshard/format/speciesLooks';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import type { VariantDef } from '@wildshard/engine/entities/species/registry';
 
 /** Expand compact byte addressing only; the native packed owner admits every
@@ -45,16 +44,18 @@ export class SpeciesLookBook {
       if (row.postPose.envelopes !== undefined) this.envelopes.set(row.postPose.alive, row.postPose.envelopes);
     }
     this.rows=book.rows.map(row=>({...row.metadata,...(row.group === undefined ? {} : groupSpecies(row.group)),...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding),...(row.guard === true ? { think: thinkCrowdGuard } : {})}));
-    this.looks=book.rows.map(row=>{const look:SpeciesLook={id:row.id,species:row.metadata.id,kind:row.metadata.kind,rigContract:row.rigContract,fur:NO_FUR,
+    const base = this.bodies.looks({ poses: {}, rows: book.rows.map(row => ({ id: row.id, species: row.metadata.id, kind: row.metadata.kind,
+      family: row.family, variants: Object.fromEntries(Object.entries(row.variants).map(([id, variant]) => [id, variant.body])),
+      skeleton: row.rigContract.skeleton, sockets: row.rigContract.sockets, clips: row.rigContract.clips })) });
+    this.looks=book.rows.map(row=>{const look=Object.assign<SpeciesLook,Partial<SpeciesLook>>(base.get(row.metadata.kind),{
       variants:Object.fromEntries(Object.entries(row.variants).map(([id,source])=>{
         const variant:Pick<VariantDef,'tint'|'traits'>={};if(source.tint!==undefined)variant.tint=source.tint;if(source.traits!==undefined)variant.traits=source.traits;return [id,variant];
       })),
-      build:variant=>{const key=row.variants[variant.id]?.body;if(key===undefined)throw new Error('Unknown packed creature variant');return this.copy(row.family,key);},
       material:(sky,glow,intensity=1)=>{const material=painterlyMaterial(sky,row.material);if(glow!==undefined){material.emissive.setRGB(...glow);material.emissiveIntensity=intensity;}return material;},
       preload:()=>this.preload(),hasSkin:variant=>this.hulls.hullOf(row.metadata.kind,variant.id)!==null,
       loadSkin:async variant=>{const name=this.hulls.hullOf(row.metadata.kind,variant.id);if(name!==null)await this.hulls.load(name);},
       skin:(variant,bones)=>{const hull=this.hulls.skin(row.metadata.kind,variant.id,bones);return hull===null?null:{...hull,normalMap:null,overgrown:false};},
-    };
+    });
     if (row.postPose !== undefined) { const pose = row.postPose; look.postPose = context => { this.pose(context.alive ? pose.alive : pose.dead ?? pose.alive, context); }; }
     if(row.rig!==undefined)look.rig=row.rig;if(row.pose!==undefined)look.pose=row.pose;if(row.gait!==undefined)look.gait=row.gait;
     if(row.eyeGlow!==undefined)look.eyeGlow=row.eyeGlow;if(row.eyeGlowIntensity!==undefined)look.eyeGlowIntensity=row.eyeGlowIntensity;return look;});
