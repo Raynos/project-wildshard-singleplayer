@@ -9,7 +9,8 @@ import { EffectService, selectEffectGrants } from '../src/engine/combat/effects/
 import { isOwnedId, type OwnedId } from '../src/game/loot/Owned';
 import { bindFixtureEffects } from './fixtures/item-effects';
 import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
-import { NalatiSkinLocker, NALATI_SKINS } from '../src/shards/nalati-grasslands/weapons/nalatiSkins';
+import { CosmeticFinishLocker } from '../src/game/loadout/cosmeticFinishes';
+import skinFinishes from '../src/shards/nalati-grasslands/data/skinFinishes.json';
 
 
 test('Driftwood selects ordered live grants, highest upgrades and worn cosmetics', () => {
@@ -46,15 +47,15 @@ test('Driftwood selects ordered live grants, highest upgrades and worn cosmetics
 });
 
 test('the named Nalati W3 worn-skin grants fit the shared selector', () => {
-  const locker = new NalatiSkinLocker({ read: () => ({ owned: [], worn: {} }), write: () => true });
-  const rows = NALATI_SKINS.map(skin => ({ id: `effect.skin.${skin.id}` as const, key: skin.id }));
+  const locker = new CosmeticFinishLocker('nalati-grasslands', skinFinishes, { read: () => ({ owned: [], worn: {} }), write: () => true });
+  const rows = skinFinishes.skins.map(skin => ({ id: `effect.skin.${skin.id}` as const, key: skin.id }));
   const check = (): void => {
-    const selected = new Set(Object.values(locker.worn));
+    const selected = new Set(Object.values(locker.worn).filter((id): id is string => id !== undefined));
     const grants = selectEffectGrants(rows, selected);
     expect(grants.map(grant => grant.id).sort()).toEqual(locker.effects.active(locker.effectTarget).map(effect => effect.def.id).sort());
   };
   check();
-  for (const skin of NALATI_SKINS) { locker.own(skin.id); check(); }
+  for (const skin of skinFinishes.skins) { locker.own(skin.id); check(); }
   locker.wear('mount', 'sky-marked-saddle'); check();
   locker.wear('sabre', null); locker.wear('mount', null); check();
 });

@@ -171,6 +171,7 @@
     "./models/collectionDisplay": "./models/collectionDisplay.ts",
     "./compendium/keepsakes": "./compendium/keepsakes.ts",
     "./models/collectionWall": "./models/collectionWall.ts",
+    "./loadout/cosmeticFinishes": "./loadout/cosmeticFinishes.ts",
     "./loadout/finishes": "./loadout/finishes.ts",
     "./models/heldGear": "./models/heldGear.ts",
     "./plugin/heldTool": "./plugin/heldTool.ts",

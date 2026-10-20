@@ -61,7 +61,8 @@ import { reseedGrassV2 } from '../look/field';
 import type { RidingPrograms } from './tamingBindings';
 import { wireRide, type Ride } from '../ride/ride';
 import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
-import { NalatiSkinLocker, NalatiSkinPainter } from '../weapons/nalatiSkins';
+import { CosmeticFinishLocker, CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
+import { nalatiSkinsSave } from '../weapons/saves';
 import { placeSet, placedWithin } from '@wildshard/engine/models/sets';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 
@@ -126,7 +127,7 @@ export interface Nalati {
   titan: StormTitan;
   /** the wearable skins (B15; src/shards/nalati-grasslands/weapons/nalatiSkins.ts): the elites' drops + the Sky-Marked Saddle, owned / worn per slot —
    *  main.ts's menu lists `skins.entries()` in the Inventory tab and wears them with `skins.toggle(id)` */
-  skins: NalatiSkinLocker;
+  skins: CosmeticFinishLocker;
 }
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
@@ -360,7 +361,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
   const night = await wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
-  let painter: NalatiSkinPainter | null = null, syncT = 0;
+  let painter: CosmeticFinishPainter | null = null, syncT = 0;
   const prepareWildlife = (animals: AnimalManager): Wildlife => {
     attachedAnimals = animals;
     animals.wetAt = nalatiWetAt;
@@ -377,7 +378,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   };
   const nalati: Nalati = {
     persistence, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan,
-    skins: new NalatiSkinLocker(persistence === undefined ? undefined : { read: () => persistence.cosmetics.read(), write: (value) => { persistence.cosmetics.write(value); return true; } }),
+    skins: new CosmeticFinishLocker(plugin.product.slug, plugin.product.section('held/finishes').cosmetics, persistence === undefined ? nalatiSkinsSave : { read: () => persistence.cosmetics.read(), write: (value) => { persistence.cosmetics.write(value); return true; } }),
     attachAnimals(animals) {
       const w = prepareWildlife(animals);
       w.build();
@@ -403,12 +404,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       if(p.kit!==null){const bow=p.kit.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);}
       night.bindKit(p.kit);
       ride.bind({ toast: p.toast });
-      painter = new NalatiSkinPainter(nalati.skins, {
-        mounted: () => ride?.mount.horse ?? null,
-        sabre: p.kit?.sabre ?? null, bow: p.kit?.bow ?? null,
-        golden: () => boss.golden?.applied === true, naizagai: () => titan.naizagai?.applied === true,
-        tulpar: () => ride?.taming.tulpar ?? null,
-      });
+      painter = new CosmeticFinishPainter(nalati.skins);
+      plugin.scope.onDispose(() => { painter?.dispose(); });
     },
     onShot() { stealth?.noteShot(); if(play!==null&&play.kit!==null)play.kit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = now; },
     onImpact(_surface, point) {
@@ -452,7 +449,15 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     updates.push((dt) => {
       syncT -= dt;
       if (syncT <= 0) { syncT = 1; for (const id of elites.skins) nalati.skins.own(id); }
-      painter?.update();
+      const kit = play?.kit, mounted = ride?.mount.horse, bonded = ride?.taming.tulpar;
+      painter?.update({ objects: new Map([
+        ['blade', kit === null || kit === undefined ? [] : [kit.sabre.model]],
+        ['arrows', kit === null || kit === undefined ? [] : [kit.bow.arrows.mesh]],
+        ['mounts', [...new Set([...(mounted === null || mounted === undefined ? [] : [mounted.mesh]), ...(bonded?.alive === true && !bonded.hidden ? [bonded.mesh] : [])])]],
+      ]),
+      facts: new Set([...(boss.golden?.applied === true ? ['golden'] : []), ...(titan.naizagai?.applied === true ? ['storm'] : [])]) });
+      if (kit !== null && kit !== undefined) for (const style of ['recurve', 'golden', 'sky-wolf'] as const)
+        if (style === painter?.selectedFinishes.get('bow') && kit.bow.style !== style) kit.bow.setStyle(style);
     });
 
   // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/shards/nalati-grasslands/sound.ts ──

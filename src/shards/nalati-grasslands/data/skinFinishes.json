@@ -1,0 +1,255 @@
+{
+  "skins": [
+    {
+      "id": "irbis-sabre",
+      "slot": "sabre",
+      "name": "Irbis",
+      "blurb": "Sabre skin \u00b7 pale frost steel",
+      "effect": "effect.skin.irbis-sabre",
+      "grant": "cosmetic.skin.irbis-sabre"
+    },
+    {
+      "id": "sky-wolf-bow",
+      "slot": "bow",
+      "name": "Sky-Wolf",
+      "blurb": "Bow skin \u00b7 blue-grey horn, a silver string",
+      "effect": "effect.skin.sky-wolf-bow",
+      "grant": "cosmetic.skin.sky-wolf-bow"
+    },
+    {
+      "id": "storm-wing-arrows",
+      "slot": "arrows",
+      "name": "Storm-Wing",
+      "blurb": "Arrow skin \u00b7 golden fletching",
+      "effect": "effect.skin.storm-wing-arrows",
+      "grant": "cosmetic.skin.storm-wing-arrows"
+    },
+    {
+      "id": "night-rider-mount",
+      "slot": "mount",
+      "name": "Night Rider",
+      "blurb": "Mount skin \u00b7 black barding, a spectral glow",
+      "effect": "effect.skin.night-rider-mount",
+      "grant": "cosmetic.skin.night-rider-mount"
+    },
+    {
+      "id": "sky-marked-saddle",
+      "slot": "mount",
+      "name": "Sky-Marked Saddle",
+      "blurb": "Mount skin \u00b7 white-and-blue felt, a lightning blaze",
+      "effect": "effect.skin.sky-marked-saddle",
+      "grant": "cosmetic.skin.sky-marked-saddle"
+    }
+  ],
+  "paints": [
+    {
+      "target": "blade",
+      "slot": "sabre",
+      "choices": [
+        {
+          "skin": "irbis-sabre",
+          "color": [
+            0.9,
+            0.96,
+            1
+          ],
+          "emissive": [
+            0.08,
+            0.14,
+            0.2
+          ],
+          "emissiveIntensity": 1
+        },
+        {
+          "fact": "storm",
+          "color": [
+            0.62,
+            0.78,
+            1
+          ],
+          "emissive": [
+            0.1,
+            0.2,
+            0.55
+          ],
+          "emissiveIntensity": 1
+        }
+      ],
+      "material": "standard"
+    },
+    {
+      "target": "bow",
+      "slot": "bow",
+      "choices": [
+        {
+          "skin": "sky-wolf-bow",
+          "finish": "sky-wolf"
+        },
+        {
+          "fact": "golden",
+          "finish": "golden"
+        },
+        {
+          "finish": "recurve"
+        }
+      ],
+      "material": "lambert"
+    },
+    {
+      "target": "arrows",
+      "slot": "arrows",
+      "choices": [
+        {
+          "skin": "storm-wing-arrows",
+          "color": [
+            1.35,
+            1,
+            0.42
+          ]
+        }
+      ],
+      "material": "lambert"
+    },
+    {
+      "target": "mounts",
+      "slot": "mount",
+      "choices": [
+        {
+          "skin": "night-rider-mount",
+          "color": [
+            0.3,
+            0.3,
+            0.36
+          ],
+          "emissive": [
+            0.008,
+            0.03,
+            0.045
+          ]
+        },
+        {
+          "skin": "sky-marked-saddle",
+          "repaint": {
+            "blue": [
+              0.03,
+              0.09,
+              0.42
+            ],
+            "white": [
+              0.8,
+              0.82,
+              0.88
+            ],
+            "blaze": [
+              0.95,
+              0.96,
+              1
+            ],
+            "bone": "head",
+            "vertex": {
+              "redMin": 0.02,
+              "redGreenRatio": 10,
+              "ramp": [
+                0.34,
+                0.35,
+                0.45
+              ],
+              "halfWidth": 0.028,
+              "normalY": 0.25,
+              "weight": 0.5
+            },
+            "zone": {
+              "y": [
+                0.4,
+                0.86
+              ],
+              "z": [
+                0.3,
+                0.62
+              ]
+            },
+            "atlas": {
+              "ornamentSaturation": 0.32,
+              "ornamentValue": 0.62,
+              "ornamentWeight": 0.9,
+              "delta": 0.05,
+              "hue": [
+                15,
+                19,
+                -30,
+                -20
+              ],
+              "saturation": [
+                0.36,
+                0.46
+              ],
+              "value": [
+                0.14,
+                0.24
+              ],
+              "outerHue": [
+                4,
+                9,
+                13
+              ],
+              "outerSaturation": [
+                0.5,
+                0.6
+              ],
+              "outerValue": [
+                0.3,
+                0.45
+              ],
+              "ramp": [
+                0.34,
+                0.5
+              ],
+              "outerRamp": [
+                0.2,
+                0.5
+              ]
+            }
+          }
+        }
+      ],
+      "material": "lambert"
+    }
+  ],
+  "cards": [
+    {
+      "id": "irbis-sabre",
+      "name": "Irbis",
+      "blurb": "Sabre skin \u00b7 pale frost steel",
+      "icon": "sword",
+      "lockedBlurb": "Aqbars the Pale drops it"
+    },
+    {
+      "id": "sky-wolf-bow",
+      "name": "Sky-Wolf",
+      "blurb": "Bow skin \u00b7 blue-grey horn, a silver string",
+      "icon": "longbow",
+      "lockedBlurb": "Kokbori drops it"
+    },
+    {
+      "id": "storm-wing-arrows",
+      "name": "Storm-Wing",
+      "blurb": "Arrow skin \u00b7 golden fletching",
+      "icon": "bolt",
+      "lockedBlurb": "Qyran the Storm-Wing drops it"
+    },
+    {
+      "id": "night-rider-mount",
+      "name": "Night Rider",
+      "blurb": "Mount skin \u00b7 black barding, a spectral glow",
+      "icon": "horse",
+      "lockedBlurb": "Qara Batyr the Unburied drops it"
+    },
+    {
+      "id": "sky-marked-saddle",
+      "name": "Sky-Marked Saddle",
+      "blurb": "Mount skin \u00b7 white-and-blue felt, a lightning blaze",
+      "icon": "horse",
+      "lockedBlurb": "Jel Ata, the Storm Titan drops it"
+    }
+  ]
+}

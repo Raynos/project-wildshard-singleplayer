@@ -17,7 +17,7 @@ import type { FindsView } from '@wildshard/game/bag/bag';
 import type { IconId } from '@wildshard/engine/ui/icons';
 import type { SkinRow } from '@wildshard/engine/ui/Menu';
 import content from './data/questContent.json' with { type: 'json' };
-import { NALATI_SKINS, type NalatiSkinLocker } from './weapons/nalatiSkins';
+import type { CosmeticFinishLocker } from '@wildshard/game/loadout/cosmeticFinishes';
 
 export const NALATI_CHUNK_ID = 'chunk://local/nalati-grasslands';
 
@@ -33,14 +33,14 @@ export const FINDS_ELITES: readonly { id: string; icon: IconId }[] = [
 /** what an elite pays: its skin ("Irbis skin") or, for Argymaq, himself ("Your horse"), and its FEATS title */
 export function elitePrize(id: string): { prize: string; title: string | null } {
   const skin = ecology.elites[id]?.drop.skin ?? null;
-  const name = skin === null ? null : NALATI_SKINS.find((s) => s.id === skin)?.name ?? null;
+  const name = skin === null ? null : weaponEffects.skins.find((s) => s.id === skin)?.name ?? null;
   const title = NALATI_FEATS.find((a) => a.id === id)?.title ?? null;
   return { prize: name === null ? 'Your horse' : `${name} skin`, title };
 }
 
 /** GEAR's SKINS row: every Nalati skin; the ones not owned yet locked, saying who drops them */
-export function skinRows(locker: Pick<NalatiSkinLocker, 'cardRows'>): SkinRow[] {
-  return locker.cardRows(weaponEffects.cards);
+export function skinRows(locker: Pick<CosmeticFinishLocker, 'cardRows' | 'finishes'>): SkinRow[] {
+  return locker.cardRows(locker.finishes.cards);
 }
 
 /** FINDS: the elites (a `felled:<id>` flag each, src/shards/nalati-grasslands/adventure.ts) and the places (`seen:<id>`) */
