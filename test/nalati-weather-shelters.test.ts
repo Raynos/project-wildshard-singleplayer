@@ -1,6 +1,6 @@
 import {expect,test} from 'vitest';
 import {headlessAssembly} from '../src/shards/nalati-grasslands/generators/nativeGroups';
-import {nativeWeatherBundle} from '../src/game/plugin/weather';
+import {nativeWeatherBundle} from '../src/game/weather/reactions';
 import weather from '../src/shards/nalati-grasslands/data/weather.json' with {type:'json'};
 import reactions from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with {type:'json'};
 import physics from '../src/shards/nalati-grasslands/data/physics.generated.json' with {type:'json'};

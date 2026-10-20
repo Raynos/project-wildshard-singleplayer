@@ -52,7 +52,7 @@
       "installNativeBootRoster",
       "installNativePopulationHunt"
     ],
-    "@wildshard/game/plugin/weather": [
+    "@wildshard/game/weather/reactions": [
       "nativeWeatherBundle",
       "installNativeWeatherWorld"
     ],
@@ -287,7 +287,7 @@
         "$call": [
           {
             "$ref": [
-              "@wildshard/game/plugin/weather",
+              "@wildshard/game/weather/reactions",
               "nativeWeatherBundle"
             ]
           },
@@ -782,7 +782,7 @@
         "$call": [
           {
             "$ref": [
-              "@wildshard/game/plugin/weather",
+              "@wildshard/game/weather/reactions",
               "installNativeWeatherWorld"
             ]
           },

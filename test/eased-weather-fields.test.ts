@@ -7,7 +7,7 @@ import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState } from '../src/engine/quest/core';
 import { publishBoundQuest } from '../src/game/quest/boundState';
-import { installWeatherFields, settleWeatherFields } from '../src/game/plugin/weather';
+import { installWeatherFields, settleWeatherFields } from '../src/game/shardfile/weatherFields';
 import { sceneScalar, sceneScalarValue } from '../src/game/shardfile/sceneInputs';
 import { graphParamFeeds } from '../src/game/shardfile/clientGraphs';
 import type { ShardContext } from '../src/game/plugin/context';

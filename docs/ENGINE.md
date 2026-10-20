@@ -9065,7 +9065,7 @@ Nalati's combined snapshot adapter preserves the old flat storm save, including
 register values, while Pine's v1 envelope retains weather, wind, cadence and boost.
 Silent restore draws no RNG, emits no event and preserves the gust publication.
 
-`@wildshard/game/plugin/weather.installWeatherContinuation` is used by both
+`@wildshard/game/weather/continuation.installWeatherContinuation` is used by both
 shards. Native wind rows install the declared fixed-step and save owner. A page
 borrows its existing `system` service, clock and optional plain pause box; the
 admitted `page` row preserves the system id, ordering and weather tick. Pine's
@@ -9412,7 +9412,7 @@ ground or wander-goal callback. Native shelter rows reference the built-in
 environment, roster and weather cadence ids. The shelter keeps its v1 wire
 and original step before the roster, publishing plain goals after update
 and restore. This preserves boot, actor-registration and restore order.
-`game/plugin/weather.nativeWeatherContinuation` resolves only weather
+`game/weather/continuation.nativeWeatherContinuation` resolves only weather
 instances installed by the native weather owner on that same host.
 
 Pine's counted `quest/waves.PopulationWaveDirector` runs its phase ABI:
@@ -10306,7 +10306,7 @@ uses these rows; its original targets and 0.02 units/second rate are data.
 
 `client/plan` feature `{kind: "weather.fields", rows, quest}` runs at play
 rank 40 and borrows the entered quest's existing flag book by id.
-`game/plugin/weather.installWeatherFields` snaps saved/entered state, eases
+`game/shardfile/weatherFields.installWeatherFields` snaps saved/entered state, eases
 ordinary updates and resets only the presentation on exit. Graph and family
 curve readers resolve host-private scalar inputs without a runtime adapter.
 `settleWeatherFields` is the capture checkpoint over real quest facts.

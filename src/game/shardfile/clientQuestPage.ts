@@ -15,7 +15,7 @@ import { sceneMotion } from './sceneMotion';
 import { bindDeclaredPage } from '../quest/declaredPage';
 import { clientSceneHandles } from './clientSceneHandles';
 import { clientPopulationActor } from './clientPopulation';
-import { settleWeatherFields } from '../plugin/weather';
+import { settleWeatherFields } from './weatherFields';
 
 /** The compiled quest.page feature installs the original saved quest and NPC.
  * Its entered flag book is also the motion and weather presentation authority. */

@@ -3,7 +3,7 @@ import { projectedSite } from './projectedSites';
 import type { SimHost } from '@wildshard/engine/sim';
 import { populationRoster } from './roster';
 import { populationEnvironment } from './environment';
-import { nativeWeatherContinuation } from '../plugin/weather';
+import { nativeWeatherContinuation } from '../weather/continuation';
 import { parsePopulationShelter, type HerdShelterRows } from '@wildshard/format/herdShelter';
 import * as v from 'valibot';
 

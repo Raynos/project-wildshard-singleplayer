@@ -13,7 +13,7 @@ import { Rng, RngService } from '../src/engine/core/rng';
 import { readSpeciesPrograms } from '../src/format/speciesPrograms';
 import { installPopulationRoster } from '../src/game/population/roster';
 import { installNativeHerdShelter, HerdShelter } from '../src/game/population/shelter';
-import { installWeatherContinuation } from '../src/game/plugin/weather';
+import { installWeatherContinuation } from '../src/game/weather/continuation';
 import { parseWeatherProgram } from '../src/format/weatherProgram';
 import weatherRows from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import { RespawnQueue } from '../src/game/population/respawn';

@@ -94,7 +94,7 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/runtime/combat/fxKit.ts', 'C3'],
   // C3 review: private ambient orchestration and weather remain counted custom.
   ['src/shards/pine-hollow/world/weather.ts', 'C3'],
-  ['src/game/plugin/weather.ts', 'C3'],
+  ...['src/game/weather/continuation.ts', 'src/game/weather/reactions.ts', 'src/game/shardfile/weatherFields.ts'].map(path => [path, 'C3']),
   ...['items','item'].map(name => [`src/shards/pine-hollow/runtime/combat/fxKit.ts#${name}`, 'C3']),
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/entities/lowpoly.ts#crestSpikes', 'C4'],

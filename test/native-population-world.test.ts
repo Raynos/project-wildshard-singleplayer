@@ -9,7 +9,7 @@ import { NativePopulationField } from '../src/game/population/environment';
 import { NativeWildEnvironment } from '../src/game/population/nativeManager';
 import { installNativeBootRoster } from '../src/game/riding/nativePopulation';
 import { eliteBindings } from '../src/game/shardfile/eliteEncounters';
-import { nativeWeatherBundle, installNativeWeatherWorld } from '../src/game/plugin/weather';
+import { nativeWeatherBundle, installNativeWeatherWorld } from '../src/game/weather/reactions';
 import { parseWeatherProgram } from '../src/format/weatherProgram';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import storm from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };

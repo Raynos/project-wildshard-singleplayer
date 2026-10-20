@@ -8,7 +8,7 @@ import { PlayerHealth } from '../src/engine/combat/health';
 import { fakeWorld } from './fake/world';
 import { legacyDouble } from './fake/FakeGame';
 import type { ShardContext } from '../src/game/plugin/context';
-import { bindPageWeatherHit,installWeatherReactions } from '../src/game/plugin/weather';
+import { bindPageWeatherHit,installWeatherReactions } from '../src/game/weather/reactions';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import storm from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
 

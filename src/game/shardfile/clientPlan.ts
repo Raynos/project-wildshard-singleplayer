@@ -19,7 +19,7 @@ import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { installClientCues } from './clientCues';
 import { installClientTrails } from './clientTrails';
 import { clientNativeBook } from './clientNativeBook';
-import { installWeatherFields } from '../plugin/weather';
+import { installWeatherFields } from './weatherFields';
 import { installSceneMotion } from './sceneMotion';
 import { installClientHeldMelee, enterClientHeldMelee } from './clientHeldMelee';
 import { installClientSpeciesProgram } from './clientSpeciesProgram';

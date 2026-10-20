@@ -6,7 +6,7 @@ import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { parseWeatherProgram } from '../src/format/weatherProgram';
 import { PineWeather } from '../src/shards/pine-hollow-legacy/world/weatherProfile';
 import { steppeStorm, readWeatherProgram } from '../src/shards/nalati-grasslands/world/weatherStep';
-import { installWeatherContinuation } from '../src/game/plugin/weather';
+import { installWeatherContinuation } from '../src/game/weather/continuation';
 import { Scope } from '../src/engine/app/scope';
 import nalati from '../src/shards/nalati-grasslands/data/weather.json' with {type:'json'};
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type:'json' };

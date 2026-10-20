@@ -29,7 +29,7 @@ import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 import { bossFight, type ArenaBossScript } from '../plugin/bossPhase';
 import type { ShardContext } from '../plugin/context';
 import { installChannelPrograms } from '../plugin/channelPrograms';
-import type { WeatherReactions } from '../plugin/weather';
+import type { WeatherReactions } from '../weather/reactions';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { installBossEncounter, type Boss } from '../Boss';
 import { ReturnProgram } from '../population/returnProgram';

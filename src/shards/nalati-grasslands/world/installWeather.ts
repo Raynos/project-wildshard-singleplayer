@@ -42,7 +42,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { audioVoicePatches } from '@wildshard/game/audio/voicePatches';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
-import { bindPageWeatherHit,type WeatherReactions } from '@wildshard/game/plugin/weather';
+import { bindPageWeatherHit,type WeatherReactions } from '@wildshard/game/weather/reactions';
 import { readWeatherProgram, steppeStorm, stormEnv, yurtsOf } from './weatherStep';
 import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
 import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';

@@ -23,7 +23,7 @@
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
     "src/shards/pine-hollow/look/dayKeys": ["PINE_DAY"],
     "@wildshard/game/loadout/nativeAmmunition": ["installNativeHeldAmmunition"],
-    "@wildshard/game/plugin/weather": ["installWeatherContinuation"],
+    "@wildshard/game/weather/continuation": ["installWeatherContinuation"],
     "@wildshard/sdk/populationShelter": ["installNativeHerdShelter"],
     "@wildshard/game/plugin/mover": ["proveTerrainEntries"],
     "@wildshard/engine/physics/terrain": ["isStandaloneEdgeWall"],
@@ -1077,7 +1077,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["@wildshard/game/plugin/weather", "installWeatherContinuation"]
+            "$ref": ["@wildshard/game/weather/continuation", "installWeatherContinuation"]
           },
           {
             "$ref": ["host"]

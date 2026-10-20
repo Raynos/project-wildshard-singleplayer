@@ -14,7 +14,7 @@ import * as v from 'valibot';
 import { ForestWeatherSchema, type ForestWeatherRows } from '@wildshard/format/forestWeather';
 import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
 import { keyedSkyOf } from '@wildshard/game/looks/keyedSky';
-import { installWeatherContinuation } from '@wildshard/game/plugin/weather';
+import { installWeatherContinuation } from '@wildshard/game/weather/continuation';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weatherProgram';
 import { wetFlight } from '@wildshard/engine/combat/ammo';

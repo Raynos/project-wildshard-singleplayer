@@ -1,4 +1,5 @@
-import { installWeatherContinuation, installWeatherReactions, type WeatherReactions } from '@wildshard/game/plugin/weather';
+import { installWeatherContinuation } from '@wildshard/game/weather/continuation';
+import { installWeatherReactions, type WeatherReactions } from '@wildshard/game/weather/reactions';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SimHost } from '@wildshard/engine/sim';
 import { parseWeatherProgram, parseWeatherReactions, type WeatherProgram, type WeatherReactionRows } from '@wildshard/format/weatherProgram';
