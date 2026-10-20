@@ -1,0 +1,49 @@
+{
+  "why": "SF88g: the automatic map of the open plot, painted in Node from the generated assets/world.glb (generators/bake-plots.mjs); no game page.",
+  "from": "assets/world.glb",
+  "style": {
+    "kind": "ground",
+    "smooth": 2,
+    "shade": 0.3,
+    "classes": [
+      {
+        "match": "#94a3bd",
+        "fill": "#0e2238"
+      },
+      {
+        "match": "#bdcce0",
+        "fill": "#1f4266",
+        "edge": "#46e6ff"
+      },
+      {
+        "match": "#dbe6f5",
+        "fill": "#2b5a80"
+      },
+      {
+        "match": "#1f242e",
+        "fill": "#0e2238"
+      },
+      {
+        "match": "#ffffff",
+        "fill": "#46e6ff"
+      }
+    ]
+  },
+  "inputs": [
+    "shard.config.ts",
+    "data/source.ts",
+    "data/ideas.json",
+    "assets/world.glb",
+    "../../../scripts/map-painter.mjs",
+    "../../../scripts/bake-data-maps.mjs",
+    "generators/bake-plots.mjs"
+  ],
+  "painter": {
+    "version": 1,
+    "job": "open-plots-world",
+    "glbs": [
+      "assets/world.glb"
+    ],
+    "authored": false
+  }
+}

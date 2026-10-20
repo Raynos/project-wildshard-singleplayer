@@ -130,6 +130,19 @@
         500,
         500
       ]
+    },
+    {
+      "instance": "open-plots-solo",
+      "slug": "open-plots",
+      "cell": [
+        2,
+        1
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
     }
   ],
   "grid": {
@@ -474,6 +487,14 @@
         "slug": "nine-dragon-stack",
         "cell": [
           1,
+          -1
+        ]
+      },
+      {
+        "instance": "open-plot-ember-forge",
+        "slug": "open-plots",
+        "cell": [
+          2,
           -1
         ]
       }

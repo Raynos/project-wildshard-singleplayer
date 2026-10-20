@@ -20882,6 +20882,56 @@
       "catalogueDependencies": []
     },
     {
+      "id": "open-plots-world",
+      "shard": "open-plots",
+      "entry": "src/shards/open-plots/generators/bake-plots.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/open-plots/generators/bake-plots.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/open-plots/generators/bake-plots.mjs",
+        "src/shards/open-plots/data/ideas.json",
+        "public/assets/open-plots/ember-forge",
+        "src/sdk/bake/image.ts",
+        "src/sdk/bake/worldImage.ts",
+        "src/shards/open-plots/shard.config.ts",
+        "src/shards/open-plots/data/source.ts",
+        "src/shards/open-plots/look/map.json",
+        "scripts/map-painter.mjs",
+        "scripts/bake-data-maps.mjs",
+        "scripts/map-hash.mjs",
+        "scripts/legacy-shards.mjs",
+        "lint/legacy-shards.json",
+        "src/format/terrainTileBytes.ts",
+        "src/format/contentBounds.ts",
+        "src/format/bakedTerrainSampling.ts",
+        "src/sdk/kit/geometryPack.ts",
+        "src/sdk/package.json",
+        "src/sdk/bake/source-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/commons/package.json",
+        "src/engine/package.json",
+        "src/game/package.json",
+        "src/format/package.json"
+      ],
+      "outputs": [
+        "src/shards/open-plots/assets/world.glb",
+        "public/assets/open-plots/map/top.webp",
+        "src/shards/open-plots/look/map.baked.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/open-plots/assets/world.glb",
+        "public/assets/open-plots/map/top.webp",
+        "src/shards/open-plots/look/map.baked.json"
+      ],
+      "catalogueDependencies": []
+    },
+    {
       "id": "signal-data-map",
       "shard": "sunscar-dunes",
       "entry": "src/shards/sunscar-dunes/generators/bake-map.mjs",

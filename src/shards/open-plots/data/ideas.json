@@ -1,0 +1,6 @@
+{
+  "why": "G538/G539/G541: one open-plots output per idea. Each row names the idea's billboard, sign and hologram under public/assets/open-plots/<id>/ (scripts/open-plots/make-art.sh, scripts/open-plots/batch-holograms.sh).",
+  "ideas": [
+    { "id": "ember-forge", "name": "Ember Forge", "accent": "ember" }
+  ]
+}

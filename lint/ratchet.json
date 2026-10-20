@@ -72,6 +72,8 @@
     "custom-sections/nalati-grasslands/bytes": 12290241,
     "custom-sections/nine-dragon-stack/count": 20,
     "custom-sections/nine-dragon-stack/bytes": 4976007,
+    "custom-sections/open-plots/count": 0,
+    "custom-sections/open-plots/bytes": 0,
     "custom-sections/pastel-plain/count": 0,
     "custom-sections/pastel-plain/bytes": 0,
     "custom-sections/pine-hollow/count": 236,
@@ -85,6 +87,7 @@
     "sim-in-runtime/ink-cel-valley": 0,
     "sim-in-runtime/nalati-grasslands": 0,
     "sim-in-runtime/nine-dragon-stack": 1,
+    "sim-in-runtime/open-plots": 0,
     "sim-in-runtime/pastel-plain": 0,
     "sim-in-runtime/pine-hollow": 1,
     "sim-in-runtime/sunscar-dunes": 0

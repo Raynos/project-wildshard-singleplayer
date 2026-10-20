@@ -2097,6 +2097,11 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /public/assets/ink-cel-valley/map/top.webp
 /src/shards/ink-cel-valley/look/map.baked.json
 
+# SF88g: open-plots generated world and data map outputs.
+/src/shards/open-plots/assets/world.glb
+/public/assets/open-plots/map/top.webp
+/src/shards/open-plots/look/map.baked.json
+
 # G508: blender-template data map outputs.
 /public/assets/blender-template/map/top.webp
 /src/shards/blender-template/look/map.baked.json

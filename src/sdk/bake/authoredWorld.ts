@@ -1,7 +1,8 @@
 import { Box3, DoubleSide, Float32BufferAttribute, Mesh, MeshStandardMaterial, Raycaster, Vector3, type BufferGeometry } from 'three';
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
-import { FAMILY_IDS, FamilyMaterialSchema, PbrMaterialSchema } from '@wildshard/format/materialFamilies';
+import { FAMILY_IDS, PbrMaterialSchema } from '@wildshard/format/materialFamilies';
+import { MaterialsSchema } from '@wildshard/format/materials';
 import { parseShardfile, type Shardfile } from '../shardfile';
 import { normalizeWorldGlb, type NormalizedWorld, type WorldPrimitive } from './world';
 import { parseWorldSource } from '../worldSource';
@@ -51,7 +52,7 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
   const source = record(input), { world: declaration, ...data } = source, authored = parseWorldSource(declaration);
   for (const key of ['terrain', 'meshCollision', 'props', 'far', 'runtime']) if (data[key] !== undefined && data[key] !== null) throw new Error(`Authored world cannot replace compiled ${key}`);
   if (Array.isArray(data['tiles']) && data['tiles'].length > 0) throw new Error('Authored world cannot replace compiled tiles');
-  const look = record(data['look']), materials = v.parse(v.record(v.string(), FamilyMaterialSchema), look['materials'] ?? {});
+  const look = record(data['look']), materials = { ...v.parse(MaterialsSchema, look['materials'] ?? {}) };
   const world = await normalizeWorldGlb(bytes, authored, [...Object.keys(materials), ...FAMILY_IDS]);
   // Platform defaults are made explicit for the named transport catalogue.
   for (const row of world.materials) if (materials[row.id] === undefined) {
@@ -103,7 +104,9 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
       library.push(file.hash); return { id: panel.id, file: file.hash, visible: true };
     });
     // The far proxy is an independently measured vertex-colour approximation, one draw and no interactive panels.
-    const farRows = await Promise.all([...world.static, ...world.undrawn].map(row => simplifyWorldPrimitive(row, 0.1, 2)));
+    // additive graph surfaces (a hologram) are light without a far silhouette; a far impostor, not the proxy, carries them
+    const light = new Set(world.materials.flatMap((row, index) => { const entry = materials[row.id]; return entry?.family === 'graph' && 'graph' in entry && entry.graph.effectState?.blend === 'additive' ? [index] : []; }));
+    const farRows = await Promise.all([...world.static, ...world.undrawn].filter(row => !light.has(row.material)).map(row => simplifyWorldPrimitive(row, 0.1, 2)));
     const farParts = farRows.map(row => {
       const part = worldGeometry(row.primitive), colour = world.materials[row.primitive.material]?.colour ?? [1, 1, 1];
       const n = part.getAttribute('position').count, values: number[] = [], original = part.hasAttribute('color') ? part.getAttribute('color') : null;

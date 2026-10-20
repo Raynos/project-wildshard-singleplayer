@@ -1,0 +1,187 @@
+// The open-plots generator (SHARD-PLATFORM SF88g, G538/G539/G541/G545): one plot world GLB per idea row of
+// data/ideas.json, built from data alone. A 500 m plot on a flat floor with a kerb broken by four entries, the showroom in
+// the middle: a low round plinth (radius 10 m) with a glowing rim, the idea's hologram standing on it (drawn by the one
+// shared `hologram` graph, which turns it), the idea's billboard behind it (north, +Z) and the 'OPEN PLOT · COMING SOON'
+// sign in front. Collision is its own `collide_` nodes (floor, kerb, plinth, billboard and sign), never the hologram.
+//
+// The hologram's vertex colours carry its edges for the graph: each triangle's three corners are unique vertices and
+// colour channel i is half the barycentric of corner i, lifted by 0.5 when the edge opposite corner i is not a feature
+// edge (a crease over FEATURE_DEGREES or an open border). The graph draws a faint line where any channel's barycentric
+// reaches 0 (the wireframe) and a bright one where an unlifted channel does (the feature edges).
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { Document, NodeIO } from '@gltf-transform/core';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { MeshoptDecoder } from 'meshoptimizer';
+import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
+import { paintDataMap } from '../../../../scripts/bake-data-maps.mjs';
+
+const ROOT = resolve(import.meta.dirname, '..');
+const REPO = resolve(ROOT, '../../..');
+const FEATURE_DEGREES = 28;
+const PLINTH = { radius: 10, height: 0.6, rim: 0.7, segments: 64 };
+const BILLBOARD = { z: 26, width: 24, height: 13.5, bottom: 5, depth: 0.5 };
+const SIGN = { x: 15, z: -10, width: 7.5, height: 2.5, bottom: 1.2, yaw: 0.4 };
+const KERB = { inner: 238, outer: 240, height: 0.5, gap: 15 };
+const FLOOR_STEP = 25;
+
+const ideas = JSON.parse(readFileSync(resolve(ROOT, 'data/ideas.json'), 'utf8')).ideas;
+
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const normalize = (a) => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+const yawPoint = (p, yaw, at) => [at[0] + p[0] * Math.cos(yaw) + p[2] * Math.sin(yaw), at[1] + p[1], at[2] - p[0] * Math.sin(yaw) + p[2] * Math.cos(yaw)];
+
+/** Plain triangle soup builder: positions, normals, colours, uvs, by material. */
+class Soup {
+  constructor() { this.parts = new Map(); }
+  part(name) { let p = this.parts.get(name); if (p === undefined) { p = { positions: [], normals: [], colours: [], uvs: [] }; this.parts.set(name, p); } return p; }
+  /** @param {string} name @param {number[]} a @param {number[]} b @param {number[]} c @param {number[]} [colour] @param {number[][] | null} [uv] */
+  tri(name, a, b, c, colour = [1, 1, 1], uv = null) {
+    const p = this.part(name), e1 = sub(b, a), e2 = sub(c, a), n = normalize(cross(e1, e2));
+    for (const [i, v] of [a, b, c].entries()) { p.positions.push(...v); p.normals.push(...n); p.colours.push(...colour); p.uvs.push(...(uv === null ? [0, 0] : uv[i])); }
+  }
+  /** @param {string} name @param {number[]} a @param {number[]} b @param {number[]} c @param {number[]} d @param {number[]} [colour] @param {number[][] | null} [uv] */
+  quad(name, a, b, c, d, colour, uv = null) { this.tri(name, a, b, c, colour, uv === null ? null : [uv[0], uv[1], uv[2]]); this.tri(name, a, c, d, colour, uv === null ? null : [uv[0], uv[2], uv[3]]); }
+  /** an axis-aligned box from min to max, every face outward */
+  box(name, min, max, colour) {
+    const [x0, y0, z0] = min, [x1, y1, z1] = max;
+    this.quad(name, [x0, y1, z0], [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], colour);
+    this.quad(name, [x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], colour);
+    this.quad(name, [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], colour);
+    this.quad(name, [x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], colour);
+    this.quad(name, [x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], colour);
+    this.quad(name, [x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], colour);
+  }
+}
+
+/** The hologram's triangles (metres, base centre at the origin) with smooth normals and the edge-coded colours. */
+async function hologram(file) {
+  await MeshoptDecoder.ready;
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
+  const doc = await io.read(file), points = [], triangles = [];
+  for (const node of doc.getRoot().listNodes()) {
+    const mesh = node.getMesh(); if (mesh === null) continue;
+    const world = node.getWorldMatrix();
+    for (const primitive of mesh.listPrimitives()) {
+      const position = primitive.getAttribute('POSITION'), index = primitive.getIndices(), base = points.length, v = [];
+      for (let i = 0; i < position.getCount(); i++) {
+        position.getElement(i, v);
+        points.push([world[0] * v[0] + world[4] * v[1] + world[8] * v[2] + world[12], world[1] * v[0] + world[5] * v[1] + world[9] * v[2] + world[13], world[2] * v[0] + world[6] * v[1] + world[10] * v[2] + world[14]]);
+      }
+      const count = index === null ? position.getCount() : index.getCount();
+      for (let i = 0; i < count; i += 3) triangles.push([0, 1, 2].map(k => base + (index === null ? i + k : index.getScalar(i + k))));
+    }
+  }
+  // weld by position so creases are found across split vertices
+  const key = (p) => p.map(c => Math.round(c * 1e4)).join(','), welded = new Map(), id = points.map(p => { const k = key(p); if (!welded.has(k)) welded.set(k, welded.size); return welded.get(k); });
+  const faceNormal = triangles.map(t => normalize(cross(sub(points[t[1]], points[t[0]]), sub(points[t[2]], points[t[0]]))));
+  const edges = new Map();
+  triangles.forEach((t, f) => { for (let c = 0; c < 3; c++) { const a = id[t[(c + 1) % 3]], b = id[t[(c + 2) % 3]], k = a < b ? `${a}/${b}` : `${b}/${a}`; const list = edges.get(k) ?? []; list.push(f); edges.set(k, list); } });
+  const limit = Math.cos(FEATURE_DEGREES * Math.PI / 180);
+  const vertexNormal = new Map();
+  triangles.forEach((t, f) => { const n = faceNormal[f]; for (const v of t) { const s = vertexNormal.get(id[v]) ?? [0, 0, 0]; vertexNormal.set(id[v], [s[0] + n[0], s[1] + n[1], s[2] + n[2]]); } });
+  return triangles.map((t, f) => {
+    const feature = [0, 1, 2].map(c => {
+      const a = id[t[(c + 1) % 3]], b = id[t[(c + 2) % 3]], faces = edges.get(a < b ? `${a}/${b}` : `${b}/${a}`) ?? [];
+      if (faces.length !== 2) return true;
+      const [f0, f1] = faces, n0 = faceNormal[f0], n1 = faceNormal[f1];
+      return n0[0] * n1[0] + n0[1] * n1[1] + n0[2] * n1[2] < limit;
+    });
+    return t.map((v, corner) => ({ p: points[v], n: normalize(vertexNormal.get(id[v]) ?? faceNormal[f]),
+      c: [0, 1, 2].map(i => (feature[i] ? 0 : 0.5) + (i === corner ? 0.5 : 0)) }));
+  });
+}
+
+async function plot(idea) {
+  const assets = resolve(REPO, 'public/assets/open-plots', idea.id), soup = new Soup();
+  // the floor: a grid of 25 m quads, the four avenues and the plaza lighter than the field
+  const shade = (x, z) => Math.hypot(x, z) < 36 ? [0.86, 0.9, 0.96] : Math.abs(x) < 6 || Math.abs(z) < 6 ? [0.74, 0.8, 0.88] : [0.58, 0.64, 0.74];
+  for (let x = -250; x < 250; x += FLOOR_STEP) for (let z = -250; z < 250; z += FLOOR_STEP) {
+    soup.quad('Floor', [x, 0, z], [x, 0, z + FLOOR_STEP], [x + FLOOR_STEP, 0, z + FLOOR_STEP], [x + FLOOR_STEP, 0, z], shade(x + FLOOR_STEP / 2, z + FLOOR_STEP / 2));
+  }
+  // the kerb around the plot, broken at the middle of each side by an entry
+  const kerb = [0.8, 0.84, 0.9], { inner, outer, height, gap } = KERB, kerbs = [];
+  for (const side of [-1, 1]) {
+    kerbs.push([[-outer, 0, side > 0 ? inner : -outer], [-gap, height, side > 0 ? outer : -inner]], [[gap, 0, side > 0 ? inner : -outer], [outer, height, side > 0 ? outer : -inner]]);
+    kerbs.push([[side > 0 ? inner : -outer, 0, -inner], [side > 0 ? outer : -inner, height, -gap]], [[side > 0 ? inner : -outer, 0, gap], [side > 0 ? outer : -inner, height, inner]]);
+  }
+  for (const [min, max] of kerbs) soup.box('Kerb', min, max, kerb);
+  // the plinth: a low drum and its glowing rim
+  const { radius, rim, segments } = PLINTH, top = PLINTH.height, ring = (r, i, y) => [r * Math.sin(i / segments * Math.PI * 2), y, r * Math.cos(i / segments * Math.PI * 2)];
+  for (let i = 0; i < segments; i++) {
+    soup.quad('Plinth', ring(radius, i, 0), ring(radius, i + 1, 0), ring(radius, i + 1, top), ring(radius, i, top), [0.16, 0.24, 0.3]);
+    soup.tri('Plinth', [0, top, 0], ring(radius - rim, i, top), ring(radius - rim, i + 1, top), [0.1, 0.2, 0.26]);
+    soup.quad('Rim', ring(radius - rim, i, top + 0.01), ring(radius, i, top + 0.01), ring(radius, i + 1, top + 0.01), ring(radius - rim, i + 1, top + 0.01), [1, 1, 1]);
+  }
+  // the billboard: the picture facing the plinth (south, -Z) in a dark frame on two posts
+  const b = BILLBOARD, left = -b.width / 2, right = b.width / 2, low = b.bottom, high = b.bottom + b.height;
+  soup.quad('Billboard', [right, low, b.z], [left, low, b.z], [left, high, b.z], [right, high, b.z], [1, 1, 1], [[0, 1], [1, 1], [1, 0], [0, 0]]);
+  soup.box('Frame', [left - 0.4, low - 0.4, b.z + 0.02], [right + 0.4, high + 0.4, b.z + b.depth], [0.12, 0.14, 0.18]);
+  for (const x of [-8, 8]) soup.box('Frame', [x - 0.35, 0, b.z + 0.05], [x + 0.35, low - 0.4, b.z + b.depth - 0.05], [0.12, 0.14, 0.18]);
+  // the sign: its board turned a little toward the south entry, on two posts
+  const s = SIGN, at = [s.x, 0, s.z], w = s.width / 2, sLow = s.bottom, sHigh = s.bottom + s.height;
+  soup.quad('Sign', yawPoint([w, sLow, 0], s.yaw, at), yawPoint([-w, sLow, 0], s.yaw, at), yawPoint([-w, sHigh, 0], s.yaw, at), yawPoint([w, sHigh, 0], s.yaw, at), [1, 1, 1], [[0, 1], [1, 1], [1, 0], [0, 0]]);
+  const back = (px, py, pz) => yawPoint([px, py, pz], s.yaw, at);
+  const signBox = (x0, y0, z0, x1, y1, z1) => {
+    const c = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]].map(p => back(...p)), q = (i, j, k, l) => soup.quad('Frame', c[i], c[j], c[k], c[l], [0.12, 0.14, 0.18]);
+    q(4, 5, 6, 7); q(1, 0, 3, 2); q(0, 4, 7, 3); q(5, 1, 2, 6); q(3, 7, 6, 2); q(0, 1, 5, 4);
+  };
+  signBox(-w - 0.2, sLow - 0.2, 0.02, w + 0.2, sHigh + 0.2, 0.25);
+  signBox(-w + 0.6, 0, 0.05, -w + 1, sLow - 0.2, 0.22); signBox(w - 1, 0, 0.05, w - 0.6, sLow - 0.2, 0.22);
+  // the hologram on the plinth, its front turned to the south entry (it turns anyway)
+  const holo = await hologram(resolve(assets, 'hologram.glb')), holoPart = soup.part('Hologram');
+  for (const triangle of holo) for (const v of triangle) {
+    holoPart.positions.push(-v.p[0], v.p[1] + top + 0.02, -v.p[2]); holoPart.normals.push(-v.n[0], v.n[1], -v.n[2]); holoPart.colours.push(...v.c); holoPart.uvs.push(0, 0);
+  }
+  return { soup, assets, kerbs };
+}
+
+async function writeWorld(idea, { soup, assets, kerbs }) {
+  const doc = new Document(), buffer = doc.createBuffer(), scene = doc.createScene('plot');
+  const png = async (file) => writeImagePixels(await readImagePixels(readFileSync(file)));
+  const texture = async (name, file) => doc.createTexture(name).setImage(await png(file)).setMimeType('image/png');
+  const materials = {
+    Floor: doc.createMaterial('Floor').setBaseColorFactor([0.05, 0.16, 0.26, 1]).setRoughnessFactor(1).setMetallicFactor(0),
+    Kerb: doc.createMaterial('Kerb').setBaseColorFactor([0.5, 0.56, 0.64, 1]).setRoughnessFactor(1).setMetallicFactor(0),
+    Plinth: doc.createMaterial('Plinth').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0),
+    Rim: doc.createMaterial('Rim').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
+    Frame: doc.createMaterial('Frame').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.7).setMetallicFactor(0),
+    Billboard: doc.createMaterial('Billboard').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('billboard', resolve(assets, 'billboard.webp'))),
+    Sign: doc.createMaterial('Sign').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('sign', resolve(assets, 'sign.webp'))),
+    // the far proxy keeps the hologram as a dim teal silhouette (its colour times the edge code)
+    Hologram: doc.createMaterial('Hologram').setBaseColorFactor([0.1, 0.45, 0.55, 1]).setMetallicFactor(0),
+  };
+  for (const [, material] of Object.entries(materials)) if (material.getBaseColorTexture() !== null) {
+    material.getBaseColorTextureInfo()?.setWrapS(33071).setWrapT(33071).setMinFilter(9987).setMagFilter(9729);
+  }
+  const accessor = (values, type) => doc.createAccessor().setType(type).setArray(new Float32Array(values)).setBuffer(buffer);
+  const node = (name, part, material, uv) => {
+    const primitive = doc.createPrimitive().setMaterial(material)
+      .setAttribute('POSITION', accessor(part.positions, 'VEC3')).setAttribute('NORMAL', accessor(part.normals, 'VEC3')).setAttribute('COLOR_0', accessor(part.colours, 'VEC3'));
+    if (uv) primitive.setAttribute('TEXCOORD_0', accessor(part.uvs, 'VEC2'));
+    scene.addChild(doc.createNode(name).setMesh(doc.createMesh(name).addPrimitive(primitive)));
+  };
+  for (const [name, part] of soup.parts) node(name === 'Floor' ? 'ws_terrain_floor' : `draw_${name.toLowerCase()}`, part, materials[name], name === 'Billboard' || name === 'Sign');
+  // collision: the floor, the kerb, the plinth drum, the billboard and the sign (never the hologram, never the rim)
+  const solid = new Soup();
+  solid.quad('Solid', [-250, 0, -250], [-250, 0, 250], [250, 0, 250], [250, 0, -250]);
+  for (const [min, max] of kerbs) solid.box('Solid', min, max);
+  const steps = 24, top = PLINTH.height, r = PLINTH.radius, ring = (i, y) => [r * Math.sin(i / steps * Math.PI * 2), y, r * Math.cos(i / steps * Math.PI * 2)];
+  for (let i = 0; i < steps; i++) { solid.quad('Solid', ring(i, 0), ring(i + 1, 0), ring(i + 1, top), ring(i, top)); solid.tri('Solid', [0, top, 0], ring(i, top), ring(i + 1, top)); }
+  const b = BILLBOARD;
+  solid.box('Solid', [-b.width / 2 - 0.4, b.bottom - 0.4, b.z], [b.width / 2 + 0.4, b.bottom + b.height + 0.4, b.z + b.depth]);
+  for (const x of [-8, 8]) solid.box('Solid', [x - 0.35, 0, b.z], [x + 0.35, b.bottom, b.z + b.depth]);
+  const s = SIGN, w = s.width / 2, c = [[-w, 0, 0], [w, 0, 0], [w, s.bottom + s.height + 0.2, 0], [-w, s.bottom + s.height + 0.2, 0], [-w, 0, 0.3], [w, 0, 0.3], [w, s.bottom + s.height + 0.2, 0.3], [-w, s.bottom + s.height + 0.2, 0.3]].map(p => yawPoint(p, s.yaw, [s.x, 0, s.z]));
+  for (const [i, j, k, l] of [[4, 5, 6, 7], [1, 0, 3, 2], [0, 4, 7, 3], [5, 1, 2, 6], [3, 7, 6, 2], [0, 1, 5, 4]]) solid.quad('Solid', c[i], c[j], c[k], c[l]);
+  node('collide_plot', solid.part('Solid'), materials.Kerb, false);
+  const io = new NodeIO(), bytes = await io.writeBinary(doc), out = resolve(ROOT, 'assets');
+  mkdirSync(out, { recursive: true });
+  writeFileSync(resolve(out, 'world.glb'), bytes);
+  console.info(`open-plots: ${idea.id} world.glb ${bytes.length} bytes, hologram ${soup.part('Hologram').positions.length / 9} triangles`);
+}
+
+// P1: the source shard emits one output, its first idea row (P2 emits one product per row); its map is painted from it.
+const [first] = ideas;
+await writeWorld(first, await plot(first));
+await paintDataMap(REPO, 'open-plots');

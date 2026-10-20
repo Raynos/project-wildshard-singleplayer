@@ -11,12 +11,14 @@
     "sunscar-dunes": 4825,
     "blender-template": 90,
     "pastel-plain": 550,
-    "ink-cel-valley": 550
+    "ink-cel-valley": 550,
+    "open-plots": 603
   },
   "enforced": {
     "_template": 0,
     "blender-template": 0,
     "pastel-plain": 0,
-    "ink-cel-valley": 0
+    "ink-cel-valley": 0,
+    "open-plots": 0
   }
 }

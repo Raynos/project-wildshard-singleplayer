@@ -35,7 +35,7 @@ export type StaticTextureResolver = (source: Readonly<WorldTexture>, role: 'srgb
 /** Named multi-material transport for both native-world and normalized-GLB bakes.
  * Every source slot is explicit. Geometry is borrowed; generated wire materials and faceted copies are owned until dispose(). */
 export class StaticMaterialCatalogue {
-  private readonly rows = new Map<string, { source: WorldMaterial & { vertexColours?: boolean; faceted?: boolean }; binding: BoundMaterial; material: MeshStandardMaterial; dependencies: string[] }>();
+  private readonly rows = new Map<string, { source: WorldMaterial & { vertexColours?: boolean; faceted?: boolean }; binding: BoundMaterial; material: MeshStandardMaterial; dependencies: string[]; additive: boolean }>();
   private readonly textures = new Map<string, Uint8Array>();
   private readonly samplers = new Map<string, string>();
   private readonly geometry = new Set<BufferGeometry>();
@@ -47,7 +47,9 @@ export class StaticMaterialCatalogue {
       checkSource(source);
       const entry = Object.hasOwn(look, source.id) ? look[source.id] : undefined;
       if (!nameOk(source.name) || this.rows.has(source.name) || entry === undefined) throw new Error(`Static material ${source.name || '(unnamed)'} is duplicated or has no explicit look entry`);
-      if (entry.family === 'graph') throw new Error('Static graph transport needs an explicit factor-binding adapter');
+      // An untextured slot may draw a graph look: the graph reads only its own params and the vertices, never the GLB's
+      // factors. A textured graph slot still needs an explicit factor-binding adapter.
+      if (entry.family === 'graph' && Object.values(source.maps).some(map => map !== null)) throw new Error('Static graph transport needs an explicit factor-binding adapter');
       const cutoff = source.alpha === 'MASK' ? source.alphaCutoff : 0;
       if (('alphaCutoff' in entry ? entry.alphaCutoff : 0) !== cutoff) throw new Error(`Static material ${source.name}: catalogue alpha cutoff differs from source`);
       const binding: BoundMaterial = { id: source.id, colour: null, normal: null, metallicRoughness: null, occlusion: null, emissive: null }, dependencies: string[] = [];
@@ -73,7 +75,8 @@ export class StaticMaterialCatalogue {
       material.color.fromArray(source.colour); material.opacity = source.colour[3] ?? 1;
       material.roughness = source.roughness; material.metalness = source.metalness; material.emissive.fromArray(source.emissive);
       material.side = source.doubleSided ? 2 : 0; material.transparent = source.alpha === 'BLEND'; material.alphaTest = cutoff;
-      this.rows.set(source.name, { source: structuredClone(source), binding, material, dependencies: [...new Set(dependencies)].sort() });
+      const additive = entry.family === 'graph' && 'graph' in entry && entry.graph.effectState?.blend === 'additive';
+      this.rows.set(source.name, { source: structuredClone(source), binding, material, dependencies: [...new Set(dependencies)].sort(), additive });
     } } catch (error) { this.dispose(); throw error; }
   }
 
@@ -85,6 +88,8 @@ export class StaticMaterialCatalogue {
     if (Object.values(row.source.maps).some(value => value !== null) && !geometry.hasAttribute('uv')) throw new Error(`Static atlas primitive ${name} needs its original UV0`);
     if (row.source.vertexColours === false && geometry.hasAttribute('color')) throw new Error('Disabled source vertex colour needs an explicit geometry adapter');
     let actual = geometry;
+    // an additive graph (a hologram) is light, with no surface to cast a shadow
+    if (row.additive) return { ...options, geometry: actual, material: row.material, castShadow: false };
     if (row.source.faceted === true) { actual = geometry.index === null ? geometry.clone() : geometry.toNonIndexed(); actual.computeVertexNormals(); this.geometry.add(actual); }
     return { ...options, geometry: actual, material: row.material };
   }
