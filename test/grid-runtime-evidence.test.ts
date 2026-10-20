@@ -36,3 +36,22 @@ it('grades qualified native soak peaks against the current cap without substitut
   expect(runtimeGridEvidence(root,'pine-hollow',sha,['soak.json'],caps)).toEqual({});
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('accepts non-quiet native memory without promoting its frame windows', () => {
+ const root=mkdtempSync(resolve('tmp','grid-nonquiet-witness-'));
+ const receipt=(quiet:boolean,when:string)=>({schema:1,source:sha,protocol:{profiler:false,glObserver:'off',quiet},runs:[{
+  sha,when,surface:'sim',cohort:'grid',complete:true,glObserver:'off',
+  memory:{measurement:'native-footprint+gpu',samples:3,playingPeakBytes:1_100_000_000,loadingPeakBytes:1_500_000_000},
+  cases:[{shard:'grid',complete:true,errors:[],routes:[{name:'pine-entry',after:{current:'pine-hollow'}}],
+   rows:[{name:'grid-pine-entry-drive',frames:120,pass:quiet,contextLost:false}]}],
+ }]});
+ try{
+  writeFileSync(resolve(root,'quiet.json'),JSON.stringify(receipt(true,'2026-10-16T01:00:00Z')));
+  writeFileSync(resolve(root,'memory.json'),JSON.stringify(receipt(false,'2026-10-16T02:00:00Z')));
+  const only=runtimeGridEvidence(root,'pine-hollow',sha,['memory.json'],caps);
+  expect(only.memory?.verdict).toBe('pass');expect(only.oneFrameLooks).toBeUndefined();
+  const mixed=runtimeGridEvidence(root,'pine-hollow',sha,['quiet.json','memory.json'],caps);
+  expect(mixed.memory?.evidence).toContain('memory.json sha256:');
+  expect(mixed.oneFrameLooks?.verdict).toBe('pass');expect(mixed.oneFrameLooks?.evidence).toContain('quiet.json sha256:');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

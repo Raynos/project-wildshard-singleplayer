@@ -11,7 +11,7 @@ const run=v.looseObject({sha,when:v.string(),surface:v.literal('sim'),cohort:v.l
   memory:v.optional(memory),cases:v.array(v.looseObject({shard:v.string(),complete:v.boolean(),errors:v.array(v.unknown()),
     routes:v.array(v.looseObject({name:v.string(),after:v.looseObject({current:v.nullable(v.string())})})),
     rows:v.array(v.looseObject({name:v.string(),frames:positive,pass:v.boolean(),contextLost:v.optional(v.boolean())}))}))});
-const milestone=v.looseObject({schema:v.literal(1),source:sha,protocol:v.looseObject({profiler:v.literal(false),glObserver:v.literal('off')}),runs:v.array(v.unknown())});
+const milestone=v.looseObject({schema:v.literal(1),source:sha,protocol:v.looseObject({profiler:v.literal(false),glObserver:v.literal('off'),quiet:v.optional(v.boolean())}),runs:v.array(v.unknown())});
 const soak=v.looseObject({schema:v.literal(3),sha,driveStarted:v.string(),surface:v.literal('portrait iPhone Simulator Safari'),
   functionalPass:v.literal(true),seconds:positive,circuits:v.pipe(v.number(),v.integer(),v.minValue(2)),errors:v.pipe(v.array(v.unknown()),v.length(0)),grade:v.looseObject({
     sampling:v.literal(true),missingGlSamples:v.literal(0),rehearsal:v.literal(false),calibration:v.literal(true),leakZero:v.literal(true),
@@ -64,7 +64,7 @@ export function runtimeGridEvidence(root,slug,revision,paths,caps) {
         const names=scene.routes.filter(route=>route.after.current===slug).map(route=>`grid-${route.name}`);
         const rows=scene.rows.filter(row=>names.some(name=>row.name===name||row.name===`${name}-travel`||row.name===`${name}-drive`));
         if(rows.length===0||!names.every(name=>rows.some(row=>row.name===`${name}-drive`)))continue;
-        add('oneFrameLooks',receipt.when,path,bytes,rows.every(row=>row.pass&&row.contextLost!==true)?'pass':'fail',
+        if(recordedMilestone.output.protocol.quiet!==false)add('oneFrameLooks',receipt.when,path,bytes,rows.every(row=>row.pass&&row.contextLost!==true)?'pass':'fail',
           `completed Safari grid entry and ${rows.length} plain milestone look/travel windows for ${slug}`);
         if(receipt.memory!==undefined)measured(receipt.when,path,bytes,receipt.memory.playingPeakBytes,receipt.memory.loadingPeakBytes);
       }
