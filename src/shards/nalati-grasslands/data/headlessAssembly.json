@@ -31,10 +31,6 @@
       "eliteBindings",
       "installEliteEncounters"
     ],
-    "src/shards/nalati-grasslands/runtime/argymaqKeeper": [
-      "ArgymaqKeeper",
-      "bindEliteAdmission"
-    ],
     "src/shards/nalati-grasslands/combat/strikes": [
       "sampleStrike",
       "NALATI_STRIKES"
@@ -811,22 +807,6 @@
             "$call": [
               {
                 "$ref": [
-                  "src/shards/nalati-grasslands/runtime/argymaqKeeper",
-                  "bindEliteAdmission"
-                ]
-              },
-              {
-                "$ref": [
-                  "constants",
-                  "groupAdmission"
-                ]
-              }
-            ]
-          },
-          {
-            "$call": [
-              {
-                "$ref": [
                   "@wildshard/game/shardfile/groupRuntime",
                   "installNativeGroupRows"
                 ]
@@ -1225,10 +1205,20 @@
                   ]
                 },
                 "herd": {
-                  "$ref": [
-                    "src/shards/nalati-grasslands/runtime/argymaqKeeper",
-                    "ArgymaqKeeper"
-                  ]
+                  "rows": {
+                    "signal": "argymaqTick",
+                    "states": {
+                      "display": 1,
+                      "charge": 2,
+                      "beaten": 3
+                    }
+                  },
+                  "program": {
+                    "$ref": [
+                      "constants",
+                      "groupAdmission"
+                    ]
+                  }
                 }
               },
               "strike": {

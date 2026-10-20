@@ -1,4 +1,6 @@
 import * as v from 'valibot';
+import { isJsonData } from '@wildshard/format/json';
+import { ReturnProgram } from '../population/returnProgram';
 import { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
@@ -32,22 +34,13 @@ interface Keeper {
 }
 interface Howler extends Keeper { enterPhase2: (a: AnimalSim | null) => void }
 interface Herd { readonly stallionState: string; readonly stallion: AnimalSim | null; readonly leadAway: (x: number, z: number) => void }
-interface HerdKeeper {
-  tick: (a: AnimalSim | null, herd: Herd | null, dt: number, t: number, engaged: boolean) => void;
-  snapshot: () => SimValue; restore: (value: unknown) => void;
-}
-interface HerdPorts {
-  readonly player: SimHost['player']; readonly phase2: () => boolean;
-  readonly lane: { setTime: typeof silent; lane: typeof silent; hide: typeof silent };
-  readonly signature: () => void;
-  readonly taming: () => { readonly phase: string; readonly tulpar: AnimalSim | null } | null;
-  readonly adopted: (a: AnimalSim) => void;
-}
-/** Existing keeper classes implement these ports; the installer supplies the common native authority once. */
-export interface EliteKeeperConstructors {
+type HerdTaming = () => {readonly phase:string;readonly tulpar:AnimalSim|null}|null;
+/** Native stalker bindings and admitted herd guest rows. The installer retains
+ * the common native body and reward authority. */
+export interface EliteKeeperBindings {
   readonly pouncer: new (ports: PouncerPorts<AnimalSim> & { feed: typeof silent; sound: typeof silent }) => Keeper;
   readonly howler: new (ports: HowlerPorts<AnimalSim> & { feed: typeof silent; sound: typeof silent }) => Howler;
-  readonly herd: new (ports: HerdPorts) => HerdKeeper;
+  readonly herd: {readonly rows:unknown;readonly program:unknown};
 }
 /** A member's identity, adoption and save key are author data. Pack ordering is checked against the owner's actor IDs. */
 export interface EliteEncounterRow {
@@ -68,7 +61,7 @@ export interface EliteEncounterPorts {
   readonly herd: () => Herd | null;
   readonly heightAt: (x: number, z: number) => number; readonly ledges: readonly PouncerLedge[];
   readonly environment: HowlerPorts<AnimalSim>['environment'];
-  readonly taming?: HerdPorts['taming']; readonly keepers: EliteKeeperConstructors;
+  readonly taming?: HerdTaming; readonly keepers: EliteKeeperBindings;
   /** Existing authored strike sampler and shove law. No new attack clock is installed. */
   readonly strike: (row: StrikeSpec, a: AnimalSim, target: Vector3, hit: () => void, ports: { reach: () => boolean }) => boolean;
   readonly strikes: { readonly swipe: StrikeSpec; readonly pounce: StrikeSpec; readonly bite: StrikeSpec };
@@ -84,8 +77,41 @@ export interface EliteEncounterSpec {
   readonly ports?: EliteEncounterPorts;
   readonly wire: { readonly detached?: string };
 }
+
+const herdPoint=v.tuple([finite,finite,finite]);
+const HerdProjectionRows=v.pipe(v.unknown(),v.check(isJsonData),v.strictObject({signal:v.pipe(v.string(),v.minLength(1),v.maxLength(128)),states:v.pipe(v.record(v.string(),finite),v.check(rows=>Object.keys(rows).length<=16))}));
+const HerdProjectionSaved=v.strictObject({laneT:finite,runT:finite,lastState:v.string(),elapsed:v.optional(finite,0),laneFrom:herdPoint,laneTo:herdPoint});
+/** Numeric native herd encounter observation. Bodies and rewards remain with
+ * the existing encounter authority; no content callback or actor port enters. */
+export interface HerdEliteFrame {
+  state:string;phase2:boolean;engaged:boolean;bonded:boolean;same:boolean;health:number;
+  at:readonly [number,number,number];player:readonly [number,number,number];
+}
+/** Renderer-free ten-Hz guest projection. Rows name the admitted event and herd
+ * states; effects are plain commands and the historical continuation is kept. */
+export class HerdEliteProjection {
+  private readonly rows;
+  private state:v.InferOutput<typeof HerdProjectionSaved>={laneT:0,runT:0,lastState:'',elapsed:0,laneFrom:[0,0,0],laneTo:[0,0,0]};
+  private readonly effects={signature:false,lead:false,adopt:false};
+  constructor(input:unknown,private readonly program:ReturnProgram){
+    if(!(program instanceof ReturnProgram)||Object.getPrototypeOf(program)!==ReturnProgram.prototype)throw new Error('Missing native encounter programme');
+    this.rows=v.parse(HerdProjectionRows,input);
+  }
+  advance(dt:number,frame:HerdEliteFrame):Readonly<{signature:boolean;lead:boolean;adopt:boolean}>{
+    const state=this.state,effects=this.effects;effects.signature=false;effects.lead=false;effects.adopt=false;
+    state.elapsed+=dt;if(state.elapsed+1e-9<.1)return effects;
+    const result=this.program.project(this.rows.signal,{dt:state.elapsed,state:this.rows.states[frame.state]??0,previousState:this.rows.states[state.lastState]??0,
+      laneT:state.laneT,runT:state.runT,phase2:Number(frame.phase2),engaged:Number(frame.engaged),bonded:Number(frame.bonded),same:Number(frame.same),health:frame.health});
+    state.elapsed=0;state.lastState=frame.state;state.laneT=result['laneT']??state.laneT;state.runT=result['runT']??state.runT;
+    if(result['capture']===1){state.laneFrom=[...frame.at];state.laneTo=[...frame.player];}
+    effects.signature=result['signature']===1;effects.lead=result['lead']===1;effects.adopt=result['adopt']===1;return effects;
+  }
+  snapshot():v.InferOutput<typeof HerdProjectionSaved>{return structuredClone(this.state);}
+  restore(input:unknown):void{this.state=v.parse(HerdProjectionSaved,input);}
+}
+
 interface Member { readonly row: EliteEncounterRow; animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean;
-  readonly controller: Keeper | HerdKeeper; readonly validate: (value: unknown) => void }
+  readonly controller: Keeper | HerdEliteProjection; readonly validate: (value: unknown) => void }
 
 /** Install ordered named encounters on EliteCore. Shared ownership covers spawn/adoption, script/keeper continuation,
  * pack rebind, root effects and declared permanent detachment. Controllers retain fight decisions and clocks.
@@ -129,15 +155,10 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
       opened: silent, growl: silent };
     const howlerPorts = { ...common, pack: () => live.pack, environment: ports.environment, random: () => host.rng.stream('ai').next(), rings: tells,
       hurt, regrouped: silent, interrupted: silent, closed: silent, howl: silent };
-    const herdPorts = { ...common, lane: tells, taming: () => ports.taming?.() ?? null, adopted: (a: AnimalSim): void => {
-      const action = row.onAdopted;
-      if (action === undefined || ports.taming === undefined || live.detached || host.entities.get(a.entityId) !== a || a.variant !== action.variant) throw new Error('Adopted encounter reward has no native owner');
-      a.scale = action.scale; core.won(def.id); live.detached = true;
-    } };
-    const create = (): Keeper | HerdKeeper => {
+    const create = (): Keeper | HerdEliteProjection => {
       if (row.keeper === 'pouncer') { const Pouncer = ports.keepers.pouncer; return new Pouncer(pouncerPorts); }
       if (row.keeper === 'howler') { const Howler = ports.keepers.howler; return new Howler(howlerPorts); }
-      const HerdController = ports.keepers.herd; return new HerdController(herdPorts);
+      const herd=ports.keepers.herd;return new HerdEliteProjection(herd.rows,ReturnProgram.native(host,herd.program));
     };
     const controller = create();
     const member: Member = Object.assign(live, { row, controller, validate: (value: unknown): void => { create().restore(value); } });
@@ -178,7 +199,17 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
       tick: (dt, t, engaged, leashing) => {
         pin(member.animal, engaged);
         if ('think' in controller) controller.tick(member.animal, dt, t, engaged, leashing);
-        else controller.tick(member.animal, member.detached ? null : ports.herd(), dt, t, engaged);
+        else {
+          const animal=member.animal,herd=member.detached?null:ports.herd();if(animal===null||herd===null)return;
+          const taming=ports.taming?.(),at=animal.position,player=host.player.position;
+          const effects=controller.advance(dt,{state:herd.stallionState,phase2:member.phase2,engaged,bonded:taming?.phase==='bonded',same:herd.stallion===animal,health:animal.hp/animal.maxHp,at:[at.x,at.y,at.z],player:[player.x,player.y,player.z]});
+          if(effects.signature)signature();if(effects.lead)herd.leadAway(player.x,player.z);
+          const adopted=taming?.tulpar;
+          if(effects.adopt&&adopted!==undefined&&adopted!==null){
+            const action=row.onAdopted;if(action===undefined||member.detached||host.entities.get(adopted.entityId)!==adopted||adopted.variant!==action.variant)throw new Error('Adopted encounter reward has no native owner');
+            adopted.scale=action.scale;core.won(def.id);member.detached=true;
+          }
+        }
       },
     };
     // Keep the rebind closure beside the member, without adding a second body step.
