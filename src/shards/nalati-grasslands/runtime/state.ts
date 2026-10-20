@@ -75,16 +75,6 @@ type SheepHit = NonNullable<ReturnType<Wildlife['raycastCrowd']>>;
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ShardManifest; params: URLSearchParams }
 
-/** what main.ts hands the wiring once the kit and the HUD exist (`nalati.bindPlay`) */
-export interface NalatiPlay {
-  kit: NalatiLoadout | null;
-  toast: (text: string) => void;
-  /** the red damage flash (a knock-down) */
-  flash: () => void;
-  /** damage with no animal behind it: the horse throws you / bolts (the death toast says so — NALATI-MERGE F3) */
-  hurt?: (damage: number) => void;
-}
-
 export interface Nalati {
   readonly persistence: NalatiPersistence | undefined;
   /** every frame (main.ts game.onUpdate) */
@@ -107,7 +97,7 @@ export interface Nalati {
   attachAnimalsSliced: (animals: AnimalManager, yieldTask: () => Promise<void>) => Promise<Wildlife>;
   wildlife: Wildlife | null;
   /** main.ts once the kit + HUD exist: knock-downs, howl / stampede toasts */
-  bindPlay: (play: NalatiPlay) => void;
+  bindPlay: (kit: NalatiLoadout) => void;
   /** weapons.onFire: a shot reveals you for a second (the stealth model) */
   onShot: () => void;
   /** weapons.onImpact: an arrow / javelin landing near a herd or the flock spooks it */
@@ -237,7 +227,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   let wildlife: Wildlife | null = null;
   let foragerView: Marmots | null = null;
   let attachedAnimals: AnimalManager | null = null;
-  let play: NalatiPlay | null = null;
+  let playKit: NalatiLoadout | null = null;
   let now = 0;
   // the grass hides you and is trampled by every mover (GrassTrample, B1); the river corridor + the brook are water to a walker
   // Wildlife reads position / forward / crouching; Player.forward allocates, so a reused view of it
@@ -248,7 +238,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const lastToast = new Map<string, number>();
   const toastOnce = (key: string, text: string, every: number): void => {
     if (now - (lastToast.get(key) ?? -1e9) < every) return;
-    lastToast.set(key, now); play?.toast(text);
+    lastToast.set(key, now); plugin.game.runtime?.play?.hud.toast(text);
   };
   const onSignal = (name: string, x: number, z: number): void => {
     void x; void z;
@@ -263,7 +253,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const onKnockdown = (dirX: number, dirZ: number, strength: number): void => {
     knockdownDash(dirX, dirZ, strength, knocked);
     player.dash(knocked.x, knocked.z, KNOCKDOWN_TIME);
-    play?.flash();
+    plugin.game.runtime?.play?.hud.damageFlash();
     toastOnce('knockdown', 'Knocked down!', 4);
   };
   installEnteredRuntimeService(plugin,scope => { plugin.app.events.on('creature.knockdown',({ x,z,strength }) => { onKnockdown(x,z,strength); },scope); });
@@ -348,7 +338,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       return finishWildlife(animals, w);
     },
     bindPlay(p) {
-      play = p;
+      playKit = p;
       stealth = new StealthController(plugin,player,stealthRows);
       nalati.stealth = stealth;
       if (wildlife === null || attachedAnimals === null) throw new Error('Nalati creatures have not been built');
@@ -356,11 +346,10 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       nalati.ride = ride;
       installRide(plugin, ride);
 
-      if(p.kit!==null){const bow=p.kit.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);}
-      ride.bind({ toast: p.toast });
+      const bow=p.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);
       painter = clientCosmeticFinishes(plugin).painter;
     },
-    onShot() { stealth?.noteShot(); if(play!==null&&play.kit!==null)play.kit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = now; },
+    onShot() { stealth?.noteShot(); if(playKit!==null)playKit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = now; },
     onImpact(_surface, point) {
       // a landing arrow / javelin (not a sabre / spear blow at arm's length)
       if (wildlife === null || Math.hypot(point.x - player.position.x, point.z - player.position.z) < 4.5) return;
@@ -387,7 +376,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     for(let i=0;i<96;i++){const pack=wildlife?.packs[i];if(pack===undefined)break;for(let j=0;j<96;j++){const actor=pack.members[j];if(actor===undefined)break;if(actor.alive)threats.push({x:actor.position.x,z:actor.position.z,awareness:pack.awareness,alert:.35,hunting:Number(pack.phase==='shadow'||pack.phase==='encircle'||pack.phase==='regroup')});}}
     for(let i=0;i<96;i++){const herd=wildlife?.herds[i];if(herd===undefined)break;for(let j=0;j<96;j++){const actor=herd.members[j];if(actor===undefined)break;if(actor.alive&&(actor.mem['ridden']??0)!==1&&(actor.mem['owned']??0)!==1)threats.push({x:actor.position.x,z:actor.position.z,awareness:actor.mem['aw']??0,alert:.45,hunting:0});}}
     stealth.update(dt,t,{grass:wildEnv.grassStandingAt(player.position.x,player.position.z),mounted:extra.mounted,forced:ride!==null&&ride.taming.view.trust!==null,threats:threats.sort((a,b)=>Math.hypot(a.x-player.position.x,a.z-player.position.z)-Math.hypot(b.x-player.position.x,b.z-player.position.z)).slice(0,8)});
-    if(play!==null&&play.kit!==null)play.kit.spear.damageScale=stealth.sneakMultiplier();
+    if(playKit!==null)playKit.spear.damageScale=stealth.sneakMultiplier();
   });
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
   //    src/shards/nalati-grasslands/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
@@ -402,14 +391,14 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     updates.push((dt) => {
       syncT -= dt;
       if (syncT <= 0) { syncT = 1; for (const id of elites.skins) nalati.skins.own(id); }
-      const kit = play?.kit, mounted = ride?.mount.horse, bonded = ride?.taming.companion;
+      const kit = playKit, mounted = ride?.mount.horse, bonded = ride?.taming.companion;
       painter?.update({ objects: new Map([
-        ['blade', kit === null || kit === undefined ? [] : [kit.sabre.model]],
-        ['arrows', kit === null || kit === undefined ? [] : [kit.bow.arrows.mesh]],
+        ['blade', kit === null ? [] : [kit.sabre.model]],
+        ['arrows', kit === null ? [] : [kit.bow.arrows.mesh]],
         ['mounts', [...new Set([...(mounted === null || mounted === undefined ? [] : [mounted.mesh]), ...(bonded?.alive === true && !bonded.hidden ? [bonded.mesh] : [])])]],
       ]),
       facts: new Set([...(boss.power?.applied === true ? ['golden'] : []), ...(titan.naizagai?.applied === true ? ['storm'] : [])]) });
-      if (kit !== null && kit !== undefined) for (const style of ['recurve', 'golden', 'sky-wolf'] as const)
+      if (kit !== null) for (const style of ['recurve', 'golden', 'sky-wolf'] as const)
         if (style === painter?.selectedFinishes.get('bow') && kit.bow.style !== style) kit.bow.setStyle(style);
     });
 
@@ -448,7 +437,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
 export interface Ride {
   refuse: ((x:number,z:number)=>boolean) | null; mount: Mount; taming: PageTamingOwner; hud: RideHUD; interactable: Interactable;
-  readonly mounted: boolean; bind: (play: { toast:(text:string)=>void })=>void; update:(dt:number)=>void; late:(dt:number)=>void;
+  readonly mounted: boolean; update:(dt:number)=>void; late:(dt:number)=>void;
   reins: Reins; raid: SheepRaid; noteShot:(x:number,z:number)=>void;
 }
 interface RideCtx {
@@ -459,7 +448,7 @@ interface RideCtx {
 }
 /** Bind this shard's remaining presentation and persistence to the game owner. */
 function wireRide(ctx: RideCtx): Ride {
-  let play: { toast: (text: string) => void } | null = null, savedBond: string | null = null, namingActor: string | null = null;
+  let savedBond: string | null = null, namingActor: string | null = null;
   try { savedBond = ctx.persistence?.bond.read() ?? legacyAdventureBond('tulpar').read('nalati-grasslands'); } catch { /* unavailable storage */ }
   admitRenderedHerds(ctx.ctx.scope, ctx.preset.taming.herds, ctx.wildlife.herds);
   admitRidingWind(ctx.ctx.scope, wildEnv.wind);
@@ -471,13 +460,13 @@ function wireRide(ctx: RideCtx): Ride {
     mountables: ctx.wildlife.mountables.map(actor => ({ id: actor.entityId, name: ctx.preset.mountableLabel })),
   });
   const { mount, taming, hud, interactable } = session, reins = new Reins(ctx.camera, ctx.ctx.scope), namer = new DataPanel(ctx.namePanel);
-  const publishRaidNotice = (text: string): void => { play?.toast(text); };
+  const publishRaidNotice = (text: string): void => { ctx.ctx.game.runtime?.play?.hud.toast(text); };
   const raid = new SheepRaid({ animals: ctx.animals, wildlife: ctx.wildlife, toast: publishRaidNotice }), nameValues = { current: '' };
   const nameActions = new Map<string, (value: unknown) => void>([['save', value => {
     if (typeof value !== 'string') throw new Error('Name input requires text');
     const name = cleanHorseName(value);
     if (name.length > 0 && namingActor !== null) {
-      mount.rename(namingActor, name); ctx.persistence?.names.write(names); play?.toast(`Your horse is ${name}`);
+      mount.rename(namingActor, name); ctx.persistence?.names.write(names); publishRaidNotice(`Your horse is ${name}`);
     }
   }]]);
   ctx.ctx.scope.onDispose(() => { namer.close(); });
@@ -486,7 +475,6 @@ function wireRide(ctx: RideCtx): Ride {
   const ride: Ride = {
     refuse: null, mount, taming, hud, interactable, reins, raid,
     get mounted() { return mount.mounted; },
-    bind(next) { play = next; },
     noteShot(x, z) { taming.noteShot(x, z); },
     update(dt) {
       const ahead = 2 + mount.speed * .4;
@@ -497,7 +485,7 @@ function wireRide(ctx: RideCtx): Ride {
       const events = session.drainEvents();
       for (let i = 0; i < 64; i++) {
         const event = events[i]; if (event === undefined) break;
-        if (event.kind === 'notice') play?.toast(event.text);
+        if (event.kind === 'notice') publishRaidNotice(event.text);
         else if (event.kind === 'bond') ctx.persistence?.bond.write(event.value);
         else if (event.kind === 'bonded') ctx.persistence?.feat('tame');
         else if (event.kind === 'name') {

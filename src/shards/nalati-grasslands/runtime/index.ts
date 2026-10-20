@@ -120,7 +120,7 @@ export class NalatiPlugin extends ShardPlugin {
       if (target === null) return;
       ctx.app.combat.hit({ source: 'env', sourceTags: [tag, 'feel.jolt', 'cover.checked'], target, amount, point: player.position.clone(), dir: new Vector3(), ...(cause === undefined ? {} : { cause }), ...(toast === undefined ? {} : { toast }) });
     };
-    owned(() => { rt.bindPlay({ kit, toast: (text) => { hud.toast(text); }, flash: () => { hud.damageFlash(); }, hurt: (amount) => { hurt('env.ride', amount, { kind: 'env.ride', label: 'Thrown from the saddle', text: 'Thrown from the saddle' }); } }); });
+    owned(() => { rt.bindPlay(kit); });
     await part();
     const ride = rt.ride;
     if (ride !== null) shell.interactables.push(ride.interactable);
