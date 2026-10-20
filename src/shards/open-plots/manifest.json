@@ -80,6 +80,7 @@
     "cloudSea": false,
     "rings": []
   },
+  "hoverSpeedClass": "road",
   "kitLook": "pbr",
   "label": "(+2, −1)",
   "loadout": {
