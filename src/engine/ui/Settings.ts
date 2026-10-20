@@ -122,6 +122,7 @@ export const OPTION_VALUES = {
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
   fixedShadowSamples: ['off', 'on'],                   // G437: fixed depth-texture flip uniforms; reload, default off.
+  groundTiles: ['off', 'on'],                          // G518: a painted ground draws its baked L0 tiles instead of its one mesh; reload, default off.
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
   buildPacing: ['on', 'off', 'uploads', 'entry', 'links'], // entry / links: experimental preparation; default off.
   graphUniforms: ['plain', 'blocks'],                  // node materials' uniforms: plain program uniforms, or the std140 blocks (render/nodes/nodePlainUniforms.ts) — a reload
@@ -139,7 +140,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
-  memorySaver: DEBUG_ONLY, fixedShadowSamples: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY, graphUniforms: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, fixedShadowSamples: DEBUG_ONLY, groundTiles: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY, graphUniforms: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
@@ -204,7 +205,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
     tier: option('tier'), touch: option('touch'), time: option('time'),
     weather: option('weather'), fps: option('fps'),
-    memorySaver: option('memorySaver'), fixedShadowSamples: option('fixedShadowSamples'), graphMaterials: option('graphMaterials'), buildPacing: option('buildPacing'), graphUniforms: option('graphUniforms'),
+    memorySaver: option('memorySaver'), fixedShadowSamples: option('fixedShadowSamples'), groundTiles: option('groundTiles'), graphMaterials: option('graphMaterials'), buildPacing: option('buildPacing'), graphUniforms: option('graphUniforms'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};

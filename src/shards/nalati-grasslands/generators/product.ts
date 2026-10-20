@@ -28,6 +28,7 @@ import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import presentationGraphs from '../data/painterlyGraphs.json' with { type: 'json' };
 import kokpar from '../data/kokpar.generated.json' with { type: 'json' };
 import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
+import renderTiles from '../data/renderTiles.json' with { type: 'json' };
 import kingPose from '../data/goldenKingPose.generated.json' with { type: 'json' };
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
 
@@ -44,17 +45,20 @@ const base = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grassland
 // ground's native lattice is query-only terrain (generators/terrain.ts: no render tiles; the bound runtime keeps rendering
 // and collision), both charged to the server's memory and the sim budget at their actual decoded cost.
 const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
+// M2 (G518): the ground's baked L0 render tiles (generators/bake-render-tiles.mjs), bound by the runtime: the painted
+// ground draws them in its own material behind the Debug row groundTiles; the files stay out of the sim budgets below
 const resident = files.reduce((sum, file) => sum + file.decoded, 0);
 const programs = [heldWeapons.program,stealth.program,speciesData.program,weatherDecision,kokpar.program, admission, pasture, ...Object.values(titanProgram), ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
 const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => sum + atob(program.bytes).length, 0);
 const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes);
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
-  navigation: navigation.navigation, terrain: queryTerrain.terrain, files, critical: [...navigation.critical, ...queryTerrain.critical],
+  navigation: navigation.navigation, terrain: queryTerrain.terrain, files: [...files, ...renderTiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), critical: [...navigation.critical, ...queryTerrain.critical],
+  tiles: renderTiles.tiles, props: renderTiles.props,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + resident + programMemory },
   budgets: { ...base.budgets, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes } },
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
-  accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain'], spawns: NALATI_RUNTIME_SPAWNS },
+  accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain', 'props'], spawns: NALATI_RUNTIME_SPAWNS },
   clientChannels: compactChannels([...Object.values(speciesData.poses).flatMap(pose => pose.programs),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),
   modes: ecology.modes, quests: {...questContent.quests,achievements:NALATI_FEATS}, ledger: NALATI_LEDGER, state: NALATI_STATE, items, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });

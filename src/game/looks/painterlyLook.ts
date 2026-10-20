@@ -19,7 +19,8 @@ import { SpecimenTextureSchema } from '@wildshard/format/specimenCatalogue';
 import { loadSpecimenTexture } from '../models/specimenCatalogue';
 import { createClientScene } from '../plugin/ui';
 import { lentLook, setLentParam, setLentTexture } from '../shardfile/lentLooks';
-import { loadFirstPartyProduct } from '../shardfile/runtimeProduct';
+import { loadFirstPartyProduct, runtimeProduct } from '../shardfile/runtimeProduct';
+import { setting } from '@wildshard/engine/ui/Settings';
 import { StaticCapture, type StaticCaptureUniforms } from './staticCapture';
 import type { GrassPresentationProfile } from './grassPresentation';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -31,11 +32,13 @@ const shapeId = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*$/u));
  * snow and ice) over `layers` of tiled specimen textures (the specimen materials of those names), in a painterly material (`bands`, `rim`, `shade`), recoloured
  * by the product's `colour` function (look/colour-functions) and shaded by the static bake. Its meshes are the product's
  * `shapes` (world/terrain/<id>.glb), stood by the `recipe` (a world scene in a product JSON file's key); `mesh` is the
- * one the terrain answers for.
+ * one the terrain answers for. With `tiles` the level's runtime-bound L0 props tiles are that mesh cut at the tile seams
+ * (every painted channel kept): behind the Debug row `groundTiles` (default off) they draw in its place, in its material.
  */
 export const PaintedGroundSchema = v.strictObject({ surface: v.unknown(), layers: v.pipe(v.array(shapeId), v.minLength(1), v.maxLength(8)),
   material: v.strictObject({ bands: finite, rim: finite, shade: finite }), colour: shapeId,
-  shapes: v.pipe(v.array(shapeId), v.minLength(1), v.maxLength(8)), recipe: v.strictObject({ file: v.string(), key: shapeId }), mesh: shapeId });
+  shapes: v.pipe(v.array(shapeId), v.minLength(1), v.maxLength(8)), recipe: v.strictObject({ file: v.string(), key: shapeId }), mesh: shapeId,
+  tiles: v.exactOptional(v.literal(true)) });
 function isGroundMesh(value: unknown): value is Mesh<BufferGeometry, MeshLambertMaterial> {
   return value instanceof Mesh && value.geometry instanceof BufferGeometry && value.material instanceof MeshLambertMaterial;
 }
@@ -65,6 +68,20 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
     const ground = scene.parts.get(rows.mesh);
     if (!isGroundMesh(ground) || !rows.shapes.every(id => isGroundMesh(scene.parts.get(id)))) throw new Error('Missing named ground mesh');
     terrain.material = material; terrain.mesh = ground;
+    const groundTiles = rows.tiles === true && setting('groundTiles') === 'on' ? (product.shardfile.props?.tiles ?? []).filter(row => row.lod === 0) : [];
+    if (groundTiles.length > 0) {
+      const assets = runtimeProduct(product.shardfile).assets, parent = ground.parent;
+      if (parent === null) throw new Error('Painted ground mesh has no parent');
+      for (const row of groundTiles) {
+        const owned = createOwnedGeometry(`${slug} ground ${String(row.x)}.${String(row.z)}`);
+        await owned.load(await assets.read(row.file));
+        const geometry = owned.take(); geometry.computeBoundingSphere();
+        const tile = new Mesh(geometry, material);
+        tile.name = `${ground.name}.${String(row.x)}.${String(row.z)}`; tile.castShadow = ground.castShadow; tile.receiveShadow = ground.receiveShadow; tile.renderOrder = ground.renderOrder;
+        parent.add(tile); terrain.mesh = tile;
+      }
+      ground.removeFromParent(); ground.geometry.dispose();
+    }
     terrain.group.add(...scene.root.children);
   } };
 }

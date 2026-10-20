@@ -8,9 +8,10 @@ import { bakeNalatiGround, bakeNalatiGroundLod, nalatiGroundSource, type NalatiG
  * authored static placement output and the trusted runtime's native-ground witness before publishing a product.
  * Named packing retains the catalogue's already encoded texture bytes and charges each tile's own dependencies.
  * An omitted catalogue is the geometry-only witness path, not a material-complete production product.
+ * `lods` keeps only those levels' tiles (the live ground draws the L0 tiles: the painter mesh, cut at the tile seams).
  */
-export function bakeNalatiWorldRows(nativeTerrain: Uint8Array, staticTiles: readonly NalatiStaticTile[], family: string, catalogue?: Pick<StaticMaterialCatalogue, 'snapshot' | 'dependencies'>): BakedWorldRows & { nativeGround: NativeGround } {
-  return packNalatiWorldRows(nativeTerrain, bakeNalatiGround(nalatiGroundSource(nativeTerrain), staticTiles), family, catalogue);
+export function bakeNalatiWorldRows(nativeTerrain: Uint8Array, staticTiles: readonly NalatiStaticTile[], family: string, catalogue?: Pick<StaticMaterialCatalogue, 'snapshot' | 'dependencies'>, lods: readonly (0 | 1)[] = [0, 1]): BakedWorldRows & { nativeGround: NativeGround } {
+  return packNalatiWorldRows(nativeTerrain, bakeNalatiGround(nalatiGroundSource(nativeTerrain), staticTiles).filter(entry => lods.includes(entry.tile.lod)), family, catalogue);
 }
 
 /** Explicit offline L1 candidate; records actual shared-tool error rather than claiming a zero-error simplified mesh.

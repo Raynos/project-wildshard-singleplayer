@@ -107,3 +107,11 @@ test('moves the water draw out of private JSON without changing its GPU channels
     } finally { restored.dispose(); }
   } finally { original.dispose(); }
 });
+
+test('the product ships the ground as its 64 L0 tiles, each file present and content-addressed', () => {
+  const rows = v.parse(v.object({ tiles: v.array(v.object({ lod: v.number(), files: v.array(v.string()) })), files: v.array(v.object({ hash: v.string() })),
+    props: v.object({ family: v.string(), tiles: v.array(v.object({ lod: v.number(), file: v.string() })) }) }), JSON.parse(readFileSync('src/shards/nalati-grasslands/data/renderTiles.json', 'utf8')));
+  expect(rows.tiles).toHaveLength(64); expect(rows.tiles.every(tile => tile.lod === 0)).toBe(true);
+  expect(rows.props.family).toBe('painterly'); expect(rows.props.tiles.map(tile => tile.file).sort()).toEqual(rows.files.map(file => file.hash).sort());
+  for (const file of rows.files) expect(hashImmutableBytes(new Uint8Array(readFileSync(`src/shards/nalati-grasslands/assets/${file.hash}`)))).toBe(file.hash);
+});

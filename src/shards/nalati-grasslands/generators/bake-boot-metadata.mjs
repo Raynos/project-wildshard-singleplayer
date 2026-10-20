@@ -58,7 +58,7 @@ const m = paintedTextures.metres, ground = { layers: ['meadow', 'path', 'gravel'
   surface: { maps: { base: 'meadow', track: 'path', gravel: 'gravel', rock: 'rock', snow: 'snow' }, metres: { base: m.meadow, track: m.path, gravel: m.gravel, rock: m.rock, snow: m.snow },
     means: { base: [...paintedTextures.mean.meadow], rock: [...paintedTextures.mean.rock] }, snow: { line: SNOW_LINE, high: [44, 84] }, wet: [-9.2, -9.9],
     ice: { from: [GLACIER.x0, GLACIER.z0], to: [GLACIER.x1, GLACIER.z1], half: GLACIER.half } },
-  shapes: ['ground', 'slab'], recipe: { file: 'world/water.json', key: 'terrain' }, mesh: 'ground' };
+  shapes: ['ground', 'slab'], recipe: { file: 'world/water.json', key: 'terrain' }, mesh: 'ground', tiles: true };
 // the painted panorama (game/looks/painterlyLook PaintedPanorama): the painting as the sky dome (drawn first, just inside the far
 // plane), the cloud sea sunk below the rim, and the lit look graphs that hear the painterly world's shade, rim and wet
 const panorama = { dome: { name: 'sky-dome-v2', look: 'nalati-panorama', image: paintedTextures.panorama, pad: 16, fallbackWidth: 6176, zenith: paintedTextures.zenith,
