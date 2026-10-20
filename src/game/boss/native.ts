@@ -90,6 +90,12 @@ function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: Spe
   return { fight, own };
 }
 
+const rewards = new WeakMap<SimHost, Map<string, { take: (eye: { x: number; y: number; z: number }) => boolean }>>();
+/** Resolve a concrete encounter reward by its declared step identity. */
+export function takeNativeBossReward(host: SimHost, id: string, eye: { x: number; y: number; z: number }): boolean {
+  const reward = rewards.get(host)?.get(id); if (reward === undefined) throw new Error('Missing native boss reward'); return reward.take(eye);
+}
+
 const finite = v.pipe(v.number(), v.finite());
 /** Install from rows without allocating a body or consuming a random draw. */
 export function installGroundBoss(host: SimHost, input: unknown, profile: unknown, program: SpeciesProgramData, bindingInput: unknown): { boss: BossBrain; fight: GroundBossFight<NativeGroundBossBody>; locked: () => boolean;
@@ -129,10 +135,15 @@ export function installGroundBoss(host: SimHost, input: unknown, profile: unknow
     return { ...req, amount: Math.max(1, Math.round(req.amount * fight.damageMul(k, req.point))) };
   }, host.scope, { order: 50 });
   host.onStep(row.steps.dormant, dt => { groundBossDormant(owner.boss, fight, dt, host.clock.now); });
-  return { boss: owner.boss, fight, locked: owner.locked,
+  const result = { boss: owner.boss, fight, locked: owner.locked,
     rewardPoint: () => reward === null ? null : { ...reward },
-    takeReward: eye => {
+    takeReward: (eye: { x: number; y: number; z: number }) => {
       if (reward === null || saved.rewardTaken || pickPrompt([{ position: reward, radius: row.reward.radius }], eye, host.physics) === undefined) return false;
       reward = null; saved.rewardTaken = true; record.persist(saved); return true;
     } };
+  const book = rewards.get(host) ?? new Map<string, { take: (eye: { x: number; y: number; z: number }) => boolean }>();
+  if (book.has(row.steps.fight)) throw new Error('Duplicate native boss reward');
+  book.set(row.steps.fight, { take: result.takeReward }); rewards.set(host, book);
+  host.scope.onDispose(() => { book.delete(row.steps.fight); });
+  return result;
 }

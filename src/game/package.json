@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./quest/nativeStory": "./quest/nativeStory.ts",
+    "./quest/nativeStoryRows": "./quest/nativeStoryRows.ts",
     "./shardfile/clientMeadow": "./shardfile/clientMeadow.ts",
     "./looks/speciesBook": "./looks/speciesBook.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",

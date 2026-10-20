@@ -11,6 +11,11 @@ export const NativeAmmunitionSavedSchema = v.pipe(v.record(v.string(), v.union([
   v.check(saved => typeof saved['selected'] === 'string' && Object.entries(saved).every(([key, value]) => key === 'selected' || typeof value === 'number')));
 
 /** Native continuation over the same row-driven pouch used by the page. Native fire/reload owners remain unchanged. */
+const owners = new WeakMap<SimHost, NativeHeldAmmunition>();
+/** Borrow the quiver installed by the native equipment owner. */
+export function nativeHeldAmmunition(host: SimHost): NativeHeldAmmunition {
+  const owner = owners.get(host); if (owner === undefined) throw new Error('Missing native ammunition owner'); return owner;
+}
 export class NativeHeldAmmunition {
   private readonly quiver: AmmoPouch<string>;
   private readonly rows: LoadoutRows;
@@ -30,6 +35,8 @@ export class NativeHeldAmmunition {
     if (bolt.kind !== 'bolt' || cycle.kind !== 'cycle' || arrow.kind !== 'bow') throw new Error('Native loadout has incompatible families');
     this.ports = { crossbow: bolt.item, lever: cycle.item, longbow: arrow.item };
     this.bowCapacity = bow.profile.quiver; this.frame = bolt.frame;
+    if (owners.has(host)) throw new Error('Duplicate native ammunition owner');
+    owners.set(host, this); host.scope.onDispose(() => { owners.delete(host); });
   }
   get selected(): string { return this.quiver.selected; }
   count(kind: string): number {

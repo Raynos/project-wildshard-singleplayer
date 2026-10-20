@@ -19,7 +19,7 @@ import { fillNativeCombatFrame, type HeadlessRuntimeInstallation, type HeadlessR
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import PINE_TERRAIN from '../../../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import { prepareHeadlessRuntime } from '../../fixtures/pine-headless';
-import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
+import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/generators/questPrompts';
 import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
 import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
 import leadJson from '../../../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };

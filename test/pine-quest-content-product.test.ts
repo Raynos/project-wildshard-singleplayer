@@ -1,5 +1,5 @@
 import spots from '../src/shards/pine-hollow/data/spots.generated.json' with { type: 'json' };
-import { pineSpots } from '../src/shards/pine-hollow/runtime/quest';
+import { pineSpots } from '../src/shards/pine-hollow/generators/questPrompts';
 import { expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';

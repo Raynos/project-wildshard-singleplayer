@@ -9,7 +9,7 @@
     "@wildshard/game/plugin/nativeItems": ["installNativeItems", "observeNativeCombatMotion", "readItemInventory"],
     "@wildshard/game/plugin/simulation": ["bindNativeLoadout", "weaponRow"],
     "@wildshard/game/plugin/director": ["readDirectorProduct"],
-    "src/shards/pine-hollow/runtime/quest": ["PINE_INTERACT", "installHollowQuest", "pineSpots"],
+    "@wildshard/game/quest/nativeStory": ["prepareNativeStory", "installNativeStory"],
     "@wildshard/format/contracts": ["parseContractCatalogue"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
     "@wildshard/game/loot/exchange": ["parseExchange"],
@@ -29,6 +29,44 @@
     "@wildshard/game/quest/eliteFeature": ["installNativeEliteFeature", "readEliteFeature"]
   },
   "prepare": [
+    {
+      "name": "storyPolicy",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "json"
+            ]
+          },
+          {
+            "$ref": [
+              "product"
+            ]
+          },
+          "quests/native-story.json"
+        ]
+      }
+    },
+    {
+      "name": "storySpots",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "json"
+            ]
+          },
+          {
+            "$ref": [
+              "product"
+            ]
+          },
+          "quests/native-spots.json"
+        ]
+      }
+    },
     {
       "name": "bossView",
       "value": {
@@ -218,7 +256,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["@wildshard/game/plugin/director", "readDirectorProduct"]
+            "$ref": ["@wildshard/game/quest/nativeStory", "prepareNativeStory"]
           },
           {
             "$ref": ["product"]
@@ -664,7 +702,7 @@
                             {
                               "$call": [
                                 {
-                                  "$ref": ["quest", "takeRifle"]
+                                  "$ref": ["quest", "takePickup"]
                                 }
                               ]
                             },
@@ -925,107 +963,106 @@
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/pine-hollow/runtime/quest", "installHollowQuest"]
+            "$ref": [
+              "@wildshard/game/quest/nativeStory",
+              "installNativeStory"
+            ]
           },
           {
-            "$ref": ["host"]
+            "$ref": [
+              "host"
+            ]
           },
           {
+            "$ref": [
+              "product"
+            ]
+          },
+          {
+            "policy": {
+              "$ref": [
+                "storyPolicy"
+              ]
+            },
+            "spots": {
+              "$ref": [
+                "storySpots"
+              ]
+            },
             "content": {
-              "$ref": ["content"]
+              "table": {
+                "$ref": [
+                  "content",
+                  "table"
+                ]
+              },
+              "graph": {
+                "$ref": [
+                  "content",
+                  "graph"
+                ]
+              },
+              "interactions": {
+                "$ref": [
+                  "content",
+                  "interactions"
+                ]
+              },
+              "steps": {
+                "$ref": [
+                  "content",
+                  "steps"
+                ]
+              },
+              "readings": {
+                "$ref": [
+                  "content",
+                  "readings"
+                ]
+              },
+              "deaths": {
+                "$ref": [
+                  "content",
+                  "deaths"
+                ]
+              },
+              "lead": {
+                "$ref": [
+                  "content",
+                  "lead"
+                ]
+              },
+              "policy": {
+                "touchCount": {
+                  "$ref": [
+                    "content",
+                    "policy",
+                    "resinCount"
+                  ]
+                },
+                "readingDelay": {
+                  "$ref": [
+                    "content",
+                    "policy",
+                    "readingDelay"
+                  ]
+                }
+              }
             },
             "counters": {
-              "$ref": ["counters"]
+              "$ref": [
+                "counters"
+              ]
             },
-            "inventory": {
-              "$call": [
-                {
-                  "$ref": ["@wildshard/game/plugin/nativeItems", "readItemInventory"]
-                },
-                {
-                  "$ref": ["shard", "items"]
-                }
+            "contracts": {
+              "$ref": [
+                "contracts"
               ]
             },
             "trades": {
-              "$ref": ["trades"]
-            },
-            "contracts": {
-              "$ref": ["contracts"]
-            },
-            "director": {
-              "$ref": ["director"]
-            },
-            "quests": {
-              "$ref": ["shard", "quests"]
-            },
-            "spots": {
-              "$call": [
-                {
-                  "$ref": ["src/shards/pine-hollow/runtime/quest", "pineSpots"]
-                }
+              "$ref": [
+                "trades"
               ]
-            },
-            "commands": {
-              "$call": [
-                {
-                  "$ref": ["input", "scripts"]
-                },
-                [
-                  {
-                    "$ref": ["src/shards/pine-hollow/runtime/quest", "PINE_INTERACT"]
-                  },
-                  {
-                    "$ref": ["contracts", "id"]
-                  }
-                ]
-              ]
-            },
-            "fact": {
-              "$ref": ["input", "ledger", "fact"]
-            },
-            "coins": {
-              "$fn": {
-                "$ref": ["absent"]
-              }
-            },
-            "addBolts": {
-              "$ref": ["crossbow", "addBolts"]
-            },
-            "day": {
-              "$fn": {
-                "$ref": ["day"]
-              }
-            },
-            "night": {
-              "$fn": {
-                "$ref": ["day", "night"]
-              }
-            },
-            "takeKingReward": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["king", "takeReward"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  }
-                ]
-              }
-            },
-            "ammunition": {
-              "$ref": ["ammunition"]
-            },
-            "canSelectAmmo": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["loadout", "live"]
-                  },
-                  0
-                ]
-              }
             }
           }
         ]

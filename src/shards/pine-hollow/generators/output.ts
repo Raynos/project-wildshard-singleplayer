@@ -1,3 +1,5 @@
+import nativeStory from '../data/nativeStory.json' with { type: 'json' };
+import spots from '../data/spots.generated.json' with { type: 'json' };
 import { FOREST_PAGE_BLOB } from './forestPage';
 import { RANGED_PAGE_BLOBS } from './rangedPage';
 import { ROAMING_COMBAT_BLOB } from './roamingCombat';
@@ -92,7 +94,7 @@ const paintedRows=PINE_OUTPUT.custom['custom/paintedTextures'];
 const coverTextureIds=new Set([...coverAppearance.kinds.map(row=>row.texture),'endGrain','glow']);
 const coverTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>coverTextureIds.has(key)));
 const collectionTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>!coverTextureIds.has(key)));
-const clientJson=emitNamedBlobs([FOREST_PAGE_BLOB, ...RANGED_PAGE_BLOBS, ROAMING_COMBAT_BLOB, LIFE_WASM, nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
+const clientJson=emitNamedBlobs([nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(nativeStory))), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), FOREST_PAGE_BLOB, ...RANGED_PAGE_BLOBS, ROAMING_COMBAT_BLOB, LIFE_WASM, nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...elites, fights: eliteFights }))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
   nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WILDLIFE_DRAW))),
   nameBlob('look/native-view.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit })))),

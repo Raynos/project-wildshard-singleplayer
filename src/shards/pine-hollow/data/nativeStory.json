@@ -1,0 +1,208 @@
+{
+  "actor": "pine.interact",
+  "trade": "pine.trade",
+  "ammo": "pine.ammo",
+  "step": "pine.quest",
+  "eye": 1.68,
+  "launcher": 0,
+  "boss": "pine.king",
+  "cable": "pine.zipline",
+  "pack": "pack",
+  "cancel": -1,
+  "primary": "ranger",
+  "trader": "trader",
+  "latch": "dam-sluice",
+  "benchRow": "lookout-bench",
+  "bench": {
+    "forward": 0.2,
+    "height": 0.02,
+    "yaw": 3.141592653589793,
+    "pitch": 0.05,
+    "terrain": false,
+    "text": "You sit a while. The far country goes on and on, blue and then bluer."
+  },
+  "pickup": {
+    "flag": "owned:lever-rifle"
+  },
+  "touch": {
+    "prefix": "resin-",
+    "item": "amber-resin"
+  },
+  "finish": {
+    "id": "hollow-ash",
+    "claims": 3,
+    "ids": [
+      "hollow-ash",
+      "scarback-furnace"
+    ]
+  },
+  "lead": {
+    "step": "stag",
+    "target": "stag",
+    "nightAbove": 0.5
+  },
+  "clock": {
+    "night": 0.92,
+    "sunrise": 0.02,
+    "flags": [
+      "lit:pond",
+      "lit:ridge",
+      "lit:den"
+    ],
+    "wait": "wait:night",
+    "nightRequest": "night.request",
+    "step": "dawn",
+    "dawnRequest": "dawn.request",
+    "publications": [
+      {
+        "event": "night.consume",
+        "kind": "clear",
+        "flag": "wait:night"
+      },
+      {
+        "event": "night.start",
+        "kind": "phase",
+        "to": 0.92
+      },
+      {
+        "event": "dawn.sunrise",
+        "kind": "phase",
+        "to": 0.02
+      },
+      {
+        "event": "dawn.lanterns",
+        "kind": "flags",
+        "flags": [
+          "lit:pond",
+          "lit:ridge",
+          "lit:den"
+        ]
+      },
+      {
+        "event": "dawn.finish",
+        "kind": "flag",
+        "flag": "seen:dawn"
+      }
+    ]
+  },
+  "savedNames": {
+    "lead": "stag",
+    "clock": "dawn",
+    "cable": "zip",
+    "pickup": "rifle",
+    "board": "lodge",
+    "rewardOwned": "hollowAsh"
+  },
+  "actions": [
+    {
+      "value": 0,
+      "kind": "talk",
+      "target": "ranger"
+    },
+    {
+      "value": 1,
+      "kind": "row",
+      "target": "dam-log-a"
+    },
+    {
+      "value": 2,
+      "kind": "row",
+      "target": "dam-log-b"
+    },
+    {
+      "value": 3,
+      "kind": "row",
+      "target": "pond-glass"
+    },
+    {
+      "value": 4,
+      "kind": "row",
+      "target": "ridge-flint"
+    },
+    {
+      "value": 18,
+      "kind": "row",
+      "target": "lookout-bench"
+    },
+    {
+      "value": 19,
+      "kind": "talk",
+      "target": "miller"
+    },
+    {
+      "value": 20,
+      "kind": "talk",
+      "target": "trader"
+    },
+    {
+      "value": 10,
+      "kind": "row",
+      "target": "token-1"
+    },
+    {
+      "value": 11,
+      "kind": "row",
+      "target": "token-2"
+    },
+    {
+      "value": 12,
+      "kind": "row",
+      "target": "token-3"
+    },
+    {
+      "value": 13,
+      "kind": "row",
+      "target": "token-4"
+    },
+    {
+      "value": 14,
+      "kind": "row",
+      "target": "token-5"
+    },
+    {
+      "value": 15,
+      "kind": "row",
+      "target": "token-6"
+    },
+    {
+      "value": 16,
+      "kind": "row",
+      "target": "token-7"
+    },
+    {
+      "value": 17,
+      "kind": "row",
+      "target": "token-8"
+    },
+    {
+      "value": 8,
+      "kind": "cable"
+    },
+    {
+      "value": 9,
+      "kind": "pickup"
+    },
+    {
+      "value": 21,
+      "kind": "reward"
+    },
+    {
+      "value": 5,
+      "kind": "lantern",
+      "target": "pond",
+      "row": "lantern.pond"
+    },
+    {
+      "value": 6,
+      "kind": "lantern",
+      "target": "ridge",
+      "row": "lantern.ridge"
+    },
+    {
+      "value": 7,
+      "kind": "lantern",
+      "target": "den",
+      "row": "lantern.den"
+    }
+  ]
+}
