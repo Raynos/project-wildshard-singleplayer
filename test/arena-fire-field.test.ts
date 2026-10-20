@@ -1,5 +1,7 @@
 import { afterEach, expect, test } from 'vitest';
-import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Scene, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, MeshLambertMaterial, Scene, Vector3 } from 'three';
+import { parsePrivateScene } from '../src/format/clientChannels';
+import { ArenaSceneView } from '../src/game/boss/encounterView';
 import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
 import { overrideTerrain } from '../src/engine/world/Heightfield';
@@ -85,4 +87,31 @@ test('a second shard\'s dust devils ease in only while armed and live, spin thei
   expect(funnels[1]?.visible).toBe(false);
   view.reset(); expect(debris.count).toBe(0);
   expect(() => new ArenaWhirlsView(devils, ReturnProgram.page(program.wind), [new Group()], debris)).toThrow('funnel');
+});
+
+// The quarry's own dressing (the arena scene's fixture second user): a dust curtain that rises with its seal, a lit spoil
+// heap of instanced rocks and a scorch decal, each in its declared material.
+const curtain = parsePrivateScene({ version: 1, root: 'pit', materials: ['dust', 'rock', 'burn'].map(id => ({ kind: 'port', id, source: id })), nodes: [
+  { kind: 'group', id: 'pit', children: ['curtain', 'rocks', 'burnt'] },
+  { kind: 'mesh', id: 'curtain', geometry: 'ring', material: 'dust', missing: 'empty', visible: false },
+  { kind: 'mesh', id: 'rocks', geometry: 'rock', material: 'rock', missing: 'empty', instances: 4 },
+  { kind: 'mesh', id: 'burnt', geometry: 'rock', material: 'burn', missing: 'empty', instances: 2 }] });
+const box = (): Omit<ReturnType<BufferGeometry['toJSON']>, 'uuid'> => { const { uuid: _uuid, ...row } = new BufferGeometry().copy(new BoxGeometry()).toJSON(); return row; };
+const quarry = { scene: curtain, geometry: { ring: box(), rock: box() },
+  materials: { dust: { kind: 'fx', mode: 'stream', colour: [0.6, 0.5, 0.4], alpha: 0.7, additive: false }, rock: { kind: 'lambert', colour: 0x806040 },
+    burn: { kind: 'decal', colour: 0x101010, size: 2, alpha: [0, 0, 0, 255, 0, 0, 0, 128, 0, 0, 0, 64, 0, 0, 0, 0], opacity: 0.5, offset: -1 } },
+  wall: { parts: ['curtain'], spin: [2], at: [5, 6], sink: 1, ease: 10 } };
+
+test('a second shard\'s arena dresses in its own materials and raises its curtain only while sealed', () => {
+  restore = overrideTerrain({ heightAt: () => 4, normalAt: () => [0, 1, 0] });
+  const scene = new Scene(), view = new ArenaSceneView(scene, quarry), wall = view.mesh('curtain');
+  expect(view.instances('rocks').material).toBeInstanceOf(MeshLambertMaterial); expect(view.instances('burnt').material).toHaveProperty('opacity', 0.5);
+  expect(wall.position.toArray()).toEqual([5, 3, 6]);
+  view.update(0.05, 0, false); expect(wall.visible).toBe(false);
+  for (let i = 0; i < 20; i++) view.update(0.05, i * 0.05, true);
+  expect(wall.visible).toBe(true); expect(wall.scale.y).toBeGreaterThan(0.9); expect(wall.rotation.y).toBeCloseTo(2.1, 5);
+  for (let i = 0; i < 40; i++) view.update(0.05, 1 + i * 0.05, false);
+  expect(wall.visible).toBe(false);
+  expect(() => view.instances('curtain')).toThrow('instances');
+  expect(() => new ArenaSceneView(new Scene(), { ...quarry, materials: { ...quarry.materials, burn: { ...quarry.materials.burn, alpha: [0] } } })).toThrow('RGBA');
 });

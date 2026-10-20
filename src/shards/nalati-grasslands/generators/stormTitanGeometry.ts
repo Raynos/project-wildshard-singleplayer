@@ -1,7 +1,7 @@
 import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 import { parsePrivateScene, type PrivateScene, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import * as THREE from 'three';
-import { TITAN_PLACE } from './stormTitanFight';
+import { TITAN_ARENA, TITAN_PLACE } from './stormTitanFight';
 
 /** Retained original static construction. Pose, shader hooks and hazards stay live. */
 function rng(seed: number): () => number { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
@@ -176,7 +176,7 @@ export function titanPoseRows(): ClientChannelProgram[] {
 }
 
 /** All arena draw resources are owned by the admitted scene; no live geometry constructors. */
-export function titanArenaRows(radius: number, cell: number, grid: number): { scene: PrivateScene; geometry: Record<string, Omit<THREE.BufferGeometryJSON, 'uuid'>>; scorch: number[] } {
+export function titanArenaRows(radius: number, cell: number, grid: number): { scene: PrivateScene; geometry: Record<string, Omit<THREE.BufferGeometryJSON, 'uuid'>>; [row: string]: unknown } {
   const origin = new THREE.Vector3();
   const scorch = new THREE.PlaneGeometry(cell * 1.25, cell * 1.25); scorch.rotateX(-Math.PI / 2);
   const funnel = new THREE.LatheGeometry([[.9,0],[1.5,3],[2.6,7],[4.4,11],[6.4,14.5]].map(([x,y]) => new THREE.Vector2(x,y)),28);
@@ -196,7 +196,12 @@ export function titanArenaRows(radius: number, cell: number, grid: number): { sc
     const alpha = u<.7 ? 1-u/.7*.15 : .85*(1-(u-.7)/.3), at=(y*64+x)*4;
     pixels[at]=255; pixels[at+1]=255; pixels[at+2]=255; pixels[at+3]=Math.round(alpha*255);
   }
-  return { scene: parsePrivateScene({ version: 1, root: 'arena', nodes, materials: ['wall0','wall1','funnel','debris','scorch'].map(id => ({ kind: 'port', id, source: id })) }), geometry, scorch: [...pixels] };
+  // game/boss/encounterView ArenaSceneView: the storm wall's two veils rising with the seal, the funnels, the debris, the scorch
+  return { scene: parsePrivateScene({ version: 1, root: 'arena', nodes, materials: ['wall0','wall1','funnel','debris','scorch'].map(id => ({ kind: 'port', id, source: id })) }), geometry,
+    materials: { wall0: { kind: 'fx', mode: 'stream', colour: [.5,.53,.62], alpha: .85, additive: false }, wall1: { kind: 'fx', mode: 'stream', colour: [.66,.7,.8], alpha: .55, additive: false },
+      funnel: { kind: 'fx', mode: 'stream', colour: [.66,.62,.55], alpha: .75, additive: false }, debris: { kind: 'lambert', colour: 0x6a5a44 },
+      scorch: { kind: 'decal', colour: 0x0d0a08, size: 64, alpha: [...pixels], opacity: .88, offset: -2 } },
+    wall: { parts: ['wall0','wall1'], spin: [.35,-.22], at: [TITAN_ARENA.center.x, TITAN_ARENA.center.z], sink: 6, ease: 1.2 } };
 }
 
 /** Interpolation stays on the client; the script publishes only coarse fight observations. */

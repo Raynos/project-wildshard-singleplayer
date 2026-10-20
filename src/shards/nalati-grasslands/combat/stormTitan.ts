@@ -13,29 +13,16 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
-
-
-
-
-
-
-
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { installBossEncounter, type Boss } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
-
-import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
-
-
 import { wildEnv } from '@wildshard/game/population/pageGroups';
-
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { LightningStrip } from '@wildshard/game/weapons/arcPower';
 import { NaizagaiPower, type NaizagaiPowerHandle } from '../weapons/nativeMelee';
 import { ArenaField, ArenaEncounter, arenaBlockedAt, type ArenaClockEffect } from '@wildshard/game/boss/arenaField';
 import { ArenaFireView, ArenaWhirlsView } from '@wildshard/game/boss/arenaFire';
-import { createClientScene } from '@wildshard/game/plugin/ui';
-import { CloudBody } from '@wildshard/game/boss/encounterView';
+import { ArenaSceneView, CloudBody } from '@wildshard/game/boss/encounterView';
 import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import type { TitanFightData, TitanGeometryData } from './titanTypes';
@@ -52,8 +39,6 @@ export async function prepareStormTitan(product: Pick<ShardProduct, 'json'>): Pr
   prepared = { ...fight, geometry };
 }
 
-function isMesh(value: unknown): value is THREE.Mesh { return value instanceof THREE.Mesh; }
-function isInstances(value: unknown): value is THREE.InstancedMesh { return value instanceof THREE.InstancedMesh; }
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 const _ray = new THREE.Ray(), _sph = new THREE.Sphere(), _hitP = new THREE.Vector3();
@@ -69,14 +54,7 @@ export function titanCloud(scene: THREE.Scene, pose: ReturnType<typeof titanPose
     pose, new Map([['place', { ...data.TITAN_ARENA.titan, ground: heightAt(CAIRN.x, CAIRN.z) }]]));
 }
 
-// ─────────────────────────────── the arena: wall, whirlwinds, fire ───────────────────────────────
-
-
-
-
-
-
-
+// ─────────────────────────────── the fight ───────────────────────────────
 
 /** the BossScript: the Titan, his moves, the arena's hazards */
 export class StormTitanFight implements BossScript {
@@ -114,8 +92,7 @@ export class StormTitanFight implements BossScript {
   private readonly clocks: ArenaEncounter;
   private readonly whirls: ArenaWhirlsView;
   // the seal
-  private readonly wall: THREE.Mesh[]; private readonly wallMat: [FxMaterial,FxMaterial];
-  private wallK = 0; private sealed = false;
+  private readonly arena: ArenaSceneView; private sealed = false;
   private immuneT = 0; private introBolt = false;
   private hazardT = 0; private hazardDt = 0;
   private arenaReady = false; private arenaShield = false; private refusalMask = 0;
@@ -143,22 +120,10 @@ export class StormTitanFight implements BossScript {
     this.spearFork = new GroundTell(scene, 'ring', new THREE.Color(2.8, 2.6, 1.6));
     this.lanes = [0, 1, 2].map(() => new GroundTell(scene, 'lane', new THREE.Color(1.2, 2.2, 2.8)));
     this.chains = Array.from({ length: this.clocks.landings.length }, (_, i) => { const law = this.clocks.landings[i]; if (law === undefined) throw new Error('Missing arena landing'); return { tell: new GroundTell(scene, 'ring', new THREE.Color(2.4, 2.2, 1.4)), law }; });
-    this.wallMat = [fxMaterial(FX.stream, new THREE.Color(.5,.53,.62), .85, false), fxMaterial(FX.stream, new THREE.Color(.66,.7,.8), .55, false)];
-    const rows = this.data.geometry.arena, texture = new THREE.DataTexture(Uint8Array.from(rows.scorch),64,64);
-    texture.needsUpdate = true;
-    const scorch = new THREE.MeshBasicMaterial({ color: 0x0d0a08, alphaMap: texture, transparent: true, opacity: .88, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, fog: false });
-    scorch.name = 'titan-scorch';
-    const made = createClientScene(rows.scene, { geometry: new Map(Object.entries(rows.geometry).map(([id,row]) => [id,new THREE.BufferGeometryLoader().parse(row)])),
-      materials: new Map<string,THREE.Material>([['wall0',this.wallMat[0]],['wall1',this.wallMat[1]],['funnel',fxMaterial(FX.stream,new THREE.Color(.66,.62,.55),.75,false)],['debris',new THREE.MeshLambertMaterial({color:0x6a5a44})],['scorch',scorch]]) });
-    const mesh = (id: string): THREE.Mesh => { const object = made.parts.get(id); if (!isMesh(object)) throw new Error(`Missing Titan arena mesh ${id}`); return object; };
-    const instances = (id: string): THREE.InstancedMesh => { const object = mesh(id); if (!isInstances(object)) throw new Error(`Missing Titan arena instances ${id}`); return object; };
-    this.wall = [mesh('wall0'),mesh('wall1')];
-    for (const w of this.wall) w.position.set(this.data.TITAN_ARENA.center.x,heightAt(this.data.TITAN_ARENA.center.x,this.data.TITAN_ARENA.center.z)-6,this.data.TITAN_ARENA.center.z);
-    this.whirls = new ArenaWhirlsView(this.data.TITAN_WHIRLS, windLaw, [mesh('funnel0'), mesh('funnel1'), mesh('funnel2')], instances('debris'));
-    scene.add(made.root);
+    const arena = this.arena = new ArenaSceneView(scene, this.data.geometry.arena);
+    this.whirls = new ArenaWhirlsView(this.data.TITAN_WHIRLS, windLaw, [arena.mesh('funnel0'), arena.mesh('funnel1'), arena.mesh('funnel2')], arena.instances('debris'));
     this.fire = new ArenaFireView(scene, this.data.arenaFire, (TIER === 'phone' ? this.data.geometry.phone : this.data.geometry.desktop).flames);
-    this.fire.attachScorch(instances('scorch'));
-
+    this.fire.attachScorch(arena.instances('scorch'));
   }
 
   // ── BossScript ──
@@ -254,16 +219,7 @@ export class StormTitanFight implements BossScript {
         phase: this.phase, broke: Number(this.domeBroken), sealed: Number(this.sealed), fighting: Number(this.fighting) });
       this.arenaReady = arena['enter'] === 1; this.arenaShield = arena['open'] === 1; this.refusalMask = arena['mask'] ?? 0;
     }
-    // the wall rises / falls with the seal
-    this.wallK += ((this.sealed ? 1 : 0) - this.wallK) * Math.min(1, dt * 1.2);
-    for (let i = 0; i < this.wall.length; i++) {
-      const w = this.wall[i], m = this.wallMat[i];
-      if (w === undefined || m === undefined) continue;
-      w.visible = this.wallK > 0.02;
-      w.scale.y = Math.max(0.02, this.wallK);
-      w.rotation.y += dt * (i === 0 ? 0.35 : -0.22);
-      m.uniforms.uTime.value = t;
-    }
+    this.arena.update(dt, t, this.sealed);   // the wall rises / falls with the seal
     if (!b.visible && this.victoryT < 0) { this.updateFire(dt, t, false); return; }
     if (this.victoryT >= 0) { this.victoryT += dt; if (this.victoryT > 3.6) b.setVisible(false); }
     Object.assign(this.viewRead, { fighting: Number(fighting), victoryT: this.victoryT, phase: this.phase, domeBroken: Number(this.domeBroken), open: Number(this.heartOpen), flash: this.ctx.weather.weather.flash });

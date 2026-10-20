@@ -269,10 +269,33 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
 const triple = v.tuple([finite, finite, finite]), pair = v.tuple([finite, finite]);
+const hex = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff)), unit = v.pipe(finite, v.minValue(0), v.maxValue(1));
+/** An encounter material: a self-lit `basic` colour (additive, or faded to `opacity`), an FX program (`mode`, its
+ *  `alpha`, additive unless `additive` is false), a lit `lambert` colour (sRGB hex), or a ground `decal` (sRGB hex) cut
+ *  by its `size` × `size` RGBA `alpha` bytes at `opacity`, pulled `offset` toward the camera. */
 const material = v.variant('kind', [
-  v.strictObject({ kind: v.literal('basic'), colour: triple, additive: v.boolean(), opacity: v.exactOptional(v.pipe(finite, v.minValue(0), v.maxValue(1))) }),
-  v.strictObject({ kind: v.literal('fx'), mode: v.picklist(Object.keys(FX) as [keyof typeof FX, ...(keyof typeof FX)[]]), colour: triple, alpha: finite }),
+  v.strictObject({ kind: v.literal('basic'), colour: triple, additive: v.boolean(), opacity: v.exactOptional(unit) }),
+  v.strictObject({ kind: v.literal('fx'), mode: v.picklist(Object.keys(FX) as [keyof typeof FX, ...(keyof typeof FX)[]]), colour: triple, alpha: finite, additive: v.exactOptional(v.boolean()) }),
+  v.strictObject({ kind: v.literal('lambert'), colour: hex }),
+  v.strictObject({ kind: v.literal('decal'), colour: hex, size: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(256)), alpha: v.pipe(v.array(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(255))), v.maxLength(65536)),
+    opacity: unit, offset: finite }),
 ]);
+/** Build declared materials (the caller's scope owns their lifetime). */
+function encounterMaterials(rows: Readonly<Record<string, v.InferOutput<typeof material>>>): Map<string, THREE.Material> {
+  const made = new Map<string, THREE.Material>();
+  for (const [key, row] of Object.entries(rows)) {
+    if (row.kind === 'fx') made.set(key, fxMaterial(FX[row.mode], new THREE.Color(...row.colour), row.alpha, row.additive ?? true));
+    else if (row.kind === 'lambert') made.set(key, new THREE.MeshLambertMaterial({ color: row.colour }));
+    else if (row.kind === 'decal') {
+      if (row.alpha.length !== row.size * row.size * 4) throw new Error(`Decal ${key} needs size × size RGBA bytes`);
+      const alphaMap = new THREE.DataTexture(Uint8Array.from(row.alpha), row.size, row.size); alphaMap.needsUpdate = true;
+      made.set(key, new THREE.MeshBasicMaterial({ color: row.colour, alphaMap, transparent: true, opacity: row.opacity, depthWrite: false, fog: false,
+        polygonOffset: true, polygonOffsetFactor: row.offset, polygonOffsetUnits: row.offset }));
+    } else made.set(key, new THREE.MeshBasicMaterial({ color: new THREE.Color(...row.colour), toneMapped: false, fog: false, ...(row.additive ? { blending: THREE.AdditiveBlending, depthWrite: false } : {}),
+      ...(row.opacity === undefined ? {} : { transparent: true, opacity: row.opacity }) }));
+  }
+  return made;
+}
 const puffRow = v.strictObject({ bone: id, p: triple, r: finite, ph: finite, colour: triple });
 /**
  * A cloud body: `scene` and its `geometry` (`materials` by port id: a self-lit basic colour or an FX program), posed by
@@ -306,18 +329,13 @@ export class CloudBody {
   readonly puffs: THREE.InstancedMesh;
   private readonly list: Puff[];
   private readonly draw: ReturnType<typeof installChannelPrograms>;
-  private readonly made = new Map<string, THREE.Material>();
+  private readonly made: Map<string, THREE.Material>;
   private readonly focusMaterial: THREE.Material; private readonly glowMaterial: THREE.Material;
   private readonly ringMaterial: THREE.Material; private readonly domeMaterial: THREE.Material;
   private time = 0;
   constructor(scene: THREE.Scene, input: unknown, private readonly pose: Readonly<Record<string, number>>, ports: ReadonlyMap<string, unknown> = new Map()) {
     const rows = this.rows = v.parse(CloudBodySchema, input);
-    for (const [key, row] of Object.entries(rows.materials)) {
-      const colour = new THREE.Color(...row.colour);
-      this.made.set(key, row.kind === 'fx' ? fxMaterial(FX[row.mode], colour, row.alpha)
-        : new THREE.MeshBasicMaterial({ color: colour, toneMapped: false, fog: false, ...(row.additive ? { blending: THREE.AdditiveBlending, depthWrite: false } : {}),
-          ...(row.opacity === undefined ? {} : { transparent: true, opacity: row.opacity }) }));
-    }
+    this.made = encounterMaterials(rows.materials);
     const loader = new THREE.BufferGeometryLoader();
     const built = createClientScene(rows.scene, { geometry: new Map(Object.entries(rows.geometry).map(([key, row]) => [key, loader.parse(row)])), materials: this.made });
     this.parts = built.parts;
@@ -383,4 +401,44 @@ export class CloudBody {
     throw new Error(`Cloud body part ${part} wears no declared material`);
   }
 }
+function isMesh(value: unknown): value is THREE.Mesh { return value instanceof THREE.Mesh; }
+function isInstances(value: unknown): value is THREE.InstancedMesh { return value instanceof THREE.InstancedMesh; }
 function isFx(made: THREE.Material): made is FxMaterial { return made instanceof THREE.ShaderMaterial && 'uAlpha' in made.uniforms && 'uTime' in made.uniforms; }
+
+/**
+ * An arena's dressing: `scene` and its `geometry` in declared `materials`, and its seal `wall` (those parts, standing at
+ * `at` `sink` m into the ground) that rises with the seal at `ease`/s, each part spinning at its own `spin` rad/s.
+ */
+export const ArenaSceneSchema = v.strictObject({
+  scene: v.unknown(), geometry: v.record(id, v.unknown()), materials: v.record(id, material),
+  wall: v.strictObject({ parts: v.pipe(v.array(id), v.maxLength(8)), spin: v.pipe(v.array(finite), v.maxLength(8)), at: pair, sink: finite, ease: finite }),
+});
+/** The arena's dressing built from rows; the caller lends its parts to the hazards that move them. */
+export class ArenaSceneView {
+  private readonly rows: v.InferOutput<typeof ArenaSceneSchema>;
+  private readonly parts: ReadonlyMap<string, THREE.Object3D>;
+  private readonly wall: { readonly part: THREE.Object3D; readonly spin: number; readonly time: THREE.IUniform<number> | null }[];
+  private rise = 0;
+  constructor(scene: THREE.Scene, input: unknown) {
+    const rows = this.rows = v.parse(ArenaSceneSchema, input), loader = new THREE.BufferGeometryLoader();
+    const built = createClientScene(rows.scene, { geometry: new Map(Object.entries(rows.geometry).map(([key, row]) => [key, loader.parse(row)])), materials: encounterMaterials(rows.materials) });
+    this.parts = built.parts;
+    const [x, z] = rows.wall.at;
+    this.wall = rows.wall.parts.map((key, i) => {
+      const part = this.mesh(key), worn = part.material;
+      part.position.set(x, heightAt(x, z) - rows.wall.sink, z);
+      return { part, spin: rows.wall.spin[i] ?? 0, time: worn instanceof THREE.Material && isFx(worn) ? worn.uniforms.uTime : null };
+    });
+    scene.add(built.root);
+  }
+  mesh(key: string): THREE.Mesh { const part: unknown = this.parts.get(key); if (!isMesh(part)) throw new Error(`Missing arena mesh ${key}`); return part; }
+  instances(key: string): THREE.InstancedMesh { const part: unknown = this.mesh(key); if (!isInstances(part)) throw new Error(`Missing arena instances ${key}`); return part; }
+  /** the wall rises while `sealed` and sinks away after */
+  update(dt: number, t: number, sealed: boolean): void {
+    this.rise += ((sealed ? 1 : 0) - this.rise) * Math.min(1, dt * this.rows.wall.ease);
+    for (const w of this.wall) {
+      w.part.visible = this.rise > 0.02; w.part.scale.y = Math.max(0.02, this.rise); w.part.rotation.y += dt * w.spin;
+      if (w.time !== null) w.time.value = t;
+    }
+  }
+}

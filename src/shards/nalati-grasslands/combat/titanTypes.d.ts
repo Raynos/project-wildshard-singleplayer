@@ -37,5 +37,6 @@ export interface TitanGeometryData {
   /** game/boss/encounterView CloudBody rows less the eyes, poses and tier puffs the fight adds */
   body: { geometry: Record<string, Geometry>; puffs: object } & Record<string, unknown>;
   poses: ClientChannelProgram[];
-  arena: { scene: PrivateScene; geometry: Record<string,Geometry>; scorch: number[] };
+  /** game/boss/encounterView ArenaSceneView rows */
+  arena: unknown;
 }
