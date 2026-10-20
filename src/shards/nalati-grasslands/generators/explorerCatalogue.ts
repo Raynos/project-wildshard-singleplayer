@@ -1,3 +1,5 @@
+import ecology from '../data/ecology.generated.json' with {type:'json'};
+import cover from '../data/cover.generated.json' with {type:'json'};
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 
 /** Ordered references retain the original native specimen order. */
@@ -41,9 +43,7 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
       "model": "nalati-grasslands/sheep"
     },
     {
-      "kind": "library",
-      "library": "native",
-      "model": "nalati-grasslands/marmot"
+      "kind":"specimen","books":{"phone":"models/cover-phone.json","desktop":"models/cover-desktop.json"},"model":"marmot","copies":(ecology.wildlife.marmots?.sites??0)*4,"drawnAs":"instanced"
     },
     {
       "kind": "species",
@@ -119,6 +119,8 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
         "hunyuan",
         "code"
       ]
-    }
+    },
+    {kind:'library',library:'native',model:'nalati-grasslands/storm-titan'},
+    ...(['butterfly','raptor']as const).map(model=>({kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model,drawnAs:'instanced',tierCopies:model==='raptor'?{phone:cover.raptors,desktop:cover.raptors}:cover.butterflies})),
   ]
 });

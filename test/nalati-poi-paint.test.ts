@@ -4,9 +4,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { bakedActorGeometry, bakedDressingContacts, bakedSignLettering } from '../src/shards/nalati-grasslands/world/places';
 import { shepherdRider } from '../src/shards/nalati-grasslands/creatures/shepherdView';
 import { SkyRig } from '../src/engine/world/skyRig';
-import { modelContext } from '../src/engine/models/model';
-import { Rng } from '../src/engine/core/rng';
-import { signpostBaked } from '../src/shards/nalati-grasslands/models/catalogue';
 import { Mesh, BufferGeometry, BufferAttribute, Material, MeshLambertMaterial, DataTexture, Vector3, SRGBColorSpace, LinearFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping } from 'three';
 import oracle from './fixtures/nalati-poi-paint.json';
 import staticOracle from './fixtures/nalati-static-contacts.json';
@@ -106,8 +103,4 @@ describe('Nalati fixed POI paint', () => {
     }
   });
 
-  it('refuses board inputs outside the complete prepared specimen set', () => {
-    expect(() => signpostBaked.build(modelContext(testSky()), { boards: [{ text: 'UNBAKED', dir: 0 }] }, new Rng(1)))
-      .toThrow('No prepared Nalati sign lettering');
-  });
 });

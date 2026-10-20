@@ -24,6 +24,7 @@ export const ExplorerCatalogueSchema = v.pipe(v.unknown(), v.check(isJsonData, '
     v.strictObject({ ...meta, kind: v.literal('scene'), part: text }),
     v.strictObject({ ...meta, kind: v.literal('library'), library: text, model: text }),
     v.strictObject({ ...meta, kind: v.literal('posed'), file: text }),
+    v.strictObject({ ...meta, kind: v.literal('specimen'), books:v.strictObject({phone:text,desktop:text}), model:text,tierCopies:v.exactOptional(v.strictObject({phone:count,desktop:count})) }),
     v.strictObject({ ...meta, kind: v.literal('engine'), model: v.picklist(['swim-hands', 'training-dummy', 'hoverboard']) }),
   ])), v.maxLength(256)) }),
   v.check(rows => { const ids = rows.entries.flatMap(row => row.id === undefined ? [] : [row.id]); return new Set(ids).size === ids.length; }, 'Duplicate Explorer identity'));

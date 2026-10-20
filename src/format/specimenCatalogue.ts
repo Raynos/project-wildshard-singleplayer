@@ -52,3 +52,6 @@ export const PickupCatalogueSchema = v.strictObject({
   })), v.maxLength(64)),
 });
 
+
+/** Cold Explorer declarations borrow the same prepared specimen source as world presentation. */
+export const SpecimenBookSchema=v.pipe(v.unknown(),v.check(isJsonData),v.strictObject({rows:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,materials:v.record(text,SpecimenMaterialSchema)}));

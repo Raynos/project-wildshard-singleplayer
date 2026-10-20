@@ -14,7 +14,7 @@ import { createPackedSpecimens, defineSpecimenCatalogue, specimenMaterial } from
 import { PackedSpecimenSchema } from '../src/sdk/kit/specimenSchemas';
 import packedRows from '../src/shards/nalati-grasslands/data/placeSpecimens.json' with { type: 'json' };
 import campMaterialRows from '../src/shards/nalati-grasslands/data/campMaterials.json' with { type: 'json' };
-import * as camp from '../src/shards/nalati-grasslands/models/catalogue';
+import type { CatalogueParams } from '../src/shards/nalati-grasslands/boot/specimenParams.generated';
 import * as trail from '../src/shards/driftwood-isle/models/catalogue';
 import campData from '../src/shards/nalati-grasslands/boot/specimens.generated.json' with { type: 'json' };
 import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' with { type: 'json' };
@@ -30,6 +30,8 @@ import { pathRampDescs } from '../src/engine/physics/paths';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
 
+const campCatalogue=defineSpecimenCatalogue<CatalogueParams>(campData.catalogue,campData.packed,campData.materials);
+const camp={feltRug:campCatalogue.model('feltRug'),yurt:campCatalogue.model('yurt'),campClutter:campCatalogue.model('campClutter'),herdHorse:campCatalogue.model('herdHorse'),kazan:campCatalogue.model('kazan')};
 function testSky(): SkyRig {
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing test sky');

@@ -1,3 +1,7 @@
+import { parse } from 'valibot';
+import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
+import { TIER } from '@wildshard/engine/core/tier';
+import { defineSpecimenCatalogue } from './specimenCatalogue';
 /** Client-only Model Explorer adapter. Ordered data selects the existing model
  * contract; the authoritative simulation never imports this module. */
 import { HeldClaims } from '../loadout/claims';
@@ -32,6 +36,7 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
   const definitions = sourceKinds ? sceneModelDefinitions(product) : [];
   const prepare = (): Promise<void> => prepareSceneSpecimens(product);
   const entries: RosterEntry[] = [];
+  const preparedSpecimens=new Map<string,ReturnType<typeof defineSpecimenCatalogue<Record<string,object>>>>();
   for (const row of rows.entries) {
     if (row.kind === 'species') {
       const programs = product.has('actors/species-programs') ? product.section('actors/species-programs') : undefined;
@@ -72,6 +77,10 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
       const model = declaredNpcSpecimen(product, match);
       if (model === undefined) throw refusal(product, row, 'NPC model is absent');
       entries.push({ ...present(model, row), prepare });
+    } else if(row.kind==='specimen'){
+      const file=row.books[TIER];let catalogue=preparedSpecimens.get(file);
+      if(catalogue===undefined){const book=parse(SpecimenBookSchema,await product.json<unknown>(file));catalogue=defineSpecimenCatalogue<Record<string,object>>(book.rows,book.packed,book.materials);preparedSpecimens.set(file,catalogue);}
+      const copies=row.tierCopies?.[TIER];entries.push(present(catalogue.model(row.model),copies===undefined?row:{...row,copies}));
     } else if (row.kind === 'posed') {
       // The native transition already admits this existing posed library. Select
       // its actual definitions by id without duplicating its format or builder.
