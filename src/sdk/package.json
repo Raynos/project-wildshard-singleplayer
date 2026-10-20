@@ -16,11 +16,7 @@
     "./headlessProduct": "./headlessProduct.ts",
     "./outputRuntime": "./outputRuntime.ts",
     "./outputCatalog": "./outputCatalog.ts",
-    "./playerModeData": "./playerModeData.ts",
-    "./runtime/movers": "./runtime/movers.ts",
     "./runtime/audio/combatCues": "./runtime/audio/combatCues.ts",
-    "./runtime/viewmodel/armClips": "./runtime/viewmodel/armClips.ts",
-    "./runtime/viewmodel/rigArms": "./runtime/viewmodel/rigArms.ts",
     "./reportCard": "./reportCard.ts",
     "./crowds": "./crowds.ts",
     "./species": "./species.ts",
@@ -69,24 +65,18 @@
     "./weapons/meleeProfile": "./weapons/meleeProfile.ts",
     "./weapons/thrownProfile": "./weapons/thrownProfile.ts",
     "./bake/world": "./bake/world.ts",
-    "./runtime/weapons/Bow": "./runtime/weapons/Bow.ts",
     "./weapons/bowProfile": "./weapons/bowProfile.ts",
-    "./runtime/weapons/SweptMelee": "./runtime/weapons/SweptMelee.ts",
     "./bake/textureWasm": "./bake/textureWasm.ts",
     "./bake/worldLod": "./bake/worldLod.ts",
     "./socketLift": "./socketLift.ts",
-    "./runtime/weapons/starterGlyphs": "./runtime/weapons/starterGlyphs.ts",
-    "./runtime/weapons/starterEquipment": "./runtime/weapons/starterEquipment.ts",
     "./runtime/weapons/starterMoves": "./runtime/weapons/starterMoves.ts",
     "./runtime/weapons/starterMeleeProfile": "./runtime/weapons/starterMeleeProfile.ts",
-    "./runtime/weapons/starterBowProfile": "./runtime/weapons/starterBowProfile.ts",
     "./runtime/weapons/Sword": "./runtime/weapons/Sword.ts",
     "./runtime/weapons/starterBow": "./runtime/weapons/starterBow.ts",
     "./bake/worldCollision": "./bake/worldCollision.ts",
     "./bake/nativeLattice": "./bake/nativeLattice.ts",
     "./bake/worldRows": "./bake/worldRows.ts",
     "./bake/staticMaterials": "./bake/staticMaterials.ts",
-    "./bag": "./bag.ts",
     "./runtime/effects": "./runtime/effects.ts",
     "./runtime/audio/weaponVoices": "./runtime/audio/weaponVoices.ts",
     "./runtime/audio/silentScore": "./runtime/audio/silentScore.ts",
@@ -208,25 +198,9 @@
         "types": "./dist/types/sdk/outputCatalog.d.ts",
         "default": "./dist/outputCatalog.js"
       },
-      "./playerModeData": {
-        "types": "./dist/types/sdk/playerModeData.d.ts",
-        "default": "./dist/playerModeData.js"
-      },
-      "./runtime/movers": {
-        "types": "./dist/types/sdk/runtime/movers.d.ts",
-        "default": "./dist/runtime/movers.js"
-      },
       "./runtime/audio/combatCues": {
         "types": "./dist/types/sdk/runtime/audio/combatCues.d.ts",
         "default": "./dist/runtime/audio/combatCues.js"
-      },
-      "./runtime/viewmodel/armClips": {
-        "types": "./dist/types/sdk/runtime/viewmodel/armClips.d.ts",
-        "default": "./dist/runtime/viewmodel/armClips.js"
-      },
-      "./runtime/viewmodel/rigArms": {
-        "types": "./dist/types/sdk/runtime/viewmodel/rigArms.d.ts",
-        "default": "./dist/runtime/viewmodel/rigArms.js"
       },
       "./reportCard": {
         "types": "./dist/types/sdk/reportCard.d.ts",
@@ -420,17 +394,9 @@
         "types": "./dist/types/sdk/bake/world.d.ts",
         "default": "./dist/bake/world.js"
       },
-      "./runtime/weapons/Bow": {
-        "types": "./dist/types/sdk/runtime/weapons/Bow.d.ts",
-        "default": "./dist/runtime/weapons/Bow.js"
-      },
       "./weapons/bowProfile": {
         "types": "./dist/types/sdk/weapons/bowProfile.d.ts",
         "default": "./dist/weapons/bowProfile.js"
-      },
-      "./runtime/weapons/SweptMelee": {
-        "types": "./dist/types/sdk/runtime/weapons/SweptMelee.d.ts",
-        "default": "./dist/runtime/weapons/SweptMelee.js"
       },
       "./bake/textureWasm": {
         "types": "./dist/types/sdk/bake/textureWasm.d.ts",
@@ -444,14 +410,6 @@
         "types": "./dist/types/sdk/socketLift.d.ts",
         "default": "./dist/socketLift.js"
       },
-      "./runtime/weapons/starterGlyphs": {
-        "types": "./dist/types/sdk/runtime/weapons/starterGlyphs.d.ts",
-        "default": "./dist/runtime/weapons/starterGlyphs.js"
-      },
-      "./runtime/weapons/starterEquipment": {
-        "types": "./dist/types/sdk/runtime/weapons/starterEquipment.d.ts",
-        "default": "./dist/runtime/weapons/starterEquipment.js"
-      },
       "./runtime/weapons/starterMoves": {
         "types": "./dist/types/sdk/runtime/weapons/starterMoves.d.ts",
         "default": "./dist/runtime/weapons/starterMoves.js"
@@ -459,10 +417,6 @@
       "./runtime/weapons/starterMeleeProfile": {
         "types": "./dist/types/sdk/runtime/weapons/starterMeleeProfile.d.ts",
         "default": "./dist/runtime/weapons/starterMeleeProfile.js"
-      },
-      "./runtime/weapons/starterBowProfile": {
-        "types": "./dist/types/sdk/runtime/weapons/starterBowProfile.d.ts",
-        "default": "./dist/runtime/weapons/starterBowProfile.js"
       },
       "./runtime/weapons/Sword": {
         "types": "./dist/types/sdk/runtime/weapons/Sword.d.ts",
@@ -487,10 +441,6 @@
       "./bake/staticMaterials": {
         "types": "./dist/types/sdk/bake/staticMaterials.d.ts",
         "default": "./dist/bake/staticMaterials.js"
-      },
-      "./bag": {
-        "types": "./dist/types/sdk/bag.d.ts",
-        "default": "./dist/bag.js"
       },
       "./runtime/effects": {
         "types": "./dist/types/sdk/runtime/effects.d.ts",

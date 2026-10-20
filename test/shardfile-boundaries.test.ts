@@ -14,7 +14,7 @@ const violations = (file: string, source: string, rule: string) => shardfileBoun
 const closed = (source: string) => violations(runtime, source, 'runtime-standalone');
 
 test('runtime accepts its own TS and published packages, never private or author packages', () => {
-  expect(closed("import './nested/helper'; import './const.ts'; import 'three'; import 'valibot'; import '@wildshard/engine/physics/query'; import '@wildshard/game/plugin/simulation'; import '@wildshard/sdk/runtime/movers';")).toEqual([]);
+  expect(closed("import './nested/helper'; import './const.ts'; import 'three'; import 'valibot'; import '@wildshard/engine/physics/query'; import '@wildshard/game/plugin/simulation'; import '@wildshard/sdk/movers';")).toEqual([]);
   expect(closed("import '@wildshard/engine/not-public'; import '@wildshard/commons/props'; import 'node:fs'; import '../../../engine/physics/query';")).toHaveLength(4);
 });
 

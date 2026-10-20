@@ -61,8 +61,7 @@ as `@wildshard/engine/combat/effects/EffectService.bindPlayerEffects`. It owns s
 status movement / periodic-damage / death bindings, with no second kit wrapper,
 HUD changes or import-time installation. `StatusMovement` derives from that port.
 
-`@wildshard/sdk/bag.normalizeItemRow` is the trusted facade for the existing
-`@wildshard/game/bag/items` normalizer. Starter harvest content is authored once in
+`@wildshard/game/bag/items.normalizeItemRow` normalizes registered bag rows. Starter harvest content is authored once in
 `game/bag/starterItems.json` and expanded by `pnpm gen` into
 `game/bag/starter.generated.ts`; boot installs those rows explicitly. No import
 registers a row.
@@ -2694,7 +2693,7 @@ The composition root installs the gold coin geometry recipe with `installCoinMod
 
 ### Declared platform movers
 
-`@wildshard/sdk/runtime/movers` exposes the declared platform owner to shard runtime code.
+`@wildshard/game/shardfile/moverRuntime` defines the declared platform owner.
 `installDeclaredMovers` admits guest modules and installs scoped page fixed steps; views read published poses.
 `verifiedMoverModules` detaches and SHA-256-checks admitted bytes before page or native construction.
 `MoverScriptDriver` on `@wildshard/game/plugin/mover` supplies a consuming role and schedule to the generic
@@ -2723,8 +2722,8 @@ The optional snapshot player `traversals` retains the registry's last claimed id
 the freshly installed traversal declarations. Restore publishes their active modes without invoking motion;
 inactive hosts omit the field and keep existing bytes. `PlayerModes.snapshotTraversals` / `restoreTraversals`
 only transfer those identities; the traversal's own clocks and targets remain its adapter's responsibility.
-`@wildshard/sdk/playerModeData` exposes `MOTOR_MODE_MECHANISMS`, the pure manifest declaration for the fixed
-swim/wade and hoverboard modes, defined by `@wildshard/engine/player/modeData`.
+`@wildshard/engine/player/modeData.MOTOR_MODE_MECHANISMS` is the pure manifest declaration for the fixed
+swim/wade and hoverboard modes.
 `usePlayerDriver({ input, step })` binds one scoped motion law to an owned host with a player motor.
 `input(command, dt, host)` runs before the one native physics step; true delegates the player to
 `step(dt, host)` after physics, skipping the ordinary walk/board/dodge/jump. False runs the ordinary
