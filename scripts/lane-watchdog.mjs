@@ -49,7 +49,7 @@ function gitCommits(history) {
  * Includes Claude/Codex prompt glyphs and indented wrapped message lines.
  * @param {string} text */
 function incomingMessages(text) {
-  return [...text.matchAll(/^(?:[ \t]*[❯›][ \t]+)?\[from (sp-x\d+|wildshard-new)\][ \t]+([^\n]*(?:\n(?![ \t]*\[from )[ \t]{2,}[^\n]+)*)/gmu)]
+  return [...text.matchAll(/^(?:[ \t]*[❯›][ \t]+)?\[from (sp-[xo]\d+|wildshard-new)\][ \t]+([^\n]*(?:\n(?![ \t]*\[from )[ \t]{2,}[^\n]+)*)/gmu)]
     .map(match => ({ sender: match.at(1), body: (match.at(2) ?? '').replaceAll(/\s+/gu, ' ').trim() }));
 }
 
@@ -83,7 +83,7 @@ export function latestLaneCommit(history, text, name, pane, ledger, previous = '
   return commits.find(commit => {
     const explicit = [commit.author, ...commit.body.split('\n').filter(line => /^(?:Assisted-by|Lane|Agent):/u.test(line))];
     return reported.has(commit.sha) || ledger.get(commit.sha) === pane
-      || explicit.some(line => line.match(/\bsp-x\d+\b/gu)?.includes(name));
+      || explicit.some(line => line.match(/\bsp-[xo]\d+\b/gu)?.includes(name));
   });
 }
 
@@ -137,7 +137,7 @@ async function poll() {
     }),
   ]);
   const agents = v.parse(agentsSchema, JSON.parse(listed)).result.agents;
-  const laneAgents = agents.filter(agent => agent.name !== undefined && /^sp-x\d+$/u.test(agent.name));
+  const laneAgents = agents.filter(agent => agent.name !== undefined && /^sp-[xo]\d+$/u.test(agent.name));
   /** @type {Map<string, string | undefined>} */
   const texts = new Map();
   const coordinator = agents.find(agent => agent.name === 'wildshard-new');
@@ -164,7 +164,7 @@ async function poll() {
   const now = Date.now(), live = new Set();
   for (const agent of agents) {
     const name = agent.name;
-    if (name === undefined || !/^sp-x\d+$/u.test(name)) continue;
+    if (name === undefined || !/^sp-[xo]\d+$/u.test(name)) continue;
     live.add(name);
     const identity = `${agent.pane_id}:${agent.agent_session?.value ?? ''}`;
     const status = agent.agent_status === 'idle' || agent.agent_status === 'done' ? 'idle/done' : agent.agent_status;
