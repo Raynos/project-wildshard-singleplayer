@@ -10,8 +10,7 @@ import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/len
 import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
 import { PANO_RIDGE_V } from './panoramaData';
 import { gradeUniforms } from './grade';
-import { tintUniforms, updateTint } from './tint';
-import { fogLut } from './fog';
+import { fogLut, tint } from './fog';
 import { LightCheat } from './light';
 import { grassV2Uniforms, grassMood, terrainHeightTexture } from './field';
 import { createStaticCapture, PHONE_STATIC_OFF_CSM } from './capture';
@@ -60,7 +59,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     if (old instanceof THREE.Material) old.dispose();
   }
   const rigDome = weather.rig.dome;
-  const graphUniforms = Object.entries({ ...gradeUniforms, ...tintUniforms }).filter(([key]) => key !== 'uV2LookSat');
+  const graphUniforms = Object.entries({ ...gradeUniforms, uV2KeyTint: tint.key, uV2Moon: tint.moon, uV2Light: tint.light, uV2Veil: tint.veil, uV2VeilCol: tint.veilColour, uV2Flash: tint.flash }).filter(([key]) => key !== 'uV2LookSat');
   const cheat = new LightCheat(sky, game.level.grade.saturation);
   // step 6: the static casters' shadows + contact shade, baked (bake.ts) — re-baked as the key swings
   const bake = createStaticCapture(game.renderer, game.scene, terrainHeightTexture(), scope);
@@ -77,7 +76,6 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     sweepT -= dt;
     if (sweepT <= 0) { sweepT = 2; bake.sweep(); } // streamed-in casters join the bake (and leave the phone's CSM)
     const look = weather.look, w = weather.weather;
-    updateTint(look, w);
     cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)
     bake.update(sky.sunDir); // step 6: after the cheat, so the baked shadows fall from the key
     setLentParam('nalati-panorama', 'uSunNow', look.sunDir.toArray());

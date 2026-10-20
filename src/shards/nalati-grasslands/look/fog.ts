@@ -14,12 +14,16 @@
 import * as THREE from 'three';
 import { headingTexture } from '@wildshard/engine/render/dataLook';
 import { ColourRampFog } from '@wildshard/engine/world/Atmosphere';
-import { tintUniforms } from './tint';
 import { ungrade } from './grade';
 import { PANO_FOG_SRGB } from './panoramaData';
 
 /** the LUT: scene-linear (already un-graded), half float, RepeatWrapping on the azimuth */
 export const fogLut = headingTexture({ samples: PANO_FOG_SRGB, stride: 3, half: true, map: (y) => { ungrade(y); }, name: 'nalati-fog-lut' });
+
+/** The painting's live re-grade (the hour and the weather), shared by the panorama dome, the cloud sea and this fog: written
+ *  each frame by the `nalati.tint` channel rows (generators/weatherChannels.ts). */
+export const tint = { key: { value: new THREE.Color(1, 1, 1) }, moon: { value: 0 }, light: { value: new THREE.Color(1, 1, 1) }, veil: { value: 0 },
+  veilColour: { value: new THREE.Color(0.2, 0.21, 0.26) }, flash: { value: 0 } };
 
 /**
  * The painted fog. aerial: x = density (1/m), y = clear distance (m), z = the valley floor's height (m, the height
@@ -34,5 +38,5 @@ export const fogLut = headingTexture({ samples: PANO_FOG_SRGB, stride: 3, half: 
  */
 export const paintedFog = new ColourRampFog({ start: 30, end: 600, near: [0.2, 0.21, 0.26], zenith: [0.2, 0.21, 0.26], panorama: {
   lut: { value: fogLut }, aerial: { value: new THREE.Vector4(0.0032, 30, -10, 0.002) }, edge: { value: new THREE.Vector4(0.95, 251, 270, 20) },
-  tint: { key: tintUniforms.uV2KeyTint, moon: tintUniforms.uV2Moon, light: tintUniforms.uV2Light, veil: tintUniforms.uV2Veil, veilColour: tintUniforms.uV2VeilCol, flash: tintUniforms.uV2Flash },
+  tint,
 } });

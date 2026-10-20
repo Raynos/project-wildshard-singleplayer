@@ -43,9 +43,10 @@ colour('highTint',[.95,.98,1.05],s,1,(base,index)=>['if',['gt',after,0],['lerp',
 for(const name of ['volStrength','godRays'])scalar(name,['*',field(name),['-',1,s]]);
 recipes.push(['fogDist',['+',field('fogDist'),['+',['*',.002,s],['*',.009,rain]]]],['fogHeightDensity',['+',field('fogHeightDensity'),['*',.003,rain]]]);
 
-/** Build-only scalar lowering; all runtime arithmetic remains the existing client-channel DAG. */
-function program(name:string,expression:Expr):ClientChannelProgram{
- const out=new ClientChannels(`nalati.weather.${name}`),nodes=new Map<string,number>();
+/** Build-only scalar lowering; all runtime arithmetic remains the existing client-channel DAG. `look.*` reads borrow the
+ *  look; every other read is the frame's observation. */
+function program(name:string,expression:Expr,group='weather',target='look',path=name.split('.')):ClientChannelProgram{
+ const out=new ClientChannels(`nalati.${group}.${name}`),nodes=new Map<string,number>();
  function lower(expr:Expr):number{
   const key=JSON.stringify(expr),found=nodes.get(key);if(found!==undefined)return found;
   let node:number;
@@ -64,6 +65,31 @@ function program(name:string,expression:Expr):ClientChannelProgram{
   nodes.set(key,node);return node;
  }
  out.output('value',lower(expression));const row=out.build();
- return parseClientChannels([{...row,numeric:{group:'weather',outputs:[{property:'value',target:'look',path:name.split('.')}],inputs:row.reads.filter(id=>id.startsWith('look.')).map(input=>({input,owner:'look',path:input.split('.').slice(1)}))}}])[0]??(()=>{throw new Error('Missing weather program');})();
+ return parseClientChannels([{...row,numeric:{group,outputs:[{property:'value',target,path}],inputs:row.reads.filter(id=>id.startsWith('look.')).map(input=>({input,owner:'look',path:input.split('.').slice(1)}))}}])[0]??(()=>{throw new Error('Missing weather program');})();
 }
 export const NALATI_WEATHER_PROGRAMS=parseClientChannels(recipes.map(([name,expression])=>program(name,expression)));
+
+/**
+ * After the look (group `nalati.tint`): the panorama's live re-grade and the unlit water's light, from the finished look and
+ * the frame's `overcast`, `rain`, `flash`, `waterRain` (0 indoors), `dayFog` and `dayKey` (the painted day's fog luminance
+ * and key intensity). The re-grade (look/fog.ts `tint`, read by the panorama dome, the cloud sea and the panorama fog):
+ * × the live key relative to the painted key (half strength, normalised: tints, doesn't dim), → white under the moon,
+ * × the cloud light, → a storm's veil into the fog colour, + the flash. The water (data/lookGraphs.json 'nalati-water'):
+ * its brightness follows the fog's, its sky the horizon toward the zenith, its sun the key, and the rain rings its surface.
+ */
+const PAINTED_KEY=[1,.85,.64] as const,RGB=['r','g','b'] as const,XYZ=['x','y','z'] as const;
+const keyShare=RGB.map((c,i):Expr=>['/',field(`keyColor.${c}`),PAINTED_KEY[i]??1]),keyMax:Expr=['max',['max',keyShare[0]??0,keyShare[1]??0],['max',keyShare[2]??0,.001]];
+const lum:Expr=['+',['+',['*',.2126,field('fogColor.r')],['*',.7152,field('fogColor.g')]],['*',.0722,field('fogColor.b')]];
+const tint:[string,Expr,string,string[]][]=[
+ ...RGB.map((c,i):[string,Expr,string,string[]]=>[`key.${c}`,['lerp',['+',.5,['*',.5,['/',keyShare[i]??0,keyMax]]],1,field('moon')],'tint',['key',c]]),
+ ['moon',field('moon'),'tint',['moon','value']],
+ ...RGB.map((c):[string,Expr,string,string[]]=>[`light.${c}`,field(`cloudLight.${c}`),'tint',['light',c]]),
+ ...RGB.map((c):[string,Expr,string,string[]]=>[`veilColour.${c}`,field(`fogColor.${c}`),'tint',['veilColour',c]]),
+ ['veil',['min',.9,['+',['*',s,.6],['*',rain,.35]]],'tint',['veil','value']],
+ ['flash',fl,'tint',['flash','value']],
+ ['water.brightness',['min',1,['max',.06,['/',lum,['max',.001,'dayFog']]]],'nalati-water',['brightness']],
+ ...XYZ.map((a,i):[string,Expr,string,string[]]=>[`water.sky.${a}`,['lerp',field(`horizon.${RGB[i]??'r'}`),field(`zenith.${RGB[i]??'r'}`),.35],'nalati-water',['sky',a]]),
+ ...XYZ.map((a,i):[string,Expr,string,string[]]=>[`water.sun.${a}`,['/',['*',field(`keyColor.${RGB[i]??'r'}`),field('keyIntensity')],['max',.001,'dayKey']],'nalati-water',['sunColour',a]]),
+ ['water.rain',['min',1,['max',0,'waterRain']],'nalati-water',['rain']],
+];
+export const NALATI_TINT_PROGRAMS=parseClientChannels(tint.map(([name,expression,target,path])=>program(name,expression,'tint',target,path)));

@@ -6,6 +6,7 @@ import type { SkyKey as SteppeKey, SkyLook, SkyRows } from '../look/skyRig';
 import { dayLookPresets } from '@wildshard/game/looks/dayLookPresets';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { painterlyUniforms, syncPainterlySun } from '@wildshard/engine/world/painterly';
+import { tint as regrade } from '../look/fog';
 /**
  * Nalati weather + day/night wiring (row B10 of project/archive/2026-09-23-nalati.md): the clock, the storm state machine, the storm's
  * visuals, and everything they touch — the sky rig (sun / moon, sky, fog, grade), the one Wind, the creatures'
@@ -95,19 +96,6 @@ const TIME_NAMES = ['dawn', 'day', 'noon', 'golden', 'dusk', 'night', 'midnight'
 function isTimeName(s: string): s is DayPhase | 'noon' | 'midnight' { return (TIME_NAMES as readonly string[]).includes(s); }
 const mmss = (s: number): string => { const t = Math.max(0, Math.ceil(s)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
 
-/**
- * The water's look is unlit (its colours are painted: data/lookGraphs.json 'nalati-water'): its light follows the hour and
- * the storm through the look's params, so the water doesn't glow at night and rain rings its surface.
- */
-const WATER = 'nalati-water', waterSky: number[] = [0, 0, 0], waterSun: number[] = [0, 0, 0], rgb = new THREE.Color();
-function lightWater(L: SkyLook, dayFog: number, dayKey: number, rain: number): void {
-  const lum = 0.2126 * L.fogColor.r + 0.7152 * L.fogColor.g + 0.0722 * L.fogColor.b;
-  setLentParam(WATER, 'brightness', Math.min(1, Math.max(0.06, lum / Math.max(1e-3, dayFog))));
-  setLentParam(WATER, 'sky', rgb.copy(L.horizon).lerp(L.zenith, 0.35).toArray(waterSky));
-  setLentParam(WATER, 'sunColour', rgb.copy(L.keyColor).multiplyScalar(L.keyIntensity / Math.max(1e-3, dayKey)).toArray(waterSun));
-  setLentParam(WATER, 'rain', Math.min(1, Math.max(0, rain)));
-}
-
 export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   const program=readWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.ctx.product.file('world/weather.json'))));
   const { game, player, forest } = ctx;
@@ -126,7 +114,11 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
 
   const rig = await weatherSky(ctx,clock), look=rig.look;
   const stormLook=installChannelPrograms(ctx.ctx.product.shardfile.clientChannels,'weather',new Map([['look',look]]));
-  const dayFog = 0.2126 * rig.dayFog.r + 0.7152 * rig.dayFog.g + 0.0722 * rig.dayFog.b, dayKey = Math.max(0.1, rig.daySunIntensity);
+  // after the look: the panorama's re-grade and the water's light (generators/weatherChannels.ts `nalati.tint`)
+  const waterParams=graphParamRoots(ctx.ctx.product.shardfile.clientChannels,'tint',['nalati-water']);
+  const afterLook=installChannelPrograms(ctx.ctx.product.shardfile.clientChannels,'tint',new Map<string,unknown>([...waterParams.roots,['look',look],
+    ['tint',{key:regrade.key.value,light:regrade.light.value,veilColour:regrade.veilColour.value,moon:regrade.moon,veil:regrade.veil,flash:regrade.flash}]]));
+  const lit={overcast:0,rain:0,flash:0,waterRain:0,dayFog:0.2126*rig.dayFog.r+0.7152*rig.dayFog.g+0.0722*rig.dayFog.b,dayKey:Math.max(0.1,rig.daySunIntensity)};
 
   // ── the lightning's view of the world ──
   const yurts = yurtsOf(ctx.colliders ?? []);
@@ -199,7 +191,8 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       stormLook.evaluate({time:0,delta:dt,values:{overcast:weather.weather.overcast,flash:weather.flash,rain:weather.weather.rain,wet:weather.weather.wet}});
       rig.flash = weather.flash * 0.7;
       rig.apply(dt);
-      lightWater(look, dayFog, dayKey, indoors ? 0 : weather.weather.rain);
+      Object.assign(lit,{overcast:weather.weather.overcast,rain:weather.weather.rain,flash:weather.flash,waterRain:indoors?0:weather.weather.rain});
+      afterLook.evaluate({time:0,delta:dt,values:lit});pushLentParams(waterParams);
       fx.update(dt, weather, look, game.camera, { x: wind.dirX * wind.speed, z: wind.dirZ * wind.speed });
       fx.rain.visible &&= !indoors;
       // the creatures
