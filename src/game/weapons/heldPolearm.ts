@@ -115,7 +115,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   private leftArm: THREE.Mesh = new THREE.Mesh(); private rightArm: THREE.Mesh = new THREE.Mesh();
   private leftWrist = new THREE.Vector3(); private rightWrist = new THREE.Vector3();
   private arc: THREE.Points = new THREE.Points(); private arcPos: Float32Array; private arcAttr: THREE.BufferAttribute = new THREE.BufferAttribute(new Float32Array(),3); private arcMat: THREE.PointsMaterial = new THREE.PointsMaterial();
-  private world: THREE.InstancedMesh = new THREE.InstancedMesh(new THREE.BufferGeometry(),new THREE.MeshBasicMaterial(),0);
+  private readonly world: THREE.InstancedMesh;
   private javs: Jav[] = [];
   private time = 0;
 
@@ -152,7 +152,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
-    this.build();
+    this.world = this.build();
     const cam = this.game.camera;
     this.game.viewmodel.mountOwnPass(this.model, cam); // its own depth clear; staged while its cell prepares (op-hitch41)
     if (!cam.parent) this.game.scene.add(cam);
@@ -208,7 +208,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
    const j=this.javs[(v['pickup']??0)-1];if(j!==undefined){j.state=0;if(v['recover']===1){this.javelins++;this.onPickup?.(this.javelins);this.chargeEvent('recover',this.javelins);}}
   }
 
-  private build(): void {
+  private build(): THREE.InstancedMesh {
     const look=this.presentation.materials;
     const mat = painterlyMaterial(this.sky, { vertexColors: true, rim: look.rim, bands: look.bands, transparent: true, depthWrite: true }); mat.name = 'held-viewmodel';
     const steel = viewmodelMaterial(this.sky, 'held-steel', { metalness: look.metalness, roughness: look.roughness, envMapIntensity: look.environment }); steel.transparent = true; steel.depthWrite = true;
@@ -243,10 +243,11 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     this.arc.frustumCulled = false; this.arc.renderOrder = 1003; this.arc.visible = false;
     this.game.scene.add(this.arc);
 
-    this.world = new THREE.InstancedMesh(this.part(this.presentation.parts.world), painterlyMaterial(this.sky, { vertexColors: true, rim: look.worldRim }), this.thrown.profile.pool);
-    this.world.count = 0; this.world.castShadow = true; this.world.receiveShadow = true; this.world.frustumCulled = false;
-    this.game.scene.add(this.world);
+    const world = new THREE.InstancedMesh(this.part(this.presentation.parts.world), painterlyMaterial(this.sky, { vertexColors: true, rim: look.worldRim }), this.thrown.profile.pool);
+    world.count = 0; world.castShadow = true; world.receiveShadow = true; world.frustumCulled = false;
+    this.game.scene.add(world);
     for (let i = 0; i < this.thrown.profile.pool; i++) this.javs.push({ state: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), age: 0 });
+    return world;
   }
 
   private launch(): void {
