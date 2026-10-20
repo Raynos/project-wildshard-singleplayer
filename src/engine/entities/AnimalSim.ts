@@ -18,6 +18,15 @@ export interface AnimalMotor {
   move: (feet: Vector3, want: { x: number; y: number; z: number }, ignoreGround: boolean) => void;
   dispose: () => void;
 }
+/** Detached prospective damage state. Preparing its pose must not mutate the actor or publish anything. */
+export interface AnimalAppliedHit {
+  readonly hp: number; readonly lastHitT: number; readonly alive: boolean; readonly state: AnimalState;
+  readonly deathT: number; readonly deathSide: number; readonly desiredSpeed: number;
+  readonly flinch: number; readonly flinchRoll: number; readonly flinchPitch: number;
+}
+/** Trusted prepared publication, consumed once on the same synchronous damage stack.
+ * Commit only copies already validated data; it cannot evaluate authored code or advance any owner. */
+export interface AnimalHitPublication { commit: () => void }
 /** Trusted collision-pose owner. It reads only the last published joints, never advances a body or pose.
  * The installer snapshots/restores its publication history through the host adapter alongside this actor. */
 export interface AnimalVolumePort {
@@ -25,9 +34,9 @@ export interface AnimalVolumePort {
   headWorld: (out: Vector3) => void;
   bodyCapsule: (rear: Vector3, front: Vector3) => void;
   foreCapsule?: (rear: Vector3, front: Vector3) => boolean;
-  /** Typed synchronous pose boundary, after applied HP/death and before queued combat receipts.
-   * Only an opted-in native pose owner supplies it; it must not step motion, AI or apply damage. */
-  publishAppliedHit?: () => void;
+  /** Typed synchronous preparation before applied HP/death. A refusal leaves damage and publication untouched.
+   * Only an opted-in native pose owner prepares it; this is not an authored callback or a restore capability. */
+  prepareAppliedHit?: (hit: AnimalAppliedHit) => AnimalHitPublication | undefined;
 }
 /** Per-host world height, time, random stream and optional damage pipeline. */
 export interface AnimalSimPorts {
@@ -252,18 +261,24 @@ export class AnimalSim {
   }
   applyFinalDamage(dealt: number, hitPoint: Vector3, dir: Vector3): boolean {
     if (!this.alive) return false;
-    this.hp -= dealt; this.lastHitT = this.hitTime();
+    const hp = this.hp - dealt, killed = hp <= 0;
     const cos = Math.cos(this.yaw), sin = Math.sin(this.yaw);
     const lx = dir.x * cos - dir.z * sin, lz = dir.x * sin + dir.z * cos;
-    this.flinch = 1; this.flinchRoll = -lx * 0.25;
-    this.flinchPitch = -lz * 0.12 + (hitPoint.y - this.position.y > this.dims.bodyY ? 0.05 : -0.03);
-    if (this.hp <= 0) {
-      this.hp = 0; this.alive = false; this.state = 'dead'; this.deathT = 0; this.deathSide = lx >= 0 ? -1 : 1;
-      this.desiredSpeed = 0; this.volumePort?.publishAppliedHit?.();
+    const hit: AnimalAppliedHit = {
+      hp: killed ? 0 : hp, lastHitT: this.hitTime(), alive: !killed, state: killed ? 'dead' : this.state,
+      deathT: killed ? 0 : this.deathT, deathSide: killed ? lx >= 0 ? -1 : 1 : this.deathSide,
+      desiredSpeed: killed ? 0 : this.desiredSpeed, flinch: 1, flinchRoll: -lx * 0.25,
+      flinchPitch: -lz * 0.12 + (hitPoint.y - this.position.y > this.dims.bodyY ? 0.05 : -0.03),
+    };
+    const publication = this.volumePort?.prepareAppliedHit?.(hit);
+    this.hp = hit.hp; this.lastHitT = hit.lastHitT; this.alive = hit.alive; this.state = hit.state;
+    this.deathT = hit.deathT; this.deathSide = hit.deathSide; this.desiredSpeed = hit.desiredSpeed;
+    this.flinch = hit.flinch; this.flinchRoll = hit.flinchRoll; this.flinchPitch = hit.flinchPitch;
+    publication?.commit();
+    if (killed) {
       tap.kill?.(this.kind); this.died(dealt, hitPoint, dir);
       this.damaged(dealt, hitPoint, dir, true); return true;
     }
-    this.volumePort?.publishAppliedHit?.();
     this.damaged(dealt, hitPoint, dir, false); return false;
   }
   stagger(dir: Vector3, strength = 0): void {

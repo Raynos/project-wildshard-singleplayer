@@ -1,6 +1,6 @@
 import { Euler, Matrix4, Quaternion, Vector3, type EulerOrder, BufferAttribute, BufferGeometry } from 'three';
 import * as poseSchema from 'valibot';
-import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { AnimalSim, AnimalAppliedHit, AnimalHitPublication } from '@wildshard/engine/entities/AnimalSim';
 import { AnimalPoseLaw, type AnimalPoseRecipe } from '@wildshard/engine/entities/animalPose';
 import { applyAnimalRoot, QuadrupedRigPose, type AnimalRigContext, type AnimalRigJoint, type AnimalPoseTransition } from '@wildshard/engine/entities/animalRig';
 import { practicePoseTransition } from './practicePoseContract';
@@ -557,7 +557,7 @@ export class NativeCreaturePose {
   private readonly publishedFrame = new Float64Array(16);
   private readonly frame = new Matrix4();
   private readonly quaternion = new Quaternion();
-  private readonly fk: CollisionPose;
+  private fk: CollisionPose;
   private readonly head: number;
   private readonly body: number;
   private readonly fore: number;
@@ -679,30 +679,58 @@ export class NativeCreaturePose {
     this.frame.compose(this.root.position, this.quaternion.setFromEuler(this.root.rotation), this.root.scale); this.publishedFrame.set(this.frame.elements); this.fk.solve(this.frame, last);
     this.history?.root.set(NativeCreaturePose.values(this.root));
   }
-  /** Applied damage has already changed HP/death, but no queued listener has run. Latch the prior
-   * publication, select the admitted numeric endpoint at elapsed zero, and publish synchronously.
-   * This never calls advancePose/law.advance, body.step, terrain, AI, physics, RNG or combat. */
-  publishAppliedHit(): void {
+  /** Prepare a prospective hit entirely off the live joints/history/context. The same admitted numeric
+   * evaluator runs once, before damage commits; refusal cannot consume HP, an ordinal or a publication.
+   * The returned trusted operation only copies the validated endpoint, never evaluates or advances. */
+  prepareAppliedHit(hit: AnimalAppliedHit): AnimalHitPublication | undefined {
     const h = this.history;
-    if (h === undefined) return;
+    if (h === undefined) return undefined;
     if (h.ordinal >= Number.MAX_SAFE_INTEGER) throw new Error('Practice hit ordinal exhausted');
-    h.entry.set(this.published); h.ordinal++; h.kind = this.actor.alive ? 1 : 2; h.elapsed = 0;
-    this.refreshPracticeContext(0, h.time);
-    this.animate?.(this.context);
-    this.publish();
-    // An event endpoint is visible immediately even at interpolation alpha zero.
-    h.previous.set(this.published); h.previousRoot.set(h.root);
+    const ordinal = h.ordinal + 1, kind = hit.alive ? 1 : 2, entry = this.published.slice();
+    const bones: Record<string, AnimalRigJoint> = {};
+    const joints = this.joints.map((source, index) => {
+      const name = this.recipe.joints[index]?.name;
+      if (name === undefined) throw new Error('Missing native creature pose joint');
+      const joint = NativeCreaturePose.joint();
+      joint.position.copy(source.position); joint.rotation.copy(source.rotation); joint.scale.copy(source.scale);
+      bones[name] = joint; return joint;
+    });
+    const context: AnimalRigContext = { ...this.context, bones,
+      transition: this.transitionObservation({ ...h, ordinal, kind, elapsed: 0, entry }) };
+    this.refreshPracticeContext(0, h.time, context);
+    context.alive = hit.alive; context.state = hit.state; context.deathT = hit.deathT; context.flinch = hit.flinch;
+    if (!hit.alive) context.attack = -1;
+    this.animate?.(context);
+    const fk = new CollisionPose(this.recipe.joints), published = new Float64Array(this.published.length);
+    joints.forEach((joint, index) => { fk.setLocal(index, joint); published.set(NativeCreaturePose.values(joint), index * 10); });
+    const frame = new Matrix4().compose(this.root.position, new Quaternion().setFromEuler(this.root.rotation), this.root.scale);
+    fk.solve(frame);
+    const root = NativeCreaturePose.values(this.root);
+    return { commit: () => {
+      // No user code, validation or clock lies beyond this point. All storage and joints are owner-created.
+      this.joints.forEach((joint, index) => {
+        const source = joints[index];
+        if (source !== undefined) { joint.position.copy(source.position); joint.rotation.copy(source.rotation); joint.scale.copy(source.scale); }
+      });
+      this.published.set(published); this.publishedFrame.set(frame.elements); this.frame.copy(frame); this.fk = fk;
+      h.entry.set(entry); h.ordinal = ordinal; h.kind = kind; h.elapsed = 0; h.root.set(root);
+      const c = this.context;
+      c.dt = context.dt; c.t = context.t; c.speed = context.speed; c.strafe = context.strafe; c.phase = context.phase;
+      c.state = context.state; c.alive = context.alive; c.deathT = context.deathT; c.flinch = context.flinch;
+      c.brace = context.brace; c.attack = context.attack; c.lookWeight = context.lookWeight; c.yaw = context.yaw; c.mem = context.mem;
+      // An event endpoint is visible immediately even at interpolation alpha zero.
+      h.previous.set(published); h.previousRoot.set(root);
+    } };
   }
-  private refreshPracticeContext(dt: number, time: number): void {
-    const a = this.actor, c = this.context; a.samplePose(this.poseSample);
-    const i = this.poseSample;
+  private refreshPracticeContext(dt: number, time: number, c = this.context): void {
+    const a = this.actor, i = { ...this.poseSample }; a.samplePose(i);
     c.dt = dt; c.t = time; c.speed = a.speed; c.strafe = a.strafe; c.phase = this.law.phase; c.state = a.state; c.alive = a.alive;
     c.deathT = a.poseDeathTime;
     c.flinch = i.flinch; c.brace = i.brace * i.brace * (3 - 2 * i.brace); c.attack = a.alive ? a.attackPhase : -1;
     c.lookWeight = this.law.lookAmt; c.yaw = a.yaw; c.mem = a.mem;
   }
-  private transitionObservation(): AnimalPoseTransition {
-    const h = this.history; if (h === undefined) throw new Error('Missing native practice pose owner');
+  private transitionObservation(h = this.history): AnimalPoseTransition {
+    if (h === undefined) throw new Error('Missing native practice pose owner');
     const entry: Record<string, AnimalPoseTransition['entry'][string]> = {};
     this.recipe.joints.forEach((row, index) => {
       const p = index * 10, axis = (offset: number) => Object.freeze({

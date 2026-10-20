@@ -1,7 +1,12 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
+import { Scope } from '../src/engine/app/scope';
+import { Events } from '../src/engine/events/events';
+import { CombatPipeline } from '../src/engine/combat/pipeline';
 import { createNativeCreaturePoses, NativeCreaturePose, type NativeCreaturePoseRecipe } from '../src/game/plugin/animation';
+import { numericCreaturePose } from '../src/game/plugin/channelPrograms';
+import type { ClientChannelProgram } from '../src/format/clientChannels';
 
 const recipe: NativeCreaturePoseRecipe = { custom: true, joints: [
   { name: 'body', parent: -1, position: [0, 1, 0], order: 'YXZ', scale: [1, 1, 1] },
@@ -76,4 +81,62 @@ test('a bounded pose roster keeps attachment, publication and retirement under t
   poses.delete(row.id); expect(poses.get(row.id)).toBeUndefined();
   poses.binding.attach(next, { ...row, id: 'next' }); expect(poses.get('next')).toBeDefined();
   expect(() => createNativeCreaturePoses([], 0)).toThrow('bound');
+});
+
+test.each(['nonlethal', 'lethal'] as const)('refused %s hit preparation leaves damage, pose, ordinal and event queue unchanged', failure => {
+  // The lethal row is the independent review's exact admitted expression: kind * 1e12.
+  // The nonlethal row is kind * (2 - kind) * 1e12 * 2: only kind 1 exceeds the bound.
+  const nodes: ClientChannelProgram['nodes'] = failure === 'lethal'
+    ? [{ op: 'read', index: 0 }, { op: 'constant', value: 1e12 }, { op: 'mul', a: 0, b: 1 }]
+    : [{ op: 'read', index: 0 }, { op: 'constant', value: 2 }, { op: 'sub', a: 1, b: 0 },
+      { op: 'mul', a: 0, b: 2 }, { op: 'constant', value: 1e12 }, { op: 'mul', a: 3, b: 4 },
+      { op: 'constant', value: 2 }, { op: 'mul', a: 5, b: 6 }];
+  const animate = numericCreaturePose({
+    practiceTransition: { owner: 'isolated-practice', joints: ['body', 'head'] }, group: 'proof',
+    programs: [{ id: 'proof.failure', reads: ['kind'], nodes,
+      channels: [{ property: 'x', value: nodes.length - 1 }], numeric: {
+        group: 'proof', inputs: [{ input: 'kind', owner: 'transition', path: ['kind'] }],
+        outputs: [{ property: 'x', target: 'joint.head', path: ['position', 'x'] }], restoreOnly: [],
+      } }],
+  });
+  const body = actor(), pose = new NativeCreaturePose(body, { ...recipe, practice: true }, animate);
+  body.bindVolumes(pose); pose.initializePractice();
+  const scope = new Scope('hit-preparation'), events = new Events(), combat = new CombatPipeline(events, scope);
+  const receipts: { killed: boolean; dealt: number }[] = []; let deaths = 0;
+  events.on('damage.dealt', value => { receipts.push({ killed: value.killed, dealt: value.dealt }); }, scope);
+  events.on('actor.died', () => { deaths++; }, scope);
+  const hit = (amount: number) => combat.hit({ source: 'env', sourceTags: ['dmg.melee'],
+    target: body.combatActor(), amount, point: body.position.clone(), dir: new Vector3(1, 0, 0) });
+  const observe = () => {
+    const head = new Vector3(), rear = new Vector3(), front = new Vector3();
+    pose.headWorld(head); pose.bodyCapsule(rear, front);
+    return { actor: body.snapshot(), pose: pose.snapshot(), transition: pose.context.transition,
+      frame: { dt: pose.context.dt, time: pose.context.t, alive: pose.context.alive, state: pose.context.state,
+        deathT: pose.context.deathT, flinch: pose.context.flinch, attack: pose.context.attack },
+      head: head.toArray(), rear: rear.toArray(), front: front.toArray(), events: events.snapshot(payload => JSON.stringify(payload)) };
+  };
+  try {
+    const initial = observe();
+    expect(() => hit(failure === 'lethal' ? 10000 : 1)).toThrow('Non-finite or excessive client expression');
+    expect(observe()).toEqual(initial); expect(body.hp).toBe(30); expect(body.alive).toBe(true);
+    events.flush('update'); expect(receipts).toEqual([]); expect(deaths).toBe(0);
+    // A valid hit consumes the first ordinal, not the failed attempt's ordinal, with one receipt.
+    const valid = hit(failure === 'lethal' ? 1 : 10000);
+    expect(valid?.killed).toBe(failure === 'nonlethal');
+    expect(pose.context.transition?.ordinal).toBe(1); expect(pose.context.transition?.entry['head']?.position.x).toBe(0);
+    expect(pose.context.alive).toBe(body.alive);
+    if (failure === 'lethal') {
+      // A later refusal also preserves an already queued successful receipt and its current endpoint.
+      const queued = observe();
+      expect(() => hit(10000)).toThrow('Non-finite or excessive client expression'); expect(observe()).toEqual(queued);
+      expect(hit(1)?.killed).toBe(false); expect(pose.context.transition?.ordinal).toBe(2);
+      expect(pose.context.transition?.entry['head']?.position.x).toBe(1e12); expect(body.hp).toBe(28);
+    } else {
+      expect(body.hp).toBe(0); expect(pose.context.deathT).toBe(0); expect(pose.context.attack).toBe(-1);
+      expect(hit(1)).toBeNull(); expect(pose.context.transition?.ordinal).toBe(1);
+    }
+    events.flush('update'); events.flush('update');
+    expect(receipts).toEqual(failure === 'lethal' ? [{ killed: false, dealt: 1 }, { killed: false, dealt: 1 }] : [{ killed: true, dealt: 10000 }]);
+    expect(deaths).toBe(failure === 'lethal' ? 0 : 1);
+  } finally { scope.dispose(); }
 });

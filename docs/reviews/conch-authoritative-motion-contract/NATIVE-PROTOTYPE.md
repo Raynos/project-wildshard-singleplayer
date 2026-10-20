@@ -32,11 +32,14 @@ capture, complete-animation acceptance or public-host promotion is claimed.
   measured root displacement/heading and the existing real strike observations.
   Unknown fields/joints, arbitrary callbacks, actor-memory paths, private DAG
   locals and read.joint recurrence refuse. No authored callback can opt in.
-- Applied damage synchronously latches the prior native publication, increments
-  the event ordinal, evaluates the already-admitted numeric endpoint at elapsed
-  zero and publishes it before CombatPipeline returns. Multiple same-time hits
-  therefore form an ordered chain of entry poses. Death reads the actual actor
-  death state. No body/physics/AI/terrain/RNG/scalar-law tick occurs here.
+- Applied damage first prepares detached prospective HP/death/flinch state and
+  an endpoint using the prior native publication as entry. The already-admitted
+  numeric evaluator runs once on scratch joints/history at elapsed zero. Only
+  after it succeeds do the actor and the copy-only publication commit, before
+  CombatPipeline queues receipts. Multiple same-time hits therefore form an
+  ordered chain; refused hits consume neither HP nor an ordinal. Death reads
+  the prospective actor death state. No body/physics/AI/terrain/RNG/scalar-law
+  tick occurs here.
 - A final update publication slot after demo.weapon copies any late endpoint to
   the view and refreshes query hitboxes. It does not evaluate another pose or
   apply damage again. Existing local loot and death handlers are reused.
@@ -49,6 +52,12 @@ The opt-in NativeCreaturePose envelope is version 2 and preserves entry transfor
 ordinal/kind/elapsed, previous/current root and joint endpoints, measured motion
 and anchor history. It validates the bounded fields before restoring. Ordinary
 poses retain version 1 and their previous property order and behavior.
+
+The synchronous prepared-hit operation is a trusted, bounded native port, not
+an authored callback or a save/restore API. Its commit only copies the validated
+joint/context/history endpoint and swaps the prepared collision FK. Authored
+JSON receives exactly its previous declared numeric observations and no new
+capability.
 
 `PracticeNativeActor.snapshot()` is a **diagnostic read**, combining the existing
 regional logical observation with pose and real control continuations. It is not
@@ -103,6 +112,30 @@ The focused regression additionally retains the existing native pose, numeric
 clips, original ownership/event characterizations, local combat routing,
 player/loot, demo entry and default recoil tests. Legacy version-1/native rows
 and the four public compositions are not switched to the new owner.
+
+## Independent P1 repair: hit refusal atomicity
+
+The independent review reproduced an admitted `transition.kind * 1e12` row
+that initializes successfully but refuses the lethal kind-2 observation.
+The original prototype mutated HP/death and history before that refusal, so
+CombatPipeline never queued the corresponding receipts.
+
+`test/native-creature-pose.test.ts` now retains that exact expression through
+real AnimalSim, NativeCreaturePose, numericCreaturePose, CombatPipeline and
+Events. A companion `kind * (2 - kind) * 1e12 * 2` row refuses only a nonlethal
+kind-1 hit. Both refusals leave the complete actor snapshot, pose envelope,
+transition observation, published collision endpoints, frame and event queue
+identical. Subsequent valid hits consume ordinal 1 and queue exactly one
+receipt; the lethal case also preserves an already queued valid receipt across
+another failed lethal attempt, then accepts another valid hit as ordinal 2.
+There is no catch-and-ignore path, rollback, extra evaluation or broadened
+historical continuation authority.
+
+These are two-joint source-boundary regressions, not integrated bout/browser
+acceptance. The existing real admitted Conch actor/control tests remain part
+of the focused regression. After the repair, all nine focused files pass
+(42 tests), including the eight native Conch owner tests; the focused TypeScript
+check also passes. This does not change the integration or admission limits below.
 
 ## Not claimed
 
