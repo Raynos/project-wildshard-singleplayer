@@ -1,4 +1,6 @@
 import { installClientAdventurePersistence } from '../quest/persistence';
+import { runtimeLookMaterials } from './runtimeProduct';
+import { hasLentLook, lendLooks } from './lentLooks';
 import { installClientMeadow } from './clientMeadow';
 import { installClientPathRamps } from './pagePreparation';
 import { installClientRiding } from '../riding/client';
@@ -164,6 +166,13 @@ export async function installClientPhase(ctx: ShardContext, plan: AdmittedClient
     return [...(feature.phase === phase ? [{ row, rank: feature.rank, install: feature.install }] : []),
       ...(phase === 'play' && feature.play !== undefined ? [{ row, ...feature.play }] : [])];
   }).sort((a, b) => a.rank - b.rank || (a.row.kind === 'debug.expose' ? a.row.name : a.row.kind).localeCompare(b.row.kind === 'debug.expose' ? b.row.name : b.row.kind));
+  // The platform's look phase precedes every entered world step, including
+  // trusted runtimes whose data client intentionally skips presentation.
+  if (phase === 'world' && lifetime !== 'resident' && rows.length > 0) {
+    if (ctx.scope.disposed || resident.disposed) throw new Error('Client feature owner is disposed');
+    const missing = Object.keys(ctx.product.shardfile.look.materials).filter(id => !hasLentLook(id));
+    if (missing.length > 0) lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, missing));
+  }
   for (const { row, install } of rows) {
     if (ctx.scope.disposed || resident.disposed) throw new Error('Client feature owner is disposed');
     await install(ctx, row, resident);

@@ -4,6 +4,8 @@ import * as materialCompiler from '../src/game/shardfile/clientMaterials';
 import * as textureCapabilities from '../src/engine/core/ktx2';
 import type { ResidencyAllocator } from '../src/game/grid/allocator';
 import { painterlyUniforms, setPainterlyLook } from '../src/engine/world/painterly';
+import * as lookCompiler from '../src/game/shardfile/runtimeProduct';
+import { hasLentLook, lentLook } from '../src/game/shardfile/lentLooks';
 import { clientCosmeticFinishes } from '../src/game/shardfile/clientCosmeticFinishes';
 import { publishBoundPersistence } from '../src/game/quest/chapterBindings';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
@@ -24,7 +26,7 @@ import { browserShardfileOptions } from '../src/game/shardfile/runtimeProduct';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import { Color, Vector3 } from 'three';
+import { Color, MeshBasicMaterial, Vector3 } from 'three';
 
 function context() {
   const source = emptyShardfile({ slug: 'fixture-harbour', name: 'Harbour', author: 'Fixture', revision: 1, seed: 7 });
@@ -37,6 +39,27 @@ function context() {
   Object.defineProperty(ctx, 'game', { enumerable: true, value: { runtime } });
   return { ctx, source, sections, strings, expose, runtime };
 }
+
+test('entered world looks precede plan effects and release with their owner', async () => {
+  const f = context(), material = new MeshBasicMaterial();
+  f.source.look.materials['orchard-leaves'] = parseFamilyMaterial({ family: 'pbr' });
+  const compile = vi.spyOn(lookCompiler, 'runtimeLookMaterials').mockResolvedValue({
+    materials: new Map([['orchard-leaves', material]]), setParam: () => undefined,
+    setTexture: () => undefined, bindMeshMap: () => material,
+  } as Awaited<ReturnType<typeof lookCompiler.runtimeLookMaterials>>);
+  const plan = admitClientPlan({ version: 1, features: [{ kind: 'strings.register' }] }, f.ctx.product);
+  f.strings.mockImplementation(() => { expect(lentLook('orchard-leaves')).toBe(material); });
+  try {
+    await installClientPhase(f.ctx, plan, 'world', f.ctx.scope, 'resident');
+    expect(compile).not.toHaveBeenCalled();
+    await installClientPhase(f.ctx, plan, 'world', f.ctx.scope, 'entered');
+    await installClientPhase(f.ctx, plan, 'world', f.ctx.scope, 'entered');
+    expect(compile).toHaveBeenCalledOnce();
+    expect(compile).toHaveBeenCalledWith(f.ctx, f.source, true, ['orchard-leaves']);
+    expect(f.strings).toHaveBeenCalledTimes(2);
+  } finally { compile.mockRestore(); f.ctx.scope.dispose(); material.dispose(); }
+  expect(hasLentLook('orchard-leaves')).toBe(false);
+});
 
 test('fictional shard installs unordered rows in platform phases and retains typed scene handles', async () => {
   const f = context(), plan = admitClientPlan(fixture, f.ctx.product);
