@@ -18,8 +18,6 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   }]))) },
   load: () => import('./plugin'),
   trustedRuntime: { get slug() { return NALATI_GRASSLANDS.slug; }, entry: 'runtime/index.ts' },
-  audio: { ...DECLARATION.audio, preload: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioCatalogue('nalati-grasslands') },
-  boot: { ...DECLARATION.boot, audio: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioFiles('nalati-grasslands') },
   ktx2: () => import('./ktx2.generated'),
   render: async () => (await import('./look/render')).shardRender(),
   roster: async () => (await import('./roster')).ROSTER,

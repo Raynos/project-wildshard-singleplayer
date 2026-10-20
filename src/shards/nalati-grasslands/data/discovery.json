@@ -1,5 +1,6 @@
 {
   "audio": {
+    "catalogue": true,
     "bed": "steppe",
     "ambience": "ambience.nalati",
     "score": "score.nalati",

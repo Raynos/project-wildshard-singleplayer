@@ -1,5 +1,6 @@
 {
   "audio": {
+    "catalogue": true,
     "ambience": "ambience.nd",
     "score": "score.nd"
   },

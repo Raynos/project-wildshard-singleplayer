@@ -11,8 +11,6 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   trustedRuntime: { get slug() { return NINE_DRAGON_STACK.slug; }, entry: 'runtime/index.ts' },
   dev: { poses: () => Promise.resolve(POSES) },
   load: () => import('./plugin'),
-  boot: { ...DECLARATION.boot, audio: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioFiles('nine-dragon-stack') },
-  audio: { ...DECLARATION.audio, preload: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioCatalogue('nine-dragon-stack') },
   ktx2: () => import('./ktx2.generated'),
   ground: { terrain: TERRAIN, structures: true },
   forest: { ...DECLARATION.forest, density: () => 0 },
