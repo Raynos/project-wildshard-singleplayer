@@ -1,7 +1,5 @@
 import perchRows from '../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
 import { Scope } from '../src/engine/app/scope';
-import { parse } from 'valibot';
-import { PineGrazersSchema, ThrallLookSchema } from '../src/shards/pine-hollow/generators/sections';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
 import { installEngineStrings } from '../src/engine/strings';
 /**
@@ -89,17 +87,15 @@ const { default: shapeRows } = await import('../src/shards/nalati-grasslands/boo
 shapeBook(shapeRows).use(unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/places.bin')))));
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
 const { PINE_BOAR } = await import('../src/shards/pine-hollow/generators/speciesRows');
-const { PINE_BOAR_LOOK } = await import('../src/shards/pine-hollow/species/looks');
+const { pineLook, preparePineGrazers } = await import('../src/shards/pine-hollow/species/looks');
+const { SPECIES_LOOKS } = await import('../src/shards/pine-hollow/generators/nativeView');
+await preparePineGrazers({ json: () => Promise.resolve({ SPECIES_LOOKS }) });
 const { THRALL_CLIPS } = await import('../src/shards/pine-hollow/generators/thrallClips');
-const { default: thrallLook } = await import('../src/shards/pine-hollow/data/thrallLook.json');
 const { numericCreaturePose } = await import('../src/game/plugin/channelPrograms');
-registerSpecies(speciesWithLook(PINE_BOAR, { ...PINE_BOAR_LOOK, postPose: numericCreaturePose(THRALL_CLIPS) }));
+registerSpecies(speciesWithLook(PINE_BOAR, { ...pineLook('boar'), postPose: numericCreaturePose(THRALL_CLIPS) }));
 // and its elk thrall (E405: Pine's, derived from the kit's elk)
 const { pineElk } = await import('../src/shards/pine-hollow/generators/speciesRows');
-const { pineElkLook, preparePineGrazers } = await import('../src/shards/pine-hollow/species/looks');
-const { default: grazers } = await import('../src/shards/pine-hollow/data/grazers.generated.json');
-await preparePineGrazers({ section: () => parse(PineGrazersSchema, grazers) });
-registerSpecies(speciesWithLook(pineElk(), pineElkLook(parse(ThrallLookSchema, { pose: THRALL_CLIPS, ...thrallLook }))));
+registerSpecies(speciesWithLook(pineElk(), pineLook('elk')));
 // Pure inventory fixtures explicitly install the authored item catalogs.
 const { registerItemRow } = await import('../src/game/bag/itemCatalog');
 const { STARTER_BAG_ITEMS } = await import('../src/game/bag/starter.generated');

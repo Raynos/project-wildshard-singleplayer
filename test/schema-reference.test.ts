@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the actual Node schema reader from its source root.
 import { cwd } from 'node:process';
 import { expect, test } from 'vitest';
+import * as v from 'valibot';
 import { schemaInventory } from '../scripts/docs/schema-reference.mjs';
 import { HeldFirearmViewSchema } from '@wildshard/format/weaponProfiles';
 
@@ -15,4 +16,12 @@ test('public specimen schemas load through the renderer-free reference reader', 
   const { referenceData } = await import('../scripts/docs/gen-shardfile-reference.mjs');
   const reference = referenceData(cwd());
   expect(reference.fields.some(row => typeof row === 'object' && row !== null && 'path' in row && typeof row.path === 'string' && row.path.startsWith('$sdk["./kit/specimenSchemas"].SpecimenCatalogueSchema'))).toBe(true);
+});
+
+
+test('empty hull part arrays retain their never item contract in the reference', () => {
+  const parts = v.array(v.never());
+  expect(v.safeParse(parts, []).success).toBe(true);
+  expect(v.safeParse(parts, [{}]).success).toBe(false);
+  expect(schemaInventory(parts)).toMatchObject([{ path: '$', type: 'array' }, { path: '$[]', type: 'never' }]);
 });

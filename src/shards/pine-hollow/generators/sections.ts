@@ -1,10 +1,10 @@
+import { HullLookBookSchema, HullSpeciesSchema } from '@wildshard/format/speciesLooks';
 import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { BuildingLifeLookSchema } from '@wildshard/format/buildings';
 import { QuestStepRowsSchema, QuestSpawnPageSchema, QuestLeadPageSchema } from '@wildshard/format/questSteps';
 import { NpcDialogueRowSchema } from '@wildshard/format/npcs';
 import { QuestGraphSchema } from '@wildshard/format/questGraph';
 import { InteractionRowsSchema } from '@wildshard/format/questInteractions';
-import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
 import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/format/limbRig';
 import { LimbCollisionBake } from '@wildshard/format/limbCollision';
 import { CollectionMountPackSchema, CollectionChalkSchema } from '@wildshard/format/collectionDisplay';
@@ -38,6 +38,7 @@ const KingProfileSchema = v.intersect([RoamingBossProfileSchema, v.object({ figh
 
 /** World-only rows are checked at emission and read from verified named JSON. */
 export const NativeViewSchema = v.strictObject({
+  SPECIES_LOOKS: HullLookBookSchema,
   ...LogKitSchema.entries,
   QUADRUPED: v.strictObject({ spec: LimbRigSchema, blend: LimbBlendSchema, clips: BakedClipTable, collision: LimbCollisionBake,
     bones: v.array(v.strictObject({ name:text, parent:v.nullable(text), pos:triple })) }),
@@ -111,25 +112,7 @@ export function parseTradeCatalogue(input: unknown): TradeCatalogue {
 export type PineTradeSkin = 'hollow-ash' | 'scarback-furnace';
 
 export const TradeItemSchema = item;
-const grazerNumber = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE));
-const grazerRgb = v.tuple([grazerNumber, grazerNumber, grazerNumber]);
-const grazerFur = v.object({ texSeed: grazerNumber, tex: v.object({ contrast: grazerNumber, grizzle: grazerNumber,
-  normalStrength: grazerNumber, bristle: grazerNumber, strandLen: grazerNumber, root: grazerNumber }), roughness: grazerNumber, sheen: grazerNumber,
-  sheenColor: grazerRgb, envMapIntensity: grazerNumber, rim: grazerRgb, shellLen: grazerNumber, shag: grazerNumber,
-  emissive: v.exactOptional(grazerRgb), emissiveIntensity: v.exactOptional(grazerNumber) });
-const grazerVariant = v.object({ ...SpeciesSchema.entries.variants.item.entries,
-  tint: v.exactOptional(v.record(v.string(), grazerRgb)),
-  traits: v.exactOptional(v.record(v.string(), grazerNumber)),
-  fur: v.exactOptional(v.object({ rim: v.exactOptional(grazerRgb), sheenColor: v.exactOptional(grazerRgb),
-    emissive: v.exactOptional(grazerRgb), emissiveIntensity: v.exactOptional(grazerNumber) })) });
-const grazerRow = v.object({ ...SpeciesSchema.entries, fur: grazerFur, variants: v.array(grazerVariant),
-  rigContract: v.object({ skeleton: v.string(), clips: v.array(v.never()), sockets: v.array(v.string()) }),
-  pose: v.object({ grazeNeck: grazerNumber, gallopTail: grazerNumber }),
-  body: v.object({ bones: v.array(v.object({ name: v.string(), parent: v.nullable(v.string()), pos: grazerRgb })),
-    furParts: v.array(v.never()), hardParts: v.array(v.never()), eyeParts: v.array(v.never()),
-    dims: v.object({ bodyY: grazerNumber, bodyHalfLen: grazerNumber, bodyRadius: grazerNumber, headRadius: grazerNumber, legLen: grazerNumber,
-      feet: v.array(v.tuple([grazerNumber, grazerNumber])), halfWidth: grazerNumber }) }) });
-export const PineGrazersSchema = v.strictObject({ deer: grazerRow, elk: grazerRow });
+export const PineGrazersSchema = v.strictObject({ deer: HullSpeciesSchema, elk: HullSpeciesSchema });
 
 export const ThrallLookSchema = v.strictObject({ pose: v.unknown(),
   traits: v.record(v.string(), v.number()),

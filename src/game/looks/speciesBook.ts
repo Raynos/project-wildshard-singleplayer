@@ -9,10 +9,60 @@ import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import * as v from 'valibot';
 import { packedCreatureBodies,type BakedGeometryRow } from '../plugin/geometry';
 import { productRiggedHulls } from './riggedHulls';
-import { SpeciesLookBookSchema } from '@wildshard/format/speciesLooks';
+import { HullLookBookSchema, SpeciesLookBookSchema } from '@wildshard/format/speciesLooks';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import type { VariantDef } from '@wildshard/engine/entities/species/registry';
+import { speciesDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
+
+import { BOAR_LOOK } from '../systems/species/view/boar';
+import { BEAR_LOOK } from '../systems/species/view/bear';
+
+/** Client-only hull projection on shared fauna or declared skeletons. The data
+ * book owns coats and post-poses; the existing hull cache owns every asset. */
+export class HullLookBook {
+  private readonly book;
+  private readonly hulls;
+  private readonly bodies;
+  constructor(input: unknown) {
+    this.book = v.parse(HullLookBookSchema, input);
+    if (new Set(this.book.rows.map(row => row.kind)).size !== this.book.rows.length
+      || new Set(this.book.rows.map(row => row.id)).size !== this.book.rows.length
+      || this.book.rows.some(row => row.base === 'definition' && this.book.definitions[row.kind] === undefined)) throw new Error('Invalid hull look references');
+    this.hulls = this.book.body === undefined ? productRiggedHulls(this.book.slug) : undefined;
+    this.bodies = this.book.body === undefined ? undefined : packedCreatureBodies(this.book.body);
+  }
+  /** The same packed owner supplies custom rigs and ordinary fauna without retaining another bake. */
+  get packed(): ReturnType<typeof packedCreatureBodies> { if (this.bodies === undefined) throw new Error('Look book has no packed bodies'); return this.bodies; }
+  /** Gameplay fields retain their authored representation, with a fresh rest body per call. */
+  definition(kind: string): SpeciesDef {
+    const source = this.book.definitions[kind]; if (source === undefined) throw new Error('Missing hull species definition');
+    const { body, id: _id, ...definition } = source;
+    return { ...definition, build: () => structuredClone(body) };
+  }
+  /** Resolve registered rigs only when requested, after their native owner installs them. */
+  look(kind: string): SpeciesLook {
+    const row = this.book.rows.find(entry => entry.kind === kind); if (row === undefined) throw new Error('Missing hull look');
+    const base = row.base === 'boar' ? BOAR_LOOK : row.base === 'bear' ? BEAR_LOOK
+      : row.base === 'definition' ? this.definition(kind) : speciesDef(kind);
+    const variants = 'variants' in base && Array.isArray(base.variants)
+      ? Object.fromEntries([...base.variants, ...('spawnOnly' in base ? base.spawnOnly ?? [] : [])].map((variant: VariantDef) => [variant.id, {
+        ...(variant.tint === undefined ? {} : { tint: variant.tint }), ...(variant.fur === undefined ? {} : { fur: variant.fur }),
+        ...(variant.traits === undefined ? {} : { traits: variant.traits }),
+      }])) : base.variants;
+    const look = { ...base, id: row.id, species: row.species, kind, variants: { ...variants, ...row.variants },
+      ...(row.postPose === undefined ? {} : { postPose: numericCreaturePose(row.postPose) }) };
+    const bodies = this.bodies;
+    if (bodies !== undefined) return { ...look, preload: bodies.preload, build: variant => bodies.copy(kind, variant.id) };
+    const hulls = this.hulls; if (hulls === undefined) throw new Error('Look book has no body source');
+    return { ...look, preload: hulls.preload, skin: (variant, bones) => {
+        const hull = hulls.skin(kind, variant.id, bones);
+        if (hull === null && row.required) throw new Error(`Required hull is not loaded: ${kind}:${variant.id}`);
+        return hull;
+      } };
+  }
+  /** Authored order is shared by page installation and cold specimen preparation. */
+  get looks(): readonly SpeciesLook[] { return this.book.rows.map(row => this.look(row.kind)); }
+}
 
 /** Expand compact byte addressing only; the native packed owner admits every
  * geometry block, skeleton and dimension before it copies a body. */

@@ -1,19 +1,18 @@
-import { parse } from 'valibot';
-import { PineGrazersSchema } from '../src/shards/pine-hollow/generators/sections';
 import { expect, test } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { DEER } from '../src/shards/pine-hollow/generators/deerRows';
 import { ELK } from '../src/shards/pine-hollow/generators/elkRows';
 import { PINE_LOFTS } from '../src/shards/pine-hollow/generators/creatureLofts';
-import grazers from '../src/shards/pine-hollow/data/grazers.generated.json' with { type: 'json' };
+import { SPECIES_LOOKS } from '../src/shards/pine-hollow/generators/nativeView';
 import { preparePineGrazers, pineGrazer } from '../src/shards/pine-hollow/species/looks';
 import { PINE_ELK_THRALL } from '../src/shards/pine-hollow/generators/speciesRows';
+import { HullLookBook } from '../src/game/looks/speciesBook';
 
 // Pine's deer and elk are drawn only on their rigged hulls: the page binds them to the baked skeleton and dims of
 // species/bodies.ts, never lofting them. Those rows must stay what the offline lofts (generators/creatureLofts.ts) build,
 // for every variant: the hulls were skinned to that skeleton.
 test('the baked deer and elk bodies match their lofts for every variant', async () => {
-  await preparePineGrazers({ section: () => parse(PineGrazersSchema, grazers) });
+  await preparePineGrazers({ json: () => Promise.resolve({ SPECIES_LOOKS }) });
   for (const [kind, def] of [['deer', DEER], ['elk', ELK]] as const) {
     const first = def.variants[0];
     if (first === undefined) throw new Error('Missing grazer variant');
@@ -32,4 +31,10 @@ test('the baked deer and elk bodies match their lofts for every variant', async 
     expect(copy.bones[0]?.pos).not.toBe(baked.bones[0]?.pos);
     expect(copy.dims.feet[0]).not.toBe(baked.dims.feet[0]);
   }
+});
+
+test('hull books refuse missing rest bodies, repeated kinds and executable coats', () => {
+  expect(() => new HullLookBook({ ...SPECIES_LOOKS, definitions: {} })).toThrow('references');
+  expect(() => new HullLookBook({ ...SPECIES_LOOKS, rows: [...SPECIES_LOOKS.rows, ...SPECIES_LOOKS.rows] })).toThrow('references');
+  expect(() => new HullLookBook({ ...SPECIES_LOOKS, rows: [{ ...SPECIES_LOOKS.rows[0], skin: () => null }] })).toThrow();
 });

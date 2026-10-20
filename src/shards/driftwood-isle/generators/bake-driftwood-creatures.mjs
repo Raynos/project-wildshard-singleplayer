@@ -89,7 +89,10 @@ for (const block of blocks) { raw.set(block, at); at += block.length; }
 const deflated = deflateSync(raw, { level: 9 });
 const hash = createHash('sha256').update(deflated).digest('hex');
 const url = `/assets/driftwood-isle/creatures/bodies-${hash}.bin`;
-const json = `${JSON.stringify({ file: url, bytes: raw.length, bodies: rows })}\n`;
+const fauna = { slug: 'driftwood-isle', definitions: {}, rows: ['boar', 'bear'].map(kind => ({
+  id: `driftwood.look.${kind}`, species: `driftwood.creature.${kind}`, kind, base: kind, required: true,
+})) };
+const json = `${JSON.stringify({ file: url, bytes: raw.length, bodies: rows, fauna })}\n`;
 const outputs = [[resolve(root, `public${url}`), deflated], [resolve(root, 'src/shards/driftwood-isle/data/creatureBodies.generated.json'), Buffer.from(json)]];
 let stale = false;
 for (const [path, bytes] of outputs) {
