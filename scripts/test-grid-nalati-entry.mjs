@@ -35,7 +35,7 @@ try {
       stop = world.game.watchFrames(() => {
         try {
           const state = api.shard.grid.state().live.live;
-          if (state.issues.length > 0) throw new Error(JSON.stringify(state.issues));
+          if (Object.keys(state.issues).length > 0) throw new Error(JSON.stringify(state.issues));
           if (state.worldFeet.y < -0.25) throw new Error('Traveller fell through the entry');
           if (state.current === 'nalati-grasslands' && state.worldFeet.x >= 320) { finish(); return; }
           player.yaw = -Math.PI / 2; input.setHeld('move.forward', true);
