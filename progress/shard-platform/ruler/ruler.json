@@ -1,23 +1,23 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json --source-progress",
- "revision": "5b7c572985fb11d7ca1fc54fec89bec97a924631",
- "committedAt": "2026-10-20T19:10:54.000Z",
- "measuredAt": "2026-10-20T19:22:43.239Z",
+ "revision": "b9d48e32b16cae480dfe07aa0c28de855b06ec7a",
+ "committedAt": "2026-10-20T20:57:12.000Z",
+ "measuredAt": "2026-10-20T21:19:29.169Z",
  "basis": "source",
  "plan": {
-  "lower": 0.6683546766816383,
-  "upper": 1.0016880100149717
+  "lower": 0.6,
+  "upper": 1
  },
  "m3": {
-  "cut": 89307,
+  "cut": 88154,
   "mustGo": 80173.3,
-  "fraction": 1.113924461136064
+  "fraction": 1.099543114727721
  },
  "m2": {
   "ready": 0,
-  "fail": 1,
-  "unknown": 5,
+  "fail": 0,
+  "unknown": 6,
   "total": 6
  },
  "netLines": [
@@ -25,18 +25,18 @@
    "wave": "W1",
    "revision": "adb48b6a08619986f16a3c2e304c4db5610df932",
    "customCut": 4999,
-   "platformGrowth": 61505,
-   "netCut": -56506,
+   "platformGrowth": 61173,
+   "netCut": -56174,
    "layers": {
     "engine": {
      "before": 67206,
-     "after": 75984,
-     "growth": 8778
+     "after": 75946,
+     "growth": 8740
     },
     "game": {
      "before": 33346,
-     "after": 75745,
-     "growth": 42399
+     "after": 75451,
+     "growth": 42105
     },
     "format": {
      "before": 7102,
@@ -53,19 +53,19 @@
   {
    "wave": "W2",
    "revision": "68e72579516106c8307cb72e1ec1b91d3b7f649e",
-   "customCut": 37341,
-   "platformGrowth": 57941,
-   "netCut": -20600,
+   "customCut": 37365,
+   "platformGrowth": 57609,
+   "netCut": -20244,
    "layers": {
     "engine": {
      "before": 67897,
-     "after": 75984,
-     "growth": 8087
+     "after": 75946,
+     "growth": 8049
     },
     "game": {
      "before": 35276,
-     "after": 75745,
-     "growth": 40469
+     "after": 75451,
+     "growth": 40175
     },
     "format": {
      "before": 7749,
@@ -81,11 +81,10 @@
   }
  ],
  "customSectionFailures": [
-  "nalati-grasslands: custom-section count 47 exceeds 43",
-  "nalati-grasslands: custom-section bytes 12595070 exceeds 12290241",
+  "nalati-grasslands: custom-section count 46 exceeds 43",
+  "nalati-grasslands: custom-section bytes 12575779 exceeds 12290241",
   "nine-dragon-stack: custom-section count 22 exceeds 20",
-  "nine-dragon-stack: custom-section bytes 4984695 exceeds 4976007",
-  "pine-hollow: custom-section bytes 15947492 exceeds 15921662"
+  "nine-dragon-stack: custom-section bytes 4984695 exceeds 4976007"
  ],
  "shards": [
   {
@@ -93,9 +92,9 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 20,
-   "custom": 1933,
+   "custom": 1916,
    "legacy": 21305,
-   "pct": 9.1,
+   "pct": 9,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -111,7 +110,7 @@
    "name": "Driftwood",
    "wave": "W2",
    "goal": 20,
-   "custom": 1737,
+   "custom": 1730,
    "legacy": 17167,
    "pct": 10.1,
    "grid": "unknown",
@@ -132,9 +131,9 @@
    "custom": 0,
    "legacy": 6779,
    "pct": 0,
-   "grid": "fail",
+   "grid": "unknown",
    "criteria": {
-    "bakedTiles": "fail",
+    "bakedTiles": "pass",
     "edgeProfile": "pass",
     "fourEntryways": "pass",
     "memory": "unknown",
@@ -165,9 +164,9 @@
    "name": "Nalati",
    "wave": "W3",
    "goal": 20,
-   "custom": 4094,
+   "custom": 5093,
    "legacy": 28370,
-   "pct": 14.4,
+   "pct": 18,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -183,9 +182,9 @@
    "name": "Nine Dragon",
    "wave": "W3",
    "goal": 20,
-   "custom": 1783,
+   "custom": 1961,
    "legacy": 21111,
-   "pct": 8.4,
+   "pct": 9.3,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -1116,6 +1115,19 @@
     "sunscar-dunes": 0,
     "nalati-grasslands": 14.430736693690518,
     "nine-dragon-stack": 8.445833925441713
+   }
+  },
+  {
+   "revision": "b9d48e32b16cae480dfe07aa0c28de855b06ec7a",
+   "at": "2026-10-20T20:57:12.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 8.99319408589533,
+    "driftwood-isle": 10.07747422380148,
+    "far-reach": 0,
+    "sunscar-dunes": 0,
+    "nalati-grasslands": 17.95206203736341,
+    "nine-dragon-stack": 9.288996257875041
    }
   }
  ],
