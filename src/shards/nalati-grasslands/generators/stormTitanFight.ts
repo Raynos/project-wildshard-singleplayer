@@ -82,6 +82,7 @@ export const TITAN_FIRE_FIELD = {
 
 /** Support slots carry no runtime decision fields in the shard. */
 export const TITAN_SUPPORT = {
+  actors: { hp: TITAN_TUNING.riderHp, memory: { tx: 'x', tz: 'z', v: 'speed', turn: 'turn' } },
   initial: { cd: 2.5 }, member: { mode: 0, t: 0, theta: 0, hit: 0, x0: 0, z0: 0, x1: 0, z1: 0 }, commit: { mode: 1, t: 0 },
   parameters: { lane: TITAN_TUNING.laneSeconds, flank: TITAN_TUNING.flankSeconds, chip: TITAN_TUNING.riderChip * TITAN_PLACE.heartHp },
   signals: { couple: 'couple', member: 'rider', damage: 'supportDamage' },

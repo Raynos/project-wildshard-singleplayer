@@ -153,14 +153,29 @@ export class EncounterSlots {
 }
 
 const CoupledRows = v.strictObject({ initial: numbers, member: numbers, commit: numbers, parameters: numbers,
+  actors: v.optional(v.strictObject({ hp: v.pipe(finite, v.minValue(1)), memory: v.record(v.string(), v.string()) })),
   signals: v.strictObject({ couple: v.string(), member: v.string(), damage: v.string() }) });
 export interface CoupledMember { readonly id: string; readonly state: Record<string, number> }
+/** Native actors remain owned by their roster; the encounter borrows only its
+ * declared health, steering slots and live position for cohort effects. */
+export interface CoupledActor {
+  readonly entityId: string; readonly scale: number; readonly position: { readonly x: number; readonly z: number };
+  readonly mem: Record<string, number>; readonly alive: boolean; hp: number; maxHp: number;
+}
+const coupledDamage = new WeakMap<CoupledActor, { host: CoupledEncounter; member: CoupledMember; player: { readonly x: number; readonly z: number } }>();
+/** Species damage reads the actual attached cohort instead of lending a
+ * per-actor callback from the shard. A cleared or retired slot has no modifier. */
+export function coupledActorDamage(actor: CoupledActor, point: { readonly x: number; readonly z: number }): number {
+  const owner = coupledDamage.get(actor);
+  return owner === undefined ? 1 : owner.host.damage(owner.member, { x: point.x, z: point.z, px: owner.player.x, pz: owner.player.z, radius: actor.scale });
+}
 /** Bounded support cohorts share their boss's health and scheduling projection.
  * The guest selects commits and retirements; native slots retain numeric state. */
 export class CoupledEncounter {
   readonly members: CoupledMember[] = [];
   private readonly rows: v.InferOutput<typeof CoupledRows>;
   private state: Record<string, number>;
+  private readonly actors = new Map<string, CoupledActor>();
   constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) {
     this.rows = v.parse(CoupledRows, input); this.state = { ...this.rows.initial };
   }
@@ -168,11 +183,30 @@ export class CoupledEncounter {
     if (this.members.some(member => member.id === id) || this.members.length >= 8) throw new Error('Invalid coupled encounter member');
     const member = { id, state: { ...this.rows.member, ...initial } }; this.members.push(member); return member;
   }
-  clear(): void { this.members.length = 0; }
+  /** Bind an already spawned native body using the admitted actor rows. */
+  addActor(actor: CoupledActor, initial: Readonly<Record<string, number>>, player: { readonly x: number; readonly z: number }): CoupledMember {
+    if (this.rows.actors === undefined || coupledDamage.has(actor)) throw new Error('Invalid coupled actor binding');
+    const member = this.add(actor.entityId, initial);
+    actor.maxHp = this.rows.actors.hp; actor.hp = this.rows.actors.hp;
+    this.actors.set(actor.entityId, actor); coupledDamage.set(actor, { host: this, member, player }); return member;
+  }
+  clear(): void { for (const actor of this.actors.values()) coupledDamage.delete(actor); this.actors.clear(); this.members.length = 0; }
   reset(): void { this.clear(); this.state = { ...this.rows.initial }; }
   damage(member: CoupledMember, observations: Readonly<Record<string, number>>): number {
     if (!this.members.includes(member)) return 1;
     return this.program.project(this.rows.signals.damage, { ...member.state, ...observations })['alpha'] ?? 1;
+  }
+  /** Called from the arena's bounded step, with no authored native callbacks. */
+  updateActors(frame: Readonly<Record<string, number>>): ReturnType<CoupledEncounter['update']> {
+    const step = this.update(frame, [...this.actors.values()].map(actor => ({ id: actor.entityId, x: actor.position.x, z: actor.position.z, alive: actor.alive })));
+    for (const id of step.retired) { const actor = this.actors.get(id); if (actor !== undefined) coupledDamage.delete(actor); this.actors.delete(id); }
+    for (const [id, result] of step.members) {
+      const actor = this.actors.get(id); if (actor === undefined) throw new Error('Missing bound cohort actor');
+      for (const [slot, channel] of Object.entries(this.rows.actors?.memory ?? {})) {
+        const value = result[channel]; if (value === undefined) throw new Error('Missing cohort actor channel'); actor.mem[slot] = value;
+      }
+    }
+    return step;
   }
   update(frame: Readonly<Record<string, number>>, observed: readonly { readonly id: string; readonly x: number; readonly z: number; readonly alive: boolean }[]): {
     state: Readonly<Record<string, number>>; retired: readonly string[]; members: ReadonlyMap<string, Readonly<Record<string, number>>>;

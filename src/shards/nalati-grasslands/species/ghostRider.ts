@@ -1,6 +1,6 @@
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { eliteDamageMul as encounterDamage } from '@wildshard/game/quest/elitePage';
-import { eliteDamageMul } from '../runtime/eliteBrain';
+import { coupledActorDamage } from '@wildshard/game/boss/encounterPatrol';
 import type { SpeciesDef, ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { engineString } from '@wildshard/engine/strings';
@@ -134,7 +134,7 @@ export const GHOSTRIDER_SPECIES: SpeciesDef = {
   // × the named elite's window (B12: Qara Batyr's back is OPEN after a missed charge — ×3; 1 for an ordinary rider)
   damageMul: (a, hitPoint, dir) => {
     const p = a.mem['px'], q = a.mem['pz'];
-    return (p !== undefined && q !== undefined && Math.hypot(hitPoint.x - p, hitPoint.z - q) < 4 ? 1.5 : 1) * eliteDamageMul(a, hitPoint, dir) * encounterDamage(a, hitPoint, dir);
+    return (p !== undefined && q !== undefined && Math.hypot(hitPoint.x - p, hitPoint.z - q) < 4 ? 1.5 : 1) * coupledActorDamage(a, hitPoint) * encounterDamage(a, hitPoint, dir);
   },
   blood: false,
 };

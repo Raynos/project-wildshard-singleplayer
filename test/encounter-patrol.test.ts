@@ -1,9 +1,11 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { EncounterPatrol, EncounterPatrolSchema, EncounterSchedule } from '../src/game/boss/encounterPatrol';
+import { CoupledEncounter, coupledActorDamage, EncounterPatrol, EncounterPatrolSchema, EncounterSchedule } from '../src/game/boss/encounterPatrol';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
+import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+import { TITAN_SUPPORT } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 
 const patrolRows = v.parse(EncounterPatrolSchema, night.patrol);
 const frame = { px: 0, py: 30, pz: 24, hold: 0, night: 1 };
@@ -74,4 +76,29 @@ test('aim motion samples use the patrol cadence and reject teleports inside AS',
   expect(host.update(.05, frame, []).dt).toBe(0);
   motion.project({ dt: .1, px: 100, pz: 100 });
   expect(motion.value('vx')).toBe(0); expect(motion.value('vz')).toBe(0);
+});
+
+test('bound support bodies consume steering rows and lose their damage owner on retirement', () => {
+  const host = new CoupledEncounter(TITAN_SUPPORT, ReturnProgram.page(titan.rules), new Rng(503));
+  const body = { entityId: 'support', position: { x: 3, z: 5 }, scale: 1.6, hp: 1, maxHp: 1, alive: true, mem: {} as Record<string, number> };
+  const member = host.addActor(body, { theta: 0 }, { x: 0, z: 0 });
+  expect(body.hp).toBe(250);
+  host.updateActors({ dt: .1, px: 0, pz: 0, hp: 1560, invuln: 0 });
+  expect(body.mem['v']).toBe(12); expect(Number.isFinite(body.mem['tx'])).toBe(true);
+  member.state['mode'] = 3;
+  expect(coupledActorDamage(body, { x: 1, z: 0 })).toBe(3);
+  expect(coupledActorDamage(body, { x: 20, z: 0 })).toBe(.5);
+  body.alive = false;
+  expect(host.updateActors({ dt: .1, px: 0, pz: 0, hp: 1560, invuln: 0 }).state['hp']).toBe(1352);
+  expect(host.updateActors({ dt: .1, px: 0, pz: 0, hp: 1352, invuln: 0 }).state['hp']).toBe(1352);
+  expect(coupledActorDamage(body, { x: 1, z: 0 })).toBe(1);
+});
+
+test('an orchard guardian binds different health and memory fields without a callback', () => {
+  const host = new CoupledEncounter({ ...TITAN_SUPPORT, actors: { hp: 40, memory: { targetX: 'x', targetZ: 'z', speed: 'speed' } } }, ReturnProgram.page(titan.rules), new Rng(42));
+  const body = { entityId: 'frost-mote', position: { x: -30, z: 10 }, scale: .5, hp: 1, maxHp: 1, alive: true, mem: {} as Record<string, number> };
+  host.addActor(body, { theta: 1 }, { x: 8, z: 9 });
+  host.updateActors({ dt: .1, px: 8, pz: 9, hp: 500, invuln: 0 });
+  expect(body.hp).toBe(40); expect(body.mem['speed']).toBe(12); expect(body.mem['tx']).toBeUndefined();
+  host.clear(); expect(host.members).toHaveLength(0); expect(coupledActorDamage(body, { x: 8, z: 9 })).toBe(1);
 });

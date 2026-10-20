@@ -6,7 +6,6 @@ import { NALATI_STRIKES, sampleArena } from './strikes';
 import { app } from '@wildshard/engine/app/runtime';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import { TIER } from '@wildshard/engine/core/tier';
-import { setEliteDamage } from '../runtime/eliteBrain';
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
@@ -514,15 +513,9 @@ export class StormTitanFight implements BossScript {
       const { x, z } = site;
       const a = gr.spawnRider({ x, z, yaw: 0, variant: 'rider', storm: true });
       if (a === null) continue;
-      a.maxHp = this.data.TITAN_TUNING.riderHp; a.hp = this.data.TITAN_TUNING.riderHp;
       const lane = this.lanes[i] ?? this.lanes[0];
       if (lane === undefined) continue;
-      const r: StormRider = { a, lane, law: this.support.add(a.entityId, { theta: site.theta }) };
-      // the flank is open 2 s after a pass: the sabre ×3; arrows ×0.5 always
-      setEliteDamage(a, (_a, hitPoint) => {
-        const pl = this.host.player.position;
-        return this.support.damage(r.law, { x: hitPoint.x, z: hitPoint.z, px: pl.x, pz: pl.z, radius: a.scale });
-      });
+      const r: StormRider = { a, lane, law: this.support.addActor(a, { theta: site.theta }, this.host.player.position) };
       this.stormRiders.push(r);
     }
   }
@@ -537,8 +530,7 @@ export class StormTitanFight implements BossScript {
   private updateRiders(dt: number): void {
     const p = this.host.player.position;
     const riders = this.stormRiders;
-    const step = this.support.update({ dt, px: p.x, pz: p.z, hp: this.hp, invuln: Number(this.invuln) },
-      riders.map(r => ({ id: r.law.id, x: r.a.position.x, z: r.a.position.z, alive: r.a.alive })));
+    const step = this.support.updateActors({ dt, px: p.x, pz: p.z, hp: this.hp, invuln: Number(this.invuln) });
     this.hp = step.state['hp'] ?? this.hp;
     for (let i = riders.length - 1; i >= 0; i--) {
       const r = riders[i]; if (r === undefined) continue;
@@ -547,10 +539,9 @@ export class StormTitanFight implements BossScript {
         this.host.feed(riders.length > 0 ? `${this.data.TITAN_LINES.riderBreaks} · ${riders.length} left` : this.data.TITAN_LINES.lastRider);
         continue;
       }
-      const a = r.a, m = a.mem, state = r.law.state;
+      const a = r.a, state = r.law.state;
       const answer = step.members.get(r.law.id);
       const n = (key: string): number => { const value = answer?.[key]; if (value === undefined) throw new Error('Missing support decision'); return value; };
-      m['tx'] = n('x'); m['tz'] = n('z'); m['v'] = n('speed'); m['turn'] = n('turn');
       if (n('show') === 1) r.lane.lane(state['x0'] ?? 0, state['z0'] ?? 0, state['x1'] ?? 0, state['z1'] ?? 0, 4.2, n('alpha')); else r.lane.hide();
       if (n('hurt') === 1 && sampleArena(NALATI_STRIKES.wind, a.position, p, () => { this.host.hurt(this.data.TITAN_TUNING.chargeDamage, 'Wind Charge — swerve out of the lane'); }, app.physics)) this.host.throwRider();
     }
