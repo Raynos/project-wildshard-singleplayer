@@ -26,8 +26,9 @@ const library = v.variant('kind', [
   // optionally posed. `explorer` libraries stay out of the resident world; a specimen reads only its own tiles cold.
   v.strictObject({ id, kind: v.literal('whole'), load: v.exactOptional(v.literal('explorer')),
     models: bounded(v.strictObject({ id, part: id, files: v.pipe(bounded(id, 64), v.minLength(1)), matrix: v.exactOptional(v.pipe(v.array(finite), v.length(16))) }), 256) }),
-  // A rest pool per file (tier-selected by name or by `tier`), its Float32 application channels renamed on load.
-  v.strictObject({ id, kind: v.literal('pool'), files: bounded(v.strictObject({ file: tierFile, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), parts: bounded(id, 128),
+  // A rest pool per file (tier-selected by name or by `tier`), its Float32 application channels renamed on load;
+  // `publish` names every part as an owned geometry handle `<publish>.<part>`.
+  v.strictObject({ id, kind: v.literal('pool'), publish: v.exactOptional(id), files: bounded(v.strictObject({ file: tierFile, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), parts: bounded(id, 128),
     channels: v.exactOptional(bounded(v.strictObject({ name: id, source: id, width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(bounded(id, 128)) }), 16)) }), 32),
     painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) }),
 ]);

@@ -105,6 +105,9 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     if (sourceObjects.has(row.publishObject) && sourceObjects.get(row.publishObject) !== key || slots.has(row.publishObject.slice('materials.'.length)) && row.publishObject.startsWith('materials.')) throw new Error('Source object publication differs');
     sourceObjects.set(row.publishObject, key); published.add(row.publishObject);
   }
+  for (const row of section.libraries) if (row.kind === 'pool' && row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
+    const id = `${row.publish}.${part}`; if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`); published.add(id);
+  }
   const welds: WorldSceneWeld[] = [], deferredPlacements = new Set<string>();
   assertSceneProfile(product.shardfile, (section.welds ?? []).map(row => worldSceneWeldFile(row, product.shardfile.plumbing)));
   for (const declared of section.welds ?? []) {
@@ -251,6 +254,10 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
             const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/examples/jsm/loaders/GLTFLoader.js'), import('three/examples/jsm/libs/meshopt_decoder.module.js')]);
             return new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(await product.file(file)).buffer, ''); });
         await models.preload(() => buildYield(owner));
+        if (row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
+          const geometry = models.geometry(part); if (geometry === null) throw new Error(`Missing scene pool part: ${part}`);
+          owner.onDispose(() => { geometry.dispose(); }); handles.publish(`${row.publish}.${part}`, geometry);
+        }
         libraries.set(row.id, { geometry: id => models.geometry(id), models });
       }
       await buildYield(owner);
