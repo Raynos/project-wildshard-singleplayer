@@ -8,7 +8,7 @@
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
-**For wildshard-v (19:15):** the ruler crash at e714d2fda (Driftwood 'World scenes require plain JSON') is fixed: 602b05c229 reverted in 922f8096d2 (pushed); ready row X8 makes one shard's failed build report instead of crash. Also: your admin ruler run (PID 85916, --slot check) held the check slot 20+ min while lane proofs (loading L1) queue; please use a slot lanes don't. Jake's hologram board (G546 P6): art/grid/round-32-holograms/board.jpg (be813c67e0; all 14 labelled; clay.jpg = review). Ember Forge playable demo P1 on main (0cb415a5f8), capture pending.
+**For wildshard-v (19:40):** ruler crash fixed (922f8096d2; X8 8ff60bd7b1 makes one failed shard build report, not crash). Your admin ruler on the check slot blocks lane proofs: please use another slot. Hologram board for Jake: art/grid/round-32-holograms/board.jpg (be813c67e0).
 
 **Idle lanes (17:50 reply):** cause: lanes wait 20-60 min on three shared check slots, plus two briefs lost after /clear; fix: lanes/ready-queue.md (self-pull) + prepare the next cut while a check runs. **Lanes (19:00):** Opus sp-o1 far impostors; sp-o2 open plots P2; sp-o3 frame floor; sp-o4 Pine memory; sp-o5 phase C. Codex sp-x1 loading; sp-x6 G540 capture; sp-x8 Nalati memory; sp-x9 grid proof; sp-x7 push.
 
