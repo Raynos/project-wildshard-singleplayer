@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { BatchedMesh, type Object3D, type Vector3 } from 'three';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
@@ -203,7 +204,7 @@ export function installQuestCatalogue(ctx: Pick<ShardContext, 'product'> & { rea
  * retains its update phase and event wiring; this owns no clock or save wire.
  */
 export async function installQuestInteractables(ctx: ShardContext, id: string,
-  input: { readonly table: InteractTable; readonly placements?: unknown; readonly platforms?: boolean; readonly registryReach?: number }): Promise<Interactables> {
+  input: { readonly table: InteractTable; readonly placements?: unknown; readonly platforms?: boolean; readonly registryReach?: number }): Promise<Interactables & { readonly sfx: InteractSfx }> {
   if (!isJsonData(input)) throw new Error('Quest interactables require plain JSON data');
   v.parse(v.strictObject({ table: v.unknown(), placements: v.exactOptional(v.unknown()),
     platforms: v.exactOptional(v.boolean()), registryReach: v.exactOptional(v.pipe(finite, v.minValue(Number.MIN_VALUE))) }), input);
@@ -224,5 +225,6 @@ export async function installQuestInteractables(ctx: ShardContext, id: string,
     player: world.player, flags, place, floorAt, prompts: runtime.interactables }).build(table));
   for (const node of world.game.scene.children) if (!before.has(node) && node instanceof BatchedMesh) ownQuestTree(node, ctx.scope);
   ctx.scope.onDispose(() => { kit.dispose({ batches: false }); });
-  return kit;
+  const audio = runtime.play?.audio; if (audio === undefined) throw new Error('Quest interactions require entered audio');
+  return Object.assign(kit, { sfx: new InteractSfx(audio) });
 }

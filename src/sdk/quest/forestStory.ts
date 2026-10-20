@@ -7,9 +7,7 @@ import { installQuestTrader } from '@wildshard/game/quest/trader';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
-import { forestPageAmbience } from '@wildshard/game/audio/forestPage';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
-import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -78,14 +76,14 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const facts = bindRuntimeLedger(ctx, source, h.chunkId), featFacts = await bindStoryAchievements(ctx, story, progress, h.chunkId, facts);
   const { state: quest, cables } = bindRuntimeQuest(ctx, source, story.quest.id, { flags, facts });
 
-  const sfx = forestPageAmbience(ctx.scope, rows.ranged).sfx;
-  const kitSfx = new InteractSfx(h.audio);
+  const sfx = equipment.ambience.sfx;
   const shot = (name: Parameters<DeclaredSoundBank['shot']>[0], at?: THREE.Vector3): void => { sfx.shot(name, at ? { at } : {}); };
 
   const { floorAt } = createQuestPlacements({ terrain: heightAt, registry: h.registry, registryReach: 20 });
 
   const { table, interactions: lanternRules } = native;
   const kit = await installQuestInteractables(ctx, story.quest.id, { table, registryReach: 20 });
+  const kitSfx = kit.sfx;
   ctx.system({ id: 'quest.kit', phase: 'update', after: ['engine.compendium.installCompendium'], before: ['hud.combat', 'main.frame'], run: (dt, t) => { kit.update(dt, t); } });
 
   const ui = new QuestViews(ctx);

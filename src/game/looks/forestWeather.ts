@@ -5,7 +5,7 @@ import { forestPage, type ForestPage } from '../shardfile/forestPage';
 import { chapterLeadPosition } from '../quest/chapterDirector';
 import type { ShardContext } from '../plugin/context';
 import type { ShardRuntime, ShardPlayHost } from '../shard/runtime';
-import { forestPageAmbience } from '../audio/forestPage';
+import { rangedPage } from '../loadout/rangedPage';
 import type { ShardWorld } from '../shard/world';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import type { Vector3 } from 'three';
@@ -21,6 +21,6 @@ export function forestWeatherObservations(ctx: ShardContext, input: unknown): Fo
   const rows = v.parse(ForestWeatherObservationSchema, input), page = forestPage(ctx.scope, rows.page), runtime = ctx.game.runtime;
   const world = runtime?.world, play = runtime?.play;
   if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Weather observation requires its runtime');
-  return { game: world.game, sky: world.sky, trees: world.forest.trees, animals: play.animals, particles: page.particles, ambience: forestPageAmbience(ctx.scope, rows.audio),
+  return { game: world.game, sky: world.sky, trees: world.forest.trees, animals: play.animals, particles: page.particles, ambience: rangedPage(ctx.scope, rows.audio).ambience,
     guideAt: () => chapterLeadPosition(ctx.scope, rows.guide), viewer: runtime.viewer, horizonVeil: runtime.horizonVeil };
 }

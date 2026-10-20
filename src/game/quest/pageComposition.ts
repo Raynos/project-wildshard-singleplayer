@@ -49,7 +49,6 @@ async function preparePage(ctx: ShardContext, input: unknown) {
   const rows = v.parse(QuestPageCompositionSchema, input);
   const shell = ctx.game.runtime, world = shell?.world, h = shell?.play;
   if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Quest page requires its entered play host');
-  const { InteractSfx } = await import('@wildshard/engine/audio/interactSfx');
   if (ctx.scope.disposed) throw new Error('Quest page left during admission');
   const scope = ctx.scope, declaration = ctx.product.shardfile, d = questPageWorld(scope, rows.world);
   // Delegate the getters: spreading Game loses its live regional scene/camera.
@@ -75,7 +74,7 @@ async function preparePage(ctx: ShardContext, input: unknown) {
   w.game.onUpdate((dt, t) => kit.update(dt, t), rows.systems.kit);
 
   const isItem = (id: string | undefined): id is ItemId => id !== undefined && id in ITEMS;
-  const sfx = new InteractSfx(w.audio);
+  const sfx = kit.sfx;
   kit.onEvent = sfx.bindEvents(rows.events, { toast: text => { w.hud.toast(text); },
     item: id => isItem(id) ? { label: ITEMS[id].label, add: n => { w.inventory.add(id, n); } } : null,
     calls: new Map(rows.services.map(id => [id, () => { services.run(id); }])) });
