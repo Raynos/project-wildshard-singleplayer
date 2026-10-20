@@ -5,7 +5,7 @@ import type { ShardContext } from '@wildshard/game/plugin/context';
 import type { ForestStory } from '@wildshard/sdk/quest/forestStoryRows';
 import { installForestStory } from '@wildshard/sdk/quest/forestStory';
 import type { PineLandmarks } from '../runtime/world/landmarks';
-import { Puffs } from '../runtime/combat/fxKit';
+import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import { BeaverPool } from '../world/beaverPool';
 import './pinehollow.css';
 
@@ -19,8 +19,8 @@ export class PineQuestViews {
   private constructor(readonly quest: ForestStory, private readonly landmarks: PineLandmarks, private readonly pool: BeaverPool, done: string) {
     this.done = done;
     const lead = quest.stag.puffs, spawn = quest.thralls.puffs;
-    this.leadPuffs = new Puffs(landmarks.group, new THREE.Color(...lead.color), lead.count);
-    this.spawnPuffs = new Puffs(landmarks.group, new THREE.Color(...spawn.color), spawn.count);
+    this.leadPuffs = new DomePuffs(landmarks.group, new THREE.Color(...lead.color), lead.count);
+    this.spawnPuffs = new DomePuffs(landmarks.group, new THREE.Color(...spawn.color), spawn.count);
     pool.setOpen(quest.flags.has('open:dam-sluice'), true); this.lamps();
   }
   static async install(ctx: ShardContext, landmarks: PineLandmarks): Promise<PineQuestViews> {

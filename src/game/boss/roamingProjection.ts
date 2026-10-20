@@ -29,7 +29,7 @@ import { Rng, fnv1a32, type RngState } from '@wildshard/engine/core/rng';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { Lane, type LaneState } from './lane';
 import { bossFight, type RoamingBossFight, type RoamingBossPorts } from '../plugin/bossPhase';
-import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
+import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 
 interface HazardView { group: THREE.Group; flame: THREE.Object3D; ring: GroundTell; from: THREE.Vector3 }
 
@@ -93,53 +93,9 @@ class ProjectionLane extends Lane<Animal> {
     else this.decal.hide();
   }
 }
-const MAX_PUFFS = 16;
-
-/** a pool of expanding shimmer spheres (FX dome mode, additive) */
 function disposeTell(tell: GroundTell): void {
   tell.mesh.removeFromParent(); tell.mesh.geometry.dispose();
   for (const material of Array.isArray(tell.mesh.material) ? tell.mesh.material : [tell.mesh.material]) material.dispose();
-}
-
-class ProjectionPuffs {
-  private readonly items: { mesh: THREE.Mesh; mat: FxMaterial; t: number; life: number; r0: number; r1: number; a: number }[] = [];
-  private next = 0;
-  /** `parent`: what the parked spheres hang under (the world's root) */
-  constructor(parent: THREE.Object3D, color: THREE.ColorRepresentation, n = 4) {
-    if (n > MAX_PUFFS) throw new Error(`Puff pool exceeds ${String(MAX_PUFFS)}`);
-    const g = new THREE.SphereGeometry(1, 20, 12);
-    for (let i = 0; i < Math.min(n, MAX_PUFFS); i++) {
-      const mat = fxMaterial(FX.dome, color, 0);
-      const mesh = new THREE.Mesh(g, mat);
-      mesh.visible = false; mesh.frustumCulled = false; mesh.renderOrder = 28;
-      parent.add(mesh);
-      this.items.push({ mesh, mat, t: 0, life: 0, r0: 0.5, r1: 3, a: 1 });
-    }
-  }
-  /** a puff at `at`, radius r0 → r1 over `life` s, peak alpha `a` */
-  burst(at: THREE.Vector3, r0: number, r1: number, life = 0.7, a = 0.9): void {
-    const it = this.items[this.next];
-    if (it === undefined) return;
-    this.next = (this.next + 1) % this.items.length;
-    it.mesh.position.copy(at); it.t = 0; it.life = life; it.r0 = r0; it.r1 = r1; it.a = a;
-    it.mesh.scale.setScalar(r0); it.mesh.visible = true;
-  }
-  dispose(): void {
-    this.items[0]?.mesh.geometry.dispose(); for (const item of this.items) { item.mesh.removeFromParent(); item.mat.dispose(); } this.items.length = 0;
-  }
-  update(dt: number, t: number): void {
-    const items = this.items;
-    for (let i = 0; i < Math.min(items.length, MAX_PUFFS); i++) {
-      const it = items[i];
-      if (it === undefined || !it.mesh.visible) continue;
-      it.t += dt;
-      const k = Math.min(1, it.t / it.life);
-      it.mesh.scale.setScalar(it.r0 + (it.r1 - it.r0) * (1 - (1 - k) * (1 - k)));
-      it.mat.uniforms.uAlpha.value = it.a * (1 - k) * Math.min(1, it.t * 12);
-      it.mat.uniforms.uTime.value = t;
-      if (k >= 1) it.mesh.visible = false;
-    }
-  }
 }
 
 export async function installRoamingBossProjection(context: ShardContext, input: unknown): Promise<ProjectionFight> {
@@ -165,7 +121,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R * rows.wall.bottom, rows.wall.height, rows.wall.segments, 1, true).translate(0, rows.wall.height / 2, 0), lentLook(rows.wall.look));
   wall.position.set(C.x, heightAt(C.x, C.z) + rows.wall.lift, C.z); wall.visible = false; wall.frustumCulled = false; wall.renderOrder = rows.wall.order;
   wall.name = rows.wall.name; scene.add(wall);
-  const puffs = new ProjectionPuffs(scene, new THREE.Color(...rows.colours.puff), rows.puffs.count);
+  const puffs = new DomePuffs(scene, new THREE.Color(...rows.colours.puff), rows.puffs.count);
   const fallen: HazardView[] = rows.socketRig.hazards.map(() => {
     const group = new THREE.Group(); group.visible = false;
     const fire = effectField({ name: rows.hazard.name, shape: 'streak', count: 1 }, lentLook(rows.hazard.look)), flame = fire.object;

@@ -100,3 +100,45 @@ export function annulus(inner: number, outer: number, seg: number, arc = Math.PI
   g.setIndex(idx);
   return g;
 }
+
+/** most spheres one puff pool holds */
+const MAX_PUFFS = 16;
+/**
+ * A bounded pool of expanding shimmer spheres on the dome mode (additive), made once, parked invisible and driven by
+ * uniforms (a mid-fight compile is a multi-second hitch on iOS). `burst` swells the next sphere from `r0` to `r1` over
+ * `life` seconds at peak alpha `a`, fading in fast and out on an ease; the oldest is reused when all are in flight.
+ */
+export class DomePuffs {
+  private readonly items: { mesh: THREE.Mesh; mat: FxMaterial; t: number; life: number; r0: number; r1: number; a: number }[] = [];
+  private next = 0;
+  /** `parent`: what the parked spheres hang under (the world's root) */
+  constructor(parent: THREE.Object3D, color: THREE.ColorRepresentation, count = 4, segments: readonly [number, number] = [20, 12], order = 28) {
+    if (!Number.isInteger(count) || count < 1 || count > MAX_PUFFS) throw new Error(`[fx] a puff pool of ${String(count)} is outside 1..${String(MAX_PUFFS)}`);
+    const geometry = new THREE.SphereGeometry(1, segments[0], segments[1]);
+    for (let i = 0; i < count; i++) {
+      const mat = fxMaterial(FX.dome, color, 0), mesh = new THREE.Mesh(geometry, mat);
+      mesh.visible = false; mesh.frustumCulled = false; mesh.renderOrder = order; parent.add(mesh);
+      this.items.push({ mesh, mat, t: 0, life: 0, r0: 0.5, r1: 3, a: 1 });
+    }
+  }
+  /** a puff at `at`, radius r0 → r1 over `life` s, peak alpha `a` */
+  burst(at: THREE.Vector3, r0: number, r1: number, life = 0.7, a = 0.9): void {
+    const it = this.items[this.next]; if (it === undefined) return;
+    this.next = (this.next + 1) % this.items.length;
+    it.mesh.position.copy(at); it.t = 0; it.life = life; it.r0 = r0; it.r1 = r1; it.a = a;
+    it.mesh.scale.setScalar(r0); it.mesh.visible = true;
+  }
+  update(dt: number, t: number): void {
+    for (const it of this.items) {
+      if (!it.mesh.visible) continue;
+      it.t += dt; const k = Math.min(1, it.t / Math.max(0.001, it.life));
+      it.mesh.scale.setScalar(it.r0 + (it.r1 - it.r0) * (1 - (1 - k) * (1 - k)));
+      it.mat.uniforms.uAlpha.value = it.a * (1 - k) * Math.min(1, it.t * 12);
+      it.mat.uniforms.uTime.value = t;
+      if (k >= 1) it.mesh.visible = false;
+    }
+  }
+  dispose(): void {
+    this.items[0]?.mesh.geometry.dispose(); for (const it of this.items) { it.mesh.removeFromParent(); it.mat.dispose(); } this.items.length = 0;
+  }
+}

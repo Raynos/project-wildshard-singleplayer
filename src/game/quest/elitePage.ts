@@ -19,39 +19,11 @@ import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { GroundTell, type Elites, type EliteScript, type EliteDef } from '../Elite';
-import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
+import { DomePuffs, fxMaterial, FX } from '@wildshard/engine/fx/groundFx';
 import { SpawnScript } from '../population/spawnScript';
 import { EliteDecisions } from './eliteDecisions';
-import { parseEliteFeature, type EliteFeatureRows, parseExternalElite, type ExternalEliteData } from '@wildshard/format/eliteFeature';
+import { parseEliteFeature, parseExternalElite, type ExternalEliteData } from '@wildshard/format/eliteFeature';
 
-/** Private bounded dome presentation; all geometry, pool and style choices come from the admitted feature rows. */
-class Puffs {
-  private readonly items: { mesh: THREE.Mesh; mat: FxMaterial; t: number; life: number; r0: number; r1: number; alpha: number }[] = [];
-  private next = 0;
-  constructor(parent: THREE.Object3D, view: NonNullable<EliteFeatureRows['view']>) {
-    const pool = view.puffPool, geometry = new THREE.SphereGeometry(1, pool.segments[0], pool.segments[1]);
-    for (let i = 0; i < pool.capacity; i++) {
-      const mat = fxMaterial(FX.dome, new THREE.Color(...view.puffColor), 0), mesh = new THREE.Mesh(geometry, mat);
-      mesh.visible = false; mesh.frustumCulled = false; mesh.renderOrder = pool.order; parent.add(mesh);
-      this.items.push({ mesh, mat, t: 0, life: 0, r0: 0.5, r1: 3, alpha: 1 });
-    }
-  }
-  burst(at: THREE.Vector3, r0: number, r1: number, life: number, alpha: number): void {
-    const item = this.items[this.next]; if (item === undefined) return;
-    this.next = (this.next + 1) % this.items.length; item.mesh.position.copy(at);
-    item.t = 0; item.life = life; item.r0 = r0; item.r1 = r1; item.alpha = alpha;
-    item.mesh.scale.setScalar(r0); item.mesh.visible = true;
-  }
-  update(dt: number, t: number): void {
-    for (const item of this.items) {
-      if (!item.mesh.visible) continue;
-      item.t += dt; const k = Math.min(1, item.t / Math.max(0.001, item.life));
-      item.mesh.scale.setScalar(item.r0 + (item.r1 - item.r0) * (1 - (1 - k) * (1 - k)));
-      item.mat.uniforms.uAlpha.value = item.alpha * (1 - k) * Math.min(1, item.t * 12);
-      item.mat.uniforms.uTime.value = t; if (k >= 1) item.mesh.visible = false;
-    }
-  }
-}
 
 /** Client-only presentation over the same v1 owner as native encounters. Every authority is an existing concrete service;
  * content contributes only rows and prepared models, with no shard callback, override or reflected path. */
@@ -68,7 +40,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     const group = herd >= 0 ? animals.herds[herd] : undefined;
     if (group !== undefined) { const index = group.members.indexOf(body); if (index === -1) group.members.push(ordinary); else group.members[index] = ordinary; }
   }
-  const puffs = new Puffs(game.scene, view), color = new THREE.Color(...view.tellColor);
+  const puffs = new DomePuffs(game.scene, new THREE.Color(...view.puffColor), view.puffPool.capacity, view.puffPool.segments, view.puffPool.order), color = new THREE.Color(...view.tellColor);
   const controllers = rows.fights.map(row => new EliteDecisions(row, SpawnScript.page(animals, row.program, game.app.physics), rows, seed));
   const point = new THREE.Vector3(), direction = new THREE.Vector3(), tells = new Map<string, GroundTell>();
   const bodyFor = (controller: EliteDecisions): Animal | null => {
