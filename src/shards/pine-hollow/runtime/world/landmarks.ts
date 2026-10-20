@@ -44,11 +44,9 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { installRangedPage } from '@wildshard/game/loadout/rangedPage';
 import { finishForestPageAudio } from '@wildshard/game/audio/forestPage';
 import { installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
-import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { RainFx } from '../looks/rainFx';
 import { pineMemoryTrim } from '../debug/options';
-import { registerPineLap } from '../dev/perfLap';
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
 
 
@@ -163,10 +161,9 @@ export class PineLandmarks {
   async installChapter(ctx: ShardContext, input: RangedPageRows): Promise<void> {
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
     if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Missing landmark play services');
-    const floor = forestPage(ctx.scope, input.forest), { game, player } = world, { animals, audio, music, hud } = play;
+    const floor = forestPage(ctx.scope, input.forest), { audio, music } = play;
     installRuntimeAudioEntry(ctx, 'play', { audio, music });
     const page = await installRangedPage(ctx, { ...input, shadowBatch: !pineMemoryTrim() });
-    installEnteredRuntimeService(ctx, scope => { registerPineLap({ game, player, animals, music, hud, elites: page.fights.elites, king: page.fights.encounter }, scope); });
     this.chapter = await PineQuestViews.install(ctx, this);
     const quest = this.chapter.quest;
     const ambience = await finishForestPageAudio(ctx, input.id); quest.bindAudio(input.id);

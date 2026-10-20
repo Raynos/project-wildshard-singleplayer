@@ -1,5 +1,8 @@
 /** Client-only entered equipment/pickup/collection owners driven by JSON rows. */
 import { Vector3 } from 'three';
+import { perfLap } from '@wildshard/engine/core/perfLap';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import { isDev } from '@wildshard/engine/core/devMode';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { WeaponPickup } from '@wildshard/engine/player/WeaponPickup';
@@ -81,5 +84,43 @@ export async function installRangedPage(ctx: ShardContext, input: unknown): Prom
   const compendium = ctx.scope.run(() => installCollectionCompendium(new Map([['compendium', { context: ctx, chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins: floor.cabins, interactables: runtime.interactables, weapons, touchUi, nolock }]]),
     { mounts: row.source, scope: ctx.scope, product: ctx.product, pack: row.pack, chalk: row.chalk, texture: row.texture }));
   const page = { rows, loadout, fights, compendium }, book = pages.get(ctx.scope) ?? new Map<string, RangedPage>();
+  installDebugLap(ctx, page);
   book.set(rows.id, page); pages.set(ctx.scope, book); ctx.scope.onDispose(() => { book.delete(rows.id); }); return page;
+}
+
+/** Existing Developer perf tooling consumes declared spots and the page's own
+ * encounter/music/body owners. It installs no gameplay trigger or clock. */
+function installDebugLap(ctx: ShardContext, page: RangedPage): void {
+  const row = page.rows.debugLap;
+  if (row === undefined) return;
+  const world = ctx.game.runtime?.world, play = ctx.game.runtime?.play;
+  if (world === undefined || world === null || play === undefined || play === null) throw new Error('Perf lap requires its entered page');
+  const { game, player } = world, { animals, music, hud } = play;
+  installEnteredRuntimeService(ctx, scope => {
+    let calmBefore = false;
+    const previous = perfLap.host;
+    const host = {
+      game, shard: ctx.manifest.slug, spots: row.spots, player,
+      busy: (): string | null => {
+        if (!isDev()) return 'only in Developer';
+        if (practiceRoom.open) return 'not in a practice room';
+        const boss = page.fights.encounter.boss.state;
+        if (boss !== 'dormant' && boss !== 'armed') return row.bossBusy;
+        if (page.fights.elites.focus?.state === 'engaged') return 'not mid-fight (an elite)';
+        if (music.state.mode === 'combat') return 'not mid-fight';
+        for (let i = 0; i < Math.min(animals.animals.length, 512); i++) {
+          const actor = animals.animals[i];
+          if (actor === undefined || !actor.alive || actor.hidden) continue;
+          if (['charge', 'stalk', 'attack'].includes(actor.state) && actor.position.distanceTo(player.position) < row.fightRadius) return 'not mid-fight (something is charging you)';
+        }
+        if (player.ride !== null || player.hover || player.carried) return 'not while riding / held';
+        if (player.swimming) return 'not while swimming';
+        return null;
+      },
+      hold: (on: boolean): void => { if (on) { calmBefore = animals.calm; animals.calm = true; } else animals.calm = calmBefore; },
+      toast: (text: string): void => { hud.toast(text); },
+    };
+    perfLap.host = host;
+    scope.onDispose(() => { if (perfLap.host === host) { if (perfLap.active) { host.hold(false); perfLap.active = false; } perfLap.host = previous; } });
+  });
 }

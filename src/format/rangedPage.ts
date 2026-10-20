@@ -12,6 +12,8 @@ export const RangedPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Ranged 
   collection: v.strictObject({ source: id, pack: CollectionMountPackSchema, chalk: CollectionChalkSchema,
     texture: v.strictObject({ url: id, srgb: v.boolean(), repeat: v.boolean() }) }),
   places: v.array(v.strictObject({ id, name: text, place: id, x: n, z: n, r: n })),
+  debugLap: v.exactOptional(v.strictObject({ fightRadius: n, bossBusy: text,
+    spots: v.pipe(v.array(v.strictObject({ id, x: n, z: n, yaw: n, y: v.exactOptional(n) })), v.minLength(1), v.maxLength(64)) })),
   life: id, directional: v.boolean(), shadowBatch: v.boolean(),
 }));
 export type RangedPageRows = v.InferOutput<typeof RangedPageSchema>;
