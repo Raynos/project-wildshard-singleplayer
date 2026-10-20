@@ -1,0 +1,9 @@
+{
+  "status": "preserved transport failure; geometry and payload unchanged",
+  "tests": {
+    "passed": 1,
+    "failedBeforeDecode": 2
+  },
+  "error": "ValiError: metadata.file must match content-addressed /assets/...-<sha256>.bin, received payload.bin",
+  "correction": "Use existing schema content-addressed logical path with injected local loader. No public asset write or fetch."
+}

@@ -153,7 +153,7 @@ def build():
             offsets.append(len(raw));values=p[attr];raw.extend(struct.pack('<'+('H' if kind=='u16' else 'f')*len(values),*values));raw.extend(bytes((-len(raw))%4))
         packed_parts.append({'offsets':offsets,'row':{'attrs':[[n,k,w,False] for n,k,w,_ in ATTRS],'count':len(p['positions'])//3,'index':None,'indexCount':0,'box':True}})
     payload=zlib.compress(raw,9)
-    metadata={'file':'payload.bin','bytes':len(raw),'bodies':[{'kind':'conch-duelist','variant':'conch-duelist','bones':bones,'dims':dims,'fur':None,'hard':packed_parts,'eye':None}]}
+    metadata={'file':'/assets/driftwood-isle/conch-articulated-source-candidate1-'+sha(payload)+'.bin','bytes':len(raw),'bodies':[{'kind':'conch-duelist','variant':'conch-duelist','bones':bones,'dims':dims,'fur':None,'hard':packed_parts,'eye':None}]}
     report={'sourceCorners':6570,'candidateCorners':sum(len(p['positions'])//3 for p in parts),'owners':8,'hullPoints':sum(r['points'] for r in hull_reports),'hulls':hull_reports,'newClosedMeshes':topology,'changes':provenance,'diagnosticDimensionsOnly':True,'sourceGeometryAdmission':False,'runtimeAdmission':False,'visualAcceptance':False,'footMotionAuthored':False,'binaryBytes':len(payload)}
     return {'model.json':encoded(model),'recipe.json':encoded(recipe),'contract.json':encoded(contract),'metadata.json':encoded(metadata),'payload.bin':payload,'construction.json':encoded(report)}
 

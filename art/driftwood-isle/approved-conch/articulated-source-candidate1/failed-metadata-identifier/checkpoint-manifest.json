@@ -1,0 +1,96 @@
+{
+  "checkpointUTC": "2026-10-20T21:17:00Z",
+  "status": "editable source milestone; consumer tests pending; runtime and quality not admitted",
+  "pythonTestsPassed": 8,
+  "files": {
+    "REPORT.md": {
+      "bytes": 5344,
+      "sha256": "54344d428adce6b95cf4ada8e4ebdc1a491a9d8de5dad71d5ab6520184a62fca"
+    },
+    "construction.json": {
+      "bytes": 13281,
+      "sha256": "336bd05306101b6db9bbdbf1edbd4643388abdfd232f1a2fc5685584fd7b055f"
+    },
+    "contract.json": {
+      "bytes": 2532,
+      "sha256": "37e10f67124db7c7e43eb5670643036ed8153a074314789cd030ca66553d6952"
+    },
+    "first-build-arithmetic-witness/construction.json": {
+      "bytes": 13281,
+      "sha256": "22f1e5331a8047287aa2ea638afa87c3a61aa76164f86878474d3a09ebe2dfea"
+    },
+    "first-build-arithmetic-witness/contract.json": {
+      "bytes": 2570,
+      "sha256": "85f75413a1578d06ae35475ad42f0edb6701c332efc87134cdf6eca59113b6a2"
+    },
+    "first-build-arithmetic-witness/failure.json": {
+      "bytes": 575,
+      "sha256": "828c49f1f79a39cfbcd2fd4e7803429eee20f741fe810b8c56e3d5b0f664b3da"
+    },
+    "first-build-arithmetic-witness/freeze.json": {
+      "bytes": 3689,
+      "sha256": "ca25129e6d0ff844be9d987713839949521b191e3db5047443b79b4698ecd611"
+    },
+    "first-build-arithmetic-witness/generate.py": {
+      "bytes": 12995,
+      "sha256": "a9c14aee82f81a5a27f4f00fd24a20778891f80bfbd94180436e36ef872793d6"
+    },
+    "first-build-arithmetic-witness/metadata.json": {
+      "bytes": 24534,
+      "sha256": "8f0973a48ef0cf057fa19e837fa54d9c7655421515dbf179bf80841776649254"
+    },
+    "first-build-arithmetic-witness/model.json": {
+      "bytes": 1396091,
+      "sha256": "807a9efcfa6682b43edd5dd23a795732262ec8d89fc979bf67e8f1e307fc3b56"
+    },
+    "first-build-arithmetic-witness/payload.bin": {
+      "bytes": 48403,
+      "sha256": "43fc8799cc02d225127d8238585b448621c05764adb30ad3c99a81f6842036c3"
+    },
+    "first-build-arithmetic-witness/recipe.json": {
+      "bytes": 20894,
+      "sha256": "2dc438caca6a3396e48f9ae51a600c83a7cbf97ebd5ffd4a7654e7b8b14e5ed0"
+    },
+    "first-build-arithmetic-witness/test_source.py": {
+      "bytes": 8812,
+      "sha256": "64d9266a6591d58fd24eee7255a6cc1865bb70e780af3d07150537ecee7bc48f"
+    },
+    "freeze.json": {
+      "bytes": 3689,
+      "sha256": "886a4292c0bce0f76634b389bbec8d98242bb4371fc34c0b65e038a30e5e5698"
+    },
+    "generate.py": {
+      "bytes": 13125,
+      "sha256": "91b578ff0068ba84240f0d5b171112310a3d673e7b9bdd1d2e7766c4e406095f"
+    },
+    "metadata.json": {
+      "bytes": 24534,
+      "sha256": "8f0973a48ef0cf057fa19e837fa54d9c7655421515dbf179bf80841776649254"
+    },
+    "model.json": {
+      "bytes": 1395237,
+      "sha256": "727d2f3c343f33e9b132304eb0e2ad159a2b9f6f5046289ba71c3b571857f765"
+    },
+    "native.test.ts": {
+      "bytes": 5957,
+      "sha256": "221eb37839494e96a5ab5f376ec9384817cd640cadb92afffd821699ac1b15f5"
+    },
+    "payload.bin": {
+      "bytes": 48321,
+      "sha256": "d116f65ae2a70b605d82c7fe924ddfbaf8fd06be588016ac3130c06f468f5eb9"
+    },
+    "recipe.json": {
+      "bytes": 20894,
+      "sha256": "2dc438caca6a3396e48f9ae51a600c83a7cbf97ebd5ffd4a7654e7b8b14e5ed0"
+    },
+    "test_source.py": {
+      "bytes": 8804,
+      "sha256": "a5a3f4581095bfdf0eb8d0f9835432adf8c9f397831be652bef82c7638194550"
+    },
+    "vitest.config.ts": {
+      "bytes": 242,
+      "sha256": "fc39e0035e7ad1a921ace33425c965b68b8749b6d8a3f262155671b36e45881f"
+    }
+  },
+  "countedBinaryBytes": 96724
+}
