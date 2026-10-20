@@ -17,7 +17,7 @@ const sampleVoices: (readonly [string, { family: string; tap: string; sequence?:
  ];
 
 /** Today's market/Well beds, enclosed blend regions, lantern hum limits and ordered cue aliases. */
-export const ND_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'default', samples: ND_SAMPLES,
+export const ND_AUDIO = parseAudioData({ entry: { kit: { wind: false, score: false, scene: true } }, cues: [], ambience: null, score: 'default', samples: ND_SAMPLES,
   music: { setPlayback: { scene: { well: 0 }, stateMode: true, waitForBank: true },
     setCatalogue: { inventory: 'title', priority: false, bootSynth: true, titleStings: false, baseSamples: false, cueOverlay: false }, id: 'score.nd', base: 'nd-market', slots: ['nd-market', 'nd-well', 'nd-fight'], bootSlots: ['title', 'nd-market'], synthLead: 'pluck', minFade: 6,
     source: { dir: '/assets/music/nine-dragon-stack/', manifestKey: 'nine-dragon-stack' }, sets: {}, selectMode: 'first', selection: [

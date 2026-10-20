@@ -39,7 +39,6 @@ import type { NalatiLoadout } from '../weapons/loadout';
 import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
 import { creatureGuest } from '../species/balbal';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
-import { clientAudioScene, type AudioSceneDirector } from '@wildshard/game/audio/sceneDirector';
 import { wireLookV2 } from '../look/index';
 import { reseedGrassV2 } from '../look/field';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
@@ -88,9 +87,6 @@ export interface Nalati {
   /** crouch + grass stealth (melee agent, B9; src/shards/nalati-grasslands/stealth.ts): `stealth.state` (hidden / visible / noticed /
    *  detected), `stealth.cover`, `stealth.latched` — taming reads it (TRUST builds only crouched) */
   stealth: Stealth | null;
-  /** the steppe's sound (B16 audio; src/shards/nalati-grasslands/sound.ts): creatures, hooves, the grassland bed, the kit's voices — set just
-   *  before wireNalati returns; main.ts: `sound.bind(audio, music)`, `sound.fire(id)` / `sound.impact(…)` in the weapon hooks */
-  sound?: AudioSceneDirector;
   /** riding + taming (creatures agent B7 / B8; src/shards/nalati-grasslands/ride/ride.ts): built in `attachAnimals`. main.ts pushes
    *  `ride.interactable` (the one nearest horse prompt: Mount / Dismount / Break the stallion) into its interactables and
    *  hands `ride.taming` to `elites.bind` (Argymaq, BROKEN → the bucking rounds) */
@@ -277,8 +273,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     });
 
   // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/shards/nalati-grasslands/sound.ts ──
-  const sound=clientAudioScene(plugin);nalati.sound=sound;
-  updates.push(dt=>{const clock=weather.clock;sound.update(dt,{wind:wind.speed,gust:wind.gustAt(player.position.x,player.position.z),sun:clock.sunElevation,dark:Number(clock.dayPhase==='dusk'||clock.dayPhase==='night'),storm:Number(weather.weather.stormActive),inside:Number(nalati.boss.inside),engaged:Number(nalati.titan.engaged)});});
+  updates.push(dt=>{const clock=weather.clock;plugin.app.events.emit('audio.scene-frame',{delta:dt,inputs:{wind:wind.speed,gust:wind.gustAt(player.position.x,player.position.z),sun:clock.sunElevation,dark:Number(clock.dayPhase==='dusk'||clock.dayPhase==='night'),storm:Number(weather.weather.stormActive),inside:Number(nalati.boss.inside),engaged:Number(nalati.titan.engaged)}});});
 
   const ids = ['pois', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'ride', 'skins', 'sound'];
   let previous = 'main.world';

@@ -50,6 +50,7 @@ export class AudioSceneDirector {
  }
  /** Native scoped signal subscriptions; weapon ids/phases and creature events are declared rows. */
  listen(ctx:ShardContext):void{
+  ctx.on('audio.scene-frame', ({delta,inputs})=>{this.update(delta,inputs);});
   ctx.on('creature.signal',({name,x,z})=>{this.event(name,x,z);});
   ctx.on('weapon.charge',({id,phase,value})=>{for(const row of this.rows.charges){if(row.weapon!==id||row.phase!==phase)continue;if(row.cancelDeferred)this.thrustPending=false;this.cues.cue((value===1&&row.full!==undefined?row.full:row.cue) as `cue.${string}`,{strength:value??1});}});
  }
@@ -106,6 +107,15 @@ export class AudioSceneDirector {
 
 
 const enteredScenes=new WeakMap<Scope,WeakMap<ShardProduct,AudioSceneDirector>>();
+/** Run an admitted audio entry before the corresponding native lifecycle hook. */
+export async function enterDeclaredAudioPhase(ctx: ShardContext, phase: 'kit' | 'play'): Promise<void> {
+ const entry = ctx.product.shardfile.audio.entry?.[phase];
+ if (entry === undefined) return;
+ if (entry.scene === true) { await enterClientAudioScene(ctx); return; }
+ const audio = ctx.app.audio;
+ if (audio === null) throw new Error('Audio entry requires its native mixer');
+ installRuntimeAudioEntry(ctx, phase, { audio, ...(audio.music === null ? {} : { music: audio.music }) });
+}
 /** Z1 installs one declared director and its signal subscriptions for the entered owner. */
 export function installClientAudioScene(ctx:ShardContext):void{
  const world=ctx.game.runtime?.world;if(world===undefined||world===null||ctx.scope.disposed)throw new Error('Audio scene requires an entered world');

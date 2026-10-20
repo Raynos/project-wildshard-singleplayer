@@ -6517,7 +6517,8 @@
     "entry": {
       "play": {
         "wind": false,
-        "score": true
+        "score": true,
+        "scene": true
       }
     }
   }

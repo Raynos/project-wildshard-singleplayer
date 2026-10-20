@@ -18,7 +18,6 @@ import { CaveInterior } from '@wildshard/game/shardfile/caveInterior';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { installRangedPage } from '@wildshard/game/loadout/rangedPage';
 import { finishForestPageAudio } from '@wildshard/game/audio/forestPage';
-import { installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { installForestWeather } from '@wildshard/sdk/looks/forestWeather';
 import { pineMemoryTrim, pineSetCap } from '../debug/options';
@@ -46,8 +45,7 @@ export class PineLandmarks {
   async installChapter(ctx: ShardContext, input: RangedPageRows): Promise<void> {
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
     if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Missing landmark play services');
-    const floor = forestPage(ctx.scope, input.forest), { audio, music } = play;
-    installRuntimeAudioEntry(ctx, 'play', { audio, music });
+    const floor = forestPage(ctx.scope, input.forest);
     const page = await installRangedPage(ctx, { ...input, shadowBatch: !pineMemoryTrim() });
     this.chapter = await PineQuestViews.install(ctx, this);
     const quest = this.chapter.quest;

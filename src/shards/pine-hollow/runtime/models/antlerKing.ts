@@ -2,7 +2,6 @@ import type { ShardContext } from '@wildshard/game/plugin/context';
 import { pineLooks, preparePineGrazers, pineGrazer } from '../../species/looks';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
-import { installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
 import { registerSpecies, hasSpecies, type AnimalSpecies, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { roamingBossDamage } from '@wildshard/game/boss/roamingProjection';
 import { SocketRigCard } from '@wildshard/game/boss/socketRig';
@@ -77,7 +76,6 @@ export const antlerKing: ModelDef<CreatureParams> = defineModel<CreatureParams>(
 
 /** Counted native rig/hull catalogue binding, beside its custom model view. */
 export async function preparePineModelViews(ctx: ShardContext): Promise<void> {
-  const audio = ctx.app.audio; if (audio === null) throw new Error('Missing forest audio'); installRuntimeAudioEntry(ctx, 'kit', { audio });
   await preparePineGrazers(ctx.product); registerKing(); ctx.rows.species(ctx.product.section('actors/species-programs').page);
   ctx.rows.speciesLook(pineLooks(ctx.product.section<CustomSections['custom/thrallLook']>('custom/thrallLook')));
   ctx.rows.spawnTable(declaredSpawnTables(ctx.product.section('actors/species-programs').spawns));

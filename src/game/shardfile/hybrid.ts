@@ -1,3 +1,4 @@
+import { enterDeclaredAudioPhase } from '../audio/sceneDirector';
 import { admitClientPlan, installClientPhase, type ClientPhase } from './clientPlan';
 import { bindResidentWorldScope, boundResidentWorldScope, residentWorldScope } from './hybridPresentation';
 import { installDeclaredMovers, type MoverInstallation } from '../plugin/mover';
@@ -242,7 +243,7 @@ export class HybridShardPlugin extends ShardPlugin {
     const custom = this.custom; if (custom === undefined || !custom.active) throw new Error('Hybrid runtime world is not installed');
     if (custom.retained !== undefined && custom.ready) return;
     custom.installation.openKit();
-    try { await withOwner(custom.installation.context.scope, () => custom.plugin.kit?.(custom.installation.context)); await this.enteredPlan(custom.installation.context, 'kit'); }
+    try { await enterDeclaredAudioPhase(custom.installation.context, 'kit'); await withOwner(custom.installation.context.scope, () => custom.plugin.kit?.(custom.installation.context)); await this.enteredPlan(custom.installation.context, 'kit'); }
     finally { custom.installation.closeKit(); }
     if (custom.installation.context.scope.disposed) throw new Error('Hybrid runtime left during kit installation');
   }
@@ -272,7 +273,7 @@ export class HybridShardPlugin extends ShardPlugin {
   private async runtimePlay(): Promise<void> {
     const custom = this.custom; if (custom === undefined || !custom.active) throw new Error('Hybrid runtime kit is not installed');
     if (custom.retained !== undefined && custom.ready) { this.binding?.readiness?.(true); return; }
-    await withOwner(custom.installation.context.scope, () => custom.plugin.play?.(custom.installation.context));
+    await enterDeclaredAudioPhase(custom.installation.context, 'play'); await withOwner(custom.installation.context.scope, () => custom.plugin.play?.(custom.installation.context));
     await this.enteredPlan(custom.installation.context, 'play');
     if (custom.installation.context.scope.disposed) throw new Error('Hybrid runtime left during play installation');
     custom.ready = true; this.binding?.readiness?.(true);
@@ -479,12 +480,12 @@ export class HybridRuntimeSession {
       await this.stage(scope, cell.instance, 'afterWorld', () => ownerTask(scope, () => installation.afterWorld?.(context))); if (!live()) return false;
       installation.openKit();
       try { await this.stage(scope, cell.instance, 'kit', () => ownerTask(scope, async () => {
-        await plugin.kit?.(context); await runtimeClientPhase(context, 'kit', resident.scope);
+        await enterDeclaredAudioPhase(context, 'kit'); await plugin.kit?.(context); await runtimeClientPhase(context, 'kit', resident.scope);
       })); } finally { installation.closeKit(); }
       if (!live()) return false;
       await this.stage(scope, cell.instance, 'afterKit', () => ownerTask(scope, () => installation.afterKit?.(context))); if (!live()) return false;
       await this.stage(scope, cell.instance, 'play', () => ownerTask(scope, async () => {
-        await plugin.play?.(context); await runtimeClientPhase(context, 'play', resident.scope);
+        await enterDeclaredAudioPhase(context, 'play'); await plugin.play?.(context); await runtimeClientPhase(context, 'play', resident.scope);
       })); if (!live()) return false;
       await this.stage(scope, cell.instance, 'afterPlay', () => ownerTask(scope, () => installation.afterPlay?.(context))); if (!live()) return false;
       // Keep a cold entered world parked through its actual shader/texture warm.
