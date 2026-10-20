@@ -51,18 +51,26 @@ const step = v.strictObject({ id, cube: v.exactOptional(v.picklist(['standalone'
   geometry: v.optional(v.pipe(v.record(id, reference), v.check(rows => Object.keys(rows).length <= 128)), {}),
   materials: v.optional(strings, {}), registry: v.optional(bounded(registry, 128), []),
   publish: v.optional(WorldSceneBindingsSchema, {}), repeat: v.exactOptional(bounded(instance, 128)),
-  instanceAttributes: v.optional(bounded(v.strictObject({ part: id, name: id, width: v.picklist([1, 2, 3, 4]), values: bounded(finite, 32768) }), 32), []),
+  // per-instance values: a geometry attribute (`name`, the default target) or the mesh's own instanceColor (RGB)
+  instanceAttributes: v.optional(bounded(v.union([v.strictObject({ part: id, name: id, target: v.exactOptional(v.literal('geometry')), width: v.picklist([1, 2, 3, 4]), values: bounded(finite, 32768) }),
+    v.strictObject({ part: id, target: v.literal('instanceColor'), width: v.literal(3), values: bounded(finite, 32768) })]), 32), []),
   bounds: v.optional(bounded(v.strictObject({ part: id, sphere: v.strictObject({ center: triple, radius: v.pipe(finite, v.minValue(0)) }) }), 128), []),
 });
 // Textures lent to compiled looks before the world builds: an image (its pixel size optionally lent as a vec2 param),
-// or JPEG layers (each with an optional alpha JPEG, else ½) read back into one repeating, mipmapped RGBA8 array.
+// JPEG layers (each with an optional alpha JPEG, else ½) read back into one repeating, mipmapped RGBA8 array, or a
+// product's own KTX2 blob for the tier, sampled by its row, GPU-only once uploaded and optionally published as a handle.
 const wrap = v.exactOptional(v.picklist([1000, 1001, 1002]));
+// the look sampler row (format/materials.ts TextureSamplersSchema): wrap, anisotropy, filter, file or GPU mips
+const sampler = v.strictObject({ wrap: v.exactOptional(v.picklist(['repeat', 'clamp', 'mirror'])), anisotropy: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16))),
+  filter: v.exactOptional(v.picklist(['linear', 'nearest'])), mips: v.exactOptional(v.picklist(['file', 'gpu'])) });
 const lentTexture = v.variant('kind', [
   v.strictObject({ kind: v.literal('image'), looks: v.pipe(bounded(id, 32), v.minLength(1)), param: id, url: id, srgb: v.exactOptional(v.boolean()), wrapS: wrap, wrapT: wrap,
     anisotropy: v.exactOptional(v.pipe(finite, v.minValue(1), v.maxValue(16))), sizeParam: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('layers'), looks: v.pipe(bounded(id, 32), v.minLength(1)), param: id, base: id, label: id,
     size: v.strictObject({ phone: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(4096)), desktop: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(4096)) }),
     anisotropy: v.pipe(finite, v.minValue(1), v.maxValue(16)), layers: v.pipe(bounded(v.strictObject({ name: id, alpha: v.boolean() }), 64), v.minLength(1)) }),
+  v.strictObject({ kind: v.literal('product'), looks: v.optional(bounded(id, 32), []), param: v.exactOptional(id), file: v.strictObject({ phone: id, desktop: id }), label: id,
+    colour: v.exactOptional(v.picklist(['srgb', 'linear'])), sampler, publish: v.exactOptional(id) }),
 ]);
 const unique = (rows: readonly { readonly id: string }[]) => new Set(rows.map(row => row.id)).size === rows.length;
 /** Client-only static assembly. Recipes, slots and named references are bounded plain data. */

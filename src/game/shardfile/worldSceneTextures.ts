@@ -1,4 +1,7 @@
-import { DataArrayTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RepeatWrapping, RGBAFormat, UnsignedByteType, type Texture } from 'three';
+import { DataArrayTexture, LinearFilter, LinearMipmapLinearFilter, LinearSRGBColorSpace, NoColorSpace, RepeatWrapping, RGBAFormat, SRGBColorSpace, UnsignedByteType, type Texture } from 'three';
+import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
+import { BASIS_PATH, detectKtx2Support } from '@wildshard/engine/core/ktx2';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 import { loadTextureRow } from '@wildshard/engine/core/assets';
 import { phoneUrl } from '@wildshard/engine/boot/bytes';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
@@ -7,18 +10,45 @@ import { TIER } from '@wildshard/engine/core/tier';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { WorldSceneLentTexture } from '@wildshard/format/worldScenes';
 import { setLentParam, setLentTexture } from './lentLooks';
+import { applyTextureSampler } from './clientMaterials';
+import type { SceneHandles } from './sceneHandles';
+import type { ShardProduct } from './shardProduct';
 
-/** Client-only: load each declared texture under `owner` and lend it to its compiled looks (they are lent first). */
-export async function lendWorldSceneTextures(rows: readonly WorldSceneLentTexture[], owner: Scope): Promise<void> {
-  await Promise.all(rows.map(async row => {
-    const texture = owner.own(row.kind === 'image' ? await loadTextureRow(row) : await loadLayers(row));
-    if (owner.disposed) throw new Error('World scene textures unloaded while loading');
-    for (const look of row.looks) setLentTexture(look, row.param, texture);
-    if (row.kind !== 'image' || row.sizeParam === undefined) return;
-    const image: unknown = texture.image;
-    if (typeof image !== 'object' || image === null || !('width' in image) || !('height' in image) || typeof image.width !== 'number' || typeof image.height !== 'number') throw new Error(`Lent texture ${row.url} has no pixel size`);
-    for (const look of row.looks) setLentParam(look, row.sizeParam, [image.width, image.height]);
-  }));
+/** Client-only: load each declared texture under `owner`, lend it to its compiled looks (they are lent first) and
+ * publish a product texture that names a handle. */
+export async function lendWorldSceneTextures(rows: readonly WorldSceneLentTexture[], owner: Scope, product: Pick<ShardProduct, 'file'>, handles: SceneHandles, renderer: Renderer | undefined): Promise<void> {
+  const products = rows.filter(row => row.kind === 'product');
+  if (products.length > 0 && renderer === undefined) throw new Error('Product textures need the world renderer');
+  const loader = renderer === undefined || products.length === 0 ? null : detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
+  try {
+    await Promise.all(rows.map(async row => {
+      const texture = owner.own(row.kind === 'image' ? await loadTextureRow(row) : row.kind === 'layers' ? await loadLayers(row) : await loadProduct(row, product, loader));
+      if (owner.disposed) throw new Error('World scene textures unloaded while loading');
+      if (row.kind === 'product') {
+        if (row.publish !== undefined) handles.publish(row.publish, texture);
+        if (row.param !== undefined) for (const look of row.looks) setLentTexture(look, row.param, texture);
+        return;
+      }
+      for (const look of row.looks) setLentTexture(look, row.param, texture);
+      if (row.kind !== 'image' || row.sizeParam === undefined) return;
+      const image: unknown = texture.image;
+      if (typeof image !== 'object' || image === null || !('width' in image) || !('height' in image) || typeof image.width !== 'number' || typeof image.height !== 'number') throw new Error(`Lent texture ${row.url} has no pixel size`);
+      for (const look of row.looks) setLentParam(look, row.sizeParam, [image.width, image.height]);
+    }));
+  } finally { loader?.dispose(); }
+}
+
+/** A product's own KTX2 blob for the tier (its encoded orientation, flipY false), sampled by its row; GPU-only once uploaded. */
+async function loadProduct(row: Extract<WorldSceneLentTexture, { kind: 'product' }>, product: Pick<ShardProduct, 'file'>, loader: KTX2Loader | null): Promise<Texture> {
+  if (loader === null) throw new Error('Product textures need a KTX2 reader');
+  const bytes = Uint8Array.from(await product.file(row.file[TIER]));
+  const texture = await new Promise<Texture>((resolve, reject) => { loader.parse(bytes.buffer, resolve, reject); });
+  texture.flipY = false; texture.name = row.label;
+  if (row.colour !== undefined) texture.colorSpace = row.colour === 'srgb' ? SRGBColorSpace : LinearSRGBColorSpace;
+  applyTextureSampler(texture, row.sampler);
+  texture.needsUpdate = true;
+  gpuOnlyTexture(texture, row.label);
+  return texture;
 }
 
 async function blob(url: string): Promise<Blob> {

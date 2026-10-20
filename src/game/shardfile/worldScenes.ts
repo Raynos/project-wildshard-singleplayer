@@ -75,7 +75,10 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     if (row.kind === 'look' && row.over !== undefined) reference(row.over, true);
   }
   for (const row of section.materials) if (row.kind === 'surface') await admitWorldSceneSurface(row, product);
-  for (const row of section.lent ?? []) for (const look of row.looks) if (product.shardfile.look.materials[look] === undefined) throw new Error(`Missing lent texture look: ${look}`);
+  for (const row of section.lent ?? []) {
+    for (const look of row.looks) if (product.shardfile.look.materials[look] === undefined) throw new Error(`Missing lent texture look: ${look}`);
+    if (row.kind === 'product') { requireFile(row.file[TIER]); if ((row.looks.length > 0) !== (row.param !== undefined) || row.looks.length === 0 && row.publish === undefined) throw new Error('A product texture is lent with a param or published'); }
+  }
   let catalogue: ReturnType<typeof parseWorldSceneModels> | undefined;
   let modelScenes: ReadonlyMap<string, WorldSceneWeld> = new Map();
   const frozenSlots = new Set<string>();
@@ -167,7 +170,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       const nodes = new Map(recipe.scene.nodes.map(node => [node.id, node]));
       const attributes = new Set<string>();
       for (const row of step.instanceAttributes) {
-        const part = nodes.get(row.part), key = `${row.part}.${row.name}`;
+        const part = nodes.get(row.part), key = `${row.part}.${row.target === 'instanceColor' ? '#instanceColor' : row.name}`;
         if (part?.kind !== 'mesh' || part.instances === undefined || row.values.length !== part.instances * row.width || attributes.has(key)) throw new Error('Invalid scene instance attributes');
         attributes.add(key);
       }
@@ -250,7 +253,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       && !(row.kind === 'look' && row.over === undefined && sceneMaterial(resident, product.slug, row.look) !== undefined) && !hasLentLook(row.look) ? [row.look] : [])
       .concat((section.lent ?? []).flatMap(row => row.looks.filter(look => !hasLentLook(look))));
     if (missing.length > 0) lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, [...new Set(missing)]));
-    await lendWorldSceneTextures(section.lent ?? [], owner);
+    await lendWorldSceneTextures(section.lent ?? [], owner, product, handles, section.lent?.some(row => row.kind === 'product') === true ? ctx.game.runtime?.world?.game.renderer : undefined);
     const surfaces = section.materials.filter(row => row.kind === 'surface');
     if (surfaces.length > 0) {
       const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');
@@ -353,7 +356,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       for (const row of step.instanceAttributes) {
         const part = made.parts.get(row.part);
         if (!instances3(part) || row.values.length !== part.count * row.width) throw new Error('Scene instance attribute count differs');
-        part.geometry.setAttribute(row.name, new InstancedBufferAttribute(Float32Array.from(row.values), row.width));
+        const values = new InstancedBufferAttribute(Float32Array.from(row.values), row.width);
+        if (row.target === 'instanceColor') part.instanceColor = values; else part.geometry.setAttribute(row.name, values);
       }
       const prefix = [step.id, instance.id].filter(Boolean).join('.');
       handles.publish(`${prefix}.root`, made.root);

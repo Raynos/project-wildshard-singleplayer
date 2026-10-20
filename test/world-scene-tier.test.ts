@@ -30,3 +30,12 @@ test('rejects unknown tiers instead of silently skipping declarations', () => {
   const row = fixture();
   expect(() => parseWorldScenes({ ...row, batches: [{ ...row.batches[0], tier: 'tablet' }] })).toThrow();
 });
+
+test('admits instance colours and product KTX2 rows as plain data', () => {
+  const step = (rows: unknown[]) => ({ id: 'cards', scene: 'cards.json', instanceAttributes: rows });
+  const parsed = parseWorldScenes({ version: 1, libraries: [], materials: [], steps: [step([{ part: 'm', target: 'instanceColor', width: 3, values: [1, 0, 0] }, { part: 'm', name: 'aWin', width: 4, values: [0, 0, 0, 0] }])],
+    lent: [{ kind: 'product', looks: ['neon'], param: 'mono', file: { phone: 'a-phone.ktx2', desktop: 'a-desktop.ktx2' }, label: 'atlas', sampler: { anisotropy: 8, filter: 'linear', mips: 'gpu' }, publish: 'signs.mono' }] });
+  expect(parsed.steps[0]?.instanceAttributes.map(row => row.target ?? 'geometry')).toEqual(['instanceColor', 'geometry']);
+  expect(() => parseWorldScenes({ version: 1, libraries: [], materials: [], steps: [step([{ part: 'm', target: 'instanceColor', width: 4, values: [] }])] })).toThrow();
+  expect(() => parseWorldScenes({ version: 1, libraries: [], materials: [], steps: [], lent: [{ kind: 'product', file: { phone: 'a' }, label: 'x', sampler: {} }] })).toThrow();
+});

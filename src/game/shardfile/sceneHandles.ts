@@ -1,4 +1,4 @@
-import { BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PointLight, Vector3 } from 'three';
+import { BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PointLight, Texture, Vector3 } from 'three';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { Placed } from '@wildshard/engine/models/place';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -9,7 +9,7 @@ import { WorldSceneBatch } from './worldSceneBatch';
 import { WorldSceneWeldAssembly } from './worldSceneWeld';
 
 type NativePart = BufferGeometry | Material | Object3D;
-type Handle = NativePart | Vector3 | number | WorldScenePlacement | WorldSceneBatch | WorldSceneWeldAssembly | readonly ColliderDesc[];
+type Handle = NativePart | Texture | Vector3 | number | WorldScenePlacement | WorldSceneBatch | WorldSceneWeldAssembly | readonly ColliderDesc[];
 
 /** Client-only resident names for scene, building and native migration parts.
  * Resources are borrowed: the construction scope retains disposal ownership. */
@@ -81,6 +81,7 @@ export class SceneHandles {
   object(id: string): Object3D { const source = this.value(id), value = source instanceof WorldSceneBatch ? source.finish() : source; if (!(value instanceof Object3D)) throw new Error(`Expected scene object: ${id}`); return value; }
   group(id: string): Group { const value = this.value(id); if (!group3(value)) throw new Error(`Expected scene group: ${id}`); return value; }
   mesh(id: string): Mesh { const source = this.value(id), value = source instanceof WorldSceneBatch ? source.finish() : source; if (!mesh3(value)) throw new Error(`Expected scene mesh: ${id}`); return value; }
+  texture(id: string): Texture { const value = this.value(id); if (!(value instanceof Texture)) throw new Error(`Expected scene texture: ${id}`); return value; }
   vector(id: string): Vector3 { const value = this.value(id); if (!(value instanceof Vector3)) throw new Error(`Expected scene vector: ${id}`); return value; }
   number(id: string): number { const value = this.value(id); if (typeof value !== 'number') throw new Error(`Expected scene number: ${id}`); return value; }
   /** Native presentation observations update an already declared scalar. */
@@ -106,4 +107,4 @@ export class SceneHandles {
 function group3(value: unknown): value is Group { return value instanceof Group; }
 function mesh3(value: unknown): value is Mesh { return value instanceof Mesh; }
 function colliderRows(value: Handle): value is readonly ColliderDesc[] { return Array.isArray(value); }
-function nativeHandle(value: unknown): value is Handle { return value instanceof BufferGeometry || value instanceof Material || value instanceof Object3D || value instanceof Vector3 || value instanceof WorldScenePlacement || value instanceof WorldSceneBatch || value instanceof WorldSceneWeldAssembly || typeof value === 'number' || Array.isArray(value); }
+function nativeHandle(value: unknown): value is Handle { return value instanceof BufferGeometry || value instanceof Material || value instanceof Texture || value instanceof Object3D || value instanceof Vector3 || value instanceof WorldScenePlacement || value instanceof WorldSceneBatch || value instanceof WorldSceneWeldAssembly || typeof value === 'number' || Array.isArray(value); }
