@@ -112,7 +112,7 @@ def main():
         shape = re.fullmatch(r"python3 scripts/heavy-lane\.py build -- bash -c 'pnpm gen && ([^']+)'", build)
         command = ['pnpm', 'exec', 'bash', '-c', shape.group(1)] if shape else ['pnpm', 'build']
         run('build', [sys.executable, 'scripts/heavy-lane.py', 'gate', '--', *command])
-        run('custom-section-growth', ['node', 'scripts/check-custom-section-growth.mjs', str(root), base, sha,
+        run('custom-section-growth', ['node', str(root / 'scripts/check-custom-section-growth.mjs'), str(root), base, sha,
                                       str(common / 'custom-section-measures')])
         passed.parent.mkdir(parents=True, exist_ok=True)
         passed.write_text('build passed\n')
