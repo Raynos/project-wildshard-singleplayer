@@ -11,6 +11,7 @@ const LIVE: Readonly<Record<string, Readonly<Record<string, number | readonly nu
   'nalati-rain': { offset: [1, 2, 3], velocity: [1, -9, 0.5], length: 0.9, colour: [0.5, 0.55, 0.6], alpha: 0.3 },
   'nalati-crag': { rockMean: [0.4, 0.42, 0.45], scale: [0.1, 0.05], snowBand: [40, 52], shade: [0.1, 0.14, 0.3], rim: [1.4, 1.2, 0.9], wet: 0.5 },
   'nalati-crag-phone': { rockMean: [0.4, 0.42, 0.45], scale: [0.1, 0.05], snowBand: [40, 52] },
+  'nalati-riders': { clock: 12.5, shade: [0.1, 0.14, 0.3], rim: [1.4, 1.2, 0.9], wet: 0.2 },
 };
 
 test("Nalati's former GLSL programs validate as look graphs, compile and take their live params", () => {

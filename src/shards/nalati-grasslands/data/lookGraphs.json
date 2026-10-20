@@ -39603,5 +39603,1228 @@
     "ambient": "ambient"
    }
   }
+ },
+ "nalati-riders": {
+  "version": 1,
+  "kind": "material",
+  "model": "standard",
+  "budget": {
+   "nodes": 512,
+   "samplers": 4,
+   "instructions": 2048
+  },
+  "effectState": {
+   "fog": "nalati-fog"
+  },
+  "params": {
+   "colour": {
+    "type": "colour",
+    "value": [
+     1,
+     1,
+     1
+    ]
+   },
+   "emissive": {
+    "type": "colour",
+    "value": [
+     0,
+     0,
+     0
+    ]
+   },
+   "emissiveIntensity": {
+    "type": "float",
+    "value": 1,
+    "min": 0,
+    "max": 64
+   },
+   "rimAmt": {
+    "type": "float",
+    "value": 0.8,
+    "min": 0,
+    "max": 1
+   },
+   "bands": {
+    "type": "float",
+    "value": 0.85,
+    "min": 0,
+    "max": 1
+   },
+   "shadeAmt": {
+    "type": "float",
+    "value": 1,
+    "min": 0,
+    "max": 1
+   },
+   "floorAmt": {
+    "type": "float",
+    "value": 1,
+    "min": 0,
+    "max": 1
+   },
+   "shade": {
+    "type": "vec3",
+    "value": [
+     0.1,
+     0.14,
+     0.3
+    ],
+    "min": 0,
+    "max": 64
+   },
+   "rim": {
+    "type": "vec3",
+    "value": [
+     1.4,
+     1.2,
+     0.9
+    ],
+    "min": 0,
+    "max": 64
+   },
+   "warm": {
+    "type": "float",
+    "value": 0.8,
+    "min": 0,
+    "max": 4
+   },
+   "floor": {
+    "type": "float",
+    "value": 3,
+    "min": 0,
+    "max": 16
+   },
+   "wet": {
+    "type": "float",
+    "value": 0,
+    "min": 0,
+    "max": 1
+   },
+   "gallopHz": {
+    "type": "float",
+    "value": 13.823007675795091,
+    "min": 0,
+    "max": 100
+   },
+   "clock": {
+    "type": "float",
+    "value": 0,
+    "min": 0
+   }
+  },
+  "nodes": {
+   "uv": {
+    "op": "uv"
+   },
+   "colourP": {
+    "op": "param",
+    "param": "colour"
+   },
+   "mapS": {
+    "op": "meshMap"
+   },
+   "mapC": {
+    "op": "swizzle",
+    "in": [
+     "mapS"
+    ],
+    "mask": "xyz"
+   },
+   "mapA": {
+    "op": "swizzle",
+    "in": [
+     "mapS"
+    ],
+    "mask": "w"
+   },
+   "tinted": {
+    "op": "mul",
+    "in": [
+     "colourP",
+     "mapC"
+    ]
+   },
+   "vc": {
+    "op": "vertexColour"
+   },
+   "base": {
+    "op": "mul",
+    "in": [
+     "tinted",
+     "vc"
+    ]
+   },
+   "emP": {
+    "op": "param",
+    "param": "emissive"
+   },
+   "emI": {
+    "op": "param",
+    "param": "emissiveIntensity"
+   },
+   "emissive": {
+    "op": "mul",
+    "in": [
+     "emP",
+     "emI"
+    ]
+   },
+   "nV": {
+    "op": "normalView"
+   },
+   "lV": {
+    "op": "sunDirection"
+   },
+   "vV": {
+    "op": "viewDirection"
+   },
+   "sunC": {
+    "op": "sunColour"
+   },
+   "vis": {
+    "op": "sunShadow"
+   },
+   "alb": {
+    "op": "albedo"
+   },
+   "ndl": {
+    "op": "dot",
+    "in": [
+     "nV",
+     "lV"
+    ]
+   },
+   "ndlS": {
+    "op": "saturate",
+    "in": [
+     "ndl"
+    ]
+   },
+   "x": {
+    "op": "mul",
+    "in": [
+     "ndlS",
+     "vis"
+    ]
+   },
+   "c0": {
+    "op": "smoothstep",
+    "in": [
+     0.03,
+     0.13,
+     "x"
+    ]
+   },
+   "c1": {
+    "op": "smoothstep",
+    "in": [
+     0.34,
+     0.5,
+     "x"
+    ]
+   },
+   "c0w": {
+    "op": "mul",
+    "in": [
+     "c0",
+     0.52
+    ]
+   },
+   "c1w": {
+    "op": "mul",
+    "in": [
+     "c1",
+     0.48
+    ]
+   },
+   "cel": {
+    "op": "add",
+    "in": [
+     "c0w",
+     "c1w"
+    ]
+   },
+   "bandsP": {
+    "op": "param",
+    "param": "bands"
+   },
+   "l": {
+    "op": "mix",
+    "in": [
+     "x",
+     "cel",
+     "bandsP"
+    ]
+   },
+   "shadeP": {
+    "op": "param",
+    "param": "shade"
+   },
+   "shadeAmtP": {
+    "op": "param",
+    "param": "shadeAmt"
+   },
+   "l1": {
+    "op": "oneMinus",
+    "in": [
+     "l"
+    ]
+   },
+   "sh0": {
+    "op": "mul",
+    "in": [
+     "shadeP",
+     "l1"
+    ]
+   },
+   "sh1": {
+    "op": "mul",
+    "in": [
+     "sh0",
+     "shadeAmtP"
+    ]
+   },
+   "lit": {
+    "op": "mul",
+    "in": [
+     "sunC",
+     "l"
+    ]
+   },
+   "irr0": {
+    "op": "add",
+    "in": [
+     "lit",
+     "sh1"
+    ]
+   },
+   "pt0": {
+    "op": "smoothstep",
+    "in": [
+     0.02,
+     0.2,
+     "l"
+    ]
+   },
+   "pt1": {
+    "op": "smoothstep",
+    "in": [
+     0.45,
+     0.85,
+     "l"
+    ]
+   },
+   "pt2": {
+    "op": "oneMinus",
+    "in": [
+     "pt1"
+    ]
+   },
+   "pTerm": {
+    "op": "mul",
+    "in": [
+     "pt0",
+     "pt2"
+    ]
+   },
+   "sR": {
+    "op": "swizzle",
+    "in": [
+     "sunC"
+    ],
+    "mask": "x"
+   },
+   "sB": {
+    "op": "swizzle",
+    "in": [
+     "sunC"
+    ],
+    "mask": "z"
+   },
+   "sRB": {
+    "op": "sub",
+    "in": [
+     "sR",
+     "sB"
+    ]
+   },
+   "sRm": {
+    "op": "max",
+    "in": [
+     "sR",
+     0.001
+    ]
+   },
+   "wk0": {
+    "op": "div",
+    "in": [
+     "sRB",
+     "sRm"
+    ]
+   },
+   "wk1": {
+    "op": "mul",
+    "in": [
+     "wk0",
+     4
+    ]
+   },
+   "warmKey": {
+    "op": "saturate",
+    "in": [
+     "wk1"
+    ]
+   },
+   "warmP": {
+    "op": "param",
+    "param": "warm"
+   },
+   "wm0": {
+    "op": "mul",
+    "in": [
+     "pTerm",
+     "warmP"
+    ]
+   },
+   "wm1": {
+    "op": "mul",
+    "in": [
+     "wm0",
+     "warmKey"
+    ]
+   },
+   "warmTint": {
+    "op": "mix",
+    "in": [
+     [
+      1,
+      1,
+      1
+     ],
+     [
+      1.16,
+      0.98,
+      0.8
+     ],
+     "wm1"
+    ]
+   },
+   "irr": {
+    "op": "mul",
+    "in": [
+     "irr0",
+     "warmTint"
+    ]
+   },
+   "wetP": {
+    "op": "param",
+    "param": "wet"
+   },
+   "nW": {
+    "op": "normalWorld"
+   },
+   "nWy": {
+    "op": "swizzle",
+    "in": [
+     "nW"
+    ],
+    "mask": "y"
+   },
+   "wu": {
+    "op": "smoothstep",
+    "in": [
+     0.1,
+     0.75,
+     "nWy"
+    ]
+   },
+   "wu7": {
+    "op": "mul",
+    "in": [
+     "wu",
+     0.7
+    ]
+   },
+   "wu3": {
+    "op": "add",
+    "in": [
+     "wu7",
+     0.3
+    ]
+   },
+   "wetK": {
+    "op": "mul",
+    "in": [
+     "wetP",
+     "wu3"
+    ]
+   },
+   "wd0": {
+    "op": "mul",
+    "in": [
+     "wetK",
+     0.38
+    ]
+   },
+   "wd1": {
+    "op": "oneMinus",
+    "in": [
+     "wd0"
+    ]
+   },
+   "albW": {
+    "op": "mul",
+    "in": [
+     "alb",
+     "wd1"
+    ]
+   },
+   "albWpi": {
+    "op": "mul",
+    "in": [
+     "albW",
+     0.3183098861837907
+    ]
+   },
+   "dif": {
+    "op": "mul",
+    "in": [
+     "irr",
+     "albWpi"
+    ]
+   },
+   "hv0": {
+    "op": "add",
+    "in": [
+     "lV",
+     "vV"
+    ]
+   },
+   "hv": {
+    "op": "normalize",
+    "in": [
+     "hv0"
+    ]
+   },
+   "ndh": {
+    "op": "dot",
+    "in": [
+     "nV",
+     "hv"
+    ]
+   },
+   "ndhS": {
+    "op": "saturate",
+    "in": [
+     "ndh"
+    ]
+   },
+   "spk": {
+    "op": "pow",
+    "in": [
+     "ndhS",
+     120
+    ]
+   },
+   "ws0": {
+    "op": "mul",
+    "in": [
+     "sunC",
+     "vis"
+    ]
+   },
+   "ws1": {
+    "op": "mul",
+    "in": [
+     "ws0",
+     "spk"
+    ]
+   },
+   "ws2": {
+    "op": "mul",
+    "in": [
+     "ws1",
+     "wetK"
+    ]
+   },
+   "wetSpec": {
+    "op": "mul",
+    "in": [
+     "ws2",
+     0.6
+    ]
+   },
+   "ndv": {
+    "op": "dot",
+    "in": [
+     "nV",
+     "vV"
+    ]
+   },
+   "ndvS": {
+    "op": "saturate",
+    "in": [
+     "ndv"
+    ]
+   },
+   "ndv1": {
+    "op": "oneMinus",
+    "in": [
+     "ndvS"
+    ]
+   },
+   "fres": {
+    "op": "pow",
+    "in": [
+     "ndv1",
+     3
+    ]
+   },
+   "vNeg": {
+    "op": "negate",
+    "in": [
+     "vV"
+    ]
+   },
+   "back0": {
+    "op": "dot",
+    "in": [
+     "vNeg",
+     "lV"
+    ]
+   },
+   "back": {
+    "op": "saturate",
+    "in": [
+     "back0"
+    ]
+   },
+   "side0": {
+    "op": "mul",
+    "in": [
+     "ndl",
+     0.5
+    ]
+   },
+   "side1": {
+    "op": "add",
+    "in": [
+     "side0",
+     0.5
+    ]
+   },
+   "side": {
+    "op": "saturate",
+    "in": [
+     "side1"
+    ]
+   },
+   "rf": {
+    "op": "smoothstep",
+    "in": [
+     0.25,
+     0.75,
+     "fres"
+    ]
+   },
+   "rb0": {
+    "op": "mul",
+    "in": [
+     "back",
+     0.65
+    ]
+   },
+   "rb": {
+    "op": "add",
+    "in": [
+     "rb0",
+     0.35
+    ]
+   },
+   "rk0": {
+    "op": "mul",
+    "in": [
+     "rf",
+     "rb"
+    ]
+   },
+   "rk1": {
+    "op": "mul",
+    "in": [
+     "rk0",
+     "side"
+    ]
+   },
+   "rimAmtP": {
+    "op": "param",
+    "param": "rimAmt"
+   },
+   "rimK": {
+    "op": "mul",
+    "in": [
+     "rk1",
+     "rimAmtP"
+    ]
+   },
+   "rimP": {
+    "op": "param",
+    "param": "rim"
+   },
+   "albHalf": {
+    "op": "mix",
+    "in": [
+     "alb",
+     [
+      1,
+      1,
+      1
+     ],
+     0.5
+    ]
+   },
+   "rc0": {
+    "op": "mul",
+    "in": [
+     "rimP",
+     "albHalf"
+    ]
+   },
+   "rimC": {
+    "op": "mul",
+    "in": [
+     "rc0",
+     "rimK"
+    ]
+   },
+   "sun0": {
+    "op": "add",
+    "in": [
+     "dif",
+     "wetSpec"
+    ]
+   },
+   "sun": {
+    "op": "add",
+    "in": [
+     "sun0",
+     "rimC"
+    ]
+   },
+   "irrA": {
+    "op": "irradiance"
+   },
+   "a0": {
+    "op": "mul",
+    "in": [
+     "irrA",
+     "albWpi"
+    ]
+   },
+   "fr5": {
+    "op": "pow",
+    "in": [
+     "ndv1",
+     5
+    ]
+   },
+   "a1a": {
+    "op": "mul",
+    "in": [
+     "irrA",
+     "fr5"
+    ]
+   },
+   "a1b": {
+    "op": "mul",
+    "in": [
+     "a1a",
+     "wetK"
+    ]
+   },
+   "a1": {
+    "op": "mul",
+    "in": [
+     "a1b",
+     0.07
+    ]
+   },
+   "floorP": {
+    "op": "param",
+    "param": "floor"
+   },
+   "floorAmtP": {
+    "op": "param",
+    "param": "floorAmt"
+   },
+   "fl0": {
+    "op": "sub",
+    "in": [
+     [
+      0.22,
+      0.22,
+      0.22
+     ],
+     "alb"
+    ]
+   },
+   "fl1": {
+    "op": "max",
+    "in": [
+     "fl0",
+     0
+    ]
+   },
+   "fl2": {
+    "op": "mul",
+    "in": [
+     "fl1",
+     0.3183098861837907
+    ]
+   },
+   "fl3": {
+    "op": "mul",
+    "in": [
+     "shadeP",
+     "floorP"
+    ]
+   },
+   "fl4": {
+    "op": "mul",
+    "in": [
+     "fl3",
+     "floorAmtP"
+    ]
+   },
+   "a2": {
+    "op": "mul",
+    "in": [
+     "fl4",
+     "fl2"
+    ]
+   },
+   "am0": {
+    "op": "add",
+    "in": [
+     "a0",
+     "a1"
+    ]
+   },
+   "ambient": {
+    "op": "add",
+    "in": [
+     "am0",
+     "a2"
+    ]
+   },
+   "h0": {
+    "op": "param",
+    "param": "gallopHz"
+   },
+   "h1": {
+    "op": "param",
+    "param": "clock"
+   },
+   "h2": {
+    "op": "positionGeometry"
+   },
+   "h3": {
+    "op": "mul",
+    "in": [
+     "h1",
+     "h0"
+    ]
+   },
+   "h4": {
+    "op": "attribute",
+    "name": "aPhase",
+    "type": "float"
+   },
+   "h5": {
+    "op": "add",
+    "in": [
+     "h3",
+     "h4"
+    ]
+   },
+   "h6": {
+    "op": "swizzle",
+    "in": [
+     "h2"
+    ],
+    "mask": "y"
+   },
+   "h7": {
+    "op": "smoothstep",
+    "in": [
+     0.35,
+     0.9,
+     "h6"
+    ]
+   },
+   "h8": {
+    "op": "sub",
+    "in": [
+     1,
+     "h7"
+    ]
+   },
+   "h9": {
+    "op": "swizzle",
+    "in": [
+     "h2"
+    ],
+    "mask": "x"
+   },
+   "h10": {
+    "op": "step",
+    "in": [
+     0,
+     "h9"
+    ]
+   },
+   "h11": {
+    "op": "mul",
+    "in": [
+     "h10",
+     2
+    ]
+   },
+   "h12": {
+    "op": "sub",
+    "in": [
+     "h11",
+     1
+    ]
+   },
+   "h13": {
+    "op": "swizzle",
+    "in": [
+     "h2"
+    ],
+    "mask": "z"
+   },
+   "h14": {
+    "op": "step",
+    "in": [
+     0,
+     "h13"
+    ]
+   },
+   "h15": {
+    "op": "mul",
+    "in": [
+     "h14",
+     3.1416
+    ]
+   },
+   "h16": {
+    "op": "add",
+    "in": [
+     "h5",
+     "h15"
+    ]
+   },
+   "h17": {
+    "op": "mul",
+    "in": [
+     "h12",
+     0.45
+    ]
+   },
+   "h18": {
+    "op": "add",
+    "in": [
+     "h16",
+     "h17"
+    ]
+   },
+   "h19": {
+    "op": "sub",
+    "in": [
+     0.95,
+     "h6"
+    ]
+   },
+   "h20": {
+    "op": "max",
+    "in": [
+     0,
+     "h19"
+    ]
+   },
+   "h21": {
+    "op": "sin",
+    "in": [
+     "h18"
+    ]
+   },
+   "h22": {
+    "op": "mul",
+    "in": [
+     "h21",
+     0.5
+    ]
+   },
+   "h23": {
+    "op": "mul",
+    "in": [
+     "h22",
+     "h8"
+    ]
+   },
+   "h24": {
+    "op": "mul",
+    "in": [
+     "h23",
+     "h20"
+    ]
+   },
+   "h25": {
+    "op": "cos",
+    "in": [
+     "h18"
+    ]
+   },
+   "h26": {
+    "op": "max",
+    "in": [
+     0,
+     "h25"
+    ]
+   },
+   "h27": {
+    "op": "mul",
+    "in": [
+     "h26",
+     0.22
+    ]
+   },
+   "h28": {
+    "op": "mul",
+    "in": [
+     "h27",
+     "h8"
+    ]
+   },
+   "h29": {
+    "op": "mul",
+    "in": [
+     "h28",
+     "h20"
+    ]
+   },
+   "h30": {
+    "op": "smoothstep",
+    "in": [
+     0.8,
+     1.35,
+     "h13"
+    ]
+   },
+   "h31": {
+    "op": "smoothstep",
+    "in": [
+     0.9,
+     1.3,
+     "h6"
+    ]
+   },
+   "h32": {
+    "op": "mul",
+    "in": [
+     "h30",
+     "h31"
+    ]
+   },
+   "h33": {
+    "op": "mul",
+    "in": [
+     "h5",
+     2
+    ]
+   },
+   "h34": {
+    "op": "add",
+    "in": [
+     "h33",
+     0.8
+    ]
+   },
+   "h35": {
+    "op": "sin",
+    "in": [
+     "h34"
+    ]
+   },
+   "h36": {
+    "op": "mul",
+    "in": [
+     "h35",
+     0.06
+    ]
+   },
+   "h37": {
+    "op": "mul",
+    "in": [
+     "h36",
+     "h32"
+    ]
+   },
+   "h38": {
+    "op": "add",
+    "in": [
+     "h29",
+     "h37"
+    ]
+   },
+   "h39": {
+    "op": "smoothstep",
+    "in": [
+     1.5,
+     1.8,
+     "h6"
+    ]
+   },
+   "h40": {
+    "op": "sub",
+    "in": [
+     "h33",
+     0.6
+    ]
+   },
+   "h41": {
+    "op": "sin",
+    "in": [
+     "h40"
+    ]
+   },
+   "h42": {
+    "op": "mul",
+    "in": [
+     "h41",
+     0.05
+    ]
+   },
+   "h43": {
+    "op": "add",
+    "in": [
+     0.08,
+     "h42"
+    ]
+   },
+   "h44": {
+    "op": "mul",
+    "in": [
+     "h43",
+     "h39"
+    ]
+   },
+   "h45": {
+    "op": "sub",
+    "in": [
+     "h6",
+     1.5
+    ]
+   },
+   "h46": {
+    "op": "mul",
+    "in": [
+     "h44",
+     "h45"
+    ]
+   },
+   "h47": {
+    "op": "add",
+    "in": [
+     "h24",
+     "h46"
+    ]
+   },
+   "h48": {
+    "op": "add",
+    "in": [
+     "h33",
+     0.9
+    ]
+   },
+   "h49": {
+    "op": "sin",
+    "in": [
+     "h48"
+    ]
+   },
+   "h50": {
+    "op": "mul",
+    "in": [
+     0.5,
+     "h49"
+    ]
+   },
+   "h51": {
+    "op": "add",
+    "in": [
+     0.5,
+     "h50"
+    ]
+   },
+   "h52": {
+    "op": "mul",
+    "in": [
+     "h51",
+     0.05
+    ]
+   },
+   "h53": {
+    "op": "mul",
+    "in": [
+     "h52",
+     "h39"
+    ]
+   },
+   "h54": {
+    "op": "sub",
+    "in": [
+     "h38",
+     "h53"
+    ]
+   },
+   "h55": {
+    "op": "combine",
+    "in": [
+     0,
+     "h54",
+     "h47"
+    ]
+   },
+   "h56": {
+    "op": "localToWorldVector",
+    "in": [
+     "h55"
+    ]
+   },
+   "h57": {
+    "op": "worldToLocal",
+    "in": [
+     "h56"
+    ]
+   }
+  },
+  "stages": {
+   "surface": {
+    "colour": "base",
+    "emissive": "emissive",
+    "roughness": 1,
+    "metalness": 0
+   },
+   "lighting": {
+    "sun": "sun",
+    "ambient": "ambient"
+   },
+   "vertex.offset": {
+    "offset": "h57",
+    "shadow": true
+   }
+  }
  }
 }

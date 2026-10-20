@@ -16,11 +16,8 @@ import fixed from '../boot/poiPaint.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';
 import { TIER } from '@wildshard/engine/core/tier';
 import { place as placeModel } from '@wildshard/engine/models/place';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { BOWL_GLSL } from '../runtime/looks/bowlGlsl';
+import { painterlyUniforms } from '@wildshard/engine/world/painterly';
+import { lentMappedLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { createClientChannels } from '@wildshard/game/plugin/channels';
 
 const { KOKPAR, KURGANS, SUMMER_YURTS } = layoutRows;
@@ -46,31 +43,24 @@ const { KOKPAR, KURGANS, SUMMER_YURTS } = layoutRows;
  * the riders), the herd horses, the snow lotus, the glacier's snout (the tongue under it is the terrain's: world).
  */
 
-/** the GLSL below is trusted custom code (runtime/looks/bowlGlsl.ts); `@{name}` splices the fragments this module passes */
-const BOWL_GLSL_FAMILY = new ShaderFamily(BOWL_GLSL, {});
-
 const PHONE = TIER === 'phone';
 
 // ── the riders' gallop ──
 
-/** strides per second × 2π, and the phase offset between riders (GALLOP_GLSL reads the same from gl_InstanceID) */
+/** strides per second × 2π (the 'nalati-riders' graph's gallopHz), and the phase offset between riders (its aPhase) */
 const GALLOP_HZ = 2.2 * Math.PI * 2, GALLOP_SPREAD = 1.7;
 /**
- * The generated horse-and-rider is one rigid mesh; this bends it into a gallop in the vertex shader (the model faces +z,
- * feet at y 0, 2.5 m tall): the legs below the belly swing fore / aft from the hip, fore and hind pairs half a stride
- * apart and the left leading, each hoof lifting on its swing; the head and neck pump with the stride; the rider sits
- * into it and leans forward. The body's own rise / rock / lean is the instance matrix (buildKokpar's update).
+ * The generated horse-and-rider is one rigid mesh; the 'nalati-riders' look graph (data/lookGraphs.json, the painterly
+ * preset) bends it into a gallop in its vertex stage (the model faces +z, feet at y 0, 2.5 m tall): the legs below the
+ * belly swing fore / aft from the hip, fore and hind pairs half a stride apart and the left leading, each hoof lifting on
+ * its swing; the head and neck pump with the stride; the rider sits into it and leans forward. The body's own rise /
+ * rock / lean is the instance matrix (buildKokpar's update).
  */
-const GALLOP_GLSL = BOWL_GLSL_FAMILY.glsl(BOWL_GLSL.GALLOP_GLSL, { GALLOP_HZ: GALLOP_HZ.toFixed(4), GALLOP_SPREAD: GALLOP_SPREAD.toFixed(2) });
-
-/** a painterly material for the riders with the gallop bent in (one extra program, for the six riders) */
-function gallopMaterial(sky: Sky, like: THREE.Material): THREE.MeshLambertMaterial {
-  if (!(like instanceof THREE.MeshLambertMaterial)) throw new Error('Rider surface needs Lambert material');
-  const mat = painterlyMaterial(sky, { map: like.map, rim: 0.8, bands: 0.85 });
-  patchShader(mat, 'nalati.gallop', PATCH_ORDER.decorate, (shader) => {
-    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\n${GALLOP_GLSL}`);
-  }, { key: (k) => `${k}|gallop` });
-  return mat;
+function gallopGeometry(source: THREE.BufferGeometry, riders: number): THREE.BufferGeometry {
+  const geometry = new THREE.BufferGeometry(); geometry.setIndex(source.index);
+  for (const [name, attribute] of Object.entries(source.attributes)) geometry.setAttribute(name, attribute);
+  geometry.setAttribute('aPhase', new THREE.InstancedBufferAttribute(Float32Array.from({ length: riders }, (_, i) => i * GALLOP_SPREAD), 1));
+  return geometry;
 }
 
 // ── the kokpar field ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -93,7 +83,7 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
   let inst: THREE.InstancedMesh | null = null;
   const mat = new THREE.Matrix4(), position = new THREE.Vector3(), rotation = new THREE.Euler(0, 0, 0, 'YXZ'), orientation = new THREE.Quaternion(), scale = new THREE.Vector3(), place: ModelPlacement = { x: 0, y: 0, z: 0 };
   loadBoundSpecimen(sky, PHONE ? specimenData.assets.kokparRiderFar : specimenData.assets.kokparRider).then((m) => {
-    inst = new THREE.InstancedMesh(m.geometry, gallopMaterial(sky, m.material), riders.length);
+    inst = new THREE.InstancedMesh(gallopGeometry(m.geometry, riders.length), lentMappedLook('nalati-riders', m.material), riders.length);
     inst.castShadow = !PHONE; inst.receiveShadow = true;
     inst.name = 'nalati-kokpar-riders';
     inst.frustumCulled = true;
@@ -106,12 +96,13 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
     clock += dt;
     const m = inst;
     if (!m) return;
+    setLentParam('nalati-riders', 'clock', painterlyUniforms.uPTime.value);
     for (let i = 0; i < riders.length; i++) {
       const r = riders[i];
       if (!r) continue;
       r.t += r.w * dt;
       const p = onOval(r.t, r.k), gy = ground(p.x, p.z);
-      // the body rides the same stride as the legs (GALLOP_GLSL's phase): it rises off the hind push, rocks nose-down
+      // the body rides the same stride as the legs (the graph's phase): it rises off the hind push, rocks nose-down
       // over the lead fore, and leans into the turn
       const ph = painterlyUniforms.uPTime.value * GALLOP_HZ + i * GALLOP_SPREAD;
       place.x = p.x; place.z = p.z; place.y = gy + (0.5 + 0.5 * Math.sin(ph * 2 - 0.4)) * 0.16 - 0.06;

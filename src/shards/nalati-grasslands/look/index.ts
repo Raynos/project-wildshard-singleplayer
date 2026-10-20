@@ -20,7 +20,7 @@ import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { CRAG_LOOK } from '../models/cragRock';
 
 /** the lit look graphs on the painterly preset (data/lookGraphs.json): they take the world look's live shade, rim and wet */
-const PAINTERLY_GRAPHS = [CRAG_LOOK];
+const PAINTERLY_GRAPHS = [CRAG_LOOK, 'nalati-riders'];
 const shadeV = [0, 0, 0], rimV = [0, 0, 0];
 
 export interface LookV2Ctx {
