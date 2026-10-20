@@ -3,7 +3,7 @@ import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { createNativeHunt } from '@wildshard/game/plugin/brain';
 import { NativeManager, NativePopulationDriver } from '@wildshard/game/population/nativeManager';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import { admitNativeRosterServices, createNativeCreatureRoster, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
+import { admitNativeRosterServices, createNativeCreatureRoster, NativeDeferredRoster, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
 import * as v from 'valibot';
 import { ForagerContinuation as MarmotContinuation } from '@wildshard/format/ambientLife';
 import { marmotColonies } from '../creatures/marmotBrain';
@@ -26,9 +26,6 @@ import { pushWildMovers } from '../look/trampleMovers';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { NalatiBake, NalatiBootHerd, NalatiBootRows } from './baked';
-import { withOwner } from '@wildshard/engine/app/ownership';
-import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
-import { creatureBodyDistance, keepsCreatureBody } from '@wildshard/engine/sim/bands';
 import { PastureRaid } from '../creatures/pasture';
 import type { NalatiGroups } from './groups';
 import type { NalatiBody } from './headless';
@@ -222,11 +219,6 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
 
   const manager = new NativeManager(host, hunt, rng, { limit: BODY_MAX, sightSlots: bodies.length, initialSight: false });
   const speed = manager.noise, seen = manager.sight, wild = { init: false, x: 0, z: 0, v: 0 };
-  const ownedBody = (a: AnimalSim): NalatiHuntBody | undefined => {
-    for (let i = 0; i < BODY_MAX; i++) { const owned = bodies[i]; if (owned === undefined) break; if (owned === a) return owned; }
-    return undefined;
-  };
-  function asHunt(a: AnimalSim): NalatiHuntBody { const b = ownedBody(a); if (b === undefined) throw new Error(`Nalati headless body ${a.entityId} is not the manager's`); return b; }
   const driver = new NativePopulationDriver(host, manager, hunt, rng, bodies, packOf, herdOf, ports.elites, flocks, wolves,
     { tokens: 'nalati.tokens', program: ports.boot.admission, packKind: 'wolf', dogKind: 'sheepdog', eliteKinds: ['leopard', ecology.species.kokbori.kind], dispatch: 'dispatch', dogDecision: 'dog' });
   const placement = new Rng(0); placement.restore(ports.wildStream);
@@ -241,39 +233,17 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
     kind: 'horse', variant: 'tulpar', wildKinds: ['horse', ecology.argymaq], specs: ports.boot.recipes,
     scale: scaleVariants.get('horse')?.find(row => row.id === 'tulpar')?.scale ?? [1, 1], spawnY: ports.spawnY, program: ports.boot.admission });
   const bonded = mountRoster.records, hiddenStallions = mountRoster.hidden;
+  const deferred = new NativeDeferredRoster(host, intake, hunt, rng, bodies, seen, retired, ports.elites.absent,
+    { limit: BODY_MAX, spawnY: ports.spawnY, motorKinds: ['wolf', 'leopard', ecology.species.kokbori.kind], retiredY: -9999 });
   let reinstalling = ports.snapshot !== undefined;
   const makeBody = (saved: v.InferOutput<typeof RaidBody>, kind: 'wolf' | 'leopard' | 'kokbori' | 'horse', herd: number): NalatiHuntBody => {
-    if (host.entities.size >= BODY_MAX || !/^creature:\d+$/u.test(saved.id) || Number(saved.id.slice(9)) < nextId() || saved.scale <= 0) throw new Error('Invalid Nalati raid roster');
-    continueIds(Number(saved.id.slice(9)));
-    if (intake.identities.allocate() !== saved.id) throw new Error('Invalid Nalati allocated identity');
-    const template = ports.bake.actors.find(a => a.kind === kind && a.variant === saved.variant);
-    const spec = kind === 'horse' && saved.variant === 'tulpar' ? deferredSpec('horse', 'tulpar') : kind === 'wolf' || kind === ecology.species.kokbori.kind ? deferredSpec(kind, saved.variant) : template?.spec;
-    if (spec === undefined) throw new Error('Missing baked Nalati elite model');
-    const [x, y, z] = saved.at;
-    const slot = intake.body(saved.id, kind, saved.variant, herd, { x, z }, saved.yaw, [saved.scale, saved.scale], saved);
-    slot.recipe.spec = spec; slot.recipe.at.y = y;
-    const a = intake.materialize(slot, slot.recipe, y !== floor.heightAt(x, z));
-    a.herd = herd; driver.admit(a);
-    bodies.push(a); seen.push(false); if (kind === 'wolf') wildWolves.push(a);
-    rng.restore(saved.adopted); hunt.adopt(a, x, z);
-    // Ride can spawn before AnimalManager.sync in this frame. Give nearby new raiders the same native capsule now.
-    // Restoring actors reconnect the saved motors after native world replacement; never allocate a replacement there.
-    if (kind !== 'horse' && !reinstalling && host.bodyBands?.physics === true && keepsCreatureBody(false, a.alive, a.driven, creatureBodyDistance(a.position, player))) {
-      const motor = withOwner(null, () => new CharacterMotor(host.physics, host.creatureMotorOptions(a)));
-      motor.resetAt(a.position); a.motor = motor;
-    }
-    return a;
+    const actor = deferred.materialize(saved, kind, herd, reinstalling); driver.admit(actor); if (kind === 'wolf') wildWolves.push(actor); return actor;
   };
   const finishPack = (record: v.InferOutput<typeof RaidPack>, members: AnimalSim[], elite = false): PackBrain<AnimalSim> => {
     const pack = groups.addPack(members, record.x, record.z);
     members.forEach(a => { packOf.set(a, pack); }); (elite ? elitePacks : raids).push(record); return pack;
   };
-  const rollBody = (kind: 'wolf' | 'leopard' | 'kokbori' | 'horse', variant: string, x: number, z: number, yaw: number): v.InferOutput<typeof RaidBody> => {
-    const slot = intake.body(`creature:${String(nextId())}`, kind, variant, -1, { x, z }, yaw); intake.draw(slot, false);
-    const adopted = v.parse(Stream, rng.snapshot()), terrain = floor.heightAt(x, z);
-    const y = intake.floor(x, z, Math.max(ports.spawnY, terrain) + 1);
-    return { id: slot.id, variant, seed: slot.recipe.seed, scale: slot.recipe.scale, at: [x, y, z], yaw, adopted };
-  };
+  const rollBody = deferred.roll.bind(deferred);
   const freeSpot = (x: number, z: number, radius: number): { x: number; z: number } => {
     const attempts = v.parse(finite, author.project('begin', {})['attempts']);
     for (let i = 0; i < Math.min(attempts, 1024); i++) {
@@ -304,24 +274,12 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
   const hideTamedStallion = (actor: AnimalSim): void => { mountRoster.hide(actor.entityId); };
   const retireBondedHorse = (actor: AnimalSim): void => { mountRoster.retire(actor.entityId); };
   const retireElite = (a: AnimalSim): void => {
-    const at = bodies.indexOf(asHunt(a));
-    const slot = intake.byId.get(a.entityId);
-    if ((a.kind !== 'leopard' && a.kind !== ecology.species.kokbori.kind) || at === -1 || slot?.actor !== a) throw new Error('Invalid Nalati elite retirement');
-    intake.retire(slot, { membership: 'retain', native: 'before', final: { alive: false, y: -9999 } });
-    bodies.splice(at, 1); seen.splice(at, 1); retired.add(a.entityId);
+    if (a.kind !== 'leopard' && a.kind !== ecology.species.kokbori.kind) throw new Error('Invalid Nalati elite retirement');
+    deferred.retire(a.entityId);
     const extra = eliteSpawns.findIndex(row => row.body.id === a.entityId); if (extra !== -1) eliteSpawns.splice(extra, 1);
   };
   const spawnElitePack = (x: number, z: number, variants: readonly string[]): PackBrain<AnimalSim> => spawnPack(x, z, variants, true);
-  const parkWolf = (a: AnimalSim): void => {
-    const at = bodies.indexOf(asHunt(a));
-    if (a.kind !== 'wolf' || at === -1 || ports.elites.absent.has(a)) throw new Error('Invalid Nalati pack retirement');
-    // AnimalManager.retire removes the manager/native entry but Wildlife retains this exact object in its old pack.
-    asHunt(a).hidden = true; a.alive = false; a.position.y = -9999;
-    a.motor?.dispose(); a.motor = null; ports.elites.absent.add(a);
-    const owner = intake.identities.identity(a.entityId); if (owner !== null) intake.identities.own(a.entityId, { ...owner, listed: false });
-    host.bodyDt(a.entityId); host.brainDt(a.entityId); // Forget the old cadence immediately, just as the page scheduler.
-    hunt.forget(asHunt(a)); intake.byId.delete(a.entityId); bodies.splice(at, 1); seen.splice(at, 1);
-  };
+  const parkWolf = (actor: AnimalSim): void => { if (actor.kind !== 'wolf') throw new Error('Foreign Nalati pack member'); deferred.park(actor.entityId); };
   const retirePack = (pack: PackBrain<AnimalSim>): void => {
     if (!elitePacks.some(record => record.bodies.length === pack.members.length && record.bodies.every((row, i) => row.id === pack.members[i]?.entityId))) throw new Error('Foreign Nalati elite pack');
     // A killed member stays in the manager as its real corpse. Only living members leave, in their shipping order.

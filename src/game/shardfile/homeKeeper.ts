@@ -8,6 +8,9 @@ import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { castRay } from '@wildshard/engine/physics/query';
 import { HuntBrain, type HuntBody } from '@wildshard/engine/ai/hunt';
 import { isNativeCreaturePoseService, type createNativeCreaturePoses } from '../plugin/animation';
+import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { creatureBodyDistance, keepsCreatureBody } from '@wildshard/engine/sim/bands';
 import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 
 /**
@@ -290,6 +293,8 @@ export interface NativeRetirementRows {
 /** A bare native body for the hunting brain: never hidden (no view), no ground tilt to sample. */
 const bareBody = (native: AnimalSim): HuntBody => Object.assign(native, { hidden: false, sampleTerrain: (): void => undefined });
 
+const nativeRosters = new WeakMap<object, SimHost>();
+
 /** Baked native creature intake: one native roster for every shard that runs its creatures natively (G454: data rows).
  * Callers keep their spawn rolls, boot order, policies, ecology and their save envelope; every function here returns the
  * body it made and calls back into nothing. Spawn draws use the supplied stream in scale/rig-seed/body-seed/memory order;
@@ -444,5 +449,55 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     const level = saved.entities.find(entity => entity.id === item.id)?.state.flags.levelGround;
     return materialize(item, item.recipe, level ?? found.structure);
   };
-  return { body, spec, read: recipes.read, byId, identities, floor, attach, materialize, arrive, draw, remember, retire, sleep, retireDead, refill, adopt, retarget, reinstall };
+  const roster = { body, spec, read: recipes.read, byId, identities, floor, attach, materialize, arrive, draw, remember, retire, sleep, retireDead, refill, adopt, retarget, reinstall };
+  nativeRosters.set(roster, host); return roster;
+}
+
+/** A deferred actor's exact placement and memory-adoption checkpoint. */
+export interface NativeDeferredSpawn { id: string; variant: string; seed: number; scale: number; at: [number, number, number]; yaw: number; adopted: RngState & { version: 1 } }
+type NativeIntake = ReturnType<typeof createNativeCreatureRoster<NativeCreatureSlot>>;
+/** Existing manager-owned deferred actors use the same identity allocator,
+ * stream and native admission as boot actors. No factory callback is accepted. */
+export class NativeDeferredRoster {
+  constructor(private readonly host: SimHost, private readonly intake: NativeIntake, private readonly hunt: StalkerBrain<HuntBody>, private readonly rng: Rng,
+    private readonly bodies: HuntBody[], private readonly sight: (boolean | null | undefined)[], private readonly retired: Set<string>,
+    private readonly absent: Set<AnimalSim>, private readonly rows: { limit: number; spawnY: number; motorKinds: readonly string[]; retiredY: number }) {
+    if (nativeRosters.get(intake) !== host || !(hunt instanceof StalkerBrain) || !(rng instanceof Rng) || rows.limit < 1 || rows.limit > 1024
+      || bodies.length > rows.limit || bodies.length !== sight.length || bodies.some(actor => host.entities.get(actor.entityId) !== actor)) throw new Error('Invalid deferred roster owners');
+  }
+  roll(kind: string, variant: string, x: number, z: number, yaw: number): NativeDeferredSpawn {
+    const next = this.intake.identities.allocatorState().next;
+    const slot = this.intake.body(`creature:${String(next)}`, kind, variant, -1, { x, z }, yaw); this.intake.draw(slot, false);
+    const y = this.intake.floor(x, z, Math.max(this.rows.spawnY, this.host.groundHeightAt(x, z))+1);
+    return { id: slot.id, variant, seed: slot.recipe.seed, scale: slot.recipe.scale, at: [x, y, z], yaw, adopted: { ...this.rng.snapshot(), version: 1 } };
+  }
+  materialize(saved: NativeDeferredSpawn, kind: string, herd: number, restoring: boolean): HuntBody {
+    const state = this.intake.identities.allocatorState(), id = Number(saved.id.slice(9));
+    if (this.host.entities.size >= this.rows.limit || !/^creature:\d+$/u.test(saved.id) || id < state.next || saved.scale <= 0) throw new Error('Invalid deferred native actor');
+    this.intake.identities.restoreAllocator({ next: id, used: state.used });
+    if (this.intake.identities.allocate() !== saved.id) throw new Error('Invalid deferred native identity');
+    const [x, y, z] = saved.at, slot = this.intake.body(saved.id, kind, saved.variant, herd, { x, z }, saved.yaw, [saved.scale, saved.scale], saved);
+    slot.recipe.at.y = y; const actor = this.intake.materialize(slot, slot.recipe, y !== this.host.groundHeightAt(x, z));
+    actor.herd = herd; this.bodies.push(actor); this.sight.push(false); this.rng.restore(saved.adopted); this.hunt.adopt(actor, x, z);
+    if (!restoring && this.rows.motorKinds.includes(kind) && this.host.bodyBands?.physics === true
+      && keepsCreatureBody(false, actor.alive, actor.driven, creatureBodyDistance(actor.position, this.host.player.position))) {
+      const motor = withOwner(null, () => new CharacterMotor(this.host.physics, this.host.creatureMotorOptions(actor))); motor.resetAt(actor.position); actor.motor = motor;
+    }
+    return actor;
+  }
+  retire(id: string): void {
+    const slot = this.intake.byId.get(id), actor = slot?.actor, at = actor === undefined || actor === null ? -1 : this.bodies.indexOf(actor);
+    if (slot === undefined || actor === undefined || actor === null || at === -1) throw new Error('Foreign deferred native actor');
+    this.intake.retire(slot, { membership: 'retain', native: 'before', final: { alive: false, y: this.rows.retiredY } });
+    this.bodies.splice(at, 1); this.sight.splice(at, 1); this.retired.add(id);
+  }
+  /** A living encounter member leaves the manager while its original group
+   * retains the exact dormant body for saved identity and membership checks. */
+  park(id: string): void {
+    const actor = this.bodies.find(body => body.entityId === id), at = actor === undefined ? -1 : this.bodies.indexOf(actor);
+    if (actor === undefined || this.absent.has(actor)) throw new Error('Foreign dormant native actor');
+    actor.hidden = true; actor.alive = false; actor.position.y = this.rows.retiredY; actor.motor?.dispose(); actor.motor = null; this.absent.add(actor);
+    const owner = this.intake.identities.identity(id); if (owner !== null) this.intake.identities.own(id, { ...owner, listed: false });
+    this.host.bodyDt(id); this.host.brainDt(id); this.hunt.forget(actor); this.intake.byId.delete(id); this.bodies.splice(at, 1); this.sight.splice(at, 1);
+  }
 }

@@ -1,3 +1,4 @@
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
 // oxlint-disable-next-line import/no-nodejs-modules -- Real native capsule continuation uses the shipped physics bytes.
 import { readFileSync } from 'node:fs';
@@ -102,5 +103,33 @@ test('orchard native manager drives the admitted roster at ten Hz across body fr
     expect(actor.mem['groupThinkAt']).toBe(decision);
     driver.restore(2.5); expect(driver.snapshot()).toBe(2.5);
     expect(() => driver.restore(-1)).toThrow(); expect(() => driver.admit(actor)).toThrow();
+  } finally { host.dispose(); }
+});
+
+test('orchard deferred actors share allocator, stream and native retirement ownership', async () => {
+  const { fixtureNativeRoster } = await import('./fixtures/native-roster');
+  const { Rng } = await import('@wildshard/engine/core/rng');
+  const { createNativeCreatureRoster, NativeDeferredRoster } = await import('@wildshard/game/shardfile/homeKeeper');
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier }), random = new Rng(71), control = new Rng(71);
+  const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing orchard actor');
+  const { hunt, services } = fixtureNativeRoster(host, random), bodies: HuntBody[] = [], sight: (boolean | null | undefined)[] = [];
+  const retired = new Set<string>(), absent = new Set<AnimalSim>();
+  const intake = createNativeCreatureRoster(host, { specs: [sample.spec], variants: new Map([[sample.spec.kind, [{ id: sample.spec.variant, scale: [1, 2] as const }]]]), rng: random, services, hunted: 'every', spawnY: 10 });
+  const profile = { limit: 64, spawnY: 10, motorKinds: ['boar'], retiredY: -9999 };
+  const deferred = new NativeDeferredRoster(host, intake, hunt, random, bodies, sight, retired, absent, profile);
+  try {
+    expect(() => new NativeDeferredRoster(host, { ...intake }, hunt, random, bodies, sight, retired, absent, profile)).toThrow('owners');
+    const saved = deferred.roll(sample.spec.kind, sample.spec.variant, 2, 3, 0), scale = control.range(1, 2); control.next(); const seed = control.next();
+    expect(saved).toMatchObject({ id: 'creature:0', scale, seed }); expect(saved.adopted).toEqual(control.snapshot());
+    const actor = deferred.materialize(saved, sample.spec.kind, -1, true); control.next(); control.next(); control.next();
+    expect(random.snapshot()).toEqual(control.snapshot()); expect(bodies).toEqual([actor]); expect(sight).toEqual([false]);
+    expect(() => deferred.materialize(saved, sample.spec.kind, -1, true)).toThrow('Invalid');
+    deferred.retire(actor.entityId); expect(host.entities.size).toBe(0); expect(bodies).toEqual([]); expect(retired.has('creature:0')).toBe(true);
+    expect(random.snapshot()).toEqual(control.snapshot());
+    const next = deferred.roll(sample.spec.kind, sample.spec.variant, 2, 3, 0), parked = deferred.materialize(next, sample.spec.kind, -1, true);
+    expect(parked.entityId).toBe('creature:1'); deferred.park(parked.entityId);
+    expect(host.entities.get(parked.entityId)).toBe(parked); expect(absent.has(parked)).toBe(true); expect(parked.alive).toBe(false);
+    expect(bodies).toEqual([]); expect(sight).toEqual([]); expect(() => deferred.park(parked.entityId)).toThrow();
   } finally { host.dispose(); }
 });
