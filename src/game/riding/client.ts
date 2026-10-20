@@ -12,7 +12,7 @@ import { TamingBinding } from './binding';
 import type { TamingObservation } from './bindingTypes';
 import type { TamingPrograms } from './taming';
 import { Mount } from './mount';
-import type { MountProfile } from '@wildshard/format/riding';
+import { RidingControlsSchema, type RidingControls, type MountProfile } from '@wildshard/format/riding';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../population/returnProgram';
 import { RideHUD } from './hud';
@@ -199,7 +199,7 @@ export class RidingActions {
 
 export interface PageRidingRows {
   profile: MountProfile; taming: PageTamingRows; actions: RidingActionRows;
-  mountables: readonly { id: string; name: string }[]; mode: { id: 'ride'; hud: 'ride' };
+  mountables: readonly { id: string; name: string }[]; mode: { id: 'ride'; hud: 'ride' }; controls?: RidingControls;
 }
 export type PageRidingEvent = PageTamingEvent | RidingActionEvent;
 /** One client owner for mount, taming, HUD and prompts. Shard presentation drains
@@ -217,19 +217,22 @@ export function pageRidingMount(ctx: LevelContext): Mount {
   return mount;
 }
 export function createPageRiding(ctx: LevelContext, player: Player, animals: AnimalManager, camera: THREE.PerspectiveCamera, rows: PageRidingRows): PageRidingSession {
+  const controls=rows.controls===undefined?undefined:v.parse(RidingControlsSchema,rows.controls);
+  if(controls!==undefined && rows.taming.breakingContext!==undefined && controls.breaking!==rows.taming.breakingContext)throw new Error('Riding breaking context mismatch');
   const mount = new Mount(ctx, player, animals, rows.profile);
   mountedSessions.set(ctx.scope,mount);
   ctx.scope.onDispose(()=>{if(mountedSessions.get(ctx.scope)===mount)mountedSessions.delete(ctx.scope);});
   for (const entry of rows.mountables) mount.addMountable(entry.id, entry.name);
   playerModes(player).register(rows.mode, ctx.scope);
-  const taming = createPageTaming(ctx, player, animals, mount, rows.taming);
+  const taming = createPageTaming(ctx, player, animals, mount, controls===undefined?rows.taming:{...rows.taming,breakingContext:controls.breaking});
   const actions = new RidingActions(ctx, mount, taming, player, camera, animals, rows.actions);
+  if (controls !== undefined) bindRidingControls(ctx,mount,taming,actions.hud,controls);
   return { mount, taming, hud: actions.hud, interactable: actions.interactable, names: rows.profile.names,
     update: (dt, wet, blocked, namingOpen) => { actions.advanceMount(dt, wet, blocked); taming.update(dt); actions.observe(dt, namingOpen); },
     drainEvents: () => [...taming.drainEvents(), ...actions.drainEvents()] };
 }
 
-const PagePreset = v.strictObject({ mode: v.strictObject({ id: v.literal('ride'), hud: v.literal('ride') }), mountableLabel: v.string(),
+const PagePreset = v.strictObject({ controls: v.exactOptional(RidingControlsSchema), mode: v.strictObject({ id: v.literal('ride'), hud: v.literal('ride') }), mountableLabel: v.string(),
   taming: v.strictObject({ herds: v.string(), adopted: v.strictObject({ kind: v.string(), variant: v.string(),
     upgrade: v.strictObject({ scale: v.number(), colour: v.tuple([v.number(),v.number(),v.number()]) }) }),
     thrownLabel: v.string(), breakingContext: v.string(), stowOnBreaking: v.boolean() }),
@@ -237,3 +240,26 @@ const PagePreset = v.strictObject({ mode: v.strictObject({ id: v.literal('ride')
     labels: v.strictObject({ name: v.string(), panic: v.string(), thrown: v.string(), bolt: v.string() }) }) });
 /** Admit the shard's client labels, input contexts, upgrade look and HUD tuning. */
 export function readPageRidingPreset(input: unknown): v.InferOutput<typeof PagePreset> { return v.parse(PagePreset,input); }
+
+/** Client-only native action routing over the entered mount and HUD. */
+function bindRidingControls(ctx: LevelContext, mount: Mount, taming: PageTamingOwner, hud: RideHUD, rows: RidingControls): void {
+  const input=ctx.app.input, keys=rows.keys;
+  ctx.inputContext({id:rows.foot,actions:['ride.whistle','ride.offer'],keys:{'ride.whistle':keys['ride.whistle'],'ride.offer':keys['ride.offer']},touch:{relabel:{},verbs:hud.inputVerbs()}});
+  ctx.inputContext({id:rows.mounted,actions:['move.forward','move.back','move.left','move.right','ride.gallop','ride.horseTab','use'],
+    keys:{'move.forward':keys['move.forward'],'move.back':keys['move.back'],'move.left':keys['move.left'],'move.right':keys['move.right'],'ride.gallop':keys['ride.gallop']},
+    touch:{relabel:{'edge-l':{label:rows.dismount,tone:'ready'}},verbs:hud.inputVerbs(true)}});
+  ctx.inputContext({id:rows.breaking,actions:['lean.left','lean.right'],blocks:['attack','aim','swap','ride.whistle','ride.offer','ride.horseTab'],keys:{'lean.left':keys['lean.left'],'lean.right':keys['lean.right']}});
+  for(const [lean,move] of [['lean.left','move.left'],['lean.right','move.right']] as const){
+    const saved=input.bindings.keys(rows.movement)[move];
+    if(saved!==undefined && saved.join('\0')!==input.bindings.keys(rows.breaking)[lean]?.join('\0'))input.bindings.assign(rows.breaking,lean,saved);
+  }
+  input.bindings.describe({rows:rows.describe??[]},ctx.scope);input.push(rows.foot,ctx.scope);mount.input=input;taming.setInput(input);
+  let mounted=mount.mounted;
+  ctx.system({id:'game.riding.input',phase:'input',before:['engine.player.input'],run:()=>{
+    if(mounted!==mount.mounted){mounted=mount.mounted;if(mounted)input.push(rows.mounted,ctx.scope);else{input.pop(rows.breaking);input.pop(rows.mounted);if(ctx.app.equipment!==null)ctx.app.equipment.stowed=false;}}
+    if(input.consume('ride.whistle'))mount.whistle();
+    if(input.consume('ride.gallop'))mount.gallopTap();
+    if(input.consume('ride.horseTab')&&!mount.breaking)mount.dismount();
+  }});
+  ctx.scope.onDispose(()=>{mount.dismount();mount.input=null;taming.setInput(null);});
+}

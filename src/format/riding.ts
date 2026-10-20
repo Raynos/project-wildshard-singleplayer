@@ -1,4 +1,6 @@
 import * as v from 'valibot';
+import { InputExtraEntries, InputKeysSchema } from './inputDeclarations';
+import { isJsonData } from './json';
 
 /** Client observations only; the HUD never receives a horse controller, shard callback or simulation object. */
 export interface RideHudState {
@@ -46,3 +48,23 @@ export const ReinPresentationSchema = v.strictObject({
     minWeight: v.pipe(reinFinite, v.minValue(0), v.maxValue(1)) }),
 });
 export type ReinPresentationRows = v.InferOutput<typeof ReinPresentationSchema>;
+
+const ridingId = v.pipe(v.string(),v.minLength(1),v.maxLength(128));
+/** Client-only native riding contexts, physical defaults and binding descriptions.
+ * Semantic actions belong to the mount/taming owners; authors supply no handler. */
+export const RidingControlsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Riding controls require JSON'), v.strictObject({
+  foot: ridingId, mounted: ridingId, breaking: ridingId, movement: ridingId, dismount: v.pipe(v.string(),v.minLength(1),v.maxLength(256)),
+  keys: v.strictObject({ 'ride.whistle': InputKeysSchema, 'ride.offer': InputKeysSchema, 'ride.gallop': InputKeysSchema,
+    'move.forward': InputKeysSchema, 'move.back': InputKeysSchema, 'move.left': InputKeysSchema, 'move.right': InputKeysSchema,
+    'lean.left': InputKeysSchema, 'lean.right': InputKeysSchema }), describe: InputExtraEntries.describe,
+}), v.check(rows => new Set([rows.foot,rows.mounted,rows.breaking]).size === 3, 'Distinct riding contexts'));
+export type RidingControls = v.InferOutput<typeof RidingControlsSchema>;
+
+/** Numeric envelope rows shared by native mounts and their client rigs. */
+export const RidingPresentationSchema = v.strictObject({ alive: v.string(),
+  smooth: v.array(v.strictObject({ source: v.string(), target: v.string(), rate: reinFinite, low: reinFinite, high: reinFinite })),
+  decay: v.array(v.strictObject({ source: v.string(), target: v.string(), rate: reinFinite })),
+  graze: v.strictObject({ target: v.string(), rate: reinFinite, speed: reinFinite }),
+  base: v.strictObject({ bone: v.string(), target: v.string() }),
+  wind: v.strictObject({ x: v.string(), z: v.string(), strength: v.string() }),
+});

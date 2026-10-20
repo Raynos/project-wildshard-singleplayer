@@ -163,6 +163,75 @@
         "bolt": " bolts for the camp \u2014 it needs a rest"
       },
       "squeal": "horse_squeal"
+    },
+    "controls": {
+      "foot": "ride.foot",
+      "mounted": "ride",
+      "breaking": "ride.break",
+      "movement": "onFoot",
+      "dismount": "Dismount",
+      "keys": {
+        "ride.whistle": [
+          "KeyX"
+        ],
+        "ride.offer": [
+          "KeyG"
+        ],
+        "ride.gallop": [
+          "ShiftLeft",
+          "ShiftRight"
+        ],
+        "move.forward": [
+          "KeyW"
+        ],
+        "move.back": [
+          "KeyS"
+        ],
+        "move.left": [
+          "KeyA"
+        ],
+        "move.right": [
+          "KeyD"
+        ],
+        "lean.left": [
+          "KeyA",
+          "ArrowLeft"
+        ],
+        "lean.right": [
+          "KeyD",
+          "ArrowRight"
+        ]
+      },
+      "describe": [
+        {
+          "group": "riding",
+          "id": "whistle",
+          "label": "Call horse",
+          "actions": [
+            "ride.whistle"
+          ]
+        },
+        {
+          "group": "riding",
+          "id": "gallop",
+          "label": "Gallop",
+          "actions": [
+            "ride.gallop"
+          ],
+          "shares": [
+            "sprint",
+            "surface"
+          ]
+        },
+        {
+          "group": "riding",
+          "id": "offer",
+          "label": "Offer (hold)",
+          "actions": [
+            "ride.offer"
+          ]
+        }
+      ]
     }
   }
 }

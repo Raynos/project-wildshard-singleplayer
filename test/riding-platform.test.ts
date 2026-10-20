@@ -10,7 +10,8 @@ import { overrideTerrain } from '@wildshard/engine/world/Heightfield';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { DiscOpts } from '@wildshard/engine/ui/hudSlots';
-import type { RideHudState, MountProfile } from '@wildshard/format/riding';
+import { RidingControlsSchema, type RideHudState, type MountProfile } from '@wildshard/format/riding';
+import { parse } from 'valibot';
 import { admitRenderedHerds, admitRidingWind, createPageRiding, RidingActions, type PageTamingOwner } from '@wildshard/game/riding/client';
 import fixturePrograms from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
 import { Mount } from '@wildshard/game/riding/mount';
@@ -129,12 +130,19 @@ test('fixture riding actions selects the rail prompt and emits a naming row', ()
 
 test('full orchard riding session owns its native mount and data prompts', () => {
   const speeds = { walk: 1, trot: 3, canter: 5, gallop: 8 }, f = fixture('fixture-mule', speeds, false);
-  const ctx = legacyDouble<LevelContext>({ ...f.ctx, on: () => undefined });
+  const input=f.ctx.app.input;
+  input.register({id:'orchard.walk',actions:['move.left','move.right'],keys:{'move.left':['KeyJ'],'move.right':['KeyL']}},f.scope);
+  const controls=parse(RidingControlsSchema,{foot:'orchard.foot',mounted:'orchard.saddle',breaking:'orchard.balance',movement:'orchard.walk',dismount:'Get down',
+    keys:{'ride.whistle':['KeyH'],'ride.offer':['KeyF'],'ride.gallop':['AltLeft'],'move.forward':['ArrowUp'],'move.back':['ArrowDown'],
+      'move.left':['ArrowLeft'],'move.right':['ArrowRight'],'lean.left':['KeyA'],'lean.right':['KeyD']},
+    describe:[{group:'riding',id:'orchard.call',label:'Call mule',actions:['ride.whistle']}]});
+  const ctx = legacyDouble<LevelContext>({ ...f.ctx, on: () => undefined,
+    inputContext:def=>input.register(def,f.scope),system:spec=>f.ctx.app.addSystem(spec,f.scope) });
   admitRenderedHerds(f.scope, 'orchard.herds', []); admitRidingWind(f.scope, { x: 0, z: 1, strength: .2 });
   const rest = { x: 3, z: 5, face: { x: 0, z: 1 } };
   const session = createPageRiding(ctx, f.player, f.animals, f.camera, {
     profile: { speeds, names: {}, thrownDamage: 7, thrownLabel: 'Thrown', restAt: rest }, mode: { id: 'ride', hud: 'ride' },
-    mountables: [{ id: f.actor.entityId, name: 'Orchard mule' }],
+    controls,mountables: [{ id: f.actor.entityId, name: 'Orchard mule' }],
     taming: { herds: 'orchard.herds', programs: fixturePrograms, savedBond: null, rest,
       adopted: { kind: 'fixture-mule', variant: 'companion', upgrade: { scale: 1.2, colour: [.5, .6, .7] } }, thrownLabel: 'Thrown',
       binding: { upgradeKind: 'silver-mule', bonds: ['mule', 'silver-mule'], names: ['Mule', 'Silver mule'], offset: [2, 0],
@@ -149,5 +157,13 @@ test('full orchard riding session owns its native mount and data prompts', () =>
     expect(session.drainEvents()).toEqual([{ kind: 'name', actor: f.actor.entityId, current: 'Orchard mule' }]);
     expect(session.mount.mount(f.actor.entityId)).toBe(true);
     expect(session.mount.mounted).toBe(true); expect(session.taming.phase).toBe('wild');
+    const step=():void=>{for(const system of f.ctx.app.systemsByPhase().input)system.run(1/60,0);};
+    expect(input.contexts).toEqual(['orchard.foot']);step();expect(input.contexts).toEqual(['orchard.foot','orchard.saddle']);
+    expect(input.bindings.keys('orchard.balance')['lean.left']).toEqual(['KeyJ']);
+    expect(input.bindings.table.rows.some(row=>row.label==='Call mule')).toBe(true);
+    input.push('orchard.balance',f.scope);expect(input.allowed('ride.whistle')).toBe(false);expect(input.allowed('attack')).toBe(false);
+    input.pop('orchard.balance');input.press('ride.horseTab');step();expect(session.mount.mounted).toBe(false);step();expect(input.contexts).toEqual(['orchard.foot']);
+    expect(()=>parse(RidingControlsSchema,{...controls,run:()=>undefined})).toThrow();
   } finally { session.mount.dismount(); f.scope.dispose(); }
+  expect(input.contexts).toEqual([]);expect(input.has('orchard.saddle')).toBe(false);expect(input.bindings.table.rows).toEqual([]);
 });

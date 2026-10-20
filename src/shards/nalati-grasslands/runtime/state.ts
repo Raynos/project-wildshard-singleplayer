@@ -16,7 +16,6 @@ import { wildEnv,bindHerdDamage } from '@wildshard/game/population/pageGroups';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
-import { installRide } from '../ride/input';
 import { Group, Mesh, Vector3, type Object3D } from 'three';
 import * as v from 'valibot';
 import { clientWaterSurfaces } from '@wildshard/game/shardfile/clientWaterSurfaces';
@@ -353,7 +352,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       if (wildlife === null || attachedAnimals === null) throw new Error('Nalati creatures have not been built');
       ride = wireRide({ roads, rest, nativeTaming, nativeRide, preset: ridingPreset, programs: ridingPrograms, namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, animals: attachedAnimals, wildlife, camera: game.camera });
       nalati.ride = ride;
-      installRide(plugin, ride);
+      plugin.debug.expose('nalati.ride',ride);
 
       const bow=p.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);
       painter = clientCosmeticFinishes(plugin).painter;
@@ -463,7 +462,7 @@ function wireRide(ctx: RideCtx): Ride {
   admitRidingWind(ctx.ctx.scope, wildEnv.wind);
   const names = ctx.persistence?.names.read() ?? {};
   const session = createPageRiding(ctx.ctx, ctx.player, ctx.animals, ctx.camera, {
-    profile: { ...ctx.nativeRide, names, roads: ctx.roads, restAt: ctx.rest }, mode: ctx.preset.mode,
+    profile: { ...ctx.nativeRide, names, roads: ctx.roads, restAt: ctx.rest }, mode: ctx.preset.mode, ...(ctx.preset.controls===undefined?{}:{controls:ctx.preset.controls}),
     taming: { ...ctx.preset.taming, programs: ctx.programs, binding: ctx.nativeTaming.binding, savedBond, rest: ctx.rest },
     actions: { ...ctx.preset.actions, program: ctx.programs.riding, rail: ctx.nativeTaming.rail },
     mountables: ctx.wildlife.mountables.map(actor => ({ id: actor.entityId, name: ctx.preset.mountableLabel })),
