@@ -9,7 +9,8 @@ import { installClientFinds } from '../src/game/shardfile/clientFinds';
 import { parseClientPlan } from '../src/format/clientPlan';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import type { ShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from './fake/FakeGame';
 
 test('orchard finds render the native quest flags without authored view/read hooks',async()=>{
@@ -17,7 +18,11 @@ test('orchard finds render the native quest flags without authored view/read hoo
   const rows={counters:[{label:'Seeds',flags:['orchard.apple']}],sections:[{title:'Harvest',items:[{label:'Apple',icon:'pin',flag:'orchard.apple'}]}]};
   const quest=new QuestState({id:'orchard.quest',title:'Seeds',completeFlag:'orchard.done',steps:[{id:'pick',objective:'Pick',done:{all:['orchard.apple']}}]},flags,undefined,scope);
   publishBoundQuest(scope,quest);
-  const runtime=legacyDouble<ShardRuntime>({play:legacyDouble<NonNullable<ShardRuntime['play']>>({owned:new Owned('orchard')}),hooks:{}}),product=legacyDouble<ShardProduct>({json:vi.fn<ShardProduct['json']>().mockResolvedValue(rows)});
+  const runtime=legacyDouble<ShardRuntime>({play:legacyDouble<NonNullable<ShardRuntime['play']>>({owned:new Owned('orchard')}),hooks:{}});
+  const product=createShardProduct({slug:'orchard',revision:1,
+    shardfile:emptyShardfile({slug:'orchard',name:'Orchard',author:'Fixture',revision:1,seed:1}),sections:new Map(),
+    files:new Map([['quests/finds.json',{hash:'finds',url:'/finds.json'}]]),
+    read:()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(rows))),check:true});
   const ctx=legacyDouble<ShardContext>({scope,product,game:legacyDouble<ShardContext['game']>({runtime}),bag:legacyDouble<ShardContext['bag']>({fragment})}),feature={kind:'bag.finds',id:'orchard.finds',quest:'orchard.quest',file:'quests/finds.json'};
   try{
     const row=parseClientPlan({version:1,features:[feature]}).features[0];if(row===undefined)throw new Error('Missing finds feature');
