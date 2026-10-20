@@ -2,6 +2,28 @@
   "schema": "platform-pending-users/1",
   "entries": [
     {
+      "module": "src/game/population/perchBody.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
+    },
+    {
+      "module": "src/game/population/mixedRoster.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
+    },
+    {
       "module": "src/game/audio/cueDirector.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {

@@ -1,11 +1,11 @@
-import { NativeReturnRowsSchema } from '@wildshard/format/populationRespawn';
+import { NativeReturnRowsSchema } from './populationRespawn';
 import * as v from 'valibot';
-import { PopulationEnvironmentSchema } from '@wildshard/format/populationEnvironment';
-import { BodySlotsSchema } from '@wildshard/format/bodySlots';
+import { PopulationEnvironmentSchema } from './populationEnvironment';
+import { BodySlotsSchema } from './bodySlots';
 
 const finite = v.pipe(v.number(), v.finite());
 const stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
-export const KeeperRowsSchema = v.strictObject({ environment: PopulationEnvironmentSchema, seed: finite,
+export const PopulationKeeperRowsSchema = v.strictObject({ environment: PopulationEnvironmentSchema, seed: finite,
   bodyPhase: v.strictObject({ animateWithin: v.pipe(finite, v.minValue(0)), clearWithin: v.pipe(finite, v.minValue(0)) }),
   volley: BodySlotsSchema,
   ecology: NativeReturnRowsSchema,
@@ -14,4 +14,4 @@ export const KeeperRowsSchema = v.strictObject({ environment: PopulationEnvironm
   variants: v.pipe(v.array(v.strictObject({ kind: v.string(), rows: v.pipe(v.array(v.strictObject({ id: v.string(), scale: v.tuple([finite, finite]) })), v.maxLength(32)) })), v.maxLength(32)),
   herds: v.pipe(v.array(v.strictObject({ kind: v.string(), x: finite, z: finite })), v.maxLength(32)),
   bodies: v.pipe(v.array(v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, x: finite, z: finite,
-    yaw: finite, seed: finite, scale: finite, fauna: v.boolean(), practice: v.boolean(), stream: v.nullable(stream) })), v.length(34)) });
+    yaw: finite, seed: finite, scale: finite, fauna: v.boolean(), practice: v.boolean(), stream: v.nullable(stream) })), v.maxLength(256)) });

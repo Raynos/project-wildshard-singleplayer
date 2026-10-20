@@ -16,7 +16,7 @@ import { QuestPageInteractionsSchema } from '@wildshard/format/questInteractions
 import { QuestStorySchema } from '@wildshard/format/questStory';
 import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema, PlaceSetsSchema, CoverCompositionSchema, EntryLandingsSchema } from './sections';
-import { KeeperRowsSchema } from '../data/keeperSchema';
+import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/format/populationKeeper';
 
 const text = v.string(), number = v.number();
 const schemas: Readonly<Record<string, v.GenericSchema>> = {

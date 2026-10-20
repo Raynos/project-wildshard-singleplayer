@@ -1,7 +1,7 @@
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeGroundSchema, nativeBakeGround, nativeBakeActors } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
-import { KeeperRowsSchema } from '../data/keeperSchema';
+import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import DRIFTWOOD_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
@@ -99,4 +99,4 @@ export function readEnemyPlacements(input: unknown): NativeEnemyPlacements { ret
 
 /** Admitted immutable keeper boot rows; version-8 live continuation stays with the existing native owner. */
 export type NativeKeeperRows = v.InferOutput<typeof KeeperRowsSchema>;
-export function readKeeperRows(input: unknown): NativeKeeperRows { return v.parse(KeeperRowsSchema, input); }
+export function readKeeperRows(input: unknown): NativeKeeperRows { const rows = v.parse(KeeperRowsSchema, input); if (rows.bodies.length !== 34) throw new Error('Divergent keeper body count'); return rows; }

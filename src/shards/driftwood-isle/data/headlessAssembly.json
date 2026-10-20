@@ -7,8 +7,8 @@
       "readEnemyPlacements",
       "readKeeperRows"
     ],
-    "src/shards/driftwood-isle/sim/keeper": [
-      "installIsland"
+    "@wildshard/game/population/mixedRoster": [
+      "installMixedPopulation"
     ],
     "@wildshard/game/boss/nativeWake": [
       "installWakeBoss"
@@ -469,35 +469,47 @@
       }
     },
     {
+      "name": "populationDecisions",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/game/shardfile/borrowedDecisions",
+              "nativeDecisionAuthority"
+            ]
+          },
+          {
+            "$ref": [
+              "shard"
+            ]
+          },
+          {
+            "$ref": [
+              "assets"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "island",
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/driftwood-isle/sim/keeper", "installIsland"]
+            "$ref": ["@wildshard/game/population/mixedRoster", "installMixedPopulation"]
           },
           {
             "$ref": ["host"]
           },
           {
-            "monkey": {
-              "$ref": ["monkeyJson"]
-            },
-            "decisions": {
-              "$call": [
-                {
-                  "$ref": ["@wildshard/game/shardfile/borrowedDecisions", "nativeDecisionAuthority"]
-                },
-                {
-                  "$ref": ["shard"]
-                },
-                {
-                  "$ref": ["assets"]
-                },
-                {
-                  "$ref": ["host"]
-                }
-              ]
-            },
+            "perchProgram": { "$ref": ["monkeyJson", "program"] },
+            "rows": { "$ref": ["constants", "mixedPopulation"] },
+            "reserved": { "$ref": ["bake", "captain"] },
             "placement": {
               "$ref": ["placement"]
             },

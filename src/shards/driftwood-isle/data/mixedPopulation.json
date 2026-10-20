@@ -1,0 +1,132 @@
+{
+  "step": "driftwood.island",
+  "limit": 256,
+  "attackTurnCap": 1.8,
+  "hunted": [
+    "boar",
+    "bear"
+  ],
+  "floorKinds": [
+    "sailor"
+  ],
+  "practice": {
+    "at": {
+      "x": 0,
+      "z": 0
+    },
+    "fade": 1.5,
+    "delay": 45,
+    "away": 30
+  },
+  "reserve": {
+    "kind": "captain",
+    "variant": "captain",
+    "scale": [
+      1.35,
+      1.35
+    ],
+    "legacyMemory": [
+      {
+        "from": "subT",
+        "to": "subt",
+        "axis": "zero"
+      },
+      {
+        "from": "burstX",
+        "to": "burst-x",
+        "axis": "x"
+      },
+      {
+        "from": "burstZ",
+        "to": "burst-z",
+        "axis": "z"
+      },
+      {
+        "from": "poolX",
+        "to": "pool-x",
+        "axis": "x"
+      },
+      {
+        "from": "poolZ",
+        "to": "pool-z",
+        "axis": "z"
+      }
+    ]
+  },
+  "volley": {
+    "owner": "coconut",
+    "strike": "strike.monkey.coconut",
+    "tags": [
+      "creature.monkey",
+      "feel.blow",
+      "cover.checked"
+    ]
+  },
+  "poses": [],
+  "perch": {
+    "kind": "monkey",
+    "strike": "strike.monkey.bite",
+    "sound": "monkey_shriek",
+    "sourceHeight": 0.95,
+    "targetHeight": 0.9,
+    "actions": {
+      "stateKey": "st",
+      "states": [
+        "perch",
+        "ground-idle",
+        "attack",
+        "drop",
+        "ground",
+        "return",
+        "climb"
+      ],
+      "actions": [
+        {
+          "state": 2,
+          "phase": 0.45,
+          "effect": "bite",
+          "once": {
+            "key": "hit",
+            "value": 1,
+            "test": "falsy"
+          },
+          "when": {
+            "key": "bite",
+            "test": "truthy"
+          }
+        },
+        {
+          "state": 2,
+          "phase": 0.62,
+          "effect": "throw",
+          "once": {
+            "key": "hit",
+            "value": 1,
+            "test": "falsy"
+          },
+          "when": {
+            "key": "bite",
+            "test": "falsy"
+          }
+        }
+      ]
+    },
+    "score": "perchScore",
+    "height": "perchHeight",
+    "heightChannel": "perchH",
+    "root": {
+      "drop": "drop",
+      "velocity": "vy",
+      "land": "land",
+      "climb": "climb",
+      "height": "perchH",
+      "baseX": "bx",
+      "baseZ": "bz",
+      "x": "px",
+      "z": "pz",
+      "gravity": 9.8,
+      "speed": 2.2,
+      "landing": 0.35
+    }
+  }
+}
