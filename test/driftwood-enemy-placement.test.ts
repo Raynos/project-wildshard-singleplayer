@@ -6,17 +6,21 @@ import { placeEnemies as legacyPlacement } from '../src/shards/driftwood-isle-le
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
 import physics from '../src/shards/driftwood-isle/data/physics.generated.json' with { type: 'json' };
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
-import { driftwoodBake, readEnemyPlacements } from '../src/shards/driftwood-isle/sim/baked';
+import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
+import { nativeBakeGround } from '../src/sdk/headlessRuntime';
+import { terrainTileHeight } from '../src/format/terrainTileBytes';
 import { Rng } from '../src/engine/core/rng';
 
 test('offline placements retain the frozen page/native populations, herds, yaw and coconut stream', () => {
   const actual = v.parse(EnemyPlacementsSchema, structuredClone(enemyPlacements()));
-  expect(readEnemyPlacements(actual).native).toEqual(actual.native);
+  const { physics: admitted } = driftwoodNativeRows(physics);
+  const ground = nativeBakeGround(admitted.ground, 256, 500, 'Driftwood');
+  const floorAt = (x: number, z: number): number => terrainTileHeight({ resolution: 256, x: -250, z: -250, size: 500, heights: ground.heights }, x, z, { layout: 'column-major', boundary: 'clamp' });
   const extra = physics.habitat.perchBases.slice(foliage.tiers.phone.palms.specs.length);
   const entries = [
     { rows: actual.page.phone, palms: [...foliage.tiers.phone.palms.specs, ...extra], heightAt: driftwoodGroundSampler() },
     { rows: actual.page.desktop, palms: [...foliage.tiers.desktop.palms.specs, ...extra], heightAt: driftwoodGroundSampler() },
-    { rows: actual.native, palms: physics.habitat.perchBases, heightAt: driftwoodBake(physics).floorAt },
+    { rows: actual.native, palms: physics.habitat.perchBases, heightAt: floorAt },
   ];
   for (const { rows, palms, heightAt } of entries) {
     const expected = legacyPlacement({ seed: foliage.seed, waterLevel: 0, crabSites: physics.habitat.crabSites, palms, heightAt });

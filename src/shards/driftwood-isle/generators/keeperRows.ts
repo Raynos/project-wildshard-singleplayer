@@ -7,9 +7,12 @@ import { BEAR } from '@wildshard/game/systems/species/bear';
 import physics from '../data/physics.generated.json' with { type: 'json' };
 import { DRIFTWOOD_NATIVE_FAUNA } from './nativeFauna';
 import type { enemyPlacements } from './enemyPlacement';
-import type { NativeKeeperRows } from '../sim/baked';
+import type * as v from 'valibot';
+import type { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import ecology from '../data/ecology.json' with { type: 'json' };
 import { RETURN_PROGRAM } from './returnProgram';
+
+type NativeKeeperRows = v.InferOutput<typeof PopulationKeeperRowsSchema>;
 
 /** Compile immutable roster joins and initial rolls; live floors and later spawns remain keeper-owned.
  * Each enemy checkpoint is the creature stream immediately before its original materialization. */

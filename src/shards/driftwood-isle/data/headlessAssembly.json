@@ -2,60 +2,23 @@
   "version": 1,
   "modules": {
     "@wildshard/game/quest/nativeInputs": ["installNativeQuestChannels"],
-    "src/shards/driftwood-isle/sim/baked": [
-      "driftwoodBake",
-      "driftwoodSpecs",
-      "readEnemyPlacements",
-      "readKeeperRows"
-    ],
-    "@wildshard/game/population/mixedRoster": [
-      "installMixedPopulation"
-    ],
-    "@wildshard/game/boss/nativeWake": [
-      "installWakeBoss"
-    ],
-    "@wildshard/game/quest/killSteps": [
-      "installQuestKillSteps"
-    ],
-    "@wildshard/game/quest/nativeComposition": [
-      "readNativeQuestSpots",
-      "installNativeQuestComposition"
-    ],
-    "src/shards/driftwood-isle/world/sea": [
-      "DRIFTWOOD_SEA",
-      "LOWERED_SEA"
-    ],
+    "@wildshard/game/population/mixedRoster": ["installMixedPopulation"],
+    "@wildshard/game/boss/nativeWake": ["installWakeBoss"],
+    "@wildshard/game/quest/killSteps": ["installQuestKillSteps"],
+    "@wildshard/game/quest/nativeComposition": ["readNativeQuestSpots", "installNativeQuestComposition"],
+    "src/shards/driftwood-isle/world/sea": ["DRIFTWOOD_SEA", "LOWERED_SEA"],
     "@wildshard/game/looks/dayClock": ["dayClock"],
     "@wildshard/format/toonLook": ["TOON_DAY_PRESET"],
-    "@wildshard/format/achievementCounters": [
-      "parseAchievementCounterData"
-    ],
-    "@wildshard/engine/physics/navmesh": [
-      "readNavmesh"
-    ],
-    "@wildshard/game/plugin/director": [
-      "DirectorScriptStageLane",
-      "readDirectorProduct"
-    ],
-    "@wildshard/engine/world/dayCycle": [
-      "DayCycle"
-    ],
-    "@wildshard/engine/world/waves": [
-      "waveHeight"
-    ],
-    "@wildshard/sdk/headlessRuntime": [
-      "bindHeadlessCommands",
-      "installNativeCollision"
-    ],
-    "@wildshard/game/shardfile/borrowedDecisions": [
-      "nativeDecisionAuthority"
-    ],
-    "@wildshard/game/plugin/nativeItems": [
-      "installNativeItems"
-    ],
-    "@wildshard/game/plugin/mover": [
-      "proveTerrainEntries"
-    ]
+    "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
+    "@wildshard/engine/physics/navmesh": ["readNavmesh"],
+    "@wildshard/game/plugin/director": ["DirectorScriptStageLane", "readDirectorProduct"],
+    "@wildshard/engine/world/dayCycle": ["DayCycle"],
+    "@wildshard/engine/world/waves": ["waveHeight"],
+    "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands", "installNativeCollision", "nativeBakeGround", "nativeBakeFloats"],
+    "@wildshard/game/shardfile/borrowedDecisions": ["nativeDecisionAuthority"],
+    "@wildshard/game/plugin/nativeItems": ["installNativeItems"],
+    "@wildshard/game/plugin/mover": ["proveTerrainEntries"],
+    "@wildshard/format/terrainTileBytes": ["terrainTileHeight"]
   },
   "prepare": [
     {
@@ -166,19 +129,7 @@
         ]
       }
     },
-    {
-      "name": "placement",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["src/shards/driftwood-isle/sim/baked", "readEnemyPlacements"]
-          },
-          {
-            "$ref": ["placementJson"]
-          }
-        ]
-      }
-    },
+    {"name": "placement", "value": {"$ref": ["placementJson"]}},
     {
       "name": "monkeyJson",
       "value": {
@@ -209,19 +160,7 @@
         ]
       }
     },
-    {
-      "name": "keeper",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["src/shards/driftwood-isle/sim/baked", "readKeeperRows"]
-          },
-          {
-            "$ref": ["keeperJson"]
-          }
-        ]
-      }
-    },
+    {"name": "keeper", "value": {"$ref": ["keeperJson"]}},
     {
       "name": "launch",
       "value": {
@@ -270,38 +209,10 @@
         ]
       }
     },
-    {
-      "name": "bake",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["src/shards/driftwood-isle/sim/baked", "driftwoodBake"]
-          },
-          {
-            "$ref": ["constants", "physics"]
-          }
-        ]
-      }
-    },
-    {
-      "name": "specs",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["src/shards/driftwood-isle/sim/baked", "driftwoodSpecs"]
-          },
-          {
-            "$ref": ["bake"]
-          }
-        ]
-      }
-    },
-    {
-      "name": "heightAt",
-      "value": {
-        "$ref": ["bake", "floorAt"]
-      }
-    },
+    {"name": "ground", "value": {"$call": [{"$ref": ["@wildshard/sdk/headlessRuntime", "nativeBakeGround"]}, {"$ref": ["constants", "physics", "ground"]}, 256, 500, "Driftwood"]}},
+    {"name": "bake", "value": {"actors": {"$ref": ["constants", "physics", "actors"]}, "herds": {"$ref": ["constants", "physics", "herds"]}, "habitat": {"$ref": ["constants", "physics", "habitat"]}, "captain": {"$ref": ["constants", "physics", "captain"]}, "ground": {"$ref": ["ground"]}, "solids": {"$call": [{"$ref": ["constants", "physics", "solids", "map"]}, {"$fn": {"$if": [{"$ref": ["args", 0, "vertices"]}, {"$call": [{"$ref": ["assembly", "merge"]}, {"$ref": ["args", 0]}, {"points": {"$call": [{"$ref": ["@wildshard/sdk/headlessRuntime", "nativeBakeFloats"]}, {"$ref": ["args", 0, "vertices"]}]}}]}, {"$ref": ["args", 0]}]}}]}}},
+    {"name": "specs", "value": {"$new": [{"$ref": ["assembly", "Map"]}, {"$ref": ["constants", "nativeSpecs"]}]}},
+    {"name": "heightAt", "value": {"$fn": {"$call": [{"$ref": ["@wildshard/format/terrainTileBytes", "terrainTileHeight"]}, {"resolution": 256, "x": -250, "z": -250, "size": 500, "heights": {"$ref": ["ground", "heights"]}}, {"$ref": ["args", 0]}, {"$ref": ["args", 1]}, {"layout": "column-major", "boundary": "clamp"}]}}},
     {
       "name": "nav",
       "value": {
