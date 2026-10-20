@@ -5,7 +5,7 @@ import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/p
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { islandSystems } from './world/systems';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
-import { installDriftwoodAudio } from './audio/install';
+import { enterClientAudioScene } from '@wildshard/game/audio/sceneDirector';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { readDirectorProduct } from '@wildshard/game/plugin/director';
 import type { Vector3 } from 'three';
@@ -41,8 +41,8 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     keepDriftwoodWorld(shell, built);
     shell.hooks.meleeSilent = true;
-    const { ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove } = built;
-    Object.assign(shell.objects, { ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove });
+    const { ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
+    Object.assign(shell.objects, { ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
     shell.hooks.spawnFloor = (x, z) => pier?.floorHeightAt(x, z);
     if (gulls !== null) shell.overhead.push(gulls.group);
     if (built.cover !== null) shell.overhead.push(built.cover.group);
@@ -65,7 +65,7 @@ export class DriftwoodPlugin extends ShardPlugin {
 
 
   override async play(ctx: ShardContext): Promise<void> {
-    await installDriftwoodAudio(ctx);
+    await enterClientAudioScene(ctx);
     // Warm the actual finale memory after audio, then install the same adventure in its owner.
     const director = await readDirectorProduct(ctx.product, ctx.scope);
     this.adventure = await withPreparedScriptMemories([director.bytes], ctx.scope,

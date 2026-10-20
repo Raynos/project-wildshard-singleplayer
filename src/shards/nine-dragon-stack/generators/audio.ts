@@ -9,6 +9,13 @@ const rectangles = [
   { id: 'stair', zone: 'market', x0: 22, x1: 70, z0: 2, z1: 10 },
 ];
 
+const sampleVoices: (readonly [string, { family: string; tap: string; sequence?: boolean; pan?: number; handled?: boolean }])[] = [
+      ...['wood', 'metal', 'stone'].map(surface => [`nd.step.${surface}`, { family: `step.${surface}.`, tap: `nd.step.${surface}`, sequence: true }] as const),
+      ...Object.entries({ 'nd.jian.swing': 'jian.swing', 'nd.jian.heavy': 'jian.swing.heavy', 'nd.jian.hit.wood': 'jian.hit.wood', 'nd.jian.clang': 'jian.clang', 'nd.jian.hit.stone': 'jian.hit.stone', ...Object.fromEntries(['fire', 'bite', 'reel', 'dock', 'zip'].map(name => [`nd.feizhua.${name}`, `feizhua.${name}`])) }).map(([tap, family]) => [tap, { family, tap }] as const),
+      ['nd.chime.gust', { family: 'chime.gust', tap: 'nd.chime.gust', pan: .6 }],
+      ['nd.unhandled', { family: 'none', tap: 'none', handled: false }],
+ ];
+
 /** Today's market/Well beds, enclosed blend regions, lantern hum limits and ordered cue aliases. */
 export const ND_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'default', samples: ND_SAMPLES,
   music: { setPlayback: { scene: { well: 0 }, stateMode: true, waitForBank: true },
@@ -27,6 +34,13 @@ export const ND_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'defau
     zones: [{ id: 'market', weight: ['-', 1, 'wellWeight'] }, { id: 'well', weight: 'wellWeight' }], calls: [{ tick: null, initial: [8, 20], every: [8, 20], advance: ['and', 'worldOn', ['gt', 'wellWeight', 0.5]], when: 1, reset: 'after', emit: { kind: 'cue', id: 'chime.gust', gain: 0.4 } }],
   }, id: 'ambience.nd', smoothSeconds: 1, tickHz: 4, silentSeconds: 0, holdSeconds: 0, levels: {}, wet: {}, zones: [], blendMetres: BLEND,
     rectangles, beds: [{ id: 'bed.nd.market', zone: 'market' }, { id: 'bed.nd.well', zone: 'well' }], positional: { sample: 'hum.lantern', max: 4, reach: 14 } },
+  sampledScene: {
+    system: 'shard.nd.audio', tick: 'nd.audio.tick', debug: 'nd.audio', points: 'lanterns', loopTap: 'nd.hum.lantern', countLabel: 'lanterns', eye: 1.68,
+    surfaces: { wood: 'planks', planks: 'planks', metal: 'metal' }, fallback: 'rock',
+    step: { id: 'nd.step', voices: { planks: 'nd.step.wood', metal: 'nd.step.metal' }, fallback: 'nd.step.stone', count: 4, walkGain: .7, runGain: 1 },
+    voices: Object.fromEntries(sampleVoices),
+    score: [{ key: 'well', value: 'wellWeight' }],
+  },
   routing: [
     { id: 'step', bus: 'audio', actions: [{ voice: 'nd.step' }] },
     ...['cue.jian.swing', 'cue.sword.swing', 'melee.swing'].map((id) => ({ id, bus: 'audio', actions: [{ voice: 'nd.jian.swing' }] })),

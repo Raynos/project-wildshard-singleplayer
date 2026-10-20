@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { VoicePatchesSchema, type VoicePatches } from './voicePatches';
-import { AudioSceneSchema, type AudioScene } from './audioScene';
+import { AudioSceneSchema, SampledAudioSceneSchema, type SampledAudioScene, type AudioScene } from './audioScene';
+import { isJsonData } from './json';
 import {AudioBankSchema} from './audioBank';
 import { AudioRoutingSchema, AudioVoiceBindingsSchema } from './audioRouting';
 import { AudioLoopEmitterSchema, AudioPlaybackSchema, AudioSurfaceSchema, AudioLoopGraphSchema, AudioObservationSystemSchema, AudioPcmProgramSchema, AudioMusicSchema, AudioSamplesSchema, AudioZonesSchema, AudioPhraseProgramSchema, AudioPhraseScheduleSchema } from './audioProfiles';
@@ -27,6 +28,7 @@ const command = v.variant('kind',[
   v.strictObject({kind:v.literal('log'),on:id,off:id,detail:v.exactOptional(reference),precision:v.exactOptional(v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(8))),ok:v.exactOptional(v.boolean())}),
 ]);
 const gameplay = v.strictObject({
+  constants:v.exactOptional(v.pipe(v.record(id,v.unknown()),v.check(rows=>isJsonData(rows)))),
   entered:v.boolean(),score:v.boolean(),activate:v.boolean(),restoreShade:v.boolean(),
   inputs:references,writers:v.pipe(v.record(id,v.variant('kind',[
     v.strictObject({kind:v.literal('night')}),v.strictObject({kind:v.literal('dusk')})
@@ -44,10 +46,11 @@ const gameplay = v.strictObject({
 /** Declared gameplay owner bindings for the existing observation and entered phases. */
 export type AudioGameplay = v.InferOutput<typeof gameplay>;
 const rawAudioSchema = v.pipe(v.strictObject({ cues: v.pipe(v.array(v.strictObject({ id, voice: id })), v.maxLength(64), v.check((rows) => new Set(rows.map((row) => row.id)).size === rows.length, 'unique cue ids')),
-  patches:v.exactOptional(VoicePatchesSchema),scene:v.exactOptional(AudioSceneSchema),entry:v.exactOptional(v.pipe(v.record(id,v.strictObject({wind:v.boolean(),score:v.boolean()})),v.check(rows=>Object.keys(rows).length<=4))), gameplay:v.exactOptional(gameplay), bank:v.exactOptional(AudioBankSchema), emitters:v.exactOptional(v.pipe(v.record(id,AudioLoopEmitterSchema),v.check(rows=>Object.keys(rows).length<=32))), playback:v.exactOptional(AudioPlaybackSchema), surfaces:v.exactOptional(AudioSurfaceSchema), loopGraphs:v.exactOptional(v.pipe(v.record(id,AudioLoopGraphSchema),v.check(rows=>Object.keys(rows).length<=32))), observations:v.exactOptional(v.pipe(v.array(AudioObservationSystemSchema),v.maxLength(16),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))), pcm:v.exactOptional(v.pipe(v.record(id,AudioPcmProgramSchema),v.check(rows=>Object.keys(rows).length<=64))), synth:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), recordings: v.optional(recordings), music: v.optional(AudioMusicSchema), samples: v.optional(AudioSamplesSchema), zones: v.optional(AudioZonesSchema),
+  sampledScene:v.exactOptional(SampledAudioSceneSchema),patches:v.exactOptional(VoicePatchesSchema),scene:v.exactOptional(AudioSceneSchema),entry:v.exactOptional(v.pipe(v.record(id,v.strictObject({wind:v.boolean(),score:v.boolean()})),v.check(rows=>Object.keys(rows).length<=4))), gameplay:v.exactOptional(gameplay), bank:v.exactOptional(AudioBankSchema), emitters:v.exactOptional(v.pipe(v.record(id,AudioLoopEmitterSchema),v.check(rows=>Object.keys(rows).length<=32))), playback:v.exactOptional(AudioPlaybackSchema), surfaces:v.exactOptional(AudioSurfaceSchema), loopGraphs:v.exactOptional(v.pipe(v.record(id,AudioLoopGraphSchema),v.check(rows=>Object.keys(rows).length<=32))), observations:v.exactOptional(v.pipe(v.array(AudioObservationSystemSchema),v.maxLength(16),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))), pcm:v.exactOptional(v.pipe(v.record(id,AudioPcmProgramSchema),v.check(rows=>Object.keys(rows).length<=64))), synth:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), recordings: v.optional(recordings), music: v.optional(AudioMusicSchema), samples: v.optional(AudioSamplesSchema), zones: v.optional(AudioZonesSchema),
   voiceBindings:v.exactOptional(AudioVoiceBindingsSchema), routing: v.optional(AudioRoutingSchema, []), ambience: v.nullable(v.strictObject({ phrases:v.exactOptional(v.pipe(v.array(AudioPhraseScheduleSchema),v.maxLength(8))), gust: v.exactOptional(gust), bed: id, winds: v.pipe(v.array(wind), v.minLength(1), v.maxLength(4)) })), score: v.picklist(['silent', 'default']) }),v.check(audio=>Object.values(audio.emitters??{}).every(row=>audio.loopGraphs?.[row.graph]!==undefined),'declared loop emitter graph'),v.check(audio=>Object.values(audio.bank?.families??{}).every(row=>row.source.kind!=='pcm'||audio.pcm?.[row.source.id]!==undefined)&&Object.values(audio.bank?.spatial??{}).every(row=>audio.synth?.[row.phrase]!==undefined),'declared voice bank programs'),v.check(audio=>audio.bank===undefined||(audio.playback!==undefined&&(audio.bank.barks===undefined||audio.bank.catalogue!==undefined)),'declared bank playback/catalogue'));
 /** Validated audio data; voice ids are resolved only through the platform's admitted catalogue. */
 export interface AudioData {
+  sampledScene?:SampledAudioScene;
   cues: { id: string; voice: string }[];
   patches?:VoicePatches;
   scene?:AudioScene;

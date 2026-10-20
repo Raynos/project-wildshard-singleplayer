@@ -5,11 +5,12 @@ import pineSource from '../src/shards/pine-hollow/data/audioSource.json' with {t
 import pineOutput from '../src/shards/pine-hollow/data/audio.generated.json' with {type:'json'};
 import islandSource from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
 import islandOutput from '../src/shards/driftwood-isle/data/audio.generated.json' with {type:'json'};
+import cove from '../src/shards/driftwood-isle/data/coveBake.json' with {type:'json'};
 
 it.each([
   ['pine-hollow',pineSource,pineOutput],['driftwood-isle',islandSource,islandOutput],
 ] as const)('%s publishes its authored audio through the existing section',async(slug,source,output)=>{
-  const rows=parseAudioData(source.audio);
+  const rows=parseAudioData(slug==='driftwood-isle'?{...source.audio,gameplay:{...source.audio.gameplay,constants:{cove:cove.spec}}}:source.audio);
   expect(output.audio).toEqual(rows);
   const product=await readProjectAssets(`src/shards/${slug}`);
   expect(product.shard.audio).toEqual(rows);

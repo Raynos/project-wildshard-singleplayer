@@ -24,7 +24,7 @@ import { floorAtRects } from '@wildshard/engine/physics/box';
 import deckFloors from './data/deckFloors.generated.json' with { type: 'json' };
 import { NdRuntime, ownNdRuntime } from './runtime/state';
 import { installSpecimenLight } from './look/specimenLight';
-import { installAudio } from './runtime/audio/ambience';
+import { enterClientAudioScene } from '@wildshard/game/audio/sceneDirector';
 import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
 import { installPortalRide, type PortalRide, type PortalRideRows } from '@wildshard/game/shardfile/portalRideBinding';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
@@ -64,7 +64,7 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
 /** The world hook can be exercised with a stub build without a DOM or GPU. */
 export class NdPlugin extends ShardPlugin {
   override async kit(ctx: ShardContext): Promise<void> {
-    await installAudio(ctx);
+    await enterClientAudioScene(ctx);
     const support = v.parse(v.strictObject({ sword: v.unknown(), arms: v.unknown(), material: v.unknown(), tipY: v.number(), baseY: v.number() }),
       JSON.parse(new TextDecoder().decode(await ctx.product.file('weapons/jian-support.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
     const view = await ctx.product.json<GrappleRows>('weapons/jian-row.json');
@@ -146,6 +146,7 @@ export class NdPlugin extends ShardPlugin {
     if (scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     const { world: worldRows } = await ctx.product.json<GeometryBoot>('geometry/layout.json');
     this.ndWorld = world;
+    if (ctx.game.runtime !== undefined) ctx.game.runtime.objects['lanterns'] = world.lanterns;
     const rt = new NdRuntime(world, camera);
     ownNdRuntime(scope, rt);
     for (const { id, name, file, colliderOwner, colliders } of world.entryCaps === true ? worldInstall.standalone : worldInstall.cell) {

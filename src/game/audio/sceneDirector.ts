@@ -1,4 +1,4 @@
-import { runtimeAudio } from '../plugin/audio';
+import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio } from '../plugin/audio';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { Vector3 } from 'three';
 import { parse } from 'valibot';
@@ -11,12 +11,16 @@ import type { Music } from '@wildshard/engine/audio/Music';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { SampledAmbience } from '@wildshard/engine/audio/AmbienceBeds';
+import { SampledAmbience, PositionalLoops } from '@wildshard/engine/audio/AmbienceBeds';
+import { CuePlayer } from '@wildshard/engine/audio/Cues';
+import { castRay } from '@wildshard/engine/physics/query';
+import { ambientTick, tap } from '@wildshard/engine/core/harnessTap';
+import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { SetScore } from '@wildshard/engine/audio/SetScore';
 import { audioMixValue, requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { panFromYaw, audioRandom } from '@wildshard/engine/audio/util';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
-import { CombatCues } from '@wildshard/engine/combat/cues';
+import { CombatCues, type CombatCueOpts } from '@wildshard/engine/combat/cues';
 import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { AudioVoicePatches } from './voicePatches';
@@ -116,7 +120,16 @@ export function clientAudioScene(ctx:ShardContext):AudioSceneDirector{
 }
 /** Bind the admitted director to the actual page's native audio and cue owners.
  * Re-entry restores the same subscriptions without any content callback ports. */
-export function enterClientAudioScene(ctx:ShardContext):void{
+export async function enterClientAudioScene(ctx:ShardContext):Promise<void>{
+ const data=runtimeAudio(ctx,ctx.product.shardfile.audio);
+ if(data.sampledScene!==undefined){installSampledAudioScene(ctx,data);return;}
+ if(data.scene===undefined&&data.gameplay!==undefined){
+  const runtime=ctx.game.runtime;if(runtime?.world===undefined||runtime.world===null||runtime.play===null)throw new Error('Audio scene requires its native world');
+  const {audio,music}=runtime.play,{game,sky,player}=runtime.world;
+  const constants:Record<string,object>={};for(const [key,value]of Object.entries(data.gameplay.constants??{})){if(typeof value!=='object'||value===null)throw new Error('Invalid audio constant owner');constants[key]=value;}
+  installRuntimeAudioEntry(ctx,'play',{audio,music});
+  await installRuntimeGameplayAudio(ctx,{audio,music,camera:game.camera,listener:player,objects:runtime.objects,owners:{...constants,sky,world:runtime.objects,wind:windUniforms}});return;
+ }
  const scene=clientAudioScene(ctx),play=ctx.game.runtime?.play;
  if(play===undefined||play===null)throw new Error('Audio scene requires its actual play owner');
  installEnteredRuntimeService(ctx,scope=>{
@@ -124,4 +137,40 @@ export function enterClientAudioScene(ctx:ShardContext):void{
   ctx.app.events.on('creature.sound',({cue,x,y,z})=>{point.set(x,y,z);scene.emit(cue,point);},scope);
   play.cues.use((id,options)=>options.surface===undefined?scene.fire(id):scene.impact(id,options.surface==='flesh'||options.surface==='wood'?options.surface:'ground',options.pan??0,options.gain??1),scope);
  });
+}
+
+/** Sample strategy of the scene director. Rows own recipes and observations;
+ * the native entered scope owns the bank, ray query, clocks and loop sources. */
+function installSampledAudioScene(ctx:ShardContext,data:AudioData):void{
+ const row=requireAudioProfile(data.sampledScene,'sample scene'),profile=requireAudioProfile(data.zones,'sample zones'),musicProfile=requireAudioProfile(data.music,'sample score');
+ const audio=ctx.app.audio;if(audio?.music===null||audio===null)throw new Error('Sample scene requires audio/music');
+ const music=audio.music,random=():number=>ctx.app.rng.stream('cosmetic').next(),scope=ctx.scope;
+ const player=new CuePlayer(audio,scope,random),score=SetScore.declared(musicProfile,music);
+ scope.onDispose(music.setScore(musicProfile.id,score));scope.onDispose(()=>{score.dispose();});
+ let step=0;
+ const voices=new Map<string,(opts:CombatCueOpts)=>boolean|undefined>(Object.entries(row.voices).map(([id,voice])=>[id,opts=>{
+  if(!voice.handled)return false;tap.sound?.(voice.tap);
+  return player.play(voice.family+(voice.sequence?String(step):''),{...opts,...(voice.pan===undefined?{}:{pan:opts.pan??(random()-.5)*voice.pan})});
+ }]));
+ voices.set(row.step.id,opts=>{step=step%row.step.count+1;const id=row.step.voices[opts.surface??'']??row.step.fallback;return requireAudioProfile(voices.get(id),id)({...opts,gain:opts.sprinting?row.step.runGain:row.step.walkGain});});
+ const routing=createCueRouter(data.routing,{voices});audio.installCues(routing,scope);
+ audio.onLevelBank(bank=>{player.useBank(bank.cues);score.useBank(bank.score);},scope);
+ const priorSurface=audio.stepSurface;
+ audio.stepSurface=()=>{const pos=audio.listenerPosition,physics=ctx.app.physics;if(pos===null||physics===null)return row.fallback;const hit=castRay(physics,{x:pos.x,y:pos.y+.4,z:pos.z},{x:0,y:-1,z:0},1.5);return row.surfaces[hit?.material??'']??row.fallback;};
+ scope.onDispose(()=>{audio.stepSurface=priorSurface;});
+ const beds=new SampledAmbience(audio,profile,player,scope);scope.onDispose(()=>{beds.dispose();});
+ audio.installBeds(requireAudioProfile(profile.beds,'sample beds').map(bed=>bed.id),scope,()=>beds.audible.length);
+ const points=ctx.game.runtime?.objects[row.points];if(!Array.isArray(points)||!points.every((point:unknown)=>point instanceof Vector3))throw new Error('Missing positional audio points');
+ const positional=requireAudioProfile(profile.positional,'positional profile');
+ const loops=new PositionalLoops(audio,scope,points,()=>player.loop(positional.sample),()=>{tap.sound?.(row.loopTap,'ambient');},random,positional.max,positional.reach);
+ const eye=new Vector3();let since=0;
+ ctx.system({id:row.system,phase:'update',after:['engine.player.update'],run:dt=>{
+  const pos=audio.listenerPosition;if(pos===null||ctx.app.clock.paused)return;since+=dt;if(since<1/profile.tickHz)return;
+  const elapsed=since;since=0;
+  ambientTick(row.tick,()=>{
+   beds.set({x:pos.x,z:pos.z});let changed=false;for(const binding of row.score){const value=requireAudioProfile(beds.values.get(binding.value),binding.value);if(score.scene[binding.key]!==value){score.scene[binding.key]=value;changed=true;}}if(changed)music.refreshScore();
+   beds.mix();eye.copy(pos);eye.y+=row.eye;loops.update(eye,audio.listenerYaw);beds.inputs['worldOn']=Number(!audio.worldMuted);beds.advance(elapsed,pos,audio.listenerYaw);
+  });
+ }});
+ ctx.debug.expose(row.debug,{score:musicProfile.id,beds:audio.bedIds,[row.countLabel]:()=>loops.count});
 }
