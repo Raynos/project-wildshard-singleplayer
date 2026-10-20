@@ -15,7 +15,7 @@ test('a marsh courier projects its own target memory, cadence and hit rules thro
   const binding = new DirectedSpecies(row, admission).binding, motions: number[][] = [];
   const actor = legacyDouble<Animal>({ position: new Vector3(4, 0, 8), yaw: .3, state: 'idle',
     mem: { 'guide.x': 7, 'guide.z': 12, 'guide.speed': 6, 'eye.x': 0, 'eye.z': 0 }, lookTarget: new Vector3(), lookWeight: 0,
-    setMotion: (...values) => { motions.push(values); } });
+    setMotion: (yaw: number, speed: number, turn?: number) => { motions.push([yaw, speed, turn ?? 1]); } });
   const frame = legacyDouble<ThinkCtx>({ dt: .1, t: 0, player: new Vector3(1, 2, 3) });
   binding.think?.(actor, frame); expect(actor.state).toBe('flee'); expect(actor.lookWeight).toBe(.4);
   expect(motions[0]?.[0]).toBeCloseTo(Math.atan2(3, 4), 1); expect(motions[0]?.slice(1)).toEqual([6, 1.8]);
