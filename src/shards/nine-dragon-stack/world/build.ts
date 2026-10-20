@@ -40,8 +40,6 @@ import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, umbrellaWalker } from '../models/crowd';
 import { loadLayoutBake, prepareLayout, restoreLayout } from './layoutBake';
 import { loadCastLods, loadSignAtlas, loadSpill } from './casts';
-import declarations from '../data/declarations.generated.json' with { type: 'json' };
-import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
 
 import { addKitMeshes } from '../runtime/kit/kitMeshes';
 
@@ -102,7 +100,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const layoutReady = loadLayoutBake();
   // every code-built model is a row of the world-scene catalogue (generators/worldScenes.ts), placed on the shared context
   const catalogueRows = parseWorldSceneModels(await product.json<unknown>('models/world-scenes.json')), keys = new Map(catalogueRows.models.map(row => [row.id, row.key]));
-  const models = { ctx: sharedModelContext(opts.sky, { renderer }), model: defineWorldSceneCatalogue(catalogueRows).model };
+  const models = { ctx: sharedModelContext(opts.sky, { renderer }), ...defineWorldSceneCatalogue(catalogueRows) };
   progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
@@ -267,11 +265,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // the sign atlas's lightboxes, lights and beacons: the 'nine-neon' look (data/lookGraphs.json), fogged by the silk
   const neon = lentLook('nine-neon');
   nd.look.neon = { mat: neon, atlas };
-  const movers = (key: string, programs: readonly unknown[], id: string): RunningMover[] => placeMovers(models.model(key), programs, { ctx: models.ctx, parent: root, id, name: 'movers' });
-  const drones = movers('drone', declarations.clientChannels.slice(2), 'nds-drones');
+  const drones = models.project('nds-drones', models.ctx, root);
   // a drone carries its navigation lights (red, white, cyan): neon quads in the sign atlas
   for (const { body } of drones) body.add(new Mesh(atlas.geometry('drone'), neon));
-  const running = [...movers('monorailTrain', declarations.clientChannels.slice(0, 1), 'nds-train'), ...movers('cableGondola', declarations.clientChannels.slice(1, 2), 'nds-gondola'), ...drones];
+  const running = [...models.project('nds-train', models.ctx, root), ...models.project('nds-gondola', models.ctx, root), ...drones];
   await slice();
   const signsMesh = named(new Mesh(signs.geometry('world'), neon), 'signs');
   root.add(signsMesh);

@@ -1,6 +1,7 @@
 import { BufferGeometry, type Material, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, Sphere, Vector3 } from 'three';
 import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
-import { placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
+import { place, placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
+import { createClientChannels } from '../plugin/channels';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { SHADOW_LAYER } from '@wildshard/engine/core/shadowLayer';
 import { shadowProxyMaterial } from '@wildshard/engine/models/weld';
@@ -40,6 +41,7 @@ interface Selection {
   readonly choice: WorldSceneModels['models'][number]['choices'][number];
   readonly quality?: { readonly tier: 'phone' | 'desktop'; readonly overrides: Readonly<Partial<Record<`${string}.${string}`, number | boolean>>> } | undefined;
 }
+interface ProjectedCopy { readonly body: Object3D; readonly advance: (time: number) => void }
 const state = (ctx: ModelContext, product: string): State => ctx.once(`world-scenes/models/${product}`, () => ({}));
 type Draw = WorldSceneModels['models'][number]['choices'][number]['draws'][number];
 const tierNumber = (value: NonNullable<Draw['until']>, source: Sources | undefined): number => typeof value === 'number' ? value
@@ -166,11 +168,13 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
   try { return await pending; } finally { if (current.pending === pending) delete current.pending; }
 }
 
-/** Client-only, cold-loadable model catalogue. Metadata, choices, draws and site facts are rows. */
+/** Client-only, cold-loadable model catalogue. Metadata, choices, draws and site facts are rows.
+ * Decorative projection uses admitted channel rows and preserves each copy's initial pose and native lifetime. */
 export function defineWorldSceneCatalogue(input: unknown): {
   readonly model: (key: string) => ModelDef<Record<string, unknown>>;
   readonly site: (key: string, choice: string, ctx: ModelContext, registry: WorldRegistry | null) => ModelSite;
   readonly material: (id: string, ctx: ModelContext) => Material;
+  readonly project: (id: string, ctx: ModelContext, parent: Object3D) => ProjectedCopy[];
 } {
   const rows = parseWorldSceneModels(input), definitions = new Map<string, ModelDef<Record<string, unknown>>>();
   for (const row of rows.models) {
@@ -245,6 +249,29 @@ export function defineWorldSceneCatalogue(input: unknown): {
   }
   const model = (key: string): ModelDef<Record<string, unknown>> => { const found = definitions.get(key); if (found === undefined) throw new Error(`Missing scene model: ${key}`); return found; };
   return { model, material: (id, ctx) => { const material = state(ctx, rows.product).value?.materials.get(id); if (material === undefined) throw new Error(`Missing scene model material: ${id}`); return material; },
+    project: (id, ctx, parent) => {
+      const row = rows.projections?.find(entry => entry.id === id);
+      if (row === undefined) throw new Error('Missing admitted model projection');
+      const observation = { time: 0, delta: 0, values: [] as readonly number[] };
+      const views = row.programs.map(program => { const view = createClientChannels(program); view.evaluate(observation); return view; });
+      const pose = (frame: ReturnType<typeof createClientChannels>['frame']) => {
+        const { x, y, z, yaw } = frame;
+        if (x === undefined || y === undefined || z === undefined) throw new Error('Missing declared decorative position');
+        return { x, y, z, ...(yaw === undefined ? {} : { yaw }) };
+      };
+      const placed = place(model(row.key), views.map(view => pose(view.frame)), { ctx, draw: 'single', parent, piece: { id: row.id } });
+      const copies = views.length === 1 ? [placed.object] : [...placed.object.children];
+      placed.object.name = row.name;
+      return views.map((view, index) => {
+        const body = copies[index]; if (body === undefined) throw new Error('Missing declared decorative copy');
+        body.name = row.name;
+        return { body, advance: time => {
+          observation.time = time; view.evaluate(observation); const { x, y, z, yaw } = view.frame;
+          if (x === undefined || y === undefined || z === undefined) throw new Error('Missing declared decorative position');
+          body.position.set(x, y, z); if (yaw !== undefined) body.rotation.y = yaw;
+        } };
+      });
+    },
     site: (key, id, ctx, registry) => {
       const choice = rows.models.find(row => row.key === key)?.choices.find(row => row.id === id), facts = choice?.site;
       if (choice === undefined || facts === undefined) throw new Error(`Missing authored scene site: ${key}/${id}`);

@@ -1,3 +1,4 @@
+import { NINE_CLIENT_CHANNELS } from './clientMotion';
 import { addWindowNodes, windowStep } from './facadeWindowRecipe';
 import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_BLOBS } from './signAtlasSources';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
@@ -99,7 +100,11 @@ models.push(
   one('cableGondola', 'cable-gondola', 'Cable gondola', 'props', [draw('main', 'mover:gondola', 'kit')]),
   one('drone', 'drone', 'Surveillance drone', 'props', [draw('main', 'mover:drone', 'kit')]),
 );
-const catalogue = parseWorldSceneModels({ product: 'nine-dragon-stack', models });
+const catalogue = parseWorldSceneModels({ product: 'nine-dragon-stack', models, projections: [
+  { id: 'nds-train', key: 'monorailTrain', name: 'movers', programs: NINE_CLIENT_CHANNELS.slice(0, 1) },
+  { id: 'nds-gondola', key: 'cableGondola', name: 'movers', programs: NINE_CLIENT_CHANNELS.slice(1, 2) },
+  { id: 'nds-drones', key: 'drone', name: 'movers', programs: NINE_CLIENT_CHANNELS.slice(2) },
+] });
 
 // The world's banyan crown (its cards drawn twice: colour, then the depth pass) and the Well's mist.
 /** a dressing draw: its node, source model, material slot, draw order, mesh name, whether it is frustum-culled and its pose */
