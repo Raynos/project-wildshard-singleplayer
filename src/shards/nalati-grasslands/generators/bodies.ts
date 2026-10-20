@@ -10,9 +10,6 @@ import { buildEagle } from './eagleBody';
 import { buildKing } from './goldenKingBody';
 import { buildBalbal } from './balbalBody';
 import { bodySpecies } from './speciesRows';
-import { KOKBORI_SPECIES } from '../species/kokbori';
-import { LEOPARD_SPECIES } from '../species/leopard';
-import { EAGLE_SPECIES } from '../species/eagle';
 import { BALBAL_SPECIES } from '../species/balbal';
 import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from '../species/bodyKey';
 
@@ -40,14 +37,14 @@ export function bodyVariants(): { family: BodyFamily; variant: VariantDef }[] {
   horse.push(...bodySpecies('argymaq').variants);
   // combat/elites.ts registerGhostHorse: Qara Batyr on the black horse when the ghost riders' own row is absent
   horse.push({ ...black, id: 'captain', traits: { ...black.traits, mane: 1.8 } });
-  const canid = [...WOLF_SPECIES.variants, ...(WOLF_SPECIES.spawnOnly ?? []), ...SHEEPDOG_VARIANTS, ...KOKBORI_SPECIES.variants];
+  const canid = [...WOLF_SPECIES.variants, ...(WOLF_SPECIES.spawnOnly ?? []), ...SHEEPDOG_VARIANTS, ...bodySpecies('kokbori').variants];
   // the elites' and statues' own rigs after the horses and canids (the binary keeps its earlier bodies' bytes first)
   const own = (family: BodyFamily, species: AnimalSpeciesRow): { family: BodyFamily; variant: VariantDef }[] => [...species.variants, ...(species.spawnOnly ?? [])].map((variant) => ({ family, variant }));
   // The unpainted statue hull has no trait inputs. A neutral geometry specimen
   // supplies the loft's variant shape without importing gameplay or page code.
   const statue: VariantDef = { id: 'body', label: '', weight: 0, rarity: 'common', scale: [1, 1] };
   return [...horse.map((variant) => ({ family: 'horse' as const, variant })), ...canid.map((variant) => ({ family: 'canid' as const, variant })),
-    ...own('leopard', LEOPARD_SPECIES), ...own('eagle', EAGLE_SPECIES), { family: 'goldenKing', variant: statue }, ...own('balbal', BALBAL_SPECIES)];
+    ...own('leopard', bodySpecies('leopard')), ...own('eagle', bodySpecies('eagle')), { family: 'goldenKing', variant: statue }, ...own('balbal', BALBAL_SPECIES)];
 }
 
 const BUILD: Readonly<Record<BodyFamily, (v: VariantDef, rng: Rng) => AnimalSpecies>> = {

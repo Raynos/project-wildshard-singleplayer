@@ -1,4 +1,5 @@
 import { thinkCrowdGuard } from '../ambient/crowdPage';
+import { eliteAct, eliteDamageMul, eliteThink } from '../quest/elitePage';
 import { DirectedSpecies } from '../population/directedSpecies';
 import { groupSpecies } from '../population/groupSpecies';
 import { numericCreaturePose } from '../plugin/channelPrograms';
@@ -43,7 +44,7 @@ export class SpeciesLookBook {
       if (!this.poses.has(row.postPose.alive) || row.postPose.dead !== undefined && !this.poses.has(row.postPose.dead)) throw new Error('Missing species pose programme');
       if (row.postPose.envelopes !== undefined) this.envelopes.set(row.postPose.alive, row.postPose.envelopes);
     }
-    this.rows=book.rows.map(row=>({...row.metadata,...(row.group === undefined ? {} : groupSpecies(row.group)),...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding),...(row.guard === true ? { think: thinkCrowdGuard } : {})}));
+    this.rows=book.rows.map(row=>({...row.metadata,...(row.group === undefined ? {} : groupSpecies(row.group)),...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding),...(row.guard === true ? { think: thinkCrowdGuard } : {}),...(row.elite === true ? { think: eliteThink, act: eliteAct } : {})}));
     const base = this.bodies.looks({ poses: {}, rows: book.rows.map(row => ({ id: row.id, species: row.metadata.id, kind: row.metadata.kind,
       family: row.family, variants: Object.fromEntries(Object.entries(row.variants).map(([id, variant]) => [id, variant.body])),
       skeleton: row.rigContract.skeleton, sockets: row.rigContract.sockets, clips: row.rigContract.clips })) });
@@ -58,7 +59,7 @@ export class SpeciesLookBook {
     });
     if (row.postPose !== undefined) { const pose = row.postPose; look.postPose = context => { this.pose(context.alive ? pose.alive : pose.dead ?? pose.alive, context); }; }
     if(row.rig!==undefined)look.rig=row.rig;if(row.pose!==undefined)look.pose=row.pose;if(row.gait!==undefined)look.gait=row.gait;
-    if(row.eyeGlow!==undefined)look.eyeGlow=row.eyeGlow;if(row.eyeGlowIntensity!==undefined)look.eyeGlowIntensity=row.eyeGlowIntensity;return look;});
+    if(row.elite===true)look.damageMul=eliteDamageMul;if(row.eyeGlow!==undefined)look.eyeGlow=row.eyeGlow;if(row.eyeGlowIntensity!==undefined)look.eyeGlowIntensity=row.eyeGlowIntensity;return look;});
   }
   /** Apply admitted numeric joints and optional mount envelopes over a borrowed rig. */
   pose(id: string, context: AnimalRigContext): void {

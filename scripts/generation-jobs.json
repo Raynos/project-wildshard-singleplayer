@@ -278,8 +278,6 @@
         "src/shards/nalati-grasslands/generators/speciesRows.ts",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/data/speciesLooks.json",
-        "src/shards/nalati-grasslands/species/kokbori.ts",
-        "src/shards/nalati-grasslands/species/leopard.ts",
         "src/shards/nalati-grasslands/species/presentation.ts",
         "src/shards/nalati-grasslands/species/definitions.ts",
         "src/shards/nalati-grasslands/species/balbal.ts",

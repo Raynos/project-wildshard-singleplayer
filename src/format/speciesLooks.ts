@@ -36,6 +36,8 @@ export const SpeciesLookBookSchema=v.pipe(v.unknown(),v.check(isJsonData),v.obje
     eyeGlow:v.optional(rgb),eyeGlowIntensity:v.optional(number),
     variants:v.record(text,v.object({body:text,tint:v.optional(v.record(text,rgb)),traits:v.optional(v.record(text,v.union([number,v.boolean()]))) })),
     group: v.optional(SpeciesGroupSchema), directed: v.optional(DirectedSpeciesSchema), guard: v.optional(v.literal(true)),
+    /** a named elite: its think / act / damage are the elite page's (game/quest/elitePage) */
+    elite: v.optional(v.literal(true)),
     postPose: v.optional(v.strictObject({ alive: text, dead: v.exactOptional(text), envelopes: v.exactOptional(RidingPresentationSchema) })),
     material:v.object({rim:number,bands:number}),
   })),v.maxLength(256)),

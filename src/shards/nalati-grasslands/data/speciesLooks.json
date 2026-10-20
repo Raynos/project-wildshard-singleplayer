@@ -1204,7 +1204,11 @@
     "material": {
       "rim": 0.8,
       "bands": 0.85
-    }
+    },
+    "postPose": {
+      "alive": "leopard"
+    },
+    "elite": true
   },
   {
     "metadata": {
@@ -1257,7 +1261,8 @@
     "material": {
       "rim": 0.8,
       "bands": 0.85
-    }
+    },
+    "elite": true
   },
   {
     "metadata": {
@@ -1554,7 +1559,8 @@
     "postPose": {
       "alive": "canid",
       "dead": "canidDead"
-    }
+    },
+    "elite": true
   },
   {
     "metadata": {
