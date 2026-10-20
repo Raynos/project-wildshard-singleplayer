@@ -1,7 +1,7 @@
 // Original shipping decision captured at cc3d80266bde50259f7676b0e72e98b80b7229e0:src/shards/driftwood-isle/species/monkey.ts; native perch/vertical/contact recipes stay shipping.
 import type { Animal } from '../../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
-import { monkeyAttackRandom } from '../../../src/shards/driftwood-isle/species/monkey';
+import { monkeyAttackRandom } from '../../../src/shards/driftwood-isle-legacy/species/monkey';
 import { pickPerch, setPerch, type MonkeyMem, ST_PERCH, ST_GROUND_IDLE, ST_ATTACK, ST_DROP, ST_GROUND, ST_RETURN, ST_CLIMB, THROW_R, THROW_DUR, BITE_R, BITE_DUR, UNDER_R, UNDER_T, RUN, HOLD_R } from './monkeyPolicy';
 
 export function legacyMonkeyDecision(a: Animal, c: ThinkCtx): void {

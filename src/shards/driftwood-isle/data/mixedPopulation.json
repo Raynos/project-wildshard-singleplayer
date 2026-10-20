@@ -65,6 +65,7 @@
   "poses": [],
   "perch": {
     "kind": "monkey",
+    "attackStream": "ai",
     "strike": "strike.monkey.bite",
     "sound": "monkey_shriek",
     "sourceHeight": 0.95,

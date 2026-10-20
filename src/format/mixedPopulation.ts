@@ -13,7 +13,7 @@ export const MixedPopulationSchema = v.strictObject({
   volley: v.strictObject({ owner: key, strike: key, tags: v.array(v.custom<`${string}.${string}`>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))) }),
   poses: v.array(v.strictObject({ kind: key, clips: v.array(NumericPoseSchema),
     lift: v.exactOptional(v.tuple([finite, finite, finite, finite])) })),
-  perch: v.strictObject({ kind: key, strike: key, sound: key, sourceHeight: finite, targetHeight: finite,
+  perch: v.strictObject({ kind: key, strike: key, sound: key, sourceHeight: finite, targetHeight: finite, attackStream: v.exactOptional(key),
     actions: v.strictObject({ stateKey: key, states: v.array(key), actions: v.array(v.strictObject({ state: finite, phase: finite, effect: key,
       once: v.strictObject({ key, value: finite, test: v.picklist(['falsy', 'not-value']) }),
       when: v.exactOptional(v.strictObject({ key, test: v.picklist(['truthy', 'falsy']) })) })) }),

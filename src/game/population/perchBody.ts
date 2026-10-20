@@ -8,7 +8,11 @@ import { numericCreaturePose } from '../plugin/channelPrograms';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import { createMemoryActionBrain, type SpeciesDecision } from '../plugin/brain';
+import { admitSpeciesProgram, createMemoryActionBrain, type SpeciesDecision, type SpeciesDecisionAuthority } from '../plugin/brain';
+import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
+import type { SpeciesRow } from '@wildshard/engine/ai/species';
+import type { ShardContext } from '../plugin/context';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { projectedSite } from './projectedSites';
 import { ReturnProgram } from './returnProgram';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -91,5 +95,18 @@ export class PerchBodyBinding {
     this.guest = owner instanceof Scope ? ReturnProgram.page(rows.program, owner) : ReturnProgram.native(owner, rows.program);
     const poses = rows.clips.map(numericCreaturePose);
     this.animate = c => { stepPerchRoot(c, rows.perch.root); for (const pose of poses) pose(c); };
+  }
+  /** Bind admitted species through the actual page RNG owner. Stream creation
+   * remains lazy until the policy draws its cooldown; no author hook enters. */
+  species(ctx: ShardContext, program: SpeciesProgramData, decisions?: SpeciesDecisionAuthority): SpeciesRow[] {
+    const brains = admitSpeciesProgram(program), row = this.row, stream = row.attackStream;
+    const bite = program.strikes.find(strike => strike.id === row.strike);
+    if (bite === undefined || stream === undefined) throw new Error('Perch species requires its strike and cooldown stream');
+    const strike = strikeFromData(bite), random = { range: (min: number, max: number): number => ctx.app.rng.stream(stream).range(min, max) };
+    return program.species.map(species => ({ ...species, ...(species.kind === row.kind
+      ? brains.bind(species.kind, (actor, decision, first) => {
+        if (first === undefined) throw new Error('Perch species requires its first page observation');
+        return bindPerchBody(actor, first, decision, strike, this.guest, row, random);
+      }) : brains.bind(species.kind, undefined, undefined, undefined, decisions)) }));
   }
 }
