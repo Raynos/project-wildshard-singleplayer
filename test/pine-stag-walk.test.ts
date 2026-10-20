@@ -1,7 +1,17 @@
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { SkinnedMesh, Scene, Vector3 } from 'three';
-import { Puffs } from '../src/shards/pine-hollow/runtime/combat/fxKit';
-import { StagLead } from '../src/shards/pine-hollow/quest/stagLead';
+import { installChapterLead } from '../src/game/quest/chapterDirector';
+import { publishBoundChapter } from '../src/game/quest/chapterBindings';
+import { publishBoundQuest } from '../src/game/quest/boundState';
+import { Scope } from '../src/engine/app/scope';
+import { Flags } from '../src/engine/world/interact/flags';
+import { QuestState } from '../src/engine/quest/core';
+import { legacyDouble } from './fake/FakeGame';
+import type { Animal } from '../src/engine/entities/AnimalView';
+import type { AnimalManager } from '../src/engine/entities/AnimalManager';
+import type { ShardContext } from '../src/game/plugin/context';
+import type { QuestChapter } from '../src/game/quest/chapter';
+import { parseQuestLeadPage } from '../src/format/questSteps';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { StagWalk as OriginalWalk } from '../src/shards/pine-hollow-legacy/quest/stagWalk';
 import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
@@ -9,25 +19,42 @@ import { parseQuestLeadRows } from '../src/shards/pine-hollow/generators/section
 import leadJson from '../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
 
 const LEAD = parseQuestLeadRows(leadJson);
+const scopes: Scope[] = [];
+afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); });
 
 function fixture() {
   const effects: string[] = [], scene = new Scene();
-  const actor: ReturnType<ConstructorParameters<typeof StagLead>[1]['spawn']> = {
+  const actor = legacyDouble<Animal>({
     position: new Vector3(), yaw: 0, herd: 0, mesh: new SkinnedMesh(), alive: true, hidden: false, lookTarget: new Vector3(), lookWeight: 0,
     setDrawLod: () => { effects.push('lod'); }, update: () => { effects.push('update'); },
     sampleTerrain: () => { effects.push('terrain'); }, setMotion: (_yaw, speed) => { effects.push(speed > 0 ? 'trot' : 'stop'); },
     place: (x, z, yaw) => { effects.push('place'); actor.position.set(x, 0, z); actor.yaw = yaw; },
-  };
-  const animals: ConstructorParameters<typeof StagLead>[1] = { animals: [],
+  });
+  const animals = legacyDouble<AnimalManager>({ animals: [],
     spawn: (_kind, x, z, yaw) => { effects.push('spawn'); actor.position.set(x, 0, z); actor.yaw = yaw; animals.animals.push(actor); scene.add(actor.mesh); return actor; },
     onSound: () => { effects.push('call'); },
-  };
-  vi.spyOn(Puffs.prototype, 'burst').mockImplementation((_at, from) => { effects.push(from === 2.6 ? 'appear-puff' : 'fade-puff'); });
-  const brain = ReturnProgram.page(program);
-  const lead = new StagLead(scene, animals, { ...LEAD, program }, { project: (signal, input) => brain.project(signal, input) });
-  lead.onAppear = first => { effects.push(first ? 'first' : 'appear'); };
-  lead.onDone = () => { effects.push('done'); };
-  return { lead, actor, animals, effects };
+  });
+  const brain = ReturnProgram.page(program), scope = new Scope('guide-test'), flags = new Flags('guide-test', false);
+  scopes.push(scope);
+  const quest = new QuestState({ id: 'marsh-guide', title: 'Guide', completeFlag: 'guide:finished',
+    steps: [{ id: 'trail', objective: 'Follow', done: { all: ['guide:followed'] } }] }, flags, undefined, scope);
+  publishBoundQuest(scope, quest);
+  publishBoundChapter(scope, quest.def.id, legacyDouble<QuestChapter>({ quest, project: (signal, input) => brain.project(signal, input) }));
+  const player = new Vector3(); let night = 1;
+  const ctx = { scope } as ShardContext;
+  Object.defineProperty(ctx, 'game', { value: { runtime: { world: { player: { position: player }, sky: { dayNight: { get night() { return night; } } } },
+    play: { animals, hud: { toast: (text: string) => { effects.push(text); } } } } } });
+  const rows = parseQuestLeadPage({ quest: quest.def.id, step: 'trail', signal: 'lead', nightAbove: 0.5,
+    actor: { kind: 'marsh-ibex', variant: 'pale' }, path: LEAD.path, motion: { faceTurn: 3, trotSpeed: 4.5, trotTurn: 4, stopTurn: 1 }, sound: 'ibex.call',
+    effects: { appear: [{ kind: 'toast', text: 'first' }], complete: [{ kind: 'flag', flag: 'guide:followed' }, { kind: 'toast', text: 'done' }] },
+    puffs: { color: [1, 1, 1], count: 1, height: 1, appear: [1, 2, 1, 1], fade: [2, 3, 1, 1] } });
+  const native = installChapterLead(ctx, { leadPage: rows });
+  const lead = { get active() { return native.active; }, get position() { return native.position; }, update: (dt: number, time: number, on: boolean, point: Vector3) => {
+    player.copy(point); night = on ? 1 : 0; native.update(dt, time);
+    for (const cue of native.takePuffs()) effects.push(cue.kind === 'appear' ? 'appear-puff' : 'fade-puff');
+  } };
+  return { lead, actor, animals, effects, scope };
+
 }
 
 test('page decisions precede continuous actor integration and retain ordered fade effects', () => {
@@ -40,13 +67,13 @@ test('page decisions precede continuous actor integration and retain ordered fad
   lead.update(0.1, 1.1, true, player);
   expect(effects).toContain('trot');
   effects.length = 0; lead.update(1.4, 2.5, true, player);
-  expect(effects.indexOf('fade-puff')).toBeLessThan(effects.indexOf('update'));
+  expect(effects.indexOf('call')).toBeLessThan(effects.indexOf('update'));
   expect(effects).not.toContain('trot');
-  expect(effects.indexOf('fade-puff')).toBeLessThan(effects.indexOf('call'));
+  expect(effects).toContain('fade-puff');
   expect(actor.mesh.visible).toBe(false);
   effects.length = 0; lead.update(1.2, 3.7, true, player);
   expect(effects.indexOf('place')).toBeLessThan(effects.indexOf('update'));
-  expect(effects.indexOf('place')).toBeLessThan(effects.indexOf('appear'));
+  expect(effects.indexOf('place')).toBeLessThan(effects.indexOf('appear-puff'));
   effects.length = 0; lead.update(0.1, 3.8, false, player);
   expect(lead.active).toBe(false); expect(actor.alive).toBe(false); expect(actor.hidden).toBe(true);
   expect(effects).not.toContain('update'); expect(effects).not.toContain('done'); expect(effects).not.toContain('call');

@@ -1,6 +1,6 @@
 import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { BuildingLifeLookSchema } from '@wildshard/format/buildings';
-import { QuestStepRowsSchema } from '@wildshard/format/questSteps';
+import { QuestStepRowsSchema, QuestSpawnPageSchema, QuestLeadPageSchema } from '@wildshard/format/questSteps';
 import { NpcDialogueRowSchema } from '@wildshard/format/npcs';
 import { QuestGraphSchema } from '@wildshard/format/questGraph';
 import { InteractionRowsSchema } from '@wildshard/format/questInteractions';
@@ -70,7 +70,7 @@ const table = v.strictObject({ external: questNames, rows: v.pipe(v.array(v.vari
   v.strictObject({ ...questBase, kind: v.literal('pickup'), look: questText, label: questText, color: v.exactOptional(questText), item: v.exactOptional(questText), touch: v.exactOptional(v.boolean()) }),
   v.strictObject({ ...questBase, kind: v.literal('bench'), label: questText }),
 ])), v.maxLength(256)) });
-export const PineQuestRowsSchema = v.strictObject({ lead: v.strictObject({ ...QuestLeadRowsSchema.entries, program: v.unknown() }), steps: QuestStepRowsSchema, table, graph: QuestGraphSchema, interactions: InteractionRowsSchema,
+export const PineQuestRowsSchema = v.strictObject({ lead: v.strictObject({ ...QuestLeadRowsSchema.entries, program: v.unknown() }), leadPage: QuestLeadPageSchema, steps: QuestStepRowsSchema, spawns: QuestSpawnPageSchema, table, graph: QuestGraphSchema, interactions: InteractionRowsSchema,
   readings: v.strictObject({ speakers: v.record(questText, NpcDialogueRowSchema), continuation: v.strictObject({ bare: questText, wrapped: questNames }) }),
   policy: v.strictObject({ resinCount: v.pipe(questFinite, v.integer(), v.minValue(0), v.maxValue(64)), resinFlag: questText, tokenFlag: questText, tokenNames: questNames,
     readingDelay: v.pipe(finite, v.minValue(0)), lanternIds: v.strictObject({ pond: questText, ridge: questText, den: questText }) }),

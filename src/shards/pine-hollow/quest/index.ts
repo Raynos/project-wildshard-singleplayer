@@ -1,8 +1,7 @@
-import { readChapterDirector } from '@wildshard/game/quest/chapterDirector';
+import { readChapterDirector, installQuestSpawnDirector, installChapterLead } from '@wildshard/game/quest/chapterDirector';
 import questScenes from '../data/timberScenes.generated.json' with { type: 'json' };
 import type { HeldLoadout } from '@wildshard/game/loadout/held';
 import type { installCollectionCompendium } from '@wildshard/game/models/collectionWall';
-import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { commitQuestEffects, readQuestServiceActions } from '@wildshard/game/quest/effects';
 import { installChapterStory, installQuestFlags, installQuestInteractables } from '@wildshard/game/quest/chapter';
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
@@ -66,8 +65,7 @@ import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBenc
 import { Exchange } from '@wildshard/game/loot/exchange';
 import './pinehollow.css';
 import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
-import { StagLead } from './stagLead';
-import { NightThralls } from './nightThralls';
+import { Puffs } from '../runtime/combat/fxKit';
 import { BeaverPool } from '../world/beaverPool';
 
 const lodgeSave = saves.define({ key: 'lodge', scope: 'shard', version: 1, schema: jsonSchema, initial: () => null });
@@ -109,7 +107,6 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
   const trades = h.ctx.product.section<CustomSections['custom/tradeCatalogue']>('custom/tradeCatalogue');
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/contracts.json'))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
-  const consequenceRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/consequences.json'))));
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/mill-door.json'))));
   const transactionRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/transactions.json'))));
   await Promise.all([(deps.preload ?? (() => PINE_FIGURES.prepare()))(), loadCodeParts()]); // the people, and the stand-ins' and rides' baked parts
@@ -185,8 +182,7 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
   // ── the miller's errand: the wheel stands still until the race is clear ──
   const syncWheel = (): void => { if (h.cabins) h.cabins.life.wheelSpeed = flags.has('errand:done') ? 0.55 : 0; };
   syncWheel();
-  const consequences = bindQuestPageInteractions(consequenceRows, { flags, toast: text => { hud.toast(text); },
-    owners: new Map<string, unknown>([['flags', flags], ['inventory', inventory], ['music', h.music], ['native', { syncWheel }]]) });
+  ctx.scope.onDispose(flags.onChange(f => { if (f === 'errand:done') syncWheel(); }));
   // the mill's door (E322 F-M7): a cabin door like the others (Cabin.ts swings it, its kinematic piece follows the pivot),
   // barred until the race is clear — pressed before `errand:done` it only rattles. The cabin door's own piece lets go of the
   // player within 1.4 m of its hinge (main.ts: a swing never pins anyone), so while barred a second piece holds the shut
@@ -207,15 +203,8 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
   })();
   if (millDoor) bindQuestPageInteractions(doorRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['door', millDoor], ['sfx', kitSfx]]) });
-  const night = (): number => sky.dayNight?.night ?? 0;
-  const waveRows = await readSpawnScript(ctx.product, 'pine.night');
-  if (ctx.scope.disposed) throw new Error('Pine left during night director admission');
-  const thralls = new NightThralls({
-    animals, scene: game.scene, night,
-    errand: () => flags.has('errand:asked') && !flags.has('errand:done'),
-    onErrandDone: consequences.action('errand.complete'),
-    shot: (name, at) => { shot(name, at); },
-  }, waveRows);
+  const thralls = await installQuestSpawnDirector(ctx, native), puffRows = thralls.puffs;
+  const thrallPuffs = new Puffs(game.scene, new THREE.Color(...puffRows.color), puffRows.count);
 
   // ── the lodge's contract board ──
   const lodge = bindRuntimeState(ctx, source, 'pine.lodge', () => JSON.stringify(lodgeSave.read(h.chunkId)), h.chunkId);
@@ -352,9 +341,8 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
   // ── the quest ──
 
   // ── the stag ──
-  const stag = new StagLead(game.scene, animals, native.lead, presentation);
-  stag.onAppear = (first) => { if (first) serviceActions.run('stag.appear'); };
-  stag.onDone = () => { commitQuestEffects(ctx, story.quest.id, steps.signal({ kind: 'follow', target: 'stag' }, { flags: flags.all })); serviceActions.run('stag.complete'); };
+  const stag = installChapterLead(ctx, native), stagPuffRows = stag.puffs;
+  const stagPuffs = new Puffs(game.scene, new THREE.Color(...stagPuffRows.color), stagPuffRows.count);
 
   // ── the map (C9's hook): the places with discovery, the live quest markers ──
   const liveMarkers = (): { label: string; x: number; z: number; short: string }[] => quest.markers().map((m) => ({ label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z }));
@@ -398,8 +386,15 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
     }
     clock.update(dt);
     if (!perfLap.active) { // E350 F-J1: the PERF LAP's teleports call no stag and no thralls
-      stag.update(dt, t, quest.current?.id === 'stag' && night() > 0.5, pp);
-      thralls.update(dt, t, pp);
+      stagPuffs.update(dt, t); stag.update(dt, t);
+      const leadPuffs = stag.takePuffs();
+      for (let i = 0; i < 64; i++) { const at = leadPuffs[i]; if (at === undefined) break;
+        stagPuffs.burst(_v.set(at.x, at.y + stagPuffRows.height, at.z), ...stagPuffRows[at.kind]); }
+      thrallPuffs.update(dt, t);
+      thralls.update(dt, pp);
+      const puffs = thralls.takePuffs();
+      for (let i = 0; i < 64; i++) { const at = puffs[i]; if (at === undefined) break;
+        thrallPuffs.burst(_v.set(at.x, at.y + puffRows.height, at.z), ...puffRows.burst); }
     }
     questChip.update(t, player);
     if (t - slowT > 0.5) {
@@ -437,7 +432,7 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
     dawn: runDawn, night: (): void => { clock.run('debug.night'); },
     zip, cables, canoe, movers: motion, lanterns: lanternPrompts, hollow: () => hollow,
     openBoard: (): void => { boardUi().open(); }, openTrade: (): void => { trade().open(); },
-    callThralls: (): void => { thralls.force(player.position); },
+    callThralls: (): void => { thralls.force(); },
     give: (id: ItemId, n = 1): void => { inventory.add(id, n); },
     fill: (i: number): void => { const c = board.slots[i]; if (c) { c.have = c.need; persistBoard(); } },
     test: (c: { all?: string[] }): boolean => test(flags, c),
@@ -449,5 +444,5 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
     objective.root.remove(); clock.caption.root.remove();
     ui.disposeLegacy(() => { dialogue().dispose(); boardUi().root.remove(); trade().root.remove(); chip().root.remove(); });
   });
-  return { useSfx: (s) => { sfx = s; }, stagAt: () => stag.position };
+  return { useSfx: (s) => { sfx = s; thralls.useSfx(s); }, stagAt: () => stag.position };
 }

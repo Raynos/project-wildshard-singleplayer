@@ -92,3 +92,40 @@ export function parseQuestServiceActions(input: unknown): v.InferOutput<typeof Q
   if (new Set(rows.actions.map(row => row.id)).size !== rows.actions.length) throw new Error('Quest service action ids must be unique');
   return rows;
 }
+
+/** Quest-bound observations and publications around an existing spawn guest.
+ * The AS program owns encounter decisions; these rows only connect owners. */
+const pageEffects = v.pipe(v.array(v.variant('kind', [toast, sting,
+  v.strictObject({ kind: v.literal('flag'), flag: name, value: v.exactOptional(v.boolean()) })])), v.maxLength(32));
+/** A non-combat guide borrows an existing species model and an admitted
+ * chapter projection. Path, motion and effect identities are authored data. */
+export const QuestLeadPageSchema = v.strictObject({ quest: name, step: name, signal: name,
+  nightAbove: v.pipe(finite, v.minValue(0), v.maxValue(1)), actor: v.strictObject({ kind: name, variant: name }),
+  path: v.pipe(v.array(v.tuple([finite, finite])), v.minLength(1), v.maxLength(256)),
+  motion: v.strictObject({ faceTurn: finite, trotSpeed: finite, trotTurn: finite, stopTurn: finite }),
+  sound: name, effects: v.strictObject({ appear: pageEffects, complete: pageEffects }),
+  puffs: v.strictObject({ color: v.tuple([finite, finite, finite]), count: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(16)),
+    height: finite, appear: v.tuple([finite, finite, finite, finite]), fade: v.tuple([finite, finite, finite, finite]) }),
+});
+export type QuestLeadPageRows = v.InferOutput<typeof QuestLeadPageSchema>;
+export function parseQuestLeadPage(input: unknown): QuestLeadPageRows { return v.parse(QuestLeadPageSchema, input); }
+
+export const QuestSpawnPageSchema = v.strictObject({ quest: name, script: name,
+  channel: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(64)),
+  limit: v.strictObject({ phone: v.pipe(finite, v.safeInteger(), v.minValue(0), v.maxValue(256)), desktop: v.pipe(finite, v.safeInteger(), v.minValue(0), v.maxValue(256)) }),
+  flags: v.pipe(v.array(v.strictObject({ flag: name, when: condition })), v.maxLength(64)),
+  complete: v.pipe(v.array(v.strictObject({ flag: name, when: condition,
+    effects: pageEffects })), v.maxLength(64)),
+  cues: v.pipe(v.array(v.variant('kind', [v.strictObject({ id: v.pipe(finite, v.safeInteger(), v.minValue(1)), kind: v.literal('sound'), name }),
+    v.strictObject({ id: v.pipe(finite, v.safeInteger(), v.minValue(1)), kind: v.literal('puff') })])), v.maxLength(64)),
+  puffs: v.strictObject({ color: v.tuple([finite, finite, finite]), count: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(16)),
+    height: finite, burst: v.tuple([finite, finite, finite, finite]) }),
+});
+export type QuestSpawnPageRows = v.InferOutput<typeof QuestSpawnPageSchema>;
+export function parseQuestSpawnPage(input: unknown): QuestSpawnPageRows {
+  const rows = v.parse(QuestSpawnPageSchema, input);
+  if (new Set(rows.cues.map(row => row.id)).size !== rows.cues.length || new Set(rows.flags.map(row => row.flag)).size !== rows.flags.length
+    || new Set(rows.complete.map(row => row.flag)).size !== rows.complete.length)
+    throw new Error('Duplicate quest spawn binding');
+  return rows;
+}

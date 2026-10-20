@@ -7,6 +7,14 @@ import { enteredCompletion } from '../complete/declared';
 import { boundQuestChapter } from './chapter';
 import { commitQuestEffects } from './effects';
 import { QuestRewardController } from '../plugin/quests';
+import { parseQuestSpawnPage, parseQuestLeadPage, QuestSpawnPageSchema, QuestLeadPageSchema, type QuestSpawnPageRows, type QuestLeadPageRows } from '@wildshard/format/questSteps';
+import * as v from 'valibot';
+import { readSpawnScript, SpawnScript } from '../population/spawnScript';
+import { boundQuestState } from './boundState';
+import { TIER } from '@wildshard/engine/core/tier';
+import { questSpawnObservations, questSpawnPublications } from './steps';
+import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 
 /** Client-only chapter presentation on the caller's existing update phase.
  * Rows select observations and ordered effects; concrete entered services supply
@@ -86,4 +94,112 @@ export async function readChapterDirector(ctx: ShardContext, file: string): Prom
     }
     clock.update(dt); reward?.update(dt, state.completed);
   } };
+}
+
+/** Client-only quest projection over the existing AS spawn director. It owns
+ * no decision clock or body policy, and accepts no shard callbacks. Puff cues
+ * remain plain points consumed by the existing view owner. */
+export async function installQuestSpawnDirector(ctx: ShardContext, input: unknown): Promise<{
+  readonly puffs: QuestSpawnPageRows['puffs'];
+  readonly count: number; force: () => void; useSfx: (bank: DeclaredSoundBank) => void;
+  update: (dt: number, player: Vector3) => void; takePuffs: () => readonly { readonly x: number; readonly y: number; readonly z: number }[];
+}> {
+  const rows = parseQuestSpawnPage(v.parse(v.object({ spawns: QuestSpawnPageSchema }), input).spawns), source = await readSpawnScript(ctx.product, rows.script);
+  if (ctx.scope.disposed) throw new Error('Quest left during spawn director admission');
+  if (rows.channel > source.channels.length || rows.cues.some(cue => cue.id > source.cues.length)
+    || [...rows.flags, ...rows.complete].some(row => !source.flags.includes(row.flag))) throw new Error('Unknown quest spawn observation or publication');
+  const flags = boundQuestState(ctx.scope, rows.quest).flags, world = ctx.game.runtime?.world, animals = ctx.game.runtime?.play?.animals;
+  if (world === undefined || world === null || animals === undefined) throw new Error('Quest spawn director requires its entered world');
+  const brain = SpawnScript.page(animals, source), observed: string[] = [];
+  let bank: DeclaredSoundBank | null = null, puffs: { readonly x: number; readonly y: number; readonly z: number }[] = [];
+  ctx.scope.onDispose(() => { puffs.length = 0; bank = null; });
+  return { puffs: rows.puffs, get count() { return brain.channel(rows.channel); }, force: () => { brain.force(); }, useSfx: value => {
+    if (rows.cues.some(cue => cue.kind === 'sound' && !value.acceptsShot(cue.name))) throw new Error('Unknown quest spawn sound');
+    bank = value;
+  },
+    takePuffs: () => { const out = puffs; puffs = []; return out; }, update: (dt, player) => {
+      if (ctx.scope.disposed) return;
+      questSpawnObservations(rows, flags.all, observed);
+      brain.advance(dt, player, world.sky.dayNight?.night ?? 0, rows.limit[TIER], observed);
+      commitQuestEffects(ctx, rows.quest, questSpawnPublications(rows, flags.all, rows.complete.filter(row => brain.hasFlag(row.flag)).map(row => row.flag)));
+      for (const event of brain.drainEffects()) {
+        if (event.kind !== 'cue') continue;
+        const cue = rows.cues.find(row => row.id === event.id);
+        if (cue?.kind === 'sound') bank?.shot(cue.name, { at: event.at });
+        else if (cue?.kind === 'puff') { if (puffs.length >= 64) throw new Error('Quest puff cue allowance'); puffs.push(event.at); }
+      }
+    } };
+}
+
+/** Client-only guide lifetime over the actual manager. The chapter's existing
+ * AS projection decides at 10 Hz; the native body integrates each frame. A
+ * guide is removed from combat, aim-assist and minimap lists immediately. */
+export function installChapterLead(ctx: ShardContext, input: unknown): {
+  readonly puffs: QuestLeadPageRows['puffs'];
+  readonly active: boolean; readonly position: Vector3 | null;
+  update: (dt: number, t: number) => void;
+  takePuffs: () => readonly { readonly kind: 'appear' | 'fade'; readonly x: number; readonly y: number; readonly z: number }[];
+} {
+  const rows = parseQuestLeadPage(v.parse(v.object({ leadPage: QuestLeadPageSchema }), input).leadPage), chapter = boundQuestChapter(ctx.scope, rows.quest);
+  const world = ctx.game.runtime?.world, animals = ctx.game.runtime?.play?.animals;
+  if (world === undefined || world === null || animals === undefined) throw new Error('Chapter guide requires its entered world');
+  if (!chapter.quest.def.steps.some(step => step.id === rows.step)) throw new Error('Unknown chapter guide step');
+  let actor: Animal | null = null, pending = 0;
+  const walk = { i: 0, mode: 0, elapsed: 0 }, observation = { i: 0, mode: 0, elapsed: 0, begin: 0, dt: 0, on: 0, playerX: 0, playerZ: 0, atX: 0, atZ: 0 };
+  let puffs: { readonly kind: 'appear' | 'fade'; readonly x: number; readonly y: number; readonly z: number }[] = [];
+  const puff = (kind: 'appear' | 'fade'): void => {
+    if (actor === null) return;
+    if (puffs.length >= 64) throw new Error('Chapter guide cue allowance');
+    puffs.push({ kind, x: actor.position.x, y: actor.position.y, z: actor.position.z });
+  };
+  const vanish = (done: boolean): void => {
+    if (actor === null) return;
+    if (actor.mesh.visible) puff('fade');
+    actor.alive = false; actor.hidden = true; actor.mesh.visible = false; actor.mesh.removeFromParent(); actor = null;
+    if (done) commitQuestEffects(ctx, rows.quest, rows.effects.complete);
+  };
+  ctx.scope.onDispose(() => { vanish(false); puffs.length = 0; });
+  return { puffs: rows.puffs, get active() { return actor !== null; }, get position() { return actor?.position ?? null; },
+    takePuffs: () => { const out = puffs; puffs = []; return out; }, update: (dt, t) => {
+      if (ctx.scope.disposed) return;
+      const player = world.player.position;
+      pending += dt;
+      if (pending >= 0.1) {
+        const point = rows.path[walk.i], at = actor?.position;
+        Object.assign(observation, walk, { dt: pending, on: Number(chapter.quest.current?.id === rows.step && (world.sky.dayNight?.night ?? 0) > rows.nightAbove),
+          playerX: player.x, playerZ: player.z, atX: at?.x ?? point?.[0] ?? 0, atZ: at?.z ?? point?.[1] ?? 0 });
+        const result = chapter.project(rows.signal, observation), i = result['i'], mode = result['mode'], elapsed = result['elapsed'], event = result['event'];
+        if (i === undefined || mode === undefined || elapsed === undefined || event === undefined || !Number.isInteger(i) || i < 0 || i >= rows.path.length
+          || !Number.isInteger(mode) || mode < 0 || mode > 3 || elapsed < 0 || !Number.isInteger(event) || event < 0 || event > 5) throw new Error('Invalid chapter guide projection');
+        walk.i = i; walk.mode = mode; walk.elapsed = elapsed; pending = 0;
+        if (event === 4) vanish(false);
+        else if (event === 1 || event === 2) {
+          const target = rows.path[walk.i];
+          if (target === undefined) throw new Error('Missing chapter guide point');
+          const yaw = Math.atan2(player.x - target[0], player.z - target[1]);
+          if (actor !== null) { actor.place(target[0], target[1], yaw); actor.mesh.visible = true; }
+          else {
+            actor = animals.spawn(rows.actor.kind, target[0], target[1], yaw, rows.actor.variant);
+            const index = animals.animals.indexOf(actor); if (index !== -1) animals.animals.splice(index, 1);
+            actor.herd = -1; actor.setDrawLod(0);
+          }
+          actor.sampleTerrain(); puff('appear'); if (event === 1) commitQuestEffects(ctx, rows.quest, rows.effects.appear);
+        } else if (event !== 0 && actor !== null) {
+          puff('fade'); animals.onSound?.(rows.sound, actor.position);
+          actor.mesh.visible = false; actor.setMotion(actor.yaw, 0, rows.motion.stopTurn);
+          if (event === 5) vanish(true);
+        }
+      }
+      if (actor === null) return;
+      actor.update(dt, t, true);
+      if (Math.floor(t * 10) !== Math.floor((t - dt) * 10)) actor.sampleTerrain();
+      if (walk.mode === 1) {
+        actor.setMotion(Math.atan2(player.x - actor.position.x, player.z - actor.position.z), 0, rows.motion.faceTurn);
+        actor.lookTarget.copy(player); actor.lookWeight = 1;
+      } else if (walk.mode === 2) {
+        const next = rows.path[walk.i + 1] ?? rows.path[walk.i];
+        if (next !== undefined) actor.setMotion(Math.atan2(next[0] - actor.position.x, next[1] - actor.position.z), rows.motion.trotSpeed, rows.motion.trotTurn);
+        actor.lookWeight = 0;
+      }
+    } };
 }
