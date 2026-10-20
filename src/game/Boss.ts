@@ -17,11 +17,7 @@ import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { ItemId } from './Inventory';
 import type { SkinId } from '@wildshard/engine/player/Skins';
 import { HeldFinishes } from './loadout/finishes';
-
-const combatId = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
-const combatEffectId = v.pipe(combatId, v.regex(/^effect\./u)) as v.GenericSchema<`effect.${string}`>;
-const combatSessionRows = v.strictObject({ god: v.boolean(), bossKinds: v.pipe(v.array(combatId), v.maxLength(64)),
-  stunEffect: combatEffectId, unlockSkins: v.pipe(v.array(combatId), v.maxLength(64)) });
+import { BossCombatSessionSchema } from '@wildshard/format/bossEncounter';
 
 /** Client-only combat effects over the entered player, equipment and mixer.
  * Content supplies ids and policy values; callbacks, renderers and save owners
@@ -36,7 +32,7 @@ export class PageCombatSession {
   private readonly owner: ShardContext;
   constructor(owner: ShardContext, input: unknown) {
     this.owner = owner;
-    const rows = this.rows = v.parse(combatSessionRows, input), runtime = owner.game.runtime, world = runtime?.world, play = runtime?.play;
+    const rows = this.rows = v.parse(BossCombatSessionSchema, input), runtime = owner.game.runtime, world = runtime?.world, play = runtime?.play;
     if (owner.scope.disposed || world === undefined || world === null || play === undefined || play === null) throw new Error('Combat session requires its entered player');
     const { game, sky, player } = world, { animals } = play, direction = new THREE.Vector3();
     this.legsOwner = player; this.equipment = play.weapons;

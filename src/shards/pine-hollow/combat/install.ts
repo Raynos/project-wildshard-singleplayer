@@ -41,6 +41,7 @@ import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { kingTick } from './kingFight';
 import { pineView } from '../runtime/world/context';
+import combatSessionRows from '../data/combatSession.json' with { type: 'json' };
 
 import { registerPineLap } from '../runtime/dev/perfLap';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -94,7 +95,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const { game, sky, player, animals, weapons, params } = h;
   const entered = retainsRuntimeServices(h.context) ? h.context : undefined;
   const god = params.has('bossGod');
-  const session = new PageCombatSession(h.context, { god, bossKinds: [KING_KIND], stunEffect: 'effect.stun', unlockSkins: ['rifle'] });
+  const session = new PageCombatSession(h.context, { ...combatSessionRows, god });
   // the drop orbs' skinned weapons, built now and parked (hidden) in the scene so the boot's precompile covers their
   // programs: the first elite kill / the King's reward then compiles nothing mid-play
   const buildSkin = (id: SkinId): THREE.Object3D => {

@@ -5,6 +5,11 @@ const finite = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Numb
 const positive = v.pipe(finite, v.minValue(Number.MIN_VALUE));
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const fraction = v.pipe(finite, v.minValue(0), v.maxValue(1));
+const combatId = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
+const combatEffectId = v.pipe(combatId, v.regex(/^effect\./u)) as v.GenericSchema<`effect.${string}`>;
+/** Client encounter effects bind the entered player's existing services. */
+export const BossCombatSessionSchema = v.strictObject({ god: v.boolean(), bossKinds: v.pipe(v.array(combatId), v.maxLength(64)),
+  stunEffect: combatEffectId, unlockSkins: v.pipe(v.array(combatId), v.maxLength(64)) });
 const definition = v.strictObject({ id: key, name: key, title: v.string(), retryTitle: v.string(), intro: finite, introShort: finite,
   phases: v.pipe(v.array(v.strictObject({ at: fraction, caption: v.string(), name: v.string() })), v.minLength(1), v.maxLength(64)) });
 const wireFields = ['body', 'present', 'sealed', 'sealK', 'darkK', 'glow', 'invuln', 'lockHp', 'won', 'phase', 'mode', 'modeT', 'strikeCd', 'burstCd', 'summonCd', 'chain', 'open', 'lane', 'rings', 'hazards', 'adds', 'addLanes', 'rngs'] as const;
