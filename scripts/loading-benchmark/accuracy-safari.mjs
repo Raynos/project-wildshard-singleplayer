@@ -85,6 +85,8 @@ try {
       const received = transport.receipts.filter(receipt => receipt.endedAt >= start && receipt.endedAt <= end);
       networkBytes = received.reduce((sum, receipt) => sum + receipt.bodyBytes + receipt.headerBytes, 0);
       report = accuracyReport(collected.accuracy, networkBytes);
+      errors.push(...(collected.accuracy?.errors ?? []));
+      if (collected.fatal) errors.push(collected.fatal);
     } catch (error) { errors.push(String(error)); }
     const result = { pin, path, device: 'iOS Simulator Safari / portrait phone tier', cpu: 'native', errors,
       ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, fixture: { originalSHA256: fixture.originalSHA256, injectedSHA256: fixture.injectedSHA256 } };

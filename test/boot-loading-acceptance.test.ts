@@ -11,3 +11,9 @@ it('accepts balanced labelled stages with live text and matching transport bytes
     final: { clock: '00:03.0', networkBytes: '100', rows: [{ label: 'Admission', duration: '3 s' }] } }, 102);
   expect(receipt.failures).toEqual([]);
 });
+
+it('rejects missing seconds even inside the three-second stage-sum allowance', () => {
+  const receipt = accuracyReport({ readyAt: 3000, updates: [0, 900, 1800, 2700],
+    final: { clock: '00:03.0', networkBytes: '100', rows: [{ label: 'Admission', duration: '0.5 s' }] } }, 100);
+  expect(receipt.failures).toContain('Unlabelled gap exceeds 2 s');
+});

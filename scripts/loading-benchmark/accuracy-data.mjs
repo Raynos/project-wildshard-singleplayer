@@ -1,6 +1,8 @@
 export function accuracyRecorder() {
-      const state = { samples: [], final: null, readyAt: 0, last: '', updates: [] };
+      const state = { samples: [], final: null, readyAt: 0, last: '', updates: [], errors: [] };
       Reflect.set(window, '__loadingAccuracy', state);
+      window.addEventListener('error', event => { if (state.errors.length < 100) state.errors.push(event.message); });
+      window.addEventListener('unhandledrejection', event => { if (state.errors.length < 100) state.errors.push(String(event.reason)); });
       const read = () => {
         const root = document.querySelector('.ws-load');
         if (!(root instanceof HTMLElement) || Object.hasOwn(root.dataset, 'shell') || state.readyAt) return;

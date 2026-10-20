@@ -16,6 +16,7 @@ export function accuracyReport(accuracy, networkBytes) {
   const failures = [];
   if (!(accuracy.readyAt > 0)) failures.push('First frame was not reached');
   if (Math.abs(unaccountedSeconds) > 3) failures.push('Stage sum differs from wall clock by more than 3 s');
+  if (unaccountedSeconds > 2) failures.push('Unlabelled gap exceeds 2 s');
   if (maxDetailGapMs > 1000) failures.push('Detailed update gap exceeds 1 s');
   if (byteError === null || byteError > 0.05) failures.push('Network bytes are unavailable or differ by more than 5%');
   for (const row of final?.rows ?? []) if (!row.label && seconds(row.duration) > 2) failures.push('Unlabelled gap exceeds 2 s');

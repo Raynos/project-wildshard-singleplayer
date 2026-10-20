@@ -72,6 +72,8 @@ try {
     const received = transport.receipts.filter(receipt => receipt.endedAt >= collected.origin && receipt.endedAt <= collected.origin + ready);
     const networkBytes = received.reduce((sum, receipt) => sum + receipt.bodyBytes + receipt.headerBytes, 0);
     const report = accuracyReport(collected.accuracy, networkBytes);
+    if (collected.fatal) errors.push(collected.fatal);
+    if (errors.length > 0) status = 'failed';
     const receipt = { pin, path, device: 'iPhone 16 Pro', cpu: 4, status, errors, cdpNetworkBytes, transportReceipts: received, ...report, ...collected };
     writeFileSync(resolve(out, `${path}.json`), JSON.stringify(receipt, null, 2));
     console.info(JSON.stringify({ path, status, networkBytes, displayedNetworkBytes: receipt.displayedNetworkBytes,
