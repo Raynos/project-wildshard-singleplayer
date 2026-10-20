@@ -13,10 +13,12 @@ import { postStackCost } from '@wildshard/format/postStack';
 import type { ResidencyAllocator } from './allocator';
 import { neighbourProductFiles } from '../shardfile/productCost';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
-import { ShardfileFieldSchemas, type Shardfile } from '@wildshard/format/shardSchema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
+import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
+import { EntrywaysSchema } from '@wildshard/format/entryways';
 import * as v from 'valibot';
 
-const edgeRows = v.strictObject({ edge: ShardfileFieldSchemas.edge, entryways: ShardfileFieldSchemas.entryways });
+const edgeRows = v.strictObject({ edge: EdgeProfilesSchema, entryways: EntrywaysSchema });
 const edges = new WeakMap<ResidencyAllocator, Map<string, Promise<Pick<Shardfile, 'edge' | 'entryways'>>>>();
 
 /** Read only the bounded index and its hash-verified world/edge section. This does not admit a runtime or asset. */
