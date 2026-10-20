@@ -1,3 +1,5 @@
+import {ProjectedTrail} from '@wildshard/game/shardfile/clientTrails';
+import trailRows from '../../boot/bowTrail.generated.json' with {type:'json'};
 import { sourceMultiplier, type SourceMulDef } from '@wildshard/engine/combat/effects/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
@@ -5,7 +7,6 @@ import type { BowInstance } from '@wildshard/sdk/runtime/weapons/starterBow';
 
 
 
-import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 
 /**
  * The Golden Bow — the Golden King's legendary reward (elites-and-bosses.md §2 "5 — Victory"; mockup
@@ -28,35 +29,18 @@ export interface GoldenBowDeps {
 }
 export interface PierceTarget { kind: string; alive: boolean; applyDamage: (amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3) => boolean }
 
-const STREAK_PTS = 48, SPEED_BASE = 30, SPEED_DRAW = 28, SUN_DRAW = 0.95;
+const SPEED_BASE = 30, SPEED_DRAW = 28, SUN_DRAW = 0.95;
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
 
 export class GoldenBowPower {
   private bow: BowInstance | null = null;
-  private streak: THREE.Mesh; private streakMat: FxMaterial; private streakPos: Float32Array; private streakAttr: THREE.BufferAttribute;
-  private streakT = 0;
-  private pts = new Float32Array(STREAK_PTS * 3);
+  private readonly trail:ProjectedTrail;
   private pending: { t: number; target: PierceTarget; point: THREE.Vector3; dir: THREE.Vector3; dmg: number }[] = [];
   private sunShot = false;
 
   constructor(private readonly deps: GoldenBowDeps) {
-    // the streak: a camera-facing ribbon along up to STREAK_PTS points (rewritten per shot)
-    const g = new THREE.BufferGeometry();
-    this.streakPos = new Float32Array(STREAK_PTS * 2 * 3);
-    this.streakAttr = new THREE.BufferAttribute(this.streakPos, 3); this.streakAttr.setUsage(THREE.DynamicDrawUsage);
-    const uv = new Float32Array(STREAK_PTS * 2 * 2), idx: number[] = [];
-    for (let i = 0; i < STREAK_PTS; i++) {
-      uv[i * 4] = i / (STREAK_PTS - 1); uv[i * 4 + 1] = 0; uv[i * 4 + 2] = i / (STREAK_PTS - 1); uv[i * 4 + 3] = 1;
-      if (i < STREAK_PTS - 1) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
-    }
-    g.setAttribute('position', this.streakAttr);
-    g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(STREAK_PTS * 2 * 3).fill(0), 3));
-    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-    g.setIndex(idx);
-    this.streakMat = fxMaterial(FX.streak, new THREE.Color(2.4, 1.6, 0.5), 0);
-    this.streak = new THREE.Mesh(g, this.streakMat);
-    this.streak.frustumCulled = false; this.streak.visible = false; this.streak.renderOrder = 16;
-    deps.scene.add(this.streak);
+    if(trailRows.points>48)throw new Error('Bow prediction exceeds its native contact bound');
+    this.trail=new ProjectedTrail(deps.scene,deps.camera,trailRows);
   }
 
   get applied(): boolean { return this.bow !== null; }
@@ -90,13 +74,14 @@ export class GoldenBowPower {
     cam.getWorldDirection(_d);
     _o.setFromMatrixPosition(cam.matrixWorld).addScaledVector(_d, 0.55);
     _v.copy(_d).multiplyScalar(SPEED_BASE + SPEED_DRAW * p).add(bow.carrierVelocity);
-    const n = bow.arrows.predict(_o, _v, this.pts, STREAK_PTS, 0.6, 2.5);   // from 2.5 m out: a streak, not a bar across the view
-    this.writeStreak(n);
+    const n = bow.arrows.predict(_o, _v, this.trail.points, trailRows.points, 0.6, 2.5);   // from 2.5 m out: a streak, not a bar across the view
+    this.trail.show(n);
     // the pierce: walk the path; the first animal is the arrow's own hit, the second takes the sun arrow through it
     let first: PierceTarget | null = null, travelled = 0;
     let ax = _o.x, ay = _o.y, az = _o.z;
-    for (let i = 0; i < n; i++) {
-      const bx = this.pts[i * 3] ?? ax, by = this.pts[i * 3 + 1] ?? ay, bz = this.pts[i * 3 + 2] ?? az;
+    for (let i = 0; i < 48; i++) {
+      if(i>=n)break;
+      const bx = this.trail.points[i * 3] ?? ax, by = this.trail.points[i * 3 + 1] ?? ay, bz = this.trail.points[i * 3 + 2] ?? az;
       _a.set(ax, ay, az); _b.set(bx - ax, by - ay, bz - az);
       const len = _b.length();
       if (len > 1e-3) {
@@ -118,31 +103,8 @@ export class GoldenBowPower {
     }
   }
 
-  private writeStreak(n: number): void {
-    const P = this.streakPos, pts = this.pts;
-    if (n < 2) return;
-    const cam = this.deps.camera;
-    _o.setFromMatrixPosition(cam.matrixWorld);
-    for (let i = 0; i < STREAK_PTS; i++) {
-      const j = Math.min(i, n - 1), k = Math.min(j + 1, n - 1), h = Math.max(0, j - 1);
-      const x = pts[j * 3] ?? 0, y = pts[j * 3 + 1] ?? 0, z = pts[j * 3 + 2] ?? 0;
-      // the ribbon's side: across the path and the view (so it faces the camera)
-      _a.set((pts[k * 3] ?? x) - (pts[h * 3] ?? x), (pts[k * 3 + 1] ?? y) - (pts[h * 3 + 1] ?? y), (pts[k * 3 + 2] ?? z) - (pts[h * 3 + 2] ?? z));
-      _b.set(x - _o.x, y - _o.y, z - _o.z);
-      _a.cross(_b).normalize().multiplyScalar(0.018 + 0.03 * (j / Math.max(1, n - 1)));
-      P[i * 6] = x - _a.x; P[i * 6 + 1] = y - _a.y; P[i * 6 + 2] = z - _a.z;
-      P[i * 6 + 3] = x + _a.x; P[i * 6 + 4] = y + _a.y; P[i * 6 + 5] = z + _a.z;
-    }
-    this.streakAttr.needsUpdate = true;
-    this.streakT = 1.1; this.streak.visible = true;
-  }
-
   update(dt: number): void {
-    if (this.streakT > 0) {
-      this.streakT -= dt;
-      this.streakMat.uniforms.uAlpha.value = Math.max(0, this.streakT / 1.1) ** 1.5;
-      if (this.streakT <= 0) this.streak.visible = false;
-    }
+    this.trail.advance(dt);
     for (let i = this.pending.length - 1; i >= 0; i--) {
       const q = this.pending[i];
       if (q === undefined) continue;
