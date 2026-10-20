@@ -8,16 +8,9 @@ const { looks: WATER_LOOKS, surfaces: WATER_SURFACES } = waterRows;
 
 /**
  * Pine Hollow's water at run time: the lent water looks (../data/waterLook.json) and the live params they read: each fading
- * body's alpha, the rain's rings and Explore's top-down map shot.
+ * body's alpha and Explore's top-down map shot (the rain's rings are the rain presentation's).
  */
 const LOOKS = Object.values(WATER_LOOKS);
-let rain = 0;
-
-/** the rain on the water (world/weather.ts's `water` channel owner): 0 … 1 rings on every water surface */
-export const waterWeather = { uRainRings: {
-  get value(): number { return rain; },
-  set value(v: number) { rain = v; for (const id of LOOKS) setLentParam(id, 'rain', v); },
-} };
 
 /** the water bodies' reflect hook (world/terrain.ts): the surface reflects like a map reads water in the top-down shot */
 export function waterReflect(view: WaterView): void {

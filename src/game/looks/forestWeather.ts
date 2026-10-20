@@ -1,7 +1,6 @@
 /** Client-only weather observations from actual native page and quest owners. */
 import * as v from 'valibot';
 import { ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
-import { ForestRoofMask } from './forestRoofMask';
 import { forestPage, type ForestPage } from '../shardfile/forestPage';
 import { chapterLeadPosition } from '../quest/chapterDirector';
 import type { ShardContext } from '../plugin/context';
@@ -12,18 +11,16 @@ import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience'
 import type { Vector3 } from 'three';
 
 export interface ForestWeatherObservations {
-  readonly roofAt: (x: number, z: number) => boolean; readonly guideAt: () => Vector3 | null;
+  readonly guideAt: () => Vector3 | null;
   readonly game: ShardWorld['game']; readonly sky: ShardWorld['sky']; readonly trees: ShardWorld['forest']['trees'];
   readonly animals: ShardPlayHost['animals']; readonly particles: ForestPage['particles']; readonly ambience: DeclaredAmbience;
   readonly viewer: ShardRuntime['viewer']; readonly horizonVeil: ShardRuntime['horizonVeil'];
 }
-/** A roof mask is data; the guide observation borrows its actual body position. */
+/** The guide observation borrows its actual body position. */
 export function forestWeatherObservations(ctx: ShardContext, input: unknown): ForestWeatherObservations {
   const rows = v.parse(ForestWeatherObservationSchema, input), page = forestPage(ctx.scope, rows.page), runtime = ctx.game.runtime;
   const world = runtime?.world, play = runtime?.play;
   if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Weather observation requires its runtime');
-  const roofs = new ForestRoofMask({ floors: page.rows.buildings.floors, roofs: rows.roofs });
-  return { roofAt: (x, z) => roofs.contains(x, z),
-    game: world.game, sky: world.sky, trees: world.forest.trees, animals: play.animals, particles: page.particles, ambience: forestPageAmbience(ctx.scope, rows.audio),
+  return { game: world.game, sky: world.sky, trees: world.forest.trees, animals: play.animals, particles: page.particles, ambience: forestPageAmbience(ctx.scope, rows.audio),
     guideAt: () => chapterLeadPosition(ctx.scope, rows.guide), viewer: runtime.viewer, horizonVeil: runtime.horizonVeil };
 }

@@ -15,9 +15,9 @@ export const RangedPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Ranged 
   life: id, directional: v.boolean(), shadowBatch: v.boolean(),
 }));
 export type RangedPageRows = v.InferOutput<typeof RangedPageSchema>;
-/** Roof masks are baked in their own frame; the guide is a native quest id. */
-export const ForestWeatherObservationSchema = v.strictObject({ page: id, audio: id, guide: id,
-  roofs: v.pipe(v.array(v.strictObject({ frame: v.strictObject({ x: n, z: n, yaw: n }), polygon: v.pipe(v.array(v.tuple([n, n])), v.maxLength(128)) })), v.maxLength(16)) });
-/** Declared rain occluders share native deck and yaw-frame polygon queries. */
+/** The guide is a native quest id. */
+export const ForestWeatherObservationSchema = v.strictObject({ page: id, audio: id, guide: id });
+const roofs = v.pipe(v.array(v.strictObject({ frame: v.strictObject({ x: n, z: n, yaw: n }), polygon: v.pipe(v.array(v.tuple([n, n])), v.maxLength(128)) })), v.maxLength(16));
+/** Declared rain occluders share native deck and yaw-frame polygon queries; roofs are baked in their own frame. */
 export const ForestRoofMaskSchema = v.strictObject({ floors: v.pipe(v.array(v.strictObject({ x: n, y: n, z: n, hw: n, hd: n, rot: n })), v.maxLength(128)),
-  roofs: ForestWeatherObservationSchema.entries.roofs });
+  roofs });

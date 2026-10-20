@@ -1,8 +1,8 @@
 /**
  * Pine Hollow's weather, wired (PINE-HOLLOW-REMASTER PH-L10 + the weather half of PH-C7). One `installPineWeather` call in
  * main.ts, after the ambience and the quest; nothing else knows the weather exists. The state machine is
- * the admitted world/weather.json numeric program, the rain and the puddles the SDK's rain system (@wildshard/sdk/looks/rainFx)
- * dressed by data/weatherLook.ts (its sizes, its programs, the bear cave's hood); this file turns their numbers into:
+ * the admitted world/weather.json numeric program, the rain and the puddles the SDK's rain presentation
+ * (@wildshard/sdk/looks/rainPresentation) on world/rain.json's rows; this file turns their numbers into:
  *
  *   · THE SKY — the clock's `PineDayNight.mod` (overcast: the sun behind the deck, the sky and the IBL greyed; the fog
  *     thickened by the dawn fog, the rain's haze and the old-growth)
@@ -10,7 +10,7 @@
  *     valley (the height term integrates along the ray: from the lookout the Hollow fills), the ground-mist sheets
  *     (Particles) thickened, dew on everything (a little uWet), thickest in the old-growth (a distance-fog × while the eye
  *     is in it); it burns off by mid-morning with the clock
- *   · THE RAIN — the wet PBR (`weatherUniforms.uWet`), the rings on the pond / creek / puddles (`waterWeather`), the wind
+ *   · THE RAIN — the wet PBR (`weatherUniforms.uWet`), the rings on the pond / creek / puddles (the rain's `rings`), the wind
  *     up (`windBoost`), the ambience's rain beds (canopy vs open are its own) and its wet footsteps
  *   · C7 — in the rain the grazing herds drift in under the nearest big trees (their herd centre is held there from outside
  *     the AI: AnimalManager's own wander logic walks stragglers back to it) and back out after; in the dawn fog a fog bank
@@ -23,7 +23,7 @@
  * Antler King's sealed clearing sets it, so the fight's own fog (×26 on the clock's density) is the whole fog in there.
  * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
-import { forestWeatherObservations, type ForestWeatherObservations } from '@wildshard/game/looks/forestWeather';
+import type { ForestWeatherObservations } from '@wildshard/game/looks/forestWeather';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
@@ -31,51 +31,30 @@ import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import { TIER } from '@wildshard/engine/core/tier';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { fogUniforms, weatherUniforms, volumetricFog } from '@wildshard/engine/world/Atmosphere';
-import { waterWeather } from './water';
 import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
 import { keyedSkyOf } from '@wildshard/game/looks/keyedSky';
 import { installWeatherContinuation } from '@wildshard/game/plugin/weather';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weatherProgram';
 import { wetFlight } from '@wildshard/engine/combat/ammo';
-import type { loadRainBake, RainFx, RainFxOptions } from '../runtime/looks/rainFx';
-import waterRows from '../data/waterLook.json' with { type: 'json' };
-import rainRows from '../data/rain.json' with { type: 'json' };
+import type { RainPresentation } from '@wildshard/sdk/looks/rainPresentation';
 import { HerdShelter, populationShelter } from '@wildshard/sdk/populationShelter';
-import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { PINE_CAVE_HOOD, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../data/weatherLook';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 type ShardContext = Parameters<typeof installEnteredRuntimeService>[0];
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */
 export const weatherHold = { k: 0 };
 
-export type PineWeatherHost = ForestWeatherObservations;
+export interface PineWeatherRig { weather: WeatherContinuation; fx: RainPresentation; setMode: (m: string, at?: number) => void }
 
-export interface PineWeatherDraw {
-  readonly host: PineWeatherHost; readonly options: Omit<RainFxOptions, 'baked'>;
-  readonly bake: { url: string; rows: Parameters<typeof loadRainBake>[1] };
-}
-/** Counted local rain/cave view facts; shared observations come from native ids. */
-export function prepareWeatherDraw(ctx: ShardContext, input: unknown): PineWeatherDraw {
-  const host = forestWeatherObservations(ctx, input);
-  const hood = { x: LAYOUT.BEAR_CAVE.x, z: LAYOUT.BEAR_CAVE.z, rot: LAYOUT.BEAR_CAVE.rot, hw: PINE_CAVE_HOOD.hw, lz0: PINE_CAVE_HOOD.lz0, lz1: PINE_CAVE_HOOD.lz1, top: terrainHeight(LAYOUT.BEAR_CAVE.x, LAYOUT.BEAR_CAVE.z) + PINE_CAVE_HOOD.up };
-  return { host, options: { name: 'pine-weather', roofAt: host.roofAt, phone: TIER === 'phone', seed: SEED, look: PINE_RAIN, programs: PINE_RAIN_PROGRAMS, hood, water: waterRows.surfaces.puddle, channels: ctx.product.shardfile.clientChannels },
-    bake: { url: `/assets/pine-hollow/baked/rain${TIER === 'phone' ? '.phone' : ''}.bin`, rows: rainRows[TIER] } };
-}
-
-export interface PineWeatherRig { weather: WeatherContinuation; fx: InstanceType<typeof RainFx>; setMode: (m: string, at?: number) => void }
-
-export async function installWeather(ctx: ShardContext, host: PineWeatherHost, fx: RainFx): Promise<PineWeatherRig | null> {
+export async function installWeather(ctx: ShardContext, host: ForestWeatherObservations, fx: RainPresentation): Promise<PineWeatherRig | null> {
   const rows=parseWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.product.file('world/weather.json'))));
   const shelterRows = populationShelter(JSON.parse(new TextDecoder().decode(await ctx.product.file('actors/shelter.json'))));
   return installPineWeather(host, fx, ctx, rows, shelterRows, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
-function installPineWeather(h: PineWeatherHost, fx: RainFx, ctx: ShardContext, rows: WeatherProgram, shelterRows: ReturnType<typeof populationShelter>, entered?: ShardContext): PineWeatherRig | null {
+function installPineWeather(h: ForestWeatherObservations, fx: RainPresentation, ctx: ShardContext, rows: WeatherProgram, shelterRows: ReturnType<typeof populationShelter>, entered?: ShardContext): PineWeatherRig | null {
   const pine = keyedSkyOf(h.sky);
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
@@ -97,7 +76,7 @@ function installPineWeather(h: PineWeatherHost, fx: RainFx, ctx: ShardContext, r
 
   const veil = { x: { value: 0 }, y: { value: 0 } };
   const roots = new Map<string, unknown>(Object.entries({ mod: pine.mod, fog: fogUniforms, weather: weatherUniforms, volume: volumetricFog,
-    veil, particles: h.particles.params, water: waterWeather, wind: windBoost, windVector: wind }));
+    veil, particles: h.particles.params, water: fx.rings, wind: windBoost, windVector: wind }));
   const channels=installChannelPrograms(ctx.product.shardfile.clientChannels,'weather',roots);
   const answers = (scope: Scope): void => {
     h.game.app.events.answer('projectile.modify', (input) => h.game.app.levelScope === h.game.levelScope ? (input.ammo.wet === undefined ? input : { ...input, ...wetFlight(input, rows.wetProjectile, weather.rain) }) : input, scope);
@@ -159,7 +138,7 @@ function installPineWeather(h: PineWeatherHost, fx: RainFx, ctx: ShardContext, r
 
   const rig: PineWeatherRig = { weather, fx, setMode: (m, t = 0.5) => { weather.setMode(m, t); } };
   const debug = {
-    ...rig, dev, uniforms: { weatherUniforms, fogUniforms, waterWeather, windBoost, mod: pine.mod },
+    ...rig, dev, uniforms: { weatherUniforms, fogUniforms, waterWeather: fx.rings, windBoost, mod: pine.mod },
     /** dev (C7's evidence): every grazer's distance to the nearest big tree — the mean, and how many stand within 6 m */
     herdShelter: () => shelter.stats(),
   };

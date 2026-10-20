@@ -100,6 +100,7 @@
     "./nearPlaceholderAssets": "./nearPlaceholderAssets.ts",
     "./placeholderSource": "./placeholderSource.ts",
     "./water": "./water.ts",
+    "./rainPresentation": "./rainPresentation.ts",
     "./accent": "./accent.ts",
     "./items": "./items.ts",
     "./targets": "./targets.ts",

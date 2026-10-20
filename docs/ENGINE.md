@@ -40,6 +40,13 @@ the splash and lens clocks and the lens's wetness through the numeric channel gr
 (`@wildshard/game/looks/graphDaySky#graphParamRoots`); G441's W3 match is Nalati `world/WeatherFX.ts` `update`'s
 curtain block.
 
+`@wildshard/sdk/looks/rainPresentation` (`RainPresentation.install(ctx, rows)`, G474 weather presentation, client-only)
+draws a level's whole rain from one `@wildshard/format/rainPresentation` row set: the curtain with a cover map (baked
+crowns, the page's roof decks plus yaw-frame roof polygons), an optional hood box, the baked puddles in a named water
+surface, the splashes at the feet and the lens drops, its three look.materials graphs turned by one client channel
+group. `update(dt, { rain, wet }, wind, camera)` reads the weather; `coverAt(x, z)` answers the crowns' shelter.
+Pine Hollow is the first user; an orchard fixture drives the same rows in `test/rain-presentation.test.ts`.
+
 The historical `@wildshard/game/systems/npc/{figureRig,figureMotion,faceHeads}` exports remain literally unchanged
 for exact SF73-registered frozen callers only. Primaries own Nalati `models/npc/{figureRig,figureMotion}` and Driftwood
 `npc/faceHeads`; `wildshard/legacy-npc-imports` rejects every other caller. The historical internal type dependency is
