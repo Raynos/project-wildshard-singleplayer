@@ -2,7 +2,7 @@ import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buil
 import { fileURLToPath } from 'node:url';
 
 /**
- * The steppe storm as weather reactions (G474, @wildshard/game/plugin/weather WeatherReactions) at 10 Hz: the bolt clock runs
+ * The steppe storm as weather reactions (G474, @wildshard/game/weather/reactions WeatherReactions) at 10 Hz: the bolt clock runs
  * while nothing is armed; a ready storm arms a strike on the highest point of a cell round the player (the yurts and the
  * covered player excepted) and lands it 1.2 s later; a gust front or a waning storm only flashes in the cloud; GET LOW
  * while the player is the highest thing within 30 m; the wind the phase asks for (the Storm Titan holds his storm open).
@@ -19,7 +19,7 @@ export const STORM={version:1,hz:10,hud:{chips:[{state:'building',within:45,titl
  {signal:'hit',when:reg('land'),observe:[...player,['x',reg('sx')],['y',reg('sy')],['z',reg('sz')],['kind',reg('skind')]],write:[['flash',reg('flash')],['armed',reg('armed')],['land',reg('land')]],
   emit:[{event:'strike',when:'distance',fields:[['x',reg('sx')],['y',reg('sy')],['z',reg('sz')],['kind',reg('skind')]]},{event:'flash',when:'distance',fields:[out('distance'),out('bearing')]},{event:'hurt',when:'damage',fields:[out('damage')]},{event:'burn',when:'burn',fields:[['x',reg('sx')],['y',reg('sy')],['z',reg('sz')]]}]},
  {signal:'low',observe:[...player,['dt','dt'],['lowFor',reg('lowFor')],['gust','state.gust'],['storm','state.storm']],probe:{x:inp('px'),z:inp('pz'),radius:30},write:[['low',reg('low')],['lowFor',reg('lowFor')]],emit:[]},
- {signal:'wind',observe:[['titanHeld',inp('titanHeld')],...['storm','gust','building','after'].map(state=>[state,`state.${state}`]),['phaseT','phaseT'],['phaseLen','phaseLen'],['asked',reg('asked')],
+ {signal:'wind',observe:[['titanHeld',inp('held')],...['storm','gust','building','after'].map(state=>[state,`state.${state}`]),['phaseT','phaseT'],['phaseLen','phaseLen'],['asked',reg('asked')],
    ...['calmSpeed','calmDir','calmGust'].map(name=>[name,inp(name)]),['windSpeed',reg('windSpeed')],['windGustiness',reg('windGustiness')]],
   write:[['phaseT','phaseT'],['asked',reg('asked')]],emit:[{event:'wind',when:'speed',fields:[out('speed'),out('dir'),out('gustiness'),out('seconds')]}]},
 ]};

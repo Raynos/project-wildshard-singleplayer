@@ -156,7 +156,7 @@ export function installNativeWeatherWorld(host: SimHost, ports: { program: Retur
   const wind = new Wind({ value: 1 });
   const storm = installWeatherReactions(installWeatherContinuation(host,program.weather,{ phase: 0 },undefined),
     { ...program.reactions,points: bake.trees.map(([x,z],index) => [x,z,bake.tops[index] ?? 0]) },{ host });
-  Object.assign(storm.inputs,{ calmSpeed: wind.speed,calmDir: wind.dir,calmGust: wind.gustiness,titanHeld: 0,crouched: 0,mounted: 0 });
+  Object.assign(storm.inputs,{ calmSpeed: wind.speed,calmDir: wind.dir,calmGust: wind.gustiness,held: 0,crouched: 0,mounted: 0 });
   storm.on('strike',event => { const population = nativePopulationOf(host); if (population === undefined) throw new Error('Missing native weather population'); population.scare(event['x'] ?? 0,event['z'] ?? 0,rows.scareRadius); });
   storm.on('wind',event => { wind.setTarget(event['speed'] ?? wind.speed,event['dir'] ?? wind.dir,event['gustiness'],event['seconds']); });
   storm.on('hurt',event => { host.combat.hit({ source: 'env',sourceTags: rows.hit.tags,target: host.player.health,amount: host.events.ask(rows.hit.ask,event['damage'] ?? 0),

@@ -5,7 +5,7 @@ import type { SystemSpec } from '../src/engine/app/systems';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { parseWeatherProgram } from '../src/format/weatherProgram';
 import { PineWeather } from '../src/shards/pine-hollow-legacy/world/weatherProfile';
-import { steppeStorm, readWeatherProgram } from '../src/shards/nalati-grasslands/world/weatherStep';
+import { installWeatherReactions, nativeWeatherBundle } from '../src/game/weather/reactions';
 import { installWeatherContinuation } from '../src/game/weather/continuation';
 import { Scope } from '../src/engine/app/scope';
 import nalati from '../src/shards/nalati-grasslands/data/weather.json' with {type:'json'};
@@ -13,6 +13,11 @@ import pine from '../src/shards/pine-hollow/data/weather.json' with { type:'json
 import saved from './fixtures/weather-continuation.json' with { type:'json' };
 
 const rows=parseWeatherProgram(pine);
+/** Nalati's storm as its page installs it: the bundle's reactions on a plain continuation, struck at `points`. */
+function steppeStorm(seed:number,points:[number,number,number][],circles:[number,number,number][],scope:Scope){
+  const bundle=nativeWeatherBundle({weather:nalati,reactions:weatherScript},circles);
+  return installWeatherReactions(installWeatherContinuation({seed},bundle.weather,{phase:0},undefined),{...bundle.reactions,points},{scope});
+}
 test('DATA weather preserves phase RNG, every numeric output and held-mode transitions',()=>{
   for(const seed of [1,0x4a1a])for(const mode of ['live','rain','clear','fog'] as const){
     const current=new WeatherContinuation(rows,{seed,mode}),old=new PineWeather({seed,mode});
@@ -43,8 +48,8 @@ test('old v1 cadence/wind saves resume exactly and malformed restore is atomic',
 test('Nalati runs its reactions at ten Hz on one phase owner and snapshots them whole',()=>{
   const restore=overrideTerrain({heightAt:()=>0});
   try {
-    const scope=new Scope('weather-test'),current=steppeStorm(7,readWeatherProgram({weather:nalati,reactions:weatherScript}),[],[[1,2,3]],{scope});
-    Object.assign(current.inputs,{px:1,py:0,pz:2,calmSpeed:5,calmDir:0,calmGust:.6,crouched:0,mounted:0,titanHeld:0});
+    const scope=new Scope('weather-test'),current=steppeStorm(7,[],[[1,2,3]],scope);
+    Object.assign(current.inputs,{px:1,py:0,pz:2,calmSpeed:5,calmDir:0,calmGust:.6,crouched:0,mounted:0,held:0});
     current.weather.force('storm',.4);current.weather.hold=true;
     const phases=current.weather;let ticks=0;
     for(let i=0;i<60;i++)if(current.update(1/60))ticks++;
@@ -58,8 +63,8 @@ test('Nalati strikes the highest probed point and lands it 1.2 s later',()=>{
   const restore=overrideTerrain({heightAt:()=>0});
   try {
     const scope=new Scope('weather-test'),points=Array.from({length:63*63},(_,i):[number,number,number]=>[(i%63)*8-248,Math.floor(i/63)*8-248,50]);
-    const current=steppeStorm(19,readWeatherProgram({weather:nalati,reactions:weatherScript}),points,[],{scope});
-    Object.assign(current.inputs,{px:0,py:0,pz:0,calmSpeed:5,calmDir:0,calmGust:.6,crouched:0,mounted:0,titanHeld:0});
+    const current=steppeStorm(19,points,[],scope);
+    Object.assign(current.inputs,{px:0,py:0,pz:0,calmSpeed:5,calmDir:0,calmGust:.6,crouched:0,mounted:0,held:0});
     current.weather.force('storm',.4);current.weather.hold=true;current.weather.registers['nextBolt']=0;
     const telegraphs:Record<string,number>[]=[],strikes:Record<string,number>[]=[];
     current.on('telegraph',e=>{telegraphs.push({...e});});current.on('strike',e=>{strikes.push({...e});});

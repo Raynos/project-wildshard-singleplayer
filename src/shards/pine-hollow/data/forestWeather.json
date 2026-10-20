@@ -5,6 +5,7 @@
     "program": "world/weather.json",
     "shelter": "actors/shelter.json"
   },
+  "mode": "setting",
   "channels": "weather",
   "debug": "pine.weather",
   "heldPhase": 0.5,

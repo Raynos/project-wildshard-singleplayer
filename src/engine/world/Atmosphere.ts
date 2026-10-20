@@ -36,6 +36,11 @@ export const weatherUniforms = {
 };
 let pineWeather = false;
 
+/** A painted panorama's live re-grade (`NodeFogPanorama['tint']`): × key, a cool monochrome by moon, × light, into
+ *  veilColour by veil, + flash. One set per page, shared by the panorama fog, the panorama dome and a painted sky's rows. */
+export const panoramaTint = { key: { value: new THREE.Color(1, 1, 1) }, moon: { value: 0 }, light: { value: new THREE.Color(1, 1, 1) }, veil: { value: 0 },
+  veilColour: { value: new THREE.Color(0.2, 0.21, 0.26) }, flash: { value: 0 } };
+
 /**
  * Weather fog (E390, a storm closing in): a second exponential fog laid over the level's own, `fogWeather` = (distance
  * density, height density, strength 0..1, unused) in `fogWeatherColor`. It composes with whatever else drives the fog (a

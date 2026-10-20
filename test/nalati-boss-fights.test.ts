@@ -22,7 +22,7 @@ import { Mount } from '../src/game/riding/mount';
 import type { LevelContext } from '../src/engine/level/context';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
 import { bossArena } from './fake/bossArena';
-import type { NalatiWeather } from '../src/shards/nalati-grasslands/world/installWeather';
+import type { NalatiWeather } from '../src/shards/nalati-grasslands/runtime/state';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with { type: 'json' };

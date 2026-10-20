@@ -2,7 +2,7 @@ import type * as THREE from 'three';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { NalatiWeather } from '../world/installWeather';
+import type { NalatiWeather } from '../runtime/state';
 import { PainterlyWorld } from '@wildshard/game/looks/painterlyLook';
 import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
 import captureRows from '../boot/staticCapture.generated.json' with { type: 'json' };
@@ -26,7 +26,7 @@ export interface LookV2Ctx {
 export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const { game, sky, weather } = ctx, rows = paintedTextures;
   const uniforms = Object.fromEntries(Object.entries({ ...gradeUniforms, uV2KeyTint: tint.key, uV2Moon: tint.moon, uV2Light: tint.light, uV2Veil: tint.veil, uV2VeilCol: tint.veilColour, uV2Flash: tint.flash }).filter(([key]) => key !== 'uV2LookSat'));
-  const world = await PainterlyWorld.build('world' in rows ? rows.world : null, { renderer: game.renderer, scene: game.scene, scope: game.levelScope, sky, stars: weather.rig.dome,
+  const world = await PainterlyWorld.build('world' in rows ? rows.world : null, { renderer: game.renderer, scene: game.scene, scope: game.levelScope, sky, stars: weather.dome,
     groups: ctx.groups, casters: [ctx.forest.group], grass: grassProfile, capture: { rows: captureRows, uniforms: bakeUniforms },
     panorama: { rows: 'panorama' in rows ? rows.panorama : null, ridge: metadata.panoramaRidge, lut: fogLut, uniforms },
     key: { rows: 'key' in rows ? rows.key : null, daySaturation: game.level.grade.saturation, saturation: gradeUniforms.uV2LookSat } });

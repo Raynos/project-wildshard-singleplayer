@@ -32,7 +32,7 @@ import { shapeBook } from '@wildshard/game/models/shapeBook';
 import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 import { EliteRosterPage, type EliteRosterRows } from '@wildshard/game/quest/eliteRosterPage';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { wireWeather, type NalatiWeather } from '../world/installWeather';
+import { installForestWeather, type ForestWeatherRig } from '@wildshard/sdk/looks/forestWeather';
 
 
 import type { NalatiLoadout } from '../weapons/loadout';
@@ -52,6 +52,12 @@ import type { RayTargets } from '@wildshard/engine/combat/targets';
 
 type Wildlife = PageWildlife<Flock>;
 
+/** What the steppe's systems read of the weather: the painted sky's clock, look and dome, the continuation and its storm. */
+type PaintedSky = NonNullable<ForestWeatherRig['sky']>;
+export interface NalatiWeather {
+  readonly clock: PaintedSky['clock']; readonly look: PaintedSky['look']; readonly dome: PaintedSky['dome']; readonly air: ForestWeatherRig['weather']; readonly weather: NonNullable<ForestWeatherRig['storm']>;
+}
+
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ShardManifest; params: URLSearchParams }
 
 export interface Nalati {
@@ -59,8 +65,7 @@ export interface Nalati {
   /** every frame (main.ts game.onUpdate) */
   /** every POI (poi agent, B5): camp, bridge, roads, summer camp, kurgans, balbals, Eagle Rock, cairn, Crags */
   pois: NalatiPOIs;
-  /** the day/night clock + storms (weather agent, B10): `weather.clock.onDusk(fn)`, `weather.weather.stormActive`,
-   *  `weather.bind({ audio, hurt })` from main.ts once the audio and the player's health exist */
+  /** the day/night clock + storms (weather agent, B10): `weather.clock.onDusk(fn)`, `weather.weather.stormActive` */
   weather: NalatiWeather;
   /** the great kurgan's dungeon + the Golden King (boss agent, B13; src/shards/nalati-grasslands/kurganBoss.ts): `boss.bind(play)` from main.ts
    *  once the animals, the kit and the HUD exist; `boss.onPlayerDeath()` in main's death check (true = the boss fight
@@ -100,7 +105,6 @@ export interface Nalati {
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
   const { admission } = v.parse(v.object({ admission: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
-  const { constants: { nativeWeather } } = v.parse(v.object({ constants: v.object({ nativeWeather: v.unknown() }) }), await plugin.product.json('sim/headless-assembly.json'));
   const eliteProgram = ReturnProgram.page(admission, plugin.scope);
   const { game, sky } = ctx;
   const slice = slicer(0, progress);
@@ -112,7 +116,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const groups: Record<string, Object3D> = {};
 
   // ── water (world agent, B0): the braided Kunes and the plateau brook, baked (generators/waterStrips.ts), on the water-surface
-  // host in their look (data/lookGraphs.json 'nalati-water', lit by world/installWeather.ts) ──
+  // host in their look (data/lookGraphs.json 'nalati-water', lit by the painted sky's tint rows) ──
   const river=clientWaterSurfaces(plugin).get('river');if(river===undefined)throw new Error('Missing declared river');
   groups['water'] = river.group;
   await slice(++completed, total, 'Water');
@@ -147,15 +151,17 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   groups['dressing'] = dressing.group;
   await slice(++completed, total, 'Dressing');
 
-  // ── weather + day/night (weather agent, B10): the clock, storms, the sky rig — src/shards/nalati-grasslands/weather.ts ──
-  const weather = await wireWeather({ nativeWeather,ctx: plugin, manifest: ctx.chunk, game, sky, player: ctx.player, forest: ctx.forest, colliders: pois.colliders });
-  groups['weather'] = weather.fx.group;
-  updates.push((dt) => weather.update(dt));
+  // ── weather + day/night (weather agent, B10): the painted sky, its clock and the storm, all rows of the page's weather host ──
+  const rig = await installForestWeather(plugin, await plugin.product.json('world/forest-weather.json')), storm = rig?.storm ?? null, painted = rig?.sky ?? null;
+  if (rig === null || storm === null || painted === null) throw new Error('Nalati requires its painted sky and storm');
+  const weather: NalatiWeather = { clock: painted.clock, look: painted.look, dome: painted.dome, air: rig.weather, weather: storm };
+  groups['weather'] = rig.group;
+  updates.push(() => undefined); // The weather host owns this frame slot.
 
   // ── Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): the Wind Cairn's threshold (mounted, in a natural storm), the
   //    Titan beyond the south rim, the arena's wall / whirlwinds / riders / fire; the heart joins the Targets chain below ──
   const titan = new ArenaScriptEncounter({ game,player: ctx.player,weather: weather.weather,air: weather.air,tieSpot: pois.cairnTieSpot },await readArenaScriptData(plugin.product,{ fight: 'combat/titan-fight.json',geometry: 'combat/titan-geometry.json' }));
-  weather.bind({ stormHold: () => titan.engaged });   // the storm that called him rages on until he falls
+  plugin.answer('weather.storm-hold', held => Math.max(held, Number(titan.engaged)));   // the storm that called him rages on until he falls
   updates.push((dt, t) => { titan.update(dt, t); });
 
   // ── the look (src/shards/nalati-grasslands/look/): ONE seamless 360° panorama on a sky dome — the painting is the sky, the clouds, the
@@ -187,7 +193,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },shapeBook(shapeRows).geometries(arenaRoomGeometryIds(kingRows.arenaRoom)),pois.kurganEntrance);
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
-  weather.bind({ indoors: () => boss.inside }); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
+  plugin.answer('weather.indoors', inside => Math.max(inside, Number(boss.inside))); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
   await slice(completed + 1, total, 'Dungeon and weather');
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
@@ -204,7 +210,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const night = new TimedEncounters({ game, sky, player: ctx.player, forest: ctx.forest, sites: pois.balbals, clock: weather.clock },
     await plugin.product.json('combat/timed-encounters.json'), { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest());
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
-  weather.weather.on('strike', e => { clientWildlife(plugin)?.scare(e['x'] ?? 0, e['z'] ?? 0, 60); });
   const nalati: Nalati = {
     persistence, pois, weather, groups, boss, elites, stealth, ride, titan,
     get wildlife() { return clientWildlife(plugin); },

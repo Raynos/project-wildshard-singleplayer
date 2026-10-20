@@ -13,16 +13,15 @@
  */
 import * as THREE from 'three';
 import { headingTexture } from '@wildshard/engine/render/dataLook';
-import { ColourRampFog } from '@wildshard/engine/world/Atmosphere';
+import { ColourRampFog, panoramaTint } from '@wildshard/engine/world/Atmosphere';
 import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 
 /** the LUT: scene-linear (un-graded at build time, generators/postChain.ts), half float, RepeatWrapping on the azimuth */
 export const fogLut = headingTexture({ samples: metadata.postChain.fogLut, stride: 3, half: true, name: 'nalati-fog-lut' });
 
 /** The painting's live re-grade (the hour and the weather), shared by the panorama dome, the cloud sea and this fog: written
- *  each frame by the `nalati.tint` channel rows (generators/weatherChannels.ts). */
-export const tint = { key: { value: new THREE.Color(1, 1, 1) }, moon: { value: 0 }, light: { value: new THREE.Color(1, 1, 1) }, veil: { value: 0 },
-  veilColour: { value: new THREE.Color(0.2, 0.21, 0.26) }, flash: { value: 0 } };
+ *  each frame by the painted sky's `tint` rows (generators/weatherChannels.ts). */
+export const tint = panoramaTint;
 
 /**
  * The painted fog. aerial: x = density (1/m), y = clear distance (m), z = the valley floor's height (m, the height

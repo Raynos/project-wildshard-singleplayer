@@ -86,7 +86,6 @@ export class NalatiPlugin extends ShardPlugin {
     if (ride !== null) shell.interactables.push(ride.interactable);
     Object.assign(shell.objects, { wildlife, ride });
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
-    rt.weather.bindPlay();
     await part();
     ctx.scope.run(() => rt.boss.bind(ctx,kit,weaponCatalogue.model('goldenBow'),bowVariant));
     await part();

@@ -2,10 +2,19 @@ import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
 import { loadBakedSky, skyHorizonColor } from '@wildshard/engine/boot/bakedApi';
 import type { SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
 import type { ShardProduct } from '../shardfile/shardProduct';
-import type { DayCycle } from '@wildshard/engine/world/dayCycle';
+import { DayCycle, compassDir, type DayCycleClock } from '@wildshard/engine/world/dayCycle';
+import type { Game } from '@wildshard/engine/core/Game';
+import { fogUniforms, panoramaTint } from '@wildshard/engine/world/Atmosphere';
+import { painterlyUniforms, syncPainterlySun } from '@wildshard/engine/world/painterly';
+import * as v from 'valibot';
+import type { DayLookRow, DayLookSchema } from '@wildshard/format/dayLook';
+import type { PaintedSkyRows } from '@wildshard/format/forestWeather';
+import { installChannelPrograms } from '../plugin/channelPrograms';
+import { lentLook, pushLentParams } from '../shardfile/lentLooks';
+import { dayLookPresets, type DayLookPreset } from './dayLookPresets';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { driveDayAir, driveDayLight, runDayClock } from '@wildshard/game/looks/daySky';
-import { graphDaySkyBackdrop, type DaySkyBody, type DaySkyGraphs } from '@wildshard/game/looks/graphDaySky';
+import { graphDaySkyBackdrop, graphParamRoots, type DaySkyBody, type DaySkyGraphs } from '@wildshard/game/looks/graphDaySky';
 import { overcastOver } from '@wildshard/game/looks/overcast';
 import * as THREE from 'three';
 import type { KeyedSkyStyle, SkyKeyRow } from '@wildshard/format/keyedSky';
@@ -339,6 +348,14 @@ const skies = new WeakMap<SkyRig, KeyedSky>();
 /** The keyed sky a backdrop built on this sky rig (the shard's weather and transitions read it). */
 export function keyedSkyOf(sky: SkyRig): KeyedSky | null { return skies.get(sky) ?? null; }
 
+/** What a page's weather reads from its sky (G474): the clock it runs on and the owners its channel rows may write. */
+export interface SkyFace { readonly clock: DayCycleClock; readonly owners: ReadonlyMap<string, unknown> }
+/** The page weather's view of a keyed backdrop: its clock and weather multipliers (`mod`); null for any other sky. */
+export function skyFaceOf(sky: SkyRig): SkyFace | null {
+  const keyed = skies.get(sky);
+  return keyed === undefined ? null : { clock: keyed.clock, owners: new Map<string, unknown>([['mod', keyed.mod]]) };
+}
+
 /**
  * A shard's sky backdrop from its keyed-sky row, on the game's graph day sky: the clock at the URL's / Settings' time, its
  * first two keys decoded, the look loop's layer applied. The declared options select packed keys and, on the phone, a
@@ -375,3 +392,86 @@ export function keyedSkyBackdrop(input: unknown, options: { readonly packKeys: b
     };
   } });
 }
+
+/** The fields a painted sky writes to the rig; a painted look's schema declares at least these. */
+const PAINTED_LOOK = { keyColor: 'colour', keyIntensity: 'number', shadeTint: 'colour', rimColor: 'colour', hemiSky: 'colour', hemiGround: 'colour',
+  hemiIntensity: 'number', envIntensity: 'number', fogColor: 'colour', fogSunColor: 'colour', fogDist: 'number', fogHeightDensity: 'number',
+  cloudSun: 'colour', cloudLight: 'colour', planetLight: 'colour', planetOpacity: 'number', disc: 'number', moon: 'number', saturation: 'number' } as const;
+type PaintedSchema = typeof PAINTED_LOOK;
+function paintedSchema(schema: DayLookSchema): schema is DayLookSchema & PaintedSchema { return Object.entries(PAINTED_LOOK).every(([field, kind]) => schema[field] === kind); }
+const object = (value: unknown): boolean => typeof value === 'object' && value !== null;
+const PaintedFile = v.object({ shapes: v.record(v.string(), v.unknown()), sky: v.object({
+  day: v.record(v.string(), v.union([v.number(), v.array(v.number())])), schema: v.custom<DayLookSchema>(object), initial: v.custom<DayLookRow<PaintedSchema>>(object) }) });
+/** A painted sky's frame reading: the weather's numbers this frame and whether the eye is indoors. */
+export interface PaintedReading { readonly overcast: number; readonly rain: number; readonly wet: number; readonly flash: number; readonly indoors: boolean }
+export interface PaintedSky extends SkyFace {
+  /** the look it painted this frame (the file's fields with the sun's and the key light's directions) and its dome */
+  readonly look: DayLookPreset<PaintedSchema> & { readonly sunDir: THREE.Vector3; readonly keyDir: THREE.Vector3 };
+  readonly dome: THREE.Mesh;
+  /** the clock, the keyed look, the weather's layer, the rig and the re-grade */
+  readonly frame: (dt: number, reading: PaintedReading) => void;
+}
+/**
+ * A painted sky (rows `PaintedSkyRows`, a painted panorama's), the keyed sky's second kind: the rows' hour clock
+ * (`?time=` an hour or a part of the day, `?clock=0` paused: the harness's), the day key keyed and sampled into a day-look
+ * preset, the weather laid over it, then written to the rig — the key light and the painterly sun, shade and rim, the
+ * hemisphere, the environment and the fog, the cloud and planet light, the disc and its corona (a moon smaller and
+ * cooler) — the dome kept on the camera and the panorama's re-grade (`panoramaTint`). Uniforms, colours and intensities only.
+ */
+export async function paintedSky(product: ShardProduct, game: Game, sky: SkyRig, rows: PaintedSkyRows, params: URLSearchParams, brightness: number): Promise<PaintedSky> {
+  const clock = new DayCycle(rows.clock), time = params.get('time');
+  if (time !== null) { const hour = Number.parseFloat(time); if (Number.isFinite(hour)) void clock.set(hour); else if (isClockName(time)) void clock.set(time); }
+  clock.paused = params.get('clock') === '0';
+  const file = v.parse(PaintedFile, await product.json(rows.file)), schema = file.sky.schema;
+  if (!paintedSchema(schema)) throw new Error('Painted sky schema lacks its rig fields');
+  const day = file.sky.day, key = structuredClone(day), kit = dayLookPresets<PaintedSchema>(schema), channels = product.shardfile.clientChannels;
+  const create = (): PaintedSky['look'] => ({ ...kit.live(file.sky.initial), sunDir: new THREE.Vector3(0, 1, 0), keyDir: new THREE.Vector3(0, 1, 0) });
+  const base = create(), look = create(), dayFog = game.scene.fog instanceof THREE.Fog ? game.scene.fog.color.clone() : new THREE.Color(...[day[rows.from.fog] ?? 0].flat());
+  const shade = painterlyUniforms.uPShade.value, rim = painterlyUniforms.uPRimColor.value;
+  day[rows.from.fog] = [dayFog.r, dayFog.g, dayFog.b]; day[rows.from.shade] = [shade.r, shade.g, shade.b]; day[rows.from.rim] = [rim.r, rim.g, rim.b];
+  const owners = new Map<string, unknown>([['day', day], ['key', key], ['clock', { get elevation() { return clock.sunElevation; } }],
+    ['base', { fogDist: fogUniforms.fogDistDensity.value, fogHeightDensity: fogUniforms.fogHeightDensity.value, brightness }], ['look', base]]);
+  for (const [field, value] of Object.entries(key)) if (Array.isArray(value)) owners.set(`key.${field}`, {
+    get x() { return value[0] ?? 0; }, set x(n: number) { value[0] = n; }, get y() { return value[1] ?? 0; }, set y(n: number) { value[1] = n; }, get z() { return value[2] ?? 0; }, set z(n: number) { value[2] = n; },
+  });
+  const keys = installChannelPrograms(channels, rows.lanes.key, owners), sample = installChannelPrograms(channels, rows.lanes.sample, owners);
+  const shape = file.shapes[rows.dome.shape]; if (shape === undefined) throw new Error(`Missing painted sky shape: ${rows.dome.shape}`);
+  const dome = new THREE.Mesh(new THREE.BufferGeometryLoader().parse(shape), lentLook(rows.dome.look));
+  dome.frustumCulled = false; dome.renderOrder = rows.dome.order; dome.name = 'sky-dome'; game.scene.add(dome); game.scene.background = null;
+  const domeParams = graphParamRoots(channels, rows.lanes.dome, [rows.dome.look]);
+  const domeLane = installChannelPrograms(channels, rows.lanes.dome, new Map<string, unknown>([...domeParams.roots, ['look', look]]));
+  const weather = installChannelPrograms(channels, rows.lanes.weather, new Map([['look', look]]));
+  const tintParams = graphParamRoots(channels, rows.lanes.tint, rows.tint), t = panoramaTint;
+  const tintLane = installChannelPrograms(channels, rows.lanes.tint, new Map<string, unknown>([...tintParams.roots, ['look', look],
+    ['tint', { key: t.key.value, light: t.light.value, veilColour: t.veilColour.value, moon: t.moon, veil: t.veil, flash: t.flash }]]));
+  const keyLight = day[rows.from.light], lit = { overcast: 0, rain: 0, flash: 0, waterRain: 0, dayFog: 0.2126 * dayFog.r + 0.7152 * dayFog.g + 0.0722 * dayFog.b,
+    dayKey: Math.max(0.1, typeof keyLight === 'number' ? keyLight : 0) };
+  const disc = sky.sunDisc, discColor = disc.material instanceof THREE.MeshBasicMaterial ? disc.material.color.clone() : new THREE.Color(), discScale = disc.scale.x;
+  const halo = disc.children.find((child): child is THREE.Sprite => child instanceof THREE.Sprite), haloScale = halo?.scale.clone();
+  const m = rows.moon, moonDisc = new THREE.Color(...m.disc), tint = new THREE.Color();
+  game.levelScope.onDispose(() => { dome.removeFromParent(); dome.geometry.dispose(); });
+  return { clock, look, dome, owners: new Map<string, unknown>([['look', look]]),
+    frame(dt, w) {
+      clock.update(dt);
+      keys.evaluate({ time: 0, delta: 0, values: {} }); sample.evaluate({ time: 0, delta: 0, values: {} });
+      compassDir(clock.sunAzimuth, clock.sunElevation, base.sunDir);
+      if (base.moon > 0) compassDir(clock.moonAzimuth, clock.moonElevation, base.keyDir); else base.keyDir.copy(base.sunDir);
+      kit.lerp(look, base, base, 0); look.sunDir.copy(base.sunDir); look.keyDir.copy(base.keyDir);
+      weather.evaluate({ time: 0, delta: dt, values: { overcast: w.overcast, flash: w.flash, rain: w.rain, wet: w.wet } });
+      sky.setKeyLight(look.keyDir, look.keyColor, look.keyIntensity); syncPainterlySun(sky);
+      painterlyUniforms.uPShade.value.copy(look.shadeTint); painterlyUniforms.uPRimColor.value.copy(look.rimColor);
+      sky.hemi.color.copy(look.hemiSky); sky.hemi.groundColor.copy(look.hemiGround); sky.hemi.intensity = look.hemiIntensity;
+      game.scene.environmentIntensity = look.envIntensity; if (game.scene.fog instanceof THREE.Fog) game.scene.fog.color.copy(look.fogColor);
+      fogUniforms.fogSunColor.value.copy(look.fogSunColor); fogUniforms.fogDistDensity.value = look.fogDist; fogUniforms.fogHeightDensity.value = look.fogHeightDensity;
+      sky.setCloudLight(look.cloudSun, look.cloudLight); sky.setPlanetLight(look.planetLight, look.planetOpacity);
+      const moon = look.moon > 0;
+      disc.visible = look.disc > .01; if (disc.material instanceof THREE.MeshBasicMaterial) disc.material.color.copy(tint.copy(discColor).lerp(moonDisc, look.moon)).multiplyScalar(look.disc * (moon ? m.gain : 1));
+      disc.scale.setScalar(discScale * (moon ? m.scale : 1)); if (halo && haloScale) { halo.scale.copy(haloScale).multiplyScalar(moon ? m.halo : 1); halo.material.opacity = look.disc * (moon ? m.haloOpacity : 1); }
+      domeLane.evaluate({ time: 0, delta: dt, values: { flash: w.flash * rows.flash } }); pushLentParams(domeParams); dome.position.copy(game.camera.position);
+      lit.overcast = w.overcast; lit.rain = w.rain; lit.flash = w.flash; lit.waterRain = w.indoors ? 0 : w.rain;
+      tintLane.evaluate({ time: 0, delta: dt, values: lit }); pushLentParams(tintParams);
+    },
+  };
+}
+const CLOCK_NAMES = ['dawn', 'day', 'noon', 'golden', 'dusk', 'night', 'midnight'] as const;
+function isClockName(name: string): name is (typeof CLOCK_NAMES)[number] { return (CLOCK_NAMES as readonly string[]).includes(name); }

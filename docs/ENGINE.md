@@ -47,6 +47,21 @@ surface, the splashes at the feet and the lens drops, its three look.materials g
 group. `update(dt, { rain, wet }, wind, camera)` reads the weather; `coverAt(x, z)` answers the crowns' shelter.
 Pine Hollow is the first user; an orchard fixture drives the same rows in `test/rain-presentation.test.ts`.
 
+`@wildshard/sdk/looks/forestWeather` (`installForestWeather(ctx, rows)`, G474, client-only) is a page's whole weather
+from one `@wildshard/format/forestWeather` row set, each block optional: a phase `program` on its own page system (Settings
+▸ Weather when `mode` is `setting`), or a `storm` whose reactions step it (`game/weather/reactions`: the bundle file's
+weather, reactions, baked shelter circles and native `world` rows, struck at the world forest's crowns; held while the page
+answers the asks `weather.indoors` and `weather.storm-hold`; its wind targets, cue voices, rain and wind beds, HUD
+`weather.changed`, creatures' light (`weatherWorldLight`), wildlife scare and hurts); a painted `sky`; the drawn `parts`
+(baked shapes in lent looks, sprites and a camera-local rain curtain, posed by one channel lane over the weather's numbers
+and registers, the reactions' event records, the sky's owners, the wind and the camera); and the forest blocks (Pine's
+observations, `RainPresentation`, herd shelter, fog focus and main lane). `?weather=<phase>[:at]` (harness) forces a phase.
+The sky is a keyed backdrop's (`game/looks/keyedSky#skyFaceOf`: its clock and `mod`) or the rows' painted sky
+(`game/looks/keyedSky#paintedSky`, the keyed sky's second kind: an hour clock, a day key keyed and sampled into a day-look
+preset, the weather and tint lanes, the rig writes and the dome; `?time=` / `?clock=0` harness), whose re-grade is the
+engine's `panoramaTint` (`engine/world/Atmosphere`). Pine Hollow (program, forest blocks) and Nalati (painted sky, storm,
+parts) are its users; it returns the continuation, the storm, the painted sky and the drawn group.
+
 The historical `@wildshard/game/systems/npc/{figureRig,figureMotion,faceHeads}` exports remain literally unchanged
 for exact SF73-registered frozen callers only. Primaries own Nalati `models/npc/{figureRig,figureMotion}` and Driftwood
 `npc/faceHeads`; `wildshard/legacy-npc-imports` rejects every other caller. The historical internal type dependency is
@@ -9071,9 +9086,9 @@ mechanics borrow `random`, the same stream as phase lengths, so draw order is
 preserved. No shard callback enters this host.
 
 Pine publishes its previous wind boost through the post-cadence `step` action. Nalati declares
-its phase-entry resets, wind ramps/targets and bolt cadence as actions; its
-counted `world/Lightning.ts` composes the plain continuation and retains strike
-targeting, GET LOW and damage. There is no storm subclass or phase subscription.
+its phase-entry resets, wind ramps/targets and bolt cadence as actions; strike
+targeting, GET LOW and damage are its AssemblyScript reactions on the page weather
+host (`sdk/looks/forestWeather`). There is no storm subclass or phase subscription.
 Nalati's combined snapshot adapter preserves the old flat storm save, including
 register values, while Pine's v1 envelope retains weather, wind, cadence and boost.
 Silent restore draws no RNG, emits no event and preserves the gust publication.
