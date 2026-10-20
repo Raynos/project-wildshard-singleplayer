@@ -292,19 +292,3 @@ export function armConst(side: Side, spec: HandSpec, rest: Pose, S: Vector3, Lu:
   return c;
 }
 
-/**
- * The left rest: turn the authored gauntlet frame until its forearm axis is the one the IK reaches, so the rest owner
- * pose needs no correction (and the bind pose is exactly the rest).
- */
-export function settleLeft(rest: Pose, S: Vector3, Lu: number, spec: HandSpec, poleHint: Vector3): Pose {
-  const q = rest.quat.clone();
-  const hub = rest.pos.clone();
-  for (let i = 0; i < 6; i++) {
-    const W = hub.clone().add(spec.wrist.clone().applyQuaternion(q));
-    const r = twoBone(S, W, poleHint, Lu, spec.foreLen);
-    const want = r.W.clone().sub(r.E).normalize();
-    const have = spec.fore.clone().negate().applyQuaternion(q);
-    q.premultiply(new Quaternion().setFromUnitVectors(have, want));
-  }
-  return { pos: hub, quat: q };
-}

@@ -1,7 +1,7 @@
 import type { BagIcons } from './tabs';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { icon, type IconId } from '@wildshard/engine/ui/icons';
-import type { KitEntry, MenuTab, SkinRow } from '@wildshard/engine/ui/Menu';
+import type { KitEntry, SkinRow } from '@wildshard/engine/ui/Menu';
 import { uiScope } from '@wildshard/engine/ui/ownership';
 /**
  * The Bag's GEAR and FINDS panels (E314 L5, Jake's picks: board 6 C, a paper doll; board 7 B, a sticker book). One
@@ -25,18 +25,6 @@ import { uiScope } from '@wildshard/engine/ui/ownership';
  *           Nalati's (src/shards/nalati-grasslands/bag.ts, E314 C): ELITES two to a row (`wide`), each with its prize under it (`prize`: the
  *           skin or the horse, the title — shown found or not), then the 17 PLACES.
  */
-
-/** what a shard's Bag has to show: FINDS (a sticker book), PACK (`inventory.slots` > 0), FEATS (any achievements) */
-export interface BagHas { finds: boolean; pack: boolean; feats: boolean }
-/** the BAG's tabs on a shard (E314): MAP · GEAR always; FINDS · PACK · FEATS only where the shard has something for them.
- *  Driftwood all five, Pine Hollow all five (its journal is its FINDS), Nalati no PACK, Nine Dragon MAP · GEAR (pick A) */
-export function bagTabs(has: BagHas): MenuTab[] {
-  const tabs: MenuTab[] = ['map', 'gear'];
-  if (has.finds) tabs.push('finds');
-  if (has.pack) tabs.push('inventory');
-  if (has.feats) tabs.push('achievements');
-  return tabs;
-}
 
 /** a GEAR card that is not a weapon, shown and not held (Nine Dragon's Fei Zhua grapple): its name, what it is, its use */
 export interface GearTool { id: string; name: string; kind: string; how: string; icon: IconId }

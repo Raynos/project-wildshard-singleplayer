@@ -7665,19 +7665,14 @@ stay unchanged; buffer decoding and native installation stay in the SDK.
 plain level metadata schema. `ui/card` keeps title presentation separate
 from level configuration; code-valued discovery bindings belong to the
 copied runtime's optional `discovery()` export, not JSON evaluation.
-`game/shard/catalogBoot.prepareCatalogBoot` is an async publication
-barrier: all level reads and identity checks finish before a caller
-installs the result. It does not evaluate play code for title discovery.
 
 The composition root's `outputRuntimeRegistry` pairs the literal
 `/out/*/runtime/index.ts` lazy glob with the corresponding emitted index
 runtime inventories. `compileCatalogRegistry` fingerprints sorted
 `[path,hash,bytes,lines]` tuples using
 `format/shardCatalog.runtimeInventoryBytes`; the catalog writer uses the
-same representation. `loadCatalogRuntime` checks identity/revision and
-catalog, compiled and admitted-product inventory hashes before evaluating
-code, refusing an incompatible offline product. Native runtime entry
-selection stays separate from this page entry. The catalog writer
+same representation. Runtime evaluation stays lazy until the selected
+entry loads; repeated selection shares its module promise. The catalog writer
 regenerates the complete list, writes it in an owned temporary directory,
 and renames `catalog.json` atomically; readers see a complete old or new
 catalog. Build orchestration serializes publication of each output root.

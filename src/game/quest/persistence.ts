@@ -30,11 +30,6 @@ export interface AdventurePersistence {
   bindProgress: (progress: Pick<Progress, 'bindLedger' | 'refreshLedger'> | undefined) => void;
 }
 
-/** Read this product's admitted saved-record policy before binding its native owners. */
-export async function readAdventurePersistence(ctx: Pick<ShardContext, 'product'>): Promise<unknown> {
-  return v.parse(AdventurePersistenceSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/persistence.json'))));
-}
-
 /** Bind declared encounter, companion and achievement records over the original
  * state fields. Pine and Nalati share this owner; rows retain their validation,
  * stable fact identities, flag projections and checkpoint boundaries. */

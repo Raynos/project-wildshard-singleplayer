@@ -24,7 +24,7 @@ import { TamingBinding } from './binding';
 import type { TamingObservation } from './bindingTypes';
 import type { TamingPrograms } from './taming';
 import { Mount, enteredMount } from './mount';
-import { RidingControlsSchema, PageTamingBindingSchema, PageRidingPresetSchema, ClientRidingSessionSchema, cleanMountName, type RidingControls, type MountProfile } from '@wildshard/format/riding';
+import { RidingControlsSchema, PageTamingBindingSchema, ClientRidingSessionSchema, cleanMountName, type RidingControls, type MountProfile } from '@wildshard/format/riding';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../population/returnProgram';
 import { RideHUD } from './hud';
@@ -255,9 +255,6 @@ export function createPageRiding(ctx: LevelContext, player: Player, animals: Ani
     update: (dt, wet, blocked, namingOpen) => { actions.advanceMount(dt, wet, blocked); taming.update(dt); actions.observe(dt, namingOpen); },
     drainEvents: () => [...taming.drainEvents(), ...actions.drainEvents()] };
 }
-
-/** Admit the shard's client labels, input contexts, upgrade look and HUD tuning. */
-export function readPageRidingPreset(input: unknown): v.InferOutput<typeof PageRidingPresetSchema> { return v.parse(PageRidingPresetSchema,input); }
 
 /** Client-only native action routing over the entered mount and HUD. */
 function bindRidingControls(ctx: LevelContext, mount: Mount, taming: PageTamingOwner, hud: RideHUD, rows: RidingControls): void {
