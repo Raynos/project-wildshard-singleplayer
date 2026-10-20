@@ -11,7 +11,7 @@ import { PageWildlife, type WildlifeBuildStep } from '@wildshard/game/population
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import { setDogFlock } from '../species/sheepdog';
 import { Marmots,preloadCover } from '../creatures/marmots';
-import { eliteAdmission, bindEliteAdmission } from './argymaqKeeper';
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv,bindHerdDamage } from '@wildshard/game/population/pageGroups';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -132,7 +132,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     nativeWeather:v.unknown(),pageWildlife: v.unknown(),pageGroups: v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
     nativeRide: v.object({ speeds:v.object({ walk:v.number(),trot:v.number(),canter:v.number(),gallop:v.number() }),thrownDamage:v.number(),thrownLabel:v.string() }) }) }), await plugin.product.json('sim/headless-assembly.json'));
   const ridingPreset = readPageRidingPreset(v.parse(v.object({ client:v.unknown() }),ridingPrograms).client);
-  bindEliteAdmission(admission); bindHerdDamage(pageGroups, plugin.scope); bindEnteredEnvironment(plugin,pageGroups);
+  const eliteProgram=ReturnProgram.page(admission,plugin.scope); bindHerdDamage(pageGroups, plugin.scope); bindEnteredEnvironment(plugin,pageGroups);
   const flockBody = await readCrowdBody(plugin.product, { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
   const crowdPage = await plugin.product.json<{ page: { world: unknown } }>('actors/sheep.json');
   const dogWolves: Animal[] = []; plugin.scope.own(flockBody.geometry);
@@ -207,7 +207,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const dropMaterial = painterlyMaterial(sky, { rim: .6 });
   const drops = new Map([...pageElites.keepers, ...pageElites.external].map(row => { const model = new Group(); model.add(new Mesh(bakedActorGeometry(`trophy:${row.def.id}`), dropMaterial)); return [row.def.id, model] as const; }));
   const elites = new EliteRosterPage<Flock>({ game, player: ctx.player, ledges: pois.cragLedges, rock: poiLayout.EAGLE_ROCK, clock: weather.clock, weather: weather.weather },
-    pageElites, eliteAdmission(), drops, charge);
+    pageElites, eliteProgram, drops, charge);
   updates.push((dt, t) => {
     if (titan.engaged) { elites.bar?.hide(); return; }   // one boss bar at a time: the elites stand down while the Titan fights
     if (practiceRoom.open) { elites.bar?.hide(); return; }   // a practice room over the steppe: no banner, no bar, no lair found from 3 km up (E321)
