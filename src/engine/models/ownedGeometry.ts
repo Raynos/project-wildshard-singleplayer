@@ -72,7 +72,7 @@ export function createOwnedGeometry(url: string, channels: Readonly<Record<strin
       if (!response.ok) throw new Error(`Baked model load failed: ${url} (${response.status})`);
       input = new Uint8Array(await response.arrayBuffer());
     }
-    const gltf = await createRigLoader().parseAsync(Uint8Array.from(input).buffer, '');
+    const gltf = await createRigLoader().parseBytesAsync(input, '');
     const meshes: Mesh[] = [];
     gltf.scene.traverse(node => { if (isGeometryMesh(node)) meshes.push(node); });
     try {

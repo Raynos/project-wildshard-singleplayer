@@ -30,13 +30,24 @@ export interface RigRef { url: string; contract: RigContract; bake: RigBake }
 // meshopt/image/geometry allocations share this page-wide decode slot.
 let decodeTail: Promise<void> = Promise.resolve();
 let decodeSlice: WorkSlice | undefined;
-class BoundedRigLoader extends GLTFLoader {
+/** The shared loader can defer an immutable byte view's parser copy until a
+ * decode slot is available, so parallel product reads do not queue wire copies. */
+export interface RigLoader extends GLTFLoader {
+  parseBytesAsync: (bytes: Uint8Array, path: string) => Promise<GLTF>;
+}
+class BoundedRigLoader extends GLTFLoader implements RigLoader {
   override parse(...[data, path, onLoad, onError]: Parameters<GLTFLoader['parse']>): void {
+    this.parseSource(() => data, path, onLoad, onError);
+  }
+  parseBytesAsync(bytes: Uint8Array, path: string): Promise<GLTF> {
+    return new Promise((resolve, reject) => { this.parseSource(() => Uint8Array.from(bytes).buffer, path, resolve, reject); });
+  }
+  private parseSource(read: () => Parameters<GLTFLoader['parse']>[0], path: string, onLoad: (file: GLTF) => void, onError?: (error: unknown) => void): void {
     const parsed = decodeTail.then(async () => {
       // Cached CPU-only models otherwise chain every parse in microtasks. Let
       // uploads/frames and temporary-buffer retirement run between spent slices.
       if (typeof window !== 'undefined') await (decodeSlice ??= workSlice(undefined, pageScope)).check();
-      return new Promise<GLTF>((resolve, reject) => { super.parse(data, path, resolve, reject); });
+      return new Promise<GLTF>((resolve, reject) => { super.parse(read(), path, resolve, reject); });
     });
     // A failed file must release the slot as well as a successful one. Keep no
     // decoded scene in the tail after handing it to its existing resource owner.
@@ -47,7 +58,7 @@ class BoundedRigLoader extends GLTFLoader {
 
 /** One native parser policy for rigs, model pools and owned geometry. Reads stay
  * parallel; a page decodes one GLTF at a time, including direct parseAsync calls. */
-export function createRigLoader(): GLTFLoader { return new BoundedRigLoader().setMeshoptDecoder(MeshoptDecoder); }
+export function createRigLoader(): RigLoader { return new BoundedRigLoader().setMeshoptDecoder(MeshoptDecoder); }
 
 let loader: GLTFLoader | undefined;
 /** Cache/clone policy stays with the owning asset scope. All rig GLBs use this parser.

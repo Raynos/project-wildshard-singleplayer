@@ -48,7 +48,7 @@ export async function loadSkin(glb: Uint8Array, row: SkinRow, binding: SkinBindi
   const cost = parseGlb(glb);
   cost.decoded += skinLayerDecoded(binding.poseLayers ?? {}, row.rig.joints[0]?.length ?? 0);
   if (cost.gpu > row.cost.gpu || cost.decoded > row.cost.decoded || cost.triangles > row.cost.triangles || cost.draws > row.cost.draws) throw new Error(`skin ${row.id}: cost above its declaration`);
-  const file = await createRigLoader().parseAsync(glb.slice().buffer, '');
+  const file = await createRigLoader().parseBytesAsync(glb, '');
   const meshes: SkinnedMesh[] = []; file.scene.traverse((node) => { if (isSkin(node)) meshes.push(node); });
   const mesh = meshes[0]; if (mesh === undefined || meshes.length !== 1) throw new Error(`skin ${row.id}: expected one skinned mesh`);
   const loaded = Array.isArray(mesh.material) ? mesh.material : [mesh.material];

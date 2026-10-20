@@ -143,7 +143,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
   ports.scope.onDispose(() => { disposed = true; roots.removeFromParent(); releaseAll(); });
   const parse = async (hash: string): Promise<Object3D> => {
     const bytes = ports.assets.get(hash); if (bytes === undefined) throw new Error('Missing admitted props GLB');
-    const gltf = await createRigLoader().parseAsync(bytes.slice().buffer, '');
+    const gltf = await createRigLoader().parseBytesAsync(bytes, '');
     const textureRef = props.textures.find((t) => t.model === hash)?.colour, texture = textureRef === undefined ? undefined : ports.textures?.get(textureRef);
     if (textureRef !== undefined && texture === undefined) throw new Error('Missing admitted props texture');
     gltf.scene.traverse((o) => {

@@ -31,7 +31,7 @@ async function parseModel(bytes: Uint8Array): Promise<Group> {
     const section: unknown = Reflect.get(doc, field);
     if (section !== undefined && (!Array.isArray(section) || section.length > 0)) throw new Error('Equipment model must be static and untextured');
   }
-  const file = await createRigLoader().parseAsync(bytes.slice().buffer, '');
+  const file = await createRigLoader().parseBytesAsync(bytes, '');
   const meshes: Mesh[] = [];
   file.scene.traverse(node => { if (isMesh(node)) meshes.push(node); });
   if (meshes.length === 0 || meshes.some(node => node instanceof SkinnedMesh)) { disposeModel(file.scene); throw new Error('Equipment model requires static mesh geometry'); }

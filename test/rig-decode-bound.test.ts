@@ -64,3 +64,22 @@ it('ends a spent browser decode slice before starting the next cached parse', as
     await jobs[1]; expect(entered).toEqual([0, 1]);
   } finally { vi.useRealTimers(); vi.stubGlobal('window', previousWindow); }
 });
+
+it('copies an immutable byte view only after acquiring its decode slot', async () => {
+  let release: (() => void) | undefined;
+  const first = createRigLoader();
+  first.register(() => ({ name: 'fixture-wire-bound', afterRoot: () => new Promise<void>(resolve => { release = resolve; }) }));
+  const active = first.parseAsync(document, '');
+  await expect.poll(() => release !== undefined).toBe(true);
+  const original = new TextEncoder().encode(document), padded = new Uint8Array(original.length + 8);
+  padded.set(original, 4);
+  const view = padded.subarray(4, original.length + 4), copy = vi.spyOn(Uint8Array, 'from');
+  const queued = createRigLoader().parseBytesAsync(view, '');
+  try {
+    await Promise.resolve(); expect(copy).not.toHaveBeenCalled();
+    release?.(); await active;
+    expect((await queued).scene.type).toBe('Group');
+    expect(copy).toHaveBeenCalledWith(view);
+    expect(view).toEqual(original);
+  } finally { release?.(); await active; await queued; }
+});
