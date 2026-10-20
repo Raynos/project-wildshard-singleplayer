@@ -217,7 +217,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/shards/nalati-grasslands/world/dressing/ ──
   const dressing = SceneDressing.current(plugin);
   reseedGrassV2(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
-  const dressPlaced = dressing.placed;
+  const poiPlaced = new Set([...pois.placed.values()].flat());
+  const dressPlaced = dressing.placed.filter(placed => !poiPlaced.has(placed));
   // every named place is a set (E315 M12): the models placed in it — the POIs', the rocks', the dressing's
   const { placeSets } = v.parse(v.object({ placeSets: v.pipe(v.array(v.object({ place: v.string(), id: v.string(), name: v.string(), file: v.string(), pois: v.exactOptional(v.array(v.string())), x: v.number(), z: v.number(), r: v.number() })), v.length(17)) }), await plugin.product.json('world/water.json'));
   const claimed = new Set(placeSets.flatMap(row => row.pois ?? []));
