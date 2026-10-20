@@ -142,7 +142,7 @@ const finiteNumbers = new Set<object>([
 ]);
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
-const wireRoots = {
+const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'clientChannels.NumericPose': NumericPoseSchema,
   'questInteractions.QuestPageInteractions': QuestPageInteractionsSchema,
   'cueDirector.CueDirectorWire': CueDirectorWireSchema,
@@ -313,7 +313,7 @@ const wireRoots = {
   'shardSections.Critical': CriticalSchema,
   'shardSections.Far': FarSchema,
   'shardSections.Spawn': SpawnSchema,
- } satisfies Readonly<Record<string, GenericSchema>>;
+ };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
 const wireRegexes = new Set<object>();

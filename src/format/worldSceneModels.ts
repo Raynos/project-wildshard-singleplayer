@@ -20,14 +20,14 @@ const draw = v.strictObject({ id, library: id, model: id, material: id, castShad
   until: v.exactOptional(drawDistance), depthOnly: v.exactOptional(v.boolean()), sphere: v.exactOptional(v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))])) });
 const levelSchema = v.strictObject({ from: band, draws: list(draw, 64) });
 const distanceAt = (value: v.InferOutput<typeof band> | undefined, tier: 'phone' | 'desktop'): number => value === undefined ? Infinity : typeof value === 'number' ? value : value[tier];
-const graphLeaf = v.union([WorldSceneWeldSchema, v.strictObject({ file: id })]);
+const graphLeaf: v.GenericSchema<unknown, WorldSceneWeld | { file: string }> = v.union([WorldSceneWeldSchema, v.strictObject({ file: id })]);
 const graphChoice = v.union([graphLeaf, v.strictObject({ phone: graphLeaf, desktop: graphLeaf })]);
 const frozen = v.union([graphChoice, v.strictObject({ knob, false: graphChoice, true: graphChoice })]);
 const choice = v.strictObject({ id, params, size: v.tuple([finite, finite, finite]), draws: list(draw, 64), scene: v.exactOptional(frozen), lods: v.optional(list(levelSchema, 8), []), colliders: list(v.unknown(), 2048), site: v.exactOptional(site) });
 const model = v.strictObject({ key: id, id, name: id, file: id, category: v.picklist(['buildings', 'nature', 'props', 'gear']), pipeline: v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0']), surface: v.exactOptional(surface), defaults: params,
   variants: v.optional(list(v.strictObject({ id, label: id, params }), 128), []), assembly: v.optional(v.picklist(['weld', 'parts', 'objects', 'scene']), 'weld'), choices: list(choice, 128) });
 /** Static model recipes over Z2's product libraries and material slots. No executable ports. */
-export const WorldSceneModelsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Scene model recipes require plain JSON'),
+export const WorldSceneModelsSchema: v.GenericSchema<unknown, WorldSceneModels> = v.pipe(v.unknown(), v.check(isJsonData, 'Scene model recipes require plain JSON'),
   v.strictObject({ product: v.pipe(id, v.regex(/^[a-z_][a-z0-9_-]{0,63}$/u)), models: list(model, 128) }),
   v.check(row => new Set(row.models.map(entry => entry.key)).size === row.models.length && new Set(row.models.map(entry => entry.id)).size === row.models.length
     && row.models.every(entry => entry.id.startsWith(`${row.product}/`) && entry.choices.length > 0 && new Set(entry.choices.map(value => value.id)).size === entry.choices.length
@@ -37,7 +37,7 @@ export const WorldSceneModelsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'S
         && value.lods.length === entry.choices[0]?.lods.length && (entry.assembly === 'parts' || value.lods.length === 0)
         && (entry.assembly === 'scene') === (value.scene !== undefined)
         && value.draws.every(part => part.depthOnly !== true || entry.assembly === 'objects'))), 'Unique scene model and choice identities with ordered shared LOD bands'));
-export type WorldSceneModels = v.InferOutput<typeof WorldSceneModelsSchema>;
+export interface WorldSceneModels { product: string; models: v.InferOutput<typeof model>[] }
 export function parseWorldSceneModels(input: unknown): WorldSceneModels { return v.parse(WorldSceneModelsSchema, input); }
 
 /** Both topology choices are admitted before any model can allocate. */

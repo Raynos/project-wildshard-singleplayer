@@ -43,10 +43,10 @@ export const ActorMoveSchema = v.variant('kind', [
   v.strictObject({ id, kind: v.literal('surface'), field: id, rate: positive }),
 ]);
 /** Plain `actors/moves` section, bounded and uniquely named. */
-export const ActorMovesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'plain JSON move data'), v.array(ActorMoveSchema), v.maxLength(256),
+export const ActorMovesSchema: v.GenericSchema<unknown, ActorMoves> = v.pipe(v.unknown(), v.check(isJsonData, 'plain JSON move data'), v.array(ActorMoveSchema), v.maxLength(256),
   v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'unique move ids'));
 export type ActorMove = v.InferOutput<typeof ActorMoveSchema>;
-export type ActorMoves = v.InferOutput<typeof ActorMovesSchema>;
+export type ActorMoves = ActorMove[];
 /** Admit a whole motion catalogue before starting or replacing a move. */
 export function parseActorMoves(input: unknown): ActorMoves { return v.parse(ActorMovesSchema, input); }
 /** Resolve move references against actual platform registries, never alias names. */
