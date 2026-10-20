@@ -1,5 +1,5 @@
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import type { RidingPrograms } from '../runtime/tamingBindings';
+import type { TamingPrograms as RidingPrograms } from '@wildshard/game/riding/taming';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager, AnimalSound } from '@wildshard/engine/entities/AnimalManager';
@@ -39,7 +39,7 @@ const ROADS = [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SP
 /** a species' own voice through the manager's sound hook (its names are the species' — AnimalManager's `c.sound` does the same) */
 function voice(name: string): AnimalSound { return name; }
 
-export interface RideCtx { programs: RidingPrograms; namePanel: PanelDefinition; persistence?: NalatiPersistence; ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
+export interface RideCtx { tamingBinding: unknown; programs: RidingPrograms; namePanel: PanelDefinition; persistence?: NalatiPersistence; ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
 export interface RidePlay { toast: (text: string) => void }
 
 export interface Ride {
@@ -60,14 +60,6 @@ export interface Ride {
 
 export function wireRide(ctx: RideCtx): Ride {
   let play: RidePlay | null = null;
-  const hurt = (d: number): void => {
-    const player = ctx.ctx?.app.player;
-    if (player && ctx.ctx) ctx.ctx.app.combat.hit({ source: 'env', sourceTags: ['env.ride'], target: player, amount: d, throughWalls: true,
-      point: ctx.player.position, dir: new THREE.Vector3(),
-      cause: { kind: 'env.ride', label: ctx.ctx.app.levelRegistrations.text('cause.ride', ctx.ctx.scope),
-        text: ctx.ctx.app.levelRegistrations.text('cause.ride.text', ctx.ctx.scope) } });
-
-  };
   const isDrawing = (): boolean => { const weapon = ctx.ctx?.app.equipment?.current; return weapon instanceof Bow && (weapon.adsHeld || weapon.drawing); };
   const rest = HITCH_HORSE_SPOTS[0] ?? { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z, face: { x: 1, z: 0 } };
   if (ctx.ctx === undefined) throw new Error('Riding requires its level context');
@@ -79,10 +71,10 @@ export function wireRide(ctx: RideCtx): Ride {
   // SF34: the saddle is the platform's ride mode, shown on RideHUD's band (Mount enters and exits it)
   registerPlayerMode({ player: ctx.player }, { id: 'ride', hud: 'ride' }, ctx.ctx.scope);
   const taming = new Taming({
-    programs: ctx.programs,
+    ctx: ctx.ctx, binding: ctx.tamingBinding, programs: ctx.programs,
     ...(ctx.persistence === undefined ? {} : { bond: ctx.persistence.bond }),
-    player: ctx.player, mount, animals: ctx.animals, hud, herds: () => ctx.wildlife.herds, rest,
-    hurt: (d) => { hurt(d); }, toast: (t) => { play?.toast(t); },
+    player: ctx.player, mount, animals: ctx.animals, herds: ctx.wildlife.herds, rest,
+    toast: (t) => { play?.toast(t); },
   });
   ctx.ctx.on('creature.signal', ({ name, x, z }) => {
     taming.noteEvent(name, x, z);

@@ -1,8 +1,9 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { TamingBinding } from '../src/shards/nalati-grasslands/runtime/tamingLaw';
-import type { NalatiTamingPorts, TamingHorse, TamingHerd } from '../src/shards/nalati-grasslands/runtime/tamingBindings';
+import { TamingBinding } from '../src/game/riding/binding';
+import type { TamingServices, TamingHorse, TamingHerd } from '../src/game/riding/bindingTypes';
+import rows from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };
 import programs from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
 
 function rig() {
@@ -12,7 +13,7 @@ function rig() {
   const herd: TamingHerd<TamingHorse> = { get stallion() { return stallion; }, stallionState: 'beaten', cx: 0, cz: 0, trust: 100, alert: 0, alertOwned: false, mode: 'graze',
     addTrust(value) { this.trust = Math.max(0, Math.min(100, this.trust + value)); }, leadAway() { this.mode = 'flee'; }, releaseStallion() { stallion = null; } };
   let mounted: TamingHorse | null = null, damage = 0, saved: string | null = null, hidden = false, retired = false;
-  const ports: NalatiTamingPorts<TamingHorse, TamingHerd<TamingHorse>> = { programs, bond: { read: () => saved, write: value => { saved = value; } },
+  const ports: TamingServices<TamingHorse, TamingHerd<TamingHorse>> = { profile: { ...rows.constants.nativeTaming.binding, bonds: ['1', 'argymaq'], names: ['Tulpar', 'Argymaq'], offset: [2.6, 3.5], labels: { ...rows.constants.nativeTaming.binding.labels, bonded: ['Bonded', 'Upgraded'] } }, programs, bond: { read: () => saved, write: value => { saved = value; } },
     player: { position: new Vector3(0, 0, 2), crouching: true, yaw: 0, pitch: 0, keys: new Set(), camera: { position: new Vector3(0, 2, 2), getWorldDirection: out => out.set(0, 0, -1) } },
     mount: { get mounted() { return mounted !== null; }, get horse() { return mounted; }, breakShake: 0, breakRoll: 0, mount: a => { mounted = a; return true; }, dismount: () => { mounted = null; }, addMountable: () => undefined, removeMountable: () => undefined },
     hud, herds: () => [herd], rest: { x: 0, z: 0, face: { x: 1, z: 0 } }, wind: () => ({ x: 0, z: 1, strength: 1 }), random: () => .25,

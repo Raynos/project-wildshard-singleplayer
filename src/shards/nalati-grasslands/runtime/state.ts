@@ -58,7 +58,7 @@ import { StealthController, type StealthController as Stealth, type StealthThrea
 import { AudioSceneDirector } from '@wildshard/game/audio/sceneDirector';
 import { wireLookV2 } from '../look/index';
 import { reseedGrassV2 } from '../look/field';
-import type { RidingPrograms } from './tamingBindings';
+import type { TamingPrograms as RidingPrograms } from '@wildshard/game/riding/taming';
 import { wireRide, type Ride } from '../ride/ride';
 import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
 import { CosmeticFinishLocker, CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
@@ -133,6 +133,7 @@ export interface Nalati {
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
   const { admission, pasture } = v.parse(v.object({ admission: v.unknown(), pasture: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   const ridingPrograms = await plugin.product.json<RidingPrograms>('ride/rules.json');
+  const { constants: { nativeTaming: { binding: tamingBinding } } } = v.parse(v.object({ constants: v.object({ nativeTaming: v.object({ binding: v.unknown() }) }) }), await plugin.product.json('sim/headless-assembly.json'));
   HorseHerd.bind(admission, plugin.scope);
   const flockBody = await readFlockBody(plugin.product); plugin.scope.own(flockBody.geometry);
   const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
@@ -397,7 +398,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       stealth = new StealthController(plugin,player,stealthRows);
       nalati.stealth = stealth;
       if (wildlife === null || attachedAnimals === null) throw new Error('Nalati creatures have not been built');
-      ride = wireRide({ programs: ridingPrograms, namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, forest: ctx.forest, animals: attachedAnimals, wildlife, camera: game.camera });
+      ride = wireRide({ tamingBinding, programs: ridingPrograms, namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, forest: ctx.forest, animals: attachedAnimals, wildlife, camera: game.camera });
       nalati.ride = ride;
       installRide(plugin, ride);
 

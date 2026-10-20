@@ -1,60 +1,51 @@
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import * as THREE from 'three';
-import { TamingBinding } from '../runtime/tamingLaw';
-import type { Mount } from './ride';
-import type { RidingPrograms } from '../runtime/tamingBindings';
+import type { InputService } from '@wildshard/engine/input/InputService';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import { admitRenderedHerds, admitRidingWind, createPageTaming, type PageTamingOwner } from '@wildshard/game/riding/client';
+import type { TamingPrograms } from '@wildshard/game/riding/taming';
 import type { HerdController } from '../runtime/groupRegistry';
-import type { RideHUD } from '@wildshard/game/riding/hud';
+import type { Mount } from '@wildshard/game/riding/mount';
 import { wildEnv } from '../creatures/env';
-
 import { tulparSave as savedSlot } from './saves';
 
-
-export interface TamingOpts {
-  programs: RidingPrograms;
-  /** Bonded-horse identity owned by the declared runtime state. */
-  bond?: { read: () => string | null; write: (value: string) => void };
-  player: Player;
-  mount: Mount;
-  animals: AnimalManager;
-  hud: RideHUD;
-  herds: () => HerdController[];
-  /** where Tulpar waits / rests (a hitch spot at the camp's rail) */
-  rest: { x: number; z: number; face: { x: number; z: number } };
-  hurt: (damage: number) => void;
-  toast?: (text: string) => void;
+interface TamingOpts {
+  binding: unknown; ctx: LevelContext; programs: TamingPrograms; player: Player; mount: Mount; animals: AnimalManager;
+  herds: readonly HerdController[]; rest: { x: number; z: number; face: { x: number; z: number } };
+  bond?: { read: () => string | null; write: (value: string) => void }; toast: (text: string) => void;
 }
-
-/** The page adapter to Nalati's same renderer-free taming law; view and save ownership remain here. */
-export class Taming extends TamingBinding<Animal, HerdController> {
-  constructor(opts: TamingOpts) {
-    super({ ...opts, mount: {
-      get mounted() { return opts.mount.mounted; }, get horse() { return opts.mount.horse; },
-      get breakShake() { return opts.mount.breakShake; }, set breakShake(value) { opts.mount.breakShake = value; },
-      get breakRoll() { return opts.mount.breakRoll; }, set breakRoll(value) { opts.mount.breakRoll = value; },
-      mount: (actor, breaking) => opts.mount.mount(actor.entityId, breaking), dismount: thrown => { opts.mount.dismount(thrown); },
-      addMountable: (actor, name) => { opts.mount.addMountable(actor.entityId, name); }, removeMountable: actor => { opts.mount.removeMountable(actor.entityId); },
-    }, bond: opts.bond ?? { read: () => savedSlot.read('nalati-grasslands'), write: () => undefined },
-      wind: () => wildEnv.wind, random: Math.random,
-      hideStallion: st => { st.hidden = true; st.mesh.visible = false; st.position.y = -1e4; },
-      retireBonded: old => {
-        old.hidden = true; old.mesh.visible = false; old.alive = false; old.position.y = -1e4;
-        const i = opts.animals.animals.indexOf(old); if (i !== -1) opts.animals.animals.splice(i, 1);
-        old.mesh.removeFromParent();
-      },
-      spawnBonded: (x, z, yaw, argymaq) => {
-        const t = opts.animals.spawn('horse', x, z, yaw, 'tulpar');
-        t.place(x, z, yaw); t.position.y = heightAt(x, z); t.mem['whistle'] = 1;
-        if (argymaq) {
-          t.scale = 1.3; t.mesh.scale.setScalar(1.3);
-          const mats = Array.isArray(t.mesh.material) ? t.mesh.material : [t.mesh.material];
-          for (const mt of mats) if (mt instanceof THREE.MeshLambertMaterial) mt.color.setRGB(0.62, 0.64, 0.72);
-        }
-        return t;
-      },
-    });
+/** Nalati persists and reports the data effects of the shared riding owner. */
+export class Taming {
+  private readonly owner: PageTamingOwner;
+  onBonded?: (horse: Animal) => void;
+  onBreaking?: (on: boolean) => void;
+  constructor(private readonly opts: TamingOpts) {
+    admitRenderedHerds(opts.ctx.scope, 'nalati.herds', opts.herds); admitRidingWind(opts.ctx.scope, wildEnv.wind);
+    let savedBond: string | null = null;
+    try { savedBond = opts.bond?.read() ?? savedSlot.read('nalati-grasslands'); } catch { /* unavailable storage */ }
+    this.owner = createPageTaming(opts.ctx, opts.player, opts.animals, opts.mount, { herds: 'nalati.herds', programs: opts.programs,
+      binding: opts.binding, savedBond, rest: opts.rest, thrownLabel: 'Thrown from the saddle',
+      adopted: { kind: 'horse', variant: 'tulpar', upgrade: { scale: 1.3, colour: [.62, .64, .72] } } });
   }
+  get phase(): PageTamingOwner['phase'] { return this.owner.phase; }
+  get tulpar(): Animal | null { return this.owner.companion; }
+  get isArgymaq(): boolean { return this.owner.upgraded; }
+  get view(): PageTamingOwner['view'] { return this.owner.view; }
+  get interactable(): PageTamingOwner['interactable'] { return this.owner.interactable; }
+  private currentInput: InputService | null = null;
+  get input(): InputService | null { return this.currentInput; }
+  set input(value: InputService | null) { this.currentInput = value; this.owner.setInput(value); }
+  private effects(): void {
+    for (const event of this.owner.drainEvents()) {
+      if (event.kind === 'bond') this.opts.bond?.write(event.value);
+      else if (event.kind === 'notice') this.opts.toast(event.text);
+      else if (event.kind === 'breaking') this.onBreaking?.(event.on);
+      else { const actor = this.owner.companion; if (actor?.entityId === event.actor) this.onBonded?.(actor); }
+    }
+  }
+  update(dt: number): void { this.owner.update(dt); this.effects(); }
+  noteEvent(name: string, x: number, z: number): void { this.owner.noteEvent(name, x, z); this.effects(); }
+  noteShot(x: number, z: number): void { this.owner.noteShot(x, z); this.effects(); }
+  forceBreak(): void { this.owner.forceBreak(); this.effects(); }
 }
