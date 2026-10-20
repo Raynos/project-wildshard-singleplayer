@@ -21,7 +21,7 @@
  *   veil (`gridLevel`), the bounds' horizontal check reads `grid`; fall recovery stays.
  */
 import { BufferGeometry, Group, Mesh, type Material, type Object3D } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { createRigLoader } from '@wildshard/engine/anim/rig';
 import * as v from 'valibot';
 import { CHUNK_HALF, CONTENT_CAPS, ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
@@ -192,7 +192,7 @@ async function loadFar(slug: string, owner: Parameters<typeof gridShardfileProdu
   if (!response.ok) throw new Error(`far.json ${slug}: ${String(response.status)}`);
   const row: unknown = await response.json();
   const look = farLook(row), bytes = farBytes(row);
-  const gltf = await new GLTFLoader().loadAsync(versionedUrl(`/assets/baked/${slug}/far.glb`));
+  const gltf = await createRigLoader().loadAsync(versionedUrl(`/assets/baked/${slug}/far.glb`));
   const meshes: BufferGeometry[] = [];
   gltf.scene.traverse((node) => { if (!(node instanceof Mesh)) return; const found: unknown = node.geometry; if (found instanceof BufferGeometry) meshes.push(found as BufferGeometry); });
   const geometry = meshes[0];
@@ -230,7 +230,7 @@ async function loadNear(slug: string, owner: Parameters<typeof gridShardfileProd
   const response = await fetch(versionedUrl(`/assets/baked/${slug}/near.json`));
   if (!response.ok) throw new Error(`near.json ${slug}: ${String(response.status)}`);
   const row = v.parse(NearRow, await response.json());
-  const gltf = await new GLTFLoader().loadAsync(versionedUrl(`/assets/baked/${slug}/near.glb`));
+  const gltf = await createRigLoader().loadAsync(versionedUrl(`/assets/baked/${slug}/near.glb`));
   let geometry: BufferGeometry | undefined;
   gltf.scene.traverse((node) => { if (geometry === undefined && node instanceof Mesh) { const found: unknown = node.geometry; if (found instanceof BufferGeometry) geometry = found as BufferGeometry; } });
   if (geometry === undefined) throw new Error(`near.glb ${slug}: no mesh`);
