@@ -66,7 +66,7 @@ export const ON_CONTRACT = [
   'src/shards/nalati-grasslands/world/places.ts',
   'src/shards/nalati-grasslands/world/Balbals.ts',
   'src/shards/nalati-grasslands/world/Bowl.ts',
-  'src/shards/nalati-grasslands/world/view.ts', 'src/shards/nalati-grasslands/world/dressing/index.ts',
+  'src/shards/nalati-grasslands/world/view.ts', 'src/shards/nalati-grasslands-legacy/world/dressing/index.ts',
   // e6b43b9aa retires the primary; its frozen copy keeps this contract.
   'src/shards/nalati-grasslands-legacy/cragRock.ts',
 ];
@@ -92,7 +92,6 @@ export const DONE = {
     'src/shards/driftwood-isle-legacy/world/islandInstances.ts': { why: "G144 / G173 (E435, E450): the Blender island's placements drawn instanced per tile set (the merged tiles retired): the cove's own drawing of its copies (the cove families stay placed drawnInto the island's group)", counts: { InstancedMesh: 1 } },
   },
   'nalati-grasslands': {
-    'src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands-legacy/runtime/weapons/Spear.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands-legacy/world/glbPaint.ts': { why: "the generated (GLB) models' instancing: one InstancedMesh per model per place (NalatiSet.flush)", counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands-legacy/world/dressing/statics.ts': { why: "the region meshes the dressing's prop models are painted into (placed drawnInto), and the fences' timber layer", counts: { mergeGeometries: 2 } },
@@ -107,23 +106,23 @@ export const DONE = {
     'src/shards/nalati-grasslands-legacy/world/paint.ts': { why: "The frozen PaintKit retains its original POI merge; primary paint now runs offline.", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands/world/Balbals.ts': { why: 'the balbals are placed instanced; an empty mesh stands in for a carved variant no crown wears (B11 hides a waking warrior by instance)', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands/world/Bowl.ts': { why: "the kokpar riders' gallop and the herds' drift: copies their place draws and moves every frame (models placed `moving`)", counts: { InstancedMesh: 2 } },
-    'src/shards/nalati-grasslands/world/dressing/index.ts': { why: 'The existing scatter draw uses CellWindow; two ambient creature draws borrow prepared shapes and platform flock rows (world, §1; M5).', counts: { InstancedMesh: 3 } },
+    'src/shards/nalati-grasslands-legacy/world/dressing/index.ts': { why: 'The existing scatter draw uses CellWindow; two ambient creature draws borrow prepared shapes and platform flock rows (world, §1; M5).', counts: { InstancedMesh: 3 } },
     'src/shards/nalati-grasslands-legacy/world/dressing/layer.ts': { why: 'Frozen scatter retains its original instance draw; the primary uses authored CellWindow rows.', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands-legacy/world/dressing/life.ts': { why: 'Frozen ambient life retains its original two instance draws; the primary borrows platform flock rows.', counts: { InstancedMesh: 2 } },
     // e6b43b9aa retires the primary; its frozen copy keeps this contract.
     'src/shards/nalati-grasslands-legacy/cragRock.ts': { why: "the four quadrant meshes the crag rock model's copies are merged into (placed drawnInto)", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands-legacy/campPeople.ts': { why: 'Frozen camp retains its original registry piece and fallback batch; primary uses row-owned prepared figures', counts: { 'registry add with object': 1, BatchedMesh: 1 } },
     'src/shards/nalati-grasslands/combat/stormTitan.ts': { why: 'Jel Ata the Storm Titan is a creature (M5)', counts: { InstancedMesh: 3 } },
-    'src/shards/nalati-grasslands/combat/stormTitanLook.ts': { why: "the Storm Titan's look (M5)", counts: { InstancedMesh: 2 } },
+    'src/shards/nalati-grasslands-legacy/combat/stormTitanLook.ts': { why: "the Storm Titan's look (M5)", counts: { InstancedMesh: 2 } },
     'src/shards/nalati-grasslands-legacy/runtime/weapons/Rifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 5 } },
   },
   'nine-dragon-stack': {
     'src/shards/nine-dragon-stack-legacy/vm/swordSupport.ts': { why: "Gear: the jian's hidden support rig (the old kit wood sword, unchanged) that sets the animated arms' blade reach (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
-    'src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts': { why: "a grapple tool's practice course (SHARD-PLATFORM M3, moved from Nine Dragon's playground/GrapplePlayground.ts, whose entry still covers its frozen legacy copy): a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
-    'src/shards/nine-dragon-stack/playground/GrapplePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
+    'src/shards/nine-dragon-stack-legacy/playground/GrapplePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
     // 7d0e103ec retires the primary; its frozen copy keeps this contract.
     'src/shards/nine-dragon-stack-legacy/world/install.ts': { why: 'the fragment\'s built fabric — the square, the towers, the Well, their kits — is one world piece (`nds-floors`) with its collision; its collider-only pieces are fabric too (the tower fronts, the crossings\' decks and rails, the Well\'s grapple guard). The balustrade over the Well and every gate\'s posts collide as their models (E346)', counts: { 'registry add with object': 1 } },
-    'src/shards/nine-dragon-stack/world/facade/batch.ts': { why: 'the facade shell and its ~10 k window quads are the towers\' own fabric; its pieces are models', counts: { InstancedMesh: 1 } },
+    'src/shards/nine-dragon-stack-legacy/world/facade/batch.ts': { why: 'the facade shell and its ~10 k window quads are the towers\' own fabric; its pieces are models', counts: { InstancedMesh: 1 } },
+    'src/shards/nine-dragon-stack/world/casts.ts': { why: 'The existing facade window draw restores prepared instance channels from the offline bake; original batch draw ceiling retained', counts: { InstancedMesh: 1 } },
     'src/shards/nine-dragon-stack/world/portals.ts': { why: 'G224: the portals are an effect, not a thing: five shader rings and swirl discs (instanced, animated on the GPU) with no collision, the ride is world/portalRide.ts', counts: { InstancedMesh: 2 } },
     // c1d8eb622 retires the primary; its frozen copy keeps this contract.
     'src/shards/nine-dragon-stack-legacy/world/hero/kitx.ts': { why: 'the kits\' curved-piece builder merges a region\'s geometry (world)', counts: { mergeGeometries: 1 } },
@@ -146,6 +145,11 @@ export const DONE = {
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
   // registered by hand here fails too
   'shared (src/world, src/player, src/entities, …)': {
+    'src/engine/render/scatterInstances.ts': { why: '2d917c567c: the existing bounded scatter draw moved from Nalati dressing; authored placements and collision remain data', counts: { InstancedMesh: 1 } },
+    'src/game/ambient/wingField.ts': { why: '2d917c567c: the former two ambient wing draws share one row-owned allocation site; creatures remain model-owned', counts: { InstancedMesh: 1 } },
+    'src/game/boss/arenaFire.ts': { why: 'f524ad70dc: the existing flame and smoke effect draws moved from stormTitanLook with their original ceiling', counts: { InstancedMesh: 2 } },
+    'src/game/practice/hookCourse.ts': { why: 'The existing grapple practice room registry piece moved from Nine runtime/tools/hookCourse; no shard world content', counts: { 'registry add with object': 1 } },
+    'src/game/weapons/heldPolearm.ts': { why: '90b6eb13ce: the held spear retains its original single thrown-javelin draw; the empty placeholder allocation is retired', counts: { InstancedMesh: 1 } },
     'src/game/shardfile/worldSceneBatch.ts': { why: 'G483: one declared native batch reserves named models and ordered fixed world instances; bounded rows own capacity and material, never shard drawing callbacks', counts: { BatchedMesh: 1 } },
     'src/game/shardfile/worldSceneWeld.ts': { why: 'Frozen Z2 instances hydrate declared capacity and matrix rows as Scope-owned native draws; no procedural shard content', counts: { InstancedMesh: 1 } },
     'src/game/shardfile/worldScenes.ts': { why: 'G483: declared static scene parts own their collider rows through the resident registry; no procedural shard construction', counts: { 'registry add with object': 1 } },
@@ -251,6 +255,7 @@ const MODEL_RELOCATIONS = new Map([
   ['pine-hollow', 'runtime/models/treeStump.ts', 'treeStump.ts'],
   ['pine-hollow', 'runtime/models/waystone.ts', 'waystone.ts'],
   ['driftwood-isle', 'generators/trailsideModels.ts', 'trailside.ts'],
+  ['nalati-grasslands', 'generators/gear.ts', 'gear.ts'],
 ].map(([slug, source, name]) => [`src/shards/${slug}/${source}`, `src/shards/${slug}/models/${name}`]));
 const modelPath = file => MODEL_RELOCATIONS.get(file) ?? MODEL_RELOCATIONS.get(`${file}.ts`) ?? file;
 const SHARD_FILE = /^src\/shards\/([^/]+)\//;

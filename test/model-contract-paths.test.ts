@@ -80,6 +80,28 @@ describe('model contract after client relocation', () => {
       .toEqual([expect.stringContaining('defineModel outside')]);
   });
 
+  it('retains the exact relocated Nalati gear model contract', () => {
+    const file = 'src/shards/nalati-grasslands/generators/gear.ts';
+    expect(checkModels({ [file]: "defineModel({ id: 'nalati-grasslands/spear' });" }).violations).toEqual([]);
+    expect(checkModels({ [file]: "defineModel({ id: 'other/spear' });" }).violations)
+      .toEqual([expect.stringContaining("must start with 'nalati-grasslands/'")]);
+    expect(checkModels({ 'src/shards/nalati-grasslands/generators/other.ts': "defineModel({ id: 'nalati-grasslands/spear' });" }).violations)
+      .toEqual([expect.stringContaining('defineModel outside')]);
+  });
+
+  it.each([
+    ['src/engine/render/scatterInstances.ts', 'new THREE.InstancedMesh();', 1],
+    ['src/game/ambient/wingField.ts', 'new THREE.InstancedMesh();', 1],
+    ['src/game/boss/arenaFire.ts', 'new THREE.InstancedMesh();', 2],
+    ['src/game/practice/hookCourse.ts', 'registry.add({ object });', 1],
+    ['src/game/weapons/heldPolearm.ts', 'new THREE.InstancedMesh();', 1],
+    ['src/shards/nine-dragon-stack/world/casts.ts', 'new InstancedMesh();', 1],
+  ] as const)('retains the relocated draw ceiling at %s', (file, draw, ceiling) => {
+    expect(checkModels({ [file]: draw.repeat(ceiling) }).violations).toEqual([]);
+    expect(checkModels({ [file]: draw.repeat(ceiling + 1) }).violations)
+      .toEqual([expect.stringContaining(`${ceiling + 1} ×`)]);
+  });
+
   it.each([
     ['src/game/plugin/ui.ts', 'new InstancedMesh();'],
     ['src/game/shardfile/worldSceneWeld.ts', 'new InstancedMesh();'],
