@@ -23,5 +23,4 @@ export interface Ctx {
   readonly emitters: Emitter[];
   readonly fd: Dressing;
   readonly inst: Map<string, Instance[]>;
-  readonly sets: Map<string, BufferGeometry>;
 }

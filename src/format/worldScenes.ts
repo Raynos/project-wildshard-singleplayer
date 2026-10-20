@@ -17,6 +17,10 @@ const library = v.variant('kind', [
   v.strictObject({ id, kind: v.literal('models'), file: id }),
   v.strictObject({ id, kind: v.literal('baked'), file: id }),
   v.strictObject({ id, kind: v.literal('owned'), models: bounded(v.strictObject({ id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), file: v.union([id, v.strictObject({ phone: id, desktop: id })]), segments: v.exactOptional(v.pipe(bounded(id, 15), v.minLength(1))), attributes: v.optional(strings, {}) }), 128) }),
+  // Whole geometry already in the shardfile library: each model one partition id, the tiles (asset hashes) holding it,
+  // optionally posed. `explorer` libraries stay out of the resident world; a specimen reads only its own tiles cold.
+  v.strictObject({ id, kind: v.literal('whole'), load: v.exactOptional(v.literal('explorer')),
+    models: bounded(v.strictObject({ id, part: id, files: v.pipe(bounded(id, 64), v.minLength(1)), matrix: v.exactOptional(v.pipe(v.array(finite), v.length(16))) }), 256) }),
   v.strictObject({ id, kind: v.literal('pool'), files: bounded(v.strictObject({ file: id, parts: bounded(id, 128) }), 32), painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) }),
 ]);
 const material = v.variant('kind', [WorldSceneSurfaceSchema,
@@ -60,7 +64,7 @@ export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World 
     welds: v.optional(bounded(WorldSceneWeldSourceSchema, 32), []),
     placements: v.optional(bounded(v.union([WorldScenePlacementSchema, v.strictObject({ id, file: id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])) })]), 128), []) }),
   v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.batches) && unique(row.welds) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
-    && row.libraries.every(entry => entry.kind === 'models' || entry.kind === 'baked' || (entry.kind === 'owned' ? unique(entry.models) : new Set(entry.files.flatMap(file => file.parts)).size === entry.files.flatMap(file => file.parts).length && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry)))))
+    && row.libraries.every(entry => entry.kind === 'models' || entry.kind === 'baked' || (entry.kind === 'owned' || entry.kind === 'whole' ? unique(entry.models) : new Set(entry.files.flatMap(file => file.parts)).size === entry.files.flatMap(file => file.parts).length && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry)))))
     && row.steps.every(entry => entry.registry.every(piece => piece.active === undefined || piece.mode === undefined) && (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))
       && (entry.lights === undefined || unique(entry.lights)) && (entry.collectMaterials === undefined || new Set(entry.collectMaterials).size === entry.collectMaterials.length)), 'Unique scene identities and exactly one recipe source'));
 type ParsedWorldScenes = v.InferOutput<typeof WorldScenesSchema>;

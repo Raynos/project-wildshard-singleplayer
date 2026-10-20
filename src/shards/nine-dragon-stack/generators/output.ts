@@ -32,6 +32,9 @@ import castRows from '../data/casts.json' with { type: 'json' };
 import { signAtlasBlobs } from './signAtlasOutput';
 import { spillBlobs } from './spillBlobs';
 import { plainWeaveBytes, silkWeaveBytes } from './silkWeave';
+import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from './worldScenes';
+import { emitPlatformSections } from '@wildshard/sdk/platformSections';
+import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 
 const { CAST_CHANNELS } = castRows;
 
@@ -48,7 +51,7 @@ material.name = 'sword';
 const viewmodel = buildViewmodelParts();
 const glyphBlobs = Object.entries(glyphs).map(([tier, row]) =>
   nameBlob(`signs/glyphs-${tier}.json`, 'json', json({ size: row.size, layout: row.layout, rects: row.rects, words: WORDS })));
-const emitted = emitNamedBlobs(glyphBlobs.concat( signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
+const emitted = emitNamedBlobs(glyphBlobs.concat(NINE_SCENE_BLOBS, signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/cast-channels.json', 'json', json(v.parse(CastChannelsSchema, CAST_CHANNELS))),
@@ -61,4 +64,5 @@ const emitted = emitNamedBlobs(glyphBlobs.concat( signAtlasBlobs(), lightVolumeB
   nameBlob('weapons/jian-support.json', 'json', json({ sword: { ...support.sword.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000003' }, arms: { ...support.arms.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000004' }, tipY: support.tipY, baseY: support.baseY, material: { ...material.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000005' } })),
 ]));
 
-export const output = { namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]) };
+export const output = { namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
+  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', NINE_WORLD_SCENES]])) };

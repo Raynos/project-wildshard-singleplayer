@@ -24,6 +24,7 @@ import { hasLentLook, lendLooks, lentLook } from '../shardfile/lentLooks';
 import { loadFirstPartyProduct, runtimeLookMaterials } from '../shardfile/runtimeProduct';
 import { libraryModel } from './libraryModel';
 import { worldSceneSourceMaterial } from '../shardfile/worldSceneMaterials';
+import { readWholeLibrary } from '../shardfile/wholeLibrary';
 import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 
 interface Sources {
@@ -109,10 +110,16 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
     if (declaredMaterials.length !== slots.size) throw new Error('Missing scene model material slot');
     const materialRows = declaredMaterials.filter(row => !current.value?.materials.has(row.id));
     for (const row of materialRows) if (row.kind === 'surface') await admitWorldSceneSurface(row, admitted);
+    const wholes = new Map<string, Awaited<ReturnType<typeof readWholeLibrary>>>();
     for (const draw of declared.geometry) {
       const key = JSON.stringify([draw.library, draw.model]);
       if (geometries.has(key)) continue;
       const library = rows.libraries.find(row => row.id === draw.library);
+      if (library?.kind === 'whole') {
+        const whole = wholes.get(library.id) ?? await readWholeLibrary(owner, admitted, library, new Set(declared.geometry.flatMap(ref => ref.library === library.id ? [ref.model] : []))); wholes.set(library.id, whole);
+        const owned = whole.geometry(draw.model); if (owned === null) throw new Error('Missing declared scene model source');
+        requireLive(owner); geometries.set(key, owned); owner.onDispose(() => { owned.dispose(); }); continue;
+      }
       if (library?.kind !== 'owned') throw new Error('Cold scene models require an owned product library');
       const model = library.models.find(row => row.id === draw.model);
       if (model === undefined) throw new Error('Missing declared scene model source');
@@ -122,6 +129,7 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
       requireLive(owner);
       const owned = geometry.take(); geometries.set(key, owned); owner.onDispose(() => { owned.dispose(); });
     }
+    for (const whole of wholes.values()) whole.done();
     const missing = materialRows.flatMap(row => (row.kind === 'look' || row.kind === 'surface') && row.look !== undefined && !hasLentLook(row.look) ? [row.look] : []);
     if (missing.length > 0) {
       if (ctx.renderer === null) throw new Error('Cold scene graph materials require a renderer');

@@ -10,6 +10,7 @@ import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models
 import { admitWorldSceneSurface, prepareWorldSceneSurfaces, worldSceneSurfaceMaterial } from './worldSceneSurface';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
+import { readWholeLibrary } from './wholeLibrary';
 import { WorldSceneBatch } from './worldSceneBatch';
 import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitWorldSceneModelGraphs } from './worldSceneWeld';
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
@@ -64,10 +65,10 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
   const reference = (ref: { readonly library: string; readonly model: string }, mapped = false): void => {
     const library = libraryRows.get(ref.library);
     if (library?.kind === 'models') { if (!sceneSourceDeclares(product, ref.library, ref.model, mapped ? 'painted' : 'geometry')) throw new Error('Missing declared scene source'); return; }
-    if (library === undefined || library.kind === 'baked' || !(mapped ? library.kind === 'pool' && library.painted.some(row => row.id === ref.model) : library.kind === 'owned' ? library.models.some(row => row.id === ref.model) : library.files.some(row => row.parts.includes(ref.model)))) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
+    if (library === undefined || library.kind === 'baked' || !(mapped ? library.kind === 'pool' && library.painted.some(row => row.id === ref.model) : library.kind === 'owned' || library.kind === 'whole' ? library.models.some(row => row.id === ref.model) : library.files.some(row => row.parts.includes(ref.model)))) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
   };
   // Admission precedes geometry/material allocation, including both cube variants.
-  for (const row of section.libraries) for (const file of row.kind === 'models' || row.kind === 'baked' ? [row.file] : row.kind === 'owned' ? row.models.flatMap(model => [typeof model.file === 'string' ? model.file : model.file[TIER], ...model.segments ?? []]) : [...row.files.map(entry => entry.file), ...row.painted.map(entry => entry.file)]) requireFile(file);
+  for (const row of section.libraries) for (const file of row.kind === 'whole' ? [] : row.kind === 'models' || row.kind === 'baked' ? [row.file] : row.kind === 'owned' ? row.models.flatMap(model => [typeof model.file === 'string' ? model.file : model.file[TIER], ...model.segments ?? []]) : [...row.files.map(entry => entry.file), ...row.painted.map(entry => entry.file)]) requireFile(file);
   for (const row of section.materials) if (row.kind === 'look' || row.kind === 'surface') {
     if (row.look !== undefined && product.shardfile.look.materials[row.look] === undefined) throw new Error(`Missing world scene look: ${row.look}`);
     if (row.kind === 'look' && row.over !== undefined) reference(row.over, true);
@@ -82,11 +83,11 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     if (!Object.is(catalogue.product, product.shardfile.identity.slug)) throw new Error('Scene catalogue product identity differs');
     for (const model of catalogue.models) for (const choice of model.choices) for (const draw of [...choice.draws, ...choice.lods.flatMap(level => level.draws)]) {
       reference(draw);
-      if (libraryRows.get(draw.library)?.kind !== 'owned' || !slots.has(draw.material)) throw new Error('Scene catalogue needs owned geometry and declared material slots');
+      if (!['owned', 'whole'].includes(libraryRows.get(draw.library)?.kind ?? '') || !slots.has(draw.material)) throw new Error('Scene catalogue needs owned geometry and declared material slots');
     }
     modelScenes = await admitWorldSceneModelGraphs(product, catalogue);
     const resources = worldSceneModelResources(catalogue, [...modelScenes.values()]);
-    for (const draw of resources.geometry) { reference(draw); if (libraryRows.get(draw.library)?.kind !== 'owned') throw new Error('Frozen specimens need owned geometry'); }
+    for (const draw of resources.geometry) { reference(draw); if (!['owned', 'whole'].includes(libraryRows.get(draw.library)?.kind ?? '')) throw new Error('Frozen specimens need owned geometry'); }
     for (const slot of resources.materials) if (!slots.has(slot)) throw new Error('Missing frozen specimen material slot');
     for (const slot of worldSceneModelResources({ ...catalogue, models: catalogue.models.filter(model => model.assembly === 'scene') }, [...modelScenes.values()]).materials) frozenSlots.add(slot);
   }
@@ -187,7 +188,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
   // Specimen graphs are fully admitted above; their buffers belong to a requested
   // Explorer choice, rather than every resident world and inactive profile.
   const residentModels = catalogue === undefined ? undefined : { ...catalogue, models: catalogue.models.filter(model => model.assembly !== 'scene') };
-  const modelGeometry = residentModels === undefined ? [] : worldSceneModelResources(residentModels).geometry;
+  const coldOnly = (ref: { readonly library: string }): boolean => { const row = libraryRows.get(ref.library); return row?.kind === 'whole' && row.load === 'explorer'; };
+  const modelGeometry = residentModels === undefined ? [] : worldSceneModelResources(residentModels).geometry.filter(ref => !coldOnly(ref));
   const activeSteps = section.steps.filter(step => step.load !== 'explorer' && (step.cube === undefined || step.cube === (ctx.cube === null ? 'standalone' : 'cell')));
   // Collision predicates may only read an already published scalar from the
   // selected scene graph. Reject absent, wrong-kind and future refs before any
@@ -202,7 +204,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     ...[...batches.values()].flatMap(row => row.geometry),
     ...welds.flatMap(row => row.resources.flatMap(resource => resource.kind === 'geometry' ? [resource.source] : [])
       .concat(row.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : [])))].map(ref => JSON.stringify([ref.library, ref.model])));
-  const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>();
+  const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>(), finish: (() => void)[] = [];
   const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
   if (section.cosmeticDraws !== undefined) {
     const random = ctx.app.rng.stream('cosmetic');
@@ -214,6 +216,11 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         const models = sceneModelSource(product, row.id); await models.preload(() => buildYield(owner));
         libraries.set(row.id, { geometry: id => models.geometry(id), models });
       } else if (row.kind === 'baked') { await sceneBakeSource(product, row.id).load();
+      } else if (row.kind === 'whole') {
+        const used = new Set(row.models.flatMap(model => residentReferences.has(JSON.stringify([row.id, model.id])) ? [model.id] : []));
+        if (row.load === 'explorer' || used.size === 0) continue;
+        const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner));
+        finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
       } else if (row.kind === 'owned') {
         const models = new Map<string, ReturnType<typeof createOwnedGeometry>>();
         for (const model of row.models) {
@@ -371,7 +378,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       await buildYield(owner);
     }
     // Every live/deferred consumer now owns a copy; retire decoder templates.
-    libraries.clear();
+    libraries.clear(); for (const done of finish) done();
     return handles;
   } catch (error) { owner.dispose(); throw error; }
 }

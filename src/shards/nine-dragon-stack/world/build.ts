@@ -12,15 +12,15 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Box3, ClampToEdgeWrapping, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3,
+  Box3, type BufferGeometry, ClampToEdgeWrapping, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3,
 } from 'three';
-import type { InKit, Piece } from './ctx';
-import { inkFigure } from '../models/inKit';
-import { FACADE_BAKED, FACADE_MODELS, brassDragonHook, drumStool, mahjongTableModel, parkedScooter, paifang, hawkerStallModel, noodleStallModel, lotusFinial, laundryLineModel, landingPlanterModel, wellBalustrade, lampPostModel, lotusPostModel, airConBox, galleryPlant } from '../models/catalogue';
-import { banyan, earthGodShrine, kowloonSteleModel } from '../models/banyan';
+import type { Piece } from './ctx';
 import { registerSigns } from '../models/signs';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
+import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
 import { placeSet } from '@wildshard/engine/models/sets';
 import { type DrawnPlaced as InKitPlaced, registerDrawnInto } from '../runtime/kit/drawnInto';
+import { defineModel, sharedModelContext, type ModelContext, type ModelDef, type ModelPart, type Placement } from '@wildshard/engine/models/model';
 import { Lanterns } from '../look/lanterns';
 import { createSceneBuffers } from '@wildshard/game/shardfile/sceneBuffers';
 import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
@@ -30,25 +30,22 @@ import { loadPaint } from '../look/paint';
 import { loadTextureRow } from '@wildshard/engine/core/assets';
 import metadata, { Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
-import { placeSquareProps } from './squareProps';
 import { Shared, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { gpuOnlyAttributes, gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
-import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
-import { type Placed, place, placeSliced } from '@wildshard/engine/models/place';
+import { type Placed, copiesAt, place, placeSliced } from '@wildshard/engine/models/place';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { ndModelContext, loadSpecimens, takeSpecimen } from './modelLook';
-import { paperLantern } from '../models/paperLantern';
-import { cableGondola, drone, monorailTrain } from '../models/movers';
+import { ndLook, ndModelContext, need } from './modelLook';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { buildPortals } from './portals';
 import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, umbrellaWalker } from '../models/crowd';
 import { loadLayoutBake, restoreLayout } from './layoutBake';
-import { loadCast, loadFixedRows, loadSignAtlas, loadSpill, loadFacadeWindows } from './casts';
+import { loadCast, loadCastLods, loadFixedRows, loadSignAtlas, loadSpill, loadFacadeWindows } from './casts';
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
 
@@ -59,20 +56,17 @@ const canopyRows = metadata.looks.canopy as LookRows['canopy'];
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
 
 
-/** the wall kit's model per piece (ctx.put's pieces that are placed: models/wallKit.ts) */
-const WALL_KIT: Readonly<Partial<Record<Piece, ModelDef<Record<string, unknown>>>>> = { plant: galleryPlant };
+/** the catalogue model of each set the square's builders queued (a pavilion's copies carry their turn) */
+const SETS: Readonly<Record<string, string>> = { booth: 'marketBooth', parasol: 'parasolTable', 'balustrade-panel': 'balustradePanel', pavilion: 'diningPavilion' };
+/** the guardian lion: its TRELLIS cast and authored LODs, loaded before the square places it */
+const cast = (key: string) => (ctx: ModelContext): readonly ModelPart[] => [{ geometry: need(ndLook(ctx).geo.get(key), `the cast ${key}`), material: lentLook('nine-architecture') }];
+const guardianLion = defineModel({ id: 'nine-dragon-stack/guardian-lion', name: 'Guardian lion', category: 'props', pipeline: 'trellis', file: 'src/shards/nine-dragon-stack/world/build.ts',
+  defaults: {}, build: cast('lion'), lods: [{ from: 10, build: cast('lion:mid10') }, { from: 30, build: cast('lion:mid30') }] });
 
-/** the models drawn into the kits (models/inKit.ts: the brass dragon hooks, stools, scooters, mahjong tables and brush-drawn
- *  figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts), registered on
- *  their kits' meshes in this order */
-/** one model drawn into the kits: its id, and its copies registered on their kits' meshes */
-interface InKitModel { readonly id: string; readonly register: (nd: ModelContext, copies: readonly InKit[], meshOf: (k: string) => Mesh | undefined) => InKitPlaced[] }
-const inKitModel = <P extends object>(model: ModelDef<P>): InKitModel => ({ id: model.id, register: (nd, copies, meshOf) => registerDrawnInto(nd, copies, model, meshOf, 'nds-') });
-const IN_KIT: readonly InKitModel[] = [
-  inKitModel(brassDragonHook), inKitModel(drumStool), inKitModel(parkedScooter), inKitModel(mahjongTableModel), inKitModel(inkFigure), inKitModel(paifang), inKitModel(banyan), inKitModel(earthGodShrine),
-  inKitModel(kowloonSteleModel), inKitModel(noodleStallModel), inKitModel(hawkerStallModel), inKitModel(lotusFinial), inKitModel(laundryLineModel), inKitModel(landingPlanterModel), inKitModel(wellBalustrade), inKitModel(lotusPostModel), inKitModel(lampPostModel),
-];
+/** the wall kit's catalogue model per piece (ctx.put's pieces that are placed) */
+const WALL_KIT: Readonly<Partial<Record<Piece, string>>> = { plant: 'galleryPlant' };
 
+const isMesh = (value: unknown): value is Mesh => value instanceof Mesh;
 /** a placement from a copy's matrix (its translation is where it stands) */
 const at = <P extends object = object>(m: Matrix4, color?: Color): Placement<P> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m, ...(color === undefined ? {} : { color }) });
 
@@ -98,7 +92,7 @@ export interface NineDragonWorld {
 
 /** build the fragment's world; `progress(0..1)` as it goes; `opts.pause` ends a stretch between phases (the plugin's
  *  paced `worldBuildYield`, op-hitch45: in play it waits for a drawn frame when one is due, else it is a timer task) */
-export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; sky: SkyRig; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
+export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; sky: SkyRig; scenes: SceneHandles; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
   const product = await loadFirstPartyProduct('nine-dragon-stack', opts.scope);
   const { world: worldRows, presentation: cardRows, volumes } = await product.json<GeometryBoot>('geometry/layout.json');
   const worldData = new Float64Array(Uint8Array.from(await product.file('geometry/world-f64.bin')).buffer);
@@ -114,8 +108,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const slice = slicer(30);
   progress(0, 'paint + fonts');
   const layoutReady = loadLayoutBake(opts.scope);
-  // G285: the code-built models and canopy share the owned geometry library.
-  const specimensReady = loadSpecimens(opts.scope, 'boot');
+  // every code-built model is a row of the world-scene catalogue (generators/worldScenes.ts), placed on the shared context
+  const catalogueRows = parseWorldSceneModels(await product.json<unknown>('models/world-scenes.json')), keys = new Map(catalogueRows.models.map(row => [row.id, row.key]));
+  const models = { ctx: sharedModelContext(opts.sky, { renderer }), model: defineWorldSceneCatalogue(catalogueRows).model };
   const paintStart = performance.now();
   const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
     .then((paint) => { phaseDone('paint', paintStart); return paint; });
@@ -137,12 +132,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   shared.u.uShaft.value.set(SHAFT.x0, SHAFT.z0, SHAFT.x1, SHAFT.z1);
   shared.u.uShaftK.value.y = Y0;
   // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
-  const nd = ndModelContext(renderer, opts.scope, opts.sky);
+  const nd = ndModelContext(renderer, opts.sky);
   // G285: the layout (the square, the towers, the Well) is an offline bake (../generators/layout.ts, world/layoutBake.ts):
   // the page restores it and has no live builders to fall back on
   const layout = await layoutReady;
-  const specimens = await specimensReady;
-  nd.look.specimens = specimens;
   progress(0.2, 'layout: baked');
   // the layout's geometry copies (with their bounds) are made in slices first: the restore then only takes them
   await layout.prepare(() => slice());
@@ -167,7 +160,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const mat = lentLook('nine-architecture'), matA = lentLook('nine-architecture-cut');
   const paper = new Lanterns(fixed.lantern);
   bindLowPolyMaterial(opts.sky, 'nine-architecture', mat, opts.scope);
-  nd.look.lantern = paper.material;
   const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
   for (const m of ctx.lanterns) { m.decompose(tmpP, tmpQ, tmpS); paper.hang(tmpP.clone(), tmpS.x); }
   // every mesh is named by what built it (`kit:<name>`, `facade`, `crowd`, …): the budget ruler sorts them into lanes
@@ -183,30 +175,44 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await loadSpill(kitGeos, tier, entryCaps);
   phaseDone('neon spill', phaseStart);
   phaseStart = performance.now();
-  const canopy = specimens.has('canopy:cards') ? { cards: takeSpecimen(specimens, 'canopy:cards'), core: takeSpecimen(specimens, 'canopy:core') } : null;
-  if (canopy !== null) await loadSpill([['canopy-cards', canopy.cards], ['canopy-core', canopy.core]], tier, entryCaps);
-  const crown: Mesh[] = [];
-  if (canopy !== null) {
-    const leafAtlas = opts.scope.own(await loadTextureRow(canopyRows.atlas)), image: unknown = leafAtlas.image;
-    if (typeof image !== 'object' || image === null || !('width' in image) || !('height' in image)
-      || typeof image.width !== 'number' || typeof image.height !== 'number' || image.width <= 0 || image.height <= 0) throw new Error('Canopy atlas needs its pixel dimensions');
-    setLentTexture('nine-canopy-cards', 'atlas', leafAtlas);
-    setLentParam('nine-canopy-cards', 'atlasSize', [image.width, image.height]);
-    for (const row of canopyRows.draws) {
-      const mesh = new Mesh(canopy[row.geometry], lentLook(row.look));
-      mesh.material.setValues(row.state); mesh.renderOrder = row.order; crown.push(mesh);
-    }
+  // the world's banyan crown and the Well's mist: the catalogue's `dressing` step (its crown spilled like the kits)
+  const leafAtlas = opts.scope.own(await loadTextureRow(canopyRows.atlas)), image: unknown = leafAtlas.image;
+  if (typeof image !== 'object' || image === null || !('width' in image) || !('height' in image)
+    || typeof image.width !== 'number' || typeof image.height !== 'number' || image.width <= 0 || image.height <= 0) throw new Error('Canopy atlas needs its pixel dimensions');
+  setLentTexture('nine-canopy-cards', 'atlas', leafAtlas);
+  setLentParam('nine-canopy-cards', 'atlasSize', [image.width, image.height]);
+  for (const row of canopyRows.draws) lentLook(row.look).setValues(row.state);
+  if (opts.scenes.has('dressing.crown-core')) {
+    const crownPart = (id: string): BufferGeometry => { const part = opts.scenes.object(`dressing.${id}`); if (!isMesh(part)) throw new Error(`Nine dressing ${id} is no mesh`); return part.geometry; };
+    const crown = [['canopy-cards', crownPart('crown-cards')], ['canopy-core', crownPart('crown-core')]] as const;
+    await loadSpill(crown, tier, entryCaps);
+    for (const [, geometry] of crown) gpuOnlyAttributes(geometry, STATIC_GEOMETRY);
   }
-  for (const m of crown) { gpuOnlyAttributes(m.geometry, STATIC_GEOMETRY); root.add(named(m, 'canopy')); }
-  // (the banyan model's specimen wears the same crown, models/banyan.ts)
-  const [core, cards, depth] = crown.map((m) => (Array.isArray(m.material) ? undefined : m.material));
-  if (core !== undefined && cards !== undefined && depth !== undefined) nd.look.canopy = { core, cards, depth };
+  root.add(opts.scenes.group('dressing.root'));
   phaseDone('canopy', phaseStart);
   phaseStart = performance.now();
   // (E283, Jake's pick) the distance LODs are the models' own (models/: meshoptimizer copies of the sculpts, their error
   // under SCULPT_PX px where each starts, data/lod.ts; the facade dressing's and the balustrade's thin parts dropped where
   // they are ~half a pixel wide), handed to the culler with their batches
-  const squareSets = await placeSquareProps({ ctx: nd.ctx, look: nd.look, root, rows: worldRows, records: worldData, sets: ctx.sets, due: slice.due });
+  // the square's lions and its queued sets; the named places' Sets share them (Lantern Square's panels and lions, the
+  // stair-street's and the Well rim's lions), the booths, parasol tables and pavilions are the night market
+  const squareSets = { square: [] as Placed[], stair: [] as Placed[], rim: [] as Placed[] }, market: Placed[] = [];
+  if (worldRows.lions.length > 0) {
+    const geometry = await loadCast('lion'); nd.look.geo.set('lion', geometry);
+    await loadCastLods(nd.look.geo, 'lion', geometry, [10, 30]);
+    const lions = await placeSliced(guardianLion, worldRows.lions.map(frame => at(new Matrix4().fromArray(worldData, frame))), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-lions' } }, slice.due);
+    nameDraws(lions, 'glb:lion');
+    for (const [k, idx] of [['square', worldRows.shares.plaza], ['stair', worldRows.shares.street], ['rim', worldRows.shares.rim]] as const) { const share = copiesAt(lions, idx); if (share !== null) squareSets[k].push(share); }
+  }
+  for (const { name, frames } of worldRows.sets) {
+    const placed = await placeSliced(models.model(need(SETS[name], `the set '${name}'`)), frames.map(frame => {
+      const m = new Matrix4().fromArray(worldData, frame);
+      return name === 'pavilion' ? Object.assign(at<Record<string, unknown>>(m), { params: { turn: Math.atan2(m.elements[8], m.elements[0]) } }) : at<Record<string, unknown>>(m);
+    }), { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: `nds-set-${name}` } }, slice.due);
+    nameDraws(placed, `set:${name}`);
+    (name === 'balustrade-panel' ? squareSets.square : market).push(placed);
+  }
+  if (market.length > 0) placeSet({ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/shards/nine-dragon-stack/generators/stalls.ts', place: 'nine-dragon-stack/night-market', members: market });
   phaseDone('square props', phaseStart);
   await slice();
   // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below; E264: the kits are ~100 MB of
@@ -216,12 +222,17 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // brush-drawn figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts)
   // registered on their kits' meshes
   const meshOfKit = (name: string): Mesh | undefined => kits.byName.get(name);
-  const inKit = ctx.inKit.filter((c) => !IN_KIT.some((m) => m.id === c.model));
-  if (inKit.length > 0) throw new Error(`nine-dragon: '${inKit[0]?.model}' is drawn into a kit but is no model here (world/build.ts)`);
+  const byId = new Map<string, ModelDef<Record<string, unknown>>>();
+  for (const id of new Set(ctx.inKit.map(c => c.model))) byId.set(id, models.model(need(keys.get(id), `the drawn-in model ${id}`)));
   await slice();
   const inKitPlaced: InKitPlaced[] = [];
-  for (const model of IN_KIT) { inKitPlaced.push(...model.register(nd.ctx, ctx.inKit, meshOfKit)); await slice(); }
-  const lanterns = await placeSliced(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-lanterns' } }, slice.due);
+  // a copy registers on its authored card; one drawn with free params (a laundry line's span and rise) on the default one
+  const canonical = (params: object): string => JSON.stringify(Object.entries(params).sort(([a], [b]) => a.localeCompare(b)));
+  const authored = new Set(catalogueRows.models.flatMap(row => row.choices.map(choice => `${row.id}:${canonical(choice.params)}`)));
+  const copies = ctx.inKit.map(c => { const row = catalogueRows.models.find(m => m.id === c.model), { params: _free, ...pose } = c.at;
+    return row === undefined || authored.has(`${c.model}:${canonical({ ...row.defaults, ...c.at.params })}`) ? c : { ...c, at: pose }; });
+  for (const model of byId.values()) { inKitPlaced.push(...registerDrawnInto(models.ctx, copies, model, meshOfKit, 'nds-')); await slice(); }
+  const lanterns = await placeSliced(models.model('paperLantern'), paper.placements(), { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-lanterns' } }, slice.due);
   lanterns.object.name = 'lanterns';
   progress(0.56, 'facade batches');
   phaseStart = performance.now();
@@ -229,7 +240,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md.
   const facade = new Group(); facade.name = 'facade';
   const uniforms = facadeUniforms(shared), facadeMat = facadeMaterial(uniforms);
-  nd.look.facade = { mat: facadeMat, small: facadeMaterial(uniforms, { shrink: [55, 85] }) };
   const poses = (offset: number, count: number): Placement<Record<string, unknown>>[] => Array.from({ length: count }, (_, index) => {
     const offsetAt = offset + index * 19, matrix = new Matrix4().fromArray(worldData, offsetAt);
     return { ...at<Record<string, unknown>>(matrix), color: new Color().fromArray(worldData, offsetAt + 16) };
@@ -238,14 +248,14 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   if (shell !== null) {
     shell.name = 'facade-shell'; facade.add(shell); ctx.fd.shell = null;
     for (const row of worldRows.facade.baked) {
-      const model = FACADE_BAKED[row.id]; if (model === undefined) throw new Error(`Missing facade model ${row.id}`);
-      place(model, poses(row.poses, row.count), { ctx: nd.ctx, draw: 'merged', drawnInto: { object: shell, boxes: Float32Array.from(worldData.subarray(row.boxes, row.boxes + row.count * 6)) }, piece: { id: `nds-facade-${row.id}`, name: model.name } });
+      const model = models.model(`facade:${row.id}`);
+      place(model, poses(row.poses, row.count), { ctx: models.ctx, draw: 'merged', drawnInto: { object: shell, boxes: Float32Array.from(worldData.subarray(row.boxes, row.boxes + row.count * 6)) }, piece: { id: `nds-facade-${row.id}`, name: model.name } });
     }
     gpuOnlyAttributes(shell.geometry, STATIC_GEOMETRY);
   }
   for (const row of worldRows.facade.drawn) {
-    const model = FACADE_MODELS[row.id]; if (model === undefined) throw new Error(`Missing facade model ${row.id}`);
-    nameDraws(await placeSliced(model, poses(row.poses, row.count), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere', ...(row.small ? { far: 85 } : {}) }, parent: facade, piece: { id: `nds-facade-${row.id}`, name: model.name } }, slice.due), `facade-${row.id}`);
+    const model = models.model(`facade:${row.id}`);
+    nameDraws(await placeSliced(model, poses(row.poses, row.count), { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere', ...(row.small ? { far: 85 } : {}) }, parent: facade, piece: { id: `nds-facade-${row.id}`, name: model.name } }, slice.due), `facade-${row.id}`);
   }
   facade.add(...await loadFacadeWindows(windowMaterial(uniforms)));
   root.add(facade); phaseDone('facade', phaseStart);
@@ -273,9 +283,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const wellKit: Placed[] = [];
   for (const [key, list] of ctx.inst) {
     const piece = key.slice(0, key.indexOf('@')) as Piece;
-    const model = WALL_KIT[piece];
-    if (model === undefined) throw new Error(`nine-dragon: the wall kit's '${piece}' is no model yet (models/wallKit.ts)`);
-    const placed = await placeSliced(model, list.map((it) => at<Record<string, unknown>>(it.m, it.c)), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: `nds-inst-${key}` } }, slice.due);
+    const model = models.model(need(WALL_KIT[piece], `the wall kit's '${piece}'`));
+    const placed = await placeSliced(model, list.map((it) => at<Record<string, unknown>>(it.m, it.c)), { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: `nds-inst-${key}` } }, slice.due);
     nameDraws(placed, `inst:${key}`);
     if (!key.endsWith('@town')) wellKit.push(placed);
   }
@@ -285,7 +294,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     const members = [...inKitPlaced.filter(copy => region.kits.includes(copy.kit)).map(copy => copy.placed), ...extras.get(region.extra) ?? []];
     if (members.length > 0) placeSet({ id: region.id, name: region.name, place: region.place, file: 'src/shards/nine-dragon-stack/generators/worldRows.ts', members });
   }
-  if (ctx.acs.length > 0) nameDraws(await placeSliced(airConBox, ctx.acs.map((m) => at<Record<string, unknown>>(m)), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-inst-ac' } }, slice.due), 'inst:ac');
+  if (ctx.acs.length > 0) nameDraws(await placeSliced(models.model('airConBox'), ctx.acs.map((m) => at<Record<string, unknown>>(m)), { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-inst-ac' } }, slice.due), 'inst:ac');
   await slice();
 
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
@@ -294,12 +303,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   setLentTexture('nine-neon', 'mono', atlas.textures.mono);
   setLentTexture('nine-neon', 'colour', atlas.textures.colour);
   nd.look.neon = { mat: neon, atlas };
-  const movers = (model: ModelDef<object>, programs: readonly unknown[], id: string): RunningMover[] => placeMovers(model, programs, { ctx: nd.ctx, parent: root, id, name: 'movers' });
-  const running = [
-    ...movers(monorailTrain, declarations.clientChannels.slice(0, 1), 'nds-train'),
-    ...movers(cableGondola, declarations.clientChannels.slice(1, 2), 'nds-gondola'),
-    ...movers(drone, declarations.clientChannels.slice(2), 'nds-drones'),
-  ];
+  const movers = (key: string, programs: readonly unknown[], id: string): RunningMover[] => placeMovers(models.model(key), programs, { ctx: models.ctx, parent: root, id, name: 'movers' });
+  const drones = movers('drone', declarations.clientChannels.slice(2), 'nds-drones');
+  // a drone carries its navigation lights (red, white, cyan): neon quads in the sign atlas
+  for (const { body } of drones) body.add(new Mesh(atlas.geometry('drone'), neon));
+  const running = [...movers('monorailTrain', declarations.clientChannels.slice(0, 1), 'nds-train'), ...movers('cableGondola', declarations.clientChannels.slice(1, 2), 'nds-gondola'), ...drones];
   await slice();
   const signsMesh = named(new Mesh(signs.geometry('world'), neon), 'signs');
   root.add(signsMesh);
@@ -322,15 +330,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // (the stair-street's own screen over x 43…113 at +173 is gone: from the square and landing 1 it was a flat teal
   // ceiling over the stair paifang, where every C target paints blue-hour sky; E281 stair pass 3's experiment)
   root.add(named(screen, 'screens'));
-  if (worldRows.sheets.length > 0) {
-    const sheets = new Mesh(takeSpecimen(specimens, 'mist:sheets'), lentLook('nine-mist-sheet'));
-    sheets.renderOrder = 2;
-    root.add(named(sheets, 'sheets'));
-  }
-  const steam = new Mesh(takeSpecimen(specimens, 'mist:steam'), lentLook('nine-steam'));
-  steam.frustumCulled = false;
-  steam.renderOrder = 3;
-  root.add(named(steam, 'steam'));
   progress(0.75, 'crowd models');
   phaseDone('streaks + dressing', phaseStart);
 

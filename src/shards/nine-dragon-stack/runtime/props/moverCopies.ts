@@ -6,10 +6,10 @@ import { place } from '@wildshard/engine/models/place';
 import { createClientChannels } from '@wildshard/game/plugin/channels';
 
 /** One private decorative copy, with no authoritative body or write port exposed. */
-export interface RunningMover { readonly advance: (time: number) => void }
+export interface RunningMover { readonly body: Object3D; readonly advance: (time: number) => void }
 
 /** Place one copy per declared visual program and retain its original t=0 placement and naming. */
-export function placeMovers(model: ModelDef<object>, programs: readonly unknown[], opts: { readonly ctx: ModelContext; readonly parent: Object3D; readonly id: string; readonly name: string }): RunningMover[] {
+export function placeMovers(model: ModelDef<Record<string, unknown>>, programs: readonly unknown[], opts: { readonly ctx: ModelContext; readonly parent: Object3D; readonly id: string; readonly name: string }): RunningMover[] {
   const observation = { time: 0, delta: 0, values: [] as readonly number[] };
   const missingPosition = new Error('Missing declared decorative position');
   const views = programs.map(program => { const view = createClientChannels(program); view.evaluate(observation); return view; });
@@ -23,7 +23,7 @@ export function placeMovers(model: ModelDef<object>, programs: readonly unknown[
   for (const o of copies) o.name = opts.name;
   return views.map((view, index) => {
     const body = copies[index]; if (body === undefined) throw new Error('Missing declared decorative copy');
-    return { advance: time => {
+    return { body, advance: time => {
       observation.time = time; view.evaluate(observation);
       const { x, y, z, yaw } = view.frame;
       if (x === undefined || y === undefined || z === undefined) throw missingPosition;

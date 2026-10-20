@@ -31,6 +31,7 @@ import { playerRider, type PortalRide } from './world/portalRide';
 import { installPortals } from './world/portalVeil';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
+import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 
 
 /** beyond this far from the cell's centre (m) the player is out by the road-height decks (the fragment spans ~±80 m) */
@@ -52,11 +53,12 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
   const world = await residentWorld.load(ctx, async owner => {
     lendLooks(owner, await lookGraphMaterials(owner, render, source, Object.keys(source.look.materials)));
     await prepareNinePost(render.renderer);
+    const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner);
     // G200: `caps` standalone (no grid cube): each deck's open end is closed by its balustrade; in a grid cell the road continues
     return buildNineDragonWorld(render.renderer, (fraction, detail) => {
       ctx.progress.set(fraction, 1);
       if (detail !== undefined) ctx.progress.detail(detail);
-    }, render.tier, { scope: owner, sky, caps, pause });
+    }, render.tier, { scope: owner, sky, scenes, caps, pause });
   });
   return { world, camera: render.camera };
 }

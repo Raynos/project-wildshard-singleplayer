@@ -73,7 +73,10 @@ export async function loadLayoutBake(owner: Scope): Promise<LayoutBake> {
   const rows = restoreLayoutZeros(boot), { library } = boot;
   if (bytes.byteLength !== library.records * 8 || rows.geometries.length !== library.layoutDraws) throw new Error('Nine layout inventory differs');
   const views = await readWholeGeometry(owner, product.shardfile, library.layout), indexed = new Map<number, BufferGeometry>();
+  // the square's sets are catalogue models now (generators/worldScenes.ts): their tiles are not read here
+  const sets = new Set(rows.sets.map(row => row.geo));
   for (let i = 0; i < rows.geometries.length; i++) {
+    if (sets.has(i)) continue;
     const view = views.get(`layout_${i}`);
     if (view === undefined || !view.matrix.equals(new Matrix4())) throw new Error(`Missing identity-space Nine layout draw ${i}`);
     view.release?.(); indexed.set(i, view.geometry);
@@ -85,7 +88,7 @@ export async function loadLayoutBake(owner: Scope): Promise<LayoutBake> {
 const vec = (a: readonly [number, number, number]): Vector3 => new Vector3(a[0], a[1], a[2]);
 
 export function restoreLayout(bake: LayoutBake): Ctx {
-  const ctx: Ctx = { kits: new Map(), alphaKits: new Map(), reflective: new Set(), farOf: new Map(), lanterns: [], acs: [], hooks: [], hookMounts: [], inKit: [], map: [], steam: [], emitters: [], inst: new Map(), sets: new Map(),
+  const ctx: Ctx = { kits: new Map(), alphaKits: new Map(), reflective: new Set(), farOf: new Map(), lanterns: [], acs: [], hooks: [], hookMounts: [], inKit: [], map: [], steam: [], emitters: [], inst: new Map(),
     fd: { windows: [], shell: null, towers: 0 } };
   const r = bake.rows, f = bake.f64;
   let at = 0;
@@ -114,7 +117,7 @@ export function restoreLayout(bake: LayoutBake): Ctx {
     ctx.inst.set(key, list);
   }
   at += c.lions * 16;
-  for (const row of r.sets) { ctx.sets.set(row.name, bake.geometry(row.geo)); at += row.count * 16; }
+  for (const row of r.sets) at += row.count * 16;
   if (at !== f.length) throw new Error('[nine-dragon] the layout bake has records left over');
   if (r.shell !== null) ctx.fd.shell = bake.geometry(r.shell);
   ctx.fd.towers = r.towers;

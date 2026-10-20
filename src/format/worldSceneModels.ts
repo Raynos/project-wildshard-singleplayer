@@ -24,7 +24,7 @@ const graphLeaf: v.GenericSchema<unknown, WorldSceneWeld | { file: string }> = v
 const graphChoice = v.union([graphLeaf, v.strictObject({ phone: graphLeaf, desktop: graphLeaf })]);
 const frozen = v.union([graphChoice, v.strictObject({ knob, false: graphChoice, true: graphChoice })]);
 const choice = v.strictObject({ id, params, size: v.tuple([finite, finite, finite]), draws: list(draw, 64), scene: v.exactOptional(frozen), lods: v.optional(list(levelSchema, 8), []), colliders: list(v.unknown(), 2048), site: v.exactOptional(site) });
-const model = v.strictObject({ key: id, id, name: id, file: id, category: v.picklist(['buildings', 'nature', 'props', 'gear']), pipeline: v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0']), surface: v.exactOptional(surface), defaults: params,
+const model = v.strictObject({ key: id, id, name: id, file: id, category: v.picklist(['buildings', 'nature', 'creatures', 'people', 'gear', 'props']), pipeline: v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0']), surface: v.exactOptional(surface), specimenYaw: v.exactOptional(finite), defaults: params,
   variants: v.optional(list(v.strictObject({ id, label: id, params }), 128), []), assembly: v.optional(v.picklist(['weld', 'parts', 'objects', 'scene']), 'weld'), choices: list(choice, 128) });
 /** Static model recipes over Z2's product libraries and material slots. No executable ports. */
 export const WorldSceneModelsSchema: v.GenericSchema<unknown, WorldSceneModels> = v.pipe(v.unknown(), v.check(isJsonData, 'Scene model recipes require plain JSON'),
