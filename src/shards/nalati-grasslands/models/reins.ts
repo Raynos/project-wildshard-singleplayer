@@ -1,4 +1,4 @@
-import { reinSpecimen } from '@wildshard/game/riding/presentation';
+import { reinSpecimen } from '@wildshard/game/riding/reins';
 
 /** The Explorer owns its own straps and preparation, separate from the rider. */
 export const reins = reinSpecimen({

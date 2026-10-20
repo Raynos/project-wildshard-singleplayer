@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { ReinRibbonFrame } from '@wildshard/format/riding';
-import { ReinRibbon } from '@wildshard/game/riding/presentation';
+import { ReinRibbon } from '@wildshard/game/riding/reins';
 import { nalatiReinRows } from '../runtime/reins';
 
 const _m = new THREE.Matrix4(), _v = new THREE.Vector3();

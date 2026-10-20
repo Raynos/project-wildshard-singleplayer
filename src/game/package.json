@@ -254,7 +254,8 @@
     "./audio/sceneDirector": "./audio/sceneDirector.ts",
     "./ambient/wingField": "./ambient/wingField.ts",
     "./looks/staticCapture": "./looks/staticCapture.ts",
-    "./looks/grassPresentation": "./looks/grassPresentation.ts"
+    "./looks/grassPresentation": "./looks/grassPresentation.ts",
+    "./riding/reins": "./riding/reins.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

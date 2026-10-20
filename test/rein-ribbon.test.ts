@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { Mesh, PerspectiveCamera, Vector3 } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { ReinRibbonFrame, ReinRibbonRows } from '@wildshard/format/riding';
-import { ReinRibbon, buildReinsRibbon, fillRein } from '@wildshard/game/riding/presentation';
+import { ReinRibbon, buildReinsRibbon, fillRein } from '@wildshard/game/riding/reins';
 import rows from '../src/shards/nalati-grasslands/data/reins.json' with { type: 'json' };
 
 const orchard: ReinRibbonRows = { span: 3, halfWidth: .014, heldRate: 4, droppedSag: .09,
