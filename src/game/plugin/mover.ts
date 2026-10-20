@@ -190,14 +190,20 @@ function continuationRows(rows: MoverData): MoverData {
 export interface MoverBodyState { id: string; handle: number }
 const continuation = v.strictObject({ lifecycle: v.exactOptional(MoverLifecycleStateSchema), pending: v.pipe(v.array(v.tuple([v.string(), v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(3))])), v.maxLength(32)),
   bodies: v.pipe(v.array(v.strictObject({ id: v.string(), handle: v.pipe(v.number(), v.finite(), v.minValue(0)) })), v.maxLength(32)) });
-/** Installed owners are scoped; an empty scope has no active mover ride. */
-const installedMovers = new WeakMap<Scope, Set<MoverRuntime>>();
-/** Borrow active carry state from installed mover owners; never create another controller. */
-export function moversRiding(scope: Scope): boolean { return [...installedMovers.get(scope) ?? []].some(owner => owner.riding()); }
 export interface MoverRideTransition { readonly riding: boolean; readonly arrived?: 1 | -1; readonly hint?: string }
 interface CarryPose { readonly riding: boolean; readonly at: readonly [number, number, number]; readonly yaw: number }
 /** Data/script bridge to engine physics; imported code installs nothing, and presentation only reads published state. */
 export class MoverRuntime {
+  /** Admit data bindings for already constructed native resources. The caller
+   * lends actual flags/prompts/assets; this host retains the fixed-step owner. */
+  static enter(ctx: LevelContext, world: World, data: MoverData,
+    rows: { readonly systemId: string; readonly bindings: NonNullable<MoverInstallation['borrowed']>['rows'] }, targets: unknown,
+    ports: Pick<MoverInstallation, 'flags' | 'prompts' | 'admitted' | 'read'> = {}): Promise<MoverRuntime> {
+    v.parse(v.strictObject({ systemId: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), bindings: v.unknown() }), rows);
+    return installDeclaredMovers(ctx, world, { ...ports, data, modules: new Map(), systemId: rows.systemId,
+      borrowed: { rows: rows.bindings, targets } });
+  }
+
   readonly data: MoverData;
   private readonly rideEvents = new Map<string, MoverRideTransition[]>();
   private readonly carryPoses = new Map<string, CarryPose>();
@@ -220,8 +226,6 @@ export class MoverRuntime {
   private readonly mechanics = new Map<string, MoverMechanic>();
   constructor(data: MoverData, ports: MoverPorts) {
     this.data = parseMovers(data); this.flags = ports.flags;
-    const owners = installedMovers.get(ports.scope) ?? new Set<MoverRuntime>(); owners.add(this); installedMovers.set(ports.scope, owners);
-    ports.scope.onDispose(() => { owners.delete(this); if (owners.size === 0) installedMovers.delete(ports.scope); });
     for (const row of this.data) if (row.carry?.arrival !== undefined && this.flags === undefined) throw new Error('Mover arrival requires the actual flags owner');
     this.host = ports.host; this.activation = ports.activation ?? {};
     for (const row of this.data) if (row.execution === 'native') this.mechanics.set(row.id, new MoverMechanic(nativeMotion(row)));
@@ -314,6 +318,7 @@ export class MoverRuntime {
   /** Protect ordinary walking while the existing fixed mover lane publishes carry. */
   bindNativeCarry(host: SimHost): void {
     if (!this.data.some(row => row.carry !== undefined)) return;
+    host.events.answer('player.carrying', carried => carried || this.riding(), host.scope);
     host.events.answer('player.traversal', dt => typeof dt === 'number' ? this.riding() : dt, host.scope);
     host.onStep('movers.carry', () => { this.carryNative(host); }, undefined, 'afterBodies');
   }

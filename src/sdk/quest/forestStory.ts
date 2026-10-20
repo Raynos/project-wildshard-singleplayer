@@ -5,7 +5,7 @@ import { installChapterStory, installQuestFlags, installQuestInteractables } fro
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
-import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
+import { MoverRuntime } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { perfLap } from '@wildshard/engine/core/perfLap';
@@ -227,7 +227,6 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   let zip: { trolley: THREE.Mesh; prompt: ReturnType<typeof cables.bindView> };
   let canoe: { group: THREE.Mesh };
   let motion: MoverRuntime;
-  let moverAway = false;
   {
     const trolley = new THREE.Mesh(parts.geometry(rows.cable.geometry), figuresBook.material(figureScenes)); trolley.castShadow = true; trolley.name = 'zip-trolley';
     zip = { trolley, prompt: cables.bindView(cableId, trolley, player,
@@ -236,8 +235,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Canoe requires its active world');
     canoe = { group: new THREE.Mesh(parts.geometry(rows.mover.geometry), figuresBook.material(figureScenes)) }; canoe.group.castShadow = true; canoe.group.visible = false; canoe.group.name = 'canoe-ride';
     game.scene.add(canoe.group);
-    motion = await installDeclaredMovers(ctx, world, { data: ctx.product.shardfile.movers, modules: new Map(), flags, prompts: h.interactables, systemId: rows.mover.system,
-      borrowed: { rows: [{ id: rows.mover.id, target: 'canoe', group: 'group', visibility: 'enabled', order: 'XYZ' }], targets: { canoe } } });
+    motion = await MoverRuntime.enter(ctx, world, ctx.product.shardfile.movers, rows.mover.binding, { canoe }, { flags, prompts: h.interactables });
   }
 
   let hollow: { floorY: number; mid: THREE.Vector3; mouths: THREE.Vector3[] } | null = null;
@@ -294,9 +292,9 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     }
     for (const event of motion.takeRideTransitions(rows.mover.id)) {
       h.weapons.visible = !event.riding; h.weapons.setEnabled(!event.riding);
-      if (event.riding) moverAway = true;
-      if (event.arrived === -1) moverAway = false;
-      h.cabins.resources.object(rows.mover.rest).visible = !moverAway;
+      const rest = h.cabins.resources.object(rows.mover.rest);
+      if (event.riding) rest.visible = false;
+      if (event.arrived === -1) rest.visible = true;
       if (event.riding) {
         const at = motion.data.find(row => row.id === rows.mover.id)?.at; if (at === undefined) throw new Error('Missing canoe rest pose');
         kitSfx.interact('door', new THREE.Vector3(at.x, at.y, at.z), { gain: 0.6 });
@@ -354,5 +352,5 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     objective.root.remove(); clock.caption.root.remove();
     ui.disposeLegacy(() => { dialogue().dispose(); boardUi().root.remove(); trade().root.remove(); chip().root.remove(); });
   });
-  return { flags, stag, thralls, motion, get moverAway() { return moverAway; } };
+  return { flags, stag, thralls, motion };
 }

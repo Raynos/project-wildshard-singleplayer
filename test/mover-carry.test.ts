@@ -5,7 +5,7 @@ import { Vector3 } from 'three';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
-import { MoverScriptDriver, moversRiding, type MoverRuntime } from '../src/game/plugin/mover';
+import { MoverScriptDriver, type MoverRuntime } from '../src/game/plugin/mover';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
@@ -60,9 +60,9 @@ test('built Pine installs and commands its admitted carry without a shard ride i
     if (admitted?.carry === undefined) throw new Error('Missing admitted carry row');
     for (const [value, end] of [[1, 1], [2, 0]] as const) {
       resident.step([{ kind: 'script', actorId: admitted.id, value }]);
-      expect(moversRiding(resident.host.scope)).toBe(true);
-      for (let tick = 0; tick < 545 && moversRiding(resident.host.scope); tick++) resident.step([]);
-      expect(moversRiding(resident.host.scope)).toBe(false);
+      expect(resident.host.events.ask('player.carrying', false)).toBe(true);
+      for (let tick = 0; tick < 545 && resident.host.events.ask('player.carrying', false); tick++) resident.step([]);
+      expect(resident.host.events.ask('player.carrying', false)).toBe(false);
       expect(resident.host.player.position.distanceTo(new Vector3(...admitted.carry.landings[end]))).toBeLessThan(1e-6);
     }
     expect(resident.host.flags.has('secret:islet')).toBe(true);

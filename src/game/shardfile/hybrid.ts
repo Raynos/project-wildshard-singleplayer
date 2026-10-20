@@ -1,7 +1,7 @@
 import { enterDeclaredAudioPhase } from '../audio/sceneDirector';
 import { admitClientPlan, installClientPhase, type ClientPhase } from './clientPlan';
 import { bindResidentWorldScope, boundResidentWorldScope, residentWorldScope } from './hybridPresentation';
-import { installDeclaredMovers, type MoverInstallation } from '../plugin/mover';
+import { MoverRuntime, type MoverInstallation } from '../plugin/mover';
 import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
@@ -94,9 +94,8 @@ export class HybridResidentWorld<T> {
       const world = context.game.runtime?.world;
       if (world === undefined || world === null) throw new Error('Resident motion requires its world');
       const assets = runtimeProduct(row.source).assets;
-      await installDeclaredMovers(context, world, { data: row.source.movers, modules: new Map(),
-        admitted: assets.retained, read: hash => assets.read(hash), systemId: row.systemId,
-        borrowed: { rows: row.rows, targets: value } });
+      await MoverRuntime.enter(context, world, row.source.movers, { systemId: row.systemId, bindings: row.rows }, value,
+        { admitted: assets.retained, read: hash => assets.read(hash) });
     }
     return value;
   }

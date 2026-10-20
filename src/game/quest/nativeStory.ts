@@ -11,7 +11,6 @@ import { nativeHeldAmmunition, NativeAmmunitionSavedSchema } from '../loadout/na
 import { readNativeRangedItem, readItemInventory } from '../plugin/nativeItems';
 import { takeNativeBossReward } from '../boss/native';
 import { commitQuestEffects } from './effects';
-import { moversRiding } from '../plugin/mover';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
 import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
@@ -275,7 +274,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
       restoreDialogue(); restoreBoard(); restoreTrader(); restoreAmmo(); rewardOwned = saved.rewardOwned; finishes = new Set(saved.trader?.skins);
     },
   });
-  return { quests, lead, pack, cables, riding: () => cables.state(cableId).riding || moversRiding(host.scope), talking: () => dialogue.active || board.active || trader.active, board, trader,
+  return { quests, lead, pack, cables, riding: () => cables.state(cableId).riding || host.events.ask('player.carrying', false), talking: () => dialogue.active || board.active || trader.active, board, trader,
     ownsFinish: (skin: string) => finishes.has(skin) || skin === policy.finish.id && rewardOwned,
     ownsBoardFinish: () => rewardOwned, takePickup: () => { const took = state.pickup; state.pickup = false; return took; } };
 }

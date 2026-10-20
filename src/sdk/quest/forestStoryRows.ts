@@ -3,7 +3,7 @@ import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { ShopGood } from '@wildshard/game/loot/ui/ShopPanel';
 import type { installChapterLead, installQuestSpawnDirector } from '@wildshard/game/quest/chapterDirector';
-import type { MoverRuntime } from '@wildshard/game/plugin/mover';
+import type { MoverRuntime, MoverInstallation } from '@wildshard/game/plugin/mover';
 import type { InteractionRowsData } from '@wildshard/format/questInteractions';
 import type { PackedGeometryJson } from '../kit/geometryPack';
 
@@ -38,7 +38,7 @@ export interface ForestStoryRows {
   readonly cable: { readonly id: string; readonly geometry: number; readonly prompt: Triple; readonly radius: number; readonly label: string;
     readonly top: Triple; readonly launch: Triple; readonly landing: Triple; readonly arrival: string };
   /** `rest`: the scene object standing in for the mover at rest, hidden while it is away */
-  readonly mover: { readonly id: string; readonly geometry: number; readonly system: string; readonly rest: string };
+  readonly mover: { readonly id: string; readonly geometry: number; readonly binding: { readonly systemId: string; readonly bindings: NonNullable<MoverInstallation['borrowed']>['rows'] }; readonly rest: string };
   readonly secret: { readonly scene: string; readonly flag: string; readonly text: string; readonly floorY: number; readonly mid: Triple; readonly mouths: Triple[] };
   readonly map: { readonly pois: readonly (Point & { id: string; name: string; r: number })[];
     readonly zones: readonly { label: string; x: number; z: number; size?: number; rot?: number }[] };
@@ -49,5 +49,5 @@ export interface ForestStoryRows {
 export interface ForestStory {
   readonly flags: Flags; readonly stag: ReturnType<typeof installChapterLead>;
   readonly thralls: Awaited<ReturnType<typeof installQuestSpawnDirector>>;
-  readonly motion: MoverRuntime | null; readonly moverAway: boolean;
+  readonly motion: MoverRuntime | null;
 }
