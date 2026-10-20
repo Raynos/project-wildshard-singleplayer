@@ -14,6 +14,8 @@ export const ArenaFieldSchema = v.strictObject({
   observations: v.record(v.string(), finite),
   neighbours: v.pipe(v.array(v.tuple([offset, offset])), v.maxLength(8)),
   signals: v.strictObject({ ignite: v.string(), step: v.string(), clock: v.string() }),
+  contact: v.optional(v.strictObject({ law: EncounterScheduleSchema,
+    samples: v.pipe(v.array(v.strictObject({ x: finite, z: finite })), v.maxLength(8)) })),
 });
 export type ArenaFieldRows = v.InferOutput<typeof ArenaFieldSchema>;
 /** Plain rows and an already admitted module; no shard callbacks or rendering. */
@@ -23,8 +25,11 @@ export class ArenaField {
   private readonly lifetimes: Float32Array;
   private elapsed = 0;
   private clock = 0;
+  private contactElapsed = 0;
+  private readonly contact: EncounterSchedule | null;
   constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) {
     this.rows = v.parse(ArenaFieldSchema, input);
+    this.contact = this.rows.contact === undefined ? null : new EncounterSchedule(this.rows.contact.law, program);
     this.modes = new Uint8Array(this.rows.width * this.rows.depth);
     this.lifetimes = new Float32Array(this.modes.length);
   }
@@ -47,7 +52,18 @@ export class ArenaField {
     if (lifetime <= 0) return;
     this.modes[cell] = 1; this.lifetimes[cell] = lifetime;
   }
-  clear(): void { this.modes.fill(0); this.lifetimes.fill(0); this.clock = 0; this.elapsed = 0; }
+  clear(): void { this.modes.fill(0); this.lifetimes.fill(0); this.clock = 0; this.elapsed = 0; this.contactElapsed = 0; this.contact?.reset(); }
+  /** Sample the declared footprint once per decision interval. The guest owns
+   * the contact cooldown, damage and mounted response; no caller builds a list
+   * of field queries or retains another cooldown. */
+  sense(dt: number, point: { readonly x: number; readonly z: number }, frame: Readonly<Record<string, number>>): Readonly<Record<string, number>> {
+    if (this.contact === null || this.rows.contact === undefined) return {};
+    this.contactElapsed += dt;
+    if (this.contactElapsed + 1e-9 < .1) return {};
+    const step = this.contactElapsed; this.contactElapsed = 0;
+    const samples = this.rows.contact.samples.map(at => ({ hit: Number(this.activeAt(point.x + at.x, point.z + at.z)) }));
+    return this.contact.project({ ...frame, dt: step, hit: Number(this.activeAt(point.x, point.z)), count: samples.length }, undefined, samples);
+  }
   extinguish(): number[] {
     const changed: number[] = [];
     for (let cell = 0; cell < this.length; cell++) if (this.mode(cell) === 1) { this.modes[cell] = 2; changed.push(cell); }

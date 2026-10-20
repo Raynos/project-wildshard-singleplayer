@@ -214,7 +214,6 @@ export class StormTitanFight implements BossScript {
   // the spear
   private readonly spearLaw: EncounterSchedule;
   private readonly chainLaw: EncounterSchedule;
-  private readonly fireContact: EncounterSchedule;
   private get spear(): 'idle' | 'aim' | 'strike' | 'stuck' { return (['idle', 'aim', 'strike', 'stuck'] as const)[this.spearLaw.value('mode')] ?? 'idle'; }
   private get spearT(): number { return this.spearLaw.value('t'); }
   private readonly spearAt = new THREE.Vector3();
@@ -252,7 +251,6 @@ export class StormTitanFight implements BossScript {
     this.author = ReturnProgram.page(this.data.programs.attack, ctx.game.levelScope);
     this.clocks = new ArenaEncounter(this.data.TITAN_CLOCKS, this.author, app.rng.stream('ai'));
     this.spearLaw = this.clocks.clock('spear'); this.chainLaw = this.clocks.clock('chain');
-    this.fireContact = new EncounterSchedule(this.data.TITAN_SCHEDULES.contact, this.author);
     const fireLaw = ReturnProgram.page(this.data.programs.fire, ctx.game.levelScope);
     this.field = new ArenaField(this.data.TITAN_FIRE_FIELD, fireLaw, app.rng.stream('ai'));
     const windLaw = ReturnProgram.page(this.data.programs.wind, ctx.game.levelScope);
@@ -595,8 +593,7 @@ export class StormTitanFight implements BossScript {
     if (!live || thinkDt <= 0) return;
     // the player in fire: 8 / s; the horse panics near it
     const p = this.host.player.position;
-    const samples = this.data.TITAN_FIRE_SENSE.map(offset => ({ hit: Number(this.burningAt(p.x + offset.x, p.z + offset.z)) }));
-    const contact = this.fireContact.project({ dt: thinkDt, hit: Number(this.burningAt(p.x,p.z)), mounted: Number(this.host.mounted()), count: samples.length }, undefined, samples);
+    const contact = this.field.sense(thinkDt, p, { mounted: Number(this.host.mounted()) });
     if ((contact['hurt'] ?? 0) > 0) sampleArena(NALATI_STRIKES.fire, p, p, () => { this.host.hurt(contact['hurt'] ?? 0, this.data.TITAN_LINES.burning); }, app.physics);
     if ((contact['speed'] ?? 0) < 0) this.host.horseSteed(contact['speed'] ?? 0);
 

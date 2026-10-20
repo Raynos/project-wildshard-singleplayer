@@ -72,14 +72,6 @@ export const TITAN_ARENA = { center: { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.cent
 
 export const TITAN_FIRE_SEEDS = [0,1,2].map(i => ({ x: Math.cos(i*2.1+.5)*26, z: Math.sin(i*2.1+.5)*26 }));
 
-/** Wildfire storage on the shared boss field; ignition and cadence stay in AS. */
-export const TITAN_FIRE_FIELD = {
-  x: TITAN_ARENA.center.x - TITAN_PLACE.arenaRadius, z: TITAN_ARENA.center.z - TITAN_PLACE.arenaRadius,
-  width: TITAN_ARENA.grid, depth: TITAN_ARENA.grid, cell: TITAN_TUNING.cell,
-  observations: { cx: TITAN_ARENA.center.x, cz: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius, burn: TITAN_TUNING.burnSeconds },
-  neighbours: FIRE_NEIGHBOURS, signals: { ignite: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
-};
-
 /** Support slots carry no runtime decision fields in the shard. */
 export const TITAN_SUPPORT = {
   actors: { hp: TITAN_TUNING.riderHp, memory: { tx: 'x', tz: 'z', v: 'speed', turn: 'turn' } },
@@ -99,6 +91,17 @@ export const TITAN_SCHEDULES = {
   chain: { signal: 'chain', initial: { cd: 4, chain: 0, t: 0 }, parameters: {}, retain: { cd: 'cd', left: 'chain', t: 't' } },
 };
 
+export const TITAN_FIRE_SENSE = [0,1,2,3,4,5].map(angle => ({ x: Math.cos(angle)*5, z: Math.sin(angle)*5 }));
+
+/** Wildfire storage on the shared boss field; ignition and cadence stay in AS. */
+export const TITAN_FIRE_FIELD = {
+  x: TITAN_ARENA.center.x - TITAN_PLACE.arenaRadius, z: TITAN_ARENA.center.z - TITAN_PLACE.arenaRadius,
+  width: TITAN_ARENA.grid, depth: TITAN_ARENA.grid, cell: TITAN_TUNING.cell,
+  observations: { cx: TITAN_ARENA.center.x, cz: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius, burn: TITAN_TUNING.burnSeconds },
+  contact: { law: TITAN_SCHEDULES.contact, samples: TITAN_FIRE_SENSE },
+  neighbours: FIRE_NEIGHBOURS, signals: { ignite: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
+};
+
 export const TITAN_BOUNDARY = { x: TITAN_ARENA.center.x, z: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius - 3 };
 export const TITAN_PHASE_FEED = ['', TITAN_LINES.kneels, TITAN_LINES.grassFire];
 export const TITAN_TIE_FEED = [TITAN_LINES.wantsRider, TITAN_LINES.quiet, TITAN_LINES.wakes];
@@ -116,7 +119,6 @@ export const TITAN_CHAINS = { count: 8, law: { signal: 'chainLand',
   retain: { t: 't', mode: 'on' },
 } };
 
-export const TITAN_FIRE_SENSE = [0,1,2,3,4,5].map(angle => ({ x: Math.cos(angle)*5, z: Math.sin(angle)*5 }));
 
 /** Boss-host clock contract: AS selects active attacks and their delayed tells. */
 export const TITAN_CLOCKS = {

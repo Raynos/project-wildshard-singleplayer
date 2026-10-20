@@ -4,7 +4,7 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import fight from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
-import { TITAN_CLOCKS } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
+import { TITAN_CLOCKS, TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 
 test('the arena field obeys ignition bounds and cannot rekindle spent cells', () => {
   const field = new ArenaField(fight.TITAN_FIRE_FIELD, ReturnProgram.page(program.fire), new Rng(513));
@@ -69,4 +69,32 @@ test('an orchard frost boss binds different clock ids and two landing slots', ()
   expect(host.landings).toHaveLength(2);
   expect(host.landings[0]?.value('z')).toBe(50);
   expect(() => new ArenaEncounter({ ...rows, shared: {}, volley: { ...rows.volley, launcher: 'absent' } }, ReturnProgram.page(program.attack), new Rng(1))).toThrow('launcher');
+});
+
+
+test('field contact owns its footprint, cooldown and checkpoint reset', () => {
+  const field = new ArenaField(TITAN_FIRE_FIELD, ReturnProgram.page(program.fire), new Rng(513));
+  const { x, z } = fight.TITAN_ARENA.center;
+  field.ignite(x, z);
+  expect(field.sense(.05, { x, z }, { mounted: 1 })).toEqual({});
+  const hit = field.sense(.05, { x, z }, { mounted: 1 });
+  expect(hit['hurt']).toBe(4);
+  expect(field.sense(.1, { x, z }, { mounted: 0 })['hurt']).toBe(0);
+  const nearby = { x: x + 5, z };
+  expect(field.activeAt(nearby.x, nearby.z)).toBe(false);
+  expect(field.sense(.1, nearby, { mounted: 1 })['speed']).toBe(-1);
+  expect(field.sense(.1, nearby, { mounted: 0 })['speed']).toBe(0);
+  field.clear(); field.ignite(x, z);
+  expect(field.sense(.1, { x, z }, { mounted: 0 })['hurt']).toBe(4);
+});
+
+test('the orchard field binds a different contact footprint and damage', () => {
+  const field = new ArenaField({ x: 10, z: 20, width: 3, depth: 2, cell: 2,
+    observations: { cx: 13, cz: 22, radius: 50, burn: 2 }, neighbours: [[0,1]],
+    signals: { ignite: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
+    contact: { law: { signal: 'fieldContact', initial: { cd: 0 }, parameters: { amount: 12 }, retain: { cd: 'cd' } }, samples: [{ x: 2, z: 0 }] },
+  }, ReturnProgram.page(program.fire), new Rng(714));
+  field.ignite(13, 21);
+  expect(field.sense(.1, { x: 11, z: 21 }, { mounted: 1 })['speed']).toBe(-1);
+  expect(field.sense(.1, { x: 13, z: 21 }, { mounted: 0 })['hurt']).toBe(6);
 });
