@@ -28,3 +28,21 @@
 | R1-24 | 1 | B21 | nit | Design | G484 (4) miscited | fixed | G454 (4)/(6), W8 |
 | R1-25 | 1 | B24 | nit | Header | Status belongs in STATE.md | fixed | docs/plans/wasm-host/STATE.md added |
 | R1-26 | 1 | B battery 4 | should-fix | Battery 4 | Does Nalati's storm need a view lane once G515 routes visuals to forestWeather? | parked | Answered by H9's first users; storm stays on G515 route unless a second view user appears |
+| R2-01 | 2 | A03, C1 | must-fix | Design reset; H3; H0 | Partial reset leaves hidden state anywhere in linear memory | fixed | Whole-image reset plus globals before every sim/projection entry and re-step; one-page memories; H0 rule dropped |
+| R2-02 | 2 | A01, C2 | must-fix | Design; H2 | Guest can refill fuel by calling another entry; per-binding slices contradict fuel-global rules | fixed | Entries host-callable only; read-only fuel access; SDK-enforced slices; module budget hard bound; refill counterexample test |
+| R2-03 | 2 | A02, C3 | must-fix | Design; H6 | Guest-written binding ids can forge blame and authority inside one memory | fixed | Module is the trust boundary: union capabilities, blame a hint, one re-step then skip, strikes per module |
+| R2-04 | 2 | A04, C4 | must-fix | Stagger; view alpha; H9 | One alpha wrong for staggered phases; per-binding stagger multiplies entries and copies | fixed | Stagger by module; per-binding sample-tick stamps; SDK computes interpolation |
+| R2-05 | 2 | C5 | must-fix | View prediction; H8; H9 | Prediction plus correction fights host contact | fixed | No prediction; guest publishes a combo transition table the 60 Hz held-melee host applies on input |
+| R2-06 | 2 | C6 | should-fix | H9 | Last-good publication vs zero-copy unnamed | fixed | Validate in place, needsUpdate only on success, hide on context loss, clamp scale/shear |
+| R2-07 | 2 | A06, C7 | must-fix | H0; H14 | 1,000-call batches below clock resolution; cheap undefined; batch averages hide frame tails; no Rapier timing | fixed | Adaptive ≥ 50 ms batches in ns/op; cheap ≤ 2× direct call; Rapier timing; H14 per-frame samples via isolated page or threshold counts |
+| R2-08 | 2 | A05, A07, B4 | should-fix | H0; H14 | Telemetry endpoint refuses calibration; URL unnamed; LPM undetectable | fixed | /calibration/ page, sendNote perf to /api/inbox with ack; LPM unknown/inferred/confirmed; final open for H14 |
+| R2-09 | 2 | C8 | should-fix | H13 | Atomic multi-week wave conflicts with no-branches main | fixed | Ports land one by one compiled for v1 and v2; only flip, migration and deletion are one commit set |
+| R2-10 | 2 | B5, C9 | must-fix | H17 | No headless world in Node; existing headless runtime ignored | fixed | Extend sdk/headlessRuntime.ts; trace replay V8 vs JSC; save-codec round trip; full world deferred to the MMO plan |
+| R2-11 | 2 | C10 | should-fix | Inputs; H4; H8 | Client-claimed atTick stamps; client-side hit events | fixed | Host-written stamps, server receipt tick within ≤ 6-tick window; strike/held-melee hosts sim-side |
+| R2-12 | 2 | B6, C11 | should-fix | W13; H6b; H17 | Client-only sources undefined; some projection families are client code; global terrain port | fixed | Enumerated client-only list; families tagged sim/view; owner-host terrain; H17 checks callers |
+| R2-13 | 2 | C12 | should-fix | H7; battery 9 | Offline timers undefined; binding ids as table indices | fixed | Timers count sim ticks and pause offline; stable declared binding ids |
+| R2-14 | 2 | B1 | should-fix | Design; H6b | Projection count ~2× low | fixed | ~109 calls in 35 files, dependent chains named; H6b 4-6 days |
+| R2-15 | 2 | B2 | should-fix | H13 | v0 inventory missing item hooks, lane wiring, client consumer, memory lease | fixed | Added with their fates |
+| R2-16 | 2 | B3 | should-fix | H13 | Save migration pointed at the wrong layer | fixed | SimSnapshot adapters, SIM_API_VERSION bump, logical ClientCheckpoint as restart-on-load |
+| R2-17 | 2 | B7 | should-add | H0b; H4 | Single-player observation shape would force ABI v3 for an MMO | fixed | Per-player keyed rows with a bounded count |
+| R2-18 | 2 | B8-B11 | nit | Order; H12; Why; H13 | H17 unordered; superseded picks incomplete; Pine number wording; 56 files; returnProgram path | fixed | All corrected |
