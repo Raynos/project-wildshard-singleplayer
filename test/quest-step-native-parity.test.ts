@@ -48,7 +48,7 @@ for (const slug of ['driftwood-isle', 'pine-hollow'] as const)
       assets.set(path, Uint8Array.from(readFileSync(path)));
     const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
     const resident = await createTrustedHeadlessResident({ product, shard: product.shardfile, assets, rapier },
-      { module: new URL(slug === 'driftwood-isle' ? './fixtures/driftwood-headless.ts' : '../src/shards/pine-hollow/boot/headlessModules.ts', import.meta.url).href });
+      { module: new URL(slug === 'driftwood-isle' ? './fixtures/driftwood-headless.ts' : './fixtures/pine-headless.ts', import.meta.url).href });
     try {
       const fixture = legacy[slug], owner = resident.host.adapters.get(fixture.adapter);
       if (owner === undefined) throw new Error('Missing existing quest save owner');

@@ -33,7 +33,7 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
     const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
       Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
     if(slug==='pine-hollow')for(const file of [PINE_TERRAIN.terrain,PINE_TERRAIN.navmesh])assets.set(file,Uint8Array.from(readFileSync(file)));
-    const preparation={product,shard:product.shardfile,assets,rapier},entry={module:new URL(kind==='captain'?'./fixtures/driftwood-headless.ts':'../src/shards/pine-hollow/boot/headlessModules.ts',import.meta.url).href},resident=await createTrustedHeadlessResident(preparation,entry);
+    const preparation={product,shard:product.shardfile,assets,rapier},entry={module:new URL(kind==='captain'?'./fixtures/driftwood-headless.ts':'./fixtures/pine-headless.ts',import.meta.url).href},resident=await createTrustedHeadlessResident(preparation,entry);
     let resumed:Awaited<ReturnType<typeof createTrustedHeadlessResident>>|undefined;
     try {
       const host=resident.host,spawn=product.shardfile.runtime?.spawns?.bosses.find(row=>row.kind===kind);
