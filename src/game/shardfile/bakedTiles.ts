@@ -39,7 +39,6 @@ export interface BakedTiles { readonly group: THREE.Group; readonly tiles: reado
 
 const owned = <T>(owner: BakedTilesOwner, fn: () => T): T => owner.scope === undefined ? fn() : withOwner(owner.scope, fn);
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
-const gltf = createRigLoader;
 
 async function bytesOf(product: ShardProduct, source: BakedSource): Promise<Uint8Array> {
   if ('file' in source) return product.file(source.file);
@@ -47,8 +46,9 @@ async function bytesOf(product: ShardProduct, source: BakedSource): Promise<Uint
   if (!response.ok) throw new Error(`Required baked file load failed (${String(response.status)})`);
   return new Uint8Array(await response.arrayBuffer());
 }
+// the page's bounded parser: one decode slot, a product file's wire copy taken only once its slot opens
 async function sceneOf(product: ShardProduct, source: BakedSource): Promise<THREE.Group> {
-  return 'url' in source ? (await gltf().loadAsync(source.url)).scene : (await gltf().parseAsync(Uint8Array.from(await product.file(source.file)).buffer, '')).scene;
+  return 'url' in source ? (await createRigLoader().loadAsync(source.url)).scene : (await createRigLoader().parseBytesAsync(await product.file(source.file), '')).scene;
 }
 async function textureOf(product: ShardProduct, source: BakedSource): Promise<THREE.Texture> {
   // a product's KTX2 file transcodes; any other image file decodes as one
