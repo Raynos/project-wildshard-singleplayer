@@ -1,0 +1,38 @@
+{
+  "schema": "keelmaw-independent-comparison-v1",
+  "reference": "art/driftwood-isle/concepts/approved-nine-2026-10-19/keelmaw-hero.png",
+  "referenceSha256": "69eb665a0f2224f1a35e61934304eb0ee4e205912c5b38d0bbfbe9ca160ac4d3",
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "defining_details": 0.2,
+    "facet_style": 0.15
+  },
+  "candidate": {
+    "scores0to5": {
+      "silhouette": 3.4,
+      "face": 2.8,
+      "defining_details": 3.6,
+      "facet_style": 3.3
+    },
+    "weightedScore": 3.245,
+    "lockedAt": "2026-10-20T12:23:01.851545+00:00"
+  },
+  "baseline": {
+    "scores0to5": {
+      "silhouette": 3.0,
+      "face": 2.8,
+      "defining_details": 3.1,
+      "facet_style": 2.8
+    },
+    "weightedScore": 2.93,
+    "lockedAt": "2026-10-20T12:28:10.671877+00:00"
+  },
+  "weightedDelta": 0.315,
+  "target": 4,
+  "candidateMeetsTarget": false,
+  "selectedWorkingSource": "complete-character-refined",
+  "acceptedForPromotion": false,
+  "priorNumericalScoresRead": false,
+  "meaning": "A modest likeness improvement, not an accepted final character. Technical checks do not earn likeness points."
+}

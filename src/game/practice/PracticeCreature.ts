@@ -24,6 +24,10 @@ import { ATTACK_TURN, HURT_ARC } from '@wildshard/engine/ai/hunt';
 import type { StrikeData } from '@wildshard/engine/ai/strikeRows';
 import { Rng } from '@wildshard/engine/core/rng';
 import { admitSpeciesBrains, type BrainedSpecies, type SpeciesBinding } from '../plugin/brain';
+import { PracticeNativeActor, practiceNativeRecipe, practiceNativeSpawn, type PracticeNativeSelection } from './PracticeNativeActor';
+import { numericCreaturePose } from '../plugin/channelPrograms';
+import { practicePoseTransition } from '../plugin/practicePoseContract';
+import { FIXED_STEP } from '@wildshard/engine/core/fixedStep';
 
 /** Grounded admitted melee bodies and single-actor decision guests; unsupported movement remains explicit. */
 export function practiceCreatureSupport(species: BrainedSpecies, variant: string): { supported: boolean; reason?: string } {
@@ -43,6 +47,8 @@ export function practiceCreatureSupport(species: BrainedSpecies, variant: string
 }
 
 export interface PracticeCreatureOptions {
+  /** Explicit composition-only experiment. Absent retains the legacy practice path byte-for-byte. */
+  readonly nativePose?: PracticeNativeSelection;
   readonly species: BrainedSpecies;
   readonly strikes: readonly StrikeData[];
   readonly variant: string;
@@ -95,6 +101,8 @@ export class PracticeCreature {
   private rng = new Rng(7001);
   private readonly previousPlayer = new Vector3();
   private readonly origin = new Vector3();
+  private native: PracticeNativeActor | null = null;
+  private readonly nativePoseInput: unknown;
 
   /** Await only before installing the provider; enter/update/raycast remain synchronous. */
   static async create(options: PracticeCreatureOptions): Promise<PracticeCreature> {
@@ -109,13 +117,23 @@ export class PracticeCreature {
         ? await preparePracticeDecision(options.product, options.species.brain.data.script, owner) : undefined;
       const original = owner.run(() => factory.model(options.species.kind, options.variant));
       const model = { ...original, species: { ...original.species, ...options.species } };
+      let nativePoseInput: unknown;
+      if (options.nativePose !== undefined) {
+        if (decision === undefined || !options.product.hasFile(options.nativePose.poseFile)) throw new Error('Native practice requires an admitted decision and named pose');
+        const bytes = await options.product.file(options.nativePose.poseFile);
+        if (bytes.byteLength > 2 * 1024 * 1024) throw new Error('Native practice pose exceeds its input bound');
+        nativePoseInput = JSON.parse(new TextDecoder().decode(bytes));
+        if (practicePoseTransition(numericCreaturePose(nativePoseInput)) === undefined) throw new Error('Native practice pose has no explicit transition declaration');
+        owner.run(() => undefined);
+      }
       for (const resource of containerResources(model)) if (!app.assets.isAcquired(resource)) ownSceneResource(resource, owner);
-      return new PracticeCreature(options, owner, factory, model, decision);
+      return new PracticeCreature(options, owner, factory, model, decision, nativePoseInput);
     } catch (error: unknown) { owner.dispose(); throw error; }
   }
 
-  private constructor(options: PracticeCreatureOptions, owner: Scope, factory: AnimalFactory, model: AnimalModel, decision: Awaited<ReturnType<typeof preparePracticeDecision>> | undefined) {
+  private constructor(options: PracticeCreatureOptions, owner: Scope, factory: AnimalFactory, model: AnimalModel, decision: Awaited<ReturnType<typeof preparePracticeDecision>> | undefined, nativePoseInput?: unknown) {
     this.options = options; this.owner = owner; this.factory = factory; this.model = model; this.decision = decision;
+    this.nativePoseInput = nativePoseInput;
     owner.onDispose(() => this.exit());
   }
 
@@ -144,6 +162,9 @@ export class PracticeCreature {
     events.answer('damage.admit', request => request !== null && request.target !== health && practicePlayer.defeated ? null : request, scope);
     this.loot = new PracticeLoot({ owner: scope, scene: this.options.scene, player: player.position,
       onCollect: receipt => { this.options.onCollect?.(receipt.coins); } });
+    if (this.nativePoseInput !== undefined) {
+      this.enterNative(scope, at, events, combat, practicePlayer); this.options.onBegin?.(); return;
+    }
     const decision = this.decision?.({ scope, events, physics: this.options.physics,
       player: { id: health.id, position: player.position, get yaw() { return player.yaw; }, health, motor: player.motor },
       // A retained corpse still owns its queued lethal-hit/death delivery.
@@ -181,6 +202,65 @@ export class PracticeCreature {
     } catch (error: unknown) { this.exit(); throw error; }
   }
 
+  private enterNative(scope: Scope, at: { x: number; y: number; z: number }, events: Events,
+    combat: CombatPipeline, player: PracticePlayer): void {
+    const decision = this.decision; if (decision === undefined) throw new Error('Missing admitted native practice decision');
+    const model = this.model, variant = model.variantDef, scale = this.rng.range(variant.scale[0], variant.scale[1]);
+    const pagePlayer = this.options.player;
+    const rig = scope.run(() => instantiatePracticeRig(this.factory, model, this.rng));
+    const spawn = practiceNativeSpawn(model, 7001, scale, at,
+      Math.atan2(this.options.player.position.x - at.x, this.options.player.position.z - at.z));
+    const native = new PracticeNativeActor({ scope, spawn, species: this.options.species,
+      recipe: practiceNativeRecipe(model, rig), pose: this.nativePoseInput, decision,
+      ports: { events, combat, physics: this.options.physics,
+        player: { id: player.health.id, position: this.options.player.position, health: player.health,
+          get yaw() { return pagePlayer.yaw; }, motor: pagePlayer.motor } },
+      observation: {
+        get calm() { return player.defeated; }, reach: body => canReach(body, this.options.player.position, this.options.physics),
+        claim: () => true, hurt: amount => { if (native.actor.alive && !player.defeated) player.hurt(native.actor, Math.max(0, amount)); },
+        shove: (yaw, speed, lift) => this.options.player.impulse(new Vector3(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed)),
+      },
+    });
+    this.native = native; native.actor.attackTurnCap = ATTACK_TURN;
+    const animal = new Animal(rig, model, spawn.seed, spawn.scale, spawn.id, {
+      heightAt: () => at.y, floorBelow: () => at.y, random: () => this.rng.next(),
+      now: () => native.host.clock.now * 1000, hit: request => combat.hit(request),
+    }).bindSimulation(native.actor);
+    animal.bindPublishedPose(native.pose);
+    this.options.scene.add(animal.mesh); ownSceneTree(animal.mesh, scope, app.assets);
+    this.targets.push(animal); this.bodies = new CreatureBodies(this.options.physics);
+    scope.onDispose(() => { animal.hidden = true; this.bodies?.remove(animal); animal.retireBody(); animal.mesh.removeFromParent(); });
+    const actor = native.actor.combatActor();
+    app.combat.routeTarget(scope, actor, request => combat.hit(request));
+    const target = combat.targetPort(actor, animal, velocity => native.actor.impulse(velocity), () => this.bout === scope && !player.defeated);
+    app.combat.registerTargets(scope, () => [target], () => this.bout === scope);
+    events.on('damage.dealt', ({ req, dealt, killed }) => {
+      if (req.target !== actor) return;
+      animal.hitFlash(); this.options.onDamage?.(dealt, req.point, killed);
+    }, scope);
+    events.on('actor.died', ({ actor: dead }) => {
+      if (dead !== actor) return;
+      this.loot?.drop({ kind: animal.kind, variant: animal.variant, position: animal.position }); this.options.onDeath?.();
+    }, scope);
+    this.bodies.sync(this.targets, animal.position); animal.renderPublishedPose();
+  }
+
+  /** Only the explicit native composition calls this from its existing fixed.post slot. */
+  fixedUpdate(): void {
+    if (this.native === null || this.bout === null) return;
+    this.native.fixed(); this.elapsed = this.native.host.clock.now;
+    this.practicePlayer?.update(FIXED_STEP);
+    const animal = this.targets[0]; if (animal !== undefined) this.bodies?.sync(this.targets, animal.position);
+  }
+
+  /** Final update boundary, after weapons. Late hit/death endpoints were already published synchronously. */
+  publishNativeFrame(): void {
+    if (this.native === null || this.bout === null) return;
+    this.events?.flush('update');
+    const animal = this.targets[0]; if (animal === undefined) return;
+    animal.renderPublishedPose(); this.bodies?.sync(this.targets, animal.position);
+  }
+
   private makeContext(animal: Animal, player: PracticePlayer): ThinkCtx {
     return {
       dt: 0, t: 0, player: this.options.player.position, playerSpeed: 0, rng: this.rng, calm: false, herd: null, world: {},
@@ -205,6 +285,12 @@ export class PracticeCreature {
   }
 
   update(dt: number): void {
+    if (this.native !== null) {
+      if (!Number.isFinite(dt) || dt < 0) return;
+      this.targets[0]?.update(dt, this.native.host.clock.now, true);
+      this.loot?.update(dt); this.publishNativeFrame();
+      return;
+    }
     const animal = this.targets[0], context = this.context;
     if (this.bout === null || animal === undefined || context === null || !Number.isFinite(dt) || dt <= 0) return;
     this.elapsed += dt; this.decisionTime += dt;
@@ -242,7 +328,7 @@ export class PracticeCreature {
 
   exit(): void {
     const scope = this.bout; this.bout = null;
-    scope?.dispose(); this.targets.length = 0; this.bodies = null; this.context = null; this.events = null; this.practicePlayer = null; this.loot = null; this.callbacks = null; this.fixed.clear();
+    scope?.dispose(); this.native = null; this.targets.length = 0; this.bodies = null; this.context = null; this.events = null; this.practicePlayer = null; this.loot = null; this.callbacks = null; this.fixed.clear();
   }
 
   /** Reuse the loaded model but rebuild all bout health, guest, contacts and reward state. */

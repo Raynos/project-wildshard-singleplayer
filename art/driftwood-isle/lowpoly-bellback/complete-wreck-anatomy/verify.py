@@ -33,4 +33,10 @@ for mesh in doc['meshes']:
 assert error<1e-5
 for filename,expected in [('geometry-checks.json','PASS'),('native-geometry-checks.json','PASS'),('intersection-audit.json','PASS_SELF'),('coplanar-audit.json','PASS'),('quad-diagonal-audit.json','PASS')]:assert json.loads((H/filename).read_text())['status']==expected
 assert json.loads((H/'consumer-checks.json').read_text())['status']=='PASS'
+assert json.loads((H/'exact-topology-parity.json').read_text())['status']=='PASS'
+assert json.loads((H/'baseline-reproduction.json').read_text())['status']=='PASS'
+for p in H.rglob('*'):
+ if not p.is_file():continue
+ cap=5000000 if p.suffix=='.json' else (500000 if 'board' in p.name else 250000) if p.suffix in ('.webp','.png','.jpg') else 1000000
+ assert p.stat().st_size<=cap,(p.name,p.stat().st_size,cap)
 print('VERIFIED',triangles,'triangles,',len(doc['meshes']),'meshes, 20 actual renders / 10 exact pairs, max normal unit error',error)

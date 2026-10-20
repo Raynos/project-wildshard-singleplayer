@@ -1,0 +1,88 @@
+{
+  "schema": "keelmaw-independent-blind-score-v1",
+  "role": "candidate",
+  "lockedAt": "2026-10-20T12:23:01.851545+00:00",
+  "priorNumericalScoresRead": false,
+  "baselineImagesSeen": false,
+  "reference": "art/driftwood-isle/concepts/approved-nine-2026-10-19/keelmaw-hero.png",
+  "referenceSha256": "69eb665a0f2224f1a35e61934304eb0ee4e205912c5b38d0bbfbe9ca160ac4d3",
+  "rubric": "0 absent/unrelated; 1 token cues; 2 weak adaptation; 3 recognizable with material deviations; 4 faithful with only minor deviations; 5 exceptionally close 3D translation. Score likeness, not technical validity.",
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "defining_details": 0.2,
+    "facet_style": 0.15
+  },
+  "scores0to5": {
+    "silhouette": 3.4,
+    "face": 2.8,
+    "defining_details": 3.6,
+    "facet_style": 3.3
+  },
+  "weightedScore": 3.245,
+  "target": 4,
+  "targetMet": false,
+  "scope": "Holistic category scores after separately opening all ten actual candidate PNGs; novel rear/top anatomy checked for coherence, not against unseen concept geometry. No penalty for absent illustrative background or title.",
+  "views": [
+    {
+      "view": "hero",
+      "path": "tmp/keelmaw-complete-refined/final/hero.png",
+      "sha256": "1206f0400155f6c2967b8e507462d1f8d83dd0b3014f50226df291eff132bb86",
+      "observation": "Recognizable teal crocodilian, gold spines, rope and barnacles. Thick plain forelimb dominates; short boxy head and straight narrow keel lack the broad expressive maw of the hero."
+    },
+    {
+      "view": "front",
+      "path": "tmp/keelmaw-complete-refined/final/front.png",
+      "sha256": "bc7a9d84096d84445c961d491568621e22cae9880695303f9f15aa8349325abc",
+      "observation": "Heavy planted stance reads, but narrow straight central strip divides a tunnel-like mouth. Eyes are barely visible under the forehead; no strong angry brow expression."
+    },
+    {
+      "view": "back",
+      "path": "tmp/keelmaw-complete-refined/final/back.png",
+      "sha256": "fb95d68b3a0d835328e6c053e042393bd8d8e0f23b966433cb2a3743cc25964a",
+      "observation": "Continuous curved tail and four supporting limbs. Barrel body and plate steps read as chunky stacked panels rather than subtly broken reptilian scutes."
+    },
+    {
+      "view": "left",
+      "path": "tmp/keelmaw-complete-refined/final/left.png",
+      "sha256": "c097069eb10de5258ad6e81b603c9eaf0cdce275446b68ef9fb9f475953f6237",
+      "observation": "Long crocodilian tail and raised shoulders, but head is a straight rectangular grille. Repeated needle teeth are too uniform; large cream cheek and slab forelimb simplify character."
+    },
+    {
+      "view": "right",
+      "path": "tmp/keelmaw-complete-refined/final/right.png",
+      "sha256": "b65512135b989eaa2ee5ce44639803d90b61ff2c93af8177847dced80e6a89f8",
+      "observation": "Visible amber eye and barnacle clusters identify Keelmaw. Curled tail holds across side views. Tiny round button eye and high block torso weaken predatory look."
+    },
+    {
+      "view": "top",
+      "path": "tmp/keelmaw-complete-refined/final/top.png",
+      "sha256": "ee30b68024308914b3c09c01af7e4911deb512b8b8aecf66c65a224e05a0ae11",
+      "observation": "Full anatomy survives overhead; thick hooked tail, paired planted feet, three rope straps, dorsal plates and spikes are actual geometry. Head is boxy and shell plating too regular."
+    },
+    {
+      "view": "elevated-front",
+      "path": "tmp/keelmaw-complete-refined/final/elevated-front.png",
+      "sha256": "df4a81e29ab714783de5b00308bb02d50e4225930d7317919eb25f4e875480ac",
+      "observation": "Whole body readable, no crop. Rectangular short snout and thin central keel dominate; front-opening teeth are hard to see and amber eyes disappear."
+    },
+    {
+      "view": "elevated-back",
+      "path": "tmp/keelmaw-complete-refined/final/elevated-back.png",
+      "sha256": "6a5236744e33b4b68457df0b56472c4200a18b35049973271d2297d6dd844a03",
+      "observation": "Complete hind anatomy and tail are present, but ropes are thin zigzag ribbons with bright terminal blocks at this angle. Tail and limbs have sparse surface variation."
+    },
+    {
+      "view": "elevated-left",
+      "path": "tmp/keelmaw-complete-refined/final/elevated-left.png",
+      "sha256": "268038a6faa8fb07085eb2fc8b1deab440666c015b84ee19d15ff5c3d0efb252",
+      "observation": "Mouth has real volume and tooth rows, barnacle holes read. Face still feels square and toy-like, rather than the concept's broad menacing crocodile."
+    },
+    {
+      "view": "elevated-right",
+      "path": "tmp/keelmaw-complete-refined/final/elevated-right.png",
+      "sha256": "6775607bbbc2540a8a062651b8a4549cc6e7af58e0c14145da8acf8e8a6a529f",
+      "observation": "Strong identifier set and consistent material palette. Thin strap/large barnacle contrast, simpler jaw and broad nearly unbroken limb facets remain prominent."
+    }
+  ]
+}

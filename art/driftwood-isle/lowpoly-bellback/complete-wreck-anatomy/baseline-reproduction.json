@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "count": 10,
+  "views": [
+    {
+      "view": "hero/hero.png",
+      "exact_RGB_equal": true,
+      "fresh_sha256": "019de272045c0fe25da35221a8f2dc23a290aee24113e07151d436f1ca4ea2d7",
+      "retained_sha256": "0d5fdfd9ba73e61b1464cfd2019c0b0babfa537d4151636d15a59ef7bbd83931"
+    },
+    {
+      "view": "nine/01-front.png",
+      "exact_RGB_equal": true,
+      "fresh_sha256": "bfacb8836a92f40659644042579a201fd5ecc2b90412eba2b50a38a7927b5bea",
+      "retained_sha256": "c764c1f688abe8f2611dfd6c7f76016b1a0e89caba335a16bf962324c62a8f3f"
+    },
+    {
+      "view": "nine/02-left.png",
+      "exact_RGB_equal": true,
+      "fresh_sha256": "7e05aaf59f10bcb8a29d2a276b4e5f6d7139eba65c797dc9913d5bdc3f67df95",
+      "retained_sha256": "72a1412586dd15879910eba78d00e0352fc66f7229e41d90c99074287ee94833"
+    },
+    {
+      "view": "nine/03-right.png",
+      "exact_RGB_equal": true,
+      "fresh_sha256": "46813be0e94b9ebf350041c0f42db2a7461bd7347b9eda8929312e8c11930077",
+      "retained_sha256": "2ab8108a5ac9dc0c95aee428668d100acf874b90a15cf393dfe2aca071b99c1b"
+    },
+    {
+      "view": "nine/04-back.png",
+      "exact_RGB_equal": true,
+      "fresh_sha256": "dae796bef58b46353afb822d420a68446a9ad554e10146ead0667743459c1bb8",
+      "retained_sha256": "086c542243a5a86a2eae093084039300446361e1c4a5692ae933397d003acbd0"
+    },
+    {
+      "view": "nine/05-top.png",
+      "exact_RGB_equal": true,
+      "fresh_sha256": "19a9b735d9b745ebac00c0343f1df0c64559a8422bfd4a469347438f8051629a",
+      "retained_sha256": "8d13259fb061a6afc1249fd6fd2049afa28c8e927652642a6636cd8933db143d"
+    },
+    {
+      "view": "nine/06-diag-front.png",
+      "exact_RGB_equal": true,
+      "fresh_sha256": "a7fcc4186159a6c55530f9bc2ee8e81b79732ef610f64212502d885e17fcdfe4",
+      "retained_sha256": "04eb00ecc26ad2bfb5811afe5ad9360829d0a30dfc7d8c894525895eed416731"
+    },
+    {
+      "view": "nine/07-diag-left.png",
+      "exact_RGB_equal": true,
+      "fresh_sha256": "06bc40fd4f4c7f2a64abfa4b8314d53e3cd3d0d7a99e2d4f7101a66da7d41655",
+      "retained_sha256": "cd8ee61e1592a7de2b1d8fc265bbd5d126f9ce41d2b25c44c204c5284142f79f"
+    },
+    {
+      "view": "nine/08-diag-right.png",
+      "exact_RGB_equal": true,
+      "fresh_sha256": "05d18bf5afe87a8607cb959c41b2bc6408a035a7baeeed14f9d8af365e969f1a",
+      "retained_sha256": "4b78653c5df802c553c33785fd131dc375d5e40b7d0dcae1089bf303e2b79fb8"
+    },
+    {
+      "view": "nine/09-diag-back.png",
+      "exact_RGB_equal": true,
+      "fresh_sha256": "e359998981fb042c21a05a548aa970c8d3373d79fc49e73efd5071f72c640b21",
+      "retained_sha256": "5c449360f54a1c588ceadee0d45dc0d752eafb86853c437d1380e47593708445"
+    }
+  ]
+}

@@ -1,0 +1,296 @@
+{
+  "status": "Twenty actual renders, ten exact matched pairs. Raw PNG bytes unchanged; pair boards concatenate full RGB pixels.",
+  "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66",
+  "pairs": [
+    {
+      "view": "hero",
+      "baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/hero/hero.png",
+        "bytes": 1215169,
+        "sha256": "019de272045c0fe25da35221a8f2dc23a290aee24113e07151d436f1ca4ea2d7"
+      },
+      "candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/hero/hero.png",
+        "bytes": 1219114,
+        "sha256": "06f5f76230aae2bd977e7acb093ff0aa23f5a25ea656fe7ac47ae10f86e1cd3c"
+      },
+      "pair": {
+        "path": "tmp/bellback-complete-wreck-anatomy/pairs/hero.png",
+        "bytes": 2017296,
+        "sha256": "d13f718b7be5e056c77e6a402eac7526dbe3c47e09c0992a40b1dbf22bfcc345"
+      },
+      "camera": [
+        -4.400000095367432,
+        -8.0,
+        2.6500000953674316
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "01-front",
+      "baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/01-front.png",
+        "bytes": 393240,
+        "sha256": "bfacb8836a92f40659644042579a201fd5ecc2b90412eba2b50a38a7927b5bea"
+      },
+      "candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/01-front.png",
+        "bytes": 387794,
+        "sha256": "2d7ce15e81e736be952c6752279ee071a740cd91cedd2892882a1fd8b20396d3"
+      },
+      "pair": {
+        "path": "tmp/bellback-complete-wreck-anatomy/pairs/01-front.png",
+        "bytes": 618501,
+        "sha256": "84249323e7dd4be514d532c0e11a35dfdfa719f2402a62a5920f5d2f93e7d9ec"
+      },
+      "camera": [
+        0.0,
+        -9.050000190734863,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "02-left",
+      "baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/02-left.png",
+        "bytes": 366372,
+        "sha256": "7e05aaf59f10bcb8a29d2a276b4e5f6d7139eba65c797dc9913d5bdc3f67df95"
+      },
+      "candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/02-left.png",
+        "bytes": 364474,
+        "sha256": "fde7b7e0f0605178b8fdac82c2d26628eb4cb50cce4949783779cbec11f72dfe"
+      },
+      "pair": {
+        "path": "tmp/bellback-complete-wreck-anatomy/pairs/02-left.png",
+        "bytes": 559162,
+        "sha256": "f427a23d43d23bfbe70e32e47f74927654c92732f9e9cabfb5f8bc9e5de4d427"
+      },
+      "camera": [
+        9.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "03-right",
+      "baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/03-right.png",
+        "bytes": 369523,
+        "sha256": "46813be0e94b9ebf350041c0f42db2a7461bd7347b9eda8929312e8c11930077"
+      },
+      "candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/03-right.png",
+        "bytes": 366682,
+        "sha256": "81cfc41a1947230391a449acd51d732cf61c0a2b6e70194da840fec64bf88544"
+      },
+      "pair": {
+        "path": "tmp/bellback-complete-wreck-anatomy/pairs/03-right.png",
+        "bytes": 568634,
+        "sha256": "ab51fa510f8c5a7582a8b72a93c84b675b7e78def73cced858f0fd2f2696c65a"
+      },
+      "camera": [
+        -9.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "04-back",
+      "baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/04-back.png",
+        "bytes": 382841,
+        "sha256": "dae796bef58b46353afb822d420a68446a9ad554e10146ead0667743459c1bb8"
+      },
+      "candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/04-back.png",
+        "bytes": 380194,
+        "sha256": "2f7e49d4a8b9c5372be03ea2c132822236e682103fd893d58ba3809e6e908d67"
+      },
+      "pair": {
+        "path": "tmp/bellback-complete-wreck-anatomy/pairs/04-back.png",
+        "bytes": 587955,
+        "sha256": "ec48bcfc67f872c813d3bf48c54b20e6f4c211da3e19d2716f75c23a29d33e1c"
+      },
+      "camera": [
+        1.1021821408568715e-15,
+        8.949999809265137,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "05-top",
+      "baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/05-top.png",
+        "bytes": 646773,
+        "sha256": "19a9b735d9b745ebac00c0343f1df0c64559a8422bfd4a469347438f8051629a"
+      },
+      "candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/05-top.png",
+        "bytes": 648893,
+        "sha256": "baad073f87433fa37237aae6900df7080fd44852608c9c35fd4c7f606d49df27"
+      },
+      "pair": {
+        "path": "tmp/bellback-complete-wreck-anatomy/pairs/05-top.png",
+        "bytes": 1167275,
+        "sha256": "4c0cec91ab78737072ed57f8a128012b66e87d5d423800aafa57f4842c98797f"
+      },
+      "camera": [
+        0.0,
+        -0.05000000074505806,
+        10.649999618530273
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "06-diag-front",
+      "baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/06-diag-front.png",
+        "bytes": 658154,
+        "sha256": "a7fcc4186159a6c55530f9bc2ee8e81b79732ef610f64212502d885e17fcdfe4"
+      },
+      "candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/06-diag-front.png",
+        "bytes": 659624,
+        "sha256": "2265b2c459293b9e1f08cee9089e0da976fa699648663ddade97306a08195457"
+      },
+      "pair": {
+        "path": "tmp/bellback-complete-wreck-anatomy/pairs/06-diag-front.png",
+        "bytes": 1178812,
+        "sha256": "1df42828e922aefa03058b2700f80c9fd04bfe61bf5adbbadb20a6f9a601bd5f"
+      },
+      "camera": [
+        0.0,
+        -7.015615940093994,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "07-diag-left",
+      "baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/07-diag-left.png",
+        "bytes": 639098,
+        "sha256": "06bc40fd4f4c7f2a64abfa4b8314d53e3cd3d0d7a99e2d4f7101a66da7d41655"
+      },
+      "candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/07-diag-left.png",
+        "bytes": 644034,
+        "sha256": "b7b9437937110304a9bedd6c1abe9f2155d50252934e2052d934fab5b8d42445"
+      },
+      "pair": {
+        "path": "tmp/bellback-complete-wreck-anatomy/pairs/07-diag-left.png",
+        "bytes": 1124535,
+        "sha256": "65004f14934abc4b5c98583a89635d311e972030347a2ca3b49a702b36ebff1a"
+      },
+      "camera": [
+        6.965615749359131,
+        -0.05000000074505806,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "08-diag-right",
+      "baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/08-diag-right.png",
+        "bytes": 641971,
+        "sha256": "05d18bf5afe87a8607cb959c41b2bc6408a035a7baeeed14f9d8af365e969f1a"
+      },
+      "candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/08-diag-right.png",
+        "bytes": 646067,
+        "sha256": "9c6c500cfe6f33939d2ef8eeff1a0d6726bab6962376694fd0f47bc128c615ba"
+      },
+      "pair": {
+        "path": "tmp/bellback-complete-wreck-anatomy/pairs/08-diag-right.png",
+        "bytes": 1137252,
+        "sha256": "f5c36c2d524864641e9874fe6dc08f4c3954537cb1bd0bb2fee7571203367492"
+      },
+      "camera": [
+        -6.965615749359131,
+        -0.05000000074505806,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    },
+    {
+      "view": "09-diag-back",
+      "baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/09-diag-back.png",
+        "bytes": 642525,
+        "sha256": "e359998981fb042c21a05a548aa970c8d3373d79fc49e73efd5071f72c640b21"
+      },
+      "candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/09-diag-back.png",
+        "bytes": 649540,
+        "sha256": "473c57618203718cf9d1a1ade04a93490e619904b105a543b21d33320e5b8838"
+      },
+      "pair": {
+        "path": "tmp/bellback-complete-wreck-anatomy/pairs/09-diag-back.png",
+        "bytes": 1227944,
+        "sha256": "26452966f919e17faa04abcd1ceca16a21bd8d7a7ba1862629e1b5df940c9647"
+      },
+      "camera": [
+        8.530419048612408e-16,
+        6.915615558624268,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432
+    }
+  ]
+}

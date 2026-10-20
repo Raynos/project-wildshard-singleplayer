@@ -25,6 +25,9 @@ export interface AnimalVolumePort {
   headWorld: (out: Vector3) => void;
   bodyCapsule: (rear: Vector3, front: Vector3) => void;
   foreCapsule?: (rear: Vector3, front: Vector3) => boolean;
+  /** Typed synchronous pose boundary, after applied HP/death and before queued combat receipts.
+   * Only an opted-in native pose owner supplies it; it must not step motion, AI or apply damage. */
+  publishAppliedHit?: () => void;
 }
 /** Per-host world height, time, random stream and optional damage pipeline. */
 export interface AnimalSimPorts {
@@ -117,6 +120,8 @@ export class AnimalSim {
     out.tiltRollT = this.tiltRollT; out.stunT = this.stunT; out.flinch = this.flinch;
     out.flinchRoll = this.flinchRoll; out.flinchPitch = this.flinchPitch; out.brace = this.brace; out.deathSide = this.deathSide;
   }
+  /** Quiet native publication input; sampling never runs the pose law. */
+  get poseDeathTime(): number { return this.deathT; }
   /** Full motor/contact continuation; authored ports and rig state remain with the fresh instance. */
   snapshot(): AnimalSnapshot {
     return { version: 1, id: this.entityId,
@@ -254,9 +259,11 @@ export class AnimalSim {
     this.flinchPitch = -lz * 0.12 + (hitPoint.y - this.position.y > this.dims.bodyY ? 0.05 : -0.03);
     if (this.hp <= 0) {
       this.hp = 0; this.alive = false; this.state = 'dead'; this.deathT = 0; this.deathSide = lx >= 0 ? -1 : 1;
-      this.desiredSpeed = 0; tap.kill?.(this.kind); this.died(dealt, hitPoint, dir);
+      this.desiredSpeed = 0; this.volumePort?.publishAppliedHit?.();
+      tap.kill?.(this.kind); this.died(dealt, hitPoint, dir);
       this.damaged(dealt, hitPoint, dir, true); return true;
     }
+    this.volumePort?.publishAppliedHit?.();
     this.damaged(dealt, hitPoint, dir, false); return false;
   }
   stagger(dir: Vector3, strength = 0): void {

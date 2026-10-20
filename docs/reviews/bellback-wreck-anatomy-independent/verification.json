@@ -1,0 +1,430 @@
+{
+  "verified_utc": "2026-10-20T02:28:01.840145+00:00",
+  "input_pins": {
+    "world_reference": {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/bellbackWorldGen.png",
+      "bytes": 2457755,
+      "sha256": "4823cac55b9a0c84062709315c4155ba83ea20d345891709f6335a22d33500aa"
+    },
+    "explorer_reference": {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/corrections/bellbackExplorerCorrectedGen-v2.png",
+      "bytes": 2017087,
+      "sha256": "d253f9f72acfc796e0d8de9a7a73194842ef0be80d03d9cb99e907845a622563"
+    },
+    "reference": {
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/bellback-lowpoly.webp",
+      "bytes": 198854,
+      "sha256": "92b3a72c20b2e820d843956f8d076fb981af9d4ec9e5669794cb717dd552f4ae"
+    },
+    "baseline_source": {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-character-next/build_bellback_complete.py",
+      "bytes": 23893,
+      "sha256": "5eb834576958c5da3707d37830c26a77e0e4992f21c0c3c3f4c5495453287177"
+    },
+    "baseline_glb": {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-character-next/bellback-complete-character-next.glb",
+      "bytes": 448412,
+      "sha256": "1bb2267368f160b19fef8a15f1d6146b43cb3a8caf510512648386265e475850"
+    },
+    "candidate_source": {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-wreck-anatomy/build_bellback_complete.py",
+      "bytes": 24279,
+      "sha256": "cef448498eef85a9aa92d786e18c0b8f0b38f33356afeb809f8179a353f22501"
+    },
+    "candidate_glb": {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-wreck-anatomy/bellback-complete-wreck-anatomy.glb",
+      "bytes": 604424,
+      "sha256": "aecf11a94f8be22de46d7c0ea551999ee67ce619417cb62a3734d3c1367eeaf6"
+    },
+    "capture_script": {
+      "path": "art/driftwood-isle/lowpoly-bellback/complete-wreck-anatomy/capture_review.py",
+      "bytes": 5500,
+      "sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66"
+    }
+  },
+  "closure_verified_entries": 93,
+  "manifest_pins": {
+    "paired-captures.json": "267e6c4d1a5f657d3891b2ae80d20e61daca7b023cc8279fefa5a0add18815ac",
+    "input-pins.json": "06e5f34212df7ba328ab02dd97b50a0e5d04b71cde37db71887229c3263b0b1d",
+    "closure.json": "8dc47f860cfae53466b8e70a66aee02b401d111d0ee483e86e4e30f4766ae2fb"
+  },
+  "all_twenty_raw_images_inspected_individually_original_detail": true,
+  "matched_pairs": [
+    {
+      "view": "hero",
+      "size": [
+        768,
+        960
+      ],
+      "baseline_pixel_identical_to_retained": true,
+      "original_candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/hero/hero.png",
+        "bytes": 1219114,
+        "sha256": "06f5f76230aae2bd977e7acb093ff0aa23f5a25ea656fe7ac47ae10f86e1cd3c"
+      },
+      "original_baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/hero/hero.png",
+        "bytes": 1215169,
+        "sha256": "019de272045c0fe25da35221a8f2dc23a290aee24113e07151d436f1ca4ea2d7"
+      },
+      "pair_exact_full_rgb": true
+    },
+    {
+      "view": "01-front",
+      "size": [
+        520,
+        640
+      ],
+      "baseline_pixel_identical_to_retained": true,
+      "original_candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/01-front.png",
+        "bytes": 387794,
+        "sha256": "2d7ce15e81e736be952c6752279ee071a740cd91cedd2892882a1fd8b20396d3"
+      },
+      "original_baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/01-front.png",
+        "bytes": 393240,
+        "sha256": "bfacb8836a92f40659644042579a201fd5ecc2b90412eba2b50a38a7927b5bea"
+      },
+      "pair_exact_full_rgb": true
+    },
+    {
+      "view": "02-left",
+      "size": [
+        520,
+        640
+      ],
+      "baseline_pixel_identical_to_retained": true,
+      "original_candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/02-left.png",
+        "bytes": 364474,
+        "sha256": "fde7b7e0f0605178b8fdac82c2d26628eb4cb50cce4949783779cbec11f72dfe"
+      },
+      "original_baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/02-left.png",
+        "bytes": 366372,
+        "sha256": "7e05aaf59f10bcb8a29d2a276b4e5f6d7139eba65c797dc9913d5bdc3f67df95"
+      },
+      "pair_exact_full_rgb": true
+    },
+    {
+      "view": "03-right",
+      "size": [
+        520,
+        640
+      ],
+      "baseline_pixel_identical_to_retained": true,
+      "original_candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/03-right.png",
+        "bytes": 366682,
+        "sha256": "81cfc41a1947230391a449acd51d732cf61c0a2b6e70194da840fec64bf88544"
+      },
+      "original_baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/03-right.png",
+        "bytes": 369523,
+        "sha256": "46813be0e94b9ebf350041c0f42db2a7461bd7347b9eda8929312e8c11930077"
+      },
+      "pair_exact_full_rgb": true
+    },
+    {
+      "view": "04-back",
+      "size": [
+        520,
+        640
+      ],
+      "baseline_pixel_identical_to_retained": true,
+      "original_candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/04-back.png",
+        "bytes": 380194,
+        "sha256": "2f7e49d4a8b9c5372be03ea2c132822236e682103fd893d58ba3809e6e908d67"
+      },
+      "original_baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/04-back.png",
+        "bytes": 382841,
+        "sha256": "dae796bef58b46353afb822d420a68446a9ad554e10146ead0667743459c1bb8"
+      },
+      "pair_exact_full_rgb": true
+    },
+    {
+      "view": "05-top",
+      "size": [
+        520,
+        640
+      ],
+      "baseline_pixel_identical_to_retained": true,
+      "original_candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/05-top.png",
+        "bytes": 648893,
+        "sha256": "baad073f87433fa37237aae6900df7080fd44852608c9c35fd4c7f606d49df27"
+      },
+      "original_baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/05-top.png",
+        "bytes": 646773,
+        "sha256": "19a9b735d9b745ebac00c0343f1df0c64559a8422bfd4a469347438f8051629a"
+      },
+      "pair_exact_full_rgb": true
+    },
+    {
+      "view": "06-diag-front",
+      "size": [
+        520,
+        640
+      ],
+      "baseline_pixel_identical_to_retained": true,
+      "original_candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/06-diag-front.png",
+        "bytes": 659624,
+        "sha256": "2265b2c459293b9e1f08cee9089e0da976fa699648663ddade97306a08195457"
+      },
+      "original_baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/06-diag-front.png",
+        "bytes": 658154,
+        "sha256": "a7fcc4186159a6c55530f9bc2ee8e81b79732ef610f64212502d885e17fcdfe4"
+      },
+      "pair_exact_full_rgb": true
+    },
+    {
+      "view": "07-diag-left",
+      "size": [
+        520,
+        640
+      ],
+      "baseline_pixel_identical_to_retained": true,
+      "original_candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/07-diag-left.png",
+        "bytes": 644034,
+        "sha256": "b7b9437937110304a9bedd6c1abe9f2155d50252934e2052d934fab5b8d42445"
+      },
+      "original_baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/07-diag-left.png",
+        "bytes": 639098,
+        "sha256": "06bc40fd4f4c7f2a64abfa4b8314d53e3cd3d0d7a99e2d4f7101a66da7d41655"
+      },
+      "pair_exact_full_rgb": true
+    },
+    {
+      "view": "08-diag-right",
+      "size": [
+        520,
+        640
+      ],
+      "baseline_pixel_identical_to_retained": true,
+      "original_candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/08-diag-right.png",
+        "bytes": 646067,
+        "sha256": "9c6c500cfe6f33939d2ef8eeff1a0d6726bab6962376694fd0f47bc128c615ba"
+      },
+      "original_baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/08-diag-right.png",
+        "bytes": 641971,
+        "sha256": "05d18bf5afe87a8607cb959c41b2bc6408a035a7baeeed14f9d8af365e969f1a"
+      },
+      "pair_exact_full_rgb": true
+    },
+    {
+      "view": "09-diag-back",
+      "size": [
+        520,
+        640
+      ],
+      "baseline_pixel_identical_to_retained": true,
+      "original_candidate": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/candidate/nine/09-diag-back.png",
+        "bytes": 649540,
+        "sha256": "473c57618203718cf9d1a1ade04a93490e619904b105a543b21d33320e5b8838"
+      },
+      "original_baseline": {
+        "path": "tmp/bellback-complete-wreck-anatomy/final/baseline/nine/09-diag-back.png",
+        "bytes": 642525,
+        "sha256": "e359998981fb042c21a05a548aa970c8d3373d79fc49e73efd5071f72c640b21"
+      },
+      "pair_exact_full_rgb": true
+    }
+  ],
+  "camera_receipts": [
+    {
+      "view": "hero",
+      "camera": [
+        -4.400000095367432,
+        -8.0,
+        2.6500000953674316
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "candidate_margin": 0.025655368342995644
+    },
+    {
+      "view": "01-front",
+      "camera": [
+        0.0,
+        -9.050000190734863,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "candidate_margin": 0.10179359465837479
+    },
+    {
+      "view": "02-left",
+      "camera": [
+        9.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "candidate_margin": 0.08803713321685791
+    },
+    {
+      "view": "03-right",
+      "camera": [
+        -9.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "candidate_margin": 0.08803713321685791
+    },
+    {
+      "view": "04-back",
+      "camera": [
+        1.1021821408568715e-15,
+        8.949999809265137,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "candidate_margin": 0.10179364681243896
+    },
+    {
+      "view": "05-top",
+      "camera": [
+        0.0,
+        -0.05000000074505806,
+        10.649999618530273
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "candidate_margin": 0.10179364681243896
+    },
+    {
+      "view": "06-diag-front",
+      "camera": [
+        0.0,
+        -7.015615940093994,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "candidate_margin": 0.10179359465837479
+    },
+    {
+      "view": "07-diag-left",
+      "camera": [
+        6.965615749359131,
+        -0.05000000074505806,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "candidate_margin": 0.07338785380125046
+    },
+    {
+      "view": "08-diag-right",
+      "camera": [
+        -6.965615749359131,
+        -0.05000000074505806,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "candidate_margin": 0.0701819434762001
+    },
+    {
+      "view": "09-diag-back",
+      "camera": [
+        8.530419048612408e-16,
+        6.915615558624268,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "candidate_margin": 0.10179346799850464
+    }
+  ],
+  "capture_script_identical_to_baseline": true,
+  "raw_and_packaged_receipts_equal": true,
+  "minimum_candidate_projection_receipt_margin": 0.025655368342995644,
+  "framing_method": "All original images inspected; matched camera and projection receipts checked. No independent Blender projection rerun.",
+  "consumer_provenance": {
+    "submitted_actual_consumer": "Blender 4.3.2 glTF importer",
+    "meshes": 114,
+    "triangles": 8610,
+    "max_vertex_error": 0,
+    "skins": 0,
+    "animations": 0,
+    "pivot_nodes": [
+      "Bell_PIVOT",
+      "Body_PIVOT",
+      "Head_PIVOT",
+      "Left fore_PIVOT",
+      "Left hind_PIVOT",
+      "Right fore_PIVOT",
+      "Right hind_PIVOT"
+    ],
+    "exact_source_native_triangles_pin_verified": true,
+    "independent_importer_rerun": false,
+    "limit": "Submitted importer audit checks oriented topology and semantic parent/material sets; it is not a rig, deformation, game-consumer or physics proof."
+  },
+  "package_readonly_verifier_stdout": "VERIFIED 8610 triangles, 114 meshes, 20 actual renders / 10 exact pairs, max normal unit error 1.376046170342704e-07",
+  "not_run": [
+    "Blender importer rerun",
+    "heavy tests",
+    "browser",
+    "game runtime",
+    "animation",
+    "contact/physics"
+  ],
+  "intersection_caveat": "PASS_SELF only; candidate reports 16874 cross-object triangle pairs, retained baseline 14227. Those overlaps are inventoried, not accepted as contact-safe."
+}

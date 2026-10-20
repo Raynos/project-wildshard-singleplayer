@@ -23,7 +23,7 @@ for kind in ['hero','nine']:
   op=od/(a['name']+'.png');np=nd/(b['name']+'.png');assert sha(op)==a['image_sha256'];assert sha(np)==b['image_sha256']
   oi=Image.open(op).convert('RGB');ni=Image.open(np).convert('RGB');assert oi.size==ni.size
   board=Image.new('RGB',(oi.width,oi.height*2+48),'#15212b');board.paste(oi,(0,24));board.paste(ni,(0,oi.height+48));draw=ImageDraw.Draw(board)
-  draw.text((8,7),'A: retained complete-character baseline / '+a['name'],fill='white');draw.text((8,oi.height+31),'B: complete character next / '+b['name'],fill='white')
+  draw.text((8,7),'A: retained complete-character-next / '+a['name'],fill='white');draw.text((8,oi.height+31),'B: integrated wreck anatomy / '+b['name'],fill='white')
   dest=T/'pairs'/(a['name']+'.png');dest.parent.mkdir(exist_ok=True);board.save(dest)
   # Compact derivative only; native raw evidence above remains unmodified.
   preview=board.copy();preview.thumbnail((768,1536));preview.save(H/('matched-'+a['name']+'-board.webp'),quality=82,method=6)

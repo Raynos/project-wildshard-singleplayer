@@ -1,0 +1,1420 @@
+{
+  "status": "PASS_STATIC_SOURCE_EXPORT",
+  "candidate": {
+    "meshObjects": 100,
+    "triangles": 3388,
+    "minimumNormalFacetCosine": 0.9999999223387149,
+    "minimumStoredNormalSourcePolygonCosine": 0.9999999880174087,
+    "facetDeviations": [],
+    "opposedTriangles": [],
+    "parts": [
+      {
+        "name": "Abdomen core",
+        "triangles": 52,
+        "signedVolume": 0.2006022506664336,
+        "minimumTriangleArea": 6.979550035229289e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "triangles": 32,
+        "signedVolume": 0.04054566717879229,
+        "minimumTriangleArea": 0.002124068219956162,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "triangles": 32,
+        "signedVolume": 0.030447666224503588,
+        "minimumTriangleArea": 0.0018447060795573301,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "triangles": 32,
+        "signedVolume": 0.02038066279839941,
+        "minimumTriangleArea": 0.0014846296830053353,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 3",
+        "triangles": 32,
+        "signedVolume": 0.012147125254225458,
+        "minimumTriangleArea": 0.001038226291548304,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rising prothorax curved cervical arch",
+        "triangles": 94,
+        "signedVolume": 0.14833369489523365,
+        "minimumTriangleArea": 0.0036730967712130555,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated pale throat",
+        "triangles": 46,
+        "signedVolume": 0.006062216184283961,
+        "minimumTriangleArea": 0.00017073690518172184,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Layered sternal bark 0",
+        "triangles": 24,
+        "signedVolume": 0.0036124796775897088,
+        "minimumTriangleArea": 0.005201625787825101,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Layered sternal bark 1",
+        "triangles": 24,
+        "signedVolume": 0.0030084146576351356,
+        "minimumTriangleArea": 0.0043694657122241125,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Layered sternal bark 2",
+        "triangles": 24,
+        "signedVolume": 0.002552675703106639,
+        "minimumTriangleArea": 0.0036392078234308363,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Layered sternal bark 3",
+        "triangles": 24,
+        "signedVolume": 0.001899828087414074,
+        "minimumTriangleArea": 0.00273971728762757,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.004045762589586051,
+        "minimumTriangleArea": 0.00540328641617045,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.003934499916823251,
+        "minimumTriangleArea": 0.005170973088082379,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 2)",
+        "triangles": 24,
+        "signedVolume": 0.0033935714406441646,
+        "minimumTriangleArea": 0.004438937812437469,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 3)",
+        "triangles": 24,
+        "signedVolume": 0.003036102124238694,
+        "minimumTriangleArea": 0.003939217119528581,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 4)",
+        "triangles": 24,
+        "signedVolume": 0.002425653967085873,
+        "minimumTriangleArea": 0.0032097685644978053,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rear neck collar -1",
+        "triangles": 24,
+        "signedVolume": 0.001322647299720008,
+        "minimumTriangleArea": 0.0023912922960228388,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.004056297059600832,
+        "minimumTriangleArea": 0.005261598924675057,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.003913392525221322,
+        "minimumTriangleArea": 0.005115478810842363,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 2)",
+        "triangles": 24,
+        "signedVolume": 0.0033935715685521964,
+        "minimumTriangleArea": 0.004468406299299011,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 3)",
+        "triangles": 24,
+        "signedVolume": 0.0030361020110912552,
+        "minimumTriangleArea": 0.003963461023172271,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 4)",
+        "triangles": 24,
+        "signedVolume": 0.0024330746087944015,
+        "minimumTriangleArea": 0.0032069880682154446,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rear neck collar 1",
+        "triangles": 24,
+        "signedVolume": 0.0013226458925371812,
+        "minimumTriangleArea": 0.0024017973160707583,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 0",
+        "triangles": 38,
+        "signedVolume": 0.012125545531429315,
+        "minimumTriangleArea": 0.0014247821328881105,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 1",
+        "triangles": 38,
+        "signedVolume": 0.01014514276848595,
+        "minimumTriangleArea": 0.0012538769909069699,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 2",
+        "triangles": 38,
+        "signedVolume": 0.008977275909868184,
+        "minimumTriangleArea": 0.0009789813851068634,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 3",
+        "triangles": 38,
+        "signedVolume": 0.007018119196902837,
+        "minimumTriangleArea": 0.0008188001802376566,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Volumetric pointed insect skull",
+        "triangles": 44,
+        "signedVolume": 0.041297987730376455,
+        "minimumTriangleArea": 0.00332023585234237,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Recessed angular orbit -1",
+        "triangles": 18,
+        "signedVolume": 0.00062276431070171,
+        "minimumTriangleArea": 0.0013298193967631836,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Inset green compound eye -1",
+        "triangles": 18,
+        "signedVolume": 0.0007048349722082319,
+        "minimumTriangleArea": 0.0008782719430505796,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "triangles": 26,
+        "signedVolume": 0.0005870166547518594,
+        "minimumTriangleArea": 0.00034267084380816207,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "triangles": 26,
+        "signedVolume": 0.0006614426394046229,
+        "minimumTriangleArea": 2.759815694833246e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept crown splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.0009687789783383203,
+        "minimumTriangleArea": 0.002235751150415192,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Compact mandible -1",
+        "triangles": 26,
+        "signedVolume": 0.0001556704093826614,
+        "minimumTriangleArea": 5.686352870006992e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Twig antenna -1",
+        "triangles": 36,
+        "signedVolume": 0.0012027841235108293,
+        "minimumTriangleArea": 5.1179301616916405e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Antenna leaf -1",
+        "triangles": 24,
+        "signedVolume": 0.0006490359589416342,
+        "minimumTriangleArea": 0.0027769744496272974,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing-1_0",
+        "triangles": 40,
+        "signedVolume": 0.07954843672903657,
+        "minimumTriangleArea": 0.006086438196628332,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "triangles": 66,
+        "signedVolume": 0.0015127489336999918,
+        "minimumTriangleArea": 1.0193722515471465e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing-1_1",
+        "triangles": 40,
+        "signedVolume": 0.05463264080613171,
+        "minimumTriangleArea": 0.005289334416858814,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "triangles": 66,
+        "signedVolume": 0.0013905205277702382,
+        "minimumTriangleArea": 1.0066275574141355e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing short -1",
+        "triangles": 40,
+        "signedVolume": 0.032343539505991024,
+        "minimumTriangleArea": 0.004143281621611326,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Short fan petiole -1",
+        "triangles": 26,
+        "signedVolume": 0.00084850858859192,
+        "minimumTriangleArea": 9.693097559105199e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg-1_0",
+        "triangles": 36,
+        "signedVolume": 0.025579410416868946,
+        "minimumTriangleArea": 0.006600548582438396,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg-1_0",
+        "triangles": 36,
+        "signedVolume": 0.01818623445455372,
+        "minimumTriangleArea": 0.0011566071477555641,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "triangles": 26,
+        "signedVolume": 0.0009051653342499282,
+        "minimumTriangleArea": 1.971470219464716e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg-1_0",
+        "triangles": 26,
+        "signedVolume": 0.0011970735911458969,
+        "minimumTriangleArea": 0.0004435852642200011,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "triangles": 26,
+        "signedVolume": 0.00021956310118209898,
+        "minimumTriangleArea": 7.885861546915068e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_1",
+        "triangles": 26,
+        "signedVolume": 0.00018530029415141154,
+        "minimumTriangleArea": 7.885827201070437e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg-1_0",
+        "triangles": 24,
+        "signedVolume": 0.0037279238500025113,
+        "minimumTriangleArea": 0.006130349999945897,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "triangles": 36,
+        "signedVolume": 0.027100925925033048,
+        "minimumTriangleArea": 0.006600552351829679,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg-1_1",
+        "triangles": 36,
+        "signedVolume": 0.018361204342315935,
+        "minimumTriangleArea": 0.0011566096451917918,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "triangles": 26,
+        "signedVolume": 0.0009051659384759222,
+        "minimumTriangleArea": 1.9714847819057582e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg-1_1",
+        "triangles": 26,
+        "signedVolume": 0.0011970738052838508,
+        "minimumTriangleArea": 0.0004435841313890313,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "triangles": 26,
+        "signedVolume": 0.00021956285295469854,
+        "minimumTriangleArea": 7.88581005483895e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_1",
+        "triangles": 26,
+        "signedVolume": 0.00018530010327347937,
+        "minimumTriangleArea": 7.885785811476953e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg-1_1",
+        "triangles": 24,
+        "signedVolume": 0.0037150039343183654,
+        "minimumTriangleArea": 0.006109266724539901,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "triangles": 44,
+        "signedVolume": 0.016144562096638664,
+        "minimumTriangleArea": 0.0016571775898366935,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raised raptorial forearm -1",
+        "triangles": 44,
+        "signedVolume": 0.01637395121112607,
+        "minimumTriangleArea": 0.0019424406412206882,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "triangles": 68,
+        "signedVolume": 0.022612066639277915,
+        "minimumTriangleArea": 1.8155031975267851e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "triangles": 116,
+        "signedVolume": 0.010577603417372834,
+        "minimumTriangleArea": 0.00021861401944917792,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Recessed angular orbit 1",
+        "triangles": 18,
+        "signedVolume": 0.000601751918057228,
+        "minimumTriangleArea": 0.0013298193967631836,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Inset green compound eye 1",
+        "triangles": 18,
+        "signedVolume": 0.0006867212064417962,
+        "minimumTriangleArea": 0.0008782719430505796,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "triangles": 26,
+        "signedVolume": 0.00047613867996357354,
+        "minimumTriangleArea": 0.0003503863182586346,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "triangles": 26,
+        "signedVolume": 0.0007429776079900124,
+        "minimumTriangleArea": 2.760855009017897e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept crown splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.0009687770490685312,
+        "minimumTriangleArea": 0.0022555285354245837,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Compact mandible 1",
+        "triangles": 26,
+        "signedVolume": 0.00017413015549345366,
+        "minimumTriangleArea": 5.686982228495724e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Twig antenna 1",
+        "triangles": 36,
+        "signedVolume": 0.0012100664607157384,
+        "minimumTriangleArea": 5.117835923977235e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Antenna leaf 1",
+        "triangles": 24,
+        "signedVolume": 0.0006490365801268931,
+        "minimumTriangleArea": 0.0027682975139313604,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing1_0",
+        "triangles": 40,
+        "signedVolume": 0.07092198702366956,
+        "minimumTriangleArea": 0.005416947154688853,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "triangles": 66,
+        "signedVolume": 0.0014349856241567577,
+        "minimumTriangleArea": 1.0225824545064528e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing1_1",
+        "triangles": 40,
+        "signedVolume": 0.04912175295775914,
+        "minimumTriangleArea": 0.0049223708294781265,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "triangles": 66,
+        "signedVolume": 0.0013426361759830328,
+        "minimumTriangleArea": 1.0159502058859671e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing short 1",
+        "triangles": 40,
+        "signedVolume": 0.032860009565375374,
+        "minimumTriangleArea": 0.004277994957136904,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Short fan petiole 1",
+        "triangles": 26,
+        "signedVolume": 0.0008665335739877887,
+        "minimumTriangleArea": 9.609580437768317e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg1_0",
+        "triangles": 36,
+        "signedVolume": 0.025794334651387137,
+        "minimumTriangleArea": 0.006600553584381581,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg1_0",
+        "triangles": 36,
+        "signedVolume": 0.018212142431518835,
+        "minimumTriangleArea": 0.0011566072461975142,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "triangles": 26,
+        "signedVolume": 0.0008400730897437892,
+        "minimumTriangleArea": 1.9714564190994668e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg1_0",
+        "triangles": 26,
+        "signedVolume": 0.001177467636271588,
+        "minimumTriangleArea": 0.00044358552942068034,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_0_-1",
+        "triangles": 26,
+        "signedVolume": 0.00018385096034983757,
+        "minimumTriangleArea": 7.885826617161344e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "triangles": 26,
+        "signedVolume": 0.00023405622151307992,
+        "minimumTriangleArea": 7.885861546915068e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg1_0",
+        "triangles": 24,
+        "signedVolume": 0.0037279235106546676,
+        "minimumTriangleArea": 0.006130353091183005,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "triangles": 36,
+        "signedVolume": 0.02578991711986977,
+        "minimumTriangleArea": 0.006600555261222219,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg1_1",
+        "triangles": 36,
+        "signedVolume": 0.018338642771798135,
+        "minimumTriangleArea": 0.0011566110971760388,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "triangles": 26,
+        "signedVolume": 0.0008400733513295695,
+        "minimumTriangleArea": 1.971470981592922e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg1_1",
+        "triangles": 26,
+        "signedVolume": 0.0011774681659847725,
+        "minimumTriangleArea": 0.0004435844386408729,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_1_-1",
+        "triangles": 26,
+        "signedVolume": 0.00018385076174913336,
+        "minimumTriangleArea": 7.885785227561528e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "triangles": 26,
+        "signedVolume": 0.00023405593280499478,
+        "minimumTriangleArea": 7.88581005483895e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg1_1",
+        "triangles": 24,
+        "signedVolume": 0.003715004011836622,
+        "minimumTriangleArea": 0.006109269147386876,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "triangles": 44,
+        "signedVolume": 0.016849091230472103,
+        "minimumTriangleArea": 0.0016571762607031242,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raised raptorial forearm 1",
+        "triangles": 44,
+        "signedVolume": 0.016206842869353002,
+        "minimumTriangleArea": 0.0019424380416342,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "triangles": 68,
+        "signedVolume": 0.022612066639277898,
+        "minimumTriangleArea": 1.8155031975267851e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "triangles": 116,
+        "signedVolume": 0.010625130558840715,
+        "minimumTriangleArea": 0.00021861401944917792,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (-1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.005665599082098877,
+        "minimumTriangleArea": 0.0066134727970800075,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (-1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.005836688831947644,
+        "minimumTriangleArea": 0.0067572641714165925,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Lateral tail splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.0064218451856084754,
+        "minimumTriangleArea": 0.008861629497996517,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.0058395183083043214,
+        "minimumTriangleArea": 0.0063420870327447545,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.006015092770608532,
+        "minimumTriangleArea": 0.00647620234143394,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Lateral tail splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.006959096687633044,
+        "minimumTriangleArea": 0.009419075966613266,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Curved lateral chest splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.0008079092327478804,
+        "minimumTriangleArea": 0.0020247836548296203,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Curved lateral chest splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.0008075583337059688,
+        "minimumTriangleArea": 0.00203418799128661,
+        "nonAdjacentSelfIntersections": []
+      }
+    ],
+    "neckIncidentCrossObjectIntersections": {
+      "Abdomen core": 40,
+      "Imbricated thorax bark (-1, 0)": 20,
+      "Coxal bark shield (-1, 0)": 10,
+      "Abdominal tergite 0": 41,
+      "Layered sternal bark 0": 22,
+      "Imbricated thorax bark (-1, 1)": 18,
+      "Raptorial upper arm -1": 22,
+      "Imbricated thorax bark (1, 1)": 22,
+      "Raptorial upper arm 1": 24,
+      "Overlapping dorsal curved neck shell 0": 22,
+      "Curved lateral chest splinter -1": 20,
+      "Layered sternal bark 1": 20,
+      "Imbricated thorax bark (-1, 2)": 20,
+      "Overlapping dorsal curved neck shell 1": 28,
+      "Layered sternal bark 2": 20,
+      "Imbricated thorax bark (-1, 3)": 22,
+      "Imbricated thorax bark (1, 2)": 24,
+      "Overlapping dorsal curved neck shell 2": 28,
+      "Imbricated thorax bark (-1, 4)": 26,
+      "Overlapping dorsal curved neck shell 3": 28,
+      "Rear neck collar -1": 12,
+      "Volumetric pointed insect skull": 26,
+      "Layered sternal bark 3": 26,
+      "Imbricated thorax bark (1, 4)": 30,
+      "Rear neck collar 1": 12,
+      "Imbricated thorax bark (1, 0)": 18,
+      "Coxal bark shield (1, 0)": 14,
+      "Integrated pale throat": 53,
+      "Imbricated thorax bark (1, 3)": 24
+    },
+    "boundaryEdges": 0,
+    "nonmanifoldEdges": 0,
+    "degenerateTriangles": 0,
+    "exactPositionMaterialTriangleCorrespondence": true
+  },
+  "baseline": {
+    "meshObjects": 90,
+    "triangles": 3100,
+    "minimumNormalFacetCosine": 0.9999999171940773,
+    "minimumStoredNormalSourcePolygonCosine": 0.9999999761260348,
+    "facetDeviations": [],
+    "opposedTriangles": [],
+    "parts": [
+      {
+        "name": "Abdomen core",
+        "triangles": 52,
+        "signedVolume": 0.21687631895610826,
+        "minimumTriangleArea": 7.418065763455288e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 0",
+        "triangles": 26,
+        "signedVolume": 0.05522046438244356,
+        "minimumTriangleArea": 0.01022939322702816,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 1",
+        "triangles": 26,
+        "signedVolume": 0.04879673944260411,
+        "minimumTriangleArea": 0.009249167710624381,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 2",
+        "triangles": 26,
+        "signedVolume": 0.04267387084552342,
+        "minimumTriangleArea": 0.00829215807352423,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Abdominal tergite 3",
+        "triangles": 26,
+        "signedVolume": 0.03654382524131494,
+        "minimumTriangleArea": 0.007344759993004103,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rising prothorax curved cervical arch",
+        "triangles": 94,
+        "signedVolume": 0.15276076003856406,
+        "minimumTriangleArea": 0.0036730967712130555,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated pale throat",
+        "triangles": 46,
+        "signedVolume": 0.007006320122846825,
+        "minimumTriangleArea": 0.00022755038522336495,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.003356532683117459,
+        "minimumTriangleArea": 0.004559773618994138,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.0030783548172938664,
+        "minimumTriangleArea": 0.004202747797115013,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 2)",
+        "triangles": 24,
+        "signedVolume": 0.002608677758242653,
+        "minimumTriangleArea": 0.003574830591385811,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 3)",
+        "triangles": 24,
+        "signedVolume": 0.0024077609947305706,
+        "minimumTriangleArea": 0.0033305934858245327,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (-1, 4)",
+        "triangles": 24,
+        "signedVolume": 0.0020099211935968664,
+        "minimumTriangleArea": 0.0029173345336456265,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rear neck collar -1",
+        "triangles": 24,
+        "signedVolume": 0.0009912524052125694,
+        "minimumTriangleArea": 0.0019558905231241578,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.0033606812914753173,
+        "minimumTriangleArea": 0.004607590997848317,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.0030783539686432037,
+        "minimumTriangleArea": 0.004244530674127621,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 2)",
+        "triangles": 24,
+        "signedVolume": 0.0026086770308895004,
+        "minimumTriangleArea": 0.003611072639265001,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 3)",
+        "triangles": 24,
+        "signedVolume": 0.002407760742604079,
+        "minimumTriangleArea": 0.003360142342127192,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Imbricated thorax bark (1, 4)",
+        "triangles": 24,
+        "signedVolume": 0.0020342103716629615,
+        "minimumTriangleArea": 0.002908259290656919,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Rear neck collar 1",
+        "triangles": 24,
+        "signedVolume": 0.0009912549159715987,
+        "minimumTriangleArea": 0.0019664295236970055,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 0",
+        "triangles": 38,
+        "signedVolume": 0.012382769467126785,
+        "minimumTriangleArea": 0.0014247821328881105,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 1",
+        "triangles": 38,
+        "signedVolume": 0.01014514276848595,
+        "minimumTriangleArea": 0.0012538769909069699,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 2",
+        "triangles": 38,
+        "signedVolume": 0.008977275909868184,
+        "minimumTriangleArea": 0.0009789813851068634,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Overlapping dorsal curved neck shell 3",
+        "triangles": 38,
+        "signedVolume": 0.007018119196902837,
+        "minimumTriangleArea": 0.0008188001802376566,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Volumetric pointed insect skull",
+        "triangles": 44,
+        "signedVolume": 0.044305231951742644,
+        "minimumTriangleArea": 0.00332023585234237,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Inset green compound eye -1",
+        "triangles": 18,
+        "signedVolume": 0.0022036628103514633,
+        "minimumTriangleArea": 0.0012969714188398964,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated eye socket rim -1",
+        "triangles": 26,
+        "signedVolume": 0.00028972498722153466,
+        "minimumTriangleArea": 0.00016202538276587422,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Tucked cheek shell -1",
+        "triangles": 26,
+        "signedVolume": 0.00041973365716710745,
+        "minimumTriangleArea": 1.4680245576387884e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept crown splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.0009687789783383203,
+        "minimumTriangleArea": 0.002235751150415192,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Compact mandible -1",
+        "triangles": 26,
+        "signedVolume": 0.0001556704093826614,
+        "minimumTriangleArea": 5.686352870006992e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Twig antenna -1",
+        "triangles": 36,
+        "signedVolume": 0.0012027841235108293,
+        "minimumTriangleArea": 5.1179301616916405e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Antenna leaf -1",
+        "triangles": 24,
+        "signedVolume": 0.0006490359589416342,
+        "minimumTriangleArea": 0.0027769744496272974,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing-1_0",
+        "triangles": 40,
+        "signedVolume": 0.15436367121743022,
+        "minimumTriangleArea": 0.00788840670352771,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_0",
+        "triangles": 66,
+        "signedVolume": 0.0016417505334932652,
+        "minimumTriangleArea": 1.0112282033400775e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing-1_1",
+        "triangles": 40,
+        "signedVolume": 0.09828007426542272,
+        "minimumTriangleArea": 0.006760937478710841,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing-1_1",
+        "triangles": 66,
+        "signedVolume": 0.0014800223182286163,
+        "minimumTriangleArea": 9.994856889027356e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg-1_0",
+        "triangles": 36,
+        "signedVolume": 0.03658964365070161,
+        "minimumTriangleArea": 0.007557385758991796,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg-1_0",
+        "triangles": 36,
+        "signedVolume": 0.021191833978918703,
+        "minimumTriangleArea": 0.0011566071477555641,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg-1_0",
+        "triangles": 26,
+        "signedVolume": 0.0009051653342499282,
+        "minimumTriangleArea": 1.971470219464716e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg-1_0",
+        "triangles": 26,
+        "signedVolume": 0.0011970735911458969,
+        "minimumTriangleArea": 0.0004435852642200011,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_-1",
+        "triangles": 26,
+        "signedVolume": 0.00021956310118209898,
+        "minimumTriangleArea": 7.885861546915068e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_0_1",
+        "triangles": 26,
+        "signedVolume": 0.00018530029415141154,
+        "minimumTriangleArea": 7.885827201070437e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg-1_0",
+        "triangles": 24,
+        "signedVolume": 0.006141978650512905,
+        "minimumTriangleArea": 0.008017275765996961,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg-1_1",
+        "triangles": 36,
+        "signedVolume": 0.03850420861226329,
+        "minimumTriangleArea": 0.007557381901878085,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg-1_1",
+        "triangles": 36,
+        "signedVolume": 0.02143033196877879,
+        "minimumTriangleArea": 0.0011566096451917918,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg-1_1",
+        "triangles": 26,
+        "signedVolume": 0.0009051659384759222,
+        "minimumTriangleArea": 1.9714847819057582e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg-1_1",
+        "triangles": 26,
+        "signedVolume": 0.0011970738052838508,
+        "minimumTriangleArea": 0.0004435841313890313,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_-1",
+        "triangles": 26,
+        "signedVolume": 0.00021956285295469854,
+        "minimumTriangleArea": 7.88581005483895e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg-1_1_1",
+        "triangles": 26,
+        "signedVolume": 0.00018530010327347937,
+        "minimumTriangleArea": 7.885785811476953e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg-1_1",
+        "triangles": 24,
+        "signedVolume": 0.006127154259652252,
+        "minimumTriangleArea": 0.007998136488764011,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raptorial upper arm -1",
+        "triangles": 44,
+        "signedVolume": 0.016144562096638664,
+        "minimumTriangleArea": 0.0016571775898366935,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raised raptorial forearm -1",
+        "triangles": 44,
+        "signedVolume": 0.01637395121112607,
+        "minimumTriangleArea": 0.0019424406412206882,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept bevelled wood sickle -1",
+        "triangles": 68,
+        "signedVolume": 0.022642856720932622,
+        "minimumTriangleArea": 1.7835912835844724e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Bevelled continuous ivory teeth -1",
+        "triangles": 116,
+        "signedVolume": 0.010803475572763285,
+        "minimumTriangleArea": 0.00021283145407921677,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Inset green compound eye 1",
+        "triangles": 18,
+        "signedVolume": 0.0021647273188158556,
+        "minimumTriangleArea": 0.0012969714188398964,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Integrated eye socket rim 1",
+        "triangles": 26,
+        "signedVolume": 0.00023894232083192775,
+        "minimumTriangleArea": 0.0001607529571347503,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Tucked cheek shell 1",
+        "triangles": 26,
+        "signedVolume": 0.00046305539909210797,
+        "minimumTriangleArea": 1.4682582180759162e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept crown splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.0009687770490685312,
+        "minimumTriangleArea": 0.0022555285354245837,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Compact mandible 1",
+        "triangles": 26,
+        "signedVolume": 0.00017413015549345366,
+        "minimumTriangleArea": 5.686982228495724e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Twig antenna 1",
+        "triangles": 36,
+        "signedVolume": 0.0012100664607157384,
+        "minimumTriangleArea": 5.117835923977235e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Antenna leaf 1",
+        "triangles": 24,
+        "signedVolume": 0.0006490365801268931,
+        "minimumTriangleArea": 0.0027682975139313604,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing1_0",
+        "triangles": 40,
+        "signedVolume": 0.10422300524006262,
+        "minimumTriangleArea": 0.005379708242638488,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing1_0",
+        "triangles": 66,
+        "signedVolume": 0.0015085741477127929,
+        "minimumTriangleArea": 1.007410807307317e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Leaf wing wing1_1",
+        "triangles": 40,
+        "signedVolume": 0.07206484206604828,
+        "minimumTriangleArea": 0.004938523567313375,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Seated folded wing midrib wing1_1",
+        "triangles": 66,
+        "signedVolume": 0.0012468770353250376,
+        "minimumTriangleArea": 9.666489306236744e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg1_0",
+        "triangles": 36,
+        "signedVolume": 0.03684387729202734,
+        "minimumTriangleArea": 0.007557380766569375,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg1_0",
+        "triangles": 36,
+        "signedVolume": 0.02122395055186005,
+        "minimumTriangleArea": 0.0011566072461975142,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg1_0",
+        "triangles": 26,
+        "signedVolume": 0.0008400730897437892,
+        "minimumTriangleArea": 1.9714564190994668e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg1_0",
+        "triangles": 26,
+        "signedVolume": 0.001177467636271588,
+        "minimumTriangleArea": 0.00044358552942068034,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_0_-1",
+        "triangles": 26,
+        "signedVolume": 0.00018385096034983757,
+        "minimumTriangleArea": 7.885826617161344e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_0_1",
+        "triangles": 26,
+        "signedVolume": 0.00023405622151307992,
+        "minimumTriangleArea": 7.885861546915068e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg1_0",
+        "triangles": 24,
+        "signedVolume": 0.00614198051722567,
+        "minimumTriangleArea": 0.008017281967120388,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking femur leg1_1",
+        "triangles": 36,
+        "signedVolume": 0.03627941607208424,
+        "minimumTriangleArea": 0.007557383741993367,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Walking tibia leg1_1",
+        "triangles": 36,
+        "signedVolume": 0.021403368961495656,
+        "minimumTriangleArea": 0.0011566110971760388,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Ground tarsus leg1_1",
+        "triangles": 26,
+        "signedVolume": 0.0008400733513295695,
+        "minimumTriangleArea": 1.971470981592922e-05,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Angular ankle cuff leg1_1",
+        "triangles": 26,
+        "signedVolume": 0.0011774681659847725,
+        "minimumTriangleArea": 0.0004435844386408729,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_1_-1",
+        "triangles": 26,
+        "signedVolume": 0.00018385076174913336,
+        "minimumTriangleArea": 7.885785227561528e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Articulated foot claw leg1_1_1",
+        "triangles": 26,
+        "signedVolume": 0.00023405593280499478,
+        "minimumTriangleArea": 7.88581005483895e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Femur leaf plate leg1_1",
+        "triangles": 24,
+        "signedVolume": 0.006127155680907026,
+        "minimumTriangleArea": 0.007998133058303438,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raptorial upper arm 1",
+        "triangles": 44,
+        "signedVolume": 0.016849091230472103,
+        "minimumTriangleArea": 0.0016571762607031242,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Raised raptorial forearm 1",
+        "triangles": 44,
+        "signedVolume": 0.016206842869353002,
+        "minimumTriangleArea": 0.0019424380416342,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Swept bevelled wood sickle 1",
+        "triangles": 68,
+        "signedVolume": 0.022642856720932636,
+        "minimumTriangleArea": 1.7835912835844724e-06,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Bevelled continuous ivory teeth 1",
+        "triangles": 116,
+        "signedVolume": 0.010813190387729335,
+        "minimumTriangleArea": 0.00021283145407921677,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (-1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.005109096169662357,
+        "minimumTriangleArea": 0.0056839588083798355,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (-1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.00527086158769843,
+        "minimumTriangleArea": 0.005807131273036764,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Lateral tail splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.007165317033566498,
+        "minimumTriangleArea": 0.008832128720621236,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (1, 0)",
+        "triangles": 24,
+        "signedVolume": 0.0051297549792570785,
+        "minimumTriangleArea": 0.005693058671830016,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Coxal bark shield (1, 1)",
+        "triangles": 24,
+        "signedVolume": 0.005286815139567072,
+        "minimumTriangleArea": 0.005808805947559495,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Lateral tail splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.007335461626649963,
+        "minimumTriangleArea": 0.00930178064901316,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Curved lateral chest splinter -1",
+        "triangles": 24,
+        "signedVolume": 0.0008122431338293165,
+        "minimumTriangleArea": 0.0020247836548296203,
+        "nonAdjacentSelfIntersections": []
+      },
+      {
+        "name": "Curved lateral chest splinter 1",
+        "triangles": 24,
+        "signedVolume": 0.0008122434060693184,
+        "minimumTriangleArea": 0.00203418799128661,
+        "nonAdjacentSelfIntersections": []
+      }
+    ],
+    "neckIncidentCrossObjectIntersections": {
+      "Abdomen core": 40,
+      "Abdominal tergite 0": 28,
+      "Imbricated thorax bark (-1, 0)": 22,
+      "Imbricated thorax bark (-1, 1)": 20,
+      "Raptorial upper arm -1": 22,
+      "Imbricated thorax bark (1, 1)": 14,
+      "Imbricated thorax bark (1, 2)": 24,
+      "Raptorial upper arm 1": 24,
+      "Overlapping dorsal curved neck shell 0": 22,
+      "Curved lateral chest splinter -1": 20,
+      "Imbricated thorax bark (-1, 2)": 20,
+      "Overlapping dorsal curved neck shell 1": 28,
+      "Imbricated thorax bark (-1, 3)": 22,
+      "Imbricated thorax bark (-1, 4)": 26,
+      "Imbricated thorax bark (1, 3)": 26,
+      "Imbricated thorax bark (1, 4)": 30,
+      "Overlapping dorsal curved neck shell 2": 28,
+      "Overlapping dorsal curved neck shell 3": 28,
+      "Rear neck collar -1": 14,
+      "Volumetric pointed insect skull": 26,
+      "Rear neck collar 1": 12,
+      "Imbricated thorax bark (1, 0)": 22,
+      "Coxal bark shield (1, 0)": 12,
+      "Coxal bark shield (-1, 0)": 4,
+      "Integrated pale throat": 46
+    },
+    "boundaryEdges": 0,
+    "nonmanifoldEdges": 0,
+    "degenerateTriangles": 0,
+    "exactPositionMaterialTriangleCorrespondence": true
+  },
+  "limitations": "Static geometry only. Nonadjacent self intersections and neck-incident cross-object intersections are reported; layered-shell overlap is not contact/articulation approval. Shared-vertex pairs are excluded. No score, native admission or runtime changes."
+}

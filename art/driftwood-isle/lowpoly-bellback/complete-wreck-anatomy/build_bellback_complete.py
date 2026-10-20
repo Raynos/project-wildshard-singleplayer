@@ -54,13 +54,16 @@ def cord(name,points,r=.065):
   a=raw[j];b=raw[(j+1)%len(raw)];steps=max(1,math.ceil((b-a).length/.17))
   centers.extend(a.lerp(b,k/steps) for k in range(steps))
  if not closed:centers.append(raw[-1])
- N=len(centers);n=6;vs=[]
+ N=len(centers);n=6;vs=[];previous_u=None
  if name=='Crown tie':r=.052
  for j,c in enumerate(centers):
   tangent=(centers[(j+1)%N if closed else min(N-1,j+1)]-centers[(j-1)%N if closed else max(0,j-1)]).normalized()
   up=Vector((0,0,1))
   if abs(tangent.dot(up))>.9:up=Vector((0,1,0))
-  u=tangent.cross(up).normalized();v=tangent.cross(u).normalized()
+  u=tangent.cross(up).normalized()
+  if previous_u is not None and not closed:
+   u=(previous_u-tangent*previous_u.dot(tangent)).normalized()
+  previous_u=u.copy();v=tangent.cross(u).normalized()
   phase=.20*math.sin(j*1.3);rad=r*(1+.07*math.sin(j*1.7))
   vs.extend(tuple(c+rad*(u*math.cos(math.tau*i/n+phase)+v*math.sin(math.tau*i/n+phase))) for i in range(n))
  fs=[];ids=[]
@@ -138,7 +141,7 @@ loft('Clapper weight',[(bp((0,-.27,-.36)),.12,.12),(bp((0,-.27,-.26)),.23,.23),(
 loft('Solid timber cranium',[((0,-.56,1.41),.53,.27),((0,-.96,1.35),.60,.29),((0,-1.37,1.10),.40,.23),((0,-1.79,.80),.18,.13)],[wood,cut,shade],7)
 loft('Pointed central face keel',[((0,-.80,1.62),.18,.11),((0,-1.20,1.39),.23,.10),((0,-1.60,1.02),.16,.12),((0,-1.91,.79),.09,.055)],[cut,wood,shade],5)
 for side in [-1,1]:
- loft('Shaped orbital brow timber '+str(side),[((side*.55,-.75,1.53),.23,.13),((side*.58,-1.10,1.38),.20,.12),((side*.40,-1.51,1.04),.16,.085),((side*.19,-1.83,.77),.065,.045)],[wood,cut,shade],5)
+ loft('Shaped orbital brow timber '+str(side),[((side*.55,-.75,1.53),.14,.105),((side*.58,-1.10,1.38),.12,.095),((side*.40,-1.51,1.04),.095,.065),((side*.19,-1.83,.77),.05,.035)],[wood,cut,shade],5)
  loft('Lower cheek timber '+str(side),[((side*.55,-.73,1.21),.20,.17),((side*.52,-1.12,.97),.18,.12),((side*.28,-1.60,.69),.12,.085)],[wood,shade,cut],5)
  loft('Swept cheek horn '+str(side),[((side*.75,-.69,1.20),.23,.21),((side*1.05,-.78,1.51),.21,.17),((side*1.24,-.88,1.93),.14,.12),((side*1.20,-.99,2.30),.045,.035)],[wood,cut,shade],6)
  def eye_prism(name,front,depth,mat):
@@ -146,19 +149,22 @@ for side in [-1,1]:
   ff=[(0,1,2),(3,5,4),(0,3,4,1),(1,4,5,2),(2,5,3,0)]
   if side<0:ff=[tuple(reversed(q)) for q in ff]
   return mesh(name+str(side),vv,ff,[mat])
- eye_prism('Recessed eye shadow',[(.29,-1.75,.78),(.56,-1.33,1.115),(.52,-1.44,.86)],.065,dark)
- eye_prism('Inset amber eye',[(.335,-1.70,.835),(.535,-1.365,1.06),(.485,-1.465,.895)],.025,eye)
+ eye_prism('Recessed eye shadow',[(.33,-1.79,.79),(.64,-1.34,1.10),(.58,-1.49,.84)],.065,dark)
+ eye_prism('Inset amber eye',[(.37,-1.77,.825),(.61,-1.38,1.05),(.55,-1.52,.88)],.025,eye)
  loft('Crown wood splinter '+str(side),[((side*.22,-1.03,1.53),.07,.055),((side*.25,-1.01,1.73+side*.025),.012,.015)],[cut,wood],4)
- loft(('Left fore' if side<0 else 'Right fore')+' neck gusset',[((side*.66,-.56,1.54),.25,.20),((side*.85,-.78,1.46),.25,.22),((side*.69,-1.05,1.14),.16,.12)],[wood,cut,shade],5)
+ loft(('Left fore' if side<0 else 'Right fore')+' neck gusset',[((side*.73,-.56,1.61),.20,.18),((side*.94,-.82,1.53),.25,.21),((side*.82,-1.10,1.25),.17,.11)],[wood,cut,shade],5)
 # A recessed dark cheek-and-jaw cavity supports separate small tooth solids.
 loft('Mouth dark pocket',[((0,-1.12,.91),.39,.16),((0,-1.56,.68),.28,.13),((0,-1.85,.60),.15,.10)],[dark],6)
-loft('Lower timber jaw',[((0,-.97,.88),.34,.13),((0,-1.40,.59),.27,.105),((0,-1.75,.50),.18,.075),((0,-1.88,.59),.09,.055)],[wood,shade,cut],5)
+loft('Lower timber jaw',[((0,-.97,.88),.34,.13),((0,-1.40,.59),.27,.105),((0,-1.75,.58),.18,.075),((0,-1.88,.65),.09,.055)],[wood,shade,cut],5)
 for side in [-1,1]:
  for j,(x,y,z) in enumerate([(.245,-1.63,.74),(.145,-1.80,.69)]):
   loft('Ivory upper fang '+str(side)+' '+str(j),[((side*x,y,z),.055,.045),((side*(x-.015),y-.025,z-.11),.042,.035),((side*(x-.02),y-.045,z-.18),.008,.008)],[ivory],4)
- # The central ivory bite remains directional, with a small uneven pair.
- for j,(x,y,z) in enumerate([(.09,-1.82,.50),(.19,-1.69,.55)]):
-  loft('Ivory lower jaw '+str(side)+' '+str(j),[((side*x,y,z),.055,.045),((side*(x+.015),y-.035,z+.10),.045,.030),((side*(x+.025),y-.05,z+.17+(side*.012)),.008,.008)],[ivory],4)
+ # Small central descending V of ivory, not a broad tooth fan.
+ contour=[(.006,-1.94,.43),(.12,-1.94,.54),(.23,-1.94,.73),(.16,-1.94,.68),(.12,-1.94,.77),(.075,-1.94,.64),(.025,-1.94,.68)]
+ vv=[(side*x,y,z) for x,y,z in contour]+[(side*x,y+.075,z+.02) for x,y,z in contour]
+ N=len(contour);ff=[tuple(range(N)),tuple(range(2*N-1,N-1,-1))]+[(i,i+N,(i+1)%N+N,(i+1)%N) for i in range(N)]
+ if side<0:ff=[tuple(reversed(q)) for q in ff]
+ mesh('Ivory lower jaw '+str(side),vv,ff,[ivory])
 head_mass=('Solid timber cranium','Pointed central face keel','Shaped orbital brow timber','Lower cheek timber','Recessed eye shadow','Inset amber eye','Crown wood splinter','Mouth dark pocket','Lower timber jaw','Ivory upper fang','Ivory lower jaw')
 # Anatomical asymmetry and broad frontal load-bearing legs, without moving the sole plane.
 for obj in objects:

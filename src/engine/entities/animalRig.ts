@@ -4,10 +4,30 @@ import type { RigAnimCtx, SpeciesDef } from './species/registry';
 
 /** A joint's numeric local transform. Real visual bones and renderer-free joints satisfy the same port. */
 export interface AnimalRigJoint { readonly position: Vector3; readonly rotation: Euler; readonly scale: Vector3 }
+/** Detached, bounded observations from the sole native practice pose owner. No mutable actor or clock is lent. */
+export interface AnimalPoseTransition {
+  readonly ordinal: number;
+  /** 0: no entry, 1: applied hit, 2: lethal applied hit. */
+  readonly kind: number;
+  readonly elapsed: number;
+  readonly displacement: Readonly<{ x: number; y: number; z: number; distance: number; total: number; heading: number }>;
+  readonly entry: Readonly<Record<string, {
+    readonly position: Readonly<{ x: number; y: number; z: number }>;
+    readonly rotation: Readonly<{ x: number; y: number; z: number }>;
+    readonly scale: Readonly<{ x: number; y: number; z: number }>;
+  }>>;
+}
+/** Read-only render consumer. Copying endpoints cannot evaluate animation or advance simulation. */
+export interface AnimalPublishedPose {
+  readonly entityId: string;
+  copyPublished: (root: AnimalRigJoint, bones: Readonly<Record<string, AnimalRigJoint>>, alpha: number) => void;
+  resetMotionAnchor: () => void;
+}
 /** Custom species read the shipping scalar context and write only transforms and owned actor motion. */
 export type AnimalRigContext = Omit<RigAnimCtx, 'bones' | 'animal'> & {
   bones: Record<string, AnimalRigJoint>;
   animal: Pick<AnimalSim, 'mem' | 'position' | 'yOffset'>;
+  readonly transition?: AnimalPoseTransition;
 };
 /** Actor-owned clocks sampled after the scheduled body/overlay phase, plus its corpse leg spread. */
 export interface QuadrupedPoseClock {

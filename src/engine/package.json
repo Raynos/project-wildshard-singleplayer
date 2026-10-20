@@ -449,6 +449,7 @@
     "./audio/declaredGameplay": "./audio/declaredGameplay.ts",
     "./models/geometrySources": "./models/geometrySources.ts",
     "./render/streamedInstances": "./render/streamedInstances.ts",
-    "./models/nativeGeometry": "./models/nativeGeometry.ts"
+    "./models/nativeGeometry": "./models/nativeGeometry.ts",
+    "./core/fixedStep": "./core/fixedStep.ts"
   }
 }

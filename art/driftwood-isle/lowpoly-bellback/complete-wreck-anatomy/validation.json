@@ -1,0 +1,16 @@
+{
+  "status": "PASS_STATIC_EVIDENCE",
+  "source_sha256": "cef448498eef85a9aa92d786e18c0b8f0b38f33356afeb809f8179a353f22501",
+  "checks": {
+    "geometry-checks.json": "PASS",
+    "native-geometry-checks.json": "PASS",
+    "consumer-checks.json": "PASS",
+    "exact-topology-parity.json": "PASS",
+    "coplanar-audit.json": "PASS",
+    "quad-diagonal-audit.json": "PASS",
+    "intersection-audit.json": "PASS_SELF",
+    "framing-audit.json": "PASS",
+    "baseline-reproduction.json": "PASS"
+  },
+  "limitations": "No producer likeness score, runtime, animation, collision or production acceptance."
+}

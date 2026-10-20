@@ -1,0 +1,1152 @@
+{
+  "status": "PASS",
+  "glb_sha256": "aecf11a94f8be22de46d7c0ea551999ee67ce619417cb62a3734d3c1367eeaf6",
+  "native_triangles_sha256": "de8570df59d375bff1e185a2c57b58e4a33920db5f9c73f3fc86f1f39ff5b16f",
+  "meshes": 114,
+  "triangles": 8610,
+  "max_vertex_error": 0,
+  "failures": [],
+  "components": [
+    {
+      "name": "Clapper stem",
+      "source_triangles": 20,
+      "imported_triangles": 20,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Clapper weight",
+      "source_triangles": 60,
+      "imported_triangles": 60,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Hollow cast bell",
+      "source_triangles": 576,
+      "imported_triangles": 576,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Angled abdominal rib -1 0",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Angled abdominal rib -1 1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Angled abdominal rib -1 2",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Angled abdominal rib 1 0",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Angled abdominal rib 1 1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Angled abdominal rib 1 2",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Arch left",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Arch right",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Barrel timber hull",
+      "source_triangles": 66,
+      "imported_triangles": 66,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Broken ship rib -1 0",
+      "source_triangles": 36,
+      "imported_triangles": 36,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Broken ship rib -1 1",
+      "source_triangles": 36,
+      "imported_triangles": 36,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Broken ship rib -1 2",
+      "source_triangles": 36,
+      "imported_triangles": 36,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Broken ship rib 1 0",
+      "source_triangles": 36,
+      "imported_triangles": 36,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Broken ship rib 1 1",
+      "source_triangles": 36,
+      "imported_triangles": 36,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Broken ship rib 1 2",
+      "source_triangles": 36,
+      "imported_triangles": 36,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Crown tie",
+      "source_triangles": 120,
+      "imported_triangles": 120,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Diagonal binding -1",
+      "source_triangles": 104,
+      "imported_triangles": 104,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Diagonal binding 1",
+      "source_triangles": 104,
+      "imported_triangles": 104,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Frame rope knot",
+      "source_triangles": 120,
+      "imported_triangles": 120,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Frame rope knot.001",
+      "source_triangles": 120,
+      "imported_triangles": 120,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Frame rope knot.002",
+      "source_triangles": 120,
+      "imported_triangles": 120,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Frame rope knot.003",
+      "source_triangles": 120,
+      "imported_triangles": 120,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Frame rope knot.004",
+      "source_triangles": 120,
+      "imported_triangles": 120,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Frame rope knot.005",
+      "source_triangles": 120,
+      "imported_triangles": 120,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Frame rope knot.006",
+      "source_triangles": 120,
+      "imported_triangles": 120,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Frame rope knot.007",
+      "source_triangles": 120,
+      "imported_triangles": 120,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Hanging shoulder rope -1",
+      "source_triangles": 92,
+      "imported_triangles": 92,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Hanging shoulder rope 1",
+      "source_triangles": 92,
+      "imported_triangles": 92,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Haunch overlapping strake -1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Haunch overlapping strake 1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Heavy salvage side lashing -1 0",
+      "source_triangles": 408,
+      "imported_triangles": 408,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Heavy salvage side lashing -1 1",
+      "source_triangles": 408,
+      "imported_triangles": 408,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Heavy salvage side lashing 1 0",
+      "source_triangles": 408,
+      "imported_triangles": 408,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Heavy salvage side lashing 1 1",
+      "source_triangles": 408,
+      "imported_triangles": 408,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Lower broken side strake -1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Lower broken side strake 1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Middle broken side strake -1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Middle broken side strake 1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Rear crossed rope left",
+      "source_triangles": 152,
+      "imported_triangles": 152,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Rear crossed rope right",
+      "source_triangles": 164,
+      "imported_triangles": 164,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Rooted lower hull rib -1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Rooted lower hull rib 1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Shoulder knot tail -1",
+      "source_triangles": 80,
+      "imported_triangles": 80,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Shoulder knot tail 1",
+      "source_triangles": 80,
+      "imported_triangles": 80,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Stern diagonal wreck plank -1",
+      "source_triangles": 44,
+      "imported_triangles": 44,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Stern diagonal wreck plank 1",
+      "source_triangles": 44,
+      "imported_triangles": 44,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Stern fan broad plank -1",
+      "source_triangles": 44,
+      "imported_triangles": 44,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Stern fan broad plank 1",
+      "source_triangles": 44,
+      "imported_triangles": 44,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Stern overlapping plate -1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Stern overlapping plate 1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Sweeping upper wreck rib -1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Sweeping upper wreck rib 1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Tall stern plank",
+      "source_triangles": 44,
+      "imported_triangles": 44,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Crown wood splinter -1",
+      "source_triangles": 12,
+      "imported_triangles": 12,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Crown wood splinter 1",
+      "source_triangles": 12,
+      "imported_triangles": 12,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Inset amber eye-1",
+      "source_triangles": 8,
+      "imported_triangles": 8,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Inset amber eye1",
+      "source_triangles": 8,
+      "imported_triangles": 8,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Ivory lower jaw -1",
+      "source_triangles": 24,
+      "imported_triangles": 24,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Ivory lower jaw 1",
+      "source_triangles": 24,
+      "imported_triangles": 24,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Ivory upper fang -1 0",
+      "source_triangles": 20,
+      "imported_triangles": 20,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Ivory upper fang -1 1",
+      "source_triangles": 20,
+      "imported_triangles": 20,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Ivory upper fang 1 0",
+      "source_triangles": 20,
+      "imported_triangles": 20,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Ivory upper fang 1 1",
+      "source_triangles": 20,
+      "imported_triangles": 20,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Lower cheek timber -1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Lower cheek timber 1",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Lower timber jaw",
+      "source_triangles": 36,
+      "imported_triangles": 36,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Mouth dark pocket",
+      "source_triangles": 32,
+      "imported_triangles": 32,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Pointed central face keel",
+      "source_triangles": 36,
+      "imported_triangles": 36,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Recessed eye shadow-1",
+      "source_triangles": 8,
+      "imported_triangles": 8,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Recessed eye shadow1",
+      "source_triangles": 8,
+      "imported_triangles": 8,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Shaped orbital brow timber -1",
+      "source_triangles": 36,
+      "imported_triangles": 36,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Shaped orbital brow timber 1",
+      "source_triangles": 36,
+      "imported_triangles": 36,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Solid timber cranium",
+      "source_triangles": 52,
+      "imported_triangles": 52,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Swept cheek horn -1",
+      "source_triangles": 44,
+      "imported_triangles": 44,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Swept cheek horn 1",
+      "source_triangles": 44,
+      "imported_triangles": 44,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left fore connected chest strake",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left fore neck gusset",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left fore outer timber shield",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left fore shoulder cap",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left fore shoulder lashing",
+      "source_triangles": 240,
+      "imported_triangles": 240,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left fore shoulder lashing.001",
+      "source_triangles": 240,
+      "imported_triangles": 240,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left fore stone foot",
+      "source_triangles": 38,
+      "imported_triangles": 38,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left fore timber leg",
+      "source_triangles": 52,
+      "imported_triangles": 52,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left fore toe -0.23",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left fore toe 0.23",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left hind broad haunch shield",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left hind shoulder cap",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left hind shoulder lashing",
+      "source_triangles": 240,
+      "imported_triangles": 240,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left hind shoulder lashing.001",
+      "source_triangles": 240,
+      "imported_triangles": 240,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left hind stone foot",
+      "source_triangles": 38,
+      "imported_triangles": 38,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left hind timber leg",
+      "source_triangles": 52,
+      "imported_triangles": 52,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left hind toe -0.23",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Left hind toe 0.23",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right fore connected chest strake",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right fore neck gusset",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right fore outer timber shield",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right fore shoulder cap",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right fore shoulder lashing",
+      "source_triangles": 240,
+      "imported_triangles": 240,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right fore shoulder lashing.001",
+      "source_triangles": 240,
+      "imported_triangles": 240,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right fore stone foot",
+      "source_triangles": 38,
+      "imported_triangles": 38,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right fore timber leg",
+      "source_triangles": 52,
+      "imported_triangles": 52,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right fore toe -0.23",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right fore toe 0.23",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right hind broad haunch shield",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right hind shoulder cap",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right hind shoulder lashing",
+      "source_triangles": 240,
+      "imported_triangles": 240,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right hind shoulder lashing.001",
+      "source_triangles": 240,
+      "imported_triangles": 240,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right hind stone foot",
+      "source_triangles": 38,
+      "imported_triangles": 38,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right hind timber leg",
+      "source_triangles": 52,
+      "imported_triangles": 52,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right hind toe -0.23",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    },
+    {
+      "name": "Right hind toe 0.23",
+      "source_triangles": 26,
+      "imported_triangles": 26,
+      "missing_triangles": 0,
+      "extra_triangles": 0,
+      "max_vertex_error": 0,
+      "parent_matches": true,
+      "material_names_match": true
+    }
+  ],
+  "scope": "Actual Blender glTF importer, mapped to source-native vertices; exact oriented triangle multisets, semantic parent and material-name sets. Static geometry only, no game or physics claim."
+}

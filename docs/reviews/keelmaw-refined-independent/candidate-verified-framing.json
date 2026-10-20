@@ -1,0 +1,117 @@
+{
+  "method": "Independent orthographic projection using explicit camera eye/target, +Z Blender up, 90-degree top local-Z roll, 600x720 aspect, and all native vertices mapped (x,-z,y).",
+  "supersedes": "Raw cameras.json framingNDC was sampled before Blender depsgraph update and can use the previous camera transform. Those bounds are invalid evidence and retained only as raw history. Actual PNG renders use evaluated current camera. This independently computed report supplies framing evidence.",
+  "sourceSha256": "32fb9e7dde21acfe0dbe42225c716c9f6a881b31b3aa4fa61c0e1e00aabf4dcc",
+  "views": [
+    {
+      "view": "hero",
+      "framingNDC": {
+        "minX": 0.05494897772303586,
+        "maxX": 0.9012229316519356,
+        "minY": 0.3106249850319836,
+        "maxY": 0.6697361587330448
+      },
+      "allVerticesInside": true,
+      "minimumMarginPixels": 32.969386633821514
+    },
+    {
+      "view": "front",
+      "framingNDC": {
+        "minX": 0.17848819190933046,
+        "maxX": 0.8375903605840292,
+        "minY": 0.3622218384414314,
+        "maxY": 0.6737343363587159
+      },
+      "allVerticesInside": true,
+      "minimumMarginPixels": 97.44578364958245
+    },
+    {
+      "view": "left",
+      "framingNDC": {
+        "minX": 0.12610602409638555,
+        "maxX": 0.9065237108433735,
+        "minY": 0.3486686613800859,
+        "maxY": 0.668905331323413
+      },
+      "allVerticesInside": true,
+      "minimumMarginPixels": 56.08577349397592
+    },
+    {
+      "view": "right",
+      "framingNDC": {
+        "minX": 0.09347628915662654,
+        "maxX": 0.8738939759036144,
+        "minY": 0.3589467989745301,
+        "maxY": 0.6761023361494061
+      },
+      "allVerticesInside": true,
+      "minimumMarginPixels": 56.08577349397592
+    },
+    {
+      "view": "back",
+      "framingNDC": {
+        "minX": 0.16240963941597075,
+        "maxX": 0.8215118080906696,
+        "minY": 0.38109323618966906,
+        "maxY": 0.6725236362127124
+      },
+      "allVerticesInside": true,
+      "minimumMarginPixels": 97.44578364958245
+    },
+    {
+      "view": "top",
+      "framingNDC": {
+        "minX": 0.12613939733395724,
+        "maxX": 0.9066679124607047,
+        "minY": 0.21867469951330898,
+        "maxY": 0.7679265067422245
+      },
+      "allVerticesInside": true,
+      "minimumMarginPixels": 55.999252523577205
+    },
+    {
+      "view": "elevated-front",
+      "framingNDC": {
+        "minX": 0.17848819190933046,
+        "maxX": 0.8375903605840292,
+        "minY": 0.23403102636806167,
+        "maxY": 0.7936494997773282
+      },
+      "allVerticesInside": true,
+      "minimumMarginPixels": 97.44578364958245
+    },
+    {
+      "view": "elevated-left",
+      "framingNDC": {
+        "minX": 0.16852738939964518,
+        "maxX": 0.7895759291180882,
+        "minY": 0.23565492568573776,
+        "maxY": 0.7891940663219652
+      },
+      "allVerticesInside": true,
+      "minimumMarginPixels": 101.1164336397871
+    },
+    {
+      "view": "elevated-right",
+      "framingNDC": {
+        "minX": 0.053177697672854574,
+        "maxX": 0.8894815688988345,
+        "minY": 0.2702404029551276,
+        "maxY": 0.6629654937560346
+      },
+      "allVerticesInside": true,
+      "minimumMarginPixels": 31.906618603712744
+    },
+    {
+      "view": "elevated-back",
+      "framingNDC": {
+        "minX": 0.16240963941597075,
+        "maxX": 0.8215118080906696,
+        "minY": 0.29774469146105864,
+        "maxY": 0.7222535945973783
+      },
+      "allVerticesInside": true,
+      "minimumMarginPixels": 97.44578364958245
+    }
+  ]
+}

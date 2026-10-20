@@ -26,11 +26,14 @@ import { HUD } from '@wildshard/engine/ui/HUD';
 import { INPUT_CONTEXTS } from '../inputContexts';
 import { Sword, type SwordOptions } from '../weapons/Sword';
 import { PracticeCreature } from '../practice/PracticeCreature';
+import type { PracticeNativeSelection } from '../practice/PracticeNativeActor';
 import { EncounterSession } from '../practice/EncounterSession';
 import type { ShardProduct } from '../shardfile/shardProduct';
 
 /** Explicit demo composition; its supplied product contains no world entry or persistent save authority. */
 export interface PracticeDemoOptions {
+  /** Exact kind:variant selections only; absent keeps every public demo on its existing owner. */
+  readonly nativePractice?: Readonly<Record<string, PracticeNativeSelection>>;
   readonly canvas: HTMLCanvasElement;
   readonly level: LevelSpec;
   readonly product: ShardProduct;
@@ -98,12 +101,16 @@ export async function startPracticeDemo(options: PracticeDemoOptions): Promise<P
     const choices = program.species.flatMap(species => species.variants.map(variant => ({
       id: `${species.kind}:${variant.id}`, label: species.label, species, variant: variant.id,
     })));
+    if (options.nativePractice !== undefined && (Object.keys(options.nativePractice).length !== 1
+      || Object.keys(options.nativePractice).some(id => !choices.some(choice => choice.id === id))))
+      throw new Error('Native practice selects exactly one admitted opponent');
     const encounter = new EncounterSession<string, PracticeCreature>({
       load: id => {
         const choice = choices.find(row => row.id === id);
         if (choice === undefined) throw new Error('Unknown demo opponent');
         return PracticeCreature.create({ species: choice.species, variant: choice.variant, strikes: program.strikes,
           product: options.product, scene: game.rootScene, sky: game.sky, physics, player, weapons, owner,
+          ...(options.nativePractice?.[choice.id] === undefined ? {} : { nativePose: options.nativePractice[choice.id] }),
           style: options.level.creatureStyle ?? 'toon', render: options.level.creatures, flash: () => hud.damageFlash(),
           onPlayerDeath: () => options.status('Defeated. Retry starts a fresh local bout.'),
           onDeath: () => options.status('Opponent defeated. Collect the practice coins.'),
@@ -120,8 +127,12 @@ export async function startPracticeDemo(options: PracticeDemoOptions): Promise<P
     game.onFixed('step', () => { physics.step(); }, 'physics.step', true);
     game.onFixed('post', dt => { ragdollsFor(physics).fixedPost(dt); }, 'physics.corpse.post', true);
     game.onFixed('post', dt => { player.step(dt); }, 'player.step', true);
+    if (options.nativePractice !== undefined) app.addSystem({ id: 'demo.native-practice', phase: 'fixed.post', after: ['player.step'],
+      when: () => app.state === 'practice', run: () => { encounter.snapshot.actor?.fixedUpdate(); } }, owner);
     game.onUpdate(dt => { player.update(dt, game.alpha); }, 'player.update');
     app.addSystem({ id: 'demo.weapon', phase: 'update', after: ['training-arena'], run: (dt, t) => { weapons.update(dt, t); } }, owner);
+    if (options.nativePractice !== undefined) app.addSystem({ id: 'demo.native-publication', phase: 'update', after: ['demo.weapon'],
+      run: () => { encounter.snapshot.actor?.publishNativeFrame(); } }, owner);
     game.onUpdate(() => {
       const vitals = arena.playerVitals;
       hud.setState({ bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve,

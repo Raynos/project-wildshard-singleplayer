@@ -1,0 +1,452 @@
+{
+  "status": "MATCHED_STATIC_CAPTURE_VERIFIED",
+  "score": null,
+  "visualAcceptance": false,
+  "rawPngsImmutable": true,
+  "frameCount": 20,
+  "rawFrames": [
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/baseline/hero.png",
+      "sha256": "4f8c2b7a805cc64716eb42ad34d6fbf1b0a991c84554eacbcdcdbc945f657ad8",
+      "bytes": 583098,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/candidate/hero.png",
+      "sha256": "5b94eb520407f12a8790c52898a40dd9f87bd58f8801c3e572daa9d33bfaf4c5",
+      "bytes": 583675,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/baseline/front.png",
+      "sha256": "4a36d8ee40b5a5cf4ce079835b48e86c9b28c0abdf5acbfbdd16aad9e7901884",
+      "bytes": 425129,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/candidate/front.png",
+      "sha256": "61d315b2ed60b46d778879b0362cb28cf6c612a705fd4478faf840959c4385e9",
+      "bytes": 423693,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/baseline/left.png",
+      "sha256": "c66f5498bd02996ca0b1d678bb78cddd6be359c3317ea9ab4abd3cdc4fe69fca",
+      "bytes": 390420,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/candidate/left.png",
+      "sha256": "92ad1924515f865a3c66f81733b8b4abf38522688c7720a4cdc7871f37d0e8a0",
+      "bytes": 388161,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/baseline/right.png",
+      "sha256": "c180c3173b193b1b8f7805b3a81b9edf58e5120e355c03fcac0df6343f36f0f2",
+      "bytes": 389817,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/candidate/right.png",
+      "sha256": "21cb64ad4d17699101b6d2039b46bbfe679bfb22975a6b5ed06c5444bc556f79",
+      "bytes": 383047,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/baseline/back.png",
+      "sha256": "52b007cac5c30add8a0268266504957243861dc0f88f94844eba17871f8b30c4",
+      "bytes": 430997,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/candidate/back.png",
+      "sha256": "a41303bd428faff18a39542bfcf9b4dae3eb8b2bc289916e3a7060aabe0af938",
+      "bytes": 430737,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/baseline/top.png",
+      "sha256": "35cf7c2ebfb50176e8e618d202b4cffc106aa7b4dca6cadbb030fb8c58074b3d",
+      "bytes": 692979,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/candidate/top.png",
+      "sha256": "52a9b428593449daab646a703473c962bb6d0d3138bfa36aadf7d9f88f3b6b9a",
+      "bytes": 687132,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/baseline/diag-front.png",
+      "sha256": "21b5eec398b2a162efc163006085652f5ed23426b679ca0e8314bb7d0889c714",
+      "bytes": 705025,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/candidate/diag-front.png",
+      "sha256": "25323323ae1e1b4decd97e5e1c9559ee68784dd0830a806c0120455ae547739e",
+      "bytes": 700760,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/baseline/diag-left.png",
+      "sha256": "9026be777fd159ba542e5c6cf759016174bccce87c2f1956b02018e5a2881d35",
+      "bytes": 707447,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/candidate/diag-left.png",
+      "sha256": "15d9a809b3f63c82c3d5bb400c0e5dcefb2f947d5f076f1d93553c50e61b1956",
+      "bytes": 722277,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/baseline/diag-right.png",
+      "sha256": "f0505ae3327ebe6d6c55e55bc1eaa032be1ef31ab4d552a5ff47769a92bc8ed9",
+      "bytes": 677329,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/candidate/diag-right.png",
+      "sha256": "c64a6aba75121642b44681f33eba37ba3725515bb0569fa677b0c14b236d0cb9",
+      "bytes": 678181,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/baseline/diag-back.png",
+      "sha256": "783b8f0253db601862a9d790d2ff41e08d496e1eee61e4652dbe3f38ee4e4488",
+      "bytes": 695330,
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-sculpted-anatomy/candidate/diag-back.png",
+      "sha256": "cf41944eebdccedda68cf4f4049b84183de97e0870a077f7fdcbaf2b431f6528",
+      "bytes": 691530,
+      "size": [
+        638,
+        900
+      ]
+    }
+  ],
+  "projectionFits": [
+    {
+      "role": "baseline",
+      "view": "hero",
+      "pixelBounds": [
+        34.178538879528276,
+        164.87951762383403,
+        603.8211328221606,
+        735.1202406318548
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "hero",
+      "pixelBounds": [
+        40.00769646892144,
+        164.87951762383403,
+        591.7862306513979,
+        735.1202406318548
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "front",
+      "pixelBounds": [
+        85.10419589573081,
+        126.99270783595068,
+        552.8958041042692,
+        773.0078194884709
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "front",
+      "pixelBounds": [
+        85.10419589573081,
+        126.99270783595068,
+        552.8958041042692,
+        773.0078194884709
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "left",
+      "pixelBounds": [
+        34.178601154567446,
+        126.99253494927262,
+        601.6595673712786,
+        773.0076053042724
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "left",
+      "pixelBounds": [
+        47.90736251431008,
+        126.99253494927262,
+        603.8212902578307,
+        773.0076053042724
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "right",
+      "pixelBounds": [
+        36.340473537206435,
+        126.99258817487532,
+        603.821424210026,
+        773.0076293608489
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "right",
+      "pixelBounds": [
+        34.17875065065442,
+        126.99258817487532,
+        590.0926637236931,
+        773.0076293608489
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "back",
+      "pixelBounds": [
+        85.10421388886087,
+        126.99257145051178,
+        552.8958220460859,
+        773.0076711464479
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "back",
+      "pixelBounds": [
+        85.10421388886087,
+        126.99257145051178,
+        552.8958220460859,
+        773.0076711464479
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "top",
+      "pixelBounds": [
+        85.10419589573081,
+        165.17866347675067,
+        552.8958041042692,
+        732.6596157171459
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "top",
+      "pixelBounds": [
+        85.10419589573081,
+        178.90742439978845,
+        552.8958041042692,
+        734.8213365232493
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-front",
+      "pixelBounds": [
+        85.10419589573081,
+        109.41246863310761,
+        552.8958041042692,
+        790.58765021463
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-front",
+      "pixelBounds": [
+        85.10419589573081,
+        121.20889003637302,
+        552.8958041042692,
+        790.58765021463
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-left",
+      "pixelBounds": [
+        34.178694926727815,
+        77.54941844660505,
+        601.6596701597352,
+        822.4506530132948
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-left",
+      "pixelBounds": [
+        47.90745331972363,
+        77.54941844660505,
+        603.8213882844071,
+        822.4506530132948
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-right",
+      "pixelBounds": [
+        36.34031449805991,
+        77.55792874633283,
+        603.8212741871757,
+        822.4419581990102
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-right",
+      "pixelBounds": [
+        34.17859637338802,
+        77.55792874633283,
+        590.0925166675897,
+        822.4419581990102
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "diag-back",
+      "pixelBounds": [
+        85.10402759670205,
+        86.24173959925793,
+        552.8956357660475,
+        813.75894995866
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "diag-back",
+      "pixelBounds": [
+        85.10402759670205,
+        86.24173959925793,
+        552.8956357660475,
+        813.75894995866
+      ]
+    }
+  ],
+  "pairedCamerasAndSettings": true,
+  "totalNewBytes": 16585105,
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/native-consumer.test.ts": "8e803f4c55ae3b8988ea6607935380cf5073ea5e107550b9575bb35b6297cfd0",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/closure.json": "d846db059e67eac00055ec464b5c8efb623919920fd43563f07a56007dd49a45",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/verify_delivery.py": "9a217bcbc99e43651b7df49dad21806a3f398c40830dd3bda3a834120cb92fd6",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-diag-front.webp": "56d90e2871d0648af439853f17e54685f1734bf22f3d87cf3aa0c42a1c15e9fc",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/pre-render-test-receipts.json": "a29048f52a98918f81c5a7553b30100a71bec60ce763b47a9ee12e00749b8c2d",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/render_matched.py": "5daa6619aee2b1570bb941ffab6223903095e7dd7e999959f8474e317b587e43",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-diag-left.webp": "09c2f28b484eafab92497c1335cd5f1dbc03bc75bc7c9e4b48df6ce22dff78c0",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-front.webp": "2e27869bd69f8cb9c0e0145590ed6fc172e54260cf8243f5079026035ffcb017",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-diag-back.webp": "3e4788410da45e61f50d7f4c2983116a3c9a18968d946e626ada6a9409f927db",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-diag-back.webp": "0645e97fe2947c47152b84fb78452c3a6f9ea330082646476f032b06bcdbb921",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-right.webp": "828b4a48a9d463c822e5e8ac39d987fab32aaa661d4f389869718361e18f740f",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/matched-hero-board.webp": "74facfea5ccfca829c7bbff269befad6821eaa20b0048d28e747ad832bc1468e",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-front.webp": "f306e16a461db8f49d9eb0febd274771523ea5e5f93233f4037f8c7c6bf8399d",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/export_native.py": "6d01916fb47d91b80d65807ec49624ad27496b76a924053fc67f940c30cb8634",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/intersection-audit.json": "19f63230a5686d3492b08fbabbbdaca3bbe5faa2f245a844770c88af06f2ae22",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/geometry-audit.json": "368406e58ae8c1cf88fca3c4fb55144805c427fd7c7e1d66dca4c003da9feb27",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/vitest.config.ts": "073708544047cd40ba7d74651b84edd2640528509a3da6c839f167ed2419898c",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-left.webp": "c3f92eb5c91cd1f60d48a29f1bcf792c274dbdbe7cd7bfde5ffa2f1b6588dc8a",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/pivots.json": "b366c76b4b148c66654c3c2a0a9bb92229ae9594ff8eb829e9a5d513a0ad02d4",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-nine-board.webp": "89a7316f483ea3971963fd31dec1dca51f1ae6981745372c7bdee5d1c1407c97",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/check_scope.py": "bf4ef7ca35ae67ce855ec8ad08a2a6314c2f8e323744d51cf46a3fab0dc3d0d3",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/metrics-complete-sculpted-anatomy.json": "abed2395cd2ef940b6889b9a7b1a44bf7a14e67bc13f5943489b755b3fddcdd8",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/prepare_source.py": "c454c25067bf30d35f0a3b2b55a61d090b5e9dedd429bdc08a35da851e6a589f",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/capture-provenance.json": "afd3f2deac190f09ac67b99690b46bdc8da0b78f2a2d3067e1c38bd34b3a2c9f",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/normal-audit.json": "e71f93e6063a09fba0ae8dcfc5d17398e0506f5d78c5cde8248790f11a9ecb82",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-top.webp": "a457994c92d23ab79bd2e692178e39e5c42e431f094fc4d0c074ca031903c47f",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-top.webp": "5d5bb0eabf1cf4eee7e48c5d89d90e440c95172200dcefc290e5016c06fd32e9",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-hero.webp": "5eeb94873ae6a35be97df1a7a538a0ed4dba75782fdccc717c911a5605b23ef6",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-right.webp": "6847c3a23eaa399e30572887c715677e8a1ff779aa5b23f6dded72cc5579d3e0",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-nine-board.webp": "a8c4c357ea0a87f78cc011821ffe7a3c53a8d0e5d62a9902959cabe8d4677cfc",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/metadata.json": "cf199c8c2ec040918d2baf11dafa93ba0a0c76df5e6c0855dbdfab6d61239790",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/diagnostic-dimensions.json": "076b276bd961237c914c4565dee5a9d5a3b50eba13812a1644672014ccec0d42",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-back.webp": "e9ef8dfc4f6810a49744cafe678ab23b76fdab8f92df9eb785a7c7e612f859a7",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/assemble_evidence.py": "2916959690db0b20cfb97aec3266f491b24eae82bcf9a8a221ecb34e9d1ef4b5",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/mantis-study-complete-sculpted-anatomy.glb": "fbbd9b0bcf6741055e7e938bdecc89f09e7e80a040ff61daf50b7c3b92dd5ab0",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/cameras.json": "3afd198f499cf9a69e7c601b2317621a65412e8f545b8ec453bc96f8621a4120",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-diag-front.webp": "07d898ecdc745b960fbfa84cb795687c88aa3de8fc43ec74ab4a6ea1cf8f6a34",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-diag-right.webp": "990fbb7746a75908f51f8710b212b486d45f1e342bcf5ced050ade56a347b0ba",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/prepare_native_mapping.py": "ec7696236ab734f9b5d3ef32963160d0d49b7b111c5b97d89ef094ca67e250a9",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/scope-audit.json": "0eb5a8b00546c70b4a0f24330694fe1402ee39ad40d5c18df4d9177c4dc683e3",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-diag-left.webp": "92949031568e05539f2ecf3c75adedd4c75916563d304f47dc7bb43e6f08bb9f",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/build_mantis_complete.py": "e6f7e74e5072fbc2f11792ecaf285a6ad0b2ad451a3c3141961a07d423cb3b53",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/mesh-map.json": "9b84f797bdfe669f8280b15e8d31daddfed788df88caa9315bc697093e7fc740",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/test_export_native.py": "2a66e51d6f66cf2ec039ee5a46bf8b09b3a546ebde85bf519114df00e288c28b",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/authored-mapping.json": "8f7a58ed5aafe1d571eeb246f15720ee7090fb10f419b03339e6aef98beeacbf",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-left.webp": "1d40e626e53d9c5e2b465fb6b581b627277fbf7e0aecd097a13e5d99dee32f04",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-diag-right.webp": "b9c376343a19b3d4f76b45bc1b5770a2875d4e4ef99c303db143186f620c8210",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/mantis-native.json": "3211061f9d43756c2b5c2ac519bc411fee3ea47e758ae14782c66db2a6bd5faa",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/candidate-back.webp": "367cc0f094cce7209d2cc6f67471040021e5f19a83bf574106320000729fe89f",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/check_geometry.py": "8ea6ec92b276c495f15c2d94db73e9128b55b2151b14971039e3fc98b3058320",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/mantis-mesh-complete-sculpted-anatomy.json": "ef946dc16b42438e9135e76297b7e14ad3f7b794a9b573382f15eb1acb24272f",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/input-pins.json": "ae1a0ad372fdb5de10fcc36de706ea9c487f8ecc619e2da61f92b2de304d8521",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/check_intersections.py": "ad0bc3fc657eb672cf97e9fcfc261f70ddca0730cf6771580499f443bac6f1a2",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/payload.bin": "95a19b211814e007ba597b46eb5453d8d392beec6d2d0ef3229343aba5afc6f7",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/README.md": "b42c85558dde3ab111c468ae305625c525f3adc8ab92554c5b2b8edce20be740",
+    "art/driftwood-isle/lowpoly-mantis/complete-sculpted-anatomy/baseline-hero.webp": "22769e6503d6d17c8bcf26e1139b5b8916356328cdef6ca67701d81cd61c3409"
+  },
+  "limits": "No articulation/contact/animation/runtime acceptance. Hidden original angles approximate. Raw PNGs never re-encoded; previews are labelled derivatives."
+}

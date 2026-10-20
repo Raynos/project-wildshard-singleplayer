@@ -1,0 +1,1140 @@
+{
+  "status": "Actual static geometry review; not game capture or visual acceptance",
+  "source": "art/driftwood-isle/lowpoly-bellback/complete-wreck-anatomy/../complete-character-next/build_bellback_complete.py",
+  "source_sha256": "5eb834576958c5da3707d37830c26a77e0e4992f21c0c3c3f4c5495453287177",
+  "capture_script_sha256": "d5482c345e5f4eea1c7814f6568ef30125e2ff277ecc7c7abb79eaa937bb6b66",
+  "bounds": {
+    "min": [
+      -1.8833892345428467,
+      -1.9057999849319458,
+      0.0
+    ],
+    "max": [
+      1.860857605934143,
+      1.411373496055603,
+      3.719953775405884
+    ]
+  },
+  "topology": [
+    {
+      "name": "Barrel timber hull",
+      "vertices": 32,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left fore timber leg",
+      "vertices": 28,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left fore shoulder cap",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left fore stone foot",
+      "vertices": 21,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left fore toe -0.23",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left fore toe 0.23",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left fore shoulder lashing",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left fore shoulder lashing.001",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left hind timber leg",
+      "vertices": 28,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left hind shoulder cap",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left hind stone foot",
+      "vertices": 21,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left hind toe -0.23",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left hind toe 0.23",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left hind shoulder lashing",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left hind shoulder lashing.001",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Broken ship rib -1 0",
+      "vertices": 20,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Broken ship rib -1 1",
+      "vertices": 20,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Broken ship rib -1 2",
+      "vertices": 20,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Rooted lower hull rib -1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Sweeping upper wreck rib -1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Haunch overlapping strake -1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Frame rope knot",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Frame rope knot.001",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Frame rope knot.002",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Frame rope knot.003",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Diagonal binding -1",
+      "vertices": 18,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right fore timber leg",
+      "vertices": 28,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right fore shoulder cap",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right fore stone foot",
+      "vertices": 21,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right fore toe -0.23",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right fore toe 0.23",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right fore shoulder lashing",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right fore shoulder lashing.001",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right hind timber leg",
+      "vertices": 28,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right hind shoulder cap",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right hind stone foot",
+      "vertices": 21,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right hind toe -0.23",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right hind toe 0.23",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right hind shoulder lashing",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right hind shoulder lashing.001",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Broken ship rib 1 0",
+      "vertices": 20,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Broken ship rib 1 1",
+      "vertices": 20,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Broken ship rib 1 2",
+      "vertices": 20,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Rooted lower hull rib 1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Sweeping upper wreck rib 1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Haunch overlapping strake 1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Frame rope knot.004",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Frame rope knot.005",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Frame rope knot.006",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Frame rope knot.007",
+      "vertices": 60,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Diagonal binding 1",
+      "vertices": 18,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Lower broken side strake -1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Middle broken side strake -1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Stern diagonal wreck plank -1",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left fore outer timber shield",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Lower broken side strake 1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Middle broken side strake 1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Stern diagonal wreck plank 1",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right fore outer timber shield",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Tall stern plank",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Arch left",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Arch right",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Crown tie",
+      "vertices": 30,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Hollow cast bell",
+      "vertices": 290,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Clapper stem",
+      "vertices": 12,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Clapper weight",
+      "vertices": 32,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Solid timber cranium",
+      "vertices": 28,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Pointed central face keel",
+      "vertices": 12,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Shaped orbital brow timber",
+      "vertices": 12,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Lower cheek timber",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Swept cheek horn",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Recessed eye shadow",
+      "vertices": 6,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Inset amber eye",
+      "vertices": 6,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Crown wood splinter -1",
+      "vertices": 8,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left fore neck gusset",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Shaped orbital brow timber.001",
+      "vertices": 12,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Lower cheek timber.001",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Swept cheek horn.001",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Recessed eye shadow.001",
+      "vertices": 6,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Inset amber eye.001",
+      "vertices": 6,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Crown wood splinter 1",
+      "vertices": 8,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right fore neck gusset",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Mouth dark pocket",
+      "vertices": 12,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Lower timber jaw",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Ivory upper fang -1 0",
+      "vertices": 12,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Ivory upper fang -1 1",
+      "vertices": 12,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Ivory lower jaw -1",
+      "vertices": 18,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Ivory upper fang 1 0",
+      "vertices": 12,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Ivory upper fang 1 1",
+      "vertices": 12,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Ivory lower jaw 1",
+      "vertices": 18,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left fore connected chest strake",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Stern fan broad plank -1",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right fore connected chest strake",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Stern fan broad plank 1",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Heavy salvage side lashing -1 0",
+      "vertices": 156,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Hanging shoulder rope -1",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Heavy salvage side lashing -1 1",
+      "vertices": 156,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Stern overlapping plate -1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Left hind broad haunch shield",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Heavy salvage side lashing 1 0",
+      "vertices": 156,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Hanging shoulder rope 1",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Heavy salvage side lashing 1 1",
+      "vertices": 156,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Stern overlapping plate 1",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Right hind broad haunch shield",
+      "vertices": 15,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Rear crossed rope left",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Rear crossed rope right",
+      "vertices": 24,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0
+    }
+  ],
+  "lights": [
+    [
+      "Key",
+      [
+        -4,
+        -5,
+        7
+      ],
+      450,
+      5
+    ],
+    [
+      "Fill",
+      [
+        0,
+        -5,
+        3
+      ],
+      260,
+      4
+    ],
+    [
+      "Rim",
+      [
+        0,
+        4,
+        6
+      ],
+      600,
+      3
+    ]
+  ],
+  "shots": [
+    {
+      "name": "01-front",
+      "eye_visibility": [
+        {
+          "eye": "Inset amber eye",
+          "visible_samples": 3,
+          "samples": 4,
+          "blockers": [
+            null,
+            null,
+            "Recessed eye shadow",
+            null
+          ]
+        },
+        {
+          "eye": "Inset amber eye.001",
+          "visible_samples": 3,
+          "samples": 4,
+          "blockers": [
+            null,
+            null,
+            "Recessed eye shadow.001",
+            null
+          ]
+        }
+      ],
+      "camera": [
+        0.0,
+        -9.050000190734863,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "normalized_bounds": {
+        "min": [
+          0.08973143994808197,
+          0.20796431601047516
+        ],
+        "max": [
+          0.9053604006767273,
+          0.8663632273674011
+        ]
+      },
+      "image_sha256": "bfacb8836a92f40659644042579a201fd5ecc2b90412eba2b50a38a7927b5bea",
+      "image_bytes": 393240
+    },
+    {
+      "name": "02-left",
+      "eye_visibility": [
+        {
+          "eye": "Inset amber eye",
+          "visible_samples": 0,
+          "samples": 4,
+          "blockers": [
+            "Inset amber eye.001",
+            "Inset amber eye.001",
+            "Recessed eye shadow.001",
+            "Inset amber eye.001"
+          ]
+        },
+        {
+          "eye": "Inset amber eye.001",
+          "visible_samples": 3,
+          "samples": 4,
+          "blockers": [
+            null,
+            null,
+            "Recessed eye shadow.001",
+            null
+          ]
+        }
+      ],
+      "camera": [
+        9.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "normalized_bounds": {
+        "min": [
+          0.09574144333600998,
+          0.20796452462673187
+        ],
+        "max": [
+          0.8183387517929077,
+          0.8663634061813354
+        ]
+      },
+      "image_sha256": "7e05aaf59f10bcb8a29d2a276b4e5f6d7139eba65c797dc9913d5bdc3f67df95",
+      "image_bytes": 366372
+    },
+    {
+      "name": "03-right",
+      "eye_visibility": [
+        {
+          "eye": "Inset amber eye",
+          "visible_samples": 3,
+          "samples": 4,
+          "blockers": [
+            null,
+            null,
+            "Recessed eye shadow",
+            null
+          ]
+        },
+        {
+          "eye": "Inset amber eye.001",
+          "visible_samples": 0,
+          "samples": 4,
+          "blockers": [
+            "Inset amber eye",
+            "Inset amber eye",
+            "Recessed eye shadow",
+            "Inset amber eye"
+          ]
+        }
+      ],
+      "camera": [
+        -9.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "normalized_bounds": {
+        "min": [
+          0.18166124820709229,
+          0.20796452462673187
+        ],
+        "max": [
+          0.9042585492134094,
+          0.8663634061813354
+        ]
+      },
+      "image_sha256": "46813be0e94b9ebf350041c0f42db2a7461bd7347b9eda8929312e8c11930077",
+      "image_bytes": 369523
+    },
+    {
+      "name": "04-back",
+      "eye_visibility": [
+        {
+          "eye": "Inset amber eye",
+          "visible_samples": 0,
+          "samples": 4,
+          "blockers": [
+            "Barrel timber hull",
+            "Stern overlapping plate -1",
+            "Haunch overlapping strake -1",
+            "Barrel timber hull"
+          ]
+        },
+        {
+          "eye": "Inset amber eye.001",
+          "visible_samples": 0,
+          "samples": 4,
+          "blockers": [
+            "Stern overlapping plate 1",
+            "Stern overlapping plate 1",
+            "Right hind timber leg",
+            "Barrel timber hull"
+          ]
+        }
+      ],
+      "camera": [
+        1.1021821408568715e-15,
+        8.949999809265137,
+        1.649999976158142
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "normalized_bounds": {
+        "min": [
+          0.09463956952095032,
+          0.20796442031860352
+        ],
+        "max": [
+          0.9102684855461121,
+          0.8663634061813354
+        ]
+      },
+      "image_sha256": "dae796bef58b46353afb822d420a68446a9ad554e10146ead0667743459c1bb8",
+      "image_bytes": 382841
+    },
+    {
+      "name": "05-top",
+      "eye_visibility": [
+        {
+          "eye": "Inset amber eye",
+          "visible_samples": 3,
+          "samples": 4,
+          "blockers": [
+            null,
+            null,
+            "Recessed eye shadow",
+            null
+          ]
+        },
+        {
+          "eye": "Inset amber eye.001",
+          "visible_samples": 3,
+          "samples": 4,
+          "blockers": [
+            null,
+            null,
+            "Recessed eye shadow.001",
+            null
+          ]
+        }
+      ],
+      "camera": [
+        0.0,
+        -0.05000000074505806,
+        10.649999618530273
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "normalized_bounds": {
+        "min": [
+          0.09463959187269211,
+          0.24134981632232666
+        ],
+        "max": [
+          0.9102685451507568,
+          0.828460156917572
+        ]
+      },
+      "image_sha256": "19a9b735d9b745ebac00c0343f1df0c64559a8422bfd4a469347438f8051629a",
+      "image_bytes": 646773
+    },
+    {
+      "name": "06-diag-front",
+      "eye_visibility": [
+        {
+          "eye": "Inset amber eye",
+          "visible_samples": 3,
+          "samples": 4,
+          "blockers": [
+            null,
+            null,
+            "Recessed eye shadow",
+            null
+          ]
+        },
+        {
+          "eye": "Inset amber eye.001",
+          "visible_samples": 3,
+          "samples": 4,
+          "blockers": [
+            null,
+            null,
+            "Recessed eye shadow.001",
+            null
+          ]
+        }
+      ],
+      "camera": [
+        0.0,
+        -7.015615940093994,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "normalized_bounds": {
+        "min": [
+          0.08973143994808197,
+          0.11143958568572998
+        ],
+        "max": [
+          0.9053604006767273,
+          0.8711020946502686
+        ]
+      },
+      "image_sha256": "a7fcc4186159a6c55530f9bc2ee8e81b79732ef610f64212502d885e17fcdfe4",
+      "image_bytes": 658154
+    },
+    {
+      "name": "07-diag-left",
+      "eye_visibility": [
+        {
+          "eye": "Inset amber eye",
+          "visible_samples": 0,
+          "samples": 4,
+          "blockers": [
+            "Shaped orbital brow timber",
+            "Shaped orbital brow timber",
+            "Shaped orbital brow timber",
+            "Solid timber cranium"
+          ]
+        },
+        {
+          "eye": "Inset amber eye.001",
+          "visible_samples": 3,
+          "samples": 4,
+          "blockers": [
+            null,
+            null,
+            "Recessed eye shadow.001",
+            null
+          ]
+        }
+      ],
+      "camera": [
+        6.965615749359131,
+        -0.05000000074505806,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "normalized_bounds": {
+        "min": [
+          0.09574133902788162,
+          0.06771205365657806
+        ],
+        "max": [
+          0.8183386325836182,
+          0.8448790311813354
+        ]
+      },
+      "image_sha256": "06bc40fd4f4c7f2a64abfa4b8314d53e3cd3d0d7a99e2d4f7101a66da7d41655",
+      "image_bytes": 639098
+    },
+    {
+      "name": "08-diag-right",
+      "eye_visibility": [
+        {
+          "eye": "Inset amber eye",
+          "visible_samples": 3,
+          "samples": 4,
+          "blockers": [
+            null,
+            null,
+            "Recessed eye shadow",
+            null
+          ]
+        },
+        {
+          "eye": "Inset amber eye.001",
+          "visible_samples": 0,
+          "samples": 4,
+          "blockers": [
+            "Shaped orbital brow timber.001",
+            "Shaped orbital brow timber.001",
+            "Shaped orbital brow timber.001",
+            "Solid timber cranium"
+          ]
+        }
+      ],
+      "camera": [
+        -6.965615749359131,
+        -0.05000000074505806,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "normalized_bounds": {
+        "min": [
+          0.18166135251522064,
+          0.0641099140048027
+        ],
+        "max": [
+          0.904258668422699,
+          0.8721352815628052
+        ]
+      },
+      "image_sha256": "05d18bf5afe87a8607cb959c41b2bc6408a035a7baeeed14f9d8af365e969f1a",
+      "image_bytes": 641971
+    },
+    {
+      "name": "09-diag-back",
+      "eye_visibility": [
+        {
+          "eye": "Inset amber eye",
+          "visible_samples": 0,
+          "samples": 4,
+          "blockers": [
+            "Broken ship rib -1 2",
+            "Broken ship rib -1 2",
+            "Broken ship rib -1 2",
+            "Broken ship rib -1 2"
+          ]
+        },
+        {
+          "eye": "Inset amber eye.001",
+          "visible_samples": 0,
+          "samples": 4,
+          "blockers": [
+            "Stern diagonal wreck plank 1",
+            "Hollow cast bell",
+            "Stern diagonal wreck plank 1",
+            "Stern diagonal wreck plank 1"
+          ]
+        }
+      ],
+      "camera": [
+        8.530419048612408e-16,
+        6.915615558624268,
+        7.349140167236328
+      ],
+      "target": [
+        0.0,
+        -0.05000000074505806,
+        1.649999976158142
+      ],
+      "ortho_scale": 5.650000095367432,
+      "normalized_bounds": {
+        "min": [
+          0.09463972598314285,
+          0.1164768859744072
+        ],
+        "max": [
+          0.9102686643600464,
+          0.7429783940315247
+        ]
+      },
+      "image_sha256": "e359998981fb042c21a05a548aa970c8d3373d79fc49e73efd5071f72c640b21",
+      "image_bytes": 642525
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "schema": "keelmaw-independent-blind-score-v1",
+  "role": "baseline",
+  "lockedAt": "2026-10-20T12:28:10.671877+00:00",
+  "priorNumericalScoresRead": false,
+  "candidateScoreUnchanged": true,
+  "weights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "defining_details": 0.2,
+    "facet_style": 0.15
+  },
+  "scores0to5": {
+    "silhouette": 3.0,
+    "face": 2.8,
+    "defining_details": 3.1,
+    "facet_style": 2.8
+  },
+  "weightedScore": 2.93,
+  "target": 4,
+  "targetMet": false,
+  "views": [
+    {
+      "view": "hero",
+      "path": "tmp/keelmaw-complete-refined/baseline/hero.png",
+      "sha256": "050cc389da09e5b6915d545abfc86af0083c0b8bf076c6db69d57fd73f752188",
+      "observation": "Recognizable Keelmaw cues, but huge regular gold spikes dominate a low flat barrel. Long narrow squared jaw and round protruding eye weaken expression."
+    },
+    {
+      "view": "front",
+      "path": "tmp/keelmaw-complete-refined/baseline/front.png",
+      "sha256": "747f66ae3c89bc0bdb3b84fb77e7ee44ef598261f2acb00e028483281ccd92bb",
+      "observation": "Whole stance clear, but giant spines and a raised thick tail compete with the narrow straight-front mouth. No convincing brow; central keel is a plain bar."
+    },
+    {
+      "view": "back",
+      "path": "tmp/keelmaw-complete-refined/baseline/back.png",
+      "sha256": "cb587942f72de616c85641652ae4e9d540d489e87eb4e1d2c071e20a5f665dd4",
+      "observation": "Four-foot stance holds. Large angular tail segments and uniformly spaced spines read as a mechanical assembly more than a faceted reptile."
+    },
+    {
+      "view": "left",
+      "path": "tmp/keelmaw-complete-refined/baseline/left.png",
+      "sha256": "3a4be5b674c90f7bc43825c824d20bbaa175f8a18033748d100d17b0fa46c027",
+      "observation": "Long crocodile profile is readable; three tall parallel dorsal rows and flat body line are too regular. Jaw is a rectangular tooth grille."
+    },
+    {
+      "view": "right",
+      "path": "tmp/keelmaw-complete-refined/baseline/right.png",
+      "sha256": "b4a0a73bc6d1cb86d5bc969ea4660d51715e0415701f66c199ab9df25736079d",
+      "observation": "Coherent tail curl and visible amber eye. Torso is a long plain band with very large triangular spikes; forelimbs and hindlimbs have scant scute breakup."
+    },
+    {
+      "view": "top",
+      "path": "tmp/keelmaw-complete-refined/baseline/top.png",
+      "sha256": "cabb31f6939c1707efdfd8e815dadecb08d1d9892790ed4c60e80076c578e29c",
+      "observation": "Full 3D anatomy. Three near-straight gold rails dominate the back, and sharp tail kinks expose construction; rectangular head and strap ends remain highly regular."
+    },
+    {
+      "view": "elevated-front",
+      "path": "tmp/keelmaw-complete-refined/baseline/elevated-front.png",
+      "sha256": "50cfd50f5c6c192db4e07ffc3bd11b3fbb2cfd5a8ea35187e39d0e7f446cd2e1",
+      "observation": "Body and feet complete, but long straight head and three tall spike files overwhelm the face. Mouth is a thin central-divider opening."
+    },
+    {
+      "view": "elevated-back",
+      "path": "tmp/keelmaw-complete-refined/baseline/elevated-back.png",
+      "sha256": "dcb7024a41deb42387a09c1e8c8876c7940388a516d3445a3972b69693552890",
+      "observation": "Back reads as a rectangular gridded spiked saddle; broad segmented tail is noticeably kinked. Rope and barnacles remain present."
+    },
+    {
+      "view": "elevated-left",
+      "path": "tmp/keelmaw-complete-refined/baseline/elevated-left.png",
+      "sha256": "68f3954be40b34c85273cefdcae6d04e9c94410810659c712c7c3e3b45afbcc1",
+      "observation": "Toothed maw, barnacles and gold spines make identity recognizable. Low flat torso, exposed button eye and polygonal hook tail diverge substantially from concept."
+    },
+    {
+      "view": "elevated-right",
+      "path": "tmp/keelmaw-complete-refined/baseline/elevated-right.png",
+      "sha256": "3259fd634e63f7a4f64e4975ecc1268535091fc2b46770bc116f3652d1db4243",
+      "observation": "Consistent look across orbit, no billboard. Overlarge gold wedges and long flat torso outweigh modest plating; mouth and eye stay too schematic."
+    }
+  ]
+}

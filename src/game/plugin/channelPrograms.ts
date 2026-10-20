@@ -5,6 +5,7 @@ import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entitie
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
 import { borrowedDecisionControl } from '../shardfile/borrowedDecisions';
 import {createClientChannels,bindClientChannelInputs} from './channels';
+import { PracticePoseTransitionSchema, registerPracticePoseTransition } from './practicePoseContract';
 
 /** Copied values may be an existing common read vector or a named observation for independently authored DAGs. */
 export interface ChannelProgramObservation {readonly time:number;readonly delta:number;readonly values:readonly number[]|Readonly<Record<string,number>>}
@@ -45,6 +46,7 @@ export function installChannelPrograms(input:unknown,group:string,owners:Readonl
 /** Stable read-only pose encoding; these numbers never drive the strike runner. */
 const STRIKE_POSE_PHASE = { idle: 0, windup: 1, active: 2, recover: 3, cooldown: 4 } as const;
 const numericPoseSchema = poseSchema.strictObject({
+  practiceTransition: poseSchema.exactOptional(PracticePoseTransitionSchema),
   strikeIds: poseSchema.exactOptional(poseSchema.pipe(poseSchema.array(poseSchema.pipe(poseSchema.string(),
     poseSchema.regex(/^[a-z][a-zA-Z0-9.:-]{0,127}$/u))), poseSchema.minLength(1), poseSchema.maxLength(2),
     poseSchema.check(ids => new Set(ids).size === ids.length, 'Unique strike identities'))),
@@ -77,11 +79,29 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
         || !['rotation', 'position', 'scale'].includes(output.path[0] ?? '') || !['x', 'y', 'z'].includes(output.path[1] ?? ''))
       || new Set(binding.outputs.map(output => output.target)).size !== 1;
   })) throw new Error('Invalid creature pose programme');
+  if (row.practiceTransition !== undefined) {
+    const joints = new Set(row.practiceTransition.joints.map(name => `joint.${name.replaceAll('_', '.')}`));
+    if (row.look !== undefined || row.squash !== undefined || row.alive !== undefined || row.variant !== undefined
+      || row.scalars.some(scalar => scalar.path[0] === 'mem')
+      || row.programs.some(program => program.numeric?.outputs.some(output => !joints.has(output.target)) !== false
+        || program.numeric.inputs.some(read => {
+          if (read.owner.startsWith('entry.')) return !joints.has(`joint.${read.owner.slice(6)}`)
+            || read.path.length !== 2 || !['position', 'rotation', 'scale'].includes(String(read.path[0]))
+            || !['x', 'y', 'z'].includes(String(read.path[1]));
+          if (read.owner === 'transition') return read.path.length !== 1 || !['ordinal', 'kind', 'elapsed'].includes(String(read.path[0]));
+          if (read.owner === 'motion') return read.path.length !== 1 || !['x', 'y', 'z', 'distance', 'total', 'heading'].includes(String(read.path[0]));
+          if (read.owner === 'strike') return row.strikeIds === undefined || read.path.length !== 1 || !['phase', 'elapsed', 'index'].includes(String(read.path[0]));
+          if (read.owner === 'scalars') return read.path.length !== 1 || !row.scalars.some(scalar => scalar.name === read.path[0]);
+          return read.owner !== 'frame' || read.path.length !== 1
+            || !['t', 'dt', 'seed', 'scale', 'speed', 'strafe', 'phase', 'deathT', 'flinch', 'brace', 'attack', 'yaw', 'stateIndex'].includes(String(read.path[0]));
+        }))) throw new Error('Invalid practice pose transition programme');
+  }
   const rigs = new WeakMap<AnimalRigContext['bones'], {
     frame: Record<string, unknown>; look: { yaw: number; pitch: number }; scalars: Record<string, number>;
     copies: { source: AnimalRigJoint; rotation: { x: number; y: number; z: number } }[];
     observation: { time: number; delta: number; values: Record<string, number> };
     strike: { phase: number; elapsed: number; index: number };
+    transitionOwners: Map<string, unknown> | undefined;
     lane: ReturnType<typeof installChannelPrograms> | null;
   }>();
   const animate = (c: AnimalRigContext): void => {
@@ -89,6 +109,15 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
       || (row.variant !== undefined && Reflect.get(c.animal, 'variant') !== row.variant)) return;
     // Strict opt-in, sampled before any joint writes. Authority lookup never creates or advances an owner.
     const strike = { phase: 0, elapsed: 0, index: 0 };
+    const transition = c.transition;
+    if (row.practiceTransition !== undefined && (transition === undefined
+      || row.practiceTransition.joints.some(name => {
+        const entry = transition.entry[name];
+        return c.bones[name] === undefined || entry === undefined
+          || [entry.position, entry.rotation, entry.scale].some(value => ![value.x, value.y, value.z].every(n => Number.isFinite(n) && Math.abs(n) <= 1e12));
+      })
+      || ![transition.ordinal, transition.kind, transition.elapsed, ...Object.values(transition.displacement)].every(Number.isFinite)))
+      throw new Error('Missing native practice pose transition owner');
     if (row.strikeIds !== undefined) {
       const control = borrowedDecisionControl(c.animal), admitted = control.strikeIds;
       if (row.strikeIds.some(id => !admitted.includes(id))) throw new Error('Unadmitted creature pose strike');
@@ -121,6 +150,11 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
       ]));
       const scalars: Record<string, number> = Object.fromEntries(row.scalars.map((scalar, i) => [scalar.name, scalarValues[i] ?? Number.NaN]));
       owners.set('frame', frame); owners.set('look', look); owners.set('scalars', scalars);
+      if (row.practiceTransition !== undefined && transition !== undefined) {
+        owners.set('transition', { ordinal: transition.ordinal, kind: transition.kind, elapsed: transition.elapsed });
+        owners.set('motion', { ...transition.displacement });
+        for (const name of row.practiceTransition.joints) owners.set(`entry.${name.replaceAll('_', '.')}`, structuredClone(transition.entry[name]));
+      }
       const strikeValues = { ...strike };
       if (row.strikeIds !== undefined) owners.set('strike', strikeValues);
       const copies = Object.entries(c.bones).map(([name, source]) => {
@@ -135,10 +169,23 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
         return [...targets].every(target => owners.has(target));
       });
       rig = { frame, look, scalars, copies, strike: strikeValues, observation: { time: c.t, delta: c.dt, values: {} },
+        transitionOwners: row.practiceTransition === undefined ? undefined : owners,
         lane: programs.length === 0 ? null : installChannelPrograms(programs, row.group, owners) };
       rigs.set(c.bones, rig);
     }
     Object.assign(rig.strike, strike);
+    if (rig.transitionOwners !== undefined && transition !== undefined && row.practiceTransition !== undefined) {
+      for (const [name, value] of [['transition', { ordinal: transition.ordinal, kind: transition.kind, elapsed: transition.elapsed }],
+        ['motion', { ...transition.displacement }]] as const) {
+        const target = rig.transitionOwners.get(name); if (typeof target !== 'object' || target === null) throw new Error('Missing transition observations');
+        Object.assign(target, value);
+      }
+      for (const name of row.practiceTransition.joints) {
+        const target = rig.transitionOwners.get(`entry.${name.replaceAll('_', '.')}`), source = transition.entry[name];
+        if (typeof target !== 'object' || target === null || source === undefined) throw new Error('Missing transition entry');
+        Object.assign(target, structuredClone(source));
+      }
+    }
     Object.assign(rig.frame, c);
     row.scalars.forEach((scalar, i) => { rig.scalars[scalar.name] = scalarValues[i] ?? Number.NaN; });
     rig.frame['stateIndex'] = row.states.indexOf(c.state);
@@ -151,6 +198,7 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
     const body = row.squash === undefined ? undefined : c.bones[row.squash];
     if (body !== undefined) squashBody(body, c.flinch);
   };
+  if (row.practiceTransition !== undefined) registerPracticePoseTransition(animate, row.practiceTransition);
   // Fixed corpse collision admits rigid transforms only; legacy squash and scale animation remain unchanged.
   return row.squash === undefined && row.programs.every(program => program.numeric?.outputs.every(output => output.path[0] !== 'scale') === true)
     ? registerRigidCorpseAnimation(animate) : animate;

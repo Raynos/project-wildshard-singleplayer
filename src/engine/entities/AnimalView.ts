@@ -1,6 +1,6 @@
 import { RigidCorpsePose } from './rigidCorpsePose';
 import { AnimalPoseLaw } from './animalPose';
-import { QuadrupedRigPose, applyAnimalRoot } from './animalRig';
+import { QuadrupedRigPose, applyAnimalRoot, type AnimalPublishedPose } from './animalRig';
 import { diagnosticNow } from '../core/clock';
 import * as THREE from 'three';
 import type { CharacterMotor } from '../physics/CharacterMotor';
@@ -128,6 +128,7 @@ export class Animal extends AnimalSim {
   private legAbd = new Float32Array(4);
   private ragdoll: Ragdoll | null = null;
   private externalSimulation: AnimalSim | null = null;
+  private publishedPose: AnimalPublishedPose | null = null;
   private observedHit = -Infinity;
   private observedAlive = true;
   private readonly simPose: AnimalPoseSample = { attackT: -1, attackDur: 1, groundY: 0, tiltRollT: 0,
@@ -163,11 +164,27 @@ export class Animal extends AnimalSim {
       lockRange: { get: () => sim.lockRange }, hasImpulse: { get: () => sim.hasImpulse },
       place: { value: (x: number, z: number, yaw: number, y?: number): void => {
         sim.place(x, z, yaw, y); this.mesh.position.copy(sim.position); this.mesh.rotation.y = sim.yaw;
+        this.publishedPose?.resetMotionAnchor();
       } },
     });
     this.rigCtx.position = sim.position; this.rigCtx.lookTarget = sim.lookTarget; this.rigCtx.mem = sim.mem;
     this.observedHit = sim.lastHitT; this.observedAlive = sim.alive;
     return this;
+  }
+
+  /** Isolated native attachment: this view no longer evaluates a scalar law, custom animation or corpse.
+   * The composition root consumes again after update-phase weapons, before drawing. */
+  bindPublishedPose(pose: AnimalPublishedPose): void {
+    if (this.externalSimulation === null || this.publishedPose !== null || pose.entityId !== this.entityId || this.ragdoll !== null)
+      throw new Error('Published pose requires one native creature owner');
+    // The owner preflights every joint before copying a single transform.
+    pose.copyPublished(this.mesh, this.bones, 1);
+    this.publishedPose = pose;
+  }
+  /** Quiet endpoint read; never uses interpolated view bones for combat or the next native tick. */
+  renderPublishedPose(alpha = 1): void {
+    if (this.publishedPose === null) return;
+    this.publishedPose.copyPublished(this.mesh, this.bones, alpha); this.mesh.updateMatrixWorld(true);
   }
 
   private readSimulationPose(): void {
@@ -276,6 +293,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
 
   /** world-space head hit sphere centre (the head joint, or dims.headAt on the head bone) */
   override headWorld(out: THREE.Vector3): THREE.Vector3 {
+    if (this.publishedPose !== null && this.externalSimulation !== null) return this.externalSimulation.headWorld(out);
     const at = this.model.dims.headAt;
     if (at !== undefined) return out.set(at[0], at[1], at[2]).applyMatrix4(this.bHead.matrixWorld);
     const m = this.bHead.matrixWorld.elements;
@@ -283,6 +301,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
   }
   /** world-space body capsule segment (a = rump, b = chest; or bottom → top for an upright rig, dims.capsuleAxis 'y') */
   override bodyCapsule(a: THREE.Vector3, b: THREE.Vector3): void {
+    if (this.publishedPose !== null && this.externalSimulation !== null) { this.externalSimulation.bodyCapsule(a, b); return; }
     const d = this.model.dims;
     if (d.capsuleAxis !== 'y' && (d.bodyAt !== undefined || d.bodyPitch !== undefined)) {
       capsuleOn(this.bBody.matrixWorld, d.bodyAt ?? [0, 0, 0], 'z', d.bodyPitch ?? 0, d.bodyHalfLen, a, b);
@@ -297,6 +316,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
   }
   /** world-space segment of the second body capsule (dims.fore); false when the species has none */
   override foreCapsule(a: THREE.Vector3, b: THREE.Vector3): boolean {
+    if (this.publishedPose !== null && this.externalSimulation !== null) return this.externalSimulation.foreCapsule(a, b);
     const f = this.model.dims.fore, bone = this.bFore;
     if (f === undefined || bone === null) return false;
     capsuleOn(bone.matrixWorld, f.at, 'x', 0, f.halfLen, a, b);
@@ -406,6 +426,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
   update(dt: number, t: number, near: boolean): void {
     this.poseFrozen = false;
     if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
+    if (this.publishedPose !== null) { this.readSimulationPose(); this.renderPublishedPose(); return; }
     if (this.ragdoll !== null) { this.updateRagdoll(this.ragdoll, dt, t, near); return; }
     if (this.externalSimulation === null) this.stepMotion(dt); else this.readSimulationPose();
 

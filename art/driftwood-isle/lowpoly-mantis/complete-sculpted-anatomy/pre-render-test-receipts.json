@@ -1,0 +1,53 @@
+{
+  "build.log": {
+    "path": "tmp/mantis-complete-sculpted-anatomy/build.log",
+    "sha256": "9094aa890a4942f1bf803b127ec826ce8079523528c3af19ee14220d10208a5d",
+    "bytes": 10790
+  },
+  "geometry-test-final.log": {
+    "path": "tmp/mantis-complete-sculpted-anatomy/geometry-test-final.log",
+    "sha256": "3e68e8b961b4f7d6622efb9946945c4ee73f08e0f11534e9d98f6f4a8cee2bb8",
+    "bytes": 1530
+  },
+  "intersection-test.log": {
+    "path": "tmp/mantis-complete-sculpted-anatomy/intersection-test.log",
+    "sha256": "ffa7beb4076c46c453baccbaaa726fda97dc37bbf829ab66e2e7d24df898a5db",
+    "bytes": 270
+  },
+  "native-python-test.log": {
+    "path": "tmp/mantis-complete-sculpted-anatomy/native-python-test.log",
+    "sha256": "74c96992421e3b86f84d50775e036328b58a927b623b50e9183788c63e43d663",
+    "bytes": 105
+  },
+  "native-consumer-focused-test.log": {
+    "path": "tmp/mantis-complete-sculpted-anatomy/native-consumer-focused-test.log",
+    "sha256": "fba64b4295e179bed3fda0bb76117f9d3a8debb69aebe440c8281543b5b1e2f5",
+    "bytes": 1184
+  },
+  "scope-test.log": {
+    "path": "tmp/mantis-complete-sculpted-anatomy/scope-test.log",
+    "sha256": "55a43e36b2591f3ac8abeb120ef722ec179070712f1a3c47eef10280d153e3e1",
+    "bytes": 771
+  },
+  "lint-test.log": {
+    "path": "tmp/mantis-complete-sculpted-anatomy/lint-test.log",
+    "sha256": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c",
+    "bytes": 69
+  },
+  "lint-explicit-test.log": {
+    "path": "tmp/mantis-complete-sculpted-anatomy/lint-explicit-test.log",
+    "sha256": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c",
+    "bytes": 69
+  },
+  "limitations": "Art-folder tests pass through focused Vitest; repository oxlint excludes these art paths even with --no-ignore and reported no files, so no lint acceptance is claimed.",
+  "export-test-final.log": {
+    "path": "tmp/mantis-complete-sculpted-anatomy/export-test-final.log",
+    "sha256": "1fb057b618230fc0204eae852d4d80e16f9d4898dc9b06fc4f23b1667f163de1",
+    "bytes": 753
+  },
+  "native-python-final-test.log": {
+    "path": "tmp/mantis-complete-sculpted-anatomy/native-python-final-test.log",
+    "sha256": "d150531ebc678c17be7d412c57acc2d64c35604495c4d1dff3e75e55dc1b46f1",
+    "bytes": 105
+  }
+}

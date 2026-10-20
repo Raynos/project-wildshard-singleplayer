@@ -1,0 +1,24 @@
+{
+  "baseline": {
+    "quad_diagonal_triangles_checked": 11220,
+    "minimum_dot": 0.0002547434030526767,
+    "failures": []
+  },
+  "candidate": {
+    "quad_diagonal_triangles_checked": 15724,
+    "minimum_dot": -0.0030720800155216894,
+    "failures": [
+      {
+        "name": "Left fore neck gusset",
+        "polygon": 0,
+        "triangle": [
+          0,
+          2,
+          3
+        ],
+        "dot": -0.0030720800155216894
+      }
+    ]
+  },
+  "status": "FAIL"
+}

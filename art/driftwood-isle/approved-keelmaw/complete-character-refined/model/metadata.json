@@ -1,0 +1,1107 @@
+{
+  "file": "/assets/driftwood-isle/keelmaw-native-69fa4a3b91d819cd6ad0cbd6aba6477f62def3bebde598a8b138f8f50d6ce012.bin",
+  "bytes": 1065480,
+  "bodies": [
+    {
+      "kind": "keelmaw",
+      "variant": "keelmaw",
+      "bones": [
+        {
+          "name": "body",
+          "parent": null,
+          "pos": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "name": "neck1",
+          "parent": "body",
+          "pos": [
+            0,
+            1.03,
+            0.86
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "neck1",
+          "pos": [
+            0,
+            1.05,
+            1.48
+          ]
+        },
+        {
+          "name": "jaw",
+          "parent": "head",
+          "pos": [
+            0,
+            0.84,
+            1.28
+          ]
+        },
+        {
+          "name": "tail1",
+          "parent": "body",
+          "pos": [
+            0,
+            0.92,
+            -1
+          ]
+        },
+        {
+          "name": "tail2",
+          "parent": "tail1",
+          "pos": [
+            -0.42,
+            0.8,
+            -2.0
+          ]
+        },
+        {
+          "name": "tail3",
+          "parent": "tail2",
+          "pos": [
+            -1.35,
+            1.0,
+            -2.6
+          ]
+        },
+        {
+          "name": "FL_shoulder",
+          "parent": "body",
+          "pos": [
+            -0.78,
+            0.92,
+            0.72
+          ]
+        },
+        {
+          "name": "FL_carpus",
+          "parent": "FL_shoulder",
+          "pos": [
+            -1.35,
+            0.48,
+            0.74
+          ]
+        },
+        {
+          "name": "FL_fetlock",
+          "parent": "FL_carpus",
+          "pos": [
+            -1.56,
+            0.18,
+            1.17
+          ]
+        },
+        {
+          "name": "FR_shoulder",
+          "parent": "body",
+          "pos": [
+            0.78,
+            0.92,
+            0.72
+          ]
+        },
+        {
+          "name": "FR_carpus",
+          "parent": "FR_shoulder",
+          "pos": [
+            1.35,
+            0.48,
+            0.74
+          ]
+        },
+        {
+          "name": "FR_fetlock",
+          "parent": "FR_carpus",
+          "pos": [
+            1.56,
+            0.18,
+            1.17
+          ]
+        },
+        {
+          "name": "BL_hip",
+          "parent": "body",
+          "pos": [
+            -0.78,
+            0.92,
+            -0.85
+          ]
+        },
+        {
+          "name": "BL_stifle",
+          "parent": "BL_hip",
+          "pos": [
+            -1.35,
+            0.48,
+            -0.83
+          ]
+        },
+        {
+          "name": "BL_hock",
+          "parent": "BL_stifle",
+          "pos": [
+            -1.56,
+            0.18,
+            -0.39999999999999997
+          ]
+        },
+        {
+          "name": "BR_hip",
+          "parent": "body",
+          "pos": [
+            0.78,
+            0.92,
+            -0.85
+          ]
+        },
+        {
+          "name": "BR_stifle",
+          "parent": "BR_hip",
+          "pos": [
+            1.35,
+            0.48,
+            -0.83
+          ]
+        },
+        {
+          "name": "BR_hock",
+          "parent": "BR_stifle",
+          "pos": [
+            1.56,
+            0.18,
+            -0.39999999999999997
+          ]
+        }
+      ],
+      "dims": {
+        "bodyY": 1,
+        "bodyHalfLen": 1.05,
+        "bodyRadius": 0.88,
+        "headRadius": 0.76,
+        "legLen": 0.82,
+        "feet": [
+          [
+            -1.36,
+            1.14
+          ],
+          [
+            1.36,
+            1.14
+          ],
+          [
+            -1.36,
+            -0.43
+          ],
+          [
+            1.36,
+            -0.43
+          ]
+        ],
+        "halfWidth": 0.91,
+        "capsuleAxis": "z"
+      },
+      "fur": null,
+      "hard": [
+        {
+          "offsets": [
+            0,
+            77904,
+            155808,
+            207744,
+            311616
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 6492,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            337584,
+            370416,
+            403248,
+            425136,
+            468912
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 2736,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            479856,
+            527520,
+            575184,
+            606960,
+            670512
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 3972,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            686400,
+            700512,
+            714624,
+            724032,
+            742848
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 1176,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            747552,
+            753528,
+            759504,
+            763488,
+            771456
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 498,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            773448,
+            779424,
+            785400,
+            789384,
+            797352
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 498,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            799344,
+            815256,
+            831168,
+            841776,
+            862992
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 1326,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            868296,
+            870168,
+            872040,
+            873288,
+            875784
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 156,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            876408,
+            878568,
+            880728,
+            882168,
+            885048
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 180,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            885768,
+            893112,
+            900456,
+            905352,
+            915144
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 612,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            917592,
+            919464,
+            921336,
+            922584,
+            925080
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 156,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            925704,
+            927864,
+            930024,
+            931464,
+            934344
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 180,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            935064,
+            942408,
+            949752,
+            954648,
+            964440
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 612,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            966888,
+            968760,
+            970632,
+            971880,
+            974376
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 156,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            975000,
+            977160,
+            979320,
+            980760,
+            983640
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 180,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            984360,
+            991704,
+            999048,
+            1003944,
+            1013736
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 612,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            1016184,
+            1018056,
+            1019928,
+            1021176,
+            1023672
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 156,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            1024296,
+            1026456,
+            1028616,
+            1030056,
+            1032936
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 180,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        },
+        {
+          "offsets": [
+            1033656,
+            1041000,
+            1048344,
+            1053240,
+            1063032
+          ],
+          "row": {
+            "attrs": [
+              [
+                "position",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "color",
+                "f32",
+                3,
+                false
+              ],
+              [
+                "skinIndex",
+                "u16",
+                4,
+                false
+              ],
+              [
+                "skinWeight",
+                "f32",
+                4,
+                false
+              ],
+              [
+                "furLen",
+                "f32",
+                1,
+                false
+              ]
+            ],
+            "count": 612,
+            "index": null,
+            "indexCount": 0,
+            "box": true
+          }
+        }
+      ],
+      "eye": null
+    }
+  ]
+}

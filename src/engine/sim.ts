@@ -156,6 +156,9 @@ export interface SimHostPorts {
   /** Frozen grid neighbours have logical player state, but no player capsule or controller. */
   playerBody?: boolean;
   fixedStep?: (run: () => void) => () => void;
+  /** Bounded embedded legacy adapter: retain CreatureBodies' exact capsule, filters and live-body lifetime.
+   * Absent preserves the ordinary native motor recipe. No physics or player clock is borrowed twice. */
+  creatureBodies?: 'page';
 }
 
 /** A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client. */
@@ -255,6 +258,7 @@ export class SimHost {
   private bodyStep: SimBodyStep | undefined;
   private floorQuery: ((x: number, z: number, fromY: number, maxDrop: number) => number | undefined) | undefined;
   private day: SimDayClock | undefined;
+  private readonly pageCreatureBodies: boolean;
 
   constructor(level: SimLevel, ports: SimHostPorts) {
     if (level.version !== SIM_API_VERSION) throw new RangeError('Unsupported simulation level version');
@@ -265,6 +269,8 @@ export class SimHost {
     if ((ports.physics === undefined) !== (ports.player === undefined) || (ports.physics !== undefined && (ports.events === undefined || ports.clock === undefined || ports.combat === undefined))) throw new Error('Borrowed simulation needs physics, player, events, clock and combat together');
     if (ports.fixedStep !== undefined && ports.physics === undefined) throw new Error('A fixed-step driver belongs to a borrowed world');
     if (ports.groundResolution !== undefined && ![256, 257].includes(ports.groundResolution)) throw new RangeError('Invalid native ground resolution');
+    if (ports.creatureBodies !== undefined && ports.physics === undefined) throw new Error('Page creature bodies require an embedded host');
+    this.pageCreatureBodies = ports.creatureBodies === 'page';
     this.embedded = ports.physics !== undefined; this.ownsPlayer = ports.player === undefined;
     this.level = level; this.scope = ports.scope?.child(`sim:${level.id}`) ?? new Scope(`sim:${level.id}`); this.rng = new RngService(level.seed);
     this.heightAt = ports.heightAt ?? (() => level.ground.height);
@@ -303,7 +309,7 @@ export class SimHost {
       this.disposed = true;
       this.externalPlayer?.scope.dispose(); this.externalPlayer = undefined;
       if (this.ownsPlayer) this.playerMotor?.dispose();
-      for (const entity of this.entities.values()) entity.motor?.dispose();
+      for (const entity of this.entities.values()) { entity.motor?.dispose(); if (this.pageCreatureBodies) entity.motor = null; }
       if (!this.embedded) this.physics.dispose();
     });
     if (!this.embedded) this.physics.step();
@@ -319,8 +325,11 @@ export class SimHost {
     });
     entity.place(spawn.at.x, spawn.at.z, spawn.yaw, spawn.at.y);
     // under the physics body LOD a body spawns bodiless, as on the page: the next tick's sync gives it one when near
-    if (this.bands?.physics !== true) {
-      const body = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id);
+    if (this.bands?.physics !== true && (!this.pageCreatureBodies
+      || keepsCreatureBody(false, entity.alive, entity.driven, creatureBodyDistance(entity.position, this.player.position)))) {
+      const body = this.pageCreatureBodies
+        ? new CharacterMotor(this.physics, { ...this.creatureMotorOptions(entity), owner: entity })
+        : this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id);
       // The capsule starts at the spawn: a creature that never walks (an idle boss) never moves it, and Rapier would
       // otherwise leave it at the world origin, an invisible wall at the cell centre (G222 playtest #7).
       body.resetAt(entity.position);
@@ -471,7 +480,8 @@ export class SimHost {
       const keep = this.bands?.present?.(entity) !== false
         && keepsCreatureBody(entity.motor !== null, entity.alive, entity.driven, creatureBodyDistance(entity.position, player));
       if (entity.motor === null && keep) {
-        const motor = new CharacterMotor(this.physics, this.creatureMotorOptions(entity));
+        const motor = new CharacterMotor(this.physics, this.pageCreatureBodies
+          ? { ...this.creatureMotorOptions(entity), owner: entity } : this.creatureMotorOptions(entity));
         motor.resetAt(entity.position); // at the animal, not the world origin (G222 playtest #7)
         entity.motor = motor;
       } else if (entity.motor !== null && !keep) { entity.motor.dispose(); entity.motor = null; }
@@ -856,6 +866,7 @@ export class SimHost {
   }
   private stepSystems(): void {
     this.state.tick++;
+    if (this.pageCreatureBodies) this.syncBodies();
     const bands = this.bands;
     if (bands !== undefined) { bands.clocks.beginTick(FIXED_STEP); if (bands.physics) this.syncBodies(); }
     this.day?.update(FIXED_STEP);
@@ -871,6 +882,7 @@ export class SimHost {
       hooks?.after?.(id, entity, dt);
     }
     for (const run of this.afterCallbacks.values()) run(FIXED_STEP, this);
+    if (this.pageCreatureBodies) this.syncBodies();
   }
   /** Accumulate elapsed simulation seconds; a caller can submit exactly the same command tape after restoration. */
   advance(seconds: number, command?: SimCommand): number {

@@ -2,7 +2,8 @@ import { Euler, Matrix4, Quaternion, Vector3, type EulerOrder, BufferAttribute, 
 import * as poseSchema from 'valibot';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { AnimalPoseLaw, type AnimalPoseRecipe } from '@wildshard/engine/entities/animalPose';
-import { applyAnimalRoot, QuadrupedRigPose, type AnimalRigContext, type AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
+import { applyAnimalRoot, QuadrupedRigPose, type AnimalRigContext, type AnimalRigJoint, type AnimalPoseTransition } from '@wildshard/engine/entities/animalRig';
+import { practicePoseTransition } from './practicePoseContract';
 import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { buildFarProxy, edgeLeanDrop, type FarEdgeLean, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart, type FarProxyMesh } from '../grid/farProxy';
 
@@ -489,6 +490,9 @@ export interface NativeCreaturePoseRecipe {
   readonly pose?: AnimalPoseRecipe['pose'];
   /** Disable death-leg splay for an authored quadruped overlay. */
   readonly deathSplay?: boolean;
+  readonly rootFlinch?: 'engine' | 'authored-pose';
+  /** Explicit bounded practice subset. Requires an admitted numeric transition declaration. */
+  readonly practice?: true;
 }
 /** Renderer-free numeric pose with separate current locals and previous rendered contact publication. */
 const nativePoses = new WeakMap<AnimalSim, NativeCreaturePose>();
@@ -503,6 +507,15 @@ export class NativeCreaturePose {
   private static readonly Saved = poseSchema.strictObject({ version: poseSchema.literal(1), recipe: poseSchema.string(), scalar: poseSchema.string(), breath: poseSchema.pipe(poseSchema.number(), poseSchema.finite(), poseSchema.minValue(0)),
     local: NativeCreaturePose.bits, published: NativeCreaturePose.bits, frame: NativeCreaturePose.bits, leg: NativeCreaturePose.bits, wasAlive: poseSchema.boolean() });
   private static readonly finite = poseSchema.pipe(poseSchema.number(), poseSchema.finite());
+  private static readonly History = poseSchema.strictObject({
+    ordinal: poseSchema.pipe(poseSchema.number(), poseSchema.safeInteger(), poseSchema.minValue(0)),
+    kind: poseSchema.picklist([0, 1, 2]), elapsed: poseSchema.pipe(NativeCreaturePose.finite, poseSchema.minValue(0)),
+    entry: NativeCreaturePose.bits, previous: NativeCreaturePose.bits,
+    root: NativeCreaturePose.bits, previousRoot: NativeCreaturePose.bits,
+    motion: NativeCreaturePose.bits, anchor: NativeCreaturePose.bits, time: NativeCreaturePose.finite,
+  });
+  private static readonly PracticeSaved = poseSchema.strictObject({ ...NativeCreaturePose.Saved.entries,
+    version: poseSchema.literal(2), history: NativeCreaturePose.History });
   private static readonly triple = poseSchema.tuple([NativeCreaturePose.finite, NativeCreaturePose.finite, NativeCreaturePose.finite]);
   private static readonly transform = poseSchema.strictObject({ p: NativeCreaturePose.triple, r: NativeCreaturePose.triple,
     order: poseSchema.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), s: NativeCreaturePose.triple });
@@ -558,10 +571,31 @@ export class NativeCreaturePose {
   private readonly actor: AnimalSim;
   private readonly recipe: NativeCreaturePoseRecipe;
   private readonly animate: ((context: AnimalRigContext) => void) | undefined;
+  private readonly history: {
+    ordinal: number; kind: 0 | 1 | 2; elapsed: number; time: number;
+    entry: Float64Array; previous: Float64Array; root: Float64Array; previousRoot: Float64Array;
+    anchor: Float64Array; motion: Float64Array;
+  } | undefined;
+  private readonly renderPrevious = NativeCreaturePose.joint();
+  private readonly renderCurrent = NativeCreaturePose.joint();
+  private readonly renderQuaternion = new Quaternion();
+  private readonly poseSample = { attackT: -1, attackDur: 1, groundY: 0, tiltRollT: 0,
+    stunT: 0, flinch: 0, flinchRoll: 0, flinchPitch: 0, brace: 0, deathSide: 1, deathT: -1 };
+  /** Initial numeric selection, before the first tick. Unlike advance(0), this never runs the scalar law. */
+  initializePractice(): void {
+    const h = this.history;
+    if (h?.time !== 0 || h.ordinal !== 0) throw new Error('Invalid practice pose initialization');
+    this.refreshPracticeContext(0, 0); this.animate?.(this.context); this.publish();
+    h.entry.set(this.published); h.previous.set(this.published); h.previousRoot.set(h.root);
+  }
   constructor(actor: AnimalSim, recipe: NativeCreaturePoseRecipe, animate?: (context: AnimalRigContext) => void) {
     this.actor = actor; this.recipe = recipe; this.animate = animate;
-    nativePoses.set(actor, this);
     if (recipe.custom !== (animate !== undefined)) throw new Error('Incompatible native creature custom pose');
+    const transition = practicePoseTransition(animate);
+    if ((recipe.practice === true) !== (transition !== undefined)
+      || transition !== undefined && (!recipe.custom || transition.joints.length !== recipe.joints.length
+        || transition.joints.some((name, index) => recipe.joints[index]?.name !== name)))
+      throw new Error('Incompatible native practice pose declaration');
     this.identity = JSON.stringify({ id: actor.entityId, kind: actor.kind, variant: actor.variant, dims: actor.dims, recipe });
     this.entityId = actor.entityId;
     this.fk = new CollisionPose(recipe.joints);
@@ -578,13 +612,36 @@ export class NativeCreaturePose {
       deathT: -1, flinch: 0, brace: 0, attack: -1, lookTarget: actor.lookTarget, lookWeight: 0, position: actor.position, yaw: 0, mem: actor.mem, animal: actor };
     this.quadClock = { bodyY: actor.dims.bodyY, alive: true, deathT: -1, deathSide: 1, speed: 0, legAbd: this.legAbd };
     this.published = new Float64Array(this.joints.length * 10);
+    if (recipe.practice === true) this.history = {
+      ordinal: 0, kind: 0, elapsed: 0, time: 0,
+      entry: new Float64Array(this.published.length), previous: new Float64Array(this.published.length),
+      root: new Float64Array(10), previousRoot: new Float64Array(10),
+      anchor: new Float64Array([actor.position.x, actor.position.y, actor.position.z, actor.yaw]), motion: new Float64Array(6),
+    };
     // Factory bind matrices exist before an actor's first rendered placement; no body, clocks or RNG run here.
     this.publish(); this.root.scale.setScalar(actor.scale);
     // AnimalView.place changes root locals immediately; its bind matrices remain cached until the first scene publication.
     this.root.position.copy(actor.position); this.root.rotation.y = actor.yaw;
+    if (this.history !== undefined) {
+      this.publish(); this.history.entry.set(this.published); this.history.previous.set(this.published);
+      this.history.previousRoot.set(this.history.root);
+      Object.defineProperty(this.context, 'transition', { get: () => this.transitionObservation() });
+    }
+    nativePoses.set(actor, this);
   }
   /** Body animation phase only; contacts keep the previous publication until publish(). */
   advance(dt: number, t: number, near: boolean): void {
+    if (this.history !== undefined) {
+      if (!Number.isFinite(dt) || dt <= 0 || !Number.isFinite(t)) throw new Error('Practice pose advances only on positive owner ticks');
+      const h = this.history, a = this.actor;
+      h.previous.set(this.published); h.previousRoot.set(h.root);
+      const dx = a.position.x - (h.anchor[0] ?? 0), dy = a.position.y - (h.anchor[1] ?? 0), dz = a.position.z - (h.anchor[2] ?? 0);
+      const heading = a.yaw - (h.anchor[3] ?? 0), distance = Math.hypot(dx, dy, dz);
+      h.motion.set([dx, dy, dz, distance, (h.motion[4] ?? 0) + distance, Math.atan2(Math.sin(heading), Math.cos(heading))]);
+      h.anchor.set([a.position.x, a.position.y, a.position.z, a.yaw]);
+      if (h.kind !== 0) h.elapsed += dt;
+      h.time = t;
+    }
     const a = this.actor; a.advancePose(this.law, dt, t, near);
     const i = this.law.input;
     if (this.recipe.deathSplay !== false && this.wasAlive && !a.alive) for (let l = 0; l < 4; l++) this.legAbd[l] = ((l % 2 === 0) === (i.deathSide < 0)) ? .35 : .25;
@@ -600,7 +657,7 @@ export class NativeCreaturePose {
         this.animate?.(c);
       }
     }
-    applyAnimalRoot(this.root, a.position, a.yaw, this.law.tiltPitch, this.law.tiltRoll, this.recipe.custom, a.alive, i.flinch, i.flinchPitch, i.flinchRoll);
+    applyAnimalRoot(this.root, a.position, a.yaw, this.law.tiltPitch, this.law.tiltRoll, this.recipe.custom, a.alive, i.flinch, i.flinchPitch, i.flinchRoll, this.recipe.rootFlinch);
     this.root.scale.setScalar(a.scale);
   }
   /** The native decision owner chooses the same terrain cadence as the page; no publication. */
@@ -609,6 +666,7 @@ export class NativeCreaturePose {
    * `through` joint publishes only that joint's parent chain (a forced getter's read); its descendants keep their last
    * publication until the next full one, and a continuation saved between the two re-solves them approximately. */
   publish(through?: string): void {
+    if (this.history !== undefined && through !== undefined) throw new Error('Practice pose publishes complete endpoints only');
     const last = through === undefined ? this.joints.length - 1 : this.recipe.joints.findIndex(row => row.name === through);
     if (last === -1) throw new Error('Missing native creature publish joint');
     for (let n = 0; n < 32; n++) {
@@ -619,6 +677,68 @@ export class NativeCreaturePose {
       this.published[p + 7] = j.scale.x; this.published[p + 8] = j.scale.y; this.published[p + 9] = j.scale.z;
     }
     this.frame.compose(this.root.position, this.quaternion.setFromEuler(this.root.rotation), this.root.scale); this.publishedFrame.set(this.frame.elements); this.fk.solve(this.frame, last);
+    this.history?.root.set(NativeCreaturePose.values(this.root));
+  }
+  /** Applied damage has already changed HP/death, but no queued listener has run. Latch the prior
+   * publication, select the admitted numeric endpoint at elapsed zero, and publish synchronously.
+   * This never calls advancePose/law.advance, body.step, terrain, AI, physics, RNG or combat. */
+  publishAppliedHit(): void {
+    const h = this.history;
+    if (h === undefined) return;
+    if (h.ordinal >= Number.MAX_SAFE_INTEGER) throw new Error('Practice hit ordinal exhausted');
+    h.entry.set(this.published); h.ordinal++; h.kind = this.actor.alive ? 1 : 2; h.elapsed = 0;
+    this.refreshPracticeContext(0, h.time);
+    this.animate?.(this.context);
+    this.publish();
+    // An event endpoint is visible immediately even at interpolation alpha zero.
+    h.previous.set(this.published); h.previousRoot.set(h.root);
+  }
+  private refreshPracticeContext(dt: number, time: number): void {
+    const a = this.actor, c = this.context; a.samplePose(this.poseSample);
+    const i = this.poseSample;
+    c.dt = dt; c.t = time; c.speed = a.speed; c.strafe = a.strafe; c.phase = this.law.phase; c.state = a.state; c.alive = a.alive;
+    c.deathT = a.poseDeathTime;
+    c.flinch = i.flinch; c.brace = i.brace * i.brace * (3 - 2 * i.brace); c.attack = a.alive ? a.attackPhase : -1;
+    c.lookWeight = this.law.lookAmt; c.yaw = a.yaw; c.mem = a.mem;
+  }
+  private transitionObservation(): AnimalPoseTransition {
+    const h = this.history; if (h === undefined) throw new Error('Missing native practice pose owner');
+    const entry: Record<string, AnimalPoseTransition['entry'][string]> = {};
+    this.recipe.joints.forEach((row, index) => {
+      const p = index * 10, axis = (offset: number) => Object.freeze({
+        x: h.entry[p + offset] ?? 0, y: h.entry[p + offset + 1] ?? 0, z: h.entry[p + offset + 2] ?? 0,
+      });
+      entry[row.name] = Object.freeze({ position: axis(0), rotation: axis(3), scale: axis(7) });
+    });
+    return Object.freeze({ ordinal: h.ordinal, kind: h.kind, elapsed: h.elapsed, entry: Object.freeze(entry),
+      displacement: Object.freeze({ x: h.motion[0] ?? 0, y: h.motion[1] ?? 0, z: h.motion[2] ?? 0,
+        distance: h.motion[3] ?? 0, total: h.motion[4] ?? 0, heading: h.motion[5] ?? 0 }) });
+  }
+  /** Explicit diagnostic placement/re-entry boundary, never inferred from a large distance threshold. */
+  resetMotionAnchor(): void {
+    const h = this.history; if (h === undefined) throw new Error('Missing native practice pose owner');
+    const a = this.actor;
+    h.anchor.set([a.position.x, a.position.y, a.position.z, a.yaw]); h.motion.fill(0);
+    this.root.position.copy(a.position); this.root.rotation.y = a.yaw; this.root.scale.setScalar(a.scale);
+    this.publish(); h.previous.set(this.published); h.previousRoot.set(h.root);
+  }
+  /** Copy/interpolate only previously published endpoints. Collision queries remain on current native FK. */
+  copyPublished(root: AnimalRigJoint, bones: Readonly<Record<string, AnimalRigJoint>>, alpha: number): void {
+    const h = this.history;
+    if (h === undefined || !Number.isFinite(alpha) || alpha < 0 || alpha > 1
+      || this.recipe.joints.some(row => bones[row.name] === undefined)) throw new Error('Invalid native practice pose consumer');
+    const copy = (target: AnimalRigJoint, previous: Float64Array, current: Float64Array, start: number): void => {
+      const from = this.renderPrevious, to = this.renderCurrent;
+      NativeCreaturePose.read(from, Array.from(previous.subarray(start, start + 10)), 0);
+      NativeCreaturePose.read(to, Array.from(current.subarray(start, start + 10)), 0);
+      if (alpha === 1) { target.position.copy(to.position); target.rotation.copy(to.rotation); target.scale.copy(to.scale); return; }
+      if (alpha === 0) { target.position.copy(from.position); target.rotation.copy(from.rotation); target.scale.copy(from.scale); return; }
+      target.position.lerpVectors(from.position, to.position, alpha); target.scale.lerpVectors(from.scale, to.scale, alpha);
+      this.quaternion.setFromEuler(from.rotation); this.renderQuaternion.setFromEuler(to.rotation);
+      target.rotation.setFromQuaternion(this.quaternion.slerp(this.renderQuaternion, alpha), to.rotation.order);
+    };
+    this.recipe.joints.forEach((row, index) => { const joint = bones[row.name]; if (joint !== undefined) copy(joint, h.previous, this.published, index * 10); });
+    copy(root, h.previousRoot, h.root, 0);
   }
   /** An extra contact point on any recipe joint (a weak point, an anchor), read from the last publication. */
   jointPoint(name: string, at: readonly [number, number, number], out: Vector3): Vector3 {
@@ -636,18 +756,25 @@ export class NativeCreaturePose {
   /** Native format retains distinct contact publication. Local format preserves an older fully published
    * quadruped envelope byte-for-byte; only callers that publish every local before saving may select it. */
   snapshot(format: 'native' | 'local' = 'native'): string {
+    if (format === 'local' && this.history !== undefined) throw new Error('Practice transition requires native continuation');
     if (format === 'local') {
       const transform = (joint: AnimalRigJoint) => ({ p: joint.position.toArray(),
         r: [joint.rotation.x, joint.rotation.y, joint.rotation.z], order: joint.rotation.order, s: joint.scale.toArray() });
       return JSON.stringify({ pose: this.law.snapshot(), breath: this.quad?.snapshot() ?? 0, root: transform(this.root),
         bones: this.joints.map((joint, index) => [this.recipe.joints[index]?.name, transform(joint)]) });
     }
-    return JSON.stringify({ version: 1, recipe: this.identity, scalar: this.law.snapshot(), breath: this.quad?.snapshot() ?? 0,
-      local: NativeCreaturePose.encoded([...this.joints.flatMap(NativeCreaturePose.values), ...NativeCreaturePose.values(this.root)]), published: NativeCreaturePose.encoded(Array.from(this.published)), frame: NativeCreaturePose.encoded(Array.from(this.publishedFrame)), leg: NativeCreaturePose.encoded(Array.from(this.legAbd)), wasAlive: this.wasAlive });
+    const h = this.history;
+    return JSON.stringify({ version: h === undefined ? 1 : 2, recipe: this.identity, scalar: this.law.snapshot(), breath: this.quad?.snapshot() ?? 0,
+      local: NativeCreaturePose.encoded([...this.joints.flatMap(NativeCreaturePose.values), ...NativeCreaturePose.values(this.root)]), published: NativeCreaturePose.encoded(Array.from(this.published)), frame: NativeCreaturePose.encoded(Array.from(this.publishedFrame)), leg: NativeCreaturePose.encoded(Array.from(this.legAbd)), wasAlive: this.wasAlive,
+      ...(h === undefined ? {} : { history: { ordinal: h.ordinal, kind: h.kind, elapsed: h.elapsed, time: h.time,
+        entry: NativeCreaturePose.encoded(Array.from(h.entry)), previous: NativeCreaturePose.encoded(Array.from(h.previous)),
+        root: NativeCreaturePose.encoded(Array.from(h.root)), previousRoot: NativeCreaturePose.encoded(Array.from(h.previousRoot)),
+        motion: NativeCreaturePose.encoded(Array.from(h.motion)), anchor: NativeCreaturePose.encoded(Array.from(h.anchor)) } }) });
   }
   /** Convert a scalar-only legacy clock or its complete named joint/root envelope. Preflight is quiet;
    * complete transforms retain frozen far-LOD joints exactly, while scalar-only callers republish from the actor. */
   adopt(input: unknown): void {
+    if (this.history !== undefined) throw new Error('Practice transition requires native continuation');
     const state = poseSchema.parse(NativeCreaturePose.Legacy, typeof input === 'string' ? { pose: input } : input);
     if (state.bones !== undefined && (state.bones.length !== this.joints.length
       || state.bones.some(([name], index) => name !== this.recipe.joints[index]?.name))
@@ -670,9 +797,17 @@ export class NativeCreaturePose {
     if (value.length > 65536) throw new Error('Invalid native creature pose continuation');
     const parsed: unknown = JSON.parse(value);
     if (typeof parsed === 'object' && parsed !== null && !Object.hasOwn(parsed, 'version')) { this.adopt(parsed); return; }
-    const state = poseSchema.parse(NativeCreaturePose.Saved, parsed); if (state.recipe !== this.identity) throw new Error('Incompatible native creature pose continuation');
+    const state = this.history === undefined ? poseSchema.parse(NativeCreaturePose.Saved, parsed) : poseSchema.parse(NativeCreaturePose.PracticeSaved, parsed);
+    if (state.recipe !== this.identity) throw new Error('Incompatible native creature pose continuation');
+    const savedHistory = 'history' in state ? state.history : undefined;
+    const history = savedHistory === undefined ? undefined : {
+      entry: NativeCreaturePose.decoded(savedHistory.entry, this.published.length), previous: NativeCreaturePose.decoded(savedHistory.previous, this.published.length),
+      root: NativeCreaturePose.decoded(savedHistory.root, 10), previousRoot: NativeCreaturePose.decoded(savedHistory.previousRoot, 10),
+      motion: NativeCreaturePose.decoded(savedHistory.motion, 6), anchor: NativeCreaturePose.decoded(savedHistory.anchor, 4),
+    };
     const local = NativeCreaturePose.decoded(state.local, (this.joints.length + 1) * 10), published = NativeCreaturePose.decoded(state.published, this.published.length), frame = NativeCreaturePose.decoded(state.frame, 16), leg = NativeCreaturePose.decoded(state.leg, 4);
-    const orders = [...local.filter((_n, i) => i % 10 === 6), ...published.filter((_n, i) => i % 10 === 6)];
+    const orders = [...local.filter((_n, i) => i % 10 === 6), ...published.filter((_n, i) => i % 10 === 6),
+      ...history === undefined ? [] : [...history.entry, ...history.previous, ...history.root, ...history.previousRoot].filter((_n, i) => i % 10 === 6)];
     if (orders.some(order => !Number.isInteger(order) || NativeCreaturePose.ORDERS[order] === undefined) || (this.quad === null && state.breath !== 0)) throw new Error('Invalid native creature pose continuation');
     const validation = new AnimalPoseLaw(this.law.recipe); validation.restore(state.scalar);
     this.law.restore(state.scalar); this.quad?.restore(state.breath); this.wasAlive = state.wasAlive; this.legAbd.set(leg);
@@ -681,6 +816,11 @@ export class NativeCreaturePose {
     for (let n = 0; n < 32; n++) { if (n >= this.joints.length) break; NativeCreaturePose.read(probe, published, n * 10); this.fk.setLocal(n, probe); }
     this.fk.solve(this.frame);
     this.joints.forEach((j, n) => { NativeCreaturePose.read(j, local, n * 10); }); NativeCreaturePose.read(this.root, local, this.joints.length * 10);
+    if (this.history !== undefined && history !== undefined && savedHistory !== undefined) {
+      Object.assign(this.history, { ordinal: savedHistory.ordinal, kind: savedHistory.kind, elapsed: savedHistory.elapsed, time: savedHistory.time });
+      for (const key of ['entry', 'previous', 'root', 'previousRoot', 'motion', 'anchor'] as const) this.history[key].set(history[key]);
+      this.refreshPracticeContext(0, savedHistory.time);
+    }
   }
 }
 

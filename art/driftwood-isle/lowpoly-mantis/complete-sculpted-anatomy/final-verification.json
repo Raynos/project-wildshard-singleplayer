@@ -1,0 +1,20 @@
+{
+  "status": "PASS_FINAL_STATIC_DELIVERY",
+  "sourceParts": 100,
+  "triangles": 3388,
+  "nativeBones": 22,
+  "captures": 20,
+  "geometryClosure": true,
+  "exactNativeConsumer": true,
+  "exactRetainedRigAndExistingOwnership": true,
+  "inputPinsVerified": true,
+  "newBinaryBytes": 970879,
+  "rawBytes": 12946029,
+  "producerSha256": "e6f7e74e5072fbc2f11792ecaf285a6ad0b2ad451a3c3141961a07d423cb3b53",
+  "glbSha256": "fbbd9b0bcf6741055e7e938bdecc89f09e7e80a040ff61daf50b7c3b92dd5ab0",
+  "nativeSha256": "3211061f9d43756c2b5c2ac519bc411fee3ea47e758ae14782c66db2a6bd5faa",
+  "visualScore": null,
+  "animationAcceptance": false,
+  "runtimePromotion": false,
+  "lint": "Repository ignores art-folder sources; no lint acceptance claim"
+}

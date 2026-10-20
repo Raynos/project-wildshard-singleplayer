@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "frozenInputsUnchanged": true,
+  "rawImagePinsMatched": 20,
+  "referencePinsMatched": 3,
+  "rawResolution": [
+    600,
+    720
+  ],
+  "pairedCameraSettingsExactlyEqualExceptGeometryBounds": true,
+  "framing": {
+    "candidate": {
+      "freshRecomputationMatchesSaved": true,
+      "minimumMarginPixels": 31.906618603712744,
+      "allVerticesInside": true
+    },
+    "baseline": {
+      "freshRecomputationMatchesSaved": true,
+      "minimumMarginPixels": 14.55447530229308,
+      "allVerticesInside": true
+    }
+  },
+  "candidateSourceAuditFreshAndExact": true,
+  "verifyDeliveryPassed": true,
+  "auditScripts": {
+    "audit_framing.py": "aebc1399a1f245e77173ba980c8173f48c183d68ba73034b9cbccf9194cf6a63",
+    "audit_source.py": "684e748b93d9afc0b5ba66bb9df0b2c54964b85c7fa85094a00328448450eb07",
+    "verify_delivery.py": "7de6c6f72bfd559a98874b9ca6eafb3c4005960a3211d568600335b0e2b7c10f"
+  },
+  "redirectedWrites": [
+    {
+      "script": "audit_framing.py",
+      "original": "tmp/keelmaw-complete-refined/final/verified-framing.json",
+      "output": "candidate-verified-framing.json"
+    },
+    {
+      "script": "audit_framing.py",
+      "original": "tmp/keelmaw-complete-refined/baseline/verified-framing.json",
+      "output": "baseline-verified-framing.json"
+    },
+    {
+      "script": "audit_source.py",
+      "original": "tmp/keelmaw-complete-refined/final/source-audit.json",
+      "output": "candidate-source-audit.json"
+    },
+    {
+      "script": "verify_delivery.py",
+      "original": "art/driftwood-isle/approved-keelmaw/complete-character-refined/verification.json",
+      "output": "delivery-verification.json"
+    }
+  ],
+  "limits": [
+    "No Blender rerender or geometry regeneration performed by this reviewer.",
+    "verify_delivery.py verifies producer/model/capture pins and contracts, not a fresh renderer reproducibility trial.",
+    "The existing focused runtime consumer test was not rerun; the delivery verifier records an earlier pass.",
+    "All-vertex framing is recomputed from native positions and the recorded camera rig, not recovered from PNG pixels.",
+    "Historical numerical review scores were not read. The delivery verifier hashes a prior report without displaying its content."
+  ]
+}

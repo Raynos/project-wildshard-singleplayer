@@ -1,0 +1,13 @@
+{
+  "baseline": {
+    "quad_diagonal_triangles_checked": 11220,
+    "minimum_dot": 0.0002547434030526767,
+    "failures": []
+  },
+  "candidate": {
+    "quad_diagonal_triangles_checked": 15620,
+    "minimum_dot": 0.00012799973272385398,
+    "failures": []
+  },
+  "status": "PASS"
+}

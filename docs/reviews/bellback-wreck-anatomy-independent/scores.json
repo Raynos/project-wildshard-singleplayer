@@ -1,0 +1,44 @@
+{
+  "weights": {
+    "silhouette": "0.35",
+    "face": "0.30",
+    "details": "0.20",
+    "facet_style": "0.15"
+  },
+  "candidate": {
+    "silhouette": "3.75",
+    "face": "3.45",
+    "details": "3.65",
+    "facet_style": "4.30",
+    "exact_total": "3.7225"
+  },
+  "candidate_lock_utc": "2026-10-20T02:25:37.205441+00:00",
+  "candidate_lock_order": "Approved hero and both supporting sheets, then ten candidate original PNGs individually; locked before baseline pixels. Historical scores and previous report were exposed.",
+  "fresh_baseline": {
+    "model": "complete-character-next",
+    "silhouette": "3.70",
+    "face": "3.45",
+    "details": "3.40",
+    "facet_style": "4.30",
+    "exact_total": "3.6550"
+  },
+  "target": "4.0",
+  "candidate_target_met": false,
+  "baseline_lock_utc": "2026-10-20T02:28:01.855859+00:00",
+  "exact_delta": "0.0675",
+  "preferred": "complete-wreck-anatomy",
+  "historical_scores": {
+    "previous_pair": {
+      "complete-character-next": "3.7075",
+      "complete-character-pass": "3.565"
+    },
+    "older": [
+      "3.585",
+      "3.73"
+    ],
+    "treatment": "Separate observations; not averaged, replaced, rounded, or inflated"
+  },
+  "animation": "Not evaluated",
+  "gameplay_readability": "Not evaluated",
+  "contact": "Not evaluated"
+}
