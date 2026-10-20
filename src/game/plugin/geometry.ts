@@ -8,6 +8,7 @@ import { workSlice } from '@wildshard/engine/core/workSlice';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import * as wholeV from 'valibot';
 import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
+import { resourceScope } from '@wildshard/engine/app/resources';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { createRigLoader, loadRigFile, type ClipName, type SocketName } from "@wildshard/engine/anim/rig";
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
@@ -1256,6 +1257,8 @@ export function readBakedGeometry(bytes: Uint8Array, offset: number, row: BakedG
   return g;
 }
 
+/** How long a packed body bake stays inflated after its last copy (ms): a spawn burst's copies share one inflate. */
+const DECODED_HOLD_MS = 2000;
 /** A packed body catalogue: load its compressed source once, then lend fresh owned parts per spawn. */
 export interface PackedCreatureBodies {
   preload: () => Promise<void>;
@@ -1299,7 +1302,14 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
       if (part.offsets.some((offset, i) => offset % 4 !== 0 || offset + (sizes[i] ?? bake.bytes + 1) > bake.bytes)) throw new Error('Packed creature block exceeds its bake');
     }
   }
-  let compressed: Uint8Array | null = null, loading: Promise<void> | null = null;
+  let compressed: Uint8Array | null = null, loading: Promise<void> | null = null, decoded: Uint8Array | null = null, hold: ReturnType<ResourceScope['timeout']> = 0;
+  // The bake inflates once per spawn burst, not once per copy (Nalati's is 8.7 MB for 27 bodies: a herd inflated it per
+  // animal, ~70 ms each on the Simulator). Copies slice their own arrays out, so the inflated bytes go a moment after the last.
+  const inflated = (packed: Uint8Array): Uint8Array => {
+    decoded ??= decode(packed);
+    const scope = resourceScope(); scope.cancelTimer(hold); hold = scope.timeout(DECODED_HOLD_MS, () => { decoded = null; });
+    return decoded;
+  };
   const catalogue: PackedCreatureBodies = {
     preload: () => { loading ??= fetchBuildFile(bake.file).then(bytes => { compressed = bytes; return undefined; }); return loading; },
     looks: lookInput => {
@@ -1331,7 +1341,7 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
       const body = bake.bodies.find(row => row.kind === kind && row.variant === variant);
       if (body === undefined) throw new Error(`no baked creature body ${kind}.${variant}`);
       if (compressed === null) throw new Error(`Packed creature bodies are not loaded (${kind}.${variant})`);
-      const bytes = decode(compressed);
+      const bytes = inflated(compressed);
       if (bytes.length !== bake.bytes) throw new Error('Packed creature bake does not match its rows');
       const part = (sources: wholeV.InferOutput<typeof PackedBodyParts>): BufferGeometry[] => (sources === null ? [] : Array.isArray(sources) ? sources : [sources]).map(source => {
         const at = (i: number): number => { const offset = source.offsets[i]; if (offset === undefined) throw new Error('Packed creature block is missing'); return offset; };
