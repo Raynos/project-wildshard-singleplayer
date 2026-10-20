@@ -1,3 +1,7 @@
+import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
+import nativeStory from '../src/shards/pine-hollow/data/nativeStory.json' with { type: 'json' };
+import boss from '../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
+import sky from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };
 import spots from '../src/shards/pine-hollow/data/spots.generated.json' with { type: 'json' };
 import { pineSpots } from '../src/shards/pine-hollow/generators/questPrompts';
 import { expect, test } from 'vitest';
@@ -29,6 +33,15 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   const rows = parsePineQuestRows(JSON.parse(new TextDecoder().decode(bytes)));
   expect(hash(rows.content)).toBe(originals.content);
   expect(rows.table.rows).toHaveLength(44);
+  const resin = FOREST_STORY.collections[0], tokens = FOREST_STORY.collections[1];
+  expect(resin?.prefix).toBe(rows.policy.resinFlag);
+  expect(resin?.names).toHaveLength(rows.policy.resinCount);
+  expect(tokens?.prefix).toBe(rows.policy.tokenFlag);
+  expect(tokens?.names).toEqual(rows.policy.tokenNames);
+  expect(nativeStory.boss).toBe(boss.steps.fight);
+  expect(nativeStory.clock.night).toBe(sky.phases.night);
+  expect(nativeStory.clock.sunrise).toBe(sky.phases.sunrise + 0.012);
+  expect(nativeStory.actions.filter(row => row.kind === 'lantern').map(row => row.row)).toEqual(Object.values(rows.policy.lanternIds));
   expect(rows.table.rows.filter(row => row.id.startsWith('resin-'))).toHaveLength(30);
   expect(rows.table.rows.filter(row => row.id.startsWith('token-'))).toHaveLength(8);
   // Custom-section JSON canonicalizes record keys; continuation order is data.
