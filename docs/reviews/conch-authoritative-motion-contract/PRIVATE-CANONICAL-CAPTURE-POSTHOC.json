@@ -1,0 +1,520 @@
+{
+  "schema": "wildshard.native-owner.posthoc-assertion-review.v1",
+  "originalProcessExit": 1,
+  "originalEmptyPersistenceCheck": false,
+  "originalReportPath": "tmp/native-owner-browser-proof-resolver1/capture/report.json",
+  "originalReportSha256": "e1baf026f0a4de87c7e454d4c25b802c8cd0e3270acb330c4db67f50a41089eb",
+  "newBrowserRun": false,
+  "originalReportModified": false,
+  "correctedPersistenceAssertion": true,
+  "verdict": "Exact captured empty SaveStore envelope revalidated post hoc; original process remains exit 1.",
+  "synthetic": true,
+  "modelAdmission": false,
+  "publicAdmission": false,
+  "qualityAdmission": false,
+  "originalChecks": {
+    "swordKilled": true,
+    "corpseFrozen": true,
+    "localLoot": true,
+    "freshRetry": true,
+    "playerDefeated": true,
+    "defeatRetry": true,
+    "reselectionFresh": true,
+    "noSystemFaults": true,
+    "actualEnemyReceipts": true,
+    "actualPlayerReceipts": true,
+    "retryClockReset": true,
+    "disposedPriorOwners": true,
+    "reloadFresh": true,
+    "emptyPersistence": false,
+    "noObserverOverflow": true,
+    "noObserverErrors": true,
+    "onlyOwnedLocalRequests": true
+  },
+  "observations": [
+    {
+      "stage": "before-start",
+      "phase": "preboot",
+      "stores": {
+        "local": {},
+        "session": {},
+        "saved": null
+      }
+    },
+    {
+      "stage": "after-cycle",
+      "phase": "running",
+      "stores": {
+        "local": {},
+        "session": {},
+        "saved": {
+          "global": {
+            "keys": {}
+          }
+        }
+      }
+    },
+    {
+      "stage": "reload-before-start",
+      "phase": "preboot",
+      "stores": {
+        "local": {},
+        "session": {},
+        "saved": null
+      }
+    },
+    {
+      "stage": "after-reload",
+      "phase": "running",
+      "stores": {
+        "local": {},
+        "session": {},
+        "saved": {
+          "global": {
+            "keys": {}
+          }
+        }
+      }
+    }
+  ],
+  "startedAt": "2026-10-20T21:55:37.207Z",
+  "finishedAt": "2026-10-20T21:59:13.929Z",
+  "sourceFiles": {
+    "scripts/native-owner-proof-persistence.ts": "943c0d637c4a88cd56b9f6ef3cb8cc54a7e774a1880b829d125bd7e7da531d0e",
+    "scripts/qa-native-owner-revalidate.mjs": "27cd6750d7df5c2aceb0a159c92dfede060068d7759e3b630abf95ab823a682c",
+    "test/native-owner-proof-persistence.test.ts": "3ddaa6b13690c377d69f0ea4386dc79dd7d43c2adbd1af18966adb9ee8ab9c53",
+    "src/engine/saves/store.ts": "b79b2430f7cf04f66ebf88234bfdb35c3b218fda08cb6b552b9ec6da9798c038"
+  },
+  "cycleTrace": {
+    "file": "cycle-complete-trace.json",
+    "bytes": 116846217,
+    "sha256": "2aa2a5b548b0bc2e89d515abdbaa325bb6831abd208f539705217558fdb25f55",
+    "fixed": 4800,
+    "rendered": 829,
+    "events": 16,
+    "lifecycle": 10,
+    "overflow": false
+  },
+  "reloadTrace": {
+    "file": "reload-complete-trace.json",
+    "bytes": 2707944,
+    "sha256": "6da54cc1a328a7c241d281b85c040c3ca81224b3f4c00a74af1c8ef8fd7bc411",
+    "fixed": 102,
+    "rendered": 27,
+    "events": 0,
+    "lifecycle": 1,
+    "overflow": false
+  },
+  "captureFiles": {
+    "01-living.jpg": {
+      "bytes": 67304,
+      "sha256": "23ac893aa79226ab9d24e779176b681867572380b7c7cb28a8dbf37dfcb415e3"
+    },
+    "02-physical-collapse.jpg": {
+      "bytes": 55727,
+      "sha256": "697fb030fdd1735119653eb7640ca8671230dbfd7be77b9bec11d90c1d586b23"
+    },
+    "03-frozen.jpg": {
+      "bytes": 54520,
+      "sha256": "5e1aa674fb4ac59957e8abcf07a93a19422019442fa35cc657933baaf52d197e"
+    },
+    "04-retry.jpg": {
+      "bytes": 60502,
+      "sha256": "75bd5e439a6b6ecf6f991298c279be8cf13922fd2c99f6f34e82c650cc19ae6b"
+    },
+    "05-player-defeated.jpg": {
+      "bytes": 64858,
+      "sha256": "87b96abf79b1f238cd42c165acfb3d30df7b50d3aeaf98a13d07e758f55c0acc"
+    },
+    "06-reloaded.jpg": {
+      "bytes": 63195,
+      "sha256": "3e1441c0a9fac46ffa55781d4187fbda4814eea2b051f31beee41c9b60b4a2dd"
+    },
+    "cycle-complete-trace.json": {
+      "bytes": 116846217,
+      "sha256": "2aa2a5b548b0bc2e89d515abdbaa325bb6831abd208f539705217558fdb25f55"
+    },
+    "reload-complete-trace.json": {
+      "bytes": 2707944,
+      "sha256": "6da54cc1a328a7c241d281b85c040c3ca81224b3f4c00a74af1c8ef8fd7bc411"
+    },
+    "report.json": {
+      "bytes": 647936,
+      "sha256": "e1baf026f0a4de87c7e454d4c25b802c8cd0e3270acb330c4db67f50a41089eb"
+    },
+    "video/page@52e49f183b07233dd594892bfe0775b4.webm": {
+      "bytes": 17461205,
+      "sha256": "e8abd5d2aa97e7cd12f1722abd7441bdf9b21251af9308bd88db3e912fae52fe"
+    }
+  },
+  "network": {
+    "requestCount": 206,
+    "deniedRequests": [],
+    "errors": []
+  },
+  "faults": [],
+  "reloadFaults": [],
+  "samples": [
+    {
+      "label": "living",
+      "nativeClock": {
+        "frame": 39,
+        "now": 0.6500000000000004
+      },
+      "hp": 60,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 39,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "sword-0",
+      "nativeClock": {
+        "frame": 82,
+        "now": 1.3666666666666667
+      },
+      "hp": 60,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 82,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "sword-1",
+      "nativeClock": {
+        "frame": 107,
+        "now": 1.7833333333333319
+      },
+      "hp": 57,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 107,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "sword-2",
+      "nativeClock": {
+        "frame": 131,
+        "now": 2.1833333333333305
+      },
+      "hp": 45,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 131,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "sword-3",
+      "nativeClock": {
+        "frame": 155,
+        "now": 2.583333333333329
+      },
+      "hp": 33,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 155,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "sword-4",
+      "nativeClock": {
+        "frame": 179,
+        "now": 2.9833333333333276
+      },
+      "hp": 21,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 179,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "sword-5",
+      "nativeClock": {
+        "frame": 206,
+        "now": 3.433333333333326
+      },
+      "hp": 9,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 206,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "sword-6",
+      "nativeClock": {
+        "frame": 227,
+        "now": 3.7833333333333248
+      },
+      "hp": 0,
+      "alive": false,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "live",
+        "resource": "live",
+        "terminal": false,
+        "birthFrame": 224,
+        "preTick": 227,
+        "postTick": 227,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "after-sword",
+      "nativeClock": {
+        "frame": 227,
+        "now": 3.7833333333333248
+      },
+      "hp": 0,
+      "alive": false,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "live",
+        "resource": "live",
+        "terminal": false,
+        "birthFrame": 224,
+        "preTick": 227,
+        "postTick": 227,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "frozen-with-loot",
+      "nativeClock": {
+        "frame": 491,
+        "now": 8.18333333333332
+      },
+      "hp": 0,
+      "alive": false,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "released",
+        "resource": "frozen",
+        "terminal": false,
+        "birthFrame": 224,
+        "preTick": 491,
+        "postTick": 491,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 3,
+        "complete": true
+      }
+    },
+    {
+      "label": "fresh-retry",
+      "nativeClock": {
+        "frame": 3,
+        "now": 0.05
+      },
+      "hp": 60,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 3,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "player-defeated",
+      "nativeClock": {
+        "frame": 1785,
+        "now": 29.74999999999959
+      },
+      "hp": 60,
+      "alive": true,
+      "playerHealth": 0,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 1785,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "retry-after-defeat",
+      "nativeClock": {
+        "frame": 3,
+        "now": 0.05
+      },
+      "hp": 60,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 3,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "fresh-reselection",
+      "nativeClock": {
+        "frame": 6,
+        "now": 0.09999999999999999
+      },
+      "hp": 60,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 6,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    },
+    {
+      "label": "fresh-reload",
+      "nativeClock": {
+        "frame": 13,
+        "now": 0.21666666666666665
+      },
+      "hp": 60,
+      "alive": true,
+      "playerHealth": 100,
+      "owner": {
+        "lease": "reserved",
+        "resource": null,
+        "terminal": false,
+        "birthFrame": -1,
+        "preTick": 13,
+        "postTick": -1,
+        "prepared": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      }
+    }
+  ],
+  "limits": "Only localStorage, sessionStorage and SaveStore.exportAll().docs were checked, not every browser storage API. Synthetic tetrahedron/time-entry witness is not model, contact, animation or phone-performance admission."
+}

@@ -5,6 +5,7 @@ import { createServer } from 'node:http';
 import { resolve, join, extname, sep } from 'node:path';
 import { ROOT, OUTPUT, PIN, hash, inventory, verifyPin } from './native-owner-proof-pin.mjs';
 import { installNativeOwnerObservation } from './qa-native-owner-observation.mjs';
+import { nativeOwnerPersistenceEmpty } from './native-owner-proof-persistence.ts';
 
 const pin = verifyPin(), dist = resolve(ROOT, OUTPUT, 'dist'), out = resolve(ROOT, OUTPUT, 'capture');
 if (existsSync(out)) throw new Error('Preserve the prior complete capture');
@@ -120,9 +121,10 @@ try {
   report.storesAfterReload = await stores(); const reload = await preserve('reload');
   report.reloadFaults = await page.evaluate(() => window.__nativeOwnerFaults);
   report.checks.noSystemFaults &&= report.reloadFaults.length === 0;
-  const empty = value => value !== null && typeof value === 'object' && Object.keys(value).length === 0;
-  report.checks.emptyPersistence = [report.storesBefore, report.storesAfterCycle, report.storesAfterReloadBeforeStart, report.storesAfterReload]
-    .every(row => empty(row.local) && empty(row.session) && (row.saved === null || empty(row.saved)));
+  report.checks.emptyPersistence = nativeOwnerPersistenceEmpty(report.storesBefore, 'preboot')
+    && nativeOwnerPersistenceEmpty(report.storesAfterCycle, 'running')
+    && nativeOwnerPersistenceEmpty(report.storesAfterReloadBeforeStart, 'preboot')
+    && nativeOwnerPersistenceEmpty(report.storesAfterReload, 'running');
   report.checks.noObserverOverflow = !cycle.overflow && !reload.overflow;
   report.checks.noObserverErrors = cycle.errors.length === 0 && reload.errors.length === 0;
   report.checks.onlyOwnedLocalRequests = report.deniedRequests.length === 0 && report.requests.every(url => new URL(url).origin === origin);

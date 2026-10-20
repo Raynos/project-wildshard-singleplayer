@@ -1,6 +1,6 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-20 21:52 UTC. None quality-complete.
+Updated 2026-10-20 22:09 UTC. None quality-complete.
 
 OWNER: Original five need independent >=4/5 likeness and animation/readability. New four authorized in game19:13: Pitcher DI-N16, Medusa DI-N17, Keelmaw DI-N19, Iguana DI-N10. Other16 rejected. All9 need World/Explorer nine-angle references; original heroes authoritative, AI hidden surfaces approximate. No score inflation or structural-test acceptance.
 
@@ -10,10 +10,10 @@ PUFFER: Lifecycle2 actual defeat/Retry/kill/loot/reload inspected6854 frames+77 
 
 OTHER MOTION: Mantis exact-clock read-only adapter independently verified; authored motion rejected0.134441rad recovery step and stance slip, no build. Conch tent full-cycle review rejects promotion, animation2/readability2.5; retain PCF. Pitcher seven-shape contact fails9.5–16.7mm; Keelmaw3/4 fails worst26.38mm. Medusa default-flight death−1.19133m; no coordinate-only fix, native handoff unimplemented. Iguana full native source retained, strict admission false:54 trunk corners miss live torso/head union; corrected default-corpse4/4 fails1.0457–1.5886m. Independent review reproduces; no app/lifecycle claim.
 
-UI: Site94 source7775195fa47ded94b1aef0c2f978b5d1bd899364 deployed20Oct20:59. Six tabs,9 cards,18 sheets/162 angles. WIP Mantis7/Conch4/Colossus2/Puffer70; other5 unavailable. Runtime/fallback bytes unchanged; phone/fun untested.
+UI: Site96 deployed20Oct21:58. Six tabs,9 cards,18 sheets/162 angles. WIP Mantis7/Conch4/Colossus2/Puffer70; other5 unavailable. Runtime/fallback bytes unchanged; phone/fun untested.
 
 BELLBACK: Specific5body/4joint approval still pending; no expansion or repeated solver/timing/CCD studies. Six-shard Explorer coverage remains open.
 
-SOURCE: Conch private build failed: normal boot/global tables, no browser. Resolver repair8 tests/strict/lint pass; review/checkpoint pending. Selected motion fails facing/toe support43.4626mm, frozen. Articulated closure/native tests pass;20 matched static raws reviewed: fresh candidate/baseline3.89 tie, below4; historical4.05/native3.15 separate. Caps/soles/articulation/contact unaccepted. Foot-contact design only. Iguana live coverage fails6132 corners.
+SOURCE: Corrected private build passed. Synthetic-owner browser cycle214s: kill/freeze/coins/Retry/defeat/reload observed, exit1 on empty-store schema assertion. Strict correction/post-hoc analysis pending; no clean rerun/admission. Articulated static candidate/baseline3.89 tie, below4; historical4.05/native3.15 separate. Grounded source motion WIP7 tests/typecheck pass; no runtime admission. Iguana live coverage fails6132 corners.
 
-PRESERVATION: Remote3e37c0e6b0977e4af16b00a4af8aae0f82bd1c9c verified470 paths. Site95 source5faa3565526539c52ca6a1ef2819e05bf068b58c protects20 raw captures and inputs; dist unchanged,94 live. Raw log local, sanitized copy protected. Rockhop/dotgamedev absent. Hosts retained. Histories differ: compare protected bytes, never replay old delta. Hourly21:12; next22:13.
+PRESERVATION: Remotea06ac790a7bc2a858615c17090cbafbc6a3cff72 verified476 paths. Site95 source5faa3565526539c52ca6a1ef2819e05bf068b58c protects20 raw captures and inputs; Site96 live21:58, sourceb9b6627633139b58266ae9fd1a4d71101b7ce569. Raw log local, sanitized copy protected. Rockhop/dotgamedev absent. Hosts retained. Histories differ: compare protected bytes, never replay old delta. Hourly21:12; next22:13.
