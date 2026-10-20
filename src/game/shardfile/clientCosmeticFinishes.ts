@@ -14,6 +14,7 @@ export function installClientCosmeticFinishes(ctx:ShardContext):void{
   const persistence=enteredAdventurePersistence(ctx.scope),rows=ctx.product.section('held/finishes').cosmetics;
   if(rows===undefined)throw new Error('Cosmetic feature requires declared finishes');
   const locker=new CosmeticFinishLocker(ctx.product.slug,rows,persistence.cosmetics),painter=new CosmeticFinishPainter(locker),book={locker,painter};
+  if(rows.menu!==undefined){const runtime=ctx.game.runtime;if(runtime===undefined)throw new Error('Finish menu requires its native page');runtime.menu={...runtime.menu,skins:()=>locker.cardRows(locker.finishes.cards),onWearSkin:id=>{locker.toggle(id);},skinsTitle:rows.menu.title};}
   products.set(ctx.product,book);const installed=products;
   ctx.scope.onDispose(()=>{painter.dispose();installed.delete(ctx.product);});
 }

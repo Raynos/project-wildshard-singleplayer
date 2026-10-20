@@ -65,6 +65,42 @@
       }
     },
     {
+      "id": "nalati-finds",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-finds.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-finds.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-finds.mjs",
+        "src/shards/nalati-grasslands/data/finds.json",
+        "src/shards/nalati-grasslands/data/ecology.generated.json",
+        "src/shards/nalati-grasslands/data/feats.json",
+        "src/shards/nalati-grasslands/data/weaponEffects.json",
+        "src/shards/nalati-grasslands/data/questContent.json",
+        "src/format",
+        "src/sdk/bake/source-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk/package.json",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/finds.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/finds.generated.json"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "nalati-layout"
+      ]
+    },
+    {
       "id": "nalati-geography",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-geography.mjs",

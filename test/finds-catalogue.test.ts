@@ -1,3 +1,5 @@
+import { parseFindsCatalogue } from '../src/format/findsCatalogue';
+import finds from '../src/shards/nalati-grasslands/data/finds.generated.json' with {type:'json'};
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { createFindsCatalogue } from '../src/game/bag/findsCatalogue';
@@ -5,7 +7,6 @@ import type { OwnedId } from '../src/game/loot/Owned';
 import { DRIFTWOOD_FINDS } from '../src/shards/driftwood-isle/generators/finds';
 import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discovery';
 import { SHARD_FLAGS } from '../src/shards/driftwood-isle/generators/interactables';
-import { FINDS_ELITES, elitePrize, nalatiFinds } from '../src/shards/nalati-grasslands/bag';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 
 const islandCatalogue = createFindsCatalogue(DRIFTWOOD_FINDS);
@@ -34,22 +35,20 @@ test('Driftwood reads live flags and owned trophies while preserving milestones 
   have.delete('bear-claw'); expect(driftwoodFinds(flags, owned).sections[0]?.items[0]?.found).toBe(false);
 });
 
-test('the named Nalati W3 flag and prize catalogue fits its current Bag owner', () => {
-  const catalogue = createFindsCatalogue({ counters: [
-    { label: 'Elites', flags: FINDS_ELITES.map(row => `felled:${row.id}`) },
-    { label: 'Places', flags: content.places.map(row => `seen:${row.id}`) },
-  ], sections: [
-    { title: 'Elites', wide: true, items: FINDS_ELITES.map(({ id, icon }) => {
-      const { prize, title } = elitePrize(id);
-      return { label: ecology.elites[id]?.name ?? id, icon, flag: `felled:${id}`, prize: title === null ? [prize] : [prize, title] };
-    }) },
-    { title: 'Places', dense: true, items: content.places.map(row => ({ label: row.label, icon: 'pin' as const, flag: `seen:${row.id}` })) },
-  ] });
-  const set = new Set<string>(), flags = { has: (flag: string) => set.has(flag) };
-  expect(catalogue({ flags })).toEqual(nalatiFinds(flags));
-  for (const row of FINDS_ELITES) set.add(`felled:${row.id}`);
-  for (const row of content.places) set.add(`seen:${row.id}`);
-  expect(catalogue({ flags })).toEqual(nalatiFinds(flags));
+test('Nalati sticker rows preserve prizes and read the live encounter/place flags',()=>{
+  const catalogue=createFindsCatalogue(parseFindsCatalogue(finds)),set=new Set<string>(),flags={has:(flag:string)=>set.has(flag)};
+  const empty=catalogue({flags});expect(empty.counters).toEqual([{label:'Elites',n:0,of:5},{label:'Places',n:0,of:17}]);
+  expect(empty.sections[0]?.items[0]).toEqual({label:ecology.elites.aqbars.name,icon:'leopard',found:false,prize:['Irbis skin','Crazy Cat Person']});
+  set.add('felled:aqbars');expect(catalogue({flags}).sections[0]?.items[0]?.found).toBe(true);
+  for(const section of finds.sections)for(const row of section.items)if('flag' in row)set.add(row.flag);
+  expect(catalogue({flags}).counters).toEqual([{label:'Elites',n:5,of:5},{label:'Places',n:content.places.length,of:content.places.length}]);
+});
+
+test('orchard sticker JSON refuses callbacks and uses independent flag identities',()=>{
+  const rows={counters:[{label:'Seeds',flags:['orchard.apple']}],sections:[{title:'Harvest',items:[{label:'Apple',icon:'pin',flag:'orchard.apple',prize:['Seed']}]}]};
+  const catalogue=createFindsCatalogue(parseFindsCatalogue(rows)),set=new Set<string>(),flags={has:(flag:string)=>set.has(flag)};
+  expect(catalogue({flags}).sections[0]?.items[0]?.found).toBe(false);set.add('orchard.apple');expect(catalogue({flags}).counters[0]?.n).toBe(1);
+  expect(()=>parseFindsCatalogue({...rows,render:()=>undefined})).toThrow();
 });
 
 test('catalogues refuse unbounded metadata, invalid milestones and missing ownership', () => {

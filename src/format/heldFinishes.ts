@@ -16,6 +16,7 @@ const tag = v.pipe(text, v.regex(/\./u)) as v.GenericSchema<`${string}.${string}
 const effect = v.pipe(text, v.regex(/^effect\./u)) as v.GenericSchema<`effect.${string}`>;
 /** Client-only cosmetic paint operations. Targets are bound object ids; no reflected paths or shard callbacks. */
 export const CosmeticFinishesSchema = v.pipe(v.strictObject({
+  menu:v.exactOptional(v.strictObject({title:text})),
   cards: v.pipe(v.array(v.strictObject({ id: text, name: text, blurb: text, lockedBlurb: text, icon: CatalogueIconSchema })), v.maxLength(128)),
   skins: v.pipe(v.array(v.strictObject({ id: text, slot: text, name: text, blurb: text, effect, grant: tag })), v.maxLength(128)),
   paints: v.pipe(v.array(v.strictObject({ target: text, slot: text, material: v.picklist(['standard', 'lambert']),

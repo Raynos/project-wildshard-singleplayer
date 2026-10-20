@@ -1,3 +1,4 @@
+import { installClientFinds } from './clientFinds';
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneDressing } from './sceneDressing';
 import { installClientPlaceSets } from './clientPlaceSets';
@@ -84,6 +85,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       if (row.kind !== 'motion.channels') throw new Error('Invalid scene motion feature');
       installSceneMotion(ctx, row.rows, clientSceneHandles(ctx.product, resident));
     } },
+  'bag.finds': {phase:'play',rank:95,lifetime:'entered',sections:[],install:installClientFinds},
   'held.cosmetics': {phase:'kit',rank:30,lifetime:'entered',sections:['held/finishes'],install:installClientCosmeticFinishes},
   'held.melee': { phase: 'kit', rank: 10, lifetime: 'entered', sections: ['look/painted'], install: installClientHeldMelee,
     play: { rank: 20, install: enterClientHeldMelee } },
@@ -127,6 +129,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     if(plan.features.some(row=>row.kind==='audio.scene')&&product.shardfile.audio.scene===undefined)throw new Error('Audio scene requires its declared profile');
     if(plan.features.some(row=>row.kind==='world.dressing')){const rows=product.section('world/scenes').dressing;if(rows===undefined||!product.hasFile(rows.phone)||!product.hasFile(rows.desktop))throw new Error('Dressing requires both declared tier files');}
     if (plan.features.some(row => row.kind === 'weather.fields' && !product.shardfile.quests.quests.some(quest => quest.id === row.quest))) throw new Error('Weather fields require their declared quest');
+    for(const row of plan.features)if(row.kind==='bag.finds'&&(!product.hasFile(row.file)||!product.shardfile.quests.quests.some(quest=>quest.id===row.quest)))throw new Error('Finds require their admitted file and quest');
     for (const row of plan.features) for (const name of CLIENT_FEATURES[row.kind].sections) {
       if (!product.has(name)) throw new Error(`Missing feature section ${name}`);
       product.section(name); // A listed stream section is not an admitted boot dependency.

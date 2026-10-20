@@ -1,0 +1,5 @@
+{
+  "elites": [{"id":"aqbars","icon":"leopard"},{"id":"kokbori","icon":"wolf"},{"id":"qyran","icon":"eagle"},{"id":"qara-batyr","icon":"rider"},{"id":"argymaq","icon":"horse"}],
+  "labels": {"elites":"Elites","places":"Places","horse":"Your horse","skin":"skin"},
+  "flags": {"elite":"felled:","place":"seen:"}
+}

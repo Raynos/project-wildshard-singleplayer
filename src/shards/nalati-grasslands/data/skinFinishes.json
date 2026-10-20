@@ -251,5 +251,8 @@
       "icon": "horse",
       "lockedBlurb": "Jel Ata, the Storm Titan drops it"
     }
-  ]
+  ],
+  "menu": {
+    "title": "Skins"
+  }
 }

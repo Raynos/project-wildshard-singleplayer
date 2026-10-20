@@ -6,9 +6,6 @@ import { arsenal,prepareSabre,prepareSpear } from '../weapons/nativeMelee';
 
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { nalatiSpecies,nalatiLooks } from '../species/catalogue';
-import NALATI_FEATS from '../data/feats.json' with { type: 'json' };
-import type { AchievementDef } from '@wildshard/game/achievements';
-import { renderFinds } from '@wildshard/game/bag/bag';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
@@ -28,7 +25,6 @@ import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
 import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' };
 import { installNalatiQuestView } from '../quest/kokpar';
-import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
 import { bindAdventurePersistence, readAdventurePersistence, type AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
@@ -39,12 +35,6 @@ function host(ctx: ShardContext): ShardRuntime {
   if (rt === undefined) throw new Error('Nalati plugin requires its world host');
   if (rt.world === null || rt.step === null) throw new Error('Nalati plugin requires counted world steps');
   return rt;
-}
-
-function readFeat(feat: (typeof NALATI_FEATS)[number]): AchievementDef {
-  const icon = feat.icon;
-  if (icon !== 'laurel' && icon !== 'ghost') throw new Error(`Unknown Nalati feat icon ${icon}`);
-  return { ...feat, icon };
 }
 
 export class NalatiPlugin extends ShardPlugin {
@@ -79,7 +69,6 @@ export class NalatiPlugin extends ShardPlugin {
     const ground = await import('@wildshard/engine/world/Heightfield');
     registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground', colliders: pathRampDescs(ground.TRAILS, heightAt, (x, z) => ground.normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
     shell.hooks.animalsBuilt = async (animals) => { await rt.attachAnimalsSliced(animals, macrotask); }; // SF67: a task apart per wildlife group
-    shell.menu = { skins: () => skinRows(rt.skins), onWearSkin: (id) => { rt.skins.toggle(id); }, skinsTitle: 'Skins' };
     Object.assign(shell.objects, { nalati: rt, grass, particles });
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
     // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands); `grassBase`: the grass before
@@ -95,7 +84,6 @@ export class NalatiPlugin extends ShardPlugin {
     if (world === null) throw new Error('Nalati equipment requires a world');
     ctx.rows.species(nalatiSpecies());
     ctx.rows.speciesLook(nalatiLooks());
-    ctx.rows.feat(NALATI_FEATS.map(readFeat));
     arsenal.installPage(ctx);
   }
 
@@ -151,8 +139,7 @@ export class NalatiPlugin extends ShardPlugin {
       health?.checkpoint(scope, () => rt.titan.onPlayerDeath(), () => ctx.app.player === health);
     });
     await part();
-    const flags = await installNalatiQuestView(ctx, rt, persistence);
-    ctx.bag.fragment('finds', { id: 'nalati.finds', render: panel => { renderFinds(panel, nalatiFinds(flags)); } }); shell.hooks.questFlags = () => flags.all.slice().sort();
+    await installNalatiQuestView(ctx, rt, persistence);
     ctx.playground(horsePlayground(ctx));
   }
 }

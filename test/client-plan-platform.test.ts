@@ -143,7 +143,7 @@ test('an orchard kit borrows its declared cosmetic feature and entered saved own
   f.sections.set('held/finishes',{order:[],rows:{},cards:[],extras:{}});
   expect(()=>admitClientPlan(feature,f.ctx.product)).toThrow('Cosmetic feature requires declared finishes');
   f.sections.set('held/finishes',{order:[],rows:{},cards:[],extras:{},cosmetics:{
-    cards:[{id:'pearl',name:'Pearl',blurb:'Light',lockedBlurb:'Win the race',icon:'sword'}],
+    menu:{title:'Coats'},cards:[{id:'pearl',name:'Pearl',blurb:'Light',lockedBlurb:'Win the race',icon:'sword'}],
     skins:[{id:'pearl',slot:'tool',name:'Pearl',blurb:'Light',effect:'effect.pearl',grant:'cosmetic.pearl'}],paints:[]}});
   let saved:CosmeticState={owned:[],worn:{}};
   const persistence={cosmetics:{read:()=>saved,write:(value:CosmeticState)=>{saved=value;return true;}}} as AdventurePersistence;
@@ -155,6 +155,8 @@ test('an orchard kit borrows its declared cosmetic feature and entered saved own
   await installClientPhase(f.ctx,plan,'kit',f.ctx.scope);
   const {locker}=clientCosmeticFinishes(f.ctx);locker.own('pearl');
   expect(saved).toEqual({owned:['pearl'],worn:{tool:'pearl'}});
+  expect(f.runtime.menu?.skinsTitle).toBe('Coats');expect(f.runtime.menu?.skins?.()[0]?.worn).toBe(true);
+  f.runtime.menu?.onWearSkin?.('pearl');expect(saved.worn).toEqual({});f.runtime.menu?.onWearSkin?.('pearl');
   expect(clientCosmeticFinishes(f.ctx).locker).toBe(locker);
   f.ctx.scope.dispose();expect(()=>clientCosmeticFinishes(f.ctx)).toThrow('not installed');
 });
