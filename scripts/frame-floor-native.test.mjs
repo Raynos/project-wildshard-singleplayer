@@ -10,7 +10,7 @@ const gpu = [
   { at: 300, phase: 'playing', memory: { totals: { gpu: 50 }, unattributed: { gpu: 0 }, allocations: [] } },
 ];
 
-test('charges loading overlap, playing kernel interval highs and conservative GPU peak', () => {
+await test('charges loading overlap, playing kernel interval highs and conservative GPU peak', () => {
   const row = gradeFloorNative(native, gpu);
   assert.equal(row.gamePid, 7);
   assert.equal(row.loadingPeakBytes, 1000);
@@ -19,7 +19,7 @@ test('charges loading overlap, playing kernel interval highs and conservative GP
   assert.equal(row.gpuPeakAllocations[0].asset, 'target');
 });
 
-test('refuses missing native/GPU/playing phases and lost game process', () => {
+await test('refuses missing native/GPU/playing phases and lost game process', () => {
   assert.throws(() => gradeFloorNative([], gpu), /Missing native/u);
   assert.throws(() => gradeFloorNative(native, []), /Missing native/u);
   assert.throws(() => gradeFloorNative(native, gpu.slice(0, 1)), /No playing/u);
