@@ -168,6 +168,9 @@ export const MeasureLayerSchema = v.strictObject({
   label: v.optional(v.strictObject({ colour: srgb, height: metres(2) }), { colour: [1, 1, 1], height: 0.36 }),
   /** the share of the role colour that glows (unlit), so a face turned from the sun stays readable */
   lift: v.optional(unit, 0.4),
+  /** G527: a Settings ▸ Debug row may draw the surface's own colours instead (Template 2's Blender clay) until Jake has
+   *  played the dev map; his pick deletes the field, the row and the losing look */
+  plainVariant: v.exactOptional(v.literal(true)),
 });
 /** A measure layer with every default filled. */
 export type MeasureLayerParams = v.InferOutput<typeof MeasureLayerSchema>;

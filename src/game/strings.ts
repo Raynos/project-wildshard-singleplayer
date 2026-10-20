@@ -70,6 +70,11 @@ export const GAME_STRINGS = {
     effects: 'too many effects',
     trap: 'trapped',
   },
+  /** G527: the Debug row that shows Template 2's Blender clay under its dev-map look until Jake has played it */
+  measurePlain: {
+    label: 'Blender dev-map look', devMap: 'Dev map', clay: 'Clay',
+    note: 'G527: the dev map (orange structures, grey 1 m grid floors, size labels) or the earlier Blender clay; live',
+  },
   /** Infinite Wildshard, the 3 × 3 grid (SHARD-PLATFORM §3.3, G58, G79; SF21a) */
   grid: {
     loadingPrograms: {

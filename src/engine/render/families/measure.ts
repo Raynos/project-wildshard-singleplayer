@@ -1,7 +1,8 @@
 /**
  * The PBR family's measure layer (SHARD-PLATFORM SF56, G152): a blockout "dev map" look in the spirit of the Source
  * engine's developer measure textures, drawn entirely by the shader (no texture, no memory). A PBR surface that declares
- * the layer always draws it (G163: Jake picked the dev map over the plain grey, so there is no off switch). Per pixel:
+ * the layer always draws it (G163: Jake picked the dev map over the plain grey), unless it declares `plainVariant` (G527:
+ * one Debug row draws such a surface's own colours instead, `setMeasurePlain`, until Jake picks). Per pixel:
  * - the surface takes its role's flat colour (structure orange, trim grey, floor light grey) in place of its vertex colour,
  *   a share of it glowing so a shade side stays readable (the dev textures' flat read);
  * - a 1 m grid and a lighter sub-grid cross it, each line at least a pixel wide and faded by coverage (crisp at 2×, no
@@ -43,6 +44,7 @@ uniform vec3 famMAlpha;     // line on a role surface, line on the floor, sub-gr
 uniform float famMSub;      // sub-grid step (m)
 uniform vec4 famMLabel;     // colour, glyph height (m)
 uniform float famMLift;     // the share of the role colour that glows (a flat, readable shade side)
+uniform float famMOn;       // 1 draws the layer, 0 the surface's own colours (G527's Debug variant)
 
 // coverage of lines every pitch (c in metres), at least a pixel wide, dimmed by how thin they are and faded once a pitch
 // shrinks toward a few pixels
@@ -123,10 +125,14 @@ vec3 famMGlow = vec3( 0.0 );
   vec3 famMOut = mix( famMBase, famMLine.rgb, famMFine * famMAlpha.z );
   famMOut = mix( famMOut, famMLine.rgb, famMMain * famMLineA );
   famMOut = mix( famMOut, famMLabel.rgb, famMInk * 0.92 );
-  diffuseColor.rgb = famMOut;
-  famMGlow = famMOut * famMLift;
+  diffuseColor.rgb = mix( diffuseColor.rgb, famMOut, famMOn );
+  famMGlow = famMOut * famMLift * famMOn;
 }`;
 const FRAG_GLOW = '#include <emissivemap_fragment>\ntotalEmissiveRadiance += famMGlow;';
+
+const drawn = { value: 1 };
+/** G527's Debug variant: every surface whose layer declares `plainVariant` draws its own colours (true) or the layer. */
+export function setMeasurePlain(plain: boolean): void { drawn.value = plain ? 0 : 1; }
 
 const linear = (rgb: readonly [number, number, number]): THREE.Color => new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2], THREE.SRGBColorSpace);
 
@@ -142,6 +148,7 @@ export function applyMeasure(m: THREE.MeshStandardMaterial, p: MeasureLayerParam
     famMSub: { value: p.sub.step },
     famMLabel: { value: new THREE.Vector4(label.r, label.g, label.b, p.label.height) },
     famMLift: { value: p.lift },
+    famMOn: p.plainVariant === true ? drawn : { value: 1 },
   };
   patchShader(m, 'engine.family.measure', PATCH_ORDER.material, (shader) => {
     Object.assign(shader.uniforms, uniforms);
