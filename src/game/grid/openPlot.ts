@@ -117,7 +117,7 @@ function paintFace(g: CanvasRenderingContext2D, idea: PlotIdea, image: CanvasIma
 }
 
 /** The readout. */
-export interface OpenPlotState {
+export interface PlotCellState {
   readonly plots: readonly { readonly instance: string; readonly visible: boolean; readonly entries: PlotEntries }[];
   /** pictures decoded of PLOT_IDEAS.length */
   readonly pictures: number;
@@ -133,11 +133,11 @@ function geometry(positions: Float32Array, attrs: Readonly<Record<string, readon
 }
 
 /** Draw every open plot in the home frame; disposed with the scope. `feet` is the traveller's feet in the home frame. */
-export function installOpenPlots(input: {
+export function installPlotCells(input: {
   readonly plots: readonly GridPlot[]; readonly home: { readonly origin: { readonly x: number; readonly z: number } };
   readonly scene: Object3D; readonly scope: Scope; readonly admission?: PlatformRenderAdmission;
   readonly feet: () => { readonly x: number; readonly z: number };
-}): { readonly step: (dt: number) => void; readonly state: () => OpenPlotState } {
+}): { readonly step: (dt: number) => void; readonly state: () => PlotCellState } {
   const { plots, home } = input;
   if (plots.length === 0) return { step: () => undefined, state: () => ({ plots: [], pictures: 0, draws: 0, triangles: 0 }) };
   const built = plots.map((plot) => ({ plot, geometry: openPlotGeometry(plot.billboard) }));
@@ -147,7 +147,7 @@ export function installOpenPlots(input: {
   // every buffer once each side, and the atlases' textures with mips (GPU, 4/3). The atlas canvases are construction
   // transients (the cost model's overlap allowance): each shrinks to 1 × 1 once its final content is uploaded, so only those
   // two pixels stay JS-resident (SF57: 17.3 MB of atlas GL and no resident canvas, progress/memory/sf57/calibration-243da2c5e)
-  const plan = { id: 'grid.open-plots', jsBytes: bufferBytes + (canvasOk ? 2 * 4 : 0), gpuBytes: bufferBytes + Math.ceil(atlasBytes * 4 / 3) };
+  const plan = { id: 'grid.plot-cells', jsBytes: bufferBytes + (canvasOk ? 2 * 4 : 0), gpuBytes: bufferBytes + Math.ceil(atlasBytes * 4 / 3) };
   const groups: { group: Group; holo: Group; scan: Mesh; plot: GridPlot; geometry: OpenPlotGeometry }[] = [];
   let decoded = 0, draws = 0, triangles = 0, t = 0;
   let lineMaterial: LineBasicMaterial | null = null, holoMaterial: LineBasicMaterial | null = null, cardMaterial: MeshBasicMaterial | null = null, scanMaterial: MeshBasicMaterial | null = null;

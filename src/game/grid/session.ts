@@ -81,7 +81,7 @@ import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, type FarViewStatus, type ShardRefusal } from './refusal';
 import { cellScreenStatus, installCellScreens, type CellScreenInput, type CellScreensState } from './cellScreen';
-import { installOpenPlots, openPlotColliders, type OpenPlotState } from './openPlot';
+import { installPlotCells, openPlotColliders, type PlotCellState } from './openPlot';
 import type { MemoryAdmissionWarning } from '@wildshard/format/product';
 import { TIER } from '@wildshard/engine/core/tier';
 import { horizonFade } from './horizonFade';
@@ -147,7 +147,7 @@ export interface GridSessionState {
   /** G217: the cells you can't enter that wear the full loading screen now, and its redraw count */
   readonly screens: CellScreensState;
   /** G198 / G219: the open plots (their showrooms' ideas, which are drawn, their draws and triangles) */
-  readonly plots: OpenPlotState;
+  readonly plots: PlotCellState;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
   /** Exact category sum before engine base, overlap allowance or calibration factor; used by the soak harness. */
@@ -297,7 +297,7 @@ export class GridSession {
   /** G217: the full loading screen on every cell you can't enter */
   private readonly screens: { readonly step: () => void; readonly state: () => CellScreensState };
   /** G198 / G219: the open plots, platform ground with four entry showrooms and a centrepiece each */
-  private readonly plots: { readonly step: (dt: number) => void; readonly state: () => OpenPlotState };
+  private readonly plots: { readonly step: (dt: number) => void; readonly state: () => PlotCellState };
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
   static async create(host: GridSessionHost, progress?: StepProgress): Promise<GridSession> {
@@ -429,11 +429,11 @@ export class GridSession {
     // G219: the open plots' floors, showrooms and centrepieces collide as platform ground (the highway gets the same, `attach`)
     for (const mesh of openPlotColliders(this.assembly.plots)) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
     try {
-      this.plots = installOpenPlots({ plots: this.assembly.plots, home, scene: host.scene, scope: host.scope, admission,
+      this.plots = installPlotCells({ plots: this.assembly.plots, home, scene: host.scene, scope: host.scope, admission,
         feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } });
     } catch (error) {
       if (!(error instanceof PlatformRenderAdmissionError)) throw error;
-      console.warn('[grid] the open plots did not fit the envelope:', error);
+      console.warn('[grid] the plot cells did not fit the envelope:', error);
       this.plots = { step: () => undefined, state: () => ({ plots: [], pictures: 0, draws: 0, triangles: 0 }) };
     }
     // The normal world stage owns the home's sockets; this scope adds only rebased neighbours.

@@ -1176,7 +1176,7 @@
           "accountedBytes": 6116694
         },
         {
-          "id": "platform:render:grid.open-plots",
+          "id": "platform:render:grid.plot-cells",
           "category": "l0",
           "bytes": 32611716,
           "owner": "platform",
@@ -2012,7 +2012,7 @@
           "accountedBytes": 6116694
         },
         {
-          "id": "platform:render:grid.open-plots",
+          "id": "platform:render:grid.plot-cells",
           "category": "l0",
           "bytes": 32611716,
           "owner": "platform",
