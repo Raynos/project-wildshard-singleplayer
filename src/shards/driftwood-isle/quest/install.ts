@@ -22,7 +22,6 @@ import { captainHat, sailclothCape } from '../runtime/models/captainHat';
 import { driftwoodRows } from '../runtime/boot/rows';
 import { installItemEffects } from '@wildshard/game/loadout/effects';
 import { driftwoodLootPresentation } from '../loot/presentation';
-import { installQuestHints } from '@wildshard/game/quest/hints';
 import { preloadCaptainMesh } from '../species/captainMesh';
 import { preloadCreatureBodies } from '../species/bodies';
 
@@ -58,8 +57,6 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   ctx.system({ id: rows.systems.traderPose, phase: 'update', before: [rows.systems.trader], run: (dt, time) => { rig.update(dt, time, player.position); } });
   const adventure = await installQuestPageComposition(ctx, rows);
   if (adventure.places === null) throw new Error('Driftwood adventure requires its discovery catalogue');
-  h.fullMap.setPois(adventure.places.mapPois, { tally: true });
-  shell.hooks.adventureFlags = () => adventure.flags.all.slice().sort();
   const placed = [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
     ...(d.trailside?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []), adventure.zipline?.placed, ...adventure.kit.placed];
   const wreck = [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])];
@@ -79,9 +76,5 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   const presentation = await driftwoodLootPresentation({ economy, adventure, owned: h.owned, health, audio: h.audio, scope: ctx.scope,
     toast: (text) => { h.hud.toast(text); }, hold: questPagePanelHold(ctx, { restartOnClose: true, stow: true, resumeSwimming: true }) });
   installRuntimeLoot(ctx, presentation, { minimap: true, before: rows.systems.before.filter(id => id !== 'game.loot') });
-  if (h.firstHints !== undefined) {
-    const hintRows: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/hints.json')));
-    installQuestHints(ctx, hintRows, new Map([['quest', { hints: h.firstHints, animals: h.animals, player, ui: ctx.app.ui }]]));
-  }
   return adventure;
 }

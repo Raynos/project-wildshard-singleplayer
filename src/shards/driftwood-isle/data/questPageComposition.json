@@ -2,6 +2,7 @@
   "id": "driftwood.adventure",
   "world": "driftwood.world",
   "debug": "driftwood.adventure",
+  "presentation": { "mapPois": true, "flags": true, "hints": "quests/hints.json" },
   "files": {
     "discovery": "quests/discovery.json", "services": "quests/services.json",
     "assembly": "sim/headless-assembly.json", "stall": "quests/stall.json",
