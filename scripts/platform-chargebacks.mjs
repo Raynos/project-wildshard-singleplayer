@@ -48,6 +48,23 @@ export function retiredPlatformModule(path) {
   return path === 'src/engine/models/glbNodes.ts' || path === 'src/game/shardfile/buildingAssembly.ts';
 }
 
+/** A canonical output census can omit an audited host's owning shard.
+ * Preserve its owner without indexing a shard outside this measurement.
+ * @template {{path:string,lines:number,name?:string}} T
+ * @param {Map<string,T[]>} charges @param {string|undefined} owner
+ * @param {T} row @param {(line:string)=>void} [report] */
+export function recordPrivateCharge(charges, owner, row, report = console.error) {
+  const reviewed = platformChargeback(row.path, row.name) !== null;
+  const shard = reviewed ? row.path === 'src/game/systems/viewmodel/graphArms.ts' ? 'nine-dragon-stack' : 'nalati-grasslands' : owner;
+  const target = charges.get(shard ?? '');
+  if (target === undefined) {
+    report(`shard-platform: skip ${row.path}${row.name === undefined ? '' : `#${row.name}`}: ${row.lines} lines owned by ${shard ?? 'no user'}, outside measured shards`);
+    return false;
+  }
+  target.push(row);
+  return true;
+}
+
 /** Reconcile broad import reach with the audited, actual row consumers.
  * @param {Map<string,Set<string>>} moduleUsers
  * @param {Map<string,Set<string>>} bindingUsers */

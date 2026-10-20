@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify retired receipts without touching the shared WIP ledger.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { chargePlatformUsers, platformChargeback } from '../scripts/platform-chargebacks.mjs';
+import { chargePlatformUsers, platformChargeback, recordPrivateCharge } from '../scripts/platform-chargebacks.mjs';
 import { pendingPlatformUsers, partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
 import { componentInventory } from '../scripts/shard-components.mjs';
 
@@ -25,6 +25,20 @@ test('optional shared dispatch does not invent another arena or keeper user', ()
   expect([...armsUsers.get(arms) ?? []]).toEqual(['nine-dragon-stack']);
   expect(platformChargeback(arms)).toBe('C6');
   expect(platformChargeback('src/game/systems/viewmodel/rigArms.ts', 'RigArms')).toBeNull();
+});
+
+test('a non-shard sole user maps to its reviewed owner or reports its excluded lines', () => {
+  const arena = { path: 'src/game/boss/arenaScript.ts', lines: 514 };
+  const charges = new Map<string, { path: string; lines: number; name?: string }[]>([['nalati-grasslands', []]]);
+  const reports: string[] = [], report = (line: string) => { reports.push(line); };
+  expect(recordPrivateCharge(charges, 'fixture-only-user', arena, report)).toBe(true);
+  expect(charges.get('nalati-grasslands')).toEqual([arena]);
+  const outside = new Map<string, typeof arena[]>([['far-reach', []]]);
+  expect(recordPrivateCharge(outside, 'fixture-only-user', arena, report)).toBe(false);
+  expect(reports[0]).toContain('514 lines owned by nalati-grasslands, outside measured shards');
+  expect(recordPrivateCharge(charges, 'fixture-only-user', { path: 'src/game/fixture.ts', name: 'unused', lines: 7 }, report)).toBe(false);
+  expect(reports[1]).toContain('src/game/fixture.ts#unused: 7 lines owned by fixture-only-user');
+  expect(charges.get('nalati-grasslands')).toEqual([arena]);
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {

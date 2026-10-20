@@ -16,7 +16,7 @@ import { outputRuntime, outputSections } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
-import { chargePlatformUsers, hasChargebackDeclarations, platformChargeback, retiredPlatformModule } from './platform-chargebacks.mjs';
+import { chargePlatformUsers, hasChargebackDeclarations, platformChargeback, recordPrivateCharge, retiredPlatformModule } from './platform-chargebacks.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -770,7 +770,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     if (path === 'src/format/bossProfiles.ts') continue;
     if (RULES.buildOnlySdk.test(path) || users.has(SHELL_USER) || users.size >= RULES.publicUserCount || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
     const lines = count(path);
-    if (lines > 0) privateModules.get([...users][0]).push({ path, lines });
+    if (lines > 0) recordPrivateCharge(privateModules, [...users][0], { path, lines });
   }
   // G294 per export: a module that two or more shards reach as a file still charges every top-level declaration that
   // exactly one shard reaches, through its own imports or transitively through the platform code it reaches.
@@ -856,7 +856,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       for (const span of row.spans) for (let line = lineOf(span.start); line <= lineOf(Math.max(span.start, span.end - 1)); line++) {
         if (!claimed.has(line) && code[line]) { claimed.add(line); lines++; }
       }
-      if (lines > 0) privateExports.get([...owners][0]).push({ path, name: local === '\0default' ? 'default' : local, exported: exportedLocals.has(local), lines });
+      if (lines > 0) recordPrivateCharge(privateExports, [...owners][0], { path, name: local === '\0default' ? 'default' : local, exported: exportedLocals.has(local), lines });
     }
   }
   const trustedRuntime = (slug, path) => {
