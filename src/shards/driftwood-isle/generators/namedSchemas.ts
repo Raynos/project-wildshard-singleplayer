@@ -1,3 +1,4 @@
+import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA, DirectorBindingsSchema, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
@@ -20,6 +21,7 @@ import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/forma
 
 const text = v.string(), number = v.number();
 const schemas: Readonly<Record<string, v.GenericSchema>> = {
+  'actors/projection.json': PopulationProjectionSchema,
   'world/place-sets.json': PlaceSetsSchema,
   'actors/page-life.json': PageLifeSchema,
   'world/cover-composition.json': CoverCompositionSchema,

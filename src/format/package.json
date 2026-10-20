@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./populationProjection": "./populationProjection.ts",
     "./populationKeeper": "./populationKeeper.ts",
     "./mixedPopulation": "./mixedPopulation.ts",
     "./sceneInstances": "./sceneInstances.ts",

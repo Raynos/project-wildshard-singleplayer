@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/clientPopulationProjection": "./shardfile/clientPopulationProjection.ts",
+    "./population/projection": "./population/projection.ts",
     "./population/mixedRoster": "./population/mixedRoster.ts",
     "./quest/carriedProp": "./quest/carriedProp.ts",
     "./practice/ridingCourse": "./practice/ridingCourse.ts",

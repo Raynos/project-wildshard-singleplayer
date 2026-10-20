@@ -1,3 +1,4 @@
+import { populationProjectionRows } from './populationProjection';
 import mixedPopulation from '../data/mixedPopulation.json' with { type: 'json' };
 import crabClips from '../data/crabClips.generated.json' with { type: 'json' };
 import sailorClips from '../data/sailorClips.generated.json' with { type: 'json' };
@@ -87,7 +88,7 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(parseWorldScene(value)));
-const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
+const placements = emitNamedBlobs([nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows()))), nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 
   nameBlob('world/place-sets.json', 'json', new TextEncoder().encode(JSON.stringify(parse(PlaceSetsSchema, placeSets)))),
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),

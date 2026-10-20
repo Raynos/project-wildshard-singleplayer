@@ -2,20 +2,17 @@ import { MonkeyBinding } from '../species/monkeyBinding';
 import { MONKEY_LOOK } from '../species/monkey';
 import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { DRIFTWOOD_LOOKS } from '../species/install';
 import { ISLAND_BEAR_LOOK, ISLAND_BOAR_LOOK } from '../species/fauna';
 import { readLootTables, registerLootTable } from '@wildshard/game/loot/tables';
-import { driftwoodWorld } from '../world/build';
-import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { driftwoodSpeciesRows } from './rows';
-import { Enemies } from './Enemies';
+import { installPopulationProjection } from '@wildshard/game/shardfile/clientPopulationProjection';
+import { preloadSailorHead } from '../species/sailor';
 import { CAPTAIN_LOOK } from '../species/captain';
 import { captainMesh } from '../species/captainMesh';
 import { graphCaptainLook, graphCreatureLook } from '../runtime/looks/creatureLooks';
 
-const { PRACTICE_CRAB } = authoredLayout;
 
 /** Kit rows precede AnimalManager construction; the ready hook preserves the original placement stage. */
 export async function installDriftwoodCreatures(ctx: ShardContext, decisions: SpeciesDecisionAuthority): Promise<void> {
@@ -30,27 +27,6 @@ export async function installDriftwoodCreatures(ctx: ShardContext, decisions: Sp
   const loot = readLootTables(ctx.product.section('economy/loot').rows.loot[0]?.economy?.tables);
   ctx.rows.lootTable(loot);
   for (const row of loot) registerLootTable(row, ctx.scope);
-  const shell = ctx.game.runtime;
-  if (shell === undefined) throw new Error('Driftwood creatures require the world host');
-  if (shell.world === null) throw new Error('Driftwood creatures require a built world');
-  const world = shell.world, previousReady = shell.hooks.animalsBuilt, previousUpdate = shell.hooks.worldUpdate;
-  let enemies: Enemies | null = null;
-  const ready = async (animals: AnimalManager): Promise<void> => {
-    await previousReady?.(animals);
-    const built = driftwoodWorld(shell);
-    enemies = await new Enemies(animals, { respawn, scope: ctx.scope, scene: world.game.scene, sky: world.sky,
-      palms: built.palmSpecs, wreck: built.wreck, crabSites: built.cove?.crabSites ?? [], practice: PRACTICE_CRAB }).build();
-    shell.objects['enemies'] = enemies;
-  };
-  const update = (dt: number, t: number): void => { previousUpdate?.(dt, t); enemies?.update(dt, t, world.player.position); };
-  shell.hooks.animalsBuilt = ready; shell.hooks.worldUpdate = update;
-  ctx.scope.onDispose(() => {
-    if (shell.hooks.animalsBuilt === ready) {
-      if (previousReady === undefined) delete shell.hooks.animalsBuilt; else shell.hooks.animalsBuilt = previousReady;
-    }
-    if (shell.hooks.worldUpdate === update) {
-      if (previousUpdate === undefined) delete shell.hooks.worldUpdate; else shell.hooks.worldUpdate = previousUpdate;
-    }
-    if (shell.objects['enemies'] === enemies) delete shell.objects['enemies'];
-  });
+  await preloadSailorHead();
+  installPopulationProjection(ctx, await ctx.product.json('actors/projection.json'));
 }
