@@ -251,3 +251,60 @@ test('restore rejects off-slab footprints and simultaneous swing atomically', ()
   expect(() => f.pose.restore(JSON.stringify(swinging))).toThrow('contact continuation');
   expect(f.pose.snapshot()).toBe(wire);
 });
+
+test('supported continuation validates every gait phase, pending publication and equal-tick hits', () => {
+  for (const yaw of [0, .7]) for (const scale of [.8, 1.3]) {
+    const f = fixture(yaw, scale);
+    for (let tick = 1; tick <= 36; tick++) {
+      f.actor.position.z += .006;
+      f.pose.advance(1 / 60, tick / 60, true);
+      const pending = f.pose.snapshot(); f.pose.restore(pending); expect(f.pose.snapshot()).toBe(pending);
+      f.pose.publish();
+      const published = f.pose.snapshot(); f.pose.restore(published); expect(f.pose.snapshot()).toBe(published);
+    }
+    const scope = new Scope('contact-restore-hits'), combat = new CombatPipeline(new Events(), scope);
+    for (let hit = 0; hit < 2; hit++) {
+      combat.hit({ source: 'env', sourceTags: [], target: f.actor.combatActor(), amount: 1,
+        point: new Vector3(0, 901, 0), dir: new Vector3(1, 0, 0) });
+      const wire = f.pose.snapshot(); f.pose.restore(wire); expect(f.pose.snapshot()).toBe(wire);
+    }
+    scope.dispose();
+  }
+});
+test('continuation rejects in-slab frame forgery, impossible intervals and detached publication tampering', () => {
+  const f = fixture();
+  for (let tick = 0; tick < 16; tick++) { f.actor.position.z += .006; f.tick(); }
+  const wire = f.pose.snapshot();
+  interface Saved { contact: { current: { feet: { elapsed: number; step: number; plant: { position: number[] };
+    start: { position: number[] }; target: { position: number[] } }[] }; previous: { feet: { elapsed: number; step: number;
+    plant: { position: number[] }; start: { position: number[] }; target: { position: number[] } }[] } };
+    local: number[]; published: number[]; frame: number[]; history: { root: number[]; previousRoot: number[]; previous: number[] } }
+  const changeWord = (words: number[], offset: number, value: number) => {
+    const data = new DataView(new ArrayBuffer(8)); data.setFloat64(0, value);
+    words[offset * 2] = data.getUint32(0); words[offset * 2 + 1] = data.getUint32(4);
+  };
+  const reject = (change: (saved: Saved) => void) => {
+    const saved = JSON.parse(wire) as Saved; change(saved);
+    expect(() => f.pose.restore(JSON.stringify(saved))).toThrow(/contact continuation/u);
+    expect(f.pose.snapshot()).toBe(wire);
+  };
+  for (const shift of [3, .025]) reject(saved => {
+    for (const endpoint of [saved.contact.current, saved.contact.previous]) for (const foot of endpoint.feet)
+      for (const frame of [foot.plant, foot.start, foot.target]) frame.position[0] = (frame.position[0] ?? 0) + shift;
+  });
+  reject(saved => { const foot = saved.contact.current.feet.find(row => row.elapsed > 0 && row.elapsed < contact.swingTicks);
+    if (foot === undefined) throw new Error('Missing swing'); foot.elapsed += 2; });
+  reject(saved => { const foot = saved.contact.previous.feet[0]; if (foot === undefined) throw new Error('Missing foot'); foot.step += 1; });
+  reject(saved => changeWord(saved.local, 0, .01));
+  reject(saved => changeWord(saved.published, 0, .01));
+  reject(saved => changeWord(saved.history.previous, 0, .01));
+  reject(saved => changeWord(saved.history.root, 0, .01));
+  reject(saved => changeWord(saved.frame, 12, .01));
+});
+test('released and failed snapshots remain diagnostics and explicitly refuse restoration atomically', () => {
+  const f = fixture(); f.actor.impulse(new Vector3(20, 0, 0)); f.tick(true);
+  const wire = f.pose.snapshot();
+  expect(f.pose.contactDiagnostic()?.current.failures.length).toBeGreaterThan(0);
+  expect(() => f.pose.restore(wire)).toThrow('Unsupported failed contact continuation');
+  expect(f.pose.snapshot()).toBe(wire);
+});

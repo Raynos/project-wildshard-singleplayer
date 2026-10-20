@@ -1,6 +1,6 @@
 import { packedPayloadIdentity } from './packedPayloadIdentity';
 import { PracticeContactStateSchema, validatePracticeContact, initialPracticeContacts, advancePracticeContacts,
-  solvePracticeContacts, samplePracticeContactFrames, releasePracticeContacts, practiceContactClearance,
+  solvePracticeContacts, samplePracticeContactFrames, releasePracticeContacts, practiceContactClearance, validatePracticeContactPublication,
   type PracticeContactState, type PracticeContactSurface, type PracticeFootContactRecipe } from './practiceFootContact';
 import { Euler, Matrix4, Quaternion, Vector3, type EulerOrder, BufferAttribute, BufferGeometry } from 'three';
 import * as poseSchema from 'valibot';
@@ -1089,6 +1089,48 @@ export class NativeCreaturePose {
           || (endpoint.failures.length > 0 && foot.mode !== 'released')) throw new Error('Invalid contact restore frame');
       }
       if (contact.previous.tick > contact.current.tick || contact.current.tick - contact.previous.tick > 1) throw new Error('Invalid contact interval');
+      // Failed/released snapshots remain diagnostic evidence, not a supported restoration contract.
+      if ([contact.current, contact.previous].some(endpoint => endpoint.failures.length > 0 || endpoint.feet.some(foot => foot.mode === 'released')))
+        throw new Error('Unsupported failed contact continuation');
+      if (history === undefined || this.contactSurface === undefined) throw new Error('Missing contact continuation publication');
+      for (const endpoint of [contact.current, contact.previous]) {
+        const steps = endpoint.feet.reduce((sum, foot) => sum + foot.step, 0);
+        if (steps > Math.ceil(endpoint.tick / this.contactRecipe.swingTicks)
+          || endpoint.feet.some(foot => (foot.step === 0 && (foot.elapsed !== 0 || foot.mode !== 'stance'))
+            || (foot.step > 0 && foot.mode === 'stance' && foot.elapsed !== this.contactRecipe?.swingTicks)
+            || (foot.mode === 'swing' && foot.elapsed > endpoint.tick)))
+          throw new Error('Invalid contact continuation ordinal');
+      }
+      const detached = (jointValues: readonly number[], rootValues: readonly number[]) => {
+        const root = NativeCreaturePose.joint(); NativeCreaturePose.read(root, rootValues, 0);
+        const bones = Object.fromEntries(this.recipe.joints.map((def, index) => {
+          const joint = NativeCreaturePose.joint(); NativeCreaturePose.read(joint, jointValues, index * 10);
+          return [def.name, joint];
+        }));
+        return { root, bones };
+      };
+      const currentRootValues = local.slice(this.joints.length * 10), currentJointValues = local.slice(0, this.joints.length * 10);
+      const current = detached(currentJointValues, currentRootValues), previous = detached(history.previous, history.previousRoot);
+      validatePracticeContactPublication(this.contactRecipe, this.recipe.joints, current.root, current.bones, this.contactSurface, contact.current);
+      validatePracticeContactPublication(this.contactRecipe, this.recipe.joints, previous.root, previous.bones, this.contactSurface, contact.previous);
+      const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((scalar, index) => Object.is(scalar, b[index]));
+      const publishedCurrent = same(published, currentJointValues) && same(history.root, currentRootValues);
+      const publishedPrevious = same(published, history.previous) && same(history.root, history.previousRoot);
+      if (!publishedCurrent && !publishedPrevious) throw new Error('Invalid contact continuation publication phase');
+      const publishedRoot = NativeCreaturePose.joint(); NativeCreaturePose.read(publishedRoot, history.root, 0);
+      const expectedFrame = new Matrix4().compose(publishedRoot.position, new Quaternion().setFromEuler(publishedRoot.rotation), publishedRoot.scale);
+      if (!expectedFrame.elements.every((scalar, index) => Math.abs(scalar - (frame[index] ?? Infinity)) <= 1e-10))
+        throw new Error('Invalid contact continuation root publication');
+      // Pure comparison on detached state only. No owner clock, authored motion, terrain or actor runs.
+      const expectedContact = contact.current.tick === contact.previous.tick ? contact.previous
+        : advancePracticeContacts(this.contactRecipe, contact.previous, previous.root, current.root, this.contactSurface);
+      if (JSON.stringify(expectedContact) !== JSON.stringify(contact.current)) throw new Error('Invalid contact continuation phase interval');
+      if (contact.current.tick === contact.previous.tick
+        && (!same(currentJointValues, history.previous) || !same(currentRootValues, history.previousRoot)))
+        throw new Error('Invalid contact continuation zero-time publication');
+      if (contact.current.tick === 0 && JSON.stringify(initialPracticeContacts(this.contactRecipe, current.root, this.contactSurface)) !== JSON.stringify(contact.current))
+        throw new Error('Invalid initial contact continuation');
+
     }
     const validation = new AnimalPoseLaw(this.law.recipe); validation.restore(state.scalar);
     this.law.restore(state.scalar); this.quad?.restore(state.breath); this.wasAlive = state.wasAlive; this.legAbd.set(leg);

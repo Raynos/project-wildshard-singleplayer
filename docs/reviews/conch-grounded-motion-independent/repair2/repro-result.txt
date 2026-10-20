@@ -1,0 +1,35 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../vitest.config" without a file extension (tmp/conch-grounded-final-review/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <project-root>
+
+ ❯ tmp/conch-grounded-final-review/review.test.ts (27 tests | 1 failed) 3702ms
+   × final review: previous tick zero must retain canonical initial tie break 19ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tmp/conch-grounded-final-review/review.test.ts > final review: previous tick zero must retain canonical initial tie break
+AssertionError: expected [Function] to throw an error
+ ❯ tmp/conch-grounded-final-review/review.test.ts:415:52
+    413|  expect(saved.contact.previous.tick).toBe(0);expect(saved.contact.curr…
+    414|  saved.contact.previous.next=1;saved.contact.current.next=1;
+    415|  expect(()=>f.pose.restore(JSON.stringify(saved))).toThrow();expect(f.…
+       |                                                    ^
+    416| });
+    417|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 26 passed (27)
+   Start at  18:48:11
+   Duration  13.69s (transform 58%, tests 27%, setup 14%, import 1%)
+
+  Transform  transforming modules took 7.80s · 58% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

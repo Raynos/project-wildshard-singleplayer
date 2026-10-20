@@ -1,5 +1,5 @@
 {
-  "status": "frozen bounded contract repair; original negative evidence preserved; independent repaired-byte and continuation consistency review pending",
+  "status": "frozen detached continuation validation repair; author 79 tests/type/lint pass; independent exact-byte review and staged hooks pending",
   "files": {
     "src/engine/entities/animalRig.ts": {
       "bytes": 6516,
@@ -10,12 +10,12 @@
       "sha256": "11835cb8cc53a02bd3e30d04f92e6ed8fa987bcfcca1251eb74739244c5d061b"
     },
     "src/game/plugin/practiceFootContact.ts": {
-      "bytes": 17379,
-      "sha256": "2ac18bc8e33082bbccdd3cb4b51d5c51e5ba2301b3c5999d069c797c5dcf6073"
+      "bytes": 21838,
+      "sha256": "389e52df7ff42663a87be06e862ed72d3322c3dfcd5e839a2e18753eb9db7948"
     },
     "src/game/plugin/animation.ts": {
-      "bytes": 84897,
-      "sha256": "809946c238c70e75d7ff4ddf3e29a8b48130de8c0923e1e6431f9e034243b305"
+      "bytes": 88894,
+      "sha256": "2ac3de2b5c75ecd245bc575f82677c6afc7ec0e5eddc131720632c1e37eeede7"
     },
     "src/game/plugin/channelPrograms.ts": {
       "bytes": 19234,
@@ -34,8 +34,8 @@
       "sha256": "7b1f4da3c925db5822a9c20d763f28073a3c11cb3909e2841acd235b5f8a1784"
     },
     "test/practice-foot-contact.test.ts": {
-      "bytes": 17126,
-      "sha256": "a159b7b6365c9bc8bbe63b34c2eccf6a77a9cd233ef55d245d37a6ad58691ab0"
+      "bytes": 20732,
+      "sha256": "e7119480d6b43a67b5b3c983c0db3ed53e111e88ee396b96e750493c8639004f"
     },
     "tsconfig.practice-contact-check.json": {
       "bytes": 472,
@@ -50,16 +50,16 @@
       "sha256": "1e9e57b985b9eea412cbac566c7bd82f6a40b6ee4ffd8401440661d8b821ad55"
     },
     "art/driftwood-isle/approved-conch/articulated-contact-motion1/RESULT.md": {
-      "bytes": 7532,
-      "sha256": "91c3834ac6759982cc19d2479d93eabb51318ae2c8702cb46259df979fa20f33"
+      "bytes": 9309,
+      "sha256": "215ec71b78a7bb1f8358ee2b0fe82391fab7b484fc22c5d0b840274890a243b9"
     },
     "art/driftwood-isle/approved-conch/articulated-contact-motion1/zero-time-witness.json": {
       "bytes": 634,
       "sha256": "d46738f1975a78c488b2f077ab8c85d19bbaa289cf137d832abab13a6845e317"
     },
     "art/driftwood-isle/approved-conch/articulated-contact-motion1/checks.json": {
-      "bytes": 1802,
-      "sha256": "350e3c85a87c59853817e2dc151bcf08e7c55e8560acfbb8134f3a0510a05f84"
+      "bytes": 2547,
+      "sha256": "b9005470c89387129bf68e18a7a9503f879c3a11eb4618de77aa94a3f680f2b0"
     },
     "art/driftwood-isle/approved-conch/articulated-contact-motion1/mirror-loading-witness.json": {
       "bytes": 559,

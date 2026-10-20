@@ -41,3 +41,13 @@ The packed loader privately retains its own input-byte copy and associates prove
 Complete byte-identical metadata and binary payload fixtures join the existing full source fixtures in the normal test tree, so the staged build mirror can test the actual loader. Tests include positive identity, forged declaration hash, detached dimensions, metadata filename mismatch, and mutation of the caller's byte buffer after preload. Legacy non-contact poses do not consult provenance. Private retention adds an owned byte copy; standard geometry output and decoding semantics are otherwise unchanged.
 
 Independent repaired-byte review and actual staged-tree hooks remain required. This is still diagnostic WIP, not a visual, motion, gameplay, source, or corpse admission.
+
+## Detached continuation consistency repair, 2026-10-20
+
+The second independent review preserved three additional negative cases: in-slab unreachable plants, reachable plants inconsistent with the published joints, and an impossible adjacent-tick swing-phase jump. Bounds and swing counting alone were insufficient.
+
+The bounded repair validates supplied current-local and previous-publication transforms through detached forward kinematics, without running authored motion or changing the actor. It checks bind positions/scales, fixed ancestors, visible joint limits, the declared knee pole and chain orientation, ankle/sole frame agreement, full retained-hull support, the published root matrix, and the exact contact interval. A legitimate advance-before-publish continuation may still publish the previous endpoint; equal-tick event states must be collapsed. A pure copied-state one-tick comparison verifies release, advance, landing, frame identities and step ordinals. It does not advance the live owner or query terrain.
+
+Failed or released contact continuations explicitly refuse atomically in this bounded slice. Their diagnostic snapshots remain available and damage/root displacement remain unchanged, but this implementation does not claim it can restore every snapshot. There is no released-foot exemption, recovery claim, or admission resulting from that refusal. A dedicated failed-state restoration contract remains open.
+
+Author final gates: 79/79 tests across seven files, strict TypeScript, changed-source type-aware lint, and whitespace checks pass. All six frozen geometry outputs and six complete test input copies are byte-verified unchanged. The exact repaired bytes still require independent review and actual staged-tree hooks; no app/build was run.

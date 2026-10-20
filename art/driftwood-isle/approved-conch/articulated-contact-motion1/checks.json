@@ -1,10 +1,10 @@
 {
   "status": "editable diagnostic implementation; not gameplay, source, recovery or visual admission",
   "tests": {
-    "files": 5,
-    "passed": 68,
+    "files": 7,
+    "passed": 79,
     "failed": 0,
-    "command": "./node_modules/.bin/vitest run test/practice-foot-contact.test.ts test/practice-native-actor.test.ts test/practice-pose-ownership-boundary.test.ts test/native-creature-pose.test.ts test/practice-native-corpse.test.ts --maxWorkers=1"
+    "command": "./node_modules/.bin/vitest run test/practice-foot-contact.test.ts test/practice-native-actor.test.ts test/practice-pose-ownership-boundary.test.ts test/native-creature-pose.test.ts test/practice-native-corpse.test.ts --maxWorkers=1 test/packed-creature-bodies.test.ts test/packed-creature-live-dimensions.test.ts"
   },
   "typecheck": {
     "exitCode": 0,
@@ -38,9 +38,22 @@
     "authorRegressionPassed": 68,
     "typecheckExitCode": 0,
     "lintDiagnostics": 0,
-    "independentRepairedByteReview": "pending",
+    "independentRepairedByteReview": "initial three witnesses, source identity and Buffer ownership passed; three additional continuation defects preserved in repair1 review",
+    "realStagedHooks": "passed at bc56f5d75f2a76fbd5082e8943092ae18816f52f",
+    "lastOwnershipHardening": "Uint8Array.from ownership independently verified",
+    "additionalContinuationConsistencyProbes": "three failures preserved; addressed in detachedContinuationRepair"
+  },
+  "detachedContinuationRepair": {
+    "focusedTestsPassed": 14,
+    "regressionFiles": 7,
+    "regressionTestsPassed": 79,
+    "typecheckExitCode": 0,
+    "lintDiagnostics": 0,
+    "sourceOutputsVerifiedUnchanged": 6,
+    "completeFixtureCopiesVerified": 6,
+    "failedReleasedRestore": "explicit atomic refusal; snapshots remain diagnostic; no recovery or admission claim",
+    "independentExactByteReview": "pending",
     "realStagedHooks": "pending",
-    "lastOwnershipHardening": "Uint8Array.from prevents Buffer.slice aliasing; exact final bytes await independent tests",
-    "additionalContinuationConsistencyProbes": "pending independent reviewer; not admission"
+    "sourceGeometryOrMotionParametersChanged": false
   }
 }

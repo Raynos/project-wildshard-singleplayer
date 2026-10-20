@@ -180,6 +180,63 @@ export function practiceContactClearance(recipe: PracticeFootContactRecipe, defs
   }
   return failures;
 }
+/** Detached validation only: inspect supplied transforms, never solve or repair them. */
+export function validatePracticeContactPublication(recipe: PracticeFootContactRecipe, defs: readonly ContactJointDefinition[],
+  root: AnimalRigJoint, bones: Readonly<Record<string, AnimalRigJoint>>, surface: PracticeContactSurface,
+  state: PracticeContactState): void {
+  const scale = scaleOf(root, recipe), matrices: Matrix4[] = [];
+  const frames = samplePracticeContactFrames(recipe, state, state, 1);
+  for (const def of defs) {
+    const joint = bones[def.name];
+    if (joint === undefined || joint.rotation.order !== def.order
+      || ![joint.position.x, joint.position.y, joint.position.z].every((value, i) => value === def.position[i])
+      || ![joint.scale.x, joint.scale.y, joint.scale.z].every((value, i) => value === def.scale[i])
+      || (recipe.ancestors.includes(def.name) && (joint.rotation.x !== 0 || joint.rotation.y !== 0 || joint.rotation.z !== 0)))
+      throw new Error('Invalid contact continuation bind transform');
+    const parent = def.parent < 0 ? matrix(root) : matrices[def.parent];
+    if (parent === undefined) throw new Error('Missing contact continuation parent');
+    matrices.push(parent.clone().multiply(matrix(joint)));
+  }
+  for (const [index, foot] of recipe.feet.entries()) {
+    const frame = frames[index], transform = matrices[defs.findIndex(def => def.name === foot.joints[2])];
+    if (frame === undefined || transform === undefined) throw new Error('Missing contact continuation foot');
+    const hipIndex = defs.findIndex(def => def.name === foot.joints[0]), kneeIndex = defs.findIndex(def => def.name === foot.joints[1]);
+    const hip = matrices[hipIndex], knee = matrices[kneeIndex];
+    if (hip === undefined || knee === undefined) throw new Error('Missing contact continuation chain');
+    const inverseRoot = matrix(root).invert();
+    const h = new Vector3().setFromMatrixPosition(hip).applyMatrix4(inverseRoot);
+    const k = new Vector3().setFromMatrixPosition(knee).applyMatrix4(inverseRoot);
+    const a = new Vector3().setFromMatrixPosition(transform).applyMatrix4(inverseRoot);
+    const axis = a.clone().sub(h).normalize(), thigh = k.clone().sub(h), shin = a.clone().sub(k);
+    const bend = thigh.clone().addScaledVector(axis, -thigh.dot(axis));
+    const pole = point(foot.pole); pole.addScaledVector(axis, -pole.dot(axis));
+    if (bend.length() < 1e-8 || pole.length() < 1e-8 || bend.normalize().distanceTo(pole.normalize()) > CONTACT_ARITHMETIC_BOUND)
+      throw new Error('Invalid contact continuation knee pole');
+    const bindHip = absolute(defs, hipIndex), bindKnee = absolute(defs, kneeIndex), bindAnkle = absolute(defs, defs.findIndex(def => def.name === foot.joints[2]));
+    const bindNormal = new Vector3().crossVectors(bindKnee.sub(bindHip), bindAnkle.sub(absolute(defs, kneeIndex))).normalize();
+    const normal = new Vector3().crossVectors(thigh, shin).normalize().transformDirection(matrix(root));
+    if (bindNormal.clone().transformDirection(hip).distanceTo(normal) > CONTACT_ARITHMETIC_BOUND
+      || bindNormal.clone().transformDirection(knee).distanceTo(normal) > CONTACT_ARITHMETIC_BOUND)
+      throw new Error('Invalid contact continuation chain orientation');
+    const expected = point(frame.position), actual = new Vector3().setFromMatrixPosition(transform);
+    if (actual.distanceTo(expected) > CONTACT_ARITHMETIC_BOUND) throw new Error('Invalid contact continuation ankle publication');
+    const rotation = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), frame.yaw);
+    for (const p of foot.sole) {
+      const wanted = point(p).multiplyScalar(scale).applyQuaternion(rotation).add(expected);
+      if (point(p).applyMatrix4(transform).distanceTo(wanted) > CONTACT_ARITHMETIC_BOUND)
+        throw new Error('Invalid contact continuation sole publication');
+    }
+    for (const [jointIndex, jointName] of foot.joints.entries()) {
+      const joint = bones[jointName], limits = foot.limits[jointIndex];
+      if (joint === undefined || limits === undefined
+        || [joint.rotation.x, joint.rotation.y, joint.rotation.z].some((value, component) => value < (limits[0][component] ?? 0) || value > (limits[1][component] ?? 0)))
+        throw new Error('Invalid contact continuation joint limit');
+    }
+  }
+  if (practiceContactClearance(recipe, defs, root, bones, surface).length > 0)
+    throw new Error('Invalid contact continuation source clearance');
+}
+
 export function initialPracticeContacts(recipe: PracticeFootContactRecipe, root: AnimalRigJoint, surface: PracticeContactSurface): PracticeContactState {
   if (!surfaceValid(surface)) throw new Error('Contact requires active finite Arena support');
   const make = (index: number): PracticeContactState['feet'][number] => {

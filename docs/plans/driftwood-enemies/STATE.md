@@ -1,6 +1,6 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-20 22:35 UTC. None quality-complete.
+Updated 2026-10-20 22:50 UTC. None quality-complete.
 
 OWNER: Original five need independent >=4/5 likeness and animation/readability. New four authorized in game19:13: Pitcher DI-N16, Medusa DI-N17, Keelmaw DI-N19, Iguana DI-N10. Other16 rejected. All9 need World/Explorer nine-angle references; original heroes authoritative, AI hidden surfaces approximate. No score inflation or structural-test acceptance.
 
@@ -14,6 +14,6 @@ UI: Site96 deployed20Oct21:58. Six tabs,9 cards,18 sheets/162 angles. WIP Mantis
 
 BELLBACK: Specific5body/4joint approval still pending; no expansion or repeated solver/timing/CCD studies. Six-shard Explorer coverage remains open.
 
-SOURCE: Corrected private build passed. Synthetic-owner browser cycle214s: kill/freeze/coins/Retry/defeat/reload observed, exit1 on empty-store schema assertion. Post-hoc empty-store validation accepted; no clean rerun/admission. Articulated static candidate/baseline3.89 tie, below4; historical4.05/native3.15 separate. Grounded repair68 tests pass; provenance fixed, continuation still fails3 probes; no runtime admission. Iguana live coverage fails6132 corners.
+SOURCE: Private synthetic owner cycle214s retained exit1; post-hoc empty-store mismatch confirmed, no clean rerun. Conch grounded79 tests pass; independent26/27, initial tick0 tie-break gap remains. All6 prior forgeries reject; failed-state restore unsupported. Medusa actual27-joint native clips/flight/AI/oracle and zero-pivot/stride fixes independently40/40; flying installer, motor sync and faithful corpse recipe pending. No new admission.
 
-PRESERVATION: Remoteeefa7ea92ab6813f23e3708fe5918393273ac6eb verified507 paths. Site97 sourcee0e5b7ff6a6f76f4ac8dce2cf4fe9344f5a38813 protects private original video/traces;96 remains live unchanged. Art originals also retained. Rockhop/dotgamedev absent. Hosts retained. Histories differ: compare protected bytes, never replay old delta. Cleanup606371840B reclaimed, originals retained. Hourly22:12; next23:13.
+PRESERVATION: Remote02d1b315c184cff9fb316506d9af9c1e55a551f7 verified535 paths. Site97 sourcee0e5b7ff6a6f76f4ac8dce2cf4fe9344f5a38813 protects private original video/traces;96 remains live unchanged. Art originals also retained. Rockhop/dotgamedev absent. Hosts retained. Histories differ: compare protected bytes, never replay old delta. Cleanup606371840B reclaimed, originals retained. Hourly22:12; next23:13.
