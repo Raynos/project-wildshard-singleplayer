@@ -1,4 +1,4 @@
-import { fence, signpostBaked as signpost, windCairn, kunesBridge, yurt, cart, barrel, feltRug, tetherLine, kurtBoard, ribbonPost, kazan, chest, ribbonPole, eaglePerch, stove, campBench, rugRack, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, firewood, kumisChurn, groundSaddle, perchedEagle, graniteOutcrop, roundedBoulder, fieldstoneBaked as fieldstone, stoneStep, watchtower, cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/catalogue';
+import { fence, signpostBaked as signpost, windCairn, kunesBridge, yurt, cart, barrel, feltRug, tetherLine, kurtBoard, ribbonPost, kazan, chest, ribbonPole, eaglePerch, stove, campBench, rugRack, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, firewood, kumisChurn, groundSaddle, perchedEagle, fieldstoneBaked as fieldstone, stoneStep, watchtower, cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/catalogue';
 import * as THREE from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { modelContext } from '@wildshard/engine/models/model';
@@ -65,10 +65,4 @@ function buildSmoke(): THREE.Mesh {
  const geometry = instancedQuad(new THREE.PlaneGeometry(1, 1), { aEmitter: attribute(row.attributes.aEmitter, 3), aSeed: attribute(row.attributes.aSeed, 4), aCfg: attribute(row.attributes.aCfg, 4) });
  geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3().fromArray(row.centre), row.radius);
  const mesh = new THREE.Mesh(geometry, lentLook(SMOKE_LOOK)); mesh.name = 'nalati-smoke'; mesh.renderOrder = 3; return mesh;
-}
-
-/** Static escarpment geometry shares the same baked-place owner as the landmarks. */
-export async function buildBakedOutcrops(sky: Sky, yieldTask: () => Promise<void>): Promise<PoiPiece> {
-  await preloadNalatiPlaces();
-  return bakedPlaceSliced('outcrops', { sky, ground: () => 0, flutter: new Flutter(), smoke: { emitter: () => undefined } }, new Map([placer(graniteOutcrop), placer(roundedBoulder)]), yieldTask, { every: 200, yieldTask });
 }

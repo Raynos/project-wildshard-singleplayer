@@ -37,7 +37,7 @@ import { cragRock, cragMaterial, CRAG_GEOMETRY } from '../models/cragRock';
 import { preloadCover } from '../creatures/marmots';
 import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
-import { buildNalatiPOIs, buildBakedOutcrops } from '../world/view';
+import { buildNalatiPOIs } from '../world/view';
 import type { NalatiPOIs } from '../world/viewTypes';
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { wireKurganSliced, type KurganBoss } from '../combat/goldenKing';
@@ -167,17 +167,11 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   groups['water'] = river.group;
   await slice(++completed, total, 'Water');
 
-  // ── rock outcrops (world agent, look pass): granite breaking out of the escarpment's steep ground ──
-  const outcrops = await buildBakedOutcrops(sky, macrotask);
-  game.scene.add(outcrops.object);
-  // NALATI-MERGE P1: every big block as the hull of what it draws, in the world registry (never `its registry piece`) —
-  // E306 / E315: its rocks are models (the granite outcrop, the rounded boulder), placed drawnInto the mesh
-  const rockCtx = modelContext(sky);
-  await macrotask(); // the merged mesh and the first hulls a task apart (SF67)
-  const rockPlaced = [...(outcrops.register?.({ registry: plugin.app.registry, ctx: rockCtx }) ?? [])];
-  await Promise.all(rockPlaced.map(p => p.registered));
-  await slice(++completed, total, 'Outcrops');
+  const dressing = SceneDressing.current(plugin), outcrops = dressing.pieces.get('outcrops');
+  if (outcrops === undefined) throw new Error('Missing declared outcrops');
+  const rockCtx = modelContext(sky), rockPlaced = [...outcrops.placed];
   groups['outcrops'] = outcrops.object;
+  await slice(++completed, total, 'Outcrops');
 
   // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
   const crags = cragRows[TIER === 'phone' ? 'phone' : 'desktop'];
@@ -205,7 +199,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // ── spruce (spruce agent, B6): the Forest is built by bootstrap from `trees.factory`; anything extra goes here ──
 
   // ── POIs (poi agent, B5): yurts + camp, bridge, fences, kurgans, balbals, Eagle Rock, the cairn, the Crags rocks ──
-  const dressing = SceneDressing.current(plugin);
   const pois = await buildNalatiPOIs(sky, game.scene, ctx.player, macrotask, plugin.app.registry, dressing);
   groups['pois'] = pois.group;
   updates.push((dt) => pois.update(dt));
@@ -215,7 +208,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/shards/nalati-grasslands/world/dressing/ ──
   reseedGrassV2(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
   const dressPlaced = dressing.placed;
-  await bindClientPlaceSets(plugin,pois.placed,[...rockPlaced,...dressPlaced]);
+  await bindClientPlaceSets(plugin,pois.placed,[...new Set([...rockPlaced,...dressPlaced])]);
   groups['dressing'] = dressing.group;
   await slice(++completed, total, 'Dressing');
 

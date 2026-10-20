@@ -31,7 +31,7 @@ const profileSchema=v.object({catalogue:SpecimenCatalogueSchema,packed:PackedSpe
 const coverSchema=v.object({phone:profileSchema,desktop:profileSchema,materials:materialsSchema,butterflies:v.object({phone:number,desktop:number}),hue:v.array(v.union([text,number])),raptors:number});
 const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),rows:v.array(v.object({key:text,data:text,geometry:SceneBakedGeometrySchema})),contacts:v.record(text,v.record(text,v.object({points:text,origins:v.array(v.tuple([number,number,number,number]))})))});
 // Shared authoring metadata is emitted alongside the runtime boot descriptors.
-const prepared=v.parse(preparedSchema,{...preparedInput,places:{rows:preparedInput.places.rows.filter(row=>['dressing-statics','dressing-clutter','kokpar'].includes(row.name))}});
+const prepared=v.parse(preparedSchema,{...preparedInput,places:{rows:preparedInput.places.rows.filter(row=>['dressing-statics','dressing-clutter','kokpar','outcrops'].includes(row.name))}});
 const scenes=v.parse(v.record(text,PrivateSceneSchema),scenesInput);
 const specimens=v.parse(specimensSchema,specimensInput);
 const paint=v.parse(paintSchema,paintInput);
@@ -61,7 +61,7 @@ function compileDressingScene(tier:'phone'|'desktop') {
       select:{modulo:name==='slab'?1:3,remainder:name==='slab'?0:2,equal:name!=='boulder'}})),
     ...(['stone','juniper','rose','willow','lupin','daisy','reed'] as const).map(name=>({id:`nalati-dress-${name}`,model:id(({rose:'wild-rose',willow:'dwarf-willow',reed:'reed'} as Record<string,string>)[name]??name),geometry:name,material:name==='stone'?'rock':name==='reed'?'reed':name==='lupin'||name==='daisy'?'flower':'shrub',file:`world/dressing-${name}.${name==='stone'||name==='daisy'?'bin':'json'}`,binary:name==='stone'||name==='daisy',far:phone?(name==='stone'||name==='lupin'||name==='daisy'?.55:.6):1,castShadow:!phone&&['juniper','rose','willow'].includes(name),keepNear:26,contacts:[]})),
   ];
-  const statics:unknown[]=['dressing-statics','dressing-clutter','kokpar'].map(name=>{
+  const statics:unknown[]=['dressing-statics','dressing-clutter','kokpar','outcrops'].map(name=>{
     const row=prepared.places.rows.find(candidate=>candidate.name===name),recipe=Object.entries(scenes).find(([key])=>key===name)?.[1];if(row===undefined||recipe===undefined)throw new Error('Missing dressing scene');
     const geo:Record<string,string>={},mats:Record<string,string>={};
     for(const [i,mesh]of row.meshes.entries()){
