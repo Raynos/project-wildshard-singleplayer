@@ -51,7 +51,7 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
   }
   return cache.acquire(slug, async (reserve, releaseBytes) => {
     const url = new URL(descriptor, location.href), options = { ...browserShardfileOptions(new URL('.', url).href, true), memory: owner.allocator.memory };
-    const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await fetch(url.href), limits.sourceBytes)));
+    const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await options.fetch(url.href), limits.sourceBytes)));
     const admitted = await admitProduct(input, { ...options, reserve });
     // admission already refused a stack past the budget on its own; the cost is what placement sums per adjacent pair
     gridPostCosts(owner.allocator).record(slug, postStackCost(admitted.source, (hash) => admitted.assets.get(hash)).cost);
