@@ -1,5 +1,6 @@
 import { WorkerPool } from 'three/examples/jsm/utils/WorkerPool.js';
 import type { Scope } from '../app/scope';
+import { waitFor } from '../boot/plan';
 
 /** Keep Three's queue and concurrency, with explicit ownership of its worker message subscriptions. */
 export class ScopedWorkerPool extends WorkerPool {
@@ -10,6 +11,10 @@ export class ScopedWorkerPool extends WorkerPool {
     super(pool);
     this.scope = scope;
     scope.onDispose(() => { this.dispose(); });
+  }
+
+  override postMessage(message: unknown, transfer?: Transferable[]): Promise<MessageEvent<unknown>> {
+    return waitFor('Texture transcode worker', super.postMessage(message, transfer), 'worker');
   }
 
   override _initWorker(workerId: number): void {

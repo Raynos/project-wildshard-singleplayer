@@ -850,6 +850,13 @@ Server-Timing without extra response-body reads. Expected files remain pending
 until a network or cache receipt arrives; completion credits from legacy steps
 are not downloaded bytes.
 
+`waitFor(label, promise, kind?)` in `@wildshard/engine/boot/plan` observes an
+already-started promise and unregisters it on either outcome. `bootWaits()`
+returns live labels, kinds and monotonic ages. Product admission and file reads,
+cache/texture workers, Wasm preparation and shader linking use this registry;
+Loading displays the active dependency and files in flight without changing
+ownership, scheduling or concurrency. Synchronous work remains a reported stage.
+
 ### Pre-entry safe
 
 `@wildshard/engine/boot/retry` is the import-free retry module: it exports only `retried`. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Every other loader imports the same module.

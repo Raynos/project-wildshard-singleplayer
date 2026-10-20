@@ -6,6 +6,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
+import { waitFor } from '@wildshard/engine/boot/plan';
 import { currentOwner } from '@wildshard/engine/app/ownership';
 import { shardProductData } from './productData';
 import { absentShardProduct, type ShardProduct } from './shardProduct';
@@ -61,7 +62,7 @@ async function staleRecovery(): Promise<void> {
 /** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
-  return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetch(url),
+  return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => waitFor(`Fetch ${new URL(url, base).pathname}`, fetch(url), 'file'),
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
   };

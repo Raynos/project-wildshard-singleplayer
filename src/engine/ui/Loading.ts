@@ -1,7 +1,7 @@
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
 import { saveStorage } from '../saves/slots';
-import { formatMB, type ProgressView, type LogRow, type GapRow } from '../boot/plan';
+import { bootWaits, formatMB, type ProgressView, type LogRow, type GapRow } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
@@ -244,11 +244,21 @@ export class Loading {
     const step = this.view?.step ?? this.admission?.phase ?? '';
     if (step === this.lastPaintStep && now - this.lastPaintAt < PAINT_MS) return;
     this.lastPaintAt = now; this.lastPaintStep = step;
+    this.paintWaiting();
     const s = (now - this.t0) / 1000;
     set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
     // the running step's ms is live: repaint rows so its clock moves without a plan event
     if (this.dirty) this.paintNow();
     else if (this.view && !this.view.done) this.paintRows();
+  }
+
+  private paintWaiting(): void {
+    if (this.view?.error) return;
+    const pending = bootWaits(), files = pending.filter(wait => wait.kind === 'file');
+    const wait = files[0] ?? pending.find(row => row.kind !== 'admission') ?? pending[0];
+    setData(this.root, 'waiting', wait?.label ?? '');
+    setData(this.root, 'filesInFlight', String(files.length));
+    set(this.els.foot, wait === undefined ? '' : `Now waiting for: ${wait.label} · ${(wait.ageMs / 1000).toFixed(1)} s · ${files.length} files in flight${pending.length > 1 ? ` · ${pending.length} waits` : ''}`);
   }
 
   /** Estimated scene texture allocation; render targets and the browser's own surfaces are outside this estimate. */

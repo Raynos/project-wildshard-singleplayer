@@ -25,6 +25,7 @@ import { installedGraphBackend } from './graphBackend';
 import { boundEntryWarmup } from './entryWarmupBound';
 import { setting } from '../ui/Settings';
 import { workSlice } from '../core/workSlice';
+import { waitFor } from '../boot/plan';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -892,7 +893,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const units = parallel ? 2 * n : n;
   if (parallel && !isolateImageUploads) {
     const linked = new Set<ProgramLike>();
-    for (;;) {
+    await waitFor(`Link ${n} shader programs`, (async () => { for (;;) {
       checkCurrent();
       let ready = 0;
       for (const p of pending) {
@@ -902,7 +903,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       onProgress?.(jobs.length + ready, jobs.length + units + textures.length, `${ready} / ${n} programs linked · parallel`);
       if (ready >= n) break;
       await pause();
-    }
+    } })(), 'shader');
   }
   // Phase B: resolve each link. COMPLETION_STATUS only says the front end is done — ANGLE Metal
   // builds the Metal library on the first LINK_STATUS / uniform query (~20 ms a program with a cold

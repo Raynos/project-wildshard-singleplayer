@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { Scope } from '../app/scope';
 import type { ContentCache } from './contentCache';
+import { waitFor } from './plan';
 import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CacheReplySchema, validCacheValue, type CacheOperation, type CacheValue } from './contentCacheProtocol';
 
 export interface CacheWorkerPort extends EventTarget {
@@ -103,6 +104,9 @@ export class ContentCacheWorker {
     }
   }
   private request(operation: CacheOperation): Promise<CacheValue> {
+    return waitFor(`Content cache ${operation.op}${'hash' in operation ? ` ${operation.hash.slice(0, 12)}` : ''}`, this.requestWork(operation), 'worker');
+  }
+  private requestWork(operation: CacheOperation): Promise<CacheValue> {
     if (this.closing !== undefined) return this.closing.then(() => this.queueFallback(operation));
     this.start();
     if (this.failed) return this.queueFallback(operation);

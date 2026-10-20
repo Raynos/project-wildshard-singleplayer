@@ -1,5 +1,6 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { declareDownloadFile, recordCachedDownload } from '@wildshard/engine/boot/bytes';
+import { waitFor } from '@wildshard/engine/boot/plan';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
@@ -122,7 +123,10 @@ function version(input: unknown): string {
   return input.version;
 }
 /** Stream bounded wire bytes, including responses without a trustworthy Content-Length header. */
-export async function boundedResponse(response: Response, maximum: number, read?: (bytes: number) => void): Promise<Uint8Array> {
+export function boundedResponse(response: Response, maximum: number, read?: (bytes: number) => void): Promise<Uint8Array> {
+  return waitFor(`Read ${response.url ? new URL(response.url).pathname : 'asset bytes'}`, readBoundedResponse(response, maximum, read), 'file');
+}
+async function readBoundedResponse(response: Response, maximum: number, read?: (bytes: number) => void): Promise<Uint8Array> {
   if (!response.ok || !Number.isSafeInteger(maximum) || maximum < 0 || maximum > MAX_FILE_BYTES) throw new Error('Unavailable or oversized shardfile asset');
   const length = response.headers.get('content-length');
   if (length !== null && (!/^[0-9]+$/u.test(length) || Number(length) > maximum)) throw new Error('Shardfile wire size exceeds cap');
@@ -188,7 +192,10 @@ export async function browserContentHash(bytes: Uint8Array): Promise<string> {
   return [...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 /** Validate a visited format-2 product again, including cached Wasm. */
-export async function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
+export function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
+  return waitFor('Admit product', admitProductWork(input, options), 'admission');
+}
+async function admitProductWork(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   const base = new URL('.', options.base).href;
   options.progress?.({ phase: 'cache-read', detail: 'Checking visited product', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
   const visited = await options.cache?.product(base);
