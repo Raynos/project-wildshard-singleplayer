@@ -1,0 +1,203 @@
+{
+  "mount": "body",
+  "scene": {
+    "version": 1,
+    "root": "rider",
+    "materials": [
+      {
+        "kind": "port",
+        "id": "rider",
+        "source": "rider"
+      }
+    ],
+    "nodes": [
+      {
+        "kind": "group",
+        "id": "rider",
+        "name": "nalati-shepherd",
+        "position": [
+          0,
+          0.36,
+          0.28
+        ],
+        "children": [
+          "body",
+          "arm"
+        ]
+      },
+      {
+        "kind": "mesh",
+        "id": "body",
+        "geometry": "shepherd-body",
+        "material": "rider",
+        "missing": "empty"
+      },
+      {
+        "kind": "mesh",
+        "id": "arm",
+        "geometry": "shepherd-arm",
+        "material": "rider",
+        "missing": "empty",
+        "position": [
+          -0.2,
+          0.6,
+          0
+        ]
+      }
+    ]
+  },
+  "material": {
+    "id": "rider",
+    "rim": 0.4,
+    "bands": 0.8
+  },
+  "shadows": {
+    "phone": false,
+    "other": true,
+    "receive": true
+  },
+  "speed": "speed",
+  "gestures": [
+    {
+      "cue": "crack",
+      "clock": "crackT",
+      "duration": 0.45
+    }
+  ],
+  "clips": [
+    {
+      "mem": "lean",
+      "ease": 3,
+      "cases": [
+        {
+          "when": {
+            "mem": {
+              "key": "speed",
+              "above": 9
+            }
+          },
+          "sum": [
+            0.28
+          ]
+        },
+        {
+          "when": {
+            "mem": {
+              "key": "speed",
+              "above": 5
+            }
+          },
+          "sum": [
+            0.12
+          ]
+        },
+        {
+          "sum": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "bone": "rider",
+      "channel": "rotation.x",
+      "cases": [
+        {
+          "sum": [
+            {
+              "of": [
+                {
+                  "mem": "lean"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "bone": "arm",
+      "channel": "rotation.x",
+      "cases": [
+        {
+          "when": {
+            "mem": {
+              "key": "crackT",
+              "atLeast": 0.2025
+            }
+          },
+          "sum": [
+            -2.6,
+            {
+              "of": [
+                3.2,
+                {
+                  "bounded": [
+                    {
+                      "of": [
+                        {
+                          "bounded": [
+                            {
+                              "of": [
+                                {
+                                  "mem": "crackT"
+                                }
+                              ]
+                            }
+                          ],
+                          "divide": 0.45
+                        }
+                      ]
+                    },
+                    -0.45
+                  ],
+                  "max": 0.3,
+                  "divide": 0.3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "when": {
+            "mem": {
+              "key": "crackT",
+              "atLeast": 0
+            }
+          },
+          "sum": [
+            -0.2,
+            {
+              "of": [
+                -2.4,
+                {
+                  "bounded": [
+                    {
+                      "of": [
+                        {
+                          "mem": "crackT"
+                        }
+                      ]
+                    }
+                  ],
+                  "divide": 0.45
+                },
+                {
+                  "bounded": [
+                    1
+                  ],
+                  "divide": 0.45
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sum": [
+            -0.2
+          ]
+        }
+      ]
+    }
+  ]
+}

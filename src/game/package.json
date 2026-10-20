@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./riding/mountedFigure": "./riding/mountedFigure.ts",
+    "./riding/pastureView": "./riding/pastureView.ts",
     "./models/shapeBook": "./models/shapeBook.ts",
     "./models/runtimeSpecimens": "./models/runtimeSpecimens.ts",
     "./boss/timedEncounters": "./boss/timedEncounters.ts",

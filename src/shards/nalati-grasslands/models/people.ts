@@ -1,11 +1,12 @@
 import * as THREE from 'three';
-import { creatureFactory } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { atlasFigureSkin } from '@wildshard/game/systems/npc/figureSkins';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { TIER } from '@wildshard/engine/core/tier';
 import population from '../boot/peopleFrames.generated.json' with { type: 'json' };
-import { shepherdRider } from '../creatures/shepherdView';
+import { defineMountedSpecimen } from '@wildshard/game/riding/mountedFigure';
+import mountedSpecimen from '../boot/mountedSpecimen.json' with { type: 'json' };
+import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 
 type PersonId = keyof typeof population.figures;
 
@@ -44,14 +45,4 @@ export const campPeople: ModelDef<CampPersonParams> = defineModel<CampPersonPara
 
 /** the mounted shepherd: his seated figure on the saddled camp horse's body bone, as the raid seats him (the horse is the
  *  Hunyuan3D-2 saddled hull on the horse's rig, the code horse until it loads; he is code) */
-export const shepherd: ModelDef<object> = defineModel<object>({
-  id: 'nalati-grasslands/shepherd', name: 'The mounted shepherd', category: 'people', pipeline: ['hunyuan', 'code'],
-  file: 'src/shards/nalati-grasslands/models/people.ts', surface: 'flesh',
-  defaults: {},
-  build: (ctx) => {
-    const f = creatureFactory(ctx);
-    const rig = f.instantiate(f.model('horse', 'camp-bay'), 0.5);
-    rig.bones['body']?.add(shepherdRider().rider);
-    return rig.mesh;
-  },
-});
+export const shepherd = defineMountedSpecimen(mountedSpecimen, shapeRows);

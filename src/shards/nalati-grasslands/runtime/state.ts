@@ -58,7 +58,8 @@ import type { RideHUD } from '@wildshard/game/riding/hud';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { PanelDefinition } from '@wildshard/format/panelTemplate';
 import { MountedReins as Reins } from '@wildshard/game/riding/reins';
-import { SheepRaid } from '../creatures/shepherdView';
+import { PastureView } from '@wildshard/game/riding/pastureView';
+import { MountedFigure } from '@wildshard/game/riding/mountedFigure';
 import { cleanHorseName } from '../ride/horseNames';
 import { legacyAdventureBond } from '@wildshard/game/quest/legacyRecords';
 import { ArenaScriptEncounter,readArenaScriptData } from '@wildshard/game/boss/arenaScript';
@@ -289,6 +290,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     weather.weather.on('strike', (e) => { w.scare(e['x'] ?? 0, e['z'] ?? 0, 60); }); // a lightning strike breaks a pack / stampedes a herd within 60 m
     return w;
   };
+  const mountedFigureRows = await plugin.product.json('riding/mounted-figure.json');
   const nalati: Nalati = {
     persistence, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan,
     get skins() { return clientCosmeticFinishes(plugin).locker; },
@@ -310,7 +312,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       stealth = new StealthController(plugin,player,stealthRows);
       nalati.stealth = stealth;
       if (wildlife === null || attachedAnimals === null) throw new Error('Nalati creatures have not been built');
-      ride = wireRide({ kit:p, roads, rest, nativeTaming, nativeRide, preset: ridingPreset, programs: ridingPrograms, namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, animals: attachedAnimals, wildlife, camera: game.camera });
+      ride = wireRide({ figure: new MountedFigure(mountedFigureRows, new Map(shapeBook(shapeRows).geometries(['shepherd-body','shepherd-arm']))), kit:p, roads, rest, nativeTaming, nativeRide, preset: ridingPreset, programs: ridingPrograms, namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, animals: attachedAnimals, wildlife, camera: game.camera });
       nalati.ride = ride;
       plugin.debug.expose('nalati.ride',ride);
 
@@ -398,9 +400,10 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 export interface Ride {
   refuse: ((x:number,z:number)=>boolean) | null; mount: Mount; taming: PageTamingOwner; hud: RideHUD; interactable: Interactable;
   readonly mounted: boolean; update:(dt:number)=>void; late:(dt:number)=>void;
-  reins: Reins; raid: SheepRaid; noteShot:(x:number,z:number)=>void;
+  reins: Reins; raid: PastureView<Flock>; noteShot:(x:number,z:number)=>void;
 }
 interface RideCtx {
+  figure: MountedFigure;
   kit:NalatiLoadout; ctx: ShardContext; player: Player; camera: Game['camera']; animals: AnimalManager; wildlife: Wildlife; programs: RidingPrograms & {reins:unknown};
   preset: ReturnType<typeof readPageRidingPreset>; rest: {x:number;z:number;face:{x:number;z:number}}; roads: NonNullable<MountProfile['roads']>;
   nativeTaming: {binding:unknown;rail:{x:number;z:number}}; nativeRide: Pick<MountProfile,'speeds'|'thrownDamage'|'thrownLabel'>;
@@ -421,7 +424,7 @@ function wireRide(ctx: RideCtx): Ride {
   });
   const { mount, taming, hud, interactable } = session, reins = new Reins(ctx.camera, ctx.programs.reins, ctx.ctx.scope), namer = new DataPanel(ctx.namePanel);
   const publishRaidNotice = (text: string): void => { ctx.ctx.game.runtime?.play?.hud.toast(text); };
-  const raid = new SheepRaid({ animals: ctx.animals, wildlife: ctx.wildlife, toast: publishRaidNotice }), nameValues = { current: '' };
+  const raid = new PastureView(ctx.ctx.game, ctx.animals, ctx.wildlife, ctx.figure), nameValues = { current: '' };
   const nameActions = new Map<string, (value: unknown) => void>([['save', value => {
     if (typeof value !== 'string') throw new Error('Name input requires text');
     const name = cleanHorseName(value);

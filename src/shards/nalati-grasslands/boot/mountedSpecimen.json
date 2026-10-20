@@ -1,0 +1,23 @@
+{
+  "model": {
+    "id": "nalati-grasslands/shepherd",
+    "name": "The mounted shepherd",
+    "category": "people",
+    "pipeline": [
+      "hunyuan",
+      "code"
+    ],
+    "file": "src/shards/nalati-grasslands/boot/mountedSpecimen.json",
+    "surface": "flesh",
+    "defaults": {}
+  },
+  "slug": "nalati-grasslands",
+  "json": "riding/mounted-figure.json",
+  "species": "horse",
+  "variant": "camp-bay",
+  "scale": 0.5,
+  "geometry": [
+    "shepherd-body",
+    "shepherd-arm"
+  ]
+}
