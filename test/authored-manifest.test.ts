@@ -87,7 +87,9 @@ test('declared entries compile literal runtime links without shard plugin wrappe
     expect(source).toContain('entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default,');
     expect(source).not.toContain('await Promise.all([import(');
     expect(source).not.toContain('import("./plugin")');
-    expect(source).toContain('import("./runtime/index")');
+    const row = parseManifestMetadata(metadata(slug));
+    if (row.runtimeEntry === undefined) throw new Error('Missing declared runtime entry');
+    expect(source).toContain(`import(${JSON.stringify(`./${row.runtimeEntry.slice(0, -3)}`)})`);
   }
 });
 
