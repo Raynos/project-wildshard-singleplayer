@@ -52,8 +52,12 @@ export function checkCustomSectionGrowth(root,repo,base,revision,receipts) {
     return [slug,{count:row.customSections.length,bytes:row.customSectionBytes}];
   }));
   const previous=resolve(receipts,`${base}.json`);
+  const needsBase=Object.entries(after).some(([slug,row])=>['count','bytes'].some(unit=>row[unit]>budgets[`custom-sections/${slug}/${unit}`]));
   let before;
-  if(existsSync(previous)) {
+  // A shard fitting both budgets needs no historical measurement to grow.
+  if(!needsBase) {
+    before={};
+  } else if(existsSync(previous)) {
     const saved=v.parse(receipt,JSON.parse(readFileSync(previous,'utf8')));
     if(saved.revision!==base)throw new Error('Custom-section receipt does not match pushed base');
     before=saved.shards;

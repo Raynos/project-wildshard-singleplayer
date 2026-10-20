@@ -48,5 +48,9 @@ it('checks emitted products against committed base data and reuses exact receipt
   expect(checkCustomSectionGrowth(root,root,revision,revision,receipts)).toEqual([]);
   rmSync(join(root,'out/demo/shard.json'));
   expect(()=>checkCustomSectionGrowth(root,root,revision,revision,receipts)).toThrow('section inventory missing');
+  // A new gate can admit in-budget products without any old ruler or receipt.
+  platformOutput(root,'demo');
+  expect(checkCustomSectionGrowth(root,root,base,base,receipts)).toEqual([]);
+  expect(JSON.parse(readFileSync(join(receipts,`${base}.json`),'utf8'))).toEqual({revision:base,shards:{demo:{count:0,bytes:0}}});
  }finally{rmSync(root,{recursive:true,force:true});}
 });
