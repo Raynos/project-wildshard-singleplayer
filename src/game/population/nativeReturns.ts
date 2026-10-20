@@ -22,7 +22,9 @@ export class NativeReturns {
   private readonly idle: RespawnEntry[] = [];
   private now = 0;
   private check = 0;
-  constructor(private readonly host: SimHost, bodies: ReadonlyMap<string, ReturnBody>, hunt: StalkerBrain<HuntBody>, input: unknown) {
+  private readonly host: SimHost;
+  constructor(host: SimHost, bodies: ReadonlyMap<string, ReturnBody>, hunt: StalkerBrain<HuntBody>, input: unknown) {
+    this.host = host;
     this.rows = v.parse(NativeReturnRowsSchema, input);
     this.queue = new RespawnQueue(this.rows.rules, this.rows.outOfSight,
       { order: 'reverse', limit: this.rows.limit, result: 'reuse' }, ReturnProgram.native(host, this.rows.program));
