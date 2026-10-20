@@ -1,12 +1,17 @@
 import * as THREE from 'three';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
-import type { ArgymaqHerd, ArgymaqPorts } from '../../../src/shards/nalati-grasslands/runtime/argymaqKeeper';
+interface ArgymaqHerd { readonly stallionState: string; readonly leadAway: (x: number,z: number) => void }
+interface ArgymaqPorts {
+  readonly player: { readonly position: THREE.Vector3 }; readonly phase2: () => boolean; readonly signature: () => void;
+  readonly lane: { readonly setTime: (t: number) => void; readonly hide: () => void;
+    readonly lane: (x0: number,z0: number,x1: number,z1: number,width: number,strength: number) => void };
+}
 /** The frozen shipping clock/tell law, with the actual body and herd read/output ports. */
 export class ArgymaqOracle {
   private laneT = 0; private runT = 0; private lastState = '';
   private readonly laneFrom = new THREE.Vector3(); private readonly laneTo = new THREE.Vector3();
   private readonly lane;
-  constructor(private readonly env: ArgymaqPorts<AnimalSim>, private readonly animal: AnimalSim, private readonly herd: ArgymaqHerd<AnimalSim>) { this.lane = env.lane; }
+  constructor(private readonly env: ArgymaqPorts, private readonly animal: AnimalSim, private readonly herd: ArgymaqHerd) { this.lane = env.lane; }
   private get p2(): boolean { return this.env.phase2(); }
   private engagement(_engaged: boolean): void { /* view pinning is not a simulation decision */ }
   private sig(): void { this.env.signature(); }
