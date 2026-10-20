@@ -75,7 +75,7 @@ if(resultCount>0)return;
 if(signal==Signal.warriorCycle){
  const phase=f(Field.kind),previous=f(Field.phase),wake=phase==1&&previous!=1;
  put(Channel.phase,phase);put(Channel.spawn,wake?1:0);put(Channel.dissolve,phase==0&&previous!=0?1:0);
- put(Channel.t,f(Field.t)+(wake?1:0));
+ put(Channel.t,f(Field.t)+(wake?1:0));put(Channel.statue,phase==0?1:0);
 } else if(signal==Signal.patrolFire){
  const t=f(Field.fireT)-f(Field.dt),d=f(Field.distance);
  put(Channel.fireT,t);put(Channel.shoot,t<=0&&f(Field.quiet)==0&&d<62&&d>6&&f(Field.engaged)==1&&f(Field.dead)==0&&f(Field.dying)==0&&f(Field.hidden)==0?1:0);

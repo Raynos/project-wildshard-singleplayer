@@ -34,3 +34,17 @@ test('an unrelated orchard sentry roster selects only its own three authored slo
   expect(() => host.add('sentry-0-0')).toThrow('Duplicate');
   expect(host.update(.1, { kind: 0 }, [{ id: 'sentry-0-0', fields: { alive: 1, gone: 1 } }]).members.get('sentry-0-0')).toMatchObject({ statue: 1, retire: 1 });
 });
+
+test('retired statues are restored once at dawn after their body has left the live roster', () => {
+  const host = make(); host.update(.1, { kind: 1 }, []); host.add('broken');
+  host.retire('broken', { index: 7 });
+  expect(host.update(.1, { kind: 1 }, []).released).toEqual([]);
+  expect(host.update(.1, { kind: 0 }, []).released).toEqual([{ index: 7 }]);
+  expect(host.update(.1, { kind: 0 }, []).released).toEqual([]);
+});
+
+test('a corpse that retires after dawn still restores its statue during the day', () => {
+  const host = make(); host.update(.1, { kind: 1 }, []); host.add('late');
+  host.update(.1, { kind: 0 }, []); host.retire('late', { index: 3 });
+  expect(host.update(.1, { kind: 0 }, []).released).toEqual([{ index: 3 }]);
+});

@@ -94,6 +94,7 @@ export class EncounterPatrol {
 }
 
 const SlotRows = v.strictObject({
+  release: v.string(),
   cycle: v.strictObject({ signal: v.string(), initial: numbers }),
   member: v.strictObject({ signal: v.string(), initial: numbers }),
   select: v.strictObject({ signal: v.string(), count: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(8)) }),
@@ -104,6 +105,7 @@ export class EncounterSlots {
   readonly cycle: Record<string, number>;
   private readonly rows: v.InferOutput<typeof SlotRows>;
   private readonly members = new Map<string, Record<string, number>>();
+  private readonly retired = new Map<string, Readonly<Record<string, number>>>();
   private elapsed = 0;
   constructor(input: unknown, private readonly program: ReturnProgram) {
     this.rows = v.parse(SlotRows, input); this.cycle = { ...this.rows.cycle.initial };
@@ -113,6 +115,10 @@ export class EncounterSlots {
     this.members.set(id, { ...this.rows.member.initial });
   }
   remove(id: string): void { this.members.delete(id); }
+  retire(id: string, metadata: Readonly<Record<string, number>>): void {
+    if (!this.members.has(id)) throw new Error('Unknown retired encounter slot');
+    const retained = v.parse(numbers, metadata); this.members.delete(id); this.retired.set(id, retained);
+  }
   select(observations: Readonly<Record<string, number>>): number[] {
     const selected = new Set<number>();
     for (let slot = 0; slot < this.rows.select.count; slot++) {
@@ -126,11 +132,11 @@ export class EncounterSlots {
     return [...selected];
   }
   update(dt: number, frame: Readonly<Record<string, number>>, observed: readonly { readonly id: string; readonly fields: Readonly<Record<string, number>> }[]): {
-    cycle: Readonly<Record<string, number>>; members: ReadonlyMap<string, Readonly<Record<string, number>>>;
+    cycle: Readonly<Record<string, number>>; members: ReadonlyMap<string, Readonly<Record<string, number>>>; released: readonly Readonly<Record<string, number>>[];
   } {
     this.elapsed += dt;
     const results = new Map<string, Readonly<Record<string, number>>>();
-    if (this.elapsed + 1e-9 < .1) return { cycle: {}, members: results };
+    if (this.elapsed + 1e-9 < .1) return { cycle: {}, members: results, released: [] };
     const step = this.elapsed; this.elapsed = 0;
     const cycle = this.program.project(this.rows.cycle.signal, { ...this.cycle, ...frame, dt: step });
     Object.assign(this.cycle, cycle);
@@ -140,7 +146,9 @@ export class EncounterSlots {
       const result = this.program.project(this.rows.member.signal, { ...state, ...row.fields, dt: step });
       Object.assign(state, result); results.set(row.id, result);
     }
-    return { cycle, members: results };
+    const released = cycle[this.rows.release] === 1 ? [...this.retired.values()] : [];
+    if (released.length > 0) this.retired.clear();
+    return { cycle, members: results, released };
   }
 }
 

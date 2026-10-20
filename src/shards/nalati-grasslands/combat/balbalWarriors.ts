@@ -132,6 +132,7 @@ export class BalbalWarriors {
       this.awake.map(w => ({ id: w.a.entityId, fields: { alive: Number(w.a.alive), gone: w.a.mem['gone'] ?? 0 } })));
     if (step.cycle['spawn'] === 1) this.wake();
     if (step.cycle['dissolve'] === 1) this.dawn();
+    for (const row of step.released) { const index = row['index']; if (index !== undefined) this.ctx.balbals?.setAwake(index, false); }
     this.debris.light = Math.max(0.25, light);
     this.soilAcc += dt;
     const soilTick = this.soilAcc > 0.05; if (soilTick) this.soilAcc = 0;
@@ -158,11 +159,11 @@ export class BalbalWarriors {
           this.debris.burst(_v, 14, 1.5, 0.6, 2.4, 1.0, DUST, 0.15, FLAG_GROW, 0.7);
           this.onBroken?.(a);
         }
-        if (state['retire'] === 1) { this.retire(a); this.awake.splice(i, 1); }
+        if (state['retire'] === 1) { this.retire(a); this.roster.retire(a.entityId, { index: w.statue }); this.awake.splice(i, 1); }
         continue;
       }
       // ── home again at dawn and under the ground: the statue stands ──
-      if (state['statue'] === 1) { this.retire(a); b?.setAwake(w.statue, false); this.awake.splice(i, 1); continue; }
+      if (state['statue'] === 1) { this.retire(a); this.roster.remove(a.entityId); b?.setAwake(w.statue, false); this.awake.splice(i, 1); continue; }
       const rise = m['rise'] ?? 1;
       const moving = rise > 0 && rise < 1;
       // ── soil: pouring off it while it moves through the ground, a few clods from the body as it walks ──
@@ -207,6 +208,5 @@ export class BalbalWarriors {
   /** out of the world: hidden, out of the animals list (the minimap, the harvest prompt, the aim assist) */
   private retire(a: Animal): void {
     this.animals?.retire(a);
-    this.roster.remove(a.entityId);
   }
 }
