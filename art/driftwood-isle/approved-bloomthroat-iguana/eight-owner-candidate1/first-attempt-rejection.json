@@ -1,0 +1,11 @@
+{
+  "actualConsumer": "packedCreatureBodies",
+  "input": "metadata.json",
+  "initialTests": 4,
+  "initialTestsFailed": 4,
+  "sameFailureInAllTests": "Invalid key: Expected never but received \"bodyAt\"",
+  "failureBoundary": "src/game/plugin/geometry.ts:1328",
+  "downstreamAssertionsExecuted": false,
+  "firstInvocation": "config-only invocation refused by focused-test guard before execution; corrected to an explicit single test path",
+  "candidateStoppedBeforePhysics": true
+}

@@ -1,0 +1,92 @@
+{
+  "candidate": "eight-owner-candidate1",
+  "frozenAtUtc": "2026-10-20T19:49:40Z",
+  "status": "rejected before physics; editable source retained",
+  "sourcePinFile": "ownership.json",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 8060,
+      "sha256": "87df6436df397ef0d4877b5336c5cd1500c7d9f56d907e2e0ab78704626fc290"
+    },
+    {
+      "path": "admission-rejection.json",
+      "bytes": 732,
+      "sha256": "060c3880de0aaea0dec11f29d5e54bfa43d6cd98ec8f4456d9b256fab5cf5a34"
+    },
+    {
+      "path": "blocked-validation.ts.txt",
+      "bytes": 10412,
+      "sha256": "32aa90e4893dd16c17837c7fcb05a6fc155da64068ef05b6644e75bc1da4c24e"
+    },
+    {
+      "path": "build.mjs",
+      "bytes": 7734,
+      "sha256": "db4447c13c05c600ae3033b06b14166278cbd31d27b73a8f8eda6f75f198888c"
+    },
+    {
+      "path": "checks.log",
+      "bytes": 1143,
+      "sha256": "78b3ece347972a147e0379a7c1fd08443554090a8a4f736f0aaeb6d48be86d40"
+    },
+    {
+      "path": "clips.ts",
+      "bytes": 3742,
+      "sha256": "4f3f49ae4e9e408c4c0ce2d2c853a64cb75c5734e17f3ca529e9f4f1b7f51b83"
+    },
+    {
+      "path": "diagnose-live.mjs",
+      "bytes": 3289,
+      "sha256": "1693581379bb5f4f2a39a33cbee66a6acf44f990234958e601ec165c3f3054e5"
+    },
+    {
+      "path": "first-attempt-rejection.json",
+      "bytes": 481,
+      "sha256": "8d44ef479f1623e833a4dff94f849e70bd03f168e91665a93a9f55b479c96143"
+    },
+    {
+      "path": "lint.log",
+      "bytes": 69,
+      "sha256": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c"
+    },
+    {
+      "path": "live-source-witness.json",
+      "bytes": 97476,
+      "sha256": "4d0a187ee58186f2c14b64130a265aa1df66edf3440dc289af53363cbcfd90cb"
+    },
+    {
+      "path": "metadata.json",
+      "bytes": 88138,
+      "sha256": "eeb6d8c0b3842e261ec6e0bdc3ab07b02fa57f6538f959d6c87a31e33ae0063e"
+    },
+    {
+      "path": "native-source.json",
+      "bytes": 1441337,
+      "sha256": "c316577eccf55f89fbceca39f6af722e742bbbda63918d6fc03bccabf113c142"
+    },
+    {
+      "path": "ownership.json",
+      "bytes": 92439,
+      "sha256": "489e2c538b39f77531e62becbcbf3820636771d465ca8126d9a4febdebe56f48"
+    },
+    {
+      "path": "payload.bin",
+      "bytes": 36196,
+      "sha256": "88abdc1c335ddf06a93afe2c4cda6a77c1304286d3cb4a8928d80e3cce5b747c"
+    },
+    {
+      "path": "source.test.ts",
+      "bytes": 7010,
+      "sha256": "109d68452e6271844410d11485086c836334c9308ff272b6cbb9c8b66fdd93df"
+    },
+    {
+      "path": "vitest.config.ts",
+      "bytes": 258,
+      "sha256": "622954af2bec6e0dc8c300a276e086f6aa5c1820a19a13b02eaa21487976216e"
+    }
+  ],
+  "physicsTrials": 0,
+  "appBuilds": 0,
+  "runtimeAcceptance": false,
+  "buildAllowed": false
+}

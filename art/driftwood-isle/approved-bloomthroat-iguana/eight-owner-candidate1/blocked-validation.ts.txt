@@ -1,0 +1,72 @@
+// RETAINED FIRST ATTEMPT: all four tests stopped at packed metadata admission.
+// Downstream pose/live assertions never executed. Not a passing proof.
+import {readFileSync,writeFileSync} from 'node:fs';
+import * as v from 'valibot';
+import {expect,test} from 'vitest';
+import {Bone,Group,Vector3,Matrix4,Skeleton,SkinnedMesh,MeshBasicMaterial} from 'three';
+import {ConvexHull} from 'three/addons/math/ConvexHull.js';
+import {packedCreatureBodies} from '../../../../src/game/plugin/geometry';
+import {numericCreaturePose,installChannelPrograms} from '../../../../src/game/plugin/channelPrograms';
+import {supportsRigidCorpseAnimation,RigidCorpsePose} from '../../../../src/engine/entities/rigidCorpsePose';
+import {validateRigidCorpse} from '../../../../src/engine/physics/rigidCorpse';
+import {rigidCorpseSchema} from '../../../../src/format/rigidCorpse';
+import type {AnimalRigContext} from '../../../../src/engine/entities/animalRig';
+import {iguanaOwnedClips} from './clips';
+const folder='art/driftwood-isle/approved-bloomthroat-iguana/eight-owner-candidate1';
+const old='art/driftwood-isle/approved-bloomthroat-iguana/complete-character-next';
+const read=(p:string):unknown=>JSON.parse(readFileSync(p,'utf8'));
+const nums=v.array(v.number());
+const schema=v.object({bones:v.array(v.object({name:v.string(),parent:v.nullable(v.string()),pos:nums})),parts:v.array(v.object({name:v.string(),positions:nums,colorsLinear:nums,skinIndices:nums,skinWeights:nums,furLen:nums}))});
+const source=v.parse(schema,read(`${folder}/native-source.json`)),original=v.parse(schema,read(`${old}/native-source.json`));
+async function load(dir:string){const loader=packedCreatureBodies(read(`${dir}/metadata.json`),undefined,()=>Promise.resolve(new Uint8Array(readFileSync(`${dir}/payload.bin`))));await loader.preload();return loader.copy('bloomthroat-iguana','bloomthroat-iguana');}
+async function rig(){const body=await load(folder),root=new Group(),bones:Record<string,Bone>={};
+ for(const row of body.bones){const bone=new Bone();bone.name=row.name;bone.position.fromArray(row.pos);if(row.parent===null)root.add(bone);else{const parent=bones[row.parent],bind=body.bones.find(b=>b.name===row.parent);if(parent===undefined||bind===undefined)throw Error('Missing parent');bone.position.sub(new Vector3(...bind.pos));parent.add(bone);}bones[row.name]=bone;}
+ root.updateMatrixWorld(true);const skeleton=new Skeleton(Object.values(bones)),material=new MeshBasicMaterial(),meshes=body.hardParts.map(g=>{const mesh=new SkinnedMesh(g,material);mesh.bind(skeleton);return mesh;});
+ const mem={},position=new Vector3();const context:AnimalRigContext={bones,dims:body.dims,dt:1/60,t:0,seed:.7,scale:1,speed:0,strafe:0,phase:0,state:'idle',alive:true,deathT:-1,flinch:0,brace:0,attack:-1,lookTarget:new Vector3(),lookWeight:0,position,yaw:0,mem,animal:{mem,position,yOffset:0}};
+ return{body,root,bones,skeleton,material,meshes,context,close:()=>{meshes.forEach(m=>m.geometry.dispose());material.dispose();skeleton.dispose();}};
+}
+test('exact selected bind geometry, colors, packed attributes and computed native normals survive',async()=>{
+ const a=await load(folder),b=await load(old);expect(source.parts).toHaveLength(original.parts.length);
+ for(const [i,p]of source.parts.entries()){const q=original.parts[i],ga=a.hardParts[i],gb=b.hardParts[i];if(q===undefined||ga===undefined||gb===undefined)throw Error('Missing part');for(const key of ['positions','colorsLinear','furLen'] as const)expect(p[key]).toEqual(q[key]);
+  for(const attr of ['position','color','normal','furLen'])expect(ga.getAttribute(attr).array).toEqual(gb.getAttribute(attr).array);
+  expect(ga.getAttribute('skinIndex').array).toEqual(new Uint16Array(p.skinIndices));expect(ga.getAttribute('skinWeight').array).toEqual(new Float32Array(p.skinWeights));
+  for(let t=0;t<p.positions.length/9;t++){const owners=[0,1,2].map(c=>p.skinIndices[(t*3+c)*4]);expect(new Set(owners).size).toBe(1);for(let c=0;c<3;c++)expect(p.skinWeights.slice((t*3+c)*4,(t*3+c+1)*4)).toEqual([1,0,0,0]);}
+  ga.dispose();gb.dispose();
+ }
+});
+test('actual native schema budgets and exact component hull provenance, without physics allocation',async()=>{
+ const q=await rig(),recipe=q.body.dims.rigidCorpse;if(recipe===undefined)throw Error('Missing recipe');validateRigidCorpse(recipe);v.parse(rigidCorpseSchema,recipe);expect(recipe.parts).toHaveLength(8);expect(recipe.parts.reduce((s,p)=>s+p.points.length,0)).toBe(457);
+ let maxExcess=-Infinity;
+ for(const part of recipe.parts){const owner=source.bones.findIndex(b=>b.name===part.bone),pivot=source.bones[owner];if(pivot===undefined)throw Error('Missing owner');const hull=new ConvexHull().setFromPoints(part.points.map(p=>new Vector3(...p)));
+  const points=source.parts.filter(p=>p.skinIndices[0]===owner).flatMap(p=>Array.from({length:p.positions.length/3},(_,i)=>new Vector3(...p.positions.slice(i*3,i*3+3).map(Math.fround)).sub(new Vector3().fromArray(pivot.pos))));
+  for(const extreme of part.points)expect(points.some(p=>p.distanceTo(new Vector3(...extreme))<1e-12)).toBe(true);
+  for(const p of points)for(const face of hull.faces)maxExcess=Math.max(maxExcess,face.distanceToPoint(p));
+ }
+ expect(maxExcess).toBeLessThan(1e-12);q.close();
+});
+test('registered numeric motion preserves shared transform support at live, death and interpolated poses',async()=>{
+ const q=await rig(),animate=numericCreaturePose(iguanaOwnedClips());expect(supportsRigidCorpseAnimation(animate)).toBe(true);
+ const check=()=>{q.root.updateMatrixWorld(true);q.skeleton.update();let error=0;for(const [i,m]of q.meshes.entries()){const p=source.parts[i];if(p===undefined)throw Error('Missing part');const bone=source.bones[p.skinIndices[0]??-1];if(bone===undefined)throw Error('Missing owner');const joint=q.bones[bone.name];if(joint===undefined)throw Error('Missing joint');const matrix=new Matrix4().copy(joint.matrixWorld).multiply(new Matrix4().makeTranslation(...(new Vector3().fromArray(bone.pos).negate().toArray())));const pos=m.geometry.getAttribute('position');for(let n=0;n<pos.count;n++){const bind=new Vector3().fromBufferAttribute(pos,n);error=Math.max(error,m.applyBoneTransform(n,bind.clone()).distanceTo(bind.applyMatrix4(matrix)));}}expect(error).toBeLessThan(1e-12);};
+ for(const d of [-1,0,.5,1]){q.context.deathT=d;q.context.t=.4;q.context.speed=1;animate(q.context);check();}
+ q.context.deathT=0;const owner=new RigidCorpsePose(q.context,animate);for(let frame=0;frame<49;frame++){owner.step(1/60);for(const alpha of [0,.5,1]){owner.render(alpha);check();}}expect(owner.complete).toBe(true);expect(owner.posePolicy).toBeUndefined();q.close();
+});
+test('one complete live descriptor fails closed with exact full-anatomy witness before physics',async()=>{
+ const q=await rig(),clips=iguanaOwnedClips(),frame={deathT:-1,flinch:0,t:0,speed:0},strike={phase:0,elapsed:0,index:0};
+ const owners=new Map<string,unknown>(Object.entries(q.bones).map(([name,bone])=>[`joint.${name}`,bone]));owners.set('frame',frame);owners.set('strike',strike);const evaluator=installChannelPrograms(clips.programs,clips.group,owners);
+ evaluator.evaluate({time:0,delta:1/60,values:{}});q.root.updateMatrixWorld(true);q.skeleton.update();const d=q.body.dims;
+ const body=q.bones['body'],head=q.bones['head'],fore=d.fore;if(body===undefined||head===undefined||fore===undefined)throw Error('Missing support');const flower=q.bones[fore.bone];if(flower===undefined)throw Error('Missing fore');
+ const bodyAt=new Vector3(...(d.bodyAt??[0,0,0]));const bodyAxis=new Vector3(0,Math.sin(d.bodyPitch??0),Math.cos(d.bodyPitch??0));
+ const a=bodyAt.clone().addScaledVector(bodyAxis,-d.bodyHalfLen).applyMatrix4(body.matrixWorld),b=bodyAt.clone().addScaledVector(bodyAxis,d.bodyHalfLen).applyMatrix4(body.matrixWorld);
+ const h=new Vector3(...(d.headAt??[0,0,0])).applyMatrix4(head.matrixWorld),fa=new Vector3(...fore.at).add(new Vector3(-fore.halfLen,0,0)).applyMatrix4(flower.matrixWorld),fb=new Vector3(...fore.at).add(new Vector3(fore.halfLen,0,0)).applyMatrix4(flower.matrixWorld);
+ const seg=(p:Vector3,a:Vector3,b:Vector3)=>{const v=b.clone().sub(a),t=Math.max(0,Math.min(1,p.clone().sub(a).dot(v)/v.lengthSq()));return p.distanceTo(a.clone().addScaledVector(v,t));};
+ const margins=(p:Vector3)=>[seg(p,a,b)-d.bodyRadius,p.distanceTo(h)-d.headRadius,seg(p,fa,fb)-fore.radius];
+ const rows=[];let worst:{part:string;corner:number;triangle:number;point:number[];outsideBy:number;shapeMargins:number[]}|undefined;let outside=0,totalTriangles=0,certified=0;
+ for(const [i,m]of q.meshes.entries()){const p=source.parts[i];if(p===undefined)throw Error('Missing part');const pos=m.geometry.getAttribute('position'),triangleShapes=[];
+  for(let t=0;t<pos.count/3;t++){const mm=[];for(let c=0;c<3;c++){const n=t*3+c,w=m.applyBoneTransform(n,new Vector3().fromBufferAttribute(pos,n)),marg=margins(w);mm.push(marg);const excess=Math.min(...marg);if(excess>1e-7){outside++;if(worst===undefined||excess>worst.outsideBy)worst={part:p.name,corner:n,triangle:t,point:w.toArray(),outsideBy:excess,shapeMargins:marg};}}
+   const shape=['body','head','fore'].findIndex((_,s)=>mm.every(m=>(m[s]??Infinity)<=1e-7));triangleShapes.push(shape<0?'unproven-or-outside':['body','head','fore'][shape]);if(shape>=0)certified++;totalTriangles++;
+  }rows.push({part:p.name,triangleShapes});
+ }
+ expect(outside).toBeGreaterThan(0);expect(worst).toBeDefined();
+ const proof={status:'REJECTED before physics',liveAcceptance:false,physicalContactTested:false,runtimeAcceptance:false,appBuildRun:false,world:{rootPosition:[0,0,0],rootQuaternion:[0,0,0,1],scale:1},authoredPose:{frame,strike},totalTriangles,certifiedTrianglesAtWitnessPose:certified,outsideCorners:outside,worstWitness:worst,support:{body:{a:a.toArray(),b:b.toArray(),radius:d.bodyRadius},head:{center:h.toArray(),radius:d.headRadius},fore:{bone:fore.bone,a:fa.toArray(),b:fb.toArray(),radius:fore.radius}},continuousProof:'Every triangle assigned to its own rigid owner hull lies inside it for all authored poses, including interpolated local poses. Body/head/flower live subsets each fit their same-owner convex shape for all poses by convexity; no vertex-only union inference. Remaining owners fail at this actual authored idle pose. One counterexample refutes full-pose coverage; no subsequent physics run is allowed.',rows};
+ writeFileSync(`${folder}/live-rejection.json`,JSON.stringify(proof,null,2)+'\n');q.close();
+});

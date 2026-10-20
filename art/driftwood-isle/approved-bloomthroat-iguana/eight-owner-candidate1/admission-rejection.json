@@ -1,0 +1,23 @@
+{
+  "status": "REJECTED before physics",
+  "target": "packedCreatureBodies",
+  "source": "src/game/plugin/geometry.ts:1328",
+  "message": "Invalid key: Expected never but received \"bodyAt\"",
+  "loadCallbackInvoked": false,
+  "unsupportedDimensions": [
+    "bodyAt",
+    "bodyPitch",
+    "headAt",
+    "fore"
+  ],
+  "actualSchema": "PackedBody.dims strictObject allows rigidCorpse and legacy scalar dimensions only",
+  "recipeSchemaPass": true,
+  "sourceAttributeParityPass": true,
+  "fullAuthoredPoseLiveCoverage": "not proven; blocked before runtime body exists",
+  "physicalContactTrials": 0,
+  "appBuilds": 0,
+  "runtimeAcceptance": false,
+  "buildAllowed": false,
+  "visualAcceptance": false,
+  "animationAcceptance": false
+}
