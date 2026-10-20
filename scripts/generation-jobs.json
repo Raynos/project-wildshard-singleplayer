@@ -316,6 +316,32 @@
       }
     },
     {
+      "id": "nalati-admission",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-admission.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-admission.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nalati-grasslands/behaviour",
+        "src/shards/nalati-grasslands/generators/bake-admission.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/behaviour/admission.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/behaviour/admission.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "nalati-species",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-species.mjs",
@@ -20465,32 +20491,7 @@
         "src/shards/nine-dragon-stack/data/lightSpill.generated.json"
       ]
     },
-    {
-      "id": "nalati-admission",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-admission.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-admission.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/nalati-grasslands/behaviour",
-        "src/shards/nalati-grasslands/generators/bake-admission.mjs"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json"
-      ],
-      "platform": "portable"
-    },
+
     {
       "id": "nalati-elite-charge",
       "shard": "nalati-grasslands",
