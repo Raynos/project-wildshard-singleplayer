@@ -3,6 +3,7 @@ import { expect, test } from 'vitest';
 import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute, PerspectiveCamera, Group } from 'three';
 import { ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
 import { ArenaFireView } from '../src/game/boss/arenaFire';
+import { AnimalGroup } from '../src/engine/entities/animalMatrices';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { WorldRegistry } from '../src/engine/world/registry';
@@ -68,7 +69,7 @@ test('the reed vault portal owns fade, isolation, floor recovery and exit placem
  root.position = [30,20,40];
  const shapes = new Map([...source.scene.nodes,...source.static.nodes].flatMap(row => 'geometry' in row ? [[row.geometry,bakedActorGeometry(row.geometry)]] as const : []));
  const room = new BossArenaRoom({ ...marsh, sandCells: 40, view: source },shapes).build(true);
- const game = { scene: new Scene(), camera: new PerspectiveCamera() }, animals = { calm: false, group: new Group() };
+ const game = { scene: new Scene(), camera: new PerspectiveCamera() }, animals = { calm: false, group: new AnimalGroup() };
  const player = { position: new Vector3(200,2,202), velocity: new Vector3(1,-2,3), yaw: 3, pitch: .5, moveScale: 1 };
  const outside = new Group(); outside.position.set(-200,0,-200);
  game.scene.add(room.group,animals.group,game.camera,outside);
