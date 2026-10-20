@@ -1,9 +1,11 @@
-/** Client-only instanced arena flames and smoke. No fight decisions or hazard ownership. */
+/** Client-only instanced arena flames, smoke and scorch. No fight decisions or hazard ownership. */
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import { TIER } from '@wildshard/engine/core/tier';
+import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
+import type { ArenaField } from './arenaField';
 
 const finite = v.pipe(v.number(), v.finite());
 const pair = v.tuple([finite,finite]);
@@ -13,12 +15,16 @@ export const ArenaFireSchema = v.strictObject({
  flameLook: v.string(), smokeLook: v.string(), flameCount: count,
  smokeCount: v.tuple([count,count]), smokeDetail: v.tuple([v.pipe(finite,v.integer(),v.minValue(0),v.maxValue(3)),v.pipe(finite,v.integer(),v.minValue(0),v.maxValue(3))]),
  front: pair, heat: pair, flameWidth: finite, life: pair, rise: pair, radius: pair, expansion: pair,
+ /** a burning field's cells: `burn` s alight, flames `scatter` m off the centre, `sink` m into the ground, `size` tall,
+  *  smoke puffs a second per cell [phone, desktop]; a burnt-out cell's scorch decal `jitter` m off, `lift` m up, `scale` ± */
+ cells: v.exactOptional(v.strictObject({ burn: v.pipe(finite,v.minValue(.01)), scatter: finite, sink: finite, size: finite, smoke: pair,
+   scorch: v.strictObject({ jitter: finite, lift: finite, scale: pair }) })),
 });
 /** Native mesh capacity, graph ids and presentation tuning, supplied as data. */
 export type ArenaFireRows = v.InferOutput<typeof ArenaFireSchema>;
 interface SmokeP { x: number; y: number; z: number; vx: number; vy: number; vz: number; age: number; life: number; r0: number; r1: number; glow: number; seed: number; on: boolean }
 
-const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
 
 /** the phase-3 fire's flames and smoke; the fight feeds it the burning cells each frame */
 export class ArenaFireView {
@@ -30,6 +36,8 @@ export class ArenaFireView {
   private readonly pool: SmokeP[] = [];
   private n = 0;
   private next = 0;
+  private scorched = 0;
+  private scorch: THREE.InstancedMesh | null = null;
 
   readonly rows: ArenaFireRows;
   constructor(scene: THREE.Scene, input: unknown, flames: unknown) {
@@ -51,6 +59,36 @@ export class ArenaFireView {
     this.smoke.frustumCulled = false; this.smoke.count = 0; this.smoke.name = rows.smokeLook;
     scene.add(this.smoke);
     for (let i = 0; i < nSmoke; i++) this.pool.push({ x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, age: 0, life: 1, r0: 1, r1: 1, glow: 0, seed: 0, on: false });
+  }
+
+  /** The instanced decal a burnt-out cell leaves (the caller's scene owns it). */
+  attachScorch(mesh: THREE.InstancedMesh): void { this.scorch = mesh; mesh.count = 0; }
+
+  /** Draw `field`'s burning cells this frame: each rises, roars and sinks to embers, the downwind front tallest, smoke
+   *  rolling off. */
+  drawField(field: ArenaField, dt: number, windX: number, windZ: number): void {
+    const rows = this.rows.cells; if (rows === undefined) throw new Error('Arena fire has no cell rows');
+    const smoke = TIER === 'phone' ? rows.smoke[0] : rows.smoke[1], step = field.rows.cell;
+    this.begin();
+    for (let c = 0; c < field.length; c++) {
+      if (field.mode(c) !== 1) continue;
+      const left = field.remaining(c), x = field.x(c), z = field.z(c), y = heightAt(x, z) - rows.sink;
+      const heat = Math.min(1, (rows.burn - left) / 0.9) * Math.min(1, left / 2.2), next = field.cellAt(x + windX * step, z + windZ * step);
+      this.flame(x + Math.sin(c * 3.1) * rows.scatter, y, z + Math.cos(c * 2.3) * rows.scatter, c, heat, next >= 0 && field.mode(next) === 0 ? 1 : 0, rows.size);
+      if (app.rng.stream('cosmetic').next() < dt * smoke * (0.4 + heat)) this.puff(x, y, z, heat);
+    }
+    this.end();
+  }
+
+  /** A burnt-out cell's scorch, lying on the slope and turned at random. */
+  scorchCell(field: ArenaField, cell: number): void {
+    const rows = this.rows.cells, mesh = this.scorch;
+    if (rows === undefined || mesh === null || this.scorched >= mesh.instanceMatrix.count) return;
+    const random = (): number => app.rng.stream('cosmetic').next(), { jitter, lift, scale } = rows.scorch;
+    const x = field.x(cell) + (random() - 0.5) * jitter, z = field.z(cell) + (random() - 0.5) * jitter, n = normalAt(x, z);
+    _q.setFromUnitVectors(_y, _p.set(n[0], n[1], n[2]).normalize()).multiply(_q2.setFromAxisAngle(_y, random() * 6.28));
+    _m.compose(_p.set(x, heightAt(x, z) + lift, z), _q, _s.set(scale[0] + random() * scale[1], 1, scale[0] + random() * scale[1]));
+    mesh.setMatrixAt(this.scorched++, _m); mesh.count = this.scorched; mesh.instanceMatrix.needsUpdate = true;
   }
 
   /** start a frame's flames */
@@ -111,6 +149,6 @@ export class ArenaFireView {
 
   /** the fire is out (the smoke already aloft keeps rising and thins) */
   out(): void { this.n = 0; this.flames.count = 0; }
-  /** a reset: nothing burning, no smoke */
-  clear(): void { this.out(); for (const p of this.pool) p.on = false; this.smoke.count = 0; }
+  /** a reset: nothing burning, no smoke, no scorch */
+  clear(): void { this.out(); for (const p of this.pool) p.on = false; this.smoke.count = 0; this.scorched = 0; if (this.scorch !== null) this.scorch.count = 0; }
 }

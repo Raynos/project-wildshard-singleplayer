@@ -11,7 +11,7 @@ import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { wind } from '@wildshard/engine/world/steppeWind';
-import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 
 
@@ -55,7 +55,7 @@ export async function prepareStormTitan(product: Pick<ShardProduct, 'json'>): Pr
 function isMesh(value: unknown): value is THREE.Mesh { return value instanceof THREE.Mesh; }
 function isInstances(value: unknown): value is THREE.InstancedMesh { return value instanceof THREE.InstancedMesh; }
 
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _s = new THREE.Vector3();
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();
 const _ray = new THREE.Ray(), _sph = new THREE.Sphere(), _hitP = new THREE.Vector3();
 
 // ─────────────────────────────── the body ───────────────────────────────
@@ -227,8 +227,7 @@ export class StormTitanFight implements BossScript {
   // phase III
   private readonly field: ArenaField;
   private fireOn = false;
-  private readonly fire: ArenaFireView; private readonly scorch: THREE.InstancedMesh;
-  private scorchN = 0;
+  private readonly fire: ArenaFireView;
   private readonly chains: Chain[];
   private get chainLeft(): number { return this.chainLaw.value('chain'); }
   private readonly clocks: ArenaEncounter;
@@ -276,9 +275,10 @@ export class StormTitanFight implements BossScript {
     this.wall = [mesh('wall0'),mesh('wall1')];
     for (const w of this.wall) w.position.set(this.data.TITAN_ARENA.center.x,heightAt(this.data.TITAN_ARENA.center.x,this.data.TITAN_ARENA.center.z)-6,this.data.TITAN_ARENA.center.z);
     this.whirls = this.data.TITAN_WHIRLS.map((row, i) => ({ law: new EncounterSchedule(row, windLaw), funnel: mesh(`funnel${i}`), on: false, k: 0 }));
-    this.debris = instances('debris'); this.scorch = instances('scorch'); this.debris.count = 0; this.scorch.count = 0;
+    this.debris = instances('debris'); this.debris.count = 0;
     scene.add(made.root);
     this.fire = new ArenaFireView(scene, this.data.arenaFire, (TIER === 'phone' ? this.data.geometry.phone : this.data.geometry.desktop).flames);
+    this.fire.attachScorch(instances('scorch'));
 
   }
 
@@ -552,51 +552,22 @@ export class StormTitanFight implements BossScript {
   burningAt(x: number, z: number): boolean { return this.field.activeAt(x, z); }
   private ignite(x: number, z: number): void { this.field.ignite(x, z); }
   private addScorch(c: number): void {
-    if (this.scorchN >= this.scorch.instanceMatrix.count) return;
-    const x = this.field.x(c) + (app.rng.stream('cosmetic').next() - 0.5) * 2.4, z = this.field.z(c) + (app.rng.stream('cosmetic').next() - 0.5) * 2.4;
-    // lying on the slope (a flat decal floats off the rim's fall), turned at random
-    const n = normalAt(x, z);
-    _q.setFromUnitVectors(_w.set(0, 1, 0), _v.set(n[0], n[1], n[2]).normalize());
-    _q.multiply(_q2.setFromAxisAngle(_w.set(0, 1, 0), app.rng.stream('cosmetic').next() * 6.28));
-    _m.compose(_v.set(x, heightAt(x, z) + 0.08, z), _q, _s.set(0.8 + app.rng.stream('cosmetic').next() * 0.5, 1, 0.8 + app.rng.stream('cosmetic').next() * 0.5));
-    this.scorch.setMatrixAt(this.scorchN++, _m);
-    this.scorch.count = this.scorchN; this.scorch.instanceMatrix.needsUpdate = true;
-    wildEnv.trample(x, z, this.data.TITAN_TUNING.cell * 0.6, 1, 0, 0);   // the grass burnt flat
+    this.fire.scorchCell(this.field, c);
+    wildEnv.trample(this.field.x(c), this.field.z(c), this.data.TITAN_TUNING.cell * 0.6, 1, 0, 0);   // the grass burnt flat
   }
-  private clearFire(): void {
-    this.field.clear();
-    this.scorchN = 0; this.scorch.count = 0; this.fire.clear(); this.fireOn = false;
-  }
+  private clearFire(): void { this.field.clear(); this.fire.clear(); this.fireOn = false; }
 
   private updateFire(dt: number, t: number, live: boolean, thinkDt = 0): void {
     this.fire.update(dt, t, wind.dirX, wind.dirZ, wind.speed, this.body.uni.uFogC.value, this.body.uni.uFlash.value);
     if (!this.fireOn) return;
     if (live) for (const cell of this.field.update(dt, { wx: wind.dirX, wz: wind.dirZ })) this.addScorch(cell);
-    // burn down; draw the flames: each cell rises, roars and sinks to embers; the downwind front stands tallest; smoke rolls off
-    const fx = this.fire;
-    fx.begin();
-    const wx = wind.dirX, wz = wind.dirZ;
-    const smokeRate = TIER === 'phone' ? 0.8 : 1.5;
-    for (let c = 0; c < this.field.length; c++) {
-      if (this.field.mode(c) !== 1) continue;
-      const bt = this.field.remaining(c);
-      const x = this.field.x(c), z = this.field.z(c), y = heightAt(x, z) - 0.15;
-      const age = this.data.TITAN_TUNING.burnSeconds - bt;
-      const heat = Math.min(1, age / 0.9) * Math.min(1, bt / 2.2);
-      // the front: the next cell downwind is still grass
-      const nc = this.field.cellAt(x + wx * this.data.TITAN_TUNING.cell, z + wz * this.data.TITAN_TUNING.cell);
-      const front = nc >= 0 && this.field.mode(nc) === 0 ? 1 : 0;
-      fx.flame(x + Math.sin(c * 3.1) * 0.8, y, z + Math.cos(c * 2.3) * 0.8, c, heat, front, 1.5);
-      if (app.rng.stream('cosmetic').next() < dt * smokeRate * (0.4 + heat)) fx.puff(x, y, z, heat);
-    }
-    fx.end();
+    this.fire.drawField(this.field, dt, wind.dirX, wind.dirZ);
     if (!live || thinkDt <= 0) return;
     // the player in fire: 8 / s; the horse panics near it
     const p = this.host.player.position;
     const contact = this.field.sense(thinkDt, p, { mounted: Number(this.host.mounted()) });
     if ((contact['hurt'] ?? 0) > 0) sampleArena(NALATI_STRIKES.fire, p, p, () => { this.host.hurt(contact['hurt'] ?? 0, this.data.TITAN_LINES.burning); }, app.physics);
     if ((contact['speed'] ?? 0) < 0) this.host.horseSteed(contact['speed'] ?? 0);
-
   }
 
   private updateChains(dt: number, t: number, effects: readonly ArenaClockEffect[]): void {

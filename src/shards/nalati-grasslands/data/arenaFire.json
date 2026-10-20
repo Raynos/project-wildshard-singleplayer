@@ -34,5 +34,23 @@
   "expansion": [
     5,
     4
-  ]
+  ],
+  "cells": {
+    "burn": 7,
+    "scatter": 0.8,
+    "sink": 0.15,
+    "size": 1.5,
+    "smoke": [
+      0.8,
+      1.5
+    ],
+    "scorch": {
+      "jitter": 2.4,
+      "lift": 0.08,
+      "scale": [
+        0.8,
+        0.5
+      ]
+    }
+  }
 }
