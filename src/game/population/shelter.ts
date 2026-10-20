@@ -127,12 +127,17 @@ export function installNativeHerdShelter(host: SimHost, trees: readonly NativeSh
     return current;
   } };
   const shelter = new HerdShelter(source, trees.map(([x, z, r, height, cover]) => ({ x, z, r, height, cover })), rows.look, ReturnProgram.native(host, rows.program));
+  const rainNow = (): number => {
+    const value = host.events.ask('weather.rain', { id: rows.weather, rain: Number.NaN }).rain;
+    if (!Number.isFinite(value)) throw new Error(`Missing native weather: ${rows.weather}`);
+    return value;
+  };
   const publish = (): void => {
-    const rain = host.events.ask('weather.rain', { id: rows.weather, rain: 0 }).rain, goals = environment.wanderGoals;
+    const rain = rainNow(), goals = environment.wanderGoals;
     goals.length = source.herds.length;
     for (let i = 0; i < goals.length; i++) goals[i] = shelter.wanderGoal(i, rain);
   };
-  host.onStep(rows.step, dt => { shelter.update(dt, host.events.ask('weather.rain', { id: rows.weather, rain: 0 }).rain); publish(); }, {
+  host.onStep(rows.step, dt => { shelter.update(dt, rainNow()); publish(); }, {
     snapshot: () => shelter.snapshot(), restore: value => { shelter.restore(value); publish(); },
   });
   return shelter;
