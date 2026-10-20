@@ -1,0 +1,185 @@
+{
+  "status": "complete bounded source pass and evidence; independent review required",
+  "frozen": true,
+  "score": null,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "files": {
+    "paired-hero-board.webp": {
+      "bytes": 70396,
+      "sha256": "c1135fb147948acfb1c597cc3abb0725d9e7c3dc9169e8ec2ebda6dfb3b4fc32"
+    },
+    "left.webp": {
+      "bytes": 10386,
+      "sha256": "246fcffa8ef3b210c8cc144517865eba12110f99428947b0abd04f116d184d54"
+    },
+    "paired-nine-board.webp": {
+      "bytes": 89224,
+      "sha256": "beb7cdf6b8433fd5b3a0ffd9c356583fa63809260c93d0c5322af565e01e83fb"
+    },
+    "audit_complete.py": {
+      "bytes": 9220,
+      "sha256": "5490d7a149001e8eeb440baaa54e3738646660c2700bd5844656f29edcd2bd21"
+    },
+    "validation.json": {
+      "bytes": 483,
+      "sha256": "a8a9cd64a44f037bac05c9db13c5e9d7db4a44b806e5892226628b72ec07beb3"
+    },
+    "elevated-left.webp": {
+      "bytes": 20940,
+      "sha256": "b24088edb1104f41156d0d3c470692613764e986bd1d809d437af6ec9b9dffe8"
+    },
+    "vitest.config.ts": {
+      "bytes": 238,
+      "sha256": "6bad9c9c1c56a89db5f7e5993a3309b24c881a48cf496db1899fe42834e99b02"
+    },
+    "elevated-back.webp": {
+      "bytes": 24566,
+      "sha256": "3e5f31752e7b63d4a1f570dea75c437550bc0387f5ed422b0441f94fe7acc50a"
+    },
+    "finish_captures.sh": {
+      "bytes": 663,
+      "sha256": "6583f8cb860fa8eb4bc7b33fa46362ffb04f36eabaa2cc71749ce30fba2908e9"
+    },
+    "OBSERVATIONS.md": {
+      "bytes": 2865,
+      "sha256": "cb6fcf66f02e34c8164aa5ccdafa66fe9b31293bd0db71c56905703fea95d78a"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 10177,
+      "sha256": "b9c77085b8ec2e324a892836bbd747b0d0dfef5b4ea89e8bb3b335958a52a33a"
+    },
+    "source-audit.json": {
+      "bytes": 13999,
+      "sha256": "dc8d9be5a39d568aff375bb87f2895bdc3aca20a2458fea0f2ac5e6b752a2a4c"
+    },
+    "native.test.ts": {
+      "bytes": 3900,
+      "sha256": "073867e36596e4aafc254a221029f0b37982fde0ac3d8d39cf110e105411ec3c"
+    },
+    "brine-pitcher-v1.glb": {
+      "bytes": 998328,
+      "sha256": "e432ad5c21a3e7ab7e2ee380c1d065868692ea680dbc6adef3db25073b996de9"
+    },
+    "editable-checkpoint.json": {
+      "bytes": 1841,
+      "sha256": "a9c2592fdbe38a113c200d8091b8dd5431d22acee253d7d76cb1cb1d303ba966"
+    },
+    "supplemental_capture.py": {
+      "bytes": 1089,
+      "sha256": "e92df9893b3a8e2bbecbb07b428e82c4580b7aeebaad461e7a72d3d194552f47"
+    },
+    "elevated-front.webp": {
+      "bytes": 27318,
+      "sha256": "a6f759151702ae34e84d0b14fdd59fab78475ca588f243d61a6c9b48bbf423ee"
+    },
+    "hero.webp": {
+      "bytes": 25588,
+      "sha256": "a4780e901cc24af689155d1f5fe3c209f83227365afdd0ff26d5b2a5b625a7c4"
+    },
+    "build_complete.py": {
+      "bytes": 17539,
+      "sha256": "dda37399619931c3b09d894c61e17387876116d3eac2b14c9d8cf34594175953"
+    },
+    "top.webp": {
+      "bytes": 19702,
+      "sha256": "f960f0ede6ac7d349339f71288990b7953e33b930844258626ed672ba20ae7f8"
+    },
+    "package_evidence.py": {
+      "bytes": 3295,
+      "sha256": "67881da77da6393204ba677ec8b07eb5b9c510cc0881b0953aa90316e48fbfab"
+    },
+    "mutation-check.json": {
+      "bytes": 212,
+      "sha256": "5ebfe1fef65878a28b13e1f9f4ed8dc888e97db88272f884e57a3f32dbb452b7"
+    },
+    "front.webp": {
+      "bytes": 20630,
+      "sha256": "cc3f012bc28f12dc6948d69f7dcbe88954273965486cbff90c67925c4840715d"
+    },
+    "metadata.json": {
+      "bytes": 8382,
+      "sha256": "e3eed1d4fad1d7b29ea592ede3d2fab24bcf65949d941dd91aa0f4c652bdae00"
+    },
+    "elevated-right.webp": {
+      "bytes": 19646,
+      "sha256": "3ca83fe8c97db89712d727780abfe6664e7a22d1fa4eb5d9173bca49f6ca9557"
+    },
+    "supplemental-hero-board.webp": {
+      "bytes": 40468,
+      "sha256": "6881fba11a5da12aa4e243e0cacfd4995d43fe03fa48cbd4177cea586ac941fc"
+    },
+    "right.webp": {
+      "bytes": 11212,
+      "sha256": "67699407ba13990d3e89549496dba3c002f29c47579a36ea9cce1685b5f484df"
+    },
+    "native-source.json": {
+      "bytes": 1850130,
+      "sha256": "93d08f181778edf158c3b8fcafd0d28c3e6fde789aec6ef260dcc0a0a77c3da2"
+    },
+    "construction.json": {
+      "bytes": 14619,
+      "sha256": "b7c498eeb822bfee2d50439a6b97f5c261e8c8ac2025952cce7ac962d27ff471"
+    },
+    "back.webp": {
+      "bytes": 18024,
+      "sha256": "58bac51559411602a6d775d6c1c541218a9633473e5e57bd6afacb89bd6f1bb0"
+    },
+    "payload.bin": {
+      "bytes": 48343,
+      "sha256": "12c6c958a161a57f7dc63b747224f243ea8b5e42074a45203feb853d9f3fa51c"
+    },
+    "README.md": {
+      "bytes": 3087,
+      "sha256": "a14ff4a8da62e35c6c029d8397d992b903f7d965166b2b9c4e28227d6f08bbfb"
+    },
+    "initial-dense/checkpoint.json": {
+      "bytes": 1379,
+      "sha256": "5e63d3cc7eca65545144efb4ca226345d92c475807fdbff9b7f1cca5dafccde2"
+    },
+    "initial-dense/build_complete.py": {
+      "bytes": 17619,
+      "sha256": "76eda826b1bc421f31f2b3e2d4087bbe10967d0f157f4c05cbdb5110374a249b"
+    },
+    "predecessor/left.webp": {
+      "bytes": 11264,
+      "sha256": "0a26d37581900f4e6b1b9690968b848ea50a2b93312c0946805ddad436564804"
+    },
+    "predecessor/elevated-left.webp": {
+      "bytes": 18836,
+      "sha256": "ccc5102731ddac9709039baa652338cc2e293ff30450ddcae407d45fca57f607"
+    },
+    "predecessor/elevated-back.webp": {
+      "bytes": 24464,
+      "sha256": "2778620df4088ca3cbf53f0ca199e29d40c942c4f2cfe6dd225b90a8e1a12d53"
+    },
+    "predecessor/elevated-front.webp": {
+      "bytes": 22640,
+      "sha256": "206061d79eda17f7194879d58aef431e137b74e2a683286143aeba75d2935ab7"
+    },
+    "predecessor/hero.webp": {
+      "bytes": 21274,
+      "sha256": "52ace522005da3ec36f6b3d8932decccff20fbed8316fd02aacdd18da36b5761"
+    },
+    "predecessor/top.webp": {
+      "bytes": 16658,
+      "sha256": "1e96ba610299792e04232371453d64811a0e788201f706d559a9fa3bb13e935a"
+    },
+    "predecessor/front.webp": {
+      "bytes": 18368,
+      "sha256": "fe6ece597c8d4f55ee60aa8c9c4d5d8a7148c5bb8c97fad939db1e70d93ce91f"
+    },
+    "predecessor/elevated-right.webp": {
+      "bytes": 18074,
+      "sha256": "fef95befb8bc2ccd029e7d16ce34262bef95ed7c33dc925133c299a2ef353985"
+    },
+    "predecessor/right.webp": {
+      "bytes": 11462,
+      "sha256": "0bf1622fa55a7529a1bd343de79419df2d596845b46d4ef483e22258cb935558"
+    },
+    "predecessor/back.webp": {
+      "bytes": 17552,
+      "sha256": "4c19ab61a88a838062fc02e545956f5233606732ccf8bb42c8dd5531741fce34"
+    }
+  }
+}

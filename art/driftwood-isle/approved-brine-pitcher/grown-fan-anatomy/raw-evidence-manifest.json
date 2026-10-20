@@ -1,0 +1,230 @@
+{
+  "schema": "wildshard.pitcher.grown-fan.captures.v1",
+  "rawDirectory": "tmp/pitcher-grown-fan-20261020",
+  "sourceRenders": true,
+  "nativeRuntimeRenders": false,
+  "scoringCameraLightingUnchanged": true,
+  "predecessorFreshRerender": true,
+  "supplementalOnlyChange": "orthographic scale 6 identically on both hero views",
+  "score": null,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "files": {
+    "tmp/pitcher-grown-fan-20261020/final/hero.png": {
+      "sha256": "ddd00b8607a8f03d01bd102461af74db84be756e8aa0d9bc397852e22de64bee",
+      "bytes": 949560
+    },
+    "tmp/pitcher-grown-fan-20261020/final/elevated-right.png": {
+      "sha256": "a112ce635ce339bccbad1660b8b1604f4278d22d60331b04c7fcee2e120a1292",
+      "bytes": 902437
+    },
+    "tmp/pitcher-grown-fan-20261020/final/right.png": {
+      "sha256": "9fc3993dee21709e9115fb0f3f45e812c5d3bd0132120ec9adc38e262413bc6c",
+      "bytes": 486603
+    },
+    "tmp/pitcher-grown-fan-20261020/final/brine-pitcher-v1.glb": {
+      "sha256": "e432ad5c21a3e7ab7e2ee380c1d065868692ea680dbc6adef3db25073b996de9",
+      "bytes": 998328
+    },
+    "tmp/pitcher-grown-fan-20261020/final/back.png": {
+      "sha256": "046088c58a4a7b2673cd0d4d185019b09badeabed4b4106540def3107d5df2aa",
+      "bytes": 702267
+    },
+    "tmp/pitcher-grown-fan-20261020/final/left.png": {
+      "sha256": "124a87c83cef0d2161767bcc192312dad5795033b764c9107c64a062b9b7bed9",
+      "bytes": 475799
+    },
+    "tmp/pitcher-grown-fan-20261020/final/top.png": {
+      "sha256": "159bf8b410765a8782d8c71cc8d009ee8f7f535bdb907d8253d86003f1af8be9",
+      "bytes": 914115
+    },
+    "tmp/pitcher-grown-fan-20261020/final/elevated-left.png": {
+      "sha256": "8c12f670f72f10089dc7de4edf73ea5e753702b4f00c28b1e75eab9f657b8229",
+      "bytes": 911839
+    },
+    "tmp/pitcher-grown-fan-20261020/final/metadata.json": {
+      "sha256": "e3eed1d4fad1d7b29ea592ede3d2fab24bcf65949d941dd91aa0f4c652bdae00",
+      "bytes": 8382
+    },
+    "tmp/pitcher-grown-fan-20261020/final/cameras.json": {
+      "sha256": "e786801cab422130047a2801c8209f907ba44ef943815e5487a779d488f41157",
+      "bytes": 1173
+    },
+    "tmp/pitcher-grown-fan-20261020/final/elevated-back.png": {
+      "sha256": "64d85922462dd7c3d34b61fe98a9b07d35a1bf9825404a561cd6cf0eb7c5140a",
+      "bytes": 943401
+    },
+    "tmp/pitcher-grown-fan-20261020/final/native-source.json": {
+      "sha256": "93d08f181778edf158c3b8fcafd0d28c3e6fde789aec6ef260dcc0a0a77c3da2",
+      "bytes": 1850130
+    },
+    "tmp/pitcher-grown-fan-20261020/final/elevated-front.png": {
+      "sha256": "6469aaee91b0a65721dfb0780a53458e97e89d91548697483d040c06f1d84ebf",
+      "bytes": 964290
+    },
+    "tmp/pitcher-grown-fan-20261020/final/construction.json": {
+      "sha256": "b7c498eeb822bfee2d50439a6b97f5c261e8c8ac2025952cce7ac962d27ff471",
+      "bytes": 14619
+    },
+    "tmp/pitcher-grown-fan-20261020/final/front.png": {
+      "sha256": "e5b9028e1037e1182109e26bd77bf651ff430131bacf2ba1086c55e69b996a95",
+      "bytes": 718784
+    },
+    "tmp/pitcher-grown-fan-20261020/final/payload.bin": {
+      "sha256": "12c6c958a161a57f7dc63b747224f243ea8b5e42074a45203feb853d9f3fa51c",
+      "bytes": 48343
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-candidate/hero.png": {
+      "sha256": "69ec4fabee13d29c40039ac5646599e2090be2525f39fc64c3f69b3811dae9ba",
+      "bytes": 882932
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-candidate/brine-pitcher-v1.glb": {
+      "sha256": "e432ad5c21a3e7ab7e2ee380c1d065868692ea680dbc6adef3db25073b996de9",
+      "bytes": 998328
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-candidate/metadata.json": {
+      "sha256": "e3eed1d4fad1d7b29ea592ede3d2fab24bcf65949d941dd91aa0f4c652bdae00",
+      "bytes": 8382
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-candidate/cameras.json": {
+      "sha256": "3335b706c8d60cf7b85c2de7b0ed2fd44715a1572f5a7cee2c8dddece9652df9",
+      "bytes": 129
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-candidate/native-source.json": {
+      "sha256": "93d08f181778edf158c3b8fcafd0d28c3e6fde789aec6ef260dcc0a0a77c3da2",
+      "bytes": 1850130
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-candidate/construction.json": {
+      "sha256": "b7c498eeb822bfee2d50439a6b97f5c261e8c8ac2025952cce7ac962d27ff471",
+      "bytes": 14619
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-candidate/payload.bin": {
+      "sha256": "12c6c958a161a57f7dc63b747224f243ea8b5e42074a45203feb853d9f3fa51c",
+      "bytes": 48343
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-predecessor/hero.png": {
+      "sha256": "1cb47012d2084fa99f15e64746d5fefed3c5abee678e7444e48ee69c5ee37f60",
+      "bytes": 840831
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-predecessor/brine-pitcher-v1.glb": {
+      "sha256": "465657cbdf055d1f1da097a4e4f9e910897942750d5f21cddc89e4f96c46e2c3",
+      "bytes": 856628
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-predecessor/metadata.json": {
+      "sha256": "911efbaf7bee02496d535480abec0de6e48e512418c092c0a3f2cce1553f85fa",
+      "bytes": 8382
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-predecessor/cameras.json": {
+      "sha256": "3335b706c8d60cf7b85c2de7b0ed2fd44715a1572f5a7cee2c8dddece9652df9",
+      "bytes": 129
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-predecessor/native-source.json": {
+      "sha256": "5230fb109a4d89163e84fff6569a2a6bb1ea5fd402c79fa7be4a14085ac4fecf",
+      "bytes": 1460442
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-predecessor/construction.json": {
+      "sha256": "430bf74708c2079f005b7237b1069549390931ce077f188c37340eac3a49ddde",
+      "bytes": 14745
+    },
+    "tmp/pitcher-grown-fan-20261020/supplemental-predecessor/payload.bin": {
+      "sha256": "75823a44e5376318e988ed5c89a504382fe81b2db91edc247952f249495277ec",
+      "bytes": 38655
+    },
+    "tmp/pitcher-grown-fan-20261020/initial-dense/brine-pitcher-v1.glb": {
+      "sha256": "139b7156ba5fd727f272f24167dae5b730a8af23994ce5db68a6f9bab32fa2ec",
+      "bytes": 1090168
+    },
+    "tmp/pitcher-grown-fan-20261020/initial-dense/build_complete.py": {
+      "sha256": "76eda826b1bc421f31f2b3e2d4087bbe10967d0f157f4c05cbdb5110374a249b",
+      "bytes": 17619
+    },
+    "tmp/pitcher-grown-fan-20261020/initial-dense/metadata.json": {
+      "sha256": "68ed60e973e4a7fedd57f538e0b54cbf8577ce6504cc55ec1fe47df2531eacd8",
+      "bytes": 8382
+    },
+    "tmp/pitcher-grown-fan-20261020/initial-dense/audit.log": {
+      "sha256": "b1c88656bdc76524a1f16cff94c9f5c37feaf533804c20801a25f725db8f1d03",
+      "bytes": 383
+    },
+    "tmp/pitcher-grown-fan-20261020/initial-dense/native-source.json": {
+      "sha256": "3a6049b0d17482df9cf8059be730d741636a69c834f93ea6c41a2ed003d0eea8",
+      "bytes": 2050915
+    },
+    "tmp/pitcher-grown-fan-20261020/initial-dense/construction.json": {
+      "sha256": "a97cbdc4562c091e8f5bb8df0659303e9f262eeda6eea260fef0e0402f2395a9",
+      "bytes": 15910
+    },
+    "tmp/pitcher-grown-fan-20261020/initial-dense/build.log": {
+      "sha256": "65f3066a31ac93366c0cb1a2e623ce8e77f360d6fe8cb31ddcb6cb296c2e9d18",
+      "bytes": 16570
+    },
+    "tmp/pitcher-grown-fan-20261020/initial-dense/payload.bin": {
+      "sha256": "c08d7a65f7e2af63c5488a46cc36434253590163fa086be17affc270d635cfc7",
+      "bytes": 53251
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/hero.png": {
+      "sha256": "3f15866800bd00cc9ea479b15ba8860109f3f1f13e7619a286186e65c132993b",
+      "bytes": 901969
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/elevated-right.png": {
+      "sha256": "73f68347bed98b1b4d07054703c4c167e0119d817b95ae3ea3409448bbf4efb6",
+      "bytes": 883908
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/right.png": {
+      "sha256": "57bd6ecd48653a788a16ab847701ccf1baa45a5017e41d0b5fe82b42d293d5fb",
+      "bytes": 478738
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/brine-pitcher-v1.glb": {
+      "sha256": "465657cbdf055d1f1da097a4e4f9e910897942750d5f21cddc89e4f96c46e2c3",
+      "bytes": 856628
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/back.png": {
+      "sha256": "814fdda84e673c89c074b40dc85e3499e2d558df996a0c58da7af3a0325e7066",
+      "bytes": 643559
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/left.png": {
+      "sha256": "a0ee4a4b9e491549e9581f0f32c0cab1af9372474372dc2160e1c9134b7437a2",
+      "bytes": 474619
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/top.png": {
+      "sha256": "4377717d65e29c7c7ae43bf947fc493b8a902e083ca1d62a989913794f745331",
+      "bytes": 870155
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/elevated-left.png": {
+      "sha256": "e0cbe7bbd1d19fd64acf40d28ee01f9eb198a13ec34d9e2dccc126c0baa25ff6",
+      "bytes": 896016
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/metadata.json": {
+      "sha256": "911efbaf7bee02496d535480abec0de6e48e512418c092c0a3f2cce1553f85fa",
+      "bytes": 8382
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/cameras.json": {
+      "sha256": "e786801cab422130047a2801c8209f907ba44ef943815e5487a779d488f41157",
+      "bytes": 1173
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/elevated-back.png": {
+      "sha256": "6d4dbafe7e285d6b9ebd4b97f4130f172f9ed61895b8cd430cc0d4222e9f152b",
+      "bytes": 937298
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/native-source.json": {
+      "sha256": "5230fb109a4d89163e84fff6569a2a6bb1ea5fd402c79fa7be4a14085ac4fecf",
+      "bytes": 1460442
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/elevated-front.png": {
+      "sha256": "5d10ed8903af3eec9c0afaa6a150bd4e5f6bb82de35508f37fa13fcfee53cd8d",
+      "bytes": 912900
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/construction.json": {
+      "sha256": "430bf74708c2079f005b7237b1069549390931ce077f188c37340eac3a49ddde",
+      "bytes": 14745
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/front.png": {
+      "sha256": "121ea7b3384fdc823bbe9170935c5292ae66e074e886049c6e67a6e145b09b74",
+      "bytes": 678099
+    },
+    "tmp/pitcher-grown-fan-20261020/predecessor/payload.bin": {
+      "sha256": "75823a44e5376318e988ed5c89a504382fe81b2db91edc247952f249495277ec",
+      "bytes": 38655
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "renderBlocksExactEqual": true,
+  "candidateSource": "dda37399619931c3b09d894c61e17387876116d3eac2b14c9d8cf34594175953",
+  "predecessorSource": "34c80f467604fd6ae91c75f9b65d1e12d63de0045ff64596a076f63b27887e8a",
+  "dimensionsUnchanged": true,
+  "scoringViews": 10,
+  "nativeTestsPassed": 3,
+  "nativeMutationRefused": true,
+  "lint": "not run: tool found no files; no lint claim",
+  "appBuild": false,
+  "score": null,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false
+}

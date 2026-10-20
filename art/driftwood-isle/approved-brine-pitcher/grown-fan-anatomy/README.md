@@ -17,7 +17,7 @@ From repository root, using installed Blender 4.3.2 and the existing shared clou
 
     WS_HEAVY_ROOT=$PWD/tmp/heavy-lanes python3 scripts/heavy-lane.py build -- blender -b -t 2 --python-exit-code 1 -P art/driftwood-isle/approved-brine-pitcher/grown-fan-anatomy/build_complete.py -- --out tmp/pitcher-grown-fan-reproduce --render
     python3 art/driftwood-isle/approved-brine-pitcher/grown-fan-anatomy/audit_complete.py tmp/pitcher-grown-fan-reproduce
-    ./node_modules/.bin/vitest run --config art/driftwood-isle/approved-brine-pitcher/grown-fan-anatomy/vitest.config.ts
+    ./node_modules/.bin/vitest run art/driftwood-isle/approved-brine-pitcher/grown-fan-anatomy/native.test.ts --config art/driftwood-isle/approved-brine-pitcher/grown-fan-anatomy/vitest.config.ts
 
 The authoring Python is editable source. Its retained repository dependency is
 art/driftwood-isle/approved-puffer/native_export.py. Normal GLB/native JSON/payload assets
@@ -35,6 +35,10 @@ triangle and bind parity, positive closed components, three hollow vessels and t
 closed hoods, single-sided materials and nine numerical culling projections. These
 are source checks, never runtime rendering or likeness acceptance.
 
-Captures are in progress at this early editable checkpoint. Same fixed cameras/lights,
+All ten candidate and ten fresh selected-predecessor captures are complete, plus a matched
+scale-6 supplemental hero pair. All 22 originals were individually inspected. Same fixed cameras/lights,
 600x720, 24 Cycles samples and Standard view transform as the selected predecessor.
 No self-score or promotion is claimed; independent review must follow complete evidence.
+
+See OBSERVATIONS.md for explicit shortcomings, validation.json for test scope, and
+raw-evidence-manifest.json for exact retained original bytes. No score is assigned.

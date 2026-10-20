@@ -1,0 +1,7 @@
+{
+  "mutation": "native first x corner shifted 0.01m",
+  "refused": true,
+  "returncode": 1,
+  "reason": "Triangle/color/skin parity mismatch",
+  "scope": "source audit only; no runtime or likeness acceptance"
+}

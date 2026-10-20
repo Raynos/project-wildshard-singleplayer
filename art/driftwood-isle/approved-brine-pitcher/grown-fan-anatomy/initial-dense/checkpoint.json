@@ -1,0 +1,39 @@
+{
+  "status": "preserved first dense export, failed unchanged GLB size gate; no visual capture",
+  "rawDirectory": "tmp/pitcher-grown-fan-20261020/initial-dense",
+  "scriptPlacement": "historical script assumes parent grown-fan-anatomy level for relative codec import",
+  "files": {
+    "brine-pitcher-v1.glb": {
+      "bytes": 1090168,
+      "sha256": "139b7156ba5fd727f272f24167dae5b730a8af23994ce5db68a6f9bab32fa2ec"
+    },
+    "build_complete.py": {
+      "bytes": 17619,
+      "sha256": "76eda826b1bc421f31f2b3e2d4087bbe10967d0f157f4c05cbdb5110374a249b"
+    },
+    "metadata.json": {
+      "bytes": 8382,
+      "sha256": "68ed60e973e4a7fedd57f538e0b54cbf8577ce6504cc55ec1fe47df2531eacd8"
+    },
+    "audit.log": {
+      "bytes": 383,
+      "sha256": "b1c88656bdc76524a1f16cff94c9f5c37feaf533804c20801a25f725db8f1d03"
+    },
+    "native-source.json": {
+      "bytes": 2050915,
+      "sha256": "3a6049b0d17482df9cf8059be730d741636a69c834f93ea6c41a2ed003d0eea8"
+    },
+    "construction.json": {
+      "bytes": 15910,
+      "sha256": "a97cbdc4562c091e8f5bb8df0659303e9f262eeda6eea260fef0e0402f2395a9"
+    },
+    "build.log": {
+      "bytes": 16570,
+      "sha256": "65f3066a31ac93366c0cb1a2e623ce8e77f360d6fe8cb31ddcb6cb296c2e9d18"
+    },
+    "payload.bin": {
+      "bytes": 53251,
+      "sha256": "c08d7a65f7e2af63c5488a46cc36434253590163fa086be17affc270d635cfc7"
+    }
+  }
+}
