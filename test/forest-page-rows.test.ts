@@ -47,3 +47,12 @@ test('an orchard page places its own landmarks, a tier batch finishing after its
   const crags = forest.landmarks.filter(row => row.tier === 'phone');
   expect(crags.at(-1)).toEqual({ object: 'crags.phone', tier: 'phone' });
 });
+
+test('an orchard page declares its own lanterns, bounded and numeric', () => {
+  const forest = v.parse(ForestPageSchema, structuredClone(FOREST_PAGE));
+  const lanterns = { ...forest.lanterns, rows: [{ id: 'orchard.gate', at: [1, 2, 3] }] };
+  expect(v.parse(ForestPageSchema, { ...forest, lanterns }).lanterns.rows).toEqual([{ id: 'orchard.gate', at: [1, 2, 3] }]);
+  expect(forest.lanterns.rows.map(row => row.id)).toEqual(['waystone.pond', 'waystone.ridge', 'waystone.den']);
+  expect(() => v.parse(ForestPageSchema, { ...forest, lanterns: { ...lanterns, rows: Array.from({ length: 17 }, (_, i) => ({ id: `l${String(i)}`, at: [0, 0, 0] })) } })).toThrow();
+  expect(() => v.parse(ForestPageSchema, { ...forest, lanterns: { ...lanterns, onLit: () => undefined } })).toThrow();
+});

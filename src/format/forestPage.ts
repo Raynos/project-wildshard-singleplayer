@@ -22,6 +22,8 @@ export const ForestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Forest 
     hearth: id, sunParam: id, lampsParam: id, shadeParam: id, nightShade: n, sightSlack: n,
     material: id, save: id, floors: v.pipe(v.array(floor), v.maxLength(128)), firePits: v.pipe(v.array(v.strictObject(point)), v.maxLength(16)),
   }), props: v.pipe(v.array(id), v.maxLength(3)),
+  lanterns: v.strictObject({ texture: id, color: n, size: n, order: n, range: n, day: n, flicker: v.tuple([n, n, n, n]),
+    light: v.strictObject({ color: n, intensity: n, distance: n, decay: n }), rows: v.pipe(v.array(v.strictObject({ id, at: v.tuple([n, n, n]) })), v.maxLength(16)) }),
   landmarks: v.pipe(v.array(v.union([v.strictObject({ place: id, tier: v.exactOptional(tier) }), v.strictObject({ object: id, tier: v.exactOptional(tier) })])), v.maxLength(48)),
 }));
 export type ForestPageRows = v.InferOutput<typeof ForestPageSchema>;

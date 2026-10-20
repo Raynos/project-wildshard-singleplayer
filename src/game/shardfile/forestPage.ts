@@ -1,6 +1,6 @@
 /** Client-only forest fields, living buildings and their native resource lifetime. */
 import type { FieldModelsContext } from '../shard/manifest';
-import { Color, DoubleSide, Group, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Matrix4, MeshStandardMaterial, Object3D, Points, PointsMaterial, Quaternion, Vector3 } from 'three';
 import * as v from 'valibot';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -16,6 +16,8 @@ import { TreeSetSchema } from '@wildshard/format/treeSetRows';
 import { treeSetModel, type TreeSetParams } from '../models/treeSet';
 import { ForestPageSchema, LivingPageInputSchema, LivingPageSitesSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 import { ForestGround } from '../looks/forestGround';
+import { productCoverAppearance } from '../looks/coverAppearance';
+import { emptyBuildingLifeRows } from '@wildshard/format/buildings';
 import { Particles } from '../systems/looks/particles';
 import { trample, TRAMPLE_GLSL } from '../systems/looks/trample';
 import { plumbingKnob } from '../shard/declaredPlumbing';
@@ -40,6 +42,8 @@ export interface ForestPage {
   readonly props: { colliderDescs: () => ColliderDesc[] };
   readonly update: (dt: number, time: number) => void;
   readonly roofAt: (x: number, z: number) => boolean; readonly finish: () => Promise<void>;
+  /** Light or bank one declared lantern: its glow point and its pooled lamp site. */
+  readonly setLantern: (id: string, lit: boolean) => void;
 }
 const pages = new WeakMap<Scope, Map<string, ForestPage>>();
 /** Borrow actual native scene/life owners by declared page identity. */
@@ -82,6 +86,7 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
     for (const prompt of life.interactables) setSight(prompt, { slack: row.sightSlack }); return page;
   });
   const contacts: ColliderDesc[] = [], props = { colliderDescs: () => [...contacts] };
+  const lanterns = await forestLanterns(ctx, rows, cabins); game.scene.add(lanterns.points);
   const eye = new Vector3(), sun = [1, 1, 1], row = rows.buildings;
   let finished = false;
   const page: ForestPage = { rows, resources, cabins, ...carpet, streams, props,
@@ -89,11 +94,11 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
       await step('props', async () => {
         for (const mark of rows.landmarks) if (mark.tier === undefined || mark.tier === TIER) { if ('place' in mark) await resources.place(mark.place); else resources.object(mark.object); await macrotask(); }
         for (const id of rows.props) contacts.push(...(await resources.place(id)).colliders); }); },
-    roofAt: (x, z) => floorAtRects(row.floors, x, z, 'first') !== undefined,
+    roofAt: (x, z) => floorAtRects(row.floors, x, z, 'first') !== undefined, setLantern: lanterns.set,
     update: (dt, time) => { const viewer = runtime.viewer();
       for (const binding of rows.treeLooks) { const fade = world.forest.factory.fade[binding.band].value; setLentParam(binding.look, binding.fade, [fade.x, fade.y]); setLentParam(binding.look, binding.viewer, [viewer.x, viewer.y, viewer.z]); }
       carpet.grass.update(dt, viewer); carpet.under.update(dt, viewer); carpet.particles.update(dt, viewer, game.camera);
-      sky.viewCamera.getWorldPosition(eye); cabins.life.tick(dt, time, eye, sky.lamps); sun[0] = sky.sunColor.r; sun[1] = sky.sunColor.g; sun[2] = sky.sunColor.b;
+      sky.viewCamera.getWorldPosition(eye); cabins.life.tick(dt, time, eye, sky.lamps); lanterns.present(time, eye, sky.lamps); sun[0] = sky.sunColor.r; sun[1] = sky.sunColor.g; sun[2] = sky.sunColor.b;
       setLentParam(row.hearth, row.sunParam, sun); setLentParam(row.hearth, row.lampsParam, sky.lamps); setLentParam(row.hearth, row.shadeParam, 1 - row.nightShade * sky.night); } };
   const book = pages.get(ctx.scope) ?? new Map<string, ForestPage>(); book.set(rows.id, page); pages.set(ctx.scope, book); ctx.scope.onDispose(() => { book.delete(rows.id); });
   Object.assign(runtime.objects, { cabins, props, streams, ...carpet }); return page;
@@ -106,6 +111,29 @@ export function forestFieldModels(ctx: ShardContext, id: string): FieldModelsCon
   return { sky: world.sky, renderer: world.game.renderer, forest: world.forest, under: page.under, registry: world.registry };
 }
 
+/** The page's lanterns: one additive glow point each (banked by day, full at night, a slow flicker, not drawn past
+ *  `range` of the nearest lit one) and a pooled lamp site each in the living buildings. */
+async function forestLanterns(ctx: ShardContext, rows: ForestPageRows, cabins: LivingPage): Promise<{ points: Points; set: (id: string, lit: boolean) => void; present: (time: number, eye: Vector3, lamps: number) => void }> {
+  const row = rows.lanterns, glow = await (await productCoverAppearance(ctx.product, rows.ground.appearance)).texture(ctx.product, row.texture);
+  const geometry = new BufferGeometry(), lit = row.rows.map(() => true); geometry.setAttribute('position', new BufferAttribute(Float32Array.from(row.rows.flatMap(entry => entry.at)), 3));
+  const material = new PointsMaterial({ map: glow, color: row.color, size: row.size, sizeAttenuation: true, transparent: true, blending: AdditiveBlending, depthWrite: false, fog: false });
+  const points = new Points(geometry, material); points.name = 'lantern-glow'; points.renderOrder = row.order;
+  ctx.scope.onDispose(() => { points.removeFromParent(); geometry.dispose(); material.dispose(); });
+  const life = emptyBuildingLifeRows(), light = row.light;
+  for (const entry of row.rows) {
+    const anchor = new Object3D(); anchor.position.fromArray(entry.at); points.add(anchor); const handle = cabins.resources.lend(anchor);
+    life.sites.push({ id: entry.id, root: handle, anchors: [{ anchor: handle, ...light, seed: entry.at[0] * 0.37, kind: 'lamp', rank: 0 }] });
+  }
+  cabins.life.add(life);
+  const [depth1, rate1, depth2, rate2] = row.flicker, at = new Vector3();
+  return { points,
+    set: (id, on) => { const i = row.rows.findIndex(entry => entry.id === id), entry = row.rows[i]; if (entry === undefined) throw new Error(`Missing lantern: ${id}`);
+      lit[i] = on; cabins.life.setLit(id, on); geometry.getAttribute('position').setY(i, on ? entry.at[1] : -1e4); geometry.getAttribute('position').needsUpdate = true; },
+    present: (time, eye, lamps) => {
+      material.opacity = (row.day + (1 - row.day) * lamps) * (1 + depth1 * Math.sin(time * rate1) + depth2 * Math.sin(time * rate2));
+      let near = Infinity; row.rows.forEach((entry, i) => { if (lit[i] === true) near = Math.min(near, at.fromArray(entry.at).distanceToSquared(eye)); });
+      points.visible = near < row.range * row.range; } };
+}
 const HOST_FILE = 'src/game/shardfile/forestPage.ts';
 /** One floor kind as a model: the field's own geometry and cover material, walked through; the Explorer's specimen
  *  wears the kind's texture in a plain lit material tinted like its first copy (the cover shader fades by distance). */

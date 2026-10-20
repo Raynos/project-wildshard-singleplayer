@@ -28,7 +28,7 @@ export class PineHollow extends ShardPlugin {
     const wildlife = await PosedDraw.library(ctx.product, input.wildlife);
     lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [wildlife.name]));
     const floor = await prepareForestPage(ctx, input);
-    const landmarks = this.landmarks = await installPineLandmarks({ sky: world.sky, registry: world.registry, cabins: floor.cabins, scenes: floor.resources });
+    const landmarks = this.landmarks = await installPineLandmarks({ sky: world.sky, registry: world.registry, page: floor });
     const cave = landmarks.crags?.cave; if (cave !== undefined) await punchPageTerrain(ctx, cave.cutRows());
     await floor.finish(); await placeForestPageModels(ctx, floor.rows.id);
     const runtime = ctx.game.runtime; if (runtime === undefined) throw new Error('Missing forest runtime'); runtime.hooks.worldUpdate = (dt, time) => { floor.update(dt, time); landmarks.update(dt, time); };

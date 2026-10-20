@@ -1,42 +1,22 @@
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 /**
- * PineLandmarks — Pine Hollow's landmarks (PINE-HOLLOW-REMASTER PH-B3 and the B6-adjacent buildings), every site from
- * src/shards/pine-hollow/data/layout.generated.ts:
+ * PineLandmarks — what is left of Pine Hollow's landmarks once the forest page places them (its landmark rows: the fire
+ * lookout, the zipline, the footbridge, the hero props and the crags) and lights them (its lantern rows: the three
+ * waystones): the bear cave's interior and its shaft and drips, the drawn-up canoe that hides while you paddle it (PH-C8),
+ * and the chapter's view binding.
  *
- *   · the FIRE LOOKOUT on the ridge pad: four splayed peeled-log legs with girts and X-bracing, a stair of five flights
- *     inside a railed cage (treads the character climbs), a 6 m deck with a railing, the glazed cab with a hipped moss
- *     roof, and the zipline's launch jutting off the deck toward the Hollow;
- *   · the ZIPLINE: the steel cable (a sagging chord) from the launch gantry to the LANDING platform in the Hollow (4, 20),
- *     a 3 m deck on log posts with a stair down; `zipTop` / `zipBottom` are the ride's anchors (the ride is a later row);
- *   · the CREEK FOOTBRIDGE on the E road: two log stringers, split-plank deck, log trestles in the gully, a log handrail;
- *   · image-to-3D hero props (TRELLIS.2, PBR kept; public/assets/models/pine-hollow-hero/), models on the contract
- *     (E315 M2, src/shards/pine-hollow/runtime/models/): the King's 7 standing stones, the 3 waystone lanterns (pond shore, ridge
- *     by the lookout, the den's cave mouth), the beaver dam on the sill, the canoe on the pond shore, the lodge's
- *     contract board, and the bear cave's rock arch (opened into the cave). Placed here, each type a set: LOD0 until
- *     the nearest copy is past its distance, then LOD1, gone past the props' range (`place`'s `lodBy: 'set'`).
- *
- * The timber pieces are models too (E315 M2): pine-hollow/fire-lookout, zipline-landing, creek-footbridge and the
- * zip-cable, built on the cabins' own kit and materials (src/shards/pine-hollow/world/timber.ts: one merged mesh per
- * material per landmark, two position-only shadow proxies, no new programs), placed here at the frames their old
- * world-space builders used; the landing and the footbridge are fitted to the ground under them. Each prop type is ONE
- * InstancedMesh per LOD. Lights: none of their own — the waystones' flames and the cab's glass are emissive, driven by
- * `sky.lamps` (PH-L3), and the waystones are lamp sites the phone's pooled cabin pair may visit (Cabins.addLampSite).
- *
- *   const lm = await installPineLandmarks({ sky, registry, cabins, game });   // registers, adds to the scene, updates
- *   lm.setLit('pond', true);                                                  // the quest relights a waystone
+ *   const lm = await installPineLandmarks({ sky, registry, page });   // registers the cave, keeps it updated
+ *   lm.setLit('pond', true);                                          // the quest relights a waystone
  */
 import * as THREE from 'three';
 import { admitLandmarkRows, landmarkRows } from './landmarkRows';
 import { PineQuestViews } from '../../quest/views';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { modelPoseMatrix as placeMatrix } from '@wildshard/engine/models/placementBatch';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { forestPage, type LivingPage as PineCabins } from '@wildshard/game/shardfile/forestPage';
+import { forestPage, type ForestPage } from '@wildshard/game/shardfile/forestPage';
 import type { ShardContext } from '@wildshard/game/plugin/context';
-import { emptyBuildingLifeRows } from '@wildshard/format/buildings';
-import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
 import { codePart, loadCodeParts } from './codeParts';
 import { CaveInterior } from '@wildshard/game/shardfile/caveInterior';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
@@ -48,72 +28,27 @@ import { RainFx } from '../looks/rainFx';
 import { pineMemoryTrim, pineSetCap } from '../debug/options';
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
 
-
-
-// ───────────────────────────── the fire lookout, the zipline and the footbridge (models: ../chunks/pine-hollow/models/) ─────
-
-
-// ───────────────────────────── the creek footbridge (the E road over the gully) ─────────────────────────────
-
-
-// ───────────────────────────── the image-to-3D hero props ─────────────────────────────
-
 export type WaystoneId = 'pond' | 'ridge' | 'den';
-/** the three waystones, in their sites' order (the glow's points) */
-const WAYSTONE_IDS: readonly WaystoneId[] = ['pond', 'ridge', 'den'];
-const WAYSTONES = 3;
-
-
-// ───────────────────────────── the whole set ─────────────────────────────
 
 export class PineLandmarks {
   readonly group = new THREE.Group();
-  private lit: Record<WaystoneId, { lit: boolean }> = { pond: { lit: true }, ridge: { lit: true }, den: { lit: true } };
-  private cabins: PineCabins | null = null;
   private chapter: PineQuestViews | null = null;
-  private glow: THREE.Points | null = null;
-  private glowMat: THREE.PointsMaterial | null = null;
-  private anchors: Record<WaystoneId, THREE.Object3D> | null = null;
-  private tmp = new THREE.Vector3();
   /** PH-B2: the Ridge's granite and the bear cave (null: the kit is not in this build) */
   crags: { readonly cave: CaveInterior } | null = null;
 
-  constructor(private sky: Sky, private readonly scenes: SceneHandles) { this.group.name = 'pine-landmarks'; }
+  constructor(private readonly sky: Sky, private readonly page: ForestPage) { this.group.name = 'pine-landmarks'; }
 
   /** The placed models are the forest page's landmark rows (world/forest-page.json), placed with its props. */
-  async build(cabins: PineCabins | null): Promise<this> {
+  async build(): Promise<this> {
     const product = await loadFirstPartyProduct('pine-hollow');
     await admitLandmarkRows(product);
     // the cave + its textures; its roof patch borrows the native collider part
-    const cave = CaveInterior.load(await product.json('world/cave-interior.json'), this.scenes, pineSetCap(TIER_CONFIG.maxTexture));
-    await loadCodeParts(); this.scenes.publish('pine.cave-roof', codePart('cave-roof'));
+    const cave = CaveInterior.load(await product.json('world/cave-interior.json'), this.page.resources, pineSetCap(TIER_CONFIG.maxTexture));
+    await loadCodeParts(); this.page.resources.publish('pine.cave-roof', codePart('cave-roof'));
     this.crags = { cave: await cave };
-    this.lanterns(cabins, await (await productCoverAppearance(product, 'look/cover-appearance.json')).texture(product, 'glow'));
     const cragFx = new THREE.Group(); cragFx.name = 'pine-crags';
     this.crags.cave.buildFx(); cragFx.add(...this.crags.cave.fx); this.group.add(cragFx);
     return this;
-  }
-
-  /** the waystones' flames (emissive, one instanced draw) and their glow (one Points draw), both on sky.lamps */
-  private lanterns(cabins: PineCabins | null, glow: THREE.Texture): void {
-    const lamps = landmarkRows().lamps, glowPos = Float32Array.from(lamps.flat());
-    const anchors = {} as Record<WaystoneId, THREE.Object3D>;
-    lamps.forEach((w, i) => { const id = WAYSTONE_IDS[i]; if (id) { const a = new THREE.Object3D(); a.position.fromArray(w); this.group.add(a); anchors[id] = a; } });
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(glowPos, 3));
-    // the flame: one additive point per lantern (the lantern's own glass is in its baked texture), bright core, soft halo
-    this.glowMat = new THREE.PointsMaterial({ map: glow, color: 0xffa050, size: 0.95, sizeAttenuation: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
-    this.glow = new THREE.Points(g, this.glowMat);
-    this.glow.name = 'waystone-glow';
-    this.glow.renderOrder = 6;
-    this.group.add(this.glow);
-    this.anchors = anchors;
-    this.cabins = cabins;
-    if (cabins) for (const id of ['pond', 'ridge', 'den'] as const) {
-      const anchor = anchors[id], handle = cabins.resources.lend(anchor), rows = emptyBuildingLifeRows();
-      rows.sites.push({ id: `waystone.${id}`, root: handle, anchors: [{ anchor: handle, color: 0xffb060, intensity: 9, distance: 12, decay: 2, seed: anchor.position.x * 0.37, kind: 'lamp', rank: 0 }] });
-      cabins.life.add(rows);
-    }
   }
 
   /** Counted custom chapter/landmark view binding. Platform services take rows. */
@@ -139,39 +74,20 @@ export class PineLandmarks {
     const place = landmarkRows().canoe[0];
     if (place === undefined) return;
     const m = away ? new THREE.Matrix4().makeScale(0, 0, 0) : placeMatrix(place);
-    this.scenes.object('heroes.canoe.root').traverse((o) => { if (o instanceof THREE.InstancedMesh) { o.setMatrixAt(0, m); o.instanceMatrix.needsUpdate = true; } });
+    this.page.resources.object('heroes.canoe.root').traverse((o) => { if (o instanceof THREE.InstancedMesh) { o.setMatrixAt(0, m); o.instanceMatrix.needsUpdate = true; } });
   }
 
-  setLit(id: WaystoneId, on: boolean): void {
-    this.lit[id].lit = on;
-    this.cabins?.life.setLit(`waystone.${id}`, on);
-    const i = WAYSTONE_IDS.indexOf(id);
-    const pos = this.glow?.geometry.getAttribute('position');
-    if (pos && this.anchors) { const a = this.anchors[id]; pos.setY(i, on ? a.position.y : -1e4); pos.needsUpdate = true; }
-  }
+  setLit(id: WaystoneId, on: boolean): void { this.page.setLantern(`waystone.${id}`, on); }
 
-  update(dt: number, t: number): void {
-    this.chapter?.present(dt, t);
-    const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmp);
-    this.crags?.cave.presentFrame(t, this.sky);
-    // the lanterns on the clock (PH-L3): a banked ember by day, full flame at night, a slow flicker
-    const lamps = this.sky.lamps;
-    if (this.glowMat && this.glow && this.anchors) {
-      // a banked ember by day, the full flame at night, a slow flicker; past 150 m (or none lit) it is not drawn at all
-      this.glowMat.opacity = (0.1 + 0.9 * lamps) * (1 + 0.1 * Math.sin(t * 9.3) + 0.05 * Math.sin(t * 23.1));
-      let near = Infinity;
-      for (let i = 0; i < WAYSTONES; i++) { const id = WAYSTONE_IDS[i]; if (id !== undefined && this.lit[id].lit) near = Math.min(near, this.anchors[id].position.distanceToSquared(this.tmp)); }
-      this.glow.visible = near < 150 * 150;
-    }
-  }
+  update(dt: number, t: number): void { this.chapter?.present(dt, t); this.crags?.cave.presentFrame(t, this.sky); }
 }
 
 /**
  * Build Pine Hollow's landmarks, register them (drawn, colliding, the decks as floors) and keep them updated. The hamlet's
  * buildings are not here: `new Cabins(sky, game.scene)` assembles them with the cabins from the bake (../generators/logCabin.ts).
  */
-export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: PineCabins | null; scenes: SceneHandles; }): Promise<PineLandmarks> {
-  const lm = await new PineLandmarks(h.sky, h.scenes).build(h.cabins);
+export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; page: ForestPage }): Promise<PineLandmarks> {
+  const lm = await new PineLandmarks(h.sky, h.page).build();
   // what is left is light: the waystones' flames and anchors, the cave's shaft and drips
   h.registry.add({ id: 'pine-landmarks', name: 'Landmark lights', category: 'props', file: 'src/shards/pine-hollow/runtime/world/landmarks.ts', object: lm.group });
   // PH-B2: the crags' modules registered themselves (models, 90 hulls a task); the cave's shell + the ground over it

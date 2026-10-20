@@ -26,6 +26,9 @@ export const FOREST_PAGE = v.parse(ForestPageSchema, {
     light: CABIN_LIGHT, hearth: HEARTH_LOOKS.smoke, sunParam: 'sunColour', lampsParam: 'lamps', shadeParam: 'shade', nightShade: .8, sightSlack: .75,
     material: 'materials.', save: 'cabins', ...cabinAmbienceRows(),
   }, props: ['props.rocks', 'props.stumps', 'props.log'],
+  // the waystones' lanterns (PH-L3): a banked ember by day, the full flame at night, a slow flicker, gone past 150 m
+  lanterns: { texture: 'glow', color: 0xffa050, size: .95, order: 6, range: 150, day: .1, flicker: [.1, 9.3, .05, 23.1],
+    light: { color: 0xffb060, intensity: 9, distance: 12, decay: 2 }, rows: ['pond', 'ridge', 'den'].map((id, i) => ({ id: `waystone.${id}`, at: timbers.landmarks.lamps[i] })) },
   // the landmarks in their build order: the timbers, the hero props, then each tier's crag modules before its fixed skin
   landmarks: [...['fire-lookout', 'zipline-landing', 'zip-cable', 'creek-footbridge'].map(id => ({ place: `timbers.${id}` })),
     ...timbers.landmarks.stones.map(row => row.kind).concat(['waystone', 'beaver-dam', 'canoe', 'contract-board', 'cave-arch']).map(id => ({ place: `heroes.${id}` })),
