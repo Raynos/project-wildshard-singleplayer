@@ -11,11 +11,11 @@ export const BALBAL = speciesRows.balbal.kind;
 export const BALBAL_SLAM = speciesRows.slam;
 const cracks = new WeakMap<Animal, THREE.MeshBasicMaterial>();
 let guest: PageCreatureGuest | null = null;
-function creatureGuest(): PageCreatureGuest {
+/** The balbal's guest (its weak points and damage model), built once. */
+export function creatureGuest(): PageCreatureGuest {
   guest ??= new PageCreatureGuest({ ...speciesRows.balbalGuest,...speciesGuestRows(),weak: speciesRows.weak });
   return guest;
 }
-export function onBalbalCrack(a: Animal, point: THREE.Vector3): boolean { return creatureGuest().weakPoint(a,point); }
 function animateBalbal(c: RigAnimCtx): void {
   const m = c.mem, a = c.animal;
   let material = cracks.get(a);
