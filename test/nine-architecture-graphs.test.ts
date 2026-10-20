@@ -111,11 +111,11 @@ test('existing uniform handles feed initial colours, texture swaps and Explorer 
   const shared = { u: { uLinePx: { value: 2.1 }, uShade: { value: new THREE.Color(0.5, 0.6, 0.7) }, uLpVolA: { value: volume } } } as Shared;
   try {
     const catalogue = Object.fromEntries(Object.entries({ ...graphs, 'nine-halo': haloGraph() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }]));
-    syncLooks(facadeUniforms(shared), catalogue);
+    syncLooks(facadeUniforms(shared), {}, catalogue);
     expect(writes.get('nine-facade:uFacadeWash')).toEqual(new THREE.Color(0xe0e3ef).toArray());
     expect(writes.get('nine-windows:uSky')).toEqual(new THREE.Color(0xbcc4d2).toArray());
     shared.u.uShade.value.setRGB(0.8, 0.9, 1); shared.u.uLinePx.value = 3; shared.u.uLpVolA.value = replacement;
-    syncLooks(shared.u, catalogue);
+    syncLooks(shared.u, {}, catalogue);
     expect(writes.get('nine-architecture:uShade')).toEqual([0.8, 0.9, 1]);
     expect(writes.get('nine-facade:uLinePx')).toBe(3);
     expect(textures.get('nine-architecture:uLpVolA')).toBe(replacement);
