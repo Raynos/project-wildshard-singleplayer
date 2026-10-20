@@ -12,6 +12,10 @@ import { TamingBinding } from './binding';
 import type { TamingObservation } from './bindingTypes';
 import type { TamingPrograms } from './taming';
 import type { Mount } from './mount';
+import { ReturnProgram } from '../population/returnProgram';
+import { RideHUD } from './hud';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 
 const Profile = v.strictObject({ upgradeKind: v.string(), bonds: v.tuple([v.string(), v.string()]), names: v.tuple([v.string(), v.string()]),
   offset: v.tuple([v.number(), v.number()]), fields: v.strictObject({ upgraded: v.string(), horseUpgraded: v.string(), candidateUpgraded: v.string() }),
@@ -101,4 +105,88 @@ export function admitRidingWind(scope: Scope, wind: { x: number; z: number; stre
 }
 function windOf(ctx: LevelContext): { x: number; z: number; strength: number } {
   const wind = winds.get(ctx.scope); if (wind === undefined) throw new Error('Missing riding wind'); return wind;
+}
+
+/** Labels, the hitch point and the admitted guest are shard data. */
+export interface RidingActionRows {
+  herds: string; program: unknown; rail: { x: number; z: number }; tagRange: number; tagHeight: number;
+  labels: { name: string; panic: string; thrown: string; bolt: string }; squeal: string;
+}
+export type RidingActionEvent = { kind: 'notice'; text: string } | { kind: 'name'; actor: string; current: string };
+/** Prompt arbitration, riding events and HUD projection over concrete owners.
+ * The author supplies no handler or selector; naming opens through a data event. */
+export class RidingActions {
+  readonly hud: RideHUD;
+  readonly interactable: Interactable;
+  private readonly nameIt: Interactable;
+  private naming: Animal | null = null;
+  private selected: Interactable | null = null;
+  private decisionClock = 0;
+  private events: RidingActionEvent[] = [];
+  private readonly rules: ReturnProgram;
+  private readonly herds: readonly HerdBrain<Animal>[];
+  constructor(ctx: LevelContext, private readonly mount: Mount, private readonly taming: PageTamingOwner,
+    private readonly player: Player, private readonly camera: THREE.PerspectiveCamera, private readonly animals: AnimalManager, private readonly rows: RidingActionRows) {
+    const herds = collections.get(ctx.scope)?.get(rows.herds); if (herds === undefined) throw new Error('Missing rendered riding herds'); this.herds = herds;
+    this.rules = ReturnProgram.page(rows.program, ctx.scope);
+    this.hud = new RideHUD(ctx, camera, { tagRange: rows.tagRange, tagHeight: rows.tagHeight });
+    this.nameIt = { position: new THREE.Vector3(rows.rail.x, 0, rows.rail.z), radius: 0, label: rows.labels.name,
+      onInteract: () => { const actor = this.naming; if (actor !== null) this.events.push({ kind: 'name', actor: actor.entityId, current: mount.nameOf(actor.entityId) ?? actor.label }); } };
+    this.interactable = { position: new THREE.Vector3(0, -1e4, 0), radius: 0, label: '', onInteract: () => { this.selected?.onInteract(); } };
+    ctx.on('creature.signal', ({ name, x, z }) => {
+      taming.noteEvent(name, x, z);
+      const actor = mount.horse; if (actor === null || (name !== 'rider-bitten' && name !== 'scare' && name !== 'lightning')) return;
+      const result = this.rules.project('panic', { x, z, px: actor.position.x, pz: actor.position.z, bite: Number(name === 'rider-bitten'), practice: Number(practiceRoom.open) });
+      const duration = result['duration'] ?? 0;
+      if (duration > 0 && mount.panic(x, z, duration) && name !== 'rider-bitten') this.events.push({ kind: 'notice', text: actor.label + rows.labels.panic });
+    });
+  }
+  /** Native mounted physics runs every frame; decisions keep their original guest. */
+  advanceMount(dt: number, wet: boolean, blocked: boolean): void {
+    const mount = this.mount; mount.wet = wet; mount.blockedAhead = blocked;
+    mount.stampedes = new Set(this.herds.flatMap(herd => herd.stampeding ? herd.members.map(actor => actor.entityId) : herd.stallionState === 'charge' && herd.stallion !== null ? [herd.stallion.entityId] : []));
+    mount.update(dt);
+    for (const event of mount.drainEvents()) {
+      if (event.kind === 'mount') {
+        for (const herd of this.herds) { const actor = event.horse === null ? null : herd.members.find(member => member.entityId === event.horse) ?? null; if (actor !== null || herd.ridden !== null) herd.setRidden(actor); }
+      } else if (event.kind === 'thrown') this.events.push({ kind: 'notice', text: this.rows.labels.thrown });
+      else if (event.kind === 'bolt') this.events.push({ kind: 'notice', text: event.name + this.rows.labels.bolt });
+      else { const actor = mount.horse ?? mount.mountables.find(row => row.a.entityId === event.horse)?.a; if (actor !== undefined) this.animals.onSound?.(this.rows.squeal, actor.position); }
+    }
+  }
+  private nameUpdate(open: boolean): void {
+    this.naming = null; this.nameIt.radius = 0;
+    const mount = this.mount; if (mount.mounted || open) return;
+    const p = this.player.position; let best = Infinity, nearest: Readonly<Record<string, number>> | null = null;
+    for (const entry of mount.mountables) {
+      const a = entry.a, row = this.rules.project('name', { alive: Number(a.alive), x: a.position.x, z: a.position.z, cx: this.rows.rail.x, cz: this.rows.rail.z, px: p.x, pz: p.z, yaw: a.yaw, scale: a.scale });
+      const distance = row['distance'] ?? 1e12;
+      if (distance < best && distance < 1e12) { best = distance; this.naming = a; nearest = row; }
+    }
+    const actor = this.naming; if (actor === null || nearest === null) return;
+    const x = nearest['x'] ?? actor.position.x, z = nearest['z'] ?? actor.position.z;
+    this.nameIt.position.set(x, terrainHeight(x, z) + 1.5, z); this.nameIt.radius = nearest['radius'] ?? 0;
+    this.nameIt.label = `${this.rows.labels.name} ${mount.nameOf(actor.entityId) ?? actor.label}`;
+  }
+  /** Observe after the taming owner advances. Selection is presentation; the
+   * guest's rail eligibility remains sampled no faster than ten times a second. */
+  observe(dt: number, namingOpen: boolean): void {
+    const m = this.mount;
+    this.hud.update(this.taming.view, { mounted: m.mounted, breaking: m.breaking, steed: m.steed, winded: m.winded, gait: m.gait, leanLow: m.leanLow,
+      beat: m.beat, spurFlash: m.spurFlash, spur: { latched: m.spur.latched, streak: m.spur.streak }, horse: m.horse?.entityId ?? null,
+      mountables: m.mountables.map(row => ({ id: row.a.entityId, name: row.name, whistle: row.a.mem['whistle'] === 1, hidden: row.a.hidden, position: [row.a.position.x, row.a.position.y, row.a.position.z], scale: row.a.scale })) });
+    this.decisionClock += dt; if (this.decisionClock + 1e-9 >= .1) { this.decisionClock = 0; this.nameUpdate(namingOpen); }
+    let best: Interactable | null = null, distance = Infinity;
+    const count = m.interactables.length;
+    for (let i = 0; i <= count + 1; i++) {
+      const it = i < count ? m.interactables[i] : i === count ? this.taming.interactable : this.nameIt;
+      if (it === undefined || it.radius <= 0) continue;
+      const d = it.position.distanceTo(this.camera.position); if (d < it.radius && d < distance) { distance = d; best = it; }
+    }
+    this.selected = best;
+    if (best === null) { this.interactable.radius = 0; this.interactable.position.set(0, -1e4, 0); return; }
+    this.interactable.position.copy(best.position); this.interactable.radius = best.radius; this.interactable.label = best.label;
+    this.interactable.weak = m.mounted && best !== this.taming.interactable;
+  }
+  drainEvents(): RidingActionEvent[] { const events = this.events; this.events = []; return events; }
 }

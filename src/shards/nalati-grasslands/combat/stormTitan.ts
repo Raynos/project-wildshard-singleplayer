@@ -797,8 +797,8 @@ export class StormTitan {
     play.interactables.push(this.prompt);
     if (this.boss.rewardTaken) play.upgradeSabre?.(this.naizagai);
     // the horse refuses the storm wall and the fire line
-    const mount = play.ride?.mount;
-    if (mount) { const prev = mount.refuse; mount.refuse = (x, z) => this.fight.refuses(x, z) || (prev?.(x, z) ?? false); }
+    const ride = play.ride;
+    if (ride) { const prev = ride.refuse; ride.refuse = (x, z) => this.fight.refuses(x, z) || (prev?.(x, z) ?? false); }
     listenPage(game.levelScope, 'keydown', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = true; });
     listenPage(game.levelScope, 'keyup', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = false; });
     listenPage(game.levelScope, 'pointerdown', () => { this.skipTouch = true; });

@@ -11,6 +11,8 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { DiscOpts } from '@wildshard/engine/ui/hudSlots';
 import type { RideHudState, MountProfile } from '@wildshard/format/riding';
+import { admitRenderedHerds, RidingActions, type PageTamingOwner } from '@wildshard/game/riding/client';
+import fixturePrograms from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
 import { Mount } from '@wildshard/game/riding/mount';
 import { RideHUD } from '@wildshard/game/riding/hud';
 import { legacyDouble } from './fake/FakeGame';
@@ -97,4 +99,29 @@ test('G478 orchard fixture drives the data-only taming host and restores its bon
   restored.restore(wire, ['orchard.mule', 'orchard.companion'], 1, 'orchard.companion');
   expect(restored.snapshot()).toBe(wire);
   expect(() => restored.restore(wire, ['foreign'], 1, null)).toThrow();
+});
+
+test('fixture riding actions selects the rail prompt and emits a naming row', () => {
+  const f = fixture('fixture-mule', { walk: 1, trot: 3, canter: 5, gallop: 8 });
+  const animals = legacyDouble<AnimalManager>({ animals: [f.actor] });
+  const ctx = legacyDouble<LevelContext>({ ...f.ctx, on: () => undefined });
+  const taming: PageTamingOwner = { phase: 'wild', companion: null, upgraded: false, promptHorse: null,
+    view: { trust: null, alert: 0, ear: null, round: null, balance: 0, danger: false, offer: false },
+    interactable: { position: new Vector3(), radius: 0, label: '', onInteract: () => undefined },
+    update: () => undefined, noteEvent: () => undefined, noteShot: () => undefined, startBreaking: () => undefined,
+    forceBreak: () => undefined, setInput: () => undefined, drainEvents: () => [] };
+  admitRenderedHerds(f.scope, 'orchard.herds', []);
+  const actions = new RidingActions(ctx, f.mount, taming, legacyDouble<Player>({ position: f.actor.position }), f.camera, animals,
+    { herds: 'orchard.herds', program: fixturePrograms.riding, rail: { x: 3, z: 5 }, tagRange: 30, tagHeight: 2,
+      labels: { name: 'Name', panic: ' startled', thrown: 'Thrown', bolt: ' resting' }, squeal: 'mule-call' });
+  try {
+    f.mount.addMountable(f.actor.entityId, 'Orchard mule');
+    f.camera.position.set(3, 1.5, 6.15);
+    actions.observe(.1, false);
+    expect(actions.interactable.label).toBe('Name Orchard mule');
+    actions.interactable.onInteract();
+    expect(actions.drainEvents()).toEqual([{ kind: 'name', actor: f.actor.entityId, current: 'Orchard mule' }]);
+    actions.observe(.1, true);
+    expect(actions.interactable.label).not.toBe('Name Orchard mule');
+  } finally { f.scope.dispose(); }
 });

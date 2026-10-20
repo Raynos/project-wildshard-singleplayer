@@ -17,7 +17,7 @@ interface TamingOpts {
 }
 /** Nalati persists and reports the data effects of the shared riding owner. */
 export class Taming {
-  private readonly owner: PageTamingOwner;
+  readonly owner: PageTamingOwner;
   onBonded?: (horse: Animal) => void;
   onBreaking?: (on: boolean) => void;
   constructor(private readonly opts: TamingOpts) {
