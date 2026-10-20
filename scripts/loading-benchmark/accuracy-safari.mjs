@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { observeTransport } from './transport.mjs';
 import { soakInspector } from '../soak/inspector.mjs';
-import { installSafariFixture } from './safari-fixture.mjs';
+import { saveFixtureCode } from '../debug-settings.mjs';
 import { accuracyRecorder } from './accuracy-data.mjs';
 import { accuracyReport } from './accuracy-report.mjs';
 import { loadingCardIndex } from './catalogue.mjs';
@@ -13,12 +13,11 @@ import { loadingCardIndex } from './catalogue.mjs';
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const udid = process.env.SIM_UDID, upstream = arg('base'), pin = arg('pin'), dist = arg('dist'), out = arg('out');
 if (!udid || !upstream || !dist || !out || !/^[a-f0-9]{40}$/u.test(pin ?? '')) throw new Error('Requires sim-lane and base/pin/dist/out');
-const transport = await observeTransport(upstream), base = transport.base;
+const start = `<!doctype html><script>${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${saveFixtureCode({ scope: 'global', key: 'settings', data: { volume: 0 }, merge: true })};location.replace('/');</script>`;
+const transport = await observeTransport(upstream, { recorder: accuracyRecorder, start }), base = transport.base;
 const version = await (await fetch(new URL('/version.json', base))).json();
 if (!version.build?.startsWith(pin.slice(0, 7)) || JSON.parse(readFileSync(resolve(dist, 'version.json'), 'utf8')).build !== version.build) throw new Error('HTTP/disk pin mismatch');
 mkdirSync(out, { recursive: true });
-const fixture = installSafariFixture(dist, accuracyRecorder);
-fixture.start(true);
 const socket = execFileSync('xcrun', ['simctl', 'getenv', udid, 'RWI_LISTEN_SOCKET'], { encoding: 'utf8' }).trim();
 const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${socket}`, '-c', 'null:9221,:9232-9240'], { stdio: ['ignore', 'ignore', 'pipe'] });
 const proxyErrors = []; proxy.stderr.on('data', value => proxyErrors.push(String(value)));
@@ -81,15 +80,15 @@ try {
     } catch (error) { errors.push(String(error)); }
     try {
       collected = JSON.parse(await inspector.evaluate(`JSON.stringify({ accuracy: window.__loadingAccuracy, origin: performance.timeOrigin, href: location.href, resources: performance.getEntriesByType('resource').map(entry => entry.toJSON()), fatal: document.querySelector('#wserr .msg')?.textContent ?? '' })`));
-      const start = collected.origin, end = start + (collected.accuracy?.readyAt ?? 0);
-      const received = transport.receipts.filter(receipt => receipt.endedAt >= start && receipt.endedAt <= end);
+      const origin = collected.origin, end = origin + (collected.accuracy?.readyAt ?? 0);
+      const received = transport.receipts.filter(receipt => receipt.endedAt >= origin && receipt.endedAt <= end);
       networkBytes = received.reduce((sum, receipt) => sum + receipt.bodyBytes + receipt.headerBytes, 0);
       report = accuracyReport(collected.accuracy, networkBytes);
       errors.push(...(collected.accuracy?.errors ?? []));
       if (collected.fatal) errors.push(collected.fatal);
     } catch (error) { errors.push(String(error)); }
     const result = { pin, path, device: 'iOS Simulator Safari / portrait phone tier', cpu: 'native', errors,
-      ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, fixture: { originalSHA256: fixture.originalSHA256, injectedSHA256: fixture.injectedSHA256 } };
+      ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, htmlFixtures: transport.htmlFixtures };
     writeFileSync(resolve(out, `${path}.json`), JSON.stringify(result, null, 2));
     execFileSync('xcrun', ['simctl', 'io', udid, 'screenshot', resolve(out, `${path}.png`)], { stdio: 'ignore' });
     execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '1000', resolve(out, `${path}.png`), '--out', resolve(out, `${path}.jpg`)], { stdio: 'ignore' });
@@ -102,7 +101,7 @@ try {
   inspector?.close(); proxy.kill('SIGTERM');
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* Already closed. */ }
   await transport.close();
-  fixture.close(); writeFileSync(resolve(out, 'proxy.log'), proxyErrors.join(''));
+  writeFileSync(resolve(out, 'proxy.log'), proxyErrors.join(''));
 }
 
 if (failed) throw new Error('Safari capture failed; see per-path receipts');
