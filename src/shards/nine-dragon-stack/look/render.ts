@@ -10,10 +10,9 @@ import type { Tier } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { installRenderEvents } from './renderEvents';
 import { ndRuntime } from '../runtime/state';
-import { glowUniforms } from './light/glow';
-import { gradeUniforms, loadLut } from './light/grade';
-import metadata, { composite, PLAZA, STAIR, STREET, WELL, Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
-import type { LookRows, CompositeRows } from '../boot/lookTypes.generated';
+import { glowUniforms, gradeUniforms, light, loadLut } from './light';
+import { composite, PLAZA, STAIR, STREET, WELL, Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
+import type { CompositeRows } from '../boot/lookTypes.generated';
 import { clearLanterns } from './lanterns';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { PostRowEffect, ScaledPostPass as RowRenderPass, prepareScaledPost } from '@wildshard/game/looks/scaledPost';
@@ -26,8 +25,6 @@ import { setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { syncLooks } from './facadeMaterial';
 
 const setStreakOn = (value: number): void => { setLentParam('nine-streaks', 'cardOn', value); };
-
-const light = metadata.looks.light as LookRows['light'];
 
 let post: Readonly<Record<'bleed' | 'reflect' | 'haze', ScaledPostRow>> & { readonly ao: AoTuning } | null = null;
 /** Load the admitted post rows while the world stage may await. */

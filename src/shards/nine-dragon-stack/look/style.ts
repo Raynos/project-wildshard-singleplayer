@@ -6,7 +6,7 @@ import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { paintUniforms } from './paint';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
-import { lightVolUniforms } from './light/lightvol';
+import { lightVolUniforms } from './light';
 import { METAL, SUTRA } from '../util';
 import { fogBandWindow } from '../runtime/looks/fogBands';
 import type { SharedUniformRows } from './uniformTypes';

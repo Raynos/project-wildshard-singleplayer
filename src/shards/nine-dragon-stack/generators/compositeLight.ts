@@ -9,9 +9,9 @@ vec3 glowAdd(float tightA, float wideA, float zPixel) {
 }
 `;
 
-// ── the grade (look/light/grade.ts) ──
+// ── the grade (look/light.ts) ──
 /** the composite's last colour step: `vec3 gradeLut(vec3 srgb)`, one trilinear fetch of the learned LUT; `@{lutScale}` /
- *  `@{lutBias}` are the LUT size's texel-centre mapping (look/light/grade.ts) */
+ *  `@{lutBias}` are the LUT size's texel-centre mapping (look/light.ts) */
 export const GRADE_GLSL = /* glsl */ `
 uniform highp sampler3D uLut;
 uniform float uLutAmt;
