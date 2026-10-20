@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { MeshBasicMaterial, PerspectiveCamera } from 'three';
+import { Mesh, MeshBasicMaterial, PerspectiveCamera } from 'three';
 import { NodeFrame, ReferenceNode, MaterialReferenceNode } from 'three/webgpu';
-import { uniform } from 'three/tsl';
+import { modelWorldMatrix, objectGroup, uniform } from 'three/tsl';
 import { TextureUpdates } from '../src/engine/render/nodes/textureUpdates';
 
 test('render nodes run once per pass while custom object callbacks, shadow cameras and nested renders stay live', () => {
@@ -36,4 +36,18 @@ test('stock reference sources and live same-frame material edits remain current;
   updates.update([custom, reference]); expect(Reflect.get(reference.node ?? {}, 'value')).toBe(8);
   let callbacks = 0; reference.update = () => { callbacks++; };
   updates.update(nodes); updates.update(nodes); expect(callbacks).toBe(2); updates.endRender(); material.dispose();
+});
+
+test('the model world matrix follows each drawn object and the object group is marked on every draw', () => {
+  const frame = new NodeFrame(), updates = new TextureUpdates(frame), a = new Mesh(), b = new Mesh();
+  const matrix: unknown = Reflect.get(modelWorldMatrix, 'uniformNode');
+  if (typeof matrix !== 'object' || matrix === null) throw new Error('Missing stock model matrix uniform');
+  const nodes = [modelWorldMatrix, objectGroup], version = objectGroup.version;
+  updates.beginRender();
+  frame.object = a; updates.update(nodes);
+  expect(Reflect.get(matrix, 'value')).toBe(a.matrixWorld); expect(Reflect.get(modelWorldMatrix, 'object3d')).toBe(a);
+  frame.object = b; updates.update(nodes);
+  expect(Reflect.get(matrix, 'value')).toBe(b.matrixWorld);
+  expect(objectGroup.version).toBe(version + 2);
+  updates.endRender();
 });
