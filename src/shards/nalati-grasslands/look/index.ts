@@ -6,7 +6,7 @@ import type { NalatiWeather } from '../world/installWeather';
 import { PainterlyWorld } from '@wildshard/game/looks/painterlyLook';
 import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
 import captureRows from '../boot/staticCapture.generated.json' with { type: 'json' };
-import { PANO_RIDGE_V } from './panoramaData';
+import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 import { gradeUniforms } from './grade';
 import { fogLut, tint } from './fog';
 import { grassProfile } from './field';
@@ -28,7 +28,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const uniforms = Object.fromEntries(Object.entries({ ...gradeUniforms, uV2KeyTint: tint.key, uV2Moon: tint.moon, uV2Light: tint.light, uV2Veil: tint.veil, uV2VeilCol: tint.veilColour, uV2Flash: tint.flash }).filter(([key]) => key !== 'uV2LookSat'));
   const world = await PainterlyWorld.build('world' in rows ? rows.world : null, { renderer: game.renderer, scene: game.scene, scope: game.levelScope, sky, stars: weather.rig.dome,
     groups: ctx.groups, casters: [ctx.forest.group], grass: grassProfile, capture: { rows: captureRows, uniforms: bakeUniforms },
-    panorama: { rows: 'panorama' in rows ? rows.panorama : null, ridge: PANO_RIDGE_V, lut: fogLut, uniforms },
+    panorama: { rows: 'panorama' in rows ? rows.panorama : null, ridge: metadata.panoramaRidge, lut: fogLut, uniforms },
     key: { rows: 'key' in rows ? rows.key : null, daySaturation: game.level.grade.saturation, saturation: gradeUniforms.uV2LookSat } });
   if (world === null) return;
   ctx.groups['skyV2'] = world.panorama.dome;

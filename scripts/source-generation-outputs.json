@@ -23,7 +23,7 @@
       "src/shards/nalati-grasslands/generators/edges.ts"
     ],
     "scripts/nalati-panorama.py": [
-      "src/shards/nalati-grasslands/look/panoramaData.ts"
+      "src/shards/nalati-grasslands/generators/panoramaData.ts"
     ],
     "art/far-reach/round-14-loop-4/pano/prep.py": [
       "src/shards/far-reach/data/panorama.json"

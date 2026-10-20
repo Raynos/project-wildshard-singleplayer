@@ -14,11 +14,10 @@
 import * as THREE from 'three';
 import { headingTexture } from '@wildshard/engine/render/dataLook';
 import { ColourRampFog } from '@wildshard/engine/world/Atmosphere';
-import { ungrade } from './grade';
-import { PANO_FOG_SRGB } from './panoramaData';
+import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 
-/** the LUT: scene-linear (already un-graded), half float, RepeatWrapping on the azimuth */
-export const fogLut = headingTexture({ samples: PANO_FOG_SRGB, stride: 3, half: true, map: (y) => { ungrade(y); }, name: 'nalati-fog-lut' });
+/** the LUT: scene-linear (un-graded at build time, generators/postChain.ts), half float, RepeatWrapping on the azimuth */
+export const fogLut = headingTexture({ samples: metadata.postChain.fogLut, stride: 3, half: true, name: 'nalati-fog-lut' });
 
 /** The painting's live re-grade (the hour and the weather), shared by the panorama dome, the cloud sea and this fog: written
  *  each frame by the `nalati.tint` channel rows (generators/weatherChannels.ts). */
