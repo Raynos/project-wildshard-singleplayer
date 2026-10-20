@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./boss/timedEncounters": "./boss/timedEncounters.ts",
     "./shardfile/clientFinds": "./shardfile/clientFinds.ts",
     "./population/perchBody": "./population/perchBody.ts",
     "./quest/legacyRecords": "./quest/legacyRecords.ts",

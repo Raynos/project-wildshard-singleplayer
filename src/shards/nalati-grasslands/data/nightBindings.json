@@ -1,0 +1,18 @@
+{
+  "phases": {
+    "slots": [
+      "dusk",
+      "night"
+    ],
+    "patrol": [
+      "night"
+    ]
+  },
+  "lightFloor": 0.25,
+  "tell": {
+    "cone": 0.96,
+    "reach": 2.6271186440677967,
+    "wind": 0.52,
+    "strike": 0.55
+  }
+}

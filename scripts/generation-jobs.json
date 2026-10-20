@@ -20512,6 +20512,7 @@
         "src/shards/nalati-grasslands/generators/eliteCharge.ts",
         "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
         "src/shards/nalati-grasslands/generators/nightProgram.mjs",
+        "src/shards/nalati-grasslands/data/nightBindings.json",
         "src/shards/nalati-grasslands/generators/nightGeometry.ts",
         "src/shards/nalati-grasslands/generators/layout.ts",
         "src/shards/nalati-grasslands/generators/weatherDecision.mjs",
