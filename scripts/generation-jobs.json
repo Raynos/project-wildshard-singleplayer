@@ -21477,6 +21477,7 @@
         "src/shards/nalati-grasslands/generators/bake-riding.mjs"
       ],
       "inputRoots": [
+        "src/shards/nalati-grasslands/data/reins.json",
         "src/shards/nalati-grasslands/generators/bake-riding.mjs",
         "src/shards/nalati-grasslands/behaviour",
         "src/shards/nalati-grasslands/data/ridingRules.json",
