@@ -42,13 +42,13 @@ let resultCount:i32=0;
 // The strike's best target so far (one request; ReturnProgram rewinds the module after each).
 let bestX=0.0,bestY=0.0,bestZ=0.0,bestKind=0.0,bestScore=0.0;
 @inline function scanAt(cx:f64,cz:f64,r:f64,scan:i32):void {
- Read.radial(f64(scan)*Math.PI/4,r*.6);const tx=cx+List.at(1),tz=cz+List.at(0),ty=height(tx,tz),s=ty+terrainRidge(tx,tz);
- if(s>bestScore){bestX=tx;bestZ=tz;bestY=ty;bestScore=s;bestKind=0;}
+ Read.radial(f64(scan)*Math.PI/4,r*.6);const tx=cx+List.at(1),tz=cz+List.at(0),ty=height(tx,tz);
+ if(ty>bestScore){bestX=tx;bestZ=tz;bestY=ty;bestScore=ty;bestKind=0;}
 }
 @inline function candidateAt(count:f64,i:i32):void {
  if(f64(i)>count)return;
- const tx=Read.field(i,Field.x),tz=Read.field(i,Field.z),ty=Read.field(i,Field.top),s=ty+terrainRidge(tx,tz);
- if(s>bestScore){bestX=tx;bestZ=tz;bestY=ty;bestScore=s;bestKind=1;}
+ const ty=Read.field(i,Field.top);
+ if(ty>bestScore){bestX=Read.field(i,Field.x);bestZ=Read.field(i,Field.z);bestY=ty;bestScore=ty;bestKind=1;}
 }
 @inline function above(count:f64,i:i32,head:f64):bool { return f64(i)<=count&&Read.field(i,Field.top)>head; }
 // Requests are dispatched by the world adapter at no more than ten Hz.
@@ -153,11 +153,11 @@ if(signal==Signal.arm){
   Read.radial(angle,d);const dx=List.at(1),dz=List.at(0);put(Channel.x,f(Field.px)+dx);put(Channel.z,f(Field.pz)+dz);put(Channel.radius,hunt?30:35);
  }else if(signal==Signal.pick){
   // the highest of: the cell's centre, the player in it, eight points round it, the probed candidates (ties keep the first);
-  // unrolled: every loop iteration and call is charged fuel
+  // unrolled and scored by height alone: every loop iteration and call, and every module byte, is charged fuel
   const cx=f(Field.cx),cz=f(Field.cz),r=f(Field.radius),count=f(Field.count);
-  bestX=cx;bestZ=cz;bestY=height(cx,cz);bestKind=0;bestScore=bestY+terrainRidge(cx,cz);
-  const px=f(Field.px),pz=f(Field.pz),py=top(),ps=py+terrainRidge(px,pz);
-  if(f(Field.sheltered)==0&&length(px-cx,pz-cz)<=r&&ps>bestScore){bestX=px;bestZ=pz;bestY=py;bestKind=3;bestScore=ps;}
+  bestX=cx;bestZ=cz;bestY=height(cx,cz);bestKind=0;bestScore=bestY;
+  const px=f(Field.px),pz=f(Field.pz),py=top();
+  if(f(Field.sheltered)==0&&length(px-cx,pz-cz)<=r&&py>bestScore){bestX=px;bestZ=pz;bestY=py;bestKind=3;bestScore=py;}
   scanAt(cx,cz,r,0);scanAt(cx,cz,r,1);scanAt(cx,cz,r,2);scanAt(cx,cz,r,3);scanAt(cx,cz,r,4);scanAt(cx,cz,r,5);scanAt(cx,cz,r,6);scanAt(cx,cz,r,7);
   candidateAt(count,1);candidateAt(count,2);candidateAt(count,3);candidateAt(count,4);candidateAt(count,5);candidateAt(count,6);candidateAt(count,7);candidateAt(count,8);
   put(Channel.x,bestX);put(Channel.y,bestY);put(Channel.z,bestZ);put(Channel.kind,bestKind);put(Channel.armed,1);put(Channel.pendingT,1.2);
