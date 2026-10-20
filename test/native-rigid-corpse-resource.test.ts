@@ -226,3 +226,37 @@ test('native eligibility conservatively refuses a scaled decorative joint even o
     expect(counts(f)).toEqual({ live: 0, reserved: 1, occupied: 1, bodies: 0, colliders: 0, joints: 0 });
   } finally { f.dispose(); }
 });
+
+/** Coordinate-origin regression only: synthetic hulls are not Medusa contact admission. */
+test.each([0, -0.5])('finite pivot %s allocates at the lethal root with positive inertia and cleans up', bodyY => {
+  const f = fixture(), s = specimen();
+  try {
+    const resource = NativeRigidCorpse.prepare(f.lease, { ...s.native, dims: { ...s.native.dims, bodyY } });
+    const body = physicalBody(f.physics, resource);
+    expect(body.translation().x).toBeCloseTo(s.native.position.x, 6);
+    expect(body.translation().y).toBeCloseTo(s.native.position.y, 6);
+    expect(body.translation().z).toBeCloseTo(s.native.position.z, 6);
+    resource.activate(); f.physics.step(); resource.capture(FIXED_STEP);
+    // Rapier applies changed mass properties at its next world step.
+    expect(body.localCom().y).toBeCloseTo(bodyY * .6 * s.native.scale, 6);
+    expect(Object.values(body.translation()).every(Number.isFinite)).toBe(true);
+    expect(body.principalInertia().x).toBeGreaterThan(0);
+    expect(body.principalInertia().y).toBeGreaterThan(0);
+    expect(body.principalInertia().z).toBeGreaterThan(0);
+    resource.dispose();
+    expect(counts(f)).toEqual({ live: 0, reserved: 0, occupied: 0, bodies: 0, colliders: 0, joints: 0 });
+  } finally { f.dispose(); }
+});
+
+test('invalid pivot, extents and underflowed inertia refuse without consuming a reservation', () => {
+  const f = fixture(), s = specimen();
+  try {
+    const before = counts(f);
+    for (const patch of [{ bodyY: Number.NaN }, { bodyY: Infinity }, { bodyY: -Infinity },
+      ...['halfWidth', 'bodyHalfLen', 'bodyRadius'].flatMap(key => [0, -1, Number.NaN, Infinity].map(value => ({ [key]: value }))),
+      { bodyY: 0, halfWidth: 1e-30, bodyHalfLen: 1e-30, bodyRadius: 1e-30 }]) {
+      expect(() => NativeRigidCorpse.prepare(f.lease, { ...s.native, dims: { ...s.native.dims, ...patch } })).toThrow();
+      expect(counts(f)).toEqual(before); expect(f.lease.state).toBe('reserved');
+    }
+  } finally { f.dispose(); }
+});

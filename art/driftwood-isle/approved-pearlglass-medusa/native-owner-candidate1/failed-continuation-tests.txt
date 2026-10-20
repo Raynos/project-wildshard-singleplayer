@@ -1,0 +1,41 @@
+heavy-lane: queued build ticket 153
+heavy-lane: acquired build after 0.00s queue
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../../vitest.config" without a file extension (art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+ ❯ art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/native.test.ts (6 tests | 1 failed) 1830ms
+   × actual flight, burst and native pose continuation survive quiet reads and fresh source restoration 126ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/native.test.ts > actual flight, burst and native pose continuation survive quiet reads and fresh source restoration
+Error: Invalid animal pose continuation
+ ❯ AnimalPoseLaw.snapshot src/engine/entities/animalPose.ts:86:42
+     84|     const scalars: number[] = [], bytes = new DataView(new ArrayBuffer…
+     85|     for (const value of [this.phase, this.lookAmt, this.tiltPitch, thi…
+     86|       if (!Number.isFinite(value)) throw new Error('Invalid animal pos…
+       |                                          ^
+     87|       bytes.setFloat64(0, value); scalars.push(bytes.getUint32(0), byt…
+     88|     }
+ ❯ NativeCreaturePose.snapshot src/game/plugin/animation.ts:1010:135
+ ❯ art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/native.test.ts:126:53
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 34 passed (35)
+   Start at  18:37:55
+   Duration  12.89s (transform 55%, setup 27%, tests 17%, import 1%)
+
+  Transform  transforming modules took 6.90s · 55% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
+heavy-lane: finished build in 13.76s

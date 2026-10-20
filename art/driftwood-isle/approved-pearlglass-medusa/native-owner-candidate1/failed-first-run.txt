@@ -1,0 +1,18 @@
+Preserved first focused run result (2026-10-20). No runtime source change made in response.
+34 tests: 32 passed, 2 failed, 16.72 seconds Vitest / 17.69 seconds heavy lane.
+
+FAIL native-rigid-corpse-resource.test.ts:
+finite pivot -0.5 allocates at the lethal root with positive inertia and cleans up
+AssertionError: expected +0 to be close to -0.3, received difference is 0.3, but expected 5e-7
+The test read body.localCom before the world applied the pending mass properties.
+Correction: inspect it after the first actual physics step, not weaken expected COM.
+
+FAIL native-owner-candidate1/native.test.ts:
+real burst brain executes windup, one pulse/shove and recovery with unchanged flight steering
+AssertionError: expected Set{ 'dart' } to deeply equal Set{ 'dart', 'drift' }
+The 240-frame test window was shorter than the authored windup+active+recover+cooldown.
+Correction: derive the observation length from unchanged strike timing plus one second.
+
+Four Medusa tests passed: own source/native flight; live motion parity; lethal local continuity
+and full terminal fold; all actual weighted vertices against THREE at sampled endpoints.
+All 26 previously existing native resource tests and zero-pivot allocation passed.

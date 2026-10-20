@@ -1,0 +1,128 @@
+{
+  "source": "complete-character-next",
+  "runtimeAdmission": false,
+  "scope": "Exact selected source references and influences; no generated collider or copied binary",
+  "sourcePins": {
+    "native-source.json": {
+      "bytes": 3409542,
+      "sha256": "184e65010a8582051713947da9204683d14178753b65b1f1f91800653d1c78d8"
+    },
+    "metadata.json": {
+      "bytes": 17104,
+      "sha256": "eb1346054c4f93010ccbdedd98a7a5a933be60b36d47dcc9fb831af99357b765"
+    },
+    "payload.bin": {
+      "bytes": 125916,
+      "sha256": "982033aaacb7d90feaa0b01ae7413df43def2157b9c6312e66f1ea75fdff0abc"
+    },
+    "pearlglass-medusa-complete-character-next.glb": {
+      "bytes": 791048,
+      "sha256": "3fc2f82d7248c35bffce2b716c24ee979e7de330901d5b72fa4b1a5bd967e3c3"
+    }
+  },
+  "bones": 27,
+  "parts": [
+    {
+      "part": "bell",
+      "vertices": 4740,
+      "blendedVertices": 0,
+      "influences": [
+        "bell"
+      ]
+    },
+    {
+      "part": "head",
+      "vertices": 3258,
+      "blendedVertices": 0,
+      "influences": [
+        "head"
+      ]
+    },
+    {
+      "part": "ribbon0",
+      "vertices": 1464,
+      "blendedVertices": 288,
+      "influences": [
+        "ribbon0_0",
+        "ribbon0_1",
+        "ribbon0_2"
+      ]
+    },
+    {
+      "part": "ribbon1",
+      "vertices": 924,
+      "blendedVertices": 288,
+      "influences": [
+        "ribbon1_0",
+        "ribbon1_1",
+        "ribbon1_2"
+      ]
+    },
+    {
+      "part": "ribbon2",
+      "vertices": 1248,
+      "blendedVertices": 288,
+      "influences": [
+        "ribbon2_0",
+        "ribbon2_1",
+        "ribbon2_2"
+      ]
+    },
+    {
+      "part": "ribbon3",
+      "vertices": 1032,
+      "blendedVertices": 288,
+      "influences": [
+        "ribbon3_0",
+        "ribbon3_1",
+        "ribbon3_2"
+      ]
+    },
+    {
+      "part": "ribbon4",
+      "vertices": 1248,
+      "blendedVertices": 288,
+      "influences": [
+        "ribbon4_0",
+        "ribbon4_1",
+        "ribbon4_2"
+      ]
+    },
+    {
+      "part": "ribbon5",
+      "vertices": 924,
+      "blendedVertices": 288,
+      "influences": [
+        "ribbon5_0",
+        "ribbon5_1",
+        "ribbon5_2"
+      ]
+    },
+    {
+      "part": "ribbon6",
+      "vertices": 1464,
+      "blendedVertices": 288,
+      "influences": [
+        "ribbon6_0",
+        "ribbon6_1",
+        "ribbon6_2"
+      ]
+    },
+    {
+      "part": "ribbon7",
+      "vertices": 924,
+      "blendedVertices": 288,
+      "influences": [
+        "ribbon7_0",
+        "ribbon7_1",
+        "ribbon7_2"
+      ]
+    }
+  ],
+  "constraint": "Ten mesh parts and multi-joint weighted ribbons cannot be equated to ten or eight faithful rigid hulls. This is not proof that every bounded redesign is impossible. The exact weighted oracle is supplied for testing a concrete future design.",
+  "preservedStaticReview": {
+    "preferred": 3.2925,
+    "retainedV2Fresh": 3.015,
+    "target": 4
+  }
+}

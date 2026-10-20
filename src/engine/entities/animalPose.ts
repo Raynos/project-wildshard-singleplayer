@@ -141,10 +141,10 @@ export class AnimalPoseLaw {
     for (let i = 0; i < 5; i++) { W[i] = (W[i] ?? 0) + ((gw[i] ?? 0) - (W[i] ?? 0)) * bl; wsum += W[i] ?? 0; }
     for (let i = 0; i < 5; i++) W[i] = (W[i] ?? 0) / wsum;
 
-    // gait phase: stride frequency from speed so hooves don't slide
+    // Terrestrial stride frequency only. Flight uses authored time/flight channels and can have no legs.
     const wWalk = W[G_WALK] ?? 0, wTrot = W[G_TROT] ?? 0, wGallop = W[G_GALLOP] ?? 0;
     const moving = wWalk + wTrot + wGallop;
-    if (moving > 0.01 && this.input.alive && !this.input.debugGait) {
+    if (!this.input.flying && moving > 0.01 && this.input.alive && !this.input.debugGait) {
       const g = wGallop > 0.5 ? GAITS[G_GALLOP] : wTrot > 0.5 ? GAITS[G_TROT] : GAITS[G_WALK];
       const stride = 2 * d.legLen * Math.sin(g.amp) * this.input.scale * (g === GAITS[G_GALLOP] ? 1.9 : g === GAITS[G_TROT] ? 1.35 : 1.0);
       const freq = Math.max(0.6, Math.hypot(this.input.speed, this.input.strafe) * g.stance / stride);

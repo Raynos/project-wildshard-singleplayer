@@ -1,0 +1,22 @@
+heavy-lane: queued build ticket 157
+heavy-lane: acquired build after 0.00s queue
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../../vitest.config" without a file extension (art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+
+ Test Files  3 passed (3)
+      Tests  37 passed (37)
+   Start at  18:40:48
+   Duration  17.96s (transform 53%, setup 32%, tests 15%, import 1%)
+
+  Transform  transforming modules took 8.73s · 53% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
+heavy-lane: finished build in 18.63s

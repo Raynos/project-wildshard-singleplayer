@@ -53,11 +53,15 @@ export class NativeRigidCorpse {
     if (vectors.some(v => ![v.x, v.y, v.z].every(Number.isFinite))
       || ![q.x, q.y, q.z, q.w, input.damage, input.scale].every(Number.isFinite)
       || input.damage < 0 || input.scale <= 0 || Math.abs(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w - 1) > 1e-6
-      || [input.dims.halfWidth, input.dims.bodyY, input.dims.bodyHalfLen, input.dims.bodyRadius].some(n => !Number.isFinite(n) || n <= 0)) throw new Error('Unsafe native corpse body');
+      || !Number.isFinite(input.dims.bodyY)
+      || [input.dims.halfWidth, input.dims.bodyHalfLen, input.dims.bodyRadius].some(n => !Number.isFinite(n) || n <= 0)) throw new Error('Unsafe native corpse body');
     const prepared = prepareNumericRigidCorpse(physics.R, input.recipe, input.joints, input.scale);
     const desc = rigidCorpseBodyDescriptor(physics.R, input).setEnabled(false);
     const bodyVectors = [desc.translation, desc.linvel, desc.angvel, desc.centerOfMass, desc.principalAngularInertia];
-    if (bodyVectors.some(v => ![v.x, v.y, v.z].every(n => Number.isFinite(Math.fround(n))))) throw new Error('Unsafe native corpse body descriptor');
+    // bodyY is a pivot coordinate, not an extent; zero/negative pivots do not license zero inertia.
+    const inertia = desc.principalAngularInertia;
+    if (bodyVectors.some(v => ![v.x, v.y, v.z].every(n => Number.isFinite(Math.fround(n))))
+      || ![inertia.x, inertia.y, inertia.z].every(n => Math.fround(n) > 0)) throw new Error('Unsafe native corpse body descriptor');
     const retained = new Set<RigidBody>(); physics.world.forEachRigidBody(body => { retained.add(body); });
     reservation.begin(); const allocation = reservation.owner.child('native-rigid-corpse');
     let body: RigidBody | undefined; const parts: PhysicalPart[] = [];

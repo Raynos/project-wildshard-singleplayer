@@ -1,0 +1,110 @@
+{
+  "scope": "Medusa native source slice and bounded native pivot/flight-phase corrections; not playable admission",
+  "runtimeAdmission": false,
+  "staticReviewUnchanged": 3.2925,
+  "checked": {
+    "focusedTests": {
+      "passed": 37,
+      "files": 3,
+      "receipt": "focused-tests.txt",
+      "finalDifference": "Subsequent lint-only global NaN to Number.NaN in two resource refusal values; no runtime changes"
+    },
+    "strictTypeScript": {
+      "passed": true,
+      "config": "tsconfig.json",
+      "receipt": "typecheck.txt",
+      "strictFlagsRelaxed": false
+    },
+    "typeAwareLint": {
+      "passed": true,
+      "noIgnore": true,
+      "receipt": "lint.txt"
+    }
+  },
+  "runtimeSharedPaths": [
+    "src/engine/entities/animalPose.ts",
+    "src/engine/physics/nativeRigidCorpse.ts"
+  ],
+  "testSharedPaths": [
+    "test/native-rigid-corpse-resource.test.ts",
+    "test/animal-pose-flight-clock.test.ts"
+  ],
+  "files": {
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/README.md": {
+      "bytes": 8555,
+      "sha256": "06568a17788c413197fbee04d184afde10b63d98f45842caf20decf787d00d7a"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/audit_source.py": {
+      "bytes": 2076,
+      "sha256": "d15ccfcd6a3857c2273911ec82f4e205dacda8e62bead2157d049e8ee7425054"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/failed-continuation-tests.txt": {
+      "bytes": 2538,
+      "sha256": "189b85f8fda3cdbb4d0c30724e160acf5f2e8ba7e361dbc30c7a1b4ed7705eb7"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/failed-first-lint.txt": {
+      "bytes": 460,
+      "sha256": "35799d2a0ec9650e50e0877e42c7c159dbf7488b6e7a682b6f677d0c33d3ffc7"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/failed-first-run.txt": {
+      "bytes": 1224,
+      "sha256": "2750d2d8bf933742c8149a216b35369a0e21f8f6474701c3cac5d437dbe5c2cf"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/failed-first-typecheck.txt": {
+      "bytes": 2505,
+      "sha256": "f3f490ae8af3893d3b3e4342e85ae405e1fb9699aec8031031da78772fbdf71c"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/focused-tests.txt": {
+      "bytes": 1275,
+      "sha256": "82a63edd15db554690eab51008b669b249f3c30a22945d1dcafa7317d95e7702"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/lint.txt": {
+      "bytes": 118,
+      "sha256": "4405c4a08a1fa88c68a53f5525144f01ce8c0ddd8e4496e0e2575b884c6f4efd"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/medusaNativeClips.ts": {
+      "bytes": 3603,
+      "sha256": "a99cd74f72cf2463c29e6883d994fdd021e8e9ef555f74b5f102fecced95cd4b"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/medusaNativeSource.ts": {
+      "bytes": 5113,
+      "sha256": "90d78dd9be63db71c6d1c4d697884ffbacbaf520b5ddaea4c2e5928c64c71afc"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/native.test.ts": {
+      "bytes": 9018,
+      "sha256": "4ec0e5445c23e5cffbec8391b119cb497860fbb67b603e3323671971d5d36110"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/source-audit.json": {
+      "bytes": 2904,
+      "sha256": "bc60905ce4dfa6cb81468647ab94181ebdfdfdf0a41108f6e3a33a376036a11a"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/tsconfig.json": {
+      "bytes": 393,
+      "sha256": "41d803b5f39b1629218fc6d29eeddded3131799b4081cc94d654fe39e34c6a79"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/typecheck.txt": {
+      "bytes": 117,
+      "sha256": "1fad6253a6660a856d54cedfa62b9af2dd4c09f07268d8768366a1ad9690b670"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/vitest.config.ts": {
+      "bytes": 341,
+      "sha256": "cc9a787710c1e20f3835125da505051d31d584ec89afc2b8f54919d395426519"
+    },
+    "src/engine/entities/animalPose.ts": {
+      "bytes": 24474,
+      "sha256": "912931e7b52a2fa98bcf588e89b882c48a05ec95939aed0b3ee2e9199c261aad"
+    },
+    "src/engine/physics/nativeRigidCorpse.ts": {
+      "bytes": 11974,
+      "sha256": "dfd895f28037766c68a9c532f7336c09424d726dcd82685c8982d89650011f94"
+    },
+    "test/animal-pose-flight-clock.test.ts": {
+      "bytes": 3188,
+      "sha256": "57cd44d2100cca0bed67a90b89e8626defb7994cca16904f6a92593d87a7440e"
+    },
+    "test/native-rigid-corpse-resource.test.ts": {
+      "bytes": 20336,
+      "sha256": "864187a5d1277119cd32f1d37277e94c5d848c8848fdc2fb48e941ff90377db6"
+    }
+  }
+}

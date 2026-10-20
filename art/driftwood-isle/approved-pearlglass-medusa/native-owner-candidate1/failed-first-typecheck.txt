@@ -1,0 +1,20 @@
+heavy-lane: queued build ticket 154
+heavy-lane: acquired build after 0.00s queue
+art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/native.test.ts(40,136): error TS2445: Property 'flinch' is protected and only accessible within class 'AnimalSim' and its subclasses.
+art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/vitest.config.ts(3,28): error TS2345: Argument of type 'UserConfig & Promise<UserConfig> & (ViteUserConfigFnObject & (ViteUserConfigFnPromise & ViteUserConfigExport))' is not assignable to parameter of type 'never'.
+  Type 'UserConfig & Promise<UserConfig> & ViteUserConfigFnObject & ViteUserConfigFnPromise' is not assignable to type 'never'.
+scripts/vitest-tmp.ts(17,24): error TS4111: Property 'TMPDIR' comes from an index signature, so it must be accessed with ['TMPDIR'].
+scripts/vitest-tmp.ts(18,20): error TS4111: Property 'VITEST_TMP_ROOT' comes from an index signature, so it must be accessed with ['VITEST_TMP_ROOT'].
+scripts/vitest-tmp.ts(21,7): error TS4111: Property 'TMPDIR' comes from an index signature, so it must be accessed with ['TMPDIR'].
+scripts/vitest-tmp.ts(24,7): error TS4111: Property 'NODE_COMPILE_CACHE' comes from an index signature, so it must be accessed with ['NODE_COMPILE_CACHE'].
+scripts/vitest-tmp.ts(25,11): error TS4111: Property 'WS_VITEST_TMP_DIR' comes from an index signature, so it must be accessed with ['WS_VITEST_TMP_DIR'].
+scripts/vitest-tmp.ts(26,9): error TS4111: Property 'WS_VITEST_TMP_DIR' comes from an index signature, so it must be accessed with ['WS_VITEST_TMP_DIR'].
+scripts/vitest-tmp.ts(33,16): error TS4111: Property 'TMPDIR' comes from an index signature, so it must be accessed with ['TMPDIR'].
+src/engine/boot/clearDownloads.ts(65,23): error TS2339: Property '__ws_prefetch' does not exist on type 'Window & typeof globalThis'.
+vitest.config.ts(10,3): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '{ maxWorkers: number | undefined; testTimeout: number; environment: "node"; include: string[]; setupFiles: string[]; restoreMocks: true; }' is not assignable to type 'InlineConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'maxWorkers' are incompatible.
+        Type 'number | undefined' is not assignable to type 'string | number'.
+          Type 'undefined' is not assignable to type 'string | number'.
+heavy-lane: finished build in 7.43s

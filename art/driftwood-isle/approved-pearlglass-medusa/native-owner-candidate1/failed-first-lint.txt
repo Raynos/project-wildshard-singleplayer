@@ -1,0 +1,5 @@
+heavy-lane: queued build ticket 158
+heavy-lane: acquired build after 0.00s queue
+test/native-rigid-corpse-resource.test.ts:255:35: error unicorn(prefer-number-properties): Use `Number.NaN` instead of the global `NaN` help: Replace it with `Number.NaN`
+test/native-rigid-corpse-resource.test.ts:256:76: error unicorn(prefer-number-properties): Use `Number.NaN` instead of the global `NaN` help: Replace it with `Number.NaN`
+heavy-lane: finished build in 22.86s
