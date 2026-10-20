@@ -54,13 +54,23 @@ const step = v.strictObject({ id, cube: v.exactOptional(v.picklist(['standalone'
   instanceAttributes: v.optional(bounded(v.strictObject({ part: id, name: id, width: v.picklist([1, 2, 3, 4]), values: bounded(finite, 32768) }), 32), []),
   bounds: v.optional(bounded(v.strictObject({ part: id, sphere: v.strictObject({ center: triple, radius: v.pipe(finite, v.minValue(0)) }) }), 128), []),
 });
+// Textures lent to compiled looks before the world builds: an image (its pixel size optionally lent as a vec2 param),
+// or JPEG layers (each with an optional alpha JPEG, else ½) read back into one repeating, mipmapped RGBA8 array.
+const wrap = v.exactOptional(v.picklist([1000, 1001, 1002]));
+const lentTexture = v.variant('kind', [
+  v.strictObject({ kind: v.literal('image'), looks: v.pipe(bounded(id, 32), v.minLength(1)), param: id, url: id, srgb: v.exactOptional(v.boolean()), wrapS: wrap, wrapT: wrap,
+    anisotropy: v.exactOptional(v.pipe(finite, v.minValue(1), v.maxValue(16))), sizeParam: v.exactOptional(id) }),
+  v.strictObject({ kind: v.literal('layers'), looks: v.pipe(bounded(id, 32), v.minLength(1)), param: id, base: id, label: id,
+    size: v.strictObject({ phone: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(4096)), desktop: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(4096)) }),
+    anisotropy: v.pipe(finite, v.minValue(1), v.maxValue(16)), layers: v.pipe(bounded(v.strictObject({ name: id, alpha: v.boolean() }), 64), v.minLength(1)) }),
+]);
 const unique = (rows: readonly { readonly id: string }[]) => new Set(rows.map(row => row.id)).size === rows.length;
 /** Client-only static assembly. Recipes, slots and named references are bounded plain data. */
 export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World scenes require plain JSON'),
   v.strictObject({ version: v.literal(1), libraries: bounded(library, 32), materials: bounded(material, 128), steps: bounded(step, 64), catalogue: v.exactOptional(id),
     dressing: v.exactOptional(v.strictObject({phone:id,desktop:id})),
     cosmeticDraws: v.exactOptional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(1000000))),
-    batches: v.optional(bounded(WorldSceneBatchSchema, 32), []),
+    batches: v.optional(bounded(WorldSceneBatchSchema, 32), []), lent: v.optional(bounded(lentTexture, 32), []),
     welds: v.optional(bounded(WorldSceneWeldSourceSchema, 32), []),
     placements: v.optional(bounded(v.union([WorldScenePlacementSchema, v.strictObject({ id, file: id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])) })]), 128), []) }),
   v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.batches) && unique(row.welds) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
@@ -68,7 +78,8 @@ export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World 
     && row.steps.every(entry => entry.registry.every(piece => piece.active === undefined || piece.mode === undefined) && (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))
       && (entry.lights === undefined || unique(entry.lights)) && (entry.collectMaterials === undefined || new Set(entry.collectMaterials).size === entry.collectMaterials.length)), 'Unique scene identities and exactly one recipe source'));
 type ParsedWorldScenes = v.InferOutput<typeof WorldScenesSchema>;
-export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements' | 'batches' | 'welds'> & { readonly placements?: ParsedWorldScenes['placements']; readonly batches?: ParsedWorldScenes['batches']; readonly welds?: ParsedWorldScenes['welds'] };
+export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements' | 'batches' | 'welds' | 'lent'> & { readonly placements?: ParsedWorldScenes['placements']; readonly batches?: ParsedWorldScenes['batches']; readonly welds?: ParsedWorldScenes['welds']; readonly lent?: ParsedWorldScenes['lent'] };
+export type WorldSceneLentTexture = ParsedWorldScenes['lent'][number];
 /** Reject executable values, duplicate identities and unknown fields before allocating visuals. */
 export function parseWorldScenes(input: unknown): ParsedWorldScenes { return v.parse(WorldScenesSchema, input); }
 

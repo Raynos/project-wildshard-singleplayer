@@ -4,7 +4,8 @@
 // uniforms and each material.
 import { DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type Texture, type IUniform } from 'three';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
-import { paintUniforms } from './paint';
+import metadata from '../boot/metadata.generated.json' with { type: 'json' };
+import type { LookRows } from '../boot/lookTypes.generated';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
 import { lightVolUniforms } from './light';
 import { fogBandWindow } from '../runtime/looks/fogBands';
@@ -27,8 +28,8 @@ function sharedUniforms(silk: Texture, rows: SharedUniformRows) {
   return {
     ...uniformsFrom({ ...rows }),
     uSilk: { value: silk },
-    // the painted surfaces (paint.ts, merged from lab P5): the texture array and its strengths
-    ...paintUniforms(),
+    // the painted surfaces' strengths (merged from lab P5; their texture array is a lent world-scene texture)
+    ...uniformsFrom((metadata.looks.paint as LookRows['paint']).uniforms),
     ...lightVolUniforms(),
   };
 }

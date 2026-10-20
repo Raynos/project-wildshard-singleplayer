@@ -11,6 +11,7 @@ import { admitWorldSceneSurface, prepareWorldSceneSurfaces, worldSceneSurfaceMat
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
 import { readWholeLibrary } from './wholeLibrary';
+import { lendWorldSceneTextures } from './worldSceneTextures';
 import { WorldSceneBatch } from './worldSceneBatch';
 import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitWorldSceneModelGraphs } from './worldSceneWeld';
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
@@ -74,6 +75,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     if (row.kind === 'look' && row.over !== undefined) reference(row.over, true);
   }
   for (const row of section.materials) if (row.kind === 'surface') await admitWorldSceneSurface(row, product);
+  for (const row of section.lent ?? []) for (const look of row.looks) if (product.shardfile.look.materials[look] === undefined) throw new Error(`Missing lent texture look: ${look}`);
   let catalogue: ReturnType<typeof parseWorldSceneModels> | undefined;
   let modelScenes: ReadonlyMap<string, WorldSceneWeld> = new Map();
   const frozenSlots = new Set<string>();
@@ -211,6 +213,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     for (let draw = 0; draw < section.cosmeticDraws; draw++) random.next();
   }
   try {
+    await lendWorldSceneTextures(section.lent ?? [], owner);
     for (const row of section.libraries) {
       if (row.kind === 'models') {
         const models = sceneModelSource(product, row.id); await models.preload(() => buildYield(owner));

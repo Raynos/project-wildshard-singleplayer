@@ -12,7 +12,7 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Box3, type BufferGeometry, ClampToEdgeWrapping, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Quaternion, Vector3,
+  Box3, type BufferGeometry, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Quaternion, Vector3,
 } from 'three';
 import type { Piece } from './ctx';
 import { registerSigns } from '../models/signs';
@@ -25,8 +25,6 @@ import { Lanterns } from '../look/lanterns';
 import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
 import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
 import { jiehuaMaterial as facadeMaterial, windowMaterial, facadeUniforms, syncLooks } from '../look/facadeMaterial';
-import { loadPaint } from '../look/paint';
-import { loadTextureRow } from '@wildshard/engine/core/assets';
 import metadata, { Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
 import { Shared, restoreWeave } from '../look/style';
@@ -107,11 +105,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // every code-built model is a row of the world-scene catalogue (generators/worldScenes.ts), placed on the shared context
   const catalogueRows = parseWorldSceneModels(await product.json<unknown>('models/world-scenes.json')), keys = new Map(catalogueRows.models.map(row => [row.id, row.key]));
   const models = { ctx: sharedModelContext(opts.sky, { renderer }), model: defineWorldSceneCatalogue(catalogueRows).model };
-  const paintStart = performance.now();
-  const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
-    .then((paint) => { phaseDone('paint', paintStart); return paint; });
-  const paint = await paintReady;
-  shared.u.uPaint.value = paint.tex;
   progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
@@ -171,12 +164,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await loadSpill(kitGeos, tier, entryCaps);
   phaseDone('neon spill', phaseStart);
   phaseStart = performance.now();
-  // the world's banyan crown and the Well's mist: the catalogue's `dressing` step (its crown spilled like the kits)
-  const leafAtlas = opts.scope.own(await loadTextureRow(canopyRows.atlas)), image: unknown = leafAtlas.image;
-  if (typeof image !== 'object' || image === null || !('width' in image) || !('height' in image)
-    || typeof image.width !== 'number' || typeof image.height !== 'number' || image.width <= 0 || image.height <= 0) throw new Error('Canopy atlas needs its pixel dimensions');
-  setLentTexture('nine-canopy-cards', 'atlas', leafAtlas);
-  setLentParam('nine-canopy-cards', 'atlasSize', [image.width, image.height]);
+  // the world's banyan crown and the Well's mist: the catalogue's `dressing` step (its crown spilled like the kits; its
+  // leaf atlas, the paint and the scroll are the step's lent textures)
   for (const row of canopyRows.draws) lentLook(row.look).setValues(row.state);
   if (opts.scenes.has('dressing.crown-core')) {
     const crownPart = (id: string): BufferGeometry => { const part = opts.scenes.object(`dressing.${id}`); if (!isMesh(part)) throw new Error(`Nine dressing ${id} is no mesh`); return part.geometry; };
@@ -305,9 +294,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   registerSigns(nd.ctx, signs, { atlas: signsMesh, neon: neonMeshes.boards });
   await slice();
 
-  // the painted sky and the scroll screen are the dressing step's (generators/worldScenes.ts); their lent textures
+  // the painted sky is the dressing step's (generators/worldScenes.ts); its silk is the shared weave
   setLentTexture('nine-sky', 'silk', shared.u.uSilk.value);
-  setLentTexture('nine-scroll', 'scroll', opts.scope.own(await loadTextureRow({ url: '/assets/nine-dragon/lab/organic/scroll.webp', srgb: true, wrapT: ClampToEdgeWrapping, anisotropy: 4 })));
   progress(0.75, 'crowd models');
   phaseDone('streaks + dressing', phaseStart);
 
