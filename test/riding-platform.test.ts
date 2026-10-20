@@ -11,13 +11,13 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { DiscOpts } from '@wildshard/engine/ui/hudSlots';
 import type { RideHudState, MountProfile } from '@wildshard/format/riding';
-import { admitRenderedHerds, RidingActions, type PageTamingOwner } from '@wildshard/game/riding/client';
+import { admitRenderedHerds, admitRidingWind, createPageRiding, RidingActions, type PageTamingOwner } from '@wildshard/game/riding/client';
 import fixturePrograms from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
 import { Mount } from '@wildshard/game/riding/mount';
 import { RideHUD } from '@wildshard/game/riding/hud';
 import { legacyDouble } from './fake/FakeGame';
 
-function fixture(kind: string, speeds: MountProfile['speeds']): { mount: Mount; actor: Animal; scope: Scope; ctx: LevelContext; camera: PerspectiveCamera; slots: DiscOpts[]; widgets: string[] } {
+function fixture(kind: string, speeds: MountProfile['speeds'], registerMode = true): { player: Player; animals: AnimalManager; mount: Mount; actor: Animal; scope: Scope; ctx: LevelContext; camera: PerspectiveCamera; slots: DiscOpts[]; widgets: string[] } {
   const scope = new Scope('riding-fixture'), app = new App(), camera = new PerspectiveCamera(), slots: DiscOpts[] = [], widgets: string[] = [];
   scope.onDispose(overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }));
   const ctx = legacyDouble<LevelContext>({ app, scope, hud: {
@@ -26,14 +26,14 @@ function fixture(kind: string, speeds: MountProfile['speeds']): { mount: Mount; 
     relabel: (): (() => void) => () => undefined, verb: (): void => undefined, pin: (): void => undefined,
   } });
   const player = legacyDouble<Player>({ camera, position: new Vector3(), velocity: new Vector3(), keys: new Set<string>(), touchMove: { x: 0, y: 0 }, touchJump: false, moveScale: 1,
-    yaw: 0, pitch: 0, hover: false, swimming: false, wading: false, ride: null,
+    yaw: 0, pitch: 0, crouching: false, hover: false, swimming: false, wading: false, ride: null,
     setHover: (): void => undefined, setBodyEnabled: (): void => undefined });
   const actor = legacyDouble<Animal>({ entityId: 'fixture.mount', kind, variant: 'starter', alive: true, hidden: false, hp: 100, maxHp: 100,
-    yaw: 0, gaitPhase: 0, scale: 1, seed: .5, position: new Vector3(3, 0, 5), lookTarget: new Vector3(), mem: {}, mesh: new SkinnedMesh(),
+    yaw: 0, speed: 0, state: 'idle', lookWeight: 0, gaitPhase: 0, scale: 1, seed: .5, position: new Vector3(3, 0, 5), lookTarget: new Vector3(), mem: {}, mesh: new SkinnedMesh(),
     setMotion: (): void => undefined });
   const animals = legacyDouble<AnimalManager>({ animals: [actor] });
-  playerModes(player).register({ id: 'ride', hud: 'ride' }, scope);
-  return { mount: new Mount(ctx, player, animals, { speeds, names: {}, thrownDamage: 7, thrownLabel: 'Thrown', restAt: { x: 3, z: 5 } }), actor, scope, ctx, camera, slots, widgets };
+  if (registerMode) playerModes(player).register({ id: 'ride', hud: 'ride' }, scope);
+  return { player, animals, mount: new Mount(ctx, player, animals, { speeds, names: {}, thrownDamage: 7, thrownLabel: 'Thrown', restAt: { x: 3, z: 5 } }), actor, scope, ctx, camera, slots, widgets };
 }
 
 test.each([
@@ -124,4 +124,30 @@ test('fixture riding actions selects the rail prompt and emits a naming row', ()
     actions.observe(.1, true);
     expect(actions.interactable.label).not.toBe('Name Orchard mule');
   } finally { f.scope.dispose(); }
+});
+
+
+test('full orchard riding session owns its native mount and data prompts', () => {
+  const speeds = { walk: 1, trot: 3, canter: 5, gallop: 8 }, f = fixture('fixture-mule', speeds, false);
+  const ctx = legacyDouble<LevelContext>({ ...f.ctx, on: () => undefined });
+  admitRenderedHerds(f.scope, 'orchard.herds', []); admitRidingWind(f.scope, { x: 0, z: 1, strength: .2 });
+  const rest = { x: 3, z: 5, face: { x: 0, z: 1 } };
+  const session = createPageRiding(ctx, f.player, f.animals, f.camera, {
+    profile: { speeds, names: {}, thrownDamage: 7, thrownLabel: 'Thrown', restAt: rest }, mode: { id: 'ride', hud: 'ride' },
+    mountables: [{ id: f.actor.entityId, name: 'Orchard mule' }],
+    taming: { herds: 'orchard.herds', programs: fixturePrograms, savedBond: null, rest,
+      adopted: { kind: 'fixture-mule', variant: 'companion', upgrade: { scale: 1.2, colour: [.5, .6, .7] } }, thrownLabel: 'Thrown',
+      binding: { upgradeKind: 'silver-mule', bonds: ['mule', 'silver-mule'], names: ['Mule', 'Silver mule'], offset: [2, 0],
+        fields: { upgraded: 'argymaq', horseUpgraded: 'horseArgymaq', candidateUpgraded: 'argymaq' },
+        labels: { mount: 'Mount', breaking: 'Breaking', trust: 'Trust', start: 'Tame', thrown: 'Thrown', bonded: ['Bonded', 'Silver bond'] } } },
+    actions: { herds: 'orchard.herds', program: fixturePrograms.riding, rail: rest, tagRange: 30, tagHeight: 2,
+      labels: { name: 'Name', panic: ' startled', thrown: 'Thrown', bolt: ' resting' }, squeal: 'mule-call' },
+  });
+  try {
+    f.camera.position.set(3, 1.5, 6.15); session.update(.1, false, false, false);
+    expect(session.interactable.label).toBe('Name Orchard mule'); session.interactable.onInteract();
+    expect(session.drainEvents()).toEqual([{ kind: 'name', actor: f.actor.entityId, current: 'Orchard mule' }]);
+    expect(session.mount.mount(f.actor.entityId)).toBe(true);
+    expect(session.mount.mounted).toBe(true); expect(session.taming.phase).toBe('wild');
+  } finally { session.mount.dismount(); f.scope.dispose(); }
 });

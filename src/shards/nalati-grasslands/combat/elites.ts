@@ -35,7 +35,7 @@ interface Env {
   game: Game; sky: Sky; player: Player; animals: AnimalManager; charge: SpawnScriptRows;
   elites: Elites; bar: EliteBar; conditions: EventConditions;
   wildlife: Wildlife | null;
-  taming: { phase: string; tulpar: Animal | null } | null;
+  taming: { phase: string; companion: Animal | null } | null;
   ghosts: GhostsApi | null;
   ledges: Ledge[];
   hurt: (a: Animal, dmg: number) => void;
@@ -74,7 +74,7 @@ export interface ElitesPlay {
   persistence?: ElitePersistence;
   animals: AnimalManager;
   wildlife: Wildlife | null;
-  taming: { phase: string; tulpar: Animal | null } | null;
+  taming: { phase: string; companion: Animal | null } | null;
   ghosts: GhostsApi | null;
   interactables: Interactable[];
   toast: (text: string) => void;
@@ -140,7 +140,7 @@ export class NalatiElites {
     const env = keeperEnvs.get(this); if (env === undefined) return;
     for (const script of this.scripts) if (script instanceof ExternalElitePage) script.observe(dt, {
       available: script.row.mode === 'script' ? env.ghosts !== null : env.wildlife !== null,
-      kills: env.ghosts?.killsTonight ?? 0, bonded: env.taming?.phase === 'bonded', mount: env.taming?.tulpar ?? null });
+      kills: env.ghosts?.killsTonight ?? 0, bonded: env.taming?.phase === 'bonded', mount: env.taming?.companion ?? null });
   }
   update(dt: number, t: number): void {
     for (const script of this.scripts) if (script instanceof KeeperElitePage) {

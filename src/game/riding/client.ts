@@ -11,7 +11,9 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { TamingBinding } from './binding';
 import type { TamingObservation } from './bindingTypes';
 import type { TamingPrograms } from './taming';
-import type { Mount } from './mount';
+import { Mount } from './mount';
+import type { MountProfile } from '@wildshard/format/riding';
+import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../population/returnProgram';
 import { RideHUD } from './hud';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
@@ -39,7 +41,7 @@ export interface PageTamingRows {
   herds: string; programs: TamingPrograms; binding: unknown; savedBond: string | null;
   rest: { x: number; z: number; face: { x: number; z: number } };
   adopted: { kind: string; variant: string; upgrade: { scale: number; colour: readonly number[] } };
-  thrownLabel: string;
+  thrownLabel: string; breakingContext?: string; stowOnBreaking?: boolean;
 }
 export type PageTamingEvent = { kind: 'notice'; text: string } | { kind: 'bond'; value: string }
   | { kind: 'bonded'; actor: string } | { kind: 'breaking'; on: boolean };
@@ -90,7 +92,11 @@ export function createPageTaming(ctx: LevelContext, player: Player, animals: Ani
   });
   law.input = ctx.app.input;
   law.onBonded = actor => { events.push({ kind: 'bonded', actor: actor.entityId }); };
-  law.onBreaking = on => { events.push({ kind: 'breaking', on }); };
+  law.onBreaking = on => {
+    if (rows.breakingContext !== undefined) { if (on) ctx.app.input.push(rows.breakingContext, ctx.scope); else ctx.app.input.pop(rows.breakingContext); }
+    if (rows.stowOnBreaking === true && ctx.app.equipment !== null) ctx.app.equipment.stowed = on;
+    events.push({ kind: 'breaking', on });
+  };
   ctx.scope.onDispose(() => { law.input = null; });
   return { get phase() { return law.phase; }, get companion() { return law.companion; }, get upgraded() { return law.upgraded; },
     get promptHorse() { return law.promptHorse; }, view: law.view, interactable: law.interactable,
@@ -190,3 +196,35 @@ export class RidingActions {
   }
   drainEvents(): RidingActionEvent[] { const events = this.events; this.events = []; return events; }
 }
+
+export interface PageRidingRows {
+  profile: MountProfile; taming: PageTamingRows; actions: RidingActionRows;
+  mountables: readonly { id: string; name: string }[]; mode: { id: 'ride'; hud: 'ride' };
+}
+export type PageRidingEvent = PageTamingEvent | RidingActionEvent;
+/** One client owner for mount, taming, HUD and prompts. Shard presentation drains
+ * data events; gameplay services never receive a shard effect callback. */
+export interface PageRidingSession {
+  readonly mount: Mount; readonly taming: PageTamingOwner; readonly hud: RideHUD; readonly interactable: Interactable;
+  readonly names: Record<string, string>; update: (dt: number, wet: boolean, blocked: boolean, namingOpen: boolean) => void;
+  drainEvents: () => PageRidingEvent[];
+}
+export function createPageRiding(ctx: LevelContext, player: Player, animals: AnimalManager, camera: THREE.PerspectiveCamera, rows: PageRidingRows): PageRidingSession {
+  const mount = new Mount(ctx, player, animals, rows.profile);
+  for (const entry of rows.mountables) mount.addMountable(entry.id, entry.name);
+  playerModes(player).register(rows.mode, ctx.scope);
+  const taming = createPageTaming(ctx, player, animals, mount, rows.taming);
+  const actions = new RidingActions(ctx, mount, taming, player, camera, animals, rows.actions);
+  return { mount, taming, hud: actions.hud, interactable: actions.interactable, names: rows.profile.names,
+    update: (dt, wet, blocked, namingOpen) => { actions.advanceMount(dt, wet, blocked); taming.update(dt); actions.observe(dt, namingOpen); },
+    drainEvents: () => [...taming.drainEvents(), ...actions.drainEvents()] };
+}
+
+const PagePreset = v.strictObject({ mode: v.strictObject({ id: v.literal('ride'), hud: v.literal('ride') }), mountableLabel: v.string(),
+  taming: v.strictObject({ herds: v.string(), adopted: v.strictObject({ kind: v.string(), variant: v.string(),
+    upgrade: v.strictObject({ scale: v.number(), colour: v.tuple([v.number(),v.number(),v.number()]) }) }),
+    thrownLabel: v.string(), breakingContext: v.string(), stowOnBreaking: v.boolean() }),
+  actions: v.strictObject({ herds: v.string(), tagRange: v.number(), tagHeight: v.number(), squeal: v.string(),
+    labels: v.strictObject({ name: v.string(), panic: v.string(), thrown: v.string(), bolt: v.string() }) }) });
+/** Admit the shard's client labels, input contexts, upgrade look and HUD tuning. */
+export function readPageRidingPreset(input: unknown): v.InferOutput<typeof PagePreset> { return v.parse(PagePreset,input); }

@@ -14,7 +14,7 @@ import type { Bow } from '@wildshard/game/weapons/Bow';
 import type { Wildlife } from '../creatures/wildlife';
 import type { SabreWeapon as Sabre, NaizagaiPowerHandle as NaizagaiPower } from '../weapons/nativeMelee';
 import type { NalatiWeather } from '../world/installWeather';
-import type { Ride } from '../ride/ride';
+import type { Ride } from '../runtime/state';
 
 import type { GoldenBowPower } from '../runtime/weapons/GoldenBow';
 import type { KurganEntrance } from '../world/types';

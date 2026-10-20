@@ -127,5 +127,42 @@
       "tawny",
       "scout"
     ]
+  },
+  "client": {
+    "mode": {
+      "id": "ride",
+      "hud": "ride"
+    },
+    "mountableLabel": "Camp horse",
+    "taming": {
+      "herds": "nalati.herds",
+      "adopted": {
+        "kind": "horse",
+        "variant": "tulpar",
+        "upgrade": {
+          "scale": 1.3,
+          "colour": [
+            0.62,
+            0.64,
+            0.72
+          ]
+        }
+      },
+      "thrownLabel": "Thrown from the saddle",
+      "breakingContext": "ride.break",
+      "stowOnBreaking": true
+    },
+    "actions": {
+      "herds": "nalati.herds",
+      "tagRange": 30,
+      "tagHeight": 2.35,
+      "labels": {
+        "name": "Name",
+        "panic": " panics at the lightning \u2014 hold on",
+        "thrown": "Thrown!",
+        "bolt": " bolts for the camp \u2014 it needs a rest"
+      },
+      "squeal": "horse_squeal"
+    }
   }
 }

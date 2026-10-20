@@ -8,7 +8,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { buildPracticeScene } from '@wildshard/game/practice/scene';
 import * as THREE from 'three';
 import type { RidingPracticeLayout } from '@wildshard/format/practiceCourse';
-import type { Ride } from '../ride/ride';
+import type { Ride } from '../runtime/state';
 
 const HORSE_NAME = 'Track horse', FILE = 'src/shards/nalati-grasslands/playground/HorsePlayground.ts';
 

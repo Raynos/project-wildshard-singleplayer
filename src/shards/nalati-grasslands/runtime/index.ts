@@ -184,7 +184,6 @@ export class NalatiPlugin extends ShardPlugin {
       record: (kind, variant) => { persistence.kill(kind, variant); persistence.feat(kind); }, ownSkin: (id) => { rt.skins.own(id); } }));
     // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
     if (retainsRuntimeServices(ctx)) rt.elites.initialize();
-    if (ride !== null) ride.taming.onBonded = () => { persistence.feat('tame'); };
     ctx.on('player.died', () => { if (ride?.mounted === true) ride.mount.dismount(); });
     ctx.on('player.respawned', () => { kit.refill(); });
     const health = ctx.app.player;

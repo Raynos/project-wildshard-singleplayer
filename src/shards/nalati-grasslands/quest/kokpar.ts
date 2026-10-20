@@ -105,7 +105,7 @@ export async function installNalatiQuestView(ctx: ShardContext, rt: Pick<Nalati,
   const kokpar = kokparView({ ctx, sky, hud, music, player, ride, persistence }, floorAt, kokparRows);
   game.scene.add(kokpar.object);
   let now = 0, slowT = 0, eliteT = -1e9;
-  const poll = (): void => { chapter.project('quest', { now, bonded: Number(ride?.taming.phase === 'bonded'), argymaq: Number(ride?.taming.isArgymaq === true),
+  const poll = (): void => { chapter.project('quest', { now, bonded: Number(ride?.taming.phase === 'bonded'), argymaq: Number(ride?.taming.upgraded === true),
     inside: Number(rt.boss.inside), tied: Number(rt.titan.fight.tied) });
     if (now - eliteT > 2) { eliteT = now; chapter.project('feathers', { now }); }
   };
