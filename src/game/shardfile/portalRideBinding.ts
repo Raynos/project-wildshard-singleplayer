@@ -3,8 +3,7 @@
  * reports. The renderer-free ride (walkInPortalRide.ts) runs after the player on the page's update and on the host's
  * fixed step with exact continuation; the page draws only the veil. No shard identifier or callback enters here. */
 import * as v from 'valibot';
-import { declarePanel, type PanelNode } from '@wildshard/engine/ui/panel';
-import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
+import type { PanelNode } from '@wildshard/engine/ui/panel';
 import type { PortalLinkEntry, portalLinkRules } from '@wildshard/format/portalLinkAssets';
 import { createPortalRide, PortalRideStateSchema, type PortalRideState, type RideRings } from './walkInPortalRide';
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from './portalTraversal';
@@ -92,7 +91,8 @@ export function bindPortalRide(rider: PortalRider, veil: (amount: number) => voi
 }
 
 /** The page's ride: its veil panel in the HUD and its step after the player's, for the level's lifetime. */
-export function installPortalRide(ctx: Pick<ShardContext, 'game' | 'system'>, source: PortalSource, rows: PortalRideRows, facts: PortalFacts): PortalRide {
+export async function installPortalRide(ctx: Pick<ShardContext, 'game' | 'system'>, source: PortalSource, rows: PortalRideRows, facts: PortalFacts): Promise<PortalRide> {
+  const [{ declarePanel }, { mountUi, uiScope }] = await Promise.all([import('@wildshard/engine/ui/panel'), import('@wildshard/engine/ui/ownership')]);
   const world = ctx.game.runtime?.world;
   if (world === undefined || world === null) throw new Error('The portal ride needs its entered world');
   const owner = uiScope('PortalVeil'), panel = declarePanel(rows.veil);

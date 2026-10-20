@@ -117,7 +117,7 @@ export class NdPlugin extends ShardPlugin {
     // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the checked transfer under the dark)
     if (this.shell?.world !== undefined && this.shell.world !== null) {
       const { portalRide } = await ctx.product.json<{ readonly portalRide: PortalRideRows }>('sim/headless-constants.json');
-      this.portals = installPortalRide(ctx, source, portalRide, facts);
+      this.portals = await installPortalRide(ctx, source, portalRide, facts);
     }
   }
   /** G224: the portals while they run (captures read them through the shard handle) */
