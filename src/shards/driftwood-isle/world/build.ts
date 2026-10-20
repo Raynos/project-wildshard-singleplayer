@@ -17,9 +17,8 @@ import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import { floorAtRects } from '@wildshard/engine/physics/box';
-import { pathRampDescs } from '@wildshard/engine/physics/paths';
+import { installPagePathRamps } from '@wildshard/game/shardfile/pagePreparation';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import manifest from '../discovery.generated';
 import { WaterSurface, waterSurfaceLook } from '@wildshard/game/systems/looks/waterSurface';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
@@ -77,7 +76,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const landings = (await driftwoodProduct().json<EntryLandings>('world/entry-landings.json')).rows, fixed = driftwoodRows('custom/fixedLayouts');
   if (fixed.entryDecks.some(({ rect }) => rect.minX >= rect.maxX || rect.minZ >= rect.maxZ)) throw new Error('Entry deck requires a positive footprint');
   const { game, sky, player, registry } = world;
-  const [{ cutTerrain }, { normalAt, TRAILS }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
+  const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, world/islandCover.ts)
   const sea = { level: LOWERED_SEA };
   const slice = slicer(30, progress);
@@ -235,8 +234,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   game.onFixed('post', () => { bridgeDeck.capture(); }, 'shard.driftwood.bridge.capture');
   // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — after the decks register,
   // so none where a deck carries the path (a board there pokes up through the bridge's planks); `ground.paths: 'plugin'`
-  registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
-    colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
+  installPagePathRamps(registry, { id: 'paths', name: 'Paths' });
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52; the only island since E136): it sits on the procedural cove.
   // The island and tier cover file are required boot content. Let the level loader dispose and
   // report a failed world stage; never substitute procedural scenery for damaged assets.
