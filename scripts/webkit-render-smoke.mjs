@@ -75,14 +75,17 @@ function measure(arg) {
 
 const browser = await webkit.launch({ headless: true });
 const failures = [], rows = [];
+const errors = [], consoleErrors = [];
+/** @type {import('playwright').Page | undefined} */
+let page;
 try {
   const { defaultBrowserType: _engine, ...phone } = devices['iPhone 16 Pro'];
   const context = await browser.newContext({ ...phone, serviceWorkers: 'block' });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true }); // the template is Developer-only
   await context.addInitScript(() => { HTMLMediaElement.prototype.play = () => Promise.resolve(); }); // muted, whatever the URL
-  const page = await context.newPage();
-  const errors = [];
+  page = await context.newPage();
   page.on('pageerror', (e) => { errors.push(e.message.slice(0, 240)); });
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 500)); });
   await page.goto(`${base}?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game && window.__wildshard.world.weapons && !document.querySelector('.ws-load')), null, { timeout: 60_000, polling: 250 });
   await page.waitForTimeout(1500);
@@ -110,6 +113,16 @@ try {
     if (m.share < MAP_SHARE) failures.push(`driftwood minimap at ${at}: ${(m.share * 100).toFixed(0)}% of the disc shows the map (min ${MAP_SHARE * 100}%): blank in WebKit`);
   }
   if (errors.length > 0) failures.push(`page errors: ${errors.join(' | ')}`);
+} catch (error) {
+  const state = await page?.evaluate(() => ({
+    url: location.href,
+    world: Boolean(window.__wildshard?.world?.game),
+    minimap: Boolean(document.querySelector('.ws-minimap-canvas')),
+    loading: document.querySelector('.ws-load')?.textContent,
+    text: document.body.textContent.slice(-3000),
+  })).catch((/** @type {unknown} */ failure) => ({ error: String(failure) }));
+  console.error(JSON.stringify({ gate: 'webkit-render-smoke', error: String(error), rows, errors, consoleErrors, state }));
+  throw error;
 } finally {
   await browser.close();
   await new Promise((resolve) => { if (server === null) resolve(undefined); else server.httpServer.close(() => { resolve(undefined); }); });
