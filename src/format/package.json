@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./creatureGuest": "./creatureGuest.ts",
     "./nativeQuestComposition": "./nativeQuestComposition.ts",
     "./roamingCombat": "./roamingCombat.ts",
     "./roamingBossProjection": "./roamingBossProjection.ts",

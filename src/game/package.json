@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./population/creatureGuest": "./population/creatureGuest.ts",
     "./quest/nativeInputs": "./quest/nativeInputs.ts",
     "./quest/nativeComposition": "./quest/nativeComposition.ts",
     "./combat/roamingSession": "./combat/roamingSession.ts",

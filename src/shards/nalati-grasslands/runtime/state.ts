@@ -358,7 +358,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       installRide(plugin, ride);
 
       if(p.kit!==null){const bow=p.kit.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);}
-      night.bindKit(p.kit);
       ride.bind({ toast: p.toast });
       painter = clientCosmeticFinishes(plugin).painter;
     },

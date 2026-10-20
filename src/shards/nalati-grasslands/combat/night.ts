@@ -18,7 +18,6 @@ import type * as THREE from 'three';
 import type { Balbals } from '../world/Balbals';
 
 
-import type { NalatiLoadout } from '../weapons/loadout';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import * as v from 'valibot';
 import { BalbalWarriors } from './balbalWarriors';
@@ -48,7 +47,6 @@ export interface NightEnemies {
   riders: GhostRiders;
   update: (dt: number, t: number) => void;
   attach: (animals: AnimalManager) => void;
-  bindKit: (kit: NalatiLoadout | null) => void;
   target: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, hit: TargetHit | null) => TargetHit | null;
 }
 
@@ -77,7 +75,6 @@ export async function wireNightEnemies(ctx: NightEnemiesCtx): Promise<NightEnemi
         if (a !== undefined) sampleStrike(NALATI_STRIKES.arrow, a, ctx.player.position, () => { encounterHit(a, damage, 'creature.ghost-rider', ctx.player.position); }, { origin: ctx.player.position });
       };
     },
-    bindKit(kit) { balbals.bindKit(kit); },
     target(origin, dir, maxDist, hit) { return riders.riderTarget(origin, dir, maxDist, hit); },
   };
 }

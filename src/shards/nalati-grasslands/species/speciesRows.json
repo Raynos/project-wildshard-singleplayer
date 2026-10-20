@@ -164,5 +164,129 @@
       0.5
     ],
     "group": "king.observe"
+  },
+  "balbalGuest": {
+    "clock": "balbalThinkAt",
+    "playerKeys": [
+      "balbalPlayerX",
+      "balbalPlayerZ"
+    ],
+    "memory": {
+      "field": {
+        "value": 0
+      },
+      "t": {
+        "value": 0
+      },
+      "cd": {
+        "value": 0
+      },
+      "hit": {
+        "value": 0
+      },
+      "gone": {
+        "value": 0
+      },
+      "slamT": {
+        "value": 0
+      },
+      "init": {
+        "value": 0
+      },
+      "dawn": {
+        "value": 0
+      },
+      "minX": {
+        "value": 0
+      },
+      "maxX": {
+        "value": 0
+      },
+      "minZ": {
+        "value": 0
+      },
+      "maxZ": {
+        "value": 0
+      },
+      "st": {
+        "value": 1
+      },
+      "rise": {
+        "value": 0,
+        "when": {
+          "field": "init",
+          "equal": 1,
+          "value": 1
+        }
+      },
+      "emerge": {
+        "value": 1
+      },
+      "emergeT": {
+        "value": 1.6
+      },
+      "dmg": {
+        "value": 18,
+        "when": {
+          "field": "field",
+          "equal": 1,
+          "value": 30
+        }
+      },
+      "homeX": {
+        "value": 0,
+        "source": "x"
+      },
+      "homeZ": {
+        "value": 0,
+        "source": "z"
+      },
+      "homeYaw": {
+        "value": 0,
+        "source": "yaw"
+      }
+    },
+    "writes": [
+      "st",
+      "t",
+      "cd",
+      "rise",
+      "emerge",
+      "hit",
+      "gone",
+      "slamT",
+      "open"
+    ],
+    "states": [
+      "rise",
+      "idle",
+      "stalk",
+      "wander",
+      "attack"
+    ],
+    "sounds": [
+      "",
+      "bear_growl",
+      "bear_roar",
+      "coconut_land"
+    ],
+    "attack": 2.9,
+    "strikeSound": "sailor_slash",
+    "length": [
+      3.1,
+      1.18,
+      0.4
+    ],
+    "radius": 0.24,
+    "piercing": {
+      "legacy": "dmg.legacy",
+      "tags": [
+        "weapon.spear",
+        "weapon.javelin"
+      ],
+      "equipment": [
+        "weapon.spear"
+      ]
+    }
   }
 }

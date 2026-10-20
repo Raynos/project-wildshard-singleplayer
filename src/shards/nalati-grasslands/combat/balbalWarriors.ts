@@ -15,7 +15,7 @@ import * as THREE from 'three';
 import type { Balbals } from '../world/Balbals';
 
 
-import { BALBAL, BALBAL_SLAM, balbalCombat, onBalbalCrack } from '../species/rows';
+import { BALBAL, BALBAL_SLAM, onBalbalCrack } from '../species/rows';
 import { type FxRenderer, NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';
 
 
@@ -40,7 +40,6 @@ import { type FxRenderer, NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW }
  */
 
 export interface BalbalWarriorsCtx { scene: THREE.Scene; balbals: Balbals | null; clock: DayCycleClock; scope: Scope }
-interface KitLike { sabre: { model: THREE.Object3D }; spear: { model: THREE.Object3D } }
 interface Warrior { a: Animal; statue: number; sparkT: number; lastHp: number; wedge: GroundTell }
 
 
@@ -65,15 +64,12 @@ export class BalbalWarriors {
   /** fired when one breaks (the kill feed / achievements already get it through animals.onKill) */
   onBroken?: ((a: Animal) => void) | undefined;
   private animals: AnimalManager | null = null;
-  private kit: KitLike | null = null;
   private readonly wedges: GroundTell[] = [];
   private readonly roster: EncounterSlots;
   private soilAcc = 0;
 
   constructor(private readonly ctx: BalbalWarriorsCtx, nightRows: NightRows) {
     this.roster = new EncounterSlots(nightRows.slots, ReturnProgram.page(nightRows.program, ctx.scope));
-    balbalCombat.isPiercing = request => request === undefined || request.sourceTags.includes('dmg.legacy') ? undefined
-      : request.sourceTags.includes('weapon.spear') || request.sourceTags.includes('weapon.javelin');
     this.debris = new NightParticles(ctx.scene, 'debris');
     for (let i = 0; i < 6; i++) this.wedges.push(new GroundTell(ctx.scene, 'wedge', 0, wedgeStyle(nightRows)));
     ctx.scope.onDispose(app.debug.scopedExpose('nalati.balbals', this)); // dev / screenshots
@@ -84,7 +80,6 @@ export class BalbalWarriors {
     animals.factory.model(BALBAL, 'warrior'); animals.factory.model(BALBAL, 'capped'); // build now, not at dusk
   }
 
-  bindKit(kit: KitLike | null): void { this.kit = kit; }
 
   /** dusk: tear the chosen statues out of the ground */
   wake(which?: number[]): void {
@@ -121,12 +116,6 @@ export class BalbalWarriors {
   }
 
   update(dt: number, _t: number, camera: THREE.PerspectiveCamera, renderer: FxRenderer, light: number): void {
-    const k = this.kit;
-    if (k !== null) {
-      const equipment = app.equipment;
-      const id = equipment !== null && equipment.visible && !equipment.stowed ? equipment.current.row.id : undefined;
-      balbalCombat.melee = id === 'weapon.sabre' || id === 'weapon.naizagai' ? 'sabre' : id === 'weapon.spear' ? 'spear' : 'other';
-    }
     const phase = this.ctx.clock.dayPhase;
     const step = this.roster.update(this.animals === null ? 0 : dt, { kind: Number(phase === 'dusk' || phase === 'night') },
       this.awake.map(w => ({ id: w.a.entityId, fields: { alive: Number(w.a.alive), gone: w.a.mem['gone'] ?? 0 } })));

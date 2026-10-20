@@ -11,11 +11,9 @@ import { productRiggedHulls, type RiggedHulls } from '@wildshard/sdk/looks/rigge
 import { HORSE_SPECIES } from './horse';
 import { WOLF_SPECIES } from './wolf';
 import { SHEEPDOG_SPECIES } from './sheepdog';
-import { NALATI_STRIKES, sampleStrike } from '../combat/strikes';
-import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
-import { preloadNalatiBodies, nalatiBody, poseNalatiCreature, balbalCrackGeometry, balbalProgram } from './presentation';
+import { PageCreatureGuest } from '@wildshard/game/population/creatureGuest';
+import { preloadNalatiBodies, nalatiBody, poseNalatiCreature, balbalCrackGeometry, speciesGuestRows } from './presentation';
 import * as THREE from 'three';
-import * as schema from 'valibot';
 import { CreatureFrame } from '@wildshard/game/population/creatureFrame';
 import { NO_FUR, smooth01, step } from '@wildshard/engine/entities/species/rigs';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
@@ -29,39 +27,13 @@ import { KOKBORI_SPECIES } from './kokbori';
 
 export const BALBAL = speciesRows.balbal.kind;
 export const BALBAL_SLAM = speciesRows.slam;
-export const balbalCombat: { melee: 'sabre' | 'spear' | 'other'; isPiercing?: (request: DamageRequest | undefined) => boolean | undefined } = { melee: 'other' };
 const cracks = new WeakMap<Animal, THREE.MeshBasicMaterial>();
-const localHit = new THREE.Vector3();
-const weak = speciesRows.weak.map(([x, y, z]) => new THREE.Vector3(x, y, z));
-/** A geometric contact query, shared by hit effects and the event-driven damage law. */
-export function onBalbalCrack(a: Animal, point: THREE.Vector3): boolean {
-  localHit.copy(point).sub(a.position); localHit.y -= a.yOffset;
-  const cos = Math.cos(-a.yaw), sin = Math.sin(-a.yaw), x = localHit.x * cos + localHit.z * sin, z = -localHit.x * sin + localHit.z * cos;
-  localHit.set(x, localHit.y, z).multiplyScalar(1 / a.scale);
-  return weak.some(w => localHit.distanceTo(w) < .24);
+let guest: PageCreatureGuest | null = null;
+function creatureGuest(): PageCreatureGuest {
+  guest ??= new PageCreatureGuest({ ...speciesRows.balbalGuest,...speciesGuestRows(),weak: speciesRows.weak });
+  return guest;
 }
-function thinkBalbal(a: Animal, c: ThinkCtx): void {
-  const m = a.mem, previous = m['balbalThinkAt'], dt = previous === undefined ? c.dt : c.t - previous;
-  if (previous !== undefined && dt < .1 - 1e-9) return;
-  const n = (key: string, fallback = 0) => m[key] ?? fallback;
-  const bearing = Math.atan2(c.player.x - a.position.x, c.player.z - a.position.z), homeBearing = Math.atan2(n('homeX', a.position.x) - a.position.x, n('homeZ', a.position.z) - a.position.z);
-  const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
-  const answer = balbalProgram(app.levelScope ?? undefined).project('think', { bearing, homeBearing, homeOff: wrap(n('homeYaw', a.yaw) - a.yaw), hitOff: wrap(bearing - a.yaw), dt, field: n('field'), px: c.player.x, py: c.player.y, pz: c.player.z,
-    x: a.position.x, ay: a.position.y, z: a.position.z, yaw: a.yaw, st: n('st', 1), t: n('t'), cd: n('cd'), rise: n('rise', m['init'] === 1 ? 1 : 0),
-    emerge: n('emerge', 1), hit: n('hit'), gone: n('gone'), slamT: n('slamT'), state: ['rise', 'idle', 'stalk', 'wander', 'attack'].indexOf(a.state), init: n('init'),
-    homeX: n('homeX', a.position.x), homeZ: n('homeZ', a.position.z), homeYaw: n('homeYaw', a.yaw), calm: Number(c.calm), dawn: n('dawn'), emergeT: n('emergeT', 1.6), attack: a.attackPhase,
-    bounds: Number(['minX', 'maxX', 'minZ', 'maxZ'].every(key => m[key] !== undefined)), minX: n('minX'), maxX: n('maxX'), minZ: n('minZ'), maxZ: n('maxZ'), scale: a.scale, dmg: n('dmg', m['field'] === 1 ? 30 : 18) });
-  const out = (key: string): number => { const value = answer[key]; if (value === undefined) throw new Error('Missing balbal decision'); return value; };
-  for (const key of ['st', 't', 'cd', 'rise', 'emerge', 'hit', 'gone', 'slamT', 'open']) m[key] = out(key);
-  m['init'] = 1; m['balbalThinkAt'] = c.t; m['balbalPlayerX'] = c.player.x; m['balbalPlayerZ'] = c.player.z;
-  a.position.x = out('x'); a.position.z = out('z'); a.lookTarget.copy(c.player); a.lookWeight = out('look');
-  const state = (['rise', 'idle', 'stalk', 'wander', 'attack'] as const)[out('state')]; if (state !== undefined) a.state = state;
-  if (out('start') === 1) a.startAttack(2.9);
-  if (out('motion') === 1) { if (out('path') === 1) c.steer(a, out('yaw'), out('speed'), out('turn')); else a.setMotion(out('yaw'), out('speed'), out('turn')); }
-  if (out('cancel') === 1) a.cancelAttack();
-  if (out('strike') === 1) { sampleStrike(NALATI_STRIKES.balbal, a, c.player, () => { c.hurt(out('damage')); }, { shape: { kind: 'wedge', length: 3.1 * a.scale / 1.18 + .4, halfAngle: .96 }, reach: () => c.reach(a) }); c.sound('sailor_slash'); }
-  const sound = (['', 'bear_growl', 'bear_roar', 'coconut_land'] as const)[out('sound')]; if (sound !== undefined && sound !== '') c.sound(sound);
-}
+export function onBalbalCrack(a: Animal, point: THREE.Vector3): boolean { return creatureGuest().weakPoint(a,point); }
 function animateBalbal(c: RigAnimCtx): void {
   const m = c.mem, a = c.animal;
   let material = cracks.get(a);
@@ -79,15 +51,11 @@ function animateBalbal(c: RigAnimCtx): void {
   a.yOffset = (m['field'] === 1 ? -(1 - smooth01(m['rise'] ?? 1)) * 2.5 * a.scale : (m['floorY'] ?? ground) - ground) - sink;
   poseNalatiCreature('balbal', c);
 }
-const finite = schema.pipe(schema.number(), schema.finite());
 export const BALBAL_SPECIES: SpeciesDef = {
   ...speciesRows.balbal, fur: NO_FUR,
-  build: variant => nalatiBody('balbal', variant), animate: animateBalbal, think: thinkBalbal,
-  damageMul: (a, point, _direction, request) => schema.parse(finite, balbalProgram(app.levelScope ?? undefined).project('damage', {
-    field: a.mem['field'] ?? 0, rise: a.mem['rise'] ?? 1, open: a.mem['open'] ?? 0,
-    range: Math.hypot(point.x - (a.mem['balbalPlayerX'] ?? 0), point.z - (a.mem['balbalPlayerZ'] ?? 0)),
-    piercing: Number(balbalCombat.isPiercing?.(request) ?? balbalCombat.melee === 'spear'), crack: Number(onBalbalCrack(a, point)),
-  })['damage']),
+  build: variant => nalatiBody('balbal', variant), animate: animateBalbal,
+  think: (actor,context) => { creatureGuest().binding.think(actor,context); },
+  damageMul: (actor,point,direction,request) => creatureGuest().binding.damageMul(actor,point,direction,request),
 };
 
 export const GOLDEN_KING = speciesRows.king.kind;

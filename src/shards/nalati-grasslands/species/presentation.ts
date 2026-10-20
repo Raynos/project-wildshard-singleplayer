@@ -3,17 +3,15 @@ import type { AnimalSpecies, VariantDef } from '@wildshard/engine/entities/speci
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import type { BakedGeometryRow, PackedCreatureBodies } from '@wildshard/game/plugin/geometry';
 import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
-import { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import type { Scope } from '@wildshard/engine/app/scope';
 import type * as THREE from 'three';
 import * as schema from 'valibot';
 
 let crackGeometry: THREE.BufferGeometry | null = null;
-let speciesData: { packedBodies: unknown; program: unknown } | null = null;
+let speciesData: { packedBodies: unknown; program: unknown; strike: unknown } | null = null;
 const speciesPoses = new Map<string, (c: AnimalRigContext) => void>();
 /** Product JSON is admitted before the first creature build or frame. */
 export async function prepareNalatiSpecies(input: unknown, programs: readonly { readonly id: string }[], bytes: Uint8Array): Promise<void> {
-  const data = schema.parse(schema.object({ poses: schema.record(schema.string(), schema.object({ prefix: schema.string(), group: schema.string(), scalars: schema.array(schema.unknown()), look: schema.exactOptional(schema.unknown()), alive: schema.exactOptional(schema.boolean()) })), packedBodies: schema.unknown(), program: schema.unknown(), cracks: schema.unknown() }), input);
+  const data = schema.parse(schema.object({ poses: schema.record(schema.string(), schema.object({ prefix: schema.string(), group: schema.string(), scalars: schema.array(schema.unknown()), look: schema.exactOptional(schema.unknown()), alive: schema.exactOptional(schema.boolean()) })), packedBodies: schema.unknown(), program: schema.unknown(), strike: schema.unknown(), cracks: schema.unknown() }), input);
   const poses = Object.entries(data.poses).map(([key, { prefix, ...row }]) => [key, numericCreaturePose({ ...row, programs: programs.filter(program => program.id.startsWith(prefix)) })] as const);
   const row = schema.parse(schema.object({ attrs: schema.array(schema.tuple([schema.string(), schema.picklist(['f32', 'u16']), schema.number(), schema.boolean()])), count: schema.number(), index: schema.literal('u32'), indexCount: schema.number(), box: schema.boolean() }), data.cracks);
   const { readBakedGeometry } = await import('@wildshard/game/plugin/geometry');
@@ -65,4 +63,4 @@ export function nalatiBody(family: BodyFamily, variant: VariantDef): AnimalSpeci
 
 /** The crack mesh is generated once against the original skeleton at build time. */
 export function balbalCrackGeometry(): THREE.BufferGeometry { if (crackGeometry === null) throw new Error('Missing balbal crack geometry'); return crackGeometry; }
-export function balbalProgram(owner?: Scope): ReturnProgram { if (speciesData === null) throw new Error('Missing Nalati species program'); return ReturnProgram.page(speciesData.program, owner); }
+export function speciesGuestRows(): { program: unknown; strike: unknown } { if (speciesData === null) throw new Error('Missing species guest program'); return { program: speciesData.program,strike: speciesData.strike }; }
