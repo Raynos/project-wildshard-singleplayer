@@ -28,3 +28,12 @@ test('ground layouts reject an unmatched count or an oversized field', () => {
   expect(() => v.parse(ForestGroundLayoutSchema, { counts: [1], layout: { orchard: [] } })).toThrow('counts');
   expect(v.parse(ForestGroundLayoutSchema, { counts: [0, 0], layout: { meadow: [], orchard: [] } }).counts).toEqual([0, 0]);
 });
+
+test('an orchard page declares its own tree set, floor models and slice budget', () => {
+  const forest = v.parse(ForestPageSchema, structuredClone(FOREST_PAGE));
+  const orchard = { ...forest, trees: 'world/orchard-trees.json', sliceMs: 12,
+    ground: { ...forest.ground, kinds: [{ id: 'clover', geometry: 'orchard-clover', model: 'orchard/clover', name: 'Clover' }] } };
+  expect(v.parse(ForestPageSchema, orchard).ground.kinds[0]?.model).toBe('orchard/clover');
+  expect(() => v.parse(ForestPageSchema, { ...orchard, sliceMs: 0 })).toThrow();
+  expect(() => v.parse(ForestPageSchema, { ...orchard, ground: { ...orchard.ground, kinds: [{ id: 'clover', geometry: 'orchard-clover' }] } })).toThrow();
+});

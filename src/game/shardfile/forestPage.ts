@@ -1,15 +1,19 @@
 /** Client-only forest fields, living buildings and their native resource lifetime. */
 import type { FieldModelsContext } from '../shard/manifest';
-import { Group, Vector3, type Object3D } from 'three';
+import { Color, DoubleSide, Group, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
 import * as v from 'valibot';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { macrotask } from '@wildshard/engine/boot/plan';
+import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { Grass } from '@wildshard/engine/world/Grass';
 import { setSight } from '@wildshard/engine/world/interact/Interactables';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { floorAtRects } from '@wildshard/engine/physics/box';
+import { defineModel, sharedModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
+import { placeSliced } from '@wildshard/engine/models/place';
+import { TreeSetSchema } from '@wildshard/format/treeSetRows';
+import { treeSetModel, type TreeSetParams } from '../models/treeSet';
 import { ForestPageSchema, LivingPageInputSchema, LivingPageSitesSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 import { ForestGround } from '../looks/forestGround';
 import { Particles } from '../systems/looks/particles';
@@ -98,4 +102,46 @@ export function forestFieldModels(ctx: ShardContext, id: string): FieldModelsCon
   const page = forestPage(ctx.scope, id), world = ctx.game.runtime?.world;
   if (world === undefined || world === null) throw new Error('Forest drawing requires its native world');
   return { sky: world.sky, renderer: world.game.renderer, forest: world.forest, under: page.under, registry: world.registry };
+}
+
+const HOST_FILE = 'src/game/shardfile/forestPage.ts';
+/** One floor kind as a model: the field's own geometry and cover material, walked through; the Explorer's specimen
+ *  wears the kind's texture in a plain lit material tinted like its first copy (the cover shader fades by distance). */
+function groundModel(kind: ForestPageRows['ground']['kinds'][number], under: ForestGround): ModelDef<Record<string, never>> {
+  const draw = under.kinds[kind.id]; if (draw === undefined) throw new Error('Missing forest cover kind');
+  return defineModel<Record<string, never>>({ id: kind.model, name: kind.name, category: 'nature', pipeline: 'code', file: HOST_FILE, defaults: {},
+    build: () => [{ geometry: draw.geometry, material: draw.material, castShadow: draw.castShadow, receiveShadow: true }],
+    specimen: (ctx) => [{ geometry: draw.geometry, castShadow: true, receiveShadow: true, material: ctx.once(`${kind.model}:specimen`, () => {
+      const src = draw.material, first = under.layout[kind.id]?.[0];
+      const m = new MeshStandardMaterial({ map: src.map, alphaTest: src.alphaTest, side: DoubleSide, roughness: src.roughness, metalness: 0 });
+      m.name = `${src.name}-specimen`; if (first !== undefined) m.color.setRGB(first.r, first.g, first.b); ctx.sky.setupMaterial(m); return m;
+    }) }] });
+}
+/** Draw the page's declared tree set and floor kinds as models, in slices of `sliceMs` letting frames through. A forest
+ *  whose factory is not the declared set (a build without its files) draws itself and collides as its own capsules. */
+export async function placeForestPageModels(ctx: ShardContext, id: string): Promise<void> {
+  const page = forestPage(ctx.scope, id), due = slicer(page.rows.sliceMs).due, h = forestFieldModels(ctx, id), { forest, registry } = h, under = page.under;
+  const models = sharedModelContext(h.sky, h), trees = treeSetModel(v.parse(TreeSetSchema, await ctx.product.json(page.rows.trees)));
+  const variants = trees.model.variants; if (variants === undefined) throw new Error('Forest model requires its variants');
+  if (forest !== null && forest.trees.length > 0) {
+    if (forest.drawer !== 'model' || forest.factory.variants.length !== variants.length) {
+      const own = forest.drawer === 'model'; forest.drawItself();
+      if (own) registry.add({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() });
+    } else {
+      trees.use(models, forest.factory);
+      const q = new Quaternion(), up = new Vector3(0, 1, 0), at = new Vector3(), sc = new Vector3();
+      const pls = forest.trees.map((t): Placement<TreeSetParams> => { const variant = variants[t.variant]?.id; if (variant === undefined) throw new Error('Forest tree variant out of range');
+        return { x: t.x, y: t.y, z: t.z, variant, color: t.tint, params: { height: t.height, r: t.r, scale: t.scale },
+          matrix: new Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(t.scale, t.scale, t.scale)) }; });
+      await placeSliced(trees.model, pls, { ctx: models, draw: forest.path, registry, piece: { id: trees.model.id }, sortObjects: false,
+        cull: { view: forest, test: forest.keeps, from: 'origin', flat: true }, parent: forest.group }, due);
+    }
+  }
+  const cells = under.cells(), cull = { view: under.view, cells: { size: cells.size, pad: cells.pad }, far: cells.far };
+  for (const kind of page.rows.ground.kinds) {
+    const items = under.layout[kind.id] ?? []; if (items.length === 0) continue;
+    const model = groundModel(kind, under);
+    await placeSliced(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: new Matrix4().fromArray(it.matrix), color: new Color(it.r, it.g, it.b) })),
+      { ctx: models, draw: 'instanced', registry, piece: { id: model.id }, cull, parent: under.group }, due);
+  }
 }

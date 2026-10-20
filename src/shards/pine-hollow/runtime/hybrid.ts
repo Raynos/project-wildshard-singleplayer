@@ -1,6 +1,6 @@
 /** Counted custom view binding around data-only native page contracts. */
 import { ShardPlugin, type ShardContext } from '@wildshard/game/plugin/context';
-import { prepareForestPage, prepareForestPageLooks, forestFieldModels } from '@wildshard/game/shardfile/forestPage';
+import { prepareForestPage, prepareForestPageLooks, placeForestPageModels } from '@wildshard/game/shardfile/forestPage';
 import { preparePageScripts, punchPageTerrain } from '@wildshard/game/shardfile/pagePreparation';
 import { bindPageWater } from '@wildshard/game/shardfile/pageWater';
 import { prepareRangedPage } from '@wildshard/game/loadout/rangedPage';
@@ -10,11 +10,9 @@ import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 import { registerPackedGeometrySource } from '@wildshard/sdk/models/geometrySources';
 import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
-import { slicer } from '@wildshard/engine/boot/plan';
 import { preparePineModelViews } from './models/antlerKing';
 import { admitPineView } from './world/context';
 import { installPineLandmarks, type PineLandmarks } from './world/landmarks';
-import { placeDrawnModels } from './world/drawnModels';
 
 export class PineHollow extends ShardPlugin {
   private landmarks: PineLandmarks | null = null;
@@ -32,7 +30,7 @@ export class PineHollow extends ShardPlugin {
     const floor = await prepareForestPage(ctx, input);
     const landmarks = this.landmarks = await installPineLandmarks({ sky: world.sky, registry: world.registry, cabins: floor.cabins, scenes: floor.resources });
     const cave = landmarks.crags?.cave; if (cave !== undefined) await punchPageTerrain(ctx, cave.cutRows());
-    await floor.finish(); await placeDrawnModels(forestFieldModels(ctx, floor.rows.id), slicer(30).due);
+    await floor.finish(); await placeForestPageModels(ctx, floor.rows.id);
     const runtime = ctx.game.runtime; if (runtime === undefined) throw new Error('Missing forest runtime'); runtime.hooks.worldUpdate = (dt, time) => { floor.update(dt, time); landmarks.update(dt, time); };
   }
   override async kit(ctx: ShardContext): Promise<void> { await preparePineModelViews(ctx); }
