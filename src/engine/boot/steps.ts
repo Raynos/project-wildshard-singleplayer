@@ -21,6 +21,7 @@ const STEP_ROWS = [
   ['props', 'Props', 1],
   ['animals', 'Animals', 1],
   ['weapon', 'Weapons · HUD', 1],
+  ['assembly', 'World assembly', 1],
   // project/archive/2026-09-23-preload-offline.md: the title / explore art and the lazy UI code (before the title builds its deck)
   ['menu', 'Title art · explore', 1],
   ['shaders', 'Shaders', 3],

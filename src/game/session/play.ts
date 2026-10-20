@@ -98,7 +98,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const keepAlive = new KeepAlive();
   await macrotask();
   // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
-  const grid = pageMode() === 'grid' ? await GridSession.create({ scene: game.rootScene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
+  const grid = await step('assembly', p => pageMode() === 'grid' ? GridSession.create({ scene: game.rootScene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
     ownedHome: session.ownedGridHome === true,
     // G371: the near tier plans from the drawn eye (a free / hero camera gets the cells it is over)
     eye: () => ({ x: game.camera.position.x - player.position.x, z: game.camera.position.z - player.position.z }),
@@ -118,7 +118,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
         renderer.setRenderTarget(game.composer.inputBuffer);
         try { renderer.compile(object, game.camera, game.rootScene); } finally { renderer.setRenderTarget(prev); }
       } }; },
-      onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }) : null;
+      onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }, p) : null);
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
     // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any
     // other boot loads them when the room opens, in every mode (G187: −33.6 MB of GL on Pine; SF47 made it the only path).

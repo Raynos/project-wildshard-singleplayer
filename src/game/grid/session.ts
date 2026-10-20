@@ -27,6 +27,8 @@ import { CHUNK_HALF, CONTENT_CAPS, ENTRY_WIDTH } from '@wildshard/engine/core/co
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import type { Scope } from '@wildshard/engine/app/scope';
+import type { StepProgress } from '@wildshard/engine/boot/plan';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 import { app } from '@wildshard/engine/app/runtime';
 import { harnessPins } from '@wildshard/engine/app/identity';
 import type { Physics } from '@wildshard/engine/physics/Physics';
@@ -38,7 +40,6 @@ import { WATER_UNBOUNDED, waterExtent } from '@wildshard/engine/world/waves';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { generatePlatform, generatePlatformSliced, type GeneratedStrip, type PlatformCell, type StripProfile } from '@wildshard/engine/sim/strips';
 import { GridAssembly, type GridCell } from './assembly';
-import { yieldGridAdmission } from './admissionYield';
 import { DEVSERVER, gridMode } from './menu';
 import { gridCells, pageGridInstance, pageMode, manifestRuntimeEntry, prepareTrustedRuntime } from '../plugin/context';
 import type { ResidencyAllocator } from './allocator';
@@ -298,10 +299,12 @@ export class GridSession {
   private readonly plots: { readonly step: (dt: number) => void; readonly state: () => OpenPlotState };
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
-  static async create(host: GridSessionHost): Promise<GridSession> {
+  static async create(host: GridSessionHost, progress?: StepProgress): Promise<GridSession> {
     if (host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     const allocator = host.residency.allocator;
     const assembly = new GridAssembly(gridMode(DEVSERVER)), empty = assembly.emptyNeighbour.edge;
+    let prepared = 0;
+    progress?.set(0, 3, `Cell edges · 0 / ${assembly.cells.length}`);
     const edges = await loadGridEdgeProfiles(assembly.cells, async (cell) => {
       try {
         const edge = await readGridEdges(cell, { product: slug => gridShardfileProduct(slug, { allocator, scope: host.scope }), fetch: url => fetch(url),
@@ -320,12 +323,20 @@ export class GridSession {
         console.warn(`[grid] ${cell.instance} edges stay at road level:`, error);
         const closed = { entryWidth: 0 };
         return { kind: 'declared', profiles: { north: empty, east: empty, south: empty, west: empty }, observations: { north: closed, east: closed, south: closed, west: closed } };
+      } finally {
+        prepared++; progress?.detail(`Cell edges · ${prepared} / ${assembly.cells.length}`);
       }
     });
     if (host.scope.disposed) throw new Error('Grid session left during cell preparation');
-    // rt3-crossing: the 40-strip platform generation was one main-thread task (11.8 s at 4x CPU, the cold start's long
-    // park under "Weapons · HUD"); generate it here in slices between paints, then construct with the finished strips
-    const strips = await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, () => yieldGridAdmission(host.scope)));
+    // Loading has no game frames to wait for. Share the usual 30 ms loading budget across cheap generator batches;
+    // workSlice still observes the drawn-frame budget if this is called while the game is presenting.
+    const construction = workSlice(30, host.scope);
+    let batches = 0;
+    progress?.set(1, 3, 'Terrain seams · 0 batches');
+    const strips = await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, async () => {
+      progress?.detail(`Terrain seams · ${++batches} batches`); await construction.check();
+    }));
+    batches = 0; progress?.set(2, 3, `Road geometry · 0 batches · ${strips.length} seams`);
     const instance = pageGridInstance();
     if (instance === null) throw new Error('A grid session needs a grid page');
     const home = assembly.cell(instance), roadScope = host.scope.child('grid-road-construction');
@@ -333,7 +344,10 @@ export class GridSession {
     try {
       const road = await installPlatformRoadSliced({ strips, home, pitch: assembly.pitch,
         layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene, scope: roadScope,
-        camera: () => host.frame?.camera, plans, admission }, () => yieldGridAdmission(roadScope));
+        camera: () => host.frame?.camera, plans, admission }, async () => {
+          progress?.detail(`Road geometry · ${++batches} batches · ${strips.length} seams`); await construction.check();
+        });
+      progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams · road ready`);
       return new GridSession(host, edges, allocator, strips, { road, plans });
     } catch (error) { roadScope.dispose(); throw error; }
   }
