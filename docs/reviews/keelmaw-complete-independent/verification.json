@@ -1,0 +1,725 @@
+{
+  "scope": "Independent static visual review and read-only pin/camera checks; no native/runtime/animation/contact acceptance",
+  "inspectionCount": 23,
+  "inspectedFiles": [
+    {
+      "role": "candidate",
+      "view": "hero",
+      "path": "tmp/keelmaw-complete-character/final/hero.png",
+      "sha256": "ce34b5142184c04f1ceb1c28acf04b5ea3da0b05ba9a096474202de3dd03af23",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "ce34b5142184c04f1ceb1c28acf04b5ea3da0b05ba9a096474202de3dd03af23",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "front",
+      "path": "tmp/keelmaw-complete-character/final/front.png",
+      "sha256": "9bc987cca41c3dae052ccf893bd4ff054b694ac3d69a6e31e79fda2c9910f22b",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "9bc987cca41c3dae052ccf893bd4ff054b694ac3d69a6e31e79fda2c9910f22b",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "left",
+      "path": "tmp/keelmaw-complete-character/final/left.png",
+      "sha256": "37ff696e345258420dde6869371bbad26cb6876163983b48e00c76dc0dd5904b",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "37ff696e345258420dde6869371bbad26cb6876163983b48e00c76dc0dd5904b",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "right",
+      "path": "tmp/keelmaw-complete-character/final/right.png",
+      "sha256": "81a07474d2240ce86893b3b6b1c82b03decd52e5c6e24a479e2a800d18c7ea1f",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "81a07474d2240ce86893b3b6b1c82b03decd52e5c6e24a479e2a800d18c7ea1f",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "back",
+      "path": "tmp/keelmaw-complete-character/final/back.png",
+      "sha256": "259778c3d0e6598979668a2cfec287b2cdc46e910f8396b82c47bbdc441dd7e1",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "259778c3d0e6598979668a2cfec287b2cdc46e910f8396b82c47bbdc441dd7e1",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "top",
+      "path": "tmp/keelmaw-complete-character/final/top.png",
+      "sha256": "8933d09de437381b39ae9318fac080e96e725bdf74c8226a9b06048571fa6e7e",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "8933d09de437381b39ae9318fac080e96e725bdf74c8226a9b06048571fa6e7e",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "elevated-front",
+      "path": "tmp/keelmaw-complete-character/final/elevated-front.png",
+      "sha256": "126576242bfbeff001fd01e7bfa68b5535b2738c0aca92bc9d204651a65abc96",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "126576242bfbeff001fd01e7bfa68b5535b2738c0aca92bc9d204651a65abc96",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "elevated-left",
+      "path": "tmp/keelmaw-complete-character/final/elevated-left.png",
+      "sha256": "d703ddc6fea9a319a146b1d473e1e836c096e9a076d70822bf233d09fc08a230",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "d703ddc6fea9a319a146b1d473e1e836c096e9a076d70822bf233d09fc08a230",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "elevated-right",
+      "path": "tmp/keelmaw-complete-character/final/elevated-right.png",
+      "sha256": "2f663623afa4afc6fcca4d2d098fc68fc96e8537483c810e2a74622ee54a46b6",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "2f663623afa4afc6fcca4d2d098fc68fc96e8537483c810e2a74622ee54a46b6",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "elevated-back",
+      "path": "tmp/keelmaw-complete-character/final/elevated-back.png",
+      "sha256": "08cda45780d27e6c01cc1db6c6d55decc7a7d1bb916c550639192adcc2f99b42",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "08cda45780d27e6c01cc1db6c6d55decc7a7d1bb916c550639192adcc2f99b42",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "hero",
+      "path": "tmp/keelmaw-complete-character/baseline/hero.png",
+      "sha256": "b5885556739cf13f9df6141cb70c17626e9194a9de7148a7ba65434d5e5911a4",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "b5885556739cf13f9df6141cb70c17626e9194a9de7148a7ba65434d5e5911a4",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "front",
+      "path": "tmp/keelmaw-complete-character/baseline/front.png",
+      "sha256": "4fa6ca3649657b80c0e5d6decddbb923b86abd969bdf4ee0ab873317acd187ec",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "4fa6ca3649657b80c0e5d6decddbb923b86abd969bdf4ee0ab873317acd187ec",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "left",
+      "path": "tmp/keelmaw-complete-character/baseline/left.png",
+      "sha256": "205da54af98c267e359f0283d673bf641a47a4a0370df063720c637105f709ea",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "205da54af98c267e359f0283d673bf641a47a4a0370df063720c637105f709ea",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "right",
+      "path": "tmp/keelmaw-complete-character/baseline/right.png",
+      "sha256": "c58f2f4f412fd106f02273206dca04d06ba634eb9c5e42133580669cd2804187",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "c58f2f4f412fd106f02273206dca04d06ba634eb9c5e42133580669cd2804187",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "back",
+      "path": "tmp/keelmaw-complete-character/baseline/back.png",
+      "sha256": "dfebede8b5b7f6f4b0e52a125cf31cda041db73610ef85ffd4013a0cf976250d",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "dfebede8b5b7f6f4b0e52a125cf31cda041db73610ef85ffd4013a0cf976250d",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "top",
+      "path": "tmp/keelmaw-complete-character/baseline/top.png",
+      "sha256": "056cac7bc8463879da939c788fe4b47d4088ef1e888309944e06ba17d063eb01",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "056cac7bc8463879da939c788fe4b47d4088ef1e888309944e06ba17d063eb01",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "elevated-front",
+      "path": "tmp/keelmaw-complete-character/baseline/elevated-front.png",
+      "sha256": "e76cc2287bab12ba17101933c0bfa69fe282c3c18d4039f479a1eae50ae51efb",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "e76cc2287bab12ba17101933c0bfa69fe282c3c18d4039f479a1eae50ae51efb",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "elevated-left",
+      "path": "tmp/keelmaw-complete-character/baseline/elevated-left.png",
+      "sha256": "e558600b2d1acfff6beea2322ecf00fe6366c2ce827d9bc68463d4383a0e93bd",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "e558600b2d1acfff6beea2322ecf00fe6366c2ce827d9bc68463d4383a0e93bd",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "elevated-right",
+      "path": "tmp/keelmaw-complete-character/baseline/elevated-right.png",
+      "sha256": "2f772f9a5ad4e72fe954697b1a9fff4ea56c4b63998e6a218b3df18541bd5faa",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "2f772f9a5ad4e72fe954697b1a9fff4ea56c4b63998e6a218b3df18541bd5faa",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "elevated-back",
+      "path": "tmp/keelmaw-complete-character/baseline/elevated-back.png",
+      "sha256": "1756ae3e39e788da8ada7d16bee4a35a73fdaa0c8866568877ddf4cf829296bc",
+      "dimensions": [
+        600,
+        720
+      ],
+      "actualSha256": "1756ae3e39e788da8ada7d16bee4a35a73fdaa0c8866568877ddf4cf829296bc",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/keelmaw-hero.png",
+      "sha256": "69eb665a0f2224f1a35e61934304eb0ee4e205912c5b38d0bbfbe9ca160ac4d3",
+      "actualSha256": "69eb665a0f2224f1a35e61934304eb0ee4e205912c5b38d0bbfbe9ca160ac4d3",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/keelmawWorldGen.png",
+      "sha256": "bad000719ab4abe7c66ff48a7d1b524e6a1f892dfb535705beac654846a77cfe",
+      "actualSha256": "bad000719ab4abe7c66ff48a7d1b524e6a1f892dfb535705beac654846a77cfe",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/keelmawExplorerCorrectedGen.png",
+      "sha256": "10aaa6cb65464c3359533dc10afaec8ccc6b109813ab7e04e18e01da71ed3561",
+      "actualSha256": "10aaa6cb65464c3359533dc10afaec8ccc6b109813ab7e04e18e01da71ed3561",
+      "matches": true,
+      "individuallyInspected": true,
+      "inspectionMethod": "view_image(detail=original), individual original file",
+      "actualDimensions": [
+        1536,
+        1024
+      ]
+    }
+  ],
+  "scoreContext": "Prior 2.75 report and builder README were read before scoring; judgments independently formed from all 20 raw views and original references. No builder score supplied.",
+  "sourcePins": {
+    "art/driftwood-isle/approved-keelmaw/complete-character-next/build_keelmaw.py": "0a09992f4fe843707edea34284e68c70894c583bc7efd09ca3d1e827fe2d1eed",
+    "art/driftwood-isle/approved-keelmaw/complete-character-next/capture_baseline.py": "53121f19b264698a58ef59b2d82b710b5f78420d7a5581aebd4b3ea8d30e3ffe",
+    "art/driftwood-isle/approved-keelmaw/complete-character-next/review/capture-receipt.json": "fe15cfea00d4b4995e501cd4f4d67a31d9ebe0da8af3cd6ecbe578ee60abd461",
+    "art/driftwood-isle/approved-keelmaw/complete-character-next/model/native-source.json": "ff70566f6eb96760a9dbff3a54ecf59e81e4c13b904784a33ac3c1c061191fab",
+    "art/driftwood-isle/approved-keelmaw/complete-character-next/model/payload.bin": "65c2186799070e62dc260e8c5de50c0f7ff6fd1124b8d34d4f6745bbc6654e35",
+    "art/driftwood-isle/approved-keelmaw/complete-character-next/model/keelmaw-v1.glb": "7aafb69c0b96e71306eb7c6cdace2dcdd74fd5d700b57b17eccd33ec7cd2d89c"
+  },
+  "matchingCameraParameters": true,
+  "matchingRenderSetupSource": true,
+  "rawFramingNDCValid": false,
+  "rawFramingExplanation": "Builder identified stale pre-render camera matrices; not used for bounds conclusions.",
+  "independentlyRecomputedFraming": {
+    "candidate": [
+      {
+        "view": "hero",
+        "bounds": {
+          "minX": 0.024563863677481312,
+          "maxX": 0.9012229316519356,
+          "minY": 0.3106249850319836,
+          "maxY": 0.7037261207691724
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 1.1102230246251565e-16,
+        "minimumMarginPixels": 14.738318206488788
+      },
+      {
+        "view": "front",
+        "bounds": {
+          "minX": 0.15817305937920995,
+          "maxX": 0.8375903605840292,
+          "minY": 0.3584158081076597,
+          "maxY": 0.721829519404087
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 94.90383562752596
+      },
+      {
+        "view": "left",
+        "bounds": {
+          "minX": 0.08506024096385545,
+          "maxX": 0.9305229879518073,
+          "minY": 0.35406996951171577,
+          "maxY": 0.7137244760234879
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 41.686207228915606
+      },
+      {
+        "view": "right",
+        "bounds": {
+          "minX": 0.06947701204819273,
+          "maxX": 0.9149397590361446,
+          "minY": 0.36434810711347265,
+          "maxY": 0.6611591508649917
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 41.68620722891564
+      },
+      {
+        "view": "back",
+        "bounds": {
+          "minX": 0.16240963941597075,
+          "maxX": 0.8418269406207901,
+          "minY": 0.37847400225878036,
+          "maxY": 0.6457713118433146
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 94.90383562752594
+      },
+      {
+        "view": "top",
+        "bounds": {
+          "minX": 0.0850936767177124,
+          "maxX": 0.9307242625988039,
+          "minY": 0.21867469951330898,
+          "maxY": 0.7848557838506584
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 41.565442440717646
+      },
+      {
+        "view": "elevated-front",
+        "bounds": {
+          "minX": 0.15817305937920995,
+          "maxX": 0.8375903605840292,
+          "minY": 0.21034075997671653,
+          "maxY": 0.846399452500783
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 94.90383562752596
+      },
+      {
+        "view": "elevated-left",
+        "bounds": {
+          "minX": 0.15056942723026884,
+          "maxX": 0.8010503890107423,
+          "minY": 0.23565492568573776,
+          "maxY": 0.8504311381480635
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 2.220446049250313e-16,
+        "minimumMarginPixels": 90.3416563381613
+      },
+      {
+        "view": "elevated-right",
+        "bounds": {
+          "minX": 0.024257458837155133,
+          "maxX": 0.90756218826445,
+          "minY": 0.2702404029551276,
+          "maxY": 0.6967019825141655
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 14.55447530229308
+      },
+      {
+        "view": "elevated-back",
+        "bounds": {
+          "minX": 0.16240963941597075,
+          "maxX": 0.8418269406207901,
+          "minY": 0.2907871247632121,
+          "maxY": 0.7444919527608017
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 94.90383562752594
+      }
+    ],
+    "baseline": [
+      {
+        "view": "hero",
+        "bounds": {
+          "minX": 0.07291421781300272,
+          "maxX": 0.8657676877359539,
+          "minY": 0.32363785700952674,
+          "maxY": 0.6472762226520561
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 1.1102230246251565e-16,
+        "minimumMarginPixels": 43.74853068780163
+      },
+      {
+        "view": "front",
+        "bounds": {
+          "minX": 0.24437990275270394,
+          "maxX": 0.799999999138246,
+          "minY": 0.36200332432493,
+          "maxY": 0.6321655806742578
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 120.00000051705237
+      },
+      {
+        "view": "left",
+        "bounds": {
+          "minX": 0.09662650602409639,
+          "maxX": 0.9099405301204819,
+          "minY": 0.3617546208575775,
+          "maxY": 0.619275995579826
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 54.03568192771084
+      },
+      {
+        "view": "right",
+        "bounds": {
+          "minX": 0.09005946987951813,
+          "maxX": 0.9033734939759036,
+          "minY": 0.37203275827162047,
+          "maxY": 0.6295541317059079
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 54.035681927710876
+      },
+      {
+        "view": "back",
+        "bounds": {
+          "minX": 0.2000000008617539,
+          "maxX": 0.7556200972472961,
+          "minY": 0.3770324837588953,
+          "maxY": 0.628016482265457
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 120.00000051705234
+      },
+      {
+        "view": "top",
+        "bounds": {
+          "minX": 0.09647319505685548,
+          "maxX": 0.9099524837200881,
+          "minY": 0.2500000007181282,
+          "maxY": 0.71301674770608
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 54.028509767947156
+      },
+      {
+        "view": "elevated-front",
+        "bounds": {
+          "minX": 0.24437990275270394,
+          "maxX": 0.799999999138246,
+          "minY": 0.21698661274632242,
+          "maxY": 0.7575821171222951
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 120.00000051705237
+      },
+      {
+        "view": "elevated-left",
+        "bounds": {
+          "minX": 0.17289038650239674,
+          "maxX": 0.7873058173527379,
+          "minY": 0.2557922054474291,
+          "maxY": 0.7276224847439589
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 103.73423190143805
+      },
+      {
+        "view": "elevated-right",
+        "bounds": {
+          "minX": 0.06517657129913562,
+          "maxX": 0.8851583099397785,
+          "minY": 0.29037972841435833,
+          "maxY": 0.6605557572429089
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 39.105942779481374
+      },
+      {
+        "view": "elevated-back",
+        "bounds": {
+          "minX": 0.2000000008617539,
+          "maxX": 0.7556200972472961,
+          "minY": 0.2777507287677221,
+          "maxY": 0.7380700079315006
+        },
+        "allVerticesInside": true,
+        "maxDifferenceFromCorrectedReceipt": 0.0,
+        "minimumMarginPixels": 120.00000051705234
+      }
+    ]
+  },
+  "structuralParityEvidence": {
+    "candidate": {
+      "builderAuditFileHashMatches": {
+        "keelmaw-v1.glb": true,
+        "metadata.json": true,
+        "native-source.json": true,
+        "construction.json": true,
+        "payload.bin": true
+      },
+      "builderAuditClaims": {
+        "glbNativePositionColorSkinParity": true,
+        "orientedTriangleParity": true,
+        "singleSidedGlbMaterials": true,
+        "zeroAreaTriangles": 0,
+        "maximumBindClosureError": 2.9802322387695312e-08
+      },
+      "independentNativeCounts": {
+        "parts": 19,
+        "bones": 19,
+        "vertices": 20394,
+        "triangles": 6798
+      },
+      "independentlyReranStructuralAudit": false
+    },
+    "baseline": {
+      "builderAuditFileHashMatches": {
+        "keelmaw-v1.glb": true,
+        "metadata.json": true,
+        "native-source.json": true,
+        "construction.json": true,
+        "payload.bin": true
+      },
+      "builderAuditClaims": {
+        "glbNativePositionColorSkinParity": true,
+        "orientedTriangleParity": true,
+        "singleSidedGlbMaterials": true,
+        "zeroAreaTriangles": 0,
+        "maximumBindClosureError": 2.9802322387695312e-08
+      },
+      "independentNativeCounts": {
+        "parts": 19,
+        "bones": 19,
+        "vertices": 21240,
+        "triangles": 7080
+      },
+      "independentlyReranStructuralAudit": false
+    }
+  },
+  "baselineEqualsOriginal": {
+    "native-source.json": true,
+    "payload.bin": true
+  },
+  "finalEqualsOrdinaryModel": {
+    "native-source.json": true,
+    "payload.bin": true,
+    "keelmaw-v1.glb": true
+  },
+  "acceptance": {
+    "likeness": false,
+    "animation": false,
+    "physicsContact": false,
+    "nativePlayable": false
+  },
+  "writes": "Only this review directory REPORT.md, scores.json, verification.json; no Git/model/Site/browser/Mac actions"
+}

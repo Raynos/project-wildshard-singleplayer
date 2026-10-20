@@ -1,0 +1,36 @@
+{
+  "rubricWeights": {
+    "silhouette": 0.35,
+    "face": 0.3,
+    "definingDetails": 0.2,
+    "facetStyle": 0.15
+  },
+  "candidate": {
+    "scores": {
+      "silhouette": 3.15,
+      "face": 2.9,
+      "definingDetails": 3.2,
+      "facetStyle": 3.05
+    },
+    "exactWeightedTotal": 3.07
+  },
+  "freshMatchedBaseline": {
+    "scores": {
+      "silhouette": 2.75,
+      "face": 2.55,
+      "definingDetails": 3.1,
+      "facetStyle": 2.85
+    },
+    "exactWeightedTotal": 2.775
+  },
+  "historicalBaseline": {
+    "exactWeightedTotal": 2.75,
+    "source": "docs/reviews/keelmaw-first-source-independent/REVIEW.md",
+    "separateAssessment": true
+  },
+  "candidateDeltaAgainstFreshBaseline": 0.295,
+  "preferred": "candidate",
+  "threshold": 4,
+  "accepted": false,
+  "scoreLockedAfterAll20RawViews": true
+}
