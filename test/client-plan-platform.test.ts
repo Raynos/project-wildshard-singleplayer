@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { parseFamilyMaterial } from '../src/format/materialFamilies';
 import * as materialCompiler from '../src/game/shardfile/clientMaterials';
 import * as textureCapabilities from '../src/engine/core/ktx2';
 import type { ResidencyAllocator } from '../src/game/grid/allocator';
@@ -172,7 +173,7 @@ test('an orchard installs painterly setup and its frame update from an unordered
 
 
 test('a trusted runtime honors required graph rows before allocating presentation', async () => {
-  const f=context();f.source.look.materials['orchard-water']={family:'pbr',maps:{}};
+  const f=context();f.source.look.materials['orchard-water']=parseFamilyMaterial({family:'pbr'});
   f.sections.set('client/plan',{version:1,features:[{kind:'world.scenes',graphs:'required'}]});
   Object.assign(f.runtime,{world:{game:{renderer:{}}}});
   Object.assign(f.ctx,{tiers:{knobs:vi.fn()}});
