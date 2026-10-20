@@ -262,7 +262,7 @@
       }
     },
     {
-      "name": "weatherJson",
+      "name": "wx",
       "value": {
         "$call": [
           {
@@ -282,7 +282,7 @@
       }
     },
     {
-      "name": "weatherProgram",
+      "name": "airRows",
       "value": {
         "$call": [
           {
@@ -293,7 +293,7 @@
           },
           {
             "$ref": [
-              "weatherJson"
+              "wx"
             ]
           },
           {
@@ -794,7 +794,7 @@
           {
             "program": {
               "$ref": [
-                "weatherProgram"
+                "airRows"
               ]
             },
             "clock": {

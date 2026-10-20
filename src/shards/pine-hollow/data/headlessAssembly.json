@@ -267,7 +267,7 @@
     },
     {"name": "nightRows", "value": {"$call": [{"$ref": ["@wildshard/game/population/spawnScript", "readSpawnScript"]}, {"$ref": ["product"]}, "pine.night"]}},
     { "name": "shelterRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/shelter.json"] } },
-    { "name": "populationRoster", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/roster.json"] } },
+    { "name": "rosterRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/roster.json"] } },
     {
       "name": "bake",
       "value": {
@@ -353,7 +353,7 @@
       }
     },
     {
-      "name": "weatherJson",
+      "name": "wx",
       "value": {
         "$call": [
           {
@@ -375,7 +375,7 @@
             "$ref": ["@wildshard/format/weatherProgram", "parseWeatherProgram"]
           },
           {
-            "$ref": ["weatherJson"]
+            "$ref": ["wx"]
           }
         ]
       }
@@ -557,7 +557,7 @@
           {
             "population": {
               "$ref": [
-                "populationRoster",
+                "rosterRows",
                 "step"
               ]
             },
@@ -1182,7 +1182,7 @@
               "$ref": ["context", "snapshot"]
             }
           },
-          { "$ref": ["populationRoster"] }
+          { "$ref": ["rosterRows"] }
         ]
       }
     },
