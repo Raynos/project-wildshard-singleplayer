@@ -28,9 +28,18 @@ it('permits an existing excess to shrink or hold independently',()=>{
 });
 it('bootstraps only an exact-base ruler and retains its measured excess',()=>{
  const report={revision:'base',customSectionFailures:['demo: custom-section bytes 110 exceeds 100']};
- expect(rulerSectionBase('base',growthBudgets,report)).toEqual({demo:{count:2,bytes:110}});
+ expect(rulerSectionBase('base',growthBudgets,report)).toEqual({demo:{count:2,bytes:110,bounds:['count']}});
  expect(()=>rulerSectionBase('other',growthBudgets,report)).toThrow();
  expect(()=>rulerSectionBase('base',{...growthBudgets,'custom-sections/demo/bytes':99},report)).toThrow();
+});
+it('never treats a ruler upper bound as an exact measurement after a budget cut',()=>{
+ const before={demo:{count:2,bytes:100,bounds:['count','bytes']}};
+ expect(customSectionGrowthFailures(growthBudgets,before,{demo:{count:3,bytes:100}})).toEqual([
+  'demo: custom-section count 3 exceeds budget 2 and pushed base at most 2',
+ ]);
+ expect(customSectionGrowthFailures({...growthBudgets,'custom-sections/demo/bytes':50},before,{demo:{count:1,bytes:75}})).toEqual([
+  'demo: custom-section bytes 75 exceeds budget 50; exact pushed base needed (known only to be at most 100)',
+ ]);
 });
 
 it('enforces both ceilings and a named exit for every private section',()=>{

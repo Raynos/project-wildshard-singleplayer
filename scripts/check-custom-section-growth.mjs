@@ -16,7 +16,7 @@ const receipt=v.strictObject({revision:v.string(),shards:measures});
  * any candidate exceeding that bound necessarily grew. No approximation can
  * grant growth above a budget. Missing/stale reports refuse, never build.
  * @param {string} base @param {Record<string,number>} budgets @param {unknown} report
- * @returns {Record<string,{count:number;bytes:number}>} */
+ * @returns {Record<string,{count:number;bytes:number;bounds?:string[]}>} */
 export function rulerSectionBase(base,budgets,report) {
   const ruler=v.parse(v.object({revision:v.literal(base),customSectionFailures:v.array(v.string())}),report);
   const shards={};
@@ -33,7 +33,8 @@ export function rulerSectionBase(base,budgets,report) {
     if(shards[slug]?.[unit]!==Number(budget))throw new Error(`Pushed-base ruler budget mismatch: ${failure}`);
     shards[slug][unit]=Number(value);
   }
-  return v.parse(measures,shards);
+  return Object.fromEntries(Object.entries(v.parse(measures,shards)).map(([slug,pair])=>[slug,{...pair,
+    bounds:['count','bytes'].filter(unit=>pair[unit]===budgets[`custom-sections/${slug}/${unit}`])}]));
 }
 
 /** @param {string} root @param {string} repo @param {string} base @param {string} revision @param {string} receipts */

@@ -19,15 +19,17 @@ const entries=budgets=>Object.fromEntries([...new Set(Object.keys(budgets).filte
 
 /** G518: an existing excess may hold or shrink; growth must fit the budget.
  * @param {Record<string,unknown>} budgets
- * @param {Record<string,{count:number;bytes:number}>} before
+ * @param {Record<string,{count:number;bytes:number;bounds?:string[]}>} before
  * @param {Record<string,{count:number;bytes:number}>} after
  * @returns {string[]} */
 export function customSectionGrowthFailures(budgets,before,after) {
   const failures=[];
   for(const [slug,measured]of Object.entries(after))for(const unit of ['count','bytes']) {
     const budget=budgets[`custom-sections/${slug}/${unit}`],value=measured[unit],base=before[slug]?.[unit]??0;
+    const bounded=before[slug]?.bounds?.includes(unit)??false;
     if(typeof budget!=='number'||!Number.isSafeInteger(budget)||budget<0)failures.push(`${slug}: missing or invalid custom-section ${unit} budget`);
-    else if(value>budget&&value>base)failures.push(`${slug}: custom-section ${unit} ${value} exceeds budget ${budget} and pushed base ${base}`);
+    else if(value>budget&&bounded&&value<=base)failures.push(`${slug}: custom-section ${unit} ${value} exceeds budget ${budget}; exact pushed base needed (known only to be at most ${base})`);
+    else if(value>budget&&value>base)failures.push(`${slug}: custom-section ${unit} ${value} exceeds budget ${budget} and pushed base ${bounded?'at most ':''}${base}`);
   }
   return failures;
 }
