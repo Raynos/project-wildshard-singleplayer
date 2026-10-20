@@ -1,7 +1,8 @@
 import { expect, it, vi } from 'vitest';
-import { BoxGeometry, BufferAttribute, BufferGeometry, Float16BufferAttribute, MeshStandardMaterial } from 'three';
+import { BoxGeometry, BufferAttribute, BufferGeometry, Float16BufferAttribute, Mesh, MeshStandardMaterial } from 'three';
 import { createOwnedGeometry, createOwnedGeometryBatch } from '../src/engine/models/ownedGeometry';
 import { staticGlb } from '../src/sdk/bake/glb';
+import * as rigLoaders from '../src/engine/anim/rig';
 
 it('copies borrowed input and transfers adopted geometry without retaining it', async () => {
   const source = new BoxGeometry(), intake = createOwnedGeometry('/owned.glb');
@@ -20,6 +21,35 @@ it('copies borrowed input and transfers adopted geometry without retaining it', 
     expect(intake.take()).toBe(copy);
     copy.dispose(); taken.dispose();
   } finally { source.dispose(); }
+});
+
+it.each([false, true])('takes private GLB attributes without another geometry copy (native=%s)', async nativeAttributes => {
+  const source = new BoxGeometry(), material = new MeshStandardMaterial();
+  const create = rigLoaders.createRigLoader;
+  let decoded: BufferGeometry | undefined;
+  const loader = vi.spyOn(rigLoaders, 'createRigLoader').mockImplementation(() => create().register(() => ({
+    name: 'owned-intake-probe', afterRoot: file => {
+      file.scene.traverse(node => { if (node instanceof Mesh && node.geometry instanceof BufferGeometry) decoded = node.geometry; });
+    },
+  })));
+  const intake = createOwnedGeometry('/exclusive.glb');
+  try {
+    await intake.load(staticGlb([{ geometry: source, material, nativeAttributes }]));
+    const taken = intake.take();
+    try {
+      if (decoded === undefined) throw new Error('Missing decoded geometry');
+      expect(taken.getAttribute('position')).toBe(decoded.getAttribute('position'));
+      expect(taken.getAttribute('normal')).toBe(decoded.getAttribute('normal'));
+      intake.adopt(taken);
+      const copy = intake.copy();
+      try {
+        expect(copy.getAttribute('position').array.buffer).not.toBe(taken.getAttribute('position').array.buffer);
+        copy.getAttribute('position').setX(0, 40);
+        expect(taken.getAttribute('position').getX(0)).not.toBe(40);
+      } finally { copy.dispose(); }
+      expect(intake.take()).toBe(taken);
+    } finally { taken.dispose(); }
+  } finally { loader.mockRestore(); source.dispose(); material.dispose(); }
 });
 
 it('loads the declared batch while retaining each handle ownership and retry', async () => {

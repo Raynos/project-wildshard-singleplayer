@@ -80,10 +80,13 @@ export function createOwnedGeometry(url: string, channels: Readonly<Record<strin
       if (mesh === undefined || meshes.length !== 1) throw new Error(`Baked model needs one mesh: ${url}`);
       gltf.scene.updateMatrixWorld(true);
       if (mesh.matrixWorld.elements.some((value, i) => value !== (i % 5 === 0 ? 1 : 0))) throw new Error(`Baked model needs identity space: ${url}`);
-      const geometry = mesh.userData['nativeAttributes'] === undefined ? mesh.geometry.clone() : nativeWholeGeometry(mesh);
+      // The parser and this intake are the only owners of this single mesh.
+      // Borrowed BufferGeometry input still copies in load(); private GLB
+      // attributes can pass directly into the intake instead of doubling them.
+      const geometry = mesh.userData['nativeAttributes'] === undefined ? mesh.geometry : nativeWholeGeometry(mesh, 'take');
       const index = geometry.getIndex();
       // The deterministic GLB writer emits identity indices for an authored triangle soup; restore its original draw.
-      if (mesh.userData['nativeAttributes'] === undefined && index !== null && index.count === geometry.getAttribute('position').count && Array.from(index.array).every((value, i) => value === i)) geometry.setIndex(null);
+      if (mesh.userData['nativeAttributes'] === undefined && index !== null && index.count === geometry.getAttribute('position').count && index.array.every((value, i) => value === i)) geometry.setIndex(null);
       for (const [from, to] of Object.entries(channels)) {
         if (!geometry.hasAttribute(from)) { geometry.dispose(); throw new Error(`Baked model is missing ${from}: ${url}`); }
         geometry.setAttribute(to, geometry.getAttribute(from)); geometry.deleteAttribute(from);
@@ -91,7 +94,7 @@ export function createOwnedGeometry(url: string, channels: Readonly<Record<strin
       template = geometry;
     } finally {
       for (const mesh of meshes) {
-        mesh.geometry.dispose();
+        if (mesh.geometry !== template) mesh.geometry.dispose();
         for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.dispose();
       }
     }

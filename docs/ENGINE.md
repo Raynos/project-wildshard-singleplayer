@@ -4505,6 +4505,9 @@ is raised. Their native metadata also supports a vec4 shader normal as
 an application accessor, while portable glTF NORMAL remains vec3.
 
 `@wildshard/engine/models/nativeGeometry` defines `nativeWholeGeometry`.
+Its default borrows and copies the source. `'take'` as the second argument
+adopts ordinary attributes and indices from an exclusive decoded
+mesh; restoring a half-float wrapper still copies its bits once.
 `@wildshard/game/plugin/geometry` defines `assembleWholeGeometryViews` and
 `readWholeGeometry(scope, source, refs?)`.
 The reader uses the admitted product, decodes one bounded file at a time,
