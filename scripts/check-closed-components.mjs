@@ -1,6 +1,7 @@
 import { existsSync, globSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import * as v from 'valibot';
 import { COMPONENTS, COMPONENT_SHARDS, componentInventory } from './shard-components.mjs';
 import { codeLines, declarationOnlyConfig, declarationOnlyManifest, shaderCodeLines, sourceProgressInventory } from './shard-platform.mjs';
 import { discoverGeneration } from './generate.mjs';
@@ -71,6 +72,12 @@ export function closedComponentSources(root, input, closing = {}) {
   if (Object.keys(locks).length === 0) return [];
   const generated = new Set(existsSync(resolve(root, 'scripts/generation-jobs.json'))
     ? discoverGeneration(root).jobs.flatMap(job => job.outputs) : []);
+  const retained = resolve(root, 'scripts/source-generation-outputs.json');
+  if (existsSync(retained)) {
+    const catalogue = v.parse(v.strictObject({ schema: v.literal('source-generation-outputs/1'),
+      producers: v.record(v.string(), v.array(v.string())) }), JSON.parse(readFileSync(retained, 'utf8')));
+    for (const outputs of Object.values(catalogue.producers)) for (const path of outputs) generated.add(path);
+  }
   for (const shard of Object.keys(locks)) {
     const sources = [];
     for (const path of globSync(`src/shards/${shard}/**/*.{ts,tsx,glsl}`, { cwd: root })) {

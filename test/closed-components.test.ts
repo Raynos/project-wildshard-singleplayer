@@ -14,6 +14,9 @@ test('a line in each closed component fails; other components remain available',
   const put = (path: string, source: string): void => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), source); };
   try {
     put('src/shards/pine-hollow/runtime/index.ts', 'export const worldBuild = 1;\n');
+    put('scripts/source-generation-outputs.json', JSON.stringify({ schema: 'source-generation-outputs/1',
+      producers: { 'scripts/gen-shards.mjs': ['src/shards/pine-hollow/discovery.generated.ts'] } }));
+    put('src/shards/pine-hollow/discovery.generated.ts', 'export const audio = 1;\n');
     expect(closedComponentSources(root, policy)).toEqual([]);
     for (const [id, name] of [['C3', 'windFx'], ['C7', 'mover'], ['C8', 'audio']]) {
       const path = `src/shards/pine-hollow/runtime/${name}.ts`;
