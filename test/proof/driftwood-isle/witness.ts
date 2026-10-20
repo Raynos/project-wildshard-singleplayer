@@ -12,8 +12,7 @@ import * as v from 'valibot';
 import { readWitnessManifest, witnessPayloadHashes } from '../../../scripts/witness-checkpoints.mjs';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import bossRows from '../../../src/shards/driftwood-isle/data/bossEncounter.json' with { type: 'json' };
-import { readNativeQuestSpots } from '../../../src/game/quest/nativeComposition';
-import nativeQuestSpots from '../../../src/shards/driftwood-isle/data/spots.generated.json' with { type: 'json' };
+import { driftwoodSpots } from '../../../src/shards/driftwood-isle/runtime/quest';
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
@@ -186,7 +185,7 @@ export async function reefProof(rapier: Rapier): Promise<object> {
   const session = await boot(rapier), local = new ProfileStorage(), ledger = profile(local), ingress = new FactIngress(ledger);
   let worker: HeadlessSimulation | undefined, fork: TrustedHeadlessResident | undefined, workerTicks = 0;
   const still = { kind: 'player', moveX: 0, moveZ: 0, yaw: 0 } as const;
-  const treasure = readNativeQuestSpots(nativeQuestSpots).rows.findIndex(row => row.id === 'reef-treasure'), spot = readNativeQuestSpots(nativeQuestSpots).rows[treasure];
+  const treasure = driftwoodSpots().rows.findIndex(row => row.id === 'reef-treasure'), spot = driftwoodSpots().rows[treasure];
   if (spot === undefined) { session.dispose(); throw new Error('Missing real reef treasure'); }
   let swimTicks = 0;
   const step = (commands: HeadlessCommand[]): void => {
@@ -284,7 +283,7 @@ export async function ziplineProof(rapier: Rapier): Promise<object> {
     }, async name => {
       if (name === 'zipline-launch') {
         launchTick = session.host.state.tick; launch = session.host.player.position.toArray();
-        const point = readNativeQuestSpots(nativeQuestSpots).zipline.prompt;
+        const point = driftwoodSpots().zipline.prompt;
         if (Math.abs(session.host.player.position.y + 1.68 - point.y) > 2.4 || session.host.flags.has('used:zipline')) throw new Error('Real walk did not reach the launch deck');
       } else if (name === 'zipline-mid') {
         restoreTick = session.host.state.tick; checkpoint = save(session); fork = await boot(rapier, checkpoint);
@@ -365,7 +364,7 @@ export async function replayProof(rapier: Rapier, workerTicks = 60): Promise<obj
     const endHash = digest(original), replayHash = digest(restored); sameEffects(a, b); sameEffects(a, expected(m, cp.tick, until));
     if (endHash !== replayHash || !original.host.flags.has('dead:captain') || !original.host.flags.has('quest:driftwood-done')) throw new Error('Captain continuation/reward diverged');
     const reward = v.parse(v.object({ reward: v.object({ elapsed: v.literal(-2), player: v.object({ pitch: v.number(), carried: v.literal(true) }) }) }), original.host.adapters.get(QUEST_STEP)?.snapshot()).reward;
-    const target = readNativeQuestSpots(nativeQuestSpots).reward;
+    const target = driftwoodSpots().reward;
     if (!original.host.flags.has('seen:complete') || Math.hypot(original.host.player.position.x - target.x, original.host.player.position.y - target.y, original.host.player.position.z - target.z) !== 0 || original.host.player.yaw !== target.yaw || reward.player.pitch !== target.pitch || original.host.dayClock === undefined || original.host.dayClock.phase < target.phase) throw new Error('Native reward carry/pose/clock handoff diverged');
     return { status: 'passed', resumedFrom: cp.name, prefixTicks: 0, checkpointCaptured: true, checkpointTick: cp.tick, hp, encounter: JSON.parse(encounter) as unknown, suffixTicksExecuted: until - cp.tick, hash: endHash, replayHash, effects: a, workerTicks, workerExact: true, victory: true, reward };
   } finally { await worker?.dispose(); restored?.dispose(); original.dispose(); }

@@ -1,7 +1,6 @@
 {
   "version": 1,
   "modules": {
-    "@wildshard/game/quest/nativeInputs": ["installNativeQuestChannels"],
     "src/shards/driftwood-isle/sim/baked": [
       "driftwoodBake",
       "driftwoodSpecs",
@@ -17,9 +16,9 @@
     "@wildshard/game/quest/killSteps": [
       "installQuestKillSteps"
     ],
-    "@wildshard/game/quest/nativeComposition": [
-      "readNativeQuestSpots",
-      "installNativeQuestComposition"
+    "src/shards/driftwood-isle/runtime/quest": [
+      "driftwoodSpots",
+      "installDriftwoodQuest"
     ],
     "src/shards/driftwood-isle/world/sea": [
       "DRIFTWOOD_SEA",
@@ -324,16 +323,7 @@
       "value": {
         "$call": [
           {
-            "$ref": [
-              "@wildshard/game/quest/nativeComposition",
-              "readNativeQuestSpots"
-            ]
-          },
-          {
-            "$ref": [
-              "constants",
-              "nativeQuestSpots"
-            ]
+            "$ref": ["src/shards/driftwood-isle/runtime/quest", "driftwoodSpots"]
           }
         ]
       }
@@ -511,122 +501,51 @@
       "value": {
         "$call": [
           {
-            "$ref": [
-              "@wildshard/game/population/mixedRoster",
-              "installMixedPopulation"
-            ]
+            "$ref": ["@wildshard/game/population/mixedRoster", "installMixedPopulation"]
           },
           {
-            "$ref": [
-              "host"
-            ]
+            "$ref": ["host"]
           },
           {
-            "perchProgram": {
-              "$ref": [
-                "monkeyJson",
-                "program"
-              ]
-            },
-            "rows": {
-              "$ref": [
-                "constants",
-                "mixedPopulation"
-              ]
-            },
-            "reserved": {
-              "$ref": [
-                "bake",
-                "captain"
-              ]
-            },
+            "perchProgram": { "$ref": ["monkeyJson", "program"] },
+            "rows": { "$ref": ["constants", "mixedPopulation"] },
+            "reserved": { "$ref": ["bake", "captain"] },
             "placement": {
-              "$ref": [
-                "placement"
-              ]
+              "$ref": ["placement"]
             },
             "keeper": {
-              "$ref": [
-                "keeper"
-              ]
+              "$ref": ["keeper"]
             },
             "fauna": {
-              "$ref": [
-                "fauna"
-              ]
+              "$ref": ["fauna"]
             },
             "launch": {
-              "$ref": [
-                "launch"
-              ]
+              "$ref": ["launch"]
             },
             "population": {
-              "$ref": [
-                "species"
-              ]
+              "$ref": ["species"]
             },
             "bake": {
-              "ground": {
-                "$ref": [
-                  "bake",
-                  "ground"
-                ]
-              },
-              "actors": {
-                "$ref": [
-                  "bake",
-                  "actors"
-                ]
-              },
-              "herds": {
-                "$ref": [
-                  "bake",
-                  "herds"
-                ]
-              },
-              "habitat": {
-                "$ref": [
-                  "bake",
-                  "habitat"
-                ]
-              }
+              "$ref": ["bake"]
             },
             "specs": {
-              "$ref": [
-                "specs"
-              ]
+              "$ref": ["specs"]
             },
             "seed": {
-              "$ref": [
-                "shard",
-                "identity",
-                "seed"
-              ]
+              "$ref": ["shard", "identity", "seed"]
             },
             "waterLevel": {
-              "$ref": [
-                "src/shards/driftwood-isle/world/sea",
-                "LOWERED_SEA"
-              ]
+              "$ref": ["src/shards/driftwood-isle/world/sea", "LOWERED_SEA"]
             },
             "spawnY": {
-              "$ref": [
-                "shard",
-                "spawn",
-                "y"
-              ]
+              "$ref": ["shard", "spawn", "y"]
             },
             "nav": {
-              "$ref": [
-                "nav"
-              ]
+              "$ref": ["nav"]
             }
           },
           {
-            "$ref": [
-              "context",
-              "snapshot"
-            ]
+            "$ref": ["context", "snapshot"]
           }
         ]
       }
@@ -665,23 +584,8 @@
     {
       "name": "reward",
       "value": {
-        "$call": [
-          {
-            "$ref": [
-              "@wildshard/game/quest/nativeInputs",
-              "installNativeQuestChannels"
-            ]
-          },
-          {
-            "$ref": [
-              "host"
-            ]
-          },
-          "driftwood.reward",
-          {
-            "started": false
-          }
-        ]
+        "started": false,
+        "completed": false
       }
     },
     {
@@ -689,77 +593,49 @@
       "value": {
         "$call": [
           {
-            "$ref": [
-              "@wildshard/game/plugin/director",
-              "DirectorScriptStageLane",
-              "bind"
-            ]
+            "$ref": ["@wildshard/game/plugin/director", "DirectorScriptStageLane", "bind"]
           },
           {
-            "$ref": [
-              "director",
-              "stages"
-            ]
+            "$ref": ["director", "stages"]
           },
           {
             "$call": [
               {
-                "$ref": [
-                  "director",
-                  "create"
-                ]
+                "$ref": ["director", "create"]
               }
             ]
           },
           {
-            "$ref": [
-              "director",
-              "bindings"
-            ]
+            "$ref": ["director", "bindings"]
           },
           {
             "$new": [
               {
-                "$ref": [
-                  "assembly",
-                  "Map"
-                ]
+                "$ref": ["assembly", "Map"]
               },
               [
                 [
                   "flags",
                   {
-                    "$ref": [
-                      "host",
-                      "flags"
-                    ]
+                    "$ref": ["host", "flags"]
                   }
                 ],
                 [
                   "player",
                   {
-                    "$ref": [
-                      "host",
-                      "player",
-                      "position"
-                    ]
+                    "$ref": ["host", "player", "position"]
                   }
                 ],
                 [
                   "rewardAt",
                   {
-                    "$ref": [
-                      "spots",
-                      "reward"
-                    ]
+                    "$ref": ["spots", "reward"]
                   }
                 ],
                 [
                   "reward",
                   {
-                    "$ref": [
-                      "reward"
-                    ]
+                    "$ref": ["reward"]
                   }
                 ],
                 [
@@ -767,111 +643,109 @@
                   {
                     "restore": {
                       "$fn": {
-                        "$sequence": [
-                          {
-                            "$if": [
-                              {
-                                "$eq": [
+                                "$sequence": [
                                   {
-                                    "$call": [
+                                    "$if": [
+                                      {
+                                        "$eq": [
+                                          {
+                                            "$call": [
+                                              {
+                                                "$ref": [
+                                                  "island",
+                                                  "captain"
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          null
+                                        ]
+                                      },
+                                      {
+                                        "$call": [
+                                          {
+                                            "$ref": [
+                                              "island",
+                                              "spawnCaptain"
+                                            ]
+                                          }
+                                        ]
+                                      },
                                       {
                                         "$ref": [
-                                          "island",
-                                          "captain"
+                                          "absent"
                                         ]
                                       }
                                     ]
                                   },
-                                  null
-                                ]
-                              },
-                              {
-                                "$call": [
                                   {
-                                    "$ref": [
-                                      "island",
-                                      "spawnCaptain"
+                                    "$call": [
+                                      {
+                                        "$ref": [
+                                          "captain",
+                                          "publish"
+                                        ]
+                                      },
+                                      "captain.restore"
                                     ]
                                   }
                                 ]
-                              },
-                              {
-                                "$ref": [
-                                  "absent"
-                                ]
                               }
-                            ]
-                          },
-                          {
-                            "$call": [
-                              {
-                                "$ref": [
-                                  "captain",
-                                  "publish"
-                                ]
-                              },
-                              "captain.restore"
-                            ]
-                          }
-                        ]
-                      }
                     },
                     "wake": {
                       "$fn": {
-                        "$sequence": [
-                          {
-                            "$if": [
-                              {
-                                "$eq": [
+                                "$sequence": [
                                   {
-                                    "$call": [
+                                    "$if": [
+                                      {
+                                        "$eq": [
+                                          {
+                                            "$call": [
+                                              {
+                                                "$ref": [
+                                                  "island",
+                                                  "captain"
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          null
+                                        ]
+                                      },
+                                      {
+                                        "$call": [
+                                          {
+                                            "$ref": [
+                                              "island",
+                                              "spawnCaptain"
+                                            ]
+                                          }
+                                        ]
+                                      },
                                       {
                                         "$ref": [
-                                          "island",
-                                          "captain"
+                                          "absent"
                                         ]
                                       }
                                     ]
                                   },
-                                  null
-                                ]
-                              },
-                              {
-                                "$call": [
                                   {
-                                    "$ref": [
-                                      "island",
-                                      "spawnCaptain"
+                                    "$call": [
+                                      {
+                                        "$ref": [
+                                          "captain",
+                                          "publish"
+                                        ]
+                                      },
+                                      "captain.wake"
                                     ]
                                   }
                                 ]
-                              },
-                              {
-                                "$ref": [
-                                  "absent"
-                                ]
                               }
-                            ]
-                          },
-                          {
-                            "$call": [
-                              {
-                                "$ref": [
-                                  "captain",
-                                  "publish"
-                                ]
-                              },
-                              "captain.wake"
-                            ]
-                          }
-                        ]
-                      }
                     },
                     "dead": {
                       "$fn": {
-                        "$ref": [
-                          "absent"
-                        ]
+                        "$ref": ["absent"]
                       }
                     }
                   }
@@ -880,23 +754,11 @@
             ]
           },
           {
-            "$ref": [
-              "host",
-              "scope"
-            ]
+            "$ref": ["host", "scope"]
           },
           {
-            "$ref": [
-              "context",
-              "restoring"
-            ]
-          },
-          {
-            "$ref": [
-              "host"
-            ]
-          },
-          "driftwood.finale"
+            "$ref": ["context", "restoring"]
+          }
         ]
       }
     },
@@ -905,20 +767,10 @@
       "value": {
         "$call": [
           {
-            "$ref": [
-              "@wildshard/sdk/headlessRuntime",
-              "bindHeadlessCommands"
-            ]
+            "$ref": ["@wildshard/sdk/headlessRuntime", "bindHeadlessCommands"]
           },
           {
-            "$ref": [
-              "context"
-            ]
-          },
-          {
-            "$ref": [
-              "host"
-            ]
+            "$ref": ["context"]
           }
         ]
       }
@@ -1050,61 +902,74 @@
       "value": {
         "$call": [
           {
-            "$ref": [
-              "@wildshard/game/quest/nativeComposition",
-              "installNativeQuestComposition"
-            ]
+            "$ref": ["src/shards/driftwood-isle/runtime/quest", "installDriftwoodQuest"]
           },
           {
-            "$ref": [
-              "host"
-            ]
+            "$ref": ["host"]
           },
           {
             "source": {
-              "$ref": [
-                "shard"
-              ]
+              "$ref": ["shard"]
             },
             "table": {
-              "$ref": [
-                "constants",
-                "interact"
-              ]
+              "$ref": ["constants", "interact"]
             },
             "spots": {
-              "$ref": [
-                "spots"
-              ]
+              "$ref": ["spots"]
             },
             "feats": {
-              "$ref": [
-                "counters",
-                "feats"
-              ]
+              "$ref": ["counters", "feats"]
             },
             "counters": {
-              "$ref": [
-                "counters"
+              "$ref": ["counters"]
+            },
+            "fact": {
+              "$ref": ["input", "ledger", "fact"]
+            },
+            "coins": {
+              "$ref": ["input", "ledger", "coins"]
+            },
+            "bodies": {
+              "$ref": ["island", "bodies"]
+            },
+            "commands": {
+              "$call": [
+                {
+                  "$ref": ["input", "scripts"]
+                }
               ]
             },
-            "props": {
-              "$ref": [
-                "constants",
-                "questProps"
-              ]
+            "props": { "$ref": ["constants", "questProps"] },
+            "ironTaken": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["held", "equip"]
+                  },
+                  1
+                ]
+              }
+            },
+            "finale": {
+              "$ref": ["finale"]
+            },
+            "reward": {
+              "$ref": ["reward"]
             },
             "restoring": {
-              "$ref": [
-                "context",
-                "restoring"
-              ]
+              "$ref": ["context", "restoring"]
             },
-            "rows": {
-              "$ref": [
-                "constants",
-                "nativeQuest"
-              ]
+            "walk": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["input", "walk"]
+                  },
+                  {
+                    "$ref": ["level", "player", "speed"]
+                  }
+                ]
+              }
             }
           }
         ]

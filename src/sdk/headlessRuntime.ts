@@ -1,4 +1,3 @@
-import { registerNativeQuestInputs } from '@wildshard/game/quest/nativeInputs';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { MoverScriptDriver, type MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -50,7 +49,7 @@ export interface HeadlessCommandPorts {
  * held command; melee/walk take the last player command, including an empty release. Script values use the last match.
  * Readers resample the current tape on every call, refuse overflow, and preserve tape order. Filtered lists and melee
  * input are borrowed scratch values, consumed immediately by the native owner rather than saved between ticks. */
-export function bindHeadlessCommands(context: Pick<HeadlessRuntimeInstallation, 'commands' | 'emit'>, host?: SimHost): HeadlessCommandPorts {
+export function bindHeadlessCommands(context: Pick<HeadlessRuntimeInstallation, 'commands' | 'emit'>): HeadlessCommandPorts {
   const commands = (): readonly HeadlessCommand[] => {
     const tape = context.commands();
     if (tape.length > 1024) throw new RangeError('Tick commands exceed the protocol allowance');
@@ -62,7 +61,7 @@ export function bindHeadlessCommands(context: Pick<HeadlessRuntimeInstallation, 
     return last;
   };
   const input: { attack: string | null; heavy: boolean; heavyTarget: string | null } = { attack: null, heavy: false, heavyTarget: null };
-  const bound: HeadlessCommandPorts = {
+  return {
     ledger: ledgerPorts(context.emit),
     shots: pickCommands(commands, command => command.kind === 'player' ? command.attack?.targetId : undefined),
     heavy: () => { for (const command of commands()) if (command.kind === 'player' && command.heavy !== undefined) return command.heavy; return null; },
@@ -81,8 +80,6 @@ export function bindHeadlessCommands(context: Pick<HeadlessRuntimeInstallation, 
       return { x: x * scale, z: z * scale };
     },
   };
-  if (host !== undefined) registerNativeQuestInputs(host, { scripts: bound.scripts(), walk: bound.walk, ledger: bound.ledger });
-  return bound;
 }
 
 /** A renderer-free native runtime. Install is synchronous and registers every mutable controller via host.onStep.

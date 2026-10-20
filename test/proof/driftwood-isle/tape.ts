@@ -1,7 +1,6 @@
 import type { SimHost } from '../../../src/engine/sim';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
-import { readNativeQuestSpots } from '../../../src/game/quest/nativeComposition';
-import nativeQuestSpots from '../../../src/shards/driftwood-isle/data/spots.generated.json' with { type: 'json' };
+import { driftwoodSpots } from '../../../src/shards/driftwood-isle/runtime/quest';
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import * as v from 'valibot';
 import { Vector3 } from 'three';
@@ -10,7 +9,7 @@ import { CableLayout } from '../../../src/engine/sim/cableTraversal';
 const { step: QUEST_STEP } = policy;
 
 type Point = readonly [number, number];
-const spots = readNativeQuestSpots(nativeQuestSpots);
+const spots = driftwoodSpots();
 /** Author a tape from real observations and bounded player/script inputs. No pose, HP, flag or fact writes. */
 export async function playDriftwood(host: SimHost, tick: (commands: HeadlessCommand[]) => void, mark: (name: string) => Promise<void>, journey: 'sealed-ring' | 'zipline' | 'zipline-from-lookout' = 'sealed-ring'): Promise<void> {
   const wait = (count: number): void => { for (let i = 0; i < count; i++) tick([]); };

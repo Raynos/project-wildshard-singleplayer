@@ -6,7 +6,6 @@
   "exports": {
     "./bowVariant": "./bowVariant.ts",
     "./questPageComposition": "./questPageComposition.ts",
-    "./nativeQuestComposition": "./nativeQuestComposition.ts",
     "./populationProjection": "./populationProjection.ts",
     "./populationKeeper": "./populationKeeper.ts",
     "./mixedPopulation": "./mixedPopulation.ts",

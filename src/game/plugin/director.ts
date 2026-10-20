@@ -1,4 +1,3 @@
-import type { SimHost } from '@wildshard/engine/sim';
 import { DirectorBindingsSchema } from '@wildshard/format/namedJsonContracts';
 import { flagValue } from '@wildshard/engine/world/interact/flags';
 import { bindBorrowedMethod, readBorrowedOwner } from './borrowed';
@@ -305,10 +304,6 @@ export interface DirectorScriptStagePorts {
  * quotas and typed observations; ordered output events select authored stage actions without a second scheduler.
  * Publication also carries the admitted AS event for bounded native parameters; row actions retain their authored values.
  * initialDt preserves the admitted handler's native initialization ABI; its default is a zero-time observation. */
-const nativeStageLanes = new WeakMap<SimHost, Map<string, DirectorScriptStageLane>>();
-export function nativeStageLane(host: SimHost, id: string): DirectorScriptStageLane {
-  const lane = nativeStageLanes.get(host)?.get(id); if (lane === undefined) throw new Error('Missing native stage lane'); return lane;
-}
 export class DirectorScriptStageLane {
   private readonly definition: DirectorStagesData;
   private readonly stages: DirectorStageLane;
@@ -317,7 +312,7 @@ export class DirectorScriptStageLane {
   private readonly emits: DirectorScriptStagePorts['emits'];
   /** Bind bounded data paths to actual native owners; resolution invokes no actions or requests. */
   static bind(data: unknown, script: DirectorLane, input: unknown, owners: ReadonlyMap<string, unknown>,
-    scope: { readonly disposed: boolean; readonly onDispose: (cleanup: () => void) => void }, restoring = false, host?: SimHost, id?: string): DirectorScriptStageLane {
+    scope: { readonly disposed: boolean; readonly onDispose: (cleanup: () => void) => void }, restoring = false): DirectorScriptStageLane {
     const rows = v.parse(DirectorBindingsSchema, input);
     const observations = Object.entries(rows.observations).map(([key, row]) => {
       if (typeof row === 'number') return [key, () => row] as const;
@@ -347,12 +342,6 @@ export class DirectorScriptStageLane {
       const off = row.subscribe((key: unknown, on: unknown) => { if (on === true && typeof key === 'string' && row.keys.includes(key)) clock.changed(); });
       const cleanup = v.parse(v.custom<() => void>(value => typeof value === 'function', 'Director edge cleanup'), off);
       scope.onDispose(cleanup);
-    }
-    if (host !== undefined) {
-      if (id === undefined) throw new Error('Native stage lane requires its declared id');
-      const book = nativeStageLanes.get(host) ?? new Map<string, DirectorScriptStageLane>();
-      if (book.has(id)) throw new Error('Duplicate native stage lane');
-      book.set(id, clock); nativeStageLanes.set(host, book); host.scope.onDispose(() => { book.delete(id); });
     }
     return clock;
   }

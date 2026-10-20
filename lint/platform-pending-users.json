@@ -24,28 +24,6 @@
       }
     },
     {
-      "module": "src/game/quest/nativeInputs.ts",
-      "documentation": "docs/ENGINE.md",
-      "approvedFeature": {
-        "name": "quest-step-runner",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
-    },
-    {
-      "module": "src/game/quest/nativeComposition.ts",
-      "documentation": "docs/ENGINE.md",
-      "approvedFeature": {
-        "name": "quest-step-runner",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
-    },
-    {
       "module": "src/game/shardfile/clientPopulationProjection.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {

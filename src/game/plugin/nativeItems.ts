@@ -311,10 +311,6 @@ type NativeRangedItem = { readonly frame: NativeCombatFrame } & (
   { readonly kind: 'bolt'; readonly item: NativeBoltItem } |
   { readonly kind: 'cycle'; readonly item: NativeCycleItem } |
   { readonly kind: 'bow'; readonly item: NativeBowItem });
-const nativeMeleeItems = new WeakMap<SimHost, Map<string, NativeSweptMeleeOwner>>();
-export function nativeMeleeItem(host: SimHost, id: string): NativeSweptMeleeOwner {
-  const value = nativeMeleeItems.get(host)?.get(id); if (value === undefined) throw new Error('Missing native melee owner'); return value;
-}
 const nativeRangedItems = new WeakMap<SimHost, Map<number, NativeRangedItem>>();
 /** Resolve a native family by its admitted numeric slot. Only the native installer publishes owners. */
 export function readNativeRangedItem(host: SimHost, slot: number): NativeRangedItem {
@@ -331,16 +327,11 @@ export function installNativeItems(host: SimHost, frame: NativeCombatFrame, row:
 export function installNativeItems(host: SimHost, frame: NativeCombatFrame, input:
   { readonly kind: 'bolt' | 'cycle' | 'bow'; readonly policy: unknown; readonly profile: unknown } |
   { readonly kind: 'swept'; readonly policy: unknown; readonly items: readonly unknown[] }): NativeBoltItem | NativeCycleItem | NativeBowItem | NativeSweptMeleeOwner {
-  if (input.kind === 'swept') {
-    const id = v.parse(v.object({ step: v.string() }), input.policy).step, book = nativeMeleeItems.get(host) ?? new Map<string, NativeSweptMeleeOwner>();
-    if (book.has(id)) throw new Error('Duplicate native melee owner');
-    const owner = installNativeMelee(host, input.items, input.policy, {
+  if (input.kind === 'swept') return installNativeMelee(host, input.items, input.policy, {
     input: (): NativeSweptMeleeInput => frame.melee,
     alarm: () => { host.events.ask('item.reaction', { kind: 'alarm' }); },
     staggered: (actor, strength, running) => { host.events.ask('item.reaction', { kind: 'stagger', actor, strength, running }); },
   });
-    book.set(id, owner); nativeMeleeItems.set(host, book); host.scope.onDispose(() => { book.delete(id); }); return owner;
-  }
   const row = v.parse(NativeRangedRowSchema, input.policy);
   let entries = nativeRangedItems.get(host);
   if (entries === undefined) { entries = new Map(); nativeRangedItems.set(host, entries); host.scope.onDispose(() => { nativeRangedItems.delete(host); }); }

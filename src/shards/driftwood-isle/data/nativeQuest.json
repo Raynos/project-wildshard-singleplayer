@@ -25,26 +25,5 @@
     "kind": "barrel",
     "id": "tide-barrel"
   },
-  "keyDrop": {
-    "id": "hold-key",
-    "kind": "sailor"
-  },
-  "population": "driftwood.island",
-  "equipment": "item.driftwood-isle.swords",
-  "director": "driftwood.finale",
-  "cable": "driftwood.zipline",
-  "reward": {
-    "channels": "driftwood.reward",
-    "field": "started",
-    "complete": "seen:complete"
-  },
-  "talkId": "castaway.talk",
-  "heldId": "iron-sword",
-  "cableId": "zipline",
-  "heldObservation": "sword-free",
-  "cableObservation": "zipline-idle",
-  "guardKind": "sailor",
-  "guardRadius": 1.4,
-  "promptHeight": 1,
-  "heldSlot": 1
+  "keyDrop": { "id": "hold-key", "kind": "sailor" }
 }
