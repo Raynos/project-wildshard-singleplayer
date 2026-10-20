@@ -1,3 +1,4 @@
+import { ROAMING_COMBAT_BLOB } from './roamingCombat';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
 import { CHAPTER_DIRECTOR } from './chapterDirector';
 import { PINE_HULL_BOOK } from './riggedHulls';
@@ -89,7 +90,7 @@ const paintedRows=PINE_OUTPUT.custom['custom/paintedTextures'];
 const coverTextureIds=new Set([...coverAppearance.kinds.map(row=>row.texture),'endGrain','glow']);
 const coverTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>coverTextureIds.has(key)));
 const collectionTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>!coverTextureIds.has(key)));
-const clientJson=emitNamedBlobs([LIFE_WASM, nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
+const clientJson=emitNamedBlobs([ROAMING_COMBAT_BLOB, LIFE_WASM, nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...elites, fights: eliteFights }))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
   nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WILDLIFE_DRAW))),
   nameBlob('look/native-view.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit })))),

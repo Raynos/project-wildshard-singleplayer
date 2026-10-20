@@ -1,3 +1,4 @@
+import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
 import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
@@ -145,6 +146,7 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
+  'roamingCombat.RoamingCombat': RoamingCombatSchema,
   'populationProjection.PopulationProjection': PopulationProjectionSchema,
   'sceneDressing.SceneDressing': SceneDressingSchema,
   'clientChannels.NumericPose': NumericPoseSchema,

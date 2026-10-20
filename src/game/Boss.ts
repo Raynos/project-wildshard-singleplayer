@@ -19,6 +19,12 @@ import type { SkinId } from '@wildshard/engine/player/Skins';
 import { HeldFinishes } from './loadout/finishes';
 import { BossCombatSessionSchema } from '@wildshard/format/bossEncounter';
 
+const combatSessions = new WeakMap<Scope, Map<string, PageCombatSession>>();
+/** Resolve the actual entered combat owner by its declared identity. */
+export function pageCombatSession(scope: Scope, id: string): PageCombatSession {
+  const session = combatSessions.get(scope)?.get(id); if (scope.disposed || session === undefined) throw new Error('Missing page combat session'); return session;
+}
+
 /** Client-only combat effects over the entered player, equipment and mixer.
  * Content supplies ids and policy values; callbacks, renderers and save owners
  * are never author inputs. Existing encounters retain their own update phase. */
@@ -62,6 +68,11 @@ export class PageCombatSession {
       },
       dusk: () => sky.dayNight?.dusk ?? 0, night: () => sky.dayNight?.night ?? 0,
     };
+    if (rows.id !== undefined) {
+      const id = rows.id, book = combatSessions.get(owner.scope) ?? new Map<string, PageCombatSession>();
+      if (book.has(id)) throw new Error('Duplicate page combat session');
+      book.set(id, this); combatSessions.set(owner.scope, book); owner.scope.onDispose(() => { book.delete(id); });
+    }
     owner.scope.onDispose(() => { this.bank = null; });
   }
   legs(): void { this.legsOwner.carried = (this.owner.app.player?.attributes['moveLocked'] ?? 0) > 0 || this.introLock; }

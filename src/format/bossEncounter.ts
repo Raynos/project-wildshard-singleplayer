@@ -8,7 +8,7 @@ const fraction = v.pipe(finite, v.minValue(0), v.maxValue(1));
 const combatId = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const combatEffectId = v.pipe(combatId, v.regex(/^effect\./u)) as v.GenericSchema<`effect.${string}`>;
 /** Client encounter effects bind the entered player's existing services. */
-export const BossCombatSessionSchema = v.strictObject({ god: v.boolean(), bossKinds: v.pipe(v.array(combatId), v.maxLength(64)),
+export const BossCombatSessionSchema = v.strictObject({ id: v.exactOptional(combatId), god: v.boolean(), bossKinds: v.pipe(v.array(combatId), v.maxLength(64)),
   stunEffect: combatEffectId, unlockSkins: v.pipe(v.array(combatId), v.maxLength(64)) });
 const definition = v.strictObject({ id: key, name: key, title: v.string(), retryTitle: v.string(), intro: finite, introShort: finite,
   phases: v.pipe(v.array(v.strictObject({ at: fraction, caption: v.string(), name: v.string() })), v.minLength(1), v.maxLength(64)) });

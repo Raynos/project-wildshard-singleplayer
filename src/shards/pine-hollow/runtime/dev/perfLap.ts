@@ -7,7 +7,9 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { HUD } from '@wildshard/engine/ui/HUD';
 import type { Elites } from '@wildshard/game/Elite';
-import type { AntlerKing } from '../antlerKing';
+import type { installRoamingCombat } from '@wildshard/game/combat/roamingSession';
+
+type AntlerKing = Awaited<ReturnType<typeof installRoamingCombat>>['encounter'];
 
 /**
  * Pine Hollow's PERF LAP host (E350 F-J1; src/engine/core/perfLap.ts, src/engine/ui/perfLap.ts): the six spots of PINE-HOLLOW-FOLLOWUPS

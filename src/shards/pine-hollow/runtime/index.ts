@@ -1,9 +1,7 @@
 import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
 import { registerPackedGeometrySource } from '@wildshard/sdk/models/geometrySources';
 import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
-import { readAdventurePersistence } from '@wildshard/game/quest/persistence';
 import { floorAtRects } from '@wildshard/engine/physics/box';
-import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import type { CustomSections } from './productSections.generated.d.ts';
 import { preloadKingKit } from './models/antlerKing';
@@ -45,7 +43,8 @@ import { placeDrawnModels } from './world/drawnModels';
 import { registerPlaceSets } from '@wildshard/engine/models/sets';
 import { placedGroups } from '@wildshard/engine/models/place';
 import { installHeldLoadout } from '@wildshard/game/loadout/held';
-import { installPineCombat } from '../combat/install';
+import { installRoamingCombat } from '@wildshard/game/combat/roamingSession';
+import { registerPineLap } from './dev/perfLap';
 import { eliteStream } from '@wildshard/game/quest/eliteStreams';
 import { readEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { installPineQuest } from '../quest/index';
@@ -62,7 +61,7 @@ import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { readItemInventory } from '@wildshard/game/plugin/nativeItems';
 import { installItemEffects } from '@wildshard/game/loadout/effects';
 import type { SkinId } from '@wildshard/engine/player/Skins';
-import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
+import { KING_KIND, registerKing, thrallVariant } from '../species/boss';
 
 /** Legacy v0 modules prepared by the play hook. Owned v1 guests are
  * admitted by their population and encounter hosts. */
@@ -205,7 +204,7 @@ export class PineHollow extends ShardPlugin {
     const rt = runtime(ctx), world = rt.world, h = rt.play;
     if (world === null || h === null) throw new Error('Pine gameplay needs its player host');
     const { game, sky, player, forest, registry, params } = world;
-    const { animals, weapons, inventory, hud, audio, music, skins, wearSkin, menu, touchUi, nolock } = h;
+    const { animals, weapons, hud, audio, music, skins, wearSkin, menu, touchUi, nolock } = h;
     installRuntimeAudioEntry(ctx,'play',{audio,music});
     const { cabins, landmarks, particles } = this;
     const cabinAudio = { ...ctx.product.section<CustomSections['custom/cabinAmbience']>('custom/cabinAmbience') };
@@ -258,11 +257,8 @@ export class PineHollow extends ShardPlugin {
     ]));
     // SF57: after the play hook's first await the owner is the page's; the boss / elite bars and the Elites service end with
     // this runtime, not with the page (one set per visit used to stay for the page's life)
-    const decisions=await pageDecisionAuthority(ctx),decisionProgram=ctx.product.section('actors/species-programs').program;
-    if(decisionProgram===undefined)throw new Error('Pine requires its King decision programme');
-    const persistenceRows = await readAdventurePersistence(ctx);
-    const fights = ctx.scope.run(() => installPineCombat({ eliteRows, pouchCapacity: ctx.product.section('held/loadout').pouch.capacity, persistenceRows, decisionProgram,decisions, context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
-      longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } }));
+    const fights = await installRoamingCombat(ctx, await ctx.product.json('combat/roaming.json'));
+    installEnteredRuntimeService(ctx, scope => { registerPineLap({ game, player, animals, music, hud, elites: fights.elites, king: fights.encounter }, scope); });
     ctx.answer('weather.hold', (previous) => ctx.app.render === game ? Math.max(previous, fights.weatherHold()) : previous);
     const trophyPack = ctx.product.section<CustomSections['custom/trophyMounts']>('custom/trophyMounts');
     registerPackedGeometrySource(ctx.scope, 'collection-mounts', { url: ctx.product.url(trophyPack.url), rows: trophyPack.rows, label: 'trophy-wall' });

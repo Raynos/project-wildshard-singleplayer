@@ -9,7 +9,7 @@ import { readSpeciesPrograms, readSpeciesProgram } from '../src/format/speciesPr
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from '../src/shards/driftwood-isle/generators/speciesPrograms';
 import { speciesWithLook } from '../src/engine/entities/species/look';
-import { registerKing } from '../src/shards/pine-hollow/runtime/antlerKing';
+import { registerKing } from '../src/shards/pine-hollow/species/boss';
 import { pineLooks } from '../src/shards/pine-hollow/species/looks';
 import { ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK } from '../src/shards/driftwood-isle/species/fauna';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../src/shards/driftwood-isle/generators/faunaSpecies';

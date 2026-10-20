@@ -33,6 +33,12 @@ export interface HeldLoadout {
   onPlayerDeath: () => void;
   update: (dt: number) => void;
 }
+const enteredLoadouts = new WeakMap<Scope, Map<string, HeldLoadout>>();
+/** Borrow the installed loadout by its declared state identity. */
+export function enteredHeldLoadout(scope: Scope, id: string): HeldLoadout {
+  const value = enteredLoadouts.get(scope)?.get(id); if (scope.disposed || value === undefined) throw new Error('Missing entered held loadout'); return value;
+}
+
 /** Restore owned equipment, migrating the old pack flag once before checking ownership. */
 export function restoreHeldOwnership(legacy: readonly string[], owned: readonly string[], rows: LoadoutRows): { bow: boolean; rifle: boolean; grants: string[] } {
   const migrated = legacy.includes(rows.bow.legacyItem);
@@ -179,5 +185,8 @@ export function installHeldLoadout(context: ShardContext, input: unknown): HeldL
     },
   };
   h.scope.onDispose(app.debug.scopedExpose(row.debug.loadout, api)); h.scope.onDispose(app.debug.scopedExpose(row.debug.firearm, rifle)); h.scope.onDispose(app.debug.scopedExpose(row.debug.bow, longbow));
+  const book = enteredLoadouts.get(context.scope) ?? new Map<string, HeldLoadout>();
+  if (book.has(row.persistence.state)) throw new Error('Duplicate entered held loadout');
+  book.set(row.persistence.state, api); enteredLoadouts.set(context.scope, book); context.scope.onDispose(() => { book.delete(row.persistence.state); });
   return api;
 }

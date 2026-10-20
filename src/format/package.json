@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./roamingCombat": "./roamingCombat.ts",
+    "./roamingBossProjection": "./roamingBossProjection.ts",
+    "./bossSocketRig": "./bossSocketRig.ts",
     "./creatureFrame": "./creatureFrame.ts",
     "./crowdPresentation": "./crowdPresentation.ts",
     "./wildlifePopulation": "./wildlifePopulation.ts",
