@@ -499,7 +499,7 @@ export class NativeDeferredRoster {
   park(id: string): void {
     const actor = this.intake.byId.get(id)?.actor, at = actor === undefined || actor === null ? -1 : this.bodies.indexOf(actor);
     if (actor === undefined || actor === null || at === -1 || this.absent.has(actor)) throw new Error('Foreign dormant native actor');
-    actor.hidden = true; actor.alive = false; actor.position.y = this.rows.retiredY; actor.motor?.dispose(); actor.motor = null; this.absent.add(actor);
+    Object.assign(actor, { hidden: true }); actor.alive = false; actor.position.y = this.rows.retiredY; actor.motor?.dispose(); actor.motor = null; this.absent.add(actor);
     const owner = this.intake.identities.identity(id); if (owner !== null) this.intake.identities.own(id, { ...owner, listed: false });
     this.host.bodyDt(id); this.host.brainDt(id); this.hunt.forget(actor); this.intake.byId.delete(id); this.bodies.splice(at, 1); this.sight.splice(at, 1);
   }
