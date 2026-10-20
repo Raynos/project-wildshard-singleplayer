@@ -214,8 +214,8 @@ export class EncounterSchedule {
     Object.assign(this.state, values);
   }
   reset(values: Readonly<Record<string, number>> = {}): void { Object.assign(this.state, this.rows.initial); this.set(values); }
-  project(frame: Readonly<Record<string, number>>, random?: Rng): Readonly<Record<string, number>> {
-    const result = this.program.project(this.rows.signal, { ...this.rows.parameters, ...this.state, ...frame }, random);
+  project(frame: Readonly<Record<string, number>>, random?: Rng, candidates: readonly Readonly<Record<string, number>>[] = []): Readonly<Record<string, number>> {
+    const result = this.program.project(this.rows.signal, { ...this.rows.parameters, ...this.state, ...frame }, random, candidates);
     const next: Record<string, number> = {};
     for (const [channel, slot] of Object.entries(this.rows.retain)) { const value = result[channel]; if (value !== undefined) next[slot] = value; }
     this.set(next); return result;

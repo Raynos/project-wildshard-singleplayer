@@ -94,7 +94,7 @@ export const TITAN_SCHEDULES = {
   spear: { signal: 'spearResolve', initial: { mode: 0, t: 0, cd: 2.5, x: 0, z: 0 },
     parameters: { radius: TITAN_TUNING.spearRadius, aim: TITAN_TUNING.spearAim, lock: TITAN_TUNING.spearLock, stuck: TITAN_TUNING.spearStuck },
     retain: { mode: 'mode', t: 't', cd: 'cd', x: 'x', z: 'z' } },
-  contact: { signal: 'fireContact', initial: { cd: 0 }, parameters: { amount: TITAN_TUNING.fireDps }, retain: { cd: 'cd' } },
+  contact: { signal: 'fieldContact', initial: { cd: 0 }, parameters: { amount: TITAN_TUNING.fireDps }, retain: { cd: 'cd' } },
   chain: { signal: 'chain', initial: { cd: 4, chain: 0, t: 0 }, parameters: {}, retain: { cd: 'cd', left: 'chain', t: 't' } },
 };
 
@@ -114,3 +114,5 @@ export const TITAN_CHAINS = { count: 8, law: { signal: 'chainLand',
   initial: { on: 0, t: 0, x: 0, z: 0 }, parameters: { land: TITAN_TUNING.chainLand, radius: TITAN_TUNING.chainRadius },
   retain: { t: 't', mode: 'on' },
 } };
+
+export const TITAN_FIRE_SENSE = [0,1,2,3,4,5].map(angle => ({ x: Math.cos(angle)*5, z: Math.sin(angle)*5 }));

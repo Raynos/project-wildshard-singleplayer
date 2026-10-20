@@ -610,9 +610,8 @@ export class StormTitanFight implements BossScript {
     if (!live || thinkDt <= 0) return;
     // the player in fire: 8 / s; the horse panics near it
     const p = this.host.player.position;
-    let near = false;
-    if (this.host.mounted()) for (let a = 0; a < 6 && !near; a++) near = this.burningAt(p.x + Math.cos(a) * 5, p.z + Math.sin(a) * 5);
-    const contact = this.fireContact.project({ dt: thinkDt, hit: Number(this.burningAt(p.x,p.z)), open: Number(near) });
+    const samples = this.data.TITAN_FIRE_SENSE.map(offset => ({ hit: Number(this.burningAt(p.x + offset.x, p.z + offset.z)) }));
+    const contact = this.fireContact.project({ dt: thinkDt, hit: Number(this.burningAt(p.x,p.z)), mounted: Number(this.host.mounted()), count: samples.length }, undefined, samples);
     if ((contact['hurt'] ?? 0) > 0) sampleArena(NALATI_STRIKES.fire, p, p, () => { this.host.hurt(contact['hurt'] ?? 0, this.data.TITAN_LINES.burning); }, app.physics);
     if ((contact['speed'] ?? 0) < 0) this.host.horseSteed(contact['speed'] ?? 0);
 

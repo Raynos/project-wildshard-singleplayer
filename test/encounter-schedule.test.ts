@@ -51,3 +51,10 @@ test('phase and arena rules are decided in the admitted module', () => {
   expect(rules.project('tie', { engaged: 0, victory: 0, hit: 0, mounted: 0, storm: 1 })).toEqual({ arm: 0, disarm: 0, index: 0 });
   expect(rules.project('tie', { engaged: 0, victory: 1, hit: 0, mounted: 1, storm: 1 })).toEqual({ arm: 1, disarm: 1, index: 2 });
 });
+
+test('mounted field refusal consumes numeric samples in AS without a second page rule', () => {
+  const schedule = new EncounterSchedule(fight.TITAN_SCHEDULES.contact, author());
+  const samples = [{ hit: 0 }, { hit: 1 }];
+  expect(schedule.project({ dt: .1, mounted: 1, hit: 0, count: samples.length }, undefined, samples)).toMatchObject({ hurt: 0, speed: -1 });
+  expect(schedule.project({ dt: .1, mounted: 0, hit: 0, count: samples.length }, undefined, samples)).toMatchObject({ hurt: 0, speed: 0 });
+});

@@ -46,9 +46,21 @@ if(signal==Signal.fieldClock){
 
     }
     put(Channel.burn,burn);put(Channel.mask,mask);
-  } else if(signal==Signal.fireContact){
+  } else if(signal==Signal.fireContact||signal==Signal.fieldContact){
  const cd=f(Field.cd)-f(Field.dt),hurt=f(Field.hit)>0&&cd<=0;
- put(Channel.cd,hurt?.5:cd);put(Channel.hurt,hurt?f(Field.amount)*.5:0);put(Channel.speed,f(Field.open)>0?-10*f(Field.dt):0);
+ let near=false;
+ if(signal==Signal.fireContact)near=f(Field.open)>0;
+ else if(f(Field.mounted)>0){
+  if(1<=i32(f(Field.count))&&Read.field(1,Field.hit)>0)near=true;
+  if(2<=i32(f(Field.count))&&Read.field(2,Field.hit)>0)near=true;
+  if(3<=i32(f(Field.count))&&Read.field(3,Field.hit)>0)near=true;
+  if(4<=i32(f(Field.count))&&Read.field(4,Field.hit)>0)near=true;
+  if(5<=i32(f(Field.count))&&Read.field(5,Field.hit)>0)near=true;
+  if(6<=i32(f(Field.count))&&Read.field(6,Field.hit)>0)near=true;
+  if(7<=i32(f(Field.count))&&Read.field(7,Field.hit)>0)near=true;
+  if(8<=i32(f(Field.count))&&Read.field(8,Field.hit)>0)near=true;
+ }
+ put(Channel.cd,hurt?.5:cd);put(Channel.hurt,hurt?f(Field.amount)*.5:0);put(Channel.speed,near?-10*f(Field.dt):0);
 }
 
 }
