@@ -1,7 +1,7 @@
 /**
  * Nalati's painted air (E357 S3.2, 07 §6.2 steps 1 + 5; it was `Atmosphere.ts`'s `installAtmosphere(painterly)` and
- * `paintedAir`): the painterly fog chunks replace the engine's fog maths — aerial perspective (clear air, then layered
- * haze that takes the saturation first) and the cloud-shadow function (`pCloudShadow`, P_CLOUDS) the sun loop calls.
+ * `paintedAir`): the painterly fog pars replace the engine's — the cloud-shadow function (`pCloudShadow`, P_CLOUDS) the
+ * sun loop calls; fog.ts's panorama fog replaces the fog maths (its v1 aerial perspective was overwritten there, so cut).
  * The uniforms (`paintedAir`) reach every fogged material through `addFogUniforms`. Installed by the look's
  * `fog.install` (render.ts), right after the engine's `installAtmosphere`, before anything compiles.
  *
@@ -19,18 +19,11 @@ import { AIR_GLSL } from '../runtime/looks/airGlsl';
 const AIR_GLSL_FAMILY = new ShaderFamily(AIR_GLSL, {});
 
 /**
- * Aerial perspective: the painter's distance cue. Past `fogAerial.x` metres everything first loses saturation, then
- * dissolves toward the luminous horizon haze (`fog.color`, warmed by `fogSunColor` toward the sun), in layers:
- * `fogAerial.y × (1 − e^(−d·fogDistDensity))` — so ridge after ridge steps paler and bluer, the snow range stays
- * readable. The valley's height haze (`fogHeight*`) adds on top. A storm's thick `fogDistDensity` lifts the cap to 1.
- *
  * Cloud shadows: the sun's light (every CSM-lit material: terrain, grass, props, spruce, creatures) is multiplied by
  * a drifting cloud-cover field sampled at the fragment's world XZ (`fogCloud*`, advanced by the sky dressing along the
- * wind) — painted soft-edged shadows sliding over the grassland. `setCloudCover()` retunes it (weather).
+ * wind) — painted soft-edged shadows sliding over the grassland. The fog colour itself is fog.ts's.
  */
 export const paintedAir = {
-  /** x = metres of clear air before the haze starts, y = the haze cap (0..1), z = desaturation share, w = sun-side warmth */
-  fogAerial: { value: new THREE.Vector4(30, 0.72, 0.5, 0.65) },
   /** the cloud-cover field (a tileable fbm, R) */
   fogCloudTex: { value: null as THREE.Texture | null },
   /** x = 1 / tile size (1/m), y = coverage threshold (higher = fewer clouds), z = shadow strength 0..1, w = edge softness */
@@ -39,16 +32,7 @@ export const paintedAir = {
   fogCloudOff: { value: new THREE.Vector2(0, 0) },
 };
 
-/** cloud cover 0 (clear) … 1 (overcast) and shadow strength — the weather's knob (defaults ≈ 0.4, 0.66) */
-export function setCloudCover(cover: number, strength = paintedAir.fogCloud.value.z): void {
-  const v = paintedAir.fogCloud.value;
-  v.y = 0.78 - Math.min(1, Math.max(0, cover)) * 0.62;
-  v.z = strength;
-}
-
 let airInstalled = false;
-/** the painted air is installed (the look's fog install ran) */
-export function isPaintedAir(): boolean { return airInstalled; }
 
 /**
  * The cloud shadows reach every CSM-lit material through the sun loop: CSM installs its own `lights_fragment_begin`
@@ -84,11 +68,9 @@ export const NALATI_SKY: SkyDressing = {
   },
 };
 
-/** the painterly fog chunks (aerial perspective + the cloud-shadow function the sun loop calls — see `paintedAir`) */
+/** the painterly fog pars (the cloud-shadow function the sun loop calls — see `paintedAir`); fog.ts installs the fog itself */
 export function installPaintedAir(): void {
   airInstalled = true;
   addFogUniforms(paintedAir); // attachFogUniforms hands them to every fogged material from here on
   THREE.ShaderChunk.fog_pars_fragment = AIR_GLSL_FAMILY.glsl(AIR_GLSL.fog_pars_fragment);
-
-  THREE.ShaderChunk.fog_fragment = AIR_GLSL_FAMILY.glsl(AIR_GLSL.fog_fragment);
 }
