@@ -1,31 +1,32 @@
+import { defineModel } from '@wildshard/engine/models/model';
 import { nativeSpecimen, type NdLook } from '../world/modelLook';
 import { loadCast, loadCastLods } from '../world/casts';
 import boot from '../boot/metadata.generated.json' with { type: 'json' };
 
-export const brassDragonHook = nativeSpecimen('brassDragonHook');
-export const drumStool = nativeSpecimen('drumStool');
-export const mahjongTableModel = nativeSpecimen('mahjongTableModel');
-export const parkedScooter = nativeSpecimen('parkedScooter');
-export const lampPostModel = nativeSpecimen('lampPostModel');
-export const lotusPostModel = nativeSpecimen('lotusPostModel');
-export const lotusFinial = nativeSpecimen('lotusFinial');
-export const wellBalustrade = nativeSpecimen('wellBalustrade');
-export const landingPlanterModel = nativeSpecimen('landingPlanterModel');
-export const airConBox = nativeSpecimen('airConBox');
-export const galleryPlant = nativeSpecimen('galleryPlant');
-export const balustradePanel = nativeSpecimen('balustradePanel');
-export const laundryLineModel = nativeSpecimen('laundryLineModel');
-export const paifang = nativeSpecimen('paifang');
-export const hawkerStallModel = nativeSpecimen('hawkerStallModel');
-export const noodleStallModel = nativeSpecimen('noodleStallModel');
+export const brassDragonHook = defineModel(nativeSpecimen('brassDragonHook'));
+export const drumStool = defineModel(nativeSpecimen('drumStool'));
+export const mahjongTableModel = defineModel(nativeSpecimen('mahjongTableModel'));
+export const parkedScooter = defineModel(nativeSpecimen('parkedScooter'));
+export const lampPostModel = defineModel(nativeSpecimen('lampPostModel'));
+export const lotusPostModel = defineModel(nativeSpecimen('lotusPostModel'));
+export const lotusFinial = defineModel(nativeSpecimen('lotusFinial'));
+export const wellBalustrade = defineModel(nativeSpecimen('wellBalustrade'));
+export const landingPlanterModel = defineModel(nativeSpecimen('landingPlanterModel'));
+export const airConBox = defineModel(nativeSpecimen('airConBox'));
+export const galleryPlant = defineModel(nativeSpecimen('galleryPlant'));
+export const balustradePanel = defineModel(nativeSpecimen('balustradePanel'));
+export const laundryLineModel = defineModel(nativeSpecimen('laundryLineModel'));
+export const paifang = defineModel(nativeSpecimen('paifang'));
+export const hawkerStallModel = defineModel(nativeSpecimen('hawkerStallModel'));
+export const noodleStallModel = defineModel(nativeSpecimen('noodleStallModel'));
 
-export const FACADE_MODELS = Object.fromEntries(boot.explorerModels.facade.filter(row => !row.baked).map(row => [row.piece, nativeSpecimen(row.key)]));
-export const FACADE_BAKED = Object.fromEntries(boot.explorerModels.facade.filter(row => row.baked).map(row => [row.piece, nativeSpecimen(row.key)]));
+export const FACADE_MODELS = Object.fromEntries(boot.explorerModels.facade.filter(row => !row.baked).map(row => [row.piece, defineModel(nativeSpecimen(row.key))]));
+export const FACADE_BAKED = Object.fromEntries(boot.explorerModels.facade.filter(row => row.baked).map(row => [row.piece, defineModel(nativeSpecimen(row.key))]));
 
-export const marketBooth = nativeSpecimen('marketBooth');
-export const parasolTable = nativeSpecimen('parasolTable');
-export const diningPavilion = nativeSpecimen('diningPavilion');
-export const guardianLion = nativeSpecimen('guardianLion');
+export const marketBooth = defineModel(nativeSpecimen('marketBooth'));
+export const parasolTable = defineModel(nativeSpecimen('parasolTable'));
+export const diningPavilion = defineModel(nativeSpecimen('diningPavilion'));
+export const guardianLion = defineModel(nativeSpecimen('guardianLion'));
 
 /** Load the declared cast and its authored LODs before synchronous placement. */
 export async function loadLion(look: NdLook): Promise<void> {
