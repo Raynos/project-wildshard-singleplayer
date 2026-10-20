@@ -28,7 +28,8 @@ export interface ForestStoryRows {
   readonly collections: readonly { readonly event: string; readonly completeEvent: string; readonly prefix: string; readonly names: readonly string[];
     readonly label: string; readonly complete: string; readonly item?: string; readonly take?: string; readonly fallback?: string; readonly shelf?: string }[];
   readonly pickupEvent: string;
-  readonly signals: readonly (Point & { readonly id: string; readonly height: number })[];
+  /** `lantern`: the forest page lantern this signal lights while any of its `when` flags is set */
+  readonly signals: readonly (Point & { readonly id: string; readonly height: number; readonly lantern: { readonly id: string; readonly when: readonly string[] } })[];
   readonly wheel: { readonly flag: string; readonly speed: number };
   readonly door: { readonly building: string; readonly flag: string };
   readonly trades: { readonly section: `custom/${string}`; readonly finishes: readonly string[]; readonly name: string; readonly place: string; readonly figure: string; readonly call: string };

@@ -277,6 +277,11 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   };
 
   let slowT = 0;
+  // each signal's lantern is lit while any of its declared flags is set
+  const lanternLit = new Map<string, boolean>();
+  const lightLanterns = (): void => { for (const row of rows.signals) { const on = row.lantern.when.some(flag => flags.has(flag));
+    if (lanternLit.get(row.id) !== on) { lanternLit.set(row.id, on); floor.setLantern(row.lantern.id, on); } } };
+  lightLanterns();
   ctx.system({ id: 'quest', phase: 'update', after: ['quest.kit'], before: ['hud.combat', 'main.frame'], run: (dt, t) => {
     const pp = player.position;
     talks.update(dt, t, pp);
@@ -307,7 +312,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
       for (const puff of stag.takePuffs()) leadPuffs.burst(_v.set(puff.x, puff.y + stag.puffs.height, puff.z), ...stag.puffs[puff.kind]);
       for (const puff of thralls.takePuffs()) spawnPuffs.burst(_v.set(puff.x, puff.y + thralls.puffs.height, puff.z), ...thralls.puffs.burst);
     }
-    questChip.update(t, player);
+    questChip.update(t, player); lightLanterns();
     if (t - slowT > 0.5) {
       slowT = t;
       const cam = game.camera.position;

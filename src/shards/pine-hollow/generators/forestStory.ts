@@ -9,6 +9,7 @@ import scenes from '../data/timberScenes.generated.json' with { type: 'json' };
 import roster from '../data/questNpcs.generated.json' with { type: 'json' };
 import layout from '../data/layout.generated.json' with { type: 'json' };
 import sky from '../data/sky.json' with { type: 'json' };
+import wardens from '../data/wardensHollow.json' with { type: 'json' };
 import { BEATS, beatFlags, type Beat } from './questBeats';
 
 const triple = (input: unknown): [number, number, number] => v.parse(v.tuple([v.number(), v.number(), v.number()]), input);
@@ -28,7 +29,7 @@ const jumps = Object.fromEntries(Object.entries(BEATS).map(([id, beat]) => {
 export const FOREST_STORY: ForestStoryRows = {
   ...policy, content: 'custom/questRuntime', trades: { ...policy.trades, section: 'custom/tradeCatalogue' }, ammo: 'iron', parts: { url: packed.url, rows: packed.rows, label: 'chapter props' },
   board: { ...policy.board, at: board },
-  signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2 })),
+  signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2, lantern: { id: `waystone.${id}`, when: [`lit:${id}`, wardens.QUEST_DONE] } })),
   cable: { id: 'pine.zipline', geometry: packed.parts['zip-trolley'], prompt: [zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]],
     radius: 2.3, label: 'Ride the zipline', top: zip.top, launch: zip.launch, landing: zip.landing, arrival: 'Down the line and into the Hollow' },
   mover: { id: 'pine.canoe', geometry: packed.parts.canoe, system: 'pine.movers', rest: 'heroes.canoe.root' },

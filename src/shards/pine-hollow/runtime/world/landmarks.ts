@@ -6,7 +6,6 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
  * and drips, and the chapter's view binding.
  *
  *   const lm = await installPineLandmarks({ sky, registry, page });   // registers the cave, keeps it updated
- *   lm.setLit('pond', true);                                          // the quest relights a waystone
  */
 import * as THREE from 'three';
 import { PineQuestViews } from '../../quest/views';
@@ -25,8 +24,6 @@ import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { RainFx } from '../looks/rainFx';
 import { pineMemoryTrim, pineSetCap } from '../debug/options';
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
-
-export type WaystoneId = 'pond' | 'ridge' | 'den';
 
 export class PineLandmarks {
   readonly group = new THREE.Group();
@@ -65,8 +62,6 @@ export class PineLandmarks {
     Object.assign(runtime.objects, { pineLife: life });
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, { cabins: floor.cabins, props: floor.props, streams: floor.streams, pineLife: life });
   }
-
-  setLit(id: WaystoneId, on: boolean): void { this.page.setLantern(`waystone.${id}`, on); }
 
   update(dt: number, t: number): void { this.chapter?.present(dt); this.crags?.cave.presentFrame(t, this.sky); }
 }
