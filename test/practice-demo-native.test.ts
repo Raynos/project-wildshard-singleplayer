@@ -7,6 +7,8 @@ import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { CreatureBodies } from '../src/engine/physics/creatures';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { tagOf } from '../src/engine/physics/surface';
+import { groups } from '../src/engine/physics/groups';
+import { Ragdolls } from '../src/engine/physics/ragdoll';
 import { Animal } from '../src/engine/entities/AnimalView';
 import { Physics } from '../src/engine/physics/Physics';
 import { Scope } from '../src/engine/app/scope';
@@ -240,6 +242,34 @@ test('actual weapon contacts publish immediate local hit/death, pay loot once an
     expect(nativeOf(f.creature()).control.snapshot()).toBe(initial.control); expect(f.faults).toEqual([]); f.worldUnchanged();
     const lastRetired = retireCheck(f); f.demo.arena.exit(); lastRetired();
     expect(f.demo.arena.entered).toBe(false); expect(f.creature().targets).toEqual([]); f.worldUnchanged();
+  } finally { f.dispose(); }
+});
+
+test('native lethal publication retires the living motor but does not yet own a physical corpse', async () => {
+  const spawn = vi.spyOn(Ragdolls.prototype, 'spawn'), f = await boot();
+  try {
+    const native = nativeOf(f.creature()), view = f.creature().targets[0];
+    if (!(view instanceof Animal)) throw new Error('Missing actual bound view');
+    const motor = native.actor.motor; if (!(motor instanceof CharacterMotor)) throw new Error('Missing living motor');
+    const dispose = vi.spyOn(motor, 'dispose'), events = eventsOf(f.creature()); let deaths = 0;
+    events.on('actor.died', () => { deaths++; }, scopeOf(f.creature()));
+    const debrisCount = (): number => {
+      let count = 0;
+      f.physics.world.forEachCollider(collider => { if (collider.collisionGroups() === groups('DEBRIS')) count++; });
+      return count;
+    };
+    expect(debrisCount()).toBe(0); expect(view.dims.rigidCorpse).toBeUndefined();
+    swing(f, 10000, () => deaths === 1);
+    const lethalRoot = native.actor.position.toArray();
+    expect(native.pose.context.alive).toBe(false); expect(native.pose.context.transition?.kind).toBe(2);
+    expect(view.mesh.position.toArray()).toEqual(lethalRoot);
+    for (let i = 0; i < 120; i++) f.graphics.frame(1 / 60);
+    // This is a missing-owner characterization, not a complete-death/contact acceptance test.
+    expect(dispose).toHaveBeenCalledOnce(); expect(native.actor.motor).toBeNull();
+    expect(spawn).not.toHaveBeenCalled(); expect(Reflect.get(view, 'ragdoll')).toBeNull(); expect(debrisCount()).toBe(0);
+    expect(native.actor.position.toArray()).toEqual(lethalRoot); expect(view.mesh.position.toArray()).toEqual(lethalRoot);
+    expect(native.pose.context.deathT).toBe(1); expect(deaths).toBe(1);
+    expect(f.faults).toEqual([]); f.worldUnchanged();
   } finally { f.dispose(); }
 });
 
