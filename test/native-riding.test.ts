@@ -92,7 +92,7 @@ test('orchard native manager drives the admitted roster at ten Hz across body fr
   const manager = new NativeManager(host, hunt, random, { limit: 64, sightSlots: 1, initialSight: false });
   admitNativeManagerTokens(host, 'orchard.tokens', new WeakMap());
   const driver = new NativePopulationDriver(host, manager, hunt, random, [actor], new Map(), new Map(), eliteBindings(), [], [],
-    { tokens: 'orchard.tokens', program: admission, packKind: 'boar', dogKind: 'collie', eliteKinds: [], dispatch: 'dispatch', dogDecision: 'dog' });
+    { tokens: 'orchard.tokens', program: admission, packKind: 'boar', dogKind: 'collie', eliteKinds: [], dispatch: 'dispatch', dogDecision: 'dog', stragglerDistance: 12 });
   host.onStep('orchard.population', dt => { driver.update(dt); });
   try {
     actor.setMotion(1, 3, 1);
@@ -133,3 +133,36 @@ test('orchard deferred actors share allocator, stream and native retirement owne
     expect(bodies).toEqual([]); expect(sight).toEqual([]); expect(() => deferred.park(parked.entityId)).toThrow();
   } finally { host.dispose(); }
 });
+
+test('orchard wildlife frame continues real foragers and tramples through numeric rows', async () => {
+  const { ForagerPopulation } = await import('@wildshard/engine/ai/ambientForager');
+  const { ForagerPopulationSchema } = await import('@wildshard/format/ambientLife');
+  const { NativeWildlifeFrame } = await import('@wildshard/game/population/nativeManager');
+  const { ReturnProgram } = await import('@wildshard/game/population/returnProgram');
+  const { TrampleField } = await import('@wildshard/game/systems/looks/trample');
+  const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
+  const { default: foragerRow } = await import('../src/shards/nalati-grasslands/creatures/marmotForager.json');
+  const { overrideTerrain } = await import('@wildshard/engine/world/Heightfield');
+  const v = await import('valibot');
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, quests: [] }, { rapier });
+  host.scope.onDispose(overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }));
+  const native = host.entities.get('boar:1'); if (native === undefined) throw new Error('Missing orchard body');
+  const actor: HuntBody = Object.assign(native, { hidden: false, sampleTerrain: () => undefined }); actor.speed = 3;
+  const population = new ForagerPopulation(v.parse(ForagerPopulationSchema, { ...foragerRow, id: 'orchard.foragers', count: 4, place: { ...foragerRow.place, size: [2, 2] } }), 41);
+  population.colonies([{ x: 5, z: 5 }]);
+  const trample = new TrampleField(), wolves: HuntBody[] = [], signals: string[] = [];
+  const frame = new NativeWildlifeFrame(host, ReturnProgram.native(host, admission), [actor], [], wolves, [], [], [], population, trample,
+    { speed: 'speed', alert: 'whistle', range: 'scare', packRadius: 20, scareSeconds: 6, scareRadius: 60, foragerRunSpeed: 5,
+      trample: { kinds: { boar: .5 }, minSpeed: .6, range: 80, fullSpeed: 6 }, knockdown: { speed: 7, min: .4, max: 1.5, seconds: .28 } });
+  host.events.on('creature.signal', event => { signals.push(event.name); }, host.scope);
+  host.onStep('orchard.wildlife', dt => { trample.update(dt, host.player.position); frame.update(dt, false); });
+  try {
+    for (let i = 0; i < 12; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    const saved = frame.snapshot(); expect(saved.wild.at).toBeGreaterThan(0); expect(population.rows.length).toBeGreaterThan(0);
+    expect(trample.amountAt(actor.position.x, actor.position.z)).toBeGreaterThan(0);
+    frame.scare(3, 4); host.step({ moveX: 0, moveZ: 0, yaw: 0 }); expect(signals).toEqual(['scare']);
+    frame.update(.1, true); frame.restore(saved); expect(frame.snapshot()).toEqual(saved);
+  } finally { host.dispose(); }
+});
+

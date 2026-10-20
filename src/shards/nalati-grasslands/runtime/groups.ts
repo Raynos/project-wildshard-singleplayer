@@ -1,4 +1,6 @@
 import { admitNativeManagerTokens } from '@wildshard/game/population/nativeManager';
+import type { GrassField } from '@wildshard/game/systems/looks/grassField';
+import type { TrampleField } from '@wildshard/game/systems/looks/trample';
 import { bindEliteAdmission } from './argymaqKeeper';
 import { admitNativeHerds } from '@wildshard/game/shardfile/groupRuntime';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
@@ -46,8 +48,8 @@ const unbound = (what: string) => (): never => { throw new Error(`Nalati headles
 /** The host's own grass (SF72): the page's field over the same baked grid and terrain field (game/systems/looks/grassField.ts
  *  GrassField) and a trample map of its own (game/systems/looks/trample.ts TrampleField); runtime/headless.ts builds them. */
 export interface NalatiGrassView {
-  readonly field: { baseHeightAt: (x: number, z: number) => number };
-  readonly trample: { amountAt: (x: number, z: number) => number; push: (x: number, z: number, radius: number, strength?: number, vx?: number, vz?: number) => void };
+  readonly field: GrassField;
+  readonly trample: TrampleField;
 }
 
 /**

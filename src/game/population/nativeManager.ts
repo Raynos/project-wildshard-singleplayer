@@ -1,3 +1,6 @@
+import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
+import { TrampleField } from '../systems/looks/trample';
+import { PopulationRelations } from './pageGroups';
 import { Vector3 } from 'three';
 import { AggressionDirector } from '@wildshard/engine/ai/director';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
@@ -100,7 +103,7 @@ export function admitNativeManagerTokens(host: SimHost, id: string, owners: Weak
 /** The single shard supplies dispatch roles and guest ids; clocks and concrete
  * actor, group, hunt, token and elite owners belong to the game. */
 export interface NativeDriverRows {
-  tokens: string; program: unknown; packKind: string; dogKind: string; eliteKinds: readonly string[]; dispatch: string; dogDecision: string;
+  tokens: string; program: unknown; packKind: string; dogKind: string; eliteKinds: readonly string[]; dispatch: string; dogDecision: string; stragglerDistance: number;
 }
 /** Manager decisions and native body continuation. Contexts allocate only when
  * a concrete actor joins; restored and newly bonded actors keep the same owner. */
@@ -155,7 +158,7 @@ export class NativePopulationDriver {
     if (flock === undefined) { actor.setMotion(actor.yaw, 0, 1); return; }
     let nearest: FlockThreat | null = null, distance = Infinity;
     for (const wolf of this.wolves) { const d = Math.hypot(wolf.position.x - flock.cx, wolf.position.z - flock.cz); if (wolf.alive && d < distance) { distance = d; nearest = wolf; } }
-    const straggler = flock.straggler(12); if (straggler >= 0) flock.positions(straggler, this.sheep);
+    const straggler = flock.straggler(this.rows.stragglerDistance); if (straggler >= 0) flock.positions(straggler, this.sheep);
     const p = actor.position, memory = actor.mem, player = this.host.player.position;
     memory['dogThinkAt'] = this.host.clock.now;
     const answer = this.author.project(this.rows.dogDecision, { px: p.x, py: p.y, pz: p.z, cx: flock.cx, cz: flock.cz, dt,
@@ -211,4 +214,59 @@ export class NativePopulationDriver {
   }
   snapshot(): number { return this.dodgeCd; }
   restore(value: number): void { if (!Number.isFinite(value) || value < 0) throw this.missing; this.dodgeCd = value; }
+}
+
+interface WildlifeFrameState { init: boolean; x: number; z: number; v: number; at?: number }
+export interface NativeWildlifeRows {
+  speed: string; alert: string; range: string; packRadius: number; scareSeconds: number; scareRadius: number; foragerRunSpeed: number;
+  trample: { kinds: Readonly<Record<string, number>>; minSpeed: number; range: number; fullSpeed: number };
+  knockdown: { speed: number; min: number; max: number; seconds: number };
+}
+/** Continuous world observations around the existing native group and crowd
+ * owners. Placement and response decisions stay in their admitted guest. */
+export class NativeWildlifeFrame {
+  private readonly state: WildlifeFrameState = { init: false, x: 0, z: 0, v: 0, at: 0 };
+  private readonly fields = { x: 0, z: 0, px: 0, pz: 0, dt: 0, speed: 0 };
+  private readonly relations: PopulationRelations<AnimalSim>;
+  constructor(private readonly host: SimHost, private readonly author: ReturnProgram, private readonly bodies: readonly HuntBody[],
+    private readonly wildWolves: readonly HuntBody[], private readonly wolves: HuntBody[],
+    packs: readonly PackBrain<AnimalSim>[], herds: readonly HerdBrain<AnimalSim>[], private readonly flocks: readonly FlockBrain[],
+    private readonly foragers: ForagerPopulation, private readonly trample: TrampleField, private readonly rows: NativeWildlifeRows) {
+    if (!(foragers instanceof ForagerPopulation) || !(trample instanceof TrampleField) || bodies.length > 64 || flocks.length > 4) throw new Error('Invalid native wildlife owners');
+    this.relations = new PopulationRelations(author, { packs, herds, crowds: flocks }, { alert: rows.alert, range: rows.range, packRadius: rows.packRadius,
+      disturbRadius: 0, disturbSeconds: 0, scareSeconds: rows.scareSeconds });
+  }
+  update(dt: number, crouched: boolean): void {
+    const player = this.host.player.position, state = this.state;
+    if (!state.init) { state.x = player.x; state.z = player.z; state.init = true; }
+    const elapsed = this.host.clock.now-(state.at ?? 0);
+    if (elapsed >= .1-1e-9) {
+      Object.assign(this.fields, { x: player.x, z: player.z, px: state.x, pz: state.z, dt: elapsed, speed: state.v });
+      const speed = this.author.project(this.rows.speed, this.fields)['speed']; if (speed === undefined || !Number.isFinite(speed)) throw new Error('Invalid native wildlife speed');
+      state.v = speed; state.x = player.x; state.z = player.z; state.at = this.host.clock.now;
+    }
+    this.wolves.length = 0; for (const wolf of this.wildWolves) if (wolf.alive) this.wolves.push(wolf);
+    const row = this.rows.trample;
+    for (const actor of this.bodies) {
+      const radius = row.kinds[actor.kind];
+      if (radius === undefined || !actor.alive || actor.speed < row.minSpeed || Math.hypot(actor.position.x-player.x, actor.position.z-player.z) > row.range) continue;
+      this.trample.push(actor.position.x, actor.position.z, radius*actor.scale, Math.min(1,actor.speed/row.fullSpeed), Math.sin(actor.yaw)*actor.speed, Math.cos(actor.yaw)*actor.speed);
+    }
+    for (const flock of this.flocks) flock.update(dt, this.host.clock.now, player, state.v, this.wolves);
+    const alarm = this.foragers.update(dt, player, state.v > this.rows.foragerRunSpeed, crouched); if (alarm !== null) this.relations.alert(alarm.x, alarm.z);
+    this.relations.ripple();
+  }
+  scare(x: number, z: number, radius = this.rows.scareRadius): void { this.relations.scare(x, z, radius); this.host.events.emit('creature.signal', { name: 'scare', x, z }); }
+  knockdown(x: number, z: number, strength: number): void {
+    const row = this.rows.knockdown, length = Math.hypot(x,z) || 1, speed = row.speed*Math.max(row.min,Math.min(row.max,strength));
+    this.host.dashPlayer(x/length*speed, z/length*speed, row.seconds);
+  }
+  snapshot(): { wild: { init: boolean; x: number; z: number; v: number; at: number }; flocks: string[]; marmots: ReturnType<ForagerPopulation['snapshot']> } {
+    return { wild: { ...this.state, at: this.state.at ?? 0 }, flocks: this.flocks.map(flock => flock.snapshot()), marmots: this.foragers.snapshot() };
+  }
+  restore(saved: { wild: WildlifeFrameState; flocks: readonly string[]; marmots: unknown }): void {
+    if (saved.flocks.length !== this.flocks.length || ![saved.wild.x,saved.wild.z,saved.wild.v,saved.wild.at ?? this.host.clock.now].every(Number.isFinite)) throw new Error('Invalid native wildlife continuation');
+    Object.assign(this.state, saved.wild, { at: saved.wild.at ?? this.host.clock.now }); this.foragers.restore(saved.marmots);
+    saved.flocks.forEach((wire, index) => { this.flocks[index]?.restore(wire); });
+  }
 }
