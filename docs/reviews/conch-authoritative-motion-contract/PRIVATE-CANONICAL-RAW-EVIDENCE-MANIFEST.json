@@ -1,0 +1,138 @@
+{
+  "schema": "wildshard.native-owner.raw-evidence-selection.v1",
+  "synthetic": true,
+  "modelAdmission": false,
+  "publicAdmission": false,
+  "originalProcessExit": 1,
+  "originalReportSha256": "e1baf026f0a4de87c7e454d4c25b802c8cd0e3270acb330c4db67f50a41089eb",
+  "purpose": "Preserve original complete ordinary capture files, full corrected build receipt and source pin as native Site source evidence; no deployment.",
+  "fileCount": 12,
+  "totalBytes": 140709734,
+  "files": [
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/capture/01-living.jpg",
+      "bytes": 67304,
+      "sha256": "23ac893aa79226ab9d24e779176b681867572380b7c7cb28a8dbf37dfcb415e3",
+      "screening": {
+        "kind": "original portrait image or video",
+        "scope": "synthetic local game viewport; no user desktop or external page"
+      }
+    },
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/capture/02-physical-collapse.jpg",
+      "bytes": 55727,
+      "sha256": "697fb030fdd1735119653eb7640ca8671230dbfd7be77b9bec11d90c1d586b23",
+      "screening": {
+        "kind": "original portrait image or video",
+        "scope": "synthetic local game viewport; no user desktop or external page"
+      }
+    },
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/capture/03-frozen.jpg",
+      "bytes": 54520,
+      "sha256": "5e1aa674fb4ac59957e8abcf07a93a19422019442fa35cc657933baaf52d197e",
+      "screening": {
+        "kind": "original portrait image or video",
+        "scope": "synthetic local game viewport; no user desktop or external page"
+      }
+    },
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/capture/04-retry.jpg",
+      "bytes": 60502,
+      "sha256": "75bd5e439a6b6ecf6f991298c279be8cf13922fd2c99f6f34e82c650cc19ae6b",
+      "screening": {
+        "kind": "original portrait image or video",
+        "scope": "synthetic local game viewport; no user desktop or external page"
+      }
+    },
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/capture/05-player-defeated.jpg",
+      "bytes": 64858,
+      "sha256": "87b96abf79b1f238cd42c165acfb3d30df7b50d3aeaf98a13d07e758f55c0acc",
+      "screening": {
+        "kind": "original portrait image or video",
+        "scope": "synthetic local game viewport; no user desktop or external page"
+      }
+    },
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/capture/06-reloaded.jpg",
+      "bytes": 63195,
+      "sha256": "3e1441c0a9fac46ffa55781d4187fbda4814eea2b051f31beee41c9b60b4a2dd",
+      "screening": {
+        "kind": "original portrait image or video",
+        "scope": "synthetic local game viewport; no user desktop or external page"
+      }
+    },
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/capture/cycle-complete-trace.json",
+      "bytes": 116846217,
+      "sha256": "2aa2a5b548b0bc2e89d515abdbaa325bb6831abd208f539705217558fdb25f55",
+      "screening": {
+        "kind": "full JSON byte scan",
+        "privateAbsolutePathMatches": 0,
+        "credentialMarkerMatches": 0,
+        "uniqueHttpUrls": 0,
+        "urlScope": "none"
+      }
+    },
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/capture/reload-complete-trace.json",
+      "bytes": 2707944,
+      "sha256": "6da54cc1a328a7c241d281b85c040c3ca81224b3f4c00a74af1c8ef8fd7bc411",
+      "screening": {
+        "kind": "full JSON byte scan",
+        "privateAbsolutePathMatches": 0,
+        "credentialMarkerMatches": 0,
+        "uniqueHttpUrls": 0,
+        "urlScope": "none"
+      }
+    },
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/capture/report.json",
+      "bytes": 647936,
+      "sha256": "e1baf026f0a4de87c7e454d4c25b802c8cd0e3270acb330c4db67f50a41089eb",
+      "screening": {
+        "kind": "full JSON byte scan",
+        "privateAbsolutePathMatches": 0,
+        "credentialMarkerMatches": 0,
+        "uniqueHttpUrls": 100,
+        "urlScope": "owned loopback capture host only"
+      }
+    },
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/capture/video/page@52e49f183b07233dd594892bfe0775b4.webm",
+      "bytes": 17461205,
+      "sha256": "e8abd5d2aa97e7cd12f1722abd7441bdf9b21251af9308bd88db3e912fae52fe",
+      "screening": {
+        "kind": "original portrait image or video",
+        "scope": "synthetic local game viewport; no user desktop or external page"
+      }
+    },
+    {
+      "path": "tmp/native-owner-browser-proof-resolver1/dist/native-owner-proof.json",
+      "bytes": 1405104,
+      "sha256": "fc98822427d9fbca80b229ee726c60b5492e7f4e9d8969886901242fddfa662a",
+      "screening": {
+        "kind": "full JSON byte scan",
+        "privateAbsolutePathMatches": 0,
+        "credentialMarkerMatches": 0,
+        "uniqueHttpUrls": 0,
+        "urlScope": "none"
+      }
+    },
+    {
+      "path": "docs/reviews/conch-authoritative-motion-contract/PRIVATE-CANONICAL-BROWSER-PIN-RESOLVER1.json",
+      "bytes": 1275222,
+      "sha256": "8d40a6e0c5fdf25faf59d609b9a1cdb2becca9ff905dd4c0c1e7973788f4f2ba",
+      "screening": {
+        "kind": "full JSON byte scan",
+        "privateAbsolutePathMatches": 0,
+        "credentialMarkerMatches": 0,
+        "uniqueHttpUrls": 0,
+        "urlScope": "none"
+      }
+    }
+  ],
+  "screeningLimits": "Full JSON byte scans found no common private absolute-path roots, private-key markers, common token prefixes or credential-value markers. URLs are only the owned loopback runtime origin. This is bounded evidence screening, not a general secret-detection proof. Media contain the synthetic private game viewport, including explicit player-position engineering inputs; no desktop capture.",
+  "excluded": "No duplicated full built dist, archives, chunks, base64, unrelated sources or logs. Exact original dist remains locally retained. Public and fallback hosts are unchanged."
+}
