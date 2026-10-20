@@ -11,8 +11,9 @@ the same morning: *"we want to absolutely min-max the JavaScript wasm boundaries
 and for the wasm to do as much work with as much context as it needs"*; *"once you enter the WASM, it shouldn't be
 going back into JavaScript"*; *"I do feel long term we want to run assembly code at 60 hertz or 30 hertz."*
 
-Research pages: [AssemblyScript Step Lanes](https://claude.ai/artifact/Bu7aPc7FeeJM8BS6vgdU7m) (the 30/60 Hz audit
-and the from-scratch design). The as-built contract is [SCRIPT-ABI.md](../SCRIPT-ABI.md).
+Explainer: [Wasm Host v2](https://claude.ai/artifact/1WXaRYWNBAvABBeH4HvrAA) (why, problem, solution, trade-offs, plan).
+Research: [AssemblyScript Step Lanes](https://claude.ai/artifact/Bu7aPc7FeeJM8BS6vgdU7m) (the 30/60 Hz audit and the
+from-scratch design). The as-built contract is [SCRIPT-ABI.md](../SCRIPT-ABI.md).
 
 ## Why
 
