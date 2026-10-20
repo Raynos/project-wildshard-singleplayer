@@ -172,7 +172,7 @@ test('an orchard installs painterly setup and its frame update from an unordered
 
 
 test('a trusted runtime honors required graph rows before allocating presentation', async () => {
-  const f=context();f.source.look.materials['orchard-water']={family:'pbr'};
+  const f=context();f.source.look.materials['orchard-water']={family:'pbr',maps:{}};
   f.sections.set('client/plan',{version:1,features:[{kind:'world.scenes',graphs:'required'}]});
   Object.assign(f.runtime,{world:{game:{renderer:{}}}});
   Object.assign(f.ctx,{tiers:{knobs:vi.fn()}});
