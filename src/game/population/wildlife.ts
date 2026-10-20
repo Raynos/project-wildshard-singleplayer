@@ -1,5 +1,6 @@
 import { PopulationRelations } from './relations';
 import * as v from 'valibot';
+import type { TargetHit } from '@wildshard/engine/combat/types';
 import type { Vector3 } from 'three';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
@@ -8,7 +9,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { CrowdTargets, CrowdRoster } from '../shardfile/crowdRuntime';
+import { CrowdTargets, CrowdRoster, CrowdWeaponTarget } from '../shardfile/crowdRuntime';
 import { PageGroups, PagePopulationPlanner, wildEnv } from './pageGroups';
 import { ReturnProgram, ProjectedMotionSample } from './returnProgram';
 
@@ -22,6 +23,7 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   readonly groups: PageGroups; readonly pastureAuthor: ReturnProgram;
   readonly foragers: { rules: ForagerPopulation; initial: ReturnType<ForagerPopulation['snapshot']> } | null;
   private readonly rows: Rows; readonly placement: ReturnProgram; private readonly population: PagePopulationPlanner;
+  private readonly weaponTarget: CrowdWeaponTarget<T>;
   private readonly targets: CrowdRoster<T>; private readonly relations: PopulationRelations;
   private readonly motion: ProjectedMotionSample; private readonly predatorBodies: Animal[] = [];
   constructor(private readonly animals: AnimalManager,input: unknown) {
@@ -29,6 +31,7 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
     this.placement = ReturnProgram.page(row.admission); this.pastureAuthor = ReturnProgram.page(row.pasture);
     this.population = new PagePopulationPlanner(animals,this.placement,new Rng(row.random),{ begin: 'begin',spot: 'spot',accept: 'accept',yaw: 'yaw' });
     this.groups = new PageGroups(animals,this.flocks,row.groups); this.targets = new CrowdRoster(animals.animals,this.flocks,row.groups.prey);
+    this.weaponTarget=new CrowdWeaponTarget(this.targets,row.combat);
     this.relations = new PopulationRelations(this.placement,{ packs: this.groups.packs,herds: this.groups.herds,crowds: this.flocks },row.relations);
     this.motion = new ProjectedMotionSample(this.placement,'speed');
     if (row.foragers === null) this.foragers = null;
@@ -98,6 +101,8 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   }
   disturb(x: number,z: number): void { this.relations.disturb(x,z); }
   scare(x: number,z: number,radius = 60): void { this.relations.scare(x,z,radius); wildEnv.onEvent('scare',x,z); }
+  /** Native weapon target over the same authoritative crowd/prey roster. */
+  raycastWeapon(origin:Vector3,direction:Vector3,maximum:number,previous:TargetHit|null):TargetHit|null{return this.weaponTarget.raycast(origin,direction,maximum,previous);}
   raycastCrowd(origin: Vector3,direction: Vector3,maximum: number): { flock: T; index: number; distance: number } | null { return this.targets.raycast(origin,direction,maximum); }
   killCrowd(hit: { flock: T; index: number }): void { hit.flock.kill(hit.index); }
 }

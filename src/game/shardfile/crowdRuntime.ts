@@ -1,10 +1,12 @@
+import { parse } from 'valibot';
+import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { PackPrey } from '@wildshard/engine/ai/pack';
 import { FlockBrain, type FlockPorts, type FlockThreat, type FlockPose } from '@wildshard/engine/ai/flock';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { Vector3 } from 'three';
-import { parseFlock, type ShardFlock } from '@wildshard/format/crowds';
+import { CrowdWeaponTargetSchema, parseFlock, type ShardFlock } from '@wildshard/format/crowds';
 
 /** Trusted perception sampled in the owning clock; threat identities remain native references. */
 export interface CrowdObservation {
@@ -200,5 +202,28 @@ export class CrowdRoster<T extends CrowdTargets> {
       if (best === null || distance < best.distance) { best = this.hit ??= { flock: view, index, distance }; best.flock = view; best.index = index; best.distance = distance; }
     }
     return best;
+  }
+}
+
+/** Client-only weapon projection of the actual nearest crowd member. The
+ * native roster owns selection and retirement; declarations supply metadata. */
+export class CrowdWeaponTarget<T extends CrowdTargets> {
+  private pending: {flock:T;index:number}|null=null;
+  private readonly animal: TargetAnimal;
+  private readonly result: TargetHit;
+  constructor(private readonly roster: CrowdRoster<T>,input:unknown){
+    if(!(roster instanceof CrowdRoster)||Object.getPrototypeOf(roster)!==CrowdRoster.prototype)throw new Error('Missing native crowd roster');
+    const rows=parse(CrowdWeaponTargetSchema,input);
+    this.animal={kind:rows.kind,position:new Vector3(),alive:true,damageFor:()=>rows.damage,applyDamage:()=>{
+      if(this.pending!==null)this.pending.flock.kill(this.pending.index);this.pending=null;this.animal.alive=false;return true;
+    }};
+    this.result={animal:this.animal,point:new Vector3(),distance:0,headshot:false};
+  }
+  raycast(origin:Vector3,direction:Vector3,maximum:number,previous:TargetHit|null):TargetHit|null{
+    const hit=this.roster.raycast(origin,direction,previous===null?maximum:Math.min(maximum,previous.distance));
+    if(hit===null)return previous;
+    const pending=this.pending??={flock:hit.flock,index:hit.index};pending.flock=hit.flock;pending.index=hit.index;
+    hit.flock.positions(hit.index,this.animal.position);this.animal.alive=true;
+    this.result.point.copy(this.animal.position);this.result.distance=hit.distance;return this.result;
   }
 }

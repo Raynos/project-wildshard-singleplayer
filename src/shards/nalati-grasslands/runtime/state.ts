@@ -18,7 +18,7 @@ import { Group, Mesh, Vector3, type Object3D } from 'three';
 import * as v from 'valibot';
 import { clientWaterSurfaces } from '@wildshard/game/shardfile/clientWaterSurfaces';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
-import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
+import type { TargetHit } from '@wildshard/engine/combat/types';
 import type { ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -69,7 +69,6 @@ import type { RayTargets } from '@wildshard/engine/combat/targets';
 
 
 type Wildlife = PageWildlife<Flock>;
-type SheepHit = NonNullable<ReturnType<Wildlife['raycastCrowd']>>;
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ShardManifest; params: URLSearchParams }
 
@@ -284,20 +283,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   };
   updates.push(wildlifeFrame);
 
-  // the flock as a weapon target: one reused TargetAnimal for "the sheep on this ray"
-  let sheepHit: SheepHit | null = null;
-  const sheepPoint = new Vector3();
-  const sheep: TargetAnimal = {
-    kind: 'sheep', position: new Vector3(), alive: true,
-    damageFor: () => 100,
-    applyDamage: () => {
-      if (sheepHit !== null && wildlife !== null) wildlife.killCrowd(sheepHit);
-      sheepHit = null; sheep.alive = false;
-      return true;
-    },
-  };
-  const sheepResult: TargetHit = { animal: sheep, point: sheepPoint, distance: 0, headshot: false };
-
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
   const night = await wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
@@ -362,15 +347,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     },
     sheepTarget(origin, dir, maxDist, hit) {
       if (wildlife === null) return hit;
-      const finish = (h: TargetHit | null): TargetHit | null => titan.target(origin, dir, maxDist, night.target(origin, dir, maxDist, h));
-      const sh = wildlife.raycastCrowd(origin, dir, hit !== null ? Math.min(maxDist, hit.distance) : maxDist);
-      if (sh === null) return finish(hit);
-      sheepHit = { flock: sh.flock, index: sh.index, distance: sh.distance };
-      sh.flock.positions(sh.index, sheep.position);
-      sheep.alive = true;
-      sheepPoint.copy(sheep.position);
-      sheepResult.distance = sh.distance;
-      return finish(sheepResult);
+      return titan.target(origin,dir,maxDist,night.target(origin,dir,maxDist,wildlife.raycastWeapon(origin,dir,maxDist,hit)));
     },
   };
   // ── crouch + grass stealth (melee agent, B9): the long-grass CROUCH toggle (touch disc above JUMP, C / Ctrl on desktop),

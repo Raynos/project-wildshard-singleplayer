@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { isJsonData } from './json';
 
 const key = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.:-]*$/u), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
@@ -17,3 +18,6 @@ export const FlockSchema = v.strictObject({
 export type ShardFlock = v.InferOutput<typeof FlockSchema>;
 /** Refuse malformed tuning before constructing a native view or consuming setup randomness. */
 export function parseFlock(data: unknown): ShardFlock { return v.parse(FlockSchema, data); }
+
+/** Native combat projection over a crowd member; no per-hit content handler. */
+export const CrowdWeaponTargetSchema = v.pipe(v.unknown(),v.check(isJsonData),v.strictObject({kind:key,damage:v.pipe(finite,v.minValue(0))}));
