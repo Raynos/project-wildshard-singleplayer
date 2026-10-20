@@ -1,0 +1,17 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <project-root>
+
+
+ Test Files  2 passed (2)
+      Tests  8 passed (8)
+   Start at  18:33:00
+   Duration  12.37s (transform 66%, setup 34%, tests 1%)
+
+  Transform  transforming modules took 7.90s · 66% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

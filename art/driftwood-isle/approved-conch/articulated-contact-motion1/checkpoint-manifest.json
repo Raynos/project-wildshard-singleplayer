@@ -1,5 +1,5 @@
 {
-  "status": "frozen editable diagnostic WIP; mirror fixture repair verified; three independent strict-contract defects remain open",
+  "status": "frozen bounded contract repair; original negative evidence preserved; independent repaired-byte and continuation consistency review pending",
   "files": {
     "src/engine/entities/animalRig.ts": {
       "bytes": 6516,
@@ -10,12 +10,12 @@
       "sha256": "11835cb8cc53a02bd3e30d04f92e6ed8fa987bcfcca1251eb74739244c5d061b"
     },
     "src/game/plugin/practiceFootContact.ts": {
-      "bytes": 17285,
-      "sha256": "ac19c73576130a2ec93d25097c4500f2e16409e46d3457929988c833fabc5054"
+      "bytes": 17379,
+      "sha256": "2ac18bc8e33082bbccdd3cb4b51d5c51e5ba2301b3c5999d069c797c5dcf6073"
     },
     "src/game/plugin/animation.ts": {
-      "bytes": 84066,
-      "sha256": "27017ca81d332ef26e2855a99ec0135f6ae83b262bb669251411133aeeea2d1e"
+      "bytes": 84897,
+      "sha256": "809946c238c70e75d7ff4ddf3e29a8b48130de8c0923e1e6431f9e034243b305"
     },
     "src/game/plugin/channelPrograms.ts": {
       "bytes": 19234,
@@ -34,32 +34,32 @@
       "sha256": "7b1f4da3c925db5822a9c20d763f28073a3c11cb3909e2841acd235b5f8a1784"
     },
     "test/practice-foot-contact.test.ts": {
-      "bytes": 13705,
-      "sha256": "0b21621e27ddb3b0cc50dfeeb003b107f365aa41ecf64896656360e3687e0291"
+      "bytes": 17126,
+      "sha256": "a159b7b6365c9bc8bbe63b34c2eccf6a77a9cd233ef55d245d37a6ad58691ab0"
     },
     "tsconfig.practice-contact-check.json": {
       "bytes": 472,
       "sha256": "eb5f06dcb20704893763e471680bae76a3ee1a7955a96db80090b333c14e1db5"
     },
     "art/driftwood-isle/approved-conch/articulated-contact-motion1/prepare.py": {
-      "bytes": 3270,
-      "sha256": "d28be62019656198fd001f35993ae60cda40f13960411fc22c3176afb7961b18"
+      "bytes": 3600,
+      "sha256": "b4a9966868e862478ad7b902eceb0b0424260389f07e8deede0b50cec4f8e15b"
     },
     "art/driftwood-isle/approved-conch/articulated-contact-motion1/motion.json": {
       "bytes": 61063,
       "sha256": "1e9e57b985b9eea412cbac566c7bd82f6a40b6ee4ffd8401440661d8b821ad55"
     },
     "art/driftwood-isle/approved-conch/articulated-contact-motion1/RESULT.md": {
-      "bytes": 5335,
-      "sha256": "970907f42ebf05e89f063a611d994434d9f6ba8bba37bb3de36faa2de1946beb"
+      "bytes": 7532,
+      "sha256": "91c3834ac6759982cc19d2479d93eabb51318ae2c8702cb46259df979fa20f33"
     },
     "art/driftwood-isle/approved-conch/articulated-contact-motion1/zero-time-witness.json": {
       "bytes": 634,
       "sha256": "d46738f1975a78c488b2f077ab8c85d19bbaa289cf137d832abab13a6845e317"
     },
     "art/driftwood-isle/approved-conch/articulated-contact-motion1/checks.json": {
-      "bytes": 1307,
-      "sha256": "f5f072f6bc4e034b755cf2f86f9bfa7259b49c20041c3c46856039a0fbaea813"
+      "bytes": 1802,
+      "sha256": "350e3c85a87c59853817e2dc151bcf08e7c55e8560acfbb8134f3a0510a05f84"
     },
     "art/driftwood-isle/approved-conch/articulated-contact-motion1/mirror-loading-witness.json": {
       "bytes": 559,
@@ -70,8 +70,8 @@
       "sha256": "0ec903c0eef1639277048dee8098cd51c33980204a18f59a49d75a68f21390f3"
     },
     "test/proof/conch-grounded-source/inputs.json": {
-      "bytes": 959,
-      "sha256": "9470f266da08123d61bfa705e8c03489d51df17159b1196f8fe24077a2fb41d0"
+      "bytes": 1797,
+      "sha256": "ef8489aa26bf1afe609814b26f35842fe8943c67ad9592434010136382dbdbe9"
     },
     "test/proof/conch-grounded-source/model.json": {
       "bytes": 1395246,
@@ -84,6 +84,22 @@
     "test/proof/conch-grounded-source/recipe.json": {
       "bytes": 20894,
       "sha256": "2dc438caca6a3396e48f9ae51a600c83a7cbf97ebd5ffd4a7654e7b8b14e5ed0"
+    },
+    "src/game/plugin/geometry.ts": {
+      "bytes": 139367,
+      "sha256": "2b47c4b4c1256463254000b58b3c932ffc55867bba4a9acb1d903c9c93c560f9"
+    },
+    "src/game/plugin/packedPayloadIdentity.ts": {
+      "bytes": 564,
+      "sha256": "9ebff173b7068856675d09351fd94342bfb59f68426c66c8e704439feed0745d"
+    },
+    "test/proof/conch-grounded-source/metadata.json": {
+      "bytes": 24650,
+      "sha256": "6905f20ced953176fb0e316a8d18287735eef0fb996cd58af43ae918b8f87989"
+    },
+    "test/proof/conch-grounded-source/payload.bin": {
+      "bytes": 48317,
+      "sha256": "9a1176e701ec58b6470d9898c11677512344e455c84da3bde84e1b5cee5364ed"
     }
   }
 }

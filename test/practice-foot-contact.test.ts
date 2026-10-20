@@ -1,3 +1,7 @@
+import packedMetadata from './proof/conch-grounded-source/metadata.json' with { type: 'json' };
+import packedUrl from './proof/conch-grounded-source/payload.bin?inline';
+import { packedCreatureBodies } from '../src/game/plugin/geometry';
+import { packedPayloadIdentity } from '../src/game/plugin/packedPayloadIdentity';
 import sourceFreeze from './proof/conch-grounded-source/freeze.json' with { type: 'json' };
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
 import { expect, test } from 'vitest';
@@ -24,17 +28,24 @@ const recipe: NativeCreaturePoseRecipe = { practice: true, custom: true, deathSp
     return { name: bone.name, parent, position: [0, 1, 2].map(i => (bone.pos[i] ?? 0) - (p?.[i] ?? 0)) as [number, number, number],
       order: 'XYZ', scale: [1, 1, 1] };
   }) };
+const payload = Uint8Array.from(atob(packedUrl.slice(packedUrl.indexOf(',') + 1)), c => c.codePointAt(0) ?? 0);
+const loader = packedCreatureBodies(packedMetadata, undefined, () => Promise.resolve(payload));
+await loader.preload();
+function loadedDims() {
+  const body = loader.copy('conch-duelist', 'conch-duelist');
+  for (const part of [...body.hardParts, ...body.furParts, ...body.eyeParts]) part.dispose();
+  return body.dims;
+}
 const joint = (): AnimalRigJoint => ({ position: new Vector3(), rotation: new Euler(), scale: new Vector3(1, 1, 1) });
-function fixture(yaw = 0, scale = 1) {
+function fixture(yaw = 0, scale = 1, input = declaration, dims = loadedDims()) {
   const surface: PracticeContactSurface = { id: 'practice-arena', revision: 1, active: true, y: 900,
     minX: -49.78, maxX: 49.78, minZ: -49.78, maxZ: 49.78 };
   const actor = new AnimalSim({ kind: 'conch-duelist', label: 'Conch', variant: 'conch-duelist', rarity: 'common', hp: 100,
-    aggressive: true, dims: { bodyY: 1.04, bodyHalfLen: .4, bodyRadius: .4, headRadius: .2,
-      legLen: .86, feet: [], halfWidth: .4, rigidCorpse: hulls },
+    aggressive: true, dims,
     mods: { speed: 1, chargeDist: 1, damageTaken: 1, chargeDamage: 20, relentless: false } },
   1, scale, 'practice.conch', { heightAt: () => 900, random: () => .5 });
   actor.place(0, 0, yaw, 900); actor.levelGround = true; actor.groundHeight = () => 900;
-  const pose = new NativeCreaturePose(actor, recipe, numericCreaturePose(declaration), surface);
+  const pose = new NativeCreaturePose(actor, recipe, numericCreaturePose(input), surface);
   actor.bindVolumes(pose); pose.initializePractice();
   let time = 0;
   const tick = (body = false) => { time += 1 / 60; if (body) actor.step(1 / 60); pose.advance(1 / 60, time, true); pose.publish(); };
@@ -199,4 +210,44 @@ test('render cadence does not alter future owner bytes; malformed restore and un
   expect(a.pose.snapshot()).toBe(wire);
   const { root } = a.render(1); root.scale.set(1, 2, 1);
   expect(() => initialPracticeContacts(contact, root, a.surface)).toThrow('uniform scale');
+});
+
+test('actual packed loader binds payload identity, rejects mismatches and retains owned bytes', async () => {
+  expect(packedPayloadIdentity(loadedDims())).toBe(contact.source);
+  const wrong = structuredClone(declaration); wrong.footContact.source = '0'.repeat(64);
+  expect(() => fixture(0, 1, wrong)).toThrow('source identity');
+  expect(() => fixture(0, 1, declaration, { ...loadedDims() })).toThrow('source identity');
+  const alteredMetadata = { ...packedMetadata, file: packedMetadata.file.replace(contact.source, '0'.repeat(64)) };
+  const invalid = packedCreatureBodies(alteredMetadata, undefined, () => Promise.resolve(payload));
+  await invalid.preload();
+  const invalidBody = invalid.copy('conch-duelist', 'conch-duelist');
+  expect(() => packedPayloadIdentity(invalidBody.dims)).toThrow('payload identity');
+  for (const part of [...invalidBody.hardParts, ...invalidBody.furParts, ...invalidBody.eyeParts]) part.dispose();
+  const callerBytes = payload.slice();
+  const owned = packedCreatureBodies(packedMetadata, undefined, () => Promise.resolve(callerBytes));
+  await owned.preload(); callerBytes.fill(0);
+  const body = owned.copy('conch-duelist', 'conch-duelist');
+  expect(packedPayloadIdentity(body.dims)).toBe(contact.source);
+  for (const part of [...body.hardParts, ...body.furParts, ...body.eyeParts]) part.dispose();
+});
+test('restore rejects off-slab footprints and simultaneous swing atomically', () => {
+  const f = fixture(), wire = f.pose.snapshot();
+  const saved = JSON.parse(wire) as { contact: { current: { feet: { mode: string; elapsed: number; step: number;
+    plant: { position: number[] }; start: { position: number[] }; target: { position: number[] } }[] } } };
+  for (const foot of saved.contact.current.feet) for (const frame of [foot.plant, foot.start, foot.target]) {
+    frame.position[0] = (frame.position[0] ?? 0) + 100;
+  }
+  expect(() => f.pose.restore(JSON.stringify(saved))).toThrow('contact restore frame');
+  expect(f.pose.snapshot()).toBe(wire);
+  const edge = JSON.parse(wire) as typeof saved;
+  const first = edge.contact.current.feet[0];
+  if (first === undefined) throw new Error('Missing contact foot');
+  // The ankle remains inside the slab, but a real sole vertex crosses its edge.
+  for (const frame of [first.plant, first.start, first.target]) frame.position[0] = 49.77;
+  expect(() => f.pose.restore(JSON.stringify(edge))).toThrow('contact restore frame');
+  expect(f.pose.snapshot()).toBe(wire);
+  const swinging = JSON.parse(wire) as typeof saved;
+  for (const foot of swinging.contact.current.feet) { foot.mode = 'swing'; foot.elapsed = 1; foot.step = 1; }
+  expect(() => f.pose.restore(JSON.stringify(swinging))).toThrow('contact continuation');
+  expect(f.pose.snapshot()).toBe(wire);
 });

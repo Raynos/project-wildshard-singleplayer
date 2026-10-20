@@ -29,3 +29,15 @@ Upper-body strike choreography, actual Arena gameplay/lifecycle, real corpse han
 The independent review reproduced three strict-contract defects: continuation accepts off-slab frames, continuation accepts two simultaneous swings, and the authored source digest is not yet bound to the actual loader payload. The packed Float32 positive sweep passed, but these defects block strict-contract acceptance. They remain deliberately unrepaired in this first protected source slice; a separate bounded repair is underway.
 
 The first real staged-tree hook also refused root-test imports from the deliberately excluded art tree. `prepare.py` now produces complete byte-identical normal-tree fixtures under `test/proof/conch-grounded-source/`, with origin/hash receipt. The repaired test file passes 9/9 and its type-aware lint is clean. No gate, type exemption or runtime code changed for that fixture repair. `mirror-loading-witness.json` retains the cause.
+
+## Bounded strict-contract repair, 2026-10-20
+
+The original three negative reproductions remain in `docs/reviews/conch-grounded-motion-independent/` and the original failed runtime source is preserved at local checkpoint `4f9f8c81e2653cd73ca0744674d5d157b4276be3`. This repair changes no geometry, joint limits, motion parameters, collision caps, actor-root compensation, or runtime selection.
+
+Restore now rejects both simultaneous swings and any plant/start/target sole footprint outside the finite slab before changing owner state. This applies to both continuation endpoints and to released feet as well. An invalid failed frame is not silently restorable or exempted; it remains a diagnostic failure. Restore does not advance or re-solve the controller.
+
+The packed loader privately retains its own input-byte copy and associates provenance with the exact emitted dimensions object, which the actual model and AnimalSim retain. Only the standard packed decoder establishes this provenance. NativeCreaturePose's opt-in contact constructor reads that loader-owned identity, checks the actual payload hash against the authored metadata filename, and rejects absent or mismatched identity. A copied authored digest in dimensions cannot establish provenance. The source field explicitly means SHA-256 of the compressed loader input, not canonical model JSON; the full input receipt separately records payload, model JSON, and metadata JSON hashes. No new authored field or pose callback can confer that identity.
+
+Complete byte-identical metadata and binary payload fixtures join the existing full source fixtures in the normal test tree, so the staged build mirror can test the actual loader. Tests include positive identity, forged declaration hash, detached dimensions, metadata filename mismatch, and mutation of the caller's byte buffer after preload. Legacy non-contact poses do not consult provenance. Private retention adds an owned byte copy; standard geometry output and decoding semantics are otherwise unchanged.
+
+Independent repaired-byte review and actual staged-tree hooks remain required. This is still diagnostic WIP, not a visual, motion, gameplay, source, or corpse admission.

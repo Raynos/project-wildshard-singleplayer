@@ -1,5 +1,11 @@
 {
   "completeByteCopies": true,
+  "identitySemantics": {
+    "footContact.source": "exact compressed loader input payload SHA-256",
+    "payloadSha256": "9a1176e701ec58b6470d9898c11677512344e455c84da3bde84e1b5cee5364ed",
+    "modelJsonSha256": "560abb099f474ddb86733f143e39652874298bba67f15fd1da7a63f1c4e91b3e",
+    "metadataJsonSha256": "6905f20ced953176fb0e316a8d18287735eef0fb996cd58af43ae918b8f87989"
+  },
   "files": {
     "model.json": {
       "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/model.json",
@@ -15,6 +21,16 @@
       "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/freeze.json",
       "bytes": 3689,
       "sha256": "0ec903c0eef1639277048dee8098cd51c33980204a18f59a49d75a68f21390f3"
+    },
+    "metadata.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/metadata.json",
+      "bytes": 24650,
+      "sha256": "6905f20ced953176fb0e316a8d18287735eef0fb996cd58af43ae918b8f87989"
+    },
+    "payload.bin": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/payload.bin",
+      "bytes": 48317,
+      "sha256": "9a1176e701ec58b6470d9898c11677512344e455c84da3bde84e1b5cee5364ed"
     },
     "motion.json": {
       "origin": "art/driftwood-isle/approved-conch/articulated-contact-motion1/motion.json",

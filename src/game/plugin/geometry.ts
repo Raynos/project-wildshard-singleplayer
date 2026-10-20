@@ -1,3 +1,5 @@
+import { bindPackedPayloadIdentity } from './packedPayloadIdentity';
+import { sha256 } from './brain';
 import { rigidCorpseSchema, copyRigidCorpse } from '@wildshard/format/rigidCorpse';
 import { unzlibSync } from 'fflate';
 import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as WholeNative, nativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
@@ -1353,12 +1355,13 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
   }
   let compressed: Uint8Array | null = null, loading: Promise<void> | null = null;
   return {
-    preload: () => { loading ??= load(bake.file).then(bytes => { compressed = bytes; return undefined; }); return loading; },
+    preload: () => { loading ??= load(bake.file).then(bytes => { compressed = Uint8Array.from(bytes); return undefined; }); return loading; },
     copy: (kind, variant) => {
       const body = bake.bodies.find(row => row.kind === kind && row.variant === variant);
       if (body === undefined) throw new Error(`no baked creature body ${kind}.${variant}`);
       if (compressed === null) throw new Error(`Packed creature bodies are not loaded (${kind}.${variant})`);
-      const bytes = decode(compressed);
+      const retained = compressed;
+      const bytes = decode(Uint8Array.from(retained));
       if (bytes.length !== bake.bytes) throw new Error('Packed creature bake does not match its rows');
       const part = (sources: wholeV.InferOutput<typeof PackedBodyParts>): BufferGeometry[] => (sources === null ? [] : Array.isArray(sources) ? sources : [sources]).map(source => {
         const at = (i: number): number => { const offset = source.offsets[i]; if (offset === undefined) throw new Error('Packed creature block is missing'); return offset; };
@@ -1377,7 +1380,7 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
         return g;
       });
       const { capsuleAxis, rigidCorpse, bodyAt, bodyPitch, headAt, fore, ...dims } = body.dims;
-      return { bones: body.bones.map(bone => ({ name: bone.name, parent: bone.parent, pos: [bone.pos[0], bone.pos[1], bone.pos[2]] })),
+      const result: AnimalSpecies = { bones: body.bones.map(bone => ({ name: bone.name, parent: bone.parent, pos: [bone.pos[0], bone.pos[1], bone.pos[2]] })),
         furParts: part(body.fur), hardParts: part(body.hard), eyeParts: part(body.eye),
         dims: { ...dims,
           ...(bodyAt === undefined ? {} : { bodyAt: [bodyAt[0], bodyAt[1], bodyAt[2]] }),
@@ -1385,6 +1388,13 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
           ...(headAt === undefined ? {} : { headAt: [headAt[0], headAt[1], headAt[2]] }),
           ...(fore === undefined ? {} : { fore: { bone: fore.bone, at: [fore.at[0], fore.at[1], fore.at[2]], halfLen: fore.halfLen, radius: fore.radius } }),
           ...(rigidCorpse === undefined ? {} : { rigidCorpse: copyRigidCorpse(rigidCorpse) }), feet: dims.feet.map((foot): [number, number] => [foot[0], foot[1]]), ...(capsuleAxis === undefined ? {} : { capsuleAxis }) } };
+      // Only the standard decoder can establish the actual emitted payload identity.
+      if (decode === unzlibSync) bindPackedPayloadIdentity(result.dims, () => {
+        const actual = sha256(retained);
+        if (!bake.file.endsWith(`-${actual}.bin`)) throw new Error('Packed payload identity differs from metadata');
+        return actual;
+      });
+      return result;
     },
   };
 }

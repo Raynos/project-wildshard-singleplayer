@@ -1,3 +1,4 @@
+import { packedPayloadIdentity } from './packedPayloadIdentity';
 import { PracticeContactStateSchema, validatePracticeContact, initialPracticeContacts, advancePracticeContacts,
   solvePracticeContacts, samplePracticeContactFrames, releasePracticeContacts, practiceContactClearance,
   type PracticeContactState, type PracticeContactSurface, type PracticeFootContactRecipe } from './practiceFootContact';
@@ -736,6 +737,7 @@ export class NativeCreaturePose {
     this.contactRecipe = transition?.contact; this.contactSurface = contactSurface;
     if (this.contactRecipe !== undefined) {
       if (contactSurface === undefined) throw new Error('Contact requires trusted finite Arena surface');
+      if (packedPayloadIdentity(actor.dims) !== this.contactRecipe.source) throw new Error('Contact source identity differs from actual packed payload');
       validatePracticeContact(this.contactRecipe, recipe.joints);
       const hulls = actor.dims.rigidCorpse?.parts.map(part => ({ joint: part.bone, points: part.points }));
       if (JSON.stringify(hulls) !== JSON.stringify(this.contactRecipe.geometry)) throw new Error('Contact geometry identity differs from actual source');
@@ -1060,6 +1062,7 @@ export class NativeCreaturePose {
       for (const endpoint of [contact.current, contact.previous]) {
         if (endpoint.source !== this.contactRecipe?.source || endpoint.surface !== this.contactSurface?.id
           || endpoint.revision !== this.contactSurface.revision || !this.contactSurface.active
+          || endpoint.feet.filter(foot => foot.mode === 'swing').length > 1
           || endpoint.feet.some(foot => foot.elapsed > (this.contactRecipe?.swingTicks ?? 0)
             || (foot.mode === 'swing' && (foot.elapsed === 0 || foot.elapsed === this.contactRecipe?.swingTicks))
             || (foot.mode === 'stance' && foot.elapsed !== 0 && foot.elapsed !== this.contactRecipe?.swingTicks)
@@ -1071,7 +1074,17 @@ export class NativeCreaturePose {
       for (const endpoint of [contact.current, contact.previous]) for (const [index, foot] of endpoint.feet.entries()) {
         const spec = this.contactRecipe.feet[index]; if (spec === undefined || this.contactSurface === undefined) throw new Error('Missing contact restore foot');
         const expectedY = this.contactSurface.y + spec.nominal[1] * scale;
-        if ([foot.plant, foot.start, foot.target].some(endpointFrame => Math.abs(endpointFrame.position[1] - expectedY) > 1e-10)
+        if ([foot.plant, foot.start, foot.target].some(endpointFrame => {
+          if (Math.abs(endpointFrame.position[1] - expectedY) > 1e-10) return true;
+          const surface = this.contactSurface;
+          if (surface === undefined) return true;
+          const c = Math.cos(endpointFrame.yaw), s = Math.sin(endpointFrame.yaw);
+          return spec.sole.some(p => {
+            const x = endpointFrame.position[0] + scale * (c * p[0] + s * p[2]);
+            const z = endpointFrame.position[2] + scale * (-s * p[0] + c * p[2]);
+            return x <= surface.minX || x >= surface.maxX || z <= surface.minZ || z >= surface.maxZ;
+          });
+        })
           || (foot.mode === 'stance' && foot.elapsed === this.contactRecipe.swingTicks && JSON.stringify(foot.plant) !== JSON.stringify(foot.target))
           || (endpoint.failures.length > 0 && foot.mode !== 'released')) throw new Error('Invalid contact restore frame');
       }

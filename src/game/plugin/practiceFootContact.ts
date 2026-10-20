@@ -12,6 +12,7 @@ const chain = v.strictObject({ joints: v.tuple([name, name, name]), pole: vector
   limits: v.tuple([v.tuple([vector, vector]), v.tuple([vector, vector]), v.tuple([vector, vector])]) });
 /** Exactly two rigid three-joint chains. Bounds describe a diagnostic domain, not gameplay admission. */
 export const PracticeFootContactSchema = v.strictObject({ version: v.literal(1),
+  // Exact compressed loader-input payload SHA-256; model JSON has a separate source receipt.
   source: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)),
   feet: v.tuple([chain, chain]), ancestors: v.pipe(v.array(name), v.minLength(1), v.maxLength(26)),
   swingTicks: v.pipe(v.number(), v.integer(), v.minValue(2), v.maxValue(120)),

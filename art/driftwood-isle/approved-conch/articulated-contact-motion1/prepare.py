@@ -46,11 +46,11 @@ output={'group':'creature.pose','practiceTransition':{'owner':'isolated-practice
 PROOF = HERE.parents[3] / 'test' / 'proof' / 'conch-grounded-source'
 PROOF.mkdir(parents=True, exist_ok=True)
 inputs = {'model.json': SOURCE/'model.json', 'recipe.json': SOURCE/'recipe.json',
-          'freeze.json': SOURCE/'freeze.json', 'motion.json': HERE/'motion.json'}
+          'freeze.json': SOURCE/'freeze.json', 'metadata.json': SOURCE/'metadata.json', 'payload.bin': SOURCE/'payload.bin', 'motion.json': HERE/'motion.json'}
 receipt = {}
 for name, origin in inputs.items():
     data = origin.read_bytes()
     (PROOF/name).write_bytes(data)
     receipt[name] = {'origin': str(origin.relative_to(HERE.parents[3])),
                      'bytes':len(data), 'sha256':hashlib.sha256(data).hexdigest()}
-(PROOF/'inputs.json').write_text(json.dumps({'completeByteCopies':True,'files':receipt},indent=2)+'\n')
+(PROOF/'inputs.json').write_text(json.dumps({'completeByteCopies':True, 'identitySemantics': {'footContact.source':'exact compressed loader input payload SHA-256', 'payloadSha256':receipt['payload.bin']['sha256'], 'modelJsonSha256':receipt['model.json']['sha256'], 'metadataJsonSha256':receipt['metadata.json']['sha256']}, 'files':receipt},indent=2)+'\n')
