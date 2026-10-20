@@ -1,0 +1,216 @@
+{
+  "status": "Both retained next and candidate freshly rendered, identical source protocol",
+  "referenceStatus": "Original hero authoritative; AI hidden surfaces approximate",
+  "originalReferences": [
+    {
+      "path": "reference/tide-root-colossus-lowpoly-style-revision.png",
+      "bytes": 2017360,
+      "sha256": "709015b080ce352b9561717f7c28b6711ad592b87e6eacde89dd582d6907d10c"
+    },
+    {
+      "path": "reference/colossusWorldCorrectedGen-v3.png",
+      "bytes": 2559913,
+      "sha256": "52e33b3e7de75bb77844939c143a32862b1128f831559e73428975b0bb8c564d"
+    },
+    {
+      "path": "reference/colossusExplorerCorrectedGen-v3.png",
+      "bytes": 2091443,
+      "sha256": "5e3d598b1aa97f80f073909d4bd6903142bf6e8fdf81438539c85608880ff523"
+    }
+  ],
+  "resolution": [
+    525,
+    700
+  ],
+  "samples": 16,
+  "denoising": false,
+  "viewTransform": "Standard",
+  "worldColor": [
+    0.12,
+    0.12,
+    0.12
+  ],
+  "target": [
+    0,
+    0,
+    2.9
+  ],
+  "orthoScale": 7.7,
+  "files": [
+    {
+      "path": "capture/cameras.json",
+      "bytes": 8237,
+      "sha256": "fe02185001df797b62a9aa19c07da63c5eb8ba9591a4da2b96efb922c5679f6c"
+    },
+    {
+      "path": "capture/candidate/back.png",
+      "bytes": 529025,
+      "sha256": "e7c245e2780040c0e0e7a81416f587f0eaf4c753c1cfb8d5ba2e252123e4e052"
+    },
+    {
+      "path": "capture/candidate/diag-back.png",
+      "bytes": 727829,
+      "sha256": "26fe53825254f9569dfcbf64fa0e3706e1986fba572bf4b4024baa1993bff547"
+    },
+    {
+      "path": "capture/candidate/diag-front.png",
+      "bytes": 729915,
+      "sha256": "b2385b21777a263a6a70b3db312fb010b98a7d53236c0db6be4a2935c9d24dbc"
+    },
+    {
+      "path": "capture/candidate/diag-left.png",
+      "bytes": 699678,
+      "sha256": "00ef699ab6c71537dc2dd922a7587d8516dda070399a96831ecb909321047607"
+    },
+    {
+      "path": "capture/candidate/diag-right.png",
+      "bytes": 714805,
+      "sha256": "b96473f62376200e4a91819fb0122ff52727f462e52fd5a6b6eb9c95172860ec"
+    },
+    {
+      "path": "capture/candidate/editable-native.json",
+      "bytes": 367089,
+      "sha256": "58413eb08a5dc3ec5780b384373e09d4e245be98a814fc1e84c79907365c9a03"
+    },
+    {
+      "path": "capture/candidate/editable-source.blend",
+      "bytes": 2524856,
+      "sha256": "cc04a8edb90f5d500a284fcd008b4bf2ea9b1e45d0384468a3f851abf4d3b43d"
+    },
+    {
+      "path": "capture/candidate/front.png",
+      "bytes": 513363,
+      "sha256": "85914c06f3c82d158d7a3a149d8220c5927741175b263d576e6f62c62063dc05"
+    },
+    {
+      "path": "capture/candidate/hero.png",
+      "bytes": 686857,
+      "sha256": "76ae1eb35f22fb0f9a05172a8b85fbb3965482ac12924782431bcb7b9370f441"
+    },
+    {
+      "path": "capture/candidate/left.png",
+      "bytes": 407293,
+      "sha256": "bcca25b463d3d65c2299b59b24a0fb0386626d0253ee0c44f9ecf30839d7d5bd"
+    },
+    {
+      "path": "capture/candidate/metrics-complete-grown-anatomy.json",
+      "bytes": 479,
+      "sha256": "a39e589215a7a9461290bae92123216daf37d99077052f7a9c13ee1c73f1f80b"
+    },
+    {
+      "path": "capture/candidate/right.png",
+      "bytes": 413468,
+      "sha256": "c2da470b2064328536c27ab19f0462d9a40082b11915f859f3a25273a657ff19"
+    },
+    {
+      "path": "capture/candidate/tide-root-colossus-complete-grown-anatomy.glb",
+      "bytes": 993224,
+      "sha256": "b1b08a3974b5a658271416f756f8f76d0947f00cbed4d48a3044c71afe77c5a9"
+    },
+    {
+      "path": "capture/candidate/top.png",
+      "bytes": 698121,
+      "sha256": "06f82f488d35c0ee54b371308274345ca20d67f51169a4730db81989711ea135"
+    },
+    {
+      "path": "capture/lint-explicit.log",
+      "bytes": 69,
+      "sha256": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c"
+    },
+    {
+      "path": "capture/lint.log",
+      "bytes": 69,
+      "sha256": "199555da75a83fe0949c501d1cac91995db05712c9befa4b61a7ae062738439c"
+    },
+    {
+      "path": "capture/native-export.log",
+      "bytes": 71,
+      "sha256": "f24e00b42108628e98c6dd6e9bc512081d911f34ab649855a40b805281ff3f36"
+    },
+    {
+      "path": "capture/native-tests.log",
+      "bytes": 1194,
+      "sha256": "25068e8b854c863b11524bbcab4192a6b1a593b174984b42951090f9ca45f3bc"
+    },
+    {
+      "path": "capture/predecessor/back.png",
+      "bytes": 535824,
+      "sha256": "7e30b561cdec24bfdfbc1ab58df82ebb306ae44b4ddcf904440855ae87f47c24"
+    },
+    {
+      "path": "capture/predecessor/diag-back.png",
+      "bytes": 734791,
+      "sha256": "c354a7c16a8381bca500f8293af298550b9dce158e373061f2124d8115b81aa8"
+    },
+    {
+      "path": "capture/predecessor/diag-front.png",
+      "bytes": 732709,
+      "sha256": "02802bf08e44e3e9dcb757646c71a03ea8a5398edf2a90baf96183ef113d6573"
+    },
+    {
+      "path": "capture/predecessor/diag-left.png",
+      "bytes": 703674,
+      "sha256": "69ef236c379681c56c98584ab30d2a0d4153ea5861d8960030464f27c380c5ad"
+    },
+    {
+      "path": "capture/predecessor/diag-right.png",
+      "bytes": 720601,
+      "sha256": "47eb376e7bb7a4fde7da878108ca9889de94c1233d3e7786509972cb395bd325"
+    },
+    {
+      "path": "capture/predecessor/editable-native.json",
+      "bytes": 366869,
+      "sha256": "98a6ccd73816748fcb8ff873be43897e7630ebb6d3191800f30c999962682f26"
+    },
+    {
+      "path": "capture/predecessor/editable-source.blend",
+      "bytes": 2525964,
+      "sha256": "ce5fdedf025e07ba70f163bf423ac85e3e9d703790626b8766f6bb57b9b09bf0"
+    },
+    {
+      "path": "capture/predecessor/front.png",
+      "bytes": 517975,
+      "sha256": "1ebe38313bbd6c58b606f999ee1d61441490d66f6f71023445d7a4d0b47ea703"
+    },
+    {
+      "path": "capture/predecessor/hero.png",
+      "bytes": 691175,
+      "sha256": "c928a0a50a74bee253707efead3f084721bfb8c2a27259225c52768bda97cbaa"
+    },
+    {
+      "path": "capture/predecessor/left.png",
+      "bytes": 417016,
+      "sha256": "dcd4d55553fa0c7813049f0512b6277de339b645e5a7a0046c88a88016e0bf86"
+    },
+    {
+      "path": "capture/predecessor/metrics-complete-character-next.json",
+      "bytes": 482,
+      "sha256": "2c9e7fab60356f8f797d650ef113e26bff62c521258ef8ffb434154f7e9701fb"
+    },
+    {
+      "path": "capture/predecessor/right.png",
+      "bytes": 421825,
+      "sha256": "20d8d631f79ea53cf2b89abd0570c292a31473ee198707eb114bcaf9d506d472"
+    },
+    {
+      "path": "capture/predecessor/tide-root-colossus-complete-character-next.glb",
+      "bytes": 993940,
+      "sha256": "3850986dc692952441053cd8b47465898cfc3aa11fcfbe18cfcac0bb7bb6e467"
+    },
+    {
+      "path": "capture/predecessor/top.png",
+      "bytes": 703610,
+      "sha256": "cda08abda9ddd94f70ca9194571b1a11ca9af5c0dfde8a10fa017c9c17e0f300"
+    },
+    {
+      "path": "capture/render.log",
+      "bytes": 930397,
+      "sha256": "7bd01a65468c1ce31052013bc06fe8af51b39946b01dc57e99bae2efc4e889d7"
+    },
+    {
+      "path": "capture/validation.log",
+      "bytes": 675,
+      "sha256": "45ccd4837194dd7324c5bb21b4048638c77cc2399cad03dabf8ca3914879243a"
+    }
+  ]
+}

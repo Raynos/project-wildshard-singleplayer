@@ -1,0 +1,241 @@
+{
+  "status": "Frozen unaccepted candidate; no author score or runtime promotion",
+  "newBinaryBytes": 2441623,
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/README.md",
+      "bytes": 5077,
+      "sha256": "9c368ee9df7510619790ef1b7dd6cad33e56c039abd3def95606c731ad46efd2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/build_colossus_complete.py",
+      "bytes": 33119,
+      "sha256": "247de133cc6077d3879c503d154104ed4e152957f6637045b82ebcd7528e8496"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/cameras.json",
+      "bytes": 6417,
+      "sha256": "89da2a58ffc36df477b42467025211d6703aaa9ecfb306c6f3e874090f4079e7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate/back.webp",
+      "bytes": 46980,
+      "sha256": "f38f014ba55e658e6d4eee0298ff22c234f447a42b07999de48a539aeec8d47f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate/diag-back.webp",
+      "bytes": 58186,
+      "sha256": "902ec5e4c27fdb29f48437398a06b01beba81df2b3d4d550308150a2536d4265"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate/diag-front.webp",
+      "bytes": 56696,
+      "sha256": "e8ff823a89a8cc4bcc04bb5ef0e9b7a3f612f8b3d44c9f940fcc0a9d3f1ef7c7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate/diag-left.webp",
+      "bytes": 50400,
+      "sha256": "27db75015e3f222f6c650d75ae5721248a5292637d8149b0ada0d1d0b3a838b9"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate/diag-right.webp",
+      "bytes": 55270,
+      "sha256": "fd8802225b6d465847cffd4737122b2ec219586503da9add5b0b1cbcb069fcda"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate/front.webp",
+      "bytes": 38558,
+      "sha256": "af420b856002458b6afac769f02e4835b73bc383637333284e43cbc58fc468ee"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate/hero.webp",
+      "bytes": 54514,
+      "sha256": "8e3750c95915cf852e0843dce6eb51d4277c5d6eda5ea253b19d347ec54e6109"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate/left.webp",
+      "bytes": 25868,
+      "sha256": "d18502bf85f3c4dd74ab8ef42cb529e754689847bb807d87ef465c8ea2d36652"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate/right.webp",
+      "bytes": 27688,
+      "sha256": "b0afe5de269402dd9c587da2863a50da17995ef4268c702b1fc051a82b5c1e29"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate/top.webp",
+      "bytes": 57758,
+      "sha256": "dad69ffed7cde10a0a3ee95e11631dfa61f299c2b63ac9e98db1ca2a1b6dac01"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/candidate-nineview-sheet.webp",
+      "bytes": 144142,
+      "sha256": "89b42824be89e33e82aa9cf2696b819016213203f512b9509b18aa2dea5488ce"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/capture-receipt.json",
+      "bytes": 6910,
+      "sha256": "ae787e69b7c9ed9ec52ed3dfc9e5f93fe970983a5a6c1447973460827c4945a6"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/construct_source.py",
+      "bytes": 4669,
+      "sha256": "b8d9d855554a4d14845b75559ad11cc21981e3df2c9c79d3a3ca7d2f14f82f30"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/editable-native.json",
+      "bytes": 367089,
+      "sha256": "58413eb08a5dc3ec5780b384373e09d4e245be98a814fc1e84c79907365c9a03"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/export_native.py",
+      "bytes": 3496,
+      "sha256": "8e4c9a4a4942215382f3a4bbb200d263b74b54d6c05193f0b28ee5fa27375423"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/framing-check.json",
+      "bytes": 3411,
+      "sha256": "9ebd24589e45c9354c2a64b694591c3e06462f0e47ce1d26ab9372e4785dd9b6"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/input-preservation.json",
+      "bytes": 1167,
+      "sha256": "5a94fe1d2547be293a2ec708d1af4db74848ca7b9514c839f86b8bf2602089ae"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/matched-hero-board.webp",
+      "bytes": 109182,
+      "sha256": "b902eb127dcde09cfab42b21bcdc34501a03911d62419b4e6d9ebe8cbd11b8ae"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/mesh-map.json",
+      "bytes": 28995,
+      "sha256": "34ae4d43883dc49d2e709c6a9f38e14f025a6b9c7ac9c8eeaaf3dae8ac5562f1"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/metadata.json",
+      "bytes": 5356,
+      "sha256": "8597bfb970ea8fc58d79332eeb1e572ca1a8f2490d3c720e1188b6b8ca27f772"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/metrics-complete-grown-anatomy.json",
+      "bytes": 479,
+      "sha256": "a39e589215a7a9461290bae92123216daf37d99077052f7a9c13ee1c73f1f80b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/native-consumer.test.ts",
+      "bytes": 12727,
+      "sha256": "b9f0ddc18a1464e74883b648f6dc9ec9fb08a013f0e6639d9dec1fb2b065a8e2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/native-source.json",
+      "bytes": 2757348,
+      "sha256": "25c2bc1d9e5fa26769534d9c250e8cbfe08cbf71c139221f38511f1654d2fed7"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/package_evidence.py",
+      "bytes": 5610,
+      "sha256": "831647250da742604e6748e0e7987358e4f946370f391ba5c1a36ffb896c587a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/payload.bin",
+      "bytes": 89287,
+      "sha256": "c52208fe5f80baa8da4497538d49cf2df9d71c1d928e305f54b32f5c82f0e6fa"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor/back.webp",
+      "bytes": 49116,
+      "sha256": "52660d731b2a7bfb4330c237a074aa78aa4b4d36f2bd43c4ad59944b8897a72f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor/diag-back.webp",
+      "bytes": 62018,
+      "sha256": "10c5135be590b739ec1b0024fd9c4b33bb59ac97f65a028e1fe3d0925c9a89ee"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor/diag-front.webp",
+      "bytes": 57486,
+      "sha256": "c82049ff858b9bbef0aa7fb2855c0de300dcd3393ff6e399cc5360f647a2e679"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor/diag-left.webp",
+      "bytes": 50396,
+      "sha256": "ad5f0645e78eaf7a5c04342ffdc64a85a3960f9754cb59f2f002b3e9c8bcae3b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor/diag-right.webp",
+      "bytes": 55844,
+      "sha256": "e93ee47583334c1548877cc9f072e136fa00b8cb7c53fb98ce556807f73c13d3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor/front.webp",
+      "bytes": 38616,
+      "sha256": "a587860b1a1ba9a9e9db25ab438923456b2158fbf493f0bade528d354e5a0bf8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor/hero.webp",
+      "bytes": 55100,
+      "sha256": "64113ccf23573a1b0a90aeebab233fefeba2145d912ee71dda07b45a726e78bc"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor/left.webp",
+      "bytes": 26852,
+      "sha256": "cc4b4f0da7664eefd62dd22150c284e40dc3fc636291ffe72361b852bf889461"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor/right.webp",
+      "bytes": 28168,
+      "sha256": "40e31e193508d87d5e4ef627de6dfda576c0b4132af9caa5e131ff69da666495"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor/top.webp",
+      "bytes": 58788,
+      "sha256": "669e0df54164bb07ec920cbe10bef64b47bcb304d7b63e29bff26302529d0ddd"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/predecessor-nineview-sheet.webp",
+      "bytes": 151486,
+      "sha256": "dc8177df7b14282f815af3ad26a5560b4951645437435dd9cf04d786a69dadcb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/render-equivalence.json",
+      "bytes": 567,
+      "sha256": "ecdf841dfae784665d11f6ee2b6391f62e6dc5b7fe574156110af170cf2658d8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/render_matched.py",
+      "bytes": 2700,
+      "sha256": "65206966968e07081259858a6b81d17e1f8e3735d663d8e4b89c01a1c54282a3"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/rig-provenance.json",
+      "bytes": 2618,
+      "sha256": "7f682086565a603d3ae78ed4cf8e4e37852f567bc301517456e523d9f14a9645"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/tide-root-colossus-complete-grown-anatomy.glb",
+      "bytes": 993224,
+      "sha256": "b1b08a3974b5a658271416f756f8f76d0947f00cbed4d48a3044c71afe77c5a9"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/validate_glb.py",
+      "bytes": 5943,
+      "sha256": "e8857fd7e880e774cce64921669c96aa112816259587b5ec0751321e5040b62b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/validation.json",
+      "bytes": 120509,
+      "sha256": "d9f13710c061a9a7c2e1d32ab1d2312c17fc33cc613bfd504da5ce021e76f321"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/verify_evidence.py",
+      "bytes": 1206,
+      "sha256": "c4c1b0d40ae37bce25611443698c5a4216ce82f28652d8a5e2d7df8206f84fa8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/vitest.config.ts",
+      "bytes": 241,
+      "sha256": "0f2c96d5b7de6942e05ed7237cb4fe86e7915b88d5ef006def819b0cc13e9a0e"
+    }
+  ]
+}

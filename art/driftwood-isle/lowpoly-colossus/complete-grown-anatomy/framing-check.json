@@ -1,0 +1,125 @@
+{
+  "allGeometryInsideFrame": true,
+  "records": [
+    {
+      "version": "predecessor",
+      "view": "hero",
+      "horizontalMarginPixels": 22.356562432911414,
+      "verticalMarginPixels": 65.11276793077143
+    },
+    {
+      "version": "candidate",
+      "view": "hero",
+      "horizontalMarginPixels": 32.18387774152436,
+      "verticalMarginPixels": 65.11276793077143
+    },
+    {
+      "version": "predecessor",
+      "view": "front",
+      "horizontalMarginPixels": 15.654906359585864,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "version": "candidate",
+      "view": "front",
+      "horizontalMarginPixels": 25.55935599587182,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "version": "predecessor",
+      "view": "left",
+      "horizontalMarginPixels": 108.97213328968397,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "version": "candidate",
+      "view": "left",
+      "horizontalMarginPixels": 119.62834921750157,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "version": "predecessor",
+      "view": "right",
+      "horizontalMarginPixels": 108.97213328968397,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "version": "candidate",
+      "view": "right",
+      "horizontalMarginPixels": 119.62834921750157,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "version": "predecessor",
+      "view": "back",
+      "horizontalMarginPixels": 15.654906359585864,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "version": "candidate",
+      "view": "back",
+      "horizontalMarginPixels": 25.55935599587182,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "version": "predecessor",
+      "view": "top",
+      "horizontalMarginPixels": 15.654906359585864,
+      "verticalMarginPixels": 196.41011860441375
+    },
+    {
+      "version": "candidate",
+      "view": "top",
+      "horizontalMarginPixels": 25.55935599587182,
+      "verticalMarginPixels": 207.086011276419
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-front",
+      "horizontalMarginPixels": 15.654906359585864,
+      "verticalMarginPixels": 85.71318813866536
+    },
+    {
+      "version": "candidate",
+      "view": "diag-front",
+      "horizontalMarginPixels": 25.55935599587182,
+      "verticalMarginPixels": 85.71318813866536
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-left",
+      "horizontalMarginPixels": 58.43288694930283,
+      "verticalMarginPixels": 52.93018719364576
+    },
+    {
+      "version": "candidate",
+      "view": "diag-left",
+      "horizontalMarginPixels": 64.00037452317314,
+      "verticalMarginPixels": 52.93018719364576
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-right",
+      "horizontalMarginPixels": 51.29749446397873,
+      "verticalMarginPixels": 52.93999276250155
+    },
+    {
+      "version": "candidate",
+      "view": "diag-right",
+      "horizontalMarginPixels": 59.84952682145101,
+      "verticalMarginPixels": 52.93999276250155
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-back",
+      "horizontalMarginPixels": 58.43288694930283,
+      "verticalMarginPixels": 67.78278092648011
+    },
+    {
+      "version": "candidate",
+      "view": "diag-back",
+      "horizontalMarginPixels": 64.00037452317314,
+      "verticalMarginPixels": 67.59194359715647
+    }
+  ]
+}

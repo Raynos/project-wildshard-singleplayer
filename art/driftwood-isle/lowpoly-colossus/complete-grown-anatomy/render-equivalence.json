@@ -1,0 +1,14 @@
+{
+  "method": "Exact exported GLB byte equality before and after captures",
+  "rendered": {
+    "path": "capture/candidate/tide-root-colossus-complete-grown-anatomy.glb",
+    "bytes": 993224,
+    "sha256": "b1b08a3974b5a658271416f756f8f76d0947f00cbed4d48a3044c71afe77c5a9"
+  },
+  "final": {
+    "path": "art/driftwood-isle/lowpoly-colossus/complete-grown-anatomy/tide-root-colossus-complete-grown-anatomy.glb",
+    "bytes": 993224,
+    "sha256": "b1b08a3974b5a658271416f756f8f76d0947f00cbed4d48a3044c71afe77c5a9"
+  },
+  "geometryMaterialsTransformsIdentical": true
+}
