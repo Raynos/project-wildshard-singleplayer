@@ -1,3 +1,4 @@
+import { installEnteredRuntimeService } from '../shard/retainedHooks';
 /** Client projection of the G474 arena-script boss contract. Authored inputs
  * are rows; entered native owners supply rendering, health, riding and kit. */
 import * as THREE from 'three';
@@ -510,6 +511,8 @@ export class ArenaScriptEncounter {
   bind(ctx: ShardContext, kit: MountedLoadout, arsenal: MountedArsenal, rewardModel: ModelDef<object>, locker: CosmeticFinishLocker): void {
     const runtime = ctx.game.runtime, play = runtime?.play;
     if (runtime === undefined || play === undefined || play === null) throw new Error('Arena script requires entered play');
+    const health = ctx.app.player;
+    installEnteredRuntimeService(ctx, entered => { health?.checkpoint(entered, () => this.onPlayerDeath(), () => ctx.app.player === health); });
     this.context = ctx; this.kit = kit; this.mount = pageRidingMount(ctx);
     const { game,player } = this.world, power = new arsenal.blade.Power({ scene: game.scene,player,camera: game.camera,
       animals: play.animals,weather: this.world.weather,scope: ctx.scope });

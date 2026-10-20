@@ -1,3 +1,4 @@
+import { PagePathRampSchema } from './pagePreparation';
 import { WaterSurfaceSchema } from './water';
 import { ClientCuesSchema } from './clientCues';
 import { ClientTrailsSchema } from './clientTrails';
@@ -20,6 +21,9 @@ export const ClientFeatureSchema = v.variant('kind', [
     effects: v.pipe(v.array(v.picklist(['starter', 'finishes'])), v.maxLength(2)),
     compendiums: v.pipe(v.array(id), v.maxLength(64)),
     encounters: v.pipe(v.array(v.strictObject({ id, displayName: label, showHeadBar: v.boolean() })), v.maxLength(64)) }),
+  v.strictObject({ kind: v.literal('state.adventure'), file: label }),
+  v.strictObject({ kind: v.literal('world.meadow'), file: label }),
+  v.strictObject({ kind: v.literal('world.paths'), rows: PagePathRampSchema }),
   v.strictObject({ kind: v.literal('world.dressing') }),
   v.strictObject({ kind: v.literal('population.wildlife'), file: label,
     crowd: v.strictObject({ json: label, binary: label }), navSteer: v.boolean(),

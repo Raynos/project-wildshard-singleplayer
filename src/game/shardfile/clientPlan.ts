@@ -1,3 +1,6 @@
+import { installClientAdventurePersistence } from '../quest/persistence';
+import { installClientMeadow } from './clientMeadow';
+import { installClientPathRamps } from './pagePreparation';
 import { installClientRiding } from '../riding/client';
 import { installClientWildlife } from '../population/wildlife';
 import { installClientFinds } from './clientFinds';
@@ -9,7 +12,7 @@ import { Color } from 'three';
 import { syncPainterlySun,updatePainterly,setPainterlyLook,painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
-import { installClientAudioScene } from '../audio/sceneDirector';
+import { installClientAudioScene, enterClientAudioScene } from '../audio/sceneDirector';
 import { installClientWaterSurfaces } from './clientWaterSurfaces';
 import { installClientCosmeticFinishes } from './clientCosmeticFinishes';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
@@ -52,10 +55,13 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   'content.catalogue': { phase: 'kit', rank: 15, lifetime: 'entered',
     // Item/quest/journal envelopes are root data; finishes are streamed separately.
     sections: ['held/finishes'], install: installClientCatalogue },
+  'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', sections: [], install: installClientAdventurePersistence },
+  'world.meadow': { phase: 'world', rank: 46, lifetime: 'entered', sections: [], install: installClientMeadow },
+  'world.paths': { phase: 'kit', rank: 0, lifetime: 'entered', sections: [], install: installClientPathRamps },
   'riding.session': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientRiding },
   'population.wildlife': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientWildlife },
   'world.water': {phase:'world',rank:42,lifetime:'entered',sections:[],install:installClientWaterSurfaces},
-  'audio.scene': {phase:'world',rank:48,lifetime:'entered',sections:[],install:installClientAudioScene},
+  'audio.scene': {phase:'world',rank:48,lifetime:'entered',sections:[],install:installClientAudioScene,play:{rank:30,install:enterClientAudioScene}},
   'look.painterly': {phase:'world',rank:10,lifetime:'entered',sections:[],install:(ctx,row)=>{
     if(row.kind!=='look.painterly')throw new Error('Invalid painterly feature');
     const world=ctx.game.runtime?.world;if(world===undefined||world===null)throw new Error('Painterly look requires its world');
@@ -130,6 +136,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     if (plan.features.some(row => row.kind === 'motion.channels') && !plan.features.some(row => row.kind === 'world.scenes')) throw new Error('Motion requires the scene feature');
     if(plan.features.some(row=>row.kind==='held.cosmetics')&&product.section('held/finishes').cosmetics===undefined)throw new Error('Cosmetic feature requires declared finishes');
     for(const row of plan.features)if(row.kind==='world.water')for(const water of row.rows){if(!product.hasFile(water.geometry)||product.shardfile.look.materials[water.surface.look]===undefined||water.surface.floor!==undefined)throw new Error('Water requires declared geometry and look without floor textures');}
+    for (const row of plan.features) if ((row.kind === 'state.adventure' || row.kind === 'world.meadow') && !product.hasFile(row.file)) throw new Error('World services require their admitted data files');
     for (const row of plan.features) if (row.kind === 'riding.session' && (!product.hasFile(row.file) || !plan.features.some(feature => feature.kind === 'population.wildlife'))) throw new Error('Riding requires its admitted session file and wildlife feature');
     for (const row of plan.features) if (row.kind === 'population.wildlife' && [row.file, row.crowd.json, row.crowd.binary].some(file => !product.hasFile(file))) throw new Error('Wildlife requires its admitted population and crowd files');
     if(plan.features.some(row=>row.kind==='audio.scene')&&product.shardfile.audio.scene===undefined)throw new Error('Audio scene requires its declared profile');

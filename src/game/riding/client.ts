@@ -348,5 +348,7 @@ export function enterClientRiding(ctx: ShardContext): PageRidingView {
       reins.update(dt, mount.horse, mount.mounted, mount.breaking || drawing);
     },
   };
+  ctx.on('player.died', () => { if (mount.mounted) mount.dismount(); });
+  ctx.on('player.respawned', () => { kit.refill(); });
   owner.view = view; return view;
 }

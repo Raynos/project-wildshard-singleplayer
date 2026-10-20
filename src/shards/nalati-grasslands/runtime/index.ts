@@ -1,4 +1,3 @@
-import { enterClientAudioScene } from '@wildshard/game/audio/sceneDirector';
 import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
 import { arsenal,prepareSabre,prepareSpear } from '../weapons/nativeMelee';
 
@@ -9,10 +8,7 @@ import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { installPagePathRamps } from '@wildshard/game/shardfile/pagePreparation';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
-import { prepareGrassV2 } from '../look/field';
-import { installPageMeadow } from '@wildshard/game/shardfile/clientMeadow';
 import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { buildNalatiWorld, type Nalati } from './state';
 import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
@@ -21,7 +17,7 @@ import { prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
 import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' };
 import { installNalatiQuestView } from '../quest/kokpar';
 import { horsePlayground } from '../playground/registration';
-import { bindAdventurePersistence, readAdventurePersistence, type AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
+import { enteredAdventurePersistence } from '@wildshard/game/quest/chapterBindings';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { hasLentLook, lendLooks } from '@wildshard/sdk/looks/lentLooks';
 
@@ -34,31 +30,25 @@ function host(ctx: ShardContext): ShardRuntime {
 
 export class NalatiPlugin extends ShardPlugin {
   private rt: Nalati | null = null;
-  private persistence: NalatiPersistence | null = null;
   private runtime(): Nalati { if (this.rt === null) throw new Error('Nalati world hook has not run'); return this.rt; }
 
   override async world(ctx: ShardContext): Promise<void> {
     const shell = host(ctx), world = shell.world, step = shell.step;
     if (world === null || step === null) throw new Error('Nalati world requires counted boot steps');
-    const { game, registry } = world;
+    const { game } = world;
     // the look.materials graphs (data/lookGraphs.json: the camp smoke), compiled and lent before the places draw on them
     lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, game, ctx.product.shardfile, Object.keys(ctx.product.shardfile.look.materials).filter(id=>!hasLentLook(id))));
-    this.persistence = bindAdventurePersistence(ctx, ctx.product.shardfile, await readAdventurePersistence(ctx), world.chunk.slug);
-    const meadow=await ctx.product.json<{constants:{nativeField:unknown}}>('sim/headless-assembly.json');
-    await prepareGrassV2(macrotask);
-    const {grass,particles}=await installPageMeadow(ctx,meadow.constants.nativeField);
     await step('cabins', () => undefined);
     if (ctx.product.shardfile.clientChannels === undefined) throw new Error('Missing Golden King pose rows');
     const actorRows = await ctx.product.json<{ species: unknown }>('actors/sheep.json');
     await prepareNalatiSpecies(actorRows.species, ctx.product.shardfile.clientChannels ?? [], await ctx.product.file('actors/balbal-cracks.bin'));
     prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
-    this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, this.persistence ?? undefined))));
+    this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, enteredAdventurePersistence(ctx.scope)))));
     await prepareSabre(ctx.product);
     await prepareSpear(ctx.product);
     await prepareWeaponCatalogue();
     const rt = this.rt;
-    installPagePathRamps(registry, { id: 'paths', name: 'Paths' });
-    Object.assign(shell.objects, { nalati: rt, grass, particles });
+    shell.objects['nalati'] = rt;
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
     // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands); `grassBase`: the grass before
     // trampling the senses read (the authored physics rows sample it for the renderer-free field's check)
@@ -80,8 +70,7 @@ export class NalatiPlugin extends ShardPlugin {
     const shell = host(ctx), world = shell.world, h = shell.play, rt = this.runtime(), kit = arsenal.pageKit(ctx);
     if (world === null || h === null || kit === null) throw new Error('Nalati gameplay requires its equipment and UI');
     const { animals, hud, audio, music, progress } = h;
-    const persistence = this.persistence;
-    if (persistence === null) throw new Error('Nalati declared progression has not been bound');
+    const persistence = enteredAdventurePersistence(ctx.scope);
     persistence.bindProgress(progress);
     // SF67: the play installation a part a task (the ride, the bosses, the elites, the camp people were one ~290 ms task at
     // 4x CPU). What ran before the first yield (the King's binding, the ride, the ride's director) runs under the owner the
@@ -97,7 +86,6 @@ export class NalatiPlugin extends ShardPlugin {
     if (ride !== null) shell.interactables.push(ride.interactable);
     Object.assign(shell.objects, { wildlife, ride });
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
-    enterClientAudioScene(ctx);
     rt.weather.bindPlay();
     await part();
     ctx.scope.run(() => rt.boss.bind(ctx,kit,weaponCatalogue.model('goldenBow'),bowVariant));
@@ -107,13 +95,6 @@ export class NalatiPlugin extends ShardPlugin {
     ctx.scope.run(() => rt.titan.bind(ctx,kit,arsenal,weaponCatalogue.model('naizagai'),rt.skins));
     // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
     if (retainsRuntimeServices(ctx)) rt.elites.initialize();
-    ctx.on('player.died', () => { if (ride?.mounted === true) ride.mount.dismount(); });
-    ctx.on('player.respawned', () => { kit.refill(); });
-    const health = ctx.app.player;
-    installEnteredRuntimeService(ctx, (scope) => {
-      health?.checkpoint(scope, () => rt.boss.onPlayerDeath(), () => ctx.app.player === health);
-      health?.checkpoint(scope, () => rt.titan.onPlayerDeath(), () => ctx.app.player === health);
-    });
     await part();
     await installNalatiQuestView(ctx, rt, persistence);
     ctx.playground(horsePlayground(ctx));

@@ -1,3 +1,4 @@
+import { installEnteredRuntimeService } from '../shard/retainedHooks';
 /** Client-only arena attachments and deformable floor, driven by scene and encounter rows. */
 import * as THREE from 'three';
 import * as v from 'valibot';
@@ -591,6 +592,8 @@ export class ArenaRoomEncounter {
   bind(ctx: ShardContext, kit: MountedLoadout, rewardModel: ModelDef<object>, powerRows: unknown): void {
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
     if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Arena encounter requires its entered native kit');
+    const health = ctx.app.player;
+    installEnteredRuntimeService(ctx, entered => { health?.checkpoint(entered, () => this.onPlayerDeath(), () => ctx.app.player === health); });
     const { game,sky,player } = world, row = this.rows, scope = game.levelScope;
     this.portal = new ArenaRoomPortal({ game,player,animals: play.animals },this.dungeon,row.portal,ReturnProgram.page(this.rows.program,scope),this.entrance);
     try { play.animals.factory.model(row.client.prewarm.kind,row.client.prewarm.variant); } catch (error: unknown) { console.warn('Arena adds did not prewarm',error); }

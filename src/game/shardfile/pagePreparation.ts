@@ -1,3 +1,4 @@
+import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 /** Client-only native preparation, with rows instead of author callbacks. */
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
@@ -37,4 +38,11 @@ export function installPagePathRamps(registry: WorldRegistry, input: unknown): v
   const rows = v.parse(PagePathRampSchema, input);
   registry.add({ ...rows, category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
     colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
+}
+
+/** Kit begins after every world deck is registered, so the plan's path ramps
+ * retain native carrier suppression and the same registry lifetime. */
+export function installClientPathRamps(ctx: ShardContext, feature: ClientFeatureRow): void {
+  if (feature.kind !== 'world.paths' || ctx.scope.disposed) throw new Error('Invalid path ramp feature');
+  installPagePathRamps(ctx.app.registry, feature.rows);
 }

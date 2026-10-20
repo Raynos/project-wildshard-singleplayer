@@ -1,3 +1,4 @@
+import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } from './legacyRecords';
 import { AdventurePersistenceSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
@@ -104,4 +105,13 @@ export function bindAdventurePersistence(ctx: Pick<ShardContext, 'app' | 'scope'
     } };
   publishBoundPersistence(ctx.scope, persistence);
   return persistence;
+}
+
+/** Install the existing saved-record owner from its admitted client-plan row. */
+export async function installClientAdventurePersistence(ctx: ShardContext, feature: ClientFeatureRow): Promise<void> {
+  if (feature.kind !== 'state.adventure' || ctx.scope.disposed) throw new Error('Invalid adventure persistence feature');
+  const world = ctx.game.runtime?.world;
+  if (world === undefined || world === null) throw new Error('Adventure persistence requires its world identity');
+  const input = await ctx.product.json<unknown>(feature.file);
+  bindAdventurePersistence(ctx, ctx.product.shardfile, input, world.chunk.slug);
 }

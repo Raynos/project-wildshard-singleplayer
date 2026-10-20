@@ -1,3 +1,4 @@
+import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { Grass } from '@wildshard/engine/world/Grass';
 import { macrotask } from '@wildshard/engine/boot/plan';
@@ -18,4 +19,12 @@ export async function installPageMeadow(ctx:ShardContext,input:unknown):Promise<
   runtime.overhead.push(result.grass.group,result.particles.group);
   runtime.hooks.worldUpdate=dt=>{result.grass.update(dt,runtime.viewer());result.particles.update(dt,runtime.viewer(),world.game.camera);};
   return result;
+}
+
+/** The world plan selects the field; the native host publishes its real views. */
+export async function installClientMeadow(ctx: ShardContext, feature: ClientFeatureRow): Promise<void> {
+  if (feature.kind !== 'world.meadow') throw new Error('Invalid meadow feature');
+  const result = await installPageMeadow(ctx, await ctx.product.json(feature.file)), runtime = ctx.game.runtime;
+  if (runtime === undefined) throw new Error('Meadow requires its native runtime');
+  Object.assign(runtime.objects, result);
 }
