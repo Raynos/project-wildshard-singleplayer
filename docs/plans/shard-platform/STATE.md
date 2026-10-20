@@ -10,7 +10,7 @@
 
 **10-20 02:05:** main fully pushed (5831e0baf9, CI lint partitioned); live still 2ba606e3d until CI + smoke pass (sp-x7). Raw runtime TS: Nalati ~9,270, Pine ~4,155, DW ~3,840, Nine ~3,150. Open visual bug: Nalati world fogged out on served builds (sp-o3). Mirror slots: Opus check2, Codex check3 (17883fd30b).
 
-**W3 milestone perf (quiet run at be5cdbf822, sp-x1):** desktop p95/max 16.7–16.8 ms on all six (pass; Nine's 1.1 s/frame descriptor scan fixed in c1c956faca). Simulator p95/max: Sky 35/40, Signal 34/36, Nalati 34/44 pass; DW 45/49, Pine 38/49, Nine 42/45 FAIL (gate 35). sp-x1 fixing, Nine GPU/post first.
+**W3 milestone perf (be5cdbf822):** desktop 16.8 ms on all six; Simulator p95 DW 45, Pine 38, Nine 42 FAIL (gate 35), Sky/Signal/Nalati pass. sp-o1 (graph runtime) and sp-o2 (Nine GPU) fixing.
 
 **Lanes (G512/G513, 10-19 23:30):** Codex sp-x1 platform dead code, sp-x6 Pine/DW cuts, sp-x8 row hygiene + H2, sp-x9 G491J schemas; sp-x7 live-green then pusher; sp-x4/x5/x10 closed. Opus panes (top-level Claude Code, tab 'opus lanes'): sp-o1 Simulator graph-runtime cost (DW 45 ms), sp-o2 Nine Simulator GPU, sp-o3 Nalati GLSL to graphs, sp-o4 Nalati world/weather presentation, sp-o5 Nine look/render. G513: every shard toward 0 %, Nalati first.
 
