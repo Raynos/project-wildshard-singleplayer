@@ -10368,3 +10368,6 @@ world-matrix writes keep their original view phase.
 - `game/population/projection`: Client population projection reads admitted body, pose and effect identities from native owners.
 - `game/population/perchBody`: Perch body rows bind existing decision guests, numeric poses and root motion to actual actors.
 - `game/population/mixedRoster`: Native mixed roster rows own policy selection, reserved slots, return gates, poses and volley continuation.
+
+- `game/population/nativeBake`: Strict readers bind admitted actor and physics bake rows to native population owners.
+- `game/boss/arenaScript`: Declared arena programs bind boss state, attacks, contacts and entered encounter services.
