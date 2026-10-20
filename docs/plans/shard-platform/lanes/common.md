@@ -3,7 +3,7 @@
 Each task is a fresh Codex session with only this file and the task (G511). AGENTS.md and docs/process/ hold the rest.
 
 - **Mega-build (G507):** only cut and land code. No boards, captures, soaks, receipts or docs beyond your commit.
-- **Queue (G504, G468):** biggest uncut mini-plan batch first; whole modules onto existing hosts or data; a new host
+- **Queue (G513, G504, G468):** toward 0 % on every shard (20 % was a milestone): your component across all shards, Nalati first, biggest cut first; whole modules onto existing hosts or data; a new host
   needs a real second shard (G454) and HOST-BAR ≥ 5/6 (G482); single-shard logic to AS + data at ≤ 10 Hz (G470, G503).
 - **Per batch (G506, G509):** `scripts/batch-check.sh <shard…>` (types, lint, focused tests, one headless boot of
   each touched shard) + the push gate. No replays, witnesses, old-save sweeps or receipts. Similar, not identical
