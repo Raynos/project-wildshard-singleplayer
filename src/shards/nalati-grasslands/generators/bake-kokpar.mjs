@@ -8,6 +8,7 @@ const goals=[0,Math.PI].map(t=>{const x=Math.cos(t)*k.rx*0.82,z=Math.sin(t)*k.rz
 const {OVAL,LINE_X}=await import('./horseCourse.ts');
 const courseState=['lap','started','running','half','best','last','prevX'];
 const quest=JSON.parse(readFileSync(new URL('../data/questContent.json',import.meta.url),'utf8'));
+if(Math.max(quest.clueFlags.length,quest.featherFlags.length,quest.featherElites.length)>32)throw new Error('Chapter table exceeds its bounded loop');
 const fields=[...courseState,'courseX','courseY','courseZ','courseTime','courseMounted','bonded','argymaq','inside','king','tied','titan','clueStep',
  ...quest.clueFlags.map((_,i)=>`clue${i}`),...quest.featherFlags.map((_,i)=>`feather${i}`),
  ...quest.featherElites.flatMap((_,i)=>[`elite${i}`,`felled${i}`]),'carrying','left','slow','cheer','warned','dt','playerX','playerZ','goatX','goatZ','mounted','horse','fast','practice','horseX','horseZ'];
@@ -21,7 +22,7 @@ const row={id:'nalati.kokpar',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repe
  params:{courseRadius:OVAL.radius,courseWidth:OVAL.width,courseLine:LINE_X,clues:quest.clueFlags.length,elites:quest.featherElites.length,feathers:quest.featherFlags.length,homeX:k.x,homeZ:k.z,fieldRadius:Math.max(k.rx,k.rz)+22,goal0X:goals[0].x,goal0Z:goals[0].z,goal1X:goals[1].x,goal1Z:goals[1].z},
  reads:['field'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals)};
 const built=await compileDecisionScripts([row],{fields:registry(fields),channels:registry(channels),signals:registry(signals)},
- readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:2837});
+ readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:2837,singleSignal:true});
 const script=built.rows.at(0),blob=built.blobs.at(0);
 if(script===undefined||blob===undefined)throw new Error('Missing kokpar program');
 const data={program:{script,bytes:Buffer.from(blob.bytes).toString('base64')},home:{x:k.x,z:k.z},goals,
