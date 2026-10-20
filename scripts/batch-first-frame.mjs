@@ -16,12 +16,17 @@ try {
   page.on('pageerror', error => errors.push(error.stack ?? error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.goto(`${base}/?chunk=${encodeURIComponent(shard)}&mute=1&nolock=1&skipintro=1&touch=1&tier=phone`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => {
-    const fatal = document.querySelector('#wserr .msg')?.textContent;
-    if (fatal) throw new Error(fatal);
-    const renderer = window.__wildshard?.world?.game.renderer;
-    return Boolean(renderer && renderer.info.render.frame > 0 && renderer.info.render.calls > 0 && !renderer.getContext().isContextLost());
-  }, undefined, { timeout: 240_000, polling: 250 });
+  try {
+    await page.waitForFunction(() => {
+      const fatal = document.querySelector('#wserr .msg')?.textContent;
+      if (fatal) throw new Error(fatal);
+      const renderer = window.__wildshard?.world?.game.renderer;
+      return Boolean(renderer && renderer.info.render.frame > 0 && renderer.info.render.calls > 0 && !renderer.getContext().isContextLost());
+    }, undefined, { timeout: 240_000, polling: 250 });
+  } catch (error) {
+    const loading = await page.locator('body').textContent().catch(String) ?? '';
+    throw new Error(`${String(error)}\n${errors.join('\n')}\nLoading state: ${loading.slice(0, 4000)}`, { cause: error });
+  }
   const real = errors.filter(error => !/favicon|net::ERR_ABORTED/u.test(error));
   if (real.length > 0) throw new Error(real.join('\n'));
   console.info(`${shard}: first frame PASS`);
