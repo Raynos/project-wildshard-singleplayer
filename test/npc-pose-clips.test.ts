@@ -36,7 +36,7 @@ test('trader clips pose the existing pivots for idle, beckon, tidy and offer', (
 test('castaway clips retain the wave envelope, talking arm and moving head/flame pivots', () => {
   const c = context(), { arm, head, flames } = c.bones;
   if (arm === undefined || head === undefined || flames === undefined) throw new Error('Missing test pivot');
-  c.mem['waving'] = 1;
+  c.mem['gesture'] = 1; // the wave gesture (kit figure row code 1)
   for (const phase of [0, .1, 1, 2.15, 2.3]) {
     c.phase = phase;
     playClips(CASTAWAY_POSE, c);
@@ -44,7 +44,7 @@ test('castaway clips retain the wave envelope, talking arm and moving head/flame
     expect(arm.rotation.z).toBeCloseTo(-2.6 * weight + Math.sin(phase * 12) * .35 * weight);
     expect(arm.rotation.x).toBe(0);
   }
-  c.mem['waving'] = 0; c.mem['talking'] = 1;
+  c.mem['gesture'] = 0; c.mem['talking'] = 1;
   playClips(CASTAWAY_POSE, c);
   expect(arm.rotation.z).toBeCloseTo(.08 + Math.max(0, Math.sin(c.t * 2.3)) * .35);
   const first = [head.rotation.x, head.position.y, flames.rotation.y];
