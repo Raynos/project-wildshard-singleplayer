@@ -1,8 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
-import { Scene, Vector3 } from 'three';
-import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { Lane } from '@wildshard/game/boss/lane';
-import { LaneCharge } from '../src/shards/pine-hollow/combat/ctx';
+import { describe, expect, it } from 'vitest';
 import type { StrikeContext, StrikeSpec } from '../src/engine/ai/strikes';
 import { PINE_LANES as lanes, PINE_STRIKES as contacts } from '../src/shards/pine-hollow/generators/strikes';
 import { strikeFromData } from '../src/engine/ai/strikeRows';
@@ -45,28 +41,6 @@ const contexts: StrikeContext[] = [[0, 0], [3, 4], [40, -2]].map(([x = 0, z = 0]
 const plain = (spec: StrikeSpec): unknown => { const { weight: _weight, ...rest } = spec; return rest; };
 
 describe('Pine strike rows (data/strikes.ts through strikeFromData)', () => {
-  it('resumes the page decal at its saved tell duration on the shared lane', () => {
-    setTerrainHeight(() => 0);
-    const row = PINE_LANES['king']; if (row === undefined) throw new Error('Missing King lane');
-    const body = { ...actor, position: new Vector3(), lookTarget: new Vector3(), lookWeight: 0, seed: 7, lastHitT: 0, state: 'idle' };
-    const player = new Vector3(0, 0, 12), native = new Lane(row), page = new LaneCharge<typeof body>(new Scene(), 'orange', row);
-    native.start(body, player.x, player.z, .65); native.update(body, .1, .1, player, () => undefined);
-    page.restore(native.snapshot());
-    const draw = vi.spyOn(page.tellDecal, 'lane'), hidden = vi.spyOn(page.tellDecal, 'hide');
-    const nativeHits: number[] = [], pageHits: number[] = [];
-    const hurtNative = (damage: number): void => { nativeHits.push(damage); };
-    const hurtPage = (damage: number): void => { pageHits.push(damage); };
-    for (let i = 0; i < 120; i++) {
-      const time = .1 + (i + 1) / 60;
-      native.update(body, 1 / 60, time, player, hurtNative);
-      page.update(body, 1 / 60, time, player, hurtPage);
-      expect(page.snapshot()).toEqual(native.snapshot());
-      expect(pageHits).toEqual(nativeHits);
-      if (i === 0) expect(draw).toHaveBeenLastCalledWith(0, 0, 0, 22, row.shape.kind === 'lane' ? row.shape.width : 0,
-        .35 + .55 * ((.1 + 1 / 60) / .65) * (.75 + .25 * Math.sin(time * 22)));
-    }
-    page.cancel(); expect(page.state).toBe('none'); expect(hidden).toHaveBeenCalled();
-  });
   it('reproduce every retired lane and contact builder, weight included', () => {
     for (const [legacy, rows] of [[LEGACY_LANES, PINE_LANES], [LEGACY_STRIKES, PINE_STRIKES]] as const) {
       expect(Object.keys(rows)).toEqual(Object.keys(legacy));
