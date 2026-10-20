@@ -11,7 +11,7 @@ import paintedTextures from '../boot/paintedTextures.generated.json' with { type
 import { PANO_RIDGE_V } from './panoramaData';
 import { gradeUniforms } from './grade';
 import { tintUniforms, updateTint } from './tint';
-import { fogLut, syncPaintedFog } from './fog';
+import { fogLut } from './fog';
 import { LightCheat } from './light';
 import { grassV2Uniforms, grassMood, terrainHeightTexture } from './field';
 import { createStaticCapture, PHONE_STATIC_OFF_CSM } from './capture';
@@ -78,7 +78,6 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     if (sweepT <= 0) { sweepT = 2; bake.sweep(); } // streamed-in casters join the bake (and leave the phone's CSM)
     const look = weather.look, w = weather.weather;
     updateTint(look, w);
-    syncPaintedFog(); // the look graphs' painted fog (data/lookGraphs.json 'nalati-fog') takes the same air and tint
     cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)
     bake.update(sky.sunDir); // step 6: after the cheat, so the baked shadows fall from the key
     setLentParam('nalati-panorama', 'uSunNow', look.sunDir.toArray());

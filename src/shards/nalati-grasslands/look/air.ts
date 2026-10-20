@@ -1,7 +1,7 @@
 /**
  * Nalati's painted air (E357 S3.2, 07 §6.2 steps 1 + 5; it was `Atmosphere.ts`'s `installAtmosphere(painterly)` and
- * `paintedAir`): the painterly fog pars replace the engine's — the cloud-shadow function (`pCloudShadow`, P_CLOUDS) the
- * sun loop calls; fog.ts's panorama fog replaces the fog maths (its v1 aerial perspective was overwritten there, so cut).
+ * `paintedAir`): the cloud-shadow function (`pCloudShadow`, P_CLOUDS) the sun loop calls, appended to the engine's fog
+ * pars; the fog itself is fog.ts's panorama fog on the painterly look host.
  * The uniforms (`paintedAir`) reach every fogged material through `addFogUniforms`. Installed by the look's
  * `fog.install` (render.ts), right after the engine's `installAtmosphere`, before anything compiles.
  *
@@ -72,5 +72,5 @@ export const NALATI_SKY: SkyDressing = {
 export function installPaintedAir(): void {
   airInstalled = true;
   addFogUniforms(paintedAir); // attachFogUniforms hands them to every fogged material from here on
-  THREE.ShaderChunk.fog_pars_fragment = AIR_GLSL_FAMILY.glsl(AIR_GLSL.fog_pars_fragment);
+  THREE.ShaderChunk.fog_pars_fragment += AIR_GLSL_FAMILY.glsl(AIR_GLSL.fog_pars_fragment);
 }

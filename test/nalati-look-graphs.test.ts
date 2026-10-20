@@ -15,19 +15,14 @@ const LIVE: Readonly<Record<string, Readonly<Record<string, number | readonly nu
 };
 
 test("Nalati's former GLSL programs validate as look graphs, compile and take their live params", () => {
-  const painted = validateGraph(GRAPHS['nalati-fog'], { trustedBudget: true });
-  if (!painted.ok) throw new Error(painted.errors.join('; '));
-  const fog = compileGraph(painted.graph, { trustedBudget: true });
-  try {
-    for (const [id, values] of Object.entries(LIVE)) {
-      const checked = validateGraph(GRAPHS[id], { trustedBudget: true });
-      if (!checked.ok) throw new Error(`${id}: ${checked.errors.join('; ')}`);
-      const compiled = compileGraph(checked.graph, { trustedBudget: true, fog: () => { if (fog.fog === null) throw new Error('Missing painted fog'); return fog.fog; } });
-      try {
-        for (const [name, value] of Object.entries(values)) compiled.setParam(name, value);
-      } finally { compiled.material.dispose(); }
-    }
-  } finally { fog.material.dispose(); }
+  for (const [id, values] of Object.entries(LIVE)) {
+    const checked = validateGraph(GRAPHS[id], { trustedBudget: true });
+    if (!checked.ok) throw new Error(`${id}: ${checked.errors.join('; ')}`);
+    const compiled = compileGraph(checked.graph, { trustedBudget: true });
+    try {
+      for (const [name, value] of Object.entries(values)) compiled.setParam(name, value);
+    } finally { compiled.material.dispose(); }
+  }
   const motes = validateGraph(GRAPHS['nalati-motes'], { trustedBudget: true });
   expect(motes.ok && motes.graph.primitive).toBe('points');
 });

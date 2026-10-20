@@ -54,7 +54,7 @@ it('keeps storm strikes random within 3.5–8 seconds and the ring and bolt in s
   expect(new Set(gaps.map(gap => gap.toFixed(3))).size).toBeGreaterThan(1000);
 });
 
-it('selects Nalati fog on the camp smoke material', () => {
-  expect(graph(nalati['nalati-camp-smoke']).effectState?.fog).toBe('nalati-fog');
-  expect(graph(nalati['nalati-fog']).kind).toBe('fog');
+it('fogs Nalati graph materials with the page panorama fog', () => {
+  expect(graph(nalati['nalati-camp-smoke']).effectState?.fog).toBeUndefined();
+  expect(nalati['nalati-fog']).toBeUndefined();
 });

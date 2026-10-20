@@ -93,6 +93,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - G478 audio scenes: `game/audio/sceneDirector` consumes zone probes, surface maps, event cues, bed controls and score observations; client-only presentation.
 
 - G478 grass fields: `game/looks/grassPresentation` consumes admitted field rasters, bounded ring buffers and mood rows; client-only presentation. `format/fieldPresentation` validates its profile and the G475 static capture rows.
+- G478 painterly panorama fog: `engine/world/Atmosphere` `ColourRampFog` with a `panorama` (heading LUT, aerial haze, edge haze, live tint; `render/nodes/engineFog` its node twin) consumes borrowed live values only; client-only presentation. Nalati is the first user; an unrelated painted dusk desert fixture drives both paths in `test/graph-ramp-fog.test.ts`.
 - G475 static captures: `game/looks/staticCapture` consumes bounds, quality and pass-program rows; client-only shadow/contact presentation.
 - G475 scatter projection: `engine/render/scatterInstances` consumes numeric pose, colour and range rows; client-only culling, shared with an unrelated orchard fixture.
 - G474 wing projection: `game/ambient/wingField` consumes ambient group, palette and paired-wing rows; client-only projection of the existing 10 Hz ambient host.

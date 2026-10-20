@@ -2,8 +2,8 @@
  * Look v2 — the painting's live re-grade (port-v2.md step 1, "cheapest first"): the panorama is painted once, at the
  * def's golden afternoon; the hour and the weather re-tint it in the shader, the way the old v1 matte backdrop did.
  *
- * One GLSL function, `v2Regrade(sceneLinear)`, used by BOTH the sky dome and the fog colour (fog.ts), so the fog the 3D
- * world dissolves into is always exactly the sky behind it — at noon, at dusk, under the moon, in a storm:
+ * One re-grade, used by BOTH the sky dome (its look graph) and the fog colour (fog.ts, the panorama fog's live tint), so the
+ * fog the 3D world dissolves into is always exactly the sky behind it — at noon, at dusk, under the moon, in a storm:
  *   × the live key light relative to the painted key (half strength, normalised — tints, doesn't dim)
  *   → a cool blue monochrome under the moon
  *   × the sky rig's cloud light (night and a storm's gloom dim the whole painting)
@@ -13,11 +13,6 @@
  */
 import * as THREE from 'three';
 import type { SkyLook } from './skyRig';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { TINT_GLSL } from '../runtime/looks/tintGlsl';
-
-/** the GLSL below is trusted custom code (runtime/looks/tintGlsl.ts); `@{name}` splices the fragments this module passes */
-const TINT_GLSL_FAMILY = new ShaderFamily(TINT_GLSL, {});
 
 /** the key light the panorama was painted under (the def's late-afternoon sun, ChunkSky.sunColor) */
 const PAINTED_KEY = new THREE.Color(1.0, 0.85, 0.64);
@@ -31,8 +26,6 @@ export const tintUniforms = {
   uV2VeilCol: { value: new THREE.Color(0.2, 0.21, 0.26) },
   uV2Flash: { value: 0 },
 };
-
-export const V2_TINT_GLSL = TINT_GLSL_FAMILY.glsl(TINT_GLSL.V2_TINT_GLSL);
 
 /** the weather's share of the re-grade (src/shards/nalati-grasslands/world/Weather.ts fields) */
 export interface TintWeather { overcast: number; rain: number; flash: number }

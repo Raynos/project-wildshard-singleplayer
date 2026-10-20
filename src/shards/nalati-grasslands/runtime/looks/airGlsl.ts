@@ -3,18 +3,9 @@
 export const AIR_GLSL = {
   fog_pars_fragment: /* glsl */`
     #ifdef USE_FOG
-      uniform vec3 fogColor;
-      uniform vec3 fogSunDir;
-      uniform vec3 fogSunColor;
-      uniform float fogHeight;
-      uniform float fogHeightFalloff;
-      uniform float fogHeightDensity;
-      uniform float fogDistDensity;
       uniform sampler2D fogCloudTex;
       uniform vec4 fogCloud;
       uniform vec2 fogCloudOff;
-      varying float vFogDepth;
-      varying vec3 vFogWorldPos;
       #define P_CLOUDS 1
       // the sun's share left by the drifting cloud cover at this fragment (1 = clear sky above)
       float pCloudShadow() {

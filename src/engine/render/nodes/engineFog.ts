@@ -8,9 +8,9 @@
  * `tsl`, ≥ 40 dB).
  */
 import type * as THREE from 'three';
-import type { Node } from 'three/webgpu';
-import { abs, cameraPosition, clamp, dot, exp, float, length, max, mix, positionWorld, pow, reference, select, smoothstep, vec4 } from 'three/tsl';
-import type { NodeFogColourRamp, NodeFogContext } from '../fogPatches';
+import { ConvertNode, MathNode, type Node } from 'three/webgpu';
+import { abs, cameraPosition, clamp, dot, exp, float, length, max, mix, positionWorld, pow, reference, select, smoothstep, texture, vec2, vec3, vec4 } from 'three/tsl';
+import type { NodeFogColourRamp, NodeFogContext, NodeFogPanorama } from '../fogPatches';
 import { atmosphereTerms, fogUniforms, weatherFogUniforms, weatherUniforms } from '../../world/Atmosphere';
 
 const f = (u: { value: number }): Node<'float'> => reference('value', 'float', u);
@@ -65,6 +65,7 @@ export function engineFog(out: Node<'vec4'>, fog: THREE.Fog | THREE.FogExp2 | nu
 /** A level's live near-to-zenith colour ramp over the integrated height/distance fog.
  * Borrowed tunables keep day, underwater and map-capture updates on the existing owner. */
 export function colourRampFog(out: Node<'vec4'>, context: NodeFogContext, ramp: NodeFogColourRamp): Node<'vec4'> {
+  if (ramp.panorama !== undefined) return panoramaFog(out, context, ramp.panorama);
   const u = fogUniforms, position = context.position, camera = context.camera;
   const fogColor = reference('color', 'color', context.fog);
   const ray = position.sub(camera), rayLen = length(ray), viewDir = ray.div(max(rayLen, 1e-3));
@@ -81,4 +82,30 @@ export function colourRampFog(out: Node<'vec4'>, context: NodeFogContext, ramp: 
   colour = mix(colour, fogColor, clamp(expF.sub(rampF).mul(4), 0, 1));
   const factor = max(rampF, expF);
   return vec4(mix(out.rgb, colour, context.scale === undefined ? factor : factor.mul(clamp(context.scale, 0, 1))), out.a);
+}
+
+/** A painted world's panorama haze (Atmosphere.ts's panorama chunk as nodes): the aerial haze thinning with height, the
+ *  integrated height fog and the edge haze, coloured by the heading LUT under its live re-grade. The LUT is read at build. */
+function panoramaFog(out: Node<'vec4'>, context: NodeFogContext, panorama: NodeFogPanorama): Node<'vec4'> {
+  const u = fogUniforms, position = context.position, camera = context.camera, tint = panorama.tint;
+  const ray = position.sub(camera), rayLen = length(ray), viewDir = ray.div(max(rayLen, 1e-3));
+  const aerial = v4(panorama.aerial), edge = v4(panorama.edge);
+  const dens = aerial.x.add(max(f(u.fogDistDensity).sub(aerial.w), 0));
+  const aer = max(rayLen.sub(aerial.y), 0).mul(dens).mul(exp(max(position.y.add(camera.y).mul(0.5).sub(aerial.z), 0).mul(-0.035)));
+  const falloff = f(u.fogHeightFalloff), dy = position.y.sub(camera.y);
+  const camF = exp(falloff.negate().mul(camera.y.sub(f(u.fogHeight))));
+  const t = falloff.mul(dy);
+  const integ = select(abs(t).greaterThan(1e-3), float(1).sub(exp(t.negate())).div(t), float(1));
+  const height = clamp(float(1).sub(exp(aer.add(f(u.fogHeightDensity).mul(camF).mul(integ).mul(rayLen)).negate())), 0, 1);
+  const edgeD = max(abs(position.x), abs(position.z));
+  const fe = edge.x.mul(smoothstep(edge.y, edge.z, edgeD)).mul(smoothstep(edge.w, edge.w.mul(3), rayLen));
+  let factor: Node<'float'> = float(1).sub(float(1).sub(height).mul(float(1).sub(fe)));
+  const heading = new MathNode('atan', viewDir.x.negate());
+  heading.bNode = viewDir.z;
+  let haze: Node<'vec3'> = texture(panorama.lut.value, vec2(new ConvertNode<'float'>(heading, 'float').mul(0.15915494), 0.5)).rgb.mul(col(tint.key));
+  const lum = dot(haze, vec3(0.2126, 0.7152, 0.0722));
+  haze = mix(haze, lum.mul(vec3(0.5, 0.62, 1)), f(tint.moon).mul(0.8)).mul(col(tint.light));
+  haze = mix(haze, col(tint.veilColour), f(tint.veil)).add(lum.mul(f(tint.flash)).mul(vec3(0.8, 0.85, 1)));
+  if (context.scale !== undefined) factor = factor.mul(clamp(context.scale, 0, 1));
+  return vec4(mix(out.rgb, haze, factor), out.a);
 }

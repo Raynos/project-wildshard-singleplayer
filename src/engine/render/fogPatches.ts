@@ -1,4 +1,4 @@
-import type { Color, Fog, FogExp2, Material, Vector3 } from 'three';
+import type { Color, Fog, FogExp2, Material, Texture, Vector3, Vector4 } from 'three';
 import type { Node } from 'three/webgpu';
 import type { Scope } from '../app/scope';
 
@@ -26,6 +26,28 @@ export interface NodeFogColourRamp {
   readonly end: { readonly value: number };
   readonly near: { readonly value: Color };
   readonly zenith: { readonly value: Color };
+  /** A painted world's panorama haze in place of the ramp's colour and curve. */
+  readonly panorama?: NodeFogPanorama | undefined;
+}
+/**
+ * A painted world's panorama fog (G478 painterly look host): the haze takes the colour of the painting straight behind
+ * each fragment, read from a heading LUT and re-tinted live by the hour and the weather, so the 3D world dissolves into its
+ * painted sky with no step at any angle. Every value is a borrowed live uniform; its owner writes them, no shader rebuilds.
+ */
+export interface NodeFogPanorama {
+  /** 256 × 1 heading LUT, scene linear, repeating on the azimuth (atan(−x, z) / 2π) */
+  readonly lut: { readonly value: Texture };
+  /** x density (1/m), y clear distance (m), z the floor height the haze thins above (m), w the day's own distance density
+   *  (the engine's fogDistDensity above it thickens the haze: a storm closes in) */
+  readonly aerial: { readonly value: Vector4 };
+  /** the world's edge dissolving into the same haze: x strength, y / z start / full (m from the centre, the larger of
+   *  |x| |z|), w the view distance it needs (ground near the eye stays clear) */
+  readonly edge: { readonly value: Vector4 };
+  /** the live re-grade of the LUT: × key, a cool monochrome by moon, × light, into veilColour by veil, + flash */
+  readonly tint: {
+    readonly key: { readonly value: Color }; readonly moon: { readonly value: number }; readonly light: { readonly value: Color };
+    readonly veil: { readonly value: number }; readonly veilColour: { readonly value: Color }; readonly flash: { readonly value: number };
+  };
 }
 /** A trusted callback or the engine's distance/height colour ramp; both replace classic fog in the same slot. */
 export type NodeFogPatch = ((out: Node<'vec4'>, context: NodeFogContext) => Node<'vec4'>) | { readonly colourRamp: NodeFogColourRamp };

@@ -92,3 +92,36 @@ test('a ColourRampFog lends one set of uniforms to the classic chunk, the node a
     expect([fog.start.value, fog.end.value]).toEqual([180, 1700]);
   } finally { Object.assign(THREE.ShaderChunk, chunks); }
 });
+
+test('a panorama ColourRampFog (an unrelated painted dusk desert) colours both paths from its live LUT and tint', () => {
+  const chunks = { ...THREE.ShaderChunk };
+  const lut = new THREE.DataTexture(new Uint8Array([200, 120, 80, 255, 90, 60, 140, 255]), 2, 1);
+  try {
+    installAtmosphere();
+    const engine = THREE.ShaderChunk.fog_fragment;
+    const tint = { key: { value: new THREE.Color(1, 0.8, 0.6) }, moon: { value: 0 }, light: { value: new THREE.Color(1, 1, 1) },
+      veil: { value: 0.2 }, veilColour: { value: new THREE.Color(0.3, 0.2, 0.2) }, flash: { value: 0 } };
+    const panorama = { lut: { value: lut }, aerial: { value: new THREE.Vector4(0.004, 40, 0, 0.001) }, edge: { value: new THREE.Vector4(0.8, 500, 560, 30) }, tint };
+    const fog = new ColourRampFog({ start: 0, end: 1, near: [0.4, 0.3, 0.3], zenith: [0.2, 0.25, 0.5], panorama });
+    const model = fog.model(300);
+    expect(model.node).toEqual({ colourRamp: fog });
+    model.install();
+    expect(THREE.ShaderChunk.fog_fragment).not.toBe(engine);
+    expect(THREE.ShaderChunk.fog_fragment).not.toContain('fogRampStart');
+    for (const name of ['fogPanoLut', 'fogPanoAerial', 'fogPanoEdge', 'fogPanoKey', 'fogPanoVeil', 'fogPanoFlash']) {
+      expect(THREE.ShaderChunk.fog_fragment).toContain(name);
+      expect(THREE.ShaderChunk.fog_pars_fragment).toContain(name);
+    }
+    const shader = { uniforms: {} as Record<string, THREE.IUniform> };
+    attachFogUniforms(shader);
+    expect(shader.uniforms['fogPanoLut']).toBe(panorama.lut);
+    expect(shader.uniforms['fogPanoKey']).toBe(tint.key);
+    tint.veil.value = 0.9;
+    expect(shader.uniforms['fogPanoVeil']?.value).toBe(0.9);
+    const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } };
+    const node = program(graph, new THREE.Fog(0x806040, 1, 100), { colourRamp: fog });
+    expect(Object.values(node.uniforms).some(u => u.value === tint.key.value)).toBe(true);
+    expect(Object.values(node.uniforms).some(u => u.value === panorama.edge.value)).toBe(true);
+    expect(node.fragmentShader).toContain('atan(');
+  } finally { Object.assign(THREE.ShaderChunk, chunks); lut.dispose(); }
+});

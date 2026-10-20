@@ -3,7 +3,7 @@
 // (terrain, instanced trees, glTF props, animals) gets it for free.
 import * as THREE from 'three';
 import { setInheritedPatch } from '../render/shaderPatches';
-import { FOG_SLOT, installFogPatch, type NodeFogPatch } from '../render/fogPatches';
+import { FOG_SLOT, installFogPatch, type NodeFogPanorama, type NodeFogPatch } from '../render/fogPatches';
 
 export const fogUniforms = {
   fogSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -212,29 +212,68 @@ function fogFragment(edge: boolean, weather: boolean, ramp: boolean): string {
 
 type Rgb = readonly [number, number, number];
 
+const PANORAMA_PARS = /* glsl */`
+#ifdef USE_FOG
+  uniform sampler2D fogPanoLut; uniform vec4 fogPanoAerial; uniform vec4 fogPanoEdge; uniform vec3 fogPanoKey; uniform float fogPanoMoon;
+  uniform vec3 fogPanoLight; uniform float fogPanoVeil; uniform vec3 fogPanoVeilColour; uniform float fogPanoFlash;
+#endif`;
+/** the panorama fog's chunk: aerial haze thinning with height, the integrated height fog, the edge haze, the re-graded LUT
+ *  (engineFog.ts `colourRampFog` with a panorama is its node twin) */
+const PANORAMA_FRAGMENT = /* glsl */`
+    #ifdef USE_FOG
+      {
+        vec3 ray = vFogWorldPos - cameraPosition;
+        float rayLen = length( ray );
+        vec3 viewDir = ray / max( rayLen, 1e-3 );
+        float dens = fogPanoAerial.x + max( fogDistDensity - fogPanoAerial.w, 0.0 );
+        float aer = max( rayLen - fogPanoAerial.y, 0.0 ) * dens * exp( - max( 0.5 * ( vFogWorldPos.y + cameraPosition.y ) - fogPanoAerial.z, 0.0 ) * 0.035 );
+        float dy = vFogWorldPos.y - cameraPosition.y;
+        float camF = exp( - fogHeightFalloff * ( cameraPosition.y - fogHeight ) );
+        float ht = fogHeightFalloff * dy;
+        float integ = abs( ht ) > 1e-3 ? ( 1.0 - exp( - ht ) ) / ht : 1.0;
+        float f = clamp( 1.0 - exp( - aer - fogHeightDensity * camF * integ * rayLen ), 0.0, 1.0 );
+        float edgeD = max( abs( vFogWorldPos.x ), abs( vFogWorldPos.z ) );
+        float fe = fogPanoEdge.x * smoothstep( fogPanoEdge.y, fogPanoEdge.z, edgeD ) * smoothstep( fogPanoEdge.w, fogPanoEdge.w * 3.0, rayLen );
+        f = 1.0 - ( 1.0 - f ) * ( 1.0 - fe );
+        vec3 haze = texture2D( fogPanoLut, vec2( atan( - viewDir.x, viewDir.z ) * 0.15915494, 0.5 ) ).rgb * fogPanoKey;
+        float hazeL = dot( haze, vec3( 0.2126, 0.7152, 0.0722 ) );
+        haze = mix( haze, hazeL * vec3( 0.5, 0.62, 1.0 ), fogPanoMoon * 0.8 ) * fogPanoLight;
+        haze = mix( haze, fogPanoVeilColour, fogPanoVeil ) + fogPanoFlash * hazeL * vec3( 0.8, 0.85, 1.0 );
+        gl_FragColor.rgb = mix( gl_FragColor.rgb, haze, f );
+      }
+    #endif`;
+
 /**
  * A level's colour-ramp fog (Firewatch-style distance × height haze into the sky's own gradient), one live set of
  * uniforms for both paths: `model(order)` is the look's `fog` (the classic chunk with the ramp term above, and the graph
  * node `{ colourRamp }`), `control` its `fogControl` (Explore's overhead map turns the haze off for its shot). A day clock
- * moves `near` / `zenith` (linear colours) and the range (m) in place; no shader rebuilds.
+ * moves `near` / `zenith` (linear colours) and the range (m) in place; no shader rebuilds. With `panorama` (a painted
+ * world: fogPatches.ts `NodeFogPanorama`) the haze's colour and curve are the panorama's instead of the ramp's; `zenith` stays the colour a
+ * graph's `fogZenithColour` reads.
  */
 export class ColourRampFog {
   readonly start: { value: number }; readonly end: { value: number };
   readonly near: { value: THREE.Color }; readonly zenith: { value: THREE.Color };
+  readonly panorama: NodeFogPanorama | undefined;
   private readonly uniforms: Record<string, THREE.IUniform>;
   private readonly held = { start: 0, end: 0 };
 
-  constructor(spec: { readonly start: number; readonly end: number; readonly near: Rgb; readonly zenith: Rgb }) {
+  constructor(spec: { readonly start: number; readonly end: number; readonly near: Rgb; readonly zenith: Rgb; readonly panorama?: NodeFogPanorama }) {
     this.start = { value: spec.start }; this.end = { value: spec.end };
     this.near = { value: new THREE.Color(...spec.near) }; this.zenith = { value: new THREE.Color(...spec.zenith) };
-    this.uniforms = { fogRampStart: this.start, fogRampEnd: this.end, fogRampNear: this.near, fogRampZenith: this.zenith };
+    const p = spec.panorama;
+    this.panorama = p;
+    this.uniforms = p === undefined ? { fogRampStart: this.start, fogRampEnd: this.end, fogRampNear: this.near, fogRampZenith: this.zenith }
+      : { fogPanoLut: p.lut, fogPanoAerial: p.aerial, fogPanoEdge: p.edge, fogPanoKey: p.tint.key, fogPanoMoon: p.tint.moon,
+        fogPanoLight: p.tint.light, fogPanoVeil: p.tint.veil, fogPanoVeilColour: p.tint.veilColour, fogPanoFlash: p.tint.flash };
   }
 
   /** the look's fog in its slot: the ramp replaces the engine's fog chunk (installed first) and rides every fogged material */
   model(order: number): { readonly order: number; readonly install: () => void; readonly node: NodeFogPatch } {
     return { order, node: { colourRamp: this }, install: () => {
-      THREE.ShaderChunk.fog_pars_fragment += '\n#ifdef USE_FOG\n  uniform vec3 fogRampZenith; uniform vec3 fogRampNear; uniform float fogRampStart; uniform float fogRampEnd;\n#endif';
-      THREE.ShaderChunk.fog_fragment = fogFragment(false, false, true);
+      THREE.ShaderChunk.fog_pars_fragment += this.panorama !== undefined ? PANORAMA_PARS
+        : '\n#ifdef USE_FOG\n  uniform vec3 fogRampZenith; uniform vec3 fogRampNear; uniform float fogRampStart; uniform float fogRampEnd;\n#endif';
+      THREE.ShaderChunk.fog_fragment = this.panorama !== undefined ? PANORAMA_FRAGMENT : fogFragment(false, false, true);
       addFogUniforms(this.uniforms);
     } };
   }

@@ -4,7 +4,7 @@
  *   compose         'replace': the whole chain — RenderPass → bloom (desktop) + the one grade (grade.ts `lookV2Passes`);
  *                   the composer's MSAA is the manifest's `msaa` tier knob (phone 2, desktop 4)
  *   engineKnobs     that chain as an engine chain's knobs, for a page shell drawing its grid cell (SF63)
- *   fog             the painted air (air.ts), then the panorama-coloured fog (fog.ts), slot 300, after the engine fog
+ *   fog             the cloud shadows' pars (air.ts), then the panorama fog (fog.ts), slot 300, after the engine fog
  *   terrainPainter  the painted ground (terrainPainter.ts)
  *   grass           the GPU blade rings + shader flowers (grass.ts `GrassV2`)
  *   sky             no engine cloud layer or planet; the cloud shadows' field + drift (air.ts `NALATI_SKY`)
@@ -12,7 +12,7 @@
  */
 import type { LookStrategy, TerrainPainter } from '@wildshard/engine/render/look';
 import { installPaintedAir, NALATI_SKY } from './air';
-import { installLookV2Fog } from './fog';
+import { paintedFog } from './fog';
 import { lookV2EngineKnobs, lookV2Passes } from './grade';
 import { createGrass } from './field';
 import * as THREE from 'three';
@@ -73,11 +73,13 @@ const NALATI_TERRAIN_PAINTER: TerrainPainter = { build: async (terrain, field) =
   terrain.group.add(...scene.root.children);
 } };
 
+const FOG = paintedFog.model(300);
+
 export const shardRender = (): LookStrategy => ({
   mode: 'replace',
   compose: (c) => ({ chain: lookV2Passes(c) }),
   engineKnobs: lookV2EngineKnobs,
-  fog: { order: 300, install: () => { installPaintedAir(); installLookV2Fog(); } },
+  fog: { ...FOG, install: () => { installPaintedAir(); FOG.install(); } },
   terrainPainter: NALATI_TERRAIN_PAINTER,
   grass: { build: (sky, forest) => createGrass(sky, forest) },
   sky: NALATI_SKY,
