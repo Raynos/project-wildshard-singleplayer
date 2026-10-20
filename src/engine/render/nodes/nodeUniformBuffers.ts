@@ -12,8 +12,11 @@
  * `NodeUniformBuffers` owns those blocks instead: each group keeps its own buffer and its std140 layout (three's rules,
  * WebGLUniformsGroups.prepareUniformsGroup), and each draw binds its program's few blocks to the top binding points
  * (`MAX_UNIFORM_BUFFER_BINDINGS - 1` downwards, clear of the low points the classic renderer hands out from 0), so any
- * number of node programs share a handful of points. A value is written only when it changed since the buffer last saw it.
+ * number of node programs share a handful of points. A value is written only when the bits it would write differ from
+ * the bits its buffer holds.
  */
+
+import { Color, Matrix4, Vector2, Vector3, Vector4 } from 'three';
 
 /** the WebGL 2 calls the blocks make (a context, or a test's recorder) */
 export type UniformBlockGl = Pick<WebGL2RenderingContext, 'MAX_UNIFORM_BUFFER_BINDINGS' | 'UNIFORM_BUFFER' | 'DYNAMIC_DRAW' | 'INVALID_INDEX'
@@ -24,9 +27,9 @@ interface BlockUniform { readonly value: unknown }
 /** a uniform group as the node handler builds it (three's `UniformsGroup`) */
 export interface BlockGroup { readonly name: string; readonly uniforms: readonly (BlockUniform | readonly BlockUniform[])[] }
 
-/** where one uniform value lives in its block, and what it last wrote */
+/** where one uniform value lives in its block */
 interface Slot {
-  readonly uniform: BlockUniform; readonly element: number; readonly offset: number; readonly data: Float32Array; last: unknown;
+  readonly uniform: BlockUniform; readonly element: number; readonly offset: number; readonly data: Float32Array;
   /** typed values compare as bits: this slot's bits, and the last typed value's bit view (made once per value, not per draw) */
   readonly bits: Uint32Array; source: ArrayBufferView | null; sourceBits: Uint32Array | null;
 }
@@ -98,17 +101,34 @@ function write(value: unknown, data: Float32Array): void {
   if (typeof toArray === 'function') Reflect.apply(toArray, value, [data, 0]);
 }
 
-/**
- * a copy to compare against next time: a number as itself, an object copied into the last copy (one clone per slot, as
- * WebGLUniformsGroups caches), a typed array not at all (it always rewrites)
- */
-function remember(last: unknown, value: unknown): unknown {
-  if (!isObject(value) || ArrayBuffer.isView(value)) return value;
-  const copy: unknown = isObject(last) ? Reflect.get(last, 'copy') : undefined;
-  if (isObject(last) && typeof copy === 'function') { Reflect.apply(copy, last, [value]); return last; }
-  const clone: unknown = Reflect.get(value, 'clone');
-  return typeof clone === 'function' ? Reflect.apply(clone, value, []) : value;
+/** one value's upload image, staged here and compared with its slot's image before anything is written */
+const scratch = new Float32Array(16);
+const scratchBits = new Uint32Array(scratch.buffer);
+/** a scratch view of `length` floats (one per length, made once) */
+const scratchViews: Float32Array[] = [];
+function scratchOf(length: number): Float32Array {
+  let view = scratchViews[length];
+  if (view === undefined) { view = new Float32Array(scratch.buffer, 0, length); scratchViews[length] = view; }
+  return view;
 }
+
+/**
+ * Stage `value`'s upload image (exactly what `write` puts in its slot) in `scratch`: true when it was staged, false for a
+ * value `write` leaves alone. three's own value classes take a direct path; anything else goes through `write`.
+ */
+function stage(value: unknown, length: number): boolean {
+  if (typeof value === 'number') { scratch[0] = value; return true; }
+  if (typeof value === 'boolean') { scratch[0] = value ? 1 : 0; return true; }
+  if (value instanceof Matrix4) { const e = value.elements; for (let i = 0; i < 16; i++) scratch[i] = e[i] ?? 0; return true; }
+  if (value instanceof Vector3) { scratch[0] = value.x; scratch[1] = value.y; scratch[2] = value.z; return true; }
+  if (value instanceof Color) { scratch[0] = value.r; scratch[1] = value.g; scratch[2] = value.b; return true; }
+  if (value instanceof Vector2) { scratch[0] = value.x; scratch[1] = value.y; return true; }
+  if (value instanceof Vector4) { scratch[0] = value.x; scratch[1] = value.y; scratch[2] = value.z; scratch[3] = value.w; return true; }
+  if (!isObject(value) || length > scratch.length) return false;
+  write(value, scratchOf(length));
+  return true;
+}
+
 /** Compare the exact upload image, including signed zero and NaN payloads.
  * The slot already retains these bytes, so mutable arrays need no clone. */
 function sameBytes(value: ArrayBufferView, slot: Slot): boolean {
@@ -117,13 +137,6 @@ function sameBytes(value: ArrayBufferView, slot: Slot): boolean {
   const previous = slot.bits;
   for (let i = 0; i < next.length; i++) if (next[i] !== previous[i]) return false;
   return true;
-}
-function changed(last: unknown, value: unknown): boolean {
-  if (last === undefined || ArrayBuffer.isView(value)) return true;
-  if (!isObject(value)) return last !== value;
-  if (!isObject(last)) return true;
-  const equals: unknown = Reflect.get(last, 'equals');
-  return typeof equals === 'function' ? Reflect.apply(equals, last, [value]) !== true : true;
 }
 
 /** the node programs' uniform blocks on one WebGL 2 context, bound per draw (the module comment says why) */
@@ -198,24 +211,34 @@ export class NodeUniformBuffers {
     // Slot views are made once; uploads use WebGL2's source offset/count overload.
     const data = new Float32Array(layout.size / 4);
     const block: Block = { buffer, data, slots: layout.slots.map((s) => ({ uniform: s.uniform, element: s.element, offset: s.offset,
-      data: new Float32Array(data.buffer, s.offset, s.storage / 4), last: undefined,
+      data: new Float32Array(data.buffer, s.offset, s.storage / 4),
       bits: new Uint32Array(data.buffer, s.offset, s.storage / 4), source: null, sourceBits: null })), passScoped: PASS_GROUPS.has(group.name), pass: -1 };
     this.blocks.set(group, block);
     return block;
   }
 
+  /**
+   * Write the slots whose upload image moved and send the dirty span. A value is compared as the bits it would write, with
+   * the image its slot already holds (a fresh buffer is zeros, as its GPU copy is): no copy of any value is kept.
+   */
   private upload(block: Block): void {
     const gl = this.gl;
     let first: Slot | undefined, last: Slot | undefined;
     for (const slot of block.slots) {
       const value: unknown = Array.isArray(slot.uniform.value) ? slot.uniform.value[slot.element]
         : slot.element === 0 ? slot.uniform.value : undefined;
-      if (slot.last !== undefined && ArrayBuffer.isView(value) && sameBytes(value, slot)) {
-        slot.last = value; continue;
+      if (ArrayBuffer.isView(value)) {
+        if (sameBytes(value, slot)) continue;
+        write(value, slot.data);
+      } else {
+        const length = slot.data.length;
+        if (!stage(value, length)) continue;
+        const bits = slot.bits;
+        let same = true;
+        for (let i = 0; i < length; i++) if (scratchBits[i] !== bits[i]) { same = false; break; }
+        if (same) continue;
+        slot.data.set(scratchOf(length));
       }
-      if (!changed(slot.last, value)) continue;
-      slot.last = remember(slot.last, value);
-      write(value, slot.data);
       first ??= slot; last = slot;
     }
     if (first !== undefined && last !== undefined) {
