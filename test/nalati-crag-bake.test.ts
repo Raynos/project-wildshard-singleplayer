@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the same deflate envelope the browser reads.
 import { inflateSync } from 'node:zlib';
 import * as v from 'valibot';
-import { CRAG_GEOMETRY } from '../src/shards/nalati-grasslands/models/cragRock';
+import { SceneBakedGeometrySchema } from '@wildshard/format/sceneDressing';
 import { expect, it } from 'vitest';
 import { MeshBasicMaterial } from 'three';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
@@ -20,7 +20,7 @@ for (const tier of ['phone', 'desktop'] as const) it(`preserves ${tier} crag cha
   const bytes = unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/crags.bin'))));
   const data = rows[tier], expected = oracle[tier];
   const geometry = new Map(data.meshes.map(part => {
-    const packed = readBakedGeometry(bytes, part.offset, v.parse(CRAG_GEOMETRY, part.row));
+    const packed = readBakedGeometry(bytes, part.offset, v.parse(SceneBakedGeometrySchema, part.row));
     if (!part.row.expand) return [part.key, packed] as const;
     const expanded = packed.toNonIndexed(); packed.dispose(); expanded.computeBoundingBox(); expanded.computeBoundingSphere();
     return [part.key, expanded] as const;
