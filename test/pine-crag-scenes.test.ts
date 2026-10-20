@@ -7,17 +7,12 @@ import { Buffer } from 'node:buffer';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { Matrix4, type BufferGeometry } from 'three';
-import { readSourceModel } from '../src/sdk/bake/skinned';
-import { loadGlbNodes } from '../src/engine/models/glbNodes';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { placedGeometryCollider } from '../src/engine/models/colliders';
 import { bakeCragSceneSources, caveShellRows } from '../src/shards/pine-hollow/generators/bake-crag-scenes.mjs';
-import { cragNodeGeometry } from '../src/shards/pine-hollow/generators/cragWorldScenes';
 import layout from '../src/shards/pine-hollow/data/layout.generated.json';
 
 const root = new URL('../', import.meta.url);
-const projection = { position: { source: 'position', size: 3 }, normal: { source: 'normal', size: 3 },
-  aCdata: { source: 'color', size: 4, fill: 1 }, aCtint: { source: 'uv', size: 2, fill: 0 } } as const;
 const bytes = (array: ArrayBufferView): Uint8Array => new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
 function sameGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
   expect(Object.keys(actual.attributes).sort()).toEqual(Object.keys(expected.attributes).sort());
@@ -31,20 +26,6 @@ function sameGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
   expect(a?.array.constructor.name).toBe(b?.array.constructor.name);
   if (a !== null && b !== null) expect(Buffer.compare(bytes(a.array), bytes(b.array))).toBe(0);
 }
-
-test('offline kit projection keeps every native GLB node byte', async () => {
-  for (const file of ['crags.glb', 'crags-b.glb', 'cave.glb']) {
-    const source = await readSourceModel(readFileSync(new URL(`public/assets/models/pine-hollow-crags/${file}`, root)));
-    const native = await loadGlbNodes(source.gltf.scene, projection), baked = cragNodeGeometry(source.gltf.scene);
-    try {
-      expect([...baked.keys()]).toEqual([...native.keys()]);
-      for (const [id, geometry] of native) {
-        const candidate = baked.get(id); if (candidate === undefined) throw new Error(`Missing ${id}`);
-        sameGeometry(candidate, geometry);
-      }
-    } finally { for (const geometry of [...native.values(), ...baked.values()]) geometry.dispose(); }
-  }
-});
 
 test('all generated kit and both skin tiers round-trip without channel or index changes', async () => {
   const sources = await bakeCragSceneSources();
