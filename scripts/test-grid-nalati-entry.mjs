@@ -14,7 +14,7 @@ try {
   const page = await context.newPage();
   await page.goto(`${base}/?tier=phone&touch=1&mute=1&nolock=1&sw=0`);
   await page.waitForFunction(() => Boolean(document.querySelector('.ws-main-grid')?.getClientRects().length), null, { timeout: 240000 });
-  await page.evaluate(() => { setTimeout(() => document.querySelector('.ws-main-grid')?.click(), 100); });
+  await page.evaluate(() => { setTimeout(() => { document.querySelector('.ws-main-grid')?.click(); }, 100); });
   await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live !== undefined, null, { timeout: 240000 });
   assert.equal(await page.evaluate(() => window.__wildshard.shard.grid.state().home), 'driftwood-isle');
   await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
