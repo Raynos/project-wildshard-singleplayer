@@ -129,6 +129,12 @@ export function installMixedPopulation(host: SimHost, ports: MixedPopulationInpu
     if (rows.floorKinds.includes(body.kind) && actor.levelGround) actor.groundHeight = holdFloor;
     if (FAUNA.has(body.kind)) { body.brain = null; return; }
     const context = createNativeSpeciesContext(brainPorts, actor, hunt.herds[body.herd]?.members ?? null, body.recipe.spec.label);
+    const declared = program.species.find(row => row.kind === body.kind);
+    if (declared?.brain?.archetype === 'decision') {
+      const policy = brains.body(body.kind, actor, { host, stream: rng, decisions: nativeDecisions(host), attacks: { kind: 'keeper', claim: () => context.observation.claim(actor) } });
+      if (policy === null) throw new Error('Missing declared decision body policy');
+      body.brain = policy; return;
+    }
     const actions = brains.actions(body.kind, actor);
     if (actions !== null) { body.brain = context.bind(context.observation, actions, actions); return; }
     if (body.kind === rows.perch.kind) {
