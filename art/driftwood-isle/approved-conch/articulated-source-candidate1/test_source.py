@@ -106,4 +106,25 @@ class SourceTests(unittest.TestCase):
                     name=p['name'];points=np.array(p['positions']).reshape(-1,3);r,t=world[name];rb,tb=worldB[name]
                     np.testing.assert_allclose((scale*((points@g.B.T-source[name])@r.T)+t)@g.B.T,scale*((points-target[name])@rb.T)+tb,atol=1e-14)
         self.assertLess(target['legLeft'][0],0);self.assertGreater(target['rapierArm'][0],0)
+    def test_exact_packed_closure_rejects_preserved_one_ulp_witness(self):
+        def affected_reports(folder):
+            model=json.loads((folder/'model.json').read_bytes()); report=json.loads((folder/'construction.json').read_bytes())
+            parts={p['name']:np.array(p['positions'],dtype=np.float32).reshape(-1,3) for p in model['parts']};cursor=Counter();result={}
+            for row in report['changes']:
+                owner=row['owner'];unchanged=row['operation'].startswith('exact retained')
+                n=3*(row['sourceTriangles'] if unchanged else row['retainedSurfaceTriangles']+row['newCapTriangles'])
+                positions=parts[owner][cursor[owner]:cursor[owner]+n];cursor[owner]+=n
+                if unchanged:continue
+                edges=Counter();directed=Counter()
+                for triangle in positions.reshape(-1,3,3):
+                    for a,b in zip(triangle,np.roll(triangle,-1,axis=0)):
+                        ka,kb=tuple(a),tuple(b);edges[tuple(sorted((ka,kb)))]+=1;directed[(ka,kb)]+=1
+                result[(row['sourceMesh'],owner)]={'boundary':sum(n!=2 for n in edges.values()),'orientation':sum(directed[(a,b)]!=directed[(b,a)] for a,b in directed)}
+            return result
+        current=affected_reports(g.HERE);self.assertEqual(len(current),12)
+        for name,r in current.items():self.assertEqual(r,{'boundary':0,'orientation':0},name)
+        previous=affected_reports(g.HERE/'failed-packed-seam')
+        failures={name:r for name,r in previous.items() if r['boundary']}
+        self.assertEqual(set(failures),{('Leg hinge 1','legRightKnee'),('Leg hinge 1','legRightAnkle')})
+        for r in failures.values():self.assertEqual(r['boundary'],4)
 if __name__=='__main__':unittest.main(verbosity=2)

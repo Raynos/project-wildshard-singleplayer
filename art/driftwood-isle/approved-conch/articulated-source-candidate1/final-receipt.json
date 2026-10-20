@@ -1,9 +1,9 @@
 {
-  "completedUTC": "2026-10-20T21:22:00Z",
+  "completedUTC": "2026-10-20T21:28:00Z",
   "sourceOnly": true,
   "tests": {
     "python": {
-      "passed": 8,
+      "passed": 9,
       "failed": 0
     },
     "nativeVitest": {
@@ -11,7 +11,8 @@
       "failed": 0
     },
     "strictTypeScript": {
-      "exitCode": 0
+      "exitCode": 0,
+      "scope": "previous run; test code and JSON structural types unchanged in arithmetic repair"
     },
     "repositoryLint": {
       "status": "not run: repository excludes art paths; invocation reports no files"
@@ -19,9 +20,10 @@
   },
   "preservedFailures": [
     "first-build-arithmetic-witness",
-    "failed-metadata-identifier"
+    "failed-metadata-identifier",
+    "failed-packed-seam"
   ],
-  "geometryPayloadUnchangedSinceProtectedCheckpoint": true,
+  "geometryPayloadUnchangedSinceProtectedCheckpoint": false,
   "owners": 8,
   "hullPoints": 333,
   "largestHull": 70,
@@ -31,5 +33,8 @@
   "runtimeAdmission": false,
   "visualAcceptance": false,
   "physicsWorldsStepped": 0,
-  "publicAssetsWritten": 0
+  "publicAssetsWritten": 0,
+  "packedClosureStatus": "all 12 modified closed chunks exact float32 closed and consistently oriented",
+  "packedPositionComponentsCorrected": 4,
+  "maximumPackedCorrectionMetres": 1.4901161193847656e-08
 }

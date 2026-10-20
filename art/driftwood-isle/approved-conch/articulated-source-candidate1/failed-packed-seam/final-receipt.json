@@ -1,0 +1,35 @@
+{
+  "completedUTC": "2026-10-20T21:22:00Z",
+  "sourceOnly": true,
+  "tests": {
+    "python": {
+      "passed": 8,
+      "failed": 0
+    },
+    "nativeVitest": {
+      "passed": 3,
+      "failed": 0
+    },
+    "strictTypeScript": {
+      "exitCode": 0
+    },
+    "repositoryLint": {
+      "status": "not run: repository excludes art paths; invocation reports no files"
+    }
+  },
+  "preservedFailures": [
+    "first-build-arithmetic-witness",
+    "failed-metadata-identifier"
+  ],
+  "geometryPayloadUnchangedSinceProtectedCheckpoint": true,
+  "owners": 8,
+  "hullPoints": 333,
+  "largestHull": 70,
+  "corners": 7194,
+  "sourceAdmission": false,
+  "motionAdmission": false,
+  "runtimeAdmission": false,
+  "visualAcceptance": false,
+  "physicsWorldsStepped": 0,
+  "publicAssetsWritten": 0
+}

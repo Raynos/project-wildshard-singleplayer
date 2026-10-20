@@ -1,0 +1,17 @@
+{
+  "status": "independently rejected exact packed closure",
+  "parts": [
+    "legRightKnee",
+    "legRightAnkle"
+  ],
+  "singleUseEdgesPerPart": 4,
+  "x": 0.9138782024383545,
+  "z": 0.24089646339416504,
+  "y": [
+    0.20029392838478088,
+    0.20029394328594208
+  ],
+  "gapMetres": 1.4901161193847656e-08,
+  "cause": "Opposite edge traversal arithmetic plus rounded double-position topology keys hid distinct float32 vertices",
+  "correction": "Canonical endpoint ordering for interpolation, exact unrounded source and packed edge identities. No tolerance relaxation."
+}

@@ -23,12 +23,13 @@ B = np.diag([-1.,1.,-1.])
 
 def sha(raw): return hashlib.sha256(raw).hexdigest()
 def encoded(data): return (json.dumps(data,separators=(',',':'),allow_nan=False)+'\n').encode()
-def key(v): return tuple(np.round(v[:3],9))
+def key(v): return tuple(v[:3])
 def normal(tri):
     n=np.cross(tri[1][:3]-tri[0][:3],tri[2][:3]-tri[0][:3])
     if np.linalg.norm(n)<1e-12: raise ValueError('Degenerate generated triangle')
     return n/np.linalg.norm(n)
-def mesh_report(tris):
+def mesh_report(tris, packed=False):
+    if packed: tris = [np.array(t, dtype=np.float32).astype(float) for t in tris]
     edges=Counter(); directed=Counter()
     for tri in tris:
         normal(tri)
@@ -59,6 +60,8 @@ def cap(tris):
     result=tris+caps
     report=mesh_report(result)
     if report['nonTwoEdges'] or report['orientationErrors']: raise ValueError(str(report))
+    packed_report=mesh_report(result, packed=True)
+    if packed_report['nonTwoEdges'] or packed_report['orientationErrors']: raise ValueError('Exact packed closure failed: '+str(packed_report))
     return result,len(caps)
 def clip(tris,minimum,maximum):
     """Clip scalar in column9; linearly retain every surviving source surface."""
@@ -72,7 +75,11 @@ def clip(tris,minimum,maximum):
                 da=sign*(a[9]-bound);db=sign*(b[9]-bound)
                 if da>=0:out.append(a)
                 if (da<0<db) or (db<0<da):
-                    t=(bound-a[9])/(b[9]-a[9]);v=a+(b-a)*t;v[9]=bound;out.append(v)
+                    # Both incident triangles and both split owners use identical
+                    # endpoint arithmetic; no rounded welding or coordinate tolerance.
+                    first,last=(a,b) if key(a)<key(b) else (b,a)
+                    t=(bound-first[9])/(last[9]-first[9])
+                    v=first+(last-first)*t;v[9]=bound;out.append(v)
             poly=out
             if not poly:break
         for j in range(1,len(poly)-1):

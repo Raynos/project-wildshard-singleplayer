@@ -1,0 +1,50 @@
+[
+  {
+    "owner": "legLeftKnee",
+    "attribute": "positions",
+    "doubleChangedComponents": 27,
+    "maxDoubleDelta": 1.1102230246251565e-16,
+    "packedChangedComponents": 0,
+    "maxPackedDelta": 0.0
+  },
+  {
+    "owner": "legLeftAnkle",
+    "attribute": "positions",
+    "doubleChangedComponents": 74,
+    "maxDoubleDelta": 1.1102230246251565e-16,
+    "packedChangedComponents": 0,
+    "maxPackedDelta": 0.0
+  },
+  {
+    "owner": "legLeftAnkle",
+    "attribute": "normals",
+    "doubleChangedComponents": 102,
+    "maxDoubleDelta": 7.466249840604178e-15,
+    "packedChangedComponents": 0,
+    "maxPackedDelta": 0.0
+  },
+  {
+    "owner": "legRightKnee",
+    "attribute": "positions",
+    "doubleChangedComponents": 68,
+    "maxDoubleDelta": 1.1102230246251565e-16,
+    "packedChangedComponents": 3,
+    "maxPackedDelta": 1.4901161193847656e-08
+  },
+  {
+    "owner": "legRightKnee",
+    "attribute": "normals",
+    "doubleChangedComponents": 135,
+    "maxDoubleDelta": 7.605027718682322e-15,
+    "packedChangedComponents": 0,
+    "maxPackedDelta": 0.0
+  },
+  {
+    "owner": "legRightAnkle",
+    "attribute": "positions",
+    "doubleChangedComponents": 19,
+    "maxDoubleDelta": 1.1102230246251565e-16,
+    "packedChangedComponents": 1,
+    "maxPackedDelta": 1.4901161193847656e-08
+  }
+]

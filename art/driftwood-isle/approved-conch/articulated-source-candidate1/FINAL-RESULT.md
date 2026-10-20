@@ -1,3 +1,5 @@
+> Historical transport result, superseded for closure by PACKED-SEAM-REPAIR.md. Independent review found a packed seam defect; the old outputs remain in failed-packed-seam. Read the newer repair and final receipt for the current state.
+
 # Final source-only result
 
 2026-10-20 21:22 UTC. Read alongside REPORT.md, which intentionally preserves
