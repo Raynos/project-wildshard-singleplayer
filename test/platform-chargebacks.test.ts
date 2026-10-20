@@ -31,15 +31,16 @@ test('day-one feature credit cannot erase a G520 chargeback', () => {
   const path = 'src/game/looks/painterlyLook.ts';
   const allowance: PendingPlatformUser = { module: path, documentation: 'docs/HOST-BAR.md',
     approvedFeature: { name: 'painterly look host', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G478' } } };
-  const rows = [{ path, name: 'PainterlyWorld', exported: true, lines: 40 },
+  const painterly = { path, name: 'PainterlyWorld', exported: true, lines: 40 };
+  const rows = [painterly,
     { path, name: 'PaintedPanorama', exported: true, lines: 80 }];
   const result = partitionPendingPlatformUsers('nalati-grasslands', [], rows, [allowance]);
   expect(result.exports).toEqual([rows[0]]);
   expect(result.pending.map(row => row.name)).toEqual(['PaintedPanorama']);
-  const single = partitionPendingPlatformUsers('nalati-grasslands', [{ path, lines: 200 }], [rows[0]], [allowance]);
+  const single = partitionPendingPlatformUsers('nalati-grasslands', [{ path, lines: 200 }], [painterly], [allowance]);
   expect(single.exports).toEqual([rows[0]]);
   expect(single.pending.map(row => row.lines)).toEqual([160]);
-  const unapproved = partitionPendingPlatformUsers('nalati-grasslands', [{ path, lines: 200 }], [rows[0]], []);
+  const unapproved = partitionPendingPlatformUsers('nalati-grasslands', [{ path, lines: 200 }], [painterly], []);
   expect(unapproved.modules).toEqual([{ path, lines: 200 }]);
   expect(unapproved.exports).toEqual([]);
 });
