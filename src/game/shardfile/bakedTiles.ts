@@ -28,7 +28,7 @@ import type { ShardContext } from '../plugin/context';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { BakedPlanSchema, BakedTilesSchema, type BakedPlan, type BakedSource, type BakedTilesRow } from '@wildshard/format/bakedTiles';
 import { followToonLook } from '../looks/toonLook';
-import { hasLentLook, lendLooks, lentLook, setLentParam, setLentTexture } from './lentLooks';
+import { lendLooks, lentLook, setLentParam, setLentTexture } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import type { ShardProduct } from './shardProduct';
 
@@ -52,7 +52,8 @@ async function sceneOf(product: ShardProduct, source: BakedSource): Promise<THRE
   return 'url' in source ? (await gltf().loadAsync(source.url)).scene : (await gltf().parseAsync(Uint8Array.from(await product.file(source.file)).buffer, '')).scene;
 }
 async function textureOf(product: ShardProduct, source: BakedSource): Promise<THREE.Texture> {
-  if ('file' in source) return ktx2File(product.url(source.file));
+  // a product's KTX2 file transcodes; any other image file decodes as one
+  if ('file' in source) return source.file.endsWith('.ktx2') ? ktx2File(product.url(source.file)) : new THREE.TextureLoader().loadAsync(product.url(source.file));
   return (await ktx2Texture(source.url)) ?? new THREE.TextureLoader().loadAsync(source.url);
 }
 /** A tier's plan: its exact bytes (and, for a public file, the content hash its name carries) before its rows. */
@@ -146,9 +147,7 @@ export async function installClientBakedTiles(ctx: ShardContext, feature: Client
 }
 async function draw(ctx: ShardContext, rows: readonly BakedTilesRow[], resident: Scope): Promise<readonly BakedTiles[]> {
   const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Baked tiles require the world stage');
-  const looks = rows.flatMap(row => [row.look, ...Object.values(row.instances?.looks ?? {}).map(slot => slot.look)]);
-  const missing = [...new Set(looks)].filter(look => !hasLentLook(look));
-  if (missing.length > 0) lendLooks(resident, await runtimeLookMaterials({ scope: resident, game: ctx.game }, ctx.product.shardfile, true, missing));
+  await lendBakedLooks(ctx, rows, resident);
   const drawn: BakedTiles[] = [], byId = new Map<string, BakedTiles>();
   for (const row of rows) {
     const baked = await installBakedTiles({ product: ctx.product, parent: ctx.root, sky: world.sky, registry: ctx.app.registry, scope: resident }, row);
@@ -156,6 +155,12 @@ async function draw(ctx: ShardContext, rows: readonly BakedTilesRow[], resident:
   }
   drawnOf.set(ctx.product, byId);
   return drawn;
+}
+/** The rows' looks compiled with their graphs and lent for the resident. Always lent, never only when missing: a data
+ *  client may already have lent the same ids as presentation fallbacks (graphs off), which take no lent textures. */
+export async function lendBakedLooks(ctx: Pick<ShardContext, 'game' | 'product'>, rows: readonly BakedTilesRow[], resident: Scope): Promise<void> {
+  const looks = [...new Set(rows.flatMap(row => [row.look, ...Object.values(row.instances?.looks ?? {}).map(slot => slot.look)]))];
+  lendLooks(resident, await runtimeLookMaterials({ scope: resident, game: ctx.game }, ctx.product.shardfile, true, looks));
 }
 /** A product's drawn baked tiles by row id, for the shard view code that dresses them further; throws before the feature drew it. */
 export function bakedTilesOf(product: ShardProduct, id: string): BakedTiles {

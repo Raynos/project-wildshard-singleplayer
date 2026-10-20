@@ -92,9 +92,10 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
     for (const lod of [0, 1] as const) {
       const size = lod === 0 ? 62.5 : 125, count = 500 / size, rows = lod === 0 ? world.static : coarse.map(row => row.primitive);
       for (let z = 0; z < count; z++) for (let x = 0; x < count; x++) {
-        const output = emit(rows, [-250 + x * size, -250 + (x + 1) * size, -250 + z * size, -250 + (z + 1) * size], undefined, lod === 0);
+        const cell = [-250 + x * size, -250 + (x + 1) * size, -250 + z * size, -250 + (z + 1) * size] as const, output = emit(rows, cell, undefined, lod === 0);
         if (output.bytes.length === 0) continue;
-        pack.tile({ lod, x, z, bytes: output.bytes, dependencies: output.dependencies, bounds: { min: output.box.min.toArray(), max: output.box.max.toArray() }, geometricError: lod === 0 ? 0 : Math.max(...coarse.map(row => row.errorMetres)) });
+        // a tile spans its whole cell; its content sets only its height (an `undrawn` ground leaves cells partly empty)
+        pack.tile({ lod, x, z, bytes: output.bytes, dependencies: output.dependencies, bounds: { min: [cell[0], output.box.min.y, cell[2]], max: [cell[1], output.box.max.y, cell[3]] }, geometricError: lod === 0 ? 0 : Math.max(...coarse.map(row => row.errorMetres)) });
       }
     }
     const panels = world.panels.map(panel => {
