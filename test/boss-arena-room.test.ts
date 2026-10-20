@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
-import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute } from 'three';
-import { BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
+import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute, PerspectiveCamera, Group } from 'three';
+import { ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
 import { ArenaFireView } from '../src/game/boss/arenaFire';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
@@ -10,6 +10,8 @@ import marsh from './fixtures/boss-owner/marsh-room.json' with { type: 'json' };
 import view from '../src/shards/nalati-grasslands/data/kurganView.json' with { type: 'json' };
 import { bossArena } from './fake/bossArena';
 import { bakedActorGeometry } from '../src/shards/nalati-grasslands/world/places';
+import { ReturnProgram } from '../src/game/population/returnProgram';
+import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 
 test('second-shard arena owns its translated floor, gate, cover and sand', () => {
  const source = structuredClone(view);
@@ -58,4 +60,30 @@ test('second-shard fire rows bound capacity, own graph ids, expire and reset', (
   fire.update(.3,1.3,1,0,2,new Color('white'),0); expect(fire.smoke.count).toBe(0);
   fire.puff(0,0,0,1); fire.clear(); fire.update(.01,1.4,0,0,0,new Color('white'),0); expect(fire.smoke.count).toBe(0);
  } finally { scope.dispose(); }
+});
+
+test('the reed vault portal owns fade, isolation, floor recovery and exit placement', () => {
+ const source = structuredClone(view), root = source.scene.nodes.find(node => node.id === source.scene.root);
+ if (root === undefined || !('position' in root)) throw new Error('Missing room root');
+ root.position = [30,20,40];
+ const shapes = new Map([...source.scene.nodes,...source.static.nodes].flatMap(row => 'geometry' in row ? [[row.geometry,bakedActorGeometry(row.geometry)]] as const : []));
+ const room = new BossArenaRoom({ ...marsh, sandCells: 40, view: source },shapes).build(true);
+ const game = { scene: new Scene(), camera: new PerspectiveCamera() }, animals = { calm: false, group: new Group() };
+ const player = { position: new Vector3(200,2,202), velocity: new Vector3(1,-2,3), yaw: 3, pitch: .5, moveScale: 1 };
+ const outside = new Group(); outside.position.set(-200,0,-200);
+ game.scene.add(room.group,animals.group,game.camera,outside);
+ const portal = new ArenaRoomPortal({ game,animals,player },room,{ signal: 'kingDoor', spawn: { x: 0,z: 9,yaw: .3 }, end: 12,
+  exitOffset: 3, slow: .4, fade: { out: 100,hold: .2,in: 300 }, keep: 'reed-sky|arrow',near: 10,floor: { tolerance: .02,depth: 4 } },
+  ReturnProgram.page(titan.rules),{ x: 200,y: 2,z: 200,facing: 0 });
+ portal.update(.1,0); expect(portal.inside).toBe(false);
+ portal.update(.1,.1); expect(portal.inside).toBe(false);
+ portal.update(.11,.21); expect(portal.inside).toBe(true);
+ expect(player.position.toArray()).toEqual([30,20,49]); expect(player.velocity.length()).toBe(0);
+ expect(outside.visible).toBe(false); expect(animals.calm).toBe(true);
+ portal.setLocked(true); expect(player.moveScale).toBe(0);
+ portal.setLocked(false); expect(player.moveScale).toBe(1);
+ player.position.set(30,19,40); portal.update(.1,.31); expect(player.position.y).toBeGreaterThanOrEqual(20);
+ portal.leave(true); expect(portal.inside).toBe(true);
+ portal.update(.21,.52); expect(portal.inside).toBe(false);
+ expect(player.position.toArray()).toEqual([200,2,197]); expect(outside.visible).toBe(true); expect(animals.calm).toBe(false);
 });

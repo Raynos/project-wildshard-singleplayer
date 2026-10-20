@@ -5,7 +5,7 @@ import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import { strike } from '@wildshard/sdk/species';
 import * as layout from './kurganLayout.ts';
 import { GOLDEN_KING_BOSS_PROFILE } from './goldenKingArena.ts';
-import { KING_ENCOUNTER, KING_REWARD, KING_TUNING } from './goldenKingFight.ts';
+import { KING_ENCOUNTER, KING_REWARD, KING_TUNING, KING_PORTAL } from './goldenKingFight.ts';
 import { GOLDEN_KING_POSE } from './goldenKingPose.ts';
 import { NALATI_STRIKE_ROWS } from './strikeProfiles.ts';
 
@@ -15,7 +15,7 @@ const strikes = Object.fromEntries(Object.entries(NALATI_STRIKE_ROWS).map(([name
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-kurgan');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/kurganLayout.generated.json'), jsonBytes(layout));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/goldenKing.generated.json'), jsonBytes({
-  profile: parseBossProfile(GOLDEN_KING_BOSS_PROFILE), encounter: KING_ENCOUNTER, reward: KING_REWARD, tuning: KING_TUNING,
+  portal: KING_PORTAL, profile: parseBossProfile(GOLDEN_KING_BOSS_PROFILE), encounter: KING_ENCOUNTER, reward: KING_REWARD, tuning: KING_TUNING,
   page: { profile: GOLDEN_KING_BOSS_PROFILE, body: 'nalati.golden-king', identity: 'runtime',
     add: { kind: 'balbal', variant: 'warrior', memory: { floorY: layout.DUNGEON.y, emergeT: 1.9,
       minX: layout.DUNGEON.x - layout.CH + .9, maxX: layout.DUNGEON.x + layout.CH - .9,

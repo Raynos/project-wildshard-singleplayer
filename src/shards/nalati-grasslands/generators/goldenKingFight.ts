@@ -1,3 +1,4 @@
+import { DROMOS_SPAWN, DROMOS_END } from './kurganLayout';
 /**
  * The Golden King fight's rows (plan row B13; design docs/design/nalati/elites-and-bosses.md §2), read by
  * combat/goldenKing.ts: the encounter card, the reward's card, the feed lines and the fight's tuning.
@@ -46,3 +47,8 @@ export const KING_TUNING: {
   beamRadius: 6.2, beamHitRadius: 1.15, beamDamage: 15, beamToKing: 50, headdressHp: 200, shieldOffset: 0.7,
   drifts: [[-5.2, 3.4, 2.6], [4.8, 4.6, 2.4], [-3.6, -5, 2.2], [5.6, -3.2, 2.5], [1.8, 6.6, 2.0]],
 };
+
+/** The arena host owns the interior transition; the guest chooses entry/exit. */
+export const KING_PORTAL = { signal: 'kingDoor', spawn: DROMOS_SPAWN, end: DROMOS_END, exitOffset: 2.4, slow: .5,
+  fade: { out: 220, hold: .24, in: 420 }, keep: 'sky|planet|cloud|kurgan|projectile|arrow|arc|pickup|streak|csm|light', near: 40,
+  floor: { tolerance: .02, depth: 4 } };

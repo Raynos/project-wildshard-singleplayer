@@ -20,6 +20,12 @@ import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { ShardContext } from '../plugin/context';
 import { bindRuntimeBoss } from '../plugin/headless';
+import type { Boss } from '../Boss';
+import type { BossBar } from '@wildshard/engine/ui/BossBar';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { ReturnProgram } from '../population/returnProgram';
 
 const finite = v.pipe(v.number(), v.finite());
 const positive = v.pipe(finite, v.minValue(Number.MIN_VALUE));
@@ -28,6 +34,87 @@ const triple = v.tuple([finite,finite,finite]);
 const point = v.strictObject({ x: finite, z: finite });
 const box = v.strictObject({ x: finite, z: finite, hw: finite, hd: finite, rot: finite, yTop: finite, yBottom: finite });
 const list = <S extends v.GenericSchema>(schema: S) => v.pipe(v.array(schema), v.maxLength(256));
+export const ArenaRoomPortalSchema = v.strictObject({
+  signal: rowId, spawn: v.strictObject({ x: finite, z: finite, yaw: finite }), end: finite,
+  exitOffset: finite, slow: v.pipe(finite, v.minValue(0), v.maxValue(1)),
+  fade: v.strictObject({ out: finite, hold: finite, in: finite }),
+  keep: rowId, near: finite, floor: v.strictObject({ tolerance: finite, depth: finite }),
+});
+/** Native owners borrowed by an arena portal, without author callbacks. */
+export interface ArenaRoomPortalWorld {
+  readonly game: Pick<Game, 'scene' | 'camera'>;
+  readonly player: Pick<Player, 'position' | 'velocity' | 'yaw' | 'pitch' | 'moveScale'>;
+  readonly animals: Pick<AnimalManager, 'calm' | 'group'>;
+}
+/** Client-only entry/exit lifecycle of the existing arena host. AS observes
+ * the actual room floor and entrance; the host owns fades, isolation, movement
+ * and the single ordered boss/room update. Row data chooses all room policy. */
+export class ArenaRoomPortal {
+  inside = false;
+  private readonly rows;
+  private readonly keep: RegExp;
+  private hidden: THREE.Object3D[] = [];
+  private calmWas = false;
+  private locked = false; private slow = false;
+  private elapsed = 0; private fade = -1; private pending: 'enter' | 'exit' | null = null;
+  private boss: Boss | null = null; private ui: BossBar | null = null;
+  private fight: ReturnType<typeof arenaRoomFight> | null = null;
+  constructor(private readonly world: ArenaRoomPortalWorld, private readonly room: BossArenaRoom, input: unknown,
+    private readonly program: ReturnProgram, private readonly entrance: { readonly x: number; readonly y: number; readonly z: number; readonly facing: number } | null) {
+    this.rows = v.parse(ArenaRoomPortalSchema, input); this.keep = new RegExp(this.rows.keep, 'i');
+  }
+  bind(boss: Boss, ui: BossBar, fight: ReturnType<typeof arenaRoomFight>): void { this.boss = boss; this.ui = ui; this.fight = fight; }
+  setLocked(on: boolean): void { this.locked = on; this.move(); }
+  private move(): void { this.world.player.moveScale = this.locked ? 0 : this.slow ? this.rows.slow : 1; }
+  enter(immediate = false, atZ = this.rows.spawn.z): void {
+    if (!immediate) { this.ui?.fade(true, this.rows.fade.out); this.fade = this.rows.fade.hold; this.pending = 'enter'; return; }
+    const { game, player, animals } = this.world, origin = this.room.rows.origin;
+    this.room.world(this.rows.spawn.x, 0, atZ, player.position);
+    player.velocity.set(0,0,0); player.yaw = this.rows.spawn.yaw; player.pitch = 0;
+    this.inside = true; this.room.setVisible(true); this.hidden = [];
+    for (const object of game.scene.children) {
+      if (!object.visible || object === this.room.group || object === animals.group || object === game.camera || object instanceof THREE.Light || this.keep.test(object.name) || object.type === 'Points'
+        || object.position.distanceToSquared(new THREE.Vector3(origin.x,origin.y,origin.z)) < this.rows.near ** 2) continue;
+      object.visible = false; this.hidden.push(object);
+    }
+    this.calmWas = animals.calm; animals.calm = true; this.fight?.setPresent(true); this.boss?.arm();
+  }
+  leave(teleport: boolean, immediate = false): void {
+    if (teleport && !immediate) { this.ui?.fade(true, this.rows.fade.out); this.fade = this.rows.fade.hold; this.pending = 'exit'; return; }
+    const { player, animals } = this.world, e = this.entrance;
+    if (teleport && e !== null) {
+      player.position.set(e.x - Math.sin(e.facing) * this.rows.exitOffset, e.y, e.z - Math.cos(e.facing) * this.rows.exitOffset);
+      player.yaw = e.facing; player.pitch = 0; player.velocity.set(0,0,0);
+    }
+    this.inside = false; this.room.setVisible(false);
+    for (const object of this.hidden) object.visible = true;
+    this.hidden = []; animals.calm = this.calmWas; this.boss?.disarm(); this.fight?.setPresent(false);
+    this.slow = false; this.locked = false; this.move();
+  }
+  update(dt: number, t: number): void {
+    if (this.fade >= 0) {
+      this.fade -= dt;
+      if (this.fade < 0) { const pending = this.pending; this.pending = null; if (pending === 'enter') this.enter(true); else if (pending === 'exit') this.leave(true,true); this.ui?.fade(false,this.rows.fade.in); }
+      return;
+    }
+    const p = this.world.player.position, origin = this.room.rows.origin;
+    this.elapsed += dt;
+    if (this.elapsed >= .1 - 1e-9) {
+      const e = this.entrance, z = p.z - origin.z, floor = this.room.floorHeightAt(p.x,p.z);
+      const result = this.program.project(this.rows.signal, { px: p.x, pz: p.z, y: p.y, ex: e?.x ?? 0, ey: e?.y ?? 0, ez: e?.z ?? 0, facing: e?.facing ?? 0,
+        volume: Number(this.room.inVolume(p)), inside: Number(this.inside), corridor: z, land: this.rows.end, engaged: Number(this.boss?.engaged === true),
+        sand: this.room.inChamber(p) ? this.room.sandAt(p.x-origin.x,z) : 0, floor: floor ?? origin.y, cy: origin.y });
+      this.elapsed = 0;
+      if (!this.inside) { if (e !== null && result['enter'] === 1) this.enter(); }
+      else if (result['exit'] !== 0) { this.leave(result['exit'] === 2); return; }
+      if (this.inside) { this.slow = result['slow'] === 1; this.move(); }
+    }
+    if (!this.inside) return;
+    const floor = this.room.floorHeightAt(p.x,p.z);
+    if (floor !== undefined && p.y < floor-this.rows.floor.tolerance && p.y > floor-this.rows.floor.depth) { p.y = floor; if (this.world.player.velocity.y < 0) this.world.player.velocity.y = 0; }
+    this.boss?.update(dt,t); this.room.update(dt,t);
+  }
+}
 /** Data admission precedes any scene or physics allocation. */
 export const ArenaRoomSchema = v.strictObject({
  id: rowId, name: rowId, file: rowId, sealId: rowId, sealName: rowId,
