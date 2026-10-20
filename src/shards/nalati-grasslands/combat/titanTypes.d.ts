@@ -14,7 +14,7 @@ type Lines = Record<'kneels' | 'grassFire' | 'immuneDome' | 'immuneSpear' | 'spe
   | 'burning' | 'chain' | 'wall' | 'tie' | 'tieOnFoot' | 'tieQuiet' | 'wantsRider' | 'quiet' | 'wakes', string>;
 /** Named JSON is validated by the producer; native code consumes only this wire contract. */
 export interface TitanFightData {
-  arenaFire: unknown; programs: Programs; FIRE_NEIGHBOURS: [number, number][];
+  TITAN_FIRE_FIELD: unknown; arenaFire: unknown; programs: Programs; FIRE_NEIGHBOURS: [number, number][];
   TITAN_ARENA: { center: Point; titan: Point; grid: number };
   TITAN_PLACE: { centreZ: number; arenaRadius: number; titanZ: number; heartHp: number; bodyScale: number };
   TITAN_PHASES: BossPhaseDef[]; TITAN_ENCOUNTER: Encounter; TITAN_REWARD: Reward;

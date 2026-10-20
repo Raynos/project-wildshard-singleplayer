@@ -32,6 +32,7 @@ import { wildEnv } from '../creatures/env';
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { LightningStrip } from '@wildshard/game/weapons/arcPower';
 import { NaizagaiPower, type NaizagaiPowerHandle } from '../weapons/nativeMelee';
+import { ArenaField } from '@wildshard/game/boss/arenaField';
 import { ArenaFireView } from '@wildshard/game/boss/arenaFire';
 import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { createClientScene } from '@wildshard/game/plugin/ui';
@@ -222,9 +223,8 @@ export class StormTitanFight implements BossScript {
   private chargeCd = 2.5;
   private domeBroken = false;
   // phase III
-  private readonly burn = new Uint8Array(this.data.TITAN_ARENA.grid * this.data.TITAN_ARENA.grid);      // 0 grass · 1 burning · 2 burnt
-  private readonly burnT = new Float32Array(this.data.TITAN_ARENA.grid * this.data.TITAN_ARENA.grid);
-  private spreadT = 0; private fireOn = false; private fireDmgT = 0;
+  private readonly field: ArenaField;
+  private fireOn = false; private fireDmgT = 0;
   private readonly fire: ArenaFireView; private readonly scorch: THREE.InstancedMesh;
   private scorchN = 0;
   private readonly chains: Chain[];
@@ -251,6 +251,7 @@ export class StormTitanFight implements BossScript {
     const scene = ctx.game.scene;
     this.author = ReturnProgram.page(this.data.programs.attack, ctx.game.levelScope);
     this.fireLaw = ReturnProgram.page(this.data.programs.fire, ctx.game.levelScope);
+    this.field = new ArenaField(this.data.TITAN_FIRE_FIELD, this.fireLaw, app.rng.stream('ai'));
     this.windLaw = ReturnProgram.page(this.data.programs.wind, ctx.game.levelScope);
     this.rules = ReturnProgram.page(this.data.programs.rules, ctx.game.levelScope);
     this.body = new TitanBody(scene);
@@ -423,7 +424,7 @@ export class StormTitanFight implements BossScript {
     for (const l of this.lanes) l.hide();
     this.clearRiders();
     // the rain puts the fire out: every burning cell goes to black
-    for (let i = 0; i < this.burn.length; i++) if (this.burn[i] === 1) { this.burn[i] = 2; this.addScorch(i); }
+    for (const cell of this.field.extinguish()) this.addScorch(cell);
     this.fireOn = false;
     this.fire.out();
     for (const w of this.whirls) w.on = false;
@@ -563,24 +564,12 @@ export class StormTitanFight implements BossScript {
 
   // ── III · the grass fire + chain lightning ──
 
-  private cellOf(x: number, z: number): number {
-    const i = Math.floor((x - (this.data.TITAN_ARENA.center.x - this.data.TITAN_PLACE.arenaRadius)) / this.data.TITAN_TUNING.cell), j = Math.floor((z - (this.data.TITAN_ARENA.center.z - this.data.TITAN_PLACE.arenaRadius)) / this.data.TITAN_TUNING.cell);
-    return i < 0 || j < 0 || i >= this.data.TITAN_ARENA.grid || j >= this.data.TITAN_ARENA.grid ? -1 : j * this.data.TITAN_ARENA.grid + i;
-  }
-  private cellX(c: number): number { return this.data.TITAN_ARENA.center.x - this.data.TITAN_PLACE.arenaRadius + ((c % this.data.TITAN_ARENA.grid) + 0.5) * this.data.TITAN_TUNING.cell; }
-  private cellZ(c: number): number { return this.data.TITAN_ARENA.center.z - this.data.TITAN_PLACE.arenaRadius + (Math.floor(c / this.data.TITAN_ARENA.grid) + 0.5) * this.data.TITAN_TUNING.cell; }
-  private inside(c: number): boolean { return Math.hypot(this.cellX(c) - this.data.TITAN_ARENA.center.x, this.cellZ(c) - this.data.TITAN_ARENA.center.z) < this.data.TITAN_PLACE.arenaRadius - 2; }
-  /** a burning cell (for the horse's refusal, the HUD) */
-  burningAt(x: number, z: number): boolean { const c = this.cellOf(x, z); return c >= 0 && this.burn[c] === 1; }
-
-  private ignite(x: number, z: number): void {
-    const c = this.cellOf(x, z);
-    if (c < 0 || this.burn[c] !== 0 || !this.inside(c)) return;
-    this.burn[c] = 1; this.burnT[c] = this.fireLaw.project('ignite', { burn: this.data.TITAN_TUNING.burnSeconds }, app.rng.stream('ai'))['burn'] ?? this.data.TITAN_TUNING.burnSeconds;
-  }
+  /** A burning cell is observed by the mounted refusal and HUD. */
+  burningAt(x: number, z: number): boolean { return this.field.activeAt(x, z); }
+  private ignite(x: number, z: number): void { this.field.ignite(x, z); }
   private addScorch(c: number): void {
     if (this.scorchN >= this.scorch.instanceMatrix.count) return;
-    const x = this.cellX(c) + (app.rng.stream('cosmetic').next() - 0.5) * 2.4, z = this.cellZ(c) + (app.rng.stream('cosmetic').next() - 0.5) * 2.4;
+    const x = this.field.x(c) + (app.rng.stream('cosmetic').next() - 0.5) * 2.4, z = this.field.z(c) + (app.rng.stream('cosmetic').next() - 0.5) * 2.4;
     // lying on the slope (a flat decal floats off the rim's fall), turned at random
     const n = normalAt(x, z);
     _q.setFromUnitVectors(_w.set(0, 1, 0), _v.set(n[0], n[1], n[2]).normalize());
@@ -591,44 +580,28 @@ export class StormTitanFight implements BossScript {
     wildEnv.trample(x, z, this.data.TITAN_TUNING.cell * 0.6, 1, 0, 0);   // the grass burnt flat
   }
   private clearFire(): void {
-    this.burn.fill(0); this.burnT.fill(0);
+    this.field.clear();
     this.scorchN = 0; this.scorch.count = 0; this.fire.clear(); this.fireOn = false;
   }
 
   private updateFire(dt: number, t: number, live: boolean, thinkDt = 0): void {
     this.fire.update(dt, t, wind.dirX, wind.dirZ, wind.speed, this.body.uni.uFogC.value, this.body.uni.uFlash.value);
     if (!this.fireOn) return;
-    if (thinkDt > 0 && live) {
-      this.spreadT -= thinkDt;
-      const spread = this.spreadT <= 0; if (spread) this.spreadT = .25;
-      const next: number[] = [];
-      for (let c = 0; c < this.burn.length; c++) {
-        if (this.burn[c] !== 1) continue;
-        const i = c % this.data.TITAN_ARENA.grid, j = Math.floor(c / this.data.TITAN_ARENA.grid);
-        const neighbours = this.data.FIRE_NEIGHBOURS.map(([x, z]) => ({ x, z, cell: (j + z) * this.data.TITAN_ARENA.grid + i + x }))
-          .filter(row => i + row.x >= 0 && i + row.x < this.data.TITAN_ARENA.grid && j + row.z >= 0 && j + row.z < this.data.TITAN_ARENA.grid);
-        const result = this.fireLaw.project('fire', { dt: thinkDt, burn: this.burnT[c] ?? 0, spread: Number(spread), count: neighbours.length, wx: wind.dirX, wz: wind.dirZ },
-          app.rng.stream('ai'), neighbours.map(row => ({ ...row, mode: this.burn[row.cell] ?? 2 })));
-        this.burnT[c] = result['burn'] ?? 0;
-        if ((this.burnT[c] ?? 0) <= 0) { this.burn[c] = 2; this.addScorch(c); }
-        neighbours.forEach((row, at) => { if (((result['mask'] ?? 0) & (1 << at)) !== 0) next.push(row.cell); });
-      }
-      for (const c of next) this.ignite(this.cellX(c), this.cellZ(c));
-    }
+    if (live) for (const cell of this.field.update(dt, { wx: wind.dirX, wz: wind.dirZ })) this.addScorch(cell);
     // burn down; draw the flames: each cell rises, roars and sinks to embers; the downwind front stands tallest; smoke rolls off
     const fx = this.fire;
     fx.begin();
     const wx = wind.dirX, wz = wind.dirZ;
     const smokeRate = TIER === 'phone' ? 0.8 : 1.5;
-    for (let c = 0; c < this.burn.length; c++) {
-      if (this.burn[c] !== 1) continue;
-      const bt = this.burnT[c] ?? 0;
-      const x = this.cellX(c), z = this.cellZ(c), y = heightAt(x, z) - 0.15;
+    for (let c = 0; c < this.field.length; c++) {
+      if (this.field.mode(c) !== 1) continue;
+      const bt = this.field.remaining(c);
+      const x = this.field.x(c), z = this.field.z(c), y = heightAt(x, z) - 0.15;
       const age = this.data.TITAN_TUNING.burnSeconds - bt;
       const heat = Math.min(1, age / 0.9) * Math.min(1, bt / 2.2);
       // the front: the next cell downwind is still grass
-      const nc = this.cellOf(x + wx * this.data.TITAN_TUNING.cell, z + wz * this.data.TITAN_TUNING.cell);
-      const front = nc >= 0 && this.burn[nc] === 0 ? 1 : 0;
+      const nc = this.field.cellAt(x + wx * this.data.TITAN_TUNING.cell, z + wz * this.data.TITAN_TUNING.cell);
+      const front = nc >= 0 && this.field.mode(nc) === 0 ? 1 : 0;
       fx.flame(x + Math.sin(c * 3.1) * 0.8, y, z + Math.cos(c * 2.3) * 0.8, c, heat, front, 1.5);
       if (app.rng.stream('cosmetic').next() < dt * smokeRate * (0.4 + heat)) fx.puff(x, y, z, heat);
     }

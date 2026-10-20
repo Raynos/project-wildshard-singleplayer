@@ -234,6 +234,7 @@
     "./riding/ride.css": "./riding/ride.css",
     "./boss/arenaRoom": "./boss/arenaRoom.ts",
     "./boss/arenaFire": "./boss/arenaFire.ts",
+    "./boss/arenaField": "./boss/arenaField.ts",
     "./looks/scaledPost": "./looks/scaledPost.ts",
     "./grapple/tool": "./grapple/tool.ts",
     "./grapple/course": "./grapple/course.ts",

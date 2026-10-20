@@ -77,3 +77,11 @@ export const TITAN_PHASE_ACTIONS = [
   { spearCooldown: 3, whirls: [false,false,false], riders: false, fire: true, feed: TITAN_LINES.grassFire },
 ];
 export const TITAN_FIRE_SEEDS = [0,1,2].map(i => ({ x: Math.cos(i*2.1+.5)*26, z: Math.sin(i*2.1+.5)*26 }));
+
+/** Wildfire storage on the shared boss field; ignition and cadence stay in AS. */
+export const TITAN_FIRE_FIELD = {
+  x: TITAN_ARENA.center.x - TITAN_PLACE.arenaRadius, z: TITAN_ARENA.center.z - TITAN_PLACE.arenaRadius,
+  width: TITAN_ARENA.grid, depth: TITAN_ARENA.grid, cell: TITAN_TUNING.cell,
+  observations: { cx: TITAN_ARENA.center.x, cz: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius, burn: TITAN_TUNING.burnSeconds },
+  neighbours: FIRE_NEIGHBOURS, signals: { ignite: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
+};

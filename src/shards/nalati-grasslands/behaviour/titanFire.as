@@ -3,7 +3,12 @@ import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombine
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
 // Event projections; retained state belongs to the native binding at <= 10 Hz.
 @inline export function fireEntry(signal:i32,value:f64,source:i32):void {
-if(signal==Signal.ignite){put(Channel.burn,f(Field.burn)*(.8+Read.random()*.4));} else if(signal==Signal.fire){
+if(signal==Signal.fieldClock){
+ const t=f(Field.t)-f(Field.dt),spread=t<=0;put(Channel.t,spread?.25:t);put(Channel.spread,spread?1:0);
+} else if(signal==Signal.fieldIgnite){
+ const dx=f(Field.x)-f(Field.cx),dz=f(Field.z)-f(Field.cz),r=f(Field.radius)-2;
+ put(Channel.burn,f(Field.mode)==0&&dx*dx+dz*dz<r*r?f(Field.burn)*(.8+Read.random()*.4):0);
+} else if(signal==Signal.ignite){put(Channel.burn,f(Field.burn)*(.8+Read.random()*.4));} else if(signal==Signal.fire){
     const burn=f(Field.burn)-f(Field.dt);let mask:i32=0;
     if(burn>0&&f(Field.spread)>0){
       { const i:i32=1;if(i<=i32(f(Field.count))&&Read.field(i,Field.mode)==0){
