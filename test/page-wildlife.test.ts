@@ -1,3 +1,4 @@
+import { PagePastureRaid } from '../src/game/riding/pagePasture';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { PageWildlife } from '../src/game/population/wildlife';
@@ -17,12 +18,12 @@ test('orchard population emits crowd work between native groups and mount placem
     addHerd: (kind,x,z) => { herds.push({ kind,cx: x,cz: z,members: [] }); return herds.length-1; },
     spawn: (kind,x,z,yaw,variant) => {
       const position = new Vector3(x,0,z),body = legacyDouble<Animal>({ entityId: `orchard:${String(bodies.length)}`,kind,variant: variant ?? 'plain',position,yaw,
-        herd: -1,scale: 1,mem: {},lastHitT: -Infinity,maxHp: 100,hp: 100,alive: true,speed: 0,
+        herd: -1,seed: .5,setMotion: () => undefined,scale: 1,mem: {},lastHitT: -Infinity,maxHp: 100,hp: 100,alive: true,speed: 0,
         place: (px,pz,heading) => { position.set(px,0,pz); body.yaw = heading; } }); bodies.push(body); return body;
     } });
-  const rows = { ...source,kinds: { predator: 'boar',mount: 'deer',guardian: 'hound',guardianVariant: 'black' },coats: ['russet'],young: ['fawn','pale-fawn'],leader: 'antlered',
+  const rows = { ...source,pastureActor: { ...source.pastureActor,kind: 'deer',variant: 'tame',label: 'Orchard rider',raiders: ['elder','russet'],cues: { ...source.pastureActor.cues,start: { text: 'Orchard raid',sound: null } } },kinds: { predator: 'boar',mount: 'deer',guardian: 'hound',guardianVariant: 'black' },coats: ['russet'],young: ['fawn','pale-fawn'],leader: 'antlered',
     groups: { ...source.groups,pack: { ...source.groups.pack,id: 'orchard.pack' },herd: { ...source.groups.herd,id: 'orchard.herd' } },
-    packs: [{ x: 1,z: 1,variants: ['elder'] }],herds: [],flocks: [{ x: 4,z: 4,count: 2,dog: false,range: 12 }],
+    packs: [{ x: 1,z: 1,variants: ['elder'] }],herds: [],flocks: [{ x: 4,z: 4,count: 24,dog: false,range: 12 }],
     mountables: [{ x: 8,z: 8,yaw: 0,variant: 'tame' }],foragers: null };
   const population = new PageWildlife(manager,rows),build = population.buildSteps();
   expect(build.next().value).toEqual({ kind: 'pause' }); expect(bodies.map(body => body.kind)).toEqual(['boar']);
@@ -35,6 +36,14 @@ test('orchard population emits crowd work between native groups and mount placem
   expect(population.mountables[0]?.kind).toBe('deer'); expect(population.flocks).toEqual([view]);
   population.beginFrame(.1,{ position: new Vector3(),forward: new Vector3(0,0,-1),crouching: true },{ health01: .4 });
   expect(population.predators.map(body => body.kind)).toEqual(['boar']);
-  population.killCrowd({ flock: view,index: 0 }); expect(view.alive).toBe(1);
+  population.killCrowd({ flock: view,index: 0 }); expect(view.alive).toBe(23);
   population.endFrame(.1,new Vector3(),0,true);
+  const raid = new PagePastureRaid(manager,population,population.pastureProfile);
+  expect(raid.shepherd?.kind).toBe('deer'); expect(raid.shepherd?.label).toBe('Orchard rider');
+  expect(raid.start(true)).toBe(true); expect(raid.raids).toBe(1);
+  expect(raid.nextCue()).toMatchObject({ kind: 'start',text: 'Orchard raid' });
+  const saved = raid.snapshot(); raid.restore(saved); expect(raid.nextCue()).toBeUndefined(); expect(raid.snapshot()).toEqual(saved);
+  for(let i=0;i<5;i++)raid.update(1/60,new Vector3(),[],i/60);
+  expect(raid.snapshot().state).toEqual(saved.state);
+  raid.update(1/60,new Vector3(),[],.1); expect(raid.snapshot().elapsed).toBe(0);
 });

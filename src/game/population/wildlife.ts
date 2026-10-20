@@ -36,6 +36,7 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   }
   get packs(): PageGroups['packs'] { return this.groups.packs; }
   get herds(): PageGroups['herds'] { return this.groups.herds; }
+  get pastureProfile(): Rows['pastureActor'] { return this.rows.pastureActor; }
   *buildSteps(): Generator<WildlifeBuildStep,void> {
     const row = this.rows;
     for (const pack of row.packs) { this.spawnPack(pack.x,pack.z,pack.variants); yield { kind: 'pause' }; }

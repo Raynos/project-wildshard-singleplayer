@@ -1,27 +1,27 @@
-import type { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import type { Rng } from '@wildshard/engine/core/rng';
+import * as v from 'valibot';
+import { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { PackPrey } from '@wildshard/engine/ai/pack';
-import { Vector3 } from 'three';
-import * as v from 'valibot';
+import type { Rng } from '@wildshard/engine/core/rng';
+import type { ReturnProgram } from '../population/returnProgram';
 
-interface RaidPack<A> {
+interface NativeRaidPackPolicy<A> {
   readonly members: readonly A[]; readonly alpha: A | null; readonly alive: number; readonly phase: string;
   readonly prey: PackPrey | null; findPrey?: ((x: number, z: number, radius: number) => PackPrey | null) | undefined;
   raid: (prey: PackPrey) => boolean; scare: (x: number, z: number, radius: number) => void;
 }
-interface Pasture { readonly n: number; readonly alive: number; readonly cx: number; readonly cz: number; nearest: (x: number, z: number) => number }
-const finite = v.pipe(v.number(), v.finite()), count = v.pipe(finite, v.integer(), v.minValue(0));
-const State = v.object({ raidT: finite, pendingT: finite, raiding: v.picklist([0, 1]), raids: count, taken: count, drivenOff: count,
-  cracks: count, cracksNow: count, spawned: v.pipe(count, v.maxValue(2)), crackCd: finite, restT: finite, patrolA: finite });
-const index = v.pipe(finite, v.integer(), v.minValue(-1));
-const Saved = v.strictObject({ version: v.literal(3), state: State, elapsed: v.pipe(finite, v.minValue(0), v.maxValue(.1)), pack: index, raiders: index, prey: index });
+interface NativePastureFields { readonly n: number; readonly alive: number; readonly cx: number; readonly cz: number; nearest: (x: number, z: number) => number }
+const pastureFinite = v.pipe(v.number(), v.finite()), pastureCount = v.pipe(pastureFinite, v.integer(), v.minValue(0));
+const PastureState = v.object({ raidT: pastureFinite, pendingT: pastureFinite, raiding: v.picklist([0, 1]), raids: pastureCount, taken: pastureCount, drivenOff: pastureCount,
+  cracks: pastureCount, cracksNow: pastureCount, spawned: v.pipe(pastureCount, v.maxValue(2)), crackCd: pastureFinite, restT: pastureFinite, patrolA: pastureFinite });
+const pastureIndexSchema = v.pipe(pastureFinite, v.integer(), v.minValue(-1));
+const PastureSaved = v.strictObject({ version: v.literal(3), state: PastureState, elapsed: v.pipe(pastureFinite, v.minValue(0), v.maxValue(.1)), pack: pastureIndexSchema, raiders: pastureIndexSchema, prey: pastureIndexSchema });
 
 /** One native actor roster for the page and server. The admitted v1 guest owns
  * raid admission, timers, outcomes and shepherd decisions at ten Hz. This
  * adapter only observes real bodies and applies their native operations. */
-export class PastureRaid<A extends AnimalSim, P extends RaidPack<A>> {
-  private state: v.InferOutput<typeof State>;
+export class NativePastureRaid<A extends AnimalSim, P extends NativeRaidPackPolicy<A>> {
+  private state: v.InferOutput<typeof PastureState>;
   private elapsed = 0;
   private pack: P | null = null;
   private raiders: P | null = null;
@@ -31,8 +31,8 @@ export class PastureRaid<A extends AnimalSim, P extends RaidPack<A>> {
   private blocked = false;
   private readonly direction = new Vector3();
   constructor(private readonly program: ReturnProgram, private readonly random: Rng, readonly shepherd: A | null,
-    readonly flock: Pasture | null, private readonly packs: readonly P[], private readonly preyAt: (index: number) => PackPrey,
-    private readonly spawnPack: (x: number, z: number, variants: string[]) => P, firstRaid: number,
+    readonly flock: NativePastureFields | null, private readonly packs: readonly P[], private readonly preyAt: (pastureIndex: number) => PackPrey,
+    private readonly spawnPack: (x: number, z: number, variants: string[]) => P, firstRaid: number, private readonly variants: readonly string[],
     private readonly cue: (key: string, actor?: A) => void = () => undefined) {
     this.state = { raidT: firstRaid, pendingT: 0, raiding: 0, raids: 0, taken: 0, drivenOff: 0,
       cracks: 0, cracksNow: 0, spawned: 0, crackCd: 0, restT: 0, patrolA: 0 };
@@ -44,7 +44,7 @@ export class PastureRaid<A extends AnimalSim, P extends RaidPack<A>> {
   get cracks(): number { return this.state.cracks; }
   private project(signal: string, observations: Readonly<Record<string, number>>): Readonly<Record<string, number>> {
     const result = this.program.project(signal, { ...this.state, ...observations }, this.random);
-    Object.assign(this.state, v.parse(v.partial(State), result)); return result;
+    Object.assign(this.state, v.parse(v.partial(PastureState), result)); return result;
   }
   start(force = false, player = this.player): boolean {
     const f = this.flock, plan = this.project('raidStart', { force: Number(force), blocked: Number(this.blocked),
@@ -52,7 +52,7 @@ export class PastureRaid<A extends AnimalSim, P extends RaidPack<A>> {
       cx: f?.cx ?? 0, cz: f?.cz ?? 0, packAlive: this.raiders?.alive ?? 0 });
     if (plan['accept'] !== 1 || f === null) return false;
     if (plan['spawn'] === 1) {
-      this.raiders = this.spawnPack(plan['x'] ?? 0, plan['z'] ?? 0, ['grey', 'tawny', 'scout']);
+      this.raiders = this.spawnPack(plan['x'] ?? 0, plan['z'] ?? 0, [...this.variants]);
       this.raiders.findPrey = undefined; this.state.spawned++;
     }
     const pack = this.raiders;
@@ -91,10 +91,10 @@ export class PastureRaid<A extends AnimalSim, P extends RaidPack<A>> {
     if (motion['scare'] === 1) this.packs.find(pack => pack.members.includes(wolf))?.scare(wolf.position.x, wolf.position.z, 25);
     this.cue('crack', wolf);
   }
-  snapshot(): v.InferOutput<typeof Saved> { return { version: 3, state: { ...this.state }, elapsed: this.elapsed,
+  snapshot(): v.InferOutput<typeof PastureSaved> { return { version: 3, state: { ...this.state }, elapsed: this.elapsed,
     pack: this.pack === null ? -1 : this.packs.indexOf(this.pack), raiders: this.raiders === null ? -1 : this.packs.indexOf(this.raiders), prey: this.preyIndex }; }
   restore(input: unknown): void {
-    const saved = v.parse(Saved, input);
+    const saved = v.parse(PastureSaved, input);
     const pack = (i: number): P | null => { const p = this.packs[i]; if (i !== -1 && p === undefined) throw new Error('Unknown raid pack'); return p ?? null; };
     const active = pack(saved.pack), raiders = pack(saved.raiders);
     if (saved.prey >= (this.flock?.n ?? 0)) throw new Error('Unknown raid sheep');
@@ -102,3 +102,4 @@ export class PastureRaid<A extends AnimalSim, P extends RaidPack<A>> {
     this.state = saved.state; this.elapsed = saved.elapsed; this.pack = active; this.raiders = raiders; this.preyIndex = saved.prey; this.prey = prey;
   }
 }
+

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./riding/pagePasture": "./riding/pagePasture.ts",
     "./population/relations": "./population/relations.ts",
     "./population/wildlife": "./population/wildlife.ts",
     "./weapons/bowVariant": "./weapons/bowVariant.ts",

@@ -5,10 +5,15 @@ import { ForagerPopulationSchema, ForagerContinuation } from './ambientLife';
 
 const n = v.pipe(v.number(),v.finite()),id = v.pipe(v.string(),v.minLength(1),v.maxLength(128));
 const count = v.pipe(n,v.integer(),v.minValue(0),v.maxValue(256)),point = { x: n,z: n };
+/** Page pasture binds real actor identities and publishes plain cue rows. */
+export const PastureActorSchema = v.strictObject({
+  kind: id,variant: id,label: id,raiders: v.pipe(v.array(id),v.minLength(1),v.maxLength(16)),
+  cues: v.record(id,v.strictObject({ text: v.string(),sound: v.nullable(id) })),
+});
 /** Ordered page population placement and native relationships. Presentation
  * receives explicit crowd/forager build commands instead of factory callbacks. */
 export const WildlifePopulationSchema = v.strictObject({
-  seed: n,random: n,groups: PageGroupRowsSchema,admission: ReturnProgramSchema,pasture: ReturnProgramSchema,
+  seed: n,random: n,groups: PageGroupRowsSchema,admission: ReturnProgramSchema,pasture: ReturnProgramSchema,pastureActor: PastureActorSchema,
   kinds: v.strictObject({ predator: id,mount: id,guardian: id,guardianVariant: id }),
   coats: v.array(id),young: v.array(id),leader: id,
   packs: v.pipe(v.array(v.strictObject({ ...point,variants: v.array(id) })),v.maxLength(8)),
