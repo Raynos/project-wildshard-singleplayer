@@ -320,6 +320,99 @@
         "bytes": 79809
       },
       "why": "G496 switch-point seal: exact current custom sections plus all named JSON blobs; subsequent count and byte ceilings only shrink"
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 54,
+        "bytes": 1872962
+      },
+      "to": {
+        "count": 58,
+        "bytes": 3443141
+      },
+      "why": "G514 coordinator-authorized hygiene reset at 2d432d0e0dbda5f76e0b77440db7e2cd62d502c7: today’s code-to-data moves caused this growth; G496 shrink-only resumes from these exact measured ceilings."
+    },
+    {
+      "slug": "nalati-grasslands",
+      "from": {
+        "count": 33,
+        "bytes": 12616472
+      },
+      "to": {
+        "count": 43,
+        "bytes": 12260877
+      },
+      "why": "G514 coordinator-authorized hygiene reset at 2d432d0e0dbda5f76e0b77440db7e2cd62d502c7: today’s code-to-data moves caused this growth; G496 shrink-only resumes from these exact measured ceilings."
+    },
+    {
+      "slug": "nine-dragon-stack",
+      "from": {
+        "count": 13,
+        "bytes": 4649051
+      },
+      "to": {
+        "count": 19,
+        "bytes": 4420395
+      },
+      "why": "G514 coordinator-authorized hygiene reset at 2d432d0e0dbda5f76e0b77440db7e2cd62d502c7: today’s code-to-data moves caused this growth; G496 shrink-only resumes from these exact measured ceilings."
+    },
+    {
+      "slug": "pine-hollow",
+      "from": {
+        "count": 224,
+        "bytes": 15866616
+      },
+      "to": {
+        "count": 236,
+        "bytes": 15919850
+      },
+      "why": "G514 coordinator-authorized hygiene reset at 2d432d0e0dbda5f76e0b77440db7e2cd62d502c7: today’s code-to-data moves caused this growth; G496 shrink-only resumes from these exact measured ceilings."
     }
-  ]
+  ],
+  "g514Reset": {
+    "revision": "2d432d0e0dbda5f76e0b77440db7e2cd62d502c7",
+    "ceilings": {
+      "_template": {
+        "count": 0,
+        "bytes": 0
+      },
+      "blender-template": {
+        "count": 0,
+        "bytes": 0
+      },
+      "driftwood-isle": {
+        "count": 58,
+        "bytes": 3443141
+      },
+      "far-reach": {
+        "count": 19,
+        "bytes": 2928189
+      },
+      "ink-cel-valley": {
+        "count": 0,
+        "bytes": 0
+      },
+      "nalati-grasslands": {
+        "count": 43,
+        "bytes": 12260877
+      },
+      "nine-dragon-stack": {
+        "count": 19,
+        "bytes": 4420395
+      },
+      "pastel-plain": {
+        "count": 0,
+        "bytes": 0
+      },
+      "pine-hollow": {
+        "count": 236,
+        "bytes": 15919850
+      },
+      "sunscar-dunes": {
+        "count": 16,
+        "bytes": 79809
+      }
+    }
+  }
 }

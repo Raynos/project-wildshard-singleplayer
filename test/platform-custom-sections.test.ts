@@ -67,3 +67,18 @@ it('requires exact appended adoption rises and permanently seals them at the spi
  expect(compareCustomSections(budgets(2,100),budgets(2,100),sealed,base)).toContain('custom-section rise window cannot reopen');
  expect(compareCustomSections(budgets(2,100),{'custom-sections/demo/count':2},base,base)).not.toEqual([]);
 });
+
+it('allows one exact G514 reset then resumes shrink-only ceilings',()=>{
+ const budgets=(count:number,bytes:number):Record<string,number>=>({'custom-sections/demo/count':count,'custom-sections/demo/bytes':bytes});
+ const base={version:1,baselineAt:'a'.repeat(40),baseline:{demo:{count:2,bytes:100}},risesCloseAt:'W1 spike end',raises:[]};
+ const row={slug:'demo',from:{count:2,bytes:100},to:{count:3,bytes:101},why:'G514: measured code-to-data growth'};
+ const reset={revision:'b'.repeat(40),ceilings:{demo:row.to}};
+ const next={...base,raises:[row],g514Reset:reset};
+ expect(compareCustomSections(budgets(2,100),budgets(3,101),base,next)).toEqual([]);
+ expect(compareCustomSections(budgets(2,100),budgets(3,101),base,{...next,raises:[]})).toContain('demo: custom-section ceiling rises without an appended exact {slug, from, to, why} line');
+ expect(compareCustomSections(budgets(2,100),budgets(3,102),base,next)).toContain('G514 custom-section reset must match all committed ceilings');
+ expect(compareCustomSections(budgets(3,101),budgets(2,90),next,next)).toEqual([]);
+ expect(compareCustomSections(budgets(3,101),budgets(4,102),next,next)).toContain('demo: custom-section rises closed at W1 spike end');
+ expect(compareCustomSections(budgets(3,101),budgets(3,101),next,{...next,g514Reset:{...reset,revision:'c'.repeat(40)}})).toContain('G514 custom-section reset is immutable');
+ expect(compareCustomSections(budgets(3,101),budgets(3,101),next,base)).toContain('G514 custom-section reset is immutable');
+});

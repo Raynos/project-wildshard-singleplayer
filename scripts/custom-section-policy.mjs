@@ -1,4 +1,4 @@
-// G453 adoption window: explicit immutable rises, sealed at the W1 spike end.
+// G453 adoption window, sealed at W1; G514 permits one immutable measured reset.
 import * as v from 'valibot';
 
 export const CUSTOM_SECTION_POLICY='lint/custom-sections.json';
@@ -6,15 +6,17 @@ const natural=v.pipe(v.number(),v.integer(),v.minValue(0));
 const pair=v.strictObject({count:natural,bytes:natural});
 const raise=v.pipe(v.strictObject({slug:v.string(),from:pair,to:pair,why:v.pipe(v.string(),v.check(text=>text.trim().length>0))}),
   v.check(row=>row.to.count>row.from.count||row.to.bytes>row.from.bytes));
-const schema=v.strictObject({version:v.literal(1),baselineAt:v.pipe(v.string(),v.regex(/^[a-f0-9]{40}$/u)),
-  baseline:v.record(v.string(),pair),risesCloseAt:v.nullable(v.literal('W1 spike end')),raises:v.array(raise)});
+const revision=v.pipe(v.string(),v.regex(/^[a-f0-9]{40}$/u));
+const schema=v.strictObject({version:v.literal(1),baselineAt:revision,
+  baseline:v.record(v.string(),pair),risesCloseAt:v.nullable(v.literal('W1 spike end')),raises:v.array(raise),
+  g514Reset:v.optional(v.strictObject({revision,ceilings:v.record(v.string(),pair)}))});
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const entries=budgets=>Object.fromEntries([...new Set(Object.keys(budgets).filter(key=>/^custom-sections\/[^/]+\/(?:count|bytes)$/u.test(key)).map(key=>key.split('/')[1]))].map(slug=>
   [slug,{count:budgets[`custom-sections/${slug}/count`],bytes:budgets[`custom-sections/${slug}/bytes`]}]));
 
 /** Ratchet budgets stay in ratchet.json; this small policy owns only rise history.
  * An initial baseline adopts the reviewed committed ceilings once. Later rises
- * need newly appended exact pairs; a sealed window cannot reopen or grow.
+ * need newly appended exact pairs; only the one-use G514 reset can grow a seal.
  * @param {Record<string,unknown>} beforeBudgets @param {Record<string,unknown>} afterBudgets
  * @param {unknown} beforePolicy @param {unknown} afterPolicy @returns {string[]} */
 export function compareCustomSections(beforeBudgets,afterBudgets,beforePolicy,afterPolicy) {
@@ -44,14 +46,19 @@ export function compareCustomSections(beforeBudgets,afterBudgets,beforePolicy,af
   if(!previous.success)return ['custom-section predecessor policy is malformed'];
   if(next.output.baselineAt!==previous.output.baselineAt||!same(next.output.baseline,previous.output.baseline))failures.push('custom-section initial baseline is immutable');
   if(previous.output.risesCloseAt!==null&&next.output.risesCloseAt!==previous.output.risesCloseAt)failures.push('custom-section rise window cannot reopen');
+  // G514 authorizes one measured reset after today's code-to-data moves.
+  // Its complete inventory is immutable; later changes remain shrink-only.
+  const reset=previous.output.g514Reset===undefined&&next.output.g514Reset!==undefined;
+  if(previous.output.g514Reset!==undefined&&!same(previous.output.g514Reset,next.output.g514Reset))failures.push('G514 custom-section reset is immutable');
+  if(reset&&!same(next.output.g514Reset.ceilings,after))failures.push('G514 custom-section reset must match all committed ceilings');
   if(next.output.raises.length<previous.output.raises.length||previous.output.raises.some((row,i)=>!same(row,next.output.raises[i])))failures.push('custom-section raises must remain an immutable append-only history');
   const fresh=next.output.raises.slice(previous.output.raises.length),used=new Set();
   for(const [slug,to]of Object.entries(after)) {
     const from=before[slug]??{count:0,bytes:0};
     if(!(to.count>from.count||to.bytes>from.bytes))continue;
-    // G496 adopts the exact current named-JSON inventory while closing. The
-    // existing exact append-only raise record still applies to that last rise.
-    if(previous.output.risesCloseAt!==null){failures.push(`${slug}: custom-section rises closed at W1 spike end`);continue;}
+    // G496 sealed the named-JSON inventory. G514's one-time exception still
+    // requires the original exact append-only raise record for every increase.
+    if(previous.output.risesCloseAt!==null&&!reset){failures.push(`${slug}: custom-section rises closed at W1 spike end`);continue;}
     const row=fresh.find(item=>item.slug===slug&&same(item.from,from)&&same(item.to,to));
     if(row===undefined)failures.push(`${slug}: custom-section ceiling rises without an appended exact {slug, from, to, why} line`);
     else used.add(row);
