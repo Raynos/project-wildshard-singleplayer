@@ -58,7 +58,6 @@ export class NalatiPlugin extends ShardPlugin {
     await prepareWeaponCatalogue();
     const rt = this.rt;
     installPagePathRamps(registry, { id: 'paths', name: 'Paths' });
-    shell.hooks.animalsBuilt = async (animals) => { await rt.attachAnimalsSliced(animals, macrotask); }; // SF67: a task apart per wildlife group
     Object.assign(shell.objects, { nalati: rt, grass, particles });
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
     // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands); `grassBase`: the grass before

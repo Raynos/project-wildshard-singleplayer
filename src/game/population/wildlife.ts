@@ -1,7 +1,16 @@
+import type { Scope } from '@wildshard/engine/app/scope';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { wind } from '@wildshard/engine/world/steppeWind';
+import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
+import type { ShardContext } from '../plugin/context';
+import { createPageCrowds, readCrowdBody } from '../ambient/crowdPage';
+import type { CrowdDraw } from '../ambient/crowdDraw';
+import { prepareForagerDraw, type ForagerDraw } from '../ambient/foragerDraw';
+import { pageRidingMounted } from '../riding/mount';
 import { PopulationRelations } from './relations';
 import * as v from 'valibot';
 import type { TargetHit } from '@wildshard/engine/combat/types';
-import type { Vector3 } from 'three';
+import { Vector3 } from 'three';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -9,8 +18,8 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { CrowdTargets, CrowdRoster, CrowdWeaponTarget } from '../shardfile/crowdRuntime';
-import { PageGroups, PagePopulationPlanner, wildEnv } from './pageGroups';
+import { installDeclaredCrowdFrames, CrowdTargets, CrowdRoster, CrowdWeaponTarget } from '../shardfile/crowdRuntime';
+import { PageGroups, PagePopulationPlanner, bindPageGroups, wildEnv } from './pageGroups';
 import { ReturnProgram, ProjectedMotionSample } from './returnProgram';
 
 type Rows = v.InferOutput<typeof WildlifePopulationSchema>;
@@ -105,4 +114,70 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   raycastWeapon(origin:Vector3,direction:Vector3,maximum:number,previous:TargetHit|null):TargetHit|null{return this.weaponTarget.raycast(origin,direction,maximum,previous);}
   raycastCrowd(origin: Vector3,direction: Vector3,maximum: number): { flock: T; index: number; distance: number } | null { return this.targets.raycast(origin,direction,maximum); }
   killCrowd(hit: { flock: T; index: number }): void { hit.flock.kill(hit.index); }
+}
+
+const clientPopulations = new WeakMap<Scope, { wildlife: PageWildlife<CrowdDraw> | null }>();
+/** Borrow the actual population assembled by the declared animal stage. */
+export function clientWildlife(ctx: Pick<ShardContext, 'scope'>): PageWildlife<CrowdDraw> | null {
+  if (ctx.scope.disposed) throw new Error('Wildlife owner is disposed');
+  const owner = clientPopulations.get(ctx.scope);
+  if (owner === undefined) throw new Error('Wildlife feature is not installed');
+  return owner.wildlife;
+}
+/** Client-only lifecycle adapter for the existing population host. Admitted
+ * files select geometry and population rows; native owners retain all clocks. */
+export async function installClientWildlife(ctx: ShardContext, feature: ClientFeatureRow): Promise<void> {
+  if (feature.kind !== 'population.wildlife' || ctx.scope.disposed || clientPopulations.has(ctx.scope)) throw new Error('Invalid wildlife feature owner');
+  const runtime = ctx.game.runtime, world = runtime?.world;
+  if (runtime === undefined || world === undefined || world === null || runtime.hooks.animalsBuilt !== undefined) throw new Error('Wildlife requires its unbound world animal stage');
+  const rows = v.parse(WildlifePopulationSchema, await ctx.product.json(feature.file));
+  bindPageGroups(ctx, rows.groups);
+  const body = await readCrowdBody(ctx.product, feature.crowd);
+  ctx.scope.own(body.geometry);
+  const page = v.parse(v.object({ page: v.object({ world: v.unknown() }) }), await ctx.product.json(feature.crowd.json));
+  const predators: Animal[] = [], crowds = createPageCrowds(world.sky, world.chunk.seed, body, page.page.world, predators);
+  const foragers = rows.foragers?.view === undefined ? null : await prepareForagerDraw(ctx, rows);
+  const owner: { wildlife: PageWildlife<CrowdDraw> | null } = { wildlife: null };
+  let draw: ForagerDraw | null = null;
+  clientPopulations.set(ctx.scope, owner);
+  let started = false;
+  const ensureActive = (): void => { if (ctx.scope.disposed) throw new Error('Wildlife owner left during construction'); };
+  const build = async (animals: AnimalManager): Promise<void> => {
+    if (ctx.scope.disposed || started) throw new Error('Wildlife animal stage is unavailable');
+    started = true;
+    animals.wetAt = (x, z) => wildEnv.wetAt(x, z);
+    animals.navSteer = feature.navSteer;
+    const population = new PageWildlife<CrowdDraw>(animals, rows);
+    for (const step of population.buildSteps()) {
+      ensureActive();
+      if (step.kind === 'crowd') {
+        const view = crowds.factory(step.options, step.index); world.game.scene.add(view.mesh);
+        const guardian = population.attachCrowd(step.index, view);
+        if (guardian !== null) { view.dog = guardian; crowds.guardian(guardian, step.index, population.placement, ctx.app.rng.stream('ai')); }
+      } else if (step.kind === 'foragers' && population.foragers !== null && foragers !== null) {
+        draw = foragers.create(population.foragers.rules); world.game.scene.add(draw.mesh);
+      }
+      await macrotask();
+    }
+    await macrotask();
+    ensureActive();
+    owner.wildlife = population;
+  };
+  runtime.hooks.animalsBuilt = build;
+  ctx.scope.onDispose(() => { clientPopulations.delete(ctx.scope); if (runtime.hooks.animalsBuilt === build) delete runtime.hooks.animalsBuilt; });
+  const player = { position: world.player.position, forward: new Vector3(0, 0, -1), crouching: false };
+  const extra = { mounted: false };
+  installDeclaredCrowdFrames(ctx, { systemId: feature.frame.id, after: feature.frame.after, before: feature.frame.before,
+    current: () => owner.wildlife === null ? null : crowds.runtime,
+    frame: (dt, time, advance) => {
+      const population = owner.wildlife; if (population === null) return;
+      player.forward.set(-Math.sin(world.player.yaw), 0, -Math.cos(world.player.yaw)); player.crouching = world.player.crouching;
+      extra.mounted = pageRidingMounted(ctx);
+      wildEnv.wind.x = wind.dirX; wildEnv.wind.z = wind.dirZ; wildEnv.wind.strength = Math.min(1, wind.speed / 10);
+      const speed = population.beginFrame(dt, player, extra);
+      predators.length = 0;
+      for (let index = 0; index < 64; index++) { const actor = population.predators[index]; if (actor === undefined) break; predators.push(actor); }
+      for (const [index, view] of population.flocks.entries()) crowds.advance(view, index, speed, player.position, dt, time, advance);
+      population.endFrame(dt, player.position, speed, player.crouching); draw?.project();
+    } });
 }

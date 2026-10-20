@@ -1,18 +1,14 @@
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
 import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
-import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
-import { createPageCrowds, readCrowdBody, type PageCrowdViews } from '@wildshard/game/ambient/crowdPage';
-import { PageWildlife, type WildlifeBuildStep } from '@wildshard/game/population/wildlife';
+import { clientWildlife, type PageWildlife } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
-import { prepareForagerDraw, type ForagerDraw } from '@wildshard/game/ambient/foragerDraw';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import { wildEnv,bindPageGroups } from '@wildshard/game/population/pageGroups';
+import { wildEnv } from '@wildshard/game/population/pageGroups';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
-import { Group, Mesh, Vector3, type Object3D } from 'three';
+import { Group, Mesh, type Vector3, type Object3D } from 'three';
 import * as v from 'valibot';
 import { clientWaterSurfaces } from '@wildshard/game/shardfile/clientWaterSurfaces';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
@@ -39,11 +35,9 @@ import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 import { EliteRosterPage, type EliteRosterRows } from '@wildshard/game/quest/eliteRosterPage';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { wireWeather, type NalatiWeather } from '../world/installWeather';
-import { windEnv } from '../world/weatherStep';
 
 
 import type { NalatiLoadout } from '../weapons/loadout';
-import { nalatiWetAt } from '../wet';
 import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
 import { creatureGuest } from '../species/balbal';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
@@ -88,11 +82,6 @@ export interface Nalati {
   /** the named elites (elites agent, B12; src/shards/nalati-grasslands/elites.ts): Aqbars, Kokbori, Qyran, Qara Batyr, Argymaq — `elites.bind(play)`
    *  from main.ts once the animals, the wildlife and the HUD exist */
   elites: EliteRosterPage<Flock>;
-  /** the creatures (creatures agent, B4; src/engine/entities/Wildlife.ts): wolf packs, the horse herd + stallion, the sheep flock +
-   *  its dog, marmots, the camp's saddled horses. main.ts calls `attachAnimals(animals)` right after its animals step. */
-  attachAnimals: (animals: AnimalManager) => Wildlife;
-  /** `attachAnimals`, a task apart per wildlife group and before the night enemies' models (SF67: the shard's boot) */
-  attachAnimalsSliced: (animals: AnimalManager, yieldTask: () => Promise<void>) => Promise<Wildlife>;
   wildlife: Wildlife | null;
   /** main.ts once the kit + HUD exist: knock-downs, howl / stampede toasts */
   bindPlay: (kit: NalatiLoadout) => void;
@@ -126,14 +115,11 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const { admission, roads, rest } = v.parse(v.object({ admission: v.unknown(),
     roads: v.array(v.array(v.tuple([v.number(),v.number()]))), rest: v.object({ x: v.number(), z: v.number(), face: v.object({ x:v.number(),z:v.number() }) }) }), await plugin.product.json('sim/headless-boot.json'));
   const ridingPrograms = await plugin.product.json<RidingPrograms & {reins:unknown}>('ride/rules.json');
-  const { constants: { nativeTaming, nativeRide,pageGroups,pageWildlife,nativeWeather } } = v.parse(v.object({ constants: v.object({
-    nativeWeather:v.unknown(),pageWildlife: v.unknown(),pageGroups: v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
+  const { constants: { nativeTaming, nativeRide,nativeWeather } } = v.parse(v.object({ constants: v.object({
+    nativeWeather:v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
     nativeRide: v.object({ speeds:v.object({ walk:v.number(),trot:v.number(),canter:v.number(),gallop:v.number() }),thrownDamage:v.number(),thrownLabel:v.string() }) }) }), await plugin.product.json('sim/headless-assembly.json'));
   const ridingPreset = readPageRidingPreset(v.parse(v.object({ client:v.unknown() }),ridingPrograms).client);
-  const eliteProgram=ReturnProgram.page(admission,plugin.scope); bindPageGroups(plugin,pageGroups);
-  const flockBody = await readCrowdBody(plugin.product, { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
-  const crowdPage = await plugin.product.json<{ page: { world: unknown } }>('actors/sheep.json');
-  const dogWolves: Animal[] = []; plugin.scope.own(flockBody.geometry);
+  const eliteProgram=ReturnProgram.page(admission,plugin.scope);
   const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
   if (namePanel === undefined) throw new Error('Nalati requires its named horse panel');
   const { game, sky } = ctx;
@@ -142,7 +128,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const total = 7;
   progress?.set(0, total, 'Preparing world builders');
   const { practiceRoom } = await import('@wildshard/engine/core/practiceRoom');
-  let declaredCrowds: PageCrowdViews | null = null;
   const updates: ((dt: number, t: number) => void)[] = [];
   const groups: Record<string, Object3D> = {};
 
@@ -229,89 +214,31 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const player = ctx.player;
   const stealthRows=plugin.product.section('player/stealth');
   let wildlife: Wildlife | null = null;
-  let foragerView: ForagerDraw | null = null;
-  let attachedAnimals: AnimalManager | null = null;
   let playKit: NalatiLoadout | null = null;
-  let now = 0;
-  // the grass hides you and is trampled by every mover (GrassTrample, B1); the river corridor + the brook are water to a walker
-  // Wildlife reads position / forward / crouching; Player.forward allocates, so a reused view of it
-  const wildPlayer = { position: player.position, forward: new Vector3(0, 0, -1), crouching: false };
-  const extra = { mounted: false };
-  let ride: Ride | null = null;   // riding + taming (B7 / B8) — wired in the riding section below
-  let flockDelta = 0, flockTime = 0, flockAdvance: PreparedCrowds['advance'] | undefined;
-  const missingCrowdFrame = new Error('Missing declared native crowd frame');
-  const advanceFlock = (view: Flock,index: number,speed: number): void => {
-    if (declaredCrowds === null || flockAdvance === undefined) throw new Error('Missing declared native crowd owner');
-    declaredCrowds.advance(view, index, speed, wildPlayer.position, flockDelta, flockTime, flockAdvance);
-  };
-  const wildlifeFrame = (dt: number, t: number, advance?: PreparedCrowds['advance']): void => {
-    now = t;
-    if (wildlife === null) return;
-    wildPlayer.forward.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
-    wildPlayer.crouching = player.crouching;
-    extra.mounted = ride?.mounted ?? false;   // B9: mounting stands you up; the packs get two tokens; a gallop stampedes the herd
-    windEnv(wildEnv, wind);
-    if (advance === undefined) throw missingCrowdFrame;
-    flockDelta = dt; flockTime = t; flockAdvance = advance;
-    const speed = wildlife.beginFrame(dt,wildPlayer,extra);
-    dogWolves.length = 0;
-    for (let i=0;i<64;i++) { const actor=wildlife.predators[i]; if(actor===undefined)break; dogWolves.push(actor); }
-    for (let index=0;index<4;index++) { const view=wildlife.flocks[index];if(view===undefined)break;advanceFlock(view,index,speed); }
-    wildlife.endFrame(dt,wildPlayer.position,speed,wildPlayer.crouching); foragerView?.project();
-  };
-  updates.push(wildlifeFrame);
+  let ride: Ride | null = null;
+  updates.push(() => undefined); // The declared population owns this frame slot.
 
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
   const riderFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-rider')), captainFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-captain'));
   const night = new TimedEncounters({ game, sky, player: ctx.player, forest: ctx.forest, sites: pois.balbals, clock: weather.clock },
     await plugin.product.json('combat/timed-encounters.json'), { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest());
-  const foragerDraw = await prepareForagerDraw(plugin,pageWildlife);
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
-  const prepareWildlife = (animals: AnimalManager): Wildlife => {
-    attachedAnimals = animals;
-    animals.wetAt = nalatiWetAt;
-    animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
-    declaredCrowds = createPageCrowds(sky, ctx.chunk.seed, flockBody, crowdPage.page.world, dogWolves);
-    return new PageWildlife<Flock>(animals,pageWildlife);
-  };
-  const buildWildlifeStep = (w: Wildlife,step: WildlifeBuildStep): void => {
-    if (step.kind === 'crowd') {
-      if (declaredCrowds === null) throw new Error('Missing population crowd views');
-      const view = declaredCrowds.factory(step.options,step.index); game.scene.add(view.mesh);
-      const dog = w.attachCrowd(step.index,view); if (dog !== null) { view.dog=dog;declaredCrowds.guardian(dog,step.index,w.placement,plugin.app.rng.stream('ai')); }
-    } else if (step.kind === 'foragers' && w.foragers !== null) {
-      foragerView = foragerDraw.create(w.foragers.rules); game.scene.add(foragerView.mesh);
-    }
-  };
-  const finishWildlife = (animals: AnimalManager, w: Wildlife): Wildlife => {
-    wildlife = w;
-    night.attach(animals);
-    weather.weather.on('strike', (e) => { w.scare(e['x'] ?? 0, e['z'] ?? 0, 60); }); // a lightning strike breaks a pack / stampedes a herd within 60 m
-    return w;
-  };
+  weather.weather.on('strike', e => { clientWildlife(plugin)?.scare(e['x'] ?? 0, e['z'] ?? 0, 60); });
   const mountedFigureRows = await plugin.product.json('riding/mounted-figure.json');
   const nalati: Nalati = {
-    persistence, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan,
+    persistence, pois, weather, groups, boss, elites, stealth, ride, titan,
+    get wildlife() { return clientWildlife(plugin); },
     get skins() { return clientCosmeticFinishes(plugin).locker; },
-    attachAnimals(animals) {
-      const w = prepareWildlife(animals);
-      const steps=w.buildSteps();for(let i=0;i<24;i++){const next=steps.next();if(next.done===true)break;buildWildlifeStep(w,next.value);}
-      nalati.wildlife = w;
-      return finishWildlife(animals, w);
-    },
-    async attachAnimalsSliced(animals, yieldTask) {
-      const w = prepareWildlife(animals);
-      const steps=w.buildSteps();for(let i=0;i<24;i++){const next=steps.next();if(next.done===true)break;buildWildlifeStep(w,next.value);await yieldTask();}
-      await yieldTask();
-      nalati.wildlife = w;
-      return finishWildlife(animals, w);
-    },
     bindPlay(p) {
       playKit = p;
+      wildlife = clientWildlife(plugin);
+      const attachedAnimals = plugin.game.runtime?.play?.animals;
+      if (attachedAnimals === undefined) throw new Error('Missing animal play owner');
+      night.attach(attachedAnimals);
       stealth = new StealthController(plugin,player,stealthRows);
       nalati.stealth = stealth;
-      if (wildlife === null || attachedAnimals === null) throw new Error('Nalati creatures have not been built');
+      if (wildlife === null) throw new Error('Nalati creatures have not been built');
       ride = wireRide({ figure: new MountedFigure(mountedFigureRows, new Map(shapeBook(shapeRows).geometries(['shepherd-body','shepherd-arm']))), kit:p, roads, rest, nativeTaming, nativeRide, preset: ridingPreset, programs: ridingPrograms, namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, animals: attachedAnimals, wildlife, camera: game.camera });
       nalati.ride = ride;
       plugin.debug.expose('nalati.ride',ride);
@@ -319,7 +246,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       const bow=p.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);
       painter = clientCosmeticFinishes(plugin).painter;
     },
-    onShot() { stealth?.noteShot(); if(playKit!==null)playKit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = now; },
+    onShot() { stealth?.noteShot(); if(playKit!==null)playKit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = plugin.app.clock.now; },
     onImpact(_surface, point) {
       // a landing arrow / javelin (not a sabre / spear blow at arm's length)
       if (wildlife === null || Math.hypot(point.x - player.position.x, point.z - player.position.z) < 4.5) return;
@@ -337,7 +264,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     if(stealth===null)return;const threats:StealthThreat[]=[];
     for(let i=0;i<96;i++){const pack=wildlife?.packs[i];if(pack===undefined)break;for(let j=0;j<96;j++){const actor=pack.members[j];if(actor===undefined)break;if(actor.alive)threats.push({x:actor.position.x,z:actor.position.z,awareness:pack.awareness,alert:.35,hunting:Number(pack.phase==='shadow'||pack.phase==='encircle'||pack.phase==='regroup')});}}
     for(let i=0;i<96;i++){const herd=wildlife?.herds[i];if(herd===undefined)break;for(let j=0;j<96;j++){const actor=herd.members[j];if(actor===undefined)break;if(actor.alive&&(actor.mem['ridden']??0)!==1&&(actor.mem['owned']??0)!==1)threats.push({x:actor.position.x,z:actor.position.z,awareness:actor.mem['aw']??0,alert:.45,hunting:0});}}
-    stealth.update(dt,t,{grass:wildEnv.grassStandingAt(player.position.x,player.position.z),mounted:extra.mounted,forced:ride!==null&&ride.taming.view.trust!==null,threats:threats.sort((a,b)=>Math.hypot(a.x-player.position.x,a.z-player.position.z)-Math.hypot(b.x-player.position.x,b.z-player.position.z)).slice(0,8)});
+    stealth.update(dt,t,{grass:wildEnv.grassStandingAt(player.position.x,player.position.z),mounted:ride?.mounted ?? false,forced:ride!==null&&ride.taming.view.trust!==null,threats:threats.sort((a,b)=>Math.hypot(a.x-player.position.x,a.z-player.position.z)-Math.hypot(b.x-player.position.x,b.z-player.position.z)).slice(0,8)});
     if(playKit!==null)playKit.spear.damageScale=stealth.sneakMultiplier();
   });
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
@@ -375,9 +302,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     const name = ids[index], run = updates[index];
     if (name === undefined || run === undefined) throw new Error('Nalati update registration lacks an id');
     const id = `shard.nalati.${name}`;
-    if (name === 'wildlife') installDeclaredCrowdFrames(plugin, { systemId: id, after: [previous], before: ['engine.creatures.update'],
-      current: () => declaredCrowds?.runtime ?? null, frame: wildlifeFrame });
-    else plugin.system({ id, phase: 'update', after: [previous], before: ['engine.creatures.update'], run });
+    if (name !== 'wildlife') plugin.system({ id, phase: 'update', after: [previous], before: ['engine.creatures.update'], run });
     previous = id;
   }
   plugin.system({ id: 'shard.nalati.reins', phase: 'late', run: (dt) => { ride?.late(dt); } });

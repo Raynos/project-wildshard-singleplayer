@@ -11,7 +11,7 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { TamingBinding } from './binding';
 import type { TamingObservation } from './bindingTypes';
 import type { TamingPrograms } from './taming';
-import { Mount } from './mount';
+import { Mount, enteredMount } from './mount';
 import { RidingControlsSchema, type RidingControls, type MountProfile } from '@wildshard/format/riding';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../population/returnProgram';
@@ -211,11 +211,10 @@ export interface PageRidingSession {
   readonly names: Record<string, string>; update: (dt: number, wet: boolean, blocked: boolean, namingOpen: boolean) => void;
   drainEvents: () => PageRidingEvent[];
 }
-const mountedSessions = new WeakMap<Scope, Mount>();
 const mountedOwners = new WeakMap<Scope, { readonly player: Player; readonly taming: PageTamingOwner }>();
 /** Native practice rooms borrow the entered mount owner without author callbacks. */
 export function pageRidingMount(ctx: LevelContext): Mount {
-  const mount = mountedSessions.get(ctx.scope);
+  const mount = enteredMount(ctx.scope);
   if (mount === undefined || ctx.scope.disposed) throw new Error('Missing entered riding session');
   return mount;
 }
@@ -238,8 +237,6 @@ export function createPageRiding(ctx: LevelContext, player: Player, animals: Ani
   const controls=rows.controls===undefined?undefined:v.parse(RidingControlsSchema,rows.controls);
   if(controls!==undefined && rows.taming.breakingContext!==undefined && controls.breaking!==rows.taming.breakingContext)throw new Error('Riding breaking context mismatch');
   const mount = new Mount(ctx, player, animals, rows.profile);
-  mountedSessions.set(ctx.scope,mount);
-  ctx.scope.onDispose(()=>{if(mountedSessions.get(ctx.scope)===mount)mountedSessions.delete(ctx.scope);});
   for (const entry of rows.mountables) mount.addMountable(entry.id, entry.name);
   playerModes(player).register(rows.mode, ctx.scope);
   const taming = createPageTaming(ctx, player, animals, mount, controls===undefined?rows.taming:{...rows.taming,breakingContext:controls.breaking});
