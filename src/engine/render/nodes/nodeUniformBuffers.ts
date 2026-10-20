@@ -25,7 +25,11 @@ interface BlockUniform { readonly value: unknown }
 export interface BlockGroup { readonly name: string; readonly uniforms: readonly (BlockUniform | readonly BlockUniform[])[] }
 
 /** where one uniform value lives in its block, and what it last wrote */
-interface Slot { readonly uniform: BlockUniform; readonly element: number; readonly offset: number; readonly data: Float32Array; last: unknown }
+interface Slot {
+  readonly uniform: BlockUniform; readonly element: number; readonly offset: number; readonly data: Float32Array; last: unknown;
+  /** typed values compare as bits: this slot's bits, and the last typed value's bit view (made once per value, not per draw) */
+  readonly bits: Uint32Array; source: ArrayBufferView | null; sourceBits: Uint32Array | null;
+}
 /** a group's buffer and layout; `pass` is the camera pass a pass-scoped block last uploaded in */
 interface Block { readonly buffer: WebGLBuffer; readonly data: Float32Array; readonly slots: readonly Slot[]; readonly passScoped: boolean; pass: number }
 
@@ -107,9 +111,10 @@ function remember(last: unknown, value: unknown): unknown {
 }
 /** Compare the exact upload image, including signed zero and NaN payloads.
  * The slot already retains these bytes, so mutable arrays need no clone. */
-function sameBytes(value: ArrayBufferView, data: Float32Array): boolean {
-  const next = new Uint32Array(value.buffer, value.byteOffset, data.length);
-  const previous = new Uint32Array(data.buffer, data.byteOffset, data.length);
+function sameBytes(value: ArrayBufferView, slot: Slot): boolean {
+  let next = slot.sourceBits;
+  if (slot.source !== value || next === null) { next = new Uint32Array(value.buffer, value.byteOffset, slot.data.length); slot.source = value; slot.sourceBits = next; }
+  const previous = slot.bits;
   for (let i = 0; i < next.length; i++) if (next[i] !== previous[i]) return false;
   return true;
 }
@@ -193,7 +198,8 @@ export class NodeUniformBuffers {
     // Slot views are made once; uploads use WebGL2's source offset/count overload.
     const data = new Float32Array(layout.size / 4);
     const block: Block = { buffer, data, slots: layout.slots.map((s) => ({ uniform: s.uniform, element: s.element, offset: s.offset,
-      data: new Float32Array(data.buffer, s.offset, s.storage / 4), last: undefined })), passScoped: PASS_GROUPS.has(group.name), pass: -1 };
+      data: new Float32Array(data.buffer, s.offset, s.storage / 4), last: undefined,
+      bits: new Uint32Array(data.buffer, s.offset, s.storage / 4), source: null, sourceBits: null })), passScoped: PASS_GROUPS.has(group.name), pass: -1 };
     this.blocks.set(group, block);
     return block;
   }
@@ -204,7 +210,7 @@ export class NodeUniformBuffers {
     for (const slot of block.slots) {
       const value: unknown = Array.isArray(slot.uniform.value) ? slot.uniform.value[slot.element]
         : slot.element === 0 ? slot.uniform.value : undefined;
-      if (slot.last !== undefined && ArrayBuffer.isView(value) && sameBytes(value, slot.data)) {
+      if (slot.last !== undefined && ArrayBuffer.isView(value) && sameBytes(value, slot)) {
         slot.last = value; continue;
       }
       if (!changed(slot.last, value)) continue;
