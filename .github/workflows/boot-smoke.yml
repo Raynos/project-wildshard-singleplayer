@@ -16,27 +16,23 @@ permissions:
   actions: read
   statuses: write
 jobs:
-  boot-smoke:
+  build:
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository)
-    # SF74 W15: pushes coalesce to the newest main. GitHub keeps one pending run per group, so a newer green push replaces
-    # a waiting older one, and only the running proof finishes (2026-10-09: three per-SHA runs queued back to back, the
-    # newest waited 10.5 min for a macOS runner). Job-level, so the skipped runs (release / failed CI) never take the slot.
-    # A dispatch proves its own SHA in its own group.
-    # Build/setup plus both serial HOVER engines exceeded the 12-minute job deadline on 2026-10-12.
-    # Each browser has its own leg and unchanged drive. Cold source generation/build now takes 7-9 minutes
-    # (2026-10-17); reserve the outer job for that build and every existing bounded browser case.
-    # Every leg is required for the exact-SHA verdict; gameplay deadlines remain unchanged.
-    strategy:
-      fail-fast: false
-      matrix:
-        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit]
+    # Automatic proofs coalesce while queued; explicit SHA dispatches keep
+    # their own group and always build the requested commit.
     concurrency:
-      group: boot-smoke-${{ matrix.part }}-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
+      group: boot-smoke-build-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
       cancel-in-progress: false
     runs-on: macos-15
     timeout-minutes: 20
+    outputs:
+      sha: ${{ steps.tested.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: 1
+          GIT_CONFIG_KEY_0: http.version
+          GIT_CONFIG_VALUE_0: HTTP/1.1
         with:
           ref: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
           filter: blob:none
@@ -66,11 +62,6 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v4
-        with:
-          path: ~/Library/Caches/ms-playwright
-          key: boot-touch-browsers-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      - run: pnpm exec playwright install chromium webkit
       - name: Build the exact commit's real products and dist
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ steps.tested.outputs.sha }}
@@ -78,6 +69,73 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=4096
         run: |
           python3 scripts/heavy-lane.py build -- bash -c 'pnpm gen && node scripts/build-shardfiles.mjs && pnpm exec vite build'
+      - name: Pack the exact built dist
+        run: tar -cf boot-dist.tar -C dist .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: boot-dist
+          path: boot-dist.tar
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+
+  boot-smoke:
+    needs: build
+    # Every browser drives the same exact-SHA bytes; cold generation/build has
+    # its own unchanged 20-minute budget, outside each browser leg's budget.
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit]
+    concurrency:
+      group: boot-smoke-${{ matrix.part }}-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
+      cancel-in-progress: false
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: 1
+          GIT_CONFIG_KEY_0: http.version
+          GIT_CONFIG_VALUE_0: HTTP/1.1
+        with:
+          ref: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+            !/public/
+          sparse-checkout-cone-mode: false
+      - name: Bind the tested commit
+        id: tested
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: boot-touch-browsers-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install chromium webkit
+      - uses: actions/download-artifact@v4
+        with:
+          name: boot-dist
+      - name: Unpack and verify the tested dist
+        env:
+          TESTED_SHA: ${{ needs.build.outputs.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$TESTED_SHA"
+          mkdir -p dist
+          tar -xf boot-dist.tar -C dist
+          node --input-type=module -e 'import { readFileSync } from "node:fs"; const { build } = JSON.parse(readFileSync("dist/version.json", "utf8")); const prefix = build.split("-")[0]; if (!/^[a-f0-9]{7,40}$/u.test(prefix) || !process.env.TESTED_SHA.startsWith(prefix)) throw new Error("Built dist does not match tested SHA");'
       - name: Every public shard reaches real page-ready
         if: matrix.part == 'boot-public'
         run: node scripts/parity/boot-smoke.mjs --case-group=public
@@ -115,8 +173,8 @@ jobs:
   verdict:
     # The exact-SHA proof requires all five legs. A replaced leg leaves this SHA unproven:
     # it gets `error` so a pending status never lingers; the newer SHA carries the proof.
-    needs: boot-smoke
-    if: always() && needs.boot-smoke.result != 'skipped'
+    needs: [build, boot-smoke]
+    if: always() && needs.build.result != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -132,11 +190,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TESTED_SHA: ${{ steps.tested.outputs.sha }}
+          BUILD: ${{ needs.build.result }}
           LEGS: ${{ needs.boot-smoke.result }}
         run: |
-          case "$LEGS" in
-            success) state=success; description='Real built-dist title and gameplay proof' ;;
-            cancelled) state=error; description='Cancelled before all smoke legs completed' ;;
+          case "$BUILD:$LEGS" in
+            success:success) state=success; description='Real built-dist title and gameplay proof' ;;
+            *cancelled*) state=error; description='Cancelled before all smoke legs completed' ;;
             *) state=failure; description='Real built-dist title and gameplay proof' ;;
           esac
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \
