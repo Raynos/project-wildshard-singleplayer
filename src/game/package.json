@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/clientMeadow": "./shardfile/clientMeadow.ts",
     "./looks/speciesBook": "./looks/speciesBook.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./audio/forestPage": "./audio/forestPage.ts",

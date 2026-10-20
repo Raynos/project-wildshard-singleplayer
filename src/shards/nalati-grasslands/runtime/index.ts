@@ -17,9 +17,9 @@ import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
-import { RIVER } from '../world/geography';
 import { prepareGrassV2 } from '../look/field';
+import { installPageMeadow } from '@wildshard/game/shardfile/clientMeadow';
+import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './state';
 import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
@@ -55,7 +55,7 @@ export class NalatiPlugin extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     const shell = host(ctx), world = shell.world, step = shell.step;
     if (world === null || step === null) throw new Error('Nalati world requires counted boot steps');
-    const { game, sky, forest, registry } = world;
+    const { game, registry } = world;
     // the look.materials graphs (data/lookGraphs.json: the camp smoke), compiled and lent before the places draw on them
     lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, game, ctx.product.shardfile, Object.keys(ctx.product.shardfile.look.materials).filter(id=>!hasLentLook(id))));
     this.persistence = bindAdventurePersistence(ctx, ctx.product.shardfile, await readAdventurePersistence(ctx), world.chunk.slug, {
@@ -63,23 +63,9 @@ export class NalatiPlugin extends ShardPlugin {
       cosmetics: () => nalatiSkinsSave.read(ctx.product.shardfile.identity.slug),
       bond: () => tulparSave.read(ctx.product.shardfile.identity.slug),
     });
-    const { Grass } = await import('@wildshard/engine/world/Grass');
-    await import('@wildshard/game/systems/looks/trample');
-    const grassField = await import('@wildshard/game/systems/looks/grassField');
-    grassField.configureGrassField({ ...bootMetadata.grassLayout, riverZ: RIVER.z, riverHalf: RIVER.half }, ctx.scope);
-    // the grass step also builds the shared mote / mist / needle field the steppe has always carried (main.ts built it for
-    // every forest shard before the plugin split; R2: dropping it lost a Points, two InstancedMeshes and three textures)
-    const { grass, particles } = await step('grass', async () => {
-      await prepareGrassV2(macrotask); // SF67: the blade rings' height texture and field lattice a slice at a time
-      const field = new Grass(sky, forest).build();
-      await macrotask();
-      const { Particles } = await import('@wildshard/game/systems/looks/particles');
-      const motes = new Particles(sky, forest).build();
-      game.scene.add(field.group, motes.group);
-      return { grass: field, particles: motes };
-    });
-    shell.overhead.push(grass.group, particles.group);
-    shell.hooks.worldUpdate = (dt) => { grass.update(dt, shell.viewer()); particles.update(dt, shell.viewer(), game.camera); };
+    const meadow=await ctx.product.json<{constants:{nativeField:unknown}}>('sim/headless-assembly.json');
+    await prepareGrassV2(macrotask);
+    const {grass,particles}=await installPageMeadow(ctx,meadow.constants.nativeField);
     await step('cabins', () => undefined);
     if (ctx.product.shardfile.clientChannels === undefined) throw new Error('Missing Golden King pose rows');
     const actorRows = await ctx.product.json<{ species: unknown }>('actors/sheep.json');
@@ -102,7 +88,7 @@ export class NalatiPlugin extends ShardPlugin {
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
     // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands); `grassBase`: the grass before
     // trampling the senses read (the authored physics rows sample it for the renderer-free field's check)
-    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({ grassBase: (x: number, z: number) => grassField.grassBaseHeightAt(x, z) }, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
+    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({ grassBase: (x: number, z: number) => grassBaseHeightAt(x, z) }, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
     installEnteredRuntimeService(ctx, (scope) => { ctx.app.registerDayCycle(rt.weather.clock, scope); });
     if (!world.params.has('time')) rt.weather.clock.setTime(setting('time'));
     installEnteredRuntimeService(ctx, (scope) => { scope.onDispose(onSettingChange('time', (value) => { rt.weather.clock.setTime(value); })); });
