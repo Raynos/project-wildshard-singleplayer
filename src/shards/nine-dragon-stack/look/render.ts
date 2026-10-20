@@ -53,9 +53,6 @@ export interface NdRenderHandle {
 
 /** how much of an on-screen emitter's streak card stays once the reflection mirrors it */
 const CARD_ON = 0.6;
-/** (E281) the painted sky draws after the world's opaques (the viewmodels' depth clearer sits at 999): with its depth
- *  test at the far plane it then shades only where the sky shows — the skyline's layers cost nothing under the city */
-const SKY_ORDER = 900;
 
 /** Only live texture/camera bindings remain; static shader and tuning rows are author outputs. */
 function jiehuaEffect(view: PerspectiveCamera, shared: Shared, glow: ReturnType<typeof glowUniforms>, grade: ReturnType<typeof gradeUniforms>) {
@@ -202,8 +199,6 @@ export function shardRender(): LookStrategy {
       const { reflect, haze, bleed, jiehua } = buildComposite(c.camera, c.tier, glow, grade, c.renderer);
       const beforeChain: NonNullable<LookComposition['beforeChain']> = reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed];
       setStreakOn(reflect === null ? 1 : CARD_ON);
-      const sky = world.root.getObjectByName('sky');
-      if (sky !== undefined) sky.renderOrder = SKY_ORDER;
       handle = { jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared };
       installRenderEvents(c, handle);
       return { beforeChain, chain: [jiehua] };

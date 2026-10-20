@@ -213,7 +213,6 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     for (let draw = 0; draw < section.cosmeticDraws; draw++) random.next();
   }
   try {
-    await lendWorldSceneTextures(section.lent ?? [], owner);
     for (const row of section.libraries) {
       if (row.kind === 'models') {
         const models = sceneModelSource(product, row.id); await models.preload(() => buildYield(owner));
@@ -248,8 +247,10 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       await buildYield(owner);
     }
     const missing = section.materials.flatMap(row => (row.kind === 'look' || row.kind === 'surface') && row.look !== undefined
-      && !(row.kind === 'look' && row.over === undefined && sceneMaterial(resident, product.slug, row.look) !== undefined) && !hasLentLook(row.look) ? [row.look] : []);
+      && !(row.kind === 'look' && row.over === undefined && sceneMaterial(resident, product.slug, row.look) !== undefined) && !hasLentLook(row.look) ? [row.look] : [])
+      .concat((section.lent ?? []).flatMap(row => row.looks.filter(look => !hasLentLook(look))));
     if (missing.length > 0) lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, [...new Set(missing)]));
+    await lendWorldSceneTextures(section.lent ?? [], owner);
     const surfaces = section.materials.filter(row => row.kind === 'surface');
     if (surfaces.length > 0) {
       const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');

@@ -94,7 +94,9 @@ const dressing: Dressing[] = [], dress = (id: string, model: string, material: s
 // the painted sky (a sphere the frame keeps on the eye, inside the far plane) and the LED scroll screen (lab P7's 千里江山图)
 const shapeMaterial = new MeshBasicMaterial(), shapes = [['sky', new SphereGeometry(2000, 32, 16)], ['scroll', new PlaneGeometry(58, 80)]] as const;
 const SHAPE_BLOBS = shapes.map(([id, geometry]) => nameBlob(`world/geometry/${id}.glb`, 'glb', compressGlb(staticGlb([{ geometry, material: shapeMaterial, nativeAttributes: true, compactIndex: true }], id))));
-dressing.push(dress('sky', 'sky', 'sky', -10, 'sky', false), dress('screen', 'scroll', 'scroll', 0, 'screens', true, { position: [1, plan.Y0 + 29.85, -64], rotation: [Math.PI / 2, 0, 0] }));
+// (E281) the painted sky draws after the world's opaques (the viewmodels' depth clearer sits at 999): with its depth test at
+// the far plane it then shades only where the sky shows, so the skyline's layers cost nothing under the city
+dressing.push(dress('sky', 'sky', 'sky', 900, 'sky', false), dress('screen', 'scroll', 'scroll', 0, 'screens', true, { position: [1, plan.Y0 + 29.85, -64], rotation: [Math.PI / 2, 0, 0] }));
 if (tiles.has('canopy:core')) dressing.push(dress('crown-core', 'canopy:core', 'canopy-core', 0, 'canopy'), dress('crown-cards', 'canopy:cards', 'canopy-cards', 1, 'canopy'), dress('crown-depth', 'canopy:cards', 'canopy-depth', 2, 'canopy'));
 if (tiles.has('mist:sheets')) dressing.push(dress('sheets', 'mist:sheets', 'mist-sheet', 2, 'sheets'));
 dressing.push(dress('steam', 'mist:steam', 'steam', 3, 'steam', false));
