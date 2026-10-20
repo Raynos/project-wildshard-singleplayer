@@ -15,7 +15,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 
-import { EncounterPatrol, EncounterSchedule, type PatrolMember } from '@wildshard/game/boss/encounterPatrol';
+import { EncounterPatrol, EncounterSchedule, type PatrolMember, type PatrolActorBinding } from '@wildshard/game/boss/encounterPatrol';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { NightRows } from './nightTypes';
 import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '../species/ghostRider';
@@ -89,7 +89,7 @@ const MIST: readonly [number, number, number] = [0.18, 0.75, 0.85];
 
 export class GhostRiders extends GroupBrain<Animal> {
   readonly riders: Rider[] = [];
-  private readonly patrol: EncounterPatrol;
+  private readonly patrol: EncounterPatrol<Animal>;
   readonly arrows: Projectiles;
   readonly mist: NightParticles;
   /** B12: true = no automatic lines (the elite system drives the night) */
@@ -100,7 +100,6 @@ export class GhostRiders extends GroupBrain<Animal> {
   onRiderKilled?: ((a: Animal, killsTonight: number) => void) | undefined;
   /** the player takes damage (set by the wiring: main's health, flash) */
   hurt?: ((damage: number, from: Animal | null) => void) | undefined;
-  private animals: AnimalManager | null = null;
   private readonly author: ReturnProgram;
   private readonly motion: EncounterSchedule;
   private readonly hitResult: TargetHit;
@@ -109,7 +108,7 @@ export class GhostRiders extends GroupBrain<Animal> {
   constructor(private readonly ctx: GhostRidersCtx, private readonly nightRows: NightRows) {
     super([]);
     this.author = ReturnProgram.page(nightRows.program, ctx.game.levelScope);
-    this.patrol = new EncounterPatrol(nightRows.patrol, this.author, app.rng.stream('ai'));
+    this.patrol = new EncounterPatrol<Animal>(nightRows.patrol, this.author, app.rng.stream('ai'));
     this.motion = new EncounterSchedule(nightRows.motion, this.author);
     this.arrows = new Projectiles({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest }, undefined, ghostArrowKind(nightRows));
     this.arrows.mesh.renderOrder = 13; this.arrows.mesh.receiveShadow = false;
@@ -124,8 +123,7 @@ export class GhostRiders extends GroupBrain<Animal> {
   }
 
   attach(animals: AnimalManager): void {
-    this.animals = animals;
-    animals.factory.model(GHOST_RIDER, 'rider');
+    this.patrol.attachActors(animals);
   }
 
 
@@ -133,18 +131,19 @@ export class GhostRiders extends GroupBrain<Animal> {
 
   /** one rider (any variant) at (x, z), facing `yaw`; it materialises out of mist. Not in a line: drive `a.mem.tx / tz / v` */
   spawnRider(o: { x: number; z: number; yaw: number; variant?: GhostVariant; storm?: boolean }): Animal | null {
-    const animals = this.animals;
-    if (animals === null) return null;
-    const variant = o.variant ?? 'rider';
-    const a = animals.spawn(GHOST_RIDER, o.x, o.z, o.yaw, variant);
+    const bound = this.patrol.spawnActor({ ...o, quiet: Number(o.storm === true) });
+    return bound === null ? null : this.presentRider(bound, o.storm === true);
+  }
+
+  private presentRider(bound: PatrolActorBinding<Animal>, storm: boolean): Animal {
+    const { a, law } = bound, variant = a.variant;
     this.members.push(a);
-    a.herd = -1;
     // the ghost look: one material on the whole horse (not the painterly three), a hooded rider on the body bone
-    const look = o.storm === true ? 'storm' : variant;
+    const look = storm ? 'storm' : variant === 'captain' ? 'captain' : 'rider';
     const horseMat = ghostMaterial(this.nightRows, look), riderMat = ghostMaterial(this.nightRows, look);
     const scope = this.ctx.game.levelScope.child('ghost-rider');
     scope.own(horseMat.mat); scope.own(riderMat.mat);
-    if (o.storm === true) { a.scale *= 1.6; a.mesh.scale.setScalar(a.scale); pinBrain(a, scope); }   // the Titan's 8 m cloud horsemen
+    if (storm) { a.scale *= 1.6; a.mesh.scale.setScalar(a.scale); pinBrain(a, scope); }   // the Titan's 8 m cloud horsemen
     a.mesh.material = horseMat.mat;
     // no shadow from a ghost: the manager sets castShadow every frame, so pin it off
     Object.defineProperty(a.mesh, 'castShadow', { get: () => false, set: () => undefined, configurable: true });
@@ -154,31 +153,21 @@ export class GhostRiders extends GroupBrain<Animal> {
     rider.frustumCulled = false;
     const body = a.mesh.skeleton.getBoneByName('body');
     if (body !== undefined) { body.add(rider); rider.position.set(0, 0, 0); }
-    const r: Rider = { a, scope, mats: [horseMat, riderMat], law: this.patrol.add(a.entityId, { quiet: Number(o.storm === true) }) };
+    const r: Rider = { a, scope, mats: [horseMat, riderMat], law };
     this.riders.push(r);
-    _v.set(o.x, heightAt(o.x, o.z) + 1, o.z);
+    _v.set(a.position.x, heightAt(a.position.x, a.position.z) + 1, a.position.z);
     this.mist.burst(_v, 24, 1.6, 0.8, 1.6, 0.9, MIST, 0.25, FLAG_GROW | FLAG_RISE, 1.2);
     return a;
   }
 
   /** a line of `count` riders riding the ridge loop from `at` (m along it; default: the point farthest from the player) */
   spawnLine(o: { count?: number; captain?: boolean; at?: number } = {}): Animal[] {
-    const count = o.count ?? 3;
-    const plan = this.patrol.plan(count, o.at ?? -1, this.ctx.player.position);
-    const out: Animal[] = [];
-    for (const [i, slot] of plan.slots.entries()) {
-      const a = this.spawnRider({ x: slot['x'] ?? 0, z: slot['z'] ?? 0, yaw: slot['yaw'] ?? 0, variant: i === 0 && o.captain === true ? 'captain' : 'rider' });
-      const r = a !== null ? this.riders[this.riders.length - 1] : undefined;
-      if (a === null || r === undefined) continue;
-      r.law.group = plan.group; r.law.slot = i; plan.group.members.push(r.law); out.push(a);
-    }
-    return out;
+    return this.patrol.spawnActors(this.ctx.player.position, { ...o, leader: o.captain === true }).map(bound => this.presentRider(bound, false));
   }
 
   /** tear a rider into mist now */
   dissolve(a: Animal): void {
-    const r = this.riders.find((x) => x.a === a);
-    if (r !== undefined) this.patrol.dissolve(r.law);
+    this.patrol.dissolveActor(a);
   }
 
   /** dawn: every rider left rides into the light and is gone */
@@ -211,8 +200,7 @@ export class GhostRiders extends GroupBrain<Animal> {
   update(dt: number, t: number): void {
     GHOST_TIME.value = t;
     const p = this.ctx.player.position;
-    const step = this.patrol.update(this.animals === null ? 0 : dt, { px: p.x, py: p.y, pz: p.z, hold: Number(this.hold), night: Number(this.ctx.clock.dayPhase === 'night') },
-      this.riders.map(r => ({ id: r.law.id, x: r.a.position.x, z: r.a.position.z, alive: Number(r.a.alive), hidden: Number(r.a.hidden) })));
+    const step = this.patrol.updateActors(dt, { px: p.x, py: p.y, pz: p.z, hold: Number(this.hold), night: Number(this.ctx.clock.dayPhase === 'night') }, this.freeze);
     if (step.dt > 0) this.motion.project({ dt: step.dt, px: p.x, pz: p.z });
     if (step.spawn) this.spawnLine();
     const effects = new Map(step.effects.map(effect => [effect.member.id, effect]));
@@ -220,12 +208,9 @@ export class GhostRiders extends GroupBrain<Animal> {
       const r = this.riders[i];
       if (r === undefined) continue;
       const a = r.a;
-      a.mem['px'] = p.x; a.mem['pz'] = p.z;
       const effect = effects.get(r.law.id), state = r.law.state;
       if (effect?.killed === true) this.onRiderKilled?.(a, this.killsTonight);
       if (effect?.retire === true) { this.retire(r); this.riders.splice(i, 1); continue; }
-      if (r.law.group !== null) Object.assign(a.mem, { tx: state['tx'], tz: state['tz'], v: state['v'], turn: state['turn'] });
-      if (this.freeze) { a.mem['tx'] = a.position.x; a.mem['tz'] = a.position.z; }
       for (const m of r.mats) m.fade.value = state['fade'] ?? 0;
       if ((state['dying'] ?? 0) > 0) {
         ghostSeat(a, _v);
@@ -261,8 +246,7 @@ export class GhostRiders extends GroupBrain<Animal> {
 
   private retire(r: Rider): void {
     const a = r.a;
-    this.animals?.retire(a);
-    this.patrol.remove(r.law);
+    this.patrol.retireActor(a);
     const i = this.members.indexOf(a); if (i !== -1) this.members.splice(i, 1);
     r.scope.dispose();
   }

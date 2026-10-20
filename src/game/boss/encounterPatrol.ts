@@ -8,6 +8,9 @@ const finite = v.pipe(v.number(), v.finite());
 const numbers = v.record(v.string(), finite);
 export const EncounterPatrolSchema = v.strictObject({
   parameters: numbers, member: numbers, group: numbers,
+  actors: v.optional(v.strictObject({ kind: v.string(), variant: v.string(), leader: v.string(), count: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(8)),
+    herd: finite, player: v.strictObject({ x: v.string(), z: v.string() }),
+    target: v.strictObject({ x: v.string(), z: v.string() }), steering: v.record(v.string(), v.string()) })),
   signals: v.strictObject({ cycle: v.string(), empty: v.string(), dissolve: v.string(),
     member: v.string(), fire: v.string(), retry: v.string(), start: v.string(), slot: v.string(), group: v.string(), target: v.string() }),
 });
@@ -15,17 +18,64 @@ export interface PatrolMember { readonly id: string; readonly state: Record<stri
 export interface PatrolGroup { readonly members: PatrolMember[]; readonly state: Record<string, number> }
 export interface PatrolObservation { readonly id: string; readonly x: number; readonly z: number; readonly alive: number; readonly hidden: number }
 export interface PatrolEffect { readonly member: PatrolMember; readonly killed: boolean; readonly retire: boolean; readonly shoot: boolean }
+/** Borrowed actor and its existing native roster. No presentation is retained. */
+export interface PatrolActor { readonly entityId: string; readonly position: { readonly x: number; readonly z: number }; readonly mem: Record<string, number>; readonly alive: boolean; readonly hidden: boolean; herd: number }
+export interface PatrolActorRoster<A extends PatrolActor> {
+  readonly factory: { model: (kind: string, variant: string) => unknown };
+  spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => A;
+  retire: (actor: A) => void;
+}
+export interface PatrolActorBinding<A extends PatrolActor> { readonly a: A; readonly law: PatrolMember }
 /** Data-only transport over the existing boss/encounter decision host. The guest
  * owns phase admission, respawn, routing, fades and fire intervals. */
-export class EncounterPatrol {
+export class EncounterPatrol<A extends PatrolActor = PatrolActor> {
   readonly members: PatrolMember[] = [];
   readonly groups: PatrolGroup[] = [];
   private readonly rows: v.InferOutput<typeof EncounterPatrolSchema>;
   private elapsed = 0;
   private readonly cycle = { respawn: -1, phase: -1, kills: 0 };
+  private roster: PatrolActorRoster<A> | null = null;
+  private readonly actors = new Map<string, PatrolActorBinding<A>>();
   constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) { this.rows = v.parse(EncounterPatrolSchema, input); }
   get kills(): number { return this.cycle.kills; }
   get living(): number { return this.members.filter(member => member.state['dead'] !== 1).length; }
+  attachActors(roster: PatrolActorRoster<A>): void {
+    const rows = this.rows.actors; if (rows === undefined) throw new Error('Missing patrol actor rows');
+    roster.factory.model(rows.kind, rows.variant); this.roster = roster;
+  }
+  spawnActor(at: { readonly x: number; readonly z: number; readonly yaw: number; readonly variant?: string; readonly quiet?: number }, group: PatrolGroup | null = null, slot = 0): PatrolActorBinding<A> | null {
+    const rows = this.rows.actors; if (rows === undefined || this.roster === null) return null;
+    const a = this.roster.spawn(rows.kind, at.x, at.z, at.yaw, at.variant ?? rows.variant);
+    a.herd = rows.herd;
+    const bound = { a, law: this.add(a.entityId, { quiet: at.quiet ?? 0 }, group, slot) }; this.actors.set(a.entityId, bound); return bound;
+  }
+  spawnActors(player: { readonly x: number; readonly z: number }, options: { readonly count?: number; readonly leader?: boolean; readonly at?: number }): readonly PatrolActorBinding<A>[] {
+    const rows = this.rows.actors; if (rows === undefined || this.roster === null) return [];
+    const plan = this.plan(options.count ?? rows.count, options.at ?? -1, player), out: PatrolActorBinding<A>[] = [];
+    for (const [slot, at] of plan.slots.entries()) {
+      const bound = this.spawnActor({ x: at['x'] ?? 0, z: at['z'] ?? 0, yaw: at['yaw'] ?? 0, variant: slot === 0 && options.leader === true ? rows.leader : rows.variant }, plan.group, slot);
+      if (bound !== null) out.push(bound);
+    }
+    return out;
+  }
+  dissolveActor(actor: A): void { const bound = this.actors.get(actor.entityId); if (bound !== undefined) this.dissolve(bound.law); }
+  retireActor(actor: A): void {
+    const bound = this.actors.get(actor.entityId); if (bound === undefined) return;
+    this.roster?.retire(actor); this.remove(bound.law); this.actors.delete(actor.entityId);
+  }
+  /** Apply the guest's movement to declared memory slots once per patrol step. */
+  updateActors(dt: number, frame: Readonly<Record<string, number>>, freeze = false): ReturnType<EncounterPatrol['update']> {
+    const rows = this.rows.actors; if (rows === undefined) throw new Error('Missing patrol actor rows');
+    const step = this.update(this.roster === null ? 0 : dt, frame, [...this.actors.values()].map(({ a }) => ({ id: a.entityId, x: a.position.x, z: a.position.z, alive: Number(a.alive), hidden: Number(a.hidden) })));
+    for (const { a, law } of this.actors.values()) {
+      a.mem[rows.player.x] = frame['px'] ?? 0; a.mem[rows.player.z] = frame['pz'] ?? 0;
+      if (law.group !== null) for (const [slot, channel] of Object.entries(rows.steering)) {
+        const value = law.state[channel]; if (value !== undefined) a.mem[slot] = value;
+      }
+      if (freeze) { a.mem[rows.target.x] = a.position.x; a.mem[rows.target.z] = a.position.z; }
+    }
+    return step;
+  }
   add(id: string, observations: Readonly<Record<string, number>>, group: PatrolGroup | null = null, slot = 0): PatrolMember {
     if (this.members.some(member => member.id === id) || (group !== null && !this.groups.includes(group))) throw new Error('Invalid patrol member');
     const state = { ...this.rows.member, ...observations, ...this.program.project(this.rows.signals.retry, { first: 1 }, this.random) };

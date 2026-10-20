@@ -102,3 +102,25 @@ test('an orchard guardian binds different health and memory fields without a cal
   expect(body.hp).toBe(40); expect(body.mem['speed']).toBe(12); expect(body.mem['tx']).toBeUndefined();
   host.clear(); expect(host.members).toHaveLength(0); expect(coupledActorDamage(body, { x: 8, z: 9 })).toBe(1);
 });
+
+test('an orchard mounted patrol borrows its roster, leader and memory mapping', () => {
+  const rows = { ...patrolRows, actors: { kind: 'orchard-watch', variant: 'scout', leader: 'warden', count: 2, herd: -2,
+    player: { x: 'seenX', z: 'seenZ' }, target: { x: 'goalX', z: 'goalZ' }, steering: { goalX: 'tx', goalZ: 'tz', speed: 'v' } } };
+  const body = (id: string, x: number, z: number, variant: string) => ({ entityId: id, position: { x, z }, variant, herd: 0, alive: true, hidden: false, mem: {} as Record<string, number> });
+  type Body = ReturnType<typeof body>;
+  let count = 0, retired = 0, warmed = '';
+  const host = new EncounterPatrol<Body>(rows, ReturnProgram.page(night.program), new Rng(81));
+  expect(host.spawnActors({ x: 0, z: 0 }, {})).toEqual([]);
+  host.attachActors({ factory: { model: (kind, variant) => { warmed = `${kind}:${variant}`; } },
+    spawn: (_kind, x, z, _yaw, variant) => body(String(count++), x, z, variant), retire: () => { retired++; } });
+  const actors = host.spawnActors({ x: 200, z: 24 }, { leader: true, at: 0 });
+  expect(warmed).toBe('orchard-watch:scout'); expect(actors.map(row => row.a.variant)).toEqual(['warden', 'scout']);
+  host.updateActors(.1, { ...frame, px: 200, hold: 1 });
+  const first = actors[0]; if (first === undefined) throw new Error('Missing patrol fixture');
+  expect(first.a.herd).toBe(-2); expect(first.a.mem['seenX']).toBe(200); expect(first.a.mem['speed']).toBeGreaterThan(0);
+  host.updateActors(.1, { ...frame, hold: 1 }, true);
+  expect(first.a.mem['goalX']).toBe(first.a.position.x);
+  host.dissolveActor(first.a); expect(first.law.state['dying']).toBeGreaterThan(0);
+  host.retireActor(first.a); host.retireActor(first.a); expect(retired).toBe(1);
+  expect(host.members).toHaveLength(1);
+});
