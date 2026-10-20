@@ -268,7 +268,8 @@ async function weatherParts(ctx: ShardContext, world: ShardWorld, rows: Parts, s
       if (lane === null || reading === null) {
         // the weather as one reading: its numbers, its registers and the reactions' flash (the lane reads `weather.*`)
         reading = { ...weather.n, ...weather.registers, flash: 0 }; owners.set('weather', reading);
-        for (const event of storm === null ? [] : new Set(storm.rows.steps.flatMap(step => step.emit.map(row => row.event)))) if (!owners.has(event)) owners.set(event, storm.record(event));
+        const events = storm === null ? [] : [...new Set(storm.rows.steps.flatMap(step => step.emit.map(row => row.event)))];
+        for (const event of events) if (storm !== null && !owners.has(event)) owners.set(event, storm.record(event));
         lane = installChannelPrograms(channels, rows.lane, owners);
       }
       Object.assign(reading, weather.n, weather.registers); reading['flash'] = storm?.flash ?? 0;
