@@ -25,7 +25,7 @@ import { Lanterns } from '../look/lanterns';
 import { createSceneBuffers } from '@wildshard/game/shardfile/sceneBuffers';
 import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
 import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
-import { jiehuaMaterial as facadeMaterial, windowMaterial, facadeUniforms, syncArchitecture } from '../look/facadeMaterial';
+import { jiehuaMaterial as facadeMaterial, windowMaterial, facadeUniforms, syncLooks } from '../look/facadeMaterial';
 import { loadPaint } from '../look/paint';
 import { loadTextureRow } from '@wildshard/engine/core/assets';
 import metadata, { Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
@@ -163,7 +163,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.4, 'geometry conversion');
 
   // ── the kits into meshes: one merged geometry per kit, the neon spill baked into their vertices ──
-  syncArchitecture(shared.u);
+  syncLooks(shared.u);
   const mat = lentLook('nine-architecture'), matA = lentLook('nine-architecture-cut');
   const paper = new Lanterns(fixed.lantern);
   bindLowPolyMaterial(opts.sky, 'nine-architecture', mat, opts.scope);

@@ -25,7 +25,6 @@ import type { GraphLiteral } from '@wildshard/format/materialGraph';
 export const RIG_URL = `${rigRows.ARMS_BASE}fp-rig.glb`;
 export const ARMS_CONTRACT: RigContract = { skeleton: 'nine-dragon-fp', clips: armClipNames(ARM_CLIPS), sockets: ['R_weapon', 'L_claw'] };
 export const ARMS_BAKE: RigBake = { skeleton: 'nine-dragon-fp', clips: ARM_CLIPS, joints: ['R', 'L'].map(side => ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand'].map(joint => `${side}_${joint}`)) };
-export type MoveName = 'light' | 'light2' | 'light3' | 'charge' | 'heavy' | 'parry' | 'draw' | 'sheathe' | 'sheathed';
 export type LeftName = 'grapple_aim' | 'grapple_fire' | 'grapple_hold' | 'idle';
 export type ArmsState = RigState;
 type Looks = Awaited<ReturnType<typeof runtimeLookMaterials>>;

@@ -8,51 +8,49 @@ import type { Shared } from './style';
 
 export type Uniforms = Record<string, IUniform>;
 const tuple2 = [0, 0], tuple3 = [0, 0, 0], tuple4 = [0, 0, 0, 0];
-const textureBooks = new WeakMap<Readonly<Uniforms>, Map<string, Texture>>();
-const paramBooks = new WeakMap<Readonly<Uniforms>, Map<string, string[]>>();
-const IDS = ['nine-architecture', 'nine-architecture-cut', 'nine-facade', 'nine-facade-small', 'nine-windows', 'nine-halo'];
+/** The graphs that read the world's shared uniforms, and the params the eye computes instead. */
+const IDS = ['nine-architecture', 'nine-architecture-cut', 'nine-facade', 'nine-facade-small', 'nine-windows', 'nine-halo',
+  'nine-silk-fog', 'nine-canopy-cards', 'nine-canopy-inner', 'nine-streaks', 'nine-scroll'];
+const COMPUTED = new Set(['datum', 'bandDepth']);
+interface Binding { readonly id: string; readonly param: string; readonly source: string; readonly key: string }
+const books = new WeakMap<Readonly<Uniforms>, { readonly bindings: readonly Binding[]; readonly textures: Map<string, Texture> }>();
 function isTexture(value: unknown): value is Texture { return value instanceof Texture; }
-/** Uniform writes only. Existing shared handles still own day, paint, Explorer and light tuning. */
-export function syncArchitecture(shared: Readonly<Uniforms>, catalogue: Readonly<Record<string, MaterialEntry>> | undefined = slugRuntimeProduct('nine-dragon-stack')?.source.look.materials): void {
-  let textures = textureBooks.get(shared);
-  if (textures === undefined) { textures = new Map(); textureBooks.set(shared, textures); }
-  let bindings = paramBooks.get(shared);
-  if (bindings === undefined) {
-    bindings = new Map();
+/**
+ * Every declared param of the shared graphs reads the shared uniform of its own name (`uWash`) or of `u` + its name
+ * (`fogBase` ← `uFogBase`); `computed` holds the eye's own values. Uniform writes only.
+ */
+export function syncLooks(shared: Readonly<Uniforms>, computed: Readonly<Record<string, GraphLiteral>> = {}, catalogue: Readonly<Record<string, MaterialEntry>> | undefined = slugRuntimeProduct('nine-dragon-stack')?.source.look.materials): void {
+  let book = books.get(shared);
+  if (book === undefined) {
     if (catalogue === undefined) return;
+    const bindings: Binding[] = [];
     for (const id of IDS) {
       const material = catalogue[id];
-      if (material?.family !== 'graph' || !('graph' in material)) throw new Error(`Missing architecture graph ${id}`);
-      for (const name of Object.keys(material.graph.params ?? {})) {
-        if (!name.startsWith('u')) continue;
-        const ids = bindings.get(name) ?? []; ids.push(id); bindings.set(name, ids);
+      if (material?.family !== 'graph' || !('graph' in material)) throw new Error(`Missing Nine graph ${id}`);
+      for (const param of Object.keys(material.graph.params ?? {})) {
+        const source = /^u[A-Z]/.test(param) ? param : `u${param.charAt(0).toUpperCase()}${param.slice(1)}`;
+        if (source in shared || COMPUTED.has(param)) bindings.push({ id, param, source, key: `${id}:${param}` });
       }
     }
-    paramBooks.set(shared, bindings);
+    book = { bindings, textures: new Map() };
+    books.set(shared, book);
   }
-  for (const [name, ids] of bindings) {
-    const value: unknown = shared[name]?.value;
+  for (const { id, param, source, key } of book.bindings) {
+    if (!hasLentLook(id)) continue;
+    const fixed = computed[param];
+    if (fixed !== undefined) { setLentParam(id, param, fixed); continue; }
+    const value: unknown = shared[source]?.value;
     const numeric = typeof value === 'number' ? value : value instanceof Color ? value.toArray(tuple3) : value instanceof Vector3 ? value.toArray(tuple3)
       : value instanceof Vector2 ? value.toArray(tuple2) : value instanceof Vector4 ? value.toArray(tuple4) : null;
-    for (const id of ids) {
-      if (!hasLentLook(id)) continue;
-      if (numeric !== null) setLentParam(id, name, numeric);
-      else if (isTexture(value) && textures.get(`${id}:${name}`) !== value) { setLentTexture(id, name, value); textures.set(`${id}:${name}`, value); }
-    }
+    if (numeric !== null) setLentParam(id, param, numeric);
+    else if (isTexture(value) && book.textures.get(key) !== value) { setLentTexture(id, param, value); book.textures.set(key, value); }
   }
 }
 export function facadeUniforms(shared: Shared): Uniforms { return { ...shared.u, uSky: { value: new Color(0xbcc4d2) }, uFacadeWash: { value: new Color(0xe0e3ef) } }; }
 export function jiehuaMaterial(shared: Uniforms, opt: { shrink?: readonly [number, number] } = {}): Material {
-  syncArchitecture(shared);
+  syncLooks(shared);
   const id = opt.shrink === undefined ? 'nine-facade' : 'nine-facade-small';
   if (opt.shrink !== undefined) setLentParam(id, 'shrink', opt.shrink);
   return lentLook(id);
 }
-export function windowMaterial(shared: Uniforms): Material { syncArchitecture(shared); return lentLook('nine-windows'); }
-
-/** Transmission-only graphs omit inscatter params; write only the admitted graph's declarations. */
-export function setDeclaredGraphParam(id: string, name: string, value: GraphLiteral, catalogue: Readonly<Record<string, MaterialEntry>> | undefined = slugRuntimeProduct('nine-dragon-stack')?.source.look.materials): void {
-  const entry = catalogue?.[id];
-  if (entry?.family !== 'graph' || !('graph' in entry)) throw new Error(`Missing Nine graph ${id}`);
-  if (Object.hasOwn(entry.graph.params ?? {}, name)) setLentParam(id, name, value);
-}
+export function windowMaterial(shared: Uniforms): Material { syncLooks(shared); return lentLook('nine-windows'); }

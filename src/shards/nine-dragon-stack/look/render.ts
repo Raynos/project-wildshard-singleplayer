@@ -3,7 +3,6 @@
 // the shard adds the bleed pyramid before the colour chain and replaces the chain with its own composite (ink
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
-// `window.__wildshard.shard['nd.render']` (captures / A/B, no URL switch): the live pieces and their switches.
 import { Color, Fog, Matrix4, type Object3D, PerspectiveCamera, type Texture, type Vector2, Vector4 } from 'three';
 import { Pass } from 'postprocessing';
 import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
@@ -22,12 +21,10 @@ import type { ScaledPostRow } from '@wildshard/format/scaledPost';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 
 import type { AoTuning } from './uniformTypes';
-import { meshesWithUniform } from '../runtime/looks/uniformScan';
 import type { Shared } from './style';
-import { hasLentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
-import { syncArchitecture, setDeclaredGraphParam } from './facadeMaterial';
+import { setLentParam } from '@wildshard/sdk/looks/lentLooks';
+import { syncLooks } from './facadeMaterial';
 
-const STREAK_PERF = new Vector4(2.5, 0.3, 0, 0);
 const setStreakOn = (value: number): void => { setLentParam('nine-streaks', 'cardOn', value); };
 
 const light = metadata.looks.light as LookRows['light'];
@@ -43,60 +40,18 @@ export async function prepareNinePost(renderer: Renderer): Promise<void> {
 /**
  * The silk fog for the look graphs (O11): data/lookGraphs.json 'nine-silk-fog' is FOG_GLSL's silkFog as a `kind: 'fog'`
  * graph, and the graph looks that select it (`effectState.fog`: the Well's mist sheets) are fogged by it in the engine's
- * fog epilogue. Every eye write its params take the live shared rows the programs read (the band lists are the graph's
- * own, `BANDS`; a capture that clears the bands' depth scales them by `bandDepth`). Uniform writes only.
+ * fog epilogue. Every eye write its params take the live shared rows the programs read (facadeMaterial.ts `syncLooks`; a
+ * capture that clears the bands' depth scales them by `bandDepth`). Uniform writes only.
  */
-const SILK_FOG = 'nine-silk-fog';
-const SILK_MATERIALS = [SILK_FOG, 'nine-canopy-cards', 'nine-canopy-inner', 'nine-streaks', 'nine-architecture', 'nine-architecture-cut', 'nine-facade', 'nine-facade-small', 'nine-windows', 'nine-halo'] as const;
-const silkOut = { pair: [0, 0], v3: [0, 0, 0], col: [0, 0, 0], shaft: [0, 0, 0, 0], shaftK: [0, 0, 0, 0], deep: [0, 0, 0, 0], deepAir: [0, 0, 0, 0], deepAir2: [0, 0, 0, 0], puff: [0, 0] };
-function syncSilkFog(shared: Shared): void {
-  syncArchitecture(shared.u);
-  setLentParam('nine-streaks', 'time', shared.u.uTime.value);
-  setLentParam('nine-streaks', 'perf', STREAK_PERF.toArray());
-  const u = shared.u, o = silkOut;
-  setLentParam('nine-scroll', 'linePx', u.uLinePx.value);
-  for (const id of SILK_MATERIALS) {
-    if (!hasLentLook(id)) continue;
-    setDeclaredGraphParam(id, 'rootAt', u.uRootAt.value.toArray(o.v3));
-    if (id.startsWith('nine-architecture') || id.startsWith('nine-facade') || id === 'nine-windows') continue;
-    setDeclaredGraphParam(id, 'datum', Y0);
-    setDeclaredGraphParam(id, 'bandDepth', (u.uBands.value[0]?.z ?? 0) / shared.baseBandDepth);
-    setDeclaredGraphParam(id, 'fogBase', u.uFogBase.value);
-    setDeclaredGraphParam(id, 'fogStart', u.uFogStart.value);
-    setDeclaredGraphParam(id, 'fogBaseCol', u.uFogBaseCol.value.toArray(o.col));
-    setDeclaredGraphParam(id, 'shaft', u.uShaft.value.toArray(o.shaft));
-    setDeclaredGraphParam(id, 'shaftK', u.uShaftK.value.toArray(o.shaftK));
-    setDeclaredGraphParam(id, 'shaftLit', u.uShaftLit.value);
-    setDeclaredGraphParam(id, 'fogDeep', u.uFogDeep.value.toArray(o.deep));
-    setDeclaredGraphParam(id, 'deepAir', u.uDeepAir.value.toArray(o.deepAir));
-    setDeclaredGraphParam(id, 'deepAir2', u.uDeepAir2.value.toArray(o.deepAir2));
-    setDeclaredGraphParam(id, 'puff', u.uPuff.value.toArray(o.puff));
-    if (id !== 'nine-canopy-cards' && id !== 'nine-canopy-inner') continue;
-    setDeclaredGraphParam(id, 'lightDir', u.uLightDir.value.toArray(o.v3));
-    setDeclaredGraphParam(id, 'ink0', u.uInk0.value.toArray(o.col));
-    setDeclaredGraphParam(id, 'ink1', u.uInk1.value.toArray(o.col));
-    setDeclaredGraphParam(id, 'inkMid', u.uInkMid.value);
-    setDeclaredGraphParam(id, 'lineFade', u.uLineFade.value.toArray(o.pair));
-  }
-}
+const syncSilkFog = (shared: Shared): void => { syncLooks(shared.u, { datum: Y0, bandDepth: (shared.u.uBands.value[0]?.z ?? 0) / shared.baseBandDepth }); };
 
+/** the live composition the frame and the studio events read */
 export interface NdRenderHandle {
-  reflect: RowRenderPass | null;
-  haze: RowRenderPass | null;
-  bleed: RowRenderPass | null;
   jiehua: JiehuaEffect;
   camera: PerspectiveCamera;
   renderer: Renderer;
   /** the look's shared uniforms (the light pools' gains, the ambient) */
   shared: Shared;
-  /** the emitter streak cards' gain for an emitter on screen (the reflection mirrors those) */
-  /** set every streak card set's on-screen gain (the square's and the stair flights') */
-  setCardOn: (v: number) => void;
-  /** the streak cards' meshes (the square's, the stair flights' and landings') */
-  streaks: Object3D[];
-  /** (E281) the phone's light halos (light/halos.ts; null where the bleed pyramid glows instead) */
-  /** (E283) the streak cards' perf knobs (streaks.ts STREAK_PERF, shared by every card set) */
-  streakPerf: Vector4;
 }
 
 /** how much of an on-screen emitter's streak card stays once the reflection mirrors it */
@@ -204,7 +159,6 @@ export function shardRender(): LookStrategy {
   const onEye = (root: Object3D, shared: Shared, camera: PerspectiveCamera): void => {
     shared.u.uHaloProjection.value = camera.projectionMatrix.elements[5];
     setLentParam('nine-streaks', 'projection', [camera.projectionMatrix.elements[0], camera.projectionMatrix.elements[5]]);
-    setLentParam('nine-streaks', 'flagJoint', shared.u.uFlagJoint.value);
     if (skyMesh?.parent !== root) skyMesh = root.getObjectByName('sky') ?? null;
     skyMesh?.position.copy(shared.u.uCam.value);
     syncSilkFog(shared);
@@ -240,10 +194,8 @@ export function shardRender(): LookStrategy {
         cellBuffer = c.renderer;
         c.scope.onDispose(() => { cellBuffer = null; });
         const { reflect, haze, bleed, jiehua, pose } = buildComposite(c.camera, c.tier, glow, grade, c.renderer, ndRuntime().world.root);
-        // its scene-side parts, as compose sets them: the streak cards' gain (the whole wet-floor reflection where no
-        // reflection pass runs) and, without the bleed pyramid, the phone's light halos
-        const { uniforms: cardOns } = meshesWithUniform(c.root, 'uCardOn');
-        for (const u of cardOns) u.value = reflect === null ? 1 : CARD_ON;
+        // its scene-side part, as compose sets it: the streak cards' gain (the whole wet-floor reflection where no
+        // reflection pass runs)
         setStreakOn(reflect === null ? 1 : CARD_ON);
         return { display: jiehua, passes: reflect === null || haze === null || bleed === null ? [] : [...(pose === null ? [] : [new PoseView(pose)]), reflect, haze, bleed] };
       },
@@ -263,16 +215,11 @@ export function shardRender(): LookStrategy {
       }
       const { reflect, haze, bleed, jiehua } = buildComposite(c.camera, c.tier, glow, grade, c.renderer);
       const beforeChain: NonNullable<LookComposition['beforeChain']> = reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed];
-      // the streak cards (look/streaks.ts): found by their own uniform
-      const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.scene, 'uCardOn');
-      const setCardOn = (v: number): void => { for (const u of cardOns) u.value = v; setStreakOn(v); };
-      setCardOn(reflect === null ? 1 : CARD_ON);
-      // the phone's glow: no bleed pyramid, so every light gets a halo in the drizzle
+      setStreakOn(reflect === null ? 1 : CARD_ON);
       const sky = world.root.getObjectByName('sky');
       if (sky !== undefined) sky.renderOrder = SKY_ORDER;
-      handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, streakPerf: STREAK_PERF };
+      handle = { jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared };
       installRenderEvents(c, handle);
-      c.debug.expose('nd.render', handle);
       return { beforeChain, chain: [jiehua] };
     },
     frame(): void {
