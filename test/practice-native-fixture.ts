@@ -53,7 +53,16 @@ let root = '';
 export async function prepareFixture(): Promise<ShardProduct> {
   mkdirSync('tmp', { recursive: true }); root = mkdtempSync(resolve('tmp/practice-native-proof-'));
   const source = createConchReadablePreviewSource('neutral-gray-v2'), output = createConchReadablePreviewOutput(metadata);
-  const extra = emitNamedBlobs([nameBlob('poses/native-proof.json', 'json', new TextEncoder().encode(JSON.stringify(transitionRows())))]);
+  const refusal = transitionRows();
+  refusal.programs.push({ id: 'practice.proof.refusal', reads: ['kind'],
+    nodes: [{ op: 'read', index: 0 }, { op: 'constant', value: 1e12 }, { op: 'mul', a: 0, b: 1 }],
+    channels: [{ property: 'x', value: 2 }],
+    numeric: { group: refusal.group, inputs: [{ input: 'kind', owner: 'transition', path: ['kind'] }],
+      outputs: [{ property: 'x', target: 'joint.head', path: ['rotation', 'y'] }], restoreOnly: [] } });
+  const extra = emitNamedBlobs([
+    nameBlob('poses/native-proof.json', 'json', new TextEncoder().encode(JSON.stringify(transitionRows()))),
+    nameBlob('poses/native-refusal.json', 'json', new TextEncoder().encode(JSON.stringify(refusal))),
+  ]);
   const lines = decisionLegacyLines(resolve('.'), 'driftwood-isle');
   if (lines === undefined) throw new Error('Missing sealed decision budget');
   const prepared = await prepareProjectOutput(resolve('src/shards/driftwood-isle'), {
