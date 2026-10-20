@@ -11,6 +11,16 @@ import { nativeBakeGround } from '../src/sdk/headlessRuntime';
 import { terrainTileHeight } from '../src/format/terrainTileBytes';
 import { Rng } from '../src/engine/core/rng';
 
+test('native bake generation refuses divergent recipes and floor metadata', () => {
+  const first = physics.actors[0];
+  if (first === undefined) throw new Error('Missing authored native actor');
+  expect(() => driftwoodNativeRows({ ...physics, actors: [{ ...first, kind: 'foreign' }] })).toThrow('Divergent native actor');
+  expect(() => driftwoodNativeRows({ ...physics, actors: [first, { ...first, id: 'fixture.other', spec: { ...first.spec, hp: first.spec.hp + 1 } }] })).toThrow('Divergent native Driftwood spec');
+  expect(() => driftwoodNativeRows({ ...physics, ground: { ...physics.ground, scale: { ...physics.ground.scale, y: 2 } } })).toThrow('ground lattice');
+  expect(() => driftwoodNativeRows({ ...physics, habitat: { ...physics.habitat, hold: { ...physics.habitat.hold, floor: physics.habitat.hold.floor.slice(1) } } })).toThrow('not square');
+  expect(() => driftwoodNativeRows({ ...physics, captain: { ...physics.captain, spec: { ...physics.captain.spec, variant: 'foreign' } } })).toThrow('captain spec');
+});
+
 test('offline placements retain the frozen page/native populations, herds, yaw and coconut stream', () => {
   const actual = v.parse(EnemyPlacementsSchema, structuredClone(enemyPlacements()));
   const { physics: admitted } = driftwoodNativeRows(physics);
