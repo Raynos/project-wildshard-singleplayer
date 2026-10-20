@@ -7,7 +7,7 @@ import { roadLayout, segmentPoint, RAIL_OFFSET } from '../src/game/grid/roadLayo
 import { generatePlatform, type PlatformCell } from '../src/engine/sim/strips';
 
 const modes = [{ developer: false, devserver: false }, { developer: true, devserver: false },
-  { developer: false, devserver: true }, { developer: true, devserver: true }];
+  { developer: false, devserver: true }, { developer: true, devserver: true }] as const;
 for (const mode of modes) test(`complete 25-cell layout ${JSON.stringify(mode)}`, () => {
   const assembly = new GridAssembly(mode), placements = [...assembly.cells, ...assembly.plots];
   expect(placements).toHaveLength(25);
