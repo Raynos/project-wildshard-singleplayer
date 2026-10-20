@@ -8,7 +8,7 @@ import { parseGroundLayer } from '../src/format/materialFamilies';
 import { parseLightEmitters } from '../src/format/lightEmitters';
 import { lightPoolRows } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { loadLut, gradeUniforms } from '../src/shards/nine-dragon-stack/look/light/grade';
+import { loadLut, gradeUniforms } from '../src/shards/nine-dragon-stack/look/light';
 import { loadLut as sealedLut, gradeUniforms as sealedGrade } from '../src/shards/nine-dragon-stack-legacy/look/light/grade';
 import { gatherPools } from '../src/shards/nine-dragon-stack-legacy/look/light/pools';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
