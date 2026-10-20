@@ -17,6 +17,7 @@ import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import layout from '../data/layout.generated.json' with { type: 'json' };
 import profiles from '../data/specimenProfiles.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
+import { presentationData } from './presentation';
 
 type Model = WorldSceneModels['models'][number];
 type Choice = Model['choices'][number];
@@ -102,9 +103,22 @@ const recipe = parseWorldScene({ imports: [], scene: { version: 1, root: 'root',
 
 const look = (id: string, name: string) => ({ id, kind: 'look', look: name });
 const library = (id: keyof typeof aliases) => ({ id, kind: 'whole', ...(id === 'native' ? {} : { load: 'explorer' }), models: [...aliases[id].values()] });
-export const NINE_SCENE_BLOBS: NamedBlob[] = [nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)), ...SHAPE_BLOBS];
+// the wet floor's reflection cards and the lanterns' halos (phone only), per deck ending: open in a grid cell, capped alone
+const cards = presentationData(), empty = parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } });
+// one file per distinct buffer: an ending whose cards match the other's reads the same file
+const cardFiles = new Map<string, string>();
+const cardFile = (caps: 'open' | 'capped', kind: 'streaks' | 'halos'): string => {
+  const text = JSON.stringify(cards[caps][kind]), file = cardFiles.get(text) ?? `world/cards/${caps}-${kind}.json`;
+  cardFiles.set(text, file);
+  return file;
+};
+const cardSteps = (['open', 'capped'] as const).map(caps => ({ id: `cards-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/cards.json',
+  draws: [{ kind: 'buffered', file: cardFile(caps, 'streaks'), material: 'streaks', order: 4 }, { kind: 'buffered', file: cardFile(caps, 'halos'), material: 'halo', order: 5, tier: 'phone' }] }));
+const CARD_BLOBS = [...cardFiles].map(([text, file]) => nameBlob(file, 'json', new TextEncoder().encode(text)));
+export const NINE_SCENE_BLOBS: NamedBlob[] = [nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
+  nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...CARD_BLOBS];
 export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', libraries: [library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('lantern', 'nine-lantern'),
-    look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll')],
+    look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo')],
   steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? 'shapes', model }])),
-    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: Object.fromEntries(['crown-core', 'crown-cards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) }] });
+    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: Object.fromEntries(['crown-core', 'crown-cards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) }, ...cardSteps] });

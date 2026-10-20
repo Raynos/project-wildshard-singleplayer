@@ -6,7 +6,8 @@ const xyz = v.tuple([finite, finite, finite]);
 const reference = v.strictObject({ library: id, model: id });
 /** Shared presentation primitives retain authored draw order and GPU seeds. */
 export const SceneDrawSchema = v.variant('kind', [
-  v.strictObject({ kind: v.literal('buffered'), file: id, material: id, scale: v.optional(finite, 1), y: v.optional(finite, 0) }),
+  v.strictObject({ kind: v.literal('buffered'), file: id, material: id, scale: v.optional(finite, 1), y: v.optional(finite, 0),
+    order: v.exactOptional(finite), tier: v.exactOptional(v.picklist(['phone', 'desktop'])) }),
   v.strictObject({ kind: v.literal('card'), material: id, geometry: reference, scale: v.union([finite, xyz]), at: v.optional(xyz, [0, 0, 0]), order: finite, name: id }),
   v.strictObject({ kind: v.literal('pool'), geometry: reference, material: id }),
 ]);

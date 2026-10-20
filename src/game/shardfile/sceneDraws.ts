@@ -6,6 +6,7 @@ import type { ShardProduct } from './shardProduct';
 import { sceneModelSource } from './sceneSources';
 import { admitSceneBuffers, createSceneBuffers } from './sceneBuffers';
 import type { SceneBuffers } from '@wildshard/format/sceneBuffers';
+import { TIER } from '@wildshard/engine/core/tier';
 
 const books = new WeakMap<Scope, WeakMap<ShardProduct, Map<string, BufferGeometry>>>();
 const buffers = new WeakMap<ShardProduct, Map<string, SceneBuffers>>();
@@ -15,7 +16,7 @@ export async function prepareSceneDrawRows(product: ShardProduct, input: unknown
   const rows = v.parse(SceneDrawsSchema, input);
   let prepared = buffers.get(product); if (prepared === undefined) { prepared = new Map(); buffers.set(product, prepared); }
   for (const row of rows) {
-    if (row.kind !== 'buffered' || prepared.has(row.file)) continue;
+    if (row.kind !== 'buffered' || prepared.has(row.file) || (row.tier !== undefined && row.tier !== TIER)) continue;
     if (!product.hasFile(row.file)) throw new Error(`Missing scene draw buffer file: ${row.file}`);
     prepared.set(row.file, admitSceneBuffers(await product.json<unknown>(row.file)));
   }
@@ -31,10 +32,12 @@ export function drawSceneRows(product: ShardProduct, input: unknown, parent: Obj
   for (const row of rows) {
     const material = materials.get(row.material); if (material === undefined) throw new Error('Missing scene draw material');
     if (row.kind === 'buffered') {
+      if (row.tier !== undefined && row.tier !== TIER) continue;
       const source = buffers.get(product)?.get(row.file);
       if (source === undefined) throw new Error('Scene draw buffers were not admitted');
       const group = createSceneBuffers(source, material, scope, product.shardfile.plumbing);
       group.scale.setScalar(row.scale); group.position.y = row.y; parent.add(group);
+      if (row.order !== undefined) for (const mesh of group.children) mesh.renderOrder = row.order;
     } else {
       const key = JSON.stringify([row.geometry.library, row.geometry.model]); let geometry = geometries.get(key);
       if (geometry === undefined) { const source = sceneModelSource(product, row.geometry.library).geometry(row.geometry.model);

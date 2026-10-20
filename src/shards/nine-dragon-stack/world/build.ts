@@ -22,7 +22,6 @@ import { placeSet } from '@wildshard/engine/models/sets';
 import { type DrawnPlaced as InKitPlaced, registerDrawnInto } from '../runtime/kit/drawnInto';
 import { defineModel, sharedModelContext, type ModelContext, type ModelDef, type ModelPart, type Placement } from '@wildshard/engine/models/model';
 import { Lanterns } from '../look/lanterns';
-import { createSceneBuffers } from '@wildshard/game/shardfile/sceneBuffers';
 import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
 import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
 import { jiehuaMaterial as facadeMaterial, windowMaterial, facadeUniforms, syncLooks } from '../look/facadeMaterial';
@@ -94,7 +93,7 @@ export interface NineDragonWorld {
  *  paced `worldBuildYield`, op-hitch45: in play it waits for a drawn frame when one is due, else it is a timer task) */
 export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; sky: SkyRig; scenes: SceneHandles; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
   const product = await loadFirstPartyProduct('nine-dragon-stack', opts.scope);
-  const { world: worldRows, presentation: cardRows, volumes } = await product.json<GeometryBoot>('geometry/layout.json');
+  const { world: worldRows, volumes } = await product.json<GeometryBoot>('geometry/layout.json');
   const worldData = new Float64Array(Uint8Array.from(await product.file('geometry/world-f64.bin')).buffer);
   if (worldData.length !== worldRows.records) throw new Error('Nine world record inventory differs');
   const { shaft: SHAFT } = worldRows;
@@ -267,16 +266,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.6, 'streaks + dressing');
   phaseStart = performance.now();
 
-  const presentation = cardRows[entryCaps ? 'capped' : 'open'];
-  const streakMaterial = lentLook('nine-streaks'); Object.assign(streakMaterial, { transparent: true, ...BLEND_ADD_KEEP_ALPHA });
-  const streaks = createSceneBuffers(presentation.streaks, streakMaterial, opts.scope);
-  for (const mesh of streaks.children) mesh.renderOrder = 4;
-  root.add(streaks);
-  const haloMaterial = lentLook('nine-halo'); haloMaterial.setValues((metadata.looks.light as LookRows['light']).haloState);
-  const halos = createSceneBuffers(presentation.halos, haloMaterial, opts.scope);
-  halos.visible = tier === 'phone';
-  for (const mesh of halos.children) mesh.renderOrder = 5;
-  root.add(halos);
+  // the wet floor's reflection cards and the lanterns' halos: the catalogue's cards step for this deck ending
+  Object.assign(lentLook('nine-streaks'), { transparent: true, ...BLEND_ADD_KEEP_ALPHA });
+  lentLook('nine-halo').setValues((metadata.looks.light as LookRows['light']).haloState);
+  root.add(opts.scenes.group(entryCaps ? 'cards-capped.root' : 'cards-open.root'));
   await slice();
 
   // the wall kit: one InstancedMesh per piece and region (models/wallKit.ts)

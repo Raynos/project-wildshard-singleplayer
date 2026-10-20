@@ -83,13 +83,9 @@ export const WorldRowsSchema = v.strictObject({
 });
 export type WorldRows = v.InferOutput<typeof WorldRowsSchema>;
 
-// The scene-buffer host admits these complete typed draw packets; cardScene
-// already runs the same admission on the author before this outer boot record.
-const CardPresentation = v.strictObject({ streaks: v.unknown(), halos: v.unknown() });
 const VolumeRow = v.strictObject({ file: text, size: v.tuple([Offset, Offset, Offset]), min: v.array(finite), inv: v.array(finite), maximum: finite });
 export const GeometryBootSchema = v.strictObject({ rows: LayoutRowsSchema, library: GeometryLibrarySchema,
-  negativeZeros: v.array(v.array(text)), world: WorldRowsSchema,
-  presentation: v.strictObject({ open: CardPresentation, capped: CardPresentation }), volumes: v.record(text, VolumeRow) });
+  negativeZeros: v.array(v.array(text)), world: WorldRowsSchema, volumes: v.record(text, VolumeRow) });
 
 const Course = v.strictObject({
   id: v.string(), title: v.string(), chip: v.string(),
