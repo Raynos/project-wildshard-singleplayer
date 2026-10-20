@@ -1,3 +1,5 @@
+import { parse } from 'valibot';
+import { SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { defineSpecimenCatalogue, replaceSpecimenInstances } from '@wildshard/game/models/specimenCatalogue';
 import rows from '../boot/balbalSpecimen.generated.json' with { type: 'json' };
 /**
@@ -32,7 +34,7 @@ export function balbalGeometry(variant: number, seed = 0xba1): THREE.BufferGeome
 
 /** The world and Explorer borrow the same fitted asset from the specimen host. */
 export function wearGenerated(meshes: readonly THREE.InstancedMesh[], sky: Sky): void {
-  replaceSpecimenInstances(sky,rows.generated,meshes);
+  replaceSpecimenInstances(sky,parse(SpecimenAssetSchema,rows.generated),meshes);
 }
 
 export const balbal = defineSpecimenCatalogue<{balbal:BalbalParams}>(rows.catalogue).model('balbal');

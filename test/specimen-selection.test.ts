@@ -1,3 +1,5 @@
+import { parse } from 'valibot';
+import { SpecimenAssetSchema } from '../src/format/specimenCatalogue';
 import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -41,7 +43,7 @@ test('fitted assets share the source loan without mutating it or leaking transfo
   const geometry=new THREE.BoxGeometry(1,2,3),material=new THREE.MeshStandardMaterial(),bytes=staticGlb([{name:'fruit',geometry,material}]);
   const gltf=await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer,''),load=vi.spyOn(GLTFLoader.prototype,'loadAsync').mockResolvedValue(gltf),sky=skyFixture();
   const {retainedAttribute:_retained,transform:_transform,...source}=rows.generated;
-  const asset={...source,url:'/assets/orchard/fruit.glb',phoneUrl:'/assets/orchard/fruit.glb'};
+  const asset=parse(SpecimenAssetSchema,{...source,url:'/assets/orchard/fruit.glb',phoneUrl:'/assets/orchard/fruit.glb'});
   try{
     const base=await loadBoundSpecimen(sky,asset),fitted=await loadBoundSpecimen(sky,{...asset,transform:{yaw:Math.PI/2,scale:3}});
     const expected=base.geometry.clone().rotateY(Math.PI/2).scale(3,3,3);
