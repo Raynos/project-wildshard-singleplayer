@@ -90,7 +90,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
     // 160 s), the whole platform's far layer in view
     const e = 2.5 * 555;
     return [{ name: 'outer-road-corner', from: null, to: null, movement: 'road-hover', hoverMaxSpeed: 30, start: { x: 0, z: e },
-      waypoints: [{ x: e, z: e }, { x: e, z: 0 }], requiredResidents: [], finishOnArrival: true }];
+      waypoints: [{ x: e, z: e }, { x: e, z: 0 }], requiredResidents: [], finishOnArrival: false }];
   }
   if (scenario === 'reentry') {
     // OT (2026-10-17): enter Pine, retire it by entering Signal Dunes, enter it again. A page-wide cache that kept a
