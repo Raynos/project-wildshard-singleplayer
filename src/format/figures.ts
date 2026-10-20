@@ -3,6 +3,7 @@ import { HandleIdSchema, ScenePointRefSchema } from './sceneRefs';
 import { isJsonData } from './json';
 import { SkinClipNameSchema } from './skinData';
 import { PackedGeometryRowsSchema } from './geometryPack';
+import { KitFigureSchema } from './kitFigure';
 
 const finite = v.pipe(v.number(), v.finite());
 /** The authored motion, reach, collider and flame facts, with no runtime defaults. */
@@ -45,6 +46,7 @@ export const FigureCatalogueSchema = v.strictObject({
   material: v.exactOptional(v.strictObject({ name: text, roughness: v.number(), metalness: v.number() })),
   figures: v.record(text, v.strictObject({
     phone: FigureRowSchema, desktop: FigureRowSchema, body: v.exactOptional(v.number()), glass: v.exactOptional(v.nullable(v.number())),
+    kit: v.exactOptional(KitFigureSchema),
     card: v.exactOptional(v.strictObject({ id: text, name: text, file: text,
       pipeline: v.pipe(v.array(v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0'])), v.maxLength(16)),
       rig: v.strictObject({ clips: v.pipe(v.array(text), v.maxLength(32)) }) })),

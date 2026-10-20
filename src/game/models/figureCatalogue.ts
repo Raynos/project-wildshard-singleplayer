@@ -76,4 +76,6 @@ export class FigureCatalogue {
   }
   /** Author rows, available only after the same admission as live figures. */
   rows(id: string): FigureRow { return this.row(id).row[TIER]; }
+  /** The figure's kit rows (format/kitFigure), when it is built from kit meshes. */
+  kit(id: string): unknown { const kit = this.row(id).row.kit; if (kit === undefined) throw new Error(`Figure ${id} has no kit`); return kit; }
 }

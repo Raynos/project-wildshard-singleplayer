@@ -53,4 +53,5 @@ export class FigureCatalogue {
   create(id: string, resources: SceneHandles, feet: readonly [number, number, number], yaw: number, owner?: Scope): FigureRows { return this.figures.create(id, resources, feet, yaw, owner); }
   model(id: string): ModelDef<object> { return this.figures.model(id); }
   rows(id: string): FigureRow { return this.figures.rows(id); }
+  kit(id: string): unknown { return this.figures.kit(id); }
 }

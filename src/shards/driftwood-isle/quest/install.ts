@@ -10,7 +10,7 @@ import { registerQuestPageWorld } from '@wildshard/game/quest/pageResources';
 import type { QuestPageCompositionRows } from '@wildshard/format/questPageComposition';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
-import { Castaway } from '../runtime/npc/Castaway';
+import { castawayFigure } from '../runtime/models/people';
 import { trader, tradeCounter, traderOf } from '../runtime/models/trader';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place as placeModel } from '@wildshard/engine/models/place';
@@ -42,7 +42,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
     shrine: d.shrine === null ? null : { anchors: d.shrine.anchors }, cave: d.cove === null ? null : { anchors: d.cove.anchors } }, flock: d.gulls?.flock ?? null });
   const placement = await prepareQuestPageComposition(ctx, rows);
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
-  const npc = new Castaway(world.sky, placement.place(rows.speaker.feet), placement.place(rows.speaker.fire), scenes).build(ctx.scope);
+  const npc = castawayFigure(world.sky, placement.place(rows.speaker.feet), placement.place(rows.speaker.fire), scenes, ctx.scope);
   const stallPlacement = parseQuestTrader(await ctx.product.json(rows.files.stall)).placement;
   if (stallPlacement === undefined) throw new Error('Missing declared trader placement');
   const feet = placement.place(stallPlacement.feet), fx = Math.sin(feet.yaw), fz = Math.cos(feet.yaw), cx = feet.x + fx * stallPlacement.counterAhead, cz = feet.z + fz * stallPlacement.counterAhead;

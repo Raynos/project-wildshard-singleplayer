@@ -21,9 +21,9 @@ export const CASTAWAY_POSE = [
   {"bone": "head","channel": "rotation.y","cases": [{"sum": [{"of": [{"mem": "headYaw"}]}]}]},
   {"bone": "head","channel": "rotation.z","cases": [{"sum": [{"of": [{"wave": "t","rate": 0.5},0.05]}]}]},
   {"bone": "head","channel": "position.y","cases": [{"sum": [1.52,{"of": [{"wave": "t","rate": 1.6},0.006]}]}]},
-  {"bone": "arm","channel": "rotation.x","cases": [{"sum": [0],"when": {"mem": {"key": "waving","atLeast": 1}}},{"sum": [{"of": [{"wave": "t","rate": 1.1},0.05]}]}]},
+  {"bone": "arm","channel": "rotation.x","cases": [{"sum": [0],"when": {"mem": {"key": "gesture","atLeast": 1}}},{"sum": [{"of": [{"wave": "t","rate": 1.1},0.05]}]}]},
   {"bone": "arm","channel": "rotation.y","cases": [{"sum": [0]}]},
-  {"bone": "arm","channel": "rotation.z","cases": [{"sum": [{"of": [-2.6,{"bounded": [{"of": [{"clock": "phase"},4]}],"max": 1},{"bounded": [{"of": [{"bounded": [2.2,{"of": [{"clock": "phase"},-1]}]},4]}],"min": 0,"max": 1}]},{"of": [{"wave": "phase","rate": 12},0.35,{"bounded": [{"of": [{"clock": "phase"},4]}],"max": 1},{"bounded": [{"of": [{"bounded": [2.2,{"of": [{"clock": "phase"},-1]}]},4]}],"min": 0,"max": 1}]}],"when": {"mem": {"key": "waving","atLeast": 1}}},{"sum": [0.08,{"of": [{"bounded": [{"of": [{"wave": "t","rate": 2.3}]}],"min": 0},0.35,{"mem": "talking"}]}]}]},
+  {"bone": "arm","channel": "rotation.z","cases": [{"sum": [{"of": [-2.6,{"bounded": [{"of": [{"clock": "phase"},4]}],"max": 1},{"bounded": [{"of": [{"bounded": [2.2,{"of": [{"clock": "phase"},-1]}]},4]}],"min": 0,"max": 1}]},{"of": [{"wave": "phase","rate": 12},0.35,{"bounded": [{"of": [{"clock": "phase"},4]}],"max": 1},{"bounded": [{"of": [{"bounded": [2.2,{"of": [{"clock": "phase"},-1]}]},4]}],"min": 0,"max": 1}]}],"when": {"mem": {"key": "gesture","atLeast": 1}}},{"sum": [0.08,{"of": [{"bounded": [{"of": [{"wave": "t","rate": 2.3}]}],"min": 0},0.35,{"mem": "talking"}]}]}]},
   {"bone": "flames","channel": "rotation.y","cases": [{"sum": [{"of": [{"clock": "t"},0.6]}]}]},
 ] as const;
 

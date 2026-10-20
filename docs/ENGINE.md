@@ -10195,6 +10195,13 @@ explicit ids; no TypeScript callback, subclass or reflected shard path is
 accepted. Z2 `ScenePointRef` names scene parts. Story, dialogue and gesture
 decisions remain with their existing owners.
 
+`game/systems/npc/kitFigure.KitFigure` (G483 world scene assembly over private-scene and numeric pose rows; client-only)
+builds a figure from kit meshes: `format/kitFigure` rows name its private scene recipe and bindings, the pose clip rows
+(`ClipRowsSchema`, `playClips`), the turn to face the player, the head's attention and up to eight gestures, each started
+by a figure signal, an approach band or a timer in a distance band. Its ports are the recipe's geometries and lent objects
+only; the figure catalogue carries the rows (`FigureCatalogue.kit(id)`). Driftwood's castaway and trader are the first
+users; an unrelated harbour mender fixture drives the same rows in `test/kit-figure.test.ts`.
+
 A figure replaces a fallback with the declared baked skin after intake,
 using independent skeletons over cached geometry and textures. The existing
 humanoid `legBones`/`legPose` preserves the leg, talk, point and walk math;

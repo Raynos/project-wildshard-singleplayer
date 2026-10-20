@@ -1,15 +1,43 @@
 /**
- * Driftwood Isle's people (E306 / E315 M5): Wendell the castaway, who gives the island's quest — built with the low-poly
- * kit in code (src/shards/driftwood-isle/runtime/npc/Castaway.ts: the striped shirt, the straw hat, the driftwood staff, and his campfire and
- * its smoke column beside him). Not skinned: his body, head and waving arm turn on pivots. The quest stands him by the
- * hut (src/shards/driftwood-isle/quest/Spine.ts); the card is the same build at his own origin, his fire where it burns beside him —
- * without the smoke column (a particle effect the world animates, not the figure: it would frame the card 12 m tall).
+ * Driftwood Isle's people (E306 / E315 M5): Wendell the castaway, who gives the island's quest — a kit figure
+ * (@wildshard/game/systems/npc/kitFigure on the figure catalogue's kit rows, generators/figureCatalogue.ts): the striped
+ * shirt, the straw hat, the driftwood staff, and his campfire and its smoke column beside him. Not skinned: his body,
+ * head and waving arm turn on pivots. The quest stands him by the hut; the card is the same build at his own origin, his
+ * fire where it burns beside him — without the smoke column (the world animates it, and it would frame the card 12 m tall).
  */
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
-import { Castaway } from '../npc/Castaway';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { loadFixedGeometry } from '../boot/blobAssets';
+import { KitFigure } from '@wildshard/game/systems/npc/kitFigure';
+import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
+import { driftwoodRows } from '../boot/rows';
+import { loadFixedGeometry, fixedDraw, fixedGeometryGroups, fixedGeometryReady, FIGURES } from '../boot/blobAssets';
+
+export interface Pos { x: number; y: number; z: number; yaw?: number }
+
+/** Wendell at `feet`, his camp moved to where its fire burns (`fire`, turned into his frame), its flames and smoke lent. */
+export function castawayFigure(sky: Sky, feet: Pos, fire: Pos, resources: SceneHandles, owner?: Scope): KitFigure {
+  const yaw = feet.yaw ?? 0, dx = fire.x - feet.x, dz = fire.z - feet.z, c = Math.cos(-yaw), s = Math.sin(-yaw);
+  const f = new THREE.Vector3(dx * c + dz * s, fire.y - feet.y, -dx * s + dz * c), kit = fixedGeometryGroups().npc.castaway;
+  const flameMat = new THREE.MeshBasicMaterial({ vertexColors: true, color: new THREE.Color(1.8, 1.8, 1.8) }); // unlit, it blooms
+  flameMat.name = 'castaway-flame';
+  const flames = new THREE.Mesh(fixedDraw(kit.flames).copy(), flameMat);
+  flames.position.set(f.x, f.y + 0.08, f.z);
+  const native = driftwoodRows('custom/fixedLayouts').nativeView, smokeRow = native.CASTAWAY_SMOKE, ready = fixedGeometryReady(), lit = hasLentLook(native.SMOKE_LOOK);
+  const smoke = createBuildingCloud(resources, { geometry: resources.lend(ready ? fixedDraw('castawaySmoke').copy() : new THREE.BufferGeometry()),
+    material: lit ? resources.lend(lentLook(native.SMOKE_LOOK)) : null, seeds: false, name: smokeRow.name,
+    at: [f.x, f.y, f.z], center: smokeRow.bounds.offset, radius: smokeRow.bounds.radius, order: smokeRow.renderOrder, visible: lit && ready });
+  resources.publish('castaway.fitted-head', fixedDraw('wendellHead').copy());
+  const geometry = new Map([['body', fixedDraw(kit.body).copy()], ['camp', fixedDraw(kit.camp).copy().translate(f.x, f.y, f.z)],
+    ['head', fixedDraw(kit.head).copy()], ['arm', fixedDraw(kit.arm).copy()]]);
+  const objects = new Map<string, THREE.Object3D>([['flames', flames], ['smoke', smoke]]);
+  const figure = new KitFigure(sky, 'castaway', FIGURES.rows('castaway'), FIGURES.kit('castaway'), { geometry, objects }, resources, owner);
+  figure.group.position.set(feet.x, feet.y, feet.z); figure.group.rotation.y = yaw;
+  return figure;
+}
 
 /** the particle columns stripped from the card (today one: his campfire smoke) */
 const MAX_SMOKE = 8;
@@ -18,7 +46,7 @@ export const castaway: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/castaway', name: 'Wendell, the castaway', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/people.ts', surface: 'flesh',
   prepare: loadFixedGeometry, defaults: {},
   build: (ctx) => {
-    const g = new Castaway(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }, new SceneHandles(ctx.sky)).build().group;
+    const g = castawayFigure(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }, new SceneHandles(ctx.sky)).group;
     const smoke: THREE.Object3D[] = [];
     g.traverse((o) => { if (o instanceof THREE.Points) smoke.push(o); });
     for (let i = 0; i < Math.min(smoke.length, MAX_SMOKE); i++) smoke[i]?.removeFromParent();
