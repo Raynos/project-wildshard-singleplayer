@@ -55,16 +55,6 @@ export function lashLane(from: Vector3, dir: Vector3, reach: number, width: numb
   return laneDelta.addScaledVector(dir, -forward).length() > width + LASH_BODY ? null : forward;
 }
 
-/**
- * One lash's contact rule on one creature: the first hit on its head ball or body capsule inside the reach, else its
- * chest in the lane; the distance along the ray where it lands.
- */
-export function lashContact(from: Vector3, dir: Vector3, reach: number, width: number, body: LashVolumes, feet: Vector3): number | null {
-  const hit = lashVolumeHit(from, dir, reach, body);
-  if (hit !== null) return hit;
-  const lane = lashLane(from, dir, reach, width, feet);
-  return lane === null ? null : Math.min(lane, reach);
-}
 
 /** The lash's own timing (seconds) and reactions: the unroll, the heavy's second lash, how long it shows, the stagger, the yank (m/s on ≤ `pullMaxHp`). */
 export interface LashTiming { readonly unroll: number; readonly second: number; readonly show: number; readonly stagger: number; readonly pull: number; readonly pullMaxHp: number }

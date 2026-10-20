@@ -7,7 +7,7 @@ import type { DeclaredGameplayPorts } from '@wildshard/engine/audio/declaredGame
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
 import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import type { Music } from '@wildshard/engine/audio/Music';
-import { createAudioObserver, requireAudioProfile, type AudioObservationPorts } from '@wildshard/engine/audio/audioProfiles';
+import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CombatCueMap, CombatCueOpts, CombatCues } from '@wildshard/engine/combat/cues';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -112,15 +112,6 @@ export function installDeclaredCombatCues(audio: Audio, cues: CombatCues, scope:
   cues.use(createCueRouter(routing, { voices }), scope);
 }
 
-/** Bind emitted observation rows without installing or touching a mixer during construction. */
-export function audioObserverSystems(rows:NonNullable<AudioData['observations']>,ports:AudioObservationPorts):{
-  systems:Parameters<ShardContext['system']>[0][];value:(system:string,id:string)=>number
-} {
-  if(rows.length>16)throw new Error('Audio observation system capacity');
-  const controllers=new Map(rows.map(row=>[row.id,createAudioObserver(row,ports)]));
-  return {systems:rows.map(row=>({id:row.id,phase:'update',after:row.after,before:row.before,run:(dt,t)=>{controllers.get(row.id)?.run(dt,t);}})),
-    value:(system,id)=>{const controller=controllers.get(system);if(controller===undefined)throw new Error('Missing audio observation system');return controller.state(id);}};
-}
 
 /** Install declared score banks with the resident catalogue's entered-scope policy and existing reload pin. */
 export function installRuntimeScore(context:ShardContext,audio:Audio,music:Music):void {

@@ -334,8 +334,6 @@ function weatherOver(C: SkyPreset, mod: SkyWeather, style: KeyedSkyStyle): numbe
   return overcastOver(C, style.overcast, mod.overcast);
 }
 
-/** Identity of the client-owned sky; callers never provide a subclass or constructor. */
-export type KeyedSkyHandle = KeyedSky;
 
 const skies = new WeakMap<SkyRig, KeyedSky>();
 /** The keyed sky a backdrop built on this sky rig (the shard's weather and transitions read it). */

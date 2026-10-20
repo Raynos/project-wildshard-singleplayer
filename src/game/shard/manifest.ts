@@ -429,13 +429,6 @@ export interface ChunkHud {
   /** the sun / moon badge on the minimap's rim (Minimap.showDayBadge) */
   dayBadge?: boolean;
 }
-/**
- * What one enemy hit takes off the player's 100 health on this shard: the hit's own damage, capped at `ShardManifest.maxHitDamage`
- * when the shard sets one (E294: Driftwood caps every hit at 20, so any common enemy needs ~5 hits to kill you). Falls and
- * hazards are not enemy hits and do not come through here.
- */
-export const hitDamage = (def: { fight?: { maxHitDamage?: number | undefined; capExempt?: readonly string[] | undefined } | undefined }, damage: number, kind?: string): number =>
-  def.fight?.maxHitDamage === undefined || (kind !== undefined && def.fight.capExempt?.includes(kind) === true) ? damage : Math.min(damage, def.fight.maxHitDamage);
 
 /** Compatibility names for manifests not yet migrated to the engine look contract. */
 
@@ -677,14 +670,6 @@ export function defineShard(rows: ShardManifestRows,
   return manifest;
 }
 
-/** Four authored shards; F9 generates this union from the registry. */
-
-/** Explore entry art is owned by its shard and imported without world code. */
-
-export function formatGrid(grid: readonly [number, number]): string {
-  const signed = (n: number): string => n < 0 ? `−${-n}` : `+${n}`;
-  return `(${signed(grid[0])}, ${signed(grid[1])})`;
-}
 
 /** Authored terrain, or the analytic placement floor for a structures-only manifest (y = -1000 m). */
 export function terrainFor(manifest: Pick<ShardManifest, 'ground' | 'slug'>): ChunkTerrain {

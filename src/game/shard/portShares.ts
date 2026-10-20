@@ -6,5 +6,3 @@ import table from './portShares.json' with { type: 'json' };
  * refuses a table that disagrees with the staged ruler. A shard the ruler doesn't measure has no badge.
  */
 export const PORT_SHARES: Readonly<Record<string, number>> = table.shares;
-/** the ruler run the shares come from (full SHA, ISO time) */
-export const PORT_SHARES_RULER: { readonly revision: string; readonly measuredAt: string } = { revision: table.revision, measuredAt: table.measuredAt };

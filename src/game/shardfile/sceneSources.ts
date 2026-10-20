@@ -3,7 +3,6 @@
 import { sceneScalar, sceneVectors } from './sceneInputs';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { LentLooks } from './lentLooks';
-import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { createModelLibrary, type ModelLibraryRows, type ModelLibrary, type ModelSpecimenRow } from '../plugin/geometry';
 import type { SceneHeldSpecimen, SceneNpcSpecimen } from '../models/sceneSpecimens';
@@ -123,31 +122,4 @@ export function sceneSourceDeclares(product: ShardProduct, library: string, mode
   const rows = need(modelRows, product.slug, library).rows;
   return kind === 'model' ? rows.hd.includes(model) : kind === 'painted' ? rows.paintedModels?.some(row => row.name === model) === true
     : rows.meshes.includes(model) || rows.geometryPools?.some(row => row.parts.includes(model)) === true;
-}
-
-const empty = { meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1 };
-/** Migration facade: a stable library identity whose preparation reads the same
- * product descriptors used by world.scenes. Only ids cross the shard boundary. */
-export function declaredSceneModels(slug: string, id: string): Library {
-  return new Proxy(createModelLibrary<string, string>(empty, 'unprepared scene source'), { get: (_target, field) => {
-    if (field === 'looks') return need(libraries, slug, id).looks;
-    return (...args: readonly unknown[]): unknown => {
-      if (field === 'preload' || field === 'preloadRigs') return import('./runtimeProduct').then(module => module.loadFirstPartyProduct(slug)).then(async product => {
-        await prepareSceneSources(product); const library = need(libraries, slug, id);
-        return field === 'preloadRigs' ? library.preloadRigs() : library.preload(args[0] === undefined ? undefined : v.parse(v.custom<() => Promise<void>>(value => typeof value === 'function'), args[0]));
-      });
-      const library = need(libraries, slug, id), method: unknown = Reflect.get(library, field);
-      if (typeof method !== 'function') throw new Error('Unknown scene library operation');
-      return Reflect.apply(method, library, args);
-    };
-  } });
-}
-/** Migration facade for the original kind/geometry/placement owner. */
-export function declaredSceneBake(slug: string, id: string): Bake {
-  return new Proxy(bakedMeshWorld<string, Kind>({}, {}, 'unprepared scene source'), { get: (_target, field) => (...args: readonly unknown[]): unknown => {
-    if (field === 'load') return import('./runtimeProduct').then(module => module.loadFirstPartyProduct(slug)).then(async product => { await prepareSceneSources(product); return need(bakes, slug, id).load(); });
-    const bake = need(bakes, slug, id), method: unknown = Reflect.get(bake, field);
-    if (typeof method !== 'function') throw new Error('Unknown scene bake operation');
-    return Reflect.apply(method, bake, args);
-  } });
 }

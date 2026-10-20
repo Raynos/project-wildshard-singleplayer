@@ -1,6 +1,5 @@
 /** Generated shard discovery and the legacy active-shard bridge (removed by shard phases). */
 import type { ShardManifest } from './manifest';
-import { onOwnerDispose } from '@wildshard/engine/app/ownership';
 import { _applyChunkConstants } from '@wildshard/engine/core/config';
 import { configureLevel } from '@wildshard/engine/level/selection';
 import { toLevelSpec } from './spec';
@@ -43,8 +42,6 @@ export const game = {
   set shard(next: ShardManifest) { current = next; },
 };
 
-const listeners: ((def: ShardManifest) => void)[] = [];
-
 export function getActiveChunk(): ShardManifest { return game.shard; }
 
 /** Select a chunk by slug. Unknown slugs fall back to the default (and warn). */
@@ -57,15 +54,10 @@ export function setActiveChunk(slug: string): ShardManifest {
     game.shard = next;
     _applyChunkConstants(game.shard);
     configureLevel(toLevelSpec(game.shard));
-    for (const fn of listeners) fn(game.shard);
   }
   return game.shard;
 }
 
-export function onActiveChunkChange(fn: (def: ShardManifest) => void): void {
-  listeners.push(fn);
-  onOwnerDispose(() => { const i = listeners.indexOf(fn); if (i !== -1) listeners.splice(i, 1); }); // a resident shard's (its Minimap): gone with it
-}
 
 /** URL for the same page with another chunk selected (other params kept). */
 export function chunkUrl(slug: string, from: string = location.href): string {

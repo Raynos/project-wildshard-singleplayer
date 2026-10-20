@@ -3040,7 +3040,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 `@wildshard/engine/combat/items` owns fixed-step cooldown, held charge, queued command aim and lantern fuel/light state. An admitted hook on the existing shared `ScriptHost` may select only its requested action for its host-bound item handle; configured contacts, damage and effects remain trusted. `@wildshard/game/shardfile/items` validates JSON rows, input contexts, loadout and module references, constructs trusted ownership aliases and resolves injected `ItemFamily` constructors. `installDeclaredItems` returns the normal primary/secondary/extras/order/install handoff plus the authoritative runtime map and fixed-step callback. `@wildshard/game/plugin/weaponFamily` supplies melee and lantern factories with scoped primitive views; the fixture uses the template whip and lantern numbers and a content-addressed 740-byte AssemblyScript module. Toggle/refill use action3/action4; UI reads `remainingFuel` and `lightOn` from the same runtime. The existing template switches at SF16. Bound creature views expose `simulationBound`: the legacy manager skips their decisions, damage, separation and movement-body allocation, while retaining pose/query hitboxes.
 
-`@wildshard/game/systems/items/lash` provides renderer-free `LashRuntime` for a declared weapon row. `lashSpec` combines its contact, damage and cooldown data with lash timing and move ids. The owner supplies aim, combat targets, world crack targets and the damage pipeline; `cool` and `advance` run on its existing clock. `snapshot` / `restore` retain the unroll and second-lash continuation. The browser keeps its cord and charge view while the headless owner supplies physical contact volumes. `lashVolumeHit`, `lashLane` and `lashContact` share the contact geometry. `@wildshard/game/systems/items/lashHost` `installLashHost(host, { step, row, timing, moves, eye, commands, targets })` is a declared lash weapon in the renderer-free host (SF27): locked on, each lash leaves the player's eye toward the commanded creature's body or a world command's target spot (a target gone keeps the last aim); it takes the first body it meets (head balls and body capsules), else a chest in its lane, else a target row's spot (`LashTargetRow`: an interaction row's act, its spot and radius, and `crack: 'light'` — a crack's first lash — or `'heavy'` — the double crack's second, its first wraps); `cracked()` names the act it reached this tick, which the interaction step's crack rows read. Its continuation is `{ version: 2, …lash, target, world, dir }`. Signal's whip is the first (`data/headless.ts` SIGNAL_HEADLESS.lash, the well's crank and the waymark bowls as its targets).
+`@wildshard/game/systems/items/lash` provides renderer-free `LashRuntime` for a declared weapon row. `lashSpec` combines its contact, damage and cooldown data with lash timing and move ids. The owner supplies aim, combat targets, world crack targets and the damage pipeline; `cool` and `advance` run on its existing clock. `snapshot` / `restore` retain the unroll and second-lash continuation. The browser keeps its cord and charge view while the headless owner supplies physical contact volumes. `lashVolumeHit` and `lashLane` share the contact geometry. `@wildshard/game/systems/items/lashHost` `installLashHost(host, { step, row, timing, moves, eye, commands, targets })` is a declared lash weapon in the renderer-free host (SF27): locked on, each lash leaves the player's eye toward the commanded creature's body or a world command's target spot (a target gone keeps the last aim); it takes the first body it meets (head balls and body capsules), else a chest in its lane, else a target row's spot (`LashTargetRow`: an interaction row's act, its spot and radius, and `crack: 'light'` — a crack's first lash — or `'heavy'` — the double crack's second, its first wraps); `cracked()` names the act it reached this tick, which the interaction step's crack rows read. Its continuation is `{ version: 2, …lash, target, world, dir }`. Signal's whip is the first (`data/headless.ts` SIGNAL_HEADLESS.lash, the well's crank and the waymark bowls as its targets).
 
 `@wildshard/game/plugin/weaponFamily` is the weapon families' hook surface (SF36). A family holds
 `hooks: WeaponHooks | null` (null, the default, is its row rule) and asks `hooks.damage({ phase, base, facts })` where it
@@ -4073,10 +4073,9 @@ SF85 WP-2 Nalati javelins: the numeric `thrown` declaration in `data/javelinProf
 
 SF82 `plugin/bossPhase.bossFight` also accepts the strict `script` boss profile
 with `{bytes, random}` ports. It validates the full existing elite declaration
-and module hash before constructing the original `EliteScriptLane`. The same
-`plugin/brain.stepEliteScript` steps lanes first, reads host values, then applies
-the returned ordered verbs. This changes neither the native engagement prelude
-nor the fixed encounter clock. No module bytes or random stream are inferred.
+and module hash before constructing the original `EliteScriptLane`. The owning
+encounter applies its returned ordered verbs on the existing fixed clock.
+No module bytes or random stream are inferred.
 
 SF82 Signal and Sky's native page and headless hosts admit the same authored
 `{kind: "boss", pattern, fight}` data profile before allocating their fight.
@@ -5436,12 +5435,6 @@ its optional third argument. Its existing frame checks and link parsers
 still refuse malformed or missing matching links. Omission retains the
 ordinary entry output. Cloning detaches binding data with the normal
 scene state; Sky's authoring recipe now uses the shared Entry directly.
-
-`bindRuntimeMelee(ctx, source, ports)` in `@wildshard/game/plugin/headless`
-resolves the declared primary weapon family and installs exactly the
-created or adopted owner. Its normal loader retains contact/profile
-admission, presentation, and actor-bound composed hooks. Signal and Sky
-use this path instead of private item registry modules.
 
 `bindPlayerImpulse(apply)` in `@wildshard/game/shardfile/dataCreaturePorts`
 loans one reusable velocity vector to the real player impulse owner. Its

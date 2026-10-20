@@ -9,7 +9,6 @@ import { createLevelInstallation, type LevelInstallation } from '@wildshard/engi
 import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellEvents, type GridCellRef, ShardPlugin, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/context';
 
 import type { ShardRuntime } from '../shard/runtime';
-import type { ShardManifest } from '../shard/manifest';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';
 import { RetainedRuntimeHooks } from "../shard/retainedHooks";
 
@@ -352,16 +351,6 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
   return new HybridShardPlugin(mapped, Runtime, gridInstance === null ? undefined : { instance, cells: gridCells, ...(retainHomeRuntime === undefined ? {} : { retainHomeRuntime }) }, source.audio);
 }
 
-/** Keep a transitional shard's existing standalone presentation while admitting data and resolving its declared code separately. */
-export async function hybridShardManifest(data: ShardManifest, presentation: ShardManifest, declaration: RuntimeDeclaration,
-  firstParty: boolean, entries: readonly TrustedRuntimeEntry[]): Promise<ShardManifest> {
-  if (data.slug.replace(/^_/u, '') !== presentation.slug.replace(/^_/u, '')) throw new Error('Hybrid data and presentation must name the same shard');
-  const load = data.load; if (load === undefined) throw new Error('Hybrid requires an admitted data plugin');
-  const [{ default: Data }, Runtime] = await Promise.all([load(), prepareTrustedRuntime(declaration, data.slug, firstParty, entries)]);
-  return { ...presentation, load: () => Promise.resolve({ default: class extends HybridShardPlugin {
-    constructor() { super(new Data(), Runtime); }
-  } }) };
-}
 
 /** Only the entered cell owns gameplay callbacks. Module prefetch stays inert; claimed road preparation is explicit. */
 export class HybridRuntimeSession {
@@ -527,11 +516,4 @@ export class HybridRuntimeSession {
   }
   /** Admission fences can observe whether the current inside-cell runtime finished its trusted stages. */
   state(): HybridRuntimeState { return { instance: this.active?.resident.instance ?? null, ready: this.active?.ready ?? false }; }
-}
-
-/** Consume the grid client's interior events; a late subscriber installs the current cell, never its neighbours. */
-export function installHybridRuntime(cells: Pick<GridCellEvents, 'onEnter' | 'onLeave'>, session: HybridRuntimeSession,
-  scope: Scope, report: (error: unknown) => void): void {
-  scope.onDispose(cells.onLeave(() => { try { session.leave(); } catch (error) { report(error); } }));
-  scope.onDispose(cells.onEnter((cell) => { void session.enter(cell).catch(report); }));
 }

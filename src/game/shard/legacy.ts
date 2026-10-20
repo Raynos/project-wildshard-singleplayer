@@ -1,5 +1,4 @@
 import type { ShardManifest, ShardEntryMode } from './manifest';
-import type { SaveStore } from '@wildshard/engine/saves/store';
 
 type EntryIdentity = Pick<ShardManifest, 'slug' | 'legacy'>;
 
@@ -30,10 +29,4 @@ export function primaryShardManifest<T extends EntryIdentity>(manifests: readonl
 /** A frozen copy is discoverable for an explicit LEGACY entry, while the ordinary picker and grid use the primary manifest. */
 export function ordinaryShardManifests<T extends EntryIdentity>(manifests: readonly T[]): readonly T[] {
   return manifests.filter(manifest => manifest.legacy !== true);
-}
-
-/** Retirement-only migration: copy missing local entries from the frozen copy, preserving newer primary progress and profile data. Call when deleting the legacy folder, never while the two entries coexist. */
-export function migrateRetiredLegacySave(store: SaveStore, primarySlug: string): boolean {
-  if (primarySlug.endsWith('-legacy')) throw new Error('Legacy migration requires a primary shard');
-  return store.mergeShardEntries(`${primarySlug}-legacy`, primarySlug);
 }

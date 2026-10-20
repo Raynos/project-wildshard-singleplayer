@@ -1,5 +1,5 @@
 import { bindPageHomes, bindPageBoss, bindPageActor, spawnPageHome } from '../population/pageHomes';
-import { installPageItems, bindPageMelee, installPageItemContexts } from '../shardfile/pageItems';
+import { installPageItems, installPageItemContexts } from '../shardfile/pageItems';
 import { bindPageQuest } from '../quest/pageState';
 import { createQuestLedger } from '../quest/ledger';
 import type { installCableModes } from '@wildshard/engine/player/modes';
@@ -220,12 +220,6 @@ export interface RuntimeMeleePorts<W extends ReturnType<RuntimeWeaponFamily['cre
   readonly create: (...args: Parameters<RuntimeWeaponFamily['create']>) => W;
   readonly icon: RuntimeItemPorts['icon']; readonly hooks?: RuntimeItemPorts['hooks'];
   readonly presentation?: RuntimeWeaponFamily['presentation'];
-}
-/** Resolve the primary row's family and retain that exact instance; no second controller or actor. */
-export function bindRuntimeMelee<W extends ReturnType<RuntimeWeaponFamily['create']>>(
-  ctx: Parameters<typeof bindRuntimeItems>[0], source: Shardfile, ports: RuntimeMeleePorts<W>): W {
-  requireBound(source, 'items');
-  return bindPageMelee(ctx, source, ports);
 }
 
 /**

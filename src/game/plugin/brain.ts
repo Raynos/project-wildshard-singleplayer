@@ -15,7 +15,6 @@ import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptSnapshot } from "@wildsh
 import { ScriptWorld, SCRIPT_OP, type EffectTransaction, type ScriptEffect } from "@wildshard/engine/script/effects";
 import { readStrikeState } from "@wildshard/engine/ai/strikeState";
 import { Vector3 } from "three";
-import type { EliteActor } from "@wildshard/engine/ai/EliteBrain";
 import type { SpeciesRow } from "@wildshard/engine/ai/species";
 import type { Animal } from "@wildshard/engine/entities/AnimalView";
 import type { ThinkCtx } from "@wildshard/engine/entities/species/registry";
@@ -296,11 +295,6 @@ export function speciesResolver(rows: ShardRows): (speciesId: string, variantId:
 /** Numeric strike rows feed the authoritative sim without a score callback. */
 export function simStrikes(rows: ShardRows): ReadonlyMap<string, SimStrike> {
   return new Map(rows.strikes.map(({ weight: _weight, speed, ...row }) => [row.id, { ...row, motion: { speed } }]));
-}
-/** Legacy strike scoring is an engine-owned constant adapter over the declared weight. */
-export function scoredStrikes(rows: ShardRows): readonly StrikeSpec[] {
-  const numeric = simStrikes(rows);
-  return rows.strikes.map((row) => { const spec = numeric.get(row.id); if (spec === undefined) throw new Error('Missing strike'); return { ...spec, weight: () => row.weight }; });
 }
 
 /**
@@ -645,73 +639,7 @@ export class EliteScriptLane {
   }
 }
 
-/** The body an elite script drives (the browser's Animal and a renderer-free body alike). */
-export interface EliteScriptBody extends EliteActor {
-  readonly seed: number; readonly lastHitT: number; readonly yaw: number;
-  startAttack: (seconds: number) => void;
-}
-/** One engaged step's view of the fight, as the elite's brain holds it. */
-export interface EliteScriptStep<B extends EliteScriptBody> {
-  readonly body: B; readonly dt: number; readonly t: number;
-  readonly mode: string; readonly modeT: number; readonly p2: boolean;
-  /** the horizontal distance and heading to the player, taken before any lane steps */
-  readonly d: number; readonly yaw: number;
-  readonly player: Vector3; readonly god: boolean;
-}
-/** A lane as the step reads it. */
-export interface EliteLaneView { readonly state: 'none' | 'tell' | 'run' | 'skid'; readonly t: number; readonly busy: boolean }
-/** What the verbs do in the shard's world. */
-export interface EliteScriptPorts {
-  setMode: (mode: string) => void;
-  voice: (name: string) => void;
-  signature: () => void;
-  /** lane `index` as it stands (null: the elite has none; it reads as idle) */
-  lane: (index: number) => EliteLaneView | null;
-  /** step lane `index` on the body clock; its hit hurts the player, then shakes by `trauma` */
-  stepLane: (index: number, trauma: number) => void;
-  startLane: (index: number, tell: number, speedMul: number) => void;
-  /** a measured contact (`strike` the declared row's id): its hit stuns, hurts and shakes as the row says */
-  contact: (row: EliteScriptData['contacts'][number]) => void;
-  trauma: (k: number) => void;
-  ring: (radius: number, alpha: number) => void;
-  ringHide: () => void;
-  /** the ring tell's clock to the frame's (first, every engaged step) */
-  ringTime?: () => void;
-  action: (name: string) => void;
-  /** the shard's two host values (inputs 19-20), read after the lanes step */
-  hostValues?: () => readonly [number, number];
-}
-const LANE_STATES = ['none', 'tell', 'run', 'skid'] as const;
-const NO_LANE: EliteLaneView = { state: 'none', t: 0, busy: false };
 
-/** One engaged step of an elite script: the declared lanes step, then the call, then its verbs in order. */
-export function stepEliteScript<B extends EliteScriptBody>(lane: EliteScriptLane, step: EliteScriptStep<B>, ports: EliteScriptPorts): void {
-  const data = lane.data, a = step.body, p = step.player, mode = data.modes.indexOf(step.mode);
-  if (mode === -1) throw new Error(`Elite script ${data.id} has no mode ${step.mode}`);
-  ports.ringTime?.();
-  for (const row of data.lanes) if (row.mode === step.mode) ports.stepLane(row.lane, row.trauma);
-  const view = ports.lane(0) ?? NO_LANE, host = ports.hostValues?.() ?? [0, 0];
-  const answer = lane.decide([0, step.dt, step.t, eliteScriptsENTITY, mode, step.modeT, step.p2 ? 1 : 0, step.d, step.yaw, p.x, p.z,
-    a.position.x, a.position.z, a.seed, Math.max(-1e9, a.lastHitT), step.god ? 1 : 0, LANE_STATES.indexOf(view.state), view.t, view.busy ? 1 : 0, host[0], host[1]]);
-  if (answer === null) { a.setMotion(a.yaw, 0, 0); return; }
-  for (const { verb, value, args } of answer) {
-    switch (verb) {
-      case ELITE_VERB.mode: ports.setMode(data.modes[value] ?? step.mode); break;
-      case ELITE_VERB.steer: a.setMotion(value, Math.min(data.maxSpeed, Math.max(0, args[0])), Math.min(data.maxTurnRate, Math.max(0, args[1]))); break;
-      case ELITE_VERB.look: if (args[1] !== 0) { a.lookTarget.copy(p); a.lookTarget.y += args[0]; } a.lookWeight = value; break;
-      case ELITE_VERB.voice: { const voice = data.voices[value]; if (voice !== undefined) ports.voice(voice); break; }
-      case ELITE_VERB.signature: ports.signature(); break;
-      case ELITE_VERB.lane: ports.startLane(value, args[0], args[1]); break;
-      case ELITE_VERB.contact: { const row = data.contacts[value]; if (row !== undefined) ports.contact(row); break; }
-      case ELITE_VERB.trauma: ports.trauma(value); break;
-      case ELITE_VERB.attack: a.startAttack(value); break;
-      case ELITE_VERB.ring: ports.ring(value, args[0]); break;
-      case ELITE_VERB.ringHide: ports.ringHide(); break;
-      case ELITE_VERB.action: { const action = data.actions[value]; if (action !== undefined) ports.action(action); break; }
-      default: throw new Error(`Elite script ${data.id} named an unknown verb`);
-    }
-  }
-}
 
 /**
  * A species row's declared brain (SHARD-PLATFORM SF27): a platform archetype and its data, resolved the same way by the

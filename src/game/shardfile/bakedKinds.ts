@@ -113,53 +113,13 @@ export interface BakedPieceRows<K extends BakedKindRow> {
 }
 /** A drawn piece: its group (one `InstancedMesh` per drawn kind, in row order), its colliders and its drawn kinds by name. */
 export interface DrawnBakedPiece { readonly root: Group; readonly colliders: ColliderDesc[]; readonly kinds: ReadonlyMap<string, InstancedMesh> }
-/** A loaded bake: each piece's instanced nodes by kind name. */
-export type LoadedBake<P extends string> = ReadonlyMap<P, ReadonlyMap<string, InstancedMesh>>;
 /** Per-call choices: the nodes to draw (default the last load), the kinds to draw and a material hook after the shard's. */
 export interface BakedPieceCall<K extends BakedKindRow> {
   readonly nodes?: ReadonlyMap<string, InstancedMesh> | undefined;
   readonly only?: ((kind: K) => boolean) | undefined;
   readonly each?: ((material: MeshStandardMaterial) => void) | undefined;
 }
-/** A shard's whole bake: load every piece once behind the loading screen, then draw any piece from it. */
-export interface BakedWorld<P extends string, K extends BakedKindRow> {
-  /** Load every piece (a piece that fails to load is empty, with an error); resolves to the loaded nodes. */
-  readonly load: () => Promise<LoadedBake<P>>;
-  /** The bake loaded last, or null before the first load. */
-  readonly last: () => LoadedBake<P> | null;
-  /** A piece from its bake (undrawn if its GLB did not load, solid either way). */
-  readonly piece: (piece: P, call?: BakedPieceCall<K>) => DrawnBakedPiece;
-}
 
-/**
- * A shard's instanced-kinds bake as rows (SF72): its pieces' rows, their GLB urls, a fault label and the shard's draw hooks.
- * Shared by Signal Dunes and Sky Reach (G345): the loader, the cache and the piece builder were each shard's own.
- */
-export function bakedWorld<P extends string, K extends BakedKindRow>(pieces: Readonly<Record<P, BakedPieceRows<K>>>, urls: Readonly<Record<P, string>>, label: string, draw: BakedKindsDraw<K> = {}): BakedWorld<P, K> {
-  const names = Object.keys(pieces).filter((name): name is P => Object.hasOwn(pieces, name));
-  let loaded: LoadedBake<P> | null = null;
-  return {
-    load: async () => {
-      const meshes = await Promise.all(names.map((name) => loadBakedKinds(urls[name], pieces[name].kinds, `${label} ${name}`)));
-      loaded = new Map(names.map((name, i) => [name, meshes[i] ?? new Map<string, InstancedMesh>()]));
-      return loaded;
-    },
-    last: () => loaded,
-    piece: (piece, call = {}) => {
-      const rows = pieces[piece], nodes = call.nodes ?? loaded?.get(piece), each = call.each;
-      const kinds = call.only === undefined ? rows.kinds : rows.kinds.filter(call.only);
-      const root = bakedKindsGroup(nodes, kinds, { ...draw, decorate: (material, kind) => { draw.decorate?.(material, kind); each?.(material); } });
-      // the drawn kinds by name, in row order (a kind whose GLB did not load is absent), each with its rows' tints
-      const drawn = kinds.filter((kind) => nodes?.has(kind.name) === true), byName = new Map<string, InstancedMesh>();
-      drawn.forEach((kind, i) => {
-        const mesh = root.children[i], tint = rows.tints?.[kind.name]; if (mesh === undefined || !instanced(mesh)) return;
-        byName.set(kind.name, mesh);
-        if (tint !== undefined) mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(tint), 3);
-      });
-      return { root, colliders: bakedColliders(rows.colliders), kinds: byName };
-    },
-  };
-}
 
 /** Draw exact ordinary meshes alongside instanced kinds, without changing their shader family or transform precision. */
 export function bakedMeshKindsGroup<K extends BakedMeshKindRow>(nodes: ReadonlyMap<string, Mesh> | undefined, kinds: readonly K[], draw: BakedKindsDraw<K> = {}): Group {
@@ -221,7 +181,7 @@ export interface BakedMeshWorld<P extends string, K extends BakedMeshKindRow> {
   readonly object: (piece: string, only?: Readonly<Record<string, string | number | boolean>>, each?: (material: MeshStandardMaterial) => void, snapshot?: LoadedMeshBake<P>) => DrawnBakedMeshPiece;
 }
 
-/** The ordinary-mesh counterpart of bakedWorld: the same piece rows, collider law and material hooks, with no instancing conversion. */
+/** The ordinary-mesh bake: the same piece rows, collider law and material hooks, with no instancing conversion. */
 export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pieces: Readonly<Record<P, BakedPieceRows<K>>>, urls: Readonly<Record<P, string>>, label: string, draw: BakedKindsDraw<K> & { readonly resources?: readonly BakedByteResource[]; readonly readBytes?: (url: string) => Promise<Uint8Array>; readonly placements?:{readonly rows:readonly WorldPieceRow<P>[];readonly colliders?:readonly {readonly id:string;readonly colliders:readonly BakedColliderInput[]}[]} } = {}): BakedMeshWorld<P, K> {
   const names = Object.keys(pieces).filter((name): name is P => Object.hasOwn(pieces, name));
   let loaded: LoadedMeshBake<P> | null = null;

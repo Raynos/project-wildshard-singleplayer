@@ -15,7 +15,6 @@ import type { ShardCompendium } from './types';
  *
  * A state only moves forward; `taken` implies `seen` (a kill you never "spotted" still unlocks the plate).
  */
-export const COMPENDIUM_STORE = 'compendium';
 
 /** Page save adapter over the same renderer-free journal law. Its public transitions and callbacks are unchanged. */
 export class CompendiumState extends CompendiumRules {
