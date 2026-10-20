@@ -108,11 +108,13 @@ export const TITAN_TIE_FEED = [TITAN_LINES.wantsRider, TITAN_LINES.quiet, TITAN_
 export const TITAN_IMMUNE_FEED = [TITAN_LINES.immuneSpear, TITAN_LINES.immuneDome];
 
 export const TITAN_TRAIL = { capacity: 12, seconds: .1 };
-export const TITAN_WHIRLS = [0,1,2].map(i => ({ signal: 'whirl',
+/** the three whirlwinds (game/boss/arenaFire ArenaWhirlsView): their wander laws, the funnels' ease and spin, the debris spiral */
+export const TITAN_WHIRLS = { laws: [0,1,2].map(i => ({ signal: 'whirl',
   initial: { x: TITAN_ARENA.center.x + Math.cos(i*2.1)*30, z: TITAN_ARENA.center.z + Math.sin(i*2.1)*30, vx: 0, vz: 0, cd: 0 },
   parameters: { cx: TITAN_ARENA.center.x, cz: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius, flank: TITAN_TUNING.whirlRadius },
   retain: { x: 'x', z: 'z', vx: 'vx', vz: 'vz', cd: 'cd' },
-}));
+})), ease: 1.2, spin: 5, sink: .5, breathe: [.06, 3],
+  debris: { count: 40, climb: .35, turn: 4, step: 2.4, radius: [1, 5.5], height: 13, axis: [.3, 1, .2], roll: 6, scale: [.6, .2, 5] } };
 
 export const TITAN_CHAINS = { count: 8, law: { signal: 'chainLand',
   initial: { on: 0, t: 0, x: 0, z: 0 }, parameters: { land: TITAN_TUNING.chainLand, radius: TITAN_TUNING.chainRadius },

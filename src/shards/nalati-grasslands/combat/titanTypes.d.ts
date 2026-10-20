@@ -17,7 +17,7 @@ export interface TitanFightData {
   TITAN_CLOCKS: unknown;
   TITAN_FIRE_SENSE: { x: number; z: number }[];
   TITAN_CHAINS: { count: number; law: unknown };
-  TITAN_TRAIL: unknown; TITAN_WHIRLS: unknown[];
+  TITAN_TRAIL: unknown; TITAN_WHIRLS: unknown;
   TITAN_SCHEDULES: { spear: unknown; chain: unknown; contact: unknown };
   TITAN_SUPPORT: unknown; TITAN_SUPPORT_SITES: { x: number; z: number; theta: number }[];
   TITAN_FIRE_FIELD: unknown; arenaFire: unknown; programs: Programs; FIRE_NEIGHBOURS: [number, number][];

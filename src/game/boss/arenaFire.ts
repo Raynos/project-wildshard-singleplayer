@@ -1,11 +1,13 @@
-/** Client-only instanced arena flames, smoke and scorch. No fight decisions or hazard ownership. */
+/** Client-only instanced arena flames, smoke, scorch and whirlwinds. No fight decisions or hazard ownership. */
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import { TIER } from '@wildshard/engine/core/tier';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
+import type { ReturnProgram } from '../population/returnProgram';
 import type { ArenaField } from './arenaField';
+import { EncounterSchedule, EncounterScheduleSchema } from './encounterPatrol';
 
 const finite = v.pipe(v.number(), v.finite());
 const pair = v.tuple([finite,finite]);
@@ -151,4 +153,63 @@ export class ArenaFireView {
   out(): void { this.n = 0; this.flames.count = 0; }
   /** a reset: nothing burning, no smoke, no scorch */
   clear(): void { this.out(); for (const p of this.pool) p.on = false; this.smoke.count = 0; this.scorched = 0; if (this.scorch !== null) this.scorch.count = 0; }
+}
+
+/** Whirlwinds: one admitted wander law each (`laws`, sharing the first's cooldown `cd`), a funnel that eases in at `ease`/s,
+ *  spins at `spin` rad/s and breathes `breathe` [share, rate], `sink` m into the ground, and its debris climbing a spiral
+ *  (`count` pieces, `climb` turns a second, `turn` rad/s, `step` rad apart, `radius` [base, growth to the top], `height` m,
+ *  rolling `roll` rad/s about `axis`, sized `scale` [base, step, steps]). */
+export const ArenaWhirlsSchema = v.strictObject({
+ laws: v.pipe(v.array(EncounterScheduleSchema), v.minLength(1), v.maxLength(8)), ease: finite, spin: finite, sink: finite, breathe: pair,
+ debris: v.strictObject({ count: v.pipe(count, v.maxValue(64)), climb: finite, turn: finite, step: finite, radius: pair, height: finite,
+  axis: v.tuple([finite, finite, finite]), roll: finite, scale: v.tuple([finite, finite, v.pipe(count, v.maxValue(16))]) }),
+});
+const _axis = new THREE.Vector3();
+/** The whirlwinds' funnels (the caller's meshes, one per law) and debris (its instanced mesh), moved by their laws. */
+export class ArenaWhirlsView {
+  private readonly rows: v.InferOutput<typeof ArenaWhirlsSchema>;
+  private readonly whirls: { readonly law: EncounterSchedule; readonly funnel: THREE.Object3D; on: boolean; k: number }[];
+  private readonly hits: THREE.Vector3[] = [];
+  constructor(input: unknown, program: ReturnProgram, funnels: readonly THREE.Object3D[], private readonly debris: THREE.InstancedMesh) {
+    this.rows = v.parse(ArenaWhirlsSchema, input);
+    if (funnels.length !== this.rows.laws.length || debris.instanceMatrix.count < this.rows.laws.length * this.rows.debris.count) throw new Error('Whirlwinds need a funnel each and room for their debris');
+    this.whirls = this.rows.laws.map((row, i) => {
+      const funnel = funnels[i]; if (funnel === undefined) throw new Error('Missing whirlwind funnel');
+      return { law: new EncounterSchedule(row, program), funnel, on: false, k: 0 };
+    });
+  }
+  /** Which whirlwinds blow (bit i: whirlwind i). */
+  arm(mask: number): void { this.whirls.forEach((w, i) => { w.on = (mask & (1 << i)) !== 0; }); }
+  reset(): void { for (const w of this.whirls) { w.on = false; w.funnel.visible = false; } this.debris.count = 0; }
+  /** Ease, move and draw them; on a decision tick (`thinkDt` > 0) each law steps with `frame` (wx, wz, px, pz). The
+   *  whirlwinds that touch the player this tick, where they stand. */
+  update(dt: number, t: number, live: boolean, thinkDt: number, frame: { readonly wx: number; readonly wz: number; readonly px: number; readonly pz: number }): readonly THREE.Vector3[] {
+    const rows = this.rows, d = rows.debris, shared = this.whirls[0]?.law;
+    _axis.fromArray(d.axis).normalize();
+    let n = 0, hit = 0;
+    for (let i = 0; i < this.whirls.length; i++) {
+      const w = this.whirls[i]; if (w === undefined) continue;
+      w.k += ((live && w.on ? 1 : 0) - w.k) * Math.min(1, dt * rows.ease);
+      w.funnel.visible = w.k > 0.02;
+      if (!w.funnel.visible) continue;
+      let hurt = false;
+      if (thinkDt > 0) {
+        const result = w.law.project({ dt: thinkDt, t, index: i, wx: frame.wx, wz: frame.wz, cd: shared?.value('cd') ?? 0, hit: Number(i === 0), px: frame.px, pz: frame.pz, open: Number(live) });
+        if (result['broke'] === 1) shared?.set({ cd: result['cd'] ?? 0 });
+        hurt = result['hurt'] === 1;
+      }
+      const x = w.law.value('x'), z = w.law.value('z'), y = heightAt(x, z);
+      w.funnel.position.set(x, y - rows.sink, z); w.funnel.rotation.y += dt * rows.spin;
+      w.funnel.scale.set(w.k, w.k * (1 + rows.breathe[0] * Math.sin(t * rows.breathe[1] + i)), w.k);
+      for (let k = 0; k < d.count; k++) {
+        const u = ((k / d.count) + t * d.climb + i * 0.13) % 1, a = t * d.turn + k * d.step, r = d.radius[0] + u * d.radius[1];
+        _m.compose(_p.set(x + Math.cos(a) * r, y + u * d.height, z + Math.sin(a) * r), _q.setFromAxisAngle(_axis, t * d.roll + k), _s.setScalar(w.k * (d.scale[0] + (k % d.scale[2]) * d.scale[1])));
+        this.debris.setMatrixAt(n++, _m);
+      }
+      if (hurt) { const at = this.hits[hit] ?? new THREE.Vector3(); this.hits[hit++] = at.set(x, y, z); }
+    }
+    this.debris.count = n; this.debris.instanceMatrix.needsUpdate = true;
+    this.hits.length = hit;
+    return this.hits;
+  }
 }

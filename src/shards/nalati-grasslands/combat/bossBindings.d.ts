@@ -57,8 +57,6 @@ export interface TitanPlay {
 
 export interface Puff { bone: THREE.Object3D; p: THREE.Vector3; r: number; ph: number }
 
-export interface Whirl { law: EncounterSchedule; funnel: THREE.Mesh; on: boolean; k: number }
-
 export interface Chain { tell: GroundTell; law: EncounterSchedule }
 
 export interface StormRider { a: Animal; lane: GroundTell; law: CoupledMember }

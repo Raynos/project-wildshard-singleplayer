@@ -1,5 +1,5 @@
-import { CoupledEncounter, EncounterSchedule } from '@wildshard/game/boss/encounterPatrol';
-import type { TitanCtx, TitanFightHost, TitanPlay, TitanRiders, Puff, Whirl, Chain, StormRider } from './bossBindings';
+import { CoupledEncounter, type EncounterSchedule } from '@wildshard/game/boss/encounterPatrol';
+import type { TitanCtx, TitanFightHost, TitanPlay, TitanRiders, Puff, Chain, StormRider } from './bossBindings';
 import { weaponSpecimen } from '../weapons/loadout';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { NALATI_STRIKES, sampleArena } from './strikes';
@@ -33,7 +33,7 @@ import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { LightningStrip } from '@wildshard/game/weapons/arcPower';
 import { NaizagaiPower, type NaizagaiPowerHandle } from '../weapons/nativeMelee';
 import { ArenaField, ArenaEncounter, arenaBlockedAt, type ArenaClockEffect } from '@wildshard/game/boss/arenaField';
-import { ArenaFireView } from '@wildshard/game/boss/arenaFire';
+import { ArenaFireView, ArenaWhirlsView } from '@wildshard/game/boss/arenaFire';
 import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
@@ -231,9 +231,7 @@ export class StormTitanFight implements BossScript {
   private readonly chains: Chain[];
   private get chainLeft(): number { return this.chainLaw.value('chain'); }
   private readonly clocks: ArenaEncounter;
-  // whirlwinds
-  private readonly whirls: Whirl[];
-  private readonly debris: THREE.InstancedMesh;
+  private readonly whirls: ArenaWhirlsView;
   // the seal
   private readonly wall: THREE.Mesh[]; private readonly wallMat: [FxMaterial,FxMaterial];
   private wallK = 0; private sealed = false;
@@ -274,8 +272,7 @@ export class StormTitanFight implements BossScript {
     const instances = (id: string): THREE.InstancedMesh => { const object = mesh(id); if (!isInstances(object)) throw new Error(`Missing Titan arena instances ${id}`); return object; };
     this.wall = [mesh('wall0'),mesh('wall1')];
     for (const w of this.wall) w.position.set(this.data.TITAN_ARENA.center.x,heightAt(this.data.TITAN_ARENA.center.x,this.data.TITAN_ARENA.center.z)-6,this.data.TITAN_ARENA.center.z);
-    this.whirls = this.data.TITAN_WHIRLS.map((row, i) => ({ law: new EncounterSchedule(row, windLaw), funnel: mesh(`funnel${i}`), on: false, k: 0 }));
-    this.debris = instances('debris'); this.debris.count = 0;
+    this.whirls = new ArenaWhirlsView(this.data.TITAN_WHIRLS, windLaw, [mesh('funnel0'), mesh('funnel1'), mesh('funnel2')], instances('debris'));
     scene.add(made.root);
     this.fire = new ArenaFireView(scene, this.data.arenaFire, (TIER === 'phone' ? this.data.geometry.phone : this.data.geometry.desktop).flames);
     this.fire.attachScorch(instances('scorch'));
@@ -329,8 +326,7 @@ export class StormTitanFight implements BossScript {
     this.clearFire();
     for (const c of this.chains) { c.law.reset(); c.tell.hide(); }
     this.chainLaw.reset();
-    for (const w of this.whirls) { w.on = false; w.funnel.visible = false; }
-    this.debris.count = 0;
+    this.whirls.reset();
   }
 
   intro(t: number, short: boolean): THREE.Vector3 {
@@ -357,7 +353,7 @@ export class StormTitanFight implements BossScript {
     this.phase = phase;
     const b = this.body;
     this.spearLaw.set({ mode: 0, cd: row['cd'] ?? 2 }); this.spearRing.hide(); this.spearFork.hide(); b.spear.alpha = 0; b.poseState.bend = 0; b.poseState.raise = .2;
-    this.whirls.forEach((w,i) => { w.on = ((row['mask'] ?? 0) & (1 << i)) !== 0; });
+    this.whirls.arm(row['mask'] ?? 0);
     if (row['arm'] === 1) { this.domeBroken = false; this.spawnRiders(); } else this.clearRiders();
     if (row['spread'] === 1) {
       this.fireOn = true;
@@ -430,7 +426,7 @@ export class StormTitanFight implements BossScript {
     for (const cell of this.field.extinguish()) this.addScorch(cell);
     this.fireOn = false;
     this.fire.out();
-    for (const w of this.whirls) w.on = false;
+    this.whirls.arm(0);
   }
 
   // ── the heart as a target (main's Targets chain) ──
@@ -584,41 +580,12 @@ export class StormTitanFight implements BossScript {
     }
   }
 
-  // ── whirlwinds ──
+  // ── whirlwinds: touching one lifts you out of the saddle ──
 
   private updateWhirls(dt: number, t: number, live: boolean, thinkDt: number): void {
     const p = this.host.player.position;
-
-    let n = 0;
-    for (let wi = 0; wi < this.whirls.length; wi++) {
-      const w = this.whirls[wi];
-      if (w === undefined) continue;
-      const want = live && w.on ? 1 : 0;
-      w.k += (want - w.k) * Math.min(1, dt * 1.2);
-      w.funnel.visible = w.k > 0.02;
-      if (!w.funnel.visible) continue;
-      let hurt = false;
-      if (thinkDt > 0) {
-        const shared = this.whirls[0]?.law;
-        const result = w.law.project({ dt: thinkDt, t, index: wi, wx: wind.dirX, wz: wind.dirZ,
-          cd: shared?.value('cd') ?? 0, hit: Number(wi === 0), px: p.x, pz: p.z, open: Number(live) });
-        if (result['broke'] === 1) shared?.set({ cd: result['cd'] ?? 0 });
-        hurt = result['hurt'] === 1;
-      }
-      const x = w.law.value('x'), z = w.law.value('z'), gy = heightAt(x, z);
-      w.funnel.position.set(x, gy - 0.5, z);
-      w.funnel.rotation.y += dt * 5;
-      w.funnel.scale.set(w.k, w.k * (1 + 0.06 * Math.sin(t * 3 + wi)), w.k);
-      // its debris: a rising spiral
-      for (let i = 0; i < 40; i++) {
-        const u = ((i / 40) + t * 0.35 + wi * 0.13) % 1, ang = t * 4 + i * 2.4, rr = 1 + u * 5.5;
-        _m.compose(_v.set(x + Math.cos(ang) * rr, gy + u * 13, z + Math.sin(ang) * rr), _q.setFromAxisAngle(_w.set(0.3, 1, 0.2).normalize(), t * 6 + i), _s.setScalar(w.k * (0.6 + (i % 5) * 0.2)));
-        this.debris.setMatrixAt(n++, _m);
-      }
-      // touching it lifts you out of the saddle
-      if (hurt && sampleArena(NALATI_STRIKES.whirl, _v.set(x, gy, z), p, () => { this.host.hurt(this.data.TITAN_TUNING.whirlDamage, 'A whirlwind — ride around them'); }, app.physics)) this.host.throwRider();
-    }
-    this.debris.count = n; this.debris.instanceMatrix.needsUpdate = true;
+    for (const at of this.whirls.update(dt, t, live, thinkDt, { wx: wind.dirX, wz: wind.dirZ, px: p.x, pz: p.z }))
+      if (sampleArena(NALATI_STRIKES.whirl, at, p, () => { this.host.hurt(this.data.TITAN_TUNING.whirlDamage, 'A whirlwind — ride around them'); }, app.physics)) this.host.throwRider();
   }
 
   // ── a strike from the sky ──

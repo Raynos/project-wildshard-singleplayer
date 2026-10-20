@@ -1,10 +1,10 @@
 import { afterEach, expect, test } from 'vitest';
-import { BoxGeometry, BufferGeometry, Color, InstancedMesh, Matrix4, MeshBasicMaterial, Scene, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Scene, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
 import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { ArenaField } from '../src/game/boss/arenaField';
-import { ArenaFireView } from '../src/game/boss/arenaFire';
+import { ArenaFireView, ArenaWhirlsView } from '../src/game/boss/arenaFire';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
@@ -61,4 +61,28 @@ test('a fire without cell rows refuses to draw a field', () => {
     const fire = new ArenaFireView(new Scene(), plain, new BufferGeometry().copy(new BoxGeometry()).toJSON());
     expect(() => { fire.drawField(field, 0.1, 0, 0); }).toThrow('cell rows');
   } finally { scope.dispose(); }
+});
+
+// A made-up quarry's two dust devils (the whirlwinds' fixture second user) on their own laws, funnels and debris.
+const devil = (x: number) => ({ signal: 'whirl', initial: { x, z: 0, vx: 0, vz: 0, cd: 0 }, parameters: { cx: 0, cz: 0, radius: 40, flank: 2 },
+  retain: { x: 'x', z: 'z', vx: 'vx', vz: 'vz', cd: 'cd' } });
+const devils = { laws: [devil(-8), devil(8)], ease: 4, spin: 2, sink: 0.2, breathe: [0.1, 1],
+  debris: { count: 3, climb: 0.5, turn: 1, step: 2, radius: [0.5, 2], height: 6, axis: [0, 1, 0], roll: 1, scale: [0.5, 0.25, 2] } };
+
+test('a second shard\'s dust devils ease in only while armed and live, spin their funnels and climb their debris', () => {
+  restore = overrideTerrain({ heightAt: () => 3, normalAt: () => [0, 1, 0] });
+  const funnels = [new Group(), new Group()], debris = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 6);
+  const view = new ArenaWhirlsView(devils, ReturnProgram.page(program.wind), funnels, debris);
+  view.update(0.1, 0, true, 0, { wx: 1, wz: 0, px: 0, pz: 30 });
+  expect(funnels.every(funnel => !funnel.visible)).toBe(true); expect(debris.count).toBe(0);
+  view.arm(0b10);
+  for (let i = 0; i < 10; i++) view.update(0.1, i * 0.1, true, 0, { wx: 1, wz: 0, px: 0, pz: 30 });
+  expect(funnels[0]?.visible).toBe(false); expect(funnels[1]?.visible).toBe(true);
+  expect(funnels[1]?.position.toArray()).toEqual([8, 2.8, 0]); expect(debris.count).toBe(3);
+  const first = new Vector3().setFromMatrixPosition(new Matrix4().fromArray(debris.instanceMatrix.array, 0));
+  expect(first.y).toBeGreaterThanOrEqual(3); expect(first.y).toBeLessThanOrEqual(9);
+  for (let i = 0; i < 40; i++) view.update(0.1, 1 + i * 0.1, false, 0, { wx: 1, wz: 0, px: 0, pz: 30 });
+  expect(funnels[1]?.visible).toBe(false);
+  view.reset(); expect(debris.count).toBe(0);
+  expect(() => new ArenaWhirlsView(devils, ReturnProgram.page(program.wind), [new Group()], debris)).toThrow('funnel');
 });
