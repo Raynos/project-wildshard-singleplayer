@@ -1,10 +1,9 @@
 {
-  "date": "19 OCT 2026",
-  "updated": "2026-10-20T04:14Z",
+  "date": "20 OCT 2026",
+  "updated": "2026-10-20T04:14:30Z",
   "entries": [
-    "Nine Dragon Stack: fixed a severe desktop slowdown after entering",
-    "Every shard's map is now drawn straight from its world",
-    "Nalati Grasslands: riding, taming, weapons and stealth rebuilt on shared systems",
-    "Nine Dragon Stack: grapple courses and portal rides rebuilt on shared systems"
+    "Infinite Wildshard: fixed cold-start grid entry",
+    "Nine Dragon Stack: reduced repeated fog and material work",
+    "Animated creatures: reduced repeated GPU uploads"
   ]
 }
