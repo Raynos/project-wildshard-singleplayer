@@ -55,8 +55,6 @@ export interface TitanPlay {
   params: URLSearchParams;
 }
 
-export interface Puff { bone: THREE.Object3D; p: THREE.Vector3; r: number; ph: number }
-
 export interface Chain { tell: GroundTell; law: EncounterSchedule }
 
 export interface StormRider { a: Animal; lane: GroundTell; law: CoupledMember }

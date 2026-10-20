@@ -19,7 +19,7 @@ import type { CrowdBody as FlockBody } from '@wildshard/game/ambient/crowdDraw';
 import { createNativeFlocks, readFlockBody } from '../runtime/flockDeclared';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { productRiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
-import { TitanBody } from '../combat/stormTitan';
+import { titanCloud, titanPose } from '../combat/stormTitan';
 
 const FILE = 'src/shards/nalati-grasslands/models/creatures.ts';
 
@@ -61,7 +61,7 @@ export const sheep: ModelDef<object> = defineModel<object>({
 });
 
 /**
- * Jel Ata, the Storm Titan (src/shards/nalati-grasslands/stormTitan.ts `TitanBody`): the second boss, a ~110 m giant of ~340 churning cloud
+ * Jel Ata, the Storm Titan (combat/stormTitan.ts `titanCloud`): the second boss, a ~110 m giant of ~340 churning cloud
  * puffs (and their buds) on seven code bones, one InstancedMesh, the lightning heart and eyes; the fight stands him in the
  * cloud sea beyond the south rim. The card is his body risen and at rest, his waist over the origin, the foot of his cloud
  * skirt on y = 0
@@ -71,17 +71,17 @@ export const stormTitan: ModelDef<object> = defineModel<object>({
   defaults: {},
   build: () => {
     const scratch = new THREE.Scene();   // the body adds its parts to the scene it is given
-    const body = new TitanBody(scratch);
-    body.rise = 1;
+    const pose = titanPose(); pose.rise = 1;
+    const body = titanCloud(scratch, pose);
     body.setVisible(true);
-    body.pose(0, new THREE.PerspectiveCamera());
+    body.update(0, new THREE.PerspectiveCamera());
     const own = new THREE.Group();
     for (const o of scratch.children.slice()) own.add(o);   // (a copy: add() moves each out of the list)
     body.puffs.computeBoundingBox();
-    const low = body.puffs.boundingBox?.min.y ?? body.root.position.y;
-    own.position.set(-body.root.position.x, -low, -body.root.position.z);
+    const root = body.part('root'), low = body.puffs.boundingBox?.min.y ?? root.position.y;
+    own.position.set(-root.position.x, -low, -root.position.z);
     // his cloud lights the heart's glow from the heart's world position: keep it on the specimen's heart, wherever it stands
-    body.puffs.onBeforeRender = (): void => { body.heartWorld(body.uni.uHeart.value); body.syncCloud(); };
+    body.puffs.onBeforeRender = (): void => { body.focusWorld(body.focusPoint); body.syncLook(); };
     const g = new THREE.Group();
     g.name = 'storm-titan';
     g.add(own);

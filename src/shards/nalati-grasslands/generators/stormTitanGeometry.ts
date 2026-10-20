@@ -1,6 +1,7 @@
 import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 import { parsePrivateScene, type PrivateScene, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import * as THREE from 'three';
+import { TITAN_PLACE } from './stormTitanFight';
 
 /** Retained original static construction. Pose, shader hooks and hazards stay live. */
 function rng(seed: number): () => number { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
@@ -120,7 +121,7 @@ export function titanGeometry(): { phone: { puffs: PuffRow[]; flames: Omit<THREE
 }
 
 /** Private transforms and construction rows; the native view only lends bones and materials. */
-export function titanBodyRows(): { scene: PrivateScene; geometry: Record<string, Omit<THREE.BufferGeometryJSON, 'uuid'>> } {
+export function titanBodyRows(): { scene: PrivateScene; geometry: Record<string, Omit<THREE.BufferGeometryJSON, 'uuid'>>; [row: string]: unknown } {
   const nodes = [
     { kind: 'group', id: 'view', children: ['root', 'ring'] },
     { kind: 'group', id: 'root', children: ['chest'] },
@@ -139,7 +140,16 @@ export function titanBodyRows(): { scene: PrivateScene; geometry: Record<string,
   ];
   return { scene: parsePrivateScene({ version: 1, root: 'view', nodes, materials: ['heart','glow','ring','dome','eyes'].map(id => ({ kind: 'port', id, source: id })) }),
     geometry: { heart: geometryRow(new THREE.IcosahedronGeometry(2.2,2)), glow: geometryRow(new THREE.SphereGeometry(4.4,24,16)),
-      dome: geometryRow(new THREE.SphereGeometry(5.2,32,16)), ring: geometryRow(new THREE.TorusGeometry(7.5,.5,6,56)) } };
+      dome: geometryRow(new THREE.SphereGeometry(5.2,32,16)), ring: geometryRow(new THREE.TorusGeometry(7.5,.5,6,56)) },
+    // game/boss/encounterView CloudBody: the self-lit heart, its glow, the gold ring and the dome; dark cumulus churning on the bones
+    materials: { heart: { kind: 'basic', colour: [1.6,1.9,3.8], additive: false }, glow: { kind: 'fx', mode: 'beam', colour: [.55,.7,2.4], alpha: .8 },
+      ring: { kind: 'basic', colour: [2.6,1.9,.6], additive: true, opacity: 0 }, dome: { kind: 'fx', mode: 'dome', colour: [2,1.6,.7], alpha: .85 },
+      eyes: { kind: 'basic', colour: [3.2,3.4,4.2], additive: false } },
+    group: 'titan.pose', root: 'root', scale: TITAN_PLACE.bodyScale, shown: ['heart','eyes'],
+    puffs: { bones: ['root','chest','head','upperR','foreR','handR','upperL','foreL','handL'], detail: 2, name: 'titan-cloud', look: 'nalati-titan-cloud',
+      swell: [.08,.9], drift: [.37,.29,.5], spin: .05, squash: .9 },
+    params: { time: 't', focus: 'heart', glow: 'glow', flash: 'flash', alpha: 'alpha', fogColour: 'fogC', fog: 'fog' },
+    focus: { part: 'heart', open: 'heartOpen', colour: [[1.6,1.9,3.8],[3.2,3.1,4.2]], glow: 'glow', glowAlpha: [.55,.45], lookGlow: [.3,.6], ring: 'ring', spin: .8, pulse: [.7,.3,9], dome: 'dome' } };
 }
 
 /** The bone and heart draw law becomes bounded numeric channels, never an AS frame tick. */

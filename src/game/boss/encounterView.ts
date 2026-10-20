@@ -1,6 +1,6 @@
 /** Client-only encounter views (the boss fight host, G474): a slot encounter's cues and telegraph on the cue director
- * and ground tells, and a patrol's looks, figures, arrows and cues. The law stays in `encounterPatrol`; no shard renderer
- * callback is accepted. Never imported by renderer-free hosts. */
+ * and ground tells, a patrol's looks, figures, arrows and cues, and a boss's cloud body. The law stays in
+ * `encounterPatrol` and the fight; no shard renderer callback is accepted. Never imported by renderer-free hosts. */
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
@@ -9,11 +9,15 @@ import { pinBrain } from '@wildshard/engine/ai/inspect';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import { Projectiles, type ProjectileWorld } from '@wildshard/engine/combat/view/projectile';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import { FX, fxMaterial, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { CueDirector } from '../audio/cueDirector';
 import { GroundTell } from '../Elite';
 import type { ReturnProgram } from '../population/returnProgram';
+import { createClientScene } from '../plugin/ui';
+import { installChannelPrograms } from '../plugin/channelPrograms';
+import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import { EncounterPatrol, EncounterSchedule, EncounterSlots, type EncounterSlotSite, type PatrolActorBinding, type PatrolActorRoster, type PatrolMember, type SlotActor } from './encounterPatrol';
 
 const finite = v.pipe(v.number(), v.finite()), cue = v.pipe(v.string(), v.regex(/^cue\.[a-zA-Z0-9.-]+$/u)), name = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9]*$/u));
@@ -262,3 +266,121 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
     this.ports.cues.cue(this.rows.cues.loose, from, UP);
   }
 }
+
+const id = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
+const triple = v.tuple([finite, finite, finite]), pair = v.tuple([finite, finite]);
+const material = v.variant('kind', [
+  v.strictObject({ kind: v.literal('basic'), colour: triple, additive: v.boolean(), opacity: v.exactOptional(v.pipe(finite, v.minValue(0), v.maxValue(1))) }),
+  v.strictObject({ kind: v.literal('fx'), mode: v.picklist(Object.keys(FX) as [keyof typeof FX, ...(keyof typeof FX)[]]), colour: triple, alpha: finite }),
+]);
+const puffRow = v.strictObject({ bone: id, p: triple, r: finite, ph: finite, colour: triple });
+/**
+ * A cloud body: `scene` and its `geometry` (`materials` by port id: a self-lit basic colour or an FX program), posed by
+ * the `group` of `poses` channel rows reading the caller's `pose` fields (and its extra ports), scaled by `scale` at
+ * `root`. Its `puffs` (`rows` on `bones`, an icosphere of `detail`) churn (`swell` [share, rate], `drift` [x rate, y rate,
+ * m], `spin` rad/s, `squash` y) in the lent `look`, which reads `params` (time, focus point, glow, flash, alpha, fog colour
+ * and fog). Its `focus` part blazes from `colour[0]` to `colour[1]` as the `open` pose field rises, its `glow` part's alpha
+ * and the look's glow ride `glowAlpha` and `lookGlow` [base, gain], and its `ring` faces the camera, spinning at `spin`
+ * and pulsing `pulse` [base, gain, rate] while open; `shown` parts show and hide with the body.
+ */
+export const CloudBodySchema = v.strictObject({
+  scene: v.unknown(), geometry: v.record(id, v.unknown()), materials: v.record(id, material),
+  poses: v.unknown(), group: id, root: id, scale: finite, shown: v.pipe(v.array(id), v.maxLength(16)),
+  puffs: v.strictObject({ rows: v.pipe(v.array(puffRow), v.maxLength(4096)), bones: v.pipe(v.array(id), v.maxLength(32)), detail: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(4)),
+    name: id, look: id, swell: pair, drift: triple, spin: finite, squash: finite }),
+  params: v.strictObject({ time: id, focus: id, glow: id, flash: id, alpha: id, fogColour: id, fog: id }),
+  focus: v.strictObject({ part: id, open: id, colour: v.tuple([triple, triple]), glow: id, glowAlpha: pair, lookGlow: pair, ring: id, spin: finite, pulse: triple, dome: id }),
+});
+interface Puff { readonly bone: THREE.Object3D; readonly p: THREE.Vector3; readonly r: number; readonly ph: number }
+const at = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), turn = new THREE.Quaternion(), size = new THREE.Vector3(), matrix = new THREE.Matrix4();
+
+/** A cloud body built from its rows; `update(t, camera)` poses and draws it. */
+export class CloudBody {
+  /** what the look reads: the fight raises `flash`, fades `alpha` and keeps the fog's colour and density */
+  readonly alpha = { value: 1 }; readonly flash = { value: 0 }; readonly glow = { value: 0.4 };
+  readonly fogColour = new THREE.Color(0.3, 0.32, 0.4); readonly fog = { value: 0.1 };
+  readonly focusPoint = new THREE.Vector3();
+  visible = false;
+  private readonly rows: v.InferOutput<typeof CloudBodySchema>;
+  private readonly parts: ReadonlyMap<string, THREE.Object3D>;
+  readonly puffs: THREE.InstancedMesh;
+  private readonly list: Puff[];
+  private readonly draw: ReturnType<typeof installChannelPrograms>;
+  private readonly made = new Map<string, THREE.Material>();
+  private readonly focusMaterial: THREE.Material; private readonly glowMaterial: THREE.Material;
+  private readonly ringMaterial: THREE.Material; private readonly domeMaterial: THREE.Material;
+  private time = 0;
+  constructor(scene: THREE.Scene, input: unknown, private readonly pose: Readonly<Record<string, number>>, ports: ReadonlyMap<string, unknown> = new Map()) {
+    const rows = this.rows = v.parse(CloudBodySchema, input);
+    for (const [key, row] of Object.entries(rows.materials)) {
+      const colour = new THREE.Color(...row.colour);
+      this.made.set(key, row.kind === 'fx' ? fxMaterial(FX[row.mode], colour, row.alpha)
+        : new THREE.MeshBasicMaterial({ color: colour, toneMapped: false, fog: false, ...(row.additive ? { blending: THREE.AdditiveBlending, depthWrite: false } : {}),
+          ...(row.opacity === undefined ? {} : { transparent: true, opacity: row.opacity }) }));
+    }
+    const loader = new THREE.BufferGeometryLoader();
+    const built = createClientScene(rows.scene, { geometry: new Map(Object.entries(rows.geometry).map(([key, row]) => [key, loader.parse(row)])), materials: this.made });
+    this.parts = built.parts;
+    this.part(rows.root).scale.setScalar(rows.scale); scene.add(built.root);
+    this.draw = installChannelPrograms(rows.poses, rows.group, new Map<string, unknown>([...built.parts, ...ports, ['pose', this.pose]]));
+    this.list = rows.puffs.rows.map(row => {
+      if (!rows.puffs.bones.includes(row.bone)) throw new Error(`Cloud puff on an undeclared bone: ${row.bone}`);
+      return { bone: this.part(row.bone), p: new THREE.Vector3(...row.p), r: row.r, ph: row.ph };
+    });
+    const geometry = new THREE.IcosahedronGeometry(1, rows.puffs.detail);
+    geometry.setAttribute('aAlbedo', new THREE.InstancedBufferAttribute(new Float32Array(rows.puffs.rows.flatMap(row => row.colour)), 3));
+    this.puffs = new THREE.InstancedMesh(geometry, lentLook(rows.puffs.look), Math.max(1, this.list.length));
+    this.puffs.frustumCulled = false; this.puffs.castShadow = false; this.puffs.receiveShadow = false; this.puffs.name = rows.puffs.name;
+    scene.add(this.puffs);
+    const f = rows.focus;
+    this.focusMaterial = this.materialOf(f.part); this.glowMaterial = this.materialOf(f.glow); this.ringMaterial = this.materialOf(f.ring); this.domeMaterial = this.materialOf(f.dome);
+    this.setVisible(false);
+  }
+  part(key: string): THREE.Object3D { const object = this.parts.get(key); if (object === undefined) throw new Error(`Missing cloud body part ${key}`); return object; }
+  setVisible(on: boolean): void {
+    this.visible = on; this.puffs.visible = on;
+    for (const key of this.rows.shown) this.part(key).visible = on;
+    if (!on) { this.part(this.rows.focus.ring).visible = false; this.part(this.rows.focus.dome).visible = false; }
+  }
+  /** the focus's world position (after `update`) */
+  focusWorld(out: THREE.Vector3): THREE.Vector3 { return this.part(this.rows.focus.part).getWorldPosition(out); }
+  update(t: number, camera: THREE.Camera): void {
+    const rows = this.rows, c = rows.puffs, f = rows.focus, open = this.pose[f.open] ?? 0;
+    this.time = t;
+    this.draw.evaluate({ time: t, delta: 0, values: {} });
+    this.part(rows.root).updateMatrixWorld(true);
+    for (let i = 0; i < this.list.length; i++) {
+      const puff = this.list[i]; if (puff === undefined) continue;
+      at.copy(puff.p).applyMatrix4(puff.bone.matrixWorld);
+      const k = puff.r * (1 + c.swell[0] * Math.sin(t * c.swell[1] + puff.ph));
+      at.x += Math.sin(t * c.drift[0] + puff.ph) * c.drift[2]; at.y += Math.sin(t * c.drift[1] + puff.ph * 1.7) * c.drift[2];
+      this.puffs.setMatrixAt(i, matrix.compose(at, turn.setFromAxisAngle(up, t * c.spin + puff.ph), size.set(k, k * c.squash, k)));
+    }
+    this.puffs.instanceMatrix.needsUpdate = true;
+    this.focusWorld(this.focusPoint);
+    const focus = this.focusMaterial, glow = this.glowMaterial, ring = this.part(f.ring), [closed, opened] = f.colour;
+    if (focus instanceof THREE.MeshBasicMaterial) focus.color.setRGB(closed[0] + (opened[0] - closed[0]) * open, closed[1] + (opened[1] - closed[1]) * open, closed[2] + (opened[2] - closed[2]) * open);
+    if (isFx(glow)) { glow.uniforms.uAlpha.value = f.glowAlpha[0] + f.glowAlpha[1] * open; glow.uniforms.uTime.value = t; }
+    this.glow.value = f.lookGlow[0] + f.lookGlow[1] * open;
+    ring.visible = this.visible && open > 0.02;
+    if (ring.visible) {
+      ring.position.copy(this.focusPoint); ring.lookAt(camera.position); ring.rotateZ(t * f.spin);
+      this.ringMaterial.opacity = open * (f.pulse[0] + f.pulse[1] * Math.sin(t * f.pulse[2]));
+    }
+    if (isFx(this.domeMaterial)) this.domeMaterial.uniforms.uTime.value = t;
+    this.syncLook();
+  }
+  /** push the look's params (also after the fight changes flash or alpha between updates) */
+  syncLook(): void {
+    const cloud = this.rows.puffs.look, p = this.rows.params, h = this.focusPoint, c = this.fogColour;
+    setLentParam(cloud, p.time, this.time); setLentParam(cloud, p.focus, [h.x, h.y, h.z]); setLentParam(cloud, p.glow, this.glow.value);
+    setLentParam(cloud, p.flash, this.flash.value); setLentParam(cloud, p.alpha, this.alpha.value);
+    setLentParam(cloud, p.fogColour, [c.r, c.g, c.b]); setLentParam(cloud, p.fog, this.fog.value);
+  }
+  private materialOf(part: string): THREE.Material {
+    const object = this.part(part);
+    for (const made of this.made.values()) if (object instanceof THREE.Mesh && object.material === made) return made;
+    throw new Error(`Cloud body part ${part} wears no declared material`);
+  }
+}
+function isFx(made: THREE.Material): made is FxMaterial { return made instanceof THREE.ShaderMaterial && 'uAlpha' in made.uniforms && 'uTime' in made.uniforms; }

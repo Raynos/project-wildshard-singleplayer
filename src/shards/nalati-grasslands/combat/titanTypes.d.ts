@@ -34,7 +34,8 @@ interface PuffRow { bone: string; p: [number,number,number]; r: number; ph: numb
 interface Tier { flames: Geometry; puffs: PuffRow[] }
 export interface TitanGeometryData {
   phone: Tier; desktop: Tier; eyes: Geometry;
-  body: { scene: PrivateScene; geometry: Record<string, Geometry> };
+  /** game/boss/encounterView CloudBody rows less the eyes, poses and tier puffs the fight adds */
+  body: { geometry: Record<string, Geometry>; puffs: object } & Record<string, unknown>;
   poses: ClientChannelProgram[];
   arena: { scene: PrivateScene; geometry: Record<string,Geometry>; scorch: number[] };
 }
