@@ -43,8 +43,7 @@ import { audioVoicePatches } from '@wildshard/game/audio/voicePatches';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import type { Lightning as Weather, Exposed, LightningPlayer, Strike } from './Lightning';
 import { readWeatherProgram, steppeStorm, stormWind, stepStorm, stormEnv, yurtsOf, yurtShelters, exposeTrees, type YurtCircle } from './weatherStep';
-import { rainCurtain } from '@wildshard/game/systems/looks/rainCurtain';
-import { RAIN_PROGRAM } from './rainProgram';
+import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
 import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
 import { lentLook, setLentTexture, pushLentParams, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { smoothstep } from '@wildshard/engine/core/noise';
@@ -248,15 +247,17 @@ function weatherEffects(ctx: WeatherCtx, rows: Awaited<ReturnType<typeof weather
  const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:texture(rows.glow),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,toneMapped:false}));
  const fire=new THREE.Sprite(new THREE.SpriteMaterial({map:texture(rows.fire),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
  glow.renderOrder=12;fire.renderOrder=11;group.add(glow,fire);parts.set('glow',glow);parts.set('fire',fire);
- const rainU={uOffset:{value:new THREE.Vector3()},uR:{value:TIER==='phone'?11:16},uVel:{value:new THREE.Vector3(0,-9,0)},uLen:{value:.9},uCol:{value:new THREE.Color()},uAlpha:{value:.3},uWidth:{value:.013}};
- const count=TIER==='phone'?3500:6000,rain=rainCurtain({count,seed:ctx.manifest.seed,uniforms:rainU,program:RAIN_PROGRAM});group.add(rain);parts.set('rain',rain);
+ // the rain round the eye: streak quads posed and fogged by the 'nalati-rain' look graph (data/lookGraphs.json)
+ const radius=TIER==='phone'?11:16,offset=new THREE.Vector3(),velocity=new THREE.Vector3(0,-9,0),rainV:[number,number,number]=[0,0,0];setLentParam('nalati-rain','radius',radius);
+ const count=TIER==='phone'?3500:6000,rain=new THREE.Mesh(rainCurtainGeometry(count,ctx.manifest.seed,'aSeed'),lentLook('nalati-rain'));
+ rain.frustumCulled=false;rain.renderOrder=20;rain.visible=false;rain.name='rain';group.add(rain);parts.set('rain',rain);
  const uniforms={uVelx:0,uVely:0,uVelz:0,uLen:0,uAlpha:0,uColx:0,uColy:0,uColz:0},draw={count:0};
  const flags:Record<string,number>=Object.fromEntries([...parts.keys()].map(id=>[id,0]));
  const timers={boltT:99,glowT:99,smokeLeft:0,smokeT:0},windReading={x:0,z:0};
  const params=graphParamRoots(channels,'nalati.fx',['nalati-storm-deck','nalati-storm-curtains','nalati-lightning-bolt','nalati-strike-smoke','nalati-puddles']);
  const owners=new Map<string,unknown>([...params.roots,...parts,['wind',windReading],['flags',flags],['rainU',uniforms],['draw',draw],['glowMaterial',{get opacity(){return glow.material.opacity;},set opacity(value:number){glow.material.opacity=value;}}],['fireMaterial',{get opacity(){return fire.material.opacity;},set opacity(value:number){fire.material.opacity=value;}}]]);
  let lane:ReturnType<typeof installChannelPrograms>|null=null;
- ctx.game.levelScope.onDispose(()=>{group.removeFromParent();for(const g of shapes)g.dispose();rain.geometry.dispose();if(Array.isArray(rain.material)){for(const material of rain.material)material.dispose();}else rain.material.dispose();noise.dispose();for(const sprite of [glow,fire]){sprite.material.map?.dispose();sprite.material.dispose();}});
+ ctx.game.levelScope.onDispose(()=>{group.removeFromParent();for(const g of shapes)g.dispose();rain.geometry.dispose();noise.dispose();for(const sprite of [glow,fire]){sprite.material.map?.dispose();sprite.material.dispose();}});
  group.name='weather-fx';ctx.game.scene.add(group);
  return {group,rain,
   telegraph(s:Strike){glow.position.set(s.x,s.y+.4,s.z);timers.glowT=0;},
@@ -268,8 +269,12 @@ function weatherEffects(ctx: WeatherCtx, rows: Awaited<ReturnType<typeof weather
    if(lane===null){owners.set('weather',{get front(){return weather.front;},get stormFrom(){return weather.stormFrom;},get rainbow(){return weather.rainbow;},get overcast(){return weather.overcast;},get flash(){return weather.flash;},get rain(){return weather.rain;},get wet(){return weather.weather.wet;}});owners.set('look',look);owners.set('camera',camera.position);lane=installChannelPrograms(channels,'nalati.fx',owners);}
    lane.evaluate({time:0,delta:dt,values:{...timers,active:Number(weather.weather.state!=='clear'),count}});pushLentParams(params);
    for(const [id,part] of parts)part.visible=(flags[id]??0)>0;
-   rainU.uVel.value.set(uniforms.uVelx,uniforms.uVely,uniforms.uVelz);rainU.uCol.value.setRGB(uniforms.uColx,uniforms.uColy,uniforms.uColz);rainU.uLen.value=uniforms.uLen;rainU.uAlpha.value=uniforms.uAlpha;
-   if(rain.visible){const box=rainU.uR.value*2;rainU.uOffset.value.addScaledVector(rainU.uVel.value,dt);for(const axis of ['x','y','z'] as const)rainU.uOffset.value[axis]=((rainU.uOffset.value[axis]%box)+box)%box;rain.geometry.setDrawRange(0,Math.ceil(draw.count)*6);}
+   velocity.set(uniforms.uVelx,uniforms.uVely,uniforms.uVelz);
+   if(rain.visible){
+    const box=radius*2;offset.addScaledVector(velocity,dt);for(const axis of ['x','y','z'] as const)offset[axis]=((offset[axis]%box)+box)%box;rain.geometry.setDrawRange(0,Math.ceil(draw.count)*6);
+    setLentParam('nalati-rain','offset',offset.toArray(rainV));setLentParam('nalati-rain','velocity',velocity.toArray(rainV));
+    rainV[0]=uniforms.uColx;rainV[1]=uniforms.uColy;rainV[2]=uniforms.uColz;setLentParam('nalati-rain','colour',rainV);setLentParam('nalati-rain','length',uniforms.uLen);setLentParam('nalati-rain','alpha',uniforms.uAlpha);
+   }
   },
  };
 }

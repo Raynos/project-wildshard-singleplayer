@@ -8,7 +8,7 @@ import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { place, type PlaceOptions, type Placed } from '@wildshard/engine/models/place';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import * as v from 'valibot';
-import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Flutter } from './Flutter';
@@ -18,8 +18,7 @@ import { AmbientWingField } from '@wildshard/game/ambient/wingField';
 import coverRows from '../boot/cover.generated.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';
 import { wind } from '@wildshard/engine/world/steppeWind';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { MOTES_GLSL } from '../runtime/looks/motesGlsl';
+import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { coverGeometry, preloadCover } from '../creatures/marmots';
 import type { Box } from './solid';
 import {
@@ -78,24 +77,23 @@ function dressingGeo(key: string): THREE.BufferGeometry {
 
 /** Existing ambient rows own every flight/perch decision. This owner only draws their poses. */
 function dressingLife(sky: Sky) {
-  const profile = TIER === 'phone' ? coverRows.phone : coverRows.desktop, group = new THREE.Group(), drift = new THREE.Vector2();
+  const profile = TIER === 'phone' ? coverRows.phone : coverRows.desktop, group = new THREE.Group(), drift: [number, number] = [0, 0];
   const count = TIER === 'phone' ? 380 : 900, seeds = new Float32Array(count * 4), rng = new Rng(0x9011e);
   for (let i = 0; i < seeds.length; i++) seeds[i] = rng.next();
   const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3)); geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 4));
-  const shader = new ShaderFamily(MOTES_GLSL, {}), material = new THREE.ShaderMaterial({ vertexShader: shader.glsl(MOTES_GLSL.MOTE_VERT), fragmentShader: shader.glsl(MOTES_GLSL.MOTE_FRAG), transparent: true, depthWrite: false,
-    uniforms: { uTime: { value: 0 }, uDrift: { value: drift }, uBox: { value: new THREE.Vector3(26, 7, 26) }, uPx: { value: 600 }, uSunDir: painterlyUniforms.uPSunDir, uSunCol: { value: new THREE.Color(1, 0.93, 0.8) }, uOpacity: { value: 1 } } });
-  const motes = new THREE.Points(geometry, material); motes.frustumCulled = false; motes.renderOrder = 2; motes.name = 'nalati-dress-pollen'; group.add(motes);
+  // the pollen and seed fluff round the eye: the 'nalati-motes' look graph (data/lookGraphs.json) poses and paints each point
+  const motes = new THREE.Points(geometry, lentLook('nalati-motes')); motes.frustumCulled = false; motes.renderOrder = 2; motes.name = 'nalati-dress-pollen'; group.add(motes);
   const wings = new AmbientWingField({ groups: profile.life, layers: [
     { id:'butterfly', capacity:TIER==='phone'?coverRows.butterflies.phone:coverRows.butterflies.desktop, palette:coverRows.hue, flap:[12,1.15,.25] },
     { id:'raptor', capacity:coverRows.raptors, palette:[], flap:null },
   ] },new Map([['butterfly',coverGeometry(sky,'wing')],['raptor',coverGeometry(sky,'halfBird')]]),new Map([
     ['butterfly',painterlyMaterial(sky,{rim:.3,bands:.5,shade:.6,emissive:0x101010})],['raptor',painterlyMaterial(sky,{rim:.6,bands:.6})],
   ]));
-  group.add(wings.group);let time=0;
-  return { group, setPollen(value:number) { const opacity=material.uniforms['uOpacity'];if(opacity!==undefined)opacity.value=value; },
+  group.add(wings.group);
+  return { group, setPollen(value:number) { setLentParam('nalati-motes','opacity',value); },
     update(dt:number,camera:THREE.PerspectiveCamera,player:THREE.Vector3,renderHeight:number){
-      time+=dt;drift.x+=wind.dirX*wind.speed*.35*dt;drift.y+=wind.dirZ*wind.speed*.35*dt;
-      const t=material.uniforms['uTime'],px=material.uniforms['uPx'];if(t!==undefined)t.value=time;if(px!==undefined)px.value=renderHeight/(2*Math.tan(camera.fov*Math.PI/360));
+      drift[0]+=wind.dirX*wind.speed*.35*dt;drift[1]+=wind.dirZ*wind.speed*.35*dt;
+      setLentParam('nalati-motes','drift',drift);setLentParam('nalati-motes','px',renderHeight/(2*Math.tan(camera.fov*Math.PI/360)));
       wings.update(dt,player);
     } };
 
