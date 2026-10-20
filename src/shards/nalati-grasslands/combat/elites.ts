@@ -19,7 +19,8 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { encounterHit } from './damage';
 import * as THREE from 'three';
-import type { Wildlife } from '../creatures/wildlife';
+import type { PageWildlife } from '@wildshard/game/population/wildlife';
+import type { Flock } from '../creatures/flock';
 import type { Ledge } from '../world/types';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import { LEOPARD } from '../species/leopard';
@@ -28,6 +29,8 @@ import { KOKBORI } from '../species/kokbori';
 import { Elites, type EliteScript, type ElitePersistence } from '@wildshard/game/Elite';
 import { bakedActorGeometry } from '../world/places';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
+
+type Wildlife = PageWildlife<Flock>;
 
 const { EAGLE_ROCK } = poiLayoutRows;
 export type EliteSound = string;

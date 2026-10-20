@@ -248,7 +248,7 @@ try {
       const save = JSON.parse(localStorage.getItem('wildshard.save.v2.nalati-grasslands') ?? '{"keys":{}}'); delete save.keys.horseNames; localStorage.setItem('wildshard.save.v2.nalati-grasslands', JSON.stringify(save));
       w.ride.mount.dismount();
       // at the head of the camp horse still tied there (the black; the bay is out on the road from ?ride=gallop), on its side of the rail
-      const h = w.wildlife.campHorses[1], hx = h.position.x + Math.sin(h.yaw) * 1.3, hz = h.position.z + Math.cos(h.yaw) * 1.3 - 0.9;
+      const h = w.wildlife.mountables[1], hx = h.position.x + Math.sin(h.yaw) * 1.3, hz = h.position.z + Math.cos(h.yaw) * 1.3 - 0.9;
       w.player.position.set(hx, window.__hf.heightAt(hx, hz), hz); w.player.velocity.set(0, 0, 0);
       w.player.yaw = Math.atan2(-(h.position.x - hx), -(h.position.z - hz)); w.player.pitch = -0.15;
     });
@@ -263,7 +263,7 @@ try {
     await page.press('.ws-ride-nameinput', 'Enter');
     await simWait(600);
     const res = await page.evaluate(() => {
-      const w = window.__wildshard?.world, a = w.wildlife.campHorses.find((h) => w.ride.mount.nameOf(h) === 'Kara Jorga') ?? null;
+      const w = window.__wildshard?.world, a = w.wildlife.mountables.find((h) => w.ride.mount.nameOf(h) === 'Kara Jorga') ?? null;
       return { renamed: a !== null, label: a?.label ?? null, stored: JSON.stringify(JSON.parse(localStorage.getItem('wildshard.save.v2.nalati-grasslands') ?? '{}').keys?.horseNames?.data ?? null), open: document.querySelector('.ws-ride-namebox') !== null, prompt: w.ride.interactable.label };
     });
     check('name: typed + Enter renames it, saved, the panel closed', res.renamed && res.label === 'Kara Jorga' && res.stored.includes('Kara Jorga') && !res.open, JSON.stringify(res));

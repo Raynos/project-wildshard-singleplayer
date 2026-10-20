@@ -180,7 +180,7 @@ try {
     check('nalati: tamed → chip 2/3 │ KOKPAR FIELD', /2\/3/.test(chip2) && /KOKPAR/i.test(chip2), chip2);
     // step 2 → 3: a kokpar round, played: mount a camp horse, ride over the goat, into a tai-qazan
     const goat = await q(`(() => { const g = window.__nalatiQuest.kokpar.object.position; return [g.x, g.z]; })()`);
-    await q(`(() => { const w = window.__wildshard?.world, m = w.ride.mount; if (!m.mounted) { const h = w.wildlife.campHorses[0]; w.player.position.set(${goat[0]} + 6, w.player.position.y, ${goat[1]}); m.mount(h); } m.teleport(${goat[0]} + 5, ${goat[1]} - 1.2, -Math.PI / 2 - 0.3); })()`);
+    await q(`(() => { const w = window.__wildshard?.world, m = w.ride.mount; if (!m.mounted) { const h = w.wildlife.mountables[0]; w.player.position.set(${goat[0]} + 6, w.player.position.y, ${goat[1]}); m.mount(h); } m.teleport(${goat[0]} + 5, ${goat[1]} - 1.2, -Math.PI / 2 - 0.3); })()`);
     await sleep(4000);   // the field streams in; the goat is not picked up yet (5 m off)
     await q(`window.__wildshard.world.ride.mount.teleport(${goat[0]} + 0.5, ${goat[1]}, -Math.PI / 2)`);
     await sleep(700);

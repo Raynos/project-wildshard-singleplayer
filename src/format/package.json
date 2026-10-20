@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./wildlifePopulation": "./wildlifePopulation.ts",
     "./bowVariant": "./bowVariant.ts",
     "./questPageComposition": "./questPageComposition.ts",
     "./populationProjection": "./populationProjection.ts",

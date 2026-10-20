@@ -164,7 +164,7 @@ export class NalatiPlugin extends ShardPlugin {
     if (ride !== null) shell.interactables.push(ride.interactable);
     Object.assign(shell.objects, { wildlife, ride });
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
-    installEnteredRuntimeService(ctx,scope=>{rt.sound?.bind(audio,music,animals,scope);const previous=Object.getOwnPropertyDescriptor(wildlife,'onSound');const emit=(name:string,position:Vector3):void=>{rt.sound?.emit(name,position);};wildlife.onSound=emit;scope.onDispose(()=>{if(wildlife.onSound===emit){if(previous===undefined)delete wildlife.onSound;else Object.defineProperty(wildlife,'onSound',previous);}});});
+    installEnteredRuntimeService(ctx,scope=>{ rt.sound?.bind(audio,music,animals,scope); const point = new Vector3(); ctx.app.events.on('creature.sound',({cue,x,y,z})=>{ point.set(x,y,z); rt.sound?.emit(cue,point); },scope); });
     installEnteredRuntimeService(ctx, (scope) => {
       h.cues.use((id, options) => options.surface === undefined ? rt.sound?.fire(id) === true : rt.sound?.impact(id, options.surface === 'flesh' || options.surface === 'wood' ? options.surface : 'ground', options.pan ?? 0, options.gain ?? 1) === true, scope);
     });

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./population/wildlife": "./population/wildlife.ts",
     "./weapons/bowVariant": "./weapons/bowVariant.ts",
     "./quest/pageResources": "./quest/pageResources.ts",
     "./quest/pageComposition": "./quest/pageComposition.ts",

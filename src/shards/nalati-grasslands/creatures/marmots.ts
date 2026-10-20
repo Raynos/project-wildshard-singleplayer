@@ -29,6 +29,7 @@ import { painterlyAnimalMaterial } from '../look/creatureMaterial';
  * out of sight for 10–18 s, then peeks back up.
  */
 
+import type { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import type { ForagerSnapshot } from '@wildshard/format/ambientLife';
 import { marmotColonies, marmotSites } from './marmotBrain';
 
@@ -42,10 +43,10 @@ export class Marmots {
   /** Native bake metadata captured before the first Wildlife frame, never a later pose relabelled as tick zero. */
   get tickZero(): ForagerSnapshot { if (this.initial === null) throw new Error('Marmots have not been built'); return this.initial; }
 
-  constructor(private readonly sky: Sky, seed: number) { this.rules = marmotColonies(seed); }
+  constructor(private readonly sky: Sky, seed: number,private readonly owner?: ForagerPopulation) { this.rules = owner ?? marmotColonies(seed); }
 
-  build(sites: { x: number; z: number }[]): this {
-    const list = this.rules.colonies(sites).rows; this.initial = this.rules.snapshot();
+  build(sites: { x: number; z: number }[] = []): this {
+    const list = (this.owner === undefined ? this.rules.colonies(sites) : this.rules).rows; this.initial = this.rules.snapshot();
     const mat = painterlyAnimalMaterial(this.sky);
     this.mesh = new THREE.InstancedMesh(coverGeometry(this.sky, 'marmot'), mat, Math.max(1, list.length));
     this.mesh.count = list.length;
@@ -62,6 +63,9 @@ export class Marmots {
     if (alarm !== null) this.onWhistle?.(alarm.x, alarm.z);
     this.write(true);
   }
+
+  /** Present the already-advanced native population without a second decision. */
+  project(): void { this.write(true); }
 
   private write(scheduled = false): void {
     this.rules.rows.forEach((m, i) => {

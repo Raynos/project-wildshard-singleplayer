@@ -5,11 +5,14 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import * as THREE from 'three';
-import type { Wildlife } from './wildlife';
+import type { PageWildlife } from '@wildshard/game/population/wildlife';
+import type { Flock } from './flock';
 import { horseBones } from '../species/horse';
 import { bakedActorGeometry } from '../world/places';
 import { PastureRaid } from './pasture';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
+
+type Wildlife = PageWildlife<Flock>;
 
 type PackController = PackBrain<Animal>;
 
@@ -54,7 +57,7 @@ export class SheepRaid extends PastureRaid<Animal, PackController> {
     if (h !== null && figure !== null) horseBones(h).body.add(figure.rider);
   }
   override update(dt: number, player: THREE.Vector3): void {
-    super.update(dt, player, this.ctx.wildlife.livingWolves, app.clock.now, practiceRoom.open);
+    super.update(dt, player, this.ctx.wildlife.predators, app.clock.now, practiceRoom.open);
     const h = this.shepherd; if (h === null) return;
     this.lean += ((h.speed > 9 ? .28 : h.speed > 5 ? .12 : 0)-this.lean)*Math.min(1,dt*3);
     if (this.rider !== null) this.rider.rotation.x = this.lean;

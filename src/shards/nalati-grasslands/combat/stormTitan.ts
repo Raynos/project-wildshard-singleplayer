@@ -810,7 +810,7 @@ export class StormTitan {
     if (!ride) return;
     const m = ride.mount;
     if (m.mounted) m.dismount();
-    const horses = [ride.taming.companion, ...(w?.campHorses ?? [])];
+    const horses = [ride.taming.companion, ...(w?.mountables ?? [])];
     for (const h of horses) {
       if (h === null || !m.canRide(h)) continue;
       h.place(pos.x, pos.z, yaw + Math.PI);

@@ -12,7 +12,7 @@ export function installNalatiPhysicsCapture() {
       if (!seen.has(a.entityId)) seen.set(a.entityId, { id: a.entityId, at: [a.position.x, a.position.y, a.position.z], yaw: a.yaw, mem: { ...a.mem } });
     }
     const wildlife = window.__wildshard?.world?.game?.app?.debug?.snapshot?.().nalati?.wildlife;
-    if (window.__nalatiMarmots === null && wildlife?.marmots !== null && wildlife?.marmots !== undefined) window.__nalatiMarmots = wildlife.marmots.tickZero;
+    if (window.__nalatiMarmots === null && wildlife?.foragers !== null && wildlife?.foragers !== undefined) window.__nalatiMarmots = wildlife.foragers.initial;
     for (const [kind, list] of [['pack', wildlife?.packs ?? []], ['herd', wildlife?.herds ?? []]]) list.forEach((group, i) => {
       const key = `${kind}:${i}`;
       if (!groups.has(key)) groups.set(key, { kind, members: group.members.map(m => m.entityId), state: group.snapshot() });

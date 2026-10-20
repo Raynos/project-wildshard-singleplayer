@@ -67,7 +67,7 @@ try {
   };
   const sample = () => page.evaluate(() => {
     const w = window.__wildshard?.world, raid = w.ride.raid, f = w.wildlife.flocks[0], h = raid.shepherd, pk = w.wildlife.packs.at(-1);
-    const wolves = w.wildlife.livingWolves;
+    const wolves = w.wildlife.predators;
     let near = Infinity, nearFlock = Infinity;
     for (const wf of wolves) { near = Math.min(near, Math.hypot(wf.position.x - h.position.x, wf.position.z - h.position.z)); nearFlock = Math.min(nearFlock, Math.hypot(wf.position.x - f.cx, wf.position.z - f.cz)); }
     const bodies = w.physics?.bodies?.awake ?? w.physics?.awakeCount ?? null;
@@ -98,7 +98,7 @@ try {
       await page.evaluate(() => {
         const w = window.__wildshard?.world, f = w.wildlife.flocks[0];
         let best = null, bd = Infinity;
-        for (const wf of w.wildlife.livingWolves) { const d = Math.hypot(wf.position.x - f.cx, wf.position.z - f.cz); if (d < bd) { bd = d; best = wf; } }
+        for (const wf of w.wildlife.predators) { const d = Math.hypot(wf.position.x - f.cx, wf.position.z - f.cz); if (d < bd) { bd = d; best = wf; } }
         if (best !== null) window.__rc.face((best.position.x + f.cx) / 2, (best.position.z + f.cz) / 2);
       });
       await sleep(300);

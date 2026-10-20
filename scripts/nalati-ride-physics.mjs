@@ -74,7 +74,7 @@ try {
     t.q = { ...(await import('/src/engine/physics/query.ts')), ...(await import('/src/engine/physics/active.ts')), ...(await import('/src/engine/physics/surface.ts')) };
     t.place = (x, z, yaw) => {
       const m = w.ride.mount;
-      if (!m.mounted) { const h = w.wildlife.campHorses[0]; w.player.position.set(x + 1, hf.heightAt(x, z), z); m.mount(h); }
+      if (!m.mounted) { const h = w.wildlife.mountables[0]; w.player.position.set(x + 1, hf.heightAt(x, z), z); m.mount(h); }
       m.teleport(x, z, yaw);
       m.steed = 100; m.winded = false;
     };

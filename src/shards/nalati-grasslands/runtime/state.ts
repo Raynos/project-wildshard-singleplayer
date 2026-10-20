@@ -5,7 +5,10 @@ import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHook
 import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
 import { createNativeFlocks, readFlockBody, type NativeFlocks } from './flockDeclared';
 import { bindEnteredEnvironment } from './enteredEnvironment';
-import { Wildlife, type SheepHit } from '../creatures/wildlife';
+import { PageWildlife, type WildlifeBuildStep } from '@wildshard/game/population/wildlife';
+import { type Flock,dogWolves } from '../creatures/flock';
+import { Marmots,preloadCover } from '../creatures/marmots';
+import { bindEliteAdmission } from './argymaqKeeper';
 import { wildEnv,bindHerdDamage } from '@wildshard/game/population/pageGroups';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -29,7 +32,6 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 
 
 
-import { preloadCover } from '../creatures/marmots';
 import { buildNalatiPOIs } from '../world/view';
 import type { NalatiPOIs } from '../world/viewTypes';
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
@@ -65,6 +67,9 @@ import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmetic
 import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 
+
+type Wildlife = PageWildlife<Flock>;
+type SheepHit = NonNullable<ReturnType<Wildlife['raycastCrowd']>>;
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ShardManifest; params: URLSearchParams }
 
@@ -130,14 +135,14 @@ export interface Nalati {
 }
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
-  const { admission, pasture, roads, rest } = v.parse(v.object({ admission: v.unknown(), pasture: v.unknown(),
+  const { admission, roads, rest } = v.parse(v.object({ admission: v.unknown(),
     roads: v.array(v.array(v.tuple([v.number(),v.number()]))), rest: v.object({ x: v.number(), z: v.number(), face: v.object({ x:v.number(),z:v.number() }) }) }), await plugin.product.json('sim/headless-boot.json'));
   const ridingPrograms = await plugin.product.json<RidingPrograms>('ride/rules.json');
-  const { constants: { nativeTaming, nativeRide,pageGroups } } = v.parse(v.object({ constants: v.object({
-    pageGroups: v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
+  const { constants: { nativeTaming, nativeRide,pageGroups,pageWildlife } } = v.parse(v.object({ constants: v.object({
+    pageWildlife: v.unknown(),pageGroups: v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
     nativeRide: v.object({ speeds:v.object({ walk:v.number(),trot:v.number(),canter:v.number(),gallop:v.number() }),thrownDamage:v.number(),thrownLabel:v.string() }) }) }), await plugin.product.json('sim/headless-assembly.json'));
   const ridingPreset = readPageRidingPreset(v.parse(v.object({ client:v.unknown() }),ridingPrograms).client);
-  bindHerdDamage(pageGroups, plugin.scope); bindEnteredEnvironment(plugin,pageGroups);
+  bindEliteAdmission(admission); bindHerdDamage(pageGroups, plugin.scope); bindEnteredEnvironment(plugin,pageGroups);
   const flockBody = await readFlockBody(plugin.product); plugin.scope.own(flockBody.geometry);
   const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
   if (namePanel === undefined) throw new Error('Nalati requires its named horse panel');
@@ -229,6 +234,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const player = ctx.player;
   const stealthRows=plugin.product.section('player/stealth');
   let wildlife: Wildlife | null = null;
+  let foragerView: Marmots | null = null;
   let attachedAnimals: AnimalManager | null = null;
   let play: NalatiPlay | null = null;
   let now = 0;
@@ -262,7 +268,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   installEnteredRuntimeService(plugin,scope => { plugin.app.events.on('creature.knockdown',({ x,z,strength }) => { onKnockdown(x,z,strength); },scope); });
   let flockDelta = 0, flockTime = 0, flockAdvance: PreparedCrowds['advance'] | undefined;
   const missingCrowdFrame = new Error('Missing declared native crowd frame');
-  const advanceFlock: NonNullable<Parameters<Wildlife['update']>[4]> = (view, index, speed) => {
+  const advanceFlock = (view: Flock,index: number,speed: number): void => {
     if (declaredCrowds === null || flockAdvance === undefined) throw new Error('Missing declared native crowd owner');
     declaredCrowds.advance(view, index, speed, wildPlayer.position, flockDelta, flockTime, flockAdvance);
   };
@@ -276,7 +282,11 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     windEnv(wildEnv, wind);
     if (advance === undefined) throw missingCrowdFrame;
     flockDelta = dt; flockTime = t; flockAdvance = advance;
-    wildlife.update(dt, t, wildPlayer, extra, advanceFlock);
+    const speed = wildlife.beginFrame(dt,wildPlayer,extra);
+    dogWolves.length = 0;
+    for (let i=0;i<64;i++) { const actor=wildlife.predators[i]; if(actor===undefined)break; dogWolves.push(actor); }
+    for (let index=0;index<4;index++) { const view=wildlife.flocks[index];if(view===undefined)break;advanceFlock(view,index,speed); }
+    wildlife.endFrame(dt,wildPlayer.position,speed,wildPlayer.crouching); foragerView?.project();
   };
   updates.push(wildlifeFrame);
 
@@ -287,7 +297,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     kind: 'sheep', position: new Vector3(), alive: true,
     damageFor: () => 100,
     applyDamage: () => {
-      if (sheepHit !== null && wildlife !== null) wildlife.killSheep(sheepHit);
+      if (sheepHit !== null && wildlife !== null) wildlife.killCrowd(sheepHit);
       sheepHit = null; sheep.alive = false;
       return true;
     },
@@ -304,8 +314,17 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     animals.wetAt = nalatiWetAt;
     animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
     declaredCrowds = createNativeFlocks(sky, ctx.chunk.seed, flockBody);
-    return new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed, admission, pasture,groups: pageGroups,
-      flock: declaredCrowds.factory });
+    return new PageWildlife<Flock>(animals,pageWildlife);
+  };
+  const buildWildlifeStep = (w: Wildlife,step: WildlifeBuildStep): void => {
+    if (step.kind === 'crowd') {
+      if (declaredCrowds === null) throw new Error('Missing population crowd views');
+      const view = declaredCrowds.factory(step.options,step.index); game.scene.add(view.mesh);
+      view.onSound = (cue,x,z) => { w.sound(cue,x,z); };
+      const dog = w.attachCrowd(step.index,view); if (dog !== null) view.setDog(dog,w.placement);
+    } else if (step.kind === 'foragers' && w.foragers !== null) {
+      foragerView = new Marmots(sky,ctx.chunk.seed,w.foragers.rules).build(); game.scene.add(foragerView.mesh);
+    }
   };
   const finishWildlife = (animals: AnimalManager, w: Wildlife): Wildlife => {
     wildlife = w;
@@ -318,13 +337,13 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     get skins() { return clientCosmeticFinishes(plugin).locker; },
     attachAnimals(animals) {
       const w = prepareWildlife(animals);
-      w.build();
+      const steps=w.buildSteps();for(let i=0;i<24;i++){const next=steps.next();if(next.done===true)break;buildWildlifeStep(w,next.value);}
       nalati.wildlife = w;
       return finishWildlife(animals, w);
     },
     async attachAnimalsSliced(animals, yieldTask) {
       const w = prepareWildlife(animals);
-      await w.buildSliced(yieldTask);
+      const steps=w.buildSteps();for(let i=0;i<24;i++){const next=steps.next();if(next.done===true)break;buildWildlifeStep(w,next.value);await yieldTask();}
       await yieldTask();
       nalati.wildlife = w;
       return finishWildlife(animals, w);
@@ -353,7 +372,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     sheepTarget(origin, dir, maxDist, hit) {
       if (wildlife === null) return hit;
       const finish = (h: TargetHit | null): TargetHit | null => titan.target(origin, dir, maxDist, night.target(origin, dir, maxDist, h));
-      const sh = wildlife.raycastSheep(origin, dir, hit !== null ? Math.min(maxDist, hit.distance) : maxDist);
+      const sh = wildlife.raycastCrowd(origin, dir, hit !== null ? Math.min(maxDist, hit.distance) : maxDist);
       if (sh === null) return finish(hit);
       sheepHit = { flock: sh.flock, index: sh.index, distance: sh.distance };
       sh.flock.positions(sh.index, sheep.position);
@@ -451,7 +470,7 @@ function wireRide(ctx: RideCtx): Ride {
     profile: { ...ctx.nativeRide, names, roads: ctx.roads, restAt: ctx.rest }, mode: ctx.preset.mode,
     taming: { ...ctx.preset.taming, programs: ctx.programs, binding: ctx.nativeTaming.binding, savedBond, rest: ctx.rest },
     actions: { ...ctx.preset.actions, program: ctx.programs.riding, rail: ctx.nativeTaming.rail },
-    mountables: ctx.wildlife.campHorses.map(actor => ({ id: actor.entityId, name: ctx.preset.mountableLabel })),
+    mountables: ctx.wildlife.mountables.map(actor => ({ id: actor.entityId, name: ctx.preset.mountableLabel })),
   });
   const { mount, taming, hud, interactable } = session, reins = new Reins(ctx.camera, ctx.ctx.scope), namer = new DataPanel(ctx.namePanel);
   const publishRaidNotice = (text: string): void => { play?.toast(text); };

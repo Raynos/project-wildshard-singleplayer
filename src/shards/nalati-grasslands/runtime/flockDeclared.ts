@@ -6,7 +6,7 @@ import { prepareDeclaredCrowds, type PreparedCrowds, type CrowdObservation } fro
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { Vector3 } from 'three';
 import { Flock, type FlockOpts, type FlockBody, dogWolves } from '../creatures/flock';
-import type { WildlifeOpts } from '../creatures/wildlife';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import { parseFlock } from '@wildshard/format/crowds';
 
@@ -34,7 +34,7 @@ export interface NativeFlocks {
   advance: (view: Flock, index: number, speed: number, player: Vector3, dt: number, time: number, step: PreparedCrowds['advance']) => void;
 }
 /** Admit all authored crowds before placement; no legacy flock setup or scheduler runs in the declared branch. */
-export function createNativeFlocks(sky: WildlifeOpts['sky'], seed: number, body: FlockBody, profile: keyof typeof ecology.flocks = 'world'): NativeFlocks {
+export function createNativeFlocks(sky: SkyRig, seed: number, body: FlockBody, profile: keyof typeof ecology.flocks = 'world'): NativeFlocks {
   const rows = ecology.flocks[profile].map(row => parseFlock({ ...row, seed: seed + row.seed }));
   const views = new Map<string, Flock>(), observations = new Map<string, CrowdObservation>();
   const runtime = prepareDeclaredCrowds(rows, { flock: row => {
