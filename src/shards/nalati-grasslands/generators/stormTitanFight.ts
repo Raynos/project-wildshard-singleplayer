@@ -70,12 +70,6 @@ export const FIRE_NEIGHBOURS: [number, number][] = [[-1,-1],[0,-1],[1,-1],[-1,0]
 
 export const TITAN_ARENA = { center: { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.centreZ }, titan: { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.titanZ }, grid: Math.ceil(TITAN_PLACE.arenaRadius * 2 / TITAN_TUNING.cell) };
 
-/** Phase entry is a native effect row; BossBrain owns the checkpoint threshold. */
-export const TITAN_PHASE_ACTIONS = [
-  { spearCooldown: 2, whirls: [true,true,true], riders: false, fire: false, feed: '' },
-  { spearCooldown: 2, whirls: [true,true,false], riders: true, fire: false, feed: TITAN_LINES.kneels },
-  { spearCooldown: 3, whirls: [false,false,false], riders: false, fire: true, feed: TITAN_LINES.grassFire },
-];
 export const TITAN_FIRE_SEEDS = [0,1,2].map(i => ({ x: Math.cos(i*2.1+.5)*26, z: Math.sin(i*2.1+.5)*26 }));
 
 /** Wildfire storage on the shared boss field; ignition and cadence stay in AS. */
@@ -85,3 +79,38 @@ export const TITAN_FIRE_FIELD = {
   observations: { cx: TITAN_ARENA.center.x, cz: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius, burn: TITAN_TUNING.burnSeconds },
   neighbours: FIRE_NEIGHBOURS, signals: { ignite: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
 };
+
+/** Support slots carry no runtime decision fields in the shard. */
+export const TITAN_SUPPORT = {
+  initial: { cd: 2.5 }, member: { mode: 0, t: 0, theta: 0, hit: 0, x0: 0, z0: 0, x1: 0, z1: 0 }, commit: { mode: 1, t: 0 },
+  parameters: { lane: TITAN_TUNING.laneSeconds, flank: TITAN_TUNING.flankSeconds, chip: TITAN_TUNING.riderChip * TITAN_PLACE.heartHp },
+  signals: { couple: 'couple', member: 'rider', damage: 'supportDamage' },
+};
+export const TITAN_SUPPORT_SITES = [0,1,2].map(i => ({ x: TITAN_ARENA.titan.x + (i - 1) * 18,
+  z: TITAN_ARENA.center.z - TITAN_PLACE.arenaRadius + 10, theta: i * 2.09 }));
+
+/** Attack and tell clocks are retained by the shared encounter host. */
+export const TITAN_SCHEDULES = {
+  spear: { signal: 'spearResolve', initial: { mode: 0, t: 0, cd: 2.5, x: 0, z: 0 },
+    parameters: { radius: TITAN_TUNING.spearRadius, aim: TITAN_TUNING.spearAim, lock: TITAN_TUNING.spearLock, stuck: TITAN_TUNING.spearStuck },
+    retain: { mode: 'mode', t: 't', cd: 'cd', x: 'x', z: 'z' } },
+  contact: { signal: 'fireContact', initial: { cd: 0 }, parameters: { amount: TITAN_TUNING.fireDps }, retain: { cd: 'cd' } },
+  chain: { signal: 'chain', initial: { cd: 4, chain: 0, t: 0 }, parameters: {}, retain: { cd: 'cd', left: 'chain', t: 't' } },
+};
+
+export const TITAN_BOUNDARY = { x: TITAN_ARENA.center.x, z: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius - 3 };
+export const TITAN_PHASE_FEED = ['', TITAN_LINES.kneels, TITAN_LINES.grassFire];
+export const TITAN_TIE_FEED = [TITAN_LINES.wantsRider, TITAN_LINES.quiet, TITAN_LINES.wakes];
+export const TITAN_IMMUNE_FEED = [TITAN_LINES.immuneSpear, TITAN_LINES.immuneDome];
+
+export const TITAN_TRAIL = { capacity: 12, seconds: .1 };
+export const TITAN_WHIRLS = [0,1,2].map(i => ({ signal: 'whirl',
+  initial: { x: TITAN_ARENA.center.x + Math.cos(i*2.1)*30, z: TITAN_ARENA.center.z + Math.sin(i*2.1)*30, vx: 0, vz: 0, cd: 0 },
+  parameters: { cx: TITAN_ARENA.center.x, cz: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius, flank: TITAN_TUNING.whirlRadius },
+  retain: { x: 'x', z: 'z', vx: 'vx', vz: 'vz', cd: 'cd' },
+}));
+
+export const TITAN_CHAINS = { count: 8, law: { signal: 'chainLand',
+  initial: { on: 0, t: 0, x: 0, z: 0 }, parameters: { land: TITAN_TUNING.chainLand, radius: TITAN_TUNING.chainRadius },
+  retain: { t: 't', mode: 'on' },
+} };

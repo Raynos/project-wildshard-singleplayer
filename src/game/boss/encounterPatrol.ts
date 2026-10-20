@@ -143,3 +143,93 @@ export class EncounterSlots {
     return { cycle, members: results };
   }
 }
+
+const CoupledRows = v.strictObject({ initial: numbers, member: numbers, commit: numbers, parameters: numbers,
+  signals: v.strictObject({ couple: v.string(), member: v.string(), damage: v.string() }) });
+export interface CoupledMember { readonly id: string; readonly state: Record<string, number> }
+/** Bounded support cohorts share their boss's health and scheduling projection.
+ * The guest selects commits and retirements; native slots retain numeric state. */
+export class CoupledEncounter {
+  readonly members: CoupledMember[] = [];
+  private readonly rows: v.InferOutput<typeof CoupledRows>;
+  private state: Record<string, number>;
+  constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) {
+    this.rows = v.parse(CoupledRows, input); this.state = { ...this.rows.initial };
+  }
+  add(id: string, initial: Readonly<Record<string, number>>): CoupledMember {
+    if (this.members.some(member => member.id === id) || this.members.length >= 8) throw new Error('Invalid coupled encounter member');
+    const member = { id, state: { ...this.rows.member, ...initial } }; this.members.push(member); return member;
+  }
+  clear(): void { this.members.length = 0; }
+  reset(): void { this.clear(); this.state = { ...this.rows.initial }; }
+  damage(member: CoupledMember, observations: Readonly<Record<string, number>>): number {
+    if (!this.members.includes(member)) return 1;
+    return this.program.project(this.rows.signals.damage, { ...member.state, ...observations })['alpha'] ?? 1;
+  }
+  update(frame: Readonly<Record<string, number>>, observed: readonly { readonly id: string; readonly x: number; readonly z: number; readonly alive: boolean }[]): {
+    state: Readonly<Record<string, number>>; retired: readonly string[]; members: ReadonlyMap<string, Readonly<Record<string, number>>>;
+  } {
+    const actors = new Map(observed.map(actor => [actor.id, actor]));
+    const candidates = this.members.map(member => {
+      const actor = actors.get(member.id); if (actor === undefined) throw new Error('Missing coupled encounter body');
+      return { x: actor.x, z: actor.z, hit: Number(actor.alive), mode: member.state['mode'] ?? 0 };
+    });
+    const state = this.program.project(this.rows.signals.couple, { ...this.rows.parameters, ...this.state, ...frame, count: this.members.length }, this.random, candidates);
+    Object.assign(this.state, state);
+    const selected = this.members[state['index'] ?? -1];
+    if (selected !== undefined) {
+      Object.assign(selected.state, this.rows.commit);
+      for (const key of ['x0', 'z0', 'x1', 'z1']) selected.state[key] = state[key] ?? 0;
+    }
+    const retired: string[] = [], results = new Map<string, Readonly<Record<string, number>>>();
+    for (let index = this.members.length - 1; index >= 0; index--) {
+      const member = this.members[index]; if (member === undefined) continue;
+      if (((state['mask'] ?? 0) & (1 << index)) !== 0) { retired.push(member.id); this.members.splice(index, 1); continue; }
+      const actor = actors.get(member.id); if (actor === undefined) throw new Error('Missing coupled encounter body');
+      const result = this.program.project(this.rows.signals.member, { ...this.rows.parameters, ...member.state, ...frame, ax: actor.x, az: actor.z });
+      Object.assign(member.state, result); results.set(member.id, result);
+    }
+    return { state, retired, members: results };
+  }
+}
+
+const ScheduleRows = v.strictObject({ signal: v.string(), initial: numbers, parameters: numbers, retain: v.record(v.string(), v.string()) });
+/** A projected attack clock retains only declared numeric slots. Rendering
+ * borrows the last result; an event never installs a second decision owner. */
+export class EncounterSchedule {
+  readonly state: Record<string, number>;
+  private readonly rows: v.InferOutput<typeof ScheduleRows>;
+  constructor(input: unknown, private readonly program: ReturnProgram) { this.rows = v.parse(ScheduleRows, input); this.state = { ...this.rows.initial }; }
+  value(key: string): number { const value = this.state[key]; if (value === undefined) throw new Error('Unknown encounter schedule slot'); return value; }
+  set(values: Readonly<Record<string, number>>): void {
+    if (Object.entries(values).some(([key, value]) => !Object.hasOwn(this.rows.initial, key) || !Number.isFinite(value))) throw new Error('Invalid encounter schedule state');
+    Object.assign(this.state, values);
+  }
+  reset(values: Readonly<Record<string, number>> = {}): void { Object.assign(this.state, this.rows.initial); this.set(values); }
+  project(frame: Readonly<Record<string, number>>, random?: Rng): Readonly<Record<string, number>> {
+    const result = this.program.project(this.rows.signal, { ...this.rows.parameters, ...this.state, ...frame }, random);
+    const next: Record<string, number> = {};
+    for (const [channel, slot] of Object.entries(this.rows.retain)) { const value = result[channel]; if (value !== undefined) next[slot] = value; }
+    this.set(next); return result;
+  }
+}
+
+/** A bounded native position history; authored sample cadence is never faster
+ * than the decision host. Samples are values, with no actor or view references. */
+export class EncounterTrail {
+  readonly points: { x: number; z: number }[] = [];
+  private elapsed = 0;
+  private readonly capacity: number;
+  private readonly seconds: number;
+  constructor(input: unknown) {
+    const row = v.parse(v.strictObject({ capacity: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(64)), seconds: v.pipe(finite, v.minValue(.1)) }), input);
+    this.capacity = row.capacity; this.seconds = row.seconds;
+  }
+  clear(): void { this.points.length = 0; this.elapsed = 0; }
+  update(dt: number, point: { readonly x: number; readonly z: number }): void {
+    this.elapsed += dt;
+    if (this.elapsed + 1e-9 < this.seconds) return;
+    this.elapsed = 0; this.points.push({ x: point.x, z: point.z });
+    if (this.points.length > this.capacity) this.points.shift();
+  }
+}

@@ -3,7 +3,19 @@ import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombine
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
 // Event projections; retained state belongs to the native binding at <= 10 Hz.
 @inline export function rulesEntry(signal:i32,value:f64,source:i32):void {
-if(signal==Signal.couple){
+if(signal==Signal.phaseEntry){
+ const phase=f(Field.phase);
+ put(Channel.cd,phase==2?3:2);put(Channel.mask,phase==0?7:phase==1?3:0);
+ put(Channel.arm,phase==1?1:0);put(Channel.spread,phase==2?1:0);put(Channel.index,phase);
+} else if(signal==Signal.arenaState){
+ const dx=f(Field.px)-f(Field.cx),dz=f(Field.pz)-f(Field.cz),r=f(Field.radius)-2;
+ put(Channel.enter,f(Field.tied)>0&&f(Field.mounted)>0&&dx*dx+dz*dz<r*r?1:0);
+ put(Channel.open,f(Field.phase)==1&&f(Field.broke)==0?1:0);
+ put(Channel.mask,(f(Field.sealed)>0?1:0)+(f(Field.fighting)>0&&f(Field.phase)==2?2:0));
+} else if(signal==Signal.tie){
+ const victory=f(Field.victory)>0,blocked=f(Field.engaged)>0||(victory&&f(Field.hit)>0),mounted=f(Field.mounted)>0,storm=f(Field.storm)>0,arm=!blocked&&mounted&&storm;
+ put(Channel.arm,arm?1:0);put(Channel.disarm,arm&&victory?1:0);put(Channel.index,blocked?-1:!mounted?0:!storm?1:2);
+} else if(signal==Signal.couple){
     let mask:i32=0,left:i32=0,aiming=false,index:i32=-1,hp=f(Field.hp),cd=f(Field.cd)-f(Field.dt);
     { const i:i32=1;if(i<=i32(f(Field.count))){
  if(Read.field(i,Field.hit)==0){mask|=1<<(i-1);if(f(Field.invuln)==0)hp=Math.max(1,hp-f(Field.chip));}
@@ -48,7 +60,7 @@ if(signal==Signal.couple){
   } else if(signal==Signal.heart){
     const phase=f(Field.phase),open=f(Field.fighting)>0&&f(Field.invuln)==0&&(phase==0?f(Field.mode)==3:phase==1?f(Field.broke)>0:true);
     const amount=f(Field.amount),hp=f(Field.hp);
-    put(Channel.open,open?1:0);put(Channel.hp,open?Math.max(0,hp-amount*(amount>=f(Field.fullDraw)?f(Field.fullDrawMul):1)):hp);
+    put(Channel.index,phase==1?1:0);put(Channel.open,open?1:0);put(Channel.hp,open?Math.max(0,hp-amount*(amount>=f(Field.fullDraw)?f(Field.fullDrawMul):1)):hp);
   } else if(signal==Signal.boundary){
     const dx=f(Field.px)-f(Field.cx),dz=f(Field.pz)-f(Field.cz),distance=Math.sqrt(dx*dx+dz*dz),radius=f(Field.radius),armed=f(Field.armed)>0,mounted=f(Field.mounted)>0,storm=f(Field.storm)>0;
     const disarm=armed&&(!storm||distance>radius+30),wall=f(Field.engaged)>0&&f(Field.sealed)>0&&distance>radius-2.5&&!mounted;
@@ -61,7 +73,10 @@ if(signal==Signal.couple){
     put(Channel.enter,lz>.8&&lz<3&&Math.abs(lx)<1.3&&Math.abs(f(Field.y)-f(Field.ey))<1.5?1:0);
     put(Channel.exit,f(Field.volume)==0?1:f(Field.corridor)>f(Field.land)-.7&&f(Field.engaged)==0?2:0);
     put(Channel.slow,f(Field.inside)>0&&f(Field.sand)>.12&&Math.abs(f(Field.floor)-(f(Field.cy)+f(Field.sand)))<.05?1:0);
-  } else if(signal==Signal.riderDamage){
+   } else if(signal==Signal.supportDamage){
+ const dx=f(Field.x)-f(Field.px),dz=f(Field.z)-f(Field.pz),melee=dx*dx+dz*dz<25*f(Field.radius)*f(Field.radius);
+ put(Channel.alpha,melee?(f(Field.mode)==3?3:1):.5);
+} else if(signal==Signal.riderDamage){
  const dx=f(Field.x)-f(Field.px),dz=f(Field.z)-f(Field.pz),melee=dx*dx+dz*dz<25*f(Field.radius)*f(Field.radius);
  put(Channel.alpha,melee?(f(Field.open)>0?3:1):.5);
 }

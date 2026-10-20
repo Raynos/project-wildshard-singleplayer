@@ -94,7 +94,7 @@ test('Storm Titan runs the three mounted phases, exposes the heart and reaches v
         }
       }
     }
-    expect(e.brain.state).toBe('victory'); expect(e.trace).toEqual(['intro:0','fight:0','beat:1','fight:1','beat:2','fight:2','victory:2']);
+    expect(e.brain.state).toBe('victory'); expect(e.trace).toEqual(['armed:0','intro:0','fight:0','beat:1','fight:1','beat:2','fight:2','victory:2']);
     expect(e.saved).toEqual({ defeated: true, rewardTaken: false, kills: 1 }); expect(e.rewards).toBe(1); expect(fight.dead).toBe(true);
   } finally { scope.dispose(); for (const material of materials.values()) material.dispose(); restore(); }
 });

@@ -11,6 +11,6 @@ if(signal==Signal.whirl){
     vx+=(Math.cos(angle)*4.2+f(Field.wx)*1.5-vx)*k;vz+=(Math.sin(angle)*4.2+f(Field.wz)*1.5-vz)*k;x+=vx*dt;z+=vz*dt;
     const d=length2(x-cx,z-cz);if(d>radius){x=cx+(x-cx)*radius/d;z=cz+(z-cz)*radius/d;}
     const hurt=f(Field.open)>0&&cd<=0&&length2(f(Field.px)-x,f(Field.pz)-z)<f(Field.flank);
-    put(Channel.x,x);put(Channel.z,z);put(Channel.vx,vx);put(Channel.vz,vz);put(Channel.cd,hurt?2:cd);put(Channel.hurt,hurt?1:0);
+    put(Channel.broke,f(Field.hit)>0||hurt?1:0);put(Channel.x,x);put(Channel.z,z);put(Channel.vx,vx);put(Channel.vz,vz);put(Channel.cd,hurt?2:cd);put(Channel.hurt,hurt?1:0);
   }
 }

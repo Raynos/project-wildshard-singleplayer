@@ -79,3 +79,11 @@ export class ArenaField {
     return changed;
   }
 }
+
+/** Pure spatial refusal against a declared ring and an admitted field. Rule
+ * enablement comes from the encounter's last bounded decision. */
+export function arenaBlockedAt(field: ArenaField, point: { readonly x: number; readonly z: number },
+  boundary: { readonly x: number; readonly z: number; readonly radius: number }, mask: number): boolean {
+  return ((mask & 1) !== 0 && Math.hypot(point.x - boundary.x, point.z - boundary.z) > boundary.radius)
+    || ((mask & 2) !== 0 && field.activeAt(point.x, point.z));
+}

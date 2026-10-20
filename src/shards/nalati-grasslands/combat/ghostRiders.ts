@@ -15,7 +15,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 
-import { EncounterPatrol, type PatrolMember, type PatrolGroup } from '@wildshard/game/boss/encounterPatrol';
+import { EncounterPatrol, type PatrolMember } from '@wildshard/game/boss/encounterPatrol';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { NightRows } from './nightTypes';
 import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '../species/ghostRider';
@@ -44,7 +44,7 @@ import { NightParticles, FLAG_RISE, FLAG_GROW } from './nightFx';
  *   gr.hold = true                              // stop the automatic lines (the elite system is running the night)
  *   gr.killsTonight / gr.onRiderKilled(a, n)    // "once you have killed 5 ghost riders in a night" (the spawn rule)
  *   gr.dissolve(a)                              // tear one into mist now
- *   gr.arrows                                   // the enemy arrow pool (Projectiles with `hurtsPlayer`) — a volley is `volley()`
+ *   gr.arrows                                   // the enemy arrow pool (Projectiles with `hurtsPlayer`)
  * Hooks: `hurt(damage)` (set by the wiring: main's health / flash), `onRiderKilled`.
  *
  * Cost: a rider is one horse SkinnedMesh (the ghost material instead of the painterly one) + one rider mesh; the arrows
@@ -128,7 +128,6 @@ export class GhostRiders extends GroupBrain<Animal> {
     animals.factory.model(GHOST_RIDER, 'rider');
   }
 
-  living(): number { return this.patrol.living; }
 
   // ── spawning ──
 
@@ -184,21 +183,6 @@ export class GhostRiders extends GroupBrain<Animal> {
 
   /** dawn: every rider left rides into the light and is gone */
   dawn(): void { for (const r of this.riders) this.dissolve(r.a); }
-
-  /** B7 (mounted): the player's horse at (x, z) moving `speed` m/s tramples riders within reach — returns how many */
-  trample(x: number, z: number, speed: number): number {
-    if (speed < 8) return 0;
-    let n = 0;
-    for (const r of this.riders) {
-      if (r.law.state['dead'] === 1 || !r.a.alive || Math.hypot(r.a.position.x - x, r.a.position.z - z) > 2.2 * r.a.scale) continue;
-      _v.set(r.a.position.x, r.a.position.y + 1.2, r.a.position.z); _d.set(r.a.position.x - x, 0, r.a.position.z - z).normalize();
-      r.a.applyDamage(40 + speed * 3, _v, _d); n++;
-    }
-    return n;
-  }
-
-  /** the loosing volley of a whole line (B12's captain calls it): every living rider of `line` shoots now */
-  volley(line: PatrolGroup): void { for (const r of this.riders) if (r.law.group === line && r.law.state['dead'] !== 1 && r.a.alive) this.shoot(r); }
 
   // ── the hit test the horse capsules miss: the rider's torso + hood ──
 

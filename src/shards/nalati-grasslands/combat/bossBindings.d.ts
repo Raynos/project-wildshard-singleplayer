@@ -1,3 +1,4 @@
+import type { CoupledMember, EncounterSchedule } from '@wildshard/game/boss/encounterPatrol';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import type * as THREE from 'three';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -61,11 +62,11 @@ export interface TitanPlay {
 
 export interface Puff { bone: THREE.Object3D; p: THREE.Vector3; r: number; ph: number }
 
-export interface Whirl { x: number; z: number; vx: number; vz: number; funnel: THREE.Mesh; on: boolean; k: number }
+export interface Whirl { law: EncounterSchedule; funnel: THREE.Mesh; on: boolean; k: number }
 
-export interface Chain { tell: GroundTell; x: number; z: number; t: number; on: boolean }
+export interface Chain { tell: GroundTell; law: EncounterSchedule }
 
-export interface StormRider { a: Animal; mode: 'circle' | 'aim' | 'charge' | 'open'; t: number; th: number; lane: GroundTell; x0: number; z0: number; x1: number; z1: number; hit: boolean }
+export interface StormRider { a: Animal; lane: GroundTell; law: CoupledMember }
 
 export interface GoldenKingFight {
   readonly phased: PhasedBossFight<Animal>;
