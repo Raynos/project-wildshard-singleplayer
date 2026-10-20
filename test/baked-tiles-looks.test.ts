@@ -57,12 +57,14 @@ test('baked tiles draw once and tick once per world, standalone and grid entry',
     files: new Map([['world/ground.glb', { hash: 'a'.repeat(64), url: '/fixture/ground.glb' }]]), read: () => Promise.resolve(glb) });
   const material = new MeshBasicMaterial();
   const page = () => {
-    const ids = new Set<string>(), root = new Group();
+    const ids = new Set<string>(), root = new Group(), app = {};
     const world = { sky: { setupMaterial: vi.fn(), csm: { lights: [] }, sunDir: new Vector3(0, 1, 0) }, registry: {} };
     const system = vi.fn<ShardContext['system']>((spec) => { if (ids.has(spec.id)) throw new Error(`Duplicate system id: ${spec.id}`); ids.add(spec.id); });
     const context = (scope: Scope): ShardContext => {
       const base: Pick<ShardContext, 'product' | 'scope' | 'root' | 'system'> = { product: product(), scope, root, system }, typed = base as ShardContext;
-      Object.defineProperty(typed, 'game', { enumerable: true, value: { runtime: { world } } });
+      // a data client and a trusted runtime see different world wrappers over the one app
+      Object.defineProperty(typed, 'game', { enumerable: true, value: { runtime: { world: { ...world } } } });
+      Object.defineProperty(typed, 'app', { enumerable: true, value: app });
       return typed;
     };
     return { root, system, context };
