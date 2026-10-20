@@ -4,6 +4,7 @@ import { createClientChannels, type ClientChannelFrame } from '../plugin/channel
 import { Rng } from '@wildshard/engine/core/rng';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { setLentParam } from './lentLooks';
+import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 
 /** Client-only repeated pose rows over the existing numeric DAG. Observations never enter game actors or physics. */
 export class SceneInstanceFields {
@@ -16,6 +17,9 @@ export class SceneInstanceFields {
       if(shape===undefined||material===undefined||root===undefined)throw new Error('Missing instanced scene resource');
       for(const attr of row.attributes){if(attr.values.length!==row.states.length*attr.width)throw new Error('Instance attribute count differs');shape.setAttribute(attr.name,new THREE.InstancedBufferAttribute(Float32Array.from(attr.values),attr.width));}
       const mesh=new THREE.InstancedMesh(shape,material,Math.max(1,row.states.length));mesh.name=row.name??row.id;mesh.count=0;mesh.castShadow=row.castShadow;mesh.receiveShadow=row.receiveShadow;
+      // This render-only clone is never cloned or deformed again. Picking keeps
+      // positions/index; changing instance matrices/colours belong to the mesh.
+      gpuOnlyAttributes(shape,'scene.instances');
       const [x,y,z,r]=row.bounds;mesh.boundingSphere=new THREE.Sphere(new THREE.Vector3(x,y+(row.groundBounds?terrainHeight(x,z):0),z),r);root.add(mesh);
       let random:Rng|undefined;
       if(row.random!==undefined){random=randoms.get(row.random.id);if(random===undefined){random=new Rng(row.random.state.initial);random.restore(row.random.state);randoms.set(row.random.id,random);}}

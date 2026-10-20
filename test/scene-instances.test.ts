@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import * as v from 'valibot';
-import { BoxGeometry,Group,InstancedMesh,Matrix4,MeshBasicMaterial,Vector3 } from 'three';
+import { BoxGeometry,BufferAttribute,Group,InstancedMesh,Matrix4,MeshBasicMaterial,Vector3 } from 'three';
 import { SceneInstancesSchema } from '../src/format/sceneInstances';
 import { SceneInstanceFields } from '../src/game/shardfile/sceneInstances';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
@@ -20,6 +20,14 @@ test('an orchard fixture projects copied numeric rows on the declared cadence an
   const matrix=new Matrix4(),position=new Vector3();mesh.getMatrixAt(0,matrix);position.setFromMatrixPosition(matrix);
   expect(position.x).toBeCloseTo(2.25);expect(position.z).toBeCloseTo(7);expect(position.y).toBeCloseTo(4.1);
   expect(mesh.geometry.getAttribute('phase').count).toBe(2);expect(input).toEqual(before);
+  const normal=mesh.geometry.getAttribute('normal'),vertices=mesh.geometry.getAttribute('position');
+  if(!(normal instanceof BufferAttribute))throw new Error('Missing static normals');
+  const count=normal.count;normal.onUploadCallback();
+  expect(normal.array.byteLength).toBe(0);expect(normal.count).toBe(count);
+  expect(shape.getAttribute('normal').array.byteLength).toBeGreaterThan(0);
+  expect(vertices.array.byteLength).toBeGreaterThan(0);expect(mesh.geometry.index?.array.byteLength).toBeGreaterThan(0);
+  host.update(.25,new Vector3(),0);mesh.getMatrixAt(0,matrix);position.setFromMatrixPosition(matrix);
+  expect(position.x).toBeCloseTo(2.5);expect(mesh.count).toBe(2);
   host.update(.25,new Vector3(100,0,100),0);expect(mesh.visible).toBe(false);
   host.dispose();expect(root.children).toHaveLength(0);shape.dispose();paint.dispose();
 });
