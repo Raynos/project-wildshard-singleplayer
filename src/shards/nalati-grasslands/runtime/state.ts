@@ -11,7 +11,7 @@ import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { installRide } from '../ride/input';
-import { Color, Vector3, type Object3D } from 'three';
+import { Vector3, type Object3D } from 'three';
 import * as v from 'valibot';
 import { clientWaterSurfaces } from '@wildshard/game/shardfile/clientWaterSurfaces';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
@@ -21,10 +21,8 @@ import type { Game } from '@wildshard/engine/core/Game';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
-import { syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { wind } from '@wildshard/engine/world/steppeWind';
-import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 
 
 
@@ -146,15 +144,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   let declaredCrowds: NativeFlocks | null = null;
   const updates: ((dt: number, t: number) => void)[] = [];
   const groups: Record<string, Object3D> = {};
-
-  // ── look (world agent, B0): the painterly material's shared uniforms — sun, painted shadow tint, rim light ──
-  syncPainterlySun(sky);
-  setPainterlyLook({ shadeTint: new Color(0.1, 0.16, 0.36), rimColor: new Color(1.5, 1.28, 0.95), wind: { x: 1, z: 0.35, strength: 1 } });
-  updates.push((dt) => {
-    updatePainterly(dt);
-    // painterly sway (spruce, flags) follows the one Wind (the painterly grass calls wind.update each frame)
-    painterlyUniforms.uPWind.value.set(wind.dirX, wind.dirZ, windUniforms.uWindStrength.value);
-  });
 
   // ── water (world agent, B0): the braided Kunes and the plateau brook, baked (generators/waterStrips.ts), on the water-surface
   // host in their look (data/lookGraphs.json 'nalati-water', lit by world/installWeather.ts) ──
@@ -455,10 +444,10 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const sound=clientAudioScene(plugin);nalati.sound=sound;
   updates.push(dt=>{const clock=weather.clock;sound.update(dt,{wind:wind.speed,gust:wind.gustAt(player.position.x,player.position.z),sun:clock.sunElevation,dark:Number(clock.dayPhase==='dusk'||clock.dayPhase==='night'),storm:Number(weather.weather.stormActive),inside:Number(nalati.boss.inside),engaged:Number(nalati.titan.engaged)});});
 
-  const ids = ['painterly', 'pois', 'dressing', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'ride', 'skins', 'sound'];
+  const ids = ['pois', 'dressing', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'ride', 'skins', 'sound'];
   let previous = 'main.world';
   if (updates.length !== ids.length) throw new Error('Nalati update registration lacks an id');
-  for (let index = 0; index < 14; index++) {
+  for (let index = 0; index < 13; index++) {
     const name = ids[index], run = updates[index];
     if (name === undefined || run === undefined) throw new Error('Nalati update registration lacks an id');
     const id = `shard.nalati.${name}`;

@@ -1,3 +1,7 @@
+import { Color } from 'three';
+import { syncPainterlySun,updatePainterly,setPainterlyLook,painterlyUniforms } from '@wildshard/engine/world/painterly';
+import { wind } from '@wildshard/engine/world/steppeWind';
+import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { installClientAudioScene } from '../audio/sceneDirector';
 import { installClientWaterSurfaces } from './clientWaterSurfaces';
 import { installClientCosmeticFinishes } from './clientCosmeticFinishes';
@@ -40,6 +44,13 @@ interface ClientFeature {
 export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>> = {
   'world.water': {phase:'world',rank:42,lifetime:'entered',sections:[],install:installClientWaterSurfaces},
   'audio.scene': {phase:'world',rank:48,lifetime:'entered',sections:[],install:installClientAudioScene},
+  'look.painterly': {phase:'world',rank:10,lifetime:'entered',sections:[],install:(ctx,row)=>{
+    if(row.kind!=='look.painterly')throw new Error('Invalid painterly feature');
+    const world=ctx.game.runtime?.world;if(world===undefined||world===null)throw new Error('Painterly look requires its world');
+    const apply=()=>{syncPainterlySun(world.sky);setPainterlyLook({shadeTint:new Color(...row.shadeTint),rimColor:new Color(...row.rimColor),wind:row.wind});};
+    if(retainsRuntimeServices(ctx))installEnteredRuntimeService(ctx,apply);else apply();
+    ctx.system({id:'client.painterly',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>{updatePainterly(dt);painterlyUniforms.uPWind.value.set(wind.dirX,wind.dirZ,windUniforms.uWindStrength.value);}});
+  }},
   'strings.register': { phase: 'world', rank: 0, lifetime: 'entered', sections: ['ui/strings'],
     install: ctx => {
       const rows = ctx.product.section('ui/strings');

@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { painterlyUniforms, setPainterlyLook } from '../src/engine/world/painterly';
 import { clientCosmeticFinishes } from '../src/game/shardfile/clientCosmeticFinishes';
 import { publishBoundPersistence } from '../src/game/quest/chapterBindings';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
@@ -19,7 +20,7 @@ import { browserShardfileOptions } from '../src/game/shardfile/runtimeProduct';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import { Vector3 } from 'three';
+import { Color, Vector3 } from 'three';
 
 function context() {
   const source = emptyShardfile({ slug: 'fixture-harbour', name: 'Harbour', author: 'Fixture', revision: 1, seed: 7 });
@@ -152,4 +153,16 @@ test('an orchard kit borrows its declared cosmetic feature and entered saved own
   expect(saved).toEqual({owned:['pearl'],worn:{tool:'pearl'}});
   expect(clientCosmeticFinishes(f.ctx).locker).toBe(locker);
   f.ctx.scope.dispose();expect(()=>clientCosmeticFinishes(f.ctx)).toThrow('not installed');
+});
+
+
+test('an orchard installs painterly setup and its frame update from an unordered plan row',async()=>{
+  const f=context(),system=vi.fn<ShardContext['system']>(),shade=painterlyUniforms.uPShade.value.clone(),rim=painterlyUniforms.uPRimColor.value.clone(),time=painterlyUniforms.uPTime.value;
+  Object.assign(f.ctx,{system});Object.assign(f.runtime,{world:{sky:{csm:{lights:[{color:new Color(1,1,1),intensity:2}]},sunDir:new Vector3(0,1,0)}}});
+  const plan=admitClientPlan({version:1,features:[{kind:'look.painterly',shadeTint:[.2,.3,.4],rimColor:[1.2,1.1,.9],wind:{x:1,z:0,strength:.7}}]},f.ctx.product);
+  await installClientPhase(f.ctx,plan,'world',f.ctx.scope);
+  expect(painterlyUniforms.uPShade.value).toEqual(new Color(.2,.3,.4));expect(system).toHaveBeenCalledOnce();
+  const row=system.mock.calls[0]?.[0];if(row===undefined)throw new Error('Missing declared painterly frame');row.run(.2,0);
+  expect(painterlyUniforms.uPTime.value).toBeCloseTo(time+.2);
+  f.ctx.scope.dispose();setPainterlyLook({shadeTint:shade,rimColor:rim});painterlyUniforms.uPTime.value=time;
 });
