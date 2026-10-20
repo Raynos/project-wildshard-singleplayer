@@ -8,7 +8,7 @@ import type { DecisionRegistries } from './decisionBindings';
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const handle = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(256));
-const rows = v.strictObject({
+export const SpawnScriptRowSchema = v.strictObject({
   step: key, roster: key, seed: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff)), script: v.unknown(), bytes: v.string(), controlState: key, maximum: handle,
   slots: v.pipe(v.array(v.strictObject({ id: key, handle, release: v.exactOptional(v.picklist(['retain', 'detach'])) })), v.minLength(1), v.maxLength(8)),
   species: v.pipe(v.array(v.strictObject({ id: key, kind: key, variant: key })), v.minLength(1), v.maxLength(64)),
@@ -25,7 +25,7 @@ const rows = v.strictObject({
       type: v.picklist(['f64', 'bool']) })), v.maxLength(8)),
   })),
 });
-export type SpawnScriptRows = Omit<v.InferOutput<typeof rows>, 'script' | 'moves'> & {
+export type SpawnScriptRows = Omit<v.InferOutput<typeof SpawnScriptRowSchema>, 'script' | 'moves'> & {
   script: DecisionScriptRow; moves: ReturnType<typeof parseActorMoves>;
 };
 /** An independent bounded actor-slot catalogue, using the same v1 admission and generated bindings as other guests. */
@@ -41,7 +41,7 @@ export function spawnScriptRegistries(data: Pick<SpawnScriptRows, 'slots' | 'spa
 /** Validate recipes and every cross-reference before a script or body can be installed. */
 export function parseSpawnScript(input: unknown): SpawnScriptRows {
   if (!isJsonData(input)) throw new Error('Spawn script requires plain JSON');
-  const data = v.parse(rows, input), script = parseDecisionScripts([data.script])[0];
+  const data = v.parse(SpawnScriptRowSchema, input), script = parseDecisionScripts([data.script])[0];
   if (script?.side !== 'sim' || !('shard' in script.binding || 'spawnGroup' in script.binding)) throw new Error('Spawn script requires a simulation shard binding');
   const result = { ...data, script, moves: parseActorMoves(data.moves) };
   const registry = spawnScriptRegistries(result);

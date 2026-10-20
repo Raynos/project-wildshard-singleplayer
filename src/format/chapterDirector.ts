@@ -17,7 +17,7 @@ const effect = v.variant('kind', [
   v.strictObject({ kind: v.literal('cue'), id: name }),
   v.strictObject({ kind: v.literal('reward'), state: v.picklist(['started', 'completed']) }),
 ]);
-const schema = v.strictObject({
+export const ChapterDirectorSchema = v.strictObject({
   version: v.literal(1), quest: name, caption,
   observations: v.pipe(v.record(name, observation), v.maxEntries(32)),
   actions: v.pipe(v.record(name, v.pipe(v.array(effect), v.maxLength(32))), v.maxEntries(64)),
@@ -27,10 +27,10 @@ const schema = v.strictObject({
   reward: v.exactOptional(v.strictObject({ x: finite, y: finite, z: finite, yaw: finite, pitch: finite, phase: finite })),
 });
 /** Closed chapter publications: no reflected paths, methods or shard callbacks. */
-export type ChapterDirectorRows = v.InferOutput<typeof schema>;
+export type ChapterDirectorRows = v.InferOutput<typeof ChapterDirectorSchema>;
 /** Admission is pure and precedes any subscription, clock or presentation. */
 export function parseChapterDirector(input: unknown): ChapterDirectorRows {
-  const rows = v.parse(schema, input);
+  const rows = v.parse(ChapterDirectorSchema, input);
   if (rows.reward === undefined && (Object.values(rows.observations).some(row => typeof row !== 'number' && 'read' in row && row.read.startsWith('reward-'))
     || Object.values(rows.actions).some(actions => actions.some(action => action.kind === 'reward')))) throw new Error('Chapter reward requires its target pose');
   return rows;

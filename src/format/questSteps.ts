@@ -51,10 +51,10 @@ export function parseQuestStepRows(input: unknown): QuestStepRows {
   return rows;
 }
 
-const killRows = v.strictObject({ step: name, prefix: v.pipe(v.string(), v.maxLength(96)), runner: QuestStepRowsSchema });
+export const QuestKillRowsSchema = v.strictObject({ step: name, prefix: v.pipe(v.string(), v.maxLength(96)), runner: QuestStepRowsSchema });
 /** Native death observers retain their declared adapter identity and fact prefix. */
-export function parseQuestKillRows(input: unknown): v.InferOutput<typeof killRows> {
-  const rows = v.parse(killRows, input);
+export function parseQuestKillRows(input: unknown): v.InferOutput<typeof QuestKillRowsSchema> {
+  const rows = v.parse(QuestKillRowsSchema, input);
   if (rows.runner.guards.length > 0 || rows.runner.steps.some(row => row.kind !== 'kill')) throw new Error('Kill observer accepts only kill steps');
   if (rows.runner.steps.some(row => row.effects.some(entry => entry.kind !== 'flag'))) throw new Error('Kill observer accepts only flag effects');
   return rows;
@@ -70,25 +70,25 @@ const hintCondition = v.variant('kind', [
   v.strictObject({ kind: v.literal('prompt'), contains: name }),
   v.strictObject({ kind: v.literal('walked'), metres: distance }),
 ]);
-const hintRows = v.strictObject({
+export const QuestHintRowsSchema = v.strictObject({
   hostile: names, scanEvery: v.pipe(finite, v.minValue(0.001)), maxScan: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(1024)), windupRadius: distance,
   hints: v.pipe(v.array(v.strictObject({ control, when: v.pipe(v.array(hintCondition), v.maxLength(8)), touch: v.exactOptional(name), desk: v.exactOptional(name) })), v.maxLength(6)),
   system: v.strictObject({ id: name, after: names, before: names }),
 });
 /** Ordered onboarding triggers borrow the existing control hints and their global learned-control save. */
-export type QuestHintRows = v.InferOutput<typeof hintRows>;
+export type QuestHintRows = v.InferOutput<typeof QuestHintRowsSchema>;
 export function parseQuestHintRows(input: unknown): QuestHintRows {
-  const rows = v.parse(hintRows, input);
+  const rows = v.parse(QuestHintRowsSchema, input);
   if (new Set(rows.hints.map(row => row.control)).size !== rows.hints.length) throw new Error('Duplicate quest hint control');
   return rows;
 }
 
 /** Client-only service rows share the quest effect vocabulary and retain their authored order. */
-const serviceActions = v.strictObject({ version: v.literal(1), actions: v.pipe(v.array(v.strictObject({ id: name,
+export const QuestServiceActionsSchema = v.strictObject({ version: v.literal(1), actions: v.pipe(v.array(v.strictObject({ id: name,
   effects: v.pipe(v.array(v.union([toast, sting])), v.minLength(1), v.maxLength(32)) })), v.maxLength(128)) });
 /** Admit only existing page services, never reflected methods or unbound script commands. */
-export function parseQuestServiceActions(input: unknown): v.InferOutput<typeof serviceActions> {
-  const rows = v.parse(serviceActions, input);
+export function parseQuestServiceActions(input: unknown): v.InferOutput<typeof QuestServiceActionsSchema> {
+  const rows = v.parse(QuestServiceActionsSchema, input);
   if (new Set(rows.actions.map(row => row.id)).size !== rows.actions.length) throw new Error('Quest service action ids must be unique');
   return rows;
 }

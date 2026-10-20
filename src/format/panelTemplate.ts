@@ -41,7 +41,7 @@ const template: v.GenericSchema<unknown, PanelTemplate> = v.lazy(() => v.strictO
   when: v.exactOptional(conditionSchema()), repeat: v.exactOptional(v.strictObject({ source: path, as: path, index: v.exactOptional(path) })),
   action: v.exactOptional(action), children: v.exactOptional(v.pipe(v.array(template), v.maxLength(256))),
 }));
-const definition = v.strictObject({ frame: template, body: v.exactOptional(v.pipe(v.array(template), v.maxLength(256))),
+export const PanelDefinitionSchema = v.strictObject({ frame: template, body: v.exactOptional(v.pipe(v.array(template), v.maxLength(256))),
   lifetime: v.picklist(['persistent', 'open']), showClass: v.exactOptional(text), closeRef: v.exactOptional(text),
   closeKeys: v.exactOptional(v.pipe(v.array(text), v.maxLength(32))),
   stopEvents: v.exactOptional(v.pipe(v.array(v.picklist(['pointerdown', 'touchstart', 'mousedown'])), v.maxLength(3))),
@@ -53,7 +53,7 @@ const definition = v.strictObject({ frame: template, body: v.exactOptional(v.pip
     flags: v.pipe(v.array(v.strictObject({ cls: text, when: conditionSchema() })), v.maxLength(16)) })),
 });
 /** Admitted content shared by renderer-free expansion and the page adapter. */
-export type PanelDefinition = v.InferOutput<typeof definition>;
+export type PanelDefinition = v.InferOutput<typeof PanelDefinitionSchema>;
 /** Refuse deep/unbounded programs before recursive schema admission. */
 export function parsePanelDefinition(input: unknown): PanelDefinition {
   let nodes = 0;
@@ -62,7 +62,7 @@ export function parsePanelDefinition(input: unknown): PanelDefinition {
     if (typeof entry === 'object' && entry !== null) for (const child of Object.values(entry)) visit(child, depth + 1);
   };
   visit(input, 0);
-  const parsed = v.parse(definition, input);
+  const parsed = v.parse(PanelDefinitionSchema, input);
   if (parsed.transient !== undefined && (parsed.lifetime !== 'persistent' || parsed.showClass === undefined)) throw new Error('Transient panel requires a persistent shown frame');
   return parsed;
 }

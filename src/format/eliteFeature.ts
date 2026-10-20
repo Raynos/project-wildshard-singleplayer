@@ -17,7 +17,7 @@ const definition = v.strictObject({ id, name: text, epithet: text,
 const observation = v.strictObject({ field: id, source: v.picklist([
   'engaged', 'leashing', 'phase2', 'clock', 'god', 'dusk', 'night',
 ]) });
-const schema = v.strictObject({
+export const EliteFeatureSchema = v.strictObject({
   step: id, version: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
   bounds: v.tuple([finite, finite, finite, finite]),
   streams: v.strictObject({ spawn: id, fight: id, pickup: id }),
@@ -48,7 +48,7 @@ const schema = v.strictObject({
     }),
   })), v.minLength(1), v.maxLength(8)),
 });
-type RawRows = v.InferOutput<typeof schema>;
+type RawRows = v.InferOutput<typeof EliteFeatureSchema>;
 /** Named encounter content and v1 actor programs. Every observation names a platform fact, never a shard hook. */
 export type EliteFeatureRows = Omit<RawRows, 'fights'> & {
   fights: (Omit<RawRows['fights'][number], 'program'> & { program: SpawnScriptRows })[];
@@ -56,7 +56,7 @@ export type EliteFeatureRows = Omit<RawRows, 'fights'> & {
 /** Admit identities, historical slot mappings and actor ownership before installing any encounter. */
 export function parseEliteFeature(input: unknown): EliteFeatureRows {
   if (!isJsonData(input)) throw new Error('Elite feature must be plain JSON');
-  const rows = v.parse(schema, input);
+  const rows = v.parse(EliteFeatureSchema, input);
   if (rows.bounds[0] >= rows.bounds[1] || rows.bounds[2] >= rows.bounds[3]
     || new Set(rows.fights.map(row => row.def.id)).size !== rows.fights.length) throw new Error('Invalid elite feature bounds or identity');
   const fights = rows.fights.map(fight => {

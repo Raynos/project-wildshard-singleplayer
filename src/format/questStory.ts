@@ -44,7 +44,7 @@ export type ChapterStoryPresentation = v.InferOutput<typeof ChapterPresentation>
 /** Admit the presentation separately from the quest graph; it never supplies progression state. */
 export function parseChapterStoryPresentation(input: unknown): ChapterStoryPresentation { return v.parse(ChapterPresentation, input); }
 
-const Story = v.strictObject({
+export const QuestStorySchema = v.strictObject({
   chapters: v.exactOptional(ChapterPresentation),
   bindings: v.strictObject({ sync: borrowed, toast: borrowed, floor: v.exactOptional(borrowed) }),
   quest: v.strictObject({ id: text, markers: v.record(text, markerAt) }),
@@ -57,9 +57,9 @@ const Story = v.strictObject({
   bench: v.strictObject({ forward: finite, height: finite, yaw: finite, pitch: finite, terrain: v.boolean(), text }),
 });
 /** Authored page presentation, migration and seat rows shared by quest hosts. */
-export type QuestStory = v.InferOutput<typeof Story>;
+export type QuestStory = v.InferOutput<typeof QuestStorySchema>;
 /** Strict story admission adds no cursor, save or callback policy. */
-export function parseQuestStory(input: unknown): QuestStory { return v.parse(Story, input); }
+export function parseQuestStory(input: unknown): QuestStory { return v.parse(QuestStorySchema, input); }
 
 
 const bossRecord = v.variant('kind', [
