@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/sceneDressing": "./shardfile/sceneDressing.ts",
     "./shardfile/groupRuntime": "./shardfile/groupRuntime.ts",
     "./riding/native": "./riding/native.ts",
     "./riding/taming": "./riding/taming.ts",

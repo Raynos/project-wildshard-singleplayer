@@ -125,3 +125,8 @@ test('regional trusted entry runs the declared plan around raw runtime hooks', a
   expect(order).toEqual(['strings', 'world', 'kit', 'play', 'debug']);
   session.leave(); expect(session.state().ready).toBe(false); f.ctx.scope.dispose();
 });
+
+test('dressing admission requires its tier declarations before world mutation',()=>{
+  const f=context();
+  expect(()=>admitClientPlan({version:1,features:[{kind:'world.dressing'}]},f.ctx.product)).toThrow('Dressing requires both declared tier files');
+});

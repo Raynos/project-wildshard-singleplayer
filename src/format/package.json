@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./sceneDressing": "./sceneDressing.ts",
     "./nativeRiding": "./nativeRiding.ts",
     "./namedJsonContracts": "./namedJsonContracts.ts",
     "./cueDirector": "./cueDirector.ts",

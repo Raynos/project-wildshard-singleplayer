@@ -4,7 +4,9 @@ import stone from '../src/shards/nalati-grasslands/data/dressing-stone.generated
 import daisy from '../src/shards/nalati-grasslands/data/dressing-daisy.generated.json' with { type: 'json' };
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
-import { DRESSING_PLAN, CAMP_CLUTTER, readDressingRows, readDressingTable } from '../src/shards/nalati-grasslands/world/declaredDressing';
+import { readSceneNumericTable as readDressingTable } from '../src/game/shardfile/sceneDressing';
+import { DRESSING_SCHEMAS } from '../src/shards/nalati-grasslands/generators/dressingSchemas';
+import { SceneScatterPoseSchema } from '../src/format/sceneDressing';
 import cover from '../src/shards/nalati-grasslands/boot/cover.generated.json' with { type: 'json' };
 import { AmbientGroup } from '../src/game/ambient/flock';
 import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
@@ -39,8 +41,10 @@ test('Nalati admits every shipping dressing groups and camp keep-out population'
     return bytes;
   };
   const product = { file: (name: string) => Promise.resolve(read(name)) };
-  const plan = v.parse(DRESSING_PLAN, Object.fromEntries(await Promise.all(Object.keys(DRESSING_PLAN.entries).map(async key => [key, await readDressingRows(product, key)]))));
-  const clutter = v.parse(CAMP_CLUTTER, await readDressingRows(product, 'clutter'));
+  const readRows = async (key: string): Promise<unknown> => key === 'stone' || key === 'daisy' ? readDressingTable(await product.file(`world/dressing-${key}.bin`)) : JSON.parse(new TextDecoder().decode(await product.file(`world/dressing-${key}.json`)));
+  const schemas:Readonly<Record<string,v.GenericSchema<unknown,readonly unknown[]>>> = { ...DRESSING_SCHEMAS, stone: v.array(SceneScatterPoseSchema), daisy: v.array(SceneScatterPoseSchema) };
+  const plan:Record<string,readonly unknown[]> = Object.fromEntries(await Promise.all(Object.entries(schemas).filter(([key]) => key !== 'clutter').map(async ([key,schema]):Promise<readonly[string,readonly unknown[]]> => [key,v.parse(schema,await readRows(key))])));
+  const clutter = v.parse(DRESSING_SCHEMAS['clutter'] ?? v.never(), await readRows('clutter'));
   const populations = {
     boulder: 1900, slab: 1579, stone: 19791, juniper: 278, rose: 136, willow: 230,
     lupin: 2778, daisy: 8811, reed: 1050, logs: 17, stumps: 11, ovoos: 9,

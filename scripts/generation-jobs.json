@@ -746,13 +746,15 @@
       "outputs": [
         "src/shards/nalati-grasslands/boot/placeRuntime.generated.json",
         "src/shards/nalati-grasslands/boot/modelMetrics.generated.json",
-        "src/shards/nalati-grasslands/boot/staticCapture.generated.json"
+        "src/shards/nalati-grasslands/boot/staticCapture.generated.json",
+        "src/shards/nalati-grasslands/data/placeRuntime.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {
         "src/shards/nalati-grasslands/boot/placeRuntime.generated.json": "9ed42660b19a5d0a471f57f4cb7c68550b78d917cd11034d9613c3a2b035c361",
         "src/shards/nalati-grasslands/boot/modelMetrics.generated.json": "7b28eb61e3b25fa53ed7bb2ff5eabfff08b42340a8de4c6e79989b485e3935e6",
-        "src/shards/nalati-grasslands/boot/staticCapture.generated.json": "d2efb3124053f39e8c9e29c5d3925cf98199de6f182c82a18a7dd6e92c1f09dc"
+        "src/shards/nalati-grasslands/boot/staticCapture.generated.json": "d2efb3124053f39e8c9e29c5d3925cf98199de6f182c82a18a7dd6e92c1f09dc",
+        "src/shards/nalati-grasslands/data/placeRuntime.generated.json": "9ed42660b19a5d0a471f57f4cb7c68550b78d917cd11034d9613c3a2b035c361"
       },
       "seedOutputs": []
     },
@@ -784,12 +786,14 @@
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/decorative.generated.json",
-        "src/shards/nalati-grasslands/boot/poiScenes.generated.json"
+        "src/shards/nalati-grasslands/boot/poiScenes.generated.json",
+        "src/shards/nalati-grasslands/data/poiScenes.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {
         "src/shards/nalati-grasslands/boot/decorative.generated.json": "2c8dce79666ef913d66907c403e9141699d392a2c9868fa22c83b749bad93701",
-        "src/shards/nalati-grasslands/boot/poiScenes.generated.json": "d92a0f55ac10e59c60ca4120a0e749670aba07b5f8cb01aeb91c19f9c37d196c"
+        "src/shards/nalati-grasslands/boot/poiScenes.generated.json": "d92a0f55ac10e59c60ca4120a0e749670aba07b5f8cb01aeb91c19f9c37d196c",
+        "src/shards/nalati-grasslands/data/poiScenes.generated.json": "d92a0f55ac10e59c60ca4120a0e749670aba07b5f8cb01aeb91c19f9c37d196c"
       },
       "seedOutputs": []
     },
@@ -993,12 +997,14 @@
       "outputs": [
         "src/shards/nalati-grasslands/boot/specimens.generated.json",
         "src/shards/nalati-grasslands/boot/specimenParams.generated.d.ts",
-        "src/shards/nalati-grasslands/boot/specimens.generated.d.json.ts"
+        "src/shards/nalati-grasslands/boot/specimens.generated.d.json.ts",
+        "src/shards/nalati-grasslands/data/specimens.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/boot/specimens.generated.json",
         "src/shards/nalati-grasslands/boot/specimenParams.generated.d.ts",
-        "src/shards/nalati-grasslands/boot/specimens.generated.d.json.ts"
+        "src/shards/nalati-grasslands/boot/specimens.generated.d.json.ts",
+        "src/shards/nalati-grasslands/data/specimens.generated.json"
       ],
       "platform": "portable"
     },
@@ -18520,7 +18526,8 @@
         "public/assets/nalati/baked/cover-desktop.bin",
         "public/assets/nalati/baked/cover-boulder-1.webp",
         "public/assets/nalati/baked/cover-boulder-2.webp",
-        "public/assets/nalati/baked/cover-boulder-3.webp"
+        "public/assets/nalati/baked/cover-boulder-3.webp",
+        "src/shards/nalati-grasslands/data/cover.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/boot/cover.generated.json",
@@ -18528,7 +18535,8 @@
         "public/assets/nalati/baked/cover-desktop.bin",
         "public/assets/nalati/baked/cover-boulder-1.webp",
         "public/assets/nalati/baked/cover-boulder-2.webp",
-        "public/assets/nalati/baked/cover-boulder-3.webp"
+        "public/assets/nalati/baked/cover-boulder-3.webp",
+        "src/shards/nalati-grasslands/data/cover.generated.json"
       ],
       "platform": "portable",
       "catalogueDependencies": [
@@ -19423,7 +19431,8 @@
         "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/boot/poiPaint.json"
+        "src/shards/nalati-grasslands/boot/poiPaint.json",
+        "src/shards/nalati-grasslands/data/poiPaint.json"
       ],
       "platform": "darwin"
     },

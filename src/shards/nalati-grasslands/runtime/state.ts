@@ -43,7 +43,7 @@ import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { buildNalatiPOIs, buildBakedOutcrops } from '../world/view';
 import type { NalatiPOIs } from '../world/viewTypes';
-import { NalatiDressing } from '../world/declaredDressing';
+import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { wireKurganSliced, type KurganBoss } from '../combat/goldenKing';
 import { wireElites, type NalatiElites } from '../combat/elites';
 import { wireWeather, type NalatiWeather } from '../world/installWeather';
@@ -215,10 +215,9 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   // ── dressing (dressing agent, look-pass lever 6): rocks, road stones, gravel-bar pebbles, shrubs, flower drifts, reeds,
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/shards/nalati-grasslands/world/dressing/ ──
-  const dressing = await new NalatiDressing(sky).build(plugin.product, macrotask);
+  const dressing = SceneDressing.current(plugin);
   reseedGrassV2(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
-  await dressing.addToSliced(game.scene, slicer(30).due);   // the clutter keeps clear of these (SF67: ~30 ms a task)
-  const dressPlaced = await dressing.place(plugin.app.registry, macrotask);
+  const dressPlaced = dressing.placed;
   // every named place is a set (E315 M12): the models placed in it — the POIs', the rocks', the dressing's
   const { placeSets } = v.parse(v.object({ placeSets: v.pipe(v.array(v.object({ place: v.string(), id: v.string(), name: v.string(), file: v.string(), pois: v.exactOptional(v.array(v.string())), x: v.number(), z: v.number(), r: v.number() })), v.length(17)) }), await plugin.product.json('world/water.json'));
   const claimed = new Set(placeSets.flatMap(row => row.pois ?? []));
@@ -235,7 +234,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     await macrotask();
   }
   groups['dressing'] = dressing.group;
-  updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
+  updates.push((dt) => dressing.update(dt));
   await slice(++completed, total, 'Dressing');
 
   // ── weather + day/night (weather agent, B10): the clock, storms, the sky rig — src/shards/nalati-grasslands/weather.ts ──
