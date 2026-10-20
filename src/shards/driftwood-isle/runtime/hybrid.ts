@@ -1,4 +1,5 @@
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
+import { residentBakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
@@ -39,8 +40,8 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
       admitDriftwoodRows(context.product); // the client rows the world's models read (custom sections, W2b)
       const built = await residentWorld(context).load(context, async (owner) => {
         lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: context.game }, context.product.shardfile, true, [...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS), driftwoodRows('custom/fixedLayouts').nativeView.SMOKE_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.GULL_GRAPH_LOOK, ...driftwoodRows('custom/fixedLayouts').nativeView.COVER_LOOKS, ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS)]));
-        const scenes = await installWorldScenes(context, context.product.section('world/scenes'), owner);
-        return withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress, scenes)); });
+        const scenes = await installWorldScenes(context, context.product.section('world/scenes'), owner), baked = await residentBakedTiles(context, owner);
+        return withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress, scenes, baked)); });
       return built;
     });
     this.binding = binding;

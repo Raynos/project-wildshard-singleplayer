@@ -39,7 +39,7 @@ import type { CustomSections, CoverComposition, EntryLandings } from '../runtime
 import { followToonLook, toonLookState } from '@wildshard/game/looks/toonLook';
 import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/looks/streamedCover';
 import authoredCover from '../data/groundCover.json' with { type: 'json' };
-import { bakedTilesOf } from '@wildshard/game/shardfile/bakedTiles';
+import type { BakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { LOWERED_SEA } from './sea';
 import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
 import { place, type ModelSite, type Placed } from '@wildshard/engine/models/place';
@@ -69,7 +69,7 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 }
 
 /** main.ts:366-467's Driftwood builders, lowered as one by G164 (`sea` is the lowered sea at road level). */
-export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles): Promise<DriftwoodWorld> {
+export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles, baked: ReadonlyMap<string, BakedTiles>): Promise<DriftwoodWorld> {
   // G164: the whole island lowered, the sea at road level; G170: each declared entry landing is the inner end of an asphalt
   // road deck (the catalogue's entryDeck, generators/entryDeckGeometry.ts) that carries the socket on over it, and a pier / jetty ramps up from it
   const landings = (await driftwoodProduct().json<EntryLandings>('world/entry-landings.json')).rows, fixed = driftwoodRows('custom/fixedLayouts');
@@ -237,7 +237,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52), drawn by the client plan's baked tiles (world.baked, G532 (4)):
   // here its ground wears the cover it carries, its cover fades into the cover's ground map, the monkeys climb its palms
   await slice(stages.completed + 1, total, 'Bridge physics and paths');
-  const island = bakedTilesOf(driftwoodProduct(), 'cove'), looks = fixed.nativeView.ISLAND_LOOKS, reach = fixed.nativeView.ISLAND_TIERS[TIER];
+  const island = baked.get('cove'); if (island === undefined) throw new Error('Missing baked cove');
+  const looks = fixed.nativeView.ISLAND_LOOKS, reach = fixed.nativeView.ISLAND_TIERS[TIER];
   island.tiles.forEach((tile, i) => { islandCover.wear(tile.geometry, i + 1); });
   for (const [id, c] of [[looks.cover, reach.cover], [looks.coverBig, reach.big]] as const) {
     setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', [...islandCover.groundRect]); setLentTexture(id, 'groundMap', islandCover.ground);

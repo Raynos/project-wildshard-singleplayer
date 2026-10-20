@@ -1,4 +1,5 @@
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
+import { residentBakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
 
@@ -25,7 +26,7 @@ export class DriftwoodPlugin extends ShardPlugin {
   /** `build` is injectable so the hook runs with a stub world in a node test (test/shards/driftwood-isle/plugin.test.ts) */
   constructor(build: WorldBuilder = async (world, viewer, progress, context) => {
     const scenes = await installWorldScenes(context, context.product.section('world/scenes'));
-    return buildDriftwoodWorld(world, viewer, progress, scenes);
+    return buildDriftwoodWorld(world, viewer, progress, scenes, await residentBakedTiles(context, context.scope));
   }) {
     super();
     this.build = build;

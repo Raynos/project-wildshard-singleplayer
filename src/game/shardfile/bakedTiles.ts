@@ -130,30 +130,49 @@ async function placeFamilies(owner: BakedTilesOwner, row: BakedTilesRow, instanc
   owned(owner, () => owner.registry.add({ id: `${row.id}-unclaimed`, name: instances.unclaimed, category: 'nature', file: 'src/game/shardfile/bakedTiles.ts', colliders: plan.unclaimed.map(c => boxDesc(c, instances.surface)), surface: instances.surface, solidFloor: false }));
 }
 
-const built = new WeakMap<Scope, WeakMap<ShardProduct, Promise<readonly BakedTiles[]>>>();
-const drawnOf = new WeakMap<ShardProduct, ReadonlyMap<string, BakedTiles>>();
-/** The `world.baked` client feature: each declared row drawn once per resident (re-entries reuse it), its bounce moved once a
- *  frame. The looks it wears are lent for the resident before the first row. */
-export async function installClientBakedTiles(ctx: ShardContext, feature: ClientFeatureRow, resident: Scope): Promise<void> {
-  if (feature.kind !== 'world.baked') throw new Error('Invalid baked tiles feature');
-  let products = built.get(resident); if (products === undefined) { products = new WeakMap(); built.set(resident, products); }
-  let pending = products.get(ctx.product);
+/** One draw per shard while its first resident lives, whichever path asks first: the `world.baked` feature, or a trusted
+ *  runtime's world build (`residentBakedTiles`), which in a grid can build its resident world before any plan phase. Keyed
+ *  by slug: a grid may hold more than one admitted product object for the same shard. */
+const drawnBy = new Map<string, Promise<ReadonlyMap<string, BakedTiles>>>();
+const ticking = new WeakSet<Scope>();
+async function enterBakedTiles(ctx: ShardContext, rows: readonly BakedTilesRow[], resident: Scope): Promise<ReadonlyMap<string, BakedTiles>> {
+  const slug = ctx.product.slug;
+  let pending = drawnBy.get(slug);
   if (pending === undefined) {
-    pending = draw(ctx, feature.rows, resident); products.set(ctx.product, pending);
-    const cache = products; resident.onDispose(() => { cache.delete(ctx.product); drawnOf.delete(ctx.product); });
+    const drawing = draw(ctx, rows, resident); pending = drawing; drawnBy.set(slug, drawing);
+    resident.onDispose(() => { if (drawnBy.get(slug) === drawing) drawnBy.delete(slug); });
+    drawing.catch(() => { if (drawnBy.get(slug) === drawing) drawnBy.delete(slug); });
   }
   const drawn = await pending;
-  ctx.system({ id: 'client.baked.tiles', phase: 'update', after: ['main.world'], before: ['engine.creatures.update'], run: () => { for (const baked of drawn) baked.update(); } });
-}
-async function draw(ctx: ShardContext, rows: readonly BakedTilesRow[], resident: Scope): Promise<readonly BakedTiles[]> {
-  const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Baked tiles require the world stage');
-  await lendBakedLooks(ctx, rows, resident);
-  const drawn: BakedTiles[] = [], byId = new Map<string, BakedTiles>();
-  for (const row of rows) {
-    const baked = await installBakedTiles({ product: ctx.product, parent: ctx.root, sky: world.sky, registry: ctx.app.registry, scope: resident }, row);
-    drawn.push(baked); byId.set(row.id, baked); resident.onDispose(() => { baked.group.removeFromParent(); });
+  if (!ticking.has(ctx.scope)) {
+    ticking.add(ctx.scope);
+    ctx.system({ id: 'client.baked.tiles', phase: 'update', after: ['main.world'], before: ['engine.creatures.update'], run: () => { for (const baked of drawn.values()) baked.update(); } });
   }
-  drawnOf.set(ctx.product, byId);
+  return drawn;
+}
+/** The `world.baked` client feature: each declared row drawn once per shard resident, its bounce moved once a frame. */
+export async function installClientBakedTiles(ctx: ShardContext, feature: ClientFeatureRow, resident: Scope): Promise<void> {
+  if (feature.kind !== 'world.baked') throw new Error('Invalid baked tiles feature');
+  await enterBakedTiles(ctx, feature.rows, resident);
+}
+/** A trusted runtime's world build: its product's declared `world.baked` rows, drawn now if no plan phase drew them yet,
+ *  by row id for the view code that dresses them further. */
+export function residentBakedTiles(ctx: ShardContext, resident: Scope): Promise<ReadonlyMap<string, BakedTiles>> {
+  const plan = ctx.product.has('client/plan') ? ctx.product.section('client/plan') : { version: 1, features: [] };
+  const rows = plan.features.flatMap(feature => feature.kind === 'world.baked' ? feature.rows : []);
+  if (rows.length === 0) return Promise.reject(new Error('No declared baked tiles'));
+  return enterBakedTiles(ctx, rows, resident);
+}
+async function draw(ctx: ShardContext, rows: readonly BakedTilesRow[], resident: Scope): Promise<ReadonlyMap<string, BakedTiles>> {
+  const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Baked tiles require the world stage');
+  // the resident world's own registry, captured now: a deferred step never registers into a later entered world's
+  const registry = world.registry;
+  await lendBakedLooks(ctx, rows, resident);
+  const drawn = new Map<string, BakedTiles>();
+  for (const row of rows) {
+    const baked = await installBakedTiles({ product: ctx.product, parent: ctx.root, sky: world.sky, registry, scope: resident }, row);
+    drawn.set(row.id, baked); resident.onDispose(() => { baked.group.removeFromParent(); });
+  }
   return drawn;
 }
 /** The rows' looks compiled with their graphs and lent for the resident. Always lent, never only when missing: a data
@@ -161,8 +180,4 @@ async function draw(ctx: ShardContext, rows: readonly BakedTilesRow[], resident:
 export async function lendBakedLooks(ctx: Pick<ShardContext, 'game' | 'product'>, rows: readonly BakedTilesRow[], resident: Scope): Promise<void> {
   const looks = [...new Set(rows.flatMap(row => [row.look, ...Object.values(row.instances?.looks ?? {}).map(slot => slot.look)]))];
   lendLooks(resident, await runtimeLookMaterials({ scope: resident, game: ctx.game }, ctx.product.shardfile, true, looks));
-}
-/** A product's drawn baked tiles by row id, for the shard view code that dresses them further; throws before the feature drew it. */
-export function bakedTilesOf(product: ShardProduct, id: string): BakedTiles {
-  const value = drawnOf.get(product)?.get(id); if (value === undefined) throw new Error(`Baked tiles ${id} are not drawn`); return value;
 }
