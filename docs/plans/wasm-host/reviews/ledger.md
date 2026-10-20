@@ -11,10 +11,12 @@ Settled. A seat reopens an item only with new evidence (file and line, quote, so
   phone chores (docs/process/JAKE.md).
 - **W4** Parked: design now, build only when Jake says.
 - **W5** ABI v2 replaces v1 and v0 in one wave; every existing script ported; one save migration.
-- **W6** Cross-device determinism for the sim lane.
+- **W6** (re-picked 2026-10-20 after R1-04) Guest pure, loads valid: a sim step is bit-identical on every device for the
+  same state and observation block; a desktop save continues validly (not identically) on the phone; co-op later via one
+  authoritative host; deterministic physics is parked (H16).
 - **W7** Two council rounds.
 - **W8** Language-neutral binary ABI; AssemblyScript SDK first.
-- **W9** Sim lane at 10 Hz, or 30 Hz with a written reason; same rate on every device; no 60 Hz sim scripts. Jake:
+- **W9** Sim lane at 10 Hz, or 30 Hz with a written reason; same rate on every device; no 60 Hz sim scripts (re-confirmed after R1-07: 30 Hz allowed, first users expected to fit 10 Hz). Jake:
   *"stays at 10hz or 30hz if you need it to go up from 10hz explain why"*.
 - **W10** View lane at the display rate (30 phone / 60 desktop), halving under budget, memory persists between frames,
   client-only, never saved, freezes on a trap.
