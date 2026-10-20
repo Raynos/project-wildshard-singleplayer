@@ -17,7 +17,6 @@ import type { ShardContext } from '@wildshard/game/plugin/context';
 import { CaveInterior } from '@wildshard/game/shardfile/caveInterior';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { installRangedPage } from '@wildshard/game/loadout/rangedPage';
-import { finishForestPageAudio } from '@wildshard/game/audio/forestPage';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { installForestWeather } from '@wildshard/sdk/looks/forestWeather';
 import { pineMemoryTrim, pineSetCap } from '../debug/options';
@@ -48,8 +47,7 @@ export class PineLandmarks {
     const floor = forestPage(ctx.scope, input.forest);
     const page = await installRangedPage(ctx, { ...input, shadowBatch: !pineMemoryTrim() });
     this.chapter = await PineQuestViews.install(ctx, this);
-    const quest = this.chapter.quest;
-    const ambience = await finishForestPageAudio(ctx, input.id); quest.bindAudio(input.id);
+    const ambience = page.ambience;
     const spots = this.crags?.cave.spots() ?? [];
     for (let i = 0; i < Math.min(spots.length, 256); i++) { const spot = spots[i]; if (spot !== undefined) ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); }
     await installForestWeather(ctx, await ctx.product.json('world/forest-weather.json'));

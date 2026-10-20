@@ -25,10 +25,13 @@ import { installCollectionCompendium } from '../models/collectionWall';
 import { installItemEffects } from './effects';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import type { ShardContext } from '../plugin/context';
+import { finishForestPageAudio } from '../audio/forestPage';
+import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 
 export interface RangedPage {
   readonly rows: RangedPageRows; readonly loadout: HeldLoadout; readonly fights: RoamingCombat;
   readonly compendium: ReturnType<typeof installCollectionCompendium>;
+  readonly ambience: DeclaredAmbience;
 }
 const pages = new WeakMap<Scope, Map<string, RangedPage>>();
 export function rangedPage(scope: Scope, id: string): RangedPage { const page = pages.get(scope)?.get(id); if (scope.disposed || page === undefined) throw new Error('Missing entered ranged page'); return page; }
@@ -83,7 +86,7 @@ export async function installRangedPage(ctx: ShardContext, input: unknown): Prom
   const fights = await installRoamingCombat(ctx, await ctx.product.json(rows.combat)), row = rows.collection;
   const compendium = ctx.scope.run(() => installCollectionCompendium(new Map([['compendium', { context: ctx, chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins: floor.cabins, interactables: runtime.interactables, weapons, touchUi, nolock }]]),
     { mounts: row.source, scope: ctx.scope, product: ctx.product, pack: row.pack, chalk: row.chalk, texture: row.texture }));
-  const page = { rows, loadout, fights, compendium }, book = pages.get(ctx.scope) ?? new Map<string, RangedPage>();
+  const page = { rows, loadout, fights, compendium, ambience: await finishForestPageAudio(ctx, { rows, loadout, fights }) }, book = pages.get(ctx.scope) ?? new Map<string, RangedPage>();
   installDebugLap(ctx, page);
   book.set(rows.id, page); pages.set(ctx.scope, book); ctx.scope.onDispose(() => { book.delete(rows.id); }); return page;
 }

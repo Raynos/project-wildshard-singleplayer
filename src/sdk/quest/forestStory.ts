@@ -78,9 +78,9 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const facts = bindRuntimeLedger(ctx, source, h.chunkId), featFacts = await bindStoryAchievements(ctx, story, progress, h.chunkId, facts);
   const { state: quest, cables } = bindRuntimeQuest(ctx, source, story.quest.id, { flags, facts });
 
-  let sfx: DeclaredSoundBank | null = null;
+  const sfx = forestPageAmbience(ctx.scope, rows.ranged).sfx;
   const kitSfx = new InteractSfx(h.audio);
-  const shot = (name: Parameters<DeclaredSoundBank['shot']>[0], at?: THREE.Vector3): void => { sfx?.shot(name, at ? { at } : {}); };
+  const shot = (name: Parameters<DeclaredSoundBank['shot']>[0], at?: THREE.Vector3): void => { sfx.shot(name, at ? { at } : {}); };
 
   const { floorAt } = createQuestPlacements({ terrain: heightAt, registry: h.registry, registryReach: 20 });
 
@@ -131,6 +131,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   if (millDoor) bindQuestPageInteractions(doorRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['door', millDoor], ['sfx', kitSfx]]) });
   const thralls = await installQuestSpawnDirector(ctx, native);
+  thralls.useSfx(sfx);
   let lodgeSave = stores.get(rows.store.slot);
   if (lodgeSave === undefined) { lodgeSave = defineBoardSave(rows.store.slot); stores.set(rows.store.slot, lodgeSave); }
   const savedBoard = lodgeSave;
@@ -201,7 +202,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     panels: [boardUi, trade], closeMenu: true, resetOnLeave: true });
 
   const figures: QuestNpcTalkPorts<FigureRows>['figures'] = new Map(rows.figures.ids.map(kind => [kind, {
-    kind: 'posed', create: (at, yaw) => figuresBook.create(kind, figureScenes, [at.x, at.y, at.z], yaw, ctx.scope), bark: fig => { sfx?.bark(kind, fig.talkPoint); },
+    kind: 'posed', create: (at, yaw) => figuresBook.create(kind, figureScenes, [at.x, at.y, at.z], yaw, ctx.scope), bark: fig => { sfx.bark(kind, fig.talkPoint); },
   }]));
   const talks = installStoryTalks(ui, source, { flags, scene: game.scene, registry: h.registry,
     prompts: h.interactables, figures, groundAt: floorAt, calls: new Map([[rows.payment.call, payMiller], [rows.trades.call, tradeOwner.open]]) });
@@ -355,7 +356,5 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     objective.root.remove(); clock.caption.root.remove();
     ui.disposeLegacy(() => { dialogue().dispose(); boardUi().root.remove(); trade().root.remove(); chip().root.remove(); });
   });
-  return { flags, stag, thralls, motion, get moverAway() { return moverAway; }, bindAudio: id => {
-    sfx = forestPageAmbience(ctx.scope, id).sfx; thralls.useSfx(sfx);
-  } };
+  return { flags, stag, thralls, motion, get moverAway() { return moverAway; } };
 }

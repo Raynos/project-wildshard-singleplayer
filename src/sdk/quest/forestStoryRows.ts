@@ -50,5 +50,4 @@ export interface ForestStory {
   readonly flags: Flags; readonly stag: ReturnType<typeof installChapterLead>;
   readonly thralls: Awaited<ReturnType<typeof installQuestSpawnDirector>>;
   readonly motion: MoverRuntime | null; readonly moverAway: boolean;
-  readonly bindAudio: (id: string) => void;
 }
