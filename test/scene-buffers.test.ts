@@ -2,8 +2,9 @@
 import { Buffer } from 'node:buffer';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
+import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
-import { BufferAttribute, BufferGeometry, Group, InstancedBufferGeometry, InterleavedBufferAttribute, LOD, Mesh, MeshBasicMaterial, Points, ShaderMaterial, Vector3, type Object3D } from 'three';
+import { BufferAttribute, BufferGeometry, Group, Matrix4, InstancedBufferGeometry, InterleavedBufferAttribute, LOD, Mesh, MeshBasicMaterial, Points, ShaderMaterial, Vector3, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { parseSceneBuffers } from '../src/format/sceneBuffers';
 import { admitSceneBuffers, createSceneBuffers } from '../src/game/shardfile/sceneBuffers';
@@ -13,7 +14,7 @@ import { signalEmberBuffer, SIGNAL_EMBER_BLOBS } from '../src/shards/sunscar-dun
 import { meadow } from './fixtures/sky-meadow-native';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { skyIsleProps } from '../src/shards/far-reach/generators/isleProps';
-import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY } from '../src/shards/far-reach/generators/islandScenes';
+import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY, SKY_ISLE_TILES } from '../src/shards/far-reach/generators/islandScenes';
 import { scenePartSpecimen } from '../src/game/models/scenePartSpecimen';
 import { drawSceneRows } from '../src/game/shardfile/sceneDraws';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -130,34 +131,29 @@ test('cold Explorer preparation admits buffered effects and refuses missing file
   await expect(scenePartSpecimen(product(false), row).prepare?.()).rejects.toThrow('Missing scene draw buffer file');
 });
 
-test('owned island GLBs preserve the original props-tile attributes and compact indices', async () => {
+test('static islands draw from their baked props tiles in their own frame; only the islets stay owned GLBs', async () => {
   const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
-  const native = skyIsleProps(), originals = new Map<string, Mesh>();
+  const native = skyIsleProps(), nodes = new Map<string, { files: string[]; mesh: Mesh }>();
   for (const row of native.props.tiles) {
     const bytes = native.assets.get(row.file); if (bytes === undefined) throw new Error('Missing original island tile');
     const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
-    gltf.scene.traverse(node => { if (mesh3(node)) originals.set(node.name, node); });
+    gltf.scene.traverse(node => { if (!mesh3(node)) return; const id = v.parse(v.object({ id: v.string() }), node.userData['wholePartition']).id;
+      const known = nodes.get(id); if (known === undefined) nodes.set(id, { files: [row.file], mesh: node }); else known.files.push(row.file); });
   }
   try {
-    for (const [id, original] of originals) {
-      const model = SKY_ISLAND_LIBRARY.models.find(row => `isle_${row.id.replace('.', '-')}` === id);
-      const blob = SKY_ISLAND_BLOBS.find(row => row.file.name === model?.file);
-      if (blob === undefined) throw new Error(`Missing declared original island ${id}`);
-      const owned = createOwnedGeometry(blob.file.name ?? 'island'); await owned.load(blob.bytes); const geometry = owned.take();
-      try {
-        expect(new Set(Object.keys(geometry.attributes))).toEqual(new Set(Object.keys(original.geometry.attributes)));
-        expect(geometry.index?.array.constructor).toBe(original.geometry.index?.array.constructor);
-        expect(geometry.index?.array).toEqual(original.geometry.index?.array);
-        for (const name of Object.keys(original.geometry.attributes)) expect(raw(geometry.getAttribute(name))).toEqual(raw(original.geometry.getAttribute(name)));
-      } finally { geometry.dispose(); }
+    expect(nodes.size).toBe(12); expect(SKY_ISLE_TILES.models).toHaveLength(12);
+    for (const model of SKY_ISLE_TILES.models) {
+      const node = nodes.get(model.part); if (node === undefined) throw new Error(`Missing baked island ${model.part}`);
+      for (const file of node.files) expect(model.files).toContain(file);
+      expect(model.matrix.slice(12, 15)).toEqual(new Matrix4().fromArray(v.parse(v.array(v.number()), node.mesh.userData['matrix64'])).elements.slice(12, 15).map(value => 0 - value));
+      expect(SKY_ISLAND_LIBRARY.models.some(row => row.id === model.id)).toBe(false);
     }
-    expect(originals.size).toBe(12);
     const fall = SKY_ISLAND_BLOBS.find(row => row.file.name === 'world/geometry/fall.glb');
     if (fall === undefined) throw new Error('Missing waterfall geometry');
     const owned = createOwnedGeometry('fall'); await owned.load(fall.bytes); const geometry = owned.take();
     expect(geometry.index).toBeNull(); geometry.dispose();
   } finally {
-    for (const mesh of originals.values()) { mesh.geometry.dispose(); for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.dispose(); }
+    for (const { mesh } of nodes.values()) { mesh.geometry.dispose(); for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.dispose(); }
   }
 });
 

@@ -12,14 +12,15 @@ import STRINGS from '../data/strings.json' with { type: 'json' };
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import ground from '../data/groundScene.generated.json' with { type: 'json' };
 import rest from '../data/restScenes.generated.json' with { type: 'json' };
-import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY } from './islandScenes';
+import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY, SKY_ISLE_TILES } from './islandScenes';
 import { SKY_MEADOW_BLOB, SKY_MEADOW_FILE } from './meadowScene';
 
 interface Reference { readonly library: string; readonly model: string }
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
 export const SKY_SCENE_BLOBS = [...SKY_SOURCE_BLOBS, ...SKY_ISLAND_BLOBS, SKY_MEADOW_BLOB];
 const steps: unknown[] = [], materials = new Map<string, unknown>();
-const geometry = (name: string): Reference => SKY_ISLAND_LIBRARY.models.some(row => row.id === name) ? { library: 'islands', model: name }
+const geometry = (name: string): Reference => SKY_ISLE_TILES.models.some(row => row.id === name) ? { library: 'isle-tiles', model: name }
+  : SKY_ISLAND_LIBRARY.models.some(row => row.id === name) ? { library: 'islands', model: name }
   : name.startsWith('hero-') ? { library: 'heroes', model: name }
   : name === 'post-hd' ? { library: 'heroes', model: `hero-${name}` }
   : heroes.pool.parts.includes(name) ? { library: 'heroes', model: name } : { library: 'sky', model: name };
@@ -130,5 +131,5 @@ millRecipe.scene.textures.push({ kind: 'port', id: 'foot-map', source: 'mill-foo
 // The tower's mapped look uses the same original atlas as the live mill.
 for (const row of millRecipe.scene.materials) if (row.kind === 'port' && row.source === 'tower') row.source = 'mill-tower:mill-tower';
 scene('specimen-mill', millRecipe, { load: 'explorer', publish: mill.MILL_SCENE.bindings });
-export const SKY_WORLD_SCENES = parseWorldScenes({ version: 1, libraries: [...SKY_SOURCE_LIBRARIES, SKY_ISLAND_LIBRARY], materials: [...materials.values()], steps,
+export const SKY_WORLD_SCENES = parseWorldScenes({ version: 1, libraries: [...SKY_SOURCE_LIBRARIES, SKY_ISLAND_LIBRARY, SKY_ISLE_TILES], materials: [...materials.values()], steps,
   cosmeticDraws: ground.SKY_GROUND.cosmeticDraws });
