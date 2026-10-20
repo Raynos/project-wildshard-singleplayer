@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { grassBaseHeightAt } from './grassField';
+import type { SimHost, SimValue } from '@wildshard/engine/sim';
+import * as schema from 'valibot';
 
 /**
  * Grass that parts around movers and stays trampled (Nalati, `stealth-and-storms.md` → "Living grass").
@@ -39,6 +41,44 @@ export const MAX_MOVERS = 16;
  */
 export interface TrampleState {
   cells: number[]; origin: [number, number] | null; centre: [number, number]; anyFlat: boolean; dirty: boolean; tick: number;
+}
+
+const trailPair = schema.tuple([schema.number(), schema.number()]);
+const TrailContinuation = schema.object({ trail: schema.nullable(trailPair), map: schema.object({ cells: schema.array(schema.number()),
+  origin: schema.nullable(trailPair), centre: trailPair, anyFlat: schema.boolean(), dirty: schema.boolean(), tick: schema.number() }) });
+/** Player trail observations over a concrete map. Pushes precede the owner's
+ * existing map update; teleport filtering never advances another clock. */
+export class TrampleTrail {
+  private lastX = Number.NaN;
+  private lastZ = Number.NaN;
+  constructor(private readonly map: TrampleField, private readonly speedLimit: number) {
+    if (!Number.isFinite(speedLimit) || speedLimit <= 0) throw new Error('Invalid trail speed limit');
+  }
+  push(dt: number, at: { readonly x: number; readonly z: number }, radius: number, strength = 1): void {
+    const vx = Number.isNaN(this.lastX) || dt <= 0 ? 0 : (at.x - this.lastX) / dt;
+    const vz = Number.isNaN(this.lastZ) || dt <= 0 ? 0 : (at.z - this.lastZ) / dt;
+    this.lastX = at.x; this.lastZ = at.z;
+    if (vx * vx + vz * vz < this.speedLimit * this.speedLimit) this.map.push(at.x, at.z, radius, strength, vx, vz);
+  }
+  /** The historic trail/map wire shape, detached from the live field. */
+  snapshot(): schema.InferOutput<typeof TrailContinuation> {
+    return { trail: Number.isNaN(this.lastX) ? null : [this.lastX, this.lastZ], map: { ...this.map.snapshot() } };
+  }
+  /** Refuse the whole map before changing the saved trail position. */
+  restore(input: SimValue): void {
+    const saved = schema.parse(TrailContinuation, input);
+    this.map.restore(saved.map);
+    [this.lastX, this.lastZ] = saved.trail ?? [Number.NaN, Number.NaN];
+  }
+}
+/** Server-safe fixed-step binding of numeric trail rows to the native player.
+ * The map and its trail retain one snapshot adapter under the declared id. */
+export function installTrampleTrail(host: SimHost, map: TrampleField, rows: { id: string; radius: number; strength: number; speedLimit: number }): void {
+  const trail = new TrampleTrail(map, rows.speedLimit);
+  host.onStep(rows.id, dt => {
+    const at = host.player.position;
+    trail.push(dt, at, rows.radius, rows.strength); map.update(dt, at);
+  }, { snapshot: () => trail.snapshot(), restore: saved => { trail.restore(saved); } });
 }
 
 /**

@@ -12,7 +12,7 @@ import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { trample } from '@wildshard/game/systems/looks/trample';
+import { trample, TrampleTrail } from '@wildshard/game/systems/looks/trample';
 
 
 import type { StaticCaptureUniforms } from './staticCapture';
@@ -88,8 +88,7 @@ export class GrassPresentation {
   private rings: Ring[] = [];
   private flowers: Ring | null = null;
   private cards: { readonly geo: THREE.InstancedBufferGeometry; readonly tiles: number; readonly origin: THREE.Vector2 } | null = null;
-  private readonly trail: { lastX: number; lastZ: number } = { lastX: Number.NaN, lastZ: Number.NaN };
-  private readonly pushTrample = (x: number, z: number, r: number, s: number, vx: number, vz: number): void => { trample.push(x, z, r, s, vx, vz); };
+  private readonly trail = new TrampleTrail(trample, 30);
   private baking = 0;
   /** live tunables */
   readonly params = { playerRadius: 0 };
@@ -179,9 +178,7 @@ export class GrassPresentation {
   update(dt: number, playerPos: THREE.Vector3): void {
     const LOOKS = this.profile.input.view.looks, [BLADES,HEADS,CLUMPS] = LOOKS;
     // the player parts the grass and leaves a trail; the wind and the trample advance
-    const vx = Number.isNaN(this.trail.lastX) || dt <= 0 ? 0 : (playerPos.x-this.trail.lastX)/dt, vz = Number.isNaN(this.trail.lastZ) || dt <= 0 ? 0 : (playerPos.z-this.trail.lastZ)/dt;
-    this.trail.lastX = playerPos.x; this.trail.lastZ = playerPos.z;
-    if (vx*vx+vz*vz < 900) this.pushTrample(playerPos.x,playerPos.z,this.params.playerRadius,1,vx,vz);
+    this.trail.push(dt, playerPos, this.params.playerRadius);
     wind.update(dt);
     painterlyUniforms.uPWind.value.set(wind.dirX, wind.dirZ, wind.speed / 5);
     trample.update(dt, playerPos);

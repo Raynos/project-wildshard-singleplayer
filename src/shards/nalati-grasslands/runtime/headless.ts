@@ -4,7 +4,7 @@ import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { nalatiWetAt } from '../wet';
-import type { SimHost, SimValue } from '@wildshard/engine/sim';
+import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { creatureFloor } from '@wildshard/game/shardfile/homeKeeper';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
@@ -14,9 +14,8 @@ import type { EliteBindings } from '@wildshard/game/shardfile/eliteEncounters';
 import { SEED, TERRAIN, RIVER } from '../world/geography';
 import type { NalatiGrassView } from './groups';
 import { GrassField } from '@wildshard/game/systems/looks/grassField';
-import { TrampleField, type TrampleState } from '@wildshard/game/systems/looks/trample';
+import { TrampleField, installTrampleTrail } from '@wildshard/game/systems/looks/trample';
 import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
-import { PLAYER_TRAMPLE_RADIUS, pushPlayerTrail, type PlayerTrail } from '../look/trampleMovers';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { SkyKey } from '../look/skyRig';
 import * as v from 'valibot';
@@ -63,46 +62,9 @@ export function nalatiGrassView(grid: BakedGrid, seed: number): NalatiGrassView 
   return { field, trample: new TrampleField() };
 }
 
-/** The host's trample continuation: the player's last spot (null before the first step) and the map's own state. */
-interface NalatiTrampleState { trail: [number, number] | null; map: TrampleState }
-const isPair = (pair: unknown): pair is [number, number] => Array.isArray(pair) && pair.length === 2 && pair.every(n => typeof n === 'number');
-function trampleState(value: SimValue): NalatiTrampleState {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new RangeError('Invalid Nalati trample state');
-  const { trail, map } = value;
-  if (!(trail === null || isPair(trail)) || typeof map !== 'object' || map === null || Array.isArray(map)) throw new RangeError('Invalid Nalati trample state');
-  const { cells, origin, centre, anyFlat, dirty, tick } = map;
-  if (!Array.isArray(cells) || !cells.every((n): n is number => typeof n === 'number') || !(origin === null || isPair(origin)) || !isPair(centre)
-    || typeof anyFlat !== 'boolean' || typeof dirty !== 'boolean' || typeof tick !== 'number') throw new RangeError('Invalid Nalati trample state');
-  return { trail, map: { cells, origin, centre, anyFlat, dirty, tick } };
-}
-
-/**
- * The trample map on the host's fixed step (SF72), in the page's frame order: the painterly grass's update first (main.world,
- * look/grass.ts: the player's push at its feet with its velocity from the last step, look/trampleMovers.ts, then the map's
- * `update`, which re-centres the window on the player, re-pushes nothing tracked and runs the 10 Hz recovery), so every later
- * push this step (the groups' senses through the wild view) lands in this step's window, as the page's wildlife pushes land
- * after the grass. Its trail and map are snapshot state (`nalati.trample`), restored before any step pushes. Not yet: the
- * wildlife's pushes from its moving wolves, horses and dog (creatures/wildlife.ts): nothing here moves them until the
- * groups tick.
- */
+/** Keep the page's player-first push and recovery order, and its saved wire id. */
 export function installNalatiTrample(host: SimHost, trample: TrampleField): void {
-  const trail: PlayerTrail = { lastX: Number.NaN, lastZ: Number.NaN };
-  const push = (x: number, z: number, r: number, s: number, vx: number, vz: number): void => { trample.push(x, z, r, s, vx, vz); };
-  host.onStep('nalati.trample', dt => {
-    const p = host.player.position;
-    pushPlayerTrail(trail, dt, p.x, p.z, PLAYER_TRAMPLE_RADIUS, push);
-    trample.update(dt, p);
-  }, {
-    snapshot: () => {
-      const { cells, origin, centre, anyFlat, dirty, tick } = trample.snapshot();
-      return { trail: Number.isNaN(trail.lastX) ? null : [trail.lastX, trail.lastZ], map: { cells, origin, centre, anyFlat, dirty, tick } };
-    },
-    restore: value => {
-      const saved = trampleState(value);
-      trample.restore(saved.map);
-      [trail.lastX, trail.lastZ] = saved.trail ?? [Number.NaN, Number.NaN];
-    },
-  });
+  installTrampleTrail(host, trample, { id: 'nalati.trample', radius: .55, strength: 1, speedLimit: 30 });
 }
 
 /** The host's weather: its own steppe wind, the storm on the page's seed and the wind the storm last asked for. */
