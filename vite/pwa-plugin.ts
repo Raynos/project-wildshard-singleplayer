@@ -24,6 +24,7 @@ import type { Plugin } from 'vite';
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { hashTree } from './assetHashes';
+import { PRODUCT_CACHE_NAME } from '../src/engine/pwa/cacheNames';
 import { join } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
@@ -66,7 +67,7 @@ export function pwaPlugin(buildId: string): Plugin {
   const swSource = () => `${readFileSync(join(root, 'src/engine/app/workerScope.js'), 'utf8').replaceAll(/^export /gm, '')}\n${readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '')}`;
   const fonts = (): string[] => { const dir = join(root, 'public', 'fonts'); return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.woff2')).sort().map((f) => `/fonts/${f}`) : []; };
   const stamp = (src: string, build: string, assets: string, bundle: string[]) =>
-    src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle))).replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts())));
+    src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle))).replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts()))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME);
   return {
     name: 'wildshard-pwa',
     configResolved(c) {

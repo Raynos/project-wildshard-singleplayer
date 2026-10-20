@@ -85,7 +85,7 @@ try {
   const revisitDownloads = contentRequests() - coldDownloads;
   assert.equal(revisitDownloads, 0, 'Revisit downloaded immutable content twice');
   const cached = await page.evaluate(async () => ({ names: await caches.keys(), restored: window.__wildshard.shard.shardfile.lane.world.view('actor.player').shared['template.door.open'] }));
-  assert.ok(cached.names.includes('ws-content-v0')); assert.ok(cached.names.includes('ws-shardfile-products-v0')); assert.equal(cached.restored, 1);
+  assert.ok(cached.names.includes('ws-content-v0')); assert.ok(cached.names.includes('ws-shardfile-products-v2')); assert.equal(cached.restored, 1);
   stage = 'offline reload';
   const beforeOffline = contentRequests();
   await context.setOffline(true); await page.reload(); await boot();

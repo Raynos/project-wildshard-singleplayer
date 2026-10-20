@@ -1,6 +1,6 @@
 import { lendLooks } from './lentLooks';
-import { currentDeploymentResponse } from './productDeployment';
-import { markReload } from '@wildshard/engine/boot/lastEnd';
+import { recoverStaleClient } from '@wildshard/engine/boot/stuck';
+import { builtIndexHashes } from '@wildshard/format/product';
 import type { Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -51,35 +51,18 @@ function ownedRuntimeProduct(source: Shardfile, assets: ClientAssets, release?: 
   } };
 }
 
-declare const __BUILD_ID__: string;
-let deploymentRefresh: Promise<never> | undefined;
-function refreshDeployment(build: string): Promise<never> {
-  deploymentRefresh ??= (async () => {
-    const url = new URL(location.href); url.searchParams.set('v', build);
-    const reason = 'first-party product deployment changed';
-    markReload(reason);
-    // A cache-busted document takes the network path even under the old worker.
-    if (window.__ws_sw?.waiting) await window.__ws_sw.adopt(url.href, reason);
-    location.replace(url.href);
-    // Navigation owns continuation; never admit the incompatible response meanwhile.
-    return new Promise<never>(() => { /* The replacement document resumes loading. */ });
-  })();
-  return deploymentRefresh;
-}
-async function fetchBrowserProduct(url: string, firstParty: boolean): Promise<Response> {
-  const response = await fetch(url);
-  if (!firstParty || import.meta.env.DEV || !navigator.onLine ||
-    new URL(url).origin !== location.origin || !new URL(url).pathname.endsWith('/shard.json')) return response;
-  return currentDeploymentResponse(response, {
-    build: __BUILD_ID__, refresh: refreshDeployment,
-    version: () => fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' }),
-  });
+/** The bundle's own first-party indexes; the dev server rebuilds products under a running page, so it never checks. */
+const builtIndexes = import.meta.env.DEV ? null : builtIndexHashes();
+/** A cached app reloads once into the deployment that served a newer index; it never parses that index meanwhile. */
+async function staleRecovery(): Promise<void> {
+  if (await recoverStaleClient()) await new Promise<never>(() => { /* The replacement document resumes loading. */ });
 }
 
 /** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
-  return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetchBrowserProduct(url, firstParty),
+  return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetch(url),
+    ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
   };
 }

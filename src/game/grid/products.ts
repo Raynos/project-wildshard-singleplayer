@@ -4,7 +4,7 @@
  * share one product's immutable bytes; a failed admission is forgotten so a later request retries.
  */
 import { findShard } from '../shard/registry';
-import { admitProduct, boundedResponse, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
+import { admitProduct, boundedResponse, readIndexBytes, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
 import { browserShardfileOptions } from '../shardfile/runtimeProduct';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { ProductLeases } from './productLeases';
@@ -51,7 +51,7 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
   }
   return cache.acquire(slug, async (reserve, releaseBytes) => {
     const url = new URL(descriptor, location.href), options = { ...browserShardfileOptions(new URL('.', url).href, true), memory: owner.allocator.memory };
-    const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await options.fetch(url.href), limits.sourceBytes)));
+    const input = await readIndexBytes(await boundedResponse(await options.fetch(url.href), limits.sourceBytes), options);
     const admitted = await admitProduct(input, { ...options, reserve });
     // admission already refused a stack past the budget on its own; the cost is what placement sums per adjacent pair
     gridPostCosts(owner.allocator).record(slug, postStackCost(admitted.source, (hash) => admitted.assets.get(hash)).cost);

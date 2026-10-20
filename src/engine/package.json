@@ -95,6 +95,8 @@
     "./boot/runtime": "./boot/runtime.ts",
     "./boot/shardPrefetch": "./boot/shardPrefetch.ts",
     "./boot/steps": "./boot/steps.ts",
+    "./boot/stuck": "./boot/stuck.ts",
+    "./pwa/cacheNames": "./pwa/cacheNames.ts",
     "./boot/tables": "./boot/tables.ts",
     "./boot/titleArrival": "./boot/titleArrival.ts",
     "./combat/Equipment": "./combat/Equipment.ts",

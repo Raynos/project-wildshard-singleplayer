@@ -8,6 +8,7 @@ import { isOutputIndex } from '@wildshard/format/outputIndex';
 
 import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets, deviceLibraryCost } from '@wildshard/format/assetAdmission';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
+import { PRODUCT_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { preflightShardfile } from '@wildshard/format/preflight';
 
@@ -58,6 +59,21 @@ export interface ProductOptions {
   reserve?: (source: Shardfile) => void;
   /** Trusted presentation observer; it does not participate in admission decisions. */
   progress?: (progress: ProductProgress) => void;
+  /** The bundled page's own first-party index hashes, and its once-only reload when a newer deployment's index arrives. */
+  built?: { indexes: ReadonlySet<string>; stale: () => Promise<void> };
+}
+/** A first-party index this client never validated: a newer deployment that an older cached app must not parse. */
+export class StaleClientError extends Error {
+  constructor() { super('This app is older than the shard it is loading. Reload to update.'); this.name = 'StaleClientError'; }
+}
+/** Parse fetched index bytes; a first-party index outside the bundle's own catalogue reloads once before any parsing. */
+export async function readIndexBytes(bytes: Uint8Array, options: ProductOptions): Promise<unknown> {
+  const built = options.firstParty ? options.built : undefined;
+  if (built !== undefined && !built.indexes.has(await options.hash(bytes))) {
+    await built.stale(); // pends while the reload navigates; returns when the reload budget is spent
+    throw new StaleClientError();
+  }
+  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
 }
 /** Admitted owned wire bytes; callers release this map when decoded resources take over. */
 export interface AdmittedProduct {
@@ -146,7 +162,7 @@ export async function readProductDescriptor(options: ProductOptions): Promise<Sh
   if (!options.offline) {
     const bytes = await boundedResponse(await options.fetch(new URL('shard.json', base).href), limits.sourceBytes);
     if (options.descriptorHash !== undefined && (!HASH.test(options.descriptorHash) || await options.hash(bytes) !== options.descriptorHash)) throw new Error('Shardfile descriptor hash mismatch');
-    input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    input = await readIndexBytes(bytes, options);
   }
   if (!isOutputIndex(input)) throw new Error('Shardfile requires a format-2 output; rebuild it with wildshard build');
   return readProductInput(input, options);
@@ -301,7 +317,7 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partia
     retiredProductStores.add(storage);
     void retireDescriptorCache(storage);
   }
-  const open = () => storage.open('ws-shardfile-products-v2');
+  const open = () => storage.open(PRODUCT_CACHE_NAME);
   const productUrl = (base: string) => new URL('__visited_shardfile__', base).href;
   let content = browserContentStores.get(storage);
   if (content === undefined) {
