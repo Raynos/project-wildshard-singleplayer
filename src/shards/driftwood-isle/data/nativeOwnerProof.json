@@ -1,0 +1,187 @@
+{
+  "schema": "wildshard.native-owner.synthetic-fixture.v1",
+  "label": "PRIVATE SYNTHETIC OWNERSHIP PROBE - NOT ART OR CONTACT ADMISSION",
+  "pose": {
+    "practiceTransition": {
+      "owner": "isolated-practice",
+      "joints": [
+        "body",
+        "shell",
+        "head",
+        "eyestalkLeft",
+        "eyestalkRight",
+        "shieldArm",
+        "shieldForearm",
+        "rapierArm",
+        "rapierForearm",
+        "legLeft",
+        "legLeftKnee",
+        "legLeftAnkle",
+        "legRight",
+        "legRightKnee",
+        "legRightAnkle"
+      ]
+    },
+    "strikeIds": [
+      "strike.conch-duelist.thrust",
+      "strike.conch-duelist.counter"
+    ],
+    "group": "practice.proof",
+    "programs": [
+      {
+        "id": "practice.proof.head",
+        "reads": [
+          "kind",
+          "entry",
+          "time",
+          "strike",
+          "distance"
+        ],
+        "nodes": [
+          {
+            "op": "read",
+            "index": 0
+          },
+          {
+            "op": "read",
+            "index": 1
+          },
+          {
+            "op": "read",
+            "index": 2
+          },
+          {
+            "op": "add",
+            "a": 0,
+            "b": 1
+          },
+          {
+            "op": "select",
+            "test": 0,
+            "yes": 3,
+            "no": 2
+          },
+          {
+            "op": "read",
+            "index": 3
+          },
+          {
+            "op": "read",
+            "index": 4
+          }
+        ],
+        "channels": [
+          {
+            "property": "x",
+            "value": 4
+          },
+          {
+            "property": "pitch",
+            "value": 5
+          },
+          {
+            "property": "roll",
+            "value": 6
+          }
+        ],
+        "numeric": {
+          "group": "practice.proof",
+          "inputs": [
+            {
+              "input": "kind",
+              "owner": "transition",
+              "path": [
+                "kind"
+              ]
+            },
+            {
+              "input": "entry",
+              "owner": "entry.head",
+              "path": [
+                "position",
+                "x"
+              ]
+            },
+            {
+              "input": "time",
+              "owner": "frame",
+              "path": [
+                "t"
+              ]
+            },
+            {
+              "input": "strike",
+              "owner": "strike",
+              "path": [
+                "phase"
+              ]
+            },
+            {
+              "input": "distance",
+              "owner": "motion",
+              "path": [
+                "distance"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "property": "x",
+              "target": "joint.head",
+              "path": [
+                "position",
+                "x"
+              ]
+            },
+            {
+              "property": "pitch",
+              "target": "joint.head",
+              "path": [
+                "rotation",
+                "x"
+              ]
+            },
+            {
+              "property": "roll",
+              "target": "joint.head",
+              "path": [
+                "rotation",
+                "z"
+              ]
+            }
+          ],
+          "restoreOnly": []
+        }
+      }
+    ]
+  },
+  "corpse": {
+    "parts": [
+      {
+        "bone": "body",
+        "points": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0.3,
+            0,
+            0
+          ],
+          [
+            0,
+            0.4,
+            0
+          ],
+          [
+            0,
+            0,
+            0.5
+          ]
+        ]
+      }
+    ]
+  }
+}
