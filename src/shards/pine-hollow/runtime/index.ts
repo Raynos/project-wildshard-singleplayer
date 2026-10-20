@@ -1,4 +1,3 @@
-import { installQuestCatalogue } from '@wildshard/game/quest/chapter';
 import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
 import { registerPackedGeometrySource } from '@wildshard/sdk/models/geometrySources';
 import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
@@ -12,7 +11,6 @@ import { installEnteredRuntimeService, installEnteredRuntimeUpdate, retainsRunti
 import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio } from '@wildshard/game/plugin/audio';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { pineLooks, preparePineGrazers } from '../species/looks';
-import { declaredProductCompendium } from '@wildshard/game/shard/declaredRows';
 import { installCollectionCompendium } from '@wildshard/game/models/collectionWall';
 import { ShardPlugin,type ShardContext } from '@wildshard/game/plugin/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
@@ -23,7 +21,6 @@ import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { Vector3, Group, type Object3D } from 'three';
 import questScenes from '../data/timberScenes.generated.json' with { type: 'json' };
-import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
@@ -62,8 +59,8 @@ import * as audioTerrain from '@wildshard/engine/world/Heightfield';
 import { installWeather, loadPineRain } from '../world/weather';
 import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
 import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
-import { readItemEquipment, readItemAmmunition, readItemInventory } from '@wildshard/game/plugin/nativeItems';
-import { installItemEffects, heldFinishEffect } from '@wildshard/game/loadout/effects';
+import { readItemInventory } from '@wildshard/game/plugin/nativeItems';
+import { installItemEffects } from '@wildshard/game/loadout/effects';
 import type { SkinId } from '@wildshard/engine/player/Skins';
 import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
 
@@ -187,20 +184,12 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.species(ctx.product.section('actors/species-programs').page);
     ctx.rows.speciesLook(pineLooks(ctx.product.section<CustomSections['custom/thrallLook']>('custom/thrallLook')));
     ctx.rows.spawnTable(declaredSpawnTables(ctx.product.section('actors/species-programs').spawns));
-    installQuestCatalogue(ctx);
-    ctx.rows.compendium({ ...declaredProductCompendium(ctx.product, 'pine.journal'), id: 'pine.journal' });
     const rt = runtime(ctx), world = rt.world;
     if (world === null) throw new Error('Pine equipment needs a world');
     const held = await HeldEquipment.prepare(ctx.product);
     await preloadKingKit();
-    const items = ctx.product.section('combat/items').items;
-    const CROSSBOW = readItemEquipment(items, 'weapon.crossbow'), LEVER = readItemEquipment(items, 'weapon.lever'), LONGBOW = readItemEquipment(items, 'weapon.longbow');
     held.install(ctx);
-    ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
-    ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
-    ctx.rows.ammo([...readItemAmmunition(ctx.product.shardfile.items, 'weapon.crossbow').values()].map(ammo => ammo.row));
-    ctx.rows.effect([...HeldFinishes.current(ctx.manifest.slug).cards.map(({ id }) => heldFinishEffect(id, HeldFinishes.current(ctx.manifest.slug).get(id).weapon)), ...STARTER_EFFECTS]);
-    ctx.rows.skin(HeldFinishes.current(ctx.manifest.slug).list());
+
   }
 
   override async play(ctx: ShardContext): Promise<void> {

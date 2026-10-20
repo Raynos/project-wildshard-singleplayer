@@ -14,6 +14,11 @@ const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^[a-zA-
 /** Client-only declarations select compiled platform features, never modules, owners or property paths. */
 export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('strings.register') }),
+  v.strictObject({ kind: v.literal('content.catalogue'), quests: v.boolean(), finishes: v.boolean(),
+    weapons: v.pipe(v.array(id), v.maxLength(256)), ammunition: v.pipe(v.array(id), v.maxLength(256)),
+    effects: v.pipe(v.array(v.picklist(['starter', 'finishes'])), v.maxLength(2)),
+    compendiums: v.pipe(v.array(id), v.maxLength(64)),
+    encounters: v.pipe(v.array(v.strictObject({ id, displayName: label, showHeadBar: v.boolean() })), v.maxLength(64)) }),
   v.strictObject({ kind: v.literal('world.dressing') }),
   v.strictObject({kind:v.literal('world.sets'),rows:v.pipe(v.array(v.strictObject({place:label,id:label,name:label,file:label,pois:v.optional(v.pipe(v.array(label),v.maxLength(128),v.check(names=>new Set(names).size===names.length)),[]),x:finite,z:finite,r:v.pipe(finite,v.minValue(0))})),v.maxLength(128),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))}),
   v.strictObject({ kind: v.literal('held.cosmetics') }),

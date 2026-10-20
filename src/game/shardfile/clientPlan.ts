@@ -1,6 +1,7 @@
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneDressing } from './sceneDressing';
 import { installClientPlaceSets } from './clientPlaceSets';
+import { installClientCatalogue } from './clientCatalogue';
 import { Color } from 'three';
 import { syncPainterlySun,updatePainterly,setPainterlyLook,painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { wind } from '@wildshard/engine/world/steppeWind';
@@ -45,6 +46,9 @@ interface ClientFeature {
 }
 /** Compiled-in client-only registry. Adding a kind requires its strict format schema and a reviewed platform host. */
 export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>> = {
+  'content.catalogue': { phase: 'kit', rank: 15, lifetime: 'entered',
+    // Item/quest/journal envelopes are root data; finishes are streamed separately.
+    sections: ['held/finishes'], install: installClientCatalogue },
   'world.water': {phase:'world',rank:42,lifetime:'entered',sections:[],install:installClientWaterSurfaces},
   'audio.scene': {phase:'world',rank:48,lifetime:'entered',sections:[],install:installClientAudioScene},
   'look.painterly': {phase:'world',rank:10,lifetime:'entered',sections:[],install:(ctx,row)=>{
