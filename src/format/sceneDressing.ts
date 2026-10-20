@@ -17,11 +17,13 @@ const geometry = v.variant('kind',[
 export const SceneScatterPoseSchema = v.strictObject({x:finite,y:finite,z:finite,yaw:finite,sx:finite,sy:finite,sz:finite,far:finite,r:finite,g:finite,b:finite,
   tiltX:v.exactOptional(finite),tiltZ:v.exactOptional(finite),solid:v.exactOptional(v.union([v.literal(true),v.literal(1)]))});
 const surface=v.exactOptional(v.picklist(['sand','wetSand','grass','rock','planks','stone','water','wood','metal','flesh','shell','ground','edge','felt','earth']));
+const point=v.strictObject({x:finite,y:finite,z:finite});
 const base={x:finite,y:finite,z:finite,surface,yaw:v.exactOptional(finite),rot:v.exactOptional(v.strictObject({x:finite,y:finite,z:finite,w:finite}))};
 export const SceneDressingContactsSchema=list(v.variant('kind',[
   v.strictObject({kind:v.literal('hull'),...base,points:list(finite,24576)}),
   v.strictObject({kind:v.literal('box'),...base,hx:finite,hy:finite,hz:finite}),
   v.strictObject({kind:v.literal('capsule'),...base,halfHeight:finite,radius:finite}),
+  v.strictObject({kind:v.literal('treads'),from:point,to:point,width:finite,count:v.pipe(finite,v.integer(),v.minValue(1)),surface}),
 ]),32768);
 const pose = v.strictObject({x:finite,y:finite,z:finite,yaw:v.exactOptional(finite),heading:v.exactOptional(v.tuple([finite,finite])),matrix:v.exactOptional(v.pipe(v.array(finite),v.length(16)))});
 /** Z2 client-only scatter/static/ambient projection; shader and model identities are declared data. */
