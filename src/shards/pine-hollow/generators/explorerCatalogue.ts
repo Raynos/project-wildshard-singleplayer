@@ -48,6 +48,8 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
       "spawnOnly": true
     }
     ,{"kind":"library","library":"native","model":"pine-hollow/antler-king"},
-    {"kind":"posed","file":"look/wildlife-draw.json"}
+    {"kind":"posed","file":"look/wildlife-draw.json","source":"product"},
+    ...['ranger', 'miller', 'trader'].map(figure => ({ kind: 'figure', file: 'people/catalogue.json', figure, copies: 1 })),
+    { kind: 'equipment' }, { kind: 'engine', model: 'swim-hands', copies: 1 }
   ]
 });

@@ -8,7 +8,7 @@ import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';
 import { FigureCatalogue } from '../src/sdk/npc/figures';
-import * as packs from '../src/sdk/kit/geometryPack';
+import * as packs from '../src/engine/core/deflate';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 
@@ -31,7 +31,7 @@ test('NPC catalogue admission preserves rows, refuses atomically and prepares co
   expect(() => figures.rows('ranger')).toThrow('not admitted');
   const admitted = await loadHeadlessProduct('out/pine-hollow');
   const json: unknown = JSON.parse(new TextDecoder().decode(await admitted.file('people/catalogue.json')));
-  const packsLoad = vi.spyOn(packs, 'fetchDeflated').mockResolvedValue(new Uint8Array(packed.rows.bytes));
+  const packsLoad = vi.spyOn(packs, 'fetchDeflatedBytes').mockResolvedValue(new Uint8Array(packed.rows.bytes));
   const skinsLoad = vi.spyOn(FigureRows, 'prepareSkins').mockResolvedValue();
   const fetch = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(admitted);
   try {

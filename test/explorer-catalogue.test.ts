@@ -9,6 +9,9 @@ import { parseWorldScene } from '../src/format/clientChannels';
 import { emptyShardfile } from '../src/sdk/author';
 import { nameBlob, emitNamedBlobs } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { ProductFigureCatalogue } from '../src/game/models/figureCatalogue';
+import { defineModel } from '../src/engine/models/model';
+import { WILDLIFE_DRAW } from '../src/shards/pine-hollow/generators/wildlifeDraw';
 import { explorerRoster } from '../src/game/models/explorerCatalogue';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import { drawSceneRows, prepareSceneDrawRows } from '../src/game/shardfile/sceneDraws';
@@ -191,4 +194,22 @@ test('specimen hero copies keep declared looks without resident shader decorator
     expect(fresh.customProgramCacheKey()).toContain('surface:'); expect(fresh.customProgramCacheKey()).not.toContain('resident-decoration');
     expect(material.onBeforeCompile.toString()).toContain('resident-decoration');
   } finally { book.mockRestore(); definition.mockRestore(); inputs.mockRestore(); fresh?.dispose(); material.dispose(); geometry.dispose(); }
+});
+
+
+test('product pose cards admit their library without a prepared native roster', async () => {
+  const product = fixture('fixture-product-posed', { version: 1, entries: [{ kind: 'posed', source: 'product', file: 'look/poses.json' }] }, undefined,
+    [nameBlob('look/poses.json', 'json', encode(WILDLIFE_DRAW))]);
+  expect((await explorerRoster(product)).map(row => row.id)).toEqual(WILDLIFE_DRAW.models.map(row => row.id));
+});
+
+test('figure references select the admitted product catalogue', async () => {
+  const product = fixture('fixture-product-figures', { version: 1, entries: [{ kind: 'figure', file: 'people/book.json', figure: 'keeper', copies: 1 }] });
+  const catalogue = new ProductFigureCatalogue(product.slug, 'people/book.json');
+  const model = vi.spyOn(catalogue, 'model').mockReturnValue(defineModel({ id: 'fixture/keeper', name: 'Keeper', category: 'people', pipeline: 'code', file: 'fixture-source.ts', defaults: {}, build: () => new Group() }));
+  const admit = vi.spyOn(ProductFigureCatalogue, 'fromProduct').mockResolvedValue(catalogue);
+  try {
+    expect((await explorerRoster(product)).map(row => row.id)).toEqual(['fixture/keeper']);
+    expect(admit).toHaveBeenCalledWith(product, 'people/book.json'); expect(model).toHaveBeenCalledWith('keeper');
+  } finally { admit.mockRestore(); model.mockRestore(); }
 });

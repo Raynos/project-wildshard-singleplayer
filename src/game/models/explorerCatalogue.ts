@@ -17,6 +17,13 @@ import { ProductError, type ShardProduct } from '../shardfile/shardProduct';
 import { prepareSceneSources, prepareSceneSpecimens, sceneModelDefinition, sceneModelDefinitions, sceneModelSource } from '../shardfile/sceneSources';
 import { declaredHeldSpecimen, declaredNpcSpecimen } from './sceneSpecimens';
 import { scenePartSpecimen } from './scenePartSpecimen';
+import { ProductFigureCatalogue } from './figureCatalogue';
+import { PosedDraw } from '../looks/posedInstances';
+import { heldGear } from './heldGear';
+import { HeldEquipment } from '../plugin/heldEquipment';
+import { HeldFinishes } from '../loadout/finishes';
+import { resourceScope } from '@wildshard/engine/app/resources';
+import { registerPackedGeometrySource } from '@wildshard/engine/models/geometrySources';
 
 /** Resolve declarations before registering any card, so an invalid reference
  * refuses the complete catalogue instead of publishing a partial roster. */
@@ -81,6 +88,17 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
       const file=row.books[TIER];let catalogue=preparedSpecimens.get(file);
       if(catalogue===undefined){const book=parse(SpecimenBookSchema,await product.json<unknown>(file));catalogue=defineSpecimenCatalogue<Record<string,object>>(book.rows,book.packed,book.materials);preparedSpecimens.set(file,catalogue);}
       const copies=row.tierCopies?.[TIER];entries.push(present(catalogue.model(row.model),copies===undefined?row:{...row,copies}));
+    } else if (row.kind === 'figure') {
+      const { file, ...card } = row;
+      entries.push(present((await ProductFigureCatalogue.fromProduct(product, file)).model(row.figure), card));
+    } else if (row.kind === 'equipment') {
+      const scope = resourceScope().child('held-finish-roster'), source = product.section('held/finishes').source;
+      if (source === undefined) throw refusal(product, row, 'Held finishes require their declared geometry source');
+      registerPackedGeometrySource(scope, 'held-finishes', { ...source, label: 'held finishes' });
+      await Promise.all([HeldFinishes.prepare(product, scope, 'held-finishes'), HeldEquipment.prepare(product)]);
+      entries.push(...heldGear(product.section('held/gear')));
+    } else if (row.kind === 'posed' && row.source === 'product') {
+      entries.push(...(await PosedDraw.library(product, row.file)).models);
     } else if (row.kind === 'posed') {
       // The native transition already admits this existing posed library. Select
       // its actual definitions by id without duplicating its format or builder.
@@ -111,7 +129,8 @@ function refusal(product: ShardProduct, row: ExplorerEntryRow, detail: string): 
 }
 
 /** Metadata belongs to the roster reference; the existing builder stays intact. */
-function present<P extends object>(model: ModelDef<P>, row: ExplorerEntryRow): RosterEntry {
+type Presentation = Pick<ExplorerEntryRow, 'id' | 'name' | 'file' | 'category' | 'surface' | 'pipeline' | 'copies' | 'planned' | 'drawnAs'>;
+function present<P extends object>(model: ModelDef<P>, row: Presentation): RosterEntry {
   return live({ ...model, ...(row.id === undefined ? {} : { id: row.id }), ...(row.name === undefined ? {} : { name: row.name }),
     ...(row.file === undefined ? {} : { file: row.file }), ...(row.category === undefined ? {} : { category: row.category }),
     ...(row.surface === undefined ? {} : { surface: row.surface }) }, row);

@@ -1,3 +1,8 @@
+import { GeometryPack } from '@wildshard/engine/models/geometryPack';
+import { fetchDeflatedBytes as fetchDeflated } from '@wildshard/engine/core/deflate';
+import { resourceScope } from '@wildshard/engine/app/resources';
+import { loadFirstPartyProduct } from '../shardfile/runtimeProduct';
+import type { ShardProduct } from '../shardfile/shardProduct';
 /** Client-only product catalogue for fallback and baked figure rows. */
 import * as THREE from 'three';
 import * as v from 'valibot';
@@ -78,4 +83,48 @@ export class FigureCatalogue {
   rows(id: string): FigureRow { return this.row(id).row[TIER]; }
   /** The figure's kit rows (format/kitFigure), when it is built from kit meshes. */
   kit(id: string): unknown { const kit = this.row(id).row.kit; if (kit === undefined) throw new Error(`Figure ${id} has no kit`); return kit; }
+}
+
+const admitted = new WeakMap<ShardProduct, Map<string, ProductFigureCatalogue>>();
+
+/** Admit existing product packs into the shared figure model owner.
+ * Public callers supply product/file ids and resident scene handles only.
+ */
+export class ProductFigureCatalogue {
+  /** Share the already admitted native catalogue with page composition. */
+  static async fromProduct(product: ShardProduct, file: string): Promise<ProductFigureCatalogue> {
+    const ready = admitted.get(product)?.get(file); if (ready !== undefined) return ready;
+    const catalogue = new ProductFigureCatalogue(product.slug, file); await catalogue.admit(product); return catalogue;
+  }
+  private readonly figures = new FigureCatalogue();
+  private pending: Promise<void> | undefined;
+  constructor(private readonly productId: string, private readonly file: string) {}
+  async admit(product: ShardProduct): Promise<void> {
+    const data = v.parse(FigureCatalogueSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file(this.file))));
+    const resources = new SceneHandles();
+    if (data.pack !== undefined) {
+      const pack = new GeometryPack(await fetchDeflated(data.pack.url), data.pack.rows, this.file);
+      const indices = new Set(Object.values(data.figures).flatMap(row => [row.body, row.glass]).filter(index => index !== undefined && index !== null));
+      for (const index of indices) {
+        const geometry = pack.geometry(index); resources.publish(String(index), geometry);
+        resourceScope().onDispose(() => { geometry.dispose(); });
+      }
+    }
+    await this.figures.admit(data, resources);
+    const book = admitted.get(product) ?? new Map<string, ProductFigureCatalogue>();
+    book.set(this.file, this); admitted.set(product, book);
+    resourceScope().onDispose(() => { if (book.get(this.file) === this) book.delete(this.file); });
+  }
+  prepare(): Promise<void> {
+    this.pending ??= (async () => {
+      try { await this.admit(await loadFirstPartyProduct(this.productId)); }
+      catch (error: unknown) { this.pending = undefined; throw error; }
+    })();
+    return this.pending;
+  }
+  material(resources: SceneHandles): THREE.MeshStandardMaterial { return this.figures.material(resources); }
+  create(id: string, resources: SceneHandles, feet: readonly [number, number, number], yaw: number, owner?: Scope): FigureRows { return this.figures.create(id, resources, feet, yaw, owner); }
+  model(id: string): ModelDef<object> { return this.figures.model(id); }
+  rows(id: string): FigureRow { return this.figures.rows(id); }
+  kit(id: string): unknown { return this.figures.kit(id); }
 }

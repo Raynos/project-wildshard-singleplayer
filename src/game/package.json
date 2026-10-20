@@ -269,7 +269,8 @@
     "./audio/sceneDirector": "./audio/sceneDirector.ts",
     "./looks/staticCapture": "./looks/staticCapture.ts",
     "./looks/grassPresentation": "./looks/grassPresentation.ts",
-    "./riding/reins": "./riding/reins.ts"
+    "./riding/reins": "./riding/reins.ts",
+    "./looks/posedInstances": "./looks/posedInstances.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",
