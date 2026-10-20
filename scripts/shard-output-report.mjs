@@ -33,7 +33,8 @@ export async function outputReport(root,{build=true,sourceProgress=false,product
   const measures=outputShardLines(root,true,products,closed);
   // The noon comparison stays source-based even after every runtime closes.
   const source=sourceProgressLines(root,products);
-  // G496: data debt applies even before a shard's runtime closes.
+  // G496: data debt applies even before a shard's runtime closes. Its budget
+  // findings are report-only here (G514): the ruler always measures.
   const sections=Object.fromEntries(Object.keys(closure).map(slug=>[slug,outputSections(root,slug,products)]));
   const dailyLines=sourceLineDelta(source,v.parse(sourceBaseline,JSON.parse(readFileSync(resolve(import.meta.dirname,'shard-line-baseline.json'),'utf8'))));
   const rows=Object.fromEntries(Object.entries(closure).map(([slug,state])=>{
@@ -54,7 +55,7 @@ export async function outputReport(root,{build=true,sourceProgress=false,product
   const current=Object.fromEntries(Object.entries(rows).flatMap(([slug,row])=>row.m3===null?[]:[[slug,{customLines:row.m3.customLines,basis:row.m3.basis}]]));
   const baselines=v.parse(baseline,JSON.parse(readFileSync(resolve(import.meta.dirname,'wave-line-baselines.json'),'utf8')));
   const platform=platformLineTotals(root,(text,path)=>path.endsWith('.glsl')?shaderCodeLines(text):codeLines(text,path));
-  return {rows,measures,dailyLines,netLines:netLineReport(current,baselines,platform),progress:planProgress(rows),failures:customSectionFailures(root,sections)};
+  return {rows,measures,dailyLines,netLines:netLineReport(current,baselines,platform),progress:planProgress(rows),sectionFailures:customSectionFailures(root,sections)};
 }
 
 /** Cycle-free post-output publication. gen calls neither the builder nor ruler.

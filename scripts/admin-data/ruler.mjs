@@ -56,7 +56,7 @@ export const WAVES = [
 /** @typedef {{id:string;startedAt:string;start:Record<string,number>;endedAt:string|null}} RulerWaveState */
 /** @typedef {{schema:string;command:string;revision:string;committedAt:string;measuredAt:string;basis:string;
  *   plan:{lower:number;upper:number};m3:{cut:number;mustGo:number;fraction:number};m2:{ready:number;fail:number;unknown:number;total:number};
- *   netLines?:import('./ruler.mjs').RulerNetLines[];shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
+ *   netLines?:import('./ruler.mjs').RulerNetLines[];customSectionFailures?:string[];shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
  *   waves:RulerWaveState[];history:RulerPoint[];events:{at:string;label:string}[]}} Ruler */
 
 /** @param {unknown} value @returns {value is Record<string,unknown>} */
@@ -148,6 +148,8 @@ export function nextRuler(raw, prev, at) {
     m3: { cut: num(progress.m3.cut, 'm3.cut'), mustGo: num(progress.m3.mustGo, 'm3.mustGo'), fraction: num(progress.m3.fraction, 'm3.fraction') },
     m2: { ready, fail: m2total - ready - unknown, unknown, total: m2total },
     netLines: v.parse(netLinesSchema, summary.netLines),
+    // G514: budget overruns are recorded, never a reason to skip a measurement.
+    customSectionFailures: v.parse(v.array(v.string()), summary.customSectionFailures ?? []),
     shards, native,
     wave: { id: current.id, label: current.label, until: current.until, goal: current.goal, shards: [...current.shards],
       pct: wavePercent(currentState?.start ?? {}, now, current.shards, current.goal) },
@@ -174,6 +176,7 @@ export function readRuler(value) {
   num(m3.fraction, 'm3.fraction'); num(m2.total, 'm2.total'); num(wave.pct, 'wave.pct');
   // Existing snapshots predate G496; newly measured snapshots always carry it.
   if (value.netLines !== undefined) v.parse(netLinesSchema, value.netLines);
+  if (value.customSectionFailures !== undefined) v.parse(v.array(v.string()), value.customSectionFailures);
   if (!Array.isArray(value.history) || !Array.isArray(value.events) || !Array.isArray(value.native)) throw new Error('Ruler: history, events and native are arrays');
   return /** @type {Ruler} */ (/** @type {unknown} */ (value));
 }

@@ -30,9 +30,12 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     const scriptReceipts=process.argv.filter(value=>value.startsWith('--script-receipt=')).map(value=>value.slice('--script-receipt='.length));
     try {report=await outputReport(ROOT,{build,sourceProgress,products,...(receipts.length===0?{}:{receipts}),...(scriptReceipts.length===0?{}:{scriptReceipts})});}
     finally {console.log=log;console.info=info;}
-    const {rows,measures,failures,progress,netLines,dailyLines}=report;
+    const {rows,measures,sectionFailures,progress,netLines,dailyLines}=report;
+    // G514: custom-section budgets never stop the ruler; --check keeps them hard.
+    const failures=process.argv.includes('--check')?[...sectionFailures]:[];
+    if (failures.length===0) for (const failure of sectionFailures) console.error(`shard-platform: FAIL (report-only) ${failure}`);
     if (process.argv.includes('--write')) refreshOutputReports(ROOT,measures);
-    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:sourceProgress?'source-progress':'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
+    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:sourceProgress?'source-progress':'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,customSectionFailures:sectionFailures,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
     else {
       console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  private JSON / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
       for (const [slug,row] of Object.entries(rows)) {

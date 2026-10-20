@@ -18,6 +18,7 @@ export interface Ruler {
   m3:{cut:number;mustGo:number;fraction:number};
   m2:{ready:number;fail:number;unknown:number;total:number};
   netLines?:RulerNetLines[];
+  customSectionFailures?:string[];
   shards:RulerShard[]; native:string[];
   wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
   waves:RulerWaveState[]; history:RulerPoint[]; events:{at:string;label:string}[];
