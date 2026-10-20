@@ -75,7 +75,7 @@ function measure(arg) {
 
 const browser = await webkit.launch({ headless: true });
 const failures = [], rows = [];
-const errors = [], consoleErrors = [];
+const errors = [], consoleErrors = [], httpErrors = [];
 /** @type {import('playwright').Page | undefined} */
 let page;
 try {
@@ -86,6 +86,11 @@ try {
   page = await context.newPage();
   page.on('pageerror', (e) => { errors.push(e.message.slice(0, 240)); });
   page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 500)); });
+  page.on('response', (response) => {
+    if (response.status() < 400) return;
+    const row = { status: response.status(), url: response.url() };
+    httpErrors.push(row); console.error('HTTP', JSON.stringify(row));
+  });
   await page.goto(`${base}?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game && window.__wildshard.world.weapons && !document.querySelector('.ws-load')), null, { timeout: 60_000, polling: 250 });
   await page.waitForTimeout(1500);
@@ -121,7 +126,7 @@ try {
     loading: document.querySelector('.ws-load')?.textContent,
     text: document.body.textContent.slice(-3000),
   })).catch((/** @type {unknown} */ failure) => ({ error: String(failure) }));
-  console.error(JSON.stringify({ gate: 'webkit-render-smoke', error: String(error), rows, errors, consoleErrors, state }));
+  console.error(JSON.stringify({ gate: 'webkit-render-smoke', error: String(error), rows, errors, consoleErrors, httpErrors, state }));
   throw error;
 } finally {
   await browser.close();
