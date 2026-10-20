@@ -1,6 +1,5 @@
 import * as v from 'valibot';
 import { RoamingEncounterSchema } from './bossEncounter';
-import { CueDirectorSchema } from './cueDirector';
 import { BossSocketRigSchema } from './bossSocketRig';
 import { isJsonData } from './json';
 
@@ -9,7 +8,7 @@ const xyz = v.tuple([n, n, n]);
 /** Client-only roaming projection: native body/rig ids and declared channels. */
 export const RoamingBossProjectionSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Roaming projection requires JSON rows'), v.strictObject({
   id, session: id, spawn: id, spawnStream: id, variant: id, socketRig: BossSocketRigSchema, encounter: RoamingEncounterSchema,
-  cues: CueDirectorSchema, events: v.strictObject({ hit: id, open: id, shut: id, burst: id, land: id }), roar: id, landSound: id,
+  presentation: id, events: v.strictObject({ hit: id, open: id, shut: id, burst: id, land: id }), roar: id, landSound: id,
   colours: v.strictObject({ tell: xyz, wave: xyz, puff: xyz }),
   prewarm: v.pipe(v.array(v.strictObject({ kind: id, variant: id })), v.maxLength(8)),
   fur: v.strictObject({ prewarm: n, parked: n }),

@@ -1,3 +1,4 @@
+import { CueDirector } from '../src/game/audio/cueDirector';
 import { expect, test } from 'vitest';
 import { BoxGeometry, PerspectiveCamera, Scene, Vector3, type Vector2 } from 'three';
 import { app } from '../src/engine/app/runtime';
@@ -24,11 +25,11 @@ test('a marsh watch composes its own phases, native identities, figures and cont
   try {
     const clock = legacyDouble<DayCycleClock>({ dayPhase: 'day' });
     const watch = new TimedEncounters({ game, player: legacyDouble<Player>({ position: new Vector3(1, 0, 2) }), sky: legacyDouble({}), forest: legacyDouble({}), sites: null, clock },
-      rows, { rider: figure, captain: figure, storm: figure }, legacyDouble<PageCreatureGuest>({ weakPoint: () => false }));
+      rows, { rider: figure, captain: figure, storm: figure }, legacyDouble<PageCreatureGuest>({ weakPoint: () => false }), new CueDirector(game, night.cues, scope));
     expect(watch.slots).toBeDefined(); expect(watch.riders).toBeDefined();
     expect(watch.target(new Vector3(), new Vector3(0, 0, 1), 10, null)).toBeNull();
     watch.update(.05, .05);
     expect(() => new TimedEncounters({ game, player: legacyDouble({}), sky: legacyDouble({}), forest: legacyDouble({}), sites: null, clock },
-      { ...rows, contact: { ...rows.contact, tags: ['bad'] } }, { rider: figure }, legacyDouble({}))).toThrow();
+      { ...rows, contact: { ...rows.contact, tags: ['bad'] } }, { rider: figure }, legacyDouble({}), new CueDirector(game, night.cues, scope))).toThrow();
   } finally { scope.dispose(); figure.dispose(); }
 });

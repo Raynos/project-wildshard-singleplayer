@@ -1,3 +1,4 @@
+import type { CueDirector } from '../audio/cueDirector';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
 import type { createDeclaredHeldMelee } from '../plugin/weaponFamily';
@@ -20,6 +21,7 @@ export interface ClientNativeBook {
   stages: PageQuestStages | null;
   decisions: SpeciesDecisionAuthority | null;
   capture: ((name: string) => void) | null;
+  readonly presentations: Map<string, CueDirector>;
   readonly decisionAssets: Map<string, Uint8Array>;
 }
 const owners = new WeakMap<Scope, WeakMap<ShardProduct, ClientNativeBook>>();
@@ -31,8 +33,8 @@ export function clientNativeBook(ctx: ShardContext): ClientNativeBook {
   if (products === undefined) { products = new WeakMap(); owners.set(ctx.scope, products); }
   const previous = products.get(ctx.product); if (previous !== undefined) return previous;
   const book: ClientNativeBook = { held: null, brains: null, catalogue: null, population: null, quest: null,
-    fight: null, page: null, stages: null, decisions: null, capture: null, decisionAssets: new Map() };
+    fight: null, page: null, stages: null, decisions: null, capture: null, presentations: new Map(), decisionAssets: new Map() };
   products.set(ctx.product, book);
-  ctx.scope.onDispose(() => { book.decisionAssets.clear(); products.delete(ctx.product); });
+  ctx.scope.onDispose(() => { book.decisionAssets.clear(); book.presentations.clear(); products.delete(ctx.product); });
   return book;
 }

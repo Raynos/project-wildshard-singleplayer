@@ -102,10 +102,10 @@ export class CueDirector {
   }
   /** Prepare the declared fields using the resident scene's compiled looks.
    * Its entered scope owns geometry and clocks, borrowing material lifetime. */
-  static install(ctx: ShardContext, input: unknown): CueDirector {
+  static install(ctx: ShardContext, input: unknown, clock: 'owner' | 'system' = 'system'): CueDirector {
     const runtime = ctx.game.runtime;
-    if (runtime?.world === undefined || runtime.world === null || runtime.play === null) throw new Error('Cue director requires its entered world');
-    const director = new CueDirector(runtime.world.game, input, ctx.scope, runtime.play.cues);
+    if (runtime?.world === undefined || runtime.world === null) throw new Error('Cue director requires its entered world');
+    const director = new CueDirector(runtime.world.game, input, ctx.scope, runtime.play?.cues);
     for (const row of director.rows.fields) {
       const material = sceneModelSource(ctx.product, row.library).look(row.look);
       if (material === undefined) throw new Error(`Missing cue field look: ${row.look}`);
@@ -113,7 +113,7 @@ export class CueDirector {
       ctx.root.add(field.object); ctx.scope.own(field.geometry); ctx.scope.onDispose(() => { field.object.removeFromParent(); });
       if (row.place !== undefined) field.place(new Vector3(...row.place.at), new Vector3(...row.place.aim));
     }
-    ctx.system({ id: 'cue.director', phase: 'update', run: dt => { director.update(dt); } });
+    if (clock === 'system') ctx.system({ id: 'cue.director', phase: 'update', run: dt => { director.update(dt); } });
     return director;
   }
   /** Preserve one shared salt per cue, synchronous VFX-before-sound order,

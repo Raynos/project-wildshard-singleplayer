@@ -1,3 +1,4 @@
+import { clientNativeBook } from '../shardfile/clientNativeBook';
 /** Client-only roaming boss projection. All author input is rows and ids. */
 import * as THREE from 'three';
 import * as v from 'valibot';
@@ -16,7 +17,6 @@ import { pinBrain } from '@wildshard/engine/ai/pinning';
 import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { CueDirector } from '../audio/cueDirector';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -117,7 +117,8 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
   const lane = new ProjectionLane(scene, new THREE.Color(...rows.colours.tell), bossLane, ctx.reach);
   const addLanes = Array.from({ length: encounterRows.lanes.count }, () => new ProjectionLane(scene, new THREE.Color(...rows.colours.wave), thrallLane, ctx.reach));
   const C = encounterRows.profile.fight.origin, R = rows.wall.radius;
-  const cues = new CueDirector(ctx.game, rows.cues, context.scope);
+  const cues = clientNativeBook(context).presentations.get(rows.presentation);
+  if (cues === undefined) throw new Error('Missing declared roaming presentation');
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R * rows.wall.bottom, rows.wall.height, rows.wall.segments, 1, true).translate(0, rows.wall.height / 2, 0), lentLook(rows.wall.look));
   wall.position.set(C.x, heightAt(C.x, C.z) + rows.wall.lift, C.z); wall.visible = false; wall.frustumCulled = false; wall.renderOrder = rows.wall.order;
   wall.name = rows.wall.name; scene.add(wall);

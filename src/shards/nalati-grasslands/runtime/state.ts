@@ -204,8 +204,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
   const riderFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-rider')), captainFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-captain'));
-  const night = new TimedEncounters({ game, sky, player: ctx.player, forest: ctx.forest, sites: pois.balbals, clock: weather.clock },
-    await plugin.product.json('combat/timed-encounters.json'), { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest());
+  const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: pois.balbals, clock: weather.clock },
+    'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest());
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
   const nalati: Nalati = {
     persistence, pois, weather, groups, boss, elites, stealth, ride, titan,

@@ -119,7 +119,9 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       if (row.kind !== 'weather.fields') throw new Error('Invalid weather feature');
       installWeatherFields(ctx, row.rows, row.quest);
     } },
-  'audio.cues': { phase: 'play', rank: 30, lifetime: 'entered', sections: ['world/scenes'], install: installClientCues },
+  'audio.cues': { phase: 'world', rank: 48, lifetime: 'entered', sections: ['world/scenes'],
+    install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage === 'world') installClientCues(ctx, row); },
+    play: { rank: 30, install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage !== 'world') installClientCues(ctx, row); } } },
   'fx.trail': { phase: 'play', rank: 90, lifetime: 'entered', sections: ['world/scenes'], install: installClientTrails },
   'debug.expose': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
     if (row.kind !== 'debug.expose' || ctx.game.runtime === undefined) throw new Error('Client debug feature requires its runtime');

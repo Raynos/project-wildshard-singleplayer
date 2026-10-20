@@ -1,3 +1,5 @@
+import type { ShardContext } from '../plugin/context';
+import { clientNativeBook } from '../shardfile/clientNativeBook';
 import * as v from 'valibot';
 import { Vector3, type BufferGeometry } from 'three';
 import { CreatureStrikeSchema } from '@wildshard/format/creatures';
@@ -13,7 +15,7 @@ import type { Player } from '@wildshard/engine/player/Player';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import { CueDirector } from '../audio/cueDirector';
+import type { CueDirector } from '../audio/cueDirector';
 import { ReturnProgram } from '../population/returnProgram';
 import { wildEnv } from '../population/pageGroups';
 import type { PageCreatureGuest } from '../population/creatureGuest';
@@ -21,7 +23,7 @@ import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from './e
 
 const tag = v.custom<CombatTag>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.*-]+$/u.test(value));
 /** A timed encounter composition names phase membership, native rows and contact. */
-export const TimedEncountersSchema = v.object({ program: v.unknown(), cues: v.unknown(), slots: v.unknown(), view: v.unknown(),
+export const TimedEncountersSchema = v.object({ program: v.unknown(), slots: v.unknown(), view: v.unknown(),
   patrol: v.unknown(), motion: v.unknown(), ride: v.unknown(), phases: v.strictObject({ slots: v.array(v.string()), patrol: v.array(v.string()) }),
   lightFloor: v.pipe(v.number(), v.finite(), v.minValue(0)),
   contact: v.strictObject({ strike: CreatureStrikeSchema, tags: v.array(tag), origin: v.picklist(['actor', 'player']) }),
@@ -34,17 +36,25 @@ interface TimedEncounterContext {
  * rows and prepared geometry; existing authorities retain bodies and damage. */
 export class TimedEncounters {
   readonly slots: SlotEncounterView; readonly riders: PatrolEncounterView;
-  private readonly cues: CueDirector; private readonly rows; private readonly strike;
+  private readonly rows; private readonly strike;
   private readonly contacts = new StrikeRunner(); private readonly direction = new Vector3();
   constructor(private readonly ctx: TimedEncounterContext, input: unknown,
-    figures: Readonly<Record<string, BufferGeometry>>, guest: PageCreatureGuest) {
+    figures: Readonly<Record<string, BufferGeometry>>, guest: PageCreatureGuest, private readonly cues: CueDirector) {
     const rows = this.rows = v.parse(TimedEncountersSchema, input), scope = ctx.game.levelScope;
     if (scope.disposed) throw new Error('Encounter owner was disposed during admission');
-    this.strike = strikeFromData(rows.contact.strike); this.cues = new CueDirector(ctx.game, rows.cues, scope);
+    this.strike = strikeFromData(rows.contact.strike);
     const program = ReturnProgram.page(rows.program, scope);
     this.slots = new SlotEncounterView(rows.slots, rows.view, program, { scene: ctx.game.scene, cues: this.cues, sites: ctx.sites?.sites ?? null, guest });
     this.riders = new PatrolEncounterView({ patrol: rows.patrol, motion: rows.motion, view: rows.ride }, program,
       { game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, cues: this.cues, figures });
+  }
+  /** Borrow declared presentation owners while the encounter keeps its clock. */
+  static async install(owner: ShardContext, ctx: TimedEncounterContext, file: string,
+    figures: Readonly<Record<string, BufferGeometry>>, guest: PageCreatureGuest): Promise<TimedEncounters> {
+    const input = await owner.product.json(file), row = v.parse(v.object({ presentation: v.string() }), input);
+    const presentation = clientNativeBook(owner).presentations.get(row.presentation);
+    if (presentation === undefined) throw new Error('Missing declared encounter presentation');
+    return new TimedEncounters(ctx, input, figures, guest, presentation);
   }
   update(dt: number, time: number): void {
     const { ctx, rows } = this, player = ctx.player;

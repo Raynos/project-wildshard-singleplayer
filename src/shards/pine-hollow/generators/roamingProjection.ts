@@ -26,7 +26,7 @@ export const ROAMING_PROJECTION = v.parse(RoamingBossProjectionSchema, {
       { part: 'weak.core', scale: [O.core, O.core, O.core], breathe: [0, 0, 0], frequency: 0 }],
     emission: [{ material: 'core', base: O.coreGlow[0], open: O.coreGlow[1] }, { material: 'ribs', base: O.ribGlow[0], open: O.ribGlow[1] }],
   },
-  encounter: NATIVE_VIEW.BOSS_ENCOUNTER, cues: NATIVE_VIEW.KING_CUES,
+  encounter: NATIVE_VIEW.BOSS_ENCOUNTER, presentation: 'roaming',
   events: { hit: 'cue.king.bark', open: 'cue.king.ember.open', shut: 'cue.king.ember.shut', burst: 'cue.king.stomp', land: 'cue.king.lantern' },
   roar: 'bear_roar', landSound: 'lanternLight', colours: { tell: [1.5, .62, .12], wave: [2.6, 1.1, .3], puff: [2, 1.1, .4] },
   prewarm: [{ kind: 'elk', variant: 'thrall' }, { kind: 'boar', variant: 'thrall' }], fur: { prewarm: 8, parked: 0 },
