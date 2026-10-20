@@ -1,12 +1,21 @@
 import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
-import { installLoot } from '@wildshard/game/loot/runtime';
+import { installRuntimeLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { QuestViews } from '@wildshard/game/plugin/ui';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../world/build';
 import { registerPlaceSets } from '@wildshard/engine/models/sets';
 import type { PlaceSets } from '../runtime/productSections.generated.d.ts';
-import { installAdventure, type Adventure } from './adventure';
+import { prepareQuestPageComposition, installQuestPageComposition, questPagePanelHold, type QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
+import { registerQuestPageWorld } from '@wildshard/game/quest/pageResources';
+import type { QuestPageCompositionRows } from '@wildshard/format/questPageComposition';
+import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
+import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
+import { Castaway } from '../runtime/npc/Castaway';
+import { trader, tradeCounter, traderOf } from '../runtime/models/trader';
+import { modelContext } from '@wildshard/engine/models/model';
+import { place as placeModel } from '@wildshard/engine/models/place';
+import { ownQuestTree } from '@wildshard/game/quest/chapter';
+import { parseQuestTrader } from '@wildshard/game/quest/trader';
 import { installDeclaredCollectionKeepsakes } from '@wildshard/game/compendium/keepsakes';
 import { COLLECTIONS } from '../runtime/boot/blobAssets';
 import { captainHat, sailclothCape } from '../runtime/models/captainHat';
@@ -25,9 +34,29 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   // Saved used:altar restores the boss synchronously in Finale; resolve the hull before any quest restore/spawn.
   await Promise.all([preloadCaptainMesh(), preloadSailorHead()]);
   if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during the creature mesh load');
-  const { game, player } = world;
+  const { player } = world;
   const d = driftwoodWorld(shell);
-  const adventure = await installAdventure(ctx);
+  const rows = await ctx.product.json<QuestPageCompositionRows>('quests/page-composition.json');
+  registerQuestPageWorld(ctx.scope, rows.world, { pois: { hut: d.hut === null ? null : { anchors: d.hut.anchors },
+    lookout: d.lookout === null ? null : { anchors: d.lookout.anchors }, wreck: d.wreck === null ? null : { anchors: d.wreck.anchors },
+    shrine: d.shrine === null ? null : { anchors: d.shrine.anchors }, cave: d.cove === null ? null : { anchors: d.cove.anchors } }, flock: d.gulls?.flock ?? null });
+  const placement = await prepareQuestPageComposition(ctx, rows);
+  const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
+  const npc = new Castaway(world.sky, placement.place(rows.speaker.feet), placement.place(rows.speaker.fire), scenes).build(ctx.scope);
+  const stallPlacement = parseQuestTrader(await ctx.product.json(rows.files.stall)).placement;
+  if (stallPlacement === undefined) throw new Error('Missing declared trader placement');
+  const feet = placement.place(stallPlacement.feet), fx = Math.sin(feet.yaw), fz = Math.cos(feet.yaw), cx = feet.x + fx * stallPlacement.counterAhead, cz = feet.z + fz * stallPlacement.counterAhead;
+  const rig = ctx.scope.run(() => {
+    const context = modelContext(world.sky);
+    const figure = placeModel(trader, [feet], { ctx: context, draw: 'single', registry: world.registry, piece: { id: rows.trader.figure, name: 'The trader' } });
+    const counter = placeModel(tradeCounter, [{ x: cx, y: placement.floorAt(cx, cz), z: cz, yaw: feet.yaw }], { ctx: context, draw: 'single', registry: world.registry, piece: { id: rows.trader.counter, name: "The trader's counter", solidFloor: false } });
+    ownQuestTree(figure.object, ctx.scope); ownQuestTree(counter.object, ctx.scope);
+    const made = traderOf(figure.object); if (made === null) throw new Error('Missing entered trader figure'); made.companions.push(counter.object); return made;
+  });
+  ctx.scope.onDispose(() => { npc.dispose(); rig.dispose(); });
+  ctx.system({ id: rows.systems.speakerPose, phase: 'update', before: [rows.systems.talks], run: (dt, time) => { npc.update(dt, time, player.position); } });
+  ctx.system({ id: rows.systems.traderPose, phase: 'update', before: [rows.systems.trader], run: (dt, time) => { rig.update(dt, time, player.position); } });
+  const adventure = await installQuestPageComposition(ctx, rows);
   if (adventure.places === null) throw new Error('Driftwood adventure requires its discovery catalogue');
   h.fullMap.setPois(adventure.places.mapPois, { tally: true });
   shell.hooks.adventureFlags = () => adventure.flags.all.slice().sort();
@@ -48,12 +77,8 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
     new Map([['collection', { adventure, world, play: h, swords, catalogue: COLLECTIONS,
       models: new Map([['hat', captainHat], ['cape', sailclothCape]]) }]]));
   const presentation = await driftwoodLootPresentation({ economy, adventure, owned: h.owned, health, audio: h.audio, scope: ctx.scope,
-    toast: (text) => { h.hud.toast(text); }, hold: new QuestViews(ctx).panelHold({ hud: h.hud, weapons: h.weapons, menu: h.menu,
-      nolock: h.nolock, touchUi: h.touchUi, restartOnClose: true,
-      stow: on => { h.weapons.stowed = on; }, resume: () => { h.weapons.setEnabled(!player.swimming); } }) });
-  installLoot({ ctx, owned: h.owned, manifest: ctx.manifest, scene: game.scene, player, camera: game.camera,
-    animals: () => h.animals.animals, menu: h.menu, presentation, minimap: h.minimap ?? null,
-    before: ['body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'] });
+    toast: (text) => { h.hud.toast(text); }, hold: questPagePanelHold(ctx, { restartOnClose: true, stow: true, resumeSwimming: true }) });
+  installRuntimeLoot(ctx, presentation, { minimap: true, before: rows.systems.before });
   if (h.firstHints !== undefined) {
     const hintRows: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/hints.json')));
     installQuestHints(ctx, hintRows, new Map([['quest', { hints: h.firstHints, animals: h.animals, player, ui: ctx.app.ui }]]));

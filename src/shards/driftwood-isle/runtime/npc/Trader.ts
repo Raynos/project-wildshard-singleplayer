@@ -103,6 +103,7 @@ export class Trader {
 
   update(dt: number, t: number, player: THREE.Vector3): void {
     if (this.presentation?.active !== true) return;
+    if (this.presentation.takeSignal('offer')) this.offer();
     this.presentation.syncAnchors();
     const gp = this.group.position;
     const dx = player.x - gp.x, dz = player.z - gp.z, d = Math.hypot(dx, dz);

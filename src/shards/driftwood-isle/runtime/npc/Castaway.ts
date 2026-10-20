@@ -50,7 +50,8 @@ export class Castaway {
   get collider(): Collider { if (this.presentation === null) throw new Error('Figure is not built'); return this.presentation.collider; }
   get model(): this { return this; }
   dispose(): void { this.presentation?.dispose(); }
-  talking = false;
+  get talking(): boolean { return this.presentation?.talking ?? false; }
+  set talking(on: boolean) { if (this.presentation !== null) this.presentation.talking = on; }
   private body: THREE.Object3D = new THREE.Mesh();
   private camp: THREE.Object3D = new THREE.Mesh();
   /** body + head + arm: turns about his feet to face you (E129); the campfire is not in it */
@@ -123,6 +124,7 @@ export class Castaway {
 
   update(dt: number, t: number, player: THREE.Vector3): void {
     if (this.presentation?.active !== true) return;
+    if (this.presentation.takeSignal('wave')) this.wave();
     this.presentation.syncAnchors();
     const gp = this.group.position;
     const dx = player.x - gp.x, dz = player.z - gp.z, d = Math.hypot(dx, dz);

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./questPageComposition": "./questPageComposition.ts",
     "./nativeQuestComposition": "./nativeQuestComposition.ts",
     "./populationProjection": "./populationProjection.ts",
     "./populationKeeper": "./populationKeeper.ts",

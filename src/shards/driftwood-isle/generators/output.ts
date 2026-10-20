@@ -1,3 +1,8 @@
+import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
+import pageComposition from '../data/questPageComposition.json' with { type: 'json' };
+import questFrames from '../data/questFrames.json' with { type: 'json' };
+import questEvents from '../data/questEvents.json' with { type: 'json' };
+import questDeaths from '../data/questDeaths.json' with { type: 'json' };
 import nativeQuest from '../data/nativeQuest.json' with { type: 'json' };
 import nativeQuestSpots from '../data/spots.generated.json' with { type: 'json' };
 import { populationProjectionRows } from './populationProjection';
@@ -90,7 +95,7 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(parseWorldScene(value)));
-const placements = emitNamedBlobs([nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows()))), nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
+const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(QuestPageCompositionSchema, { ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page })))), nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows()))), nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 
   nameBlob('world/place-sets.json', 'json', new TextEncoder().encode(JSON.stringify(parse(PlaceSetsSchema, placeSets)))),
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),

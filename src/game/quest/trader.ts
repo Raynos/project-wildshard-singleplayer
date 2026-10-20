@@ -1,3 +1,5 @@
+import type { ShardContext } from '../plugin/context';
+import { FigureRows } from '../systems/npc/figureRows';
 import { QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { Vector3, type Object3D } from 'three';
@@ -109,5 +111,52 @@ export function installQuestTrader(input: unknown, ports: QuestTraderPorts): Que
       if (wasOpen && stall.shop?.isOpen !== true) { wasOpen = false; ports.player.pitch = pitchBefore; }
     }, row.placement.system);
   }
+  return stall;
+}
+
+/** A declared placed trader borrows its already-entered figure and piece.
+ * Intake is resource ids, resolved points and interaction rows only. */
+export interface EnteredQuestTraderContext extends Pick<ShardContext, 'scope' | 'system'> {
+  readonly game: { readonly runtime?: {
+    readonly world: { readonly registry: Pick<WorldRegistry, 'get'>; readonly player: QuestTraderPorts['player'] } | null;
+    readonly play: object | null;
+    readonly interactables: Interactable[];
+  } };
+}
+export function installEnteredQuestTrader(ctx: EnteredQuestTraderContext, input: unknown, resources: {
+  readonly figure: string; readonly counter: string; readonly offer: string;
+  readonly at: { readonly x: number; readonly y: number; readonly z: number };
+  readonly prompt: { readonly label: string; readonly radius: number };
+  readonly before: readonly string[];
+}): QuestTrader {
+  const row = parseQuestTrader(input), world = ctx.game.runtime?.world, play = ctx.game.runtime?.play;
+  if (world === undefined || world === null || play === undefined || play === null || row.placement === undefined) throw new Error('Placed trader requires its entered world');
+  const figure = FigureRows.entered(ctx.scope, resources.figure);
+  if (world.registry.get(resources.counter) === undefined) throw new Error('Missing trader counter piece');
+  const player = world.player, at = new Vector3(resources.at.x, resources.at.y, resources.at.z);
+  let pitchBefore = 0, wasOpen = false;
+  const stall: QuestTrader = { name: row.name, trader: { position: figure.group.position, companions: [], offer: () => { figure.signal(resources.offer); } }, at, shop: null,
+    open: () => {
+      if (ctx.scope.disposed) return;
+      const shop = stall.shop;
+      if (shop === null || (!row.reopen && shop.isOpen)) return;
+      if (row.view !== undefined) {
+        const her = figure.group.position, p = player.position;
+        player.yaw = Math.atan2(-(her.x - p.x), -(her.z - p.z)); pitchBefore = player.pitch; player.pitch = row.view.pitch;
+      }
+      shop.open(); figure.signal(resources.offer); wasOpen = true;
+    } };
+  if (!Number.isFinite(resources.prompt.radius) || resources.prompt.radius < 0 || resources.prompt.radius > 100) throw new Error('Invalid trader prompt radius');
+  const prompts = ctx.game.runtime?.interactables;
+  if (prompts === undefined) throw new Error('Missing trader prompt owner');
+  const prompt: Interactable = { position: at, label: resources.prompt.label,
+    get radius() { return stall.shop !== null && !stall.shop.isOpen ? resources.prompt.radius : 0; }, onInteract: stall.open };
+  prompts.push(prompt); ctx.scope.onDispose(() => { const i = prompts.indexOf(prompt); if (i !== -1) prompts.splice(i, 1); });
+  ctx.system({ id: row.placement.system, phase: 'update', before: [...resources.before], run: () => {
+    if (ctx.scope.disposed) return;
+    if (row.view === undefined) return;
+    if (stall.shop?.isOpen === true && player.position.distanceTo(at) > row.view.closeDistance) stall.shop.close();
+    if (wasOpen && stall.shop?.isOpen !== true) { wasOpen = false; player.pitch = pitchBefore; }
+  } });
   return stall;
 }

@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./quest/pageResources": "./quest/pageResources.ts",
+    "./quest/pageComposition": "./quest/pageComposition.ts",
     "./shardfile/clientTrails": "./shardfile/clientTrails.ts",
     "./quest/nativeInputs": "./quest/nativeInputs.ts",
     "./quest/nativeComposition": "./quest/nativeComposition.ts",

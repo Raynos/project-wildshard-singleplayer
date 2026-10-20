@@ -15,7 +15,9 @@ import type { app as clientApp } from '@wildshard/engine/app/runtime';
 type FinaleHost = Pick<typeof clientApp, 'events' | 'encounters' | 'levelScope' | 'engineScope' | 'clock'>;
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
-import type { Adventure, AdvAnimal } from '../../../src/shards/driftwood-isle/quest/adventure';
+import type { QuestPageComposition as Adventure } from '../../../src/game/quest/pageComposition';
+import type { Animal } from '../../../src/engine/entities/AnimalView';
+type AdvAnimal = Pick<Animal, 'kind' | 'position' | 'mem' | 'hp' | 'maxHp' | 'alive' | 'herd'>;
 import { DrownedCaptain } from './captain';
 import { CAPTAIN_DEF } from './captainEncounter';
 

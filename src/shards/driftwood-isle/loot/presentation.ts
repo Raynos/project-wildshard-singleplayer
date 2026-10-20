@@ -6,7 +6,7 @@ import type { LootPresentation } from '@wildshard/game/loot/runtime';
 import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
-import type { Adventure } from '../quest/adventure';
+import type { QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
 import stallRows from '../data/traderStall.json' with { type: 'json' };
 import { Exchange } from '@wildshard/game/loot/exchange';
 

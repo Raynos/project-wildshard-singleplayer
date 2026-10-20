@@ -49,6 +49,13 @@ export class FigureRows {
   readonly colliders: readonly ColliderDesc[];
   readonly ready: Promise<void>;
   talking = false;
+  private readonly signals = new Set<string>();
+  /** Declared presentation requests are consumed by the original motion owner. */
+  signal(id: string): void {
+    if (!this.live || id.length === 0 || id.length > 128 || this.signals.size >= 32) throw new Error('Invalid figure signal');
+    this.signals.add(id);
+  }
+  takeSignal(id: string): boolean { return this.signals.delete(id); }
   private live = true;
   private releaseEntry: () => void = () => undefined;
   private readonly publications = new Map<string, THREE.Object3D | THREE.Vector3>();
@@ -147,7 +154,7 @@ export class FigureRows {
   /** Late loads cannot attach or publish into an evicted scene. */
   dispose(): void {
     if (!this.live) return;
-    this.live = false; this.releaseEntry(); this.skinState.pending = null;
+    this.live = false; this.signals.clear(); this.releaseEntry(); this.skinState.pending = null;
     for (const [id, object] of this.publications) this.resources.release(id, object);
     this.publications.clear();
     for (const owned of this.skinState.owned) owned.dispose(); this.skinState.owned.length = 0;

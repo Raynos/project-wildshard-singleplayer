@@ -12,7 +12,7 @@ import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { readDirectorProduct } from '@wildshard/game/plugin/director';
 import type { Vector3 } from 'three';
 import { installDriftwoodAdventure } from '../quest/install';
-import type { Adventure } from '../quest/adventure';
+import type { QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
 import { installDriftwoodCreatures } from '../creatures/install';
 import { HeldClaims } from '@wildshard/game/loadout/claims';
 

@@ -91,12 +91,13 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
 }
 
 /** Install ordinary loot against the admitted world services without exposing a raw scene to runtime content. */
-export function installRuntimeLoot(ctx: ShardContext, presentation: LootPresentation): ScopedLoot | null {
+export function installRuntimeLoot(ctx: ShardContext, presentation: LootPresentation, options: { readonly minimap?: boolean; readonly before?: readonly string[] } = {}): ScopedLoot | null {
   const runtime = ctx.game.runtime;
   if (runtime?.play === null || runtime?.play === undefined || runtime.world === null) return null;
   return installLoot({ ctx, manifest: ctx.manifest, owned: runtime.play.owned, scene: runtime.world.game.scene,
     player: runtime.world.player, camera: runtime.world.game.camera, animals: () => runtime.play?.animals.animals ?? [],
-    menu: runtime.play.menu, presentation });
+    menu: runtime.play.menu, presentation, ...(options.minimap === true ? { minimap: runtime.play.minimap ?? null } : {}),
+    ...(options.before === undefined ? {} : { before: options.before }) });
 }
 
 /** Bounded authored presentation and retirement of an already claimed loot identity. */
