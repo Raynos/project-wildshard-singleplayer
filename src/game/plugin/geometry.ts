@@ -38,7 +38,7 @@ type AnimalSpecies = ReturnType<SpeciesLook['build']>;
  *
  * A file that fails to load is a page fault (`console.error`; the boot smoke and the tests fail on it), never a silent
  * stand-in: the caller's copy is null and the thing it would draw stands undrawn. The helpers below (`fitGeometry`,
- * `withoutTriangles`, `bindRigid`, `smoothColors`, `undrawnRig`, `facetMaterial`) shape the copies.
+ * `bindRigid`, `undrawnRig`) shape the copies.
  *
  * Creature bodies (`creatureBodies`, over `skinnedModel`): standard skinned GLBs a generator baked (bones with their bind
  * positions, parts, clips and the shard's extras), copied per spawn, each with its stand-in skeleton when it did not load.
@@ -460,9 +460,6 @@ export function undrawnRig(): BufferGeometry {
   return g;
 }
 
-/** The facet models' material: the facet colours, matte (one per model: the caller's scope owns and disposes it). */
-export const facetMaterial = (): MeshStandardMaterial => new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, flatShading: true });
-
 /** A baked joint: its name, its parent's name (null for a root) and its exact bind position (BoneDef's shape). */
 export interface SkinnedJoint { readonly name: string; readonly parent: string | null; readonly pos: [number, number, number] }
 /** One skinned part: an independent geometry copy (skinIndex / skinWeight over `bones`) and its shared base-colour map. */
@@ -741,17 +738,6 @@ export function fitGeometry(g: BufferGeometry, o: ModelFit): BufferGeometry {
   return g;
 }
 
-/** Drop the triangles whose centroid `cut` says to remove (a part the code model animates instead); disposes the input. */
-export function withoutTriangles(g: BufferGeometry, cut: (x: number, y: number, z: number) => boolean): BufferGeometry {
-  const p = g.getAttribute('position'), c = g.getAttribute('color'), pos: number[] = [], col: number[] = [];
-  for (let t = 0; t + 2 < p.count; t += 3) {
-    if (cut((p.getX(t) + p.getX(t + 1) + p.getX(t + 2)) / 3, (p.getY(t) + p.getY(t + 1) + p.getY(t + 2)) / 3, (p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3)) continue;
-    for (let v = t; v < t + 3; v++) { pos.push(p.getX(v), p.getY(v), p.getZ(v)); col.push(c.getX(v), c.getY(v), c.getZ(v)); }
-  }
-  const r = new BufferGeometry(); r.setAttribute('position', new Float32BufferAttribute(pos, 3)); r.setAttribute('color', new Float32BufferAttribute(col, 3));
-  r.computeVertexNormals(); r.computeBoundingBox(); r.computeBoundingSphere(); g.dispose(); return r;
-}
-
 /** Bind every triangle rigidly to the bone `boneOf` names for its centroid (bone indices in the caller's skeleton order). */
 export function bindRigid(g: BufferGeometry, boneOf: (x: number, y: number, z: number) => number): BufferGeometry {
   const p = g.getAttribute('position'), n = p.count, index = new Uint16Array(n * 4), weight = new Float32Array(n * 4);
@@ -761,22 +747,6 @@ export function bindRigid(g: BufferGeometry, boneOf: (x: number, y: number, z: n
   }
   g.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
   return g;
-}
-
-/**
- * Averages a facet model's painted colour per vertex position, by `amount` (0 keeps each facet's own shade, 1 the
- * average): facet-painted triangles read as patches; averaged, the paint reads continuous.
- */
-export function smoothColors(g: BufferGeometry, amount = 1): void {
-  if (!g.hasAttribute('color')) return;
-  const p = g.getAttribute('position'), c = g.getAttribute('color'), sum = new Map<string, [number, number, number, number]>();
-  const key = (i: number): string => `${p.getX(i).toFixed(4)},${p.getY(i).toFixed(4)},${p.getZ(i).toFixed(4)}`;
-  for (let i = 0; i < p.count; i++) { const k = key(i), v = sum.get(k) ?? [0, 0, 0, 0]; v[0] += c.getX(i); v[1] += c.getY(i); v[2] += c.getZ(i); v[3]++; sum.set(k, v); }
-  for (let i = 0; i < p.count; i++) {
-    const v = sum.get(key(i)); if (!v) continue;
-    c.setXYZ(i, c.getX(i) + (v[0] / v[3] - c.getX(i)) * amount, c.getY(i) + (v[1] / v[3] - c.getY(i)) * amount, c.getZ(i) + (v[2] / v[3] - c.getZ(i)) * amount);
-  }
-  c.needsUpdate = true;
 }
 
 // The canvas atlas (SHARD-PLATFORM M3): a 2D-canvas texture painted from draw steps that are data. A shard lists its

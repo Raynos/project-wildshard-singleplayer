@@ -87,7 +87,6 @@
     "./questGraph": "./questGraph.ts",
     "./looks/shaderFamily": "./looks/shaderFamily.ts",
     "./kit/geometryPack": "./kit/geometryPack.ts",
-    "./looks/modelLibrary": "./looks/modelLibrary.ts",
     "./looks/canvasAtlas": "./looks/canvasAtlas.ts",
     "./looks/tileField": "./looks/tileField.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",
@@ -136,7 +135,6 @@
     "./buildDecisionScripts": "./buildDecisionScripts.ts",
     "./projectDecisions": "./projectDecisions.ts",
     "./populationShelter": "./populationShelter.ts",
-    "./populationRespawn": "./populationRespawn.ts",
     "./populationRoster": "./populationRoster.ts",
     "./models/geometrySources": "./models/geometrySources.ts",
     "./looks/pageLife": "./looks/pageLife.ts",
@@ -472,10 +470,6 @@
       "./kit/geometryPack": {
         "types": "./dist/types/sdk/kit/geometryPack.d.ts",
         "default": "./dist/kit/geometryPack.js"
-      },
-      "./looks/modelLibrary": {
-        "types": "./dist/types/sdk/looks/modelLibrary.d.ts",
-        "default": "./dist/looks/modelLibrary.js"
       },
       "./looks/canvasAtlas": {
         "types": "./dist/types/sdk/looks/canvasAtlas.d.ts",
