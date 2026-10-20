@@ -37,7 +37,10 @@ export async function walkPhysicsLeg(legIn) {
       if (d < lastProg.d - 0.3) lastProg = { t, d };
       else if (box !== null && t - lastProg.t > 1.2) { wi++; lastProg = { t, d: Infinity }; w.game.app.input.setHeld('jump', false); jumpT = 0; jump2 = false; return; } // an escape leg: the edge held
       else if (t - lastProg.t > 2) { // no progress for 2 s: log it and skip on to the next waypoint
-        stuck.push({ wp: wi, x: Number(p.position.x.toFixed(2)), y: Number(p.position.y.toFixed(2)), z: Number(p.position.z.toFixed(2)) });
+        const ground = p.motor.result.groundCollider, owner = ground === null ? null : w.physics.colliderTag(ground)?.owner;
+        stuck.push({ wp: wi, x: Number(p.position.x.toFixed(2)), y: Number(p.position.y.toFixed(2)), z: Number(p.position.z.toFixed(2)),
+          motor: p.motor.snapshot(), water: p.waterSurfaceAt(p.position.x, p.position.z),
+          ground: owner !== null && typeof owner === 'object' && typeof owner.id === 'string' ? owner.id : null });
         p.spawn(wp.x, wp.z, p.yaw); land(); wi++; lastProg = { t, d: Infinity }; return;
       }
       p.yaw = Math.atan2(-dx, -dz);
