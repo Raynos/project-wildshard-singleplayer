@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { Scope } from '../src/engine/app/scope';
+import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { FigureSkins } from '../src/game/systems/npc/figureSkins';
 import { enterFigureGroup } from '../src/game/systems/npc/figureRows';
 import * as rigLoader from '../src/engine/anim/rig';
@@ -12,6 +13,7 @@ import population from '../src/shards/nalati-grasslands/boot/peopleFrames.genera
 afterEach(() => { vi.restoreAllMocks(); });
 
 it('refuses a missing prepared skin instead of publishing a substitute camp', async () => {
+  setTerrainHeight(() => 12);
   const scope = new Scope('camp-failure-test'), failure = new Error('missing skin');
   vi.spyOn(FigureSkins, 'prepared').mockRejectedValue(failure);
   vi.spyOn(rigLoader, 'loadRigFile').mockRejectedValue(failure);
