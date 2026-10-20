@@ -18,7 +18,7 @@ import { HORSE_SPECIES, HORSE_SPEED } from './horse';
  * a spectral horse archer, cyan smoke and glass, galloping the ridge lines at night.
  *
  * The horse IS the creature row's horse (src/shards/nalati-grasslands/species/horse.ts — its build, gaits, mane / tail postPose, tack),
- * registered again as kind `ghost-rider` with this file's brain; the night rows (game/boss/presentation PatrolEncounterView) swap its material for the
+ * registered again as kind `ghost-rider` with this file's brain; the night rows (game/boss/encounterView PatrolEncounterView) swap its material for the
  * ghost one (translucent teal, a fresnel rim, additive, no shadow) and seats the hooded rider (`riderGeometry`) on the
  * horse's body bone. The brain is a puppet: the controller writes the steering target every frame (`mem.tx / tz`, the
  * speed `mem.v`) — the line's formation, the ridge path, the circling — and does the shooting; `think` only steers.

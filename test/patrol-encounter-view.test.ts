@@ -10,7 +10,7 @@ import type { SkyRig } from '../src/engine/world/skyRig';
 import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { EncounterPatrolSchema } from '../src/game/boss/encounterPatrol';
-import { PatrolEncounterView } from '../src/game/boss/presentation';
+import { PatrolEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
 

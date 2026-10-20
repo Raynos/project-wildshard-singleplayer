@@ -75,6 +75,7 @@
     "./boss/wake": "./boss/wake.ts",
     "./boss/nativeWake": "./boss/nativeWake.ts",
     "./boss/presentation": "./boss/presentation.ts",
+    "./boss/encounterView": "./boss/encounterView.ts",
     "./proof/entryways": "./proof/entryways.ts",
     "./models/specimenCatalogue": "./models/specimenCatalogue.ts",
     "./shardfile/audioCatalogue": "./shardfile/audioCatalogue.ts",

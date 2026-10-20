@@ -14,14 +14,14 @@ import type { Balbals } from '../world/Balbals';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import * as v from 'valibot';
 import { CueDirector } from '@wildshard/game/audio/cueDirector';
-import { PatrolEncounterView, SlotEncounterView } from '@wildshard/game/boss/presentation';
+import { PatrolEncounterView, SlotEncounterView } from '@wildshard/game/boss/encounterView';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { BALBAL_SLAM, creatureGuest } from '../species/balbal';
 import { riderGeometry } from '../species/ghostRider';
 
 /**
  * The dusk + night enemies (row B11 of project/archive/2026-09-23-nalati.md) as one piece for the shard wiring (src/shards/nalati-grasslands/index.ts):
- * the balbal warriors (night rows on game/boss/presentation SlotEncounterView — they wake at dusk) and the ghost riders (night rows on its PatrolEncounterView —
+ * the balbal warriors (night rows on game/boss/encounterView SlotEncounterView — they wake at dusk) and the ghost riders (night rows on its PatrolEncounterView —
  * they ride at night). Both run off the weather row's clock (`weather.clock`); both are ordinary AnimalManager animals, so
  * the health bars, the damage numbers, the kill feed, the minimap, the aim assist and the achievements (Stonebreaker:
  * `progress.recordKill('balbal', …)`) all come for free.
