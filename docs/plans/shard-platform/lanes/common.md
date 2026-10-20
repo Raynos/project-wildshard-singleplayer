@@ -3,9 +3,9 @@
 Each task is a fresh session with this file and the task (G511); AGENTS.md and docs/process/ hold the rest.
 
 - **Small commits early and often (Jake):** land each green cut as its own commit at once; never bundle or sit on one.
-- **Mega-build (G507):** only cut and land code. No boards, captures, soaks, receipts or docs beyond your commit.
-- **Queue (G513, G504, G468):** toward 0 % on every shard (20 % was a milestone): your component across all shards, Nalati first, biggest cut first; whole modules onto existing hosts or data; a new host
-  needs a real second shard (G454) and HOST-BAR ≥ 5/6 (G482); single-shard logic to AS + data at ≤ 10 Hz (G470, G503). AS engine work is WASM-HOST's (G517): no edits to
+- **Mega-build (G507):** only cut and land code; no boards, soaks, receipts or extra docs.
+- **Queue (G513, G518):** easy cuts toward 0 % on every shard (G518), biggest first; whole modules onto existing hosts or data; a new or grown host
+  needs a REAL second shard driving it this wave, never a fixture (G518), and HOST-BAR ≥ 5/6; state net lines; single-shard logic to AS + data at ≤ 10 Hz (G470, G503). AS engine work is WASM-HOST's (G517): no edits to
   engine/script, sdk/bake/compileScript, format/scriptAbi*/scriptAdmission* beyond bug fixes.
 - **Per batch (G506, G509):** `scripts/batch-check.sh <shard…>` (types, lint, focused tests, one headless boot of
   each touched shard) + the push gate. One check covers all pending cuts; never re-check a landed commit. Similar, not identical
