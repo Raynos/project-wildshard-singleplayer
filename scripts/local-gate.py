@@ -25,6 +25,15 @@ def required_test_products(tests, registry):
     return sorted(products)
 
 
+def custom_section_growth_command(tree, repo, base, sha, common):
+    """Only the immutable carrier's checker can vouch for its products."""
+    growth = tree / 'scripts/check-custom-section-growth.mjs'
+    if not growth.is_file():
+        return None
+    return ['node', str(growth), str(repo), base, sha,
+            str(common / 'custom-section-measures')]
+
+
 def main():
     inside = os.environ.get('WS_GATE_REPO')
     root = Path(inside) if inside else Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], text=True).strip())
@@ -113,10 +122,9 @@ def main():
         command = ['pnpm', 'exec', 'bash', '-c', shape.group(1)] if shape else ['pnpm', 'build']
         run('build', [sys.executable, 'scripts/heavy-lane.py', 'gate', '--', *command])
         # A carrier older than 7db7073437 has no growth check in its tree; skip it there rather than fail the push.
-        growth = root / 'scripts/check-custom-section-growth.mjs'
-        if growth.exists():
-            run('custom-section-growth', ['node', str(growth), str(root), base, sha,
-                                          str(common / 'custom-section-measures')])
+        growth = custom_section_growth_command(tree, root, base, sha, common)
+        if growth is not None:
+            run('custom-section-growth', growth)
         else:
             print('vercel-gate: custom-section-growth skipped (commit predates the check)')
         passed.parent.mkdir(parents=True, exist_ok=True)

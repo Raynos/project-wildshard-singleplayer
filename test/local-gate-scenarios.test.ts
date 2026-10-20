@@ -31,3 +31,27 @@ assert all(str(path) in registry for path in Path('test/scripts').glob('*.test.t
     [], [], [], [], ['driftwood-isle', 'pine-hollow'], [],
   ]);
 });
+
+test('old carriers skip a checkout-only checker and new carriers run their own', () => {
+  const result = execFileSync('python3', ['-c', `
+import json, runpy
+from pathlib import Path
+from tempfile import TemporaryDirectory
+command = runpy.run_path('scripts/local-gate.py')['custom_section_growth_command']
+Path('tmp').mkdir(exist_ok=True)
+with TemporaryDirectory(dir='tmp') as temporary:
+ root = Path(temporary).resolve()
+ repo, tree, common = root / 'repo', root / 'carrier', root / 'git'
+ for folder in [repo, tree]:
+  (folder / 'scripts').mkdir(parents=True)
+ checker = 'scripts/check-custom-section-growth.mjs'
+ (repo / checker).write_text('checkout-only checker')
+ assert command(tree, repo, 'base', 'sha', common) is None
+ (tree / checker).write_text('committed checker')
+ assert command(tree, repo, 'base', 'sha', common) == [
+  'node', str(tree / checker), str(repo), 'base', 'sha',
+  str(common / 'custom-section-measures')]
+ print(json.dumps({'oldSkipped': True, 'newUsesCarrier': True}))
+`], { encoding: 'utf8' });
+  expect(JSON.parse(result)).toEqual({ oldSkipped: true, newUsesCarrier: true });
+});
