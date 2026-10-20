@@ -15,7 +15,7 @@ export type Material = GroundSurface | 'wood' | 'metal' | 'flesh' | 'shell' | 'g
 export interface ColliderTag { material: Material; owner: unknown }
 
 // Rapier's canonical Collider wrappers are world-local; numeric handles repeat in independent hosts.
-let tags = new WeakMap<Collider, ColliderTag>();
+const tags = new WeakMap<Collider, ColliderTag>();
 
 export function tagCollider(c: Collider, material: Material, owner: unknown = null): void {
   tags.set(c, { material, owner });
@@ -24,6 +24,3 @@ export function tagCollider(c: Collider, material: Material, owner: unknown = nu
 export function tagOf(c: Collider): ColliderTag | undefined { return tags.get(c); }
 
 export function untagCollider(c: Collider): void { tags.delete(c); }
-
-/** Global test reset only. World disposal removes its own collider tags; other live worlds retain theirs. */
-export function clearTags(): void { tags = new WeakMap(); }

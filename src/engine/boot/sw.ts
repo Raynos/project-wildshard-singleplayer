@@ -188,5 +188,4 @@ async function register(s: ServiceWorkerContainer, settle: () => void): Promise<
 
 if (typeof window !== 'undefined') window.__ws_sw = api;
 
-export const swReady = api.ready;
 export { adopt as swAdopt, version as swVersion, api as wsSw };

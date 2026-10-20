@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type { AnimalSim } from '../entities/AnimalSim';
-import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptQuery, type ScriptCall } from '../script/host';
+import { SCRIPT_PARAMETER_QUERY, type ScriptQuery, type ScriptCall } from '../script/host';
 import { ScriptWorld, SCRIPT_OP, type ScriptEffect, type EffectTransaction } from '../script/effects';
 import type { ScriptModule } from '../script/lane';
 import type { ScriptRole, ScriptSchedule, ScheduledScriptBinding } from '../script/composition';
@@ -142,40 +142,5 @@ export class ScriptBrainDriver {
     if (world.length !== this.bindings.length || world.some(e => !this.bindings.some(b => b.entity === e.id && b.actorId === e.name))
       || new Set(world.map(e => e.id)).size !== world.length) throw new Error('Invalid restored brain identity');
     this.world.restore(world);
-  }
-}
-
-/** Standalone bounded author policy; composed levels use ScriptBrainDriver with their single ScriptComposition host. */
-export class ScriptBrainLane {
-  readonly host: ScriptHost;
-  readonly divisor: number;
-  private readonly driver: ScriptBrainDriver;
-  private readonly scheduler: ScriptSchedule;
-  constructor(options: ScriptBrainOptions) {
-    this.driver = new ScriptBrainDriver(options); this.divisor = options.divisor;
-    this.scheduler = this.driver.schedule('brain', 'brain');
-    this.host = new ScriptHost({ world: this.driver.world, query: this.driver.query });
-    for (const module of options.modules) this.host.install(module.name, module.bytes, module.seedLo, module.seedHi);
-  }
-  /** Input slots: tick, dt, reserved, trusted self, position xyz, yaw, last-hit time, attack phase, then up to 16 host observations. */
-  step(tick: number): readonly ScriptCall[] {
-    if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid brain tick');
-    if (tick % this.divisor !== 0) return [];
-    const inputs = this.scheduler.bindings.flatMap(binding => {
-      const input = this.scheduler.input(binding, tick); return input === undefined ? [] : [{ binding, input }];
-    });
-    this.host.beginTick(tick);
-    return inputs.map(({ binding, input }) => { const call = this.host.call(binding.module, binding.entity, input); this.scheduler.committed(binding, call); return call; });
-  }
-  /** Actor/motor snapshots are owned by the sim; this captures complete author state and the matching intent contract. */
-  snapshot(): string { return JSON.stringify({ ...this.driver.checkpoint(), host: this.host.checkpoint() }); }
-  /** Restore without executing policy or replaying motion/strike callbacks; reject mismatched actors or declarations atomically. */
-  restore(text: string): void {
-    const raw: unknown = JSON.parse(text);
-    if (typeof raw !== 'object' || raw === null || !('contract' in raw) || !('world' in raw) || !('host' in raw)) throw new Error('Incompatible brain continuation');
-    const beforeWorld = this.driver.snapshot(), beforeHost = this.host.checkpoint();
-    try {
-      this.driver.restore(JSON.stringify({ contract: raw.contract, world: raw.world })); this.host.restoreState(raw.host as ReturnType<ScriptHost['checkpoint']>);
-    } catch (error) { this.driver.restore(beforeWorld); this.host.restoreState(beforeHost); throw error; }
   }
 }

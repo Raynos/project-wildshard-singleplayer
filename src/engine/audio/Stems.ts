@@ -88,15 +88,6 @@ export interface GenreBank {
 export const musicSetDir = (genre: MusicGenre, set: MusicSet = 'base'): string => (set === 'base' ? genre : `${set}-${genre}`);
 /** this build's manifest for `genre` (compiled in from public/assets/music/<dir>/music.json), or undefined */
 export function musicManifest(genre: MusicGenre, set: MusicSet = 'base'): MusicManifest | undefined { return parseManifest(musicManifests()[musicSetDir(genre, set)]); }
-/** every file of a set (URLs) — a level fetches its own set into the offline cache while the player is in */
-export function setFiles(genre: MusicGenre, set: MusicSet): string[] {
-  const m = musicManifest(genre, set);
-  if (!m) return [];
-  const files: string[] = [];
-  for (const sp of Object.values(m.slots)) if (sp) files.push(sp.calm, ...(sp.tension === undefined ? [] : [sp.tension]), ...sp.layers);
-  for (const f of Object.values(m.stings)) files.push(f);
-  return [...new Set(files.map((f) => `/assets/music/${musicSetDir(genre, set)}/${f}`))].filter(shipped);
-}
 
 /** the files `decodeStyle(genre, slots)` reads (URLs), so the loading bar can tell them from the files it only downloads */
 export function styleFiles(genre: MusicGenre, slots: readonly SlotName[]): string[] {

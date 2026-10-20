@@ -21,6 +21,3 @@ export interface BlenderArea { x0: number; x1: number; z0: number; z1: number }
 export function blenderAreaFor(level: { blender?: { area: BlenderArea } }): BlenderArea | null {
   return level.blender?.area ?? null;
 }
-
-/** where a level's Blender island build lands (a public URL, trailing slash; scripts/blender/build.sh <id>/island, targets.json) */
-export function blenderModelsBase(id: string): string { return `/assets/models/${id}-blender/`; }

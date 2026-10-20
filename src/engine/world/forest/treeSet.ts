@@ -30,8 +30,6 @@ export function treeSetUrls(set: string): { glb: string; cardsAlbedo: string; ca
   };
 }
 
-/** Every file the set's boot reads (the boot manifest's `trees` source; the bark sets are added there through pbrUrls). */
-export function treeSetFiles(set: string): string[] { return Object.values(treeSetUrls(set)); }
 
 /**
  * One GLB part as a plain float geometry in the tree's own space: meshopt's quantised streams decoded, the node's

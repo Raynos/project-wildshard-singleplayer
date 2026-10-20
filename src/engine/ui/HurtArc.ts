@@ -89,15 +89,6 @@ export function respawnWhere(_def: object, place?: string | null, defaultText?: 
   return engineString('s_d67d227883b6');
 }
 
-/**
- * The death toast (B2): who killed you and where you come back — "Snapped up by a big reef crab — washed back to the
- * pier" on an ocean shard, "Gored by a boar — respawning at the south gate" in the forest, "Struck by lightning —
- * respawning on the north road" on Nalati; a fall (no attacker) is "Fell too far". `killer` = the last thing that hurt
- * you, null for a fall; `where` = `respawnWhere(chunk)`.
- */
-export function deathLine(killer: DeathCause | null, where: string): string {
-  return engineString('s_79281b1ee9cf', [deathCause(killer), where]);
-}
 
 /** the death card's headline (E295): who or what killed you — "Mauled by a brown bear", "Fell too far" */
 export function deathCause(killer: DeathCause | null): string {

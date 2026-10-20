@@ -25,7 +25,6 @@ import { labelAsset, labelClone } from '../render/gpuLabels';
 const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
 const NOBAKE = params.has('nobake');
 
-export interface BakeSpec { name: string; url: string; lossless: boolean; srgb: boolean }
 const loaded = new Map<string, ImageBitmap | HTMLImageElement | THREE.CompressedTexture>();
 const raw = new Map<string, Uint8Array>();
 
@@ -113,4 +112,3 @@ export function bakedTexture(name: string, make: () => THREE.Texture): THREE.Tex
   const t = make();
   return labelAsset(t, 'engine/bakedTexture', `generated/baked/${slug}/${name}`);
 }
-

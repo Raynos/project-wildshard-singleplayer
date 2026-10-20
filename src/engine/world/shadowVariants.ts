@@ -21,8 +21,6 @@ export function shadowBytes(size: number, cascades: number, ghosts: number): num
   return (cascades + ghosts) * size * size * 2;
 }
 
-/** the phone rig's maps (Sky.ts PHONE_SHADOW: 3 cascades at 2048²; shadowFade.ts: a ghost for each but the last) */
-export const PHONE_RIG_MAPS = { size: 2048, cascades: 3, ghosts: 2 } as const;
 
 /** the targets whose colour texture is gone (a second detach would free a deleted texture) */
 const depthOnly = new WeakSet();

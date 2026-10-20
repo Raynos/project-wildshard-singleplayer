@@ -183,7 +183,6 @@ export interface BenchDef extends Base { kind: 'bench'; label: string }
 export interface AltarDef extends Base { kind: 'altar'; label: string; /** how many sockets to draw; socket i is filled while `fills[i]` is set */ fills: string[]; /** the pickup look that fills a socket */ socketLook: string }
 
 export type InteractDef = ChestDef | KeyDef | DoorDef | LeverDef | PlateDef | BarrelDef | PickupDef | BeaconDef | BenchDef | AltarDef;
-export type InteractKind = InteractDef['kind'];
 
 export interface InteractTable {
   /** flags raised outside the table (quest dialogue, enemy deaths) that rows may read */

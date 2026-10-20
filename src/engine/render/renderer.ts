@@ -17,10 +17,6 @@ export function probeRenderer(): Renderer {
   return labelledCreation('engine/renderer', 'builtin/probe-renderer', () => new THREE.WebGLRenderer({ canvas: document.createElement('canvas') }));
 }
 
-/** a value is the renderer (the scene-ownership walk skips it) */
-export function isRenderer(value: object): boolean {
-  return Reflect.get(value, 'isWebGLRenderer') === true;
-}
 
 /** Create the game's renderer on its recovered WebGL context. */
 export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2RenderingContext): Renderer {

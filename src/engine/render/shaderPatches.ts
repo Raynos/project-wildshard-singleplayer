@@ -79,7 +79,6 @@ function observeUniformTextures(shader: ShaderSource, textures: Set<THREE.Textur
 }
 
 const states = new WeakMap<THREE.Material, State>();
-const used = new Map<string, number>();
 let seq = 0;
 
 const ownKey = (mat: THREE.Material): (() => string) | null =>
@@ -149,7 +148,6 @@ export function patchShader(mat: THREE.Material, id: string, order: number, fn: 
     state.key = () => key(prior());
     state.explicitKey = true;
   }
-  used.set(id, (used.get(id) ?? 0) + 1);
   const undo = (): void => {
     if (!state.entries.includes(entry)) return;
     state.entries = state.entries.filter((e) => e !== entry);
@@ -189,7 +187,6 @@ export function copyShaderPatches(from: THREE.Material, to: THREE.Material): voi
   states.set(to, state);
   to.onBeforeCompile = state.runner;
   to.customProgramCacheKey = state.keyFn;
-  for (const e of state.entries) if (e.id !== 'inherited') used.set(e.id, (used.get(e.id) ?? 0) + 1);
 }
 
 /**
@@ -222,11 +219,6 @@ export function hasProgramKey(mat: THREE.Material): boolean {
   return Object.hasOwn(mat, 'customProgramCacheKey');
 }
 
-/** The patch ids in this material's chain, in run order (tests, the inventory). */
-export function patchIds(mat: THREE.Material): string[] {
-  const state = states.get(mat);
-  return state === undefined || mat.onBeforeCompile !== state.runner ? [] : state.entries.map((e) => e.id);
-}
 
 /** Borrowed textures declared by active shader patches, deduplicated in patch order.
  * Copy/undo follows the patch chain without running callbacks or disposing content resources. */
@@ -236,8 +228,6 @@ export function shaderPatchTextures(mat: THREE.Material): readonly THREE.Texture
   return [...new Set([...state.entries.flatMap(entry => entry.textures ?? []), ...state.observedTextures])];
 }
 
-/** Every patch id used so far, with how many materials took it (Debug, the inventory). */
-export function usedPatchIds(): ReadonlyMap<string, number> { return used; }
 
 /** a uniform a patch reads: its GLSL type and the live uniform object that feeds it */
 export interface OwnUniform { readonly type: string; readonly uniform: THREE.IUniform }

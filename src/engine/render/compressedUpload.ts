@@ -57,8 +57,6 @@ function installDrawRetirement(renderer: UploadTarget, state: UploadState): void
   };
 }
 
-/** Once initial warm-up starts, late compressed consumers use the same renderer-wide queue. */
-export function compressedUploadsActive(renderer: UploadTarget): boolean { return states.has(renderer); }
 
 /** Upload one compressed 2D/array texture outside a draw, with a real paint on each side and, while loading, an error round trip.
  * Concurrent warm-up and late-load callers share one queue. A consumer may bind the texture only after this resolves.

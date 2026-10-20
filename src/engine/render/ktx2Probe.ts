@@ -294,6 +294,3 @@ export function ktx2ProbeLine(probe: Ktx2Probe | null): string {
   const fams = Object.entries(probe.families).map(([f, ok]) => `${f} ${ok ? 'ok' : 'FAIL'}`).join(' · ');
   return `${fams}${probe.formats.some((f) => !f.ok) ? ` · ${probe.note}` : ''}${probe.veto !== null ? ' · → images' : ''}`;
 }
-
-/** tests: forget the memoized result */
-export function resetKtx2ProbeForTest(): void { result = null; }

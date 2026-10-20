@@ -47,11 +47,6 @@ function fits(field: Field, start: number, end: number, firstColumn: number, las
   return true;
 }
 
-/** Adaptive interior rows, certified against the original dense triangles; native boundary columns remain complete. */
-export function seamLatticeRows(field: Field): readonly number[][] {
-  const steps = seamLatticeSteps(field);
-  for (;;) { const next = steps.next(); if (next.done === true) return next.value; }
-}
 
 /** The same ordered certification, yielding between bounded subdivision and vertex-removal checks. */
 export function* seamLatticeSteps(field: Field): Generator<void, readonly number[][]> {

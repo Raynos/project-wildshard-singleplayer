@@ -13,14 +13,6 @@ function createMesh(physics: Physics, data: MeshCollisionData, owner: unknown, m
   tagCollider(collider, material, owner); return collider;
 }
 
-/** Install admitted baked triangles as one scoped static WORLD collider, preserving stacked floors and overhangs. */
-export function addBakedMeshCollider(physics: Physics, bytes: Uint8Array, scope: Scope, options: { owner?: unknown; material?: Material } = {}): Collider {
-  if (scope.disposed) throw new Error('Mesh collision requires a live scope');
-  const data = decodeMeshCollision(bytes);
-  const collider = withOwner(scope, () => createMesh(physics, data, options.owner, options.material ?? 'ground'));
-  scope.onDispose(() => { if (collider.isValid()) physics.world.removeCollider(collider, false); });
-  return collider;
-}
 
 /** One admitted chunk at its cell-local rest pose; scripts may activate a named panel, never rewrite its geometry. */
 export interface BakedMeshColliderRow { id: string; bytes: Uint8Array; initialActive: boolean }

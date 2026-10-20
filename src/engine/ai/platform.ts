@@ -122,10 +122,3 @@ export function preparePlatformBrains(sim: SimHost, rows: readonly PlatformSpawn
   }
   return result;
 }
-
-/** Scoped brain registrations use the real sim's damage/strike clocks, physics queries and per-host RNG streams. */
-export function installPlatformBrains(sim: SimHost, rows: readonly PlatformSpawn[], specs: readonly PlatformBrainSpec[], navigation: BrainNavigation = (_from, to) => [to]): ReadonlyMap<string, PlatformBrain> {
-  const brains = preparePlatformBrains(sim, rows, specs, navigation);
-  for (const [id, brain] of brains) sim.onStep(`brain.${id}`, () => { brain.step(sim.state.tick); }, { snapshot: () => brain.snapshot(), restore: value => { brain.restore(value); } });
-  return brains;
-}

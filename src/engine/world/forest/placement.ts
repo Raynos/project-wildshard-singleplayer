@@ -327,17 +327,6 @@ export function* placeUndergrowth(trees: TreeInstance[], grid: { nearby: (x: num
 export const TREE_RECORD_MAGIC = 0x49465357; // 'WSFI'
 const TREE_RECORD_FLOATS = 11, TREE_RECORD_HEADER = 16;
 
-/** Encode placed trees as records; `variants` is the count of the forest's variants (each record's index is checked against it). */
-export function encodeTreeRecords(trees: readonly TreeInstance[], variants: number): Uint8Array {
-  const bytes = new Uint8Array(TREE_RECORD_HEADER + trees.length * TREE_RECORD_FLOATS * 8), view = new DataView(bytes.buffer);
-  view.setUint32(0, TREE_RECORD_MAGIC, true); view.setUint32(4, 1, true); view.setUint32(8, trees.length, true); view.setUint32(12, variants, true);
-  for (const [i, t] of trees.entries()) {
-    if (!Number.isInteger(t.variant) || t.variant < 0 || t.variant >= variants) throw new Error(`tree ${i}: variant ${t.variant} outside the forest's ${variants}`);
-    const row = [t.x, t.y, t.z, t.r, t.variant, t.scale, t.rot, t.height, t.tint.r, t.tint.g, t.tint.b];
-    for (const [k, value] of row.entries()) view.setFloat64(TREE_RECORD_HEADER + (i * TREE_RECORD_FLOATS + k) * 8, value, true);
-  }
-  return bytes;
-}
 
 /**
  * Decode tree records against the forest's variants (their species come from the variant, as placement picks them);

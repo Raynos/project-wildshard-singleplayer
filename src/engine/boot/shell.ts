@@ -34,7 +34,5 @@ const shellHtml = (tagline: string): string => `<div class="ws-load-head">
 </div>
 <div class="ws-load-foot"><span data-el="foot"></span></div>`;
 
-/** Build-time first-byte shell serialization; index.html carries the platform identity verbatim. */
-export const loadShellHtml = (): string => shellHtml(appIdentity().tagline);
 /** Runtime shell markup: the caller fills the identity tagline through textContent. */
 export const loadShellTemplate = (): string => shellHtml('');

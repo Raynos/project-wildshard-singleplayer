@@ -65,14 +65,6 @@ export function gpuUrl(url: string, tex: TexMode = texMode()): string {
   const u = tierUrl(url, tex);
   return standIn(u, tex) ?? u;
 }
-/**
- * A texture-array layer's file (src/engine/core/assets.ts loadPBRArray keeps the file's orientation, so its KTX2 twin is baked
- * unflipped, `<url>#layer`): what loadPBRArray downloads for `url` — the twin in KTX2 mode, else as gpuUrl.
- */
-export function gpuLayerUrl(url: string, tex: TexMode = texMode()): string {
-  const u = tierUrl(url, tex);
-  return standIn(`${u}#layer`, tex) ?? u;
-}
 // three's GLTFLoader (props, cabin clutter, their textures) and every other loader on the default manager — the tier's copy,
 // as the network names it (`?v=`: an <img>-loaded glTF texture on Safari never passes through the counted fetch)
 DefaultLoadingManager.setURLModifier((url) => versionedUrl(tierUrl(url)));

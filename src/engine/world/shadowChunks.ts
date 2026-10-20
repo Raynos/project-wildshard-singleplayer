@@ -58,12 +58,6 @@ function* chunkWork(scene: THREE.Scene, report: ShadowChunkReport): Generator<vo
   }
 }
 
-export function chunkShadowCasters(scene: THREE.Scene): ShadowChunkReport {
-  const report: ShadowChunkReport = { meshes: 0, pieces: 0, tris: 0 };
-  const work = chunkWork(scene, report);
-  while (work.next().done !== true) { /* run every step now */ }
-  return report;
-}
 
 /**
  * The same split, its pieces and its order identical to `chunkShadowCasters`, in slices (SF67, E461): at every pause point

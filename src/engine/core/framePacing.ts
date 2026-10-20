@@ -68,8 +68,6 @@ export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()
   return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2) || frameDue(now));
 }
 
-/** The reported or inferred interval between drawn frames (ms); completion-only callers retain smoothing. */
-export function frameInterval(): number { return interval; }
 
 /** Resolve after the loop has drawn a frame later than now (rAF, then a scoped task after paint), or after `WAIT_CAP_MS`. */
 export function nextDrawnFrame(owner?: Scope): Promise<void> {

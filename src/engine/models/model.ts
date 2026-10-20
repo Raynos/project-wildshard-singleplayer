@@ -314,8 +314,6 @@ export function defineModel<P extends object>(def: ModelDef<P>): ModelDef<P> {
   return def;
 }
 
-/** Every model defined so far (the modules imported so far). */
-export function definedModels(): readonly ModelInfo[] { return [...defined.values()]; }
 
 /** Where one copy stands. The pose applies in this order: `scale`, then `yaw` (about +Y), then `leanX` (about world X),
  *  then `leanZ` (about world Z), then the position — the order the old builders turned their geometry in. */

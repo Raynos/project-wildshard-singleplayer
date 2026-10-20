@@ -28,7 +28,7 @@
  * NaN guards (E67 / E91 class): every pow base clamped, every divide max()'d, the derivative tangent frame and atan fall back.
  */
 import * as THREE from 'three';
-import { patchWindField, windUniforms, WIND_DIR } from './wind';
+import { patchWindField, WIND_DIR } from './wind';
 import type { SkyRig as Sky } from './skyRig';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import { waterView } from './water/view';
@@ -250,6 +250,3 @@ function blankTexture(): THREE.DataTexture {
   blank.needsUpdate = true;
   return blank;
 }
-
-/** the wind clock the water scrolls on (wind.ts, advanced by Forest.update) — for callers that animate on the CPU */
-export function waterTime(): number { return windUniforms.uWindTime.value; }

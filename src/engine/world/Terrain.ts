@@ -134,8 +134,6 @@ const BOREAL_MAP = /* glsl */`
 export interface SplatLayers { readonly map: THREE.Texture; readonly normalMap: THREE.Texture; readonly armMap: THREE.Texture }
 /** What the splat material reads of a ground set (`groundSet`): the four layer tints and the boreal extras (null: the plain shader). */
 export interface SplatGround { readonly tints: readonly (readonly [number, number, number])[]; readonly boreal: { readonly normalK: readonly number[]; readonly trailDust: readonly number[] } | null }
-/** The splat / canopy vertex attributes the splat material reads, with their component counts. */
-export const SPLAT_ATTRIBUTES = { splat: 4, canopy: 1 } as const;
 
 /**
  * The PBR splat ground material (PH-L8): four layers from three texture arrays blended by the per-vertex `splat` (vec4)

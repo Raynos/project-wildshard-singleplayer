@@ -361,8 +361,6 @@ export function applyPaintedTerrain(m: THREE.Material, params: PaintedTerrainPar
   };
 }
 
-/** a painted terrain material's own uniforms, or null when `m` carries no painted-terrain layer */
-export function paintedTerrainUniforms(m: THREE.Material): PaintedTerrainUniforms | null { return states.get(m)?.own ?? null; }
 
 /**
  * Share a live bake with a painted terrain material: its five inputs become `bake`'s uniform objects (so whatever renders

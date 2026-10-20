@@ -274,12 +274,6 @@ export function cullPlaced(camera: THREE.Camera): void {
   }
 }
 
-/** how many copies of a model the live shards have placed (0 when none) */
-export function placedCopies(id: string): number {
-  let n = 0;
-  eachLife((life) => { for (const g of life.records.get(id)?.groups ?? []) n += g.copies; });
-  return n;
-}
 
 /** every `place` call the live shards have registered, in the order they were made (a shard's named places sort them into Sets) */
 export function placedGroups(): readonly Placed[] {

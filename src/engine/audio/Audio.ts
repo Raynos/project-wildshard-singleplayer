@@ -4,7 +4,7 @@ import { LoopEmitter, type LoopEmitterPorts, type LoopEmitterVoice, AmbienceZone
 import { resourceScope } from '../app/resources';
 import { loopAt, audioRandom, spatialAudio, WindGustBed } from './util';
 import { PlayerVoices } from './playerVoices';
-import { AudioSurfaceMap, type AudioSurfacePorts, type StepSurface } from './surface';
+import { AudioSurfaceMap, type AudioSurfacePorts } from './surface';
 import { ownAudioSource } from './ownership';
 import { currentOwner } from '../app/ownership';
 import { tap, ambientTick } from '../core/harnessTap';
@@ -89,11 +89,6 @@ export interface CallVoice {
 }
 /** a level's synth bed (`installSynthBed`): started when its id is the bed and no sampled bed of that id decoded */
 export interface SynthBed { start: () => void; stop: () => void }
-/** sfx.json `oneshots` keys: the method each replaces (`footstep-sand`, `boltImpact-wood`, `land-hard`, the AnimalSound ids, `gull`);
- *  a level's own families are plain strings */
-export type OneShot = 'crossbowFire' | 'dryFire' | `boltImpact-${ImpactKind}` | 'swordSwing' | 'swordHeavy' | `swordHit-${'flesh' | 'wood'}`
-  | 'dodge' | 'lunge' | 'reload' | 'rifleFire' | 'rifleReload' | 'weaponSwap' | `footstep-${StepSurface}` | 'jump' | 'land' | 'land-hard'
-  | 'splash' | 'wadeStep' | 'swimStroke' | 'waterExit' | 'dive' | 'surface' | 'hitMarker' | 'kill' | AnimalSound | 'gull';
 export type LoopName = string;
 /** a decoded loop (a bed or a hum): the buffer, its loop points in the file, and a gain from sfx.json (default per kind) */
 export interface SampleLoop { buffer: AudioBuffer; loopStart: number; loopEnd: number; gain: number }

@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { checkDayClockState, clockDayPhase, clockHour, clockPeriod, hourPhase, scheduleSeconds, scheduleSegment, stepDayClock, wrapClock, type DayClockState } from '../sim/dayClock';
+import { checkDayClockState, clockDayPhase, clockHour, clockPeriod, scheduleSeconds, scheduleSegment, stepDayClock, wrapClock, type DayClockState } from '../sim/dayClock';
 import type { DayClockPhase, DayClockRow, DayClockSegment } from '@wildshard/format/dayCycle';
 
 export type DayPhase = DayClockPhase;
@@ -28,8 +28,6 @@ export interface NormalizedDay { readonly minutes: number; readonly start: numbe
 export const DEFAULT_NORMALIZED_DAY: NormalizedDay = { minutes: 12, start: 0.5, maxElevation: 60, azimuth: 35 };
 
 const wrap = wrapClock;
-/** The fixed hour table a phase clock names its phase by (sim/dayClock.ts). */
-export function phaseOfHour(h: number): DayPhase { return hourPhase(h); }
 export function compassDir(azimuth: number, elevation: number, out = new Vector3()): Vector3 {
   const az = azimuth * Math.PI / 180, el = elevation * Math.PI / 180;
   return out.set(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();

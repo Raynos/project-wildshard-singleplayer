@@ -2,7 +2,6 @@ import type { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from '../core/config';
 import type { Physics } from './Physics';
-import type { CharacterMotor } from './CharacterMotor';
 import { groups, queryGroups } from './groups';
 
 const ORIGIN = { x: 0, y: 0, z: 0 };
@@ -36,22 +35,4 @@ export function gridCreatureConstraint(physics: () => Physics, radius: number): 
       to.x = from.x + delta.x * fraction; to.z = from.z + delta.z * fraction;
     }
   };
-}
-
-/** The traveling mount exposes its current motor through a getter, so a frame replacement keeps the same passage ownership. */
-export interface GridMountBody {
-  readonly motor: CharacterMotor | null;
-  motionConstraint: ((from: Readonly<Point>, to: Point) => void) | null;
-}
-/** Suspend only the home border during a mounted ride; dismount restores confinement and retains other collision exclusions. */
-export function installGridMountPassage(body: GridMountBody, scope: Scope): void {
-  if (scope.disposed) return;
-  const previous = body.motionConstraint, alreadyPassing = body.motor?.passThroughKinds().includes('BORDER') ?? false;
-  body.motionConstraint = null;
-  if (body.motor !== null) body.motor.passThrough([...body.motor.passThroughKinds(), 'BORDER']);
-  scope.onDispose(() => {
-    body.motionConstraint ??= previous;
-    const motor = body.motor;
-    if (motor !== null && !alreadyPassing) motor.passThrough(motor.passThroughKinds().filter((kind) => kind !== 'BORDER'));
-  });
 }

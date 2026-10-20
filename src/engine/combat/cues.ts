@@ -1,6 +1,6 @@
 import type { Vector3 } from 'three';
 import type { Scope } from '../app/scope';
-import type { CueOpts, CueMap } from '../audio/Cues';
+import type { CueOpts } from '../audio/Cues';
 import type { EquipmentRow, EquipmentId } from './Equipment';
 import type { ImpactSurface } from './Weapon';
 import type { CueId } from './effects/types';
@@ -41,10 +41,6 @@ export class CombatCues {
     const id = phase === 'heavy' ? row.cues?.heavy : row.cues?.charge?.[phase];
     return id !== undefined && this.cue(id, { ...opts, phase });
   }
-}
-/** Adapter for the S1.5 generic Audio cue map without renaming its existing samples/taps. */
-export function audioCueMap(map: CueMap, aliases: Readonly<Partial<Record<CueId, string>>>): CombatCueMap {
-  return (id, opts) => { const key = aliases[id]; return key !== undefined && map(key, opts); };
 }
 export interface HitStopProfile { body: number; head: number; kill: number }
 export const resolveHitStop = (profile: HitStopProfile, headshot: boolean, killed: boolean): number => killed ? profile.kill : headshot ? profile.head : profile.body;

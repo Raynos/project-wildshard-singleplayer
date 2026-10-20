@@ -38,7 +38,7 @@ const STEP_UP = 0.35;                  // m climbed without a jump (PHYSICS.md: 
 const MAX_CLIMB_DEG = 40;              // steeper ground is a wall to walk into (the old SLOPE_WALK let 44° through)
 
 // ── hoverboard (toggle: H / the HOVER touch button) ──
-export const HOVER_TOP = 14;          // m/s cruise
+          // m/s cruise
 // the board's motion law and its tuning (accel, carve, ride height, spring, jump) are player/board.ts, shared with SimHost
 const HOVER_ROLL = 6 * Math.PI / 180; // camera roll cap, reached at HOVER_ROLL_AT m/s sideways
 const HOVER_ROLL_AT = 7;

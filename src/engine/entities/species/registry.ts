@@ -23,7 +23,6 @@ import type { SpeciesFlight } from '../../ai/flight';
 
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'legendary';
 
-export const RARITY_ORDER: Rarity[] = ['common', 'uncommon', 'rare', 'legendary'];
 
 /** Per-variant gameplay multipliers, applied by AnimalManager at spawn on top of the species' HuntTuning. */
 export interface VariantMods {

@@ -312,6 +312,3 @@ export const formatMB = (b: number): string => `${(b / 1048576).toFixed(b < 10 *
 
 /** Runs one step: what code outside main.ts (bootstrap) receives, so it need not know the plan type. */
 export type StepRunner = <T>(key: BootStep, work: (p: StepProgress) => T | Promise<T>) => Promise<T>;
-const noProgress: StepProgress = { set: () => undefined, detail: () => undefined };
-/** No loading screen (dev entries): run the work, report nothing. */
-export const runDirect: StepRunner = (_key, work) => Promise.resolve(work(noProgress));

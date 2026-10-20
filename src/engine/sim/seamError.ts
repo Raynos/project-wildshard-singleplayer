@@ -23,10 +23,6 @@ export function seamTriangleErrorEvaluator(field: SeamFloorField): (indices: rea
   });
 }
 
-/** Exact height extrema of the two piecewise-linear fields, and a conservative CIE76 colour bound over their complete overlap. */
-export function seamTriangleError(field: SeamFloorField, indices: readonly [number, number, number]): { height: number; colour: number } {
-  return triangleError(field, indices, (index, column) => readVertex(field, index, column));
-}
 function triangleError(field: SeamFloorField, indices: readonly [number, number, number], read: (index: number, column: number) => Vertex): { height: number; colour: number } {
   const column = Math.min(...indices.map(index => index % field.columns));
   if (indices.some(index => index % field.columns < column || index % field.columns > column + 1)) throw new RangeError('Non-adjacent seam columns');

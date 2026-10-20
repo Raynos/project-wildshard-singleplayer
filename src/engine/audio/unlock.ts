@@ -78,11 +78,7 @@ export function whenAudioUnlocked(fn: () => void): { cancel: () => void } {
   return { cancel: () => { onUnlock.delete(run); } };
 }
 
-/** Test seam: the page's context and gate back to a fresh page's (no context, no gate). */
-export function resetAudioUnlockForTest(): void { sharedCtx = undefined; gate = 'off'; onUnlock.clear(); }
 
-/** The page's AudioContext, if one exists yet (diagnostics and tests: G325 makes none before the first gesture). */
-export function pageAudioContext(): AudioContext | undefined { return sharedCtx; }
 
 /** The page's context, made now when none exists (Audio's graph: after the gate, or with no gate installed); undefined without WebAudio. */
 export function claimPageAudioContext(): AudioContext | undefined {
@@ -92,4 +88,3 @@ export function claimPageAudioContext(): AudioContext | undefined {
 
 /** A closed context leaves the page (an Audio disposed for good): the next claim makes a new one. */
 export function releasePageAudioContext(ctx: AudioContext): void { if (sharedCtx === ctx) sharedCtx = undefined; }
-

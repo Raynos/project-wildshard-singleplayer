@@ -83,8 +83,6 @@ import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.t
  */
 
 export type AnimalKind = string;
-/** @deprecated variant ids are per species now — see SpeciesDef.variants */
-export type AnimalVariant = string;
 
 /** 'pbr' Pine Hollow (fur texture + shells) · 'toon' Driftwood (faceted) · 'painterly' Nalati (smooth, vertex colour, ONE draw) */
 export type AnimalStyle = string;

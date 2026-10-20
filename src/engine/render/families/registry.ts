@@ -95,8 +95,6 @@ export function familyVariant(base: THREE.Material, scope: Scope, configure: (m:
   return m;
 }
 
-/** every live family material and the parameters it was made from */
-export function liveFamilyMaterials(): ReadonlyMap<THREE.Material, FamilyMaterialParams> { return live; }
 
 /** the stand-in geometry a family program is compiled on: position, normal, uv and a colour attribute */
 let standInGeometry: THREE.BufferGeometry | null = null;
