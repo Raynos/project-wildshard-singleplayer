@@ -146,8 +146,9 @@ export class TextureUpdates {
       } else if (entry.kind === 'reference') {
         const holder = entry.holder ?? frame.material, node = entry.node;
         if (holder !== null && node.update === referenceUpdate && node.updateReference === entry.source) {
-          let value: unknown = Reflect.get(holder, entry.first);
-          for (const name of entry.rest) value = typeof value === 'object' && value !== null ? Reflect.get(value, name) : undefined;
+          // a keyed read as the stock node's `object[property]` (Reflect.get is a slow native call in JSC)
+          let value: unknown = (holder as Readonly<Record<string, unknown>>)[entry.first];
+          for (const name of entry.rest) value = typeof value === 'object' && value !== null ? (value as Readonly<Record<string, unknown>>)[name] : undefined;
           if (!Array.isArray(value) && value !== undefined) { entry.parts.reference = holder; entry.uniform.value = value; continue; }
         }
       } else if (entry.kind === 'model') {
