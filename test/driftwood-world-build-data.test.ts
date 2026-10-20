@@ -6,6 +6,7 @@ import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generato
 import { decodeEntryDecks } from '../src/shards/driftwood-isle/generators/entryDecks';
 import decks from '../src/shards/driftwood-isle/data/entryDecks.generated.json' with { type: 'json' };
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
+import islandFacts from '../src/shards/driftwood-isle/data/islandFacts.generated.json' with { type: 'json' };
 
 function rows() {
   const value = DRIFTWOOD_CLIENT_SECTIONS.find(row => row.name === 'custom/fixedLayouts')?.value;
@@ -14,7 +15,7 @@ function rows() {
 test('published world-build data preserves every original deck and both tiers of foliage in authored order', () => {
   const data = rows();
   expect(data.entryDecks).toEqual(decks.rows);
-  expect(data.foliage).toEqual({ seed: foliage.seed, tiers: foliage.tiers });
+  expect(data.foliage).toEqual({ seed: foliage.seed, tiers: foliage.tiers, islandPalms: islandFacts.extraPalms });
   expect(data.entryDecks.map(row => row.edge)).toEqual(['north', 'east', 'south', 'west']);
   expect(data.foliage.tiers.phone.palms.placements).toHaveLength(204);
   expect(data.foliage.tiers.desktop.bushes.placements).toHaveLength(260);
