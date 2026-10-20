@@ -18,6 +18,7 @@ import { panFromYaw, audioRandom } from '@wildshard/engine/audio/util';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import { CombatCues } from '@wildshard/engine/combat/cues';
 import type { ShardContext } from '../plugin/context';
+import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { AudioVoicePatches } from './voicePatches';
 
 /** Native polyline observation; returns distance and the direction toward its closest point. */
@@ -112,4 +113,15 @@ export function installClientAudioScene(ctx:ShardContext):void{
 /** Native bindings borrow the installed audio scene and supply their numeric observations. */
 export function clientAudioScene(ctx:ShardContext):AudioSceneDirector{
  const scene=enteredScenes.get(ctx.scope)?.get(ctx.product);if(scene===undefined||ctx.scope.disposed)throw new Error('Audio scene is not installed');return scene;
+}
+/** Bind the admitted director to the actual page's native audio and cue owners.
+ * Re-entry restores the same subscriptions without any content callback ports. */
+export function enterClientAudioScene(ctx:ShardContext):void{
+ const scene=clientAudioScene(ctx),play=ctx.game.runtime?.play;
+ if(play===undefined||play===null)throw new Error('Audio scene requires its actual play owner');
+ installEnteredRuntimeService(ctx,scope=>{
+  scene.bind(play.audio,play.music,play.animals,scope);const point=new Vector3();
+  ctx.app.events.on('creature.sound',({cue,x,y,z})=>{point.set(x,y,z);scene.emit(cue,point);},scope);
+  play.cues.use((id,options)=>options.surface===undefined?scene.fire(id):scene.impact(id,options.surface==='flesh'||options.surface==='wood'?options.surface:'ground',options.pan??0,options.gain??1),scope);
+ });
 }

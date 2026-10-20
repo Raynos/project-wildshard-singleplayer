@@ -1,3 +1,4 @@
+import { enterClientAudioScene } from '@wildshard/game/audio/sceneDirector';
 import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
 import { prepareStormTitan } from '../combat/stormTitan';
 import { prepareNalatiReins } from './reins';
@@ -24,7 +25,8 @@ import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './state';
 import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
 import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
-import { prepareWeaponCatalogue } from '../weapons/loadout';
+import { prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
+import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' };
 import { installNalatiQuestView } from '../quest/kokpar';
 import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
@@ -124,16 +126,13 @@ export class NalatiPlugin extends ShardPlugin {
     if (ride !== null) shell.interactables.push(ride.interactable);
     Object.assign(shell.objects, { wildlife, ride });
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
-    installEnteredRuntimeService(ctx,scope=>{ rt.sound?.bind(audio,music,animals,scope); const point = new Vector3(); ctx.app.events.on('creature.sound',({cue,x,y,z})=>{ point.set(x,y,z); rt.sound?.emit(cue,point); },scope); });
-    installEnteredRuntimeService(ctx, (scope) => {
-      h.cues.use((id, options) => options.surface === undefined ? rt.sound?.fire(id) === true : rt.sound?.impact(id, options.surface === 'flesh' || options.surface === 'wood' ? options.surface : 'ground', options.pan ?? 0, options.gain ?? 1) === true, scope);
-    });
+    enterClientAudioScene(ctx);
     rt.weather.bind({ audio, hurt: (amount, why) => { hurt('env.lightning', amount, { kind: 'env.lightning', label: 'Struck by lightning', text: 'Struck by lightning' }, why); } });
     const common = { animals, setWeaponsEnabled: (on: boolean) => { weapons.setEnabled(on); }, refill: () => { kit.refill(); }, interactables: shell.interactables, params,
       toast: (text: string) => { hud.toast(text); }, feed: (text: string) => { hud.killFeed(text); }, pickupHum: (on: boolean) => { audio.pickupHum(on); },
       music: (event: 'death' | 'pickup' | 'victory' | 'phase' | 'intro') => { if (event === 'death' || event === 'pickup') music.sting(event); else if (event === 'victory') music.sting('chunk'); else music.combat(1); } };
     await part();
-    ctx.scope.run(() => rt.boss.bind({ ...common, persistence: persistence.bosses, context: ctx, bow: kit.bow, upgradeBow: (power) => { kit.upgradeBow(weapons, power); } }));
+    ctx.scope.run(() => rt.boss.bind(ctx,kit,weaponCatalogue.model('goldenBow'),bowVariant));
     await part();
     ctx.scope.run(() => rt.elites.bind({ persistence: persistence.elites, animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables: shell.interactables, params,
       toast: common.toast, feed: common.feed, record: (kind, variant) => { persistence.kill(kind, variant); persistence.feat(kind); }, pickupHum: common.pickupHum,
