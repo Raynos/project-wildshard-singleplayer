@@ -206,12 +206,17 @@ export class BlenderIsland {
     const catalogue = coveModels({ geometry: protos, materials });
     const slice=slicer(),cell={size:16,pad:4},sky=models.sky,view=new THREE.Frustum(),pv=new THREE.Matrix4(),box=new THREE.Box3(),ball=new THREE.Sphere();
     // a caster is drawn while the camera or any shadow cascade sees its box (padded 4 m: the frusta are a frame old), so no
-    // shadow is lost; the camera's frustum is taken as each choice starts (copy 0)
+    // shadow is lost; the camera's frustum and the casting cascades' frusta are taken as each choice starts (copy 0): a
+    // cascade's getFrustum rebuilds its slice footprint (cascadeCull.ts), once per choice, not once per copy
+    const frusta:THREE.Frustum[]=[];
     const seen=(placed:{p:Placed|null})=>(i:number):boolean=>{
       const p=placed.p; if(p===null)return true;
-      if(i===0){const c=sky.viewCamera;c.updateMatrixWorld();view.setFromProjectionMatrix(pv.multiplyMatrices(c.projectionMatrix,c.matrixWorldInverse));}
+      if(i===0){
+        const c=sky.viewCamera;c.updateMatrixWorld();view.setFromProjectionMatrix(pv.multiplyMatrices(c.projectionMatrix,c.matrixWorldInverse));
+        frusta.length=0;for(const l of sky.csm.lights)if(l.castShadow)frusta.push(l.shadow.getFrustum());
+      }
       p.copyBox(i,box).getBoundingSphere(ball).applyMatrix4(this.group.matrixWorld);ball.radius+=4;
-      return view.intersectsSphere(ball)||sky.csm.lights.some(l=>l.castShadow&&l.shadow.getFrustum().intersectsSphere(ball));
+      return view.intersectsSphere(ball)||frusta.some(cascade=>cascade.intersectsSphere(ball));
     };
     const culls:Readonly<Record<CoveLook,(placed:{p:Placed|null})=>CullOptions>>={cast:placed=>({test:seen(placed),flat:true}),cover:()=>({far:tierLook().cover.far+1,cells:cell}),big:()=>({far:tierLook().big.far+1,cells:cell})};
     for(const row of plan.families){
