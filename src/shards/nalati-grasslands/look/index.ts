@@ -3,12 +3,11 @@ import type { Game } from '@wildshard/engine/core/Game';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { NalatiWeather } from '../world/installWeather';
-import { PaintedPanorama } from '@wildshard/game/looks/painterlyLook';
+import { PaintedPanorama, PainterKeyLight } from '@wildshard/game/looks/painterlyLook';
 import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
 import { PANO_RIDGE_V } from './panoramaData';
 import { gradeUniforms } from './grade';
 import { fogLut, tint } from './fog';
-import { LightCheat } from './light';
 import { grassV2Uniforms, grassMood, terrainHeightTexture } from './field';
 import { createStaticCapture, PHONE_STATIC_OFF_CSM } from './capture';
 import { smoothstep } from '@wildshard/engine/core/noise';
@@ -33,7 +32,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   if (panorama === null) return;
   ctx.groups['skyV2'] = panorama.dome;
   const rigDome = weather.rig.dome;
-  const cheat = new LightCheat(sky, game.level.grade.saturation);
+  const cheat = new PainterKeyLight('key' in paintedTextures ? paintedTextures.key : null, sky, game.level.grade.saturation, gradeUniforms.uV2LookSat);
   // step 6: the static casters' shadows + contact shade, baked (bake.ts) — re-baked as the key swings
   const bake = createStaticCapture(game.renderer, game.scene, terrainHeightTexture(), scope);
   for (const k of ['pois', 'dressing', 'outcrops', 'crags'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
@@ -49,7 +48,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     sweepT -= dt;
     if (sweepT <= 0) { sweepT = 2; bake.sweep(); } // streamed-in casters join the bake (and leave the phone's CSM)
     const look = weather.look, w = weather.air;
-    cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)
+    cheat.apply(look); // the painter's key: swung round + lifted, the fill lower and cooler
     bake.update(sky.sunDir); // step 6: after the cheat, so the baked shadows fall from the key
     // night: the painted sky fades out above the ridge line, the rig's stars show through (it is hidden by day: no overdraw)
     const night = panorama.update(look.sunDir, weather.clock.sunElevation);

@@ -64,5 +64,9 @@ const panorama = { dome: { name: 'sky-dome-v2', look: 'nalati-panorama', image: 
     radius: 2590, segments: [96, 48], order: -90, night: [2, -9], params: { image: 'tPano', ridge: 'tRidge', lut: 'tFogLut', pad: 'uPad', zenith: 'uZenith', sun: 'uSunNow', night: 'uNight' } },
   sea: { name: 'cloud-sea', look: 'nalati-cloud-sea', y: -68, lut: 'tFogLut', sun: 'uSunView' },
   lit: { looks: ['nalati-crag', 'nalati-crag-phone', 'nalati-riders', 'nalati-cloth'], shade: 'shade', rim: 'rim', wet: 'wet' } };
-writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama }));
+// the painter's key (game/looks/painterlyLook PainterKeyLight): the painting's sun sits low in the WSW and the camp looks toward
+// it, so the light that shades the world swings 40° further round and 15° higher (easing onto the real sun as it sets); the
+// fill lower and cooler, a blue sky above and an olive bounce below
+const key = { turn: 40, lift: 15, ease: [-1, 12], sky: [0.4, 0.46, 0.62], ground: [0.3, 0.3, 0.16], mix: 0.4, fill: 0.95 };
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama, key }));
 writer.finish();
