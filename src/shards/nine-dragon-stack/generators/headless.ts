@@ -6,7 +6,7 @@ import { treadBoxes } from '@wildshard/engine/physics/pieces';
 import { bakedColliderDesc, bakedColliderSchemas } from './bakedColliders';
 import capRows from '../data/deckCaps.generated.json' with { type: 'json' };
 import portals from '../data/portals.json' with { type: 'json' };
-import source from '../shard.config';
+import plan from '../data/layoutPlan.json' with { type: 'json' };
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
@@ -46,7 +46,7 @@ function withoutCaps(colliders: readonly ColliderDesc[]): ColliderDesc[] {
  * Treads expand with the engine's own law; hull floats retain their original
  * float32 payload. No runtime adapter filters or rewrites this payload. */
 export const headlessConstants: Record<string, unknown> = {
-  spawnY: source.spawn.y + 0.1, hooks: NINE_HOOKS, grappleProfile,
+  spawnY: plan.Y0 + 0.1, hooks: NINE_HOOKS, grappleProfile,
   portalRide: { director: portals.director, trigger: portals.trigger, fade: portals.fade, veil: portals.veil, landings: portals.landings },
   pieces: NINE_PIECES.filter(piece => piece.active && !piece.file.startsWith(PRACTICE)).map(piece => ({
     id: piece.id, name: piece.name, category: 'buildings', file: piece.file, active: true,

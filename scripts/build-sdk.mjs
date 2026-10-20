@@ -20,7 +20,7 @@ const modules = Object.entries(sdk.exports).map(([specifier, target]) => {
   return { name: specifier.slice(2), source: resolve(root, 'src/sdk', target), declaration: target.slice(2, -3) };
 });
 await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'warn', define: { __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision(root)) }, build: { outDir: resolve(root, 'src/sdk', 'dist') /* build output, git-ignored: check-paths only checks committed paths */, emptyOutDir: true, minify: false, lib: {
-  entry: Object.fromEntries([...modules.map(({ name, source }) => [name, source]), ['cli', resolve(root, 'src/sdk/cli.ts')], ['headlessWorker', resolve(root, 'src/sdk/headlessWorker.ts')]]), formats: ['es'], fileName: (_format, name) => `${name}.js`,
+  entry: Object.fromEntries([...modules.map(({ name, source }) => [name, source]), ['cli', resolve(root, 'src/sdk/cli.ts')], ['headlessWorker', resolve(root, 'src/sdk/bake/headlessWorker.ts')]]), formats: ['es'], fileName: (_format, name) => `${name}.js`,
 }, rolldownOptions: { platform: 'node', external: SDK_EXTERNALS } } });
 
 // Ship declarations without requiring the repository's internal workspace packages.

@@ -37,7 +37,7 @@ export class HeadlessSimulation {
       const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted worker bytes'); admitted.set(ref, bytes);
     }
     const bundled = resolve(import.meta.dirname, 'headlessWorker.js');
-    const source = resolve(import.meta.dirname, 'headlessWorker.ts');
+    const source = resolve(import.meta.dirname, 'bake/headlessWorker.ts');
     const loader = resolve(import.meta.dirname, '../../scripts/sim-node-loader.mjs');
     const distributed = existsSync(bundled);
     if (!distributed && (!existsSync(source) || !existsSync(loader))) throw new Error('SDK headless worker missing; build/pack the SDK or use its complete workspace checkout');

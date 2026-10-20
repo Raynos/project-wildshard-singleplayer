@@ -22019,6 +22019,45 @@
         "nalati-place-runtime",
         "camp-specimen-catalogue"
       ]
+    },
+    {
+      "id": "nine-entry-proof",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-entry-proof.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-entry-proof.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nine-dragon-stack/generators/bake-entry-proof.mjs",
+        "src/shards/nine-dragon-stack/generators/headless.ts",
+        "src/shards/nine-dragon-stack/generators/bakedColliders.ts",
+        "src/shards/nine-dragon-stack/data/physics.generated.json",
+        "src/shards/nine-dragon-stack/data/portalEntries.generated.json",
+        "src/shards/nine-dragon-stack/data/portalFloors.generated.json",
+        "src/shards/nine-dragon-stack/data/deckCaps.generated.json",
+        "src/shards/nine-dragon-stack/data/layoutPlan.json",
+        "src/shards/nine-dragon-stack/data/portals.json",
+        "src/shards/nine-dragon-stack/data/grappleProfile.json",
+        "src/game",
+        "src/engine",
+        "src/sdk",
+        "src/format",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/entryProof.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nine-dragon-stack/data/entryProof.generated.json"
+      ]
     }
   ]
 }

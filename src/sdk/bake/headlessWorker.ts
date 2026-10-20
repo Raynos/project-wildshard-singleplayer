@@ -1,5 +1,5 @@
-import { proveShardfileEntries } from '@wildshard/game/proof/entryways';
-import { createTrustedHeadlessAdapter } from './headlessRuntime';
+import { proveShardfileEntries } from '@wildshard/game/bake/entryways';
+import { createTrustedHeadlessAdapter } from '../headlessRuntime';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only the platform-selected physics binary is read inside the isolated worker.
 import { readFileSync } from 'node:fs';
@@ -9,14 +9,14 @@ import { proveAuthoredGrid, createShardfileSim, bindShardfileSim, type Shardfile
 import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '@wildshard/engine/sim/snapshot';
 
 import type { SimCommand } from '@wildshard/engine/sim';
-import { parseShardfile } from './shardfile';
-import { runTickWorker } from './tickWorkerLoop';
-import { simPlayerCommand, type HeadlessEffect } from './tickProtocol';
-import { headlessSections } from './headlessSections';
+import { parseShardfile } from '../shardfile';
+import { runTickWorker } from '../tickWorkerLoop';
+import { simPlayerCommand, type HeadlessEffect } from '../tickProtocol';
+import { headlessSections } from '../headlessSections';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { offlineMemoryAdmission } from '@wildshard/format/product';
-import { hashImmutableBytes } from './immutable';
+import { hashImmutableBytes } from '../immutable';
 
 await runTickWorker(async raw => {
   const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)), binary: v.string(), snapshot: v.optional(v.string()), trustedRuntime: v.exactOptional(v.strictObject({ module: v.string() })), sections: v.exactOptional(v.map(v.string(), v.unknown())) }), raw);

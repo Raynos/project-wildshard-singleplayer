@@ -4,9 +4,6 @@
     "@wildshard/game/plugin/simulation": [
       "addBakedPieces"
     ],
-    "@wildshard/game/proof/entryways": [
-      "proveEntryways"
-    ],
     "@wildshard/engine/physics/surface": [
       "tagOf"
     ],
@@ -250,26 +247,6 @@
           },
           "Nine Dragon declares four portal-link entryways"
         ]
-      }
-    },
-    {
-      "name": "proofWorld",
-      "value": {
-        "physics": null,
-        "fixedStep": {
-          "$fn": {
-            "$ref": [
-              "absent"
-            ]
-          }
-        },
-        "dispose": {
-          "$fn": {
-            "$ref": [
-              "absent"
-            ]
-          }
-        }
       }
     }
   ],
@@ -722,53 +699,9 @@
   },
   "entries": {
     "$fn": {
-      "$sequence": [
-        {
-          "$set": [
-            {
-              "$ref": [
-                "proofWorld"
-              ]
-            },
-            "physics",
-            {
-              "$ref": [
-                "args",
-                0,
-                "physics"
-              ]
-            }
-          ]
-        },
-        {
-          "$call": [
-            {
-              "$ref": [
-                "@wildshard/game/proof/entryways",
-                "proveEntryways"
-              ]
-            },
-            {
-              "$ref": [
-                "shard"
-              ]
-            },
-            {
-              "$ref": [
-                "assets"
-              ]
-            },
-            {
-              "world": {
-                "$fn": {
-                  "$ref": [
-                    "proofWorld"
-                  ]
-                }
-              }
-            }
-          ]
-        }
+      "$ref": [
+        "payload",
+        "entryProof"
       ]
     }
   }
