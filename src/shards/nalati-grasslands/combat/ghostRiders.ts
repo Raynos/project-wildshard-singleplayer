@@ -15,6 +15,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 
+import { EncounterPatrol, type PatrolMember, type PatrolGroup } from '@wildshard/game/boss/encounterPatrol';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { NightRows } from './nightTypes';
 import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '../species/ghostRider';
@@ -53,13 +54,7 @@ import { NightParticles, FLAG_RISE, FLAG_GROW } from './nightFx';
 
 export interface GhostRidersCtx { game: Game; sky: Sky; player: Player; forest: Forest; clock: DayCycleClock }
 export type GhostVariant = 'rider' | 'captain';
-interface Rider {
-  a: Animal; scope: Scope; mats: GhostMat[]; line: Line | null; slot: number;
-  fade: number; fadeTarget: number; dying: number; fireT: number; dead: boolean;
-  /** a storm rider (the Titan's, B14): no arrows — its script drives its charges */
-  quiet: boolean;
-}
-interface Line { riders: Rider[]; s: number; mode: 'patrol' | 'engage'; theta: number; dir: number; engagedT: number }
+interface Rider { a: Animal; scope: Scope; mats: GhostMat[]; law: PatrolMember }
 interface GhostMat { mat: THREE.MeshLambertMaterial; fade: THREE.IUniform<number> }
 
 const GHOST_TIME: THREE.IUniform<number> = { value: 0 };
@@ -94,20 +89,18 @@ const MIST: readonly [number, number, number] = [0.18, 0.75, 0.85];
 
 export class GhostRiders extends GroupBrain<Animal> {
   readonly riders: Rider[] = [];
-  readonly lines: Line[] = [];
+  private readonly patrol: EncounterPatrol;
   readonly arrows: Projectiles;
   readonly mist: NightParticles;
   /** B12: true = no automatic lines (the elite system drives the night) */
   hold = false;
   /** dev: the riders stand still where they are (screenshots) */
   freeze = false;
-  killsTonight = 0;
+  get killsTonight(): number { return this.patrol.kills; }
   onRiderKilled?: ((a: Animal, killsTonight: number) => void) | undefined;
   /** the player takes damage (set by the wiring: main's health, flash) */
   hurt?: ((damage: number, from: Animal | null) => void) | undefined;
   private animals: AnimalManager | null = null;
-  private respawnT = -1;
-  private elapsed = 0;
   private readonly author: ReturnProgram;
   private readonly lastPlayer = new THREE.Vector3();
   private readonly playerVel = new THREE.Vector3();
@@ -117,15 +110,13 @@ export class GhostRiders extends GroupBrain<Animal> {
   constructor(private readonly ctx: GhostRidersCtx, private readonly nightRows: NightRows) {
     super([]);
     this.author = ReturnProgram.page(nightRows.program, ctx.game.levelScope);
+    this.patrol = new EncounterPatrol(nightRows.patrol, this.author, app.rng.stream('ai'));
     this.arrows = new Projectiles({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest }, undefined, ghostArrowKind(nightRows));
     this.arrows.mesh.renderOrder = 13; this.arrows.mesh.receiveShadow = false;
     this.arrows.onPlayerHit = (p, d) => { this.hurt?.(nightRows.damage, this.shooter); this.mist.burst(p, 10, 1.5, 0.6, 0.8, 0.25, MIST, 0.2, FLAG_GROW, 0.2); void d; };
     this.arrows.onImpact = (_s, p) => { this.mist.burst(p, 8, 1.2, 1, 0.9, 0.3, MIST, 0.2, FLAG_GROW | FLAG_RISE, 0.2); };
     this.mist = new NightParticles(ctx.game.scene, 'mist');
     this.hitResult = { animal: this.placeholder(), point: new THREE.Vector3(), distance: 0, headshot: false };
-    ctx.clock.onNight(() => { this.killsTonight = 0; if (!this.hold && this.living() === 0) this.respawnT = 2; });
-    ctx.clock.onDawn(() => { this.dawn(); });
-    ctx.clock.onDay(() => { this.dawn(); });
   }
 
   private placeholder(): TargetAnimal {
@@ -135,10 +126,9 @@ export class GhostRiders extends GroupBrain<Animal> {
   attach(animals: AnimalManager): void {
     this.animals = animals;
     animals.factory.model(GHOST_RIDER, 'rider');
-    if (this.ctx.clock.dayPhase === 'night') this.respawnT = 0.5;
   }
 
-  living(): number { let n = 0; for (const r of this.riders) if (!r.dead) n++; return n; }
+  living(): number { return this.patrol.living; }
 
   // ── spawning ──
 
@@ -165,7 +155,7 @@ export class GhostRiders extends GroupBrain<Animal> {
     rider.frustumCulled = false;
     const body = a.mesh.skeleton.getBoneByName('body');
     if (body !== undefined) { body.add(rider); rider.position.set(0, 0, 0); }
-    const r: Rider = { a, scope, mats: [horseMat, riderMat], line: null, slot: 0, fade: 0, fadeTarget: 1, dying: 0, fireT: this.author.project('retry', { first: 1 }, app.rng.stream('ai'))['fireT'] ?? 2, dead: false, quiet: o.storm === true };
+    const r: Rider = { a, scope, mats: [horseMat, riderMat], law: this.patrol.add(a.entityId, { quiet: Number(o.storm === true) }) };
     this.riders.push(r);
     _v.set(o.x, heightAt(o.x, o.z) + 1, o.z);
     this.mist.burst(_v, 24, 1.6, 0.8, 1.6, 0.9, MIST, 0.25, FLAG_GROW | FLAG_RISE, 1.2);
@@ -175,37 +165,32 @@ export class GhostRiders extends GroupBrain<Animal> {
   /** a line of `count` riders riding the ridge loop from `at` (m along it; default: the point farthest from the player) */
   spawnLine(o: { count?: number; captain?: boolean; at?: number } = {}): Animal[] {
     const count = o.count ?? 3;
-    const p = this.ctx.player.position;
-    const start = this.author.project('lineStart', { ...this.nightRows.parameters, at: o.at ?? -1, px: p.x, pz: p.z }, app.rng.stream('ai'));
-    const s = start['s'] ?? 0;
-    const line: Line = { riders: [], s, mode: 'patrol', theta: 0, dir: start['dir'] ?? 1, engagedT: 0 };
+    const plan = this.patrol.plan(count, o.at ?? -1, this.ctx.player.position);
     const out: Animal[] = [];
-    for (let i = 0; i < count; i++) {
-      const slot = this.author.project('lineSlot', { ...this.nightRows.parameters, s, slot: i });
+    for (const [i, slot] of plan.slots.entries()) {
       const a = this.spawnRider({ x: slot['x'] ?? 0, z: slot['z'] ?? 0, yaw: slot['yaw'] ?? 0, variant: i === 0 && o.captain === true ? 'captain' : 'rider' });
       const r = a !== null ? this.riders[this.riders.length - 1] : undefined;
       if (a === null || r === undefined) continue;
-      r.line = line; r.slot = i; line.riders.push(r); out.push(a);
+      r.law.group = plan.group; r.law.slot = i; plan.group.members.push(r.law); out.push(a);
     }
-    this.lines.push(line);
     return out;
   }
 
   /** tear a rider into mist now */
   dissolve(a: Animal): void {
     const r = this.riders.find((x) => x.a === a);
-    if (r?.dying === 0) { r.dying = 0.001; r.fadeTarget = 0; }
+    if (r !== undefined) this.patrol.dissolve(r.law);
   }
 
   /** dawn: every rider left rides into the light and is gone */
-  dawn(): void { for (const r of this.riders) this.dissolve(r.a); this.respawnT = -1; }
+  dawn(): void { for (const r of this.riders) this.dissolve(r.a); }
 
   /** B7 (mounted): the player's horse at (x, z) moving `speed` m/s tramples riders within reach — returns how many */
   trample(x: number, z: number, speed: number): number {
     if (speed < 8) return 0;
     let n = 0;
     for (const r of this.riders) {
-      if (r.dead || !r.a.alive || Math.hypot(r.a.position.x - x, r.a.position.z - z) > 2.2 * r.a.scale) continue;
+      if (r.law.state['dead'] === 1 || !r.a.alive || Math.hypot(r.a.position.x - x, r.a.position.z - z) > 2.2 * r.a.scale) continue;
       _v.set(r.a.position.x, r.a.position.y + 1.2, r.a.position.z); _d.set(r.a.position.x - x, 0, r.a.position.z - z).normalize();
       r.a.applyDamage(40 + speed * 3, _v, _d); n++;
     }
@@ -213,7 +198,7 @@ export class GhostRiders extends GroupBrain<Animal> {
   }
 
   /** the loosing volley of a whole line (B12's captain calls it): every living rider of `line` shoots now */
-  volley(line: Line): void { for (const r of line.riders) if (!r.dead && r.a.alive) this.shoot(r); }
+  volley(line: PatrolGroup): void { for (const r of this.riders) if (r.law.group === line && r.law.state['dead'] !== 1 && r.a.alive) this.shoot(r); }
 
   // ── the hit test the horse capsules miss: the rider's torso + hood ──
 
@@ -221,7 +206,7 @@ export class GhostRiders extends GroupBrain<Animal> {
     let best = hit !== null ? Math.min(maxDist, hit.distance) : maxDist, found: Rider | null = null, head = false;
     _ray.set(origin, dir);
     for (const r of this.riders) {
-      if (r.dead || !r.a.alive || r.a.hidden) continue;
+      if (r.law.state['dead'] === 1 || !r.a.alive || r.a.hidden) continue;
       if (r.a.position.distanceToSquared(origin) > (best + 4) * (best + 4)) continue;
       ghostRiderPoints(r.a, _c, _h);
       const sc = r.a.scale;
@@ -244,38 +229,27 @@ export class GhostRiders extends GroupBrain<Animal> {
     const p = this.ctx.player.position;
     if (dt > 0) { this.playerVel.subVectors(p, this.lastPlayer).multiplyScalar(1 / dt); if (this.playerVel.length() > 20) this.playerVel.set(0, 0, 0); }
     this.lastPlayer.copy(p);
-    this.elapsed += dt;
-    const decisionDt = this.elapsed >= .1 ? this.elapsed : 0;
-    if (decisionDt > 0) this.elapsed = 0;
-    // Admitted roster policy runs at most ten times per second.
-    if (decisionDt > 0) {
-      const roster = this.author.project('roster', { dt: decisionDt, respawn: this.respawnT,
-        hold: Number(this.hold), night: Number(this.ctx.clock.dayPhase === 'night') });
-      this.respawnT = roster['respawn'] ?? this.respawnT;
-      if (roster['spawn'] === 1) this.spawnLine();
-      for (const line of this.lines) this.steerLine(line, decisionDt);
-    }
-    if (this.freeze) for (const r of this.riders) { r.a.mem['tx'] = r.a.position.x; r.a.mem['tz'] = r.a.position.z; r.fireT = 99; }
+    const step = this.patrol.update(this.animals === null ? 0 : dt, { px: p.x, py: p.y, pz: p.z, hold: Number(this.hold), night: Number(this.ctx.clock.dayPhase === 'night') },
+      this.riders.map(r => ({ id: r.law.id, x: r.a.position.x, z: r.a.position.z, alive: Number(r.a.alive), hidden: Number(r.a.hidden) })));
+    if (step.spawn) this.spawnLine();
+    const effects = new Map(step.effects.map(effect => [effect.member.id, effect]));
     for (let i = this.riders.length - 1; i >= 0; i--) {
       const r = this.riders[i];
       if (r === undefined) continue;
       const a = r.a;
       a.mem['px'] = p.x; a.mem['pz'] = p.z;
-      if (decisionDt > 0) {
-        const state = this.author.project('rider', { dt: decisionDt, alive: Number(a.alive), dead: Number(r.dead),
-          dying: r.dying, fade: r.fade, fadeTarget: r.fadeTarget });
-        if (state['killed'] === 1) { this.killsTonight++; this.onRiderKilled?.(a, this.killsTonight); }
-        r.dead = state['dead'] === 1; r.dying = state['dying'] ?? r.dying;
-        r.fade = state['fade'] ?? r.fade; r.fadeTarget = state['fadeTarget'] ?? r.fadeTarget;
-        if (state['retire'] === 1) { this.retire(r); this.riders.splice(i, 1); continue; }
-      }
-      for (const m of r.mats) m.fade.value = r.fade;
-      if (r.dying > 0) {
+      const effect = effects.get(r.law.id), state = r.law.state;
+      if (effect?.killed === true) this.onRiderKilled?.(a, this.killsTonight);
+      if (effect?.retire === true) { this.retire(r); this.riders.splice(i, 1); continue; }
+      if (r.law.group !== null) Object.assign(a.mem, { tx: state['tx'], tz: state['tz'], v: state['v'], turn: state['turn'] });
+      if (this.freeze) { a.mem['tx'] = a.position.x; a.mem['tz'] = a.position.z; }
+      for (const m of r.mats) m.fade.value = state['fade'] ?? 0;
+      if ((state['dying'] ?? 0) > 0) {
         ghostSeat(a, _v);
         for (let k = 0; k < 4; k++) this.mist.emit(_v.x + (app.rng.stream('cosmetic').next() - 0.5) * 1.6, _v.y - app.rng.stream('cosmetic').next() * 1.4, _v.z + (app.rng.stream('cosmetic').next() - 0.5) * 1.6,
           (app.rng.stream('cosmetic').next() - 0.5) * 1.2, 0.6 + app.rng.stream('cosmetic').next(), (app.rng.stream('cosmetic').next() - 0.5) * 1.2, 1.4, 0.35 + app.rng.stream('cosmetic').next() * 0.4, MIST[0], MIST[1], MIST[2], FLAG_GROW | FLAG_RISE);
       }
-      if (r.dead || a.hidden) continue;
+      if (state['dead'] === 1 || a.hidden) continue;
       // the smoke trail: mist off the legs and the cloak, left behind as it gallops
       // (small wisps, left BEHIND the horse: the body itself must stay readable through them)
       if (app.rng.stream('cosmetic').next() < dt * 22) {
@@ -284,46 +258,10 @@ export class GhostRiders extends GroupBrain<Animal> {
         this.mist.emit(_v.x + back.x * 1.1 + (app.rng.stream('cosmetic').next() - 0.5) * 0.7, _v.y + 0.3 - app.rng.stream('cosmetic').next() * 1.6, _v.z + back.z * 1.1 + (app.rng.stream('cosmetic').next() - 0.5) * 0.7,
           back.x * 2.2, 0.25, back.z * 2.2, 0.9 + app.rng.stream('cosmetic').next() * 0.5, 0.12 + app.rng.stream('cosmetic').next() * 0.14, MIST[0] * 0.6, MIST[1] * 0.6, MIST[2] * 0.6, FLAG_GROW | FLAG_RISE);
       }
-      // shooting: inside SHOOT m, engaged (or a loose rider), on a timer
-      const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-      if (decisionDt > 0) {
-        const fire = this.author.project('fire', { dt: decisionDt, fireT: r.fireT, quiet: Number(r.quiet),
-          distance: d, engaged: Number(r.line === null || r.line.mode === 'engage') });
-        r.fireT = fire['fireT'] ?? r.fireT;
-        if (fire['shoot'] === 1) {
-          this.shoot(r);
-          r.fireT = this.author.project('retry', { first: 0 }, app.rng.stream('ai'))['fireT'] ?? 3;
-        }
-      }
-    }
-    // lines with nobody left: drop them; start the next one's clock
-    for (let i = this.lines.length - 1; i >= 0; i--) {
-      const line = this.lines[i];
-      if (line?.riders.every((r) => r.dead || r.a.hidden || !this.riders.includes(r)) === true) {
-        this.lines.splice(i, 1);
-        if (this.living() === 0 && this.ctx.clock.dayPhase === 'night') this.respawnT = this.nightRows.respawn;
-      }
+      if (!this.freeze && effect?.shoot === true) this.shoot(r);
     }
     this.arrows.update(dt);
     this.mist.update(dt, this.ctx.game.renderer, this.ctx.game.camera);
-  }
-
-  /** patrol the ridge loop in file; wheel onto the player and circle at a gallop inside ENGAGE m */
-  private steerLine(line: Line, dt: number): void {
-    const lead = line.riders.find(r => !r.dead);
-    if (lead === undefined) return;
-    const p = this.ctx.player.position;
-    const state = this.author.project('line', { ...this.nightRows.parameters, dt, px: p.x, py: p.y, pz: p.z,
-      ax: lead.a.position.x, az: lead.a.position.z, mode: Number(line.mode === 'engage'),
-      s: line.s, theta: line.theta, dir: line.dir, t: line.engagedT });
-    line.mode = state['mode'] === 1 ? 'engage' : 'patrol';
-    line.s = state['s'] ?? line.s; line.theta = state['theta'] ?? line.theta; line.engagedT = state['t'] ?? line.engagedT;
-    for (const r of line.riders) {
-      if (r.dead) continue;
-      const target = this.author.project('target', { ...this.nightRows.parameters, ...state, px: p.x, pz: p.z, dir: line.dir,
-        slot: r.slot, ax: r.a.position.x, az: r.a.position.z });
-      Object.assign(r.a.mem, { tx: target['x'], tz: target['z'], v: target['speed'], turn: target['turn'] });
-    }
   }
 
   /** loose one glowing arrow at the player: a ballistic solve with a lead, and a little spread */
@@ -341,6 +279,7 @@ export class GhostRiders extends GroupBrain<Animal> {
   private retire(r: Rider): void {
     const a = r.a;
     this.animals?.retire(a);
+    this.patrol.remove(r.law);
     const i = this.members.indexOf(a); if (i !== -1) this.members.splice(i, 1);
     r.scope.dispose();
   }

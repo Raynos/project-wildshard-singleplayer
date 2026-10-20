@@ -71,6 +71,23 @@ if (signal == Signal.lineStart) {
     }
     put(Channel.x, tx); put(Channel.z, tz); put(Channel.speed, speed); put(Channel.turn, turn);
   }
+if(signal==Signal.patrolFire){
+ const t=f(Field.fireT)-f(Field.dt),d=f(Field.distance);
+ put(Channel.fireT,t);put(Channel.shoot,t<=0&&f(Field.quiet)==0&&d<62&&d>6&&f(Field.engaged)==1&&f(Field.dead)==0&&f(Field.dying)==0&&f(Field.hidden)==0?1:0);
+} else if(signal==Signal.patrolCycle){
+ const phase=f(Field.night),before=f(Field.phase),night=phase==1;
+ let respawn=f(Field.respawn),kills=f(Field.kills);
+ if(before<0){if(night)respawn=.5;}
+ else if(phase!=before){if(night){kills=0;if(f(Field.hold)==0&&f(Field.living)==0)respawn=2;}else respawn=-1;}
+ const enabled=respawn>=0&&f(Field.hold)==0;if(enabled)respawn-=f(Field.dt);
+ put(Channel.respawn,respawn);put(Channel.spawn,enabled&&respawn<0&&night?1:0);
+ put(Channel.phase,phase);put(Channel.kills,kills);put(Channel.dissolve,phase==0&&phase!=before?1:0);
+} else if(signal==Signal.patrolEmpty){
+ put(Channel.kills,f(Field.kills)+f(Field.killed));
+ put(Channel.respawn,f(Field.empty)>0&&f(Field.living)==0&&f(Field.night)==1?60:f(Field.respawn));
+} else if(signal==Signal.patrolDissolve){
+ put(Channel.dying,f(Field.dying)==0?.001:f(Field.dying));put(Channel.fadeTarget,0);
+}
 if (signal == Signal.roster) {
     let t = f(Field.respawn); const enabled = t >= 0 && f(Field.hold) == 0;
     if (enabled) t -= f(Field.dt);

@@ -18,5 +18,5 @@ export async function nightProgram() {
   const shape={data:geometry.toJSON().data};geometry.dispose();material.dispose();
   const wedge = wedgeMaterial();
   const shaders = {vertexShader:wedge.vertexShader,fragmentShader:wedge.fragmentShader};wedge.dispose();
-  return {ghost:ghostStyles(),wedge:shaders,program,parameters:params,geometry:shape,arrow,respawn:60,damage:10};
+  return {ghost:ghostStyles(),wedge:shaders,program,parameters:params,patrol:{parameters:params,member:{fade:0,fadeTarget:1,dying:0,dead:0},group:{s:0,mode:0,theta:0,dir:1,t:0},signals:{cycle:"patrolCycle",empty:"patrolEmpty",dissolve:"patrolDissolve",member:"rider",fire:"patrolFire",retry:"retry",start:"lineStart",slot:"lineSlot",group:"line",target:"target"}},geometry:shape,arrow,respawn:60,damage:10};
 }
