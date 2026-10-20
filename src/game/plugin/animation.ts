@@ -1,3 +1,6 @@
+import { PracticeContactStateSchema, validatePracticeContact, initialPracticeContacts, advancePracticeContacts,
+  solvePracticeContacts, samplePracticeContactFrames, releasePracticeContacts, practiceContactClearance,
+  type PracticeContactState, type PracticeContactSurface, type PracticeFootContactRecipe } from './practiceFootContact';
 import { Euler, Matrix4, Quaternion, Vector3, type EulerOrder, BufferAttribute, BufferGeometry } from 'three';
 import * as poseSchema from 'valibot';
 import type { AnimalSim, AnimalAppliedHit, AnimalHitPublication } from '@wildshard/engine/entities/AnimalSim';
@@ -519,7 +522,8 @@ export class NativeCreaturePose {
     motion: NativeCreaturePose.bits, anchor: NativeCreaturePose.bits, time: NativeCreaturePose.finite,
   });
   private static readonly PracticeSaved = poseSchema.strictObject({ ...NativeCreaturePose.Saved.entries,
-    version: poseSchema.literal(2), history: NativeCreaturePose.History });
+    version: poseSchema.literal(2), history: NativeCreaturePose.History,
+    contact: poseSchema.exactOptional(poseSchema.strictObject({ current: PracticeContactStateSchema, previous: PracticeContactStateSchema })) });
   private static readonly triple = poseSchema.tuple([NativeCreaturePose.finite, NativeCreaturePose.finite, NativeCreaturePose.finite]);
   private static readonly transform = poseSchema.strictObject({ p: NativeCreaturePose.triple, r: NativeCreaturePose.triple,
     order: poseSchema.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), s: NativeCreaturePose.triple });
@@ -648,6 +652,54 @@ export class NativeCreaturePose {
     }
   }
 
+  private readonly contactRecipe: PracticeFootContactRecipe | undefined;
+  private readonly contactSurface: PracticeContactSurface | undefined;
+  private contact: PracticeContactState | undefined;
+  private previousContact: PracticeContactState | undefined;
+  private solvedContact: Record<string, { rotation: { x: number; y: number; z: number } }> = {};
+  /** Detached diagnostic read. Released/failed is never evidence of source admission. */
+  contactDiagnostic(): Readonly<{ current: PracticeContactState; previous: PracticeContactState }> | undefined {
+    return this.contact === undefined || this.previousContact === undefined ? undefined
+      : structuredClone({ current: this.contact, previous: this.previousContact });
+  }
+  private contactSolution(root: AnimalRigJoint, state: PracticeContactState, previous = state, alpha = 1) {
+    if (this.contactRecipe === undefined || this.contactSurface === undefined) throw new Error('Missing contact declaration');
+    return solvePracticeContacts(this.contactRecipe, this.recipe.joints, root, this.contactSurface,
+      samplePracticeContactFrames(this.contactRecipe, previous, state, alpha));
+  }
+  private stageContactSolution(): void {
+    if (this.contact === undefined) return;
+    const solution = this.contactSolution(this.root, this.contact, this.previousContact);
+    if (solution.failures.length > 0) this.contact = releasePracticeContacts(this.contact, [...this.contact.failures, ...solution.failures]);
+    // Unreachable poses retain finite last transforms and explicitly fail. No root correction or fake recovery.
+    const valid = this.contact.failures.length === 0;
+    for (const name of this.contactRecipe?.feet.flatMap(foot => foot.joints) ?? []) {
+      const rotation = valid ? solution.rotations[name] : undefined, joint = this.bones[name];
+      if (joint === undefined) throw new Error('Missing contact joint');
+      this.solvedContact[name] = { rotation: { x: rotation?.[0] ?? joint.rotation.x,
+        y: rotation?.[1] ?? joint.rotation.y, z: rotation?.[2] ?? joint.rotation.z } };
+    }
+  }
+  private checkContactClearance(): void {
+    if (this.contact === undefined || this.contactRecipe === undefined || this.contactSurface === undefined) return;
+    const failures = practiceContactClearance(this.contactRecipe, this.recipe.joints, this.root, this.bones, this.contactSurface);
+    if (failures.length > 0) this.contact = releasePracticeContacts(this.contact, [...this.contact.failures, ...failures]);
+  }
+  /** Preflight before any actor/motor mutation; a fresh placement never reconstructs a mid-stride continuation. */
+  prepareContactPlacement(at: Readonly<{ x: number; y: number; z: number }>, yaw: number): PracticeContactState | undefined {
+    if (this.contactRecipe === undefined || this.contactSurface === undefined) return undefined;
+    const root = NativeCreaturePose.joint(); root.position.copy(at); root.rotation.set(0, yaw, 0, 'YXZ'); root.scale.setScalar(this.actor.scale);
+    const state = initialPracticeContacts(this.contactRecipe, root, this.contactSurface), solution = this.contactSolution(root, state);
+    if (solution.failures.length > 0) throw new Error(`Invalid contact placement: ${solution.failures.join('; ')}`);
+    const bones = Object.fromEntries(Object.entries(this.bones).map(([name, joint]) => {
+      const copy = NativeCreaturePose.joint(); copy.position.copy(joint.position); copy.rotation.copy(joint.rotation); copy.scale.copy(joint.scale);
+      const rotation = solution.rotations[name]; if (rotation !== undefined) copy.rotation.set(...rotation, 'XYZ');
+      return [name, copy];
+    }));
+    if (practiceContactClearance(this.contactRecipe, this.recipe.joints, root, bones, this.contactSurface).length > 0)
+      throw new Error('Invalid contact placement source clearance');
+    return state;
+  }
   private readonly identity: string;
   private readonly quadClock;
   private readonly actor: AnimalSim;
@@ -667,18 +719,32 @@ export class NativeCreaturePose {
   initializePractice(): void {
     const h = this.history;
     if (h?.time !== 0 || h.ordinal !== 0) throw new Error('Invalid practice pose initialization');
-    this.refreshPracticeContext(0, 0); this.animate?.(this.context); this.publish();
+    if (this.contactRecipe !== undefined && this.contactSurface !== undefined) {
+      this.contact = initialPracticeContacts(this.contactRecipe, this.root, this.contactSurface);
+      this.previousContact = structuredClone(this.contact); this.stageContactSolution();
+    }
+    this.refreshPracticeContext(0, 0); this.animate?.(this.context); this.checkContactClearance();
+    if ((this.contact?.failures.length ?? 0) > 0) throw new Error(`Contact initialization refused: ${this.contact?.failures.join('; ')}`);
+    this.publish();
+    if (this.contact !== undefined) this.previousContact = structuredClone(this.contact);
     h.entry.set(this.published); h.previous.set(this.published); h.previousRoot.set(h.root);
   }
-  constructor(actor: AnimalSim, recipe: NativeCreaturePoseRecipe, animate?: (context: AnimalRigContext) => void) {
+  constructor(actor: AnimalSim, recipe: NativeCreaturePoseRecipe, animate?: (context: AnimalRigContext) => void, contactSurface?: PracticeContactSurface) {
     this.actor = actor; this.recipe = recipe; this.animate = animate;
     if (recipe.custom !== (animate !== undefined)) throw new Error('Incompatible native creature custom pose');
     const transition = practicePoseTransition(animate);
+    this.contactRecipe = transition?.contact; this.contactSurface = contactSurface;
+    if (this.contactRecipe !== undefined) {
+      if (contactSurface === undefined) throw new Error('Contact requires trusted finite Arena surface');
+      validatePracticeContact(this.contactRecipe, recipe.joints);
+      const hulls = actor.dims.rigidCorpse?.parts.map(part => ({ joint: part.bone, points: part.points }));
+      if (JSON.stringify(hulls) !== JSON.stringify(this.contactRecipe.geometry)) throw new Error('Contact geometry identity differs from actual source');
+    }
     if ((recipe.practice === true) !== (transition !== undefined)
       || transition !== undefined && (!recipe.custom || transition.joints.length !== recipe.joints.length
         || transition.joints.some((name, index) => recipe.joints[index]?.name !== name)))
       throw new Error('Incompatible native practice pose declaration');
-    this.identity = JSON.stringify({ id: actor.entityId, kind: actor.kind, variant: actor.variant, dims: actor.dims, recipe });
+    this.identity = JSON.stringify({ id: actor.entityId, kind: actor.kind, variant: actor.variant, dims: actor.dims, recipe, ...(this.contactRecipe === undefined ? {} : { contact: this.contactRecipe }) });
     this.entityId = actor.entityId;
     this.fk = new CollisionPose(recipe.joints);
     this.joints = recipe.joints.map(row => {
@@ -713,6 +779,7 @@ export class NativeCreaturePose {
   }
   /** Body animation phase only; contacts keep the previous publication until publish(). */
   advance(dt: number, t: number, near: boolean): void {
+    if (this.contactRecipe !== undefined && (dt !== FIXED_STEP || !near)) throw new Error('Contact requires exactly one nearby fixed tick');
     if (this.history !== undefined) {
       if (!Number.isFinite(dt) || dt <= 0 || !Number.isFinite(t)) throw new Error('Practice pose advances only on positive owner ticks');
       const h = this.history, a = this.actor;
@@ -726,6 +793,15 @@ export class NativeCreaturePose {
     }
     const a = this.actor; a.advancePose(this.law, dt, t, near);
     const i = this.law.input;
+    if (this.contactRecipe !== undefined && this.contact !== undefined && this.contactSurface !== undefined && a.alive) {
+      const previousRoot = NativeCreaturePose.joint(); previousRoot.position.copy(this.root.position);
+      previousRoot.rotation.copy(this.root.rotation); previousRoot.scale.copy(this.root.scale);
+      applyAnimalRoot(this.root, a.position, a.yaw, this.law.tiltPitch, this.law.tiltRoll, this.recipe.custom, a.alive,
+        i.flinch, i.flinchPitch, i.flinchRoll, this.recipe.rootFlinch); this.root.scale.setScalar(a.scale);
+      this.previousContact = structuredClone(this.contact);
+      this.contact = advancePracticeContacts(this.contactRecipe, this.contact, previousRoot, this.root, this.contactSurface);
+      this.stageContactSolution();
+    }
     if (this.recipe.deathSplay !== false && this.wasAlive && !a.alive) for (let l = 0; l < 4; l++) this.legAbd[l] = ((l % 2 === 0) === (i.deathSide < 0)) ? .35 : .25;
     this.wasAlive = a.alive;
     if (near) {
@@ -741,6 +817,7 @@ export class NativeCreaturePose {
     }
     applyAnimalRoot(this.root, a.position, a.yaw, this.law.tiltPitch, this.law.tiltRoll, this.recipe.custom, a.alive, i.flinch, i.flinchPitch, i.flinchRoll, this.recipe.rootFlinch);
     this.root.scale.setScalar(a.scale);
+    if (a.alive) this.checkContactClearance();
   }
   /** The native decision owner chooses the same terrain cadence as the page; no publication. */
   sampleTerrain(): void { this.actor.samplePoseTerrain(this.law); }
@@ -787,6 +864,13 @@ export class NativeCreaturePose {
     context.alive = hit.alive; context.state = hit.state; context.deathT = hit.deathT; context.flinch = hit.flinch;
     if (!hit.alive) context.attack = -1;
     this.animate?.(context);
+    // Contact lanes are direct copies; a zero-time hit cannot advance, blend or replace their endpoint.
+    let nextContact = this.contact === undefined ? undefined : hit.alive ? structuredClone(this.contact)
+      : releasePracticeContacts(this.contact, ['lethal handoff']);
+    if (hit.alive && nextContact !== undefined && this.contactRecipe !== undefined && this.contactSurface !== undefined) {
+      const failures = practiceContactClearance(this.contactRecipe, this.recipe.joints, this.root, bones, this.contactSurface);
+      if (failures.length > 0) nextContact = releasePracticeContacts(nextContact, [...nextContact.failures, ...failures]);
+    }
     const fk = new CollisionPose(this.recipe.joints), published = new Float64Array(this.published.length);
     joints.forEach((joint, index) => { fk.setLocal(index, joint); published.set(NativeCreaturePose.values(joint), index * 10); });
     const frame = new Matrix4().compose(this.root.position, new Quaternion().setFromEuler(this.root.rotation), this.root.scale);
@@ -814,6 +898,7 @@ export class NativeCreaturePose {
         this.physicalRoot = true; this.physicalCurrent.copy(physical.rotation); this.physicalPrevious.copy(physical.rotation);
         this.root.position.copy(rootJoint.position); this.root.rotation.copy(rootJoint.rotation);
       }
+      if (nextContact !== undefined) { this.contact = nextContact; this.previousContact = structuredClone(nextContact); }
       h.entry.set(entry); h.ordinal = ordinal; h.kind = kind; h.elapsed = 0; h.root.set(root);
       const c = this.context;
       c.dt = context.dt; c.t = context.t; c.speed = context.speed; c.strafe = context.strafe; c.phase = context.phase;
@@ -839,20 +924,30 @@ export class NativeCreaturePose {
       });
       entry[row.name] = Object.freeze({ position: axis(0), rotation: axis(3), scale: axis(7) });
     });
-    return Object.freeze({ ordinal: h.ordinal, kind: h.kind, elapsed: h.elapsed, entry: Object.freeze(entry),
+    return Object.freeze({ ...(this.contactRecipe === undefined ? {} : { solved: structuredClone(this.solvedContact) }), ordinal: h.ordinal, kind: h.kind, elapsed: h.elapsed, entry: Object.freeze(entry),
       displacement: Object.freeze({ x: h.motion[0] ?? 0, y: h.motion[1] ?? 0, z: h.motion[2] ?? 0,
         distance: h.motion[3] ?? 0, total: h.motion[4] ?? 0, heading: h.motion[5] ?? 0 }) });
   }
   /** Explicit diagnostic placement/re-entry boundary, never inferred from a large distance threshold. */
   get placementAllowed(): boolean { return this.history !== undefined && !this.physicalRoot; }
-  resetMotionAnchor(): void {
+  resetMotionAnchor(contactPlacement?: PracticeContactState): void {
     const h = this.history; if (h === undefined || this.physicalRoot) throw new Error('Missing living native practice pose owner');
     const a = this.actor;
+    if (this.contactRecipe !== undefined) {
+      const placement = contactPlacement ?? this.prepareContactPlacement(a.position, a.yaw);
+      this.contact = placement; this.previousContact = placement === undefined ? undefined : structuredClone(placement);
+    }
     h.anchor.set([a.position.x, a.position.y, a.position.z, a.yaw]); h.motion.fill(0);
     this.root.position.copy(a.position); this.root.rotation.y = a.yaw; this.root.scale.setScalar(a.scale);
+    if (this.contact !== undefined) this.root.rotation.set(0, a.yaw, 0, 'YXZ');
+    if (this.contact !== undefined) {
+      this.stageContactSolution();
+      for (const [name, value] of Object.entries(this.solvedContact)) this.bones[name]?.rotation.set(value.rotation.x, value.rotation.y, value.rotation.z, 'XYZ');
+      this.checkContactClearance();
+    }
     this.publish(); h.previous.set(this.published); h.previousRoot.set(h.root);
   }
-  /** Copy/interpolate only previously published endpoints. Collision queries remain on current native FK. */
+  /** Quiet presentation from published endpoints; opt-in contacts re-solve detached joints. Collision queries remain on current native FK. */
   copyPublished(root: AnimalRigJoint, bones: Readonly<Record<string, AnimalRigJoint>>, alpha: number): void {
     const h = this.history;
     if (h === undefined || !Number.isFinite(alpha) || alpha < 0 || alpha > 1
@@ -871,6 +966,14 @@ export class NativeCreaturePose {
     };
     this.recipe.joints.forEach((row, index) => { const joint = bones[row.name]; if (joint !== undefined) copy(joint, h.previous, this.published, index * 10); });
     copy(root, h.previousRoot, h.root, 0);
+    if (!this.physicalRoot && blend > 0 && blend < 1 && this.contact !== undefined && this.previousContact !== undefined
+      && this.contactRecipe !== undefined && this.contact.failures.length === 0) {
+      const solution = this.contactSolution(root, this.contact, this.previousContact, blend);
+      if (solution.failures.length > 0) throw new Error(`Contact presentation refused: ${solution.failures.join('; ')}`);
+      for (const [name, rotation] of Object.entries(solution.rotations)) bones[name]?.rotation.set(...rotation, 'XYZ');
+      if (this.contactSurface !== undefined && practiceContactClearance(this.contactRecipe, this.recipe.joints, root, bones, this.contactSurface).length > 0)
+        throw new Error('Contact presentation source clearance refused');
+    }
     if (this.physicalRoot) {
       this.renderQuaternion.copy(blend === 1 ? this.physicalCurrent : this.physicalPrevious);
       if (blend > 0 && blend < 1) this.renderQuaternion.slerp(this.physicalCurrent, blend);
@@ -908,6 +1011,7 @@ export class NativeCreaturePose {
         entry: NativeCreaturePose.encoded(Array.from(h.entry)), previous: NativeCreaturePose.encoded(Array.from(h.previous)),
         root: NativeCreaturePose.encoded(Array.from(h.root)), previousRoot: NativeCreaturePose.encoded(Array.from(h.previousRoot)),
         motion: NativeCreaturePose.encoded(Array.from(h.motion)), anchor: NativeCreaturePose.encoded(Array.from(h.anchor)) } }),
+      ...(this.contact === undefined || this.previousContact === undefined ? {} : { contact: { current: this.contact, previous: this.previousContact } }),
       ...(this.corpse === undefined ? {} : { physical: { active: this.physicalRoot, frozen: this.physicalFrozen,
         previous: this.physicalPrevious.toArray(), current: this.physicalCurrent.toArray(), owner: this.corpse.diagnostic() } }) });
   }
@@ -950,8 +1054,32 @@ export class NativeCreaturePose {
     const orders = [...local.filter((_n, i) => i % 10 === 6), ...published.filter((_n, i) => i % 10 === 6),
       ...history === undefined ? [] : [...history.entry, ...history.previous, ...history.root, ...history.previousRoot].filter((_n, i) => i % 10 === 6)];
     if (orders.some(order => !Number.isInteger(order) || NativeCreaturePose.ORDERS[order] === undefined) || (this.quad === null && state.breath !== 0)) throw new Error('Invalid native creature pose continuation');
+    const contact = 'contact' in state ? state.contact : undefined;
+    if ((this.contactRecipe === undefined) !== (contact === undefined)) throw new Error('Incompatible contact continuation');
+    if (contact !== undefined) {
+      for (const endpoint of [contact.current, contact.previous]) {
+        if (endpoint.source !== this.contactRecipe?.source || endpoint.surface !== this.contactSurface?.id
+          || endpoint.revision !== this.contactSurface.revision || !this.contactSurface.active
+          || endpoint.feet.some(foot => foot.elapsed > (this.contactRecipe?.swingTicks ?? 0)
+            || (foot.mode === 'swing' && (foot.elapsed === 0 || foot.elapsed === this.contactRecipe?.swingTicks))
+            || (foot.mode === 'stance' && foot.elapsed !== 0 && foot.elapsed !== this.contactRecipe?.swingTicks)
+            || (foot.mode === 'released' && endpoint.failures.length === 0))) throw new Error('Incompatible contact continuation');
+      }
+      const scale = local[this.joints.length * 10 + 7];
+      if (scale === undefined || this.contactRecipe === undefined || scale < this.contactRecipe.minScale || scale > this.contactRecipe.maxScale
+        || scale !== local[this.joints.length * 10 + 8] || scale !== local[this.joints.length * 10 + 9]) throw new Error('Invalid contact restore scale');
+      for (const endpoint of [contact.current, contact.previous]) for (const [index, foot] of endpoint.feet.entries()) {
+        const spec = this.contactRecipe.feet[index]; if (spec === undefined || this.contactSurface === undefined) throw new Error('Missing contact restore foot');
+        const expectedY = this.contactSurface.y + spec.nominal[1] * scale;
+        if ([foot.plant, foot.start, foot.target].some(endpointFrame => Math.abs(endpointFrame.position[1] - expectedY) > 1e-10)
+          || (foot.mode === 'stance' && foot.elapsed === this.contactRecipe.swingTicks && JSON.stringify(foot.plant) !== JSON.stringify(foot.target))
+          || (endpoint.failures.length > 0 && foot.mode !== 'released')) throw new Error('Invalid contact restore frame');
+      }
+      if (contact.previous.tick > contact.current.tick || contact.current.tick - contact.previous.tick > 1) throw new Error('Invalid contact interval');
+    }
     const validation = new AnimalPoseLaw(this.law.recipe); validation.restore(state.scalar);
     this.law.restore(state.scalar); this.quad?.restore(state.breath); this.wasAlive = state.wasAlive; this.legAbd.set(leg);
+    if (contact !== undefined) { this.contact = structuredClone(contact.current); this.previousContact = structuredClone(contact.previous); }
     this.published.set(published); this.publishedFrame.set(frame); this.frame.fromArray(frame);
     const probe = NativeCreaturePose.joint();
     for (let n = 0; n < 32; n++) { if (n >= this.joints.length) break; NativeCreaturePose.read(probe, published, n * 10); this.fk.setLocal(n, probe); }
@@ -960,6 +1088,9 @@ export class NativeCreaturePose {
     if (this.history !== undefined && history !== undefined && savedHistory !== undefined) {
       Object.assign(this.history, { ordinal: savedHistory.ordinal, kind: savedHistory.kind, elapsed: savedHistory.elapsed, time: savedHistory.time });
       for (const key of ['entry', 'previous', 'root', 'previousRoot', 'motion', 'anchor'] as const) this.history[key].set(history[key]);
+      for (const name of this.contactRecipe?.feet.flatMap(foot => foot.joints) ?? []) {
+        const joint = this.bones[name]; if (joint !== undefined) this.solvedContact[name] = { rotation: { x: joint.rotation.x, y: joint.rotation.y, z: joint.rotation.z } };
+      }
       this.refreshPracticeContext(0, savedHistory.time);
     }
   }

@@ -1,0 +1,9 @@
+{
+  "status": "failed first event-boundary run; implementation corrected without source geometry changes",
+  "test": "two zero-time real hits retain contact time and entry; lethal releases once without resampling",
+  "measuredAnkleFrameErrorMetres": 0.058522800731051317,
+  "arithmeticBoundMetres": 1e-10,
+  "cause": "Same-tick publication sampling returned the old plant rather than the latched in-progress swing frame after a zero-time hit.",
+  "correction": "Equal contact tick endpoints retain the current swing elapsed fraction; no time, plant, root or geometry changes.",
+  "firstRun": {"passed": 23, "failed": 1, "files": 3}
+}

@@ -5,6 +5,7 @@ import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entitie
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
 import { borrowedDecisionControl } from '../shardfile/borrowedDecisions';
 import {createClientChannels,bindClientChannelInputs} from './channels';
+import { PracticeFootContactSchema } from './practiceFootContact';
 import { PracticePoseTransitionSchema, registerPracticePoseTransition } from './practicePoseContract';
 
 /** Copied values may be an existing common read vector or a named observation for independently authored DAGs. */
@@ -47,6 +48,7 @@ export function installChannelPrograms(input:unknown,group:string,owners:Readonl
 const STRIKE_POSE_PHASE = { idle: 0, windup: 1, active: 2, recover: 3, cooldown: 4 } as const;
 const numericPoseSchema = poseSchema.strictObject({
   practiceTransition: poseSchema.exactOptional(PracticePoseTransitionSchema),
+  footContact: poseSchema.exactOptional(PracticeFootContactSchema),
   strikeIds: poseSchema.exactOptional(poseSchema.pipe(poseSchema.array(poseSchema.pipe(poseSchema.string(),
     poseSchema.regex(/^[a-z][a-zA-Z0-9.:-]{0,127}$/u))), poseSchema.minLength(1), poseSchema.maxLength(2),
     poseSchema.check(ids => new Set(ids).size === ids.length, 'Unique strike identities'))),
@@ -85,6 +87,9 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
       || row.scalars.some(scalar => scalar.path[0] === 'mem')
       || row.programs.some(program => program.numeric?.outputs.some(output => !joints.has(output.target)) !== false
         || program.numeric.inputs.some(read => {
+          if (read.owner.startsWith('solved.')) return row.footContact === undefined
+            || !row.footContact.feet.some(foot => foot.joints.includes(read.owner.slice(7)))
+            || read.path.length !== 2 || read.path[0] !== 'rotation' || !['x', 'y', 'z'].includes(String(read.path[1]));
           if (read.owner.startsWith('entry.')) return !joints.has(`joint.${read.owner.slice(6)}`)
             || read.path.length !== 2 || !['position', 'rotation', 'scale'].includes(String(read.path[0]))
             || !['x', 'y', 'z'].includes(String(read.path[1]));
@@ -95,6 +100,27 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
           return read.owner !== 'frame' || read.path.length !== 1
             || !['t', 'dt', 'seed', 'scale', 'speed', 'strafe', 'phase', 'deathT', 'flinch', 'brace', 'attack', 'yaw', 'stateIndex'].includes(String(read.path[0]));
         }))) throw new Error('Invalid practice pose transition programme');
+  }
+  if (row.footContact !== undefined) {
+    if (row.practiceTransition === undefined) throw new Error('Contact requires native practice ownership');
+    const contact = row.footContact, legs = new Set(contact.feet.flatMap(foot => foot.joints));
+    if (row.programs.some(program => program.numeric?.outputs.some(output =>
+      contact.ancestors.some(name => output.target === `joint.${name}`) || output.path[0] !== 'rotation')))
+      throw new Error('Contact requires bind-constant ancestors and rigid translations/scales');
+    for (const joint of legs) for (const axis of ['x', 'y', 'z']) {
+      const writers = row.programs.filter(program => program.numeric?.outputs.some(output => output.target === `joint.${joint}` && output.path[1] === axis));
+      const writer = writers[0];
+      if (writers.length !== 1 || writer === undefined) throw new Error('Contact legs require exclusive direct-copy solved rotations');
+      const binding = writer.numeric;
+      if (binding?.outputs.length !== 1) throw new Error('Contact legs require exclusive direct-copy solved rotations');
+      const output = binding.outputs[0], borrowed = binding.inputs[0];
+      if (output?.path[0] !== 'rotation' || binding.inputs.length !== 1
+        || borrowed?.owner !== `solved.${joint}` || borrowed.path.join('.') !== `rotation.${axis}`
+        || writer.reads.length !== 1 || writer.nodes.length !== 1 || writer.nodes[0]?.op !== 'read'
+        || writer.nodes[0].index !== 0 || writer.channels.length !== 1 || writer.channels[0]?.value !== 0
+        || writer.channels[0].property !== axis || output.property !== axis || borrowed.input !== writer.reads[0])
+        throw new Error('Contact legs require exclusive direct-copy solved rotations');
+    }
   }
   const rigs = new WeakMap<AnimalRigContext['bones'], {
     frame: Record<string, unknown>; look: { yaw: number; pitch: number }; scalars: Record<string, number>;
@@ -149,6 +175,12 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
         `joint.${name.replaceAll('_', '.')}`, { position: fields(bone.position), rotation: fields(bone.rotation), scale: fields(bone.scale) },
       ]));
       const scalars: Record<string, number> = Object.fromEntries(row.scalars.map((scalar, i) => [scalar.name, scalarValues[i] ?? Number.NaN]));
+      if (row.footContact !== undefined) {
+        for (const foot of row.footContact.feet) for (const joint of foot.joints) {
+          const solved = transition?.solved?.[joint]; if (solved === undefined) throw new Error('Missing authoritative contact solution');
+          owners.set(`solved.${joint}`, structuredClone(solved));
+        }
+      }
       owners.set('frame', frame); owners.set('look', look); owners.set('scalars', scalars);
       if (row.practiceTransition !== undefined && transition !== undefined) {
         owners.set('transition', { ordinal: transition.ordinal, kind: transition.kind, elapsed: transition.elapsed });
@@ -172,6 +204,13 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
         transitionOwners: row.practiceTransition === undefined ? undefined : owners,
         lane: programs.length === 0 ? null : installChannelPrograms(programs, row.group, owners) };
       rigs.set(c.bones, rig);
+    }
+    if (row.footContact !== undefined) {
+      for (const foot of row.footContact.feet) for (const joint of foot.joints) {
+        const solved = transition?.solved?.[joint], target = rig.transitionOwners?.get(`solved.${joint}`);
+        if (solved === undefined || typeof target !== 'object' || target === null) throw new Error('Missing contact observation');
+        Object.assign(target, structuredClone(solved));
+      }
     }
     Object.assign(rig.strike, strike);
     if (rig.transitionOwners !== undefined && transition !== undefined && row.practiceTransition !== undefined) {
@@ -198,7 +237,7 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
     const body = row.squash === undefined ? undefined : c.bones[row.squash];
     if (body !== undefined) squashBody(body, c.flinch);
   };
-  if (row.practiceTransition !== undefined) registerPracticePoseTransition(animate, row.practiceTransition);
+  if (row.practiceTransition !== undefined) registerPracticePoseTransition(animate, { ...row.practiceTransition, ...(row.footContact === undefined ? {} : { contact: row.footContact }) });
   // Fixed corpse collision admits rigid transforms only; legacy squash and scale animation remain unchanged.
   return row.squash === undefined && row.programs.every(program => program.numeric?.outputs.every(output => output.path[0] !== 'scale') === true)
     ? registerRigidCorpseAnimation(animate) : animate;

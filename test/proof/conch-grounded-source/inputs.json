@@ -1,0 +1,25 @@
+{
+  "completeByteCopies": true,
+  "files": {
+    "model.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/model.json",
+      "bytes": 1395246,
+      "sha256": "560abb099f474ddb86733f143e39652874298bba67f15fd1da7a63f1c4e91b3e"
+    },
+    "recipe.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/recipe.json",
+      "bytes": 20894,
+      "sha256": "2dc438caca6a3396e48f9ae51a600c83a7cbf97ebd5ffd4a7654e7b8b14e5ed0"
+    },
+    "freeze.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/freeze.json",
+      "bytes": 3689,
+      "sha256": "0ec903c0eef1639277048dee8098cd51c33980204a18f59a49d75a68f21390f3"
+    },
+    "motion.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-contact-motion1/motion.json",
+      "bytes": 61063,
+      "sha256": "1e9e57b985b9eea412cbac566c7bd82f6a40b6ee4ffd8401440661d8b821ad55"
+    }
+  }
+}

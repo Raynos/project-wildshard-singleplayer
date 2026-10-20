@@ -1,0 +1,61 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../vitest.config" without a file extension (tmp/conch-grounded-review/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <project-root>
+
+ ❯ tmp/conch-grounded-review/review.test.ts (13 tests | 3 failed) 4584ms
+   × review: restore rejects a stance plant outside the finite slab atomically 29ms
+   × review: restore rejects two concurrent swings atomically 19ms
+   × review: actual source fingerprint mismatch is rejected 12ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tmp/conch-grounded-review/review.test.ts > review: restore rejects a stance plant outside the finite slab atomically
+AssertionError: expected [Function] to throw an error
+ ❯ tmp/conch-grounded-review/review.test.ts:209:52
+    207|  for (const endpoint of [saved.contact.current,saved.contact.previous])
+    208|   for (const foot of endpoint.feet) for (const key of ['plant','start'…
+    209|  expect(()=>f.pose.restore(JSON.stringify(saved))).toThrow();
+       |                                                    ^
+    210|  expect(f.pose.snapshot()).toBe(before);
+    211| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tmp/conch-grounded-review/review.test.ts > review: restore rejects two concurrent swings atomically
+AssertionError: expected [Function] to throw an error
+ ❯ tmp/conch-grounded-review/review.test.ts:216:52
+    214|  for (const endpoint of [saved.contact.current,saved.contact.previous])
+    215|   for (const foot of endpoint.feet) { foot.mode='swing'; foot.elapsed=…
+    216|  expect(()=>f.pose.restore(JSON.stringify(saved))).toThrow();
+       |                                                    ^
+    217|  expect(f.pose.snapshot()).toBe(before);
+    218| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tmp/conch-grounded-review/review.test.ts > review: actual source fingerprint mismatch is rejected
+AssertionError: expected [Function] to throw an error
+ ❯ tmp/conch-grounded-review/review.test.ts:256:33
+    254| test('review: actual source fingerprint mismatch is rejected',()=>{
+    255|  const wrong=structuredClone(declaration); wrong.footContact.source='0…
+    256|  expect(()=>fixture(0,1,wrong)).toThrow();
+       |                                 ^
+    257| });
+    258|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 10 passed (13)
+   Start at  18:19:08
+   Duration  21.13s (transform 60%, tests 22%, setup 17%, import 1%)
+
+  Transform  transforming modules took 12.51s · 60% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

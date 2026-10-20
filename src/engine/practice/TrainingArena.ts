@@ -278,12 +278,17 @@ function makeRoom(cx: number, cz: number): { root: THREE.Group; colliders: Colli
   return { root, colliders };
 }
 
+/** Finite horizontal slab lease. Its lifetime is tied to one Arena entry, not a source callback. */
+export interface TrainingArenaSurface {
+  readonly id: string; readonly revision: number; readonly active: boolean;
+  readonly y: number; readonly minX: number; readonly maxX: number; readonly minZ: number; readonly maxZ: number;
+}
 /** Data-fed opponent host. The caller owns combat, rewards and persistence isolation. */
 export interface PracticeOpponent {
   readonly targets: readonly TargetAnimal[];
   readonly playerVitals?: { readonly health: number; readonly maxHealth: number };
   readonly land?: (hard: boolean) => void;
-  enter: (origin: { x: number; y: number; z: number }) => void;
+  enter: (origin: { x: number; y: number; z: number }, surface?: TrainingArenaSurface) => void;
   exit: () => void;
   update: (dt: number) => void;
   raycast: (origin: THREE.Vector3, direction: THREE.Vector3, distance: number) => TargetHit | null;
@@ -298,6 +303,7 @@ export class TrainingArena {
   private readonly overlay: HTMLElement;
   private readonly floats: FloatingText[] = [];
   private active = false;
+  private surfaceRevision = 0;
   private opponent: PracticeOpponent | null = null;
   private equipmentEvents: Events | null = null;
   private equipmentScope: Scope | null = null;
@@ -442,7 +448,13 @@ export class TrainingArena {
     const centre = LINEUP[1] ?? { x: 0, z: -7 };
     player.spawn(this.center.x, this.center.z + centre.z + this.viewDistance(), 0, Y);
     player.pitch = -0.1; // a touch down: the lineup and its floor pool fill the frame, not the ceiling
-    this.opponent?.enter({ x: this.center.x, y: Y, z: this.center.z - 7 });
+    const revision = ++this.surfaceRevision;
+    const active = (): boolean => this.active && this.surfaceRevision === revision && !this.scope.disposed;
+    const surface: TrainingArenaSurface = Object.freeze({ id: 'practice-arena', revision,
+      get active() { return active(); },
+      y: Y, minX: this.center.x - HALF_WIDTH + .22, maxX: this.center.x + HALF_WIDTH - .22,
+      minZ: this.center.z - HALF_DEPTH + .22, maxZ: this.center.z + HALF_DEPTH - .22 });
+    this.opponent?.enter({ x: this.center.x, y: Y, z: this.center.z - 7 }, surface);
   }
 
   exit(): void {

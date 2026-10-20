@@ -1,0 +1,36 @@
+{
+  "status": "editable diagnostic implementation; not gameplay, source, recovery or visual admission",
+  "tests": {
+    "files": 5,
+    "passed": 66,
+    "failed": 0,
+    "command": "./node_modules/.bin/vitest run test/practice-foot-contact.test.ts test/practice-native-actor.test.ts test/practice-pose-ownership-boundary.test.ts test/native-creature-pose.test.ts test/practice-native-corpse.test.ts --maxWorkers=1"
+  },
+  "typecheck": {
+    "exitCode": 0,
+    "command": "./node_modules/.bin/tsc --noEmit -p tsconfig.practice-contact-check.json"
+  },
+  "lint": {
+    "diagnostics": 0,
+    "command": "./node_modules/.bin/oxlint --type-aware (changed TypeScript paths in checkpoint-manifest.json)"
+  },
+  "frozenArticulatedSourceOutputs": {
+    "verifiedUnchanged": 6
+  },
+  "appBuildRun": false,
+  "runtimeSelectionChanged": false,
+  "qualityComplete": false,
+  "rawLogs": "Kept locally; not included in this screened checkpoint manifest.",
+  "mirrorFixtureRepair": {
+    "passed": 9,
+    "failed": 0,
+    "lintDiagnostics": 0,
+    "runtimeSourceChanged": false,
+    "realStagedHookRerun": "pending root"
+  },
+  "independentStrictContractBlockers": [
+    "off-slab continuation frames accepted",
+    "two simultaneous swings accepted",
+    "authored payload digest not bound to actual loaded model"
+  ]
+}

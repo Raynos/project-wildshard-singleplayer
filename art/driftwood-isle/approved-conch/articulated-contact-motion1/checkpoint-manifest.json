@@ -1,0 +1,89 @@
+{
+  "status": "frozen editable diagnostic WIP; mirror fixture repair verified; three independent strict-contract defects remain open",
+  "files": {
+    "src/engine/entities/animalRig.ts": {
+      "bytes": 6516,
+      "sha256": "f120fb93f9d77d7d5f40fa242377d1c411ace0e5a052bf485c25fd71b90ce3fb"
+    },
+    "src/engine/practice/TrainingArena.ts": {
+      "bytes": 30728,
+      "sha256": "11835cb8cc53a02bd3e30d04f92e6ed8fa987bcfcca1251eb74739244c5d061b"
+    },
+    "src/game/plugin/practiceFootContact.ts": {
+      "bytes": 17285,
+      "sha256": "ac19c73576130a2ec93d25097c4500f2e16409e46d3457929988c833fabc5054"
+    },
+    "src/game/plugin/animation.ts": {
+      "bytes": 84066,
+      "sha256": "27017ca81d332ef26e2855a99ec0135f6ae83b262bb669251411133aeeea2d1e"
+    },
+    "src/game/plugin/channelPrograms.ts": {
+      "bytes": 19234,
+      "sha256": "b3e277d7c3029a20b58babc76bb968c319da815984ddf017489f67599dcda028"
+    },
+    "src/game/plugin/practicePoseContract.ts": {
+      "bytes": 1415,
+      "sha256": "ad164b2c2deb0149b1b023bfd8f7ee99d0af67e3d63f6367e942804e4f2d7b6a"
+    },
+    "src/game/practice/PracticeNativeActor.ts": {
+      "bytes": 10185,
+      "sha256": "a746e803d0ac252c82adbbb4f68f9016f36a92f58d288d84ea59257538f6fc4a"
+    },
+    "src/game/practice/PracticeCreature.ts": {
+      "bytes": 23360,
+      "sha256": "7b1f4da3c925db5822a9c20d763f28073a3c11cb3909e2841acd235b5f8a1784"
+    },
+    "test/practice-foot-contact.test.ts": {
+      "bytes": 13705,
+      "sha256": "0b21621e27ddb3b0cc50dfeeb003b107f365aa41ecf64896656360e3687e0291"
+    },
+    "tsconfig.practice-contact-check.json": {
+      "bytes": 472,
+      "sha256": "eb5f06dcb20704893763e471680bae76a3ee1a7955a96db80090b333c14e1db5"
+    },
+    "art/driftwood-isle/approved-conch/articulated-contact-motion1/prepare.py": {
+      "bytes": 3270,
+      "sha256": "d28be62019656198fd001f35993ae60cda40f13960411fc22c3176afb7961b18"
+    },
+    "art/driftwood-isle/approved-conch/articulated-contact-motion1/motion.json": {
+      "bytes": 61063,
+      "sha256": "1e9e57b985b9eea412cbac566c7bd82f6a40b6ee4ffd8401440661d8b821ad55"
+    },
+    "art/driftwood-isle/approved-conch/articulated-contact-motion1/RESULT.md": {
+      "bytes": 5335,
+      "sha256": "970907f42ebf05e89f063a611d994434d9f6ba8bba37bb3de36faa2de1946beb"
+    },
+    "art/driftwood-isle/approved-conch/articulated-contact-motion1/zero-time-witness.json": {
+      "bytes": 634,
+      "sha256": "d46738f1975a78c488b2f077ab8c85d19bbaa289cf137d832abab13a6845e317"
+    },
+    "art/driftwood-isle/approved-conch/articulated-contact-motion1/checks.json": {
+      "bytes": 1307,
+      "sha256": "f5f072f6bc4e034b755cf2f86f9bfa7259b49c20041c3c46856039a0fbaea813"
+    },
+    "art/driftwood-isle/approved-conch/articulated-contact-motion1/mirror-loading-witness.json": {
+      "bytes": 559,
+      "sha256": "3e9ec085ac8cfc3b31eb37ddb0221321e50d629de25caa68c23dffb617ec6f8a"
+    },
+    "test/proof/conch-grounded-source/freeze.json": {
+      "bytes": 3689,
+      "sha256": "0ec903c0eef1639277048dee8098cd51c33980204a18f59a49d75a68f21390f3"
+    },
+    "test/proof/conch-grounded-source/inputs.json": {
+      "bytes": 959,
+      "sha256": "9470f266da08123d61bfa705e8c03489d51df17159b1196f8fe24077a2fb41d0"
+    },
+    "test/proof/conch-grounded-source/model.json": {
+      "bytes": 1395246,
+      "sha256": "560abb099f474ddb86733f143e39652874298bba67f15fd1da7a63f1c4e91b3e"
+    },
+    "test/proof/conch-grounded-source/motion.json": {
+      "bytes": 61063,
+      "sha256": "1e9e57b985b9eea412cbac566c7bd82f6a40b6ee4ffd8401440661d8b821ad55"
+    },
+    "test/proof/conch-grounded-source/recipe.json": {
+      "bytes": 20894,
+      "sha256": "2dc438caca6a3396e48f9ae51a600c83a7cbf97ebd5ffd4a7654e7b8b14e5ed0"
+    }
+  }
+}

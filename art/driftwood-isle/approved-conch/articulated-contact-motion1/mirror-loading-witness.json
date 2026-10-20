@@ -1,0 +1,9 @@
+{
+  "status": "first staged-tree hook refused; no commit landed",
+  "diagnostics": 35,
+  "cause": "The ordinary build mirror omits art/. Root test imports from art JSON therefore became error-typed and their accesses unsafe.",
+  "repair": "The editable producer retains complete byte-identical model, rigid recipe, source freeze and motion JSON inputs in test/proof/conch-grounded-source, with origin and SHA256 receipt. Root tests import those normal-tree inputs.",
+  "guardsChanged": false,
+  "typeExemptionsAdded": false,
+  "runtimeSourceChanged": false
+}

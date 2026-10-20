@@ -1,3 +1,4 @@
+import type { PracticeContactSurface } from '../plugin/practiceFootContact';
 import { ragdollsFor } from '@wildshard/engine/physics/ragdoll';
 import { prepareNumericRigidCorpse, validateRigidCorpse } from '@wildshard/engine/physics/rigidCorpse';
 import type { NativeCorpseOwner } from '@wildshard/engine/entities/nativeCorpseOwner';
@@ -22,6 +23,7 @@ export interface PracticeNativeSelection {
 }
 type Decision = Awaited<ReturnType<typeof preparePracticeDecision>>;
 interface Options {
+  readonly contactSurface?: PracticeContactSurface;
   readonly corpse?: 'rigid';
   readonly scope: Scope;
   readonly ports: Required<Pick<SimHostPorts, 'physics' | 'player' | 'events' | 'combat'>>;
@@ -112,7 +114,7 @@ export class PracticeNativeActor {
       });
       this.control = authority.bind(actor, brain.data, options.species.body);
       this.control.observe(options.observation); this.control.fighting = true;
-      this.pose = new NativeCreaturePose(actor, options.recipe, animate);
+      this.pose = new NativeCreaturePose(actor, options.recipe, animate, options.contactSurface);
       actor.bindVolumes(this.pose); this.pose.sampleTerrain(); this.pose.initializePractice();
       if (lease !== undefined) {
         prepareNumericRigidCorpse(options.ports.physics.R, actor.dims.rigidCorpse, this.pose.corpseJoints(), actor.scale);
@@ -145,9 +147,10 @@ export class PracticeNativeActor {
   place(at: Readonly<{ x: number; y: number; z: number }>, yaw: number): void {
     if (!this.pose.placementAllowed) throw new Error('Physical native placement is unsupported');
     if (this.scope.disposed || ![at.x, at.y, at.z, yaw].every(Number.isFinite)) throw new Error('Invalid native practice placement');
+    const contactPlacement = this.pose.prepareContactPlacement(at, yaw);
     this.actor.place(at.x, at.z, yaw, at.y);
     if (this.actor.motor instanceof CharacterMotor) this.actor.motor.resetAt(this.actor.position);
-    this.pose.resetMotionAnchor();
+    this.pose.resetMotionAnchor(contactPlacement);
   }
 
   dispose(): void {

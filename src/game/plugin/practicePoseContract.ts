@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import type { PracticeFootContactRecipe } from './practiceFootContact';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 
 /** Deliberately practice-only. This is not a new platform host or a corpse/contact exemption. */
@@ -7,7 +8,7 @@ export const PracticePoseTransitionSchema = v.strictObject({
   joints: v.pipe(v.array(v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/u))),
     v.minLength(1), v.maxLength(32), v.check(names => new Set(names).size === names.length)),
 });
-export interface PracticePoseTransition { readonly owner: 'isolated-practice'; readonly joints: readonly string[] }
+export interface PracticePoseTransition { readonly owner: 'isolated-practice'; readonly joints: readonly string[]; readonly contact?: PracticeFootContactRecipe }
 type Animation = (context: AnimalRigContext) => void;
 const admitted = new WeakMap<Animation, PracticePoseTransition>();
 

@@ -1,3 +1,4 @@
+import type { PracticeContactSurface } from '../plugin/practiceFootContact';
 import { Vector3, type Scene } from 'three';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { CreatureRenderSpec } from '@wildshard/engine/level/spec';
@@ -102,6 +103,7 @@ export class PracticeCreature {
   private readonly previousPlayer = new Vector3();
   private readonly origin = new Vector3();
   private native: PracticeNativeActor | null = null;
+  private contactSurface: PracticeContactSurface | undefined;
   private readonly nativePoseInput: unknown;
 
   /** Await only before installing the provider; enter/update/raycast remain synchronous. */
@@ -137,7 +139,8 @@ export class PracticeCreature {
     owner.onDispose(() => this.exit());
   }
 
-  enter(at: { x: number; y: number; z: number }): void {
+  enter(at: { x: number; y: number; z: number }, surface?: PracticeContactSurface): void {
+    this.contactSurface = surface;
     if (this.owner.disposed) throw new Error('Practice creature has been disposed');
     if (![at.x, at.y, at.z].every(Number.isFinite)) throw new Error('Practice placement must be finite');
     this.exit();
@@ -211,6 +214,7 @@ export class PracticeCreature {
     const spawn = practiceNativeSpawn(model, 7001, scale, at,
       Math.atan2(this.options.player.position.x - at.x, this.options.player.position.z - at.z));
     const native = new PracticeNativeActor({ scope, spawn, species: this.options.species,
+      ...(this.contactSurface === undefined ? {} : { contactSurface: this.contactSurface }),
       ...(this.options.nativePose?.corpse === undefined ? {} : { corpse: this.options.nativePose.corpse }),
       recipe: practiceNativeRecipe(model, rig), pose: this.nativePoseInput, decision,
       ports: { events, combat, physics: this.options.physics,
@@ -342,8 +346,8 @@ export class PracticeCreature {
   /** Reuse the loaded model but rebuild all bout health, guest, contacts and reward state. */
   retry(): void {
     if (this.bout === null) return;
-    const at = this.origin.clone(), playerAt = this.playerStart.clone(), yaw = this.playerYaw;
-    this.exit(); this.options.player.spawn(playerAt.x, playerAt.z, yaw, playerAt.y); this.options.weapons.setEnabled(true); this.enter(at);
+    const at = this.origin.clone(), playerAt = this.playerStart.clone(), yaw = this.playerYaw, surface = this.contactSurface;
+    this.exit(); this.options.player.spawn(playerAt.x, playerAt.z, yaw, playerAt.y); this.options.weapons.setEnabled(true); this.enter(at, surface);
   }
 
   dispose(): void { this.exit(); this.owner.dispose(); }

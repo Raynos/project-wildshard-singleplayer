@@ -6,6 +6,7 @@ import type { RigAnimCtx, SpeciesDef } from './species/registry';
 export interface AnimalRigJoint { readonly position: Vector3; readonly rotation: Euler; readonly scale: Vector3; readonly quaternion?: Quaternion }
 /** Detached, bounded observations from the sole native practice pose owner. No mutable actor or clock is lent. */
 export interface AnimalPoseTransition {
+  readonly solved?: Readonly<Record<string, Readonly<{ rotation: Readonly<{ x: number; y: number; z: number }> }>>>;
   readonly ordinal: number;
   /** 0: no entry, 1: applied hit, 2: lethal applied hit. */
   readonly kind: number;
@@ -17,7 +18,7 @@ export interface AnimalPoseTransition {
     readonly scale: Readonly<{ x: number; y: number; z: number }>;
   }>>;
 }
-/** Read-only render consumer. Copying endpoints cannot evaluate animation or advance simulation. */
+/** Read-only render consumer. Sampling may derive contact-constrained presentation, but cannot evaluate animation or advance simulation. */
 export interface AnimalPublishedPose {
   readonly entityId: string;
   /** A physical root cannot be teleported through a pose-only placement entry point. */
