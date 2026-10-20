@@ -31,7 +31,7 @@ import { createModelLibrary, type ModelLibrary } from '../plugin/geometry';
 import { createWorldScene, bindWorldSceneParts } from '../plugin/ui';
 import { hasLentLook, lentLook, lentMappedLook, lendLooks, sceneMaterial } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
-import { loadingUnits } from '@wildshard/engine/boot/plan';
+import { loadingUnits } from '@wildshard/engine/boot/waits';
 
 function instances3(value: unknown): value is InstancedMesh { return value instanceof InstancedMesh; }
 function mesh3(value: unknown): value is Mesh { return value instanceof Mesh; }

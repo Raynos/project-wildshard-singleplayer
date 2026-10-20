@@ -1,7 +1,8 @@
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
 import { saveStorage } from '../saves/slots';
-import { bootWaits, formatMB, type ProgressView } from '../boot/plan';
+import { formatMB, type ProgressView } from '../boot/plan';
+import { bootWaits } from '../boot/waits';
 import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';

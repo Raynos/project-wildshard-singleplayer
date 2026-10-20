@@ -16,7 +16,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { prepareDecisionMemories } from '@wildshard/engine/script/decisionModule';
-import { waitFor } from '@wildshard/engine/boot/plan';
+import { waitFor } from '@wildshard/engine/boot/waits';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { BorrowedSpeciesControl, SpeciesDecisionAuthority, SpeciesDecisionObservation } from '../plugin/brain';
 

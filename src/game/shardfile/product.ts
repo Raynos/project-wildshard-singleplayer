@@ -1,6 +1,6 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import { declareDownloadFile, noteDownloadRead, recordCachedDownload } from '@wildshard/engine/boot/bytes';
-import { waitFor } from '@wildshard/engine/boot/plan';
+import { declareDownloadFile, noteDownloadRead, recordCachedDownload } from '@wildshard/engine/boot/download';
+import { waitFor } from '@wildshard/engine/boot/waits';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';

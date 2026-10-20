@@ -1,6 +1,7 @@
 import type { App } from '../app/app';
 import type { Scope } from '../app/scope';
-import { loadingStage, type StepProgress } from '../boot/plan';
+import type { StepProgress } from '../boot/plan';
+import { loadingStage } from '../boot/waits';
 import type { LevelAdapters, LevelContext, LevelHooks } from './context';
 import type { LevelSpec } from './spec';
 import { createLevelInstallation } from './installation';

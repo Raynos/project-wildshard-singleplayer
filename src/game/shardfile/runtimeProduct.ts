@@ -6,7 +6,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
-import { waitFor } from '@wildshard/engine/boot/plan';
+import { waitFor } from '@wildshard/engine/boot/waits';
 import { currentOwner } from '@wildshard/engine/app/ownership';
 import { shardProductData } from './productData';
 import { absentShardProduct, type ShardProduct } from './shardProduct';

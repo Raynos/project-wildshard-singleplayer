@@ -2,7 +2,7 @@ import { SHARD_API } from './api';
 import type { ShardManifest } from './manifest';
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { LoadFailure } from '@wildshard/engine/core/errorReport';
-import { loadingStage } from '@wildshard/engine/boot/plan';
+import { loadingStage } from '@wildshard/engine/boot/waits';
 
 const tables = new WeakMap<ShardManifest, Promise<void>>();
 

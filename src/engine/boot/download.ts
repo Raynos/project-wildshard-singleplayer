@@ -83,3 +83,11 @@ export function installDownloadAccounting(accounting: DownloadAccounting): () =>
   return () => { if (active === accounting) active = undefined; };
 }
 export function currentDownloadAccounting(): DownloadAccounting | undefined { return active; }
+
+/** Expected wire size for a file this path will read; product indexes supply exact sizes. */
+export function declareDownloadFile(url: string, bytes: number): void { currentDownloadAccounting()?.declare(url, bytes); }
+/** Verified immutable cache reads stay separate from downloaded bytes. */
+export function recordCachedDownload(key: string, bytes: number, url?: string): void { currentDownloadAccounting()?.cached(key, bytes, url); }
+/** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */
+export function noteDownloadRead(bytes: number): void { currentDownloadAccounting()?.noteRead(bytes); }
+

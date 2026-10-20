@@ -11,7 +11,6 @@
  *    thread with the orientation three's ImageBitmapLoader uses.
  */
 import type { Plan, ByteProgress } from './plan';
-import { currentDownloadAccounting } from './download';
 import type { BootStep, ByteKey } from './steps';
 import { assetVersions, publicBytes } from './tables';
 import { DefaultLoadingManager } from 'three';
@@ -26,13 +25,6 @@ const EXTRA: Bytes = {};
 export function addBytes(extra: Readonly<Record<string, number>>): void { Object.assign(EXTRA, extra); }
 const known = (f: string): boolean => f in EXTRA || f in publicBytes();
 const sizeOf = (f: string): number | undefined => EXTRA[f] ?? publicBytes()[f];
-
-/** Expected wire size for a file this path will read; product indexes supply exact sizes. */
-export function declareDownloadFile(url: string, bytes: number): void { currentDownloadAccounting()?.declare(url, bytes); }
-/** Verified immutable cache reads stay separate from downloaded bytes. */
-export function recordCachedDownload(key: string, bytes: number, url?: string): void { currentDownloadAccounting()?.cached(key, bytes, url); }
-/** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */
-export function noteDownloadRead(bytes: number): void { currentDownloadAccounting()?.noteRead(bytes); }
 
 export function declareTotals(files: ChunkFiles): Record<ByteKey, { bytes: number; files: number }> {
   const out = {} as Record<ByteKey, { bytes: number; files: number }>;

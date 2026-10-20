@@ -1,6 +1,6 @@
 import { WorkerPool } from 'three/examples/jsm/utils/WorkerPool.js';
 import type { Scope } from '../app/scope';
-import { waitFor } from '../boot/plan';
+import { waitFor } from '../boot/waits';
 
 /** Keep Three's queue and concurrency, with explicit ownership of its worker message subscriptions. */
 export class ScopedWorkerPool extends WorkerPool {

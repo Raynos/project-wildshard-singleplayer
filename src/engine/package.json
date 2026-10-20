@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./boot/waits": "./boot/waits.ts",
+    "./boot/download": "./boot/download.ts",
     "./render/lightmaps": "./render/lightmaps.ts",
     "./ai/director": "./ai/director.ts",
     "./fx/effectField": "./fx/effectField.ts",

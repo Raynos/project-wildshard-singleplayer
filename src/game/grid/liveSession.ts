@@ -1,7 +1,7 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
 import { crossingLoadingRows } from '../boot/loadingPaths';
-import { loadingUnits } from '@wildshard/engine/boot/plan';
+import { loadingUnits } from '@wildshard/engine/boot/waits';
 /**
  * The live crossing inside EXPERIMENTAL Wildshard (SHARD-PLATFORM SF18a / SF20a / SF17b, the grid client step 2): what
  * turns the step-1 session's closed soft walls into a real crossing. It composes sp-x2's `LiveGridHost` and sp-x1's

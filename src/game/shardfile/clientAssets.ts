@@ -1,5 +1,5 @@
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
-import { declareDownloadFile } from '@wildshard/engine/boot/bytes';
+import { declareDownloadFile } from '@wildshard/engine/boot/download';
 import { boundedResponse, type ProductOptions } from './product';
 import { outputBlobUrl } from './outputDescriptor';
 import type { Shardfile } from '@wildshard/format/shardSchema';

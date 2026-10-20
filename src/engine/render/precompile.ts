@@ -25,7 +25,7 @@ import { installedGraphBackend } from './graphBackend';
 import { boundEntryWarmup } from './entryWarmupBound';
 import { setting } from '../ui/Settings';
 import { workSlice } from '../core/workSlice';
-import { waitFor } from '../boot/plan';
+import { waitFor } from '../boot/waits';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).

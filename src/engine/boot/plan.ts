@@ -30,28 +30,8 @@ import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, type BootStep
 import { expectedDurations, saveTimings, type Timings } from './timing';
 import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
 import { WORK_SLICE_MS } from '../core/workSlice';
-import { WaitRegistry, type BootWait, type WaitKind } from './waits';
+import { loadingStage } from './waits';
 import { currentLoadingTimeline } from './timeline';
-
-const waits = new WaitRegistry();
-/** Observe an existing promise; callers retain their admission, lifetime and concurrency policy. */
-export function waitFor<T>(label: string, promise: Promise<T>, kind: WaitKind = 'work'): Promise<T> { return waits.waitFor(label, promise, kind); }
-/** Live page waits in registration order, including an age from the same monotonic clock. */
-export function bootWaits(): readonly BootWait[] { return waits.snapshot(); }
-/** Account for all awaits at a semantic boundary, including work between the older bootstrap steps. */
-export async function loadingStage<T>(key: string, work: () => T | Promise<T>): Promise<T> {
-  const stage = currentLoadingTimeline()?.begin(key);
-  try { return await work(); }
-  finally { stage?.end(); }
-}
-/** Count actual completed units on the stage that starts this operation, without advancing work on a timer. */
-export function loadingUnits(label: string, total: number): (done: number, detail?: string) => void {
-  const timeline = currentLoadingTimeline(), key = timeline?.snapshot().current;
-  return (done, detail) => {
-    if (key === null || key === undefined) return;
-    timeline?.report(key, `${label} ${done} / ${total}${detail ? ` · ${detail}` : ''}`);
-  };
-}
 
 export interface StepProgress {
   /** Progress in the step's own unit; the step's contribution becomes max(previous, done / (total + 1)). */

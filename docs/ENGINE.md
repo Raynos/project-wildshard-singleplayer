@@ -841,7 +841,7 @@ and tile owners. Missing/corrupt bytes or a disposed owner refuse before claims
 publish; disposal releases the existing allocator leases.
 
 `declareDownloadFile(url, bytes)` and `recordCachedDownload(hash, bytes, url?)`
-in `@wildshard/engine/boot/bytes` report expected product-index sizes and verified
+in `@wildshard/engine/boot/download` report expected product-index sizes and verified
 cache reads to the active loading attempt. Resource Timing supplies page-wide
 network receipts, including modules and undeclared fetches. The loading screen
 shows downloaded bytes and cache bytes separately; unclassified worker receipts
@@ -850,7 +850,7 @@ Server-Timing without extra response-body reads. Expected files remain pending
 until a network or cache receipt arrives; completion credits from legacy steps
 are not downloaded bytes.
 
-`waitFor(label, promise, kind?)` in `@wildshard/engine/boot/plan` observes an
+`waitFor(label, promise, kind?)` in `@wildshard/engine/boot/waits` observes an
 already-started promise and unregisters it on either outcome. `bootWaits()`
 returns live labels, kinds and monotonic ages. Product admission and file reads,
 cache/texture workers, Wasm preparation and shader linking use this registry;
@@ -858,7 +858,7 @@ Loading displays the active dependency and files in flight without changing
 ownership, scheduling or concurrency. Synchronous work remains a reported stage.
 
 `Loading.setPath({id, steps, ignored?})` accepts a data-only step vocabulary.
-`loadingStage(key, work)` in `@wildshard/engine/boot/plan` measures semantic
+`loadingStage(key, work)` in `@wildshard/engine/boot/waits` measures semantic
 boundaries, including LevelLoader hooks and initial home entry. Nested stages
 own exclusive wall intervals, so stage and explicit gap rows sum to the loading
 clock. Unknown stages become visible rows; ignored shell stages remain inside
@@ -866,7 +866,7 @@ their reported parent. The game supplies legacy, shardfile, grid and crossing
 tables. Crossing diagnostics partition preparation, boundary wait, checkpoint,
 commit and activation using the existing same-clock transition timestamps.
 
-`loadingUnits(label, total)` from `@wildshard/engine/boot/plan` returns a
+`loadingUnits(label, total)` from `@wildshard/engine/boot/waits` returns a
 reporter bound to the stage active when the work starts. Call it only after
 actual units finish. World-scene recipes, libraries, owned models, materials
 and scene instances report their own counts. First-frame reporting uses the
@@ -876,7 +876,7 @@ from the network-only download counter.
 
 The loader flags ten seconds without reported work progress in amber, naming
 the open dependency. Body-read activity (`noteDownloadRead(bytes)` in
-`@wildshard/engine/boot/bytes`) resets that timer without crediting decoded or
+`@wildshard/engine/boot/download`) resets that timer without crediting decoded or
 cached bytes as network transport. Eased percentages and elapsed clocks cannot
 reset a stall. Loader diagnostics omit reload history and identify observed
 frame-update gaps as including JS, GC, layout and suspension; they do not claim

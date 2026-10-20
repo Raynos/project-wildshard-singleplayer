@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { Scope } from '../app/scope';
 import type { ContentCache } from './contentCache';
-import { waitFor } from './plan';
+import { waitFor } from './waits';
 import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CacheReplySchema, validCacheValue, type CacheOperation, type CacheValue } from './contentCacheProtocol';
 
 export interface CacheWorkerPort extends EventTarget {
