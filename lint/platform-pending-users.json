@@ -2548,6 +2548,17 @@
       }
     },
     {
+      "module": "src/game/looks/painterlyLook.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "painterly look host",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G478"
+        }
+      }
+    },
+    {
       "module": "src/game/boss/encounterView.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {

@@ -2,7 +2,7 @@ import { postChainRows } from './postChain.ts';
 import { manifestDeclaration } from '../../../../scripts/manifest-declaration.mjs';
 import paintedTextures from '../data/paintedTextures.json' with { type: 'json' };
 import discovery from '../data/discovery.json' with { type: 'json' };
-import { NALATI_MAP } from './layout.ts';
+import { NALATI_MAP, SNOW_LINE, GLACIER } from './layout.ts';
 import { nalatiDayClockRow } from './dayClock.ts';
 import { NALATI_MANIFEST_ROWS } from './manifestRows.ts';
 import { NALATI_BUDGET_INPUTS } from './budgets.ts';
@@ -51,5 +51,12 @@ writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/declaration.generate
   minimap: { image: '/assets/nalati-grasslands/map/top.webp' },
   boot: { ...fixed.boot, files: inventory.files, sources: inventory.sources, steps: inventory.steps, lateReads: inventory.lateReads, explore: { art: [...Object.values(fixed.explore.art), ...extraArt, ...fixed.explore.compare.flatMap(({ live, image }) => [live, image])] } },
 }, ['load', 'ground', 'seed', 'spawn', 'slug']));
-writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes(paintedTextures));
+// the painted ground (game/looks/painterlyLook paintedGroundPainter): the meadow, path, gravel, rock and snow tiles, the snow
+// line, the wet low ground and the glacier's ice, in a softly banded painterly material recoloured by the terrain graph
+const m = paintedTextures.metres, ground = { layers: ['meadow', 'path', 'gravel', 'rock', 'snow'], colour: 'terrain', material: { bands: 0.5, rim: 0, shade: 0.85 },
+  surface: { maps: { base: 'meadow', track: 'path', gravel: 'gravel', rock: 'rock', snow: 'snow' }, metres: { base: m.meadow, track: m.path, gravel: m.gravel, rock: m.rock, snow: m.snow },
+    means: { base: [...paintedTextures.mean.meadow], rock: [...paintedTextures.mean.rock] }, snow: { line: SNOW_LINE, high: [44, 84] }, wet: [-9.2, -9.9],
+    ice: { from: [GLACIER.x0, GLACIER.z0], to: [GLACIER.x1, GLACIER.z1], half: GLACIER.half } },
+  shapes: ['ground', 'slab'], recipe: { file: 'world/water.json', key: 'terrain' }, mesh: 'ground' };
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground }));
 writer.finish();

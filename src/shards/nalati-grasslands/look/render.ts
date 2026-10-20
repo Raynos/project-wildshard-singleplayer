@@ -5,73 +5,23 @@
  *                   the composer's MSAA is the manifest's `msaa` tier knob (phone 2, desktop 4)
  *   engineKnobs     that chain as an engine chain's knobs, for a page shell drawing its grid cell (SF63)
  *   fog             the cloud shadows (game/looks/paintedLook `paintedAir`), then the panorama fog (fog.ts), slot 300
- *   terrainPainter  the painted ground (terrainPainter.ts)
+ *   terrainPainter  the painted ground (game/looks/painterlyLook `paintedGroundPainter`, the boot rows)
  *   grass           the GPU blade rings + shader flowers (grass.ts `GrassV2`)
  *   sky             no engine cloud layer or planet (the panorama dome is the sky); the cloud shadows' field + drift
  * The panorama dome, the day keys and the per-frame look are still wired by `wireLookV2` (index.ts) until 07 §6.2 step 6.
  */
-import type { LookStrategy, TerrainPainter } from '@wildshard/engine/render/look';
+import type { LookStrategy } from '@wildshard/engine/render/look';
 import { paintedAir } from '@wildshard/game/looks/paintedLook';
+import { paintedGroundPainter } from '@wildshard/game/looks/painterlyLook';
 import { paintedFog } from './fog';
 import { lookV2EngineKnobs, lookV2Passes } from './grade';
 import { createGrass } from './field';
-import * as THREE from 'three';
-import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { applyPaintedTerrain, bindPaintedTerrainBake } from '@wildshard/engine/render/families/paintedTerrain';
-import { materialColourGraph } from '@wildshard/engine/render/graph/colourFunction';
-import { parsePaintedTerrain } from '@wildshard/format/materialFamilies';
-import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { createClientScene } from '@wildshard/game/plugin/ui';
 import { bakeUniforms } from './capture';
 import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
 import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
-import { loadSpecimenTexture } from '@wildshard/game/models/specimenCatalogue';
-import type { NalatiTexName } from './nalatiTextures';
-import { parseWorldScene } from '@wildshard/format/clientChannels';
-import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 
-const { SNOW_LINE, GLACIER } = layoutRows;
-const SURFACE = parsePaintedTerrain({
-  maps: { base: 'meadow', track: 'path', gravel: 'gravel', rock: 'rock', snow: 'snow' },
-  metres: { base: paintedTextures.metres.meadow, track: paintedTextures.metres.path, gravel: paintedTextures.metres.gravel, rock: paintedTextures.metres.rock, snow: paintedTextures.metres.snow },
-  means: { base: [...paintedTextures.mean.meadow], rock: [...paintedTextures.mean.rock] },
-  snow: { line: SNOW_LINE, high: [44, 84] }, wet: [-9.2, -9.9],
-  ice: { from: [GLACIER.x0, GLACIER.z0], to: [GLACIER.x1, GLACIER.z1], half: GLACIER.half },
-});
-const LAYERS = ['meadow', 'path', 'gravel', 'rock', 'snow'] as const satisfies readonly NalatiTexName[];
-
-function terrainMesh(value: THREE.Object3D | undefined): value is THREE.Mesh<THREE.BufferGeometry, THREE.MeshLambertMaterial> {
-  if (!(value instanceof THREE.Mesh)) return false;
-  const geometry: unknown = value.geometry, material: unknown = value.material;
-  return geometry instanceof THREE.BufferGeometry && material instanceof THREE.MeshLambertMaterial;
-}
-
-/** Painterly appearance stays live; terrain and slab topology are authored scene data. */
-const NALATI_TERRAIN_PAINTER: TerrainPainter = { build: async (terrain, field) => {
-  const [, textures, product] = await Promise.all([field.ready(), Promise.all(LAYERS.map(name => loadSpecimenTexture(specimenData.materials[name].texture))), loadFirstPartyProduct('nalati-grasslands')]);
-  const material = painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 });
-  const colour = product.section('look/colour-functions')['terrain'];
-  if (colour === undefined) throw new Error('Missing terrain colour graph');
-  applyPaintedTerrain(material, SURFACE, Object.fromEntries(LAYERS.map((name, index) => { const texture = textures[index]; if (texture === undefined) throw new Error(`Missing painted tile ${name}`); return [name, texture]; })));
-  materialColourGraph(material, 'terrain.colour', colour, true);
-  bindPaintedTerrainBake(material, {
-    famTBakeShadow: bakeUniforms.tBakeShadow, famTBakeMatrix: bakeUniforms.uBakeMatrix, famTBakeInfo: bakeUniforms.uBakeInfo,
-    famTBakeContact: bakeUniforms.tBakeContact, famTContactXf: bakeUniforms.uContactXf,
-  });
-  const shapes = new Map<string, THREE.BufferGeometry>();
-  for (const id of ['ground', 'slab']) {
-    const file = `world/terrain/${id}.glb`, owned = createOwnedGeometry(file);
-    await owned.load(await product.file(file));
-    const geometry = owned.take(); geometry.computeBoundingSphere(); shapes.set(id, geometry);
-  }
-  const { terrain: recipe } = await product.json<{ readonly terrain: unknown }>('world/water.json');
-  const scene = createClientScene(parseWorldScene(recipe).scene, { geometry: shapes, materials: new Map([['terrain', material]]) });
-  const ground = scene.parts.get('ground'), slab = scene.parts.get('slab');
-  if (!terrainMesh(ground) || !terrainMesh(slab)) throw new Error('Missing named terrain mesh');
-  terrain.material = material; terrain.mesh = ground;
-  terrain.group.add(...scene.root.children);
-} };
+/** the painted ground (game/looks/painterlyLook): the boot rows over the specimen tiles, shaded by the static bake */
+const GROUND = paintedGroundPainter('nalati-grasslands', 'ground' in paintedTextures ? paintedTextures.ground : null, specimenData.materials, bakeUniforms);
 
 const FOG = paintedFog.model(300);
 /** soft cloud shadows: a 520 m tile, cover past 0.53 (± 0.06) takes 0.66 of the sun, drifting at 1.6 × the wind + 2 m/s */
@@ -82,7 +32,7 @@ export const shardRender = (): LookStrategy => ({
   compose: (c) => ({ chain: lookV2Passes(c) }),
   engineKnobs: lookV2EngineKnobs,
   fog: { ...FOG, install: () => { AIR.install(); FOG.install(); } },
-  terrainPainter: NALATI_TERRAIN_PAINTER,
+  terrainPainter: GROUND,
   grass: { build: (sky, forest) => createGrass(sky, forest) },
   sky: AIR.sky,
 });
