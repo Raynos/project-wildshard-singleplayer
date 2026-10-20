@@ -73,10 +73,11 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   }
   sound(cue: string,x: number,z: number,height = this.rows.soundHeight): void { app.events.emit('creature.sound',{ cue,x,y: terrainHeight(x,z)+height,z }); }
   /** Observe before advancing declared crowds, without a per-crowd callback. */
-  beginFrame(dt: number,player: { position: Vector3; forward: Vector3; crouching: boolean },extra: { mounted?: boolean; health01?: number }): number {
+  beginFrame(dt: number,player: { position: Vector3; forward: Vector3; crouching: boolean },extra: { mounted?: boolean }): number {
     const p = player.position,speed = this.motion.update(dt,p.x,p.z),length = Math.hypot(player.forward.x,player.forward.z);
     if (length > 1e-4) { wildEnv.playerFwdX = player.forward.x/length; wildEnv.playerFwdZ = player.forward.z/length; }
-    wildEnv.playerCrouched = player.crouching; wildEnv.playerMounted = extra.mounted ?? false; wildEnv.playerHealth01 = extra.health01 ?? 1;
+    const health=app.player?.attributes;
+    wildEnv.playerCrouched = player.crouching; wildEnv.playerMounted = extra.mounted ?? false; wildEnv.playerHealth01=health===undefined?1:health.health/health.maxHealth;
     this.predators.length = 0; for (const actor of this.predatorBodies) if (actor.alive) this.predators.push(actor);
     const row = this.rows.trample;
     for (const actor of this.animals.animals) {

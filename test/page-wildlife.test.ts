@@ -1,3 +1,7 @@
+import { app } from '../src/engine/app/runtime';
+import { Scope } from '../src/engine/app/scope';
+import { PlayerHealth } from '../src/engine/combat/health';
+import { wildEnv } from '../src/game/population/pageGroups';
 import { PagePastureRaid } from '../src/game/riding/pagePasture';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
@@ -12,6 +16,9 @@ import { legacyDouble } from './fake/FakeGame';
 import { headlessAssembly } from '../src/shards/nalati-grasslands/generators/nativeGroups';
 
 test('orchard population emits crowd work between native groups and mount placement', () => {
+  const previous=app.levelScope,previousHealth=wildEnv.playerHealth01,scope=new Scope('orchard.health');app.levelScope=scope;
+  const health=new PlayerHealth(app.events,{now:()=>0,dodging:()=>false,dodgeGuard:()=>false,position:()=>new Vector3()});app.registerPlayer(health,scope);health.attributes.health=40;
+  try{
   setTerrainHeight(() => 0); setTerrainPlacement(() => [0,1,0],() => -1000);
   const source = headlessAssembly.constants.pageWildlife,bodies: Animal[] = [],herds: AnimalManager['herds'] = [];
   const manager = legacyDouble<AnimalManager>({ animals: bodies,herds,wetAt: () => false,
@@ -34,7 +41,9 @@ test('orchard population emits crowd work between native groups and mount placem
   controller.initialize(); const view = new CrowdTargets(controller,{ preyY: .5,hits: [[0,.5,.4]] });
   expect(population.attachCrowd(command.index,view)).toBeNull(); expect(build.next().value).toEqual({ kind: 'pause' }); expect(build.next().done).toBe(true);
   expect(population.mountables[0]?.kind).toBe('deer'); expect(population.flocks).toEqual([view]);
-  population.beginFrame(.1,{ position: new Vector3(),forward: new Vector3(0,0,-1),crouching: true },{ health01: .4 });
+  population.beginFrame(.1,{ position: new Vector3(),forward: new Vector3(0,0,-1),crouching: true },{});
+  expect(wildEnv.playerHealth01).toBe(.4);health.attributes.health=25;
+  population.beginFrame(.1,{position:new Vector3(),forward:new Vector3(0,0,-1),crouching:true},{});expect(wildEnv.playerHealth01).toBe(.25);
   expect(population.predators.map(body => body.kind)).toEqual(['boar']);
   population.killCrowd({ flock: view,index: 0 }); expect(view.alive).toBe(23);
   population.endFrame(.1,new Vector3(),0,true);
@@ -46,4 +55,5 @@ test('orchard population emits crowd work between native groups and mount placem
   for(let i=0;i<5;i++)raid.update(1/60,new Vector3(),[],i/60);
   expect(raid.snapshot().state).toEqual(saved.state);
   raid.update(1/60,new Vector3(),[],.1); expect(raid.snapshot().elapsed).toBe(0);
+  }finally{scope.dispose();app.levelScope=previous;wildEnv.playerHealth01=previousHealth;}
 });

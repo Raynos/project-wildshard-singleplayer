@@ -78,8 +78,6 @@ export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Fores
 /** what main.ts hands the wiring once the kit and the HUD exist (`nalati.bindPlay`) */
 export interface NalatiPlay {
   kit: NalatiLoadout | null;
-  /** 0..1 — the wolves' alpha joins in when you're hurt */
-  health01: () => number;
   toast: (text: string) => void;
   /** the red damage flash (a knock-down) */
   flash: () => void;
@@ -244,7 +242,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // the grass hides you and is trampled by every mover (GrassTrample, B1); the river corridor + the brook are water to a walker
   // Wildlife reads position / forward / crouching; Player.forward allocates, so a reused view of it
   const wildPlayer = { position: player.position, forward: new Vector3(0, 0, -1), crouching: false };
-  const extra = { mounted: false, health01: 1 };
+  const extra = { mounted: false };
   let ride: Ride | null = null;   // riding + taming (B7 / B8) — wired in the riding section below
   // toasts for the herd / pack moments, each at most once in a while
   const lastToast = new Map<string, number>();
@@ -280,7 +278,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     if (wildlife === null) return;
     wildPlayer.forward.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
     wildPlayer.crouching = player.crouching;
-    extra.health01 = play?.health01() ?? 1;
     extra.mounted = ride?.mounted ?? false;   // B9: mounting stands you up; the packs get two tokens; a gallop stampedes the herd
     windEnv(wildEnv, wind);
     if (advance === undefined) throw missingCrowdFrame;
