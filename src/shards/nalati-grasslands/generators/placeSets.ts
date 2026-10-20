@@ -21,16 +21,16 @@ export const PLACE_SETS: readonly PlaceRow[] = [
   { place: 'nalati-grasslands/sky-road', id: 'nalati-grasslands/sky-road', name: 'The sky road', file: 'src/shards/nalati-grasslands/generators/placeSets.ts' },
   { place: 'nalati-grasslands/eagle-rock', id: 'nalati-grasslands/eagle-rock-knoll', name: 'Eagle Rock', file: 'src/shards/nalati-grasslands/generators/places.ts', pois: ['eagleRock'] },
   { place: 'nalati-grasslands/horse-plains', id: 'nalati-grasslands/horse-plains', name: 'The horse plains', file: 'src/shards/nalati-grasslands/generators/placeSets.ts' },
-  { place: 'nalati-grasslands/kokpar-field', id: 'nalati-grasslands/kokpar-field', name: 'Kokpar field', file: 'src/shards/nalati-grasslands/world/Bowl.ts', pois: ['kokpar'] },
+  { place: 'nalati-grasslands/kokpar-field', id: 'nalati-grasslands/kokpar-field', name: 'Kokpar field', file: 'src/shards/nalati-grasslands/generators/dressingScene.ts', pois: ['kokpar'] },
   { place: 'nalati-grasslands/kurgan-field', id: 'nalati-grasslands/kurgan-field', name: 'Kurgan field', file: 'src/shards/nalati-grasslands/generators/places.ts', pois: ['kurgans', 'balbals'] },
   { place: 'nalati-grasslands/great-kurgan', id: 'nalati-grasslands/great-kurgan', name: 'The great kurgan', file: 'src/shards/nalati-grasslands/generators/placeSets.ts' },
   { place: 'nalati-grasslands/summer-camp', id: 'nalati-grasslands/summer-camp', name: 'Summer camp', file: 'src/shards/nalati-grasslands/world/SummerCamp.ts', pois: ['summerCamp'] },
-  { place: 'nalati-grasslands/watchtower', id: 'nalati-grasslands/watchtower-hill', name: 'Watchtower hill', file: 'src/shards/nalati-grasslands/world/Bowl.ts', pois: ['watchtower'] },
+  { place: 'nalati-grasslands/watchtower', id: 'nalati-grasslands/watchtower-hill', name: 'Watchtower hill', file: 'src/shards/nalati-grasslands/generators/places.ts', pois: ['watchtower'] },
   { place: 'nalati-grasslands/wind-cairn', id: 'nalati-grasslands/wind-cairn-rise', name: 'The Wind Cairn', file: 'src/shards/nalati-grasslands/world/Cairn.ts', pois: ['cairn'] },
   { place: 'nalati-grasslands/glacier', id: 'nalati-grasslands/glacier', name: 'The glacier', file: 'src/shards/nalati-grasslands/generators/placeSets.ts' },
   { place: 'nalati-grasslands/snow-leopard-cave', id: 'nalati-grasslands/crags', name: "Aqbars' ledges and cave", file: 'src/shards/nalati-grasslands/generators/places.ts', pois: ['crags'] },
   { place: 'nalati-grasslands/the-crags', id: 'nalati-grasslands/the-crags', name: 'The Crags', file: 'src/shards/nalati-grasslands/generators/placeSets.ts' },
-  { place: 'nalati-grasslands/snow-lotus', id: 'nalati-grasslands/snow-lotus-meadow', name: 'Snow lotus meadow', file: 'src/shards/nalati-grasslands/world/Bowl.ts', pois: ['snowLotus'] },
+  { place: 'nalati-grasslands/snow-lotus', id: 'nalati-grasslands/snow-lotus-meadow', name: 'Snow lotus meadow', file: 'src/shards/nalati-grasslands/generators/dressingScene.ts', pois: ['snowLotus'] },
 ];
 
 

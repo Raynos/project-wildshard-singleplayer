@@ -1,3 +1,4 @@
+import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
 import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
 import { ExchangeSchema } from '@wildshard/format/exchange';
 import { ContractCatalogueSchema } from '@wildshard/format/contracts';
@@ -143,6 +144,7 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
+  'sceneDressing.SceneDressing': SceneDressingSchema,
   'clientChannels.NumericPose': NumericPoseSchema,
   'questInteractions.QuestPageInteractions': QuestPageInteractionsSchema,
   'cueDirector.CueDirectorWire': CueDirectorWireSchema,

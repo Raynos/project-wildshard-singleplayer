@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/sceneDressing": "./shardfile/sceneDressing.ts",
     "./riding/nativePopulation": "./riding/nativePopulation.ts",
     "./shardfile/clientPlaceSets": "./shardfile/clientPlaceSets.ts",
     "./systems/looks/waterSurface": "./systems/looks/waterSurface.ts",

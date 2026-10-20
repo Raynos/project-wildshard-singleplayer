@@ -101,3 +101,5 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 - G474 loadout finishes: `game/loadout/cosmeticFinishes` and `game/shardfile/clientCosmeticFinishes` consume skin-card, grant, save and held-finish rows; client-only cosmetic presentation, with an unrelated orchard fixture.
 - G483 declared runtime entry: `game/shardfile/clientWaterSurfaces` consumes geometry and water-profile rows; `game/shardfile/clientPlaceSets` consumes named group and spatial membership rows. Client-only setup, with unrelated orchard fixtures.
+
+- G483 world scene assembly: `game/shardfile/sceneDressing` and `game/shardfile/sceneInstances` consume admitted geometry, material, scatter, private-scene and numeric pose rows; client-only presentation. The unrelated orchard fixture constructs, updates and retires these projections.

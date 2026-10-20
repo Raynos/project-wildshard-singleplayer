@@ -111,4 +111,5 @@ for (const name of ['boulder-1', 'boulder-2', 'boulder-3']) {
 }
 for (const [tier, profile] of Object.entries(profiles)) { writer.put(resolve(root, `public/assets/nalati/baked/cover-${tier}.bin`), deflateSync(profile.bytes, { level: 9 })); delete profile.bytes; }
 writer.put(resolve(shard, 'boot/cover.generated.json'), jsonBytes({ ...profiles, materials, butterflies: { phone: 14, desktop: 30 }, hue, flyScale: 2.8, raptors: 3 }));
+writer.put(resolve(shard, 'data/cover.generated.json'), jsonBytes({ ...profiles, materials, butterflies: { phone: 14, desktop: 30 }, hue, flyScale: 2.8, raptors: 3 }));
 writer.finish();
