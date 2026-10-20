@@ -100,8 +100,9 @@ async function writeTimberWorld() {
   const baked = pineTimberWorldBake(ground.heightAt, root, ground, shapes.piece);
   const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins'), under = baked.pieces.find(row => row.name === 'pine.undergrowth'), propsPiece = baked.pieces.find(row => row.name === 'pine.props');
   if (piece === undefined || cabins === undefined || under === undefined || propsPiece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
-  const library = [piece, cabins, under, propsPiece].map(part => {
-    const bytes=compactLibraryGlb(part.glb, part.name === 'pine.cabins' || part.name === 'pine.props'), hash = createHash('sha256').update(bytes).digest('hex'); baked.assets.set(hash,bytes);
+  // The cabins piece ships only its rows: the baked cabin scenes own their geometry, so its shape library has no reader.
+  const library = [piece, under, propsPiece].map(part => {
+    const bytes=compactLibraryGlb(part.glb, part.name === 'pine.props'), hash = createHash('sha256').update(bytes).digest('hex'); baked.assets.set(hash,bytes);
     const file = { hash, kind: 'glb', compressed: bytes.length };
     const parsed = Object.assign(file, parseGlb(bytes));
     return Object.assign(parsed, { dependencies: [], critical: false });

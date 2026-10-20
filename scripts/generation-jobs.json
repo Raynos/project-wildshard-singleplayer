@@ -6706,7 +6706,6 @@
         "public/assets/pine-hollow/baked/prop-materials/a8dfc957db1e43c7b998bb22256163554bb650e0c4b69e6a4a0fcbcdc31d56e6.glb",
         "public/assets/pine-hollow/baked/prop-materials/db73c6d72d830dbc3c7a2e26ef769a3b79ba8115cb2f4740f74b5b9338af763f.glb",
         "public/assets/pine-hollow/baked/prop-materials/de5d58493538cdc3443f1cb621c7d4be5f823c5c82a34f35a56634ca0be1a1d3.glb",
-        "src/shards/pine-hollow/assets/0aa42c615785b9f4227fc79bcb10c1d6a7cbfff3b666a11f46ff22cc8e715e74",
         "src/shards/pine-hollow/assets/0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680",
         "src/shards/pine-hollow/assets/2a5a53dc6f09dcdc05dfb359bf0e9bb67b328f3c83315157eda0c5cf0ca8c013",
         "src/shards/pine-hollow/assets/2f4b5e97a819af3b803185d4b2fa470691d9a6d70023da6b4d82ed8b32ec5236",
@@ -6758,7 +6757,6 @@
         "public/assets/pine-hollow/baked/prop-materials/a8dfc957db1e43c7b998bb22256163554bb650e0c4b69e6a4a0fcbcdc31d56e6.glb": "a8dfc957db1e43c7b998bb22256163554bb650e0c4b69e6a4a0fcbcdc31d56e6",
         "public/assets/pine-hollow/baked/prop-materials/db73c6d72d830dbc3c7a2e26ef769a3b79ba8115cb2f4740f74b5b9338af763f.glb": "db73c6d72d830dbc3c7a2e26ef769a3b79ba8115cb2f4740f74b5b9338af763f",
         "public/assets/pine-hollow/baked/prop-materials/de5d58493538cdc3443f1cb621c7d4be5f823c5c82a34f35a56634ca0be1a1d3.glb": "de5d58493538cdc3443f1cb621c7d4be5f823c5c82a34f35a56634ca0be1a1d3",
-        "src/shards/pine-hollow/assets/0aa42c615785b9f4227fc79bcb10c1d6a7cbfff3b666a11f46ff22cc8e715e74": "0aa42c615785b9f4227fc79bcb10c1d6a7cbfff3b666a11f46ff22cc8e715e74",
         "src/shards/pine-hollow/assets/0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680": "0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680",
         "src/shards/pine-hollow/assets/2a5a53dc6f09dcdc05dfb359bf0e9bb67b328f3c83315157eda0c5cf0ca8c013": "2a5a53dc6f09dcdc05dfb359bf0e9bb67b328f3c83315157eda0c5cf0ca8c013",
         "src/shards/pine-hollow/assets/2f4b5e97a819af3b803185d4b2fa470691d9a6d70023da6b4d82ed8b32ec5236": "2f4b5e97a819af3b803185d4b2fa470691d9a6d70023da6b4d82ed8b32ec5236",
@@ -6775,7 +6773,7 @@
         "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e": "f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e",
         "src/shards/pine-hollow/assets/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2": "f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2",
         "src/shards/pine-hollow/assets/fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138": "fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138",
-        "src/shards/pine-hollow/data/timberWorld.generated.json": "78146e99269c5581b5cbb27e03636b4850152c788ec5e4ac7e74798fff8a76da"
+        "src/shards/pine-hollow/data/timberWorld.generated.json": "f560783d4a4d5b7ad9ef0ef5a1caa805f5dce1814ee3cd0b6b57de9827b71194"
       }
     },
     {
