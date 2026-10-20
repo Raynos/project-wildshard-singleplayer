@@ -7,6 +7,7 @@ import { installQuestTrader } from '@wildshard/game/quest/trader';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
+import { forestPageAmbience } from '@wildshard/game/audio/forestPage';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { perfLap } from '@wildshard/engine/core/perfLap';
@@ -341,5 +342,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     objective.root.remove(); clock.caption.root.remove();
     ui.disposeLegacy(() => { dialogue().dispose(); boardUi().root.remove(); trade().root.remove(); chip().root.remove(); });
   });
-  return { flags, stag, thralls, motion, get moverAway() { return moverAway; }, useSfx: s => { sfx = s; thralls.useSfx(s); } };
+  return { flags, stag, thralls, motion, get moverAway() { return moverAway; }, bindAudio: id => {
+    sfx = forestPageAmbience(ctx.scope, id).sfx; thralls.useSfx(sfx);
+  } };
 }

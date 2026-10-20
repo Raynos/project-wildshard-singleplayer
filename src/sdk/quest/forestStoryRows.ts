@@ -1,7 +1,6 @@
 import type { HeldLoadout } from '@wildshard/game/loadout/held';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
-import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { ShopGood } from '@wildshard/game/loot/ui/ShopPanel';
 import type { installChapterLead, installQuestSpawnDirector } from '@wildshard/game/quest/chapterDirector';
 import type { MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -49,5 +48,5 @@ export interface ForestStory {
   readonly flags: Flags; readonly stag: ReturnType<typeof installChapterLead>;
   readonly thralls: Awaited<ReturnType<typeof installQuestSpawnDirector>>;
   readonly motion: MoverRuntime | null; readonly moverAway: boolean;
-  readonly useSfx: (bank: DeclaredSoundBank) => void;
+  readonly bindAudio: (id: string) => void;
 }

@@ -169,7 +169,7 @@ export class PineLandmarks {
     installEnteredRuntimeService(ctx, scope => { registerPineLap({ game, player, animals, music, hud, elites: page.fights.elites, king: page.fights.encounter }, scope); });
     this.chapter = await PineQuestViews.install(ctx, this);
     const quest = this.chapter.quest;
-    const ambience = await finishForestPageAudio(ctx, input.id); quest.useSfx(ambience.sfx);
+    const ambience = await finishForestPageAudio(ctx, input.id); quest.bindAudio(input.id);
     const spots = this.crags?.cave.spots() ?? [];
     for (let i = 0; i < Math.min(spots.length, 256); i++) { const spot = spots[i]; if (spot !== undefined) ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); }
     await RainFx.installPage(ctx, await ctx.product.json('world/weather-observations.json'));
