@@ -46,9 +46,9 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const width = typeof size === 'object' && size !== null && 'width' in size && typeof size.width === 'number' ? size.width : 6176;
   setLentParam('nalati-panorama', 'uPad', 16 / Math.max(1, width));
   setLentParam('nalati-panorama', 'uZenith', paintedTextures.zenith[TIER]);
-  const dome = new THREE.Mesh(scope.own(new THREE.SphereGeometry(2300, 96, 48)), lentLook('nalati-panorama'));
+  // the first transparent (the look blends it), depth tested just inside the 2600 m far plane: the world stands in front
+  const dome = new THREE.Mesh(scope.own(new THREE.SphereGeometry(2590, 96, 48)), lentLook('nalati-panorama'));
   dome.name = 'sky-dome-v2'; dome.frustumCulled = false; dome.renderOrder = -90;
-  dome.material.depthTest = false;
   dome.onBeforeRender = (_renderer, _scene, camera) => { camera.getWorldPosition(dome.position); game.scene.worldToLocal(dome.position); dome.updateMatrixWorld(); };
   game.scene.add(dome);
   ctx.groups['skyV2'] = dome;
