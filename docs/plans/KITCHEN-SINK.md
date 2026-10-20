@@ -57,7 +57,7 @@ Mini plan page: [Template 3 Showcase](https://claude.ai/artifact/PSu7FrfxSYEA5gd
 
 | Row | What | Effort (est.) | Status |
 |---|---|---|---|
-| **K0** | Name "Showcase Template", slug `showcase-template` (Jake, G526); boss name still open (proposal: the Crate Titan) | — | needs pick (boss) |
+| **K0** | Name "Showcase Template", slug `showcase-template` (Jake, G526); boss: the Crate Titan (G528) | — | done |
 | **K1** | Skeleton: new shard from `src/shards/_template/`; the 500 m cell, roads, hub and the quest spine; dev-map materials; grid slot in the 5 × 5 | 2 days | open |
 | **K2** | Zones batch 1: weapon range, creature pen, riding course, movers park | 2 days | open |
 | **K3** | Zones batch 2: grapple tower, stealth yard, weather and night, physics and hover | 2 days | open |
