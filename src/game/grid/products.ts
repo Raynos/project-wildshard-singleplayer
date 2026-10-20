@@ -12,6 +12,42 @@ import { GridPostCosts } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
 import type { ResidencyAllocator } from './allocator';
 import { neighbourProductFiles } from '../shardfile/productCost';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
+import { ShardfileFieldSchemas, type Shardfile } from '@wildshard/format/shardSchema';
+import * as v from 'valibot';
+
+const edgeRows = v.strictObject({ edge: ShardfileFieldSchemas.edge, entryways: ShardfileFieldSchemas.entryways });
+const edges = new WeakMap<ResidencyAllocator, Map<string, Promise<Pick<Shardfile, 'edge' | 'entryways'>>>>();
+
+/** Read only the bounded index and its hash-verified world/edge section. This does not admit a runtime or asset. */
+export async function readGridProductEdges(url: string, identity: string, options: ProductOptions): Promise<Pick<Shardfile, 'edge' | 'entryways'>> {
+  const index = parseOutputIndex(await readIndexBytes(await boundedResponse(await options.fetch(url), limits.sourceBytes), options));
+  const { slug: declaredIdentity } = index.identity;
+  if (declaredIdentity !== identity) throw new Error('Grid edge index identity differs from its cell');
+  const section = index.sections.find(row => row.name === 'world/edge');
+  if (section === undefined) throw new Error('Grid edge index lacks world/edge');
+  const bytes = await boundedResponse(await options.fetch(new URL(section.path, url).href), section.bytes);
+  if (bytes.length !== section.bytes || await options.hash(bytes) !== section.hash) throw new Error('Grid edge section hash or size mismatch');
+  return v.parse(edgeRows, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+}
+
+/** Equal catalogue copies share edge metadata; full product admission stays on the ordinary approach path. */
+export function gridShardfileEdges(slug: string, owner: GridProductOwner): Promise<Pick<Shardfile, 'edge' | 'entryways'>> | null {
+  const manifest = findShard(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
+  if (descriptor === undefined) return null;
+  if (owner.scope.disposed) return Promise.reject(new Error('Grid edge page disposed'));
+  let cache = edges.get(owner.allocator);
+  if (cache === undefined) {
+    cache = new Map(); edges.set(owner.allocator, cache);
+    owner.scope.onDispose(() => { edges.delete(owner.allocator); });
+  }
+  const previous = cache.get(slug); if (previous !== undefined) return previous;
+  const url = new URL(descriptor, location.href), pending = readGridProductEdges(url.href, slug, browserShardfileOptions(new URL('.', url).href, true));
+  cache.set(slug, pending);
+  const held = cache;
+  void pending.catch(() => { if (held.get(slug) === pending) held.delete(slug); });
+  return pending;
+}
 
 /** One admitted product and the options its assets resolve against (ClientAssets reads further tiles through them). */
 export interface GridProduct { readonly admitted: AdmittedProduct; readonly options: ProductOptions; release: () => void }

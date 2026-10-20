@@ -41,7 +41,7 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import { generatePlatform, generatePlatformSliced, type GeneratedStrip, type PlatformCell, type StripProfile } from '@wildshard/engine/sim/strips';
 import { GridAssembly, type GridCell } from './assembly';
 import { DEVSERVER, gridMode } from './menu';
-import { gridCells, pageGridInstance, pageMode, manifestRuntimeEntry, prepareTrustedRuntime } from '../plugin/context';
+import { gridCells, pageGridInstance, pageMode } from '../plugin/context';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderAdmissionError, PlatformRenderResidency } from './renderResidency';
@@ -53,7 +53,7 @@ import { NearPlaceholders, type NearPlaceholderState } from './nearPlaceholderVi
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
-import { gridShardfileProduct } from './products';
+import { gridShardfileEdges, gridShardfileProduct } from './products';
 import { loadShardfileFar, loadShardfileNear } from './shardfileFar';
 import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
@@ -307,15 +307,7 @@ export class GridSession {
     progress?.set(0, 3, `Cell edges · 0 / ${assembly.cells.length}`);
     const edges = await loadGridEdgeProfiles(assembly.cells, async (cell) => {
       try {
-        const edge = await readGridEdges(cell, { product: slug => gridShardfileProduct(slug, { allocator, scope: host.scope }), fetch: url => fetch(url),
-          prepare: async source => {
-            if (source.runtime === undefined || source.runtime === null || host.scope.disposed) return;
-            const manifest = findShard(cell.slug);
-            if (manifest === undefined) return;
-            // Evaluate modules under the loading panel. Ordinary admission still owns refusals and retries.
-            try { await prepareTrustedRuntime(source.runtime, cell.slug, true, [manifestRuntimeEntry(manifest)]); }
-            catch (error) { console.warn(`[grid] ${cell.instance} runtime preparation failed:`, error); }
-          } });
+        const edge = await readGridEdges(cell, { edges: slug => gridShardfileEdges(slug, { allocator, scope: host.scope }), fetch: url => fetch(url) });
         const claim = allocator.reserve({ id: `product:grid:edge:${cell.instance}`, category: 'product', owner: cell.instance, bytes: jsonResidentBytes(edge), distance: 0, needed: true });
         if (claim === null) throw new Error('Grid edge metadata residency deferred');
         host.scope.onDispose(() => { claim.release(); }); return edge;

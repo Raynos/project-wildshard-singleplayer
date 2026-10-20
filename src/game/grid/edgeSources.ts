@@ -63,7 +63,9 @@ function observe(entries: ShardEntryways, water: number | undefined, geometry: '
 
 /** Admitted products and immutable transport can be supplied by the owning composition without replacing modules. */
 export interface GridEdgeReaderPorts {
-  product: (slug: string) => Promise<{ admitted: { source: { edge: Rows; entryways: ShardEntryways; runtime?: RuntimeDeclaration | null } }; release?: () => void }> | null;
+  /** Index-only edge metadata; it grants no simulation/runtime readiness. */
+  edges?: (slug: string) => Promise<{ edge: Rows; entryways: ShardEntryways }> | null;
+  product?: (slug: string) => Promise<{ admitted: { source: { edge: Rows; entryways: ShardEntryways; runtime?: RuntimeDeclaration | null } }; release?: () => void }> | null;
   fetch: (url: string) => Promise<Response>;
   /** Loading-stage module preparation while the already-admitted product lease is still held. */
   prepare?: (source: { readonly runtime?: RuntimeDeclaration | null }) => Promise<void>;
@@ -72,7 +74,12 @@ export interface GridEdgeReaderPorts {
 /** Read one cell's edge source from its shard's own data. */
 export async function readGridEdges(cell: GridCell, reader: GridEdgeReaderPorts): Promise<GridEdgeSource> {
   const manifest = findShard(cell.slug), water = manifest?.minimap?.openWater?.level;
-  const product = reader.product(cell.slug);
+  const indexed = reader.edges?.(cell.slug);
+  if (indexed !== undefined && indexed !== null) {
+    const source = await indexed, geometry = manifest?.ground.structures === true && manifest.ground.terrain === undefined ? 'void' : 'ground';
+    return { kind: 'declared', profiles: structuredClone(source.edge), observations: observe(source.entryways, water, geometry) };
+  }
+  const product = reader.product?.(cell.slug) ?? null;
   if (product !== null) {
     const lease = await product;
     try {
