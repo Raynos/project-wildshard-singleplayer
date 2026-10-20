@@ -411,24 +411,6 @@ See [spawn owner](../src/game/population/spawnScript.ts),
 [strike owner](../src/game/population/scriptStrikes.ts), and
 [elite admission](../src/format/eliteFeature.ts).
 
-### Owned elite programs (G473, G484)
-
-Named encounters use the same concrete native/page `SpawnScript` owner as
-population directors. A `spawnGroup` catalogue assigns one actor-scoped v1
-binding to each declared slot. Guest spawn commands may create only their own
-slot through its recipe, species and site rows. Group liveness counts the
-currently bound living bodies; detached rivals leave the group.
-
-Declared strike rows bind the existing fixed-step StrikeRunner. A guest starts
-an attack with `strike`; `strikeState` observes its phase, and `stop` cancels
-contact and movement. Finite observed fields expose encounter phase, engagement,
-leash and day weights. Data field steering remains bounded by the admitted
-move's speed and turn limits. Native/page authorities retain all identity,
-physics, damage and retirement operations; no shard TypeScript port is accepted.
-See [spawn owner](../src/game/population/spawnScript.ts),
-[strike owner](../src/game/population/scriptStrikes.ts), and
-[elite admission](../src/format/eliteFeature.ts).
-
 ### Client ambient projections
 
 The client-only `sdk/looks/pageLife` presenter also uses `ReturnProgram`:
