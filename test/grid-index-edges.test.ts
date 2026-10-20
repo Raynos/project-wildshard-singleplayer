@@ -41,3 +41,9 @@ test('a newer first-party index still takes stale-client recovery before reading
   await expect(readGridProductEdges(f.url, f.source.identity.slug, { ...f.options, firstParty: true, built: { indexes: new Set(), stale } })).rejects.toThrow('older');
   expect(stale).toHaveBeenCalledOnce(); expect(f.fetch).toHaveBeenCalledExactlyOnceWith(f.url);
 });
+
+test('hidden catalogue names keep the authored product identity, like ordinary first-party entry', async () => {
+  const f = fixture();
+  expect(await readGridProductEdges(f.url, `_${f.source.identity.slug}`, f.options)).toEqual({ edge: f.source.edge, entryways: f.source.entryways });
+  expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([f.url, f.edgeUrl]);
+});

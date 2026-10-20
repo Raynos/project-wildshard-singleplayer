@@ -26,7 +26,7 @@ const edges = new WeakMap<ResidencyAllocator, Map<string, Promise<Pick<Shardfile
 export async function readGridProductEdges(url: string, identity: string, options: ProductOptions): Promise<Pick<Shardfile, 'edge' | 'entryways'>> {
   const index = parseOutputIndex(await readIndexBytes(await boundedResponse(await options.fetch(url), limits.sourceBytes), options));
   const { slug: declaredIdentity } = index.identity;
-  if (declaredIdentity !== identity) throw new Error('Grid edge index identity differs from its cell');
+  if (declaredIdentity !== identity.replace(/^_/u, '')) throw new Error('Grid edge index identity differs from its cell');
   const section = index.sections.find(row => row.name === 'world/edge');
   if (section === undefined) throw new Error('Grid edge index lacks world/edge');
   declareDownloadFile(new URL(section.path, url).href, section.bytes);
