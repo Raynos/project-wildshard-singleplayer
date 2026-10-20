@@ -1,9 +1,9 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json --source-progress",
- "revision": "b9d48e32b16cae480dfe07aa0c28de855b06ec7a",
- "committedAt": "2026-10-20T20:57:12.000Z",
- "measuredAt": "2026-10-20T21:19:29.169Z",
+ "revision": "227a6aaf0993f358f935a71c9fa2e924ade75e87",
+ "committedAt": "2026-10-20T21:16:47.000Z",
+ "measuredAt": "2026-10-20T21:36:06.932Z",
  "basis": "source",
  "plan": {
   "lower": 0.6,
@@ -25,8 +25,8 @@
    "wave": "W1",
    "revision": "adb48b6a08619986f16a3c2e304c4db5610df932",
    "customCut": 4999,
-   "platformGrowth": 61173,
-   "netCut": -56174,
+   "platformGrowth": 61177,
+   "netCut": -56178,
    "layers": {
     "engine": {
      "before": 67206,
@@ -35,8 +35,8 @@
     },
     "game": {
      "before": 33346,
-     "after": 75451,
-     "growth": 42105
+     "after": 75455,
+     "growth": 42109
     },
     "format": {
      "before": 7102,
@@ -54,8 +54,8 @@
    "wave": "W2",
    "revision": "68e72579516106c8307cb72e1ec1b91d3b7f649e",
    "customCut": 37365,
-   "platformGrowth": 57609,
-   "netCut": -20244,
+   "platformGrowth": 57613,
+   "netCut": -20248,
    "layers": {
     "engine": {
      "before": 67897,
@@ -64,8 +64,8 @@
     },
     "game": {
      "before": 35276,
-     "after": 75451,
-     "growth": 40175
+     "after": 75455,
+     "growth": 40179
     },
     "format": {
      "before": 7749,
@@ -1120,6 +1120,19 @@
   {
    "revision": "b9d48e32b16cae480dfe07aa0c28de855b06ec7a",
    "at": "2026-10-20T20:57:12.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 8.99319408589533,
+    "driftwood-isle": 10.07747422380148,
+    "far-reach": 0,
+    "sunscar-dunes": 0,
+    "nalati-grasslands": 17.95206203736341,
+    "nine-dragon-stack": 9.288996257875041
+   }
+  },
+  {
+   "revision": "227a6aaf0993f358f935a71c9fa2e924ade75e87",
+   "at": "2026-10-20T21:16:47.000Z",
    "basis": "source",
    "shards": {
     "pine-hollow": 8.99319408589533,
