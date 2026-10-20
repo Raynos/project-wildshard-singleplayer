@@ -1,44 +1,5 @@
-import { PINE_FEATS } from './generators/questInventory';
-import plumbing from './data/plumbing.json' with { type: 'json' };
-import identity from './data/identity.json' with { type: 'json' };
-import weatherChannels from './data/weatherChannels.generated.json' with {type:'json'};
-import skyChannels from './data/skyChannels.generated.json' with { type: 'json' };
-import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/sdk/shardfile';
-import AUDIO from './data/audio.generated.json' with { type: 'json' };
-import PINE_ITEMS from './data/items.generated.json' with { type: 'json' };
-import { PINE_LEDGER } from './generators/ledger';
-import { parseQuestData } from '@wildshard/sdk/quests';
-import { PINE_RUNTIME_SPAWNS } from './generators/spawns';
-import { PINE_STATE } from './generators/state';
-import { PINE_EDGE_HEIGHTS } from './generators/edges';
-import PINE_RUNTIME_COST from './data/runtimeCost.json' with { type: 'json' };
-import looks from './data/lookMaterials.generated.json' with { type: 'json' };
-import timbers from './data/timberWorld.generated.json' with { type: 'json' };
-import people from './data/questNpcs.generated.json' with { type: 'json' };
-import journal from './data/journal.generated.json' with { type: 'json' };
+// oxlint-disable-next-line unicorn/prefer-export-from -- E434 forbids re-export barrels.
+import product from './generators/product';
 
-// The trusted legacy entry keeps the live world; SF29 binds its existing audio to these rows.
-// SF47-g edges (G93 / G99 / G103 / G131): the starter's four 8 m midpoint entryways (kind ground: Pine's terrain is the
-// floor, flat at y = 0 through each canyon gap) stand on Pine's real boundary rows (./data/edges.ts, the committed bake's).
-// The grid's terrain.bin reader paints no palette for Pine, so the colours stay its neutral grey.
-const base = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: identity.seed });
-const libraryFiles = [...timbers.shardfile.files.filter(file => timbers.shardfile.library.includes(file.hash)), ...journal.files];
-const criticalFiles = timbers.shardfile.files.filter(file => timbers.shardfile.critical.includes(file.hash));
-const row = (heights: readonly number[]): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } =>
-  ({ heights: [...heights], colours: heights.map((): [number, number, number] => [0.25, 0.25, 0.25]), roadHeight: 0 });
-// oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({
-  ...base, ...timbers.shardfile, plumbing, props: timbers.props,
-  files: [...timbers.shardfile.files, ...journal.files], library: [...timbers.shardfile.library, ...journal.files.map(file => file.hash)],
-  // Seven admitted one-page v1 images reserve live and rewind copies.
-  budgets: { ...base.budgets, sim: { resident: 14*65536 + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
-  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 14*65536 + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
-  accent: 'moss', rows: { ...base.rows, compendiums: [journal.row] },
-  // the material graphs the runtime draws its own meshes in, built at build time (generators/lookMaterials.ts)
-  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(looks.graphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
-  edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
-  runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['terrain', 'props', 'quests', 'ledger', 'items', 'spawns', 'state', 'modes', 'movers', 'clientChannels'], spawns: PINE_RUNTIME_SPAWNS },
-  clientChannels: [...weatherChannels.clientChannels, ...skyChannels.clientChannels],
-  quests: parseQuestData({ ...people.quests, achievements: PINE_FEATS }), questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: AUDIO.audio, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
-});
+// oxlint-disable-next-line import/no-default-export -- Documented entry for SDK author projects.
+export default product;

@@ -7,7 +7,6 @@ import { Elites, GroundTell, type EliteRule } from '@wildshard/game/Elite';
 import type { Inventory } from '@wildshard/game/Inventory';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { bindAdventurePersistence } from '@wildshard/game/quest/persistence';
-import source from '../shard.config';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -67,7 +66,7 @@ export interface PineCombatHost {
   readonly pouchCapacity: number;
   persistenceRows: unknown;
   readonly decisionProgram:SpeciesProgramData; readonly decisions:SpeciesDecisionAuthority;
-  context?: ShardContext;
+  context: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService;
   crossbow: Weapon; rifle: { displayModel: () => THREE.Group }; skins: { own: (id: string) => void }; wearSkin: (s: SkinDef) => void;
   /** the Warden's Longbow (PH-C11): the King's orb shows it, taking it hands it over (loadout.grantLongbow) */
@@ -93,8 +92,9 @@ export interface PineCombat {
 }
 
 export function installPineCombat(h: PineCombatHost): PineCombat {
+  const source = h.context.product.shardfile;
   const { game, sky, player, animals, weapons, params } = h;
-  const entered = h.context !== undefined && retainsRuntimeServices(h.context) ? h.context : undefined;
+  const entered = retainsRuntimeServices(h.context) ? h.context : undefined;
   const god = params.has('bossGod');
   // the player's legs: a roar's stun and the King's intro both root you; either one holds
   let introLock = false;
@@ -154,9 +154,9 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     // the floating name hides behind the cabin's walls, the crags, a rise (no physics yet: always seen)
     canSee: (from, to) => { const ph = app.physics; return ph === null || lineOfSight(ph, from, to, 0.6); },
   };
-  const persistence = h.context === undefined ? undefined : bindAdventurePersistence(h.context, h.context.product.shardfile, h.persistenceRows, 'pine-hollow');
-  const body = h.context === undefined ? undefined : bindRuntimeBoss(h.context, source, 'pine.antler-king', undefined, { identity: 'runtime' });
-  const eliteUi = new EliteBar(), elites = new Elites(eliteHost, eliteUi, 'pine-hollow', persistence?.elites);
+  const persistence = bindAdventurePersistence(h.context, source, h.persistenceRows, 'pine-hollow');
+  const body = bindRuntimeBoss(h.context, source, 'pine.antler-king', undefined, { identity: 'runtime' });
+  const eliteUi = new EliteBar(), elites = new Elites(eliteHost, eliteUi, 'pine-hollow', persistence.elites);
   const pineElites = installEliteFeaturePage(game, animals, player, sky, elites, parked, h.eliteRows, source.identity.seed, h.hud, god);
 
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
@@ -165,11 +165,11 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const kingNight = (): boolean => forcedNight || ctx.night() > 0.5;
   const king = installBossEncounter(bossEncounterPresentation(pineView().BOSS_PRESENTATION, encounterRows), () => antlerKingFight(ctx,source.identity.seed,h.decisionProgram,h.decisions,entered === undefined ? undefined : install => {
     installEnteredRuntimeService(entered, scope => { scope.onDispose(install()); });
-  }, body === undefined ? undefined : () => {
+  }, () => {
     const animal = body.spawn(); if (animal === null) throw new Error('The declared Antler King body needs its runtime animals'); return animal;
   }), {
     game, player, scope: app.levelScope, chunkId: 'pine-hollow', interactables: h.interactables,
-    ...(persistence === undefined ? {} : { persistence: persistence.bosses }),
+    persistence: persistence.bosses,
     reward: { model: () => ctx.longbow?.model() ?? ctx.skinModel('warden'), grant: () => { ctx.ownSkin('warden'); ctx.longbow?.grant(); }, trophy: () => { ctx.addItem('amber-resin', 3); } },
     lockInput: on => { player.carried = on; introLock = on; legs(); weapons.setEnabled(!on); },
     respawn: (pos, yaw) => { player.spawn(pos.x, pos.z, yaw); player.pitch = 0; h.ironFirst?.(); h.crossbow.addBolts(h.pouchCapacity - (h.crossbow.state.bolts ?? h.pouchCapacity)); },

@@ -13,7 +13,6 @@ import type { ModelContext } from '@wildshard/engine/models/model';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { readWholeGeometry, type WholeGeometryView } from '@wildshard/game/plugin/geometry';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
-import source from '../../shard.config';
 
 /** the tower / landing turn: local −Z points from the lookout down the cable to the landing (the ride and the vista bench, PH-C1 / C8) */
 export const ZIP_YAW = authored.placements.lookout.yaw;
@@ -21,6 +20,7 @@ const KEY = 'pine-hollow/timber:views';
 
 /** Fetch the site timbers' bake into this shard's context (once). */
 export async function loadSiteTimbers(ctx: ModelContext): Promise<Map<string, WholeGeometryView>> {
+  const source = (await loadFirstPartyProduct('pine-hollow')).shardfile;
   if (source.props === null) throw new Error('[timber] missing admitted props');
   const refs = authored.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash);
   const pending = ctx.once(KEY, () => readWholeGeometry(resourceScope(), source,

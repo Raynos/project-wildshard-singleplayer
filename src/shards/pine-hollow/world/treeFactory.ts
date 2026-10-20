@@ -9,7 +9,7 @@ import { TreeFactory, isTreeMaterial, type FadeBand, type TreeMaterial } from '@
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
 import treeRest from '../data/treeRest.generated.json';
-import source from '../shard.config';
+import { firstPartyDescriptor } from '@wildshard/game/shardfile/runtimeProduct';
 import { FOREST_LOOKS } from '../data/forestLook';
 import { PINE_TREE_ASSETS, PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
 
@@ -65,7 +65,7 @@ export class PineTreeFactory extends TreeFactory {
       loadTexture(U.cardsAlbedo, true, 1, undefined, cards), loadTexture(U.cardsNormal, false, 1, undefined, cards), loadTexture(U.cardsArm, false, 1, undefined, cards),
       loadTexture(U.farAlbedo, true, 1, undefined, far), loadTexture(U.farNormal, false, 1, undefined, far),
       loadPBRArray([...BARK_LAYERS], TIER_CONFIG.layerSize),
-      lookGraphMaterials(resourceScope(), { renderer: this.renderer }, source, Object.values(FOREST_LOOKS)),
+      firstPartyDescriptor('pine-hollow').then(source => lookGraphMaterials(resourceScope(), { renderer: this.renderer }, source, Object.values(FOREST_LOOKS))),
     ]);
     this.tintBark = false;
     this.looks = looks;

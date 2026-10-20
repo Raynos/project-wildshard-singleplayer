@@ -31,7 +31,6 @@ import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import { isPineThrall } from './featLaw';
-import source from '../shard.config';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
  * Hollow*, PH-C6 the mill hamlet, PH-C7 night play, PH-C8 collectibles + secrets, PH-C10's event achievements, the C9
@@ -94,6 +93,7 @@ async function loadQuest() {
 export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCabins | null; landmarks: PineLandmarks | null;
   loadout: HeldLoadout; compendium: ReturnType<typeof installCollectionCompendium>;
   preload?: () => Promise<void>; loadQuest?: typeof loadQuest }): Promise<PineQuest> {
+  const source = ctx.product.shardfile;
   const runtime = ctx.game.runtime, enteredWorld = runtime?.world, play = runtime?.play;
   if (runtime === undefined || enteredWorld === undefined || enteredWorld === null || play === undefined || play === null) throw new Error('Pine quest requires its entered play services');
   const h = { ...enteredWorld, ...play, ctx, cabins: deps.cabins, landmarks: deps.landmarks, trees: enteredWorld.forest.trees,
