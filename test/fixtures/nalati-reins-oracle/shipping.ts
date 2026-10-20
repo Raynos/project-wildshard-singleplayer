@@ -1,4 +1,4 @@
-import { RhythmSpur, roadSteer, SPUR_WINDOW, type ReinsFrame, type HorseSpeeds } from '@wildshard/game/plugin/mover';
+import { RhythmSpur, roadSteer, SPUR_WINDOW, type ReinsFrame, type HorseSpeeds } from '@wildshard/game/riding/physics';
 import * as THREE from 'three';
 const SECTOR = 0.38;                 // the stick's forward / back sectors: |y| > 0.38 × its length (~67° either side of up / down)
 const PIVOT_SPEED = 0.6, BACK_SPEED = 1.1;   // m/s: the stick beside you from a stand (a turn on the spot), reining back

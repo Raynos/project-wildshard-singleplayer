@@ -2524,6 +2524,28 @@
           "row": "G474"
         }
       }
+    },
+    {
+      "module": "src/game/riding/physics.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "mounts-riding-taming",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G478"
+        }
+      }
+    },
+    {
+      "module": "src/game/riding/taming.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "mounts-riding-taming",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G478"
+        }
+      }
     }
   ]
 }

@@ -1,6 +1,6 @@
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { RidingPrograms } from './tamingBindings';
-import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld, type ReinsFrame, type RoadXZ } from '@wildshard/game/plugin/mover';
+import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld, type ReinsFrame, type RoadXZ } from '@wildshard/game/riding/physics';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost, SimPlayerDriver, SimPlayerMotionSample, SimValue } from '@wildshard/engine/sim';

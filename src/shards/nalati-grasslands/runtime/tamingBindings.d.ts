@@ -1,3 +1,4 @@
+import type { TamingPrograms } from '@wildshard/game/riding/taming';
 import type * as THREE from 'three';
 /** A live horse identity; rendering and native collision ownership stay with the caller. */
 export interface TamingHorse {
@@ -27,4 +28,4 @@ export interface NalatiTamingPorts<A extends TamingHorse, H extends TamingHerd<A
   readonly hurt: (damage: number) => void; readonly toast?: (text: string) => void;
 }
 /** Admitted v1 projections and their numeric continuation defaults. */
-export interface RidingPrograms { approach: unknown; breaking: unknown; riding: unknown; initial: Record<string, number> }
+export type RidingPrograms = TamingPrograms;

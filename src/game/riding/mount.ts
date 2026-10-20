@@ -1,4 +1,4 @@
-import { type RoadXZ, type ReinsFrame, MountedBody, mountedMotorOptions, type MountedWorld } from '@wildshard/game/plugin/mover';
+import { type RoadXZ, type ReinsFrame, MountedBody, mountedMotorOptions, type MountedWorld } from '@wildshard/game/riding/physics';
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import { Animal } from '@wildshard/engine/entities/AnimalView';

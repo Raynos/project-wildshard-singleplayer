@@ -74,3 +74,27 @@ test('HUD accepts a fictional second shard observation and retains the baseline 
     expect(root.querySelector('.ws-ride-round')?.textContent).toBe('TAMING 2/5');
   } finally { f.scope.dispose(); root.remove(); }
 });
+
+test('G478 orchard fixture drives the data-only taming host and restores its bond', async () => {
+  const { TamingSession } = await import('@wildshard/game/riding/taming');
+  const { default: programs } = await import('../src/shards/nalati-grasslands/behaviour/riding.generated.json');
+  const aliases = { upgraded: 'argymaq', horseUpgraded: 'horseArgymaq', candidateUpgraded: 'argymaq' };
+  const session = new TamingSession(programs, aliases);
+  const frame = { x: 0, y: 0, z: 2, mounted: null as string | null, crouched: true, wind: { x: 0, z: 1, strength: 1 }, offer: true, lean: 0,
+    random: [.25, .25, .25] as const, herds: [{ cx: 0, cz: 0, trust: 100, alert: 0, beaten: true, fleeing: false,
+      stallion: { id: 'orchard.mule', x: 0, y: 0, z: 0, alive: 1, upgraded: 0, scale: .8, dot: 0 } }] };
+  session.sample(.1, frame); frame.mounted = 'orchard.mule'; session.start(frame);
+  let previous = 0;
+  const effects = [];
+  for (let tick = 0; tick < 220 && session.phase === 'breaking'; tick++) {
+    const balance = session.view.balance;
+    frame.lean = Math.max(-1, Math.min(1, balance * 8 + (balance - previous) * 20)); previous = balance;
+    effects.push(...session.sample(.1, frame));
+  }
+  expect(effects.find(effect => effect.kind === 'bond')).toEqual({ kind: 'bond', herd: 0, actor: 'orchard.mule', previous: null, upgraded: false });
+  session.adopt('orchard.companion', false);
+  const wire = session.snapshot(), restored = new TamingSession(programs, aliases);
+  restored.restore(wire, ['orchard.mule', 'orchard.companion'], 1, 'orchard.companion');
+  expect(restored.snapshot()).toBe(wire);
+  expect(() => restored.restore(wire, ['foreign'], 1, null)).toThrow();
+});

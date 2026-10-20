@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./riding/taming": "./riding/taming.ts",
+    "./riding/physics": "./riding/physics.ts",
     "./population/nativeManager": "./population/nativeManager.ts",
     "./audio/cueDirector": "./audio/cueDirector.ts",
     "./quest/chapterDirector": "./quest/chapterDirector.ts",

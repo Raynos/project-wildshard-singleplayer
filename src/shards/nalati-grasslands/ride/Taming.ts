@@ -3,7 +3,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
-import { NalatiTamingLaw } from '../runtime/tamingLaw';
+import { TamingBinding } from '../runtime/tamingLaw';
 import type { Mount } from './ride';
 import type { RidingPrograms } from '../runtime/tamingBindings';
 import type { HerdController } from '../runtime/groupRegistry';
@@ -29,7 +29,7 @@ export interface TamingOpts {
 }
 
 /** The page adapter to Nalati's same renderer-free taming law; view and save ownership remain here. */
-export class Taming extends NalatiTamingLaw<Animal, HerdController> {
+export class Taming extends TamingBinding<Animal, HerdController> {
   constructor(opts: TamingOpts) {
     super({ ...opts, mount: {
       get mounted() { return opts.mount.mounted; }, get horse() { return opts.mount.horse; },

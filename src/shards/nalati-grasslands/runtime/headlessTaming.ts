@@ -8,7 +8,7 @@ import type { NalatiGroups } from './groups';
 import type { NalatiHostCreatures } from './headlessCreatures';
 import type { NalatiMountedPlayer } from './headlessMounted';
 import type { RidingPrograms } from './tamingBindings';
-import { NalatiTamingLaw } from './tamingLaw';
+import { TamingBinding } from './tamingLaw';
 import { createNativeCreaturePoses, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
@@ -20,9 +20,9 @@ const finite = v.pipe(v.number(), v.finite());
 const Saved = v.strictObject({ version: v.literal(1), law: v.string(), bond: v.nullable(v.picklist(['1', 'argymaq'])),
   pitch: v.pipe(finite, v.minValue(-Math.PI / 2), v.maxValue(Math.PI / 2)), shake: finite, roll: finite,
   poses: v.pipe(v.array(v.tuple([v.string(), v.string()])), v.maxLength(64)) });
-const installed = new WeakMap<SimHost, NalatiTamingLaw<AnimalSim, NalatiGroups['herds'][number]>>();
+const installed = new WeakMap<SimHost, TamingBinding<AnimalSim, NalatiGroups['herds'][number]>>();
 /** Read only this host's live taming law; no global ride singleton or reward override. */
-export function nalatiTamingOf(host: SimHost): NalatiTamingLaw<AnimalSim, NalatiGroups['herds'][number]> | undefined { return installed.get(host); }
+export function nalatiTamingOf(host: SimHost): TamingBinding<AnimalSim, NalatiGroups['herds'][number]> | undefined { return installed.get(host); }
 
 /** Install Nalati's actual approach/bucking/adoption law after its dynamic roster and native mounted owner.
  * Tick inputs: script nalati.taming.offer=0|1, nalati.taming.lean=-1..1, nalati.look.pitch=-pi/2..pi/2,
@@ -35,7 +35,7 @@ export function installNalatiTaming(host: SimHost, ports: {
   readonly poses: readonly { readonly kind: string; readonly variant: string; readonly pose: NativeCreaturePoseRecipe }[];
   readonly environment: WildEnv; readonly context: HeadlessRuntimeInstallation;
   readonly rest: { x: number; z: number; face: { x: number; z: number } };
-}): NalatiTamingLaw<AnimalSim, NalatiGroups['herds'][number]> {
+}): TamingBinding<AnimalSim, NalatiGroups['herds'][number]> {
   if (installed.has(host)) throw new Error('Nalati taming already installed');
   let bond: '1' | 'argymaq' | null = null, pitch = 0, offer = false, lean = 0, shake = 0, roll = 0;
   const camera = new Vector3(), eye = new Vector3(), hurtDir = new Vector3();
@@ -52,7 +52,7 @@ export function installNalatiTaming(host: SimHost, ports: {
   if (ports.creatures.bodies.length > 64) throw new Error('Nalati taming body bound exceeded');
   for (let i = 0; i < 64; i++) { const a = ports.creatures.bodies[i]; if (a === undefined) break; if (a.kind === 'horse' || a.kind === 'argymaq') addPose(a); }
   const mounted = ports.mounted;
-  const law = new NalatiTamingLaw({
+  const law = new TamingBinding({
     programs: ports.programs,
     bond: { read: () => null, write: value => { if (value !== '1' && value !== 'argymaq') throw new Error('Invalid Nalati bond'); bond = value; } },
     player: { position: host.player.position, get crouching() { return mounted.rider.crouching; },
