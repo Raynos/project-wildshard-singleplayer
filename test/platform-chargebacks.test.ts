@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify retired receipts without touching the shared WIP ledger.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { chargePlatformUsers, inlinePlatformSpans, platformChargeback, recordPrivateCharge } from '../scripts/platform-chargebacks.mjs';
+import { chargePlatformUsers, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge } from '../scripts/platform-chargebacks.mjs';
 import { pendingPlatformUsers, partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
 import { componentInventory } from '../scripts/shard-components.mjs';
 
@@ -55,6 +55,30 @@ test('Nine pool spans charge actual source lines while instance packets remain s
   expect(reports).toEqual([]);
   expect(charges.get('nine-dragon-stack')?.reduce((sum, row) => sum + row.lines, 0)).toBe(14);
   expect(selected.join('\n')).not.toMatch(/instanceMatrix|instanceAttributes|packet/u);
+});
+
+test('reviewed Pine and Driftwood branches charge their actual owners', () => {
+  const reports: string[] = [];
+  const charges = new Map<string, {path: string; name: string; lines: number}[]>([['pine-hollow', []], ['driftwood-isle', []]]);
+  for (const path of inlinePlatformPaths().filter(file => !file.endsWith('/worldScenes.ts'))) {
+    const source = readFileSync(path, 'utf8');
+    for (const span of inlinePlatformSpans(path, source, line => { reports.push(line); })) {
+      expect(span.lines.length).toBeGreaterThan(0);
+      expect(platformChargeback(path, span.name)).not.toBeNull();
+      expect(recordPrivateCharge(charges, 'fixture-only-user', {path, name: span.name, lines: span.lines.length})).toBe(true);
+    }
+  }
+  expect(reports).toEqual([]);
+  expect(charges.get('pine-hollow')?.map(row => row.name)).toContain('WaterTransition');
+  expect(charges.get('driftwood-isle')?.map(row => row.name)).toContain('DeclaredGeometryBatch');
+  const figure = 'src/game/models/figureCatalogue.ts', hull = 'src/game/looks/speciesBook.ts';
+  const both = new Set(['pine-hollow', 'driftwood-isle']);
+  const bindings = new Map([[`${figure}\0ProductFigureCatalogue`, both], [`${figure}\0FigureCatalogue`, both]]);
+  chargePlatformUsers(new Map([[figure, both]]), bindings);
+  expect([...bindings.get(`${figure}\0ProductFigureCatalogue`) ?? []]).toEqual(['pine-hollow']);
+  expect(bindings.get(`${figure}\0FigureCatalogue`)).toEqual(both);
+  expect(platformChargeback(hull, 'HullLookBook')).toBeNull();
+  expect(platformChargeback('src/engine/models/geometryPack.ts', 'GeometryPack')).toBeNull();
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {

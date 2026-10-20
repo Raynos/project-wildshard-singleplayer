@@ -16,7 +16,7 @@ import { outputRuntime, outputSections } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
-import { chargePlatformUsers, hasChargebackDeclarations, inlinePlatformSpans, platformChargeback, recordPrivateCharge, retiredPlatformModule } from './platform-chargebacks.mjs';
+import { chargePlatformUsers, hasChargebackDeclarations, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge, retiredPlatformModule } from './platform-chargebacks.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -638,7 +638,7 @@ const shellControl = (path, local = null) => SHELL_CONTROL_PREFIXES.some(prefix 
 
 /** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs @param {boolean} sourceProgress @param {string} sectionProducts */
 function countOutput(root, includeSources, products, slugs, sourceProgress = false, sectionProducts = resolve(root,'out')) {
-  const attributed = path => RULES.attributedLayers.test(path) || platformChargeback(path) !== null || path === 'src/format/bossProfiles.ts';
+  const attributed = path => RULES.attributedLayers.test(path) || platformChargeback(path) !== null || hasChargebackDeclarations(path);
   const platform = path => /^src\/(?:engine|game|sdk|commons)\//u.test(path) || attributed(path);
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
@@ -767,7 +767,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const privateModules = new Map(Object.keys(shardFiles).map(slug => [slug, []]));
   for (const [path, users] of [...moduleUsers].sort(([a], [b]) => a.localeCompare(b))) {
     // This format module enters attribution only for the reviewed arena rows.
-    if (path === 'src/format/bossProfiles.ts') continue;
+    if (path.startsWith('src/format/') && platformChargeback(path) === null) continue;
     if (RULES.buildOnlySdk.test(path) || users.has(SHELL_USER) || users.size >= RULES.publicUserCount || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
     const lines = count(path);
     if (lines > 0) recordPrivateCharge(privateModules, [...users][0], { path, lines });
@@ -841,15 +841,16 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     }
   }
   chargePlatformUsers(moduleUsers, bindingUsers);
+  const inlineSpans = new Map(inlinePlatformPaths().filter(path => moduleUsers.has(path)).map(path => [path, inlinePlatformSpans(path, text(path))]));
   const privateExports = new Map(Object.keys(shardFiles).map(slug => [slug, []]));
   for (const [path, users] of [...moduleUsers].sort(([a], [b]) => a.localeCompare(b))) {
     if (RULES.buildOnlySdk.test(path) || (users.size < RULES.publicUserCount && !hasChargebackDeclarations(path)) || !parsedTs(path) || ignored(path)) continue;
-    const sym = symbolsOf(path), claimed = new Set();
+    const sym = symbolsOf(path), claimed = new Set((inlineSpans.get(path) ?? []).flatMap(span => span.lines));
     if (!masks.has(path)) masks.set(path, codeLineMask(text(path), info(path).comments));
     const { code, lineOf } = masks.get(path), exportedLocals = new Set([...sym.exports.values()].flatMap(row => row.local ?? []));
     const sole = [...sym.bindings].map(([local, row]) => ({ local, row, owners: bindingUsers.get(`${path}\0${local}`) }))
       .filter(entry => entry.owners?.size === 1 && !entry.owners.has(SHELL_USER)
-        && (path !== 'src/format/bossProfiles.ts' || platformChargeback(path, entry.local) !== null)
+        && (!path.startsWith('src/format/') || platformChargeback(path, entry.local) !== null)
         && (users.size >= RULES.publicUserCount || platformChargeback(path, entry.local) !== null)).sort((a, b) => a.row.spans[0].start - b.row.spans[0].start);
     for (const { local, row, owners } of sole) {
       let lines = 0;
@@ -859,12 +860,12 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       if (lines > 0) recordPrivateCharge(privateExports, [...owners][0], { path, name: local === '\0default' ? 'default' : local, exported: exportedLocals.has(local), lines });
     }
   }
-  // The pool additions are branches of a shared world-scene declaration, not
-  // independent bindings. Charge their actual source lines only once.
-  if (moduleUsers.has('src/game/shardfile/worldScenes.ts')) for (const path of ['src/game/shardfile/worldScenes.ts', 'src/format/worldScenes.ts']) {
+  // Audited branches within shared declarations charge their actual source
+  // lines once, excluding them from any surrounding sole-binding charge.
+  for (const [path, spans] of inlineSpans) {
     if (!masks.has(path)) masks.set(path, codeLineMask(text(path), info(path).comments));
     const { code } = masks.get(path);
-    for (const span of inlinePlatformSpans(path, text(path))) {
+    for (const span of spans) {
       const lines = span.lines.filter(line => code[line]).length;
       if (lines > 0) recordPrivateCharge(privateExports, undefined, { path, name: span.name, exported: false, lines });
     }

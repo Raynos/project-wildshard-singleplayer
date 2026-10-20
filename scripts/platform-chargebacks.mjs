@@ -32,9 +32,20 @@ const declarations = new Map([
   ].map(name => [name, 'C2']))],
   ['src/game/shardfile/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
+  ['src/format/populationEnvironment.ts', new Map(['Stream', 'streamProjection', 'streamProfile', 'streamSurface', 'LiveStreamLevels'].map(name => [name, 'C1']))],
+  ['src/format/water.ts', new Map(['finite', 'transition', 'WaterTransition'].map(name => [name, 'C2']))],
+  ['src/game/systems/looks/waterSurface.ts', new Map([['WaterTransition', 'C2']])],
+  ['src/engine/models/ownedGeometry.ts', new Map([['DeclaredGeometryBatch', 'C1']])],
+  ['src/game/shardfile/clientCatalogue.ts', new Map([['CatalogueEconomy', 'C6']])],
+  ['src/game/shardfile/clientPlan.ts', new Map([['CatalogueEconomy', 'C6']])],
+  ['src/game/models/figureCatalogue.ts', new Map(['admitted', 'ProductFigureCatalogue', 'ProductFigureImports'].map(name => [name, 'C5']))],
+  ['src/game/models/explorerCatalogue.ts', new Map(['Presentation', 'ProductExplorerDispatch'].map(name => [name, 'C9']))],
+  ['src/format/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', 'C9']])],
+  ['src/game/quest/pageComposition.ts', new Map([['QuestPresentation', 'C5']])],
+  ['src/format/questPageComposition.ts', new Map([['QuestPresentation', 'C5']])],
 ]);
 
-// Nine-only branches inside otherwise shared declarations. These spans select
+// Single-shard branches inside otherwise shared declarations. These spans select
 // code lines, never fixed credits; packet/instance-matrix handling stays shared.
 /** @type {Map<string,Map<string,[string,number][]>>} */
 const inline = new Map([
@@ -56,10 +67,54 @@ const inline = new Map([
       [": entry.kind === 'pool' ? { ...entry, files: entry.files.filter(active) }", 1],
     ]],
   ])],
+  ['src/format/populationEnvironment.ts', new Map([['LiveStreamLevels', [['const value = v.strictObject({ profile, add: finite, level:', 1]]]])],
+  ['src/format/water.ts', new Map([['WaterTransition', [
+    ['transition: v.exactOptional(transition)', 1],
+    ['const row = v.parse(WaterSurfaceSchema, input), band = row.transition?.reveal;', 2],
+  ]]])],
+  ['src/game/systems/looks/waterSurface.ts', new Map([['WaterTransition', [
+    ["import { smoothstep }", 1], ['readonly ground?:', 1], ['private ground =', 3], ['get reveal():', 1],
+    ['if (row.transition !== undefined &&', 3], ['=    this.applyLevel();', 1],
+    ['  setLowered(', 5], ['  private applyLevel():', 19],
+    ['const transition = this.row.transition, goal =', 5],
+  ]]])],
+  ['src/engine/models/ownedGeometry.ts', new Map([['DeclaredGeometryBatch', [
+    ['  declare: (rows:', 1], ['  handle: (slot:', 1], ['  readonly ready:', 1],
+    ['  let declaration:', 2], ['    get ready()', 1], ['    declare: rows =>', 8],
+    ['    handle: slot =>', 1], ["if (!url || entries.has(url) || entries.size >= 128 || declaration", 1],
+    ['      ready = true;', 1], ['  return batch;', 1],
+  ]]])],
+  ['src/game/shardfile/clientCatalogue.ts', new Map([['CatalogueEconomy', [
+    ['const economy = row.economy', 1], ['if (economy !== undefined)', 1],
+  ]]])],
+  ['src/game/shardfile/clientPlan.ts', new Map([['CatalogueEconomy', [['const required = row.kind', 4]]]])],
+  ['src/game/models/figureCatalogue.ts', new Map([['ProductFigureImports', [
+    ["import { GeometryPack }", 5],
+  ]]])],
+  ['src/game/models/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', [
+    ["import { ProductFigureCatalogue }", 7], ["} else if (row.kind === 'figure')", 11],
+  ]]])],
+  ['src/format/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', [
+    ["kind: v.literal('posed'), file: text, source:", 3],
+  ]]])],
+  ['src/game/quest/pageComposition.ts', new Map([['QuestPresentation', [
+    ["import { installQuestHints }", 1], ['if (rows.presentation?.mapPois', 4],
+  ]]])],
+  ['src/format/questPageComposition.ts', new Map([['QuestPresentation', [['presentation: v.exactOptional', 1]]]])],
 ]);
 
 /** @param {string} path */
-function nineOwner(path) { return path.endsWith('/worldScenes.ts') || path === 'src/game/systems/viewmodel/graphArms.ts'; }
+function reviewedOwner(path) {
+  if (path.endsWith('/worldScenes.ts') || path === 'src/game/systems/viewmodel/graphArms.ts') return 'nine-dragon-stack';
+  if (['src/format/populationEnvironment.ts', 'src/format/water.ts', 'src/game/systems/looks/waterSurface.ts',
+    'src/game/models/figureCatalogue.ts', 'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';
+  if (['src/engine/models/ownedGeometry.ts', 'src/game/shardfile/clientCatalogue.ts', 'src/game/shardfile/clientPlan.ts',
+    'src/game/quest/pageComposition.ts', 'src/format/questPageComposition.ts'].includes(path)) return 'driftwood-isle';
+  return 'nalati-grasslands';
+}
+
+/** Shared declarations containing reviewed single-shard branches. */
+export function inlinePlatformPaths() { return [...inline.keys()]; }
 
 /** @param {string} path @param {string} source @param {(line:string)=>void} [report]
  * @returns {{name:string,lines:number[]}[]} */
@@ -68,7 +123,7 @@ export function inlinePlatformSpans(path, source, report = console.error) {
   for (const [name, blocks] of inline.get(path) ?? []) {
     const selected = [];
     for (const [needle, length] of blocks) {
-      const matches = lines.flatMap((line, index) => line.includes(needle) ? [index] : []);
+      const matches = lines.flatMap((line, index) => (needle.startsWith('=') ? line === needle.slice(1) : line.includes(needle)) ? [index] : []);
       if (matches.length !== 1) { report(`shard-platform: skip changed inline span ${path}#${name}: ${needle}`); continue; }
       for (const start of matches) for (let line = start; line < start + length; line++) if (!claimed.has(line)) { claimed.add(line); selected.push(line); }
     }
@@ -100,7 +155,7 @@ export function retiredPlatformModule(path) {
  * @param {T} row @param {(line:string)=>void} [report] */
 export function recordPrivateCharge(charges, owner, row, report = console.error) {
   const reviewed = platformChargeback(row.path, row.name) !== null;
-  const shard = reviewed ? nineOwner(row.path) ? 'nine-dragon-stack' : 'nalati-grasslands' : owner;
+  const shard = reviewed ? reviewedOwner(row.path) : owner;
   const target = charges.get(shard ?? '');
   if (target === undefined) {
     report(`shard-platform: skip ${row.path}${row.name === undefined ? '' : `#${row.name}`}: ${row.lines} lines owned by ${shard ?? 'no user'}, outside measured shards`);
@@ -115,11 +170,11 @@ export function recordPrivateCharge(charges, owner, row, report = console.error)
  * @param {Map<string,Set<string>>} bindingUsers */
 export function chargePlatformUsers(moduleUsers, bindingUsers) {
   for (const path of modules.keys()) if (moduleUsers.has(path)) {
-    const shard = nineOwner(path) ? 'nine-dragon-stack' : 'nalati-grasslands';
+    const shard = reviewedOwner(path);
     moduleUsers.set(path, new Set([shard]));
   }
   for (const [path, names] of declarations) for (const name of names.keys()) {
     const key = `${path}\0${name}`;
-    if (bindingUsers.has(key)) bindingUsers.set(key, new Set([nineOwner(path) ? 'nine-dragon-stack' : 'nalati-grasslands']));
+    if (bindingUsers.has(key)) bindingUsers.set(key, new Set([reviewedOwner(path)]));
   }
 }
