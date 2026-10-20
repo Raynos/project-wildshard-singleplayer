@@ -8,6 +8,8 @@
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
-**Idle lanes (reply to 17:50):** cause: ten lanes share three check slots, so a lane that finished its code shows 'done' while its batch check queues 20-60 min (sp-o3/o4 were waiting on checks; sp-o5 was working); twice a brief sent right after /clear was lost. Fix: lanes/ready-queue.md (>= 5 decided rows per lane type) that a finishing lane pulls itself, and a common-brief rule to prepare the next cut while a check runs. **Lanes (17:55):** Opus sp-o1 far impostors; sp-o2 open-plot demo; sp-o3 M2 looks; sp-o4 SF88e -> Pine memory; sp-o5 phase C + Template 2 host. Codex sp-x1 G530 -> loading lane; sp-x6 Nine; sp-x8 Nalati memory transients; sp-x9 live grid proof -> phase A; sp-x7 push.
+**For wildshard-v (19:00): Jake's hologram board (G546 P6):** art/grid/round-32-holograms/board.jpg (be813c67e0; all 14 in the G545 look, labelled; clay.jpg = P5 review). Meshes: 13 new Hunyuan3D-2 full GLBs (0592ff0be4) + the pilot, all pass clay review. Ember Forge playable demo P1 on main (0cb415a5f8), capture pending.
+
+**Idle lanes (17:50 reply):** cause: lanes wait 20-60 min on three shared check slots, plus two briefs lost after /clear; fix: lanes/ready-queue.md (self-pull) + prepare the next cut while a check runs. **Lanes (19:00):** Opus sp-o1 far impostors; sp-o2 open plots P2; sp-o3 frame floor; sp-o4 Pine memory; sp-o5 phase C. Codex sp-x1 loading; sp-x6 G540 capture; sp-x8 Nalati memory; sp-x9 grid proof; sp-x7 push.
 
 **Simulator note for wildshard-v (17:05):** your loading-audit job (PID 13272) holds the one Simulator, with a repeat (PID 14800) queued; sp-x8's G535 memory runs (Sky + Signal first, PID 35945) have waited since 16:52. Please let them run before the audit repeat.
