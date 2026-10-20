@@ -39,3 +39,16 @@ test('admits instance colours and product KTX2 rows as plain data', () => {
   expect(() => parseWorldScenes({ version: 1, libraries: [], materials: [], steps: [step([{ part: 'm', target: 'instanceColor', width: 4, values: [] }])] })).toThrow();
   expect(() => parseWorldScenes({ version: 1, libraries: [], materials: [], steps: [], lent: [{ kind: 'product', file: { phone: 'a' }, label: 'x', sampler: {} }] })).toThrow();
 });
+
+test('admits product instance packets and tier-selected channel pools', () => {
+  const packet = (byteOffset: number) => ({ file: 'w.bin', storage: 'f32', byteOffset, count: 2 });
+  const scenes = (rows: unknown[], files: unknown[] = []) => ({ version: 1, materials: [], libraries: [{ id: 'signs', kind: 'pool', files }], steps: [{ id: 'w', scene: 'w.json', instanceAttributes: rows }] });
+  const parsed = parseWorldScenes(scenes([{ part: 'm', target: 'instanceMatrix', width: 16, packet: packet(0) }, { part: 'm', name: 'aWin', width: 4, packet: packet(128) }],
+    [{ file: { phone: 'p.glb', desktop: 'd.glb' }, parts: ['board'], channels: [{ name: 'aTint', source: '_tint', width: 3 }] }, { file: 'hd.glb', tier: 'desktop', parts: ['tube'] }]));
+  expect(parsed.steps[0]?.instanceAttributes.map(row => row.packet?.byteOffset)).toEqual([0, 128]);
+  const pool = worldScenesForTier(parsed, 'phone').libraries[0];
+  expect(pool?.kind === 'pool' && pool.files.map(row => row.parts)).toEqual([['board']]);
+  expect(() => parseWorldScenes(scenes([{ part: 'm', name: 'aWin', width: 4, values: [], packet: packet(0) }]))).toThrow();
+  expect(() => parseWorldScenes(scenes([{ part: 'm', name: 'aWin', width: 4, packet: packet(2) }]))).toThrow();
+  expect(() => parseWorldScenes(scenes([], [{ file: 'a.glb', parts: ['x'] }, { file: 'b.glb', tier: 'phone', parts: ['x'] }]))).toThrow();
+});

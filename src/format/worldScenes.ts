@@ -13,16 +13,26 @@ const triple = v.tuple([finite, finite, finite]);
 const bounded = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>(schema: T, max: number) => v.pipe(v.array(schema), v.maxLength(max));
 const strings = v.pipe(v.record(id, id), v.check(rows => Object.keys(rows).length <= 128));
 const reference = v.strictObject({ library: id, model: id });
+const tierFile = v.union([id, v.strictObject({ phone: id, desktop: id })]);
+// Little-endian float32 columns read from a product blob: `count` rows of the row's width from `byteOffset`.
+const packet = v.strictObject({ file: id, storage: v.literal('f32'), byteOffset: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0x7fffffff), v.multipleOf(4)),
+  count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8192)) });
+const instanceValues = { values: v.exactOptional(bounded(finite, 32768)), packet: v.exactOptional(packet) };
 const library = v.variant('kind', [
   v.strictObject({ id, kind: v.literal('models'), file: id }),
   v.strictObject({ id, kind: v.literal('baked'), file: id }),
-  v.strictObject({ id, kind: v.literal('owned'), models: bounded(v.strictObject({ id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), file: v.union([id, v.strictObject({ phone: id, desktop: id })]), segments: v.exactOptional(v.pipe(bounded(id, 15), v.minLength(1))), attributes: v.optional(strings, {}) }), 128) }),
+  v.strictObject({ id, kind: v.literal('owned'), models: bounded(v.strictObject({ id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), file: tierFile, segments: v.exactOptional(v.pipe(bounded(id, 15), v.minLength(1))), attributes: v.optional(strings, {}) }), 128) }),
   // Whole geometry already in the shardfile library: each model one partition id, the tiles (asset hashes) holding it,
   // optionally posed. `explorer` libraries stay out of the resident world; a specimen reads only its own tiles cold.
   v.strictObject({ id, kind: v.literal('whole'), load: v.exactOptional(v.literal('explorer')),
     models: bounded(v.strictObject({ id, part: id, files: v.pipe(bounded(id, 64), v.minLength(1)), matrix: v.exactOptional(v.pipe(v.array(finite), v.length(16))) }), 256) }),
-  v.strictObject({ id, kind: v.literal('pool'), files: bounded(v.strictObject({ file: id, parts: bounded(id, 128) }), 32), painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) }),
+  // A rest pool per file (tier-selected by name or by `tier`), its Float32 application channels renamed on load.
+  v.strictObject({ id, kind: v.literal('pool'), files: bounded(v.strictObject({ file: tierFile, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), parts: bounded(id, 128),
+    channels: v.exactOptional(bounded(v.strictObject({ name: id, source: id, width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(bounded(id, 128)) }), 16)) }), 32),
+    painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) }),
 ]);
+const poolParts = (files: readonly { readonly tier?: 'phone' | 'desktop'; readonly parts: readonly string[] }[]): boolean => (['phone', 'desktop'] as const)
+  .every(tier => { const parts = files.flatMap(file => file.tier === undefined || file.tier === tier ? file.parts : []); return new Set(parts).size === parts.length; });
 const material = v.variant('kind', [WorldSceneSurfaceSchema,
   v.strictObject({ id, kind: v.literal('source'), load: v.optional(v.picklist(['resident', 'placement']), 'resident'), url: id, publishObject: v.exactOptional(id), aliases: v.optional(v.record(id, id), {}), part: v.optional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(127)), 0),
     anisotropy: v.optional(v.pipe(finite, v.minValue(1), v.maxValue(16)), 1), anisotropyMaps: v.optional(bounded(v.picklist(['map', 'normalMap', 'roughnessMap', 'aoMap']), 4), ['map', 'normalMap']), envMapIntensity: v.optional(finite, 1) }),
@@ -51,9 +61,11 @@ const step = v.strictObject({ id, cube: v.exactOptional(v.picklist(['standalone'
   geometry: v.optional(v.pipe(v.record(id, reference), v.check(rows => Object.keys(rows).length <= 128)), {}),
   materials: v.optional(strings, {}), registry: v.optional(bounded(registry, 128), []),
   publish: v.optional(WorldSceneBindingsSchema, {}), repeat: v.exactOptional(bounded(instance, 128)),
-  // per-instance values: a geometry attribute (`name`, the default target) or the mesh's own instanceColor (RGB)
-  instanceAttributes: v.optional(bounded(v.union([v.strictObject({ part: id, name: id, target: v.exactOptional(v.literal('geometry')), width: v.picklist([1, 2, 3, 4]), values: bounded(finite, 32768) }),
-    v.strictObject({ part: id, target: v.literal('instanceColor'), width: v.literal(3), values: bounded(finite, 32768) })]), 32), []),
+  // per-instance values, inline or a product packet: a geometry attribute (`name`, the default target), the mesh's own
+  // instanceColor (RGB) or its instanceMatrix (replacing the recipe's matrices)
+  instanceAttributes: v.optional(bounded(v.pipe(v.union([v.strictObject({ part: id, name: id, target: v.exactOptional(v.literal('geometry')), width: v.picklist([1, 2, 3, 4]), ...instanceValues }),
+    v.strictObject({ part: id, target: v.literal('instanceColor'), width: v.literal(3), ...instanceValues }), v.strictObject({ part: id, target: v.literal('instanceMatrix'), width: v.literal(16), ...instanceValues })]),
+  v.check(row => (row.values === undefined) !== (row.packet === undefined), 'Instance values are inline or a packet')), 32), []),
   bounds: v.optional(bounded(v.strictObject({ part: id, sphere: v.strictObject({ center: triple, radius: v.pipe(finite, v.minValue(0)) }) }), 128), []),
 });
 // Textures lent to compiled looks before the world builds: an image (its pixel size optionally lent as a vec2 param),
@@ -82,7 +94,7 @@ export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World 
     welds: v.optional(bounded(WorldSceneWeldSourceSchema, 32), []),
     placements: v.optional(bounded(v.union([WorldScenePlacementSchema, v.strictObject({ id, file: id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])) })]), 128), []) }),
   v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.batches) && unique(row.welds) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
-    && row.libraries.every(entry => entry.kind === 'models' || entry.kind === 'baked' || (entry.kind === 'owned' || entry.kind === 'whole' ? unique(entry.models) : new Set(entry.files.flatMap(file => file.parts)).size === entry.files.flatMap(file => file.parts).length && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry)))))
+    && row.libraries.every(entry => entry.kind === 'models' || entry.kind === 'baked' || (entry.kind === 'owned' || entry.kind === 'whole' ? unique(entry.models) : poolParts(entry.files) && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry)))))
     && row.steps.every(entry => entry.registry.every(piece => piece.active === undefined || piece.mode === undefined) && (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))
       && (entry.lights === undefined || unique(entry.lights)) && (entry.collectMaterials === undefined || new Set(entry.collectMaterials).size === entry.collectMaterials.length)), 'Unique scene identities and exactly one recipe source'));
 type ParsedWorldScenes = v.InferOutput<typeof WorldScenesSchema>;
@@ -96,7 +108,7 @@ export function parseWorldScenes(input: unknown): ParsedWorldScenes { return v.p
 export function worldScenesForTier(section: WorldScenesSection, tier: 'phone' | 'desktop'): WorldScenesSection {
   const active = (row: { readonly tier?: 'phone' | 'desktop' }): boolean => row.tier === undefined || row.tier === tier;
   const libraries: WorldScenesSection['libraries'] = [];
-  for (const entry of section.libraries) libraries.push(entry.kind === 'owned'
-    ? { ...entry, models: entry.models.filter(active) } : entry);
+  for (const entry of section.libraries) libraries.push(entry.kind === 'owned' ? { ...entry, models: entry.models.filter(active) }
+    : entry.kind === 'pool' ? { ...entry, files: entry.files.filter(active) } : entry);
   return { ...section, libraries, batches: section.batches?.filter(active) ?? [], placements: section.placements?.filter(active) ?? [] };
 }

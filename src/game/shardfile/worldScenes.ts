@@ -39,6 +39,7 @@ interface Library {
   readonly models?: Pick<ModelLibrary<string, string>, 'painted'>;
 }
 const decoder = new TextDecoder('utf-8', { fatal: true });
+const tierFile = (file: string | { readonly phone: string; readonly desktop: string }): string => typeof file === 'string' ? file : file[TIER];
 const residents = new WeakMap<Scope, WeakMap<ShardContext['product'], Promise<SceneHandles>>>();
 
 /** Client-only scene host. Takes declared rows and an engine lifetime, never shard constructors or callbacks.
@@ -59,7 +60,7 @@ export function installWorldScenes(ctx: ShardContext, input: WorldScenesSection,
 }
 
 async function build(ctx: ShardContext, section: WorldScenesSection, resident: Scope): Promise<SceneHandles> {
-  const product = ctx.product, recipes = new Map<string, WorldSceneRecipe>(), libraryRows = new Map(section.libraries.map(row => [row.id, row]));
+  const product = ctx.product, recipes = new Map<string, WorldSceneRecipe>(), packets = new Map<string, Uint8Array>(), libraryRows = new Map(section.libraries.map(row => [row.id, row]));
   if (section.libraries.some(row => row.kind === 'models' || row.kind === 'baked')) await prepareSceneSources(product);
   const slots = new Set(section.materials.map(row => row.id));
   const requireFile = (name: string): void => { if (!product.hasFile(name)) throw new Error(`Missing world scene blob: ${name}`); };
@@ -69,7 +70,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     if (library === undefined || library.kind === 'baked' || !(mapped ? library.kind === 'pool' && library.painted.some(row => row.id === ref.model) : library.kind === 'owned' || library.kind === 'whole' ? library.models.some(row => row.id === ref.model) : library.files.some(row => row.parts.includes(ref.model)))) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
   };
   // Admission precedes geometry/material allocation, including both cube variants.
-  for (const row of section.libraries) for (const file of row.kind === 'whole' ? [] : row.kind === 'models' || row.kind === 'baked' ? [row.file] : row.kind === 'owned' ? row.models.flatMap(model => [typeof model.file === 'string' ? model.file : model.file[TIER], ...model.segments ?? []]) : [...row.files.map(entry => entry.file), ...row.painted.map(entry => entry.file)]) requireFile(file);
+  for (const row of section.libraries) for (const file of row.kind === 'whole' ? [] : row.kind === 'models' || row.kind === 'baked' ? [row.file] : row.kind === 'owned' ? row.models.flatMap(model => [tierFile(model.file), ...model.segments ?? []]) : [...row.files.map(entry => tierFile(entry.file)), ...row.painted.map(entry => entry.file)]) requireFile(file);
   for (const row of section.materials) if (row.kind === 'look' || row.kind === 'surface') {
     if (row.look !== undefined && product.shardfile.look.materials[row.look] === undefined) throw new Error(`Missing world scene look: ${row.look}`);
     if (row.kind === 'look' && row.over !== undefined) reference(row.over, true);
@@ -170,8 +171,13 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       const nodes = new Map(recipe.scene.nodes.map(node => [node.id, node]));
       const attributes = new Set<string>();
       for (const row of step.instanceAttributes) {
-        const part = nodes.get(row.part), key = `${row.part}.${row.target === 'instanceColor' ? '#instanceColor' : row.name}`;
-        if (part?.kind !== 'mesh' || part.instances === undefined || row.values.length !== part.instances * row.width || attributes.has(key)) throw new Error('Invalid scene instance attributes');
+        const part = nodes.get(row.part), key = `${row.part}.${row.target === 'instanceColor' || row.target === 'instanceMatrix' ? `#${row.target}` : row.name}`;
+        if (row.packet !== undefined && !packets.has(row.packet.file)) { requireFile(row.packet.file); packets.set(row.packet.file, await product.file(row.packet.file)); }
+        const bytes = row.packet === undefined ? undefined : packets.get(row.packet.file);
+        // a packet holds exactly the mesh's instances; replaced matrices are never also authored in the recipe
+        if (part?.kind !== 'mesh' || part.instances === undefined || attributes.has(key) || row.target === 'instanceMatrix' && part.matrices !== undefined
+          || (row.packet === undefined ? row.values?.length !== part.instances * row.width
+            : bytes === undefined || row.packet.count !== part.instances || row.packet.byteOffset + row.packet.count * row.width * 4 > bytes.byteLength)) throw new Error('Invalid scene instance attributes');
         attributes.add(key);
       }
       if (nodes.get(recipe.scene.root)?.kind !== 'group') throw new Error('World scene needs a group root');
@@ -240,10 +246,10 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       } else {
         const models = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
           paintedModels: row.painted.map(model => ({ name: model.id, url: product.url(model.file), geometry: model.geometry })),
-          geometryPools: row.files.map(file => ({ url: product.url(file.file), parts: file.parts })) }, 'world scene library', {},
-          async url => { const file = [...row.files, ...row.painted].find(entry => product.url(entry.file) === url); if (file === undefined) throw new Error('Missing scene library file');
+          geometryPools: row.files.map(file => ({ url: product.url(tierFile(file.file)), parts: file.parts, ...(file.channels === undefined ? {} : { channels: file.channels }) })) }, 'world scene library', {},
+          async url => { const file = [...row.files.map(entry => tierFile(entry.file)), ...row.painted.map(entry => entry.file)].find(name => product.url(name) === url); if (file === undefined) throw new Error('Missing scene library file');
             const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/examples/jsm/loaders/GLTFLoader.js'), import('three/examples/jsm/libs/meshopt_decoder.module.js')]);
-            return new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(await product.file(file.file)).buffer, ''); });
+            return new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(await product.file(file)).buffer, ''); });
         await models.preload(() => buildYield(owner));
         libraries.set(row.id, { geometry: id => models.geometry(id), models });
       }
@@ -355,9 +361,13 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       }
       for (const row of step.instanceAttributes) {
         const part = made.parts.get(row.part);
-        if (!instances3(part) || row.values.length !== part.count * row.width) throw new Error('Scene instance attribute count differs');
-        const values = new InstancedBufferAttribute(Float32Array.from(row.values), row.width);
-        if (row.target === 'instanceColor') part.instanceColor = values; else part.geometry.setAttribute(row.name, values);
+        const bytes = row.packet === undefined ? undefined : packets.get(row.packet.file);
+        const floats = row.packet === undefined ? Float32Array.from(row.values ?? []) : bytes === undefined ? new Float32Array(0)
+          : new Float32Array(bytes.buffer.slice(bytes.byteOffset + row.packet.byteOffset, bytes.byteOffset + row.packet.byteOffset + row.packet.count * row.width * 4));
+        if (!instances3(part) || floats.length !== part.count * row.width) throw new Error('Scene instance attribute count differs');
+        const values = new InstancedBufferAttribute(floats, row.width);
+        if (row.target === 'instanceMatrix') { part.instanceMatrix = values; part.computeBoundingSphere(); part.computeBoundingBox(); }
+        else if (row.target === 'instanceColor') part.instanceColor = values; else part.geometry.setAttribute(row.name, values);
       }
       const prefix = [step.id, instance.id].filter(Boolean).join('.');
       handles.publish(`${prefix}.root`, made.root);
@@ -386,7 +396,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       await buildYield(owner);
     }
     // Every live/deferred consumer now owns a copy; retire decoder templates.
-    libraries.clear(); for (const done of finish) done();
+    libraries.clear(); packets.clear(); for (const done of finish) done();
     return handles;
   } catch (error) { owner.dispose(); throw error; }
 }
