@@ -72,7 +72,8 @@ export class Flutter {
     }
     this.nVerts = A.length / 4;
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(this.nVerts * 3), 3));
+    // position and normal are placeholders the graph's vertex stage replaces (three's inputs still read them)
+    for (const name of ['position', 'normal']) geo.setAttribute(name, new THREE.Float32BufferAttribute(new Float32Array(this.nVerts * 3), 3));
     for (const [name, data, width] of [['aClothA', A, 4], ['aClothS', S, 4], ['aClothP', P, 4], ['aClothF', F, 2], ['color', col, 3]] as const) geo.setAttribute(name, new THREE.Float32BufferAttribute(data, width));
     geo.setIndex(index);
     const sphere = new THREE.Sphere(); this.bounds.getBoundingSphere(sphere); sphere.radius += maxLen;
