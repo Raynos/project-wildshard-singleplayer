@@ -222,7 +222,7 @@ function retiredClassCeilings(trees) {
 export function comparePlatformList(list, baselineFile, candidateFile, trees) {
   if (list === 'lint/ratchet.json' || list === CUSTOM_SECTION_POLICY) {
     const read=file=>existsSync(file)?JSON.parse(readFileSync(file,'utf8')):undefined;
-    const locks = list === 'lint/ratchet.json' ? compareClosedComponents(read(baselineFile)?.closedComponents, read(candidateFile)?.closedComponents) : [];
+    const locks = list === 'lint/ratchet.json' ? compareClosedComponents(read(baselineFile)?.closedComponents, read(candidateFile)?.closedComponents, read(baselineFile)?.closingComponents, read(candidateFile)?.closingComponents) : [];
     if(trees!==undefined)return compareCustomSections(read(resolve(trees.baselineRoot,'lint/ratchet.json'))?.budgets??{},
       read(resolve(trees.candidateRoot,'lint/ratchet.json'))?.budgets??{},read(resolve(trees.baselineRoot,CUSTOM_SECTION_POLICY)),read(resolve(trees.candidateRoot,CUSTOM_SECTION_POLICY))).concat(locks);
     if(list===CUSTOM_SECTION_POLICY)return ['custom-section policy comparison requires immutable trees'];

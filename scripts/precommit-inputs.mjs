@@ -30,7 +30,8 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
     const show=spec=>{try{return JSON.parse(git(['show',spec]));}catch{return undefined;}};
     const failures=compareCustomSections(show('HEAD:lint/ratchet.json')?.budgets??{},show(':lint/ratchet.json')?.budgets??{},
       show(`HEAD:${CUSTOM_SECTION_POLICY}`),show(`:${CUSTOM_SECTION_POLICY}`));
-    failures.push(...compareClosedComponents(show('HEAD:lint/ratchet.json')?.closedComponents, show(':lint/ratchet.json')?.closedComponents));
+    failures.push(...compareClosedComponents(show('HEAD:lint/ratchet.json')?.closedComponents, show(':lint/ratchet.json')?.closedComponents,
+      show('HEAD:lint/ratchet.json')?.closingComponents, show(':lint/ratchet.json')?.closingComponents));
     if(failures.length>0)throw new Error(failures.join('\n'));
   }
   // Per-shard runtime/ file ceilings are shrink-only: a rise needs a new raises line (lint/runtime-files.mjs).
