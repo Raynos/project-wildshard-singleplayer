@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./crowdPresentation": "./crowdPresentation.ts",
     "./wildlifePopulation": "./wildlifePopulation.ts",
     "./bowVariant": "./bowVariant.ts",
     "./questPageComposition": "./questPageComposition.ts",

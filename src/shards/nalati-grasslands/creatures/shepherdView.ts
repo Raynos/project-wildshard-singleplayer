@@ -5,7 +5,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import * as THREE from 'three';
 import type { PageWildlife } from '@wildshard/game/population/wildlife';
-import type { Flock } from './flock';
+import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import { horseBones } from '../species/horse';
 import { bakedActorGeometry } from '../world/places';
 import { PagePastureRaid } from '@wildshard/game/riding/pagePasture';

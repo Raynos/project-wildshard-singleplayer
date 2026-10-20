@@ -1,27 +1,32 @@
-import type { FlockBrain, FlockPose } from '../src/engine/ai/flock';
-import { expect, test } from 'vitest';
+import { FlockBrain, type FlockPose } from '../src/engine/ai/flock';
+import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { Flock } from '../src/shards/nalati-grasslands/creatures/flock';
+import { parseFlock } from '../src/format/crowds';
+import viewRows from '../src/shards/nalati-grasslands/creatures/flock.json' with { type: 'json' };
+import { CrowdDraw } from '../src/game/ambient/crowdDraw';
 
-test('flock lends live poses to the shared draw and keeps prey and paused uploads authoritative', async () => {
+test('orchard crowd lends live poses to the shared draw and keeps prey and paused uploads authoritative', () => {
   const rows: FlockPose[] = [
     { x: 4, y: 2, z: 8, yaw: .3, speed: 3, phase: .2, graze: .4, dead: false, deathTime: 0, scale: 1.2, wool: 2 },
     { x: 9, y: 1, z: -3, yaw: -.2, speed: 0, phase: .1, graze: 0, dead: true, deathTime: .5, scale: .8, wool: 0 },
   ];
-  const controller: Pick<FlockBrain, 'n' | 'alive' | 'cx' | 'cz' | 'panicking' | 'readPose' | 'kill' | 'scare' | 'straggler' | 'nearest'> = { n: 2, get alive() { return rows.filter(p => !p.dead).length; }, cx: 5, cz: 6, panicking: false,
-    readPose: (i, out) => { const pose = rows[i]; if (pose === undefined) throw new Error('Missing test pose'); return Object.assign(out, pose); },
-    kill: i => { const p = rows[i]; if (p !== undefined) p.dead = true; }, scare: () => undefined, straggler: () => -1, nearest: () => 0 };
+  const controller = new FlockBrain({ heightAt:()=>0,normalY:()=>1,inBounds:()=>true,wetAt:()=>false,playerCrouched:()=>false,grassHeightAt:()=>.5,trample:()=>undefined,centre:()=>undefined },
+    parseFlock({id:'orchard.crowd',kind:'flock',x:5,z:6,count:2,seed:1,range:12,runSpeed:4,walkSpeed:1,grazeStep:.2,bleatCue:'bleat'}));
+  controller.initialize();
+  vi.spyOn(controller,'readPose').mockImplementation((i,out)=>{const pose=rows[i];if(pose===undefined)throw new Error('Missing test pose');return Object.assign(out,pose);});
+  vi.spyOn(controller,'kill').mockImplementation(i=>{const pose=rows[i];if(pose!==undefined)pose.dead=true;});
+  vi.spyOn(controller,'alive','get').mockImplementation(()=>rows.filter(pose=>!pose.dead).length);
   const rig = new THREE.BoxGeometry(), n = rig.getAttribute('position').count;
   rig.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
   rig.setAttribute('skinIndex', new THREE.BufferAttribute(new Uint16Array(n * 4), 4));
   rig.setAttribute('skinWeight', new THREE.BufferAttribute(Float32Array.from({ length: n * 4 }, (_, i) => i % 4 === 0 ? 1 : 0), 4));
-  const sky: unknown = Object.create(SkyRig.prototype); if (!(sky instanceof SkyRig)) throw new Error('Missing test sky');
-  const geometry = new THREE.BoxGeometry(), parts = Array.from({ length: 7 }, (_, i) => String(i));
-  const flock = new Flock(sky, { x: 5, z: 6, count: 2, seed: 1 }, { geometry, parts, pivots: parts.map(() => [0, 0, 0]) }, controller).build({ material: new THREE.MeshLambertMaterial(), rig: Promise.resolve({ geometry: rig, map: null, normalMap: null, joints: parts.map(name => ({ name, pos: new THREE.Vector3() })) }) });
+  const geometry = new THREE.BoxGeometry(), parts = ['body','head'];
+  const material=new THREE.MeshLambertMaterial();
+  const flock = new CrowdDraw(controller,{geometry,parts,pivots:parts.map(()=>[0,0,0])},material,
+    {...viewRows,name:'orchard.crowd',motion:{...viewRows.motion,joints:[[0,0,0,0,0,0,0],[.8,.05,4,2,-.1,0,6.2832]]}});
   const mesh = flock.mesh, oldGeometry = mesh.geometry;
   const anim = oldGeometry.getAttribute('iAnim');
-  await Promise.resolve();
+  flock.useRig({geometry:rig,map:null,joints:parts.map(name=>({name}))});
   expect(mesh.geometry).not.toBe(oldGeometry);
   expect(mesh.geometry.getAttribute('iAnim')).toBe(anim);
   expect(mesh.geometry.getAttribute('aRig').count).toBeGreaterThan(0);

@@ -1,3 +1,4 @@
+import { app } from '@wildshard/engine/app/runtime';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import * as v from 'valibot';
 import { readBakedGeometry, bakedGeometryBytes } from '@wildshard/sdk/kit/bakedGeometry';
@@ -5,10 +6,17 @@ import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { prepareDeclaredCrowds, type PreparedCrowds, type CrowdObservation } from '@wildshard/game/shardfile/crowdRuntime';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { Vector3 } from 'three';
-import { Flock, type FlockOpts, type FlockBody, dogWolves } from '../creatures/flock';
+import { CrowdDraw as Flock, type CrowdBody as FlockBody } from '@wildshard/game/ambient/crowdDraw';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import viewRows from '../creatures/flock.json' with { type: 'json' };
+import { painterlyAnimalMaterial } from '../look/creatureMaterial';
+import { productRiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import { parseFlock } from '@wildshard/format/crowds';
+
+export const dogWolves: Animal[] = [];
+interface FlockOpts { x: number;z: number;count: number;seed: number;range?: number }
 
 /** Admit the flock's exact static geometry and original seven shader pivots before any view builds. */
 export async function readFlockBody(product: Pick<ShardProduct, 'file'>): Promise<FlockBody> {
@@ -45,7 +53,7 @@ export function createNativeFlocks(sky: SkyRig, seed: number, body: FlockBody, p
       wetAt: (x, z) => wildEnv.wetAt(x,z), playerCrouched: () => wildEnv.playerCrouched,
       grassHeightAt: (x, z) => wildEnv.grassHeightAt(x, z), trample: (...values) => { wildEnv.trample(...values); }, centre: () => undefined },
     observe: () => observation,
-    sound: (cue, x, z) => { views.get(row.id)?.onSound?.(cue, x, z); },
+    sound: (cue, x, z) => { const view=views.get(row.id);if(view!==undefined)app.events.emit('creature.sound',{cue,x,y:heightAt(x,z),z}); },
     present: (_policy, time, moved) => {
       const view = views.get(row.id); if (view === undefined) throw new Error('Missing native flock view');
       view.project(moved ? time : undefined);
@@ -56,7 +64,9 @@ export function createNativeFlocks(sky: SkyRig, seed: number, body: FlockBody, p
     const row = rows[index], policy = row === undefined ? undefined : runtime.policies.get(row.id);
     if (row === undefined || policy === undefined || views.has(row.id) || row.x !== options.x || row.z !== options.z
       || row.count !== options.count || row.seed !== options.seed || row.range !== (options.range ?? 45)) throw new Error('Unbound native flock roster');
-    const view = new Flock(sky, options, body, policy).build(); views.set(row.id, view); return view;
+    const view = new Flock(policy,body,painterlyAnimalMaterial(sky),viewRows);
+    productRiggedHulls('nalati-grasslands').load('sheep').then(rig=>{view.useRig(rig);return null;}).catch((cause:unknown)=>{throw new Error('Crowd rig failed',{cause});});
+    views.set(row.id, view); return view;
   }, advance: (view, index, speed, player, dt, time, step) => {
     const row = rows[index], observation = row === undefined ? undefined : observations.get(row.id);
     if (row === undefined || observation === undefined || views.get(row.id) !== view) throw new Error('Unbound native flock view');

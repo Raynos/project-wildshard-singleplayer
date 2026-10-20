@@ -17,7 +17,7 @@ test('orchard population emits crowd work between native groups and mount placem
   const manager = legacyDouble<AnimalManager>({ animals: bodies,herds,wetAt: () => false,
     addHerd: (kind,x,z) => { herds.push({ kind,cx: x,cz: z,members: [] }); return herds.length-1; },
     spawn: (kind,x,z,yaw,variant) => {
-      const position = new Vector3(x,0,z),body = legacyDouble<Animal>({ entityId: `orchard:${String(bodies.length)}`,kind,variant: variant ?? 'plain',position,yaw,
+      const position = new Vector3(x,0,z),body = legacyDouble<Animal>({ entityId: `orchard:${String(bodies.length)}`,kind,variant: typeof variant === 'string' ? variant : 'plain',position,yaw,
         herd: -1,seed: .5,setMotion: () => undefined,scale: 1,mem: {},lastHitT: -Infinity,maxHp: 100,hp: 100,alive: true,speed: 0,
         place: (px,pz,heading) => { position.set(px,0,pz); body.yaw = heading; } }); bodies.push(body); return body;
     } });

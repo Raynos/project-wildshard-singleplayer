@@ -97,7 +97,6 @@ export const DONE = {
     'src/shards/nalati-grasslands-legacy/world/dressing/statics.ts': { why: "the region meshes the dressing's prop models are painted into (placed drawnInto), and the fences' timber layer", counts: { mergeGeometries: 2 } },
     'src/shards/nalati-grasslands-legacy/weapons/recurve.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/shards/nalati-grasslands-legacy/species/sheep.ts': { why: "the sheep rig's fleece merged onto it (a creature, M5)", counts: { mergeGeometries: 1 } },
-    'src/shards/nalati-grasslands/creatures/flock.ts': { why: 'a bird flock drawn as one instanced mesh by its live system (creatures, M5)', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands/creatures/marmots.ts': { why: 'the marmot colony drawn instanced by its live system (creatures, M5)', counts: { InstancedMesh: 1, mergeGeometries: 1 } },
     'src/shards/nalati-grasslands/world/installWeather.ts': { why: 'Weather particles and puddles are effects; the retained instance draw follows the prepared weather rows.', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands-legacy/world/WeatherFX.ts': { why: 'Frozen rain and snow retain the original effect instance draw.', counts: { InstancedMesh: 1 } },

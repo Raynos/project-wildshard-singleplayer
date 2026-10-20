@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { registerArgymaq } from '../combat/elites';
-import type { FlockBody } from '../creatures/flock';
+import type { CrowdBody as FlockBody } from '@wildshard/game/ambient/crowdDraw';
 import { createNativeFlocks, readFlockBody } from '../runtime/flockDeclared';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { productRiggedHulls } from '@wildshard/sdk/looks/riggedHulls';

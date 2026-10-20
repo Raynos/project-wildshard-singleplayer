@@ -20,7 +20,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { encounterHit } from './damage';
 import * as THREE from 'three';
 import type { PageWildlife } from '@wildshard/game/population/wildlife';
-import type { Flock } from '../creatures/flock';
+import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import type { Ledge } from '../world/types';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import { LEOPARD } from '../species/leopard';

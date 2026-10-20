@@ -3,10 +3,11 @@ import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
 import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
-import { createNativeFlocks, readFlockBody, type NativeFlocks } from './flockDeclared';
+import { createNativeFlocks, readFlockBody, dogWolves, type NativeFlocks } from './flockDeclared';
 import { bindEnteredEnvironment } from './enteredEnvironment';
 import { PageWildlife, type WildlifeBuildStep } from '@wildshard/game/population/wildlife';
-import { type Flock,dogWolves } from '../creatures/flock';
+import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
+import { setDogFlock } from '../species/sheepdog';
 import { Marmots,preloadCover } from '../creatures/marmots';
 import { bindEliteAdmission } from './argymaqKeeper';
 import { wildEnv,bindHerdDamage } from '@wildshard/game/population/pageGroups';
@@ -320,8 +321,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     if (step.kind === 'crowd') {
       if (declaredCrowds === null) throw new Error('Missing population crowd views');
       const view = declaredCrowds.factory(step.options,step.index); game.scene.add(view.mesh);
-      view.onSound = (cue,x,z) => { w.sound(cue,x,z); };
-      const dog = w.attachCrowd(step.index,view); if (dog !== null) view.setDog(dog,w.placement);
+      const dog = w.attachCrowd(step.index,view); if (dog !== null) { view.dog=dog;setDogFlock(dog,{flock:view,wolves:dogWolves,rng:plugin.app.rng.stream('ai'),bark:(x,z)=>{w.sound('dog_bark',x,z);}},w.placement); }
     } else if (step.kind === 'foragers' && w.foragers !== null) {
       foragerView = new Marmots(sky,ctx.chunk.seed,w.foragers.rules).build(); game.scene.add(foragerView.mesh);
     }

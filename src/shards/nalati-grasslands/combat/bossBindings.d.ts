@@ -14,7 +14,7 @@ import type { GroundTell } from '@wildshard/game/Elite';
 import type { PhasedBossFight } from '@wildshard/game/plugin/bossPhase';
 import type { Bow } from '@wildshard/game/weapons/Bow';
 import type { PageWildlife } from '@wildshard/game/population/wildlife';
-import type { Flock } from '../creatures/flock';
+import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import type { SabreWeapon as Sabre, NaizagaiPowerHandle as NaizagaiPower } from '../weapons/nativeMelee';
 import type { NalatiWeather } from '../world/installWeather';
 import type { Ride } from '../runtime/state';
