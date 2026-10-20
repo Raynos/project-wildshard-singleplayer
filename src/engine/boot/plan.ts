@@ -44,6 +44,14 @@ export async function loadingStage<T>(key: string, work: () => T | Promise<T>): 
   try { return await work(); }
   finally { stage?.end(); }
 }
+/** Count actual completed units on the stage that starts this operation, without advancing work on a timer. */
+export function loadingUnits(label: string, total: number): (done: number, detail?: string) => void {
+  const timeline = currentLoadingTimeline(), key = timeline?.snapshot().current;
+  return (done, detail) => {
+    if (key === null || key === undefined) return;
+    timeline?.report(key, `${label} ${done} / ${total}${detail ? ` · ${detail}` : ''}`);
+  };
+}
 
 export interface StepProgress {
   /** Progress in the step's own unit; the step's contribution becomes max(previous, done / (total + 1)). */

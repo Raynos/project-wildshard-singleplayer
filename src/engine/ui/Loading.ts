@@ -123,7 +123,7 @@ export class Loading {
     this.admission = progress;
     const phase = progress.phase === 'modules' ? 'modules' : 'admission';
     if (this.phase !== undefined && phase !== this.phaseKey) { this.phase.end(); this.phase = this.timeline.begin(phase); this.phaseKey = phase; }
-    this.phase?.detail(progress.detail);
+    this.phase?.detail(`${progress.detail} · ${progress.filesDone} / ${progress.filesTotal} files · ${formatMB(progress.bytesRead)} read`);
     if (progress.phase !== 'modules') {
       this.hasProductAdmission = true;
       this.admissionUnits = Math.max(this.admissionUnits, progress.phase === 'complete' ? 4 : progress.phase === 'cache' ? 3 : progress.phase === 'validation' ? 2 : progress.phase === 'assets' || progress.phase === 'hash' ? 1 : 0);

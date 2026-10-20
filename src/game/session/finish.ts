@@ -66,7 +66,11 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
       await precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`));
     });
     if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during shader compile');
-    await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+    await step('firstFrame', async (p) => {
+      let passes = 0;
+      await game.firstFrame((d, n, what) => { passes = n; p.set(d, n, `Pass ${d} / ${n} · ${what} · ${programs()}`); });
+      p.set(passes, passes, `Pass ${passes} / ${passes} · ready · ${programs()}`);
+    });
     if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during first frame');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

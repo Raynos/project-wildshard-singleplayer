@@ -866,6 +866,14 @@ their reported parent. The game supplies legacy, shardfile, grid and crossing
 tables. Crossing diagnostics partition preparation, boundary wait, checkpoint,
 commit and activation using the existing same-clock transition timestamps.
 
+`loadingUnits(label, total)` from `@wildshard/engine/boot/plan` returns a
+reporter bound to the stage active when the work starts. Call it only after
+actual units finish. World-scene recipes, libraries, owned models, materials
+and scene instances report their own counts. First-frame reporting uses the
+renderer-selected pass total and closes that count only after its final draw.
+Admission rows include file counts and actual body bytes read; they are separate
+from the network-only download counter.
+
 ### Pre-entry safe
 
 `@wildshard/engine/boot/retry` is the import-free retry module: it exports only `retried`. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Every other loader imports the same module.
