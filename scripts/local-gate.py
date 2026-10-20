@@ -30,7 +30,10 @@ def main():
     root = Path(inside) if inside else Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], text=True).strip())
     sha = subprocess.check_output(['git', 'rev-parse', '--verify', sys.argv[1] + '^{commit}'], cwd=root, text=True).strip()
     common = Path(subprocess.check_output(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=root, text=True).strip())
-    passed = common / 'build-gate-g416' / sha
+    base = subprocess.check_output(['git', 'merge-base', 'origin/main', sha], cwd=root, text=True).strip()
+    # Old build-only stamps cannot vouch for G518. A changed pushed base needs
+    # its own comparison, even when this candidate has already been built.
+    passed = common / 'build-gate-g518' / (sha + '-' + base)
     if passed.exists():
         print('vercel-gate: ' + sha[:9] + ' build already passed')
         return 0
@@ -64,7 +67,6 @@ def main():
         env.pop('WS_GATE_REPO', None)
         for key in subprocess.check_output(['git', 'rev-parse', '--local-env-vars'], cwd=root, text=True).splitlines():
             env.pop(key, None)
-        base = subprocess.check_output(['git', 'merge-base', 'origin/main', sha], cwd=root, text=True).strip()
         changed = subprocess.check_output(['git', 'diff', '--name-only', '--no-renames', base, sha], cwd=root, text=True).splitlines()
         existing = [path for path in changed if (tree / path).is_file()]
         present = [path for path in existing if path.endswith(('.ts', '.tsx', '.js', '.mjs', '.cjs'))]
@@ -110,6 +112,8 @@ def main():
         shape = re.fullmatch(r"python3 scripts/heavy-lane\.py build -- bash -c 'pnpm gen && ([^']+)'", build)
         command = ['pnpm', 'exec', 'bash', '-c', shape.group(1)] if shape else ['pnpm', 'build']
         run('build', [sys.executable, 'scripts/heavy-lane.py', 'gate', '--', *command])
+        run('custom-section-growth', ['node', 'scripts/check-custom-section-growth.mjs', str(root), base, sha,
+                                      str(common / 'custom-section-measures')])
         passed.parent.mkdir(parents=True, exist_ok=True)
         passed.write_text('build passed\n')
         passed_gate = True

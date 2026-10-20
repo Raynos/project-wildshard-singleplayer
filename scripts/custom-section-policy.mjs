@@ -17,6 +17,21 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const entries=budgets=>Object.fromEntries([...new Set(Object.keys(budgets).filter(key=>/^custom-sections\/[^/]+\/(?:count|bytes)$/u.test(key)).map(key=>key.split('/')[1]))].map(slug=>
   [slug,{count:budgets[`custom-sections/${slug}/count`],bytes:budgets[`custom-sections/${slug}/bytes`]}]));
 
+/** G518: an existing excess may hold or shrink; growth must fit the budget.
+ * @param {Record<string,unknown>} budgets
+ * @param {Record<string,{count:number;bytes:number}>} before
+ * @param {Record<string,{count:number;bytes:number}>} after
+ * @returns {string[]} */
+export function customSectionGrowthFailures(budgets,before,after) {
+  const failures=[];
+  for(const [slug,measured]of Object.entries(after))for(const unit of ['count','bytes']) {
+    const budget=budgets[`custom-sections/${slug}/${unit}`],value=measured[unit],base=before[slug]?.[unit]??0;
+    if(typeof budget!=='number'||!Number.isSafeInteger(budget)||budget<0)failures.push(`${slug}: missing or invalid custom-section ${unit} budget`);
+    else if(value>budget&&value>base)failures.push(`${slug}: custom-section ${unit} ${value} exceeds budget ${budget} and pushed base ${base}`);
+  }
+  return failures;
+}
+
 /** Ratchet budgets stay in ratchet.json; this small policy owns only rise history.
  * An initial baseline adopts the reviewed committed ceilings once. Later rises
  * need newly appended exact pairs; only the one-use G514 reset can grow a seal.

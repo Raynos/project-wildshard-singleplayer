@@ -7,7 +7,31 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {customSectionFailures} from '../scripts/shard-platform-sections.mjs';
 import {comparePlatformList} from '../scripts/check-platform-ratchets.mjs';
-import {compareCustomSections} from '../scripts/custom-section-policy.mjs';
+import {compareCustomSections,customSectionGrowthFailures} from '../scripts/custom-section-policy.mjs';
+import {rulerSectionBase} from '../scripts/check-custom-section-growth.mjs';
+
+const growthBudgets={'custom-sections/demo/count':2,'custom-sections/demo/bytes':100};
+it('permits section growth up to both budgets',()=>{
+ expect(customSectionGrowthFailures(growthBudgets,{demo:{count:1,bytes:50}},{demo:{count:2,bytes:100}})).toEqual([]);
+});
+it('refuses each over-budget metric only when it grows past the pushed base',()=>{
+ expect(customSectionGrowthFailures(growthBudgets,{demo:{count:3,bytes:110}},{demo:{count:4,bytes:111}})).toEqual([
+  'demo: custom-section count 4 exceeds budget 2 and pushed base 3',
+  'demo: custom-section bytes 111 exceeds budget 100 and pushed base 110',
+ ]);
+ expect(customSectionGrowthFailures(growthBudgets,{demo:{count:3,bytes:110}},{demo:{count:2,bytes:111}})).toHaveLength(1);
+ expect(customSectionGrowthFailures(growthBudgets,{demo:{count:1,bytes:50}},{demo:{count:3,bytes:50}})).toHaveLength(1);
+});
+it('permits an existing excess to shrink or hold independently',()=>{
+ for(const after of [{count:3,bytes:110},{count:4,bytes:120},{count:4,bytes:110}])
+  expect(customSectionGrowthFailures(growthBudgets,{demo:{count:4,bytes:120}},{demo:after})).toEqual([]);
+});
+it('bootstraps only an exact-base ruler and retains its measured excess',()=>{
+ const report={revision:'base',customSectionFailures:['demo: custom-section bytes 110 exceeds 100']};
+ expect(rulerSectionBase('base',growthBudgets,report)).toEqual({demo:{count:2,bytes:110}});
+ expect(()=>rulerSectionBase('other',growthBudgets,report)).toThrow();
+ expect(()=>rulerSectionBase('base',{...growthBudgets,'custom-sections/demo/bytes':99},report)).toThrow();
+});
 
 it('enforces both ceilings and a named exit for every private section',()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-custom-section-'));
