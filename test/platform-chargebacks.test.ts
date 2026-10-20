@@ -1,6 +1,8 @@
 import { expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Verify retired receipts without touching the shared WIP ledger.
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { chargePlatformUsers, platformChargeback } from '../scripts/platform-chargebacks.mjs';
-import { partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
+import { pendingPlatformUsers, partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
 import { componentInventory } from '../scripts/shard-components.mjs';
 
 test('optional shared dispatch does not invent another arena or keeper user', () => {
@@ -53,4 +55,21 @@ test('chargebacks retain their exact component and include creature schemas', ()
   expect(inventory.counts.C7).toBe(27);
   expect(inventory.counts.C2).toBe(40);
   expect(inventory.unknown).toEqual([]);
+});
+
+test('whole-module cuts retire their old receipts while unknown missing modules still refuse', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync('tmp/retired-host-test-');
+  try {
+    mkdirSync(`${root}/lint`); mkdirSync(`${root}/docs/plans/shard-platform`, { recursive: true });
+    writeFileSync(`${root}/docs/plans/shard-platform/decisions.md`, '| G475 | approved toon |');
+    const receipt = (module: string): PendingPlatformUser => ({ module, documentation: 'docs/ENGINE.md',
+      approvedFeature: { name: 'toon look host', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G475' } } });
+    const put = (modules: string[]) => writeFileSync(`${root}/lint/platform-pending-users.json`, JSON.stringify({
+      schema: 'platform-pending-users/1', entries: modules.map(receipt),
+    }));
+    put(['src/engine/models/glbNodes.ts', 'src/game/shardfile/buildingAssembly.ts']);
+    expect(pendingPlatformUsers(root)).toEqual([]);
+    put(['src/game/missing.ts']); expect(() => pendingPlatformUsers(root)).toThrow('ENOENT');
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });

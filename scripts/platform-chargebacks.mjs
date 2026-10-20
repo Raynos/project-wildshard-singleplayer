@@ -42,6 +42,12 @@ export function platformChargeback(path, name) {
 /** @param {string} path */
 export function hasChargebackDeclarations(path) { return declarations.has(path); }
 
+/** Whole-module G520 deletions leave no host to receive a pending-user credit.
+ * Keep the shared WIP ledger untouched. @param {string} path */
+export function retiredPlatformModule(path) {
+  return path === 'src/engine/models/glbNodes.ts' || path === 'src/game/shardfile/buildingAssembly.ts';
+}
+
 /** Reconcile broad import reach with the audited, actual row consumers.
  * @param {Map<string,Set<string>>} moduleUsers
  * @param {Map<string,Set<string>>} bindingUsers */

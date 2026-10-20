@@ -16,7 +16,7 @@ import { outputRuntime, outputSections } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
-import { chargePlatformUsers, hasChargebackDeclarations, platformChargeback } from './platform-chargebacks.mjs';
+import { chargePlatformUsers, hasChargebackDeclarations, platformChargeback, retiredPlatformModule } from './platform-chargebacks.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -564,7 +564,9 @@ const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1
 export function pendingPlatformUsers(root) {
   const file=resolve(root,'lint/platform-pending-users.json');
   if(!existsSync(file))return [];
-  const {entries}=v.parse(PendingUsers,JSON.parse(readFileSync(file,'utf8'))),seen=new Set();
+  const entries=v.parse(PendingUsers,JSON.parse(readFileSync(file,'utf8'))).entries
+    .filter(entry => !retiredPlatformModule(entry.module) || existsSync(resolve(root,entry.module)));
+  const seen=new Set();
   const names={'driftwood-isle':'Driftwood','pine-hollow':'Pine','nalati-grasslands':'Nalati','nine-dragon-stack':'Nine'};
   for(const entry of entries){
     const key=`${entry.module}#${entry.export??'*'}:${entry.shard??'approved'}`;
