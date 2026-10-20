@@ -85,6 +85,13 @@ export function gridFloorPlans(state, scenario, options = {}) {
     }
     return plans;
   }
+  if (scenario === 'outer-road') {
+    // SF88c (G526): a quarter lap of the 5 × 5's outer road round its south-east corner (2.8 km, inside the drive's
+    // 160 s), the whole platform's far layer in view
+    const e = 2.5 * 555;
+    return [{ name: 'outer-road-corner', from: null, to: null, movement: 'road-hover', hoverMaxSpeed: 30, start: { x: 0, z: e },
+      waypoints: [{ x: e, z: e }, { x: e, z: 0 }], requiredResidents: [], finishOnArrival: true }];
+  }
   if (scenario === 'reentry') {
     // OT (2026-10-17): enter Pine, retire it by entering Signal Dunes, enter it again. A page-wide cache that kept a
     // resource the first resident freed fails only the second admission (Pine's posed atlas lost its GPU allocation).
