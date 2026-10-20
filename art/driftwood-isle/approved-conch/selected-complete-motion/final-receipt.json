@@ -1,0 +1,24 @@
+{
+  "schema": "wildshard.conch.selected-complete-motion.receipt.v1",
+  "freezeSha256": "e3592c6daec7316502b08d2ef2656fac8091b3a8acb90004c2db29ea92222f6c",
+  "frozenFilesUnchanged": true,
+  "strictSourceAdmission": "passed existing selected normal/color identity gates",
+  "numericAndRecipeTests": {
+    "passed": 6,
+    "failed": 0,
+    "scope": "source/packed-loading/numeric-evaluator/recipe construction only; no actual actor or contact simulation"
+  },
+  "focusedStrictTypeScript": "passed exit 0",
+  "lint": "not executed: repository art exclusion selects zero files, including explicit --no-ignore attempt; not claimed green",
+  "conditionalPackedSkin": {
+    "conditionalAllWeightOwnerResidualMeters": 2.5421520283296383e-08,
+    "blendedCorners": 94,
+    "sampledPoses": 25,
+    "physicsContactTested": false
+  },
+  "conditionalFloat32HullMaxOutsidePlaneMeters": 5.687476001270397e-08,
+  "buildAllowed": false,
+  "physicsContactTested": false,
+  "actualActorLifecycleTested": false,
+  "visualAcceptance": false
+}
