@@ -236,7 +236,6 @@
         "src/shards/nalati-grasslands/generators/leopardBody.ts",
         "src/shards/nalati-grasslands/generators/shape.ts",
         "src/shards/nalati-grasslands/look/creatureMaterial.ts",
-        "src/shards/nalati-grasslands/runtime/eliteBrain.ts",
         "src/shards/nalati-grasslands/runtime/groupDispatch.ts",
         "src/shards/nalati-grasslands/species/bodyKey.ts",
         "src/shards/nalati-grasslands/species/eagle.ts",
