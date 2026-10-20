@@ -12,7 +12,14 @@ import { Signal, Field, Channel, Read, List, Do } from './generated/nalatiAdmiss
 // Synchronous admission/restore events and bounded 10 Hz sheepdog decisions.
 // The native owner retains bodies, clocks and both original random streams.
 @inline export function onSignal(signal:i32,value:f64,source:i32):void {
-  if(signal==Signal.argymaqTick) {
+  if(signal==Signal.steer) {
+    const ready=get(Field.ready)!=0,dx=get(Field.tx)-get(Field.x),dz=get(Field.tz)-get(Field.z),speed=get(Field.speed);
+    Do.channel(Channel.look,get(Field.look));Do.channel(Channel.state,ready?(speed>get(Field.threshold)?1:0):-1);
+    Do.channel(Channel.yaw,ready?heading(dx,dz):get(Field.yaw));
+    Do.channel(Channel.speed,ready&&distance2(dx,dz)>=get(Field.radius)?speed:0);Do.channel(Channel.turn,ready?get(Field.turn):1);
+  } else if(signal==Signal.riderDamage) {
+    Do.channel(Channel.scale,get(Field.ready)!=0&&get(Field.distance)<get(Field.radius)?get(Field.scale):1);
+  } else if(signal==Signal.argymaqTick) {
     const dt=get(Field.dt),state=get(Field.state);
     let lane=get(Field.laneT),run=get(Field.runT);
     if(state!=get(Field.previousState)) {

@@ -1,3 +1,4 @@
+import { DirectedSpecies } from '../population/directedSpecies';
 import { groupSpecies } from '../population/groupSpecies';
 import { numericCreaturePose } from '../plugin/channelPrograms';
 import { poseRidingEnvelopes, type RidingPresentationRows } from '../riding/presentation';
@@ -42,7 +43,7 @@ export class SpeciesLookBook {
       if (!this.poses.has(row.postPose.alive) || row.postPose.dead !== undefined && !this.poses.has(row.postPose.dead)) throw new Error('Missing species pose programme');
       if (row.postPose.envelopes !== undefined) this.envelopes.set(row.postPose.alive, row.postPose.envelopes);
     }
-    this.rows=book.rows.map(row=>({...row.metadata,...(row.group === undefined ? {} : groupSpecies(row.group))}));
+    this.rows=book.rows.map(row=>({...row.metadata,...(row.group === undefined ? {} : groupSpecies(row.group)),...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding)}));
     this.looks=book.rows.map(row=>{const look:SpeciesLook={id:row.id,species:row.metadata.id,kind:row.metadata.kind,rigContract:row.rigContract,fur:NO_FUR,
       variants:Object.fromEntries(Object.entries(row.variants).map(([id,source])=>{
         const variant:Pick<VariantDef,'tint'|'traits'>={};if(source.tint!==undefined)variant.tint=source.tint;if(source.traits!==undefined)variant.traits=source.traits;return [id,variant];

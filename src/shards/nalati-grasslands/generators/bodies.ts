@@ -11,7 +11,6 @@ import { buildKing } from './goldenKingBody';
 import { buildBalbal } from './balbalBody';
 import { bodySpecies } from './speciesRows';
 import { KOKBORI_SPECIES } from '../species/kokbori';
-import { GHOSTRIDER_SPECIES } from '../species/ghostRider';
 import { LEOPARD_SPECIES } from '../species/leopard';
 import { EAGLE_SPECIES } from '../species/eagle';
 import { BALBAL_SPECIES } from '../species/balbal';
@@ -35,7 +34,7 @@ type AnimalSpeciesRow = Pick<SpeciesDef, 'variants' | 'spawnOnly'>;
 
 /** the variants the page can build per family: the rows', their spawn-only ones and the elites derived from them */
 export function bodyVariants(): { family: BodyFamily; variant: VariantDef }[] {
-  const horse = [...HORSE_SPECIES.variants, ...(HORSE_SPECIES.spawnOnly ?? []), ...GHOSTRIDER_SPECIES.variants];
+  const horse = [...HORSE_SPECIES.variants, ...(HORSE_SPECIES.spawnOnly ?? []), ...bodySpecies('ghost-rider').variants];
   const stallion = HORSE_SPECIES.variants.find((v) => v.id === 'stallion'), black = HORSE_SPECIES.variants.find((v) => v.id === 'black');
   if (stallion === undefined || black === undefined) throw new Error('[nalati bodies] the horse rows lost their stallion / black');
   horse.push(...bodySpecies('argymaq').variants);

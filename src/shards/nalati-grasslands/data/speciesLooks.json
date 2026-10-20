@@ -1415,6 +1415,39 @@
           "strength": "horseWindStrength"
         }
       }
+    },
+    "directed": {
+      "signal": "steer",
+      "clock": "directedThinkAt",
+      "every": 0.1,
+      "target": [
+        "tx",
+        "tz"
+      ],
+      "motion": [
+        "v",
+        "turn"
+      ],
+      "speed": 8.5,
+      "turn": 2.4,
+      "threshold": 8.5,
+      "stopDistance": 0.8,
+      "look": 0.6,
+      "states": [
+        "wander",
+        "flee"
+      ],
+      "damage": {
+        "signal": "riderDamage",
+        "player": [
+          "px",
+          "pz"
+        ],
+        "radius": 4,
+        "scale": 1.5,
+        "coupled": true,
+        "elite": true
+      }
     }
   },
   {

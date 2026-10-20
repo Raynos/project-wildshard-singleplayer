@@ -1,3 +1,4 @@
+import { riderGeometry } from './ghostFigure.ts';
 // Retain the exact Mac/V8 float bytes of the former live callers; readers are portable.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -27,6 +28,7 @@ const glacier = snoutGeometry(ground), glacierSpecimen = glacier.clone();
 glacierSpecimen.translate(-glacierSnout.x, -glacierSnout.y, -glacierSnout.z);
 glacierSpecimen.computeBoundingSphere(); glacierSpecimen.computeBoundingBox();
 const meshes = [
+  ['ghost-rider', riderGeometry()], ['ghost-captain', riderGeometry(true)],
   ['shepherd-body', shepherdBody()], ['shepherd-arm', shepherdArm()],
   ['sign-labels:roads', letteringGeometry(posts)],
   ['sign-labels:specimen', letteringGeometry([{ spots: boardSpots(0, 0, 0, defaults.boards), boards: defaults.boards }])],
@@ -67,8 +69,9 @@ const rows = meshes.map(([key, geometry]) => {
   totalBytes += bytes.length; fingerprint.update(bytes); geometry.dispose();
   return { key, geometry: row, data: deflateSync(bytes, { level: 9 }).toString('base64') };
 });
+const fingerprintHex = fingerprint.digest('hex');
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-poi-paint');
-writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/poiPaint.json'), jsonBytes({ bin: fingerprint.digest('hex'), bytes: totalBytes, rows, glacierSnout, contacts }));
-writer.put(resolve(root, 'src/shards/nalati-grasslands/data/poiPaint.json'), jsonBytes({ bin: fingerprint.digest('hex'), bytes: totalBytes, rows, glacierSnout, contacts }));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/poiPaint.json'), jsonBytes({ bin: fingerprintHex, bytes: totalBytes, rows, glacierSnout, contacts }));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/data/poiPaint.json'), jsonBytes({ bin: fingerprintHex, bytes: totalBytes, rows, glacierSnout, contacts }));
 writer.finish();
 console.log(`${rows.length} fixed paint meshes, ${totalBytes} raw bytes`);

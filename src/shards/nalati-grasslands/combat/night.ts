@@ -16,7 +16,7 @@ import { CueDirector } from '@wildshard/game/audio/cueDirector';
 import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from '@wildshard/game/boss/encounterView';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { BALBAL_SLAM, creatureGuest } from '../species/balbal';
-import { riderGeometry } from '../species/ghostRider';
+import { bakedActorGeometry } from '../world/places';
 
 /**
  * The dusk + night enemies (row B11 of project/archive/2026-09-23-nalati.md) as one piece for the shard wiring (src/shards/nalati-grasslands/index.ts):
@@ -57,7 +57,7 @@ export async function wireNightEnemies(ctx: NightEnemiesCtx): Promise<NightEnemi
   const tell = { ...rows.view.tell, cone: BALBAL_SLAM.cone, reach: BALBAL_SLAM.reach / 1.18, wind: BALBAL_SLAM.windup / 2.9, strike: BALBAL_SLAM.strike / 2.9 };
   const balbals = new SlotEncounterView(rows.slots, { ...rows.view, tell }, ReturnProgram.page(rows.program, ctx.game.levelScope),
     { scene: ctx.game.scene, cues, sites: ctx.balbals?.sites ?? null, guest: creatureGuest() });
-  const rider = ctx.game.levelScope.own(riderGeometry()), captain = ctx.game.levelScope.own(riderGeometry(true));
+  const rider = ctx.game.levelScope.own(bakedActorGeometry('ghost-rider')), captain = ctx.game.levelScope.own(bakedActorGeometry('ghost-captain'));
   const riders = new PatrolEncounterView({ patrol: rows.patrol, motion: rows.motion, view: rows.ride }, ReturnProgram.page(rows.program, ctx.game.levelScope),
     { game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, cues, figures: { rider, captain, storm: rider } });
   return {
