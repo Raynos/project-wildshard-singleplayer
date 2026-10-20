@@ -72,17 +72,18 @@ export function gradeFloorNative(native, gpu, errors = [], code = 0) {
     // All process overlap remains conservatively charged while loading.
     const playing = gpu.filter(row => row.phase === 'playing');
     if (playing.length === 0) throw new Error('No playing GPU witness');
+    const playingAt = playing[0].at;
     const last = samples.at(-1), pids = Object.entries(last.pids).sort((a, b) => b[1][0] - a[1][0]);
     const gamePid = pids.at(0)?.[0];
     if (gamePid === undefined) throw new Error('No native game WebContent PID');
     const gpuPeak = gpu.reduce((best, row) => row.memory.totals.gpu > (best?.memory.totals.gpu ?? -1) ? row : best, null);
     if (!(gpuPeak.memory.totals.gpu > 0)) throw new Error('Missing GPU allocations');
     const peaks = { playing: 0, loading: 0 }, counts = { playing: 0, loading: 0 };
-    let cursor = 0;
     for (const row of samples) {
       const at = Date.parse(row.t);
-      while (cursor + 1 < gpu.length && gpu[cursor + 1].at <= at) cursor++;
-      const state = gpu[cursor], phaseName = at < state.at || at - state.at > 1500 ? 'loading' : state.phase;
+      // Like the continuous soak, travel/preparation after first readiness is
+      // playing. A blocked Inspector must not move a playing peak to loading.
+      const phaseName = at < playingAt ? 'loading' : 'playing';
       const bytes = phaseName === 'loading' ? row.interval : Math.max(...(row.pids[gamePid] ?? [0]));
       if (!(bytes > 0)) throw new Error('Game WebContent disappeared during playing');
       peaks[phaseName] = Math.max(peaks[phaseName], bytes); counts[phaseName]++;
@@ -95,5 +96,5 @@ export function gradeFloorNative(native, gpu, errors = [], code = 0) {
       nativePeakBytes: peaks, phaseSamples: counts, gpuPeakBytes: gpuPeak.memory.totals.gpu,
       gpuUnattributedBytes: gpuPeak.memory.unattributed.gpu,
       gpuPeakAllocations: labelled, gpuSamples: gpu.length, inspectorErrors: errors,
-      policy: 'Conservative phase native interval maximum plus global GPU ledger maximum; GPU process footprint excluded. Missing/stale GPU states are loading. Simulator regression evidence, not physical-phone clearance.' };
+      policy: 'Not quiet; memory only. Conservative phase native interval maximum plus global GPU ledger maximum; GPU process footprint excluded. Playing includes all travel/preparation after first ready witness, even during Inspector gaps. Simulator regression evidence, not physical-phone clearance.' };
 }

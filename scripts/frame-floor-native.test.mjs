@@ -27,3 +27,13 @@ await test('refuses missing native/GPU/playing phases and lost game process', ()
   const lost = structuredClone(native); lost[3].pids = {};
   assert.throws(() => gradeFloorNative(lost, gpu), /disappeared/u);
 });
+
+await test('keeps preparation and Inspector gaps under the playing cap after readiness', () => {
+  const samples = structuredClone(native);
+  samples.push({ type: 'sample', phase: 'measure', t: new Date(5000).toISOString(), interval: 2500,
+    pids: { 7: [2000, 2200], 8: [10, 20] } });
+  const preparing = [...gpu, { ...gpu[0], at: 400, phase: 'loading' }];
+  const row = gradeFloorNative(samples, preparing);
+  assert.equal(row.playingPeakBytes, 2300);
+  assert.equal(row.loadingPeakBytes, 1000);
+});
