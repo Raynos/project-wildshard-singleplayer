@@ -3,12 +3,12 @@
  * placement owners. The admitted product carries small validated row JSON and
  * exact float64 records separately from its standard GLB source geometries.
  */
-import { Box3, type BufferGeometry, Color, Matrix4, Vector3, Vector4 } from 'three';
+import { Box3, type BufferGeometry, Color, Matrix4, Vector3 } from 'three';
 import type { LayoutRows, GeometryBoot } from '../runtime/productSections.generated';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { readWholeGeometry } from '@wildshard/game/plugin/geometry';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { Ctx, InKit } from './ctx';
+import type { Ctx } from './ctx';
 
 /** Standard GLB layout geometries and plain double-precision author rows. */
 export class LayoutBake {
@@ -85,50 +85,32 @@ export async function loadLayoutBake(owner: Scope): Promise<LayoutBake> {
   return new LayoutBake(rows, new Float64Array(Uint8Array.from(bytes).buffer), indexed);
 }
 
-const vec = (a: readonly [number, number, number]): Vector3 => new Vector3(a[0], a[1], a[2]);
-
+/** The layout the page still builds from: its kits, their draw distances and drawn-in copies, the lanterns, the wall kit,
+ *  the air conditioners, the grapple hooks and the facade shell (the rest of the bake's records are generators' inputs). */
 export function restoreLayout(bake: LayoutBake): Ctx {
-  const ctx: Ctx = { kits: new Map(), alphaKits: new Map(), reflective: new Set(), farOf: new Map(), lanterns: [], acs: [], hooks: [], hookMounts: [], inKit: [], map: [], steam: [], emitters: [], inst: new Map(),
-    fd: { windows: [], shell: null, towers: 0 } };
-  const r = bake.rows, f = bake.f64;
-  let at = 0;
+  const ctx: Ctx = { kits: new Map(), alphaKits: new Map(), farOf: new Map(), lanterns: [], acs: [], hooks: [], hookMounts: [], inKit: [], inst: new Map(), shell: null };
+  const r = bake.rows, f = bake.f64, c = r.counts;
+  let at = (c.walkers + c.sitters) * 16;
   const num = (): number => { const x = f[at++]; if (x === undefined) throw new Error('[nine-dragon] the layout bake ran out of records'); return x; };
   const m4 = (): Matrix4 => { const m = new Matrix4(); for (let i = 0; i < 16; i++) m.elements[i] = num(); return m; };
   const v3 = (): Vector3 => new Vector3(num(), num(), num());
-  const col = (): Color => new Color(num(), num(), num());
-  for (const k of r.kits) {
-    ctx.kits.set(k.name, k.geo === null ? null : bake.geometry(k.geo));
-  }
+  for (const k of r.kits) ctx.kits.set(k.name, k.geo === null ? null : bake.geometry(k.geo));
   for (const k of r.alphaKits) ctx.alphaKits.set(k.name, bake.geometry(k.geo));
-  for (const name of r.reflective) ctx.reflective.add(name);
   for (const [name, m] of r.farOf) ctx.farOf.set(name, m);
-  const c = r.counts;
-  at += (c.walkers + c.sitters) * 16;
   for (let i = 0; i < c.lanterns; i++) ctx.lanterns.push(m4());
   for (let i = 0; i < c.acs; i++) ctx.acs.push(m4());
   for (let i = 0; i < c.hooks; i++) ctx.hooks.push(v3());
   for (let i = 0; i < c.hookMounts; i++) ctx.hookMounts.push({ ring: v3(), out: v3() });
-  for (let i = 0; i < c.steam; i++) ctx.steam.push(v3());
-  at += c.pieces * 19;
-  for (let i = 0; i < c.windows; i++) ctx.fd.windows.push({ m: m4(), win: new Vector4(num(), num(), num(), num()), wall: col(), light: col() });
-  for (const [key, n] of r.inst) {
-    const list = [];
-    for (let i = 0; i < n; i++) list.push({ m: m4(), c: col() });
-    ctx.inst.set(key, list);
-  }
-  at += c.lions * 16;
-  for (const row of r.sets) at += row.count * 16;
+  at += c.steam * 3 + c.pieces * 19 + c.windows * 26;
+  for (const [key, n] of r.inst) ctx.inst.set(key, Array.from({ length: n }, () => ({ m: m4(), c: new Color(num(), num(), num()) })));
+  at += (c.lions + r.sets.reduce((sum, row) => sum + row.count, 0)) * 16;
   if (at !== f.length) throw new Error('[nine-dragon] the layout bake has records left over');
-  if (r.shell !== null) ctx.fd.shell = bake.geometry(r.shell);
-  ctx.fd.towers = r.towers;
+  if (r.shell !== null) ctx.shell = bake.geometry(r.shell);
   for (const k of r.inKit) {
     if (!ctx.kits.has(k.kit)) throw new Error(`[nine-dragon] the layout bake draws '${k.model}' into no kit '${k.kit}'`);
     const b = k.box;
-    const copy: InKit = { model: k.model, kit: k.kit, at: k.at, ...(b === null ? {} : { box: new Box3(new Vector3(b[0], b[1], b[2]), new Vector3(b[3], b[4], b[5])) }) };
-    ctx.inKit.push(copy);
+    ctx.inKit.push({ model: k.model, kit: k.kit, at: k.at, ...(b === null ? {} : { box: new Box3(new Vector3(b[0], b[1], b[2]), new Vector3(b[3], b[4], b[5])) }) });
   }
-  for (const m of r.map) ctx.map.push({ ...m });
-  for (const e of r.emitters) ctx.emitters.push({ at: vec(e.at), color: new Color(e.color[0], e.color[1], e.color[2]), w: e.w, h: e.h, power: e.power, spill: e.spill });
   bake.release();
   return ctx;
 }

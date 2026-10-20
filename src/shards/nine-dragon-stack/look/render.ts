@@ -151,12 +151,12 @@ interface Buffer { getPixelRatio: () => number; getDrawingBufferSize: (target: V
 
 export function shardRender(): LookStrategy {
   let handle: NdRenderHandle | null = null;
-  // the painted sky (world/build.ts, the 'nine-sky' look) is a sphere round the eye: it stands on uCam (the root's frame)
-  let skyMesh: Object3D | null = null;
+  // the painted sky (the dressing step's, the 'nine-sky' look) is a sphere round the eye: it stands on uCam (the root's frame)
+  let skyMesh: Object3D | null = null, skyRoot: Object3D | null = null;
   const onEye = (root: Object3D, shared: Shared, camera: PerspectiveCamera): void => {
     shared.u.uHaloProjection.value = camera.projectionMatrix.elements[5];
     setLentParam('nine-streaks', 'projection', [camera.projectionMatrix.elements[0], camera.projectionMatrix.elements[5]]);
-    if (skyMesh?.parent !== root) skyMesh = root.getObjectByName('sky') ?? null;
+    if (skyRoot !== root) { skyRoot = root; skyMesh = root.getObjectByName('sky') ?? null; }
     skyMesh?.position.copy(shared.u.uCam.value);
     syncSilkFog(shared);
   };

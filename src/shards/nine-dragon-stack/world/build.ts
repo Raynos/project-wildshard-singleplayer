@@ -12,7 +12,7 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Box3, type BufferGeometry, ClampToEdgeWrapping, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3,
+  Box3, type BufferGeometry, ClampToEdgeWrapping, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Quaternion, Vector3,
 } from 'three';
 import type { Piece } from './ctx';
 import { registerSigns } from '../models/signs';
@@ -244,9 +244,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     const offsetAt = offset + index * 19, matrix = new Matrix4().fromArray(worldData, offsetAt);
     return { ...at<Record<string, unknown>>(matrix), color: new Color().fromArray(worldData, offsetAt + 16) };
   });
-  const shell = ctx.fd.shell === null ? null : new Mesh(ctx.fd.shell, facadeMat);
+  const shell = ctx.shell === null ? null : new Mesh(ctx.shell, facadeMat);
   if (shell !== null) {
-    shell.name = 'facade-shell'; facade.add(shell); ctx.fd.shell = null;
+    shell.name = 'facade-shell'; facade.add(shell); ctx.shell = null;
     for (const row of worldRows.facade.baked) {
       const model = models.model(`facade:${row.id}`);
       place(model, poses(row.poses, row.count), { ctx: models.ctx, draw: 'merged', drawnInto: { object: shell, boxes: Float32Array.from(worldData.subarray(row.boxes, row.boxes + row.count * 6)) }, piece: { id: `nds-facade-${row.id}`, name: model.name } });
@@ -315,21 +315,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   registerSigns(nd.ctx, signs, { atlas: signsMesh, neon: neonMeshes.boards });
   await slice();
 
-  // the painted sky, the LED sky screens (lab P7's 千里江山图 scroll), the Well's silk sheets, the stall's steam
-  // (the 'nine-sky' look, data/lookGraphs.json) a sphere the frame keeps on the eye (look/render.ts), inside the far plane
-  const sky = new Mesh(new SphereGeometry(2000, 32, 16), lentLook('nine-sky'));
+  // the painted sky and the scroll screen are the dressing step's (generators/worldScenes.ts); their lent textures
   setLentTexture('nine-sky', 'silk', shared.u.uSilk.value);
-  sky.renderOrder = -10;
-  sky.frustumCulled = false;
-  root.add(named(sky, 'sky'));
-  const scrollTex = opts.scope.own(await loadTextureRow({ url: '/assets/nine-dragon/lab/organic/scroll.webp', srgb: true, wrapT: ClampToEdgeWrapping, anisotropy: 4 }));
-  setLentTexture('nine-scroll', 'scroll', scrollTex);
-  const screen = new Mesh(new PlaneGeometry(58, 80), lentLook('nine-scroll'));
-  screen.rotation.x = Math.PI / 2;
-  screen.position.set(1, Y0 + 29.85, -64);
-  // (the stair-street's own screen over x 43…113 at +173 is gone: from the square and landing 1 it was a flat teal
-  // ceiling over the stair paifang, where every C target paints blue-hour sky; E281 stair pass 3's experiment)
-  root.add(named(screen, 'screens'));
+  setLentTexture('nine-scroll', 'scroll', opts.scope.own(await loadTextureRow({ url: '/assets/nine-dragon/lab/organic/scroll.webp', srgb: true, wrapT: ClampToEdgeWrapping, anisotropy: 4 })));
   progress(0.75, 'crowd models');
   phaseDone('streaks + dressing', phaseStart);
 

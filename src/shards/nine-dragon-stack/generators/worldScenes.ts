@@ -2,12 +2,16 @@
 // code-built specimens the page placed itself (the brush figures, the banyan and what stands at its foot, the paper
 // lantern, the movers), drawn from the whole-geometry tiles the layout bake already wrote (generators/scene.ts). Each
 // model names only the tiles that hold it, so an Explorer card reads its own and the resident world reads only the boot
-// and layout-set tiles. The world's banyan crown and the Well's mist are one `dressing` scene step over the same tiles.
+// and layout-set tiles. The world's banyan crown, the Well's mist, the painted sky and the scroll screen are one
+// `dressing` scene step over the same tiles and two owned shapes.
 import * as v from 'valibot';
 import { parseWorldScene } from '@wildshard/format/clientChannels';
 import { parseWorldSceneModels, type WorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
+import { MeshBasicMaterial, PlaneGeometry, SphereGeometry } from 'three';
 import explorer from '../data/explorerModels.json' with { type: 'json' };
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import layout from '../data/layout.generated.json' with { type: 'json' };
@@ -80,23 +84,27 @@ models.push(
 const catalogue = parseWorldSceneModels({ product: 'nine-dragon-stack', models });
 
 // The world's banyan crown (its cards drawn twice: colour, then the depth pass) and the Well's mist.
-/** a dressing draw: its node, source model, material slot, draw order, mesh name and whether it is frustum-culled */
-interface Dressing { readonly id: string; readonly model: string; readonly material: string; readonly order: number; readonly name: string; readonly culled: boolean }
-const dressing: Dressing[] = [], dress = (id: string, model: string, material: string, order: number, name: string, culled = true): Dressing => ({ id, model, material, order, name, culled });
+/** a dressing draw: its node, source model, material slot, draw order, mesh name, whether it is frustum-culled and its pose */
+interface Dressing { readonly id: string; readonly model: string; readonly material: string; readonly order: number; readonly name: string; readonly culled: boolean; readonly pose?: object }
+const dressing: Dressing[] = [], dress = (id: string, model: string, material: string, order: number, name: string, culled = true, pose?: object): Dressing => ({ id, model, material, order, name, culled, ...(pose === undefined ? {} : { pose }) });
+// the painted sky (a sphere the frame keeps on the eye, inside the far plane) and the LED scroll screen (lab P7's 千里江山图)
+const shapeMaterial = new MeshBasicMaterial(), shapes = [['sky', new SphereGeometry(2000, 32, 16)], ['scroll', new PlaneGeometry(58, 80)]] as const;
+const SHAPE_BLOBS = shapes.map(([id, geometry]) => nameBlob(`world/geometry/${id}.glb`, 'glb', compressGlb(staticGlb([{ geometry, material: shapeMaterial, nativeAttributes: true, compactIndex: true }], id))));
+dressing.push(dress('sky', 'sky', 'sky', -10, 'sky', false), dress('screen', 'scroll', 'scroll', 0, 'screens', true, { position: [1, plan.Y0 + 29.85, -64], rotation: [Math.PI / 2, 0, 0] }));
 if (tiles.has('canopy:core')) dressing.push(dress('crown-core', 'canopy:core', 'canopy-core', 0, 'canopy'), dress('crown-cards', 'canopy:cards', 'canopy-cards', 1, 'canopy'), dress('crown-depth', 'canopy:cards', 'canopy-depth', 2, 'canopy'));
 if (tiles.has('mist:sheets')) dressing.push(dress('sheets', 'mist:sheets', 'mist-sheet', 2, 'sheets'));
 dressing.push(dress('steam', 'mist:steam', 'steam', 3, 'steam', false));
-for (const { model } of dressing) alias(model, model);
+for (const { model } of dressing) if (!shapes.some(([id]) => id === model)) alias(model, model);
 const recipe = parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [],
   nodes: [{ kind: 'group', id: 'root', children: dressing.map(row => row.id) },
-    ...dressing.map(row => ({ kind: 'mesh', id: row.id, geometry: row.model, material: row.material, missing: 'omit', name: row.name, renderOrder: row.order, frustumCulled: row.culled }))],
+    ...dressing.map(row => ({ kind: 'mesh', id: row.id, geometry: row.model, material: row.material, missing: 'omit', name: row.name, renderOrder: row.order, frustumCulled: row.culled, ...row.pose }))],
   materials: [...new Set(dressing.map(row => row.material))].map(material => ({ kind: 'port', id: material, source: material })) } });
 
 const look = (id: string, name: string) => ({ id, kind: 'look', look: name });
 const library = (id: keyof typeof aliases) => ({ id, kind: 'whole', ...(id === 'native' ? {} : { load: 'explorer' }), models: [...aliases[id].values()] });
-export const NINE_SCENE_BLOBS: NamedBlob[] = [nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe))];
-export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', libraries: [library('native'), library('native-explorer')],
+export const NINE_SCENE_BLOBS: NamedBlob[] = [nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)), ...SHAPE_BLOBS];
+export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', libraries: [library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('lantern', 'nine-lantern'),
-    look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam')],
-  steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model), model }])),
-    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: Object.fromEntries(dressing.map(({ id }) => [id, { kind: 'object', part: id }])) }] });
+    look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll')],
+  steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? 'shapes', model }])),
+    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: Object.fromEntries(['crown-core', 'crown-cards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) }] });
