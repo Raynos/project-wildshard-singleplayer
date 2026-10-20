@@ -292,6 +292,24 @@ test('tier residency excludes only a typed alternative with no other live refere
   expect(tierLibrarySource(admitted, 'phone').budgets.library.resident).toBe(1003);
 });
 
+test('tier residency excludes the other tier of a rigged-hull book', async () => {
+  const desktop = hashImmutableBytes(new Uint8Array([9]));
+  const f = fixture(false, source => {
+    source.files.push({ hash: desktop, kind: 'binary', compressed: 1, decoded: 700, gpu: 300, triangles: 0, draws: 0, dependencies: [], critical: false });
+    source.library.push(desktop); source.budgets.library.resident += 1000;
+    const tier = (file: string) => ({ files: { hull: file }, coats: {} });
+    return new Map([['look/rigged-hulls', { productFiles: true, family: { label: 'Herd', rigs: [], hulls: { 'deer:hind': 'hull' } },
+      tiers: { phone: tier('models/token.bin'), desktop: tier('models/desktop.bin') } }]]);
+  });
+  const resolved = await resolveOutputDescriptor(f.index, { offline: false, hash: f.options.hash,
+    read: path => { const wire = f.wires.get(path); if (wire === undefined) throw new Error('Missing fixture section'); return Promise.resolve(wire); } });
+  const source = schema.parseShardfile(resolved);
+  carryOutputDescriptor(resolved, source);
+  expect(tierLibrarySource(source, 'phone').library).not.toContain(desktop);
+  expect(tierLibrarySource(source, 'phone').budgets.library.resident).toBe(3);
+  expect(tierLibrarySource(source, 'desktop').library).toContain(desktop);
+});
+
 async function specimenCostFixture(profiles = false) {
   const assets = new Map<string, Uint8Array>(), names = new Map<string, string>();
   const add = (source: schema.Shardfile, name: string, wire: Uint8Array, decoded: number): string => {

@@ -8,6 +8,7 @@ import { isPlatformDataSection } from '@wildshard/format/outputIndex';
 import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { parseRiggedHullBook } from '@wildshard/format/riggedHulls';
 import { plumbingKnob } from '../shard/declaredPlumbing';
 import { recordSceneProfile } from './sceneProfile';
 
@@ -48,7 +49,12 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
       for (const hash of hashes) eligible.add(hash);
       // A view resolves exactly one topology leaf. Admission still checks all
       // leaves; a union of mutually exclusive leaves is not one resident copy.
-      for (const graph of graphs) {
+      // Only the admitted knob branch can be viewed (another quality reloads and
+      // re-admits); both of its tier comparisons stay reserved.
+      const scene = choice.scene, viewable = quality === undefined || scene === undefined || !('knob' in scene) ? graphs
+        : worldSceneModelGraphs({ ...choice, scene: scene[plumbingKnob(source.plumbing, quality.tier, scene.knob, 'boolean', quality.overrides) ? 'true' : 'false'] })
+          .map(leaf => 'file' in leaf ? parseWorldSceneWeld(read(leaf.file)) : leaf);
+      for (const graph of viewable) {
         const selected = worldSceneModelResources({ ...catalogue, models: [{ ...model, choices: [{ ...choice, scene: graph }] }] });
         const selectedHashes = new Set(selected.geometry.flatMap(ref => refs(ref.library, ref.model)));
         largest = Math.max(largest, [...selectedHashes].reduce((sum, hash) => { const file = files.get(hash); if (file === undefined) throw new Error('Missing specimen file cost'); return sum + file.decoded + file.gpu * 2; }, 0));
@@ -144,6 +150,17 @@ export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop'):
       libraries.push({ ...library, models });
     }
     sections.set('world/scenes', { ...row, libraries });
+  }
+  const hulls = sections.get('look/rigged-hulls');
+  if (hulls !== undefined) {
+    // The rigged-hull loader reads only its page tier's resources (looks/riggedHulls.ts).
+    const book = parseRiggedHullBook(hulls);
+    const off = (input: unknown): void => {
+      if (typeof input === 'string') { const hash = names.get(input); if (hash !== undefined) inactive.add(hash); }
+      else if (typeof input === 'object' && input !== null) for (const value of Object.values(input)) off(value);
+    };
+    off(book.tiers[tier === 'phone' ? 'desktop' : 'phone']);
+    sections.set('look/rigged-hulls', { ...book, tiers: { [tier]: book.tiers[tier] } });
   }
   if (inactive.size === 0) return source;
   const visit = (input: unknown): void => {
