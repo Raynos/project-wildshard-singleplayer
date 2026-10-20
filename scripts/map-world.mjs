@@ -16,7 +16,7 @@ const localMatrix = node => node.transformBits !== undefined && node.matrixAutoU
 export class MapWorld {
   constructor(assembly, base, section, catalogue, blobs) {
     this.assembly = assembly; this.base = base; this.section = section; this.catalogue = catalogue;
-    this.files = new Map(blobs.map(row => row.file === undefined ? [row.name, resolve(base, row.source)] : [row.file.name, row.file.kind === 'json' ? JSON.parse(new TextDecoder().decode(row.bytes)) : row.bytes]));
+    this.files = new Map(blobs.map(row => row.file === undefined ? [row.name, resolve(base, row.source)] : [row.file.name, (row.file.kind ?? 'json') === 'json' ? JSON.parse(new TextDecoder().decode(row.bytes)) : row.bytes]));
     this.geometry = new Map(); this.frames = new Map();
   }
   json(file) { const source = this.files.get(file); if (source === undefined || source instanceof Uint8Array) throw new Error(`Missing map world JSON ${file}`); return typeof source === 'string' ? readMapJson(source) : source; }
