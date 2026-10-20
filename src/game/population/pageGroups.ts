@@ -1,3 +1,4 @@
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { CrowdTargets } from '../shardfile/crowdRuntime';
@@ -71,7 +72,7 @@ export class PageActorGroups {
 
 const point = v.object({ x: v.number(), z: v.number() });
 const whole = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024));
-/** Ordered page placement on the population owner. The admitted event program
+/** Client-only ordered placement on the existing page population owner. The admitted event program
  * chooses retries, terrain admission, member variants and relative placements.
  * Inputs are data and existing authorities; no content callback crosses it. */
 export class PagePopulationPlanner {
@@ -117,13 +118,13 @@ export class PagePopulationPlanner {
   private member(actor: Animal, herd: number): Animal { actor.herd = herd; this.animals.herds[herd]?.members.push(actor); return actor; }
 }
 
-/** Group effects use existing pack, herd and crowd owners. Content contributes
+/** Client-only group effects use existing pack, herd and crowd owners. Content contributes
  * event-law ids and effect radii; no new brain or body clock is installed. */
-export class PopulationRelations {
+export class PopulationRelations<A extends AnimalSim = Animal> {
   constructor(private readonly program: ReturnProgram,
-    private readonly groups: { readonly packs: readonly Pick<PackBrain<Animal>, 'members' | 'awareness' | 'scare'>[];
-      readonly herds: readonly Pick<HerdBrain<Animal>, 'members' | 'cx' | 'cz' | 'stampeding' | 'disturb' | 'stampede'>[];
-      readonly crowds: readonly CrowdTargets[] },
+    private readonly groups: { readonly packs: readonly Pick<PackBrain<A>, 'members' | 'awareness' | 'scare'>[];
+      readonly herds: readonly Pick<HerdBrain<A>, 'members' | 'cx' | 'cz' | 'stampeding' | 'disturb' | 'stampede'>[];
+      readonly crowds: readonly Pick<CrowdTargets, 'cx' | 'cz' | 'scare'>[] },
     private readonly row: { readonly alert: string; readonly range: string; readonly packRadius: number;
       readonly disturbRadius: number; readonly disturbSeconds: number; readonly scareSeconds: number }) {}
   alert(x: number, z: number): void {

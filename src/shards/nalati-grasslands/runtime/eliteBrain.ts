@@ -1,12 +1,8 @@
 import type * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 
-/**
- * The named elites' brains (src/shards/nalati-grasslands/combat/elites.ts sets them, src/game/Elite.ts runs the system): a species that only
- * ever exists as an elite (the snow leopard, the giant eagle, Kokbori, the ghost captain) has `think: eliteThink` and
- * `damageMul: eliteDamageMul`, and its 10 Hz AI tick and its damage rule go to whatever the elite registered for that
- * animal. A tiny module on purpose: species files import it, and it imports nothing at runtime.
- */
+/** Native storm riders retain this damage slot until their owner adopts rows.
+ * Page elite decisions and body actions use the shared game encounter host. */
 const damage = new WeakMap<Animal, (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number>();
 export function setEliteDamage(a: Animal, fn: (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number): void { damage.set(a, fn); }
 export function eliteDamageMul(a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3): number { return damage.get(a)?.(a, hitPoint, dir) ?? 1; }

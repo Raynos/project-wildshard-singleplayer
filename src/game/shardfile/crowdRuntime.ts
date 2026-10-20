@@ -167,7 +167,7 @@ export class CrowdTargets {
   }
 }
 
-/** Native crowd/body identity joins and nearest ray selection over a live roster.
+/** Client-only body/crowd identity joins and nearest ray selection over a live roster.
  * Crowds may be appended by their owner without replacing existing prey objects. */
 export class CrowdRoster<T extends CrowdTargets> {
   private readonly preyBindings = new Map<string, PackPrey>();

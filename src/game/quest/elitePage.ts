@@ -154,7 +154,7 @@ export function eliteThink(a: Animal, c: ThinkCtx): void { keeperBrains.get(a)?.
 export function eliteAct(a: Animal, c: ThinkCtx): void { keeperActs.get(a)?.(a, c); }
 export function eliteDamageMul(a: Animal, p: THREE.Vector3, d: THREE.Vector3): number { return keeperDamage.get(a)?.(a, p, d) ?? 1; }
 
-/** Data-only page binding of approved stalker and wind-diver encounter policies.
+/** Client-only data binding of approved stalker and wind-diver encounter policies.
  * Native species keep their existing AI cadence; effects leave as named values. */
 export type KeeperEliteRow = {
   readonly def: EliteDef; readonly kind: string; readonly yaw: number; readonly offset: readonly [number, number];
@@ -250,7 +250,7 @@ export type ExternalEliteEffect = KeeperEliteEffect | { readonly kind: 'request'
   | { readonly kind: 'retire'; readonly actor: Animal } | { readonly kind: 'support'; readonly count: number }
   | { readonly kind: 'record'; readonly species: string; readonly variant: string };
 type EncounterHerd = Pick<HerdBrain<Animal>, 'stallionState' | 'stallion' | 'leadAway'>;
-/** Common native projection over admitted AS decisions. Observations and adopted
+/** Client-only native projection over admitted AS decisions. Observations and adopted
  * bodies are values; shard callbacks, subclass hooks and service factories are
  * never admitted. Support and exceptional allocation leave as typed requests. */
 export class ExternalElitePage implements EliteScript {
