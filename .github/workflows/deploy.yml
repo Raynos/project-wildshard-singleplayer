@@ -226,7 +226,8 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
       - name: Lint
-        run: pnpm run lint
+        # Typecheck already generated this exact tree. Fresh plugin workers bound AST retention.
+        run: node scripts/lint-all.mjs
 
   # Keep the full suite within the runner budget; generation alone takes ~4 min cold.
   behaviour:
