@@ -40,6 +40,7 @@
     "./ai/bossDefinition": "./ai/bossDefinition.ts",
     "./ai/encounters": "./ai/encounters.ts",
     "./ai/inspect": "./ai/inspect.ts",
+    "./ai/pinning": "./ai/pinning.ts",
     "./ai/reach": "./ai/reach.ts",
     "./ai/species": "./ai/species.ts",
     "./ai/strikes": "./ai/strikes.ts",

@@ -7,7 +7,7 @@ import type { Lane, LaneBody } from '@wildshard/game/boss/lane';
 import { bugleHour, fleeHeading, behindPlayer, fadeCooldown, headingTo } from '../pine/combatMath';
 import { PINE_STRIKES, pineContact, PINE_LANES } from './pineStrikes';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
-import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
+import { pinBrain } from '@wildshard/engine/ai/pinning';
 import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
 import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/generators/eliteRoster';
 import { pineEliteStreams, type PineEliteStreams } from './pineEliteStreams';
@@ -255,7 +255,7 @@ export abstract class PineEliteScript<B extends PineEliteBody> extends EliteBrai
     const a = this.env.spawn(this.who.kind, L.x, L.z, this.streams.spawn.next() * Math.PI * 2, this.who.variant);
     this.env.own(a); this.env.adopt(a);
     this.animal = a; this.p2 = false; this.setMode('idle'); this.wx = L.x; this.wz = L.z; this.wanderT = 0;
-    pinBrain(a); inspectBrain(a, () => ({ state: this.brainState, picks: [], brainHz: 60, pinned: true }));
+    pinBrain(a);
     this.onSpawn(a);
   }
   protected onSpawn(_a: B): void { /* per elite */ }

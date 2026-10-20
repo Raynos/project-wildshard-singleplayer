@@ -1,5 +1,4 @@
 import type { Vector3 } from 'three';
-import { inspectBrain } from '@wildshard/engine/ai/inspect';
 import { StrikeRunner, type BrainPoint, type StrikeActor, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 
 /** What a lane charge and the elites' goals (EliteGoals.ts) drive: the page's Animal and the renderer-free AnimalSim alike. */
@@ -43,7 +42,6 @@ export class Lane<B extends LaneBody = LaneBody> {
     this.tellT = tell;
     const spec: StrikeSpec = { ...this.spec, windup: tell };
     this.runner.start(spec, a, { x: px, y: a.position.y, z: pz }, speedMul);
-    inspectBrain(a, () => ({ state: this.runner.busy ? `charge.${this.runner.state}` : a.state, picks: [{ id: spec.id, score: 1 }], brainHz: 60, pinned: false }));
   }
   cancel(): void { this.runner.cancel(); }
   /** The runner's state for a renderer-free continuation (the tell length rides beside it). */

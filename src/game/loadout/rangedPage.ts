@@ -8,7 +8,6 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { WeaponPickup } from '@wildshard/engine/player/WeaponPickup';
 import { applySkin, clearSkin, type SkinId } from '@wildshard/engine/player/Skins';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { installAiDebug } from '@wildshard/engine/ai/view/DebugOverlay';
 import { RangedPageSchema, type RangedPageRows } from '@wildshard/format/rangedPage';
 import { forestPage } from '../shardfile/forestPage';
 import { HeldFinishes } from './finishes';
@@ -23,7 +22,7 @@ import { readEliteFeature } from '../quest/eliteFeature';
 import { installRoamingCombat, type RoamingCombat } from '../combat/roamingSession';
 import { installCollectionCompendium } from '../models/collectionWall';
 import { installItemEffects } from './effects';
-import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
+import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import type { ShardContext } from '../plugin/context';
 import { finishForestPageAudio } from '../audio/forestPage';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
@@ -55,7 +54,6 @@ export async function installRangedPage(ctx: ShardContext, input: unknown): Prom
   if (!(rifle instanceof HeldFirearm) || !(bow instanceof Bow) || !(launcher instanceof HeldLauncher)) throw new Error('Ranged page requires declared weapon families');
   const elites = await readEliteFeature(ctx.product, rows.elites);
   const random = (id: string): (() => number) => { const stream = eliteStream(elites, ctx.product.shardfile.identity.seed, 'pickup', id); return () => stream.next(); };
-  installAiDebug(ctx, { game, actors: () => animals.animals, player }, undefined, retainsRuntimeServices(ctx) ? install => { installEnteredRuntimeService(ctx, install); } : undefined);
   runtime.hooks.wearFinish = id => {
     if (!HeldFinishes.current(ctx.manifest.slug).has(id)) return;
     const pick = skins.pick(id); if (!pick) return;

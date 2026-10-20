@@ -4,7 +4,7 @@ import { app } from '../app/runtime';
 import { ParticlePool } from '../fx/ParticlePool';
 import * as THREE from 'three';
 import { canReach } from '../ai/reach';
-import { brainPinned, inspectTick } from '../ai/inspect';
+import { brainPinned } from '../ai/pinning';
 import { TickScheduler, type InterruptReason, type TickRate } from '../app/scheduler';
 import { dodgeFx } from '../player/dodge';
 import { castRay, floorBelow } from '../physics/query';
@@ -495,10 +495,6 @@ export class AnimalManager {
     a.onFootfall = this.footfall;
     a.onDamaged = this.damaged;
     a.onStaggered = this.staggered;
-    inspectTick(a, () => {
-      const rate = this.tickRate(a);
-      return { brainHz: rate === 'always' ? this.scheduler.frameHz : this.scheduler.brainHz(rate, a), pinned: rate === 'always' || this.scheduler.pinned(a) };
-    });
     this.scheduler.onInterrupt(a, () => {
       if (a.simulationBound || a.hidden || a.harnessHold || !a.alive || (speciesDef(a.kind).think !== undefined && speciesDef(a.kind).tick === undefined)) return;
       const dt = this.scheduler.takeBrainDt(this.tickRate(a), a);

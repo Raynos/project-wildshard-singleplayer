@@ -2,7 +2,7 @@ import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { ReturnProgram } from '../population/returnProgram';
 import type { SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import { app } from '@wildshard/engine/app/runtime';
-import { pinBrain } from '@wildshard/engine/ai/inspect';
+import { pinBrain } from '@wildshard/engine/ai/pinning';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { StalkerBrain, type PouncerSpec, type HowlerSpec, type PouncerLedge, type HowlerPack } from '@wildshard/engine/ai/stalker';

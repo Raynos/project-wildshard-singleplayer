@@ -1,3 +1,4 @@
+// only *-legacy imports this; deleted with the legacy copies (SHARD-PLATFORM-NEXT N5)
 import { uiScope, mountUi } from '../../ui/ownership';
 import { engineString } from '../../strings';
 import { Vector3 } from 'three';

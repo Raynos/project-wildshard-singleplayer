@@ -12,7 +12,7 @@ import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { prepareBossSocketRig, bindBossSocketRig, bossSocketResources, type BossSocketRig } from './socketRig';
 import { keyedSkyOf } from '../looks/keyedSky';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
+import { pinBrain } from '@wildshard/engine/ai/pinning';
 import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -144,7 +144,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     body: {
       make: () => {
         const a = bodyOwner.spawn(); if (a === null) throw new Error('Missing native roaming boss body');
-        pinBrain(a); inspectBrain(a, () => ({ state: fight.mode, picks: [], brainHz: 60, pinned: true }));
+        pinBrain(a);
         const dressed = look = bindBossSocketRig(context.scope, rows.socketRig.id, a);
         const king = a.combatActor();
         const onDamage = ({ req }: DamageDealt): void => {

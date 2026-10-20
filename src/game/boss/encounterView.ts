@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { pinBrain } from '@wildshard/engine/ai/inspect';
+import { pinBrain } from '@wildshard/engine/ai/pinning';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import { Projectiles, type ProjectileWorld } from '@wildshard/engine/combat/view/projectile';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
