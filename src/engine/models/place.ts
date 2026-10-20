@@ -670,7 +670,9 @@ function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly P
     const c = new CelledCopiesCull(groups, levels, of, matrices, colors, pointsOf(pls), levelsOf(def), { ...o.cull, cells });
     cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   } else if (culls) {
-    const c = new InstancedCull(groups, levels, of, matrices, colors, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o), fadesOf(def));
+    // `casters`: each choice reads the casting cascades' frusta (a cascade's getFrustum rebuilds its footprint: once a choice)
+    const casting = o.cull?.casters === undefined ? undefined : (): THREE.Frustum[] => o.ctx.sky.csm.lights.filter((l) => l.castShadow).map((l) => l.shadow.getFrustum());
+    const c = new InstancedCull(groups, levels, of, matrices, colors, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o), fadesOf(def), casting);
     cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   }
   return { object: wrap(objects, def.id), drawnAs: 'instanced', colliders, boxes, cull, cullWith };

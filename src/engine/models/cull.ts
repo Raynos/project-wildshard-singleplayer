@@ -57,6 +57,12 @@ export interface CullOptions {
    */
   readonly cells?: { readonly size: number; readonly pad: number };
   /**
+   * metres: the copies cast shadows the camera may not see them cast — a copy out of the camera's view is still drawn
+   * while a shadow-casting cascade's frustum (the place context's sky, taken as each choice starts) meets its sphere grown
+   * by this much; the camera's test is grown the same (the frusta are a frame old): a cove's palms and crags
+   */
+  readonly casters?: number;
+  /**
    * the shard's own visibility test in place of the frustum / `keepNear` / `minAngular` one: copy i at distance² d2 (on
    * the ground when `flat`) is drawn when it says so. It reads the shard's view as it last changed — Pine Hollow's forest
    * keeps a tree out of view while its long low-sun shadow can still fall into view (E94). `far` and the LODs still apply
@@ -126,6 +132,10 @@ class View {
     this.frustum.copy(frustum);
     this.eye.copy(eye);
   }
+  /** the casting cascades' frusta for this choice (`CullOptions.casters`) */
+  readonly shadows: THREE.Frustum[] = [];
+  /** the sphere is in the camera's view or a casting cascade's */
+  sees(sphere: THREE.Sphere): boolean { return this.frustum.intersectsSphere(sphere) || this.shadows.some((f) => f.intersectsSphere(sphere)); }
 }
 
 /** Shared copy-selection maths: which level (or -1: not drawn) copy i takes from this view. */
@@ -147,6 +157,7 @@ class Chooser {
   private readonly flat: boolean;
   private readonly bias: number;
   private readonly frustum: boolean;
+  private readonly pad: number;
   private readonly bounds: Float32Array | Float64Array;
   private readonly origins: Float32Array | Float64Array | null;
   /** `origins`: x, y, z per copy to measure from (`from: 'origin'`), else the bounds' centres; `fades`: each level's `fade` */
@@ -164,6 +175,7 @@ class Chooser {
     this.flat = o.flat === true;
     this.bias = o.radiusBias ?? 0;
     this.frustum = o.frustum !== false;
+    this.pad = o.casters ?? 0;
   }
   /** copy i's distance² from the eye (on the ground when `flat`) */
   dist2(i: number, eye: THREE.Vector3): number {
@@ -193,8 +205,8 @@ class Chooser {
     if (this.test !== null) { if (!this.test(i, d2)) return -1; }
     else if (this.frustum && d2 > this.keep2) {
       if (this.ang2 > 0 && r * r < this.ang2 * d2) return -1;
-      this.sphere.center.set(x, y, z); this.sphere.radius = r;
-      if (!view.frustum.intersectsSphere(this.sphere)) return -1;
+      this.sphere.center.set(x, y, z); this.sphere.radius = r + this.pad;
+      if (!view.sees(this.sphere)) return -1;
     }
     return this.levelAt(d2, r);
   }
@@ -276,6 +288,8 @@ const viewFor = (o: CullOptions): View => new View(o.frustum === false ? o.step 
 
 export class InstancedCull {
   private readonly view: View;
+  /** the casting cascades' frusta, read as each choice starts (`CullOptions.casters`) */
+  private readonly casting: () => readonly THREE.Frustum[];
   private readonly chooser: Chooser;
   private readonly sinks: Sinks;
   private readonly levels: number;
@@ -288,8 +302,9 @@ export class InstancedCull {
   constructor(
     groups: readonly (readonly InstancedSink[])[], levels: number, variantOf: Uint16Array,
     matrices: Float32Array, colors: Float32Array | null, bounds: Float32Array, from: readonly number[], o: CullOptions,
-    origins: Float32Array | Float64Array | null = null, fades: readonly number[] = [],
+    origins: Float32Array | Float64Array | null = null, fades: readonly number[] = [], casting: () => readonly THREE.Frustum[] = () => [],
   ) {
+    this.casting = casting;
     this.levels = levels;
     this.variantOf = variantOf;
     this.view = viewFor(o);
@@ -309,6 +324,7 @@ export class InstancedCull {
 
   private choose(): void {
     const ch = this.chooser, sinks = this.sinks;
+    this.view.shadows.length = 0; this.view.shadows.push(...this.casting());
     sinks.reset();
     for (let i = 0; i < this.variantOf.length; i++) {
       const l = ch.level(i, this.view);
