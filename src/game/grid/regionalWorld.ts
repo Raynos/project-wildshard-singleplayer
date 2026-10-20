@@ -414,7 +414,13 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           app.addSystem({ id: `grid.clip.${cell.instance}`, phase: 'late', run: clipCensus }, resident);
           if (forest.trees.length > 0 && forest.drawer === 'self') withOwner(view.scope, () => view.registry.add({ id: `forest:${cell.instance}`, name: 'Forest', category: 'nature',
             file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() }));
-          world = { ...home, terrain, forest, physics: host.physics, registry: view.registry, chunk: request.manifest };
+          // Native hosts still read game.level for their saved placement. The
+          // page keeps its home Game; this resident borrows its own level.
+          const regionalGame = new Proxy(home.game, { get(target, key, receiver) {
+            if (key === 'level') return level;
+            const value: unknown = Reflect.get(target, key, receiver); return value;
+          } });
+          world = { ...home, game: regionalGame, terrain, forest, physics: host.physics, registry: view.registry, chunk: request.manifest };
           return world;
         },
         prepare: entry => {
