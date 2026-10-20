@@ -1012,7 +1012,8 @@
     "postPose": {
       "alive": "canid",
       "dead": "canidDead"
-    }
+    },
+    "guard": true
   },
   {
     "metadata": {

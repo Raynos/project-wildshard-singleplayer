@@ -1,0 +1,20 @@
+{
+  "signal": "dog",
+  "clock": "dogThinkAt",
+  "every": 0.1,
+  "straggler": 12,
+  "bark": "dog_bark",
+  "soundHeight": 0.6,
+  "memory": {
+    "bark": "barkT",
+    "rest": "rest",
+    "snarl": "snarl",
+    "low": "low"
+  },
+  "states": [
+    "idle",
+    "alert",
+    "stalk",
+    "wander"
+  ]
+}
