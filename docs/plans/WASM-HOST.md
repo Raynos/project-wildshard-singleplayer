@@ -1,7 +1,7 @@
 # Plan: WASM-HOST — a fast, batched Wasm host for shard AssemblyScript
 
-**State:** `open` (2026-10-20) — design first; no lane starts until Jake picks the open decisions below. Not built by
-the SHARD-PLATFORM builder or its lanes (G517).
+**State:** `open`, parked (2026-10-20): design now (two council rounds, H0 numbers); **nothing is built until Jake says
+so**. Not built by the SHARD-PLATFORM builder or its lanes (G517).
 
 Jake, 2026-10-20 (E489): *"It goes off the shard platform. I don't want to fuck around the builder with changing the
 assembly script engine. It requires a lot of thought. And if we're going to fix it, we should fix it properly. … to
@@ -27,8 +27,8 @@ and the from-scratch design). The as-built contract is [SCRIPT-ABI.md](../SCRIPT
 ## The design (from scratch)
 
 - **Two runtime lanes plus bake.** Events and sim are one mechanism: a deterministic, fixed-tick, saved step with a
-  divisor (events = sparse inbox every 6th tick). **Sim** runs at one fixed rate on every device (60 Hz; the phone
-  already steps the sim twice per frame at 30 fps). **View** is different on every axis: client-only, display rate
+  divisor (events = sparse inbox every 6th tick). **Sim** scripts run at one fixed rate on every device (10 Hz, or
+  30 Hz with a written reason, W9) inside the engine's 60 Hz fixed step. **View** is different on every axis: client-only, display rate
   30/60 with `dt` and `alpha`, never saved, freezes on a trap. **Bake** is offline (generators).
 - **One entry per module per tick.** The host writes one observation block (typed arrays), calls `ws_step(tick)` once,
   and the guest loops over all its bindings, writing a command ring and a deferred-query ring; the host validates and
@@ -48,7 +48,7 @@ and the from-scratch design). The as-built contract is [SCRIPT-ABI.md](../SCRIPT
 
 | Row | What | Effort (est.) | Status |
 |---|---|---|---|
-| **H0** | Microbench on the Mac, the Simulator and one physical-iPhone soak: JS→Wasm entry, Wasm→JS import, Wasm→Wasm cross-instance import, fuel-global overhead, memory rewind; µs timing in DecisionHost | 1–2 days | open |
+| **H0** | Microbench on the Mac, the Simulator and one benchmark page Jake opens once on his iPhone (W3): JS→Wasm entry, Wasm→JS import, Wasm→Wasm cross-instance import, fuel-global overhead, memory rewind; µs timing in DecisionHost | 1–2 days | open |
 | **H1** | Drop the per-op `finite32`/`finite64` imports; validate finiteness on outputs; refuse float reinterpret and relaxed SIMD in the sim lane | 0.5–1 day | open |
 | **H2** | In-Wasm fuel global plus trap instead of `fuel`/`enter`/`leave`; refuse recursion; recalibrate the per-call fuel ceiling | 1–2 days | open |
 | **H3** | No full-memory rewind on success; A/B state transaction; restore only on a trap | 0.5–1 day | open |
@@ -56,25 +56,35 @@ and the from-scratch design). The as-built contract is [SCRIPT-ABI.md](../SCRIPT
 | **H5** | Deferred batched world queries (ray, overlap, path, walkable) answered next tick in one Rapier pass; gives v1 raycast/overlap | 3–5 days | open |
 | **H6** | One `ws_step` per module per tick over its binding table; typed i32/f32 records read through long-lived views | 3–5 days | open |
 | **H7** | Saves as declared state columns; retire v0 memory checkpoints | 2–3 days | open |
-| **H8** | Sim step lane: fixed 60 Hz, opt-in per row, only while active. First users Nine's Jian combo, then v0 movers moved to v1 and the v0 `ScriptHost` deleted | 3–5 days | needs pick |
-| **H9** | View frame lane: `ws_view(dt, alpha)` at the display rate, halving under budget; transform arrays bound to three.js; wires view ids 100–105 and events 30–32; deletes v0 `ClientScriptLane` | 1–2 weeks | needs pick |
+| **H8** | Sim step lane at 10 Hz, or 30 Hz with a written reason (W9), opt-in per row, only while active. First users Nine's Jian combo, then v0 movers moved to v2 and the v0 `ScriptHost` deleted | 3–5 days | open |
+| **H9** | View frame lane (W10): `ws_view(dt, alpha)` at the display rate, halving under budget, memory kept between frames; interpolates sim state; transform arrays bound to three.js; wires view ids 100–105 and events 30–32; deletes v0 `ClientScriptLane` | 1–2 weeks | open |
 | **H10** | Rapier batch wrapper (`sync_poses`, `cast_rays`), only if an iPhone profile shows the cost | 1–2 weeks | open |
 | **H11** | Wasm SIMD animation sampler writing bone matrices, only if a profile shows crowd cost | 2–4 weeks | open |
 | **H12** | SCRIPT-ABI v2 written as built; ENGINE.md sections | 1 day | open |
+| **H13** | Port every existing script to v2 in one wave; delete v1 and v0; one save migration (W5) | 1–2 weeks | open |
+| **H14** | Demo shard: combo, mover and a view effect in pure AS with zero shard TS, plus the phone budget reading (W12) | 1 week | open |
+| **H15** | Threads / SharedArrayBuffer sim worker: revisit after v2 is profiled (W11) | — | parked |
+| **D1** | Council, two rounds, on this plan (W7); fixes folded in before it parks | 1 day | in flight (2026-10-20, wildshard-v) |
 
-Order: H0 → H1–H3 (about 3 days, removes nearly every JS call inside guests) → H4–H7 → H8/H9 after their picks →
-H10/H11 only on profile evidence → H12 with each landing.
+Order: D1 (design) → on Jake's word: H0 → H1–H3 (about 3 days, removes nearly every JS call inside guests) → H4–H7 → H8/H9 after their picks →
+H10/H11 only on profile evidence → H13 → H14; H12 with each landing.
 
-## Open decisions for Jake
+## Decisions (Jake, 2026-10-20 grill)
 
-1. Allow the sim step lane (amends G503, G454, G457)? Recommendation: yes, opt-in per row and only while active.
-2. Sim rate: 60 or 30 on every device? Recommendation: 60.
-3. View lane at the display rate, halving under budget? Recommendation: yes.
-4. Hot-path fixes H1–H3 before any new lane? Recommendation: yes.
-5. View-lane memory persists between frames? Recommendation: yes.
-6. Shard language stays AssemblyScript (no Rust/C shards)? Recommendation: yes.
-7. Threads / SharedArrayBuffer (needs COOP/COEP on every asset)? Recommendation: not now.
-8. When does this plan start, and who builds it (its own coordinator, after SHARD-PLATFORM, or alongside)?
+| # | Decision |
+|---|---|
+| W1 | **Ambition: A now, B on evidence.** Fix the host (AS shards, JS engine, no JS calls inside guests, batched entries, sim and view lanes). Each engine-in-Wasm piece (H10, H11) starts only when a phone profile shows it. No Rust engine core. |
+| W2 | **Outside authors.** Design for untrusted scripts: in-Wasm fuel, output validation, one memory per shard module per lane. |
+| W3 | **Phone numbers: the Simulator plus one benchmark page** Jake opens once on his iPhone; it runs and reports by itself. |
+| W4 | **Parked: design now, build only when Jake says.** |
+| W5 | **ABI v2 replaces v1 and v0 in one go**: every existing script (Nalati, Pine, Driftwood, Sky, Signal, the v0 lanes) is ported in the same wave, v1/v0 deleted, one save migration. |
+| W6 | **Cross-device determinism**: a sim step gives the same result on every device (no host Math in the sim lane, AS's own Math, no relaxed SIMD or float reinterpret, quantised query answers), so a server or co-op stays possible. |
+| W7 | **Two council rounds** on this plan before it parks ([COUNCIL.md](../process/COUNCIL.md)). |
+| W8 | **Language-neutral binary ABI, AssemblyScript SDK first**; a Rust SDK stays possible later. |
+| W9 | **Sim lane at 10 Hz, or 30 Hz with a written reason**, the same on every device; no 60 Hz sim scripts. Jake: *"stays at 10hz or 30hz if you need it to go up from 10hz explain why"*. Reasons that qualify: player-felt combat windows (parry/combo) and gameplay contact (movers the player stands on, projectile hits). The view lane smooths visuals between sim steps. SHARD-PLATFORM keeps G503's ≤ 10 Hz. |
+| W10 | **View lane: display rate, halving under budget, memory persists between frames**; client-only, never saved, freezes on a trap. |
+| W11 | **Threads: not now**; a parked row once v2 is profiled on the phone. |
+| W12 | **Done = a demo shard plus a budget**: a sample shard whose combo, mover and view effect are pure AS with zero shard TS, a phone reading of ≤ 1 ms per frame for 20 active bindings, every existing script on v2, v0/v1 deleted. |
 
 ## Ties to SHARD-PLATFORM
 
