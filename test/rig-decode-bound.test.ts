@@ -54,7 +54,7 @@ it('ends a spent browser decode slice before starting the next cached parse', as
   try {
     const jobs = [0, 1].map(index => {
       const loader = createRigLoader();
-      loader.register(() => ({ name: 'fixture-decode-slice', afterRoot: () => { entered.push(index); time = 10; } }));
+      loader.register(() => ({ name: 'fixture-decode-slice', afterRoot: () => { entered.push(index); time = 10; return null; } }));
       return loader.loadAsync(`https://models.example/sliced-${index}.gltf`);
     });
     expect(reads).toHaveLength(2);
