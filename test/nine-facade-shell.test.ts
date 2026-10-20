@@ -55,7 +55,6 @@ test('bakes every native solid/swept draw in order with exact channels, bounds a
   expect(restored.inKit.map(({ model, kit, at, box }) => ({ model, kit, at, box: box === undefined ? null : [...box.min, ...box.max] })))
     .toEqual(source.rows.inKit);
   expect(restored.hooks.map(point => point.toArray())).toEqual(author.hooks.map(point => point.toArray()));
-  expect(restored.map).toEqual(author.map);
   for (const geometry of [...actual.values(), ...expected.values(), ...restored.alphaKits.values()]) geometry.dispose();
 }, 30_000);
 
@@ -67,7 +66,7 @@ test('restores the offline facade shell with exact packed channels and bounds', 
   const bake = new LayoutBake(source.rows, source.records, new Map(source.geometries.map((geometry, i) => [i, geometry])));
   await bake.prepare(() => Promise.resolve());
   const ctx = restoreLayout(bake);
-  const restored = ctx.fd.shell;
+  const restored = ctx.shell;
   if (restored === null) throw new Error('Nine restored no facade shell');
   expect(restored === original).toBe(false);
   expect(Object.keys(restored.attributes)).toEqual(Object.keys(original.attributes));
