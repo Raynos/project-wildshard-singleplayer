@@ -59,5 +59,73 @@
     "shake": 0,
     "speed": 0,
     "rearDir": 1
+  },
+  "population": {
+    "step": "nalati.creatures",
+    "raidStep": "nalati.raid",
+    "groups": "nalati.groups",
+    "herds": "nalati.herds",
+    "tokens": "nalati.tokens",
+    "preyPrefix": "sheep:",
+    "packKind": "wolf",
+    "dogKind": "sheepdog",
+    "eliteKinds": [
+      "leopard",
+      "kokbori"
+    ],
+    "motorKinds": [
+      "wolf",
+      "leopard",
+      "kokbori"
+    ],
+    "retiredY": -9999,
+    "frame": {
+      "speed": "speed",
+      "alert": "whistle",
+      "range": "scare",
+      "packRadius": 20,
+      "scareSeconds": 6,
+      "scareRadius": 60,
+      "foragerRunSpeed": 5,
+      "trample": {
+        "kinds": {
+          "wolf": 0.5,
+          "horse": 0.8,
+          "sheepdog": 0.4
+        },
+        "minSpeed": 0.6,
+        "range": 80,
+        "fullSpeed": 6
+      },
+      "knockdown": {
+        "speed": 7,
+        "min": 0.4,
+        "max": 1.5,
+        "seconds": 0.28
+      }
+    },
+    "driver": {
+      "dispatch": "dispatch",
+      "dogDecision": "dog",
+      "stragglerDistance": 12
+    },
+    "companion": {
+      "id": "nalati.mounts",
+      "kind": "horse",
+      "variant": "tulpar",
+      "wildKinds": [
+        "horse",
+        "argymaq"
+      ]
+    },
+    "shepherdOffset": [
+      12,
+      16
+    ],
+    "raidVariants": [
+      "grey",
+      "tawny",
+      "scout"
+    ]
   }
 }

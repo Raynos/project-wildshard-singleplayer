@@ -206,3 +206,57 @@ test('orchard group collection forks native packs and owns real crowd prey ident
     expect(() => collection.bindFlocks([flock], 'orchard:')).toThrow();
   } finally { host.dispose(); }
 });
+
+test('orchard fixture installs the complete native population through data rows', async () => {
+  const { fixtureNativeRoster } = await import('./fixtures/native-roster');
+  const { Rng } = await import('@wildshard/engine/core/rng');
+  const { PackBrain } = await import('@wildshard/engine/ai/pack');
+  const { nativeGroupBrain } = await import('@wildshard/format/groupBrains');
+  const { NativeGroupCollection } = await import('@wildshard/game/shardfile/groupRuntime');
+  const { NativeWildEnvironment, admitNativeManagerTokens } = await import('@wildshard/game/population/nativeManager');
+  const { installNativePopulation, nativePopulationOf } = await import('@wildshard/game/riding/nativePopulation');
+  const { eliteBindings } = await import('@wildshard/game/shardfile/eliteEncounters');
+  const { GrassField } = await import('@wildshard/game/systems/looks/grassField');
+  const { TrampleField } = await import('@wildshard/game/systems/looks/trample');
+  const { ForagerPopulation } = await import('@wildshard/engine/ai/ambientForager');
+  const { ForagerPopulationSchema } = await import('@wildshard/format/ambientLife');
+  const { BOAR } = await import('@wildshard/game/systems/species/boar');
+  const { default: brains } = await import('../src/shards/nalati-grasslands/data/brains.json');
+  const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
+  const { default: pasture } = await import('../src/shards/nalati-grasslands/behaviour/pasture.generated.json');
+  const { default: foragerRow } = await import('../src/shards/nalati-grasslands/creatures/marmotForager.json');
+  const v = await import('valibot');
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing native orchard actor');
+  const host = createSimHost({ ...SIM_LEVEL, entities: [{ ...sample, id: 'creature:0' }], quests: [] }, { rapier });
+  const actor = host.entities.get('creature:0'); if (actor === undefined) throw new Error('Missing orchard actor');
+  const random = new Rng(71), { hunt } = fixtureNativeRoster(host, random), ids = new WeakMap<PackPrey, string>(), prey = new Map<string, PackPrey>();
+  const spec = nativeGroupBrain({ ...brains.pack, id: 'orchard.pack', home: [0, 0], members: [actor.entityId] }); if (spec.kind !== 'pack') throw new Error('Missing pack preset');
+  const pack = new PackBrain([actor], 0, 0, spec, { sharedRng: () => host.rng.stream('ai'),
+    environment: () => ({ playerFwdX: 0, playerFwdZ: -1, playerMounted: false, playerHealth01: 1, grassHeightAt: () => 0 }),
+    visibility: () => 1, hearing: () => 10, downwind: () => false, inBounds: () => true, normalY: () => 1, register: () => undefined, bite: () => undefined,
+    preyIdentity: target => ids.get(target) ?? '', resolvePrey: id => prey.get(id) ?? null }); pack.initialize();
+  const field = new GrassField({ seed: 9, half: 16, heightAt: () => 0, normalAt: () => [0, 1, 0], splatAt: () => [1, 0, 0, 0], trailDistance: () => Infinity,
+    cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
+  const environment = new NativeWildEnvironment(field, new TrampleField(), { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 });
+  new NativeGroupCollection(host, [pack], [], new Map([[actor.entityId, actor]]), prey, ids, [actor], new WeakMap(), { id: 'orchard.groups', firstRaid: 14, environment });
+  admitNativeManagerTokens(host, 'orchard.tokens', new WeakMap()); admitNativeHerds(host, 'orchard.herds', []);
+  const foragers = new ForagerPopulation(v.parse(ForagerPopulationSchema, { ...foragerRow, id: 'orchard.foragers', count: 4, place: { ...foragerRow.place, size: [2, 2] } }), 41); foragers.colonies([{ x: 5, z: 5 }]);
+  const checkpoint = random.snapshot(); random.next(); random.next(); random.next(); const stream = random.snapshot(); random.restore(checkpoint);
+  const owner = installNativePopulation(host, hunt, random, { boot: { admission, pasture, streamSeed: 71, species: { boar: { kind: BOAR.kind, variants: BOAR.variants } }, recipes: [sample.spec] },
+    config: { step: 'orchard.population', raidStep: 'orchard.raid', groups: 'orchard.groups', herds: 'orchard.herds', tokens: 'orchard.tokens', preyPrefix: 'orchard:',
+      packKind: 'boar', dogKind: 'collie', eliteKinds: ['silver-boar'], motorKinds: ['boar'], retiredY: -9999, variants: [], flocks: [], forager: { row: foragers.row, seed: 41 },
+      frame: { speed: 'speed', alert: 'whistle', range: 'scare', packRadius: 20, scareSeconds: 6, scareRadius: 60, foragerRunSpeed: 5,
+        trample: { kinds: { boar: .5 }, minSpeed: .6, range: 80, fullSpeed: 6 }, knockdown: { speed: 7, min: .4, max: 1.5, seconds: .28 } },
+      driver: { dispatch: 'dispatch', dogDecision: 'dog', stragglerDistance: 12 }, companion: { id: 'orchard.companion', kind: 'boar', variant: 'boar', wildKinds: ['boar'] }, shepherdOffset: [2, 3], raidVariants: ['boar'] },
+    bodies: [{ actor, boot: { id: actor.entityId, seed: actor.seed, adopted: { x: actor.position.x, z: actor.position.z, stream: checkpoint } } }], herds: [], stream, wildStream: new Rng(3).snapshot(),
+    bake: { actors: [{ spec: sample.spec }], marmots: foragers.snapshot() }, spawnY: 10, elites: eliteBindings() });
+  try {
+    expect(nativePopulationOf(host)).toBe(owner); expect(owner.bodies).toEqual([actor]);
+    for (let i = 0; i < 12; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    expect(owner.marmots.rows).toHaveLength(2); expect(owner.raid.raids).toBe(0); expect(host.adapters.has('orchard.population')).toBe(true);
+    const bound = owner.spawnBondedHorse(2, 3, 0, false); expect(bound.entityId).toBe('creature:1'); owner.retireBondedHorse(bound);
+    expect(owner.bodies).toEqual([actor]); expect(host.entities.has(bound.entityId)).toBe(false);
+    expect(() => owner.spawnElite('foreign', 0, 0, 0, 'boar')).toThrow('Foreign');
+  } finally { host.dispose(); }
+});

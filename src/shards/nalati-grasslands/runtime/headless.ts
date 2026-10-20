@@ -1,3 +1,9 @@
+import { installNativePopulation, type NativePopulation, type NativePopulationConfig } from '@wildshard/game/riding/nativePopulation';
+import { createNativeHunt } from '@wildshard/game/plugin/brain';
+import { Rng, type RngState } from '@wildshard/engine/core/rng';
+import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
+import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { nalatiWetAt } from '../wet';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { creatureFloor } from '@wildshard/game/shardfile/homeKeeper';
@@ -5,7 +11,6 @@ import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerr
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, type NalatiBake, type NalatiBakedActor, type NalatiBootBody, type NalatiBootHerd, type NalatiBootRows } from './baked';
 import type { EliteBindings } from '@wildshard/game/shardfile/eliteEncounters';
-import type { RngState } from '@wildshard/engine/core/rng';
 import { SEED, TERRAIN, RIVER } from '../world/geography';
 import type { NalatiGrassView } from './groups';
 import { GrassField } from '@wildshard/game/systems/looks/grassField';
@@ -23,7 +28,7 @@ import type { SunClock } from '../look/wildLight';
 import { exposeTrees, steppeStorm, stepStorm, stormEnv, stormWind, windEnv, yurtShelters, type StormWind, type YurtCircle } from '../world/weatherStep';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import { Vector3 } from 'three';
-import { ATTACK_TURN } from '@wildshard/engine/ai/hunt';
+import { ATTACK_TURN, type HuntGround, type HuntNav, type HuntTree } from '@wildshard/engine/ai/hunt';
 
 /** The page's clock, resolved from the same generated manifest sun and schedule. */
 export function nalatiDayClock(): DayCycle<SkyKey> {
@@ -237,4 +242,30 @@ export function nalatiWorldQueries(grid: BakedGrid): {
   const normal = bakedSamplers(grid).normalAt;
   return { normalY: (x, z) => normal(x, z)[1], surfaceAt: (x, z) => TERRAIN.pondMask(x, z) > 0 ? TERRAIN.waterLevel() : null,
     inBounds: (x, z, margin) => Math.abs(x) < NALATI_GROUND_SIZE / 2 - margin && Math.abs(z) < NALATI_GROUND_SIZE / 2 - margin };
+}
+
+export function nalatiHuntGround(grid: BakedGrid, trees: (x: number, z: number, r: number) => readonly HuntTree[]): HuntGround {
+  const s = bakedSamplers(grid), stream = TERRAIN.streamAt;
+  return {
+    heightAt: s.heightAt, normalY: (x, z) => s.normalAt(x, z)[1], trailDistance: TERRAIN.trailDistance, cabinMask: TERRAIN.cabinMask,
+    inChunk: (x, z, margin) => Math.abs(x) <= NALATI_GROUND_SIZE / 2 - margin && Math.abs(z) <= NALATI_GROUND_SIZE / 2 - margin,
+    streamAt: (x, z) => stream === undefined ? null : stream(x, z), waterLevel: () => TERRAIN.waterLevel(), pond: () => TERRAIN.pond,
+    // the river is a basin body (manifest.ts ground.water), not an open sea
+    sea: () => false, wetAt: nalatiWetAt, trees, treeless: () => false, terrain: () => true, chunkHalf: NALATI_GROUND_SIZE / 2,
+  };
+}
+
+/** Bind this shard's native terrain queries once; all population ownership and
+ * decisions then use the game's concrete owners and admitted data programs. */
+export function installNalatiCreatures(host: SimHost, ports: { config: NativePopulationConfig; boot: NalatiBootRows; bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[];
+  grid: BakedGrid; nav: HuntNav; trees: (x: number, z: number, r: number) => readonly HuntTree[]; stream: RngState; wildStream: RngState;
+  bake: NalatiBake; spawnY: number; elites: EliteBindings; snapshot?: Readonly<SimSnapshot> }): NativePopulation {
+  const rng = new Rng(ports.boot.streamSeed);
+  const { hunt } = createNativeHunt(host, { limit: 64, fight: { telegraphed: true }, player: 'origin', bands: null,
+    hit: { namespace: 'creature', tags: ['feel.blow', 'cover.checked'] } }, { rng, ground: nalatiHuntGround(ports.grid, ports.trees), nav: ports.nav,
+    species: new Map(Object.entries(ports.boot.hunt).map(([kind,row]) => [kind,v.parse(v.object(v.pick(SpeciesSchema,['aggressive','tuning','sounds','walkSpeed','chargeSpeed','chargeWindup','ringRadius']).entries),row)])) });
+  hunt.navSteer = true;
+  return installNativePopulation(host, hunt, rng, { config: ports.config, boot: ports.boot, bodies: ports.bodies, herds: ports.herds,
+    stream: ports.stream, wildStream: ports.wildStream, bake: ports.bake, spawnY: ports.spawnY, elites: ports.elites,
+    ...(ports.snapshot === undefined ? {} : { snapshot: ports.snapshot }) });
 }

@@ -1247,6 +1247,11 @@ export interface NativeHuntRow {
   readonly bands: { readonly states: readonly string[]; readonly scripted?: boolean; readonly legacyKinds: readonly string[] } | null;
   readonly hit: { readonly namespace: string; readonly tags: readonly CombatTag[] };
 }
+const nativeHuntGrounds = new WeakMap<object, HuntGround>();
+/** Resolve the actual ground admitted with this concrete native hunt owner. */
+export function nativeHuntGround(hunt: StalkerBrain<HuntBody>): HuntGround {
+  const ground = nativeHuntGrounds.get(hunt); if (ground === undefined) throw new Error('Missing native hunt ground'); return ground;
+}
 /** Keep the native manager's existing clocks, charge source, navigation and terrain cadence. */
 export function createNativeHunt(host: SimHost, row: NativeHuntRow, ports: {
   readonly rng: Rng; readonly ground: HuntGround; readonly nav: HuntNav | null;
@@ -1267,7 +1272,7 @@ export function createNativeHunt(host: SimHost, row: NativeHuntRow, ports: {
       charge: (actor, damage) => { host.combat.hit({ source: 'env', sourceTags: [`${row.hit.namespace}.${actor.kind}`, ...row.hit.tags], target: host.player.health,
         amount: damage, point: actor.position.clone(), dir: new Vector3(), cause: { kind: actor.kind, label: actor.label } }); } },
     player: row.player === 'host' ? host.player.position : new Vector3(), sampleTerrain: actor => { actor.sampleTerrain(); } });
-  return { hunt, reach };
+  nativeHuntGrounds.set(hunt, ports.ground); return { hunt, reach };
 }
 /** Native species observations over an existing body and hunt owner. Policy and continuation remain caller-owned.
  * The context allocates once per body; each policy call refreshes only its dt and the actual host clock. */

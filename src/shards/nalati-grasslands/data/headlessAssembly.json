@@ -18,7 +18,8 @@
       "nalatiGrassView",
       "installNalatiTrample",
       "installNalatiWeather",
-      "nalatiLightningGround"
+      "nalatiLightningGround",
+      "installNalatiCreatures"
     ],
     "@wildshard/engine/world/BakedTerrain": [
       "bakedSamplers"
@@ -32,9 +33,6 @@
     "src/shards/nalati-grasslands/runtime/groups": [
       "nalatiHeadlessEnv",
       "installNalatiGroups"
-    ],
-    "src/shards/nalati-grasslands/runtime/headlessCreatures": [
-      "installNalatiCreatures"
     ],
     "src/shards/nalati-grasslands/wet": [
       "nalatiWetAt"
@@ -106,12 +104,12 @@
         "labels": {
           "mount": "Mount the stallion",
           "breaking": "Break the stallion",
-          "trust": "The herd saw you drive the wolves off · TRUST +30",
-          "start": "HOLD ON — lean against him (A / D, LEAN L / LEAN R)",
-          "thrown": "Thrown! TRUST −40 — find him again when the herd settles",
+          "trust": "The herd saw you drive the wolves off \u00b7 TRUST +30",
+          "start": "HOLD ON \u2014 lean against him (A / D, LEAN L / LEAN R)",
+          "thrown": "Thrown! TRUST \u221240 \u2014 find him again when the herd settles",
           "bonded": [
-            "TULPAR is yours · he waits at the camp's hitching rail · whistle (X / HORSE) to call him",
-            "ARGYMAQ is yours — he takes Tulpar's place at the camp's rail · whistle (X / HORSE) to call him"
+            "TULPAR is yours \u00b7 he waits at the camp's hitching rail \u00b7 whistle (X / HORSE) to call him",
+            "ARGYMAQ is yours \u2014 he takes Tulpar's place at the camp's rail \u00b7 whistle (X / HORSE) to call him"
           ]
         }
       },
@@ -1230,7 +1228,7 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headlessCreatures",
+              "src/shards/nalati-grasslands/runtime/headless",
               "installNalatiCreatures"
             ]
           },
@@ -1267,11 +1265,6 @@
                   "$ref": [
                     "roster",
                     "herds"
-                  ]
-                },
-                "groups": {
-                  "$ref": [
-                    "groups"
                   ]
                 },
                 "grid": {
@@ -1339,61 +1332,11 @@
                     "y"
                   ]
                 },
-                "rideUpdate": {
-                  "$fn": {
-                    "$call": [
-                      {
-                        "$coalesce": [
-                          {
-                            "$ref": [
-                              "taming",
-                              "update"
-                            ]
-                          },
-                          {
-                            "$fn": {
-                              "$ref": [
-                                "absent"
-                              ]
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "$ref": [
-                          "args",
-                          0
-                        ]
-                      }
-                    ]
-                  }
-                },
-                "mounted": {
-                  "$fn": {
-                    "$eq": [
-                      {
-                        "$ref": [
-                          "mounted",
-                          "mounted"
-                        ]
-                      },
-                      true
-                    ]
-                  }
-                },
-                "crouching": {
-                  "$fn": {
-                    "$eq": [
-                      {
-                        "$ref": [
-                          "mounted",
-                          "rider",
-                          "crouching"
-                        ]
-                      },
-                      true
-                    ]
-                  }
+                "config": {
+                  "$ref": [
+                    "constants",
+                    "nativePopulation"
+                  ]
                 }
               },
               {

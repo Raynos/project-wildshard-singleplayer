@@ -21477,7 +21477,10 @@
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "src/shards/nalati-grasslands/behaviour/mounts.as"
+        "src/shards/nalati-grasslands/behaviour/mounts.as",
+        "src/shards/nalati-grasslands/data/ecology.generated.json",
+        "src/shards/nalati-grasslands/creatures/marmotForager.json",
+        "src/shards/nalati-grasslands/boot/geography.generated.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/behaviour/riding.generated.json"
