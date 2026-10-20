@@ -73,10 +73,10 @@ for node in g['nodes']:
  else:opened.append(node['name'])
 # Each red wall + ivory annulus + deep chamber forms one complete hollow vessel.
 vesselVolumes={}
-for head in ['head','leftHead','rightHead']:
+for head in ['head','leftHead','rightHead','head hood','leftHead hood','rightHead hood']:
  edges=Counter();directed=Counter();volume=0
  for node in g['nodes']:
-  if node.get('name') not in [head+' red vessel',head+' thick ivory lip',head+' deep inner chamber']:continue
+  if node.get('name') not in ([head+' green crown',head+' crimson underside'] if head.endswith(' hood') else [head+' red vessel',head+' thick ivory lip',head+' deep inner chamber']):continue
   for prim in g['meshes'][node['mesh']]['primitives']:
    points=acc(prim['attributes']['POSITION']);ids=[x[0] for x in acc(prim['indices'])]
    for off in range(0,len(ids),3):

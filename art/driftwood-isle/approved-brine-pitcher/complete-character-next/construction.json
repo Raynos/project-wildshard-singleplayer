@@ -1,0 +1,740 @@
+{
+  "vertices": 11250,
+  "triangles": 3750,
+  "bones": 7,
+  "parts": 7,
+  "components": [
+    {
+      "name": "Twisting continuous heartwood",
+      "joint": "body",
+      "triangles": 92
+    },
+    {
+      "name": "Interwoven arch root 00",
+      "joint": "body",
+      "triangles": 56
+    },
+    {
+      "name": "Root fork 00",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Interwoven arch root 01",
+      "joint": "body",
+      "triangles": 56
+    },
+    {
+      "name": "Root fork 01",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Interwoven arch root 02",
+      "joint": "body",
+      "triangles": 44
+    },
+    {
+      "name": "Root fork 02",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Interwoven arch root 03",
+      "joint": "body",
+      "triangles": 44
+    },
+    {
+      "name": "Root fork 03",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Interwoven arch root 04",
+      "joint": "body",
+      "triangles": 44
+    },
+    {
+      "name": "Root fork 04",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Interwoven arch root 05",
+      "joint": "body",
+      "triangles": 44
+    },
+    {
+      "name": "Root fork 05",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Interwoven arch root 06",
+      "joint": "body",
+      "triangles": 44
+    },
+    {
+      "name": "Root fork 06",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Integrated lateral bough -1",
+      "joint": "body",
+      "triangles": 52
+    },
+    {
+      "name": "Integrated lateral bough 1",
+      "joint": "body",
+      "triangles": 52
+    },
+    {
+      "name": "Embedded rock 00",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Embedded rock 01",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Embedded rock 02",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Embedded rock 03",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "Embedded rock 04",
+      "joint": "body",
+      "triangles": 26
+    },
+    {
+      "name": "head red vessel",
+      "joint": "head",
+      "triangles": 130
+    },
+    {
+      "name": "head deep inner chamber",
+      "joint": "head",
+      "triangles": 82
+    },
+    {
+      "name": "head thick ivory lip",
+      "joint": "head",
+      "triangles": 24
+    },
+    {
+      "name": "head sculpted ivory rim",
+      "joint": "head",
+      "triangles": 144
+    },
+    {
+      "name": "head rim fang 00",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 01",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 02",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 03",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 04",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 05",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 06",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 07",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 08",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 09",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 10",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rim fang 11",
+      "joint": "head",
+      "triangles": 4
+    },
+    {
+      "name": "head rear woody keel",
+      "joint": "head",
+      "triangles": 26
+    },
+    {
+      "name": "head hood green crown",
+      "joint": "headLid",
+      "triangles": 10
+    },
+    {
+      "name": "head hood crimson underside",
+      "joint": "headLid",
+      "triangles": 30
+    },
+    {
+      "name": "head living flared hinge",
+      "joint": "headLid",
+      "triangles": 20
+    },
+    {
+      "name": "head hood fan vein -1",
+      "joint": "headLid",
+      "triangles": 20
+    },
+    {
+      "name": "head hood fan vein 0",
+      "joint": "headLid",
+      "triangles": 20
+    },
+    {
+      "name": "head hood fan vein 1",
+      "joint": "headLid",
+      "triangles": 20
+    },
+    {
+      "name": "leftHead red vessel",
+      "joint": "leftHead",
+      "triangles": 130
+    },
+    {
+      "name": "leftHead deep inner chamber",
+      "joint": "leftHead",
+      "triangles": 82
+    },
+    {
+      "name": "leftHead thick ivory lip",
+      "joint": "leftHead",
+      "triangles": 24
+    },
+    {
+      "name": "leftHead sculpted ivory rim",
+      "joint": "leftHead",
+      "triangles": 144
+    },
+    {
+      "name": "leftHead rim fang 00",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 01",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 02",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 03",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 04",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 05",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 06",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 07",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 08",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 09",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 10",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rim fang 11",
+      "joint": "leftHead",
+      "triangles": 4
+    },
+    {
+      "name": "leftHead rear woody keel",
+      "joint": "leftHead",
+      "triangles": 26
+    },
+    {
+      "name": "leftHead hood green crown",
+      "joint": "leftHeadLid",
+      "triangles": 10
+    },
+    {
+      "name": "leftHead hood crimson underside",
+      "joint": "leftHeadLid",
+      "triangles": 30
+    },
+    {
+      "name": "leftHead living flared hinge",
+      "joint": "leftHeadLid",
+      "triangles": 20
+    },
+    {
+      "name": "leftHead hood fan vein -1",
+      "joint": "leftHeadLid",
+      "triangles": 20
+    },
+    {
+      "name": "leftHead hood fan vein 0",
+      "joint": "leftHeadLid",
+      "triangles": 20
+    },
+    {
+      "name": "leftHead hood fan vein 1",
+      "joint": "leftHeadLid",
+      "triangles": 20
+    },
+    {
+      "name": "rightHead red vessel",
+      "joint": "rightHead",
+      "triangles": 130
+    },
+    {
+      "name": "rightHead deep inner chamber",
+      "joint": "rightHead",
+      "triangles": 82
+    },
+    {
+      "name": "rightHead thick ivory lip",
+      "joint": "rightHead",
+      "triangles": 24
+    },
+    {
+      "name": "rightHead sculpted ivory rim",
+      "joint": "rightHead",
+      "triangles": 144
+    },
+    {
+      "name": "rightHead rim fang 00",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 01",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 02",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 03",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 04",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 05",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 06",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 07",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 08",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 09",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 10",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rim fang 11",
+      "joint": "rightHead",
+      "triangles": 4
+    },
+    {
+      "name": "rightHead rear woody keel",
+      "joint": "rightHead",
+      "triangles": 26
+    },
+    {
+      "name": "rightHead hood green crown",
+      "joint": "rightHeadLid",
+      "triangles": 10
+    },
+    {
+      "name": "rightHead hood crimson underside",
+      "joint": "rightHeadLid",
+      "triangles": 30
+    },
+    {
+      "name": "rightHead living flared hinge",
+      "joint": "rightHeadLid",
+      "triangles": 20
+    },
+    {
+      "name": "rightHead hood fan vein -1",
+      "joint": "rightHeadLid",
+      "triangles": 20
+    },
+    {
+      "name": "rightHead hood fan vein 0",
+      "joint": "rightHeadLid",
+      "triangles": 20
+    },
+    {
+      "name": "rightHead hood fan vein 1",
+      "joint": "rightHeadLid",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf 00",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf 00 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 00 00",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 00 00 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 00 01",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 00 01 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf 01",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf 01 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 01 00",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 01 00 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 01 01",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 01 01 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf 02",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf 02 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 02 00",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 02 00 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 02 01",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 02 01 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf 03",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf 03 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 03 00",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 03 00 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 03 01",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 03 01 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf 04",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf 04 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 04 00",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 04 00 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 04 01",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 04 01 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf 05",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf 05 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 05 00",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 05 00 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 05 01",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 05 01 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf 06",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf 06 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 06 00",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 06 00 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Branch leaf cluster 06 01",
+      "joint": "body",
+      "triangles": 16
+    },
+    {
+      "name": "Branch leaf cluster 06 01 midrib",
+      "joint": "body",
+      "triangles": 20
+    },
+    {
+      "name": "Hollow barnacle 00",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 01",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 02",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 03",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 04",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 05",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 06",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 07",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 08",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 09",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 10",
+      "joint": "body",
+      "triangles": 36
+    },
+    {
+      "name": "Hollow barnacle 11",
+      "joint": "body",
+      "triangles": 36
+    }
+  ],
+  "nativeBytes": 1460482,
+  "packedBytes": 38648,
+  "glbBytes": 856624,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "colliderAcceptance": false,
+  "sourceSha256": "a73fec30a0f270ac6d918872f54d218dec3171a3943be7aecfb573f1d4833328"
+}

@@ -1,0 +1,566 @@
+{
+  "schema": "wildshard.brine-pitcher.source-audit.v1",
+  "vertices": 11250,
+  "triangles": 3750,
+  "joints": [
+    "body",
+    "head",
+    "headLid",
+    "leftHead",
+    "leftHeadLid",
+    "rightHead",
+    "rightHeadLid"
+  ],
+  "glbNativePositionColorSkinParity": true,
+  "orientedTriangleParity": true,
+  "outwardRimTriangles": 432,
+  "singleSidedGlbMaterials": true,
+  "numericalSingleSidedVisibilityParity": {
+    "front": 2096,
+    "left": 1760,
+    "right": 1783,
+    "back": 1624,
+    "top": 1935,
+    "elevated-front": 1966,
+    "elevated-left": 1901,
+    "elevated-right": 1942,
+    "elevated-back": 1820
+  },
+  "positiveClosedComponents": [
+    {
+      "name": "Branch leaf 00",
+      "signedVolume": 0.004416047344357804
+    },
+    {
+      "name": "Branch leaf 00 midrib",
+      "signedVolume": 0.00012727700840160346
+    },
+    {
+      "name": "Branch leaf 01",
+      "signedVolume": 0.005525335256972892
+    },
+    {
+      "name": "Branch leaf 01 midrib",
+      "signedVolume": 0.00013354239506000766
+    },
+    {
+      "name": "Branch leaf 02",
+      "signedVolume": 0.003834356190502427
+    },
+    {
+      "name": "Branch leaf 02 midrib",
+      "signedVolume": 9.405080495665623e-05
+    },
+    {
+      "name": "Branch leaf 03",
+      "signedVolume": 0.005019468669538507
+    },
+    {
+      "name": "Branch leaf 03 midrib",
+      "signedVolume": 0.00011373562369380996
+    },
+    {
+      "name": "Branch leaf 04",
+      "signedVolume": 0.0021895105509307806
+    },
+    {
+      "name": "Branch leaf 04 midrib",
+      "signedVolume": 5.9420201474797495e-05
+    },
+    {
+      "name": "Branch leaf 05",
+      "signedVolume": 0.00558502699119754
+    },
+    {
+      "name": "Branch leaf 05 midrib",
+      "signedVolume": 0.00013637341904752806
+    },
+    {
+      "name": "Branch leaf 06",
+      "signedVolume": 0.0038791292689623266
+    },
+    {
+      "name": "Branch leaf 06 midrib",
+      "signedVolume": 9.291244445113718e-05
+    },
+    {
+      "name": "Branch leaf cluster 00 00",
+      "signedVolume": 0.0034272993227661376
+    },
+    {
+      "name": "Branch leaf cluster 00 00 midrib",
+      "signedVolume": 8.034785411043752e-05
+    },
+    {
+      "name": "Branch leaf cluster 00 01",
+      "signedVolume": 0.0016247399654637743
+    },
+    {
+      "name": "Branch leaf cluster 00 01 midrib",
+      "signedVolume": 6.143887964378466e-05
+    },
+    {
+      "name": "Branch leaf cluster 01 00",
+      "signedVolume": 0.002578194037871187
+    },
+    {
+      "name": "Branch leaf cluster 01 00 midrib",
+      "signedVolume": 5.8465717127696734e-05
+    },
+    {
+      "name": "Branch leaf cluster 01 01",
+      "signedVolume": 0.0035700991565231557
+    },
+    {
+      "name": "Branch leaf cluster 01 01 midrib",
+      "signedVolume": 8.574332725607724e-05
+    },
+    {
+      "name": "Branch leaf cluster 02 00",
+      "signedVolume": 0.00287592836925764
+    },
+    {
+      "name": "Branch leaf cluster 02 00 midrib",
+      "signedVolume": 6.355967314173485e-05
+    },
+    {
+      "name": "Branch leaf cluster 02 01",
+      "signedVolume": 0.001476737808632824
+    },
+    {
+      "name": "Branch leaf cluster 02 01 midrib",
+      "signedVolume": 4.227936780616078e-05
+    },
+    {
+      "name": "Branch leaf cluster 03 00",
+      "signedVolume": 0.002533384131591824
+    },
+    {
+      "name": "Branch leaf cluster 03 00 midrib",
+      "signedVolume": 5.509253934889914e-05
+    },
+    {
+      "name": "Branch leaf cluster 03 01",
+      "signedVolume": 0.0031316241082207227
+    },
+    {
+      "name": "Branch leaf cluster 03 01 midrib",
+      "signedVolume": 7.146594730909761e-05
+    },
+    {
+      "name": "Branch leaf cluster 04 00",
+      "signedVolume": 0.001077616299464978
+    },
+    {
+      "name": "Branch leaf cluster 04 00 midrib",
+      "signedVolume": 2.5647564231091736e-05
+    },
+    {
+      "name": "Branch leaf cluster 04 01",
+      "signedVolume": 0.0015035534061299963
+    },
+    {
+      "name": "Branch leaf cluster 04 01 midrib",
+      "signedVolume": 3.969012838743728e-05
+    },
+    {
+      "name": "Branch leaf cluster 05 00",
+      "signedVolume": 0.00353040950250593
+    },
+    {
+      "name": "Branch leaf cluster 05 00 midrib",
+      "signedVolume": 7.848276269547398e-05
+    },
+    {
+      "name": "Branch leaf cluster 05 01",
+      "signedVolume": 0.002917660899537735
+    },
+    {
+      "name": "Branch leaf cluster 05 01 midrib",
+      "signedVolume": 7.44936104649536e-05
+    },
+    {
+      "name": "Branch leaf cluster 06 00",
+      "signedVolume": 0.0013386626418056468
+    },
+    {
+      "name": "Branch leaf cluster 06 00 midrib",
+      "signedVolume": 3.0876478456563045e-05
+    },
+    {
+      "name": "Branch leaf cluster 06 01",
+      "signedVolume": 0.0027460175657622547
+    },
+    {
+      "name": "Branch leaf cluster 06 01 midrib",
+      "signedVolume": 6.45544806472302e-05
+    },
+    {
+      "name": "Embedded rock 00",
+      "signedVolume": 0.07226094009902558
+    },
+    {
+      "name": "Embedded rock 01",
+      "signedVolume": 0.049715067381639805
+    },
+    {
+      "name": "Embedded rock 02",
+      "signedVolume": 0.044924936182125445
+    },
+    {
+      "name": "Embedded rock 03",
+      "signedVolume": 0.04971506504252353
+    },
+    {
+      "name": "Embedded rock 04",
+      "signedVolume": 0.04045172067967023
+    },
+    {
+      "name": "head hood fan vein -1",
+      "signedVolume": 0.0016146180950115745
+    },
+    {
+      "name": "head hood fan vein 0",
+      "signedVolume": 0.0013441319645433236
+    },
+    {
+      "name": "head hood fan vein 1",
+      "signedVolume": 0.001684679302551543
+    },
+    {
+      "name": "head living flared hinge",
+      "signedVolume": 0.025049463619775593
+    },
+    {
+      "name": "head rear woody keel",
+      "signedVolume": 0.046371585436951294
+    },
+    {
+      "name": "head rim fang 00",
+      "signedVolume": 0.0010048647674904582
+    },
+    {
+      "name": "head rim fang 01",
+      "signedVolume": 0.0016459655957189083
+    },
+    {
+      "name": "head rim fang 02",
+      "signedVolume": 0.0021922903888949726
+    },
+    {
+      "name": "head rim fang 03",
+      "signedVolume": 0.0013585789237571182
+    },
+    {
+      "name": "head rim fang 04",
+      "signedVolume": 0.001645965595718931
+    },
+    {
+      "name": "head rim fang 05",
+      "signedVolume": 0.0018385760796794937
+    },
+    {
+      "name": "head rim fang 06",
+      "signedVolume": 0.0008753963036837698
+    },
+    {
+      "name": "head rim fang 07",
+      "signedVolume": 0.0012922522862037584
+    },
+    {
+      "name": "head rim fang 08",
+      "signedVolume": 0.001709107591446997
+    },
+    {
+      "name": "head rim fang 09",
+      "signedVolume": 0.0008753967214007036
+    },
+    {
+      "name": "head rim fang 10",
+      "signedVolume": 0.0012922522862037567
+    },
+    {
+      "name": "head rim fang 11",
+      "signedVolume": 0.0017091073159459114
+    },
+    {
+      "name": "head sculpted ivory rim",
+      "signedVolume": 0.11719304396706637
+    },
+    {
+      "name": "Integrated lateral bough -1",
+      "signedVolume": 0.26712282332003634
+    },
+    {
+      "name": "Integrated lateral bough 1",
+      "signedVolume": 0.25682324385266386
+    },
+    {
+      "name": "Interwoven arch root 00",
+      "signedVolume": 0.2322396464562834
+    },
+    {
+      "name": "Interwoven arch root 01",
+      "signedVolume": 0.1877711767671693
+    },
+    {
+      "name": "Interwoven arch root 02",
+      "signedVolume": 0.15528301554073454
+    },
+    {
+      "name": "Interwoven arch root 03",
+      "signedVolume": 0.1708929140429233
+    },
+    {
+      "name": "Interwoven arch root 04",
+      "signedVolume": 0.1601525417674482
+    },
+    {
+      "name": "Interwoven arch root 05",
+      "signedVolume": 0.16836261340846573
+    },
+    {
+      "name": "Interwoven arch root 06",
+      "signedVolume": 0.12449151033124312
+    },
+    {
+      "name": "leftHead hood fan vein -1",
+      "signedVolume": 0.0006433343798416698
+    },
+    {
+      "name": "leftHead hood fan vein 0",
+      "signedVolume": 0.0005355587240356683
+    },
+    {
+      "name": "leftHead hood fan vein 1",
+      "signedVolume": 0.000671250460979009
+    },
+    {
+      "name": "leftHead living flared hinge",
+      "signedVolume": 0.009980752487569404
+    },
+    {
+      "name": "leftHead rear woody keel",
+      "signedVolume": 0.01847643174281881
+    },
+    {
+      "name": "leftHead rim fang 00",
+      "signedVolume": 0.00040038163281462275
+    },
+    {
+      "name": "leftHead rim fang 01",
+      "signedVolume": 0.0006558241621550873
+    },
+    {
+      "name": "leftHead rim fang 02",
+      "signedVolume": 0.0008735023451304138
+    },
+    {
+      "name": "leftHead rim fang 03",
+      "signedVolume": 0.0005413157920219729
+    },
+    {
+      "name": "leftHead rim fang 04",
+      "signedVolume": 0.0006558233006922192
+    },
+    {
+      "name": "leftHead rim fang 05",
+      "signedVolume": 0.0007325679301915643
+    },
+    {
+      "name": "leftHead rim fang 06",
+      "signedVolume": 0.0003487956831468462
+    },
+    {
+      "name": "leftHead rim fang 07",
+      "signedVolume": 0.0005148880179560965
+    },
+    {
+      "name": "leftHead rim fang 08",
+      "signedVolume": 0.0006809818857065938
+    },
+    {
+      "name": "leftHead rim fang 09",
+      "signedVolume": 0.00034879578197371435
+    },
+    {
+      "name": "leftHead rim fang 10",
+      "signedVolume": 0.000514888690848483
+    },
+    {
+      "name": "leftHead rim fang 11",
+      "signedVolume": 0.0006809824195197446
+    },
+    {
+      "name": "leftHead sculpted ivory rim",
+      "signedVolume": 0.046694736654433695
+    },
+    {
+      "name": "rightHead hood fan vein -1",
+      "signedVolume": 0.000527377610167851
+    },
+    {
+      "name": "rightHead hood fan vein 0",
+      "signedVolume": 0.0004390284321571671
+    },
+    {
+      "name": "rightHead hood fan vein 1",
+      "signedVolume": 0.0005502624518112766
+    },
+    {
+      "name": "rightHead living flared hinge",
+      "signedVolume": 0.008181785069169629
+    },
+    {
+      "name": "rightHead rear woody keel",
+      "signedVolume": 0.015146163783255746
+    },
+    {
+      "name": "rightHead rim fang 00",
+      "signedVolume": 0.00032821555042928177
+    },
+    {
+      "name": "rightHead rim fang 01",
+      "signedVolume": 0.0005376153089294809
+    },
+    {
+      "name": "rightHead rim fang 02",
+      "signedVolume": 0.0007160600150817199
+    },
+    {
+      "name": "rightHead rim fang 03",
+      "signedVolume": 0.0004437478238993219
+    },
+    {
+      "name": "rightHead rim fang 04",
+      "signedVolume": 0.0005376153089294827
+    },
+    {
+      "name": "rightHead rim fang 05",
+      "signedVolume": 0.0006005273895252159
+    },
+    {
+      "name": "rightHead rim fang 06",
+      "signedVolume": 0.00028592788171972637
+    },
+    {
+      "name": "rightHead rim fang 07",
+      "signedVolume": 0.00042208405153954486
+    },
+    {
+      "name": "rightHead rim fang 08",
+      "signedVolume": 0.0005582391330436415
+    },
+    {
+      "name": "rightHead rim fang 09",
+      "signedVolume": 0.0002859274865048101
+    },
+    {
+      "name": "rightHead rim fang 10",
+      "signedVolume": 0.0004220840515395405
+    },
+    {
+      "name": "rightHead rim fang 11",
+      "signedVolume": 0.0005582398545391533
+    },
+    {
+      "name": "rightHead sculpted ivory rim",
+      "signedVolume": 0.03827832473847195
+    },
+    {
+      "name": "Root fork 00",
+      "signedVolume": 0.0071297045032713445
+    },
+    {
+      "name": "Root fork 01",
+      "signedVolume": 0.006381668745198149
+    },
+    {
+      "name": "Root fork 02",
+      "signedVolume": 0.004801571838655314
+    },
+    {
+      "name": "Root fork 03",
+      "signedVolume": 0.00849072467527352
+    },
+    {
+      "name": "Root fork 04",
+      "signedVolume": 0.006979817568164043
+    },
+    {
+      "name": "Root fork 05",
+      "signedVolume": 0.011376713692098049
+    },
+    {
+      "name": "Root fork 06",
+      "signedVolume": 0.008618287259309037
+    },
+    {
+      "name": "Twisting continuous heartwood",
+      "signedVolume": 0.9161780466952177
+    }
+  ],
+  "watertightVesselVolumes": {
+    "head": 0.7749475577783178,
+    "leftHead": 0.30877243267556465,
+    "rightHead": 0.25311815505092566,
+    "head hood": 0.39296054943467573,
+    "leftHead hood": 0.15657235600633618,
+    "rightHead hood": 0.12835112328722303
+  },
+  "intentionalOpenComponents": [
+    "head deep inner chamber",
+    "head hood crimson underside",
+    "head hood green crown",
+    "head red vessel",
+    "head thick ivory lip",
+    "Hollow barnacle 00",
+    "Hollow barnacle 01",
+    "Hollow barnacle 02",
+    "Hollow barnacle 03",
+    "Hollow barnacle 04",
+    "Hollow barnacle 05",
+    "Hollow barnacle 06",
+    "Hollow barnacle 07",
+    "Hollow barnacle 08",
+    "Hollow barnacle 09",
+    "Hollow barnacle 10",
+    "Hollow barnacle 11",
+    "leftHead deep inner chamber",
+    "leftHead hood crimson underside",
+    "leftHead hood green crown",
+    "leftHead red vessel",
+    "leftHead thick ivory lip",
+    "rightHead deep inner chamber",
+    "rightHead hood crimson underside",
+    "rightHead hood green crown",
+    "rightHead red vessel",
+    "rightHead thick ivory lip"
+  ],
+  "maximumBindClosureError": 5.960464477539063e-08,
+  "zeroAreaTriangles": 0,
+  "minimumTriangleArea": 1.498106259529224e-06,
+  "bounds": [
+    [
+      -1.9664000000000001,
+      -0.0841098427772522,
+      -1.6276500225067139
+    ],
+    [
+      1.9424000000000001,
+      4.108827907032669,
+      1.4291927814483643
+    ]
+  ],
+  "coordinateConvention": "+Y-up +Z-forward right-handed; Blender x,-z,y",
+  "visualAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false,
+  "files": {
+    "brine-pitcher-v1.glb": "d3e5860cb4b5e1738dddbe3c0b1058dc3b3c7d5de16beca83d506f74ee46c22a",
+    "metadata.json": "203c5e7ff559e28564cc3c3c3824fb84156c07aa6eac484446421eb38ada6a9e",
+    "native-source.json": "ab2321dfb0f6ccd4231151e8970db7881d6a2941741bc2e92827c713b0d13198",
+    "construction.json": "c505ffe8a155d349dfc9b65476966773ed63f10aced54a647f7a8d175e3899b0",
+    "payload.bin": "c0f9c3af786cb9ed660594fc91945a863aea4a2f575cfb573b5b377817d2e9f1"
+  }
+}

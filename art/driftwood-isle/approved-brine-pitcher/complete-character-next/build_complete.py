@@ -83,7 +83,7 @@ for i,(x,z,r) in enumerate([(-.30,.56,.36),(.32,.72,.32),(-.73,-.28,.31),(.63,-.
  vs=[(x+r*math.cos(k*math.tau/7),.04,z+r*math.sin(k*math.tau/7)) for k in range(7)]
  vs += [(x+r*.80*math.cos(k*math.tau/7+.12),r*(.68+.10*math.sin(k*2)),z+r*.8*math.sin(k*math.tau/7+.12)) for k in range(7)]
  vs += [(x-.08,r*1.14,z+.04)]
- fs=[tuple(range(7))]+[(k,(k+1)%7,(k+1)%7+7,k+7) for k in range(7)]+[(k+7,(k+1)%7+7,14) for k in range(7)]
+ fs=[tuple(reversed(range(7)))]+[(k,(k+1)%7,(k+1)%7+7,k+7) for k in range(7)]+[(k+7,(k+1)%7+7,14) for k in range(7)]
  mesh('Embedded rock %02d'%i,vs,[tuple(reversed(f)) for f in fs],['stone','stoneDark','stoneLight'])
 
 def leaf(name,base,tip,width,joint='body',large=False):
@@ -140,11 +140,11 @@ def vessel(name,c,s):
  mesh(name+' hood green crown',hv,[tuple(reversed(f)) for f in top],['leafLight','leaf','leafTeal','leafLight'],joint)
  bottom=[(k+hn,(k+1)%hn+hn,21) for k in range(hn)]
  sides=[(k,k+hn,(k+1)%hn+hn,(k+1)%hn) for k in range(hn)]
- mesh(name+' hood crimson underside',hv,bottom+sides,['hoodRed','red','redDark','hoodGold'],joint)
+ mesh(name+' hood crimson underside',hv,bottom+[tuple(reversed(f)) for f in sides],['hoodRed','red','redDark','hoodGold'],joint)
  fan=[(x,y+1.15*s,z-.43*s),(x-.68*s,y+1.58*s,z-.30*s),(x-.43*s,y+1.64*s,z+.10*s),(x,y+1.70*s,z+.38*s),(x+.52*s,y+1.73*s,z+.12*s),(x+.70*s,y+1.75*s,z-.28*s)]
  # Fan is an explicitly thick closed wedge, not a one-sided decal.
  fan += [(xx,yy,zz-.055*s) for xx,yy,zz in fan]
- ff=[(0,k,k+1) for k in range(1,5)]+[(6,k+7,k+6) for k in range(1,5)]+[(k,(k+1)%6,(k+1)%6+6,k+6) for k in range(6)]
+ ff=[(0,k+1,k) for k in range(1,5)]+[(6,k+6,k+7) for k in range(1,5)]+[(k,(k+1)%6,(k+1)%6+6,k+6) for k in range(6)]
  mesh(name+' living flared hinge',fan,ff,['leafVein','hoodGold','leafDark'],joint)
  for side in [-1,0,1]:
   tube(name+' hood fan vein '+str(side),[((x,y+1.14*s,z-.43*s),.035*s),((x+side*.24*s,y+1.49*s,z-.17*s),.028*s),((x+side*.60*s,y+(1.66+side*.08)*s,z+.10*s),.012*s)],['leafVein'],joint,n=4)
