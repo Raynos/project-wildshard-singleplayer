@@ -2132,3 +2132,16 @@ src/shards/driftwood-isle/look/map.baked.json
 public/assets/driftwood-isle/map/top.webp
 
 /src/shards/nalati-grasslands/boot/staticCapture.generated.json
+
+# Registered generated scene and immutable-blob outputs (source-only builds).
+/public/assets/pine-hollow/baked/hero-materials/
+/src/shards/pine-hollow/assets/hero-scenes/
+/src/shards/pine-hollow/assets/prop-scenes/
+/src/shards/_template/assets/bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06
+/src/shards/driftwood-isle/assets/af19c5925055abf015db6d775eeb8d0c63ef027d1790decf057a0aa37978d5ee
+/src/shards/driftwood-isle/assets/c71039a949f150fe1ad02fa56556dd795c6ab691f28dd65e97899bbacdaf80fd
+/src/shards/driftwood-isle/assets/c9b6eb32cfb3f315cc609a8f1c2061001befeefa6aadf871c982e5c24569a3c3
+/src/shards/pine-hollow/assets/3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135
+/src/shards/pine-hollow/assets/d5fea0cf2033119a4ebde4dde55007876d583cb5fa26756f28e0cc8bb33e76d8
+/src/shards/sunscar-dunes/assets/5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a
+src/shards/pine-hollow/data/physics.generated.d.json.ts
