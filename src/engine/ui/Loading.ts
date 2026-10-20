@@ -7,10 +7,12 @@ import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
-import { BOOT_STEPS } from '../boot/steps';
 import { DownloadAccounting, installDownloadAccounting } from '../boot/download';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
 import { LoadingStall } from '../boot/stall';
+import { loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey } from '../boot/weights';
+import { loadPathTimings, savePathTimings } from '../boot/pathTiming';
+import { LOADING_CALIBRATION } from '../boot/calibration';
 import './loading.css';
 
 const savedStorage = saveStorage('session');
@@ -22,7 +24,7 @@ const savedStorage = saveStorage('session');
  * an elapsed clock, and one row per step with its wall ms and live detail. Bytes and completed work come
  * from the producer; unknown totals and waits stay explicit. `done()` fades it out and resolves when it is gone.
  *
- * Players (E140, the user's 4a) see only the shard's display name, one bar (both tracks, half each) and a short line;
+ * Players (E140, the user's 4a) see only the shard's display name, one bar weighted by measured stage time and a short line;
  * the tracks, the step log, the tier line and "Loading chunk · <slug>" are developer mode's (`<html data-dev>`, set by
  * index.html before the first paint — src/engine/core/devMode.ts; loading.css does the hiding).
  */
@@ -61,17 +63,23 @@ export class Loading {
   private textureBytes = 0;
   private readonly attempt: number;
   private admission: LoadingAdmission | null = null;
-  private admissionUnits = 0;
-  private hasProductAdmission = false;
   private readonly downloads: DownloadAccounting;
   private readonly downloadObserver: PerformanceObserver;
   private readonly timeline: LoadingTimeline;
   private phase: { end: () => void; detail: (text: string) => void } | undefined;
   private phaseKey = 'modules';
   private readonly stall = new LoadingStall(performance.now());
+  private readonly identity: string;
+  private timingKey: LoadingTimingKey;
+  private expected: LoadingTimings = {};
+  private configured = false;
+  private finished = false;
+  private shownSetup = 0;
   private readonly admissionPhases = new Set<string>();
 
   constructor(chunk: { id: string; name: string; trace?: boolean }) {
+    this.identity = chunk.id;
+    this.timingKey = { tier: TIER, path: 'pending', identity: this.identity };
     startBoot({ id: chunk.id, name: chunk.name }, TIER === 'phone' && chunk.trace === true);
     const nav: { hardwareConcurrency?: number | undefined } = navigator; // Safari < 15.4 has no hardwareConcurrency
     // index.html paints this panel from its first bytes (src/engine/boot/shell.ts): adopt it; a page without it gets a fresh one
@@ -126,10 +134,6 @@ export class Loading {
     const phase = progress.phase === 'modules' ? 'modules' : 'admission';
     if (this.phase !== undefined && phase !== this.phaseKey) { this.phase.end(); this.phase = this.timeline.begin(phase); this.phaseKey = phase; }
     this.phase?.detail(`${progress.detail} · ${progress.filesDone} / ${progress.filesTotal} files · ${formatMB(progress.bytesRead)} read`);
-    if (progress.phase !== 'modules') {
-      this.hasProductAdmission = true;
-      this.admissionUnits = Math.max(this.admissionUnits, progress.phase === 'complete' ? 4 : progress.phase === 'cache' ? 3 : progress.phase === 'validation' ? 2 : progress.phase === 'assets' || progress.phase === 'hash' ? 1 : 0);
-    }
     setData(this.root, 'step', `admission.${progress.phase}`);
     this.dirty = true;
   }
@@ -140,7 +144,14 @@ export class Loading {
   }
 
   /** The composition root supplies the actual path's vocabulary before its product or world starts. */
-  setPath(path: LoadingPath): void { this.timeline.configure(path); setData(this.root, 'path', path.id); }
+  setPath(path: LoadingPath): void {
+    this.timeline.configure(path); setData(this.root, 'path', path.id);
+    this.timingKey = { tier: TIER, path: path.id, identity: this.identity };
+    const calibration = LOADING_CALIBRATION.find(row => row.tier === TIER && row.path === path.id && row.identity === this.identity)
+      ?? LOADING_CALIBRATION.find(row => row.tier === TIER && row.path === path.id && row.identity === '*');
+    this.expected = loadingExpectations(path.steps, calibration?.ms, loadPathTimings(this.timingKey));
+    this.configured = true;
+  }
   /** End pre-session admission before LevelLoader's data/world boundaries take over. */
   endAdmission(): void { this.phase?.end(); this.phase = undefined; }
 
@@ -153,7 +164,7 @@ export class Loading {
   paint(view: ProgressView): void {
     this.phase?.end(); this.phase = undefined;
     let v = view;
-    if (this.hasProductAdmission) v = { ...v, setup: (v.setup * BOOT_STEPS.length + this.admissionUnits) / (BOOT_STEPS.length + 4) };
+    v = { ...v, setup: this.setupProgress() };
     const transfer = this.downloadProgress(v.done);
     v = { ...v, bytesRead: transfer.networkBytes, bytesTotal: transfer.networkBytes + transfer.pendingBytes,
       filesDone: transfer.filesDone, filesTotal: transfer.filesTotal, download: transfer.fraction };
@@ -177,15 +188,16 @@ export class Loading {
     const hardware: { hardwareConcurrency?: number | undefined } = navigator;
     set(this.els.tier, engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), hardware.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), window.__ws_sw ? engineString('s_5c75b0e90774') : '']));
     const pct = (f: number): string => String(Math.floor(f * 100));
+    setData(this.root, 'setup', pct(v.setup));
     set(this.els.dlPct, pct(v.download));
     set(this.els.suPct, pct(v.setup));
     const dl = `${(v.download * 100).toFixed(1)}%`, su = `${(v.setup * 100).toFixed(1)}%`;
     if (this.els.dlBar.style.width !== dl) this.els.dlBar.style.width = dl;
     if (this.els.suBar.style.width !== su) this.els.suBar.style.width = su;
-    // the player's one bar: download and setup, half each (each only grows, so the sum does); 100 only when both are
-    const all = (v.download + v.setup) / 2, allW = `${(all * 100).toFixed(1)}%`;
+    // Admission and setup share the measured stage clock; completion alone grants 100.
+    const all = v.setup, allW = `${(all * 100).toFixed(1)}%`;
     if (this.els.bar.style.width !== allW) this.els.bar.style.width = allW;
-    set(this.els.line, v.done ? engineString('s_5fa7aac5375c') : engineString('s_bf5e849564ae', [v.worldBytesReady ? 'Building the world' : engineString('s_37b345555d7e'), pct(all)]));
+    set(this.els.line, this.finished ? engineString('s_5fa7aac5375c') : engineString('s_bf5e849564ae', [v.worldBytesReady ? 'Building the world' : engineString('s_37b345555d7e'), pct(all)]));
     this.paintDownloads(v.done);
     this.paintRows();
   }
@@ -195,12 +207,12 @@ export class Loading {
     if (p === null) return;
     this.dirty = false;
     const download = this.paintDownloads(false);
-    const setup = this.admissionUnits / (BOOT_STEPS.length + 4);
+    const setup = this.setupProgress();
     setData(this.root, 'download', String(Math.floor(download * 100)));
     setData(this.root, 'setup', String(Math.floor(setup * 100)));
     set(this.els.dlPct, String(Math.floor(download * 100))); set(this.els.suPct, String(Math.floor(setup * 100)));
     this.els.dlBar.style.width = `${download * 100}%`; this.els.suBar.style.width = `${setup * 100}%`;
-    this.els.bar.style.width = `${(download + setup) * 50}%`;
+    this.els.bar.style.width = `${setup * 100}%`;
     set(this.els.suFact, p.detail); set(this.els.line, p.detail);
     this.paintRows();
   }
@@ -211,6 +223,12 @@ export class Loading {
     const fraction = done && transfer.pendingBytes === 0 && transfer.unclassifiedBytes === 0 ? 1
       : Math.min(0.999, transfer.networkBytes / (transfer.networkBytes + transfer.pendingBytes + 1));
     return { ...transfer, fraction };
+  }
+
+  private setupProgress(): number {
+    if (!this.configured) return 0;
+    this.shownSetup = Math.max(this.shownSetup, loadingFraction(this.timeline.snapshot().rows, this.expected, this.finished));
+    return this.shownSetup;
   }
 
   private paintDownloads(done: boolean): number {
@@ -243,6 +261,8 @@ export class Loading {
       if (el.className !== cls) el.className = cls;
       set(el.children[0] as HTMLElement, engineString('s_dd0d06d0c0aa', ['number' in r ? engineString('s_loading_step_label', [r.number, r.label]) : r.label]));
       set(el.children[1] as HTMLElement, 'detail' in r ? r.detail : '');
+      setData(el, 'key', 'key' in r ? r.key : 'gap');
+      setData(el, 'ms', String(r.ms));
       const ms = r.ms;
       set(el.children[2] as HTMLElement, ms >= 1000 ? engineString('s_51b784eb9dd6', [(ms / 1000).toFixed(1)]) : engineString('s_f3813306296c', [Math.round(ms)]));
     });
@@ -268,9 +288,10 @@ export class Loading {
     this.paintWaiting();
     const s = (now - this.t0) / 1000;
     set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
-    // the running step's ms is live: repaint rows so its clock moves without a plan event
-    if (this.dirty) this.paintNow();
-    else if (!this.view?.done) this.paintRows();
+    // Easing continues through a quiet wait without needing another producer event.
+    if (this.view !== null) this.view = { ...this.view, setup: this.setupProgress() };
+    this.dirty = true;
+    this.paintNow();
   }
 
   private paintWaiting(): void {
@@ -281,7 +302,7 @@ export class Loading {
     const current = timeline.rows.find(row => row.key === timeline.current);
     const signature = `${timeline.current}:${timeline.rows.map(row => `${row.state}:${row.detail}`).join('|')}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
     const quietMs = this.stall.quietMs(signature, performance.now());
-    const stalled = this.view?.done !== true && quietMs >= 10_000;
+    const stalled = !this.finished && quietMs >= 10_000;
     setData(this.root, 'stalled', String(stalled));
     setData(this.root, 'waiting', wait?.label ?? '');
     setData(this.root, 'filesInFlight', String(files.length));
@@ -303,11 +324,15 @@ export class Loading {
   }
 
   /**
-   * Fade out and resolve when gone. The panel already shows 100 / 100 (painted by the plan's done());
+   * Complete the path, store its exclusive stage times, then fade out and resolve when gone.
    * it used to hold that for 350 ms and fade for 700 — a second of nothing between a built world and
    * the title menu, on every launch. The fade (loading.css) is 250 ms; the menu is live under it.
    */
   done(): Promise<void> {
+    this.finished = true;
+    const measured = Object.fromEntries(this.timeline.snapshot().rows.filter(row => row.state !== 'todo').map(row => [row.key, row.ms]));
+    savePathTimings(this.timingKey, measured);
+    if (this.view !== null) this.paint(this.view);
     return new Promise((resolve) => {
       this.root.classList.add('hide');
       this.scope.timeout(250, () => { this.scope.cancelRaf(this.raf); this.scope.dispose(); resolve(); });

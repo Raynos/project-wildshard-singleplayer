@@ -882,6 +882,13 @@ reset a stall. Loader diagnostics omit reload history and identify observed
 frame-update gaps as including JS, GC, layout and suspension; they do not claim
 CPU utilisation. Home-region counts come from the actual regional world.
 
+`Loading.setPath(path)` selects the path table and timing-history key
+(tier, path, identity). `boot/weights` blends measured baseline and local
+stage timings; a running stage eases toward its expected time share,
+while `Loading.done()` grants completion and stores exclusive durations.
+The committed `boot/calibration` table cites Simulator receipts; paths
+without measurements use the declared step weights as a fallback.
+
 ### Pre-entry safe
 
 `@wildshard/engine/boot/retry` is the import-free retry module: it exports only `retried`. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Every other loader imports the same module.
