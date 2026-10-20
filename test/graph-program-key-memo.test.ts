@@ -1,6 +1,7 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
+import { NodeMaterial } from 'three/webgpu';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
@@ -49,4 +50,36 @@ test('the program-key memo follows a target bound inside one render call', () =>
   Reflect.set(renderer, 'toneMapping', THREE.NoToneMapping);
   expect(key()).not.toBe(litKey);
   handler.renderEnd();
+});
+
+// The memo outlives a render call while the scene's hash (lights, environment, fog), the target and the output transform
+// hold: the stock key's node walk runs once, not once per render call; a scene hash change keys afresh.
+test('the program-key memo outlives render calls of an unchanged scene', () => {
+  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
+  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
+  const fields: Record<string, unknown> = {
+    extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => null,
+    toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
+    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
+    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
+  };
+  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+  const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
+  const material = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(), material);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(), sun = new THREE.DirectionalLight();
+  scene.add(mesh);
+  const walk = vi.spyOn(NodeMaterial.prototype, 'customProgramCacheKey');
+  const call = (lights: THREE.Light[]): string => {
+    handler.renderStart(scene, camera); handler.updateLights(lights); handler.setObject(mesh, material);
+    const key = material.customProgramCacheKey(); handler.renderEnd(); return key;
+  };
+  const first = call([]);
+  expect(call([])).toBe(first); expect(call([])).toBe(first);
+  expect(walk).toHaveBeenCalledTimes(1);
+  scene.fog = new THREE.Fog(0xffffff, 1, 10);
+  const fogged = call([sun]);
+  expect(fogged).not.toBe(first); expect(walk).toHaveBeenCalledTimes(2);
+  expect(call([sun])).toBe(fogged); expect(walk).toHaveBeenCalledTimes(2);
+  walk.mockRestore();
 });

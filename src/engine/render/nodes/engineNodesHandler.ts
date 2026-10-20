@@ -192,7 +192,7 @@ interface StockInternals {
   updateNodes: (nodes: unknown) => void;
   getOutputCallback: (outputNode: Node<'vec4'>, builder: NodeBuilder) => Node<'vec4'>;
   customProgramCacheKeyCallback: (this: THREE.Material) => string;
-  renderStack: { camera: THREE.Camera; sceneContext: { fogNode: Node | null; environmentNode: Node | null; scene: THREE.Object3D } }[];
+  renderStack: { camera: THREE.Camera; sceneContext: { fogNode: Node | null; environmentNode: Node | null; scene: THREE.Object3D; getCacheKey: () => unknown } }[];
   programCache: Map<THREE.Material, Map<unknown, ProgramEntry>>;
   collectUniformsGroups: (builder: unknown) => unknown[];
   onBeforeRenderCallback: THREE.Material['onBeforeRender'];
@@ -357,7 +357,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    * bound target and the renderer's output transform. Its stamp advances whenever one of them moves, so a target bound
    * inside one render call (or a light update) never reuses a key computed for the previous target (sp-o286, sp-o290).
    */
-  private keyContext: { top: object; lights: number; target: THREE.RenderTarget | null; toneMapping: THREE.ToneMapping; colorSpace: string; stamp: number } | null = null;
+  private keyContext: {
+    top: object; lights: number; readonly scene: object; readonly sceneKey: unknown; readonly target: THREE.RenderTarget | null;
+    readonly toneMapping: THREE.ToneMapping; readonly colorSpace: string; readonly stamp: number;
+  } | null = null;
   /** the last key context's stamp (`keyContextNow`) */
   private keyContextStamp = 0;
   /** advances at every `updateLights`: the key context's validity */
@@ -419,8 +422,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const frame = (): unknown => Reflect.get(this, 'nodeFrame');
     // The stock key walks every own property of the material and hashes its node children, and the warm draw path asks
     // for it on every draw (shadow casts too): on Safari that walk was a large share of a Driftwood frame (sp-o276).
-    // It is computed once per material, receive-shadow flag and key context (render call, lights, bound target, output
-    // transform: `keyContextNow`), and again whenever the material's version moves.
+    // It is computed once per material, receive-shadow flag and key context (scene hash, bound target, output transform:
+    // `keyContextNow`), and again whenever the material's version moves.
     const stockKeys = this.stockKeys, keyContext = (): number => this.keyContextNow();
     self.customProgramCacheKeyCallback = function customProgramCacheKeyCallback(this: THREE.Material): string {
       const current = frame();
@@ -473,20 +476,24 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   }
 
   /**
-   * The stamp of the current key context (`keyContext`): the same number while the render call, lights, bound target and
-   * output transform stay put, a new one when any moves; -1 where no key may be kept (outside a render call, or an XR
-   * target, whose output space is its texture's and may move without the target changing).
+   * The stamp of the current key context (`keyContext`): the same number while the scene context and its hash (lights,
+   * environment, fog), the bound target and the output transform stay put, across render calls; a new one when any moves;
+   * -1 where no key may be kept (outside a render call, or an XR target, whose output space is its texture's and may move
+   * without the target changing).
    */
   private keyContextNow(): number {
     const top = internals(this).renderStack.at(-1), renderer = this.real;
     if (top === undefined || renderer === null) return -1;
     const target = renderer.getRenderTarget();
     if (target !== null && Reflect.get(target, 'isXRRenderTarget') === true) return -1;
-    const c = this.keyContext;
-    if (c?.top === top && c.lights === this.lightsStamp && c.target === target &&
-      c.toneMapping === renderer.toneMapping && c.colorSpace === renderer.outputColorSpace) return c.stamp;
+    const c = this.keyContext, same = c?.target === target && c.toneMapping === renderer.toneMapping && c.colorSpace === renderer.outputColorSpace;
+    if (same && c.top === top && c.lights === this.lightsStamp) return c.stamp;
+    // A new render call or light update: the stock key's scene part is the scene context's hash (its lights, environment
+    // and fog), read once here; an unchanged hash keeps the stamp, so a material's key outlives the render call.
+    const scene = top.sceneContext, sceneKey = scene.getCacheKey();
+    if (same && c.scene === scene && c.sceneKey === sceneKey) { c.top = top; c.lights = this.lightsStamp; return c.stamp; }
     const stamp = ++this.keyContextStamp;
-    this.keyContext = { top, lights: this.lightsStamp, target, toneMapping: renderer.toneMapping, colorSpace: renderer.outputColorSpace, stamp };
+    this.keyContext = { top, lights: this.lightsStamp, scene, sceneKey, target, toneMapping: renderer.toneMapping, colorSpace: renderer.outputColorSpace, stamp };
     return stamp;
   }
 
