@@ -9,6 +9,8 @@ import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldSce
 import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseRiggedHullBook } from '@wildshard/format/riggedHulls';
+import { PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
+import * as v from 'valibot';
 import { plumbingKnob } from '../shard/declaredPlumbing';
 import { recordSceneProfile } from './sceneProfile';
 
@@ -97,7 +99,7 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
 /** Project only exclusive alternatives selected by existing typed presentation hosts.
  * Transport stays fully charged. References elsewhere or dependencies keep an asset resident;
  * arbitrary runtime names and unselected scene batches are never treated as tier selectors. */
-export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop'): Shardfile {
+export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop', assets?: ReadonlyMap<string, Uint8Array>): Shardfile {
   const descriptor = outputDescriptor(source);
   if (descriptor === undefined) return source;
   const names = new Map<string, string>();
@@ -161,6 +163,17 @@ export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop'):
     };
     off(book.tiers[tier === 'phone' ? 'desktop' : 'phone']);
     sections.set('look/rigged-hulls', { ...book, tiers: { [tier]: book.tiers[tier] } });
+  }
+  // Posed libraries (looks/posedInstances.ts) read only their page tier's geometry and atlas.
+  // Only a small named JSON can be one; the strict schema, not a name, identifies it.
+  if (assets !== undefined) for (const file of source.files) {
+    const bytes = file.kind === 'json' && file.decoded <= 65_536 ? assets.get(file.hash) : undefined;
+    const text = bytes === undefined ? '' : new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (!text.includes('"tiers"')) continue;
+    const row = v.safeParse(PosedLibrarySchema, JSON.parse(text));
+    if (!row.success) continue;
+    const selected = row.output.tiers[tier], other = row.output.tiers[tier === 'phone' ? 'desktop' : 'phone'];
+    alternative(selected.geometry, other.geometry); alternative(selected.atlas, other.atlas);
   }
   if (inactive.size === 0) return source;
   const visit = (input: unknown): void => {

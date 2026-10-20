@@ -258,7 +258,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
   }, options.memory, options.textures, scriptAdmissionRows(outputDescriptor(source)?.sections));
   if (receipt !== null && options.textures !== undefined) acceptValidatedCost(source,
-    deviceLibraryCost(scopedSpecimenLibrarySource(urlImageLibrarySource(options.tier === undefined ? source : tierLibrarySource(source, options.tier), assets), assets, options.tier === undefined ? undefined : { tier: options.tier, ...(options.quality === undefined ? {} : { overrides: options.quality }) }), assets, options.textures), options.memory);
+    deviceLibraryCost(scopedSpecimenLibrarySource(urlImageLibrarySource(options.tier === undefined ? source : tierLibrarySource(source, options.tier, assets), assets), assets, options.tier === undefined ? undefined : { tier: options.tier, ...(options.quality === undefined ? {} : { overrides: options.quality }) }), assets, options.textures), options.memory);
   if (!options.offline && options.cache !== undefined) {
     progress('cache', 'Saving verified offline assets');
     const cache = options.cache, descriptor = outputDescriptor(source);
