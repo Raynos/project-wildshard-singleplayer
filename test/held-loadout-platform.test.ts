@@ -9,7 +9,7 @@ import itemRows from '../src/shards/pine-hollow/data/items.generated.json' with 
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { AmmoPouch } from '../src/game/loadout/pouch';
-import { NativeHeldAmmunition } from '../src/game/loadout/nativeAmmunition';
+import { NativeHeldAmmunition, installNativeHeldAmmunition, nativeHeldAmmunition } from '../src/game/loadout/nativeAmmunition';
 import { loadoutLegacySlot } from '../src/game/loadout/persistence';
 import { restoreHeldOwnership } from '../src/game/loadout/held';
 import { SaveStore } from '../src/engine/saves/store';
@@ -88,12 +88,15 @@ test('harbour native ammunition keeps swaps, caps, fallback and atomic continuat
   }
   if (crossbowState === undefined) throw new Error('Missing native harbour launcher');
   const crossbow = { state: crossbowState };
-  const ammunition = new NativeHeldAmmunition(host, rows, items);
+  const ammunition = installNativeHeldAmmunition(host, rows, items);
   try {
+  expect(nativeHeldAmmunition(host)).toBe(ammunition);
+  expect(() => installNativeHeldAmmunition(host, rows, items)).toThrow('Duplicate native ammunition owner');
   ammunition.add('flare', 5); ammunition.loadKind('flare'); expect(crossbow.state.quiver).toBe(5);
   expect(crossbow.state.loaded).toBe(true); expect(ammunition.changed).toBe(true);
   const saved = ammunition.snapshot();
   const resumed = new NativeHeldAmmunition(host, rows, items), commit = resumed.prepareRestore(saved);
+  expect(nativeHeldAmmunition(host)).toBe(ammunition);
   expect(resumed.selected).toBe('harpoon'); commit(); expect(resumed.snapshot()).toEqual(saved);
   expect(() => resumed.prepareRestore({ ...saved, flare: 4 })).toThrow(); expect(resumed.snapshot()).toEqual(saved);
   expect(() => resumed.prepareRestore({ ...saved, harpoon: 13 })).toThrow(); expect(resumed.snapshot()).toEqual(saved);
@@ -103,4 +106,5 @@ test('harbour native ammunition keeps swaps, caps, fallback and atomic continuat
   expect(resumed.selected).toBe('harpoon'); expect(crossbow.state.quiver).toBe(12);
   expect(crossbow.state.loaded).toBe(false);
   } finally { host.dispose(); }
+  expect(() => nativeHeldAmmunition(host)).toThrow('Missing native ammunition owner');
 });

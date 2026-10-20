@@ -21,7 +21,7 @@
     "@wildshard/game/boss/native": ["installGroundBoss"],
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
     "src/shards/pine-hollow/look/dayKeys": ["PINE_DAY"],
-    "@wildshard/game/loadout/nativeAmmunition": ["NativeHeldAmmunition"],
+    "@wildshard/game/loadout/nativeAmmunition": ["installNativeHeldAmmunition"],
     "@wildshard/game/plugin/weather": ["installWeatherContinuation"],
     "@wildshard/sdk/populationShelter": ["installNativeHerdShelter"],
     "@wildshard/game/plugin/mover": ["proveTerrainEntries"],
@@ -881,11 +881,11 @@
     {
       "name": "ammunition",
       "value": {
-        "$new": [
+        "$call": [
           {
             "$ref": [
               "@wildshard/game/loadout/nativeAmmunition",
-              "NativeHeldAmmunition"
+              "installNativeHeldAmmunition"
             ]
           },
           {
