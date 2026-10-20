@@ -13,15 +13,21 @@ it('checks emitted products against committed base data and reuses exact receipt
  const root=mkdtempSync('tmp/custom-section-gate-'),receipts=join(root,'receipts');
  const git=(...args:string[]):string=>execFileSync('git',['-C',root,...args],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
  const commit=():string=>{
-  git('add','lint/ratchet.json','src/shards/demo/shard.config.ts');
+  git('add','lint/ratchet.json','lint/legacy-shards.json','src/shards');
   return git('-c','user.name=Fixture','-c','user.email=fixture@example.test','commit-tree',git('write-tree'),'-m','Fixture');
  };
  try{
   git('init');
   mkdirSync(join(root,'lint'));mkdirSync(join(root,'src/shards/demo'),{recursive:true});
+  mkdirSync(join(root,'src/shards/demo-legacy'),{recursive:true});
   const budgets={'custom-sections/demo/count':1,'custom-sections/demo/bytes':8};
   writeFileSync(join(root,'lint/ratchet.json'),JSON.stringify({budgets}));
+  writeFileSync(join(root,'lint/legacy-shards.json'),JSON.stringify({version:1,sealed:true,shards:{'demo-legacy':{
+   primary:'demo',source:'a'.repeat(40),files:{'manifest.ts':'b'.repeat(64),'plugin.ts':'c'.repeat(64)},
+  }}}));
   writeFileSync(join(root,'src/shards/demo/shard.config.ts'),'export default {};');
+  // The builder does not emit a product for a reviewed frozen predecessor.
+  writeFileSync(join(root,'src/shards/demo-legacy/shard.config.ts'),'export default {};');
   const base=commit();
   mkdirSync(join(root,'progress/shard-platform/ruler'),{recursive:true});
   writeFileSync(join(root,'progress/shard-platform/ruler/ruler.json'),JSON.stringify({revision:base,
