@@ -2722,8 +2722,6 @@ The optional snapshot player `traversals` retains the registry's last claimed id
 the freshly installed traversal declarations. Restore publishes their active modes without invoking motion;
 inactive hosts omit the field and keep existing bytes. `PlayerModes.snapshotTraversals` / `restoreTraversals`
 only transfer those identities; the traversal's own clocks and targets remain its adapter's responsibility.
-`@wildshard/engine/player/modeData.MOTOR_MODE_MECHANISMS` is the pure manifest declaration for the fixed
-swim/wade and hoverboard modes.
 `usePlayerDriver({ input, step })` binds one scoped motion law to an owned host with a player motor.
 `input(command, dt, host)` runs before the one native physics step; true delegates the player to
 `step(dt, host)` after physics, skipping the ordinary walk/board/dodge/jump. False runs the ordinary

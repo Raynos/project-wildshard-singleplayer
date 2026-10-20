@@ -18,7 +18,6 @@
     "./models/placementBatch": "./models/placementBatch.ts",
     "./models/glbNodes": "./models/glbNodes.ts",
     "./models/ownedGeometry": "./models/ownedGeometry.ts",
-    "./player/modeData": "./player/modeData.ts",
     "./entities/bodyClear": "./entities/bodyClear.ts",
     "./entities/animalPose": "./entities/animalPose.ts",
     "./entities/animalRig": "./entities/animalRig.ts",
