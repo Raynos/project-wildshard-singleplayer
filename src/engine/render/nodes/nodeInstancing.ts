@@ -46,7 +46,7 @@ export function instanceColourNode(): Node<'vec3'> {
 
 /** Shader features only: neither object identity nor instance count adds a program. */
 export function nodeInstanceKey(object: unknown): string {
-  if (object instanceof BatchedMesh) return `batch:${batchHasColour(object) ? 'colour' : 'plain'}`;
+  if (object instanceof BatchedMesh) return batchHasColour(object) ? 'batch:colour' : 'batch:plain';
   return object instanceof InstancedMesh ? `instances:${object.instanceColor === null ? 'plain' : 'colour'}` : 'mesh';
 }
 

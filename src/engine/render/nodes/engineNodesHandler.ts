@@ -295,12 +295,39 @@ const nodeLayerFrame: NodeLayerFrameInstaller = (material, frame) => {
   return true;
 };
 
-// A bone buffer's declared array length is part of the linked program's layout.
+// A bone buffer's declared array length is part of the linked program's layout. The key is one string per shape (never
+// built per draw), so a warm key memo compares and hashes it once.
+const boneKeys = new Map<number, string>();
 function nodeObjectKey(object: unknown): string {
-  return `${nodeInstanceKey(object)}${object instanceof THREE.SkinnedMesh ? `|bones:${object.skeleton.bones.length}` : ''}`;
+  if (!(object instanceof THREE.SkinnedMesh)) return nodeInstanceKey(object);
+  const bones = object.skeleton.bones.length;
+  let key = boneKeys.get(bones);
+  if (key === undefined) { key = `${nodeInstanceKey(object)}|bones:${bones}`; boneKeys.set(bones, key); }
+  return key;
 }
 
 const PROGRAM_KEY = 'engine-nodes';
+
+/** a node material's whole program key: the stock key, the engine's output transform, the object shape, its fog and layer */
+function wholeKey(stock: string, toneMapped: boolean, rawOutput: boolean, objectKey: string, fog: { readonly id: string } | null, layer: { readonly whole: boolean } | null): string {
+  return `${stock}|${PROGRAM_KEY}|${toneMapped ? 'tm' : 'raw'}${rawOutput ? '|out:raw' : ''}|${objectKey}${fog === null ? '' : `|fog:${fog.id}`}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
+}
+
+/** one material's program keys within one key context and material version (`customProgramCacheKeyCallback`) */
+interface StockKeyMemo {
+  readonly stamp: number;
+  readonly version: number;
+  /** the stock key with and without the receive-shadow flag */
+  receive: string | undefined;
+  plain: string | undefined;
+  /** the parts of the whole key the memo was made under; a change empties `keys` */
+  fog: { readonly id: string } | null;
+  layer: { readonly whole: boolean } | null;
+  toneMapped: boolean;
+  rawOutput: boolean;
+  /** each object shape's whole key: [plain, receive] */
+  readonly keys: Map<string, [string | undefined, string | undefined]>;
+}
 
 /** three's node handler fitted to the engine's frame (the module comment lists what it changes); install it with `loadGraphBackend` */
 export class EngineNodesHandler extends WebGLNodesHandler {
@@ -324,7 +351,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** each classic PMREM environment's upright node (`ClassicPMREMNode`) */
   private readonly environments = new WeakMap<THREE.Texture, Node>();
   /** the stock program key per material, valid for one key context (`customProgramCacheKeyCallback`, `keyContextNow`) */
-  private readonly stockKeys = new WeakMap<THREE.Material, { stamp: number; version: number; receive: string | undefined; plain: string | undefined }>();
+  private readonly stockKeys = new WeakMap<THREE.Material, StockKeyMemo>();
   /**
    * What a program key's scene and output parts are computed under: the render call (its stack entry), the lights, the
    * bound target and the renderer's output transform. Its stamp advances whenever one of them moves, so a target bound
@@ -399,21 +426,28 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const current = frame();
       const object: unknown = typeof current === 'object' && current !== null ? Reflect.get(current, 'object') : undefined;
       const layer = layerFrameOf(this);
-      const fog = materialNodeFogOf(this) ?? fogPatches().at(-1);
-      const fogKey = fog?.node === undefined ? '' : `|fog:${fog.id}`;
+      const bound = materialNodeFogOf(this) ?? fogPatches().at(-1);
+      const fog = bound?.node === undefined ? null : bound;
       const receive = object instanceof THREE.Object3D && object.receiveShadow;
       const stamp = keyContext();
-      let stock: string | undefined;
-      if (stamp < 0) stock = stockKey.call(this);
-      else {
-        let memo = stockKeys.get(this);
-        if (memo === undefined || memo.stamp !== stamp || memo.version !== this.version) {
-          memo = { stamp, version: this.version, receive: undefined, plain: undefined }; stockKeys.set(this, memo);
-        }
-        stock = receive ? memo.receive : memo.plain;
-        if (stock === undefined) { stock = stockKey.call(this); if (receive) memo.receive = stock; else memo.plain = stock; }
+      const rawOutput = this.userData['graphRawOutput'] === true, objectKey = nodeObjectKey(object);
+      if (stamp < 0) return wholeKey(stockKey.call(this), this.toneMapped, rawOutput, objectKey, fog, layer);
+      let memo = stockKeys.get(this);
+      if (memo === undefined || memo.stamp !== stamp || memo.version !== this.version) {
+        memo = { stamp, version: this.version, receive: undefined, plain: undefined, fog, layer, toneMapped: this.toneMapped, rawOutput, keys: new Map() };
+        stockKeys.set(this, memo);
+      } else if (memo.fog !== fog || memo.layer !== layer || memo.toneMapped !== this.toneMapped || memo.rawOutput !== rawOutput) {
+        memo.fog = fog; memo.layer = layer; memo.toneMapped = this.toneMapped; memo.rawOutput = rawOutput; memo.keys.clear();
       }
-      return `${stock}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}${this.userData['graphRawOutput'] === true ? '|out:raw' : ''}|${nodeObjectKey(object)}${fogKey}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
+      // the whole key, kept per object shape and receive flag while its other parts hold (warm draws ask on every draw)
+      let shape = memo.keys.get(objectKey);
+      if (shape === undefined) { shape = [undefined, undefined]; memo.keys.set(objectKey, shape); }
+      const slot = receive ? 1 : 0, kept = shape[slot];
+      if (kept !== undefined) return kept;
+      let stock = receive ? memo.receive : memo.plain;
+      if (stock === undefined) { stock = stockKey.call(this); if (receive) memo.receive = stock; else memo.plain = stock; }
+      const key = wholeKey(stock, this.toneMapped, rawOutput, objectKey, fog, layer); shape[slot] = key;
+      return key;
     };
     this.epilogue.push((out, ctx) => {
       const bound = materialNodeFogOf(ctx.material);
