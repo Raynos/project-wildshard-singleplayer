@@ -172,8 +172,10 @@ export class CabinSceneRecorder {
       if (!record.hamlet && assembly.casters !== null) {
         const inverse = assembly.root.matrixWorld.clone().invert(), matrix = new THREE.Matrix4();
         for (const kind of propKinds) {
+          // One caster per placed copy: `geometry` already merges all of its parts, so
+          // repeating it per part only stacked identical depth (and 4x the phone proxy).
           const part = source.props[kind];
-          for (let partIndex = 0; partIndex < part.partCount; partIndex++) for (const values of record.props[kind])
+          for (const values of record.props[kind])
             assembly.casters.push(cabinTwoSidedPositions(part.geometry, matrix.multiplyMatrices(inverse, new THREE.Matrix4().fromArray(values)).multiply(new THREE.Matrix4().fromArray(part.matrix))));
         }
       }
