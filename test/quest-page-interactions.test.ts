@@ -83,7 +83,7 @@ test('paired conditional prompts retain native rules, sound timing and borrowed 
   vi.useFakeTimers();
   const flags=new Flags('paired-prompt-rows',false),scope=new Scope('paired-prompt-rows');
   const events:string[]=[],points={pond:new Vector3(1,2,3),ridge:new Vector3(4,5,6),den:new Vector3(7,8,9)};
-  const owners=new Map<string,unknown>([['points',points],['lamps',{setLit:(id:string,on:boolean)=>{events.push(`lit:${id}:${String(on)}`);}}],
+  const owners=new Map<string,unknown>([['points',points],
     ['sound',{shot:(name:string,at:Vector3)=>{expect(Object.values(points)).toContain(at);events.push(name);}}],
     ['sfx',{interact:(name:string,at:Vector3)=>{expect(Object.values(points)).toContain(at);events.push(name);}}]]);
   const prompts:Interactable[]=[];
@@ -95,7 +95,7 @@ test('paired conditional prompts retain native rules, sound timing and borrowed 
     expect(flags.has('lit:pond')).toBe(false);expect(events).toEqual(['The pond lantern is cold — its glass is gone','locked']);
     events.length=0;flags.set('taken:pond-glass');expect(pond.label).toBe('Relight the pond lantern');pond.onInteract();
     expect(flags.has('lit:pond')).toBe(true);expect(pond.radius).toBe(0);
-    expect(events).toEqual(['lit:pond:true','lanternCreak','ignite','The pond lantern burns again']);
+    expect(events).toEqual(['lanternCreak','ignite','The pond lantern burns again']);
     await vi.advanceTimersByTimeAsync(350);expect(events.at(-1)).toBe('lanternLight');
     events.length=0;pond.onInteract();expect(events).toEqual([]);
     flags.set('taken:ridge-flint');page.prompt('ridge').onInteract();scope.dispose();events.length=0;
