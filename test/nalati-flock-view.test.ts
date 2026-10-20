@@ -2,7 +2,7 @@ import { FlockBrain, type FlockPose } from '../src/engine/ai/flock';
 import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { parseFlock } from '../src/format/crowds';
-import viewRows from '../src/shards/nalati-grasslands/creatures/flock.json' with { type: 'json' };
+import viewRows from '../src/shards/nalati-grasslands/data/crowdView.json' with { type: 'json' };
 import { CrowdDraw } from '../src/game/ambient/crowdDraw';
 
 test('orchard crowd lends live poses to the shared draw and keeps prey and paused uploads authoritative', () => {
