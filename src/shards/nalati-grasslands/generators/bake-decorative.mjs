@@ -7,6 +7,7 @@ import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 const root = resolve(import.meta.dirname, '../../../..');
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-decorative');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/decorative.generated.json'), jsonBytes(withPortableMath(() => decorativeRows(new Uint8Array(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')))))));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/data/decorative.generated.json'), jsonBytes(withPortableMath(() => decorativeRows(new Uint8Array(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')))))));
 const places = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/places.json'), 'utf8'));
 const scenes = Object.fromEntries(places.rows.filter(row => !row.name.startsWith('actor:')).map(row => {
   const nodes = row.meshes.map((mesh, i) => ({ kind: 'mesh', id: `mesh-${i}`, geometry: `mesh-${i}`, material: mesh.material,
