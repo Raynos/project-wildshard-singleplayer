@@ -1,12 +1,14 @@
 import { expect, it } from 'vitest';
 import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from '../src/shards/nalati-grasslands-legacy/species/sheep';
 import { bakeSheepBody } from '../src/shards/nalati-grasslands/generators/sheepBody';
-import { readFlockBody } from '../src/shards/nalati-grasslands/runtime/flockDeclared';
+import { readCrowdBody } from '../src/game/ambient/crowdPage';
 import { FlockBrain } from '../src/engine/ai/flock';
 import { flock } from '../src/sdk/crowds';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { nalatiFlockRows as originalFlockRows } from '../src/shards/nalati-grasslands-legacy/creatures/flockRows';
 import { ShippingFlock } from './fixtures/flock-oracle/flock';
+
+const readFlockBody = (product: Parameters<typeof readCrowdBody>[0]) => readCrowdBody(product, { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
 
 const source = () => {
   const { bytes, ...row } = bakeSheepBody();

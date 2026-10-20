@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { CrowdBody as FlockBody } from '@wildshard/game/ambient/crowdDraw';
-import { createNativeFlocks, readFlockBody } from '../runtime/flockDeclared';
+import { createPageCrowds, readCrowdBody } from '@wildshard/game/ambient/crowdPage';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { productRiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
 import { titanCloud, titanPose } from '../combat/stormTitan';
@@ -27,6 +27,7 @@ const FILE = 'src/shards/nalati-grasslands/models/creatures.ts';
 /** the flock's seed for the card's sheep: its first draws make a cream sheep standing, head up */
 const SHEEP_SEED = 3;
 let sheepBody: FlockBody | null = null;
+let sheepRows: unknown;
 
 /**
  * the fat-tailed sheep: one of the camp's flock (src/engine/entities/Flock.ts — ~40 as ONE InstancedMesh, legs, head and the
@@ -36,11 +37,11 @@ let sheepBody: FlockBody | null = null;
 export const sheep: ModelDef<object> = defineModel<object>({
   id: 'nalati-grasslands/sheep', name: 'Fat-tailed sheep', category: 'creatures', pipeline: ['trellis', 'code'], file: FILE, surface: 'flesh',
   defaults: {},
-  prepare: async () => { sheepBody ??= await readFlockBody(await loadFirstPartyProduct('nalati-grasslands')); },
+  prepare: async () => { const product = await loadFirstPartyProduct('nalati-grasslands'); sheepBody ??= await readCrowdBody(product, { json: 'actors/sheep.json', binary: 'actors/sheep.bin' }); sheepRows = (await product.json<{ page: { specimen: unknown } }>('actors/sheep.json')).page.specimen; },
   build: (ctx) => {
     if (sheepBody === null) throw new Error('Sheep model requires its prepared body');
     const options = { x: 0, z: 0, count: 1, seed: SHEEP_SEED };
-    const flock = createNativeFlocks(ctx.sky, SHEEP_SEED, sheepBody, 'specimen');
+    const flock = createPageCrowds(ctx.sky, SHEEP_SEED, sheepBody, sheepRows);
     const mesh = flock.factory(options, 0).mesh;
     mesh.setMatrixAt(0, new THREE.Matrix4());   // the flock stood it on the terrain near (0, 0): its own space instead
     mesh.instanceMatrix.needsUpdate = true;

@@ -26,6 +26,7 @@
     "./boss/roamingProjection": "./boss/roamingProjection.ts",
     "./boss/socketRig": "./boss/socketRig.ts",
     "./population/creatureFrame": "./population/creatureFrame.ts",
+    "./ambient/crowdPage": "./ambient/crowdPage.ts",
     "./ambient/crowdDraw": "./ambient/crowdDraw.ts",
     "./riding/pagePasture": "./riding/pagePasture.ts",
     "./population/relations": "./population/relations.ts",

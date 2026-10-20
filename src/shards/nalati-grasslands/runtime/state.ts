@@ -1,10 +1,11 @@
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
 import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
-import { createNativeFlocks, readFlockBody, dogWolves, type NativeFlocks } from './flockDeclared';
+import { createPageCrowds, readCrowdBody, type PageCrowdViews } from '@wildshard/game/ambient/crowdPage';
 import { bindEnteredEnvironment } from './enteredEnvironment';
 import { PageWildlife, type WildlifeBuildStep } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
@@ -135,7 +136,9 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     nativeRide: v.object({ speeds:v.object({ walk:v.number(),trot:v.number(),canter:v.number(),gallop:v.number() }),thrownDamage:v.number(),thrownLabel:v.string() }) }) }), await plugin.product.json('sim/headless-assembly.json'));
   const ridingPreset = readPageRidingPreset(v.parse(v.object({ client:v.unknown() }),ridingPrograms).client);
   bindEliteAdmission(admission); bindHerdDamage(pageGroups, plugin.scope); bindEnteredEnvironment(plugin,pageGroups);
-  const flockBody = await readFlockBody(plugin.product); plugin.scope.own(flockBody.geometry);
+  const flockBody = await readCrowdBody(plugin.product, { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
+  const crowdPage = await plugin.product.json<{ page: { world: unknown } }>('actors/sheep.json');
+  const dogWolves: Animal[] = []; plugin.scope.own(flockBody.geometry);
   const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
   if (namePanel === undefined) throw new Error('Nalati requires its named horse panel');
   const { game, sky } = ctx;
@@ -144,7 +147,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const total = 7;
   progress?.set(0, total, 'Preparing world builders');
   const { practiceRoom } = await import('@wildshard/engine/core/practiceRoom');
-  let declaredCrowds: NativeFlocks | null = null;
+  let declaredCrowds: PageCrowdViews | null = null;
   const updates: ((dt: number, t: number) => void)[] = [];
   const groups: Record<string, Object3D> = {};
 
@@ -309,7 +312,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     attachedAnimals = animals;
     animals.wetAt = nalatiWetAt;
     animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
-    declaredCrowds = createNativeFlocks(sky, ctx.chunk.seed, flockBody);
+    declaredCrowds = createPageCrowds(sky, ctx.chunk.seed, flockBody, crowdPage.page.world, dogWolves);
     return new PageWildlife<Flock>(animals,pageWildlife);
   };
   const buildWildlifeStep = (w: Wildlife,step: WildlifeBuildStep): void => {
