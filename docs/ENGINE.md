@@ -10371,3 +10371,14 @@ world-matrix writes keep their original view phase.
 
 - `game/population/nativeBake`: Strict readers bind admitted actor and physics bake rows to native population owners.
 - `game/boss/arenaScript`: Declared arena programs bind boss state, attacks, contacts and entered encounter services.
+
+### Developer hover boost (G540)
+
+`Player.hoverBoost` is the shared HUD's session latch, initially false.
+Every board step gates it with `isDev()`. `player/hoverSpeed` accepts a
+base cap up to 30 m/s and an optional boost boolean: 4× at or below the
+14 m/s interior cruise, 2× at 30 m/s, smoothly eased between those ends.
+`ui/hoverBoost` mounts the shared touch/desktop BOOST button beside HOVER
+and scopes its DOM and listeners; it shows only while hovering in Developer.
+Shard manifests choose `hoverSpeedClass: 'road'` for grid padding; the
+default `'shard'` keeps ordinary cruise. See SHARDS.md for authoring.

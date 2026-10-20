@@ -1,4 +1,5 @@
 import { hoverSpeed } from './hoverSpeed';
+import { isDev } from '../core/devMode';
 import { walkingSpeed } from './walk';
 import { deepWater, entryKeep, NO_SPRINT_DEPTH, pondBob, stepSwim, swimEntry, swimStroke, wadeFraction, type SwimPorts } from './swim';
 import { combatSpeedFactor } from './combatMotion';
@@ -160,6 +161,8 @@ export class Player {
   moveScale = 1;
   /** Grid driver supplies a position-dependent board limit; standalone cruise retains HOVER_TOP. */
   hoverSpeedLimit: (() => number) | null = null;
+  /** Developer HUD latch; the motion law also fences it with isDev on every step. */
+  hoverBoost = false;
   /** the last board step's telemetry (player/board.ts), reused every step */
   private readonly boardOut: BoardStepOut = { lat: 0, fwd: 0, accel: 0, water: null };
   /** Status effects have their own channels; weapons keep moveScale. */
@@ -544,7 +547,7 @@ export class Player {
       this.hoverLanded = 0; this.hoverJumpKick = Math.max(0, this.hoverJumpKick - dt * 4);
       const out = this.boardOut, motor = this.motor;
       stepBoard(this.position, this.velocity, impulse, want, this,
-        { mx, mz, len, yaw: this.yaw, top: hoverSpeed(this.hoverSpeedLimit?.()), capped: this.hoverSpeedLimit !== null, jump },
+        { mx, mz, len, yaw: this.yaw, top: hoverSpeed(this.hoverSpeedLimit?.(), this.hoverBoost && isDev()), capped: this.hoverSpeedLimit !== null || this.hoverBoost, jump },
         { move: (feet, w) => { motor.move(feet, w, true); }, ground: groundAt, water: (x, z) => this.waterSurfaceAt(x, z),
           jumped: () => { this.commandJumpUsed = true; this.hoverJumpKick = 1; app.events.emit('player.jump', true); this.onJump?.(); },
           landed: (landing) => { this.hoverLanded = landing; this.onLand?.(landing > HOVER_HARD_LANDING); } }, dt, out);
@@ -700,7 +703,7 @@ export class Player {
     if (phase !== this.lastBobPhase && bobAmp > 0.005) { this.lastBobPhase = phase; this.onStep?.(this.sprinting); }
     // hover: roll gently into strafes / carves (from lateral velocity), nose down a hair at speed
     const rollT = hover ? -Math.max(-1, Math.min(1, this.hoverLat / HOVER_ROLL_AT)) * HOVER_ROLL : swim ? Math.sin(this.waveTime * 1.1) * 0.012 : 0;
-    const pitchT = hover ? -(hSpeed / hoverSpeed(this.hoverSpeedLimit?.())) * HOVER_PITCH : 0;
+    const pitchT = hover ? -(hSpeed / hoverSpeed(this.hoverSpeedLimit?.(), this.hoverBoost && isDev())) * HOVER_PITCH : 0;
     this.roll += (rollT - this.roll) * Math.min(1, dt * 5);
     this.pitchLean += (pitchT - this.pitchLean) * Math.min(1, dt * 3);
 

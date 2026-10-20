@@ -278,7 +278,8 @@
           -1,
           1
         ],
-        "billboard": "night-market"
+        "billboard": "night-market",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-sw",
@@ -286,7 +287,8 @@
           -1,
           -1
         ],
-        "billboard": "frostline-peaks"
+        "billboard": "frostline-peaks",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-se",
@@ -294,7 +296,8 @@
           1,
           -1
         ],
-        "billboard": "lantern-bayou"
+        "billboard": "lantern-bayou",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-0-0",
@@ -302,7 +305,8 @@
           -2,
           -2
         ],
-        "billboard": "coral-drift"
+        "billboard": "coral-drift",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-1-0",
@@ -310,7 +314,8 @@
           -1,
           -2
         ],
-        "billboard": "night-market"
+        "billboard": "night-market",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-2-0",
@@ -318,7 +323,8 @@
           0,
           -2
         ],
-        "billboard": "sky-race"
+        "billboard": "sky-race",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-3-0",
@@ -326,7 +332,8 @@
           1,
           -2
         ],
-        "billboard": "desert-ruin"
+        "billboard": "desert-ruin",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-4-0",
@@ -334,7 +341,8 @@
           2,
           -2
         ],
-        "billboard": "alien-plain"
+        "billboard": "alien-plain",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-0-1",
@@ -342,7 +350,8 @@
           -2,
           -1
         ],
-        "billboard": "lantern-bayou"
+        "billboard": "lantern-bayou",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-4-1",
@@ -350,7 +359,8 @@
           2,
           -1
         ],
-        "billboard": "ember-forge"
+        "billboard": "ember-forge",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-0-2",
@@ -358,7 +368,8 @@
           -2,
           0
         ],
-        "billboard": "ember-forge"
+        "billboard": "ember-forge",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-4-2",
@@ -366,7 +377,8 @@
           2,
           0
         ],
-        "billboard": "mosslight-ruins"
+        "billboard": "mosslight-ruins",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-0-3",
@@ -374,7 +386,8 @@
           -2,
           1
         ],
-        "billboard": "mosslight-ruins"
+        "billboard": "mosslight-ruins",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-4-3",
@@ -382,7 +395,8 @@
           2,
           1
         ],
-        "billboard": "clockwork-canyon"
+        "billboard": "clockwork-canyon",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-0-4",
@@ -390,7 +404,8 @@
           -2,
           2
         ],
-        "billboard": "frostline-peaks"
+        "billboard": "frostline-peaks",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-1-4",
@@ -398,7 +413,8 @@
           -1,
           2
         ],
-        "billboard": "thin-ice"
+        "billboard": "thin-ice",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-2-4",
@@ -406,7 +422,8 @@
           0,
           2
         ],
-        "billboard": "showcase-template"
+        "billboard": "showcase-template",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-3-4",
@@ -414,7 +431,8 @@
           1,
           2
         ],
-        "billboard": "starfall-observatory"
+        "billboard": "starfall-observatory",
+        "hoverSpeedClass": "road"
       },
       {
         "instance": "open-plot-4-4",
@@ -422,7 +440,8 @@
           2,
           2
         ],
-        "billboard": "sky-harbor"
+        "billboard": "sky-harbor",
+        "hoverSpeedClass": "road"
       }
     ],
     "developer": [

@@ -947,3 +947,17 @@ call `migrateRetiredLegacySave(store, primarySlug)` from the game retirement ins
 local entries; newer primary values and a primary reset barrier win. Failure leaves the durable destination intact
 and the source available for retry. It does not touch the profile or other shards. Do not merge while both entries
 coexist; retain the source until the retirement migration succeeds.
+
+## Hover speed class (G540)
+
+A discovery manifest may set `hoverSpeedClass: 'road'` to keep the grid's
+30 m/s board cruise inside a padding shard. Absent or `'shard'` retains the
+ordinary 14 m/s interior cruise; the entry strip still eases into road speed.
+Platform open plots declare the same road class in their catalogue rows.
+The six main shards and Showcase use the default class.
+
+While hovering, Developer shows a BOOST toggle beside HOVER on the shared
+HUD (touch or desktop). It starts off, gives 60 m/s on roads and padding,
+and 56 m/s in ordinary interiors, with a smooth transition over the strip.
+The Player gates the boost with Developer on every step, so a retained
+latch cannot boost the public build.

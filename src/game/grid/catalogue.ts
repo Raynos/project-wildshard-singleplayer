@@ -21,7 +21,7 @@ const layout = v.strictObject({ seed: v.pipe(v.number(), v.integer(), v.minValue
 const identity = v.strictObject({ accent: AccentSchema, marks: v.pipe(v.array(mark), v.maxLength(8)), layout: v.optional(layout) });
 const placement = v.strictObject({ instance: id, slug: id, cell: v.tuple([signed, signed]), identity: v.optional(identity) });
 /** G198 / G219: an open plot, a platform cell with no shard (the void floor, four entry showrooms and a centrepiece); G529: the idea its billboards picture. */
-const plot = v.strictObject({ instance: id, cell: v.tuple([signed, signed]), billboard: v.picklist(PLOT_IDEAS) });
+const plot = v.strictObject({ instance: id, cell: v.tuple([signed, signed]), billboard: v.picklist(PLOT_IDEAS), hoverSpeedClass: v.optional(v.literal('road'), 'road') });
 const channel = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1));
 const colour = v.tuple([channel, channel, channel]);
 const distance = v.pipe(v.number(), v.finite(), v.minValue(0));

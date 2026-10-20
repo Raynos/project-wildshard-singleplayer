@@ -1,8 +1,9 @@
-/** Board tuning port: standalone keeps 14 m/s; the grid may supply a finite cap up to 30 m/s. */
-export function hoverSpeed(limit?: number): number {
-  if (limit === undefined) return 14;
-  if (!Number.isFinite(limit) || limit <= 0 || limit > 30) throw new RangeError('Invalid hover speed cap');
-  return limit;
+/** Base cruise is 14 m/s standalone or a grid cap ≤ 30. Developer boost gives 4× interiors and 2× roads, easing over strips. */
+export function hoverSpeed(limit?: number, boost = false): number {
+  const base = limit ?? 14;
+  if (!Number.isFinite(base) || base <= 0 || base > 30) throw new RangeError('Invalid hover speed cap');
+  // Keep the strip smooth between 4× interior (56) and 2× road (60).
+  return boost ? base <= 14 ? base * 4 : 56 + (base - 14) / 4 : base;
 }
 
 /** m/s² the board loses gliding with no input, at or below the 14 m/s standalone cruise (25 % of its acceleration). */

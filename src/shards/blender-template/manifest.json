@@ -1,5 +1,6 @@
 {
   "api": 1,
+  "hoverSpeedClass": "road",
   "assetGlobs": [
     "public/assets/blender-template/map/**"
   ],

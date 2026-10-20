@@ -12,10 +12,11 @@ export function gridZone(local: Readonly<GridPoint>): 'shard' | 'strip' | 'highw
   const distance = Math.max(Math.abs(local.x), Math.abs(local.z));
   return distance <= CHUNK_HALF ? 'shard' : distance < CHUNK_HALF + STRIP ? 'strip' : 'highway';
 }
-/** Smoothly ease a lowered author cap (at most 14 m/s) to 30 m/s over the 20 m strip. */
-export function gridHoverSpeed(local: Readonly<GridPoint>, shardCap = 14): number {
+/** Road-class padding keeps 30 m/s; ordinary interiors ease a lowered cap (≤ 14 m/s) to 30 over the 20 m strip. */
+export function gridHoverSpeed(local: Readonly<GridPoint>, shardCap = 14, speedClass: 'shard' | 'road' = 'shard'): number {
   finite(local);
   if (!Number.isFinite(shardCap) || shardCap <= 0 || shardCap > 14) throw new RangeError('Invalid shard hover cap');
+  if (speedClass === 'road') return 30;
   const t = Math.max(0, Math.min(1, (Math.max(Math.abs(local.x), Math.abs(local.z)) - CHUNK_HALF) / STRIP));
   return shardCap + (30 - shardCap) * t * t * (3 - 2 * t);
 }
@@ -51,12 +52,12 @@ export function installGridTravellerCombat(events: Events, scope: Scope, travell
 /** Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. */
 export interface GridHoverPort { hoverSpeedLimit: (() => number) | null }
 /** Install the live deck/strip cap and restore the previous port when this residency scope leaves. */
-export function installGridHoverSpeed(player: GridHoverPort, scope: Scope, read: () => { local: Readonly<GridPoint>; shardCap: number; onHighwayDeck: boolean }): void {
+export function installGridHoverSpeed(player: GridHoverPort, scope: Scope, read: () => { local: Readonly<GridPoint>; shardCap: number; onHighwayDeck: boolean; speedClass?: 'shard' | 'road' }): void {
   if (scope.disposed) return;
   const previous = player.hoverSpeedLimit;
   const limit = () => {
     const state = read();
-    const cap = gridHoverSpeed(state.local, state.shardCap);
+    const cap = gridHoverSpeed(state.local, state.shardCap, state.speedClass);
     return gridZone(state.local) === 'highway' && !state.onHighwayDeck ? state.shardCap : cap;
   };
   player.hoverSpeedLimit = limit;

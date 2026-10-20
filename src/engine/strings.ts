@@ -1,5 +1,7 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
+  "s_hover_boost": "BOOST",
+  "s_hover_boost_label": "Hover boost",
   "s_interact_item_count": "⟦0⟧ ×⟦1⟧",
   "s_explore_playgrounds": "⟦0⟧ · playgrounds",
   "s_memory_saver": "Memory saver",

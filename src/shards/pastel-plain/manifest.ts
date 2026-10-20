@@ -10,6 +10,7 @@ export const PASTEL = {
   biome: 'Pastel alien plain', blurb: 'A lilac plain of pink rock: the hut, its blobs and the boss under a soft pastel sky (SF59 graph-material fixture).',
   card: { thumb: PASTEL_CARD, portrait: PASTEL_CARD, landscape: PASTEL_CARD },
   style: 'greybox' as const, kitLook: 'toon' as const, hands: 'toon' as const, weapon: 'custom' as const, treeCount: 0, trees: { factory: 'none' as const, noun: 'trees' },
+  hoverSpeedClass: 'road' as const,
   shardfile: '/shardfiles/pastel-plain/shard.json',
   // SF57: one admitted regional sim's measured resident cost (basis excluded; it is charged as sim-basis:), the highest of
   // Node, Chromium and WebKit readings; budgets.sim.resident (16 MB) stays the validated ceiling

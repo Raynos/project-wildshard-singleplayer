@@ -10,6 +10,7 @@ export const INK = {
   biome: 'Ink / cel valley', blurb: 'A sage valley between two ridges, every rock inked: the hut, its blobs and the boss under a paper sky (SF59 graph-material fixture).',
   card: { thumb: INK_CARD, portrait: INK_CARD, landscape: INK_CARD },
   style: 'greybox' as const, kitLook: 'toon' as const, hands: 'toon' as const, weapon: 'custom' as const, treeCount: 0, trees: { factory: 'none' as const, noun: 'trees' },
+  hoverSpeedClass: 'road' as const,
   shardfile: '/shardfiles/ink-cel-valley/shard.json',
   // SF57: one admitted regional sim's measured resident cost (basis excluded; it is charged as sim-basis:), the highest of
   // Node, Chromium and WebKit readings; budgets.sim.resident (16 MB) stays the validated ceiling

@@ -1,5 +1,6 @@
 {
   "api": 1,
+  "hoverSpeedClass": "road",
   "slug": "_template",
   "order": 1000,
   "status": "hidden",

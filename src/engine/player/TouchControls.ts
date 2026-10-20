@@ -1,4 +1,5 @@
 import { mountUi } from '../ui/ownership';
+import { mountHoverBoost } from '../ui/hoverBoost';
 import { app } from '../app/runtime';
 import { listenDom } from '../input/dom';
 import type { Action, TouchVerbSpec } from '../input/InputService';
@@ -150,13 +151,17 @@ export class TouchControls {
     this.weapons = weapons;
     this.lock = lock;
     this.active = force || IS_TOUCH;
-    if (!this.active) return;
+    if (!this.active) {
+      mountHoverBoost(document.getElementById('hud') ?? document.body, this.player, app.events, this.scope);
+      return;
+    }
     const hud = document.getElementById('hud') ?? document.body;
     hud.classList.add('touch');
     const root = document.createElement('div');
     root.className = 'ws-touch';
     root.innerHTML = engineString('s_d27c19bf3c27');
     mountUi(root, this.scope, hud);
+    mountHoverBoost(root, this.player, app.events, this.scope);
     this.scope.onDispose(() => { root.remove(); });
     // ── iOS WebKit hardening (E46 — Jake's iPhone): a long press on a button lifted a drag preview of the ATTACK disc (and
     //    fired pointercancel, so the heavy never charged), a quick double tap zoomed, a press selected text. Pointer events

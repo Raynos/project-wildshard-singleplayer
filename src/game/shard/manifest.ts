@@ -441,6 +441,8 @@ export type ShardEntryMode = 'legacy' | 'shardfile';
 export interface ShardEntries { readonly legacy: boolean; readonly shardfile: boolean; readonly public?: 'legacy' }
 
 export interface ShardManifest {
+  /** Interior board cruise: road preserves the grid road speed; absent/shard keeps the ordinary 14 m/s. */
+  hoverSpeedClass?: 'shard' | 'road';
   /** Frozen standalone copy. It is paired with the same slug without -legacy, hidden from ordinary cards and never admitted to the grid. */
   legacy?: true;
   /** Reviewed opaque-runtime home measurements, available before world bootstrap; the declaration shares this data. */

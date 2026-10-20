@@ -306,11 +306,16 @@ export class LiveGridSession {
       const active = this.hybrid.state();
       return active.instance === null ? undefined : this.runtimeRegions.get(active.instance)?.combatActors();
     });
-    // SF20d: 30 m/s on the deck, easing to the shard's 14 over the strip (the cell nearest the feet; the outer ring is deck too)
+    // Resolve immutable authored classes once; the physics tick reads the geometric cell, never the active motor frame.
+    const hoverClasses = new Map<string, 'shard' | 'road'>();
+    for (const cell of assembly.cells) hoverClasses.set(cell.cell.join(','), findShard(cell.slug)?.hoverSpeedClass ?? 'shard');
+    for (const plot of assembly.plots) hoverClasses.set(plot.cell.join(','), plot.hoverSpeedClass);
+    // SF20d/G540: 30 m/s on the deck and road-class padding; ordinary interiors ease down to 14 over the strip.
     installGridHoverSpeed(traveller, scope, () => {
       const feet = this.live.worldFeet(), p = assembly.pitch;
       const local = { x: feet.x - Math.round(feet.x / p) * p, y: feet.y, z: feet.z - Math.round(feet.z / p) * p };
-      return { local, shardCap: 14, onHighwayDeck: feet.y < 4 };
+      const speedClass = hoverClasses.get(`${Math.round(feet.x / p)},${Math.round(feet.z / p)}`) ?? 'shard';
+      return { local, shardCap: 14, onHighwayDeck: feet.y < 4, speedClass };
     });
     // the freeze fence: the home client's existing driver runs only while the traveller is in the home frame (sp-x5's handoff)
     scope.onDispose(gridHomeSim.take((sim) => {

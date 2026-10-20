@@ -220,6 +220,7 @@ export const ManifestMetadataSchema = v.strictObject({
   ground: v.exactOptional(v.strictObject({structures: v.literal(true), paths: v.exactOptional(v.literal('plugin'))})),
   groundColour: v.exactOptional(rgb), world: v.exactOptional(v.strictObject({killY: number})),
   boundary: v.exactOptional(v.strictObject({visible: v.boolean()})),
+  hoverSpeedClass: v.exactOptional(v.picklist(['shard', 'road'])),
   uses: v.exactOptional(v.pipe(v.array(v.picklist(['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'coins', 'loot', 'compendium', 'feats', 'bag.pack'])), v.maxLength(64))),
   loadout: v.exactOptional(v.strictObject({weapons: strings, tools: strings, start: strings, held: v.exactOptional(text), pickups: v.exactOptional(v.array(v.strictObject({id: text, at: text})))})),
   species: v.exactOptional(strings), encounters: v.exactOptional(strings),
