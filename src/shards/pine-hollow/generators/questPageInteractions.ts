@@ -1,4 +1,4 @@
-/** Waystone prompts borrow the existing native flag rules, landmark lights and entered sound timer. */
+/** Waystone prompts borrow native flag rules and the entered sound timer; the quest view draws lights from flags. */
 export const PINE_LANTERN_PAGE = {
   "actions": [
     {
@@ -24,10 +24,6 @@ export const PINE_LANTERN_PAGE = {
         ]
       },
       "after": [
-        {
-          "kind": "call",
-          "target": "pond.set-lit"
-        },
         {
           "kind": "call",
           "target": "pond.creak"
@@ -71,10 +67,6 @@ export const PINE_LANTERN_PAGE = {
       "after": [
         {
           "kind": "call",
-          "target": "ridge.set-lit"
-        },
-        {
-          "kind": "call",
           "target": "ridge.creak"
         },
         {
@@ -114,10 +106,6 @@ export const PINE_LANTERN_PAGE = {
         ]
       },
       "after": [
-        {
-          "kind": "call",
-          "target": "den.set-lit"
-        },
         {
           "kind": "call",
           "target": "den.creak"
@@ -220,18 +208,6 @@ export const PINE_LANTERN_PAGE = {
   "bindings": {
     "calls": [
       {
-        "target": "pond.set-lit",
-        "owner": "lamps",
-        "path": [
-          "setLit"
-        ],
-        "optional": true,
-        "args": [
-          "pond",
-          true
-        ]
-      },
-      {
         "target": "pond.creak",
         "owner": "sound",
         "path": [
@@ -297,18 +273,6 @@ export const PINE_LANTERN_PAGE = {
         ]
       },
       {
-        "target": "ridge.set-lit",
-        "owner": "lamps",
-        "path": [
-          "setLit"
-        ],
-        "optional": true,
-        "args": [
-          "ridge",
-          true
-        ]
-      },
-      {
         "target": "ridge.creak",
         "owner": "sound",
         "path": [
@@ -371,18 +335,6 @@ export const PINE_LANTERN_PAGE = {
               "ridge"
             ]
           }
-        ]
-      },
-      {
-        "target": "den.set-lit",
-        "owner": "lamps",
-        "path": [
-          "setLit"
-        ],
-        "optional": true,
-        "args": [
-          "den",
-          true
         ]
       },
       {
