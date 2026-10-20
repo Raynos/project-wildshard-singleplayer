@@ -1,3 +1,4 @@
+import { installClientCosmeticFinishes } from './clientCosmeticFinishes';
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneDressing } from './sceneDressing';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
@@ -62,6 +63,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       if (row.kind !== 'motion.channels') throw new Error('Invalid scene motion feature');
       installSceneMotion(ctx, row.rows, clientSceneHandles(ctx.product, resident));
     } },
+  'held.cosmetics': {phase:'kit',rank:30,lifetime:'entered',sections:['held/finishes'],install:installClientCosmeticFinishes},
   'held.melee': { phase: 'kit', rank: 10, lifetime: 'entered', sections: ['look/painted'], install: installClientHeldMelee,
     play: { rank: 20, install: enterClientHeldMelee } },
   'player.enter': { phase: 'world', rank: 50, lifetime: 'entered', sections: [], install: installClientPlayerEnter,
@@ -103,6 +105,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
       const rows = product.section('world/scenes').dressing;
       if (rows === undefined || !product.hasFile(rows.phone) || !product.hasFile(rows.desktop)) throw new Error('Dressing requires both declared tier files');
     }
+    if(plan.features.some(row=>row.kind==='held.cosmetics')&&product.section('held/finishes').cosmetics===undefined)throw new Error('Cosmetic feature requires declared finishes');
     if (plan.features.some(row => row.kind === 'weather.fields' && !product.shardfile.quests.quests.some(quest => quest.id === row.quest))) throw new Error('Weather fields require their declared quest');
     for (const row of plan.features) for (const name of CLIENT_FEATURES[row.kind].sections) {
       if (!product.has(name)) throw new Error(`Missing feature section ${name}`);

@@ -1,4 +1,8 @@
 // @vitest-environment happy-dom
+import { clientCosmeticFinishes } from '../src/game/shardfile/clientCosmeticFinishes';
+import { publishBoundPersistence } from '../src/game/quest/chapterBindings';
+import type { AdventurePersistence } from '../src/game/quest/persistence';
+import type { CosmeticState } from '../src/game/cosmetics/locker';
 import { clientSceneHandles } from '../src/game/shardfile/clientSceneHandles';
 import { expect, test, vi } from 'vitest';
 import fixture from './fixtures/client-plan.json' with { type: 'json' };
@@ -129,4 +133,26 @@ test('regional trusted entry runs the declared plan around raw runtime hooks', a
 test('dressing admission requires its tier declarations before world mutation',()=>{
   const f=context();
   expect(()=>admitClientPlan({version:1,features:[{kind:'world.dressing'}]},f.ctx.product)).toThrow('Dressing requires both declared tier files');
+});
+
+
+test('an orchard kit borrows its declared cosmetic feature and entered saved owner', async () => {
+  const f=context(),feature={version:1,features:[{kind:'held.cosmetics'}]};
+  f.sections.set('held/finishes',{order:[],rows:{},cards:[],extras:{}});
+  expect(()=>admitClientPlan(feature,f.ctx.product)).toThrow('Cosmetic feature requires declared finishes');
+  f.sections.set('held/finishes',{order:[],rows:{},cards:[],extras:{},cosmetics:{
+    cards:[{id:'pearl',name:'Pearl',blurb:'Light',lockedBlurb:'Win the race',icon:'sword'}],
+    skins:[{id:'pearl',slot:'tool',name:'Pearl',blurb:'Light',effect:'effect.pearl',grant:'cosmetic.pearl'}],paints:[]}});
+  let saved:CosmeticState={owned:[],worn:{}};
+  const persistence={cosmetics:{read:()=>saved,write:(value:CosmeticState)=>{saved=value;return true;}}} as AdventurePersistence;
+  publishBoundPersistence(f.ctx.scope,persistence);
+  const plan=admitClientPlan(feature,f.ctx.product);
+  expect(()=>clientCosmeticFinishes(f.ctx)).toThrow('not installed');
+  await installClientPhase(f.ctx,plan,'world',f.ctx.scope);
+  expect(()=>clientCosmeticFinishes(f.ctx)).toThrow('not installed');
+  await installClientPhase(f.ctx,plan,'kit',f.ctx.scope);
+  const {locker}=clientCosmeticFinishes(f.ctx);locker.own('pearl');
+  expect(saved).toEqual({owned:['pearl'],worn:{tool:'pearl'}});
+  expect(clientCosmeticFinishes(f.ctx).locker).toBe(locker);
+  f.ctx.scope.dispose();expect(()=>clientCosmeticFinishes(f.ctx)).toThrow('not installed');
 });

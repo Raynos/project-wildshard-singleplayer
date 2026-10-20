@@ -61,8 +61,8 @@ import { reseedGrassV2 } from '../look/field';
 import type { TamingPrograms as RidingPrograms } from '@wildshard/game/riding/taming';
 import { wireRide, type Ride } from '../ride/ride';
 import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
-import { CosmeticFinishLocker, CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
-import { nalatiSkinsSave } from '../weapons/saves';
+import type { CosmeticFinishLocker, CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
+import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
 import { placeSet, placedWithin } from '@wildshard/engine/models/sets';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 
@@ -379,7 +379,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   };
   const nalati: Nalati = {
     persistence, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan,
-    skins: new CosmeticFinishLocker(plugin.product.slug, plugin.product.section('held/finishes').cosmetics, persistence === undefined ? nalatiSkinsSave : { read: () => persistence.cosmetics.read(), write: (value) => { persistence.cosmetics.write(value); return true; } }),
+    get skins() { return clientCosmeticFinishes(plugin).locker; },
     attachAnimals(animals) {
       const w = prepareWildlife(animals);
       w.build();
@@ -405,8 +405,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       if(p.kit!==null){const bow=p.kit.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);}
       night.bindKit(p.kit);
       ride.bind({ toast: p.toast });
-      painter = new CosmeticFinishPainter(nalati.skins);
-      plugin.scope.onDispose(() => { painter?.dispose(); });
+      painter = clientCosmeticFinishes(plugin).painter;
     },
     onShot() { stealth?.noteShot(); if(play!==null&&play.kit!==null)play.kit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = now; },
     onImpact(_surface, point) {

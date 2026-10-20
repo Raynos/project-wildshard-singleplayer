@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/clientCosmeticFinishes": "./shardfile/clientCosmeticFinishes.ts",
     "./riding/client": "./riding/client.ts",
     "./riding/nativeTaming": "./riding/nativeTaming.ts",
     "./riding/presentation": "./riding/presentation.ts",
