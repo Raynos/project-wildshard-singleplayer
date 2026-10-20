@@ -1,4 +1,5 @@
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
+import { declareDownloadFile } from '@wildshard/engine/boot/bytes';
 import { boundedResponse, type ProductOptions } from './product';
 import { outputBlobUrl } from './outputDescriptor';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -22,6 +23,7 @@ export class ClientAssets {
     const present = this.wire.get(ref); if (present !== undefined) return pacedResolve(present);
     const hash = ref.replace(/^commons:/u, ''), base = new URL('.', this.options.base).href;
     const cap = file?.compressed ?? this.source.requires.commonsWire[hash] ?? 0;
+    declareDownloadFile(outputBlobUrl(this.source, ref, base), cap);
     let bytes = await this.options.cache?.asset(base, hash), downloaded = false;
     if (bytes === null || bytes === undefined) {
       if (this.options.offline) throw new Error('Missing cached resident tile');

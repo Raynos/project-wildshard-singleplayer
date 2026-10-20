@@ -6,6 +6,8 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Byte readers are injected: the section adapter runs in browsers and renderer-free Node admission. */
 export interface OutputDescriptorReader {
+  /** Expected sizes come from the parsed product index, before any section reads. */
+  declare?: (path: string, bytes: number) => void;
   read: (path: string, maximum: number) => Promise<Uint8Array>;
   hash: (bytes: Uint8Array) => Promise<string>;
   cached?: (hash: string) => Promise<Uint8Array | null>;
@@ -62,6 +64,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   if (!isJsonDataWithFileSchemas(input)) throw new Error('Shardfile descriptor requires bounded plain JSON');
   if (!isOutputIndex(input)) return input;
   const index = parseOutputIndex(input);
+  for (const file of [...index.sections, ...index.schemas]) reader.declare?.(file.path, file.bytes);
   const sections = new Map<string, unknown>();
   let cached = reader.cached !== undefined;
   const load = async (section: OutputIndex['sections'][number]): Promise<readonly [string, unknown]> => {

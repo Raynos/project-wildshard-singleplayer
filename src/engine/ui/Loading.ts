@@ -8,6 +8,7 @@ import { appIdentity } from '../app/identity';
 import { lastEndLine } from '../boot/lastEnd';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
 import { BOOT_STEPS } from '../boot/steps';
+import { DownloadAccounting, installDownloadAccounting } from '../boot/download';
 import './loading.css';
 
 const savedStorage = saveStorage('session');
@@ -58,12 +59,10 @@ export class Loading {
   private textureBytes = 0;
   private readonly attempt: number;
   private admission: LoadingAdmission | null = null;
-  private descriptorBytes = 0;
-  private admittedBytes = 0;
-  private admittedFiles = 0;
   private admissionUnits = 0;
   private hasProductAdmission = false;
-  private moduleBytes = 0;
+  private readonly downloads: DownloadAccounting;
+  private readonly downloadObserver: PerformanceObserver;
   private readonly admissionPhases = new Set<string>();
 
   constructor(chunk: { id: string; name: string; trace?: boolean }) {
@@ -78,9 +77,16 @@ export class Loading {
       this.root.innerHTML = loadShellTemplate();
       mountUi(this.root, this.scope, document.body);
     }
-    this.moduleBytes = Number(this.root.dataset['moduleBytes']) || 0;
     const startedAt = Number(this.root.dataset['startedAt']);
     if (Number.isFinite(startedAt) && startedAt >= 0 && startedAt <= this.t0) this.t0 = startedAt;
+    this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
+    this.scope.onDispose(installDownloadAccounting(this.downloads));
+    this.downloadObserver = new PerformanceObserver(list => {
+      for (const entry of list.getEntries()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
+      this.dirty = true;
+    });
+    this.downloadObserver.observe({ type: 'resource', buffered: true });
+    this.scope.onDispose(() => { this.downloadObserver.disconnect(); });
     const tagline = this.root.querySelector('.ws-load-tagline'); if (tagline === null) throw new Error('Loading: no tagline'); tagline.textContent = appIdentity().tagline;
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
@@ -108,8 +114,6 @@ export class Loading {
     if (this.view !== null) throw new Error('Admission progress arrived after world setup started');
     if (!this.admissionPhases.has(progress.phase)) { this.admissionPhases.add(progress.phase); recordBootCheckpoint(`admission:${progress.phase}`, { detail: progress.detail }); }
     this.admission = progress;
-    if (progress.phase === 'descriptor') this.descriptorBytes = progress.bytesRead;
-    else if (progress.phase !== 'modules') { this.admittedBytes = progress.bytesRead; this.admittedFiles = progress.filesDone; }
     if (progress.phase !== 'modules') {
       this.hasProductAdmission = true;
       this.admissionUnits = Math.max(this.admissionUnits, progress.phase === 'complete' ? 4 : progress.phase === 'cache' ? 3 : progress.phase === 'validation' ? 2 : progress.phase === 'assets' || progress.phase === 'hash' ? 1 : 0);
@@ -131,13 +135,10 @@ export class Loading {
    */
   paint(view: ProgressView): void {
     let v = view;
-    if (this.hasProductAdmission || this.moduleBytes > 0) {
-      const prior = this.moduleBytes + this.descriptorBytes + this.admittedBytes;
-      const bytesRead = v.bytesRead + prior, bytesTotal = v.bytesTotal + prior;
-      v = { ...v, bytesRead, bytesTotal, filesDone: v.filesDone + this.admittedFiles + (this.descriptorBytes > 0 ? 1 : 0), filesTotal: v.filesTotal + this.admittedFiles + (this.descriptorBytes > 0 ? 1 : 0),
-        download: v.done ? 1 : bytesTotal > 0 ? Math.min(0.999, bytesRead / bytesTotal) : v.download,
-        setup: this.hasProductAdmission ? (v.setup * BOOT_STEPS.length + this.admissionUnits) / (BOOT_STEPS.length + 4) : v.setup };
-    }
+    if (this.hasProductAdmission) v = { ...v, setup: (v.setup * BOOT_STEPS.length + this.admissionUnits) / (BOOT_STEPS.length + 4) };
+    const transfer = this.downloadProgress(v.done);
+    v = { ...v, bytesRead: transfer.networkBytes, bytesTotal: transfer.networkBytes + transfer.pendingBytes,
+      filesDone: transfer.filesDone, filesTotal: transfer.filesTotal, download: transfer.fraction };
     this.view = v;
     recordBootProgress(v);
     this.dirty = true;
@@ -168,9 +169,7 @@ export class Loading {
     const all = (v.download + v.setup) / 2, allW = `${(all * 100).toFixed(1)}%`;
     if (this.els.bar.style.width !== allW) this.els.bar.style.width = allW;
     set(this.els.line, v.done ? engineString('s_5fa7aac5375c') : engineString('s_bf5e849564ae', [v.worldBytesReady ? 'Building the world' : engineString('s_37b345555d7e'), pct(all)]));
-    set(this.els.dlFact, v.bytesTotal > 0
-      ? engineString('s_9efb7c208f96', [formatMB(v.bytesRead), formatMB(v.bytesTotal), v.filesDone, v.filesTotal, v.bytes && v.bytes.done < v.bytes.total ? engineString('s_614cafefe4f0', [v.bytes.label]) : ''])
-      : engineString('s_387d49323b0f'));
+    this.paintDownloads(v.done);
     set(this.els.suFact, engineString('s_af18899b96b3', [v.rows.findIndex(row => row.key === v.step) + 1, v.rows.length, v.label, v.detail ? engineString('s_614cafefe4f0', [v.detail]) : '']));
     this.paintRows();
   }
@@ -179,17 +178,31 @@ export class Loading {
     const p = this.admission;
     if (p === null) return;
     this.dirty = false;
-    const read = this.moduleBytes + this.descriptorBytes + this.admittedBytes;
-    const total = p.phase === 'modules' && this.admissionUnits === 4 ? read : p.bytesTotal > 0 ? this.moduleBytes + (p.phase === 'descriptor' ? p.bytesTotal : this.descriptorBytes + p.bytesTotal) : 0;
-    const download = total > 0 ? Math.min(0.999, read / total) : 0;
+    const download = this.paintDownloads(false);
     const setup = this.admissionUnits / (BOOT_STEPS.length + 4);
     setData(this.root, 'download', String(Math.floor(download * 100)));
     setData(this.root, 'setup', String(Math.floor(setup * 100)));
     set(this.els.dlPct, String(Math.floor(download * 100))); set(this.els.suPct, String(Math.floor(setup * 100)));
     this.els.dlBar.style.width = `${download * 100}%`; this.els.suBar.style.width = `${setup * 100}%`;
     this.els.bar.style.width = `${(download + setup) * 50}%`;
-    set(this.els.dlFact, `${formatMB(read)} read${total > 0 ? ` / ${formatMB(total)}` : ' · total pending'} · ${p.filesDone} / ${p.filesTotal} files`);
     set(this.els.suFact, p.detail); set(this.els.line, p.detail);
+  }
+
+  private downloadProgress(done: boolean) {
+    for (const entry of this.downloadObserver.takeRecords()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
+    const transfer = this.downloads.snapshot();
+    const fraction = done && transfer.pendingBytes === 0 && transfer.unclassifiedBytes === 0 ? 1
+      : Math.min(0.999, transfer.networkBytes / (transfer.networkBytes + transfer.pendingBytes + 1));
+    return { ...transfer, fraction };
+  }
+
+  private paintDownloads(done: boolean): number {
+    const transfer = this.downloadProgress(done);
+    setData(this.root, 'networkBytes', String(transfer.networkBytes));
+    setData(this.root, 'cachedBytes', String(transfer.cachedBytes));
+    setData(this.root, 'pendingBytes', String(transfer.pendingBytes));
+    set(this.els.dlFact, `${formatMB(transfer.networkBytes)} downloaded · ${formatMB(transfer.cachedBytes)} from cache · ${formatMB(transfer.pendingBytes)} still expected · ${transfer.filesDone} / ${transfer.filesTotal} files${transfer.unclassifiedBytes > 0 ? ` · ${formatMB(transfer.unclassifiedBytes)} source unknown` : ''}${done ? '' : ' · total pending'}`);
+    return transfer.fraction;
   }
 
   private paintRows(): void {

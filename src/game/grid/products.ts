@@ -17,6 +17,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
 import * as v from 'valibot';
+import { declareDownloadFile } from '@wildshard/engine/boot/bytes';
 
 const edgeRows = v.strictObject({ edge: EdgeProfilesSchema, entryways: EntrywaysSchema });
 const edges = new WeakMap<ResidencyAllocator, Map<string, Promise<Pick<Shardfile, 'edge' | 'entryways'>>>>();
@@ -28,6 +29,7 @@ export async function readGridProductEdges(url: string, identity: string, option
   if (declaredIdentity !== identity) throw new Error('Grid edge index identity differs from its cell');
   const section = index.sections.find(row => row.name === 'world/edge');
   if (section === undefined) throw new Error('Grid edge index lacks world/edge');
+  declareDownloadFile(new URL(section.path, url).href, section.bytes);
   const bytes = await boundedResponse(await options.fetch(new URL(section.path, url).href), section.bytes);
   if (bytes.length !== section.bytes || await options.hash(bytes) !== section.hash) throw new Error('Grid edge section hash or size mismatch');
   return v.parse(edgeRows, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));

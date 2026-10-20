@@ -433,31 +433,40 @@ async function documentResponse(event, req, url) {
   if (url.searchParams.has('v')) return networkFirst(req, SHELL, key, true);
   const hit = await cache.match(key, MATCH_OPTS);
   if (hit) {
-    if (offline()) return hit; // no revalidate that can only fail
+    if (offline()) return transportReceipt(hit, true); // no revalidate that can only fail
     event.waitUntil(
       fetch(req)
         .then((res) => putDocument(cache, key, res))
         .catch(() => undefined),
     );
-    return hit;
+    return transportReceipt(hit, true);
   }
   const res = await fetch(req);
   putDocument(cache, key, res.clone()).catch(() => undefined);
-  return res;
+  return transportReceipt(res);
 }
 
 /** the files a boot cannot survive losing: the hashed JS and CSS (fetchWhole) */
 const CODE_RE = /^\/assets\/[^/]+-[\w-]{8}\.(?:js|css)$/;
 const sleep = (ms) => new Promise((resolve) => { workerScope.timeout(ms, resolve); });
 
+/** Report provenance through Resource Timing, without reading or copying the response body. */
+function transportReceipt(response, cached = false) {
+  const headers = new Headers(response.headers);
+  const previous = headers.get('server-timing');
+  const bytes = Number(headers.get('content-length')) || 0;
+  headers.set('server-timing', `${previous ? `${previous},` : ''}${cached ? 'ws-cache' : `ws-network;dur=${bytes}`}`);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 async function cacheFirst(req, name) {
   const cache = await caches.open(name);
   const hit = await cache.match(req, MATCH_OPTS);
-  if (hit) return hit;
+  if (hit) return transportReceipt(hit, true);
   if (req.destination === 'script' || CODE_RE.test(new URL(req.url).pathname)) return fetchWhole(req, cache);
   const res = await fetch(req);
   if (res.ok) cache.put(req, res.clone()).catch(() => undefined);
-  return res;
+  return transportReceipt(res);
 }
 
 /**
@@ -479,7 +488,7 @@ async function fetchWhole(req, cache) {
       if (!res.ok) return res;
       const whole = new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers });
       cache.put(req, whole.clone()).catch(() => undefined);
-      return whole;
+      return transportReceipt(whole);
     } catch (e) {
       if (last) throw e;
       await sleep(wait);
@@ -497,16 +506,16 @@ async function networkFirst(req, name, key, doc = false) {
   const cache = await caches.open(name);
   if (offline()) {
     const hit = await cache.match(key ?? req, MATCH_OPTS);
-    if (hit) return hit;
+    if (hit) return transportReceipt(hit, true);
   }
   try {
     const res = await fetch(req);
     if (doc) putDocument(cache, key ?? req, res.clone()).catch(() => undefined);
     else if (res.ok) cache.put(key ?? req, res.clone()).catch(() => undefined);
-    return res;
+    return transportReceipt(res);
   } catch (e) {
     const hit = await cache.match(key ?? req, MATCH_OPTS);
-    if (hit) return hit;
+    if (hit) return transportReceipt(hit, true);
     throw e;
   }
 }

@@ -1,4 +1,5 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import { declareDownloadFile, recordCachedDownload } from '@wildshard/engine/boot/bytes';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
@@ -145,6 +146,7 @@ function resolveDescriptor(input: unknown, options: ProductOptions): Promise<unk
   const base = new URL('.', options.base).href, cache = options.cache;
   return resolveOutputDescriptor(input, {
     offline: options.offline, hash: options.hash, firstParty: options.firstParty,
+    declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
     read: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
     ...(cache === undefined ? {} : {
       cached: (hash: string) => cache.asset(base, hash),
@@ -233,6 +235,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     unique.set(hash, cap);
   }
   const transport = new Map<string, Uint8Array>(), addresses = [...unique];
+  for (const [hash, cap] of addresses) declareDownloadFile(outputBlobUrl(source, source.files.some(file => file.hash === hash) ? hash : `commons:${hash}`, base), cap);
   const verifiedCached = new Set<string>();
   let bytesRead = 0, filesDone = 0;
   const bytesTotal = addresses.reduce((total, [, cap]) => total + cap, 0);
@@ -339,8 +342,8 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partia
       const validation = typeof rawValidation === 'object' && rawValidation !== null && 'sourceHash' in rawValidation && typeof rawValidation.sourceHash === 'string' ? readValidationReceipt(rawValidation, rawValidation.sourceHash) : null;
       return { source: value.source, firstParty: value.firstParty, ...(validation === null ? {} : { validation }) };
     },
-    asset: (_base, hash) => ownedContent.get(hash),
-    verifiedAsset: hash => ownedContent.get(hash),
+    asset: async (_base, hash) => { const bytes = await ownedContent.get(hash); if (bytes !== null) recordCachedDownload(hash, bytes.length); return bytes; },
+    verifiedAsset: async hash => { const bytes = await ownedContent.get(hash); if (bytes !== null) recordCachedDownload(hash, bytes.length); return bytes; },
     ...(ownedContent instanceof ContentCacheWorker ? { verifiedPresent: (hash: string, bytes: number) => ownedContent.has(hash, bytes) } : {}),
     putAsset: (_base, hash, bytes) => ownedContent.put(hash, bytes), pin: (hashes) => ownedContent.pin(hashes),
     putProduct: async (base, product) => { await (await open()).put(productUrl(base), Response.json(product)); },

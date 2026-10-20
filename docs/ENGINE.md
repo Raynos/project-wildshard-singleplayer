@@ -840,6 +840,16 @@ closure. Callers await it and supply the same `ClientAssets.read` used by runtim
 and tile owners. Missing/corrupt bytes or a disposed owner refuse before claims
 publish; disposal releases the existing allocator leases.
 
+`declareDownloadFile(url, bytes)` and `recordCachedDownload(hash, bytes, url?)`
+in `@wildshard/engine/boot/bytes` report expected product-index sizes and verified
+cache reads to the active loading attempt. Resource Timing supplies page-wide
+network receipts, including modules and undeclared fetches. The loading screen
+shows downloaded bytes and cache bytes separately; unclassified worker receipts
+stay explicit. Service-worker responses carry transport provenance through
+Server-Timing without extra response-body reads. Expected files remain pending
+until a network or cache receipt arrives; completion credits from legacy steps
+are not downloaded bytes.
+
 ### Pre-entry safe
 
 `@wildshard/engine/boot/retry` is the import-free retry module: it exports only `retried`. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Every other loader imports the same module.
