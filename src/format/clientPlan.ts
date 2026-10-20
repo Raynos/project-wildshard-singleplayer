@@ -9,10 +9,12 @@ import { SceneMotionSchema } from './sceneMotion';
 import { ClientHeldMeleeSchema, ClientSpeciesProgramSchema, ClientQuestPageSchema, ClientPopulationSchema, ClientHeldBossSchema, ClientSpawnedBossSchema, ClientPlayerEnterSchema, ClientBossTelegraphSchema } from './clientNative';
 
 const finite=v.pipe(v.number(),v.finite()),rgb=v.tuple([finite,finite,finite]);
+const label=v.pipe(v.string(),v.minLength(1),v.maxLength(512));
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^[a-zA-Z][a-zA-Z0-9.-]*$/u));
 /** Client-only declarations select compiled platform features, never modules, owners or property paths. */
 export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('strings.register') }),
+  v.strictObject({kind:v.literal('world.sets'),rows:v.pipe(v.array(v.strictObject({place:label,id:label,name:label,file:label,pois:v.optional(v.pipe(v.array(label),v.maxLength(128),v.check(names=>new Set(names).size===names.length)),[]),x:finite,z:finite,r:v.pipe(finite,v.minValue(0))})),v.maxLength(128),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))}),
   v.strictObject({ kind: v.literal('held.cosmetics') }),
   v.strictObject({kind:v.literal('look.painterly'),shadeTint:rgb,rimColor:rgb,wind:v.strictObject({x:finite,z:finite,strength:finite})}),
   v.strictObject({ kind: v.literal('audio.scene') }),

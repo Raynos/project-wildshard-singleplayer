@@ -58,7 +58,7 @@ import { wireRide, type Ride } from '../ride/ride';
 import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
 import type { CosmeticFinishLocker, CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
-import { placeSet, placedWithin } from '@wildshard/engine/models/sets';
+import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 
 
@@ -200,21 +200,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   reseedGrassV2(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
   await dressing.addToSliced(game.scene, slicer(30).due);
   const dressPlaced = await dressing.place(plugin.app.registry, macrotask);
-  // every named place is a set (E315 M12): the models placed in it — the POIs', the rocks', the dressing's
-  const { placeSets } = v.parse(v.object({ placeSets: v.pipe(v.array(v.object({ place: v.string(), id: v.string(), name: v.string(), file: v.string(), pois: v.exactOptional(v.array(v.string())), x: v.number(), z: v.number(), r: v.number() })), v.length(17)) }), await plugin.product.json('world/water.json'));
-  const claimed = new Set(placeSets.flatMap(row => row.pois ?? []));
-  const loose = [...pois.placed].filter(([name]) => !claimed.has(name)).flatMap(([, placed]) => placed);
-  for (let index = 0; index < Math.min(17, placeSets.length); index++) {
-    const row = placeSets[index];
-    if (row === undefined) throw new Error('Missing named place row');
-    const members = [...(row.pois ?? []).flatMap(name => pois.placed.get(name) ?? []),
-      ...[...loose, ...rockPlaced, ...dressPlaced].flatMap(placed => {
-        const view = placedWithin(placed, row.x, row.z, row.r, 'centre');
-        return view === null ? [] : [view];
-      })];
-    if (members.length > 0) placeSet({ ...row, members, registry: plugin.app.registry });
-    await macrotask();
-  }
+  await bindClientPlaceSets(plugin,pois.placed,[...rockPlaced,...dressPlaced]);
   groups['dressing'] = dressing.group;
   updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
   await slice(++completed, total, 'Dressing');

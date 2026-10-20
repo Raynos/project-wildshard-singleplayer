@@ -1,3 +1,4 @@
+import { installClientPlaceSets } from './clientPlaceSets';
 import { Color } from 'three';
 import { syncPainterlySun,updatePainterly,setPainterlyLook,painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { wind } from '@wildshard/engine/world/steppeWind';
@@ -51,6 +52,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     if(retainsRuntimeServices(ctx))installEnteredRuntimeService(ctx,apply);else apply();
     ctx.system({id:'client.painterly',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>{updatePainterly(dt);painterlyUniforms.uPWind.value.set(wind.dirX,wind.dirZ,windUniforms.uWindStrength.value);}});
   }},
+  'world.sets': {phase:'world',rank:47,lifetime:'entered',sections:[],install:installClientPlaceSets},
   'strings.register': { phase: 'world', rank: 0, lifetime: 'entered', sections: ['ui/strings'],
     install: ctx => {
       const rows = ctx.product.section('ui/strings');

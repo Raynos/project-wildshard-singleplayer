@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/clientPlaceSets": "./shardfile/clientPlaceSets.ts",
     "./systems/looks/waterSurface": "./systems/looks/waterSurface.ts",
     "./shardfile/clientWaterSurfaces": "./shardfile/clientWaterSurfaces.ts",
     "./shardfile/clientCosmeticFinishes": "./shardfile/clientCosmeticFinishes.ts",
