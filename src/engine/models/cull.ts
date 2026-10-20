@@ -69,6 +69,13 @@ export interface CullView {
   onViewChange: (fn: (frustum: THREE.Frustum, eye: THREE.Vector3) => void) => void;
 }
 
+/** metres: an eye shift under this (no turn, no zoom) keeps the copies chosen for the last view (`View.changed`) */
+const EYE_JITTER = 0.02;
+/** the two world matrices' rotation-and-scale parts are exactly equal */
+function sameTurn(a: ArrayLike<number>, b: ArrayLike<number>): boolean {
+  return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[4] === b[4] && a[5] === b[5] && a[6] === b[6] && a[8] === b[8] && a[9] === b[9] && a[10] === b[10];
+}
+
 /** the view a culler last worked for; `changed` is true (and it updates) when the camera moved */
 class View {
   readonly frustum = new THREE.Frustum();
@@ -77,6 +84,9 @@ class View {
   private readonly last = new THREE.Matrix4();
   private readonly inv = new THREE.Matrix4();
   private primed = false;
+  /** the camera's world matrix and projection the copies were last chosen for */
+  private readonly held = new THREE.Matrix4();
+  private readonly projection = new THREE.Matrix4();
   private readonly lastEye = new THREE.Vector3();
   private readonly step: number;
   /** `step` > 0: only a move of the eye past it counts (a culler with no frustum test ignores turning) */
@@ -92,11 +102,21 @@ class View {
       this.lastEye.copy(this.eye);
       return true;
     }
+    // A camera that only shifts by under EYE_JITTER (a standing player's controller settles by tenths of a millimetre every
+    // frame) keeps the copies chosen for its last view: every copy test is skipped, and no frustum plane moves by more
+    // than EYE_JITTER from the one they were chosen for. A turn, a zoom or a real move re-chooses at once.
+    const m = camera.matrixWorld.elements, held = this.held.elements;
+    if (this.primed && this.projection.equals(camera.projectionMatrix) && sameTurn(m, held)) {
+      const dx = m[12] - held[12], dy = m[13] - held[13], dz = m[14] - held[14];
+      if (dx * dx + dy * dy + dz * dz <= EYE_JITTER * EYE_JITTER) return false;
+    }
     this.inv.copy(camera.matrixWorld).invert();
     this.pv.multiplyMatrices(camera.projectionMatrix, this.inv);
     if (this.primed && this.pv.equals(this.last)) return false;
     this.primed = true;
     this.last.copy(this.pv);
+    this.held.copy(camera.matrixWorld);
+    this.projection.copy(camera.projectionMatrix);
     this.frustum.setFromProjectionMatrix(this.pv);
     this.eye.setFromMatrixPosition(camera.matrixWorld);
     return true;
