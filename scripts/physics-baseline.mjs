@@ -34,14 +34,17 @@ import { resolve as resolvePath, join } from 'node:path';
 import { debugSettings, saveFixture } from './debug-settings.mjs';
 import { walkPhysicsLeg } from './physics-walk.mjs';
 import { driveGridSeam, gridSeamRoute, gridDriveFailures } from './physics-grid.mjs';
+import { enterPhysicsGrid, physicsEntryInventory, physicsEntryFailures } from './physics-grid-entry.mjs';
 
 const { chromium, devices } = await import('playwright');
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
-const OUT_DIR = resolvePath(ROOT, 'progress/physics');
 const argv = process.argv.slice(2);
 const flag = (name, dflt) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : dflt; };
 const has = (name) => argv.includes(`--${name}`);
+const OUT_DIR = resolvePath(ROOT, flag('out', 'progress/physics'));
+const ENTRY = flag('entry', 'shard');
+if (!['shard', 'grid'].includes(ENTRY)) throw new Error('--entry must be shard or grid');
 
 const POSES = [
   { shard: 'pine-hollow', name: 'gate', q: 'x=0&z=-200&yaw=3.1416' },
@@ -168,15 +171,25 @@ const browser = await chromium.launch({ headless: true, args: ['--use-angle=meta
 const result = { label: LABEL, build, tier: TIER, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [], grid: [], gridFailures: [], physics: {}, activation: {}, deviceSaves: DEVICE_SAVES, expectedSystems: EXPECTED_SYSTEMS };
 
 async function openGame(shard, q, { cpu, video }) {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, ...(video ? { recordVideo: { dir: join(OUT_DIR, '.video-tmp'), size: { width: 390, height: 844 } } } : {}) });
+  const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'], ...(video ? { recordVideo: { dir: join(OUT_DIR, '.video-tmp'), size: { width: 390, height: 844 } } } : {}) });
   const page = await ctx.newPage();
   await seedVariantFixtures(page);
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const cdp = await ctx.newCDPSession(page);
   if (cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpu });
+  if (ENTRY === 'grid') await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
   await page.goto(`${BASE}/?chunk=${shard}&tier=${TIER}&skipintro=1&nolock=1&sw=0&mute=1${q ? `&${q}` : ''}${EXTRA_Q ? `&${EXTRA_Q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
   await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.world !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
+  if (ENTRY === 'grid') {
+    const standalone = await page.evaluate(physicsEntryInventory);
+    await enterPhysicsGrid(page, BASE, TIER, TIMEOUT_MS);
+    const grid = await page.evaluate(physicsEntryInventory);
+    if (grid.grid !== shard) throw new Error(`Grid starts in ${grid.grid}, expected ${shard}`);
+    const failures = physicsEntryFailures(standalone, grid);
+    result.entry = { standalone, grid, failures };
+    if (failures.length > 0) { await ctx.close(); throw new Error(failures.join('\n')); }
+  }
   await page.waitForTimeout(SETTLE_MS);
   try { result.activation[shard] = await activationWitness(page, shard); } catch (error) { await ctx.close(); throw error; }
   return { ctx, page, errors };
@@ -372,4 +385,4 @@ if (MODE.includes('grid')) {
   for (const failure of result.gridFailures) console.error(`grid FAIL: ${failure}`);
 }
 cleanup();
-process.exit(result.gridFailures.length > 0 ? 1 : 0); // the preview child would keep the event loop alive
+process.exit(result.gridFailures.length > 0 || result.walk.some(leg => leg.stuck.length > 0) || (result.walkErrors?.length ?? 0) > 0 ? 1 : 0); // the preview child would keep the event loop alive
