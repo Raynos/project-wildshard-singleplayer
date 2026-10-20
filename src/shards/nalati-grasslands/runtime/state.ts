@@ -128,8 +128,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const { admission, roads, rest } = v.parse(v.object({ admission: v.unknown(),
     roads: v.array(v.array(v.tuple([v.number(),v.number()]))), rest: v.object({ x: v.number(), z: v.number(), face: v.object({ x:v.number(),z:v.number() }) }) }), await plugin.product.json('sim/headless-boot.json'));
   const ridingPrograms = await plugin.product.json<RidingPrograms>('ride/rules.json');
-  const { constants: { nativeTaming, nativeRide,pageGroups,pageWildlife } } = v.parse(v.object({ constants: v.object({
-    pageWildlife: v.unknown(),pageGroups: v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
+  const { constants: { nativeTaming, nativeRide,pageGroups,pageWildlife,nativeWeather } } = v.parse(v.object({ constants: v.object({
+    nativeWeather:v.unknown(),pageWildlife: v.unknown(),pageGroups: v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
     nativeRide: v.object({ speeds:v.object({ walk:v.number(),trot:v.number(),canter:v.number(),gallop:v.number() }),thrownDamage:v.number(),thrownLabel:v.string() }) }) }), await plugin.product.json('sim/headless-assembly.json'));
   const ridingPreset = readPageRidingPreset(v.parse(v.object({ client:v.unknown() }),ridingPrograms).client);
   bindEliteAdmission(admission); bindHerdDamage(pageGroups, plugin.scope); bindEnteredEnvironment(plugin,pageGroups);
@@ -183,7 +183,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   await slice(++completed, total, 'Dressing');
 
   // ── weather + day/night (weather agent, B10): the clock, storms, the sky rig — src/shards/nalati-grasslands/weather.ts ──
-  const weather = await wireWeather({ ctx: plugin, manifest: ctx.chunk, game, sky, player: ctx.player, forest: ctx.forest, colliders: pois.colliders });
+  const weather = await wireWeather({ nativeWeather,ctx: plugin, manifest: ctx.chunk, game, sky, player: ctx.player, forest: ctx.forest, colliders: pois.colliders });
   groups['weather'] = weather.fx.group;
   updates.push((dt) => weather.update(dt));
 

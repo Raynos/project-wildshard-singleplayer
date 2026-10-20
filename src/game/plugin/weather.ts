@@ -20,6 +20,7 @@ import * as v from 'valibot';
 import { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { NativeCombatFrame } from './nativeItems';
+import type { Player } from '@wildshard/engine/player/Player';
 
 const nativeWeather = new WeakMap<SimHost, Map<string, WeatherContinuation>>();
 /** Read the concrete native weather authority by its admitted cadence id. */
@@ -111,7 +112,7 @@ export class WeatherReactions {
   raise(event: string, fields: Readonly<Record<string, number>>): void {
     const record = this.events.get(event); if (record === undefined) throw new Error(`Undeclared weather reaction: ${event}`);
     for (const [field, value] of Object.entries(fields)) { if (!Object.hasOwn(record, field) || field === 'age' || !Number.isFinite(value)) throw new Error(`Invalid weather reaction field: ${field}`); record[field] = value; }
-    record['age'] = 0; for (const fn of this.listeners.get(event) ?? []) fn(record);
+    record['age'] = 0; for (const fn of (this.listeners.get(event)?.slice()??[])) fn(record);
   }
   private hudKey = '';
   /** The HUD's chip and GET LOW (rows `hud`) when they changed since the last call, else null; `quiet` holds GET LOW off. */
@@ -124,7 +125,10 @@ export class WeatherReactions {
     if (key === this.hudKey) return null;
     this.hudKey = key; return detail;
   }
-  on(event: string, fn: (event: WeatherReactionEvent) => void): void { const list = this.listeners.get(event) ?? []; list.push(fn); this.listeners.set(event, list); }
+  on(event: string, fn: (event: WeatherReactionEvent) => void): () => void {
+    const list=this.listeners.get(event)??[];list.push(fn);this.listeners.set(event,list);let active=true;
+    return ()=>{if(!active)return;active=false;const index=list.indexOf(fn);if(index!==-1)list.splice(index,1);if(list.length===0&&this.listeners.get(event)===list)this.listeners.delete(event);};
+  }
   /** One frame: the phase loop, then (at the rows' cadence) the actions and the steps in order. True on a decision tick. */
   update(dt: number): boolean {
     if (dt <= 0) return false;
@@ -164,7 +168,7 @@ export class WeatherReactions {
       if (output[emit.when] === undefined) continue;
       const event = this.events.get(emit.event); if (event === undefined) throw new Error(`Undeclared weather reaction: ${emit.event}`);
       for (const [field, ref] of emit.fields) event[field] = this.read(ref, dt, output);
-      event['age'] = 0; for (const fn of this.listeners.get(emit.event) ?? []) fn(event);
+      event['age'] = 0; for (const fn of (this.listeners.get(emit.event)?.slice()??[])) fn(event);
     }
   }
   /** The whole continuation as plain values. */
@@ -186,6 +190,15 @@ export function installWeatherReactions(air: WeatherContinuation, rows: WeatherR
 export function nativeWeatherBundle(input: unknown): { weather: WeatherProgram; reactions: WeatherReactionRows } {
   const data = v.parse(v.object({ weather: v.unknown(),reactions: v.unknown() }),input), weather = parseWeatherProgram(data.weather);
   return { weather,reactions: parseWeatherReactions(data.reactions,weather) };
+}
+/** Client-only intake of the same damage policy used by native weather. The
+ * entered lifetime owns its subscription; no content damage callback binds. */
+export function bindPageWeatherHit(ctx:ShardContext,player:Player,storm:WeatherReactions,input:unknown):void{
+  const rows=v.parse(WeatherWorldSchema,input);
+  installEnteredRuntimeService(ctx,scope=>{scope.onDispose(storm.on('hurt',event=>{
+    const target=ctx.app.player;if(target===null)return;
+    ctx.app.combat.hit({source:'env',sourceTags:rows.hit.tags,target,amount:ctx.app.events.ask(rows.hit.ask,event['damage']??0),point:player.position.clone(),dir:new Vector3(),cause:rows.hit.cause,toast:rows.hit.toast});
+  }));});
 }
 /** G474 fixed-step weather observes concrete world owners and routes its effects
  * through the native population/combat authorities, never content callbacks. */

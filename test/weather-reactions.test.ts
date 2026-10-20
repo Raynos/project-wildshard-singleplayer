@@ -3,7 +3,12 @@ import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { Scope } from '../src/engine/app/scope';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { parseWeatherProgram, parseWeatherReactions } from '../src/format/weatherProgram';
-import { installWeatherReactions } from '../src/game/plugin/weather';
+import { App } from '../src/engine/app/app';
+import { PlayerHealth } from '../src/engine/combat/health';
+import { fakeWorld } from './fake/world';
+import { legacyDouble } from './fake/FakeGame';
+import type { ShardContext } from '../src/game/plugin/context';
+import { bindPageWeatherHit,installWeatherReactions } from '../src/game/plugin/weather';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import storm from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
 
@@ -94,4 +99,32 @@ test('hud rows name the phase, count it down and report only changes', () => {
   expect(marshWeather.hud(7.4, false)).toBeNull();
   marshWeather.weather.registers['low'] = 1; expect(marshWeather.hud(7.4, true)).toBeNull(); expect(marshWeather.hud(7.4, false)?.getLow).toBe(true);
   expect(() => install({ ...marsh, hud: { chips: [{ state: 'snow', title: '', tone: 'storm' }], sub: '', low: 'low' } })).toThrow();
+});
+
+
+test('marsh damage rows bind native health once per entered lifetime',()=>{
+  const first=marsh.steps[0];if(first===undefined)throw new Error('Missing marsh step');
+  const weather=install({...marsh,steps:[{...first,emit:[...first.emit,{event:'hurt',when:'notEmitted',fields:[['damage','input.py']]}]}]}),app=new App(),walker=fakeWorld().player;
+  const policy={step:'marsh.weather',scareRadius:10,windReference:8,light:{base:.2,storm:.4,ramps:[]},
+    hit:{ask:'weather.damage',tags:['env.marsh','cover.checked'],cause:{kind:'rain',label:'Cold rain',text:'Cold rain'},toast:'Find shelter'}};
+  const health=new PlayerHealth(app.events,{now:()=>0,dodging:()=>false,dodgeGuard:()=>false,position:()=>walker.position});
+  const scope=new Scope('marsh.weather.play'),next=new Scope('marsh.weather.return');
+  try{
+    app.levelScope=scope;app.registerPlayer(health,scope);app.events.answer('weather.damage',amount=>amount+1,scope);
+    bindPageWeatherHit(legacyDouble<ShardContext>({app,scope}),walker,weather,policy);
+    weather.raise('hurt',{damage:4});expect(health.attributes.health).toBe(95);
+    scope.dispose();app.levelScope=next;app.registerPlayer(health,next);
+    bindPageWeatherHit(legacyDouble<ShardContext>({app,scope:next}),walker,weather,policy);
+    weather.raise('hurt',{damage:5});expect(health.attributes.health).toBe(90);
+  }finally{scope.dispose();next.dispose();}
+});
+
+
+test('weather listener cleanup is idempotent during dispatch',()=>{
+  const weather=install(),seen:string[]=[];
+  let remove:()=>void=()=>undefined;
+  remove=weather.on('flicker',()=>{seen.push('first');remove();remove();});
+  weather.on('flicker',()=>{seen.push('second');});
+  weather.raise('flicker',{far:600,towards:1});weather.raise('flicker',{far:700,towards:1});
+  expect(seen).toEqual(['first','second','second']);
 });

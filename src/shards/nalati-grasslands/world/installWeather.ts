@@ -14,7 +14,7 @@ import { tint as regrade } from '../look/fog';
  *
  *   const w = wireWeather({ game, sky, player, forest, pois });   // src/shards/nalati-grasslands/index.ts, the weather section
  *   w.update(dt)                                                  // every frame (index.ts pushes it)
- *   w.bind({ audio, hurt })                                       // main.ts, once the audio / health exist (see below)
+ *   w.bindPlay()                                       // main.ts, once the audio / health exist (see below)
  *   w.clock    — DayClock: .phase ('dawn' | 'day' | 'golden' | 'dusk' | 'night'), .hour, .onDusk / onNight / onDawn(fn)
  *   w.weather  — WeatherReactions (@wildshard/game/plugin/weather): .stormActive, .flash, .on('strike' | 'telegraph' | 'flash' | 'hurt' | 'wind', fn)
  *   w.air      — its continuation: .state, .onPhase(fn), .hold (a boss fight), .force(phase)
@@ -42,7 +42,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { audioVoicePatches } from '@wildshard/game/audio/voicePatches';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
-import type { WeatherReactions } from '@wildshard/game/plugin/weather';
+import { bindPageWeatherHit,type WeatherReactions } from '@wildshard/game/plugin/weather';
 import { readWeatherProgram, steppeStorm, stormEnv, yurtsOf } from './weatherStep';
 import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
 import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
@@ -52,14 +52,11 @@ import { smoothstep } from '@wildshard/engine/core/noise';
 declare module '@wildshard/engine/events/maps' { interface EventMap { 'weather.changed': WeatherHUD } }
 
 export interface WeatherCtx {
-  ctx: ShardContext; manifest: ShardManifest;
+  ctx: ShardContext; manifest: ShardManifest; nativeWeather:unknown;
   game: Game; sky: Sky; player: Player; forest: Forest; colliders?: Collider[];
 }
 
 export interface WeatherHooks {
-  audio?: Audio;
-  /** damage the player (health, flash, toast) — the lightning strike */
-  hurt?: (damage: number, why: string) => void;
   /**
    * The player is somewhere the weather cannot reach (the great kurgan's dungeon, `boss.inside`): no lightning at
    * them, no GET LOW, no rain / storm audio around them — and, since that is where the Golden King is fought, no
@@ -85,6 +82,7 @@ export interface NalatiWeather {
   look: SkyLook;
   update: (dt: number) => void;
   bind: (hooks: WeatherHooks) => void;
+  bindPlay:()=>void;
 }
 
 const TIME_NAMES = ['dawn', 'day', 'noon', 'golden', 'dusk', 'night', 'midnight'] as const;
@@ -95,7 +93,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   const { game, player } = ctx;
   const def = ctx.manifest;
   const qs = ctx.ctx.app.params;
-  const hooks: WeatherHooks = {};
+  const hooks: WeatherHooks = {};let audio:Audio|undefined;
   /** refreshed each frame from `hooks.indoors` */
   let indoors = false;
 
@@ -130,13 +128,12 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   // the storm's effects place themselves from the events' records (generators/weatherFxChannels.ts)
   weather.on('telegraph', (s) => {
     const d = Math.hypot((s['x'] ?? 0) - player.position.x, (s['z'] ?? 0) - player.position.z);
-    if (d < 160 && hooks.audio) audioVoicePatches(hooks.audio).play('lightningCrackle',{pan:panOf(s['x'] ?? 0,s['z'] ?? 0),gain:Math.max(.15,1-d/160)});
+    if (d < 160 && audio) audioVoicePatches(audio).play('lightningCrackle',{pan:panOf(s['x'] ?? 0,s['z'] ?? 0),gain:Math.max(.15,1-d/160)});
   });
   weather.on('flash', (e) => {
     const bearing = e['bearing'] ?? 0, p = player.position;
-    if (hooks.audio) audioVoicePatches(hooks.audio).play('thunder',{distance:e['distance'] ?? 0,pan:panOf(p.x+Math.cos(bearing)*100,p.z+Math.sin(bearing)*100)});
+    if (audio) audioVoicePatches(audio).play('thunder',{distance:e['distance'] ?? 0,pan:panOf(p.x+Math.cos(bearing)*100,p.z+Math.sin(bearing)*100)});
   });
-  weather.on('hurt', (e) => hooks.hurt?.(game.app.events.ask('weather.damage', e['damage'] ?? 0), 'Struck by lightning — get low in a storm'));
   // the wind: the storm asks for its own; back to the calm prevailing westerly after
   weather.on('wind', (e) => { wind.setTarget(e['speed'] ?? wind.speed, e['dir'] ?? wind.dir, e['gustiness'], e['seconds']); });
 
@@ -154,6 +151,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   const out: NalatiWeather = {
     clock, weather, air:weather.weather, rig, fx, look,
     bind(h) { Object.assign(hooks, h); },
+    bindPlay(){audio=ctx.ctx.game.runtime?.play?.audio;if(audio===undefined)throw new Error('Weather requires its play audio');bindPageWeatherHit(ctx.ctx,player,weather,ctx.nativeWeather);},
     update(dt) {
       indoors = hooks.indoors?.() === true;
       held = hooks.stormHold?.() === true;
@@ -181,10 +179,10 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       if (hud !== null) ctx.ctx.app.events.emit('weather.changed', hud);
       // audio beds at 4 Hz
       audioT -= dt;
-      if (audioT <= 0 && hooks.audio) {
+      if (audioT <= 0 && audio) {
         audioT = 0.25;
         const windLevel = smoothstep(6, 22, wind.speed);
-        audioVoicePatches(hooks.audio).setGroup('storm',{rain:indoors?0:weather.weather.rain,stormwind:indoors||weather.weather.state==='clear'?0:windLevel});
+        audioVoicePatches(audio).setGroup('storm',{rain:indoors?0:weather.weather.rain,stormwind:indoors||weather.weather.state==='clear'?0:windLevel});
       }
     },
   };
