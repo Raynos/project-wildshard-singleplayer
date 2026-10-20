@@ -78,7 +78,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
       models: new Map([['hat', captainHat], ['cape', sailclothCape]]) }]]));
   const presentation = await driftwoodLootPresentation({ economy, adventure, owned: h.owned, health, audio: h.audio, scope: ctx.scope,
     toast: (text) => { h.hud.toast(text); }, hold: questPagePanelHold(ctx, { restartOnClose: true, stow: true, resumeSwimming: true }) });
-  installRuntimeLoot(ctx, presentation, { minimap: true, before: rows.systems.before });
+  installRuntimeLoot(ctx, presentation, { minimap: true, before: rows.systems.before.filter(id => id !== 'game.loot') });
   if (h.firstHints !== undefined) {
     const hintRows: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/hints.json')));
     installQuestHints(ctx, hintRows, new Map([['quest', { hints: h.firstHints, animals: h.animals, player, ui: ctx.app.ui }]]));
