@@ -1,15 +1,18 @@
-// G453 adoption window, sealed at W1; G514 permits one immutable measured reset.
+// G453 adoption window, sealed at W1; G514 permits one immutable measured reset,
+// then appended measured remeasures for code-to-data growth (wildshard-new, 10-20).
 import * as v from 'valibot';
 
 export const CUSTOM_SECTION_POLICY='lint/custom-sections.json';
 const natural=v.pipe(v.number(),v.integer(),v.minValue(0));
 const pair=v.strictObject({count:natural,bytes:natural});
-const raise=v.pipe(v.strictObject({slug:v.string(),from:pair,to:pair,why:v.pipe(v.string(),v.check(text=>text.trim().length>0))}),
+const why=v.pipe(v.string(),v.check(text=>text.trim().length>0));
+const raise=v.pipe(v.strictObject({slug:v.string(),from:pair,to:pair,why}),
   v.check(row=>row.to.count>row.from.count||row.to.bytes>row.from.bytes));
 const revision=v.pipe(v.string(),v.regex(/^[a-f0-9]{40}$/u));
 const schema=v.strictObject({version:v.literal(1),baselineAt:revision,
   baseline:v.record(v.string(),pair),risesCloseAt:v.nullable(v.literal('W1 spike end')),raises:v.array(raise),
-  g514Reset:v.optional(v.strictObject({revision,ceilings:v.record(v.string(),pair)}))});
+  g514Reset:v.optional(v.strictObject({revision,ceilings:v.record(v.string(),pair)})),
+  remeasures:v.optional(v.array(v.strictObject({revision,ceilings:v.record(v.string(),pair),why})))});
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const entries=budgets=>Object.fromEntries([...new Set(Object.keys(budgets).filter(key=>/^custom-sections\/[^/]+\/(?:count|bytes)$/u.test(key)).map(key=>key.split('/')[1]))].map(slug=>
   [slug,{count:budgets[`custom-sections/${slug}/count`],bytes:budgets[`custom-sections/${slug}/bytes`]}]));
@@ -48,9 +51,15 @@ export function compareCustomSections(beforeBudgets,afterBudgets,beforePolicy,af
   if(previous.output.risesCloseAt!==null&&next.output.risesCloseAt!==previous.output.risesCloseAt)failures.push('custom-section rise window cannot reopen');
   // G514 authorizes one measured reset after today's code-to-data moves.
   // Its complete inventory is immutable; later changes remain shrink-only.
-  const reset=previous.output.g514Reset===undefined&&next.output.g514Reset!==undefined;
+  const g514=previous.output.g514Reset===undefined&&next.output.g514Reset!==undefined;
+  // A later measured reset appends one remeasure row per commit; the history is immutable.
+  const before514=previous.output.remeasures??[],after514=next.output.remeasures??[],remeasured=after514.slice(before514.length);
+  if(after514.length<before514.length||before514.some((row,i)=>!same(row,after514[i])))failures.push('custom-section remeasures must remain an immutable append-only history');
+  if(remeasured.length>1)failures.push('custom-section remeasures append one row per commit');
+  if(remeasured.some(row=>!same(row.ceilings,after)))failures.push('custom-section remeasure must match all committed ceilings');
+  const reset=g514||remeasured.length===1;
   if(previous.output.g514Reset!==undefined&&!same(previous.output.g514Reset,next.output.g514Reset))failures.push('G514 custom-section reset is immutable');
-  if(reset&&!same(next.output.g514Reset.ceilings,after))failures.push('G514 custom-section reset must match all committed ceilings');
+  if(g514&&!same(next.output.g514Reset.ceilings,after))failures.push('G514 custom-section reset must match all committed ceilings');
   if(next.output.raises.length<previous.output.raises.length||previous.output.raises.some((row,i)=>!same(row,next.output.raises[i])))failures.push('custom-section raises must remain an immutable append-only history');
   const fresh=next.output.raises.slice(previous.output.raises.length),used=new Set();
   for(const [slug,to]of Object.entries(after)) {

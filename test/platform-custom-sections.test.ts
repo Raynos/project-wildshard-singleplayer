@@ -82,3 +82,17 @@ it('allows one exact G514 reset then resumes shrink-only ceilings',()=>{
  expect(compareCustomSections(budgets(3,101),budgets(3,101),next,{...next,g514Reset:{...reset,revision:'c'.repeat(40)}})).toContain('G514 custom-section reset is immutable');
  expect(compareCustomSections(budgets(3,101),budgets(3,101),next,base)).toContain('G514 custom-section reset is immutable');
 });
+
+it('allows appended measured remeasures after the G514 reset, one per commit',()=>{
+ const budgets=(count:number,bytes:number):Record<string,number>=>({'custom-sections/demo/count':count,'custom-sections/demo/bytes':bytes});
+ const base={version:1,baselineAt:'a'.repeat(40),baseline:{demo:{count:2,bytes:100}},risesCloseAt:'W1 spike end',raises:[],g514Reset:{revision:'b'.repeat(40),ceilings:{demo:{count:2,bytes:100}}}};
+ const row={slug:'demo',from:{count:2,bytes:100},to:{count:3,bytes:120},why:'measured code-to-data growth'};
+ const again={revision:'c'.repeat(40),ceilings:{demo:row.to},why:'rows replaced runtime TS'};
+ const next={...base,raises:[row],remeasures:[again]};
+ expect(compareCustomSections(budgets(2,100),budgets(3,120),base,next)).toEqual([]);
+ expect(compareCustomSections(budgets(2,100),budgets(3,120),base,{...next,raises:[]})).toContain('demo: custom-section ceiling rises without an appended exact {slug, from, to, why} line');
+ expect(compareCustomSections(budgets(2,100),budgets(3,121),base,next)).toContain('custom-section remeasure must match all committed ceilings');
+ expect(compareCustomSections(budgets(2,100),budgets(3,120),base,{...next,remeasures:[again,again]})).toContain('custom-section remeasures append one row per commit');
+ expect(compareCustomSections(budgets(3,120),budgets(4,130),next,next)).toContain('demo: custom-section rises closed at W1 spike end');
+ expect(compareCustomSections(budgets(3,120),budgets(3,120),next,{...next,remeasures:[]})).toContain('custom-section remeasures must remain an immutable append-only history');
+});
