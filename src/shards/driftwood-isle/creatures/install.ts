@@ -1,4 +1,4 @@
-import { MonkeyBinding } from '../species/monkeyBinding';
+import { PerchBodyBinding } from '@wildshard/game/population/perchBody';
 import { MONKEY_LOOK } from '../species/monkey';
 import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -16,7 +16,7 @@ import { graphCaptainLook, graphCreatureLook } from '../runtime/looks/creatureLo
 
 /** Kit rows precede AnimalManager construction; the ready hook preserves the original placement stage. */
 export async function installDriftwoodCreatures(ctx: ShardContext, decisions: SpeciesDecisionAuthority): Promise<void> {
-  const monkey = new MonkeyBinding(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('poses/monkey.json'))), ctx.scope);
+  const monkey = new PerchBodyBinding(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('poses/monkey.json'))), ctx.scope);
   const section = ctx.product.section('actors/species-programs'), program = section.program;
   const respawn = section.spawns?.find(row => row.id === 'spawn.driftwood.practice')?.respawn;
   if (program === undefined || respawn === undefined) throw new Error('Driftwood requires its admitted creature recipes');

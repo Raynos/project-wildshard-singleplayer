@@ -1,3 +1,4 @@
+import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA, DirectorBindingsSchema, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
@@ -36,7 +37,7 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'quests/chapter-director.json': ChapterDirectorSchema,
   'quests/wake-boss.json': ChapterWakeSchema,
   'directors/main.json': v.strictObject({ declaration: DirectorSchema, module: v.strictObject({ module: text, bytes: text }), stages: DirectorStagesSchema, bindings: DirectorBindingsSchema, seed: number }),
-  'poses/monkey.json': v.strictObject({ clips: v.tuple([NumericPoseSchema, NumericPoseSchema]), program: ReturnProgramSchema }),
+  'poses/monkey.json': v.strictObject({ clips: v.tuple([NumericPoseSchema, NumericPoseSchema]), program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch }),
   'quests/stall.json': QuestTraderSchema,
   'quests/trader.json': QuestPageInteractionsSchema,
   'quests/steps.json': QuestStepRowsSchema,

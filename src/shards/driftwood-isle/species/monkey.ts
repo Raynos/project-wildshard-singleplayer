@@ -5,8 +5,7 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { creatureBody } from './bodies';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import type { MonkeyBinding } from './monkeyBinding';
-import { monkeyActions } from '../sim/enemyBrains';
+import { type PerchBodyBinding, bindPerchBody } from '@wildshard/game/population/perchBody';
 
 /**
  * Coconut Monkey — the palm-grove troop (art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png): tan faceted fur, a dark face with a pale
@@ -33,9 +32,9 @@ import { monkeyActions } from '../sim/enemyBrains';
 /** G51: preserve the existing shared cooldown stream and its lazy creation order. */
 export function monkeyAttackRandom(): Pick<Rng, 'range'> { return app.rng.stream('ai'); }
 
-export function monkeyCallbacks(brains: SpeciesBrains, bite: StrikeSpec, binding: MonkeyBinding): ReturnType<SpeciesBrains['bind']> { return brains.bind('monkey', (actor, decision, ctx) => {
+export function monkeyCallbacks(brains: SpeciesBrains, bite: StrikeSpec, binding: PerchBodyBinding): ReturnType<SpeciesBrains['bind']> { return brains.bind('monkey', (actor, decision, ctx) => {
   if (ctx === undefined) throw new Error('Driftwood monkey requires its first callback context');
-  return monkeyActions(binding, actor, ctx, decision, bite, { range: (min: number, max: number): number => monkeyAttackRandom().range(min, max) });
+  return bindPerchBody(actor, ctx, decision, bite, binding.guest, binding.row, { range: (min: number, max: number): number => monkeyAttackRandom().range(min, max) });
 }); }
 
 export const MONKEY_LOOK: SpeciesLook = {

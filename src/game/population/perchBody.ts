@@ -1,30 +1,42 @@
-import type { MixedPopulationRows } from '@wildshard/format/mixedPopulation';
+import { MixedPopulationSchema, type MixedPopulationRows } from '@wildshard/format/mixedPopulation';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
-import type { HuntBody } from '@wildshard/engine/ai/hunt';
-import type { EnemyWorld } from '@wildshard/engine/entities/species/registry';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { Rng } from '@wildshard/engine/core/rng';
+import type { PerchHunterPorts } from '@wildshard/engine/ai/guardianPolicy';
+import { Scope } from '@wildshard/engine/app/scope';
+import { numericCreaturePose } from '../plugin/channelPrograms';
+import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import { createMemoryActionBrain, type SpeciesDecision, type createNativeSpeciesContext } from '../plugin/brain';
+import { createMemoryActionBrain, type SpeciesDecision } from '../plugin/brain';
 import { projectedSite } from './projectedSites';
 import { ReturnProgram } from './returnProgram';
 import type { SimHost } from '@wildshard/engine/sim';
 
-type Context = ReturnType<typeof createNativeSpeciesContext<EnemyWorld<HuntBody>>>['observation'];
+/** Existing page/native perception; policy and root names remain admitted data. */
+export interface PerchBodyPorts<A extends AnimalSim> extends Omit<PerchHunterPorts<A>, 'pickPerch' | 'setPerch' | 'attackRandom'> {
+  rng: Rng;
+  readonly world: { readonly perches?: readonly A['position'][] | undefined; readonly perchBases?: readonly A['position'][] | undefined;
+    readonly throwCoconut?: ((from: A['position'], target: A['position'], thrower: A) => void) | undefined };
+  heightAt: (x: number, z: number) => number;
+  reach: (actor: A) => boolean;
+  hurt: (damage: number) => void;
+}
 /** Native perch policy adapter: admitted memory gates select built-in strike and
  * physical launch effects. The guest selects habitat sites and projected heights. */
-export function bindPerchBody(actor: HuntBody, first: Context, decision: SpeciesDecision<HuntBody>, bite: StrikeSpec,
-  guest: ReturnProgram, row: MixedPopulationRows['perch']): ReturnType<typeof createMemoryActionBrain<HuntBody, Context>> {
+export function bindPerchBody<A extends AnimalSim, C extends PerchBodyPorts<A>>(actor: A, first: C, decision: SpeciesDecision<A>, bite: StrikeSpec,
+  guest: ReturnProgram, row: MixedPopulationRows['perch'], attackRandom: Pick<Rng, 'range'> = first.rng): ReturnType<typeof createMemoryActionBrain<A, C>> {
   if (decision.archetype !== 'perch-hunter') throw new Error('Perch body requires its declared policy');
   const contact = new StrikeRunner(), from = new Vector3(), to = new Vector3();
   let current = first;
-  const ports = { ...first,
-    pickPerch: (a: HuntBody, min: number, max: number, away?: Vector3): number => {
+  const ports = { ...first, attackRandom,
+    pickPerch: (a: A, min: number, max: number, away?: A['position']): number => {
       const points = (current.world.perches ?? []).map((p, index) => ({ x: p.x, z: p.z,
         occupied: current.herd?.some(h => h !== a && h.alive && h.mem['perch'] === index) === true ? 1 : 0 }));
       return projectedSite(points, guest, { signal: row.score, limit: 1024, origin: a.position, minimum: min, maximum: max,
         observations: {}, ...(away === undefined ? {} : { away }) }, current.rng)?.index ?? -1;
     },
-    setPerch: (a: HuntBody, index: number): void => {
+    setPerch: (a: A, index: number): void => {
       const p = current.world.perches?.[index], base = current.world.perchBases?.[index] ?? p;
       if (p === undefined || base === undefined) throw new Error('Missing declared perch');
       const height = guest.project(row.height, { y: p.y, ground: current.heightAt(p.x, p.z) })[row.heightChannel];
@@ -33,15 +45,15 @@ export function bindPerchBody(actor: HuntBody, first: Context, decision: Species
       Object.assign(a.mem, { perch: index, [root.x]: p.x, [root.z]: p.z, [root.baseX]: base.x, [root.baseZ]: base.z, [root.height]: height });
     },
   };
-  return createMemoryActionBrain(actor, row.actions, { decide: (_a, context) => {
+  return createMemoryActionBrain<A, C>(actor, row.actions, { decide: (_a, context) => {
     current = context; Object.assign(ports, context); decision.policy.think(ports);
   }, effects: new Map([
-    ['bite', (a: HuntBody, c: Context): void => {
+    ['bite', (a: A, c: C): void => {
       if (contact.contains(bite, { actor: { position: a.position, scale: a.scale, yaw: a.yaw }, target: c.player }) && (bite.tags.includes('cover.exempt') || c.reach(a))) {
         c.hurt(bite.damage); c.sound(row.sound);
       }
     }],
-    ['throw', (a: HuntBody, c: Context): void => {
+    ['throw', (a: A, c: C): void => {
       from.set(a.position.x, a.position.y + row.sourceHeight * a.scale, a.position.z);
       to.set(c.player.x, c.player.y + row.targetHeight, c.player.z); c.world.throwCoconut?.(from, to, a);
     }],
@@ -66,3 +78,18 @@ export function stepPerchRoot(c: AnimalRigContext, row: MixedPopulationRows['per
 
 /** Bind the projection to the installed host's admitted terrain. */
 export function nativePerchProgram(host: SimHost, input: unknown): ReturnProgram { return ReturnProgram.native(host, input); }
+
+/** Page binding reuses native perch selection, strikes and root integration.
+ * Clips and all policy-channel names arrive as rows; no shard callback is retained. */
+export class PerchBodyBinding {
+  readonly row;
+  readonly guest: ReturnProgram;
+  readonly animate: (c: AnimalRigContext) => void;
+  constructor(input: unknown, owner: Scope | SimHost) {
+    const rows = v.parse(v.strictObject({ clips: v.array(v.unknown()), program: v.unknown(), perch: MixedPopulationSchema.entries.perch }), input);
+    this.row = rows.perch;
+    this.guest = owner instanceof Scope ? ReturnProgram.page(rows.program, owner) : ReturnProgram.native(owner, rows.program);
+    const poses = rows.clips.map(numericCreaturePose);
+    this.animate = c => { stepPerchRoot(c, rows.perch.root); for (const pose of poses) pose(c); };
+  }
+}

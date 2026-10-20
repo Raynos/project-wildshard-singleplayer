@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./population/perchBody": "./population/perchBody.ts",
     "./quest/legacyRecords": "./quest/legacyRecords.ts",
     "./shardfile/pageWater": "./shardfile/pageWater.ts",
     "./shardfile/pagePreparation": "./shardfile/pagePreparation.ts",

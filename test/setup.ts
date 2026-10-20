@@ -1,3 +1,4 @@
+import perchRows from '../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
 import { Scope } from '../src/engine/app/scope';
 import { parse } from 'valibot';
 import { PineGrazersSchema, ThrallLookSchema } from '../src/shards/pine-hollow/generators/sections';
@@ -60,9 +61,9 @@ for (const row of readLootTables(loot.economy.tables)) registerLootTable(row);
 const { DRIFTWOOD_LOOKS } = await import('../src/shards/driftwood-isle/species/install');
 const { DRIFTWOOD_SPECIES } = await import('./fake/driftwoodSpecies');
 const { MONKEY_CLIPS } = await import('../src/shards/driftwood-isle/generators/monkeyClips');
-const { MonkeyBinding } = await import('../src/shards/driftwood-isle/species/monkeyBinding');
+const { PerchBodyBinding } = await import('@wildshard/game/population/perchBody');
 const { RETURN_PROGRAM } = await import('../src/shards/driftwood-isle/generators/returnProgram');
-const monkeyAnimate = new MonkeyBinding({ clips: MONKEY_CLIPS, program: RETURN_PROGRAM }, new Scope('fixture.monkey')).animate;
+const monkeyAnimate = new PerchBodyBinding({ clips: MONKEY_CLIPS, program: RETURN_PROGRAM, perch: perchRows.perch }, new Scope('fixture.monkey')).animate;
 for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
   if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));

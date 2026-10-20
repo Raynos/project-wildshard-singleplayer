@@ -2,13 +2,16 @@ import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { createMemoryActionBrain, type MemoryActionRows } from '../src/game/plugin/brain';
-import authoredSpeciesActions from '../src/shards/driftwood-isle/data/speciesActions.json' with { type: 'json' };
-import { biteMonkey, throwMonkeyCoconut, type MonkeyStrikePorts } from '../src/shards/driftwood-isle/species/monkeyBinding';
+import { bindPerchBody, PerchBodyBinding, type PerchBodyPorts } from '../src/game/population/perchBody';
+import { speciesBrains } from '../src/sdk/speciesBrains';
+import { Scope } from '../src/engine/app/scope';
+import { DRIFTWOOD_ENEMY_PROGRAM } from '../src/shards/driftwood-isle/generators/speciesPrograms';
+import { RETURN_PROGRAM } from '../src/shards/driftwood-isle/generators/returnProgram';
+import perchRows from '../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
 import { stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { Rng } from '../src/engine/core/rng';
 import { DRIFTWOOD_STRIKES } from './fixtures/species/driftwood';
 
-const { MONKEY_ACTIONS } = authoredSpeciesActions;
 
 const CAPTAIN_ACTIONS = { stateKey:'st',states:['hide','rise','fight','attack','sink','under'],cadence:'decision',
   actions:[{state:3,phase:0,effect:'swing',once:{key:'hit',value:1,test:'falsy'}}] } as const;
@@ -36,19 +39,23 @@ test('act-before-think stays quiet and a miss claims the actor field before its 
 
 test('monkey rows select one existing bite or coconut owner and retain restored attack memory', () => {
   const a = actor(), effects: string[] = [], target = new Vector3(0, 0, 1);
-  const context: MonkeyStrikePorts<AnimalSim> = { player: target, reach: () => true,
+  const context: PerchBodyPorts<AnimalSim> = { dt: .1, calm: false, rng: new Rng(31), herd: null, heightAt: () => 0,
+    steer: () => undefined, confine: () => undefined, claim: () => true, mayAttack: () => true, player: target, reach: () => true,
     hurt: (damage:number) => { if (damage > 0) effects.push('hurt'); }, sound: (name:string) => { effects.push(name); },
     world: { throwCoconut: (from, to, thrower) => {
       expect(thrower).toBe(a); expect(from.y).toBeCloseTo(a.position.y + .95 * a.scale);
       expect(to.y).toBeCloseTo(target.y + .9); effects.push('throw');
     } } };
-  const brain = createMemoryActionBrain<AnimalSim, MonkeyStrikePorts<AnimalSim>>(a, MONKEY_ACTIONS,
-    { decide: () => undefined, effects: new Map([['bite', (body: AnimalSim, ports: MonkeyStrikePorts<AnimalSim>) => { biteMonkey(body, ports, DRIFTWOOD_STRIKES.bite); }], ['throw', throwMonkeyCoconut]]) });
+  const owner = new Scope('perch.fixture');
+  const binding = new PerchBodyBinding({ clips: [], program: RETURN_PROGRAM, perch: perchRows.perch }, owner);
+  const brains = speciesBrains(DRIFTWOOD_ENEMY_PROGRAM.species, DRIFTWOOD_ENEMY_PROGRAM.strikes, DRIFTWOOD_ENEMY_PROGRAM.modules);
+  const brain = bindPerchBody(a, context, brains.decision('monkey', a), DRIFTWOOD_STRIKES.bite, binding.guest, binding.row);
   a.mem['st'] = 2; a.mem['hit'] = 0; a.mem['bite'] = 0; a.startAttack(1); a.step(.7);
   const before = a.snapshot(); brain.act(context); brain.act(context); expect(effects).toEqual(['throw']);
   a.restore(before); brain.act(context); expect(effects).toEqual(['throw', 'throw']);
   effects.length = 0; a.mem['hit'] = 0; a.mem['bite'] = 1; a.startAttack(1); a.step(.5);
   brain.act(context); brain.act(context); expect(effects).toEqual(['hurt', 'monkey_shriek']);
+  owner.dispose();
 });
 
 test('preflights every action and refuses unsafe fields before registration or effects', () => {
