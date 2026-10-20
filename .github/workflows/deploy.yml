@@ -204,6 +204,11 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Keep complete type outputs in every job; partition lint files within the deadline.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -227,7 +232,7 @@ jobs:
         run: pnpm run typecheck
       - name: Lint
         # Typecheck already generated this exact tree. Fresh plugin workers bound AST retention.
-        run: node scripts/lint-all.mjs
+        run: node scripts/lint-all.mjs --shard=${{ matrix.shard }}/4
 
   # Keep the full suite within the runner budget; generation alone takes ~4 min cold.
   behaviour:

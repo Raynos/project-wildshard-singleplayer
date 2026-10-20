@@ -27,7 +27,7 @@ if (args.join(' ') === 'exec oxlint --debug files') {
   if (process.env.LINT_ALL_FAIL === 'yes' && args.some(file => file.endsWith('source 256.ts'))) process.exit(7);
 }
 `, { mode: 0o755 });
-  const run = (failure: boolean): ReturnType<typeof spawnSync> => spawnSync(execPath, [resolve('scripts/lint-all.mjs')], {
+  const run = (failure: boolean, args: readonly string[] = []): ReturnType<typeof spawnSync> => spawnSync(execPath, [resolve('scripts/lint-all.mjs'), ...args], {
     encoding: 'utf8', env: { ...env, PATH: `${binary}:${env['PATH'] ?? ''}`,
       LINT_ALL_SELECTION: selection, LINT_ALL_CALLS: calls, LINT_ALL_FAIL: failure ? 'yes' : 'no' },
   });
@@ -40,6 +40,23 @@ if (args.join(' ') === 'exec oxlint --debug files') {
     writeFileSync(calls, '');
     expect(run(true).status).toBe(7);
     expect(readFileSync(calls, 'utf8')).not.toContain('source 512.ts');
+    const partitioned: string[] = [];
+    const compare = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
+    const sortedFiles = [...files].sort(compare);
+    for (const part of [1, 2, 3, 4]) {
+      writeFileSync(calls, '');
+      const result = run(false, [`--shard=${part}/4`]);
+      expect(result.status, result.stderr.toString()).toBe(0);
+      const actual = readFileSync(calls, 'utf8').split('\n').filter(line => line.length > 0 && line !== '--batch--');
+      expect(actual).toEqual(sortedFiles.filter((_, index) => index % 4 === part - 1));
+      partitioned.push(...actual);
+    }
+    expect(new Set(partitioned).size).toBe(files.length);
+    expect([...partitioned].sort(compare)).toEqual(sortedFiles);
+    for (const invalid of ['--shard=0/4', '--shard=5/4', '--shard=1/0', '--shard=bad']) {
+      expect(run(false, [invalid]).status).toBe(2);
+    }
+    expect([1, 2, 3, 4].map(part => run(true, [`--shard=${part}/4`]).status ?? -1).sort((a, b) => a - b)).toEqual([0, 0, 0, 7]);
     writeFileSync(selection, 'missing-lint-source.ts');
     expect(run(false).status).toBe(1);
   } finally { rmSync(fixture, { recursive: true, force: true }); }
