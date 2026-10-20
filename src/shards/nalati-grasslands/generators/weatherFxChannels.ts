@@ -58,7 +58,7 @@ export function weatherFxChannels(): ClientChannelProgram[] {
  const storm='(weather.front > .01 && weather.front < 1.499)';
  const bow='weather.rainbow * min(1,max(0,look.sunDir.y*6)) * (look.moon > 0 ? 0 : 1)';
  flag('deck',`${storm} || ${bow} > .001`);flag('curtains',storm);flag('rain','weather.rain > .01');
- flag('bolt','boltT < .4');flag('glow','glowT < 1.6');flag('smoke','smokeLeft > 0');flag('fire','smokeLeft > 0 && active');flag('puddles','weather.wet > .02');
+ flag('bolt','strike.age < .4');flag('glow','telegraph.age < 1.6 && telegraph.age < strike.age');flag('smoke','burn.age < 360');flag('fire','burn.age < 360 && active');flag('puddles','weather.wet > .02');
  for(const axis of ['x','y','z'])put('deck',`position.${axis}`,`camera.${axis}`);
  for(const axis of ['x','z'])put('curtains',`position.${axis}`,`camera.${axis}`);
  for(const id of ['storm-deck','storm-curtains']){
@@ -76,13 +76,20 @@ export function weatherFxChannels(): ClientChannelProgram[] {
   param('puddles',`sunDir.${axis}`,`look.keyDir.${axis}`);param('puddles',`sunCol.${axis}`,`look.keyColor.${c}*look.keyIntensity*(1-weather.overcast)`);
   put('rainU',`uCol${axis}`,`(look.fogColor.${c}+(look.hemiSky.${c}-look.fogColor.${c})*.5)*1.9+.05+.8*weather.flash`);
  }
- param('strike-smoke','smoke.x','min(1,smokeLeft/30)');param('strike-smoke','smoke.y','wind.x*.2');param('strike-smoke','smoke.z','wind.z*.2');
+ param('strike-smoke','smoke.x','min(1,max(0,360-burn.age)/30)');param('strike-smoke','smoke.y','wind.x*.2');param('strike-smoke','smoke.z','wind.z*.2');
  param('puddles','puddle.x','weather.wet');param('puddles','puddle.y','weather.rain');
- param('lightning-bolt','alpha','boltT < .07 ? 1 : boltT < .11 ? .25 : boltT < .18 ? 1 : boltT < .22 ? .3 : boltT < .26 ? .8 : max(0,.8-(boltT-.26)*8)');
- const pulse='(.6+.4*sin(glowT*28))',size=`(1.5+3.5*min(1,glowT/1.2))*${pulse}`;
+ param('lightning-bolt','alpha','strike.age < .07 ? 1 : strike.age < .11 ? .25 : strike.age < .18 ? 1 : strike.age < .22 ? .3 : strike.age < .26 ? .8 : max(0,.8-(strike.age-.26)*8)');
+ // the events' places (WeatherReactions records): the bolt at the strike, the smoke and fire at the last struck spruce, the glow on
+ // the telegraphed point, the deck's flash toward the last flash's bearing
+ for(const axis of ['x','y','z'])param('lightning-bolt',`origin.${axis}`,`strike.${axis}`);
+ param('strike-smoke','origin.x','burn.x');param('strike-smoke','origin.y','burn.y-2');param('strike-smoke','origin.z','burn.z');
+ put('fire','position.x','burn.x');put('fire','position.y','burn.y-1.5');put('fire','position.z','burn.z');
+ put('glow','position.x','telegraph.x');put('glow','position.y','telegraph.y+.4');put('glow','position.z','telegraph.z');
+ param('storm-deck','flashDir.x','cos(flash.bearing)/1.0307764064044151');param('storm-deck','flashDir.y','.25/1.0307764064044151');param('storm-deck','flashDir.z','sin(flash.bearing)/1.0307764064044151');
+ const pulse='(.6+.4*sin(telegraph.age*28))',size=`(1.5+3.5*min(1,telegraph.age/1.2))*${pulse}`;
  for(const axis of ['x','y','z'])put('glow',`scale.${axis}`,size);
- put('glowMaterial','opacity',`(.35+.65*min(1,glowT/1.2))*${pulse}`);
- put('fireMaterial','opacity','min(1,smokeLeft/60)*(.55+.45*sin(smokeT*13)*sin(smokeT*7.3))');
+ put('glowMaterial','opacity',`(.35+.65*min(1,telegraph.age/1.2))*${pulse}`);
+ put('fireMaterial','opacity','min(1,max(0,360-burn.age)/60)*(.55+.45*sin(burn.age*13)*sin(burn.age*7.3))');
  for(const axis of ['x','y','z'])put('fire',`scale.${axis}`,'2.2');
  put('rainU','uVelx','wind.x*.35');put('rainU','uVely','-9.5');put('rainU','uVelz','wind.z*.35');
  put('rainU','uLen',' .7+.4*weather.rain');put('rainU','uAlpha','.16+.16*weather.rain');

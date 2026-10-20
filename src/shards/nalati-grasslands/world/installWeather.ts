@@ -14,7 +14,7 @@ import { tint as regrade } from '../look/fog';
  *
  *   const w = wireWeather({ game, sky, player, forest, pois });   // src/shards/nalati-grasslands/index.ts, the weather section
  *   w.update(dt)                                                  // every frame (index.ts pushes it)
- *   w.bind({ audio, hurt, scare })                                // main.ts, once the audio / health exist (see below)
+ *   w.bind({ audio, hurt })                                       // main.ts, once the audio / health exist (see below)
  *   w.clock    — DayClock: .phase ('dawn' | 'day' | 'golden' | 'dusk' | 'night'), .hour, .onDusk / onNight / onDawn(fn)
  *   w.weather  — WeatherReactions (@wildshard/game/plugin/weather): .stormActive, .flash, .on('strike' | 'telegraph' | 'flash' | 'hurt' | 'wind', fn)
  *   w.air      — its continuation: .state, .onPhase(fn), .hold (a boss fight), .force(phase)
@@ -25,7 +25,7 @@ import { tint as regrade } from '../look/fog';
  *
  * Hooks for other rows: B11 balbals `w.clock.onDusk(…)`, ghost riders `w.clock.onNight(…)`; B12 Qyran and B14 the
  * Storm Titan read `w.weather.stormActive`; B13 sets `w.air.hold = true` during a boss fight; the
- * herds / packs: pass `scare` to `bind`.
+ * herds / packs: `w.weather.on('strike', …)`.
  */
 import * as THREE from 'three';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -42,7 +42,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { audioVoicePatches } from '@wildshard/game/audio/voicePatches';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
-import type { WeatherReactions, WeatherReactionEvent } from '@wildshard/game/plugin/weather';
+import type { WeatherReactions } from '@wildshard/game/plugin/weather';
 import { readWeatherProgram, steppeStorm, stormEnv, yurtsOf } from './weatherStep';
 import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
 import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
@@ -61,8 +61,6 @@ export interface WeatherHooks {
   audio?: Audio;
   /** damage the player (health, flash, toast) — the lightning strike */
   hurt?: (damage: number, why: string) => void;
-  /** a strike landed: scare the creatures near it (Wildlife.scare) */
-  scare?: (x: number, z: number) => void;
   /**
    * The player is somewhere the weather cannot reach (the great kurgan's dungeon, `boss.inside`): no lightning at
    * them, no GET LOW, no rain / storm audio around them — and, since that is where the Golden King is fought, no
@@ -131,15 +129,13 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
 
   const fx = weatherEffects(ctx,rig.rows);
 
+  // the storm's effects place themselves from the events' records (generators/weatherFxChannels.ts)
   weather.on('telegraph', (s) => {
-    fx.telegraph(s);
     const d = Math.hypot((s['x'] ?? 0) - player.position.x, (s['z'] ?? 0) - player.position.z);
     if (d < 160 && hooks.audio) audioVoicePatches(hooks.audio).play('lightningCrackle',{pan:panOf(s['x'] ?? 0,s['z'] ?? 0),gain:Math.max(.15,1-d/160)});
   });
-  weather.on('strike', (s) => { fx.bolt(s); hooks.scare?.(s['x'] ?? 0, s['z'] ?? 0); });
   weather.on('flash', (e) => {
     const bearing = e['bearing'] ?? 0, p = player.position;
-    fx.inCloudFlash(bearing);
     if (hooks.audio) audioVoicePatches(hooks.audio).play('thunder',{distance:e['distance'] ?? 0,pan:panOf(p.x+Math.cos(bearing)*100,p.z+Math.sin(bearing)*100)});
   });
   weather.on('hurt', (e) => hooks.hurt?.(game.app.events.ask('weather.damage', e['damage'] ?? 0), 'Struck by lightning — get low in a storm'));
@@ -232,22 +228,17 @@ function weatherEffects(ctx: WeatherCtx, rows: Awaited<ReturnType<typeof weather
  rain.frustumCulled=false;rain.renderOrder=20;rain.visible=false;rain.name='rain';group.add(rain);parts.set('rain',rain);
  const uniforms={uVelx:0,uVely:0,uVelz:0,uLen:0,uAlpha:0,uColx:0,uColy:0,uColz:0},draw={count:0};
  const flags:Record<string,number>=Object.fromEntries([...parts.keys()].map(id=>[id,0]));
- const timers={boltT:99,glowT:99,smokeLeft:0,smokeT:0},windReading={x:0,z:0};
+ const windReading={x:0,z:0};
  const params=graphParamRoots(channels,'nalati.fx',['nalati-storm-deck','nalati-storm-curtains','nalati-lightning-bolt','nalati-strike-smoke','nalati-puddles']);
  const owners=new Map<string,unknown>([...params.roots,...parts,['wind',windReading],['flags',flags],['rainU',uniforms],['draw',draw],['glowMaterial',{get opacity(){return glow.material.opacity;},set opacity(value:number){glow.material.opacity=value;}}],['fireMaterial',{get opacity(){return fire.material.opacity;},set opacity(value:number){fire.material.opacity=value;}}]]);
  let lane:ReturnType<typeof installChannelPrograms>|null=null;
  ctx.game.levelScope.onDispose(()=>{group.removeFromParent();for(const g of shapes)g.dispose();rain.geometry.dispose();noise.dispose();for(const sprite of [glow,fire]){sprite.material.map?.dispose();sprite.material.dispose();}});
  group.name='weather-fx';ctx.game.scene.add(group);
  return {group,rain,
-  telegraph(s:WeatherReactionEvent){glow.position.set(s['x']??0,(s['y']??0)+.4,s['z']??0);timers.glowT=0;},
-  /** a bolt at (x, y, z); `kind` 1 (a spruce) leaves it smoking and burning */
-  bolt(s:WeatherReactionEvent){const x=s['x']??0,y=s['y']??0,z=s['z']??0;timers.glowT=99;timers.boltT=0;setLentParam('nalati-lightning-bolt','origin',[x,y,z]);if(s['kind']===1){setLentParam('nalati-strike-smoke','origin',[x,y-2,z]);fire.position.set(x,y-1.5,z);timers.smokeLeft=360;}},
-  inCloudFlash(bearing:number){setLentParam('nalati-storm-deck','flashDir',new THREE.Vector3(Math.cos(bearing),.25,Math.sin(bearing)).normalize().toArray());},
   update(dt:number,weather:WeatherReactions,look:SkyLook,camera:THREE.Camera,airWind:{x:number;z:number}){
-   timers.boltT+=dt;timers.glowT+=dt;timers.smokeLeft=Math.max(0,timers.smokeLeft-dt);timers.smokeT+=dt;
    windReading.x=airWind.x;windReading.z=airWind.z;
-   if(lane===null){const air=weather.weather;owners.set('weather',{get front(){return air.n['front']??0;},get stormFrom(){return weather.register('stormFrom');},get rainbow(){return air.n['rainbow']??0;},get overcast(){return air.overcast;},get flash(){return weather.flash;},get rain(){return air.rain;},get wet(){return air.wet;}});owners.set('look',look);owners.set('camera',camera.position);lane=installChannelPrograms(channels,'nalati.fx',owners);}
-   lane.evaluate({time:0,delta:dt,values:{...timers,active:Number(weather.weather.state!=='clear'),count}});pushLentParams(params);
+   if(lane===null){const air=weather.weather;owners.set('weather',{get front(){return air.n['front']??0;},get stormFrom(){return weather.register('stormFrom');},get rainbow(){return air.n['rainbow']??0;},get overcast(){return air.overcast;},get flash(){return weather.flash;},get rain(){return air.rain;},get wet(){return air.wet;}});for(const id of ['telegraph','strike','burn','flash'])owners.set(id,weather.record(id));owners.set('look',look);owners.set('camera',camera.position);lane=installChannelPrograms(channels,'nalati.fx',owners);}
+   lane.evaluate({time:0,delta:dt,values:{active:Number(weather.weather.state!=='clear'),count}});pushLentParams(params);
    for(const [id,part] of parts)part.visible=(flags[id]??0)>0;
    velocity.set(uniforms.uVelx,uniforms.uVely,uniforms.uVelz);
    if(rain.visible){

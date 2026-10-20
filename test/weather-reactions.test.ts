@@ -75,3 +75,13 @@ test('rows refuse registers, states and actions their program does not declare',
     { ...marsh, steps: [{ ...step, write: [['low', 'register.missing']] }] }, { ...marsh, steps: [{ ...step, observe: [['dt', 'clock']] }] }])
     expect(() => parseWeatherReactions(rows, program)).toThrow();
 });
+
+test('event records keep their last fields and age; raise fires a declared event', () => {
+  const marshWeather = install(), heard: number[] = [];
+  expect(marshWeather.record('flicker')).toEqual({ far: 0, towards: 0, age: 1e6 });
+  marshWeather.on('flicker', event => { heard.push(event['far'] ?? 0); });
+  marshWeather.raise('flicker', { far: 40, towards: 1 });
+  expect(heard).toEqual([40]); expect(marshWeather.record('flicker')['age']).toBe(0);
+  marshWeather.update(.05); expect(marshWeather.record('flicker')['age']).toBeCloseTo(.05);
+  expect(() => { marshWeather.raise('flicker', { age: 3 }); }).toThrow(); expect(() => { marshWeather.raise('missing', {}); }).toThrow();
+});

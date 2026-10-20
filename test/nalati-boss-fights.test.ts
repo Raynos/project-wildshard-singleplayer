@@ -81,7 +81,7 @@ test('Storm Titan runs the three mounted phases, exposes the heart and reaches v
   lendLooks(scope, { materials, setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped materials in this fight'); } });
   const gr = legacyDouble<TitanRiders>({ spawnRider: ({ x, z }: { x: number; z: number }) => { const a = f.manager.spawn('ghost-rider', x, z, 0, 'rider'); riders.push(a); return a; }, dissolve: (a: Animal) => { a.hidden = true; } });
   await prepareStormTitan({ json: <T>(name: string) => Promise.resolve(structuredClone<unknown>(name.endsWith('titan-fight.json') ? { ...titan, arenaFire: fireView, programs } : geometry) as T) });
-  const weather = legacyDouble<NalatiWeather>({ weather: legacyDouble<NalatiWeather['weather']>({ flash: 0 }), fx: legacyDouble<NalatiWeather['fx']>({ bolt: () => undefined }) });
+  const weather = legacyDouble<NalatiWeather>({ weather: legacyDouble<NalatiWeather['weather']>({ flash: 0, raise: () => undefined }) });
   const game = Object.assign(f.game.asGame(), { levelScope: scope });
   const fight = new StormTitanFight({ game, player: f.player, weather, tieSpot: null }, {
     player: f.player, hurt: () => undefined, throwRider: () => undefined, mounted: () => true, horseSteed: () => undefined,

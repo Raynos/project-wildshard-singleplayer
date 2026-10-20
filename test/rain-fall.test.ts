@@ -48,15 +48,16 @@ describe('Nalati weather presentation rows', () => {
     const weather = { front: 0, stormFrom: 1, rainbow: 0, overcast: 0, rain: 0, flash: 0, wet: 0 };
     const rainU = { uVelx: 0, uVely: 0, uVelz: 0, uLen: 0, uAlpha: 0, uColx: 0, uColy: 0, uColz: 0 }, draw = { count: 0 };
     const sky = skyRows(), look = { ...dayLookPresets(sky.schema).live(sky.initial), sunDir: new Vector3(0, 1, 0), keyDir: new Vector3(0, 1, 0) }, camera = { x: 10, y: 20, z: -30 }, wind = { x: 10, z: -20 };
-    const owners = new Map<string, unknown>([...params.roots, ['flags', flags], ['weather', weather], ['look', look], ['camera', camera], ['wind', wind], ['rainU', rainU], ['draw', draw], ['glowMaterial', { opacity: 0 }], ['fireMaterial', { opacity: 0 }],
+    const strike = { x: 1, y: 2, z: 3, kind: 1, age: 1e6 }, telegraph = { x: 1, y: 2, z: 3, kind: 1, age: 1e6 }, burn = { x: 1, y: 2, z: 3, age: 1e6 }, flash = { distance: 0, bearing: 0, age: 1e6 };
+    const owners = new Map<string, unknown>([...params.roots, ['strike', strike], ['telegraph', telegraph], ['burn', burn], ['flash', flash], ['flags', flags], ['weather', weather], ['look', look], ['camera', camera], ['wind', wind], ['rainU', rainU], ['draw', draw], ['glowMaterial', { opacity: 0 }], ['fireMaterial', { opacity: 0 }],
       ...['deck', 'curtains', 'glow', 'fire'].map(id => [id, new Object3D()] as const)]);
     const lane = installChannelPrograms(rows, 'nalati.fx', owners);
-    const defaultValues = { boltT: 99, glowT: 99, smokeLeft: 0, smokeT: 0, active: 0, count: 3500 };
+    const defaultValues = { active: 0, count: 3500 };
     const step = (values = defaultValues): void => {
       lane.evaluate({ time: 0, delta: 1 / 30, values });
       params.push({ setParam: (id, name, value) => { set[`${id}.${name}`] = Array.isArray(value) ? [...value] : value; } });
     };
-    return { flags, weather, rainU, draw, set, step };
+    return { flags, weather, rainU, draw, set, step, strike, telegraph, burn };
   }
   it('hides dry weather and exposes rain, wet ground and the storm front together', () => {
     const { flags, weather, rainU, draw, set, step } = setup();
@@ -68,11 +69,12 @@ describe('Nalati weather presentation rows', () => {
     expect(set['nalati-puddles.puddle']).toEqual([.8, .6]);
   });
   it('expires telegraphs and bolts while preserving a struck tree smoke tail', () => {
-    const { flags, set, step } = setup();
-    step({ boltT: .02, glowT: .8, smokeLeft: 360, smokeT: 1, active: 1, count: 3500 });
+    const { flags, set, step, strike, telegraph, burn } = setup();
+    Object.assign(strike, { age: .02 }); Object.assign(telegraph, { age: .01 }); Object.assign(burn, { age: 0 }); step({ active: 1, count: 3500 });
     expect(flags).toMatchObject({ bolt: 1, glow: 1, smoke: 1, fire: 1 });
     expect(set['nalati-lightning-bolt.alpha']).toBe(1);
-    step({ boltT: 1, glowT: 2, smokeLeft: 5, smokeT: 10, active: 0, count: 3500 });
+    Object.assign(strike, { age: 1 }); Object.assign(telegraph, { age: 2 }); Object.assign(burn, { age: 355 }); step({ active: 0, count: 3500 });
+    expect(set['nalati-strike-smoke.origin']).toEqual([1, 0, 3]); expect(set['nalati-lightning-bolt.origin']).toEqual([1, 2, 3]);
     expect(flags).toMatchObject({ bolt: 0, glow: 0, smoke: 1, fire: 0 });
     expect(set['nalati-strike-smoke.smoke']).toEqual([1 / 6, 2, -4]);
   });

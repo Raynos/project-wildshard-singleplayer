@@ -90,17 +90,30 @@ export class WeatherReactions {
   private readonly events = new Map<string, Record<string, number>>();
   constructor(readonly weather: WeatherContinuation, readonly rows: WeatherReactionRows, private readonly program: ReturnProgram) {
     rows.points.forEach(([x, z, top], index) => { this.grid.add({ x, z, r: 0, top, index }); });
+    for (const emit of rows.steps.flatMap(step => step.emit)) {
+      const event = this.events.get(emit.event) ?? { age: 1e6 }; this.events.set(emit.event, event);
+      for (const [field] of emit.fields) event[field] = 0;
+    }
   }
   /** a state the rows call active (a storm is on) */
   get stormActive(): boolean { return this.rows.active.includes(this.weather.state); }
   get flash(): number { return this.weather.registers[this.rows.flash] ?? 0; }
   set flash(value: number) { this.weather.registers[this.rows.flash] = value; }
   register(name: string): number { return this.weather.registers[name] ?? 0; }
+  /** An event's last fields and its `age` (seconds since it was raised; 1e6 before the first), for presentation rows. */
+  record(event: string): WeatherReactionEvent { const record = this.events.get(event); if (record === undefined) throw new Error(`Undeclared weather reaction: ${event}`); return record; }
+  /** Raise a declared event from outside the rows (a scripted bolt): its record and its subscribers, as a step would. */
+  raise(event: string, fields: Readonly<Record<string, number>>): void {
+    const record = this.events.get(event); if (record === undefined) throw new Error(`Undeclared weather reaction: ${event}`);
+    for (const [field, value] of Object.entries(fields)) { if (!Object.hasOwn(record, field) || field === 'age' || !Number.isFinite(value)) throw new Error(`Invalid weather reaction field: ${field}`); record[field] = value; }
+    record['age'] = 0; for (const fn of this.listeners.get(event) ?? []) fn(record);
+  }
   on(event: string, fn: (event: WeatherReactionEvent) => void): void { const list = this.listeners.get(event) ?? []; list.push(fn); this.listeners.set(event, list); }
   /** One frame: the phase loop, then (at the rows' cadence) the actions and the steps in order. True on a decision tick. */
   update(dt: number): boolean {
     if (dt <= 0) return false;
     this.weather.update(dt); this.elapsed += dt;
+    for (const record of this.events.values()) record['age'] = Math.min(1e6, (record['age'] ?? 0) + dt);
     if (this.elapsed + 1e-9 < 1 / this.rows.hz) return false;
     const step = this.elapsed, { actions, shelter } = this.rows, x = this.inputs['px'] ?? 0, z = this.inputs['pz'] ?? 0;
     this.elapsed = 0;
@@ -133,9 +146,9 @@ export class WeatherReactions {
     }
     for (const emit of row.emit) {
       if (output[emit.when] === undefined) continue;
-      const event = this.events.get(emit.event) ?? {}; this.events.set(emit.event, event);
+      const event = this.events.get(emit.event); if (event === undefined) throw new Error(`Undeclared weather reaction: ${emit.event}`);
       for (const [field, ref] of emit.fields) event[field] = this.read(ref, dt, output);
-      for (const fn of this.listeners.get(emit.event) ?? []) fn(event);
+      event['age'] = 0; for (const fn of this.listeners.get(emit.event) ?? []) fn(event);
     }
   }
   /** The whole continuation as plain values. */

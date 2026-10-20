@@ -94,7 +94,7 @@ export interface Nalati {
   /** every POI (poi agent, B5): camp, bridge, roads, summer camp, kurgans, balbals, Eagle Rock, cairn, Crags */
   pois: NalatiPOIs;
   /** the day/night clock + storms (weather agent, B10): `weather.clock.onDusk(fn)`, `weather.weather.stormActive`,
-   *  `weather.bind({ audio, hurt, scare })` from main.ts once the audio and the player's health exist */
+   *  `weather.bind({ audio, hurt })` from main.ts once the audio and the player's health exist */
   weather: NalatiWeather;
   /** the great kurgan's dungeon + the Golden King (boss agent, B13; src/shards/nalati-grasslands/kurganBoss.ts): `boss.bind(play)` from main.ts
    *  once the animals, the kit and the HUD exist; `boss.onPlayerDeath()` in main's death check (true = the boss fight
@@ -348,7 +348,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const finishWildlife = (animals: AnimalManager, w: Wildlife): Wildlife => {
     wildlife = w;
     night.attach(animals);
-    weather.bind({ scare: (x, z) => { w.scare(x, z, 60); } }); // a lightning strike breaks a pack / stampedes a herd within 60 m
+    weather.weather.on('strike', (e) => { w.scare(e['x'] ?? 0, e['z'] ?? 0, 60); }); // a lightning strike breaks a pack / stampedes a herd within 60 m
     return w;
   };
   const nalati: Nalati = {

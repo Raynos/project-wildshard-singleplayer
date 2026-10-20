@@ -1,10 +1,10 @@
 import { Signal, Field, Channel, Params, Read, List, Do } from './generated/nalatiWeather';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 // Per-request output scratch only; ReturnProgram rewinds it before every call.
-const RESULTS:usize=memory.data(96,8);
+const RESULTS:usize=memory.data(128,8);
 let resultCount:i32=0;
 @inline function put(id:i32,value:f64):void {
- assert(resultCount<6);const at=RESULTS+usize(resultCount)*16;
+ assert(resultCount<8);const at=RESULTS+usize(resultCount)*16;
  store<i32>(at,id);store<f64>(at+8,value);resultCount++;
 }
 
@@ -178,7 +178,7 @@ if(signal==Signal.arm){
  }else if(signal==Signal.hit){
   const d=length(f(Field.x)-f(Field.px),f(Field.z)-f(Field.pz));put(Channel.distance,d);put(Channel.bearing,angle(f(Field.z)-f(Field.pz),f(Field.x)-f(Field.px)));
   if(f(Field.sheltered)==0&&d<=4&&Math.abs(f(Field.y)-f(Field.py))<6)put(Channel.damage,60);
-  put(Channel.flash,1);put(Channel.armed,0);put(Channel.land,0);
+  put(Channel.flash,1);put(Channel.armed,0);put(Channel.land,0);if(f(Field.kind)==1)put(Channel.burn,1);
 }else if(signal==Signal.wind){
   const hold=f(Field.titanHeld)>0&&f(Field.storm)>0&&f(Field.phaseLen)-f(Field.phaseT)<30;
   put(Channel.phaseT,hold?f(Field.phaseLen)-30:f(Field.phaseT));
@@ -201,4 +201,6 @@ if(signal==Signal.arm){
  if(resultCount>3)Do.channel(load<i32>(RESULTS+48),load<f64>(RESULTS+56));
  if(resultCount>4)Do.channel(load<i32>(RESULTS+64),load<f64>(RESULTS+72));
  if(resultCount>5)Do.channel(load<i32>(RESULTS+80),load<f64>(RESULTS+88));
+ if(resultCount>6)Do.channel(load<i32>(RESULTS+96),load<f64>(RESULTS+104));
+ if(resultCount>7)Do.channel(load<i32>(RESULTS+112),load<f64>(RESULTS+120));
 }
