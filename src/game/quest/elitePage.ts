@@ -1,3 +1,11 @@
+import { app } from '@wildshard/engine/app/runtime';
+import { pinBrain } from '@wildshard/engine/ai/inspect';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { StalkerBrain, type PouncerSpec, type HowlerSpec, type PouncerLedge, type HowlerPack } from '@wildshard/engine/ai/stalker';
+import { DiverBrain, type WindDiverSpec } from '@wildshard/engine/ai/diver';
+import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import * as THREE from 'three';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -7,7 +15,7 @@ import type { HUD } from '@wildshard/engine/ui/HUD';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
-import { GroundTell, type Elites, type EliteScript } from '../Elite';
+import { GroundTell, type Elites, type EliteScript, type EliteDef } from '../Elite';
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { SpawnScript } from '../population/spawnScript';
 import { EliteDecisions } from './eliteDecisions';
@@ -130,4 +138,104 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
       puffs.update(dt, t);
     },
   };
+}
+
+const keeperBrains = new WeakMap<Animal, (a: Animal, c: ThinkCtx) => void>();
+const keeperActs = new WeakMap<Animal, (a: Animal, c: ThinkCtx) => void>();
+const keeperDamage = new WeakMap<Animal, (a: Animal, p: THREE.Vector3, d: THREE.Vector3) => number>();
+/** Species delegate only their existing native decision, body and damage slots. */
+export function setEliteBrain(a: Animal, fn: (a: Animal, c: ThinkCtx) => void): void { keeperBrains.set(a, fn); }
+export function setEliteAct(a: Animal, fn: (a: Animal, c: ThinkCtx) => void): void { keeperActs.set(a, fn); }
+export function setEliteDamage(a: Animal, fn: (a: Animal, p: THREE.Vector3, d: THREE.Vector3) => number): void { keeperDamage.set(a, fn); }
+export function eliteThink(a: Animal, c: ThinkCtx): void { keeperBrains.get(a)?.(a, c); }
+export function eliteAct(a: Animal, c: ThinkCtx): void { keeperActs.get(a)?.(a, c); }
+export function eliteDamageMul(a: Animal, p: THREE.Vector3, d: THREE.Vector3): number { return keeperDamage.get(a)?.(a, p, d) ?? 1; }
+
+/** Data-only page binding of approved stalker and wind-diver encounter policies.
+ * Native species keep their existing AI cadence; effects leave as named values. */
+export type KeeperEliteRow = {
+  readonly def: EliteDef; readonly kind: string; readonly yaw: number; readonly offset: readonly [number, number];
+  readonly memory: Readonly<Record<string, number>>; readonly tell: readonly [number, number, number];
+  readonly beam: readonly [number, number, number]; readonly messages: Readonly<Record<string, string>>;
+  readonly voices: Readonly<Record<string, string>>;
+  readonly pack?: { readonly offset: readonly [number, number]; readonly variants: readonly string[] };
+} & ({ readonly pattern: 'pouncer'; readonly spec: PouncerSpec } | { readonly pattern: 'howler'; readonly spec: HowlerSpec }
+  | { readonly pattern: 'wind'; readonly spec: WindDiverSpec });
+export type KeeperEliteEffect = { readonly kind: 'feed'; readonly id: string; readonly at: THREE.Vector3 }
+  | { readonly kind: 'sound'; readonly id: string; readonly at: THREE.Vector3 }
+  | { readonly kind: 'hit'; readonly animal: Animal; readonly amount: number }
+  | { readonly kind: 'knock'; readonly x: number; readonly z: number }
+  | { readonly kind: 'pack'; readonly x: number; readonly z: number; readonly variants: readonly string[] };
+/** Existing entered services, separate from the row. No author factory or
+ * lifecycle override is accepted. The owner may attach a real pack after spawn. */
+export interface KeeperEliteServices {
+  readonly game: Game; readonly animals: AnimalManager; readonly player: Player; readonly elites: Elites; readonly bar: EliteBar;
+  readonly ledges: readonly PouncerLedge[]; readonly rock: { readonly x: number; readonly z: number; readonly top: number };
+}
+export class KeeperElitePage implements EliteScript {
+  readonly def: EliteDef;
+  animal: Animal | null = null;
+  pack: (HowlerPack<Animal> & { readonly members: readonly Animal[] }) | null = null;
+  private phase2 = false;
+  private observations = { playerCrouched: false, playerFwdX: 0, playerFwdZ: -1, grassHeight: .55, wind: { x: -.8, z: .6 } };
+  observe(row: typeof this.observations): void { this.observations = row; }
+  private readonly policy: StalkerBrain<Animal> | DiverBrain<Animal>;
+  private readonly events: KeeperEliteEffect[] = [];
+  private engagement: Scope | null = null;
+  constructor(readonly row: KeeperEliteRow, private readonly services: KeeperEliteServices, private readonly drop: THREE.Object3D) {
+    this.def = row.def;
+    const { game, player, elites, bar } = services;
+    const tell = new GroundTell(game.scene, 'ring', new THREE.Color(...row.tell));
+    const geometry = new THREE.CylinderGeometry(.05, .05, 1, 6, 1, true); geometry.translate(0, .5, 0);
+    const material = fxMaterial(FX.beam, new THREE.Color(...row.beam), 0), beam = new THREE.Mesh(geometry, material);
+    if (row.pattern === 'wind') { material.depthTest = false; beam.visible = false; beam.frustumCulled = false; beam.renderOrder = 31; game.scene.add(beam); }
+    else { geometry.dispose(); material.dispose(); }
+    const up = new THREE.Vector3(0, 1, 0), delta = new THREE.Vector3(), head = new THREE.Vector3();
+    const event = (kind: 'feed' | 'sound', name: string, at = player.position): void => {
+      const id = (kind === 'feed' ? row.messages : row.voices)[name]; if (id !== undefined) this.events.push({ kind, id, at: at.clone() });
+    };
+    const common = { player, lair: row.def.lair, phase2: () => this.phase2, signature: () => { elites.signature(row.def.id); } };
+    const contact = { hurt: (animal: Animal, amount: number): void => { this.events.push({ kind: 'hit', animal, amount }); },
+      knock: (x: number, z: number): void => { this.events.push({ kind: 'knock', x, z }); },
+      isHead: (animal: Animal, point: THREE.Vector3): boolean => animal.headWorld(head).distanceTo(point) < animal.dims.headRadius * animal.scale + .12 };
+    if (row.pattern === 'pouncer') this.policy = new StalkerBrain({ pattern: 'pouncer', spec: row.spec, ports: {
+      ...common, ...contact, awareRadius: row.def.awareR, ledges: services.ledges, heightAt: terrainHeight, ring: tell,
+      opened: () => { event('feed', 'opened'); }, growl: at => { event('sound', 'growl', at); } } });
+    else if (row.pattern === 'howler') this.policy = new StalkerBrain({ pattern: 'howler', spec: row.spec, ports: {
+      ...common, ...contact, pack: () => this.pack, environment: () => ({ ...this.observations, grassHeightAt: () => this.observations.grassHeight }), random: () => app.rng.stream('ai').next(), rings: tell,
+      regrouped: () => { event('feed', 'regrouped'); }, interrupted: () => { event('feed', 'interrupted'); }, closed: () => { event('feed', 'closed'); }, howl: at => { event('sound', 'howl', at); } } });
+    else this.policy = new DiverBrain(null, { pattern: 'wind', spec: row.spec, ports: {
+      ...common, ...contact, rock: services.rock, heightAt: terrainHeight, wind: () => this.observations.wind, random: () => app.rng.stream('ai').next(),
+      tell: { setTime: time => { material.uniforms.uTime.value = time; }, aim: (from, to, alpha) => {
+        delta.subVectors(to, from); beam.position.copy(from); beam.scale.set(1, delta.length(), 1);
+        beam.quaternion.setFromUnitVectors(up, delta.normalize()); material.uniforms.uAlpha.value = alpha; beam.visible = true;
+      }, chevron: point => { bar.chevron(point, game.camera); }, hide: () => { beam.visible = false; } },
+      grounded: () => { event('feed', 'grounded'); }, cry: at => { event('sound', 'cry', at); } } });
+  }
+  spawn(): void {
+    const { row, policy, services } = this, a = services.animals.spawn(row.kind, this.def.lair.x + row.offset[0], this.def.lair.z + row.offset[1], row.yaw, row.def.id);
+    this.animal = a; a.herd = -1; Object.assign(a.mem, row.memory);
+    if (row.pack !== undefined) this.events.push({ kind: 'pack', x: row.def.lair.x + row.pack.offset[0], z: row.def.lair.z + row.pack.offset[1], variants: row.pack.variants });
+    if (policy instanceof StalkerBrain) {
+      policy.spawned(a); setEliteBrain(a, (body, context) => { if (row.pattern === 'pouncer') policy.decidePouncer(body, context); else policy.decideHowler(body, context); });
+      setEliteAct(a, body => { policy.act(body); }); setEliteDamage(a, (body, point) => policy.damage(body, point));
+    } else { policy.spawnWind(a); setEliteBrain(a, (body, context) => { policy.decideWind(body, context); }); setEliteDamage(a, (body, point) => policy.windDamage(body, point)); }
+  }
+  despawn(): void {
+    this.events.length = 0;
+    this.engagement?.dispose(); this.engagement = null;
+    if (this.policy instanceof StalkerBrain) this.policy.disposeTell(); else this.policy.disposeWindTell();
+    if (this.animal !== null) this.services.animals.retire(this.animal); this.animal = null;
+    if (this.pack !== null) for (const member of this.pack.members) if (member.alive) this.services.animals.retire(member); this.pack = null;
+  }
+  reset(): void { this.phase2 = false; if (this.policy instanceof StalkerBrain) this.policy.reset(this.animal); else this.policy.resetWind(); }
+  enterPhase2(): void { this.phase2 = true; if (this.policy instanceof StalkerBrain && this.row.pattern === 'howler') this.policy.enterPhase2(this.animal); }
+  trophy(): void { /* Rewards are owned by the encounter host. */ }
+  dropModel(): THREE.Object3D { return this.drop.clone(true); }
+  tick(dt: number, time: number, engaged: boolean, leashing: boolean): void {
+    if (engaged && this.animal !== null && this.engagement === null) { this.engagement = this.services.game.levelScope.child(`elite.${this.def.id}`); pinBrain(this.animal, this.engagement); }
+    else if (!engaged) { this.engagement?.dispose(); this.engagement = null; }
+    if (this.policy instanceof StalkerBrain) this.policy.advance(this.animal, dt, time, engaged, leashing); else this.policy.advanceWind(this.animal, dt, time, engaged, leashing);
+  }
+  drainEffects(): KeeperEliteEffect[] { return this.events.splice(0); }
 }

@@ -1,3 +1,4 @@
+import { bindEliteAdmission } from '../runtime/argymaqKeeper';
 import { CrowdPrey } from '@wildshard/game/shardfile/crowdRuntime';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';
@@ -79,7 +80,7 @@ export class Wildlife {
   private readonly preyBindings = new Map<string, PackPrey>();
   private controllers: WildlifeControllers;
 
-  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.pastureAuthor = ReturnProgram.page(opts.pasture); this.placement = ReturnProgram.page(opts.admission); this.population = new PagePopulationPlanner(animals, this.placement, new Rng(opts.seed ^ 0x3a17), { begin: 'begin', spot: 'spot', accept: 'accept', yaw: 'yaw' }); this.controllers = opts.controllers ?? this.declaredControllers(); }
+  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { bindEliteAdmission(opts.admission); this.pastureAuthor = ReturnProgram.page(opts.pasture); this.placement = ReturnProgram.page(opts.admission); this.population = new PagePopulationPlanner(animals, this.placement, new Rng(opts.seed ^ 0x3a17), { begin: 'begin', spot: 'spot', accept: 'accept', yaw: 'yaw' }); this.controllers = opts.controllers ?? this.declaredControllers(); }
 
   private declaredControllers(): WildlifeControllers {
     const factory = declaredGroupFactories({ preyIdentity: prey => this.preyIdentity(prey), resolvePrey: id => this.resolvePrey(id),

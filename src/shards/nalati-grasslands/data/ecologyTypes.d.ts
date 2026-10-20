@@ -23,11 +23,17 @@ interface EliteRow {
   respawnMin: number; once?: boolean; signature: string; phase2: string;
   drop: { skin: string | null; skinName: string; weapon: string; blurb: string; trophyName?: string };
 }
+type KeeperEliteRow = { def: EliteRow; kind: string; yaw: number; offset: [number, number]; memory: Record<string, number>;
+  tell: [number, number, number]; beam: [number, number, number]; messages: Record<string, string>; voices: Record<string, string>;
+  pack?: { offset: [number, number]; variants: string[] } } & (
+  { pattern: 'pouncer'; spec: typeof AqbarsProfile.spec } | { pattern: 'howler'; spec: typeof KokboriProfile.spec }
+  | { pattern: 'wind'; spec: typeof QyranProfile.spec });
 /** JSON is the only runtime declaration; flock seeds are offsets until entry. */
 export interface Ecology {
   argymaq: string;
   profiles: { aqbars: typeof AqbarsProfile; kokbori: typeof KokboriProfile; qyran: typeof QyranProfile };
   elites: Record<string, EliteRow>;
+  keeperElites: KeeperEliteRow[];
   wildlife: WildlifeLayout;
   mareVariants: string[];
   modes: { traverse: []; ride: [ReturnType<Mount['toModeData']>] };

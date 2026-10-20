@@ -29,8 +29,14 @@ export function ecologyRows() {
   for (const row of Object.values(author.species)) species(row);
   const fields = v.pick(SpeciesSchema, ['aggressive', 'walkSpeed', 'chargeSpeed', 'chargeDamage', 'sounds', 'tuning', 'tick', 'trampleRadius']);
   for (const row of Object.values(gameplay)) v.parse(fields, row);
+  const elites = Object.fromEntries(Object.entries(author.elites).map(([id, row]) => [id, { ...row, lair: { x: at(row.lair.at).x, z: at(row.lair.at).z, r: row.lair.r } }]));
+  const keeperElites = [
+    { id: 'aqbars', kind: 'leopard', pattern: 'pouncer', spec: aqbars.spec, yaw: 0, offset: [0, 0], memory: { low: .3 }, tell: [2.4, .9, .35], messages: { opened: aqbars.opened } },
+    { id: 'kokbori', kind: 'kokbori', pattern: 'howler', spec: kokbori.spec, yaw: Math.PI, offset: [0, 0], memory: {}, tell: [.9, 1.15, 1.4], messages: { regrouped: kokbori.regrouped, interrupted: kokbori.interrupted, closed: kokbori.closed }, pack: { offset: [-6, 4], variants: ['grey', 'tawny', 'grey', 'dark', 'scout'] } },
+    { id: 'qyran', kind: 'eagle', pattern: 'wind', spec: qyran.spec, yaw: 0, offset: [26, 0], memory: {}, tell: [2.4, .9, .35], messages: { grounded: qyran.grounded } },
+  ].map(({ id, ...row }) => Object.assign(row, { def: elites[id], beam: [2.4, 1.7, .5], voices: { growl: 'leopard_growl', howl: 'wolf_howl', cry: 'eagle_cry' } }));
   return { argymaq: author.argymaq, profiles: { aqbars, kokbori, qyran },
-    elites: Object.fromEntries(Object.entries(author.elites).map(([id, row]) => [id, { ...row, lair: { x: at(row.lair.at).x, z: at(row.lair.at).z, r: row.lair.r } }])),
+    elites, keeperElites,
     wildlife, mareVariants: author.mareVariants, modes: author.modes, gameplay, species: author.species,
     flocks: { world: rows(wildlife.flocks), specimen: rows(author.specimenFlocks) } };
 }

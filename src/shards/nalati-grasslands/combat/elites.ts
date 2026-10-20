@@ -1,9 +1,9 @@
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { SpawnScript } from '@wildshard/game/population/spawnScript';
-import { ArgymaqKeeper } from '../runtime/argymaqKeeper';
+import { ArgymaqKeeper, eliteAdmission } from '../runtime/argymaqKeeper';
 import { NALATI_STRIKES, sampleStrike } from './strikes';
 import { registerNalatiDefinition } from '../species/rows';
-import { NativePouncerKeeper, NativeHowlerKeeper, NativeWindKeeper, argymaqDefinition, eliteRuleHolds } from './eliteRoster';
+import { argymaqDefinition } from './eliteRoster';
 import type { SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import { EliteBrain } from '@wildshard/engine/ai/EliteBrain';
 import { pinBrain } from '@wildshard/engine/ai/inspect';
@@ -13,19 +13,17 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { setEliteBrain, setEliteAct, setEliteDamage } from '../runtime/eliteBrain';
+import { KeeperElitePage, setEliteDamage } from '@wildshard/game/quest/elitePage';
 import { hasSpecies as hasLegacySpecies, speciesDef } from '@wildshard/engine/entities/species/registry';
 import type { Player } from '@wildshard/engine/player/Player';
 import { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { fxMaterial, FX } from '@wildshard/engine/fx/groundFx';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { encounterHit } from './damage';
 import * as THREE from 'three';
 import type { Wildlife } from '../creatures/wildlife';
-import type { PackController, HerdController } from '../runtime/groupRegistry';
+import type { HerdController } from '../runtime/groupRegistry';
 import type { Ledge } from '../world/types';
 import { wildEnv } from '../creatures/env';
 import { LEOPARD } from '../species/leopard';
@@ -36,7 +34,7 @@ import { bakedActorGeometry } from '../world/places';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 
 const { EAGLE_ROCK } = poiLayoutRows;
-export type EliteSound = 'wolf_howl' | 'leopard_growl' | 'horse_squeal' | 'eagle_cry';
+export type EliteSound = string;
 interface Env {
   game: Game; sky: Sky; player: Player; animals: AnimalManager; charge: SpawnScriptRows;
   elites: Elites; bar: EliteBar;
@@ -50,8 +48,6 @@ interface Env {
   record: (kind: string, variant: string) => void;
   sound: (name: EliteSound, at: THREE.Vector3) => void;
 }
-const _h = new THREE.Vector3();
-function isHead(a: Animal, p: THREE.Vector3, slack = 0.12): boolean { a.headWorld(_h); return _h.distanceTo(p) < a.dims.headRadius * a.scale + slack; }
 abstract class Base extends EliteBrain<Animal> implements EliteScript {
   private engagementScope: Scope | null = null;
   private engagementActor: Animal | null = null;
@@ -76,53 +72,6 @@ abstract class Base extends EliteBrain<Animal> implements EliteScript {
   protected sig(): void { this.env.elites.signature(this.def.id); }
 
 }
-function bindKeeper(def: EliteDef, env: Env, pattern: 'pouncer' | 'howler' | 'wind'): EliteScript {
-  let animal: Animal | null = null, p2 = false, pack: PackController | null = null;
-  const tell = new GroundTell(env.game.scene, 'ring', new THREE.Color(pattern === 'howler' ? 0.9 : 2.4, pattern === 'howler' ? 1.15 : 0.9, pattern === 'howler' ? 1.4 : 0.35));
-  const geometry = new THREE.CylinderGeometry(0.05, 0.05, 1, 6, 1, true); geometry.translate(0, 0.5, 0);
-  const material = fxMaterial(FX.beam, new THREE.Color(2.4, 1.7, 0.5), 0), beam = new THREE.Mesh(geometry, material);
-  if (pattern === 'wind') { material.depthTest = false; beam.visible = false; beam.frustumCulled = false; beam.renderOrder = 31; env.game.scene.add(beam); }
-  else { geometry.dispose(); material.dispose(); }
-  const up = new THREE.Vector3(0, 1, 0), delta = new THREE.Vector3();
-  const common = { player: env.player, lair: def.lair, phase2: () => p2, signature: () => { env.elites.signature(def.id); } };
-  const policy = pattern === 'pouncer' ? new NativePouncerKeeper<Animal>({
-    ...common, awareRadius: def.awareR, ledges: env.ledges, heightAt, isHead, ring: tell, hurt: env.hurt, knock: env.knock,
-    opened: () => { env.feed(ecology.profiles.aqbars.opened); }, growl: at => { env.sound('leopard_growl', at); },
-  }) : pattern === 'howler' ? new NativeHowlerKeeper<Animal>({
-    ...common, pack: () => pack, environment: () => wildEnv, random: () => app.rng.stream('ai').next(), rings: tell, hurt: env.hurt,
-    regrouped: () => { env.feed(ecology.profiles.kokbori.regrouped); }, interrupted: () => { env.feed(ecology.profiles.kokbori.interrupted); },
-    closed: () => { env.feed(ecology.profiles.kokbori.closed); }, howl: at => { env.sound('wolf_howl', at); },
-  }) : new NativeWindKeeper<Animal>({
-    ...common, rock: EAGLE_ROCK, heightAt, wind: () => wildEnv.wind, random: () => app.rng.stream('ai').next(), isHead,
-    tell: { setTime: t => { material.uniforms.uTime.value = t; }, aim: (from, to, alpha) => {
-      delta.subVectors(to, from); beam.position.copy(from); beam.scale.set(1, delta.length(), 1);
-      beam.quaternion.setFromUnitVectors(up, delta.normalize()); material.uniforms.uAlpha.value = alpha; beam.visible = true;
-    }, chevron: point => { env.bar.chevron(point, env.game.camera); }, hide: () => { beam.visible = false; } },
-    hurt: env.hurt, knock: env.knock, grounded: () => { env.feed(ecology.profiles.qyran.grounded); }, cry: at => { env.sound('eagle_cry', at); },
-  }, ecology.profiles.qyran.spec);
-  const spawn = (): void => {
-    const kind = pattern === 'pouncer' ? LEOPARD : pattern === 'howler' ? KOKBORI : EAGLE;
-    const a = env.animals.spawn(kind, def.lair.x + (pattern === 'wind' ? 26 : 0), def.lair.z, pattern === 'howler' ? Math.PI : 0, def.id);
-    animal = a; a.herd = -1; if (pattern === 'pouncer') a.mem['low'] = 0.3;
-    policy.spawned(a); setEliteBrain(a, (body, ctx) => { policy.think(body, ctx); });
-    if (!(policy instanceof NativeWindKeeper)) setEliteAct(a, body => { policy.act(body); });
-    setEliteDamage(a, (body, point) => policy.damage(body, point));
-    if (pattern === 'howler') { pack = env.wildlife?.spawnPack(def.lair.x - 6, def.lair.z + 4, ['grey', 'tawny', 'grey', 'dark', 'scout']) ?? null; if (pack !== null) { pack.homeX = def.lair.x; pack.homeZ = def.lair.z; } }
-  };
-  let engagedScope: Scope | null = null;
-  return { def, get animal() { return animal; }, spawn,
-    despawn: () => { engagedScope?.dispose(); engagedScope = null; policy.disposeTell(); if (animal !== null) env.animals.retire(animal); animal = null;
-      if (pack !== null) for (const member of pack.members) if (member.alive) env.animals.retire(member); pack = null; },
-    reset: () => { p2 = false; if (policy instanceof NativeWindKeeper) policy.reset(); else policy.reset(animal); },
-    enterPhase2: () => { p2 = true; if (policy instanceof NativeHowlerKeeper) policy.enterPhase2(animal); },
-    trophy: () => undefined, dropModel: () => trophyModel(def.id, env.sky),
-    tick: (dt, t, engaged, leashing) => {
-      if (engaged && animal !== null && engagedScope === null) { engagedScope = env.game.levelScope.child(`elite.${def.id}`); pinBrain(animal, engagedScope); }
-      else if (!engaged) { engagedScope?.dispose(); engagedScope = null; }
-      policy.tick(animal, dt, t, engaged, leashing);
-    },
-  };
-}
 export interface GhostsApi {
   spawnRider: (o: { x: number; z: number; yaw: number; variant?: 'rider' | 'captain' }) => Animal | null;
   spawnLine: (o: { count?: number; captain?: boolean; at?: number }) => Animal[];
@@ -132,13 +81,15 @@ export interface GhostsApi {
 class QaraBatyr extends Base {
   private program: SpawnScript | null = null;
   private line: Animal[] = [];
+  private elapsed = 0;
+  private readonly decisions = eliteAdmission();
   private readonly tell = new GroundTell(this.env.game.scene, 'lane', new THREE.Color(0.35, 1.6, 1.9));
-  canSpawn(): boolean { return this.env.ghosts !== null && this.env.ghosts.killsTonight >= 5; }
+  canSpawn(): boolean { return this.env.ghosts !== null && this.decisions.project('eliteAux', { kills: this.env.ghosts.killsTonight, engaged: 0, line: 0 })['accept'] === 1; }
   override spawn(): void {
     const c = this.def.lair, a = this.env.ghosts?.spawnRider({ x: c.x, z: c.z, yaw: 0, variant: 'captain' });
     if (a === undefined || a === null) return;
     this.animal = a; this.program = SpawnScript.page(this.env.animals, this.env.charge, app.physics); this.program.adopt('main', a.entityId);
-    setEliteDamage(a, (_body, point) => this.program?.state('main')['mode'] === 4 && point.distanceTo(this.env.player.position) < 3.8 ? 3 : 1);
+    setEliteDamage(a, (_body, point) => this.decisions.project('eliteDamage', { mode: Number(this.program?.state('main')['mode'] ?? 0), distance: point.distanceTo(this.env.player.position) })['scale'] ?? 1);
   }
   override despawn(): void {
     this.engagement(false); this.tell.hide(); this.program?.interrupt();
@@ -148,7 +99,12 @@ class QaraBatyr extends Base {
   override reset(): void { super.reset(); this.program?.interrupt(); this.program?.signal('main', 0); this.tell.hide(); }
   override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
     this.engagement(engaged); const program = this.program, a = this.animal; if (program === null || a === null) return;
-    if (engaged && this.line.every(body => !body.alive)) this.line = this.env.ghosts?.spawnLine({ count: 3 }) ?? [];
+    this.elapsed += dt;
+    if (this.elapsed + 1e-9 >= .1) {
+      this.elapsed = 0;
+      const count = this.decisions.project('eliteAux', { kills: this.env.ghosts?.killsTonight ?? 0, engaged: Number(engaged), line: this.line.filter(body => body.alive).length })['count'] ?? 0;
+      if (count > 0) this.line = this.env.ghosts?.spawnLine({ count }) ?? [];
+    }
     program.frame(this.env.player.position, 0, { engaged: Number(engaged), leashing: Number(leashing), phase2: Number(this.p2), clock: t }); program.advanceFrame(dt);
     for (const effect of program.drainEffects()) {
       if (effect.kind === 'hit') { this.env.hurt(a, effect.hit.damage); this.env.knock(Math.sin(a.yaw), Math.cos(a.yaw)); }
@@ -227,18 +183,24 @@ export interface ElitesPlay {
   sound?: (name: EliteSound, at: THREE.Vector3) => void;
   params: URLSearchParams;
 }
+const keeperEnvs = new WeakMap<NalatiElites, Env>();
 export class NalatiElites {
   bar: EliteBar | null = null;
   elites: Elites | null = null;
   scripts: EliteScript[] = [];
   readonly skins = new Set<string>();
+
   ghosts: GhostsApi | null = null;
   constructor(private readonly ctx: ElitesCtx) {}
   bind(play: ElitesPlay): void {
     const { game, sky, player } = this.ctx;
     const bar = new EliteBar();
     this.bar = bar;
-    const condition = (rule: EliteRule): boolean => eliteRuleHolds(rule, this.ctx.phase(), this.ctx.storm());
+    const decisions = eliteAdmission();
+    const condition = (rule: EliteRule): boolean => decisions.project('eliteRule', {
+      rule: rule === 'always' ? 0 : rule === 'storm' ? 1 : rule === 'night' ? 2 : 3,
+      phase: this.ctx.phase() === 'night' ? 2 : this.ctx.phase() === 'dusk' ? 1 : 0, storm: Number(this.ctx.storm()),
+    })['accept'] === 1;
     const elites = new Elites({
       scene: game.scene, camera: game.camera, renderer: game.renderer, player, condition,
       addInteractable: (it) => { play.interactables.push(it); },
@@ -259,19 +221,36 @@ export class NalatiElites {
       feed: play.feed, record: play.record,
       sound: (name, at) => { play.sound?.(name, at); },
     };
+    keeperEnvs.set(this, env);
     this.scripts = [
-      bindKeeper(ecology.elites['aqbars'] ?? fail('aqbars'), env, 'pouncer'),
-      bindKeeper(ecology.elites['kokbori'] ?? fail('kokbori'), env, 'howler'),
-      bindKeeper(ecology.elites['qyran'] ?? fail('qyran'), env, 'wind'),
+      ...ecology.keeperElites.map(row => new KeeperElitePage(row, { game, player, animals: play.animals, elites, bar, ledges: env.ledges, rock: EAGLE_ROCK }, trophyModel(row.def.id, sky))),
       new QaraBatyr(ecology.elites['qara-batyr'] ?? fail('qara-batyr'), env),
       new Argymaq(ecology.elites['argymaq'] ?? fail('argymaq'), env),
     ];
     for (const s of this.scripts) { app.encounters.elite(s.def.id, s, game.levelScope); elites.add(s); const skin = s.def.drop.skin; if (skin !== null && elites.owned(s.def.id)) this.skins.add(skin); }
     for (const [k, v] of [[LEOPARD, 'aqbars'], [EAGLE, 'qyran'], [KOKBORI, 'kokbori']] as const) { try { play.animals.factory.model(k, v); } catch (e) { console.warn(`[elites] ${k} did not build`, e); } }
-    this.ctx.game.levelScope.onDispose(app.debug.scopedExpose('nalati.elites', this));
+    this.ctx.game.levelScope.onDispose(app.debug.scopedExpose('nalati.elites', { scripts: this.scripts, elites, bar }));
   }
   initialize(): void { this.elites?.initialize(); }
-  update(dt: number, t: number): void { this.elites?.update(dt, t); }
+  update(dt: number, t: number): void {
+    for (const script of this.scripts) if (script instanceof KeeperElitePage) {
+      const at = script.animal?.position;
+      script.observe({ playerCrouched: wildEnv.playerCrouched, playerFwdX: wildEnv.playerFwdX, playerFwdZ: wildEnv.playerFwdZ,
+        grassHeight: at === undefined ? 0 : wildEnv.grassHeightAt(at.x, at.z), wind: wildEnv.wind });
+    }
+    this.elites?.update(dt, t);
+    const env = keeperEnvs.get(this); if (env === undefined) return;
+    for (const script of this.scripts) if (script instanceof KeeperElitePage) for (const effect of script.drainEffects()) {
+      if (effect.kind === 'hit') env.hurt(effect.animal, effect.amount);
+      else if (effect.kind === 'knock') env.knock(effect.x, effect.z);
+      else if (effect.kind === 'feed') env.feed(effect.id);
+      else if (effect.kind === 'sound') env.sound(effect.id, effect.at);
+      else {
+        const pack = env.wildlife?.spawnPack(effect.x, effect.z, [...effect.variants]) ?? null;
+        if (pack !== null) { pack.homeX = script.def.lair.x; pack.homeZ = script.def.lair.z; } script.pack = pack;
+      }
+    }
+  }
 }
 function fail(id: string): never { throw new Error(`elites: no def '${id}'`); }
 export function wireElites(ctx: ElitesCtx): NalatiElites { return new NalatiElites(ctx); }

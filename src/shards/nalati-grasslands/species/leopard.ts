@@ -1,5 +1,5 @@
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
-import { eliteThink, eliteAct, eliteDamageMul } from '../runtime/eliteBrain';
+import { eliteThink, eliteAct, eliteDamageMul } from '@wildshard/game/quest/elitePage';
 import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 

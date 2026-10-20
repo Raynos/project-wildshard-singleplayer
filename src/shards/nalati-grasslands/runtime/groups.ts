@@ -1,3 +1,4 @@
+import { bindEliteAdmission } from './argymaqKeeper';
 import { admitNativeHerds } from '@wildshard/game/shardfile/groupRuntime';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import admission from '../behaviour/admission.generated.json' with {type:'json'};
@@ -75,6 +76,7 @@ export function nalatiHeadlessEnv(grass: NalatiGrassView): WildEnv {
  * (runtime/headlessCreatures.ts), whose adapter carries their continuations.
  */
 export function installNalatiGroups(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly { readonly kind: string; readonly members: readonly string[] }[]; normalY: (x: number, z: number) => number; grass: NalatiGrassView; env?: WildEnv }): NalatiGroups {
+  bindEliteAdmission(admission);
   const byId = new Map(ports.bodies.map(b => [b.boot.id, b.actor] as const));
   const actor = (id: string): AnimalSim => { const a = byId.get(id); if (a === undefined) throw new Error(`Nalati group member ${id} has no body`); return a; };
   const policies = new WeakMap<AnimalSim, Parameters<PackPorts<AnimalSim>['register']>[1]>();

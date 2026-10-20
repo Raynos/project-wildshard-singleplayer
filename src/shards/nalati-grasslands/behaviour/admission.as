@@ -12,7 +12,29 @@ import { Signal, Field, Channel, Read, List, Do } from './generated/nalatiAdmiss
 // Synchronous admission/restore events and bounded 10 Hz sheepdog decisions.
 // The native owner retains bodies, clocks and both original random streams.
 @inline export function onSignal(signal:i32,value:f64,source:i32):void {
-  if(signal==Signal.speed) {
+  if(signal==Signal.argymaqTick) {
+    const dt=get(Field.dt),state=get(Field.state);
+    let lane=get(Field.laneT),run=get(Field.runT);
+    if(state!=get(Field.previousState)) {
+      if(state==1){lane=1.2;Do.channel(Channel.capture,1);Do.channel(Channel.signature,1);}
+      if(state==2)lane=Math.max(lane,1.4);
+    }
+    if(lane>0)lane-=dt;
+    if(get(Field.phase2)!=0&&get(Field.engaged)!=0&&state!=3) {
+      run-=dt;if(run<=0){run=8;Do.channel(Channel.lead,1);}
+    }
+    Do.channel(Channel.laneT,lane);Do.channel(Channel.runT,run);
+    Do.channel(Channel.adopt,get(Field.bonded)!=0&&get(Field.same)==0?1:0);
+    Do.channel(Channel.fraction,Math.max(0,(get(Field.health)-.25)/.75));
+  } else if(signal==Signal.eliteRule) {
+    const rule=get(Field.rule),phase=get(Field.phase);
+    Do.channel(Channel.accept,rule==0||rule==1&&get(Field.storm)!=0||rule==2&&phase==2||rule==3&&phase>=1?1:0);
+  } else if(signal==Signal.eliteAux) {
+    Do.channel(Channel.accept,get(Field.kills)>=5?1:0);
+    Do.channel(Channel.count,get(Field.engaged)!=0&&get(Field.line)==0?3:0);
+  } else if(signal==Signal.eliteDamage) {
+    Do.channel(Channel.scale,get(Field.mode)==4&&get(Field.distance)<3.8?3:1);
+  } else if(signal==Signal.speed) {
     const dt=get(Field.dt),dx=get(Field.x)-get(Field.px),dz=get(Field.z)-get(Field.pz),old=get(Field.speed);
     const instant=dt>0?Math.min(Math.sqrt(dx*dx+dz*dz)/dt,14):old;
     Do.channel(Channel.speed,old+(instant-old)*Math.min(1,dt*6));
