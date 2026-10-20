@@ -30,8 +30,6 @@ export class Flutter {
   private followShared = true;
   private nVerts = 0;
   private readonly bounds = new THREE.Box3();
-  private readonly shade: number[] = [0, 0, 0];
-  private readonly rim: number[] = [0, 0, 0];
 
   /** a ribbon streaming from a single point (the attached edge is `w` wide, horizontal, across the wind) */
   streamer(a: THREE.Vector3, len: number, w: number, color: THREE.ColorRepresentation, o: { droop?: number; taper?: number } = {}): void {
@@ -96,12 +94,9 @@ export class Flutter {
   update(dt: number): void {
     if (!this.mesh) return;
     this.t += dt;
-    const u = painterlyUniforms;
-    if (this.followShared) { const w = u.uPWind.value; this.wind[0] = w.x; this.wind[1] = w.y; this.wind[2] = Math.min(1.2, w.z * 0.7); }
-    // the painterly family's live look (the hour's shade and rim, the storm's wet) on the graph's copy of it
+    if (this.followShared) { const w = painterlyUniforms.uPWind.value; this.wind[0] = w.x; this.wind[1] = w.y; this.wind[2] = Math.min(1.2, w.z * 0.7); }
+    // the hour's shade, rim and wet reach the graph with the look's other painterly graphs (look/index.ts)
     setLentParam(LOOK, 'clothWind', this.wind); setLentParam(LOOK, 'clothTime', this.t);
-    setLentParam(LOOK, 'shade', u.uPShade.value.toArray(this.shade)); setLentParam(LOOK, 'rim', u.uPRimColor.value.toArray(this.rim));
-    setLentParam(LOOK, 'warm', u.uPWarm.value); setLentParam(LOOK, 'floor', u.uPFloor.value); setLentParam(LOOK, 'wet', u.uPWet.value);
   }
 
   get vertexCount(): number { return this.nVerts; }
