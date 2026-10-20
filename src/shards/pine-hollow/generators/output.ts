@@ -1,4 +1,3 @@
-import { pineJsonBlob as nameBlob } from './namedSchemas';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
 import { CHAPTER_DIRECTOR } from './chapterDirector';
 import { PINE_HULL_BOOK } from './riggedHulls';
@@ -57,7 +56,7 @@ import { PINE_QUEST_TRANSACTIONS } from './questTransactions';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
 import {SECTIONS,WIRE_SCHEMAS,CabinAmbienceSchema,NativeViewSchema,CabinSeedsSchema,parseTradeCatalogue,parseFloorRows,PoolGroundSchema} from './sectionSchemas.generated';
-import { emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk/blobs';
+import { nameBlob, emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { PINE_FEAT_COUNTERS } from './questInventory';
