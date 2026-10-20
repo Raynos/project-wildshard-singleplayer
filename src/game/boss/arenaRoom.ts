@@ -20,12 +20,23 @@ import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { ShardContext } from '../plugin/context';
 import { bindRuntimeBoss } from '../plugin/headless';
-import type { Boss } from '../Boss';
+import { installBossEncounter, type Boss } from '../Boss';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import type { ReturnProgram } from '../population/returnProgram';
+import { ReturnProgram } from '../population/returnProgram';
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
+import { BossEncounterDefinitionSchema } from '@wildshard/format/bossEncounter';
+import { VariantBowPower } from '../weapons/bowVariant';
+import type { MountedLoadout } from '../loadout/mounted';
+import { enteredAdventurePersistence } from '../quest/chapterBindings';
+import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
+import { parsePrivateScene } from '@wildshard/format/clientChannels';
+import { Rng } from '@wildshard/engine/core/rng';
+import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { listenPage } from '@wildshard/engine/input/dom';
 
 const finite = v.pipe(v.number(), v.finite());
 const positive = v.pipe(finite, v.minValue(Number.MIN_VALUE));
@@ -540,4 +551,88 @@ export function arenaRoomFight(ctx: ShardContext, dungeon: BossArenaRoom, input:
         if (!on && index !== -1) { animals.animals.splice(index, 1); actor.mesh.removeFromParent(); }
       }
     } };
+}
+
+/** The interior encounter borrows native equipment and specimen resources;
+ * every authored phase, reward, power and placement is admitted data. */
+export const ArenaRoomEncounterSchema = v.object({
+  definition: BossEncounterDefinitionSchema,
+    reward: v.strictObject({ tier: rowId, name: rowId, flavour: v.string(), prompt: rowId }),
+    page: ArenaFightPageSchema, portal: ArenaRoomPortalSchema,
+  client: v.strictObject({ light: v.strictObject({ colour: finite, drop: finite }),
+      prewarm: v.strictObject({ kind: rowId, variant: rowId }), system: rowId, debugZ: finite }),
+  program: ReturnProgramSchema,
+});
+export class ArenaRoomEncounter {
+  readonly spareLight: THREE.PointLight;
+  boss: Boss | null = null;
+  fight: ReturnType<typeof arenaRoomFight> | null = null;
+  ui: BossBar | null = null;
+  private portal: ArenaRoomPortal | null = null;
+  power: VariantBowPower | null = null;
+  private skipKeys = false; private skipTouch = false;
+  private readonly rows;
+  get inside(): boolean { return this.portal?.inside ?? false; }
+  constructor(readonly dungeon: BossArenaRoom, input: unknown,
+    private readonly entrance: { readonly x: number; readonly y: number; readonly z: number; readonly facing: number } | null) {
+    this.rows = v.parse(ArenaRoomEncounterSchema,input);
+    this.spareLight = new THREE.PointLight(this.rows.client.light.colour,0,1,2);
+    const at = dungeon.rows.origin; this.spareLight.position.set(at.x,at.y-this.rows.client.light.drop,at.z);
+  }
+  /** The native scheduler owns slicing; an author cannot supply a build hook. */
+  async buildSliced(world: { readonly scene: THREE.Scene; readonly registry: WorldRegistry }): Promise<this> {
+    const lazy = memorySaverOn();
+    await this.dungeon.buildSliced(true,macrotask); await macrotask();
+    world.scene.add(this.dungeon.group,this.spareLight); this.dungeon.register(world.registry);
+    if (!lazy) { await macrotask(); await this.dungeon.buildStaticSliced(macrotask); }
+    return this;
+  }
+  /** Concrete entered services supply native effects, never shard callbacks. */
+  bind(ctx: ShardContext, kit: MountedLoadout, rewardModel: ModelDef<object>, powerRows: unknown): void {
+    const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
+    if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Arena encounter requires its entered native kit');
+    const { game,sky,player } = world, row = this.rows, scope = game.levelScope;
+    this.portal = new ArenaRoomPortal({ game,player,animals: play.animals },this.dungeon,row.portal,ReturnProgram.page(this.rows.program,scope),this.entrance);
+    try { play.animals.factory.model(row.client.prewarm.kind,row.client.prewarm.variant); } catch (error: unknown) { console.warn('Arena adds did not prewarm',error); }
+    const power = this.power = new VariantBowPower(game.scene,game.camera,powerRows);
+    const persistence = enteredAdventurePersistence(ctx.scope);
+    this.fight = arenaRoomFight(ctx,this.dungeon,row.page);
+    const encounter = installBossEncounter({ definition: row.definition,reward: row.reward },() => {
+      if (this.fight === null) throw new Error('Missing native arena fight'); return this.fight.script;
+    }, { game,player,scope,chunkId: ctx.product.slug,interactables: runtime.interactables,spareLight: this.spareLight,persistence: persistence.bosses,
+      reward: { model: () => {
+        const object = rewardModel.build(modelContext(sky),rewardModel.defaults,new Rng(0));
+        if (!(object instanceof THREE.Object3D)) throw new Error('Arena reward requires a native scene specimen'); return object;
+      }, grant: () => { kit.upgradeBow(play.weapons,power); } },
+      lockInput: on => { this.portal?.setLocked(on); play.weapons.setEnabled(!on); },
+      respawn: (at,yaw) => { player.position.copy(at); player.velocity.set(0,0,0); player.yaw = yaw; player.pitch = 0; kit.refill(); },
+      skipHeld: () => this.skipKeys || this.skipTouch || ctx.app.input.held('jump') || ctx.app.input.held('use'),
+      toast: text => { play.hud.toast(text); }, feed: text => { play.hud.killFeed(text); }, pickupHum: on => { play.audio.pickupHum(on); },
+      music: event => { if (event === 'death' || event === 'pickup') play.music.sting(event); else if (event === 'victory') play.music.sting('chunk'); else play.music.combat(1); },
+    });
+    this.boss = encounter.boss; this.ui = encounter.ui; this.portal.bind(encounter.boss,encounter.ui,this.fight);
+    encounter.fight.reset(0); this.fight.setPresent(false);
+    if (encounter.boss.rewardTaken) kit.upgradeBow(play.weapons,power);
+    listenPage(scope,'keydown',event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = true; });
+    listenPage(scope,'keyup',event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = false; });
+    listenPage(scope,'pointerdown',() => { this.skipTouch = true; });
+    listenPage(scope,'pointerup',() => { this.skipTouch = false; });
+    listenPage(scope,'pointercancel',() => { this.skipTouch = false; });
+    game.app.addSystem({ id: row.client.system,phase: 'update',after: ['hud.combat'],before: ['first hints','main.frame'],run: dt => { this.power?.update(dt); } },scope);
+  }
+  devStartAt(phase: number): void { this.portal?.enter(true,this.rows.client.debugZ); this.boss?.devStartAt(phase); }
+  onPlayerDeath(): boolean { return this.boss?.onPlayerDeath() ?? false; }
+  update(dt: number, t: number): void { this.portal?.update(dt,t); }
+}
+
+/** Immutable resource ids used by the native arena's admitted private scenes. */
+export function arenaRoomGeometryIds(input: unknown): readonly string[] {
+  const room = v.parse(ArenaRoomSchema,input);
+  return [...new Set([parsePrivateScene(room.view.scene),parsePrivateScene(room.view.static)].flatMap(scene => scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : [])))];
+}
+/** The native arena constructs its own resource map and owns build slicing. */
+export function buildArenaRoomEncounter(ctx: ShardContext, room: unknown, encounter: unknown,
+  geometry: readonly (readonly [string,THREE.BufferGeometry])[], entrance: { readonly x: number; readonly y: number; readonly z: number; readonly facing: number } | null): Promise<ArenaRoomEncounter> {
+  const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Arena build requires its entered world');
+  return new ArenaRoomEncounter(new BossArenaRoom(room,new Map(geometry)),encounter,entrance).buildSliced({ scene: world.game.scene,registry: ctx.app.registry });
 }

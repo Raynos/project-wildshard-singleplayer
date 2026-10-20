@@ -1,26 +1,18 @@
 import type { CoupledMember, EncounterSchedule } from '@wildshard/game/boss/encounterPatrol';
-import type { ShardContext } from '@wildshard/game/plugin/context';
 import type * as THREE from 'three';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import type { BossScript } from '@wildshard/engine/ai/BossBrain';
-import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { BossPersistence } from '@wildshard/game/Boss';
 import type { GroundTell } from '@wildshard/game/Elite';
-import type { PhasedBossFight } from '@wildshard/game/plugin/bossPhase';
-import type { Bow } from '@wildshard/game/weapons/Bow';
 import type { PageWildlife } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import type { SabreWeapon as Sabre, NaizagaiPowerHandle as NaizagaiPower } from '../weapons/nativeMelee';
 import type { NalatiWeather } from '../world/installWeather';
 import type { Ride } from '../runtime/state';
 
-import type { GoldenBowPower } from '../runtime/weapons/GoldenBow';
-import type { KurganEntrance } from '../world/types';
 
 type Wildlife = PageWildlife<Flock>;
 
@@ -70,34 +62,6 @@ export interface Whirl { law: EncounterSchedule; funnel: THREE.Mesh; on: boolean
 export interface Chain { tell: GroundTell; law: EncounterSchedule }
 
 export interface StormRider { a: Animal; lane: GroundTell; law: CoupledMember }
-
-export interface GoldenKingFight {
-  readonly phased: PhasedBossFight<Animal>;
-  readonly script: BossScript;
-  readonly body: () => Animal | null;
-  /** park / unpark every fight animal (the player left / came back): out of the lists the HUD and the minimap read */
-  readonly setPresent: (on: boolean) => void;
-  /** dev: kill him now (screenshots of the victory) */
-  readonly devKill: () => void;
-}
-
-export interface KurganPlay {
-  context: ShardContext;
-  persistence?: BossPersistence;
-  animals: AnimalManager;
-  setWeaponsEnabled: (on: boolean) => void;
-  bow: Bow | null;
-  upgradeBow: (power: GoldenBowPower) => void;
-  refill: () => void;
-  interactables: Interactable[];
-  toast: (text: string) => void;
-  feed: (text: string) => void;
-  music?: (event: 'intro' | 'phase' | 'victory' | 'death' | 'pickup', intensity?: number) => void;
-  pickupHum?: (inside: boolean) => void;
-  params: URLSearchParams;
-}
-
-export interface KurganCtx { game: Game; sky: Sky; player: Player; entrance: KurganEntrance | null; registry: WorldRegistry }
 
 /** The boss borrows an existing native renderer; it never owns that renderer's catalogue. */
 export interface TitanRiders {

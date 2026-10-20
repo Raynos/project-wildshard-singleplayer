@@ -1,9 +1,11 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute, PerspectiveCamera, Group } from 'three';
-import { ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
+import { ArenaFightPageSchema, ArenaRoomEncounter, ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
 import { ArenaFireView } from '../src/game/boss/arenaFire';
 import { AnimalGroup } from '../src/engine/entities/animalMatrices';
+import { BossEncounterDefinitionSchema } from '../src/format/bossEncounter';
+import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { WorldRegistry } from '../src/engine/world/registry';
@@ -13,6 +15,7 @@ import { bossArena } from './fake/bossArena';
 import { bakedActorGeometry } from '../src/shards/nalati-grasslands/world/places';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
 
 test('second-shard arena owns its translated floor, gate, cover and sand', () => {
  const source = structuredClone(view);
@@ -63,19 +66,25 @@ test('second-shard fire rows bound capacity, own graph ids, expire and reset', (
  } finally { scope.dispose(); }
 });
 
-test('the reed vault portal owns fade, isolation, floor recovery and exit placement', () => {
+test('the reed vault portal owns fade, isolation, floor recovery and exit placement', async () => {
  const source = structuredClone(view), root = source.scene.nodes.find(node => node.id === source.scene.root);
  if (root === undefined || !('position' in root)) throw new Error('Missing room root');
  root.position = [30,20,40];
  const shapes = new Map([...source.scene.nodes,...source.static.nodes].flatMap(row => 'geometry' in row ? [[row.geometry,bakedActorGeometry(row.geometry)]] as const : []));
- const room = new BossArenaRoom({ ...marsh, sandCells: 40, view: source },shapes).build(true);
+ const room = new BossArenaRoom({ ...marsh, sandCells: 40, view: source },shapes);
  const game = { scene: new Scene(), camera: new PerspectiveCamera() }, animals = { calm: false, group: new AnimalGroup() };
  const player = { position: new Vector3(200,2,202), velocity: new Vector3(1,-2,3), yaw: 3, pitch: .5, moveScale: 1 };
  const outside = new Group(); outside.position.set(-200,0,-200);
- game.scene.add(room.group,animals.group,game.camera,outside);
- const portal = new ArenaRoomPortal({ game,animals,player },room,{ signal: 'kingDoor', spawn: { x: 0,z: 9,yaw: .3 }, end: 12,
-  exitOffset: 3, slow: .4, fade: { out: 100,hold: .2,in: 300 }, keep: 'reed-sky|arrow',near: 10,floor: { tolerance: .02,depth: 4 } },
-  ReturnProgram.page(titan.rules),{ x: 200,y: 2,z: 200,facing: 0 });
+ game.scene.add(animals.group,game.camera,outside);
+ const portalRows = { signal: 'kingDoor', spawn: { x: 0,z: 9,yaw: .3 }, end: 12,
+  exitOffset: 3, slow: .4, fade: { out: 100,hold: .2,in: 300 }, keep: 'reed-sky|arrow',near: 10,floor: { tolerance: .02,depth: 4 } };
+ const entrance = { x: 200,y: 2,z: 200,facing: 0 };
+ const encounter = new ArenaRoomEncounter(room,{ definition: { ...v.parse(BossEncounterDefinitionSchema,king.encounter),id: 'reed-warden',name: 'The Reed Warden' },reward: { tier: 'RARE',name: 'Reed bow',flavour: '',prompt: 'TAKE REED BOW' },
+  page: { ...v.parse(ArenaFightPageSchema,king.page),body: 'marsh.warden',add: { kind: 'reed-guard',variant: 'green',memory: {} } },portal: portalRows,program: titan.rules,
+  client: { light: { colour: 0x88bb77,drop: 5 },prewarm: { kind: 'reed-guard',variant: 'green' },system: 'marsh.warden.power',debugZ: 9 } },entrance);
+ await encounter.buildSliced({ scene: game.scene,registry: new WorldRegistry() });
+ expect(encounter.spareLight.position.toArray()).toEqual([30,15,40]); expect(game.scene.children).toContain(room.group);
+ const portal = new ArenaRoomPortal({ game,animals,player },room,portalRows,ReturnProgram.page(titan.rules),entrance);
  portal.update(.1,0); expect(portal.inside).toBe(false);
  portal.update(.1,.1); expect(portal.inside).toBe(false);
  portal.update(.11,.21); expect(portal.inside).toBe(true);

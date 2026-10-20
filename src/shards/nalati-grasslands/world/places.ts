@@ -86,3 +86,8 @@ export function applyBakedPlaceEffects(name:string,ctx:PoiCtx):void{
 export function bakedPlaceBounds(name:string):PreparedPlace['colliders']{
  const row=rows.find(candidate=>candidate.name===name);if(row===undefined)throw new Error(`Missing place ${name}`);return row.colliders;
 }
+
+/** Borrow resident actor geometry as native arena resources, without a factory. */
+export function bakedActorGeometries(keys: readonly string[]): readonly (readonly [string,THREE.BufferGeometry])[] {
+ return keys.map(key => [key,bakedActorGeometry(key)] as const);
+}

@@ -15,7 +15,6 @@ import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { StormTitanFight, prepareStormTitan } from '../src/shards/nalati-grasslands/combat/stormTitan';
-import { prepareKurganRows } from '../src/shards/nalati-grasslands/combat/goldenKing';
 import { bossArena } from './fake/bossArena';
 import type { TitanRiders } from '../src/shards/nalati-grasslands/combat/bossBindings';
 import type { NalatiWeather } from '../src/shards/nalati-grasslands/world/installWeather';
@@ -45,12 +44,11 @@ function encounter(def: Omit<BossDefinition, 'reward'>, script: BossScript, posi
   } };
 }
 
-test('Golden King runs all phases, clears the real adds and reaches its single reward end state headlessly', async () => {
+test('Golden King runs all phases, clears the real adds and reaches its single reward end state headlessly', () => {
   const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
   const f = manager(), dungeon = bossArena().build(true);
   Reflect.set(f.player, 'dash', () => undefined);
   f.player.position.set(layout.DUNGEON.x, layout.DUNGEON.y, layout.DUNGEON.z + 5);
-  await prepareKurganRows({ json: <T>() => Promise.resolve(structuredClone<unknown>({ king, programs }) as T) });
   const runtime = legacyDouble<ShardRuntime>({ world: legacyDouble<ShardWorld>({ player: f.player }),
     play: legacyDouble<ShardPlayHost>({ animals: f.manager, hud: legacyDouble<HUD>({ killFeed: () => undefined }) }) });
   const context = legacyDouble<ShardContext>({ app, game: legacyDouble<ShardContext['game']>({ runtime }),

@@ -38,7 +38,3 @@ export interface TitanGeometryData {
   poses: ClientChannelProgram[];
   arena: { scene: PrivateScene; geometry: Record<string,Geometry>; scorch: number[] };
 }
-export interface KurganData {
-  king: { portal: unknown; page: unknown; profile: unknown; encounter: Encounter; reward: Reward; tuning: { reach: number; ringMax: number; beamRadius: number } };
-  programs: Programs; arenaRoom: unknown;
-}

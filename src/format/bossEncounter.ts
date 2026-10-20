@@ -10,13 +10,14 @@ const combatEffectId = v.pipe(combatId, v.regex(/^effect\./u)) as v.GenericSchem
 /** Client encounter effects bind the entered player's existing services. */
 export const BossCombatSessionSchema = v.strictObject({ id: v.exactOptional(combatId), god: v.boolean(), bossKinds: v.pipe(v.array(combatId), v.maxLength(64)),
   stunEffect: combatEffectId, unlockSkins: v.pipe(v.array(combatId), v.maxLength(64)) });
-const definition = v.strictObject({ id: key, name: key, title: v.string(), retryTitle: v.string(), intro: finite, introShort: finite,
+/** Shared boss identity and checkpoint phase rows. */
+export const BossEncounterDefinitionSchema = v.strictObject({ id: key, name: key, title: v.string(), retryTitle: v.string(), intro: finite, introShort: finite,
   phases: v.pipe(v.array(v.strictObject({ at: fraction, caption: v.string(), name: v.string() })), v.minLength(1), v.maxLength(64)) });
 const wireFields = ['body', 'present', 'sealed', 'sealK', 'darkK', 'glow', 'invuln', 'lockHp', 'won', 'phase', 'mode', 'modeT', 'strikeCd', 'burstCd', 'summonCd', 'chain', 'open', 'lane', 'rings', 'hazards', 'adds', 'addLanes', 'rngs'] as const;
 /** Roaming encounter policy around an existing decision guest and native roster.
  * Wire aliases preserve established saves without imposing shard field names. */
 export const RoamingEncounterSchema = v.pipe(v.strictObject({
-  definition, profile: RoamingBossProfileSchema, kind: key,
+  definition: BossEncounterDefinitionSchema, profile: RoamingBossProfileSchema, kind: key,
   streams: v.strictObject({ call: key, charge: key }), strikePrefix: key,
   presence: v.strictObject({ enter: positive, leave: positive }),
   steps: v.strictObject({ fight: key, presence: key, dormant: key, reward: key }),
@@ -72,7 +73,7 @@ const score = v.strictObject({ intro: v.array(scoreAction), phase: v.array(score
 /** Reward card strings and music actions admitted with a rendered encounter. */
 export const BossEncounterPresentationSchema = v.strictObject({ reward: v.strictObject({ tier: key, name: key, flavour: key, prompt: key }), score });
 /** Read rendered cards/music hooks without installing another clock or reward owner. */
-export function bossEncounterPresentation(input: unknown, encounter: { readonly definition: v.InferOutput<typeof definition> }): v.InferOutput<typeof BossEncounterPresentationSchema> & { definition: v.InferOutput<typeof definition> } {
+export function bossEncounterPresentation(input: unknown, encounter: { readonly definition: v.InferOutput<typeof BossEncounterDefinitionSchema> }): v.InferOutput<typeof BossEncounterPresentationSchema> & { definition: v.InferOutput<typeof BossEncounterDefinitionSchema> } {
   return { definition: encounter.definition, ...v.parse(BossEncounterPresentationSchema, input) };
 }
 

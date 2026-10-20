@@ -15,6 +15,7 @@ const strikes = Object.fromEntries(Object.entries(NALATI_STRIKE_ROWS).map(([name
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-kurgan');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/kurganLayout.generated.json'), jsonBytes(layout));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/goldenKing.generated.json'), jsonBytes({
+  client: { light: { colour: 0xffc860, drop: 30 }, prewarm: { kind: 'balbal', variant: 'warrior' }, system: 'shard.nalati-grasslands.bind', debugZ: 13.2 },
   portal: KING_PORTAL, profile: parseBossProfile(GOLDEN_KING_BOSS_PROFILE), encounter: KING_ENCOUNTER, reward: KING_REWARD, tuning: KING_TUNING,
   page: { profile: GOLDEN_KING_BOSS_PROFILE, body: 'nalati.golden-king', identity: 'runtime',
     add: { kind: 'balbal', variant: 'warrior', memory: { floorY: layout.DUNGEON.y, emergeT: 1.9,

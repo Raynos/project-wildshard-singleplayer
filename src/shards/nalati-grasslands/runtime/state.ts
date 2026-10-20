@@ -36,7 +36,8 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import { buildNalatiPOIs } from '../world/view';
 import type { NalatiPOIs } from '../world/viewTypes';
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
-import { wireKurganSliced, type KurganBoss } from '../combat/goldenKing';
+import { type ArenaRoomEncounter, arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
+import { bakedActorGeometries } from '../world/places';
 import { wireElites, type NalatiElites } from '../combat/elites';
 import { wireWeather, type NalatiWeather } from '../world/installWeather';
 import { windEnv } from '../world/weatherStep';
@@ -97,7 +98,7 @@ export interface Nalati {
   /** the great kurgan's dungeon + the Golden King (boss agent, B13; src/shards/nalati-grasslands/kurganBoss.ts): `boss.bind(play)` from main.ts
    *  once the animals, the kit and the HUD exist; `boss.onPlayerDeath()` in main's death check (true = the boss fight
    *  handled it: the player is back at the phase checkpoint); `boss.inside` while the player is in the dungeon */
-  boss: KurganBoss;
+  boss: ArenaRoomEncounter;
   /** the named elites (elites agent, B12; src/shards/nalati-grasslands/elites.ts): Aqbars, Kokbori, Qyran, Qara Batyr, Argymaq — `elites.bind(play)`
    *  from main.ts once the animals, the wildlife and the HUD exist */
   elites: NalatiElites;
@@ -225,7 +226,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // ── weapons (bow agent B2, sabre agent B3): main.ts hands out `ShardManifest.weapon`; the Nalati kit hooks in here ──
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
-  const boss = await wireKurganSliced({ game, sky, player: ctx.player, entrance: pois.kurganEntrance, registry: plugin.app.registry }, plugin.product, macrotask); // SF67: its static interior a task apart per part
+  const kingRows = v.parse(v.object({ king: v.record(v.string(),v.unknown()), arenaRoom: v.unknown(), programs: v.object({ rules: v.unknown() }) }), await plugin.product.json('combat/titan-fight.json'));
+  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },bakedActorGeometries(arenaRoomGeometryIds(kingRows.arenaRoom)),pois.kurganEntrance);
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
   weather.bind({ indoors: () => boss.inside }); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
@@ -409,7 +411,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
         ['arrows', kit === null || kit === undefined ? [] : [kit.bow.arrows.mesh]],
         ['mounts', [...new Set([...(mounted === null || mounted === undefined ? [] : [mounted.mesh]), ...(bonded?.alive === true && !bonded.hidden ? [bonded.mesh] : [])])]],
       ]),
-      facts: new Set([...(boss.golden?.applied === true ? ['golden'] : []), ...(titan.naizagai?.applied === true ? ['storm'] : [])]) });
+      facts: new Set([...(boss.power?.applied === true ? ['golden'] : []), ...(titan.naizagai?.applied === true ? ['storm'] : [])]) });
       if (kit !== null && kit !== undefined) for (const style of ['recurve', 'golden', 'sky-wolf'] as const)
         if (style === painter?.selectedFinishes.get('bow') && kit.bow.style !== style) kit.bow.setStyle(style);
     });
