@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "source": "aab292309f90e5ceb95e7da2289953532f39660f",
+  "build": "devserver",
+  "harnessRevision": "ee1e6a4ab3f47a96647083c126ae0b710751a3ca",
+  "protocol": {
+    "profiler": false,
+    "glObserver": "off",
+    "developer": "on",
+    "quiet": true,
+    "frames": 120,
+    "device": "frame-floor-iphone-17-pro"
+  },
+  "runs": [
+    {
+      "surface": "sim",
+      "pass": 1,
+      "cohort": "grid",
+      "sha": "aab292309f90e5ceb95e7da2289953532f39660f",
+      "when": "2026-10-20T22:36:58.562Z",
+      "elapsedSeconds": 113.176,
+      "complete": true,
+      "passFloor": false,
+      "underTenMinutes": true,
+      "glObserver": "off",
+      "gridRoutes": [
+        "far-reach-road-entry",
+        "sunscar-dunes-road-entry"
+      ],
+      "cases": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "errors": [],
+          "routes": [
+            {
+              "name": "far-reach-road-entry",
+              "to": "far-reach",
+              "after": {
+                "current": "far-reach",
+                "feet": {
+                  "x": 0,
+                  "z": -305.12
+                }
+              }
+            },
+            {
+              "name": "sunscar-dunes-road-entry",
+              "to": "sunscar-dunes",
+              "after": {
+                "current": "sunscar-dunes",
+                "feet": {
+                  "x": -343.7,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 47,
+              "stallPass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "stallPass": true
+            },
+            {
+              "name": "grid-deck-north",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "stallPass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 43,
+              "maxMs": 146,
+              "stallPass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 330,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 41,
+              "maxMs": 164,
+              "stallPass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "stallPass": true
+            },
+            {
+              "name": "grid-sunscar-dunes-road-entry-travel",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 36,
+              "maxMs": 78,
+              "stallPass": true
+            },
+            {
+              "name": "grid-sunscar-dunes-road-entry-drive",
+              "frames": 600,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 82,
+              "stallPass": true
+            },
+            {
+              "name": "grid-sunscar-dunes-road-entry",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "stallPass": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
