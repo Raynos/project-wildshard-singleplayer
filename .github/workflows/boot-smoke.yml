@@ -135,6 +135,9 @@ jobs:
           test "$(git rev-parse HEAD)" = "$TESTED_SHA"
           mkdir -p dist
           tar -xf boot-dist.tar -C dist
+          # Historical preview plugins compress the public copy at startup.
+          mkdir -p public/assets/physics
+          cp dist/assets/physics/rapier.wasm public/assets/physics/rapier.wasm
           node --input-type=module -e 'import { readFileSync } from "node:fs"; const { build } = JSON.parse(readFileSync("dist/version.json", "utf8")); const prefix = build.split("-")[0]; if (!/^[a-f0-9]{7,40}$/u.test(prefix) || !process.env.TESTED_SHA.startsWith(prefix)) throw new Error("Built dist does not match tested SHA");'
       - name: Every public shard reaches real page-ready
         if: matrix.part == 'boot-public'
