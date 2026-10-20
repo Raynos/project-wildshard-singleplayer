@@ -1,3 +1,4 @@
+import { PopulationRelations } from './relations';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
@@ -8,7 +9,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { CrowdTargets, CrowdRoster } from '../shardfile/crowdRuntime';
-import { PageGroups, PagePopulationPlanner, PopulationRelations, wildEnv } from './pageGroups';
+import { PageGroups, PagePopulationPlanner, wildEnv } from './pageGroups';
 import { ReturnProgram, ProjectedMotionSample } from './returnProgram';
 
 type Rows = v.InferOutput<typeof WildlifePopulationSchema>;

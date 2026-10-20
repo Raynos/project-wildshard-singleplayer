@@ -1,7 +1,8 @@
+import { PopulationRelations } from '../src/game/population/relations';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { afterEach, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { PagePopulationPlanner, PopulationRelations, nearestPopulationActor, PageGroups, wildEnv, renderedPackOf, renderedHerdOf } from '../src/game/population/pageGroups';
+import { PagePopulationPlanner, nearestPopulationActor, PageGroups, wildEnv, renderedPackOf, renderedHerdOf } from '../src/game/population/pageGroups';
 import { Scope } from '../src/engine/app/scope';
 import { zlibSync } from 'fflate';
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };

@@ -1,7 +1,7 @@
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { GrassField } from '../systems/looks/grassField';
 import { TrampleField } from '../systems/looks/trample';
-import { PopulationRelations } from './pageGroups';
+import { PopulationRelations } from './relations';
 import { Vector3 } from 'three';
 import { AggressionDirector } from '@wildshard/engine/ai/director';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
