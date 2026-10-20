@@ -1,5 +1,5 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import { declareDownloadFile, recordCachedDownload } from '@wildshard/engine/boot/bytes';
+import { declareDownloadFile, noteDownloadRead, recordCachedDownload } from '@wildshard/engine/boot/bytes';
 import { waitFor } from '@wildshard/engine/boot/plan';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
@@ -138,6 +138,7 @@ async function readBoundedResponse(response: Response, maximum: number, read?: (
       size += next.value.length;
       if (size > maximum) throw new Error('Shardfile wire size exceeds cap');
       chunks.push(next.value);
+      noteDownloadRead(next.value.length);
       read?.(next.value.length);
     }
   } catch (error) { await reader.cancel().catch(() => undefined); throw error; }

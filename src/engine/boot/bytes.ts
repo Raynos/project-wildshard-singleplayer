@@ -31,6 +31,8 @@ const sizeOf = (f: string): number | undefined => EXTRA[f] ?? publicBytes()[f];
 export function declareDownloadFile(url: string, bytes: number): void { currentDownloadAccounting()?.declare(url, bytes); }
 /** Verified immutable cache reads stay separate from downloaded bytes. */
 export function recordCachedDownload(key: string, bytes: number, url?: string): void { currentDownloadAccounting()?.cached(key, bytes, url); }
+/** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */
+export function noteDownloadRead(bytes: number): void { currentDownloadAccounting()?.noteRead(bytes); }
 
 export function declareTotals(files: ChunkFiles): Record<ByteKey, { bytes: number; files: number }> {
   const out = {} as Record<ByteKey, { bytes: number; files: number }>;

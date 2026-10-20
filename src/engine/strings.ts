@@ -593,7 +593,7 @@ export const ENGINE_STRINGS = {
   "s_05db9c8d15dd": "respawning on the north road",
   "s_0a48508bd9b7": "washed back to the pier",
   "s_cf847cd1dbbf": "respawning at ⟦0⟧",
-  "s_d6331a58cb42": "Load ⟦0⟧ · JS heap ⟦1⟧⟦2⟧\nLongest page pause ⟦3⟧⟦4⟧\n⟦5⟧\nTotal RAM / CPU unavailable in page",
+  "s_d6331a58cb42": "Attempt ⟦0⟧ · JS heap ⟦1⟧⟦2⟧\nLargest observed frame-update gap ⟦3⟧⟦4⟧\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
   "s_46a39d7c2bfd": " at ⟦0⟧",
   "s_c0951c6055b1": "⟦0⟧:⟦1⟧",
   "s_51b784eb9dd6": "⟦0⟧ s",

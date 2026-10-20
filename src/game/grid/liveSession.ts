@@ -1,6 +1,7 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
 import { crossingLoadingRows } from '../boot/loadingPaths';
+import { loadingUnits } from '@wildshard/engine/boot/plan';
 /**
  * The live crossing inside EXPERIMENTAL Wildshard (SHARD-PLATFORM SF18a / SF20a / SF17b, the grid client step 2): what
  * turns the step-1 session's closed soft walls into a real crossing. It composes sp-x2's `LiveGridHost` and sp-x1's
@@ -555,6 +556,11 @@ export class LiveGridSession {
     if (await this.activation !== true || !this.gameplayReady()) throw new Error('Initial owned home gameplay is not ready');
     const runtime = this.runtimeRegions.get(cell.instance);
     if (runtime === undefined) throw new Error('Initial owned runtime is missing');
+    const regional = runtime.resident.runtime.world;
+    if (regional !== null) {
+      const colliders = regional.physics.scopedCensus(runtime.resident.scope).colliders;
+      loadingUnits('Home region', 1)(1, `${cell.slug} · Physics ${colliders} colliders · Trees ${regional.forest.trees.length} forest records`);
+    }
     // Source spawn height may be terrain-derived; query only after its entered world services finish installing. A spawn
     // with no height stands on the highest surface there, a deck included: terrain alone put Driftwood's pier spawn under
     // its deck at water level (E463).

@@ -874,6 +874,14 @@ renderer-selected pass total and closes that count only after its final draw.
 Admission rows include file counts and actual body bytes read; they are separate
 from the network-only download counter.
 
+The loader flags ten seconds without reported work progress in amber, naming
+the open dependency. Body-read activity (`noteDownloadRead(bytes)` in
+`@wildshard/engine/boot/bytes`) resets that timer without crediting decoded or
+cached bytes as network transport. Eased percentages and elapsed clocks cannot
+reset a stall. Loader diagnostics omit reload history and identify observed
+frame-update gaps as including JS, GC, layout and suspension; they do not claim
+CPU utilisation. Home-region counts come from the actual regional world.
+
 ### Pre-entry safe
 
 `@wildshard/engine/boot/retry` is the import-free retry module: it exports only `retried`. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Every other loader imports the same module.

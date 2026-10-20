@@ -19,6 +19,10 @@ export class DownloadAccounting {
   private browserCache = 0;
   private unknown = 0;
   private completed = 0;
+  private activity = 0;
+  /** Body-read activity is a stall signal, never a network byte credit. */
+  noteRead(bytes: number): void { if (bytes > 0) this.activity++; }
+  get progressVersion(): number { return this.activity; }
   private readonly base: string;
   private readonly since: number;
   constructor(base: string, since = 0) { this.base = base; this.since = since; }
@@ -41,6 +45,7 @@ export class DownloadAccounting {
   cached(key: string, bytes: number, url?: string): void {
     if (!Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid cached byte receipt');
     this.cache.set(key, Math.max(this.cache.get(key) ?? 0, bytes));
+    this.activity++;
     for (const file of this.addressed.get(key) ?? []) file.complete = true;
     if (url !== undefined) {
       this.declare(url, bytes);

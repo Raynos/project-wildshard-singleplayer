@@ -5,11 +5,11 @@ import { bootWaits, formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
-import { lastEndLine } from '../boot/lastEnd';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
 import { BOOT_STEPS } from '../boot/steps';
 import { DownloadAccounting, installDownloadAccounting } from '../boot/download';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
+import { LoadingStall } from '../boot/stall';
 import './loading.css';
 
 const savedStorage = saveStorage('session');
@@ -67,6 +67,7 @@ export class Loading {
   private readonly timeline: LoadingTimeline;
   private phase: { end: () => void; detail: (text: string) => void } | undefined;
   private phaseKey = 'modules';
+  private readonly stall = new LoadingStall(performance.now());
   private readonly admissionPhases = new Set<string>();
 
   constructor(chunk: { id: string; name: string; trace?: boolean }) {
@@ -275,9 +276,17 @@ export class Loading {
     if (this.view?.error) return;
     const pending = bootWaits(), files = pending.filter(wait => wait.kind === 'file');
     const wait = files[0] ?? pending.find(row => row.kind !== 'admission') ?? pending[0];
+    const timeline = this.timeline.snapshot(), transfer = this.downloads.snapshot();
+    const current = timeline.rows.find(row => row.key === timeline.current);
+    const signature = `${timeline.current}:${timeline.rows.map(row => `${row.state}:${row.detail}`).join('|')}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
+    const quietMs = this.stall.quietMs(signature, performance.now());
+    const stalled = this.view?.done !== true && quietMs >= 10_000;
+    setData(this.root, 'stalled', String(stalled));
     setData(this.root, 'waiting', wait?.label ?? '');
     setData(this.root, 'filesInFlight', String(files.length));
-    set(this.els.foot, wait === undefined ? '' : `Now waiting for: ${wait.label} · ${(wait.ageMs / 1000).toFixed(1)} s · ${files.length} files in flight${pending.length > 1 ? ` · ${pending.length} waits` : ''}`);
+    const label = wait?.label ?? current?.label ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
+    const detail = wait === undefined ? `Now working on: ${label}` : `Now waiting for: ${label} · ${(wait.ageMs / 1000).toFixed(1)} s · ${files.length} files in flight${pending.length > 1 ? ` · ${pending.length} waits` : ''}`;
+    set(this.els.foot, stalled ? `No reported progress for ${Math.floor(quietMs / 1000)} s · ${detail}` : detail);
   }
 
   /** Estimated scene texture allocation; render targets and the browser's own surfaces are outside this estimate. */
@@ -289,7 +298,7 @@ export class Loading {
     const js = typeof heap === 'number' && Number.isFinite(heap) ? engineString('s_77edeca5d621', [Math.round(heap / 1048576)]) : engineString('s_80ff86e39352');
     const tex = this.textureBytes > 0 ? engineString('s_d28268aeb36d', [Math.round(this.textureBytes / 1048576)]) : '';
     const pause = this.longestPauseMs >= 100 ? engineString('s_f72e3c1c062c', [(this.longestPauseMs / 1000).toFixed(1)]) : engineString('s_911a92a8de1f');
-    set(this.els.diagnostics, engineString('s_d6331a58cb42', [this.attempt, js, tex, pause, this.longestPauseAt ? engineString('s_46a39d7c2bfd', [this.longestPauseAt]) : '', lastEndLine()]));
+    set(this.els.diagnostics, engineString('s_d6331a58cb42', [this.attempt, js, tex, pause, this.longestPauseAt ? engineString('s_46a39d7c2bfd', [this.longestPauseAt]) : '']));
   }
 
   /**

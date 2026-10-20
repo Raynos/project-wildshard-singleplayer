@@ -26,6 +26,7 @@
 .ws-load .ws-load-fill { height: 100%; width: 0; background: linear-gradient(90deg, rgba(143, 227, 255, 0.6), var(--ws-cyan)); box-shadow: 0 0 12px rgba(143, 227, 255, 0.6); transition: width 0.1s linear; }
 .ws-load .ws-load-log { margin-top: 12px; font-size: 9.5px; letter-spacing: 0.08em; color: rgba(196, 220, 232, 0.4); min-height: 70px; line-height: 1.6; }
 .ws-load .ws-load-foot { display: flex; justify-content: space-between; padding: 0 44px 26px; font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(196, 220, 232, 0.4); }
+.ws-load[data-stalled="true"] [data-el="foot"] { color: #ffcd73; }
 
 /* panel */
 .ws-load .ws-load-meta-1 { grid-template-columns: 1fr; margin: 10px 0 8px; }
