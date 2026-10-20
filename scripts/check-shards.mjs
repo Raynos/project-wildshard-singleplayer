@@ -28,7 +28,7 @@ export function checkShardLayout(entries, config, readManifest, runtimeBaseline 
     }
     if (slug.startsWith('_')) continue;
     if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) failures.push(`${slug}: folder name must be a kebab-case slug`);
-    const legacy = config.legacy[primary] ?? { entries: [], missing: [] };
+    const legacy = { entries: [], missing: [], ...config.legacy[primary] };
     for (const name of names) if (!Object.keys(frozen.shards[slug]?.files ?? {}).some(file => file === name || file.startsWith(name)) && !files.has(name) && !folders.has(name) && !dataHomes.has(name) && !legacy.entries.includes(name)) failures.push(`${slug}/${name}: outside the canonical shard layout`);
     const manifest = names.includes('manifest.ts') && readManifest ? readManifest(`src/shards/${slug}/manifest.ts`) : null;
     const descriptor = manifest === null ? null : shardfileDescriptor(manifest);

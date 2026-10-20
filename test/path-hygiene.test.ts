@@ -40,6 +40,14 @@ test('frozen layout accepts only explicitly inventoried legacy entries', () => {
   expect(checkShardLayout({ 'sample-legacy': ['unlisted.ts'] }, config, undefined, {}, frozen)).toEqual(['sample-legacy/unlisted.ts: outside the canonical shard layout']);
 });
 
+test('partial legacy declarations still report undeclared layout debt', () => {
+  const config = { requiredFiles: ['manifest.ts'], allowedFiles: [], folders: [],
+    legacy: { example: { entries: ['retired.ts'] } } };
+  expect(checkShardLayout({ example: ['retired.ts'] }, config)).toEqual(['example: missing required manifest.ts']);
+  expect(checkShardLayout({ example: ['unlisted.ts'] }, { ...config, legacy: { example: { missing: ['manifest.ts'] } } }))
+    .toEqual(['example/unlisted.ts: outside the canonical shard layout']);
+});
+
 test('source layout admits complete generated products but refuses unlisted files and symlinks', () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp', 'generated-layout-'));
