@@ -41,7 +41,8 @@ interface Selection {
   readonly choice: WorldSceneModels['models'][number]['choices'][number];
   readonly quality?: { readonly tier: 'phone' | 'desktop'; readonly overrides: Readonly<Partial<Record<`${string}.${string}`, number | boolean>>> } | undefined;
 }
-interface ProjectedCopy { readonly body: Object3D; readonly advance: (time: number) => void }
+/** A projected copy: its drawn body and its clock. */
+export interface ProjectedCopy { readonly body: Object3D; readonly advance: (time: number) => void }
 const state = (ctx: ModelContext, product: string): State => ctx.once(`world-scenes/models/${product}`, () => ({}));
 type Draw = WorldSceneModels['models'][number]['choices'][number]['draws'][number];
 const tierNumber = (value: NonNullable<Draw['until']>, source: Sources | undefined): number => typeof value === 'number' ? value
