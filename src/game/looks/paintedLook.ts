@@ -1,9 +1,12 @@
-import { CircleGeometry, Group, InstancedBufferAttribute, Mesh, MeshStandardMaterial, PlaneGeometry, type Object3D, type Texture } from 'three';
+import { CircleGeometry, Group, InstancedBufferAttribute, Mesh, MeshStandardMaterial, PlaneGeometry, ShaderChunk, Vector2, Vector4, type IUniform, type Object3D, type Texture } from 'three';
+import * as v from 'valibot';
 import { TIER } from '@wildshard/engine/core/tier';
 import { loadCarriedLUT } from '@wildshard/engine/boot/bakedApi';
 import { paintedLookFromRow, painterLight, painterLightPatch, type PaintedDressingContext, type PaintedLoad } from '@wildshard/engine/render/dataLook';
 import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
-import type { LookStrategy } from '@wildshard/engine/render/look';
+import type { LookStrategy, SkyDressing } from '@wildshard/engine/render/look';
+import { addFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { wind } from '@wildshard/engine/world/steppeWind';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 import { parsePaintedLook } from '@wildshard/format/paintedLook';
@@ -122,4 +125,56 @@ export function productPainterLight(product: ShardProduct, root: Object3D | null
       seen.add(material); painterLightPatch(material, row.look.light, sun, scope);
     }
   });
+}
+
+const finite = v.pipe(v.number(), v.finite());
+/**
+ * Painted air (the painterly look host, G478): soft cloud shadows sliding over the ground. The sun's light on every
+ * CSM-lit material is multiplied by a drifting cloud-cover field (the sky's cloud fbm, sampled at the fragment's world
+ * XZ, one tile every `tile` m): cover past `threshold` (± `softness`) takes `strength` of the light. The field drifts
+ * downwind at `drift[0]` × the wind + `drift[1]` m/s, as clouds aloft do. The world paints its own sky (`ownSky`).
+ */
+export const PaintedAirSchema = v.strictObject({ tile: v.pipe(finite, v.minValue(1)), threshold: finite, strength: v.pipe(finite, v.minValue(0), v.maxValue(1)),
+  softness: v.pipe(finite, v.minValue(0)), drift: v.tuple([finite, finite]) });
+const AIR_PARS = /* glsl */`
+    #ifdef USE_FOG
+      uniform sampler2D fogCloudTex;
+      uniform vec4 fogCloud;
+      uniform vec2 fogCloudOff;
+      #define P_CLOUDS 1
+      // the sun's share left by the drifting cloud cover at this fragment (1 = clear sky above)
+      float pCloudShadow() {
+        vec2 uv = vFogWorldPos.xz * fogCloud.x + fogCloudOff;
+        float c = texture2D( fogCloudTex, uv ).r * 0.72 + texture2D( fogCloudTex, uv * 2.3 + vec2( 0.37, 0.61 ) ).r * 0.28;
+        return 1.0 - fogCloud.z * smoothstep( fogCloud.y - fogCloud.w, fogCloud.y + fogCloud.w, c );
+      }
+    #endif`;
+/** The painted air from its rows: `install` (with the fog, before anything compiles; idempotent, so a region's re-install
+ *  changes nothing), the `sky` dressing that patches the sun loop and drifts the field, and the field's `offset` (uv). */
+export function paintedAir(input: unknown): { readonly install: () => void; readonly sky: SkyDressing; readonly offset: Vector2 } {
+  const rows = v.parse(PaintedAirSchema, input);
+  const field: IUniform<Texture | null> = { value: null }, offset = { value: new Vector2() };
+  const uniforms = { fogCloudTex: field, fogCloud: { value: new Vector4(1 / rows.tile, rows.threshold, rows.strength, rows.softness) }, fogCloudOff: offset };
+  let installed = false;
+  return {
+    offset: offset.value,
+    install: () => {
+      installed = true; addFogUniforms(uniforms);
+      if (!ShaderChunk.fog_pars_fragment.includes(AIR_PARS)) ShaderChunk.fog_pars_fragment += AIR_PARS;
+    },
+    sky: { clouds: false, planet: false, ownSky: true,
+      build: (_sky, cloudField) => {
+        field.value = cloudField;
+        // each directional light's colour, once read, is multiplied by the cover: shadow map, cel bands and grass all see it
+        const chunk = ShaderChunk.lights_fragment_begin;
+        if (!installed || chunk.includes('pCloudShadow')) return;
+        const hook = (call: string): string => `${call}\n\t\t#ifdef P_CLOUDS\n\t\tdirectLight.color *= pCloudShadow();\n\t\t#endif`;
+        ShaderChunk.lights_fragment_begin = chunk.replaceAll('getDirectionalLightInfo( directionalLight, directLight );', hook('getDirectionalLightInfo( directionalLight, directLight );'))
+          .replaceAll('getDirectionalLightInfo( directionalLights[0], directLight );', hook('getDirectionalLightInfo( directionalLights[0], directLight );'));
+      },
+      update: dt => {
+        const step = (wind.speed * rows.drift[0] + rows.drift[1]) * dt / rows.tile;
+        offset.value.x -= wind.dirX * step; offset.value.y -= wind.dirZ * step;
+      } },
+  };
 }
