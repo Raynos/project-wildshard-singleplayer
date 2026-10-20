@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
  */
 const reg=name=>`register.${name}`,inp=name=>`input.${name}`,out=name=>[name,`output.${name}`];
 const player=['px','py','pz','crouched','mounted','sheltered'].map(name=>[name,inp(name)]);
-const STORM={version:1,hz:10,actions:{event:'lightning',unless:'armed'},active:['gust','storm'],flash:'flash',shelter:{margin:1.5,circles:[]},points:[],steps:[
+export const STORM={version:1,hz:10,actions:{event:'lightning',unless:'armed'},active:['gust','storm'],flash:'flash',shelter:{margin:1.5,circles:[]},points:[],steps:[
  {signal:'tick',observe:[['dt','dt'],['armed',reg('armed')],['pendingT',reg('pendingT')],['ready',reg('ready')],['storm','state.storm'],['gust','state.gust'],['bearing',reg('stormFrom')],['flash',reg('flash')]],random:true,
   write:[['pendingT',reg('pendingT')],['land',reg('land')],['arm',reg('arm')],['flash',reg('flash')]],emit:[{event:'flash',when:'distance',fields:[out('distance'),out('bearing')]}]},
  {signal:'arm',when:reg('arm'),observe:[['px',inp('px')],['pz',inp('pz')],['lowFor',reg('lowFor')]],random:true,write:[['x',reg('cx')],['z',reg('cz')],['radius',reg('cradius')]],emit:[]},
@@ -33,5 +33,5 @@ export async function weatherDecision() {
  const source={id:'nalati.weather',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/weather.as',binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],params:{},reads:['field','random','groundHeight','radial'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals)};
  const built=await compileDecisionScripts([source],{fields:registry(fields),channels:registry(channels),signals:registry(signals)},readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:2837,singleSignal:true});
  const script=built.rows.at(0),blob=built.blobs.at(0);if(script===undefined||blob===undefined)throw new Error('Missing weather reaction program');
- return {script,bytes:Buffer.from(blob.bytes).toString('base64'),...STORM};
+ return {script,bytes:Buffer.from(blob.bytes).toString('base64')};
 }

@@ -1,5 +1,5 @@
 import { skyRows, skyChannels } from './skyPresentation.ts';
-import { weatherDecision } from './weatherDecision.mjs';
+import { weatherDecision, STORM } from './weatherDecision.mjs';
 import { weatherFxChannels } from './weatherFxChannels.ts';
 import { weatherPresentation } from './weatherPresentation.ts';
 import { readFileSync } from 'node:fs';
@@ -19,5 +19,5 @@ const presentation=weatherPresentation(0x4a1a,ground.heightAt);
 const writer=byteWriter(process.argv.includes('--check'),'weather-channels');
 writer.put(fileURLToPath(new URL('../data/weatherChannels.generated.json',import.meta.url)),encodeCanonicalJson({presentation, sky:skyRows(), clientChannels:parseClientChannels([...NALATI_WEATHER_PROGRAMS, ...NALATI_TINT_PROGRAMS, ...nalatiDayChannels(), ...weatherFxChannels(), ...skyChannels()])}));
 writer.put(fileURLToPath(new URL('../data/herdChannels.generated.json',import.meta.url)),encodeCanonicalJson({presentation, sky:skyRows(), clientChannels:parseClientChannels(NALATI_FAR_HERD_CHANNELS)}));
-writer.put(fileURLToPath(new URL('../behaviour/weather.generated.json',import.meta.url)),encodeCanonicalJson(await weatherDecision()));
+writer.put(fileURLToPath(new URL('../behaviour/weather.generated.json',import.meta.url)),encodeCanonicalJson({...await weatherDecision(),...STORM}));
 writer.finish();
