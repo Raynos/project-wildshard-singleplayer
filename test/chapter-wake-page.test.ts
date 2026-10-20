@@ -25,7 +25,7 @@ import bindings from '../src/shards/driftwood-isle/data/directorBindings.json';
 
 test('salt-marsh chapter binds cue effects and the baseline boss bar through data', async () => {
   const runtime = source.runtime, spawns = runtime?.spawns, original = spawns?.bosses[0];
-  if (spawns === undefined || original === undefined) throw new Error('Missing declared fixture spawn');
+  if (runtime === null || spawns === undefined || original === undefined) throw new Error('Missing declared fixture spawn');
   const blobs = [nameBlob('directors/main.json', 'json', new TextEncoder().encode(JSON.stringify({
     declaration, module: { module: module.module, bytes: module.bytes }, stages, bindings, seed: 357,
   }))), nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(JSON.stringify(CHAPTER_DIRECTOR)))];

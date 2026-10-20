@@ -22,7 +22,7 @@ test('salt-marsh kit registers authored equipment, ammunition and encounters wit
     encounters: [{ id: 'marsh.sentry', displayName: 'The Reed Sentry', showHeadBar: true }] };
   try {
     const plan = parseClientPlan({ version: 1, features: [input] }), row = plan.features[0];
-    if (row === undefined) throw new Error('Missing admitted catalogue');
+    if (row?.kind !== 'content.catalogue') throw new Error('Missing admitted catalogue');
     installClientCatalogue(context, row);
     expect(rows.weapon).toHaveBeenCalledWith([readItemEquipment(source.items, 'weapon.crossbow')]);
     expect(rows.ammo).toHaveBeenCalledWith([...readItemAmmunition(source.items, 'weapon.crossbow').values()].map(ammo => ammo.row));
