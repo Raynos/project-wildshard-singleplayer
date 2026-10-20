@@ -49,7 +49,7 @@ test('all semantic batches survive the real packedCreatureBodies consumer with f
     count += mesh.getAttribute('position').count;
     mesh.dispose(); second.hardParts[index]?.dispose();
   });
-  expect(count).toBe(18006);
+  expect(count).toBe(16446);
 });
 
 test('independent GLTFLoader proves every ordered triangle, linear color and world transform unchanged', async () => {
@@ -108,7 +108,7 @@ test('independent GLTFLoader proves every ordered triangle, linear color and wor
     });
     expect(cursor-row.vertexStart).toBe(row.vertexCount);
   }
-  expect(vertices).toBe(18006);
+  expect(vertices).toBe(16446);
   // Strict final triangle normals; no visual acceptance.
   expect(inconsistentNormals).toEqual({});
   expect(degenerate).toBe(0);
