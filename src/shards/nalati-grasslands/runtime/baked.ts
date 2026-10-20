@@ -1,7 +1,5 @@
 import { createNativeBakeReader } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
-import type { RngState } from '@wildshard/engine/core/rng';
-import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { ForagerContinuation as MarmotContinuation } from '@wildshard/format/ambientLife';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
@@ -44,23 +42,7 @@ const decode = () => {
 };
 /** Strict SDK-decoded bake plus admitted owner metadata; the schema is the single type source. */
 export type NalatiBake = ReturnType<typeof decode>;
-export type NalatiBakedActor = NalatiBake['actors'][number];
 let parsed: NalatiBake | null = null;
 /** Decode only after every collider, actor and metadata check passes. */
 export function nalatiBake(): NalatiBake { parsed ??= decode(); return parsed; }
 
-/** Retained boot metadata before any native actor or controller is installed. */
-export interface NalatiBootBody {
-  readonly id: string; readonly kind: string; readonly variant: { readonly id: string }; readonly seed: number; readonly scale: number;
-  readonly herd: number; readonly position: { readonly x: number; readonly z: number }; readonly yaw: number;
-  readonly adopted: { readonly stream: RngState; readonly x: number; readonly z: number };
-}
-export interface NalatiBootHerd { readonly kind: string; readonly cx: number; readonly cz: number; readonly members: readonly NalatiBootBody[] }
-/** The product's deterministic boot and deferred native recipe rows. */
-export interface NalatiBootRows {
-  readonly admission: unknown; readonly pasture: unknown;
-  readonly streamSeed: number; readonly phases: readonly string[];
-  readonly roster: { readonly bodies: readonly NalatiBootBody[]; readonly herds: readonly NalatiBootHerd[];
-    readonly stream: RngState; readonly wildStream: RngState };
-  readonly species: Readonly<Record<string, unknown>>; readonly hunt: Readonly<Record<string, unknown>>; readonly recipes: readonly AnimalSimSpec[];
-}
