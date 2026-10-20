@@ -12,7 +12,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { DiscOpts } from '@wildshard/engine/ui/hudSlots';
 import { RidingControlsSchema, type RideHudState, type MountProfile } from '@wildshard/format/riding';
 import { parse } from 'valibot';
-import { admitRenderedHerds, admitRidingWind, createPageRiding, RidingActions, type PageTamingOwner } from '@wildshard/game/riding/client';
+import { admitRenderedHerds, admitRidingWind, createPageRiding, respawnPageMounted, RidingActions, type PageTamingOwner } from '@wildshard/game/riding/client';
 import fixturePrograms from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
 import { Mount } from '@wildshard/game/riding/mount';
 import { RideHUD } from '@wildshard/game/riding/hud';
@@ -163,6 +163,11 @@ test('full orchard riding session owns its native mount and data prompts', () =>
     expect(input.bindings.table.rows.some(row=>row.label==='Call mule')).toBe(true);
     input.push('orchard.balance',f.scope);expect(input.allowed('ride.whistle')).toBe(false);expect(input.allowed('attack')).toBe(false);
     input.pop('orchard.balance');input.press('ride.horseTab');step();expect(session.mount.mounted).toBe(false);step();expect(input.contexts).toEqual(['orchard.foot']);
+    Reflect.set(f.actor,'place',(x: number,z: number,yaw: number) => { f.actor.position.set(x,0,z); f.actor.yaw = yaw; });
+    respawnPageMounted(ctx,new Vector3(30,0,-12),.3,{ yaw: Math.PI,steed: 91 });
+    expect(session.mount.horse).toBe(f.actor); expect(session.mount.feet.toArray()).toEqual([30,0,-12]);
+    expect(f.player.position.toArray()).toEqual([30,0,-12]); expect(f.player.yaw).toBeCloseTo(.3);
+    expect(session.mount.steed).toBe(91); expect(session.mount.winded).toBe(false);
     expect(()=>parse(RidingControlsSchema,{...controls,run:()=>undefined})).toThrow();
   } finally { session.mount.dismount(); f.scope.dispose(); }
   expect(input.contexts).toEqual([]);expect(input.has('orchard.saddle')).toBe(false);expect(input.bindings.table.rows).toEqual([]);

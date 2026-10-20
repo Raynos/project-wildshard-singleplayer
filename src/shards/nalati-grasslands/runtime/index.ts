@@ -1,6 +1,5 @@
 import { enterClientAudioScene } from '@wildshard/game/audio/sceneDirector';
 import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
-import { prepareStormTitan } from '../combat/stormTitan';
 import { arsenal,prepareSabre,prepareSpear } from '../weapons/nativeMelee';
 
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
@@ -10,14 +9,12 @@ import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { prepareGrassV2 } from '../look/field';
 import { installPageMeadow } from '@wildshard/game/shardfile/clientMeadow';
 import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
-import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './state';
 import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
 import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
@@ -56,7 +53,6 @@ export class NalatiPlugin extends ShardPlugin {
     const actorRows = await ctx.product.json<{ species: unknown }>('actors/sheep.json');
     await prepareNalatiSpecies(actorRows.species, ctx.product.shardfile.clientChannels ?? [], await ctx.product.file('actors/balbal-cracks.bin'));
     prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
-    await prepareStormTitan(ctx.product);
     this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, this.persistence ?? undefined))));
     await prepareSabre(ctx.product);
     await prepareSpear(ctx.product);
@@ -88,8 +84,7 @@ export class NalatiPlugin extends ShardPlugin {
   override async play(ctx: ShardContext): Promise<void> {
     const shell = host(ctx), world = shell.world, h = shell.play, rt = this.runtime(), kit = arsenal.pageKit(ctx);
     if (world === null || h === null || kit === null) throw new Error('Nalati gameplay requires its equipment and UI');
-    const { player, params } = world;
-    const { animals, weapons, hud, audio, music, progress } = h;
+    const { animals, hud, audio, music, progress } = h;
     const persistence = this.persistence;
     if (persistence === null) throw new Error('Nalati declared progression has not been bound');
     persistence.bindProgress(progress);
@@ -101,11 +96,6 @@ export class NalatiPlugin extends ShardPlugin {
     await part(); // not in the page's play-stage task
     const wildlife = rt.wildlife;
     if (wildlife === null) throw new Error('Nalati creatures have not been built');
-    const hurt = (tag: DamageRequest['sourceTags'][number], amount: number, cause: DamageRequest['cause'], toast?: string): void => {
-      const target = ctx.app.player;
-      if (target === null) return;
-      ctx.app.combat.hit({ source: 'env', sourceTags: [tag, 'feel.jolt', 'cover.checked'], target, amount, point: player.position.clone(), dir: new Vector3(), ...(cause === undefined ? {} : { cause }), ...(toast === undefined ? {} : { toast }) });
-    };
     owned(() => { rt.bindPlay(kit); });
     await part();
     const ride = rt.ride;
@@ -114,17 +104,12 @@ export class NalatiPlugin extends ShardPlugin {
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
     enterClientAudioScene(ctx);
     rt.weather.bindPlay();
-    const common = { animals, setWeaponsEnabled: (on: boolean) => { weapons.setEnabled(on); }, refill: () => { kit.refill(); }, interactables: shell.interactables, params,
-      toast: (text: string) => { hud.toast(text); }, feed: (text: string) => { hud.killFeed(text); }, pickupHum: (on: boolean) => { audio.pickupHum(on); },
-      music: (event: 'death' | 'pickup' | 'victory' | 'phase' | 'intro') => { if (event === 'death' || event === 'pickup') music.sting(event); else if (event === 'victory') music.sting('chunk'); else music.combat(1); } };
     await part();
     ctx.scope.run(() => rt.boss.bind(ctx,kit,weaponCatalogue.model('goldenBow'),bowVariant));
     await part();
     ctx.scope.run(() => rt.elites.bind({ persistence, animals, wildlife, taming: ride?.taming ?? null, interactables: shell.interactables, hud, audio, music }));
     await part();
-    ctx.scope.run(() => rt.titan.bind({ ...common, persistence: persistence.bosses, wildlife, ride, get sabre() { return kit.sabre; }, upgradeSabre: (power) => { kit.upgradeSabre(weapons, power); },
-      hurt: (amount, why) => { hurt('boss.storm-titan', amount, { kind: 'storm-titan', label: 'the Storm Titan' }, why); },
-      record: (kind, variant) => { persistence.kill(kind, variant); persistence.feat(kind); }, ownSkin: (id) => { rt.skins.own(id); } }));
+    ctx.scope.run(() => rt.titan.bind(ctx,kit,arsenal,weaponCatalogue.model('naizagai'),rt.skins));
     // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
     if (retainsRuntimeServices(ctx)) rt.elites.initialize();
     ctx.on('player.died', () => { if (ride?.mounted === true) ride.mount.dismount(); });

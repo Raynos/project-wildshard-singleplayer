@@ -22,10 +22,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   boot: { ...DECLARATION.boot, audio: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioFiles('nalati-grasslands') },
   ktx2: () => import('./ktx2.generated'),
   render: async () => (await import('./look/render')).shardRender(),
-  roster: async () => {
-    await (await import('./combat/stormTitan')).prepareStormTitan(await (await import('@wildshard/game/shardfile/runtimeProduct')).loadFirstPartyProduct('nalati-grasslands'));
-    return (await import('./roster')).ROSTER;
-  },
+  roster: async () => (await import('./roster')).ROSTER,
   minimap: { ...DECLARATION.minimap, palette: NALATI_MINIMAP },
   groundColor, surfaceAt,
   ground: { terrain: TERRAIN, paths: 'plugin', water: [basinBody('river', TERRAIN)] },

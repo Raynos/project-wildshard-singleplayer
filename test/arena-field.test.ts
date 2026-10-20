@@ -1,10 +1,27 @@
 import { expect, test } from 'vitest';
-import { ArenaEncounter, ArenaField } from '../src/game/boss/arenaField';
+import { ArenaEncounter, ArenaField,installArenaBoundary,arenaBoundaryBlocked } from '../src/game/boss/arenaField';
+import { Scope } from '../src/engine/app/scope';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import fight from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import { TITAN_CLOCKS, TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
+
+test('mounted refusal borrows only its entered scope and releases on disposal', () => {
+  const owner = new Scope('orchard-arena'),other = new Scope('outside');
+  const field = new ArenaField(TITAN_FIRE_FIELD,ReturnProgram.page(program.fire),new Rng(714));
+  const at = fight.TITAN_ARENA.center,row = { field,boundary: { x: at.x,z: at.z,radius: 20 },mask: 0 };
+  try {
+    installArenaBoundary(owner,row); field.ignite(at.x,at.z);
+    expect(arenaBoundaryBlocked(owner,at.x,at.z)).toBe(false);
+    row.mask = 2; expect(arenaBoundaryBlocked(owner,at.x,at.z)).toBe(true);
+    expect(arenaBoundaryBlocked(other,at.x,at.z)).toBe(false);
+    row.mask = 1; expect(arenaBoundaryBlocked(owner,at.x+25,at.z)).toBe(true);
+    expect(() => installArenaBoundary(owner,row)).toThrow('Duplicate');
+    owner.dispose(); expect(arenaBoundaryBlocked(owner,at.x+25,at.z)).toBe(false);
+    expect(() => installArenaBoundary(owner,row)).toThrow('Invalid');
+  } finally { owner.dispose(); other.dispose(); }
+});
 
 test('the arena field obeys ignition bounds and cannot rekindle spent cells', () => {
   const field = new ArenaField(fight.TITAN_FIRE_FIELD, ReturnProgram.page(program.fire), new Rng(513));

@@ -8,15 +8,20 @@ import { parseRuntimeSpawns } from '../src/format/runtimeSpawns';
 import { arenaRoomFight } from '../src/game/boss/arenaRoom';
 import { NALATI_RUNTIME_SPAWNS } from '../src/shards/nalati-grasslands/generators/spawns';
 import { expect, test } from 'vitest';
-import { MeshBasicMaterial, Vector3 } from 'three';
+import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
 import { BossBrain, type BossScript, type BossDefinition } from '../src/engine/ai/BossBrain';
 import { silentBossPresentation } from '../src/engine/ai/phases';
 import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
-import { StormTitanFight, prepareStormTitan } from '../src/shards/nalati-grasslands/combat/stormTitan';
+import { ArenaScriptEncounter,parseArenaScriptData } from '../src/game/boss/arenaScript';
+import { PatrolEncounterView } from '../src/game/boss/encounterView';
+import { CueDirector } from '../src/game/audio/cueDirector';
+import { ReturnProgram } from '../src/game/population/returnProgram';
+import { Mount } from '../src/game/riding/mount';
+import type { LevelContext } from '../src/engine/level/context';
+import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
 import { bossArena } from './fake/bossArena';
-import type { TitanRiders } from '../src/shards/nalati-grasslands/combat/bossBindings';
 import type { NalatiWeather } from '../src/shards/nalati-grasslands/world/installWeather';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
@@ -24,7 +29,6 @@ import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.ge
 import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/data/kurganLayout.generated.json' with { type: 'json' };
 import world from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
-import type { Animal } from '../src/engine/entities/AnimalView';
 import { manager } from './fake/manager';
 import { legacyDouble } from './fake/FakeGame';
 import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
@@ -72,27 +76,40 @@ test('Golden King runs all phases, clears the real adds and reaches its single r
   } finally { restore(); }
 });
 
-test('Storm Titan runs the three mounted phases, exposes the heart and reaches victory headlessly', async () => {
+test.each([false,true])('arena script runs mounted phases, exposes its heart and wins (orchard fixture %s)', orchard => {
   mockCanvas();
   const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }), scope = new Scope('titan-headless');
-  const f = manager(), riders: Animal[] = [], materials = new Map(['nalati-titan-cloud','nalati-titan-flame','nalati-titan-smoke'].map(id => [id, new MeshBasicMaterial()]));
+  const f = manager(), figure = new BoxGeometry(.2,.5,.3), materials = new Map(['nalati-titan-cloud','nalati-titan-flame','nalati-titan-smoke'].map(id => [id, new MeshBasicMaterial()]));
+  Object.assign(f.player,{ velocity: new Vector3(),setBodyEnabled: () => undefined });
   lendLooks(scope, { materials, setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped materials in this fight'); } });
-  const gr = legacyDouble<TitanRiders>({ spawnRider: ({ x, z }: { x: number; z: number }) => { const a = f.manager.spawn('ghost-rider', x, z, 0, 'rider'); riders.push(a); return a; }, dissolve: (a: Animal) => { a.hidden = true; } });
-  await prepareStormTitan({ json: <T>(name: string) => Promise.resolve(structuredClone<unknown>(name.endsWith('titan-fight.json') ? { ...titan, arenaFire: fireView, programs } : geometry) as T) });
-  const weather = legacyDouble<NalatiWeather>({ weather: legacyDouble<NalatiWeather['weather']>({ flash: 0, raise: () => undefined }) });
-  const game = Object.assign(f.game.asGame(), { levelScope: scope });
-  const fight = new StormTitanFight({ game, player: f.player, weather, tieSpot: null }, {
-    player: f.player, hurt: () => undefined, throwRider: () => undefined, mounted: () => true, horseSteed: () => undefined,
-    feed: () => undefined, toast: () => undefined, riders: () => gr, animals: () => f.manager,
-  });
+  const weather = legacyDouble<NalatiWeather>({ weather: legacyDouble<NalatiWeather['weather']>({ flash: 0, raise: () => undefined,stormActive: true }),air: legacyDouble<NalatiWeather['air']>({}) });
+  const game = Object.assign(f.game.asGame(), { app,levelScope: scope });
+  const data = parseArenaScriptData({ arenaScript: titan.TITAN_HOST,arenaFire: fireView,programs },geometry);
+  if (orchard) {
+    data.definition.id = 'orchard-thunder'; data.definition.name = 'Orchard thunder';
+    data.place.heartHp = 1300; data.script.fight.parameters['fullHp'] = 1300;
+    data.script.fight.initial['hp'] = 1300; data.view.target.range = 90;
+    data.script.fight.parameters['rewardDistance'] = 6; data.view.reward.lift = 2;
+    data.record = { kind: 'orchard-thunder',variant: 'elder' };
+  }
+  const owner = new ArenaScriptEncounter({ game,player: f.player,weather: weather.weather,air: weather.air,tieSpot: null },data);
+  const riders = new PatrolEncounterView({ patrol: night.patrol,motion: night.motion,view: night.ride },ReturnProgram.page(night.program,scope),
+    { game,sky: f.sky,player: f.player,forest: f.forest,cues: new CueDirector(game,night.cues,scope),figures: { rider: figure,captain: figure,storm: figure } });
+  riders.attachActors(f.manager); owner.riders = riders;
+  owner.mount = new Mount(legacyDouble<LevelContext>({ app,scope }),f.player,f.manager,
+    { speeds: { walk: 1.8,trot: 4.5,canter: 8.5,gallop: 13 },names: {},thrownDamage: 7,thrownLabel: 'Thrown',restAt: { x: 3,z: 5 } });
+  const horse = f.manager.spawn('horse',0,0,0); owner.mount.horse = horse;
+  const fight = owner.fight;
   f.player.position.set(world.CAIRN.x, 0, world.CAIRN.z + titan.TITAN_PLACE.centreZ); fight.tied = true;
-  const e = encounter(titan.TITAN_ENCOUNTER, fight, f.player.position), direction = new Vector3(0, 0, -1);
+  const e = encounter(data.definition, fight, f.player.position), direction = new Vector3(0, 0, -1);
   try {
     e.brain.arm();
     for (let frame = 0; frame < 12000 && e.brain.state !== 'victory'; frame++) {
-      const dt = 1 / 30, t = frame * dt; e.step(dt, t);
+      const dt = 1 / 30, t = frame * dt;
+      owner.mount.horse = horse; owner.mount.feet.copy(f.player.position);
+      e.step(dt, t);
       if (frame % 15 === 0 && e.brain.state === 'fight') {
-        for (const rider of riders) if (rider.alive) rider.applyDamage(1000, rider.position, direction);
+        for (const { a } of riders.riders) if (a.alive) a.applyDamage(1000,a.position,direction);
         const target = fight.lockTarget();
         if (target !== null && fight.heartOpen) {
           const hit = fight.target(target.position.clone().add(new Vector3(0, 0, 30)), direction, 100, null);
@@ -102,5 +119,5 @@ test('Storm Titan runs the three mounted phases, exposes the heart and reaches v
     }
     expect(e.brain.state).toBe('victory'); expect(e.trace).toEqual(['armed:0','intro:0','fight:0','beat:1','fight:1','beat:2','fight:2','victory:2']);
     expect(e.saved).toEqual({ defeated: true, rewardTaken: false, kills: 1 }); expect(e.rewards).toBe(1); expect(fight.dead).toBe(true);
-  } finally { scope.dispose(); for (const material of materials.values()) material.dispose(); restore(); }
+  } finally { scope.dispose(); figure.dispose(); for (const material of materials.values()) material.dispose(); restore(); }
 });

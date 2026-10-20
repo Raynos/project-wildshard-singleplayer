@@ -1,3 +1,5 @@
+import { strike } from '@wildshard/sdk/species';
+import strikeRows from '../data/strikeProfiles.generated.json' with { type: 'json' };
 import { CAIRN } from './layout';
 /**
  * Jel Ata, the Storm Titan's fight rows (plan row B14; design docs/design/nalati/elites-and-bosses.md "The Storm Titan
@@ -133,9 +135,24 @@ export const TITAN_CLOCKS = {
 
 /** Arena boss-script contract: retained lifecycle state is owned by G474. */
 export const TITAN_SCRIPT = { kind: 'boss', pattern: 'arena-script', fight: {
-  initial: { phase: 0, hp: TITAN_PLACE.heartHp, invuln: 0, fighting: 0, open: 0, victoryT: -1, tied: 0, sealed: 0, broke: 0, immuneT: 0, introBolt: 0 },
-  parameters: { fullHp: TITAN_PLACE.heartHp, fullDraw: TITAN_TUNING.fullDraw, fullDrawMul: TITAN_TUNING.fullDrawMul },
+  initial: { phase: 0, hp: TITAN_PLACE.heartHp, invuln: 0, fighting: 0, open: 0, victoryT: -1, tied: 0, sealed: 0, broke: 0, immuneT: 0, introBolt: 0, wall: 0 },
+  parameters: { fullHp: TITAN_PLACE.heartHp, fullDraw: TITAN_TUNING.fullDraw, fullDrawMul: TITAN_TUNING.fullDrawMul, rewardDistance: 3.5, respawnDistance: 16, storm: 0, engaged: 0, armed: 0, victory: 0, chainRadius: TITAN_TUNING.chainRadius,spearAim: TITAN_TUNING.spearAim, spearLock: TITAN_TUNING.spearLock, spearRadius: TITAN_TUNING.spearRadius },
   signals: { reset: 'bossReset', begin: 'bossBegin', phase: 'bossPhase', damage: 'bossDamage', step: 'bossStep', victory: 'bossVictory',
-    clamp: 'bossClamp', invulnerable: 'bossShield', seal: 'bossSeal', tie: 'bossTie', intro: 'bossIntro' },
-  retain: Object.fromEntries(['phase','hp','invuln','fighting','open','victoryT','tied','sealed','broke','immuneT','introBolt'].map(field => [field,field])),
+    clamp: 'bossClamp', invulnerable: 'bossShield', seal: 'bossSeal', tied: 'bossTie', tie: 'tie', intro: 'bossIntro', support: 'bossSupport', point: 'bossPoint', tell: 'bossTell' },
+  retain: Object.fromEntries(['phase','hp','invuln','fighting','open','victoryT','tied','sealed','broke','immuneT','introBolt','wall'].map(field => [field,field])),
 } };
+
+/** G474 arena boss-script binding; native owners receive rows and resources. */
+export const TITAN_HOST = {
+  script: TITAN_SCRIPT,clocks: TITAN_CLOCKS,field: TITAN_FIRE_FIELD,support: TITAN_SUPPORT,whirls: TITAN_WHIRLS,
+  supportSites: TITAN_SUPPORT_SITES,arena: { center: TITAN_ARENA.center,body: TITAN_ARENA.titan,anchor: { x: CAIRN.x,z: CAIRN.z+3 } },
+  place: { arenaRadius: TITAN_PLACE.arenaRadius,heartHp: TITAN_PLACE.heartHp },phases: TITAN_PHASES,
+  definition: TITAN_ENCOUNTER,reward: TITAN_REWARD,skin: TITAN_SKIN,tuning: TITAN_TUNING,boundary: TITAN_BOUNDARY,
+  phaseLines: TITAN_PHASE_FEED,tieLines: TITAN_TIE_FEED,immuneLines: TITAN_IMMUNE_FEED,seeds: TITAN_FIRE_SEEDS,
+  lines: { ...TITAN_LINES,spear: 'The Sky Spear — keep turning at a canter',charge: 'Wind Charge — swerve out of the lane',whirl: 'A whirlwind — ride around them' },
+  contacts: { spear: strike(strikeRows.spear),whirl: strike(strikeRows.whirl),wind: strike(strikeRows.wind),chain: strike(strikeRows.chain) },whole: ['fire','wall'],
+  pose: { rise: 0,bend: 0,kneel: 0,raise: .2,castL: 0,stride: 0,heartOpen: 0 },
+  view: { group: 'titan.fight',dome: 'dome',bodyRoot: 'root',quietVariant: 'rider',remaining: ' · {count} left',debug: 'nalati.titan',notice: 4,promptLift: 1.2,wallDamage: 10,
+    target: { damage: 40,open: 7,closed: 4,range: 150 },light: { colour: 0xc8dcff,y: -60 },reward: { distance: 3.5,lift: 1.3 },respawn: { distance: 16,yaw: Math.PI,steed: 100 },introBolt: { x: 18,z: -10 } },
+  weather: { strike: 'strike',clearing: 'clearing',storm: 'storm' },record: { kind: 'storm-titan',variant: 'jel-ata' },
+};

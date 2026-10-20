@@ -60,7 +60,7 @@ import { MountedReins as Reins } from '@wildshard/game/riding/reins';
 import { SheepRaid } from '../creatures/shepherdView';
 import { cleanHorseName } from '../ride/horseNames';
 import { legacyAdventureBond } from '@wildshard/game/quest/legacyRecords';
-import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
+import { ArenaScriptEncounter,readArenaScriptData } from '@wildshard/game/boss/arenaScript';
 import type { CosmeticFinishLocker, CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
 import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
@@ -114,7 +114,7 @@ export interface Nalati {
   ride: Ride | null;
   /** Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): main.ts `titan.bind({...})` once the kit / ride / HUD exist,
    *  `titan.onPlayerDeath()` in its death check; `titan.engaged` holds the storm and stands the elites down */
-  titan: StormTitan;
+  titan: ArenaScriptEncounter;
   /** the wearable skins (B15; src/shards/nalati-grasslands/weapons/nalatiSkins.ts): the elites' drops + the Sky-Marked Saddle, owned / worn per slot —
    *  main.ts's menu lists `skins.entries()` in the Inventory tab and wears them with `skins.toggle(id)` */
   skins: CosmeticFinishLocker;
@@ -187,7 +187,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   // ── Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): the Wind Cairn's threshold (mounted, in a natural storm), the
   //    Titan beyond the south rim, the arena's wall / whirlwinds / riders / fire; the heart joins the Targets chain below ──
-  const titan = wireStormTitan({ game, player: ctx.player, weather, tieSpot: pois.cairnTieSpot });
+  const titan = new ArenaScriptEncounter({ game,player: ctx.player,weather: weather.weather,air: weather.air,tieSpot: pois.cairnTieSpot },await readArenaScriptData(plugin.product,{ fight: 'combat/titan-fight.json',geometry: 'combat/titan-geometry.json' }));
   weather.bind({ stormHold: () => titan.engaged });   // the storm that called him rages on until he falls
   updates.push((dt, t) => { titan.update(dt, t); });
 
@@ -356,7 +356,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
         ['arrows', kit === null ? [] : [kit.bow.arrows.mesh]],
         ['mounts', [...new Set([...(mounted === null || mounted === undefined ? [] : [mounted.mesh]), ...(bonded?.alive === true && !bonded.hidden ? [bonded.mesh] : [])])]],
       ]),
-      facts: new Set([...(boss.power?.applied === true ? ['golden'] : []), ...(titan.naizagai?.applied === true ? ['storm'] : [])]) });
+      facts: new Set([...(boss.power?.applied === true ? ['golden'] : []), ...(titan.power?.applied === true ? ['storm'] : [])]) });
       if (kit !== null) for (const style of ['recurve', 'golden', 'sky-wolf'] as const)
         if (style === painter?.selectedFinishes.get('bow') && kit.bow.style !== style) kit.bow.setStyle(style);
     });

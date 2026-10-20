@@ -1,4 +1,4 @@
-import { sine, cosine } from './titan';
+import { sine, cosine, heading } from './titan';
 import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombined';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
@@ -85,9 +85,10 @@ if(signal==Signal.arenaClocks){
  put(Channel.alpha,melee?(f(Field.open)>0?3:1):.5);
 } else if(signal==Signal.bossReset){
  put(Channel.phase,f(Field.phase));put(Channel.hp,Math.round(f(Field.fullHp)*f(Field.share)));
- put(Channel.invuln,0);put(Channel.fighting,0);put(Channel.open,0);put(Channel.victoryT,-1);put(Channel.broke,0);put(Channel.immuneT,0);put(Channel.introBolt,0);
+ put(Channel.invuln,0);put(Channel.fighting,0);put(Channel.open,0);put(Channel.victoryT,-1);put(Channel.broke,0);put(Channel.immuneT,0);put(Channel.introBolt,0);put(Channel.wall,0);put(Channel.tied,f(Field.tied));put(Channel.sealed,f(Field.sealed));
 } else if(signal==Signal.bossBegin||signal==Signal.bossPhase){
  put(Channel.phase,f(Field.phase));if(signal==Signal.bossBegin)put(Channel.fighting,1);if(f(Field.phase)==1)put(Channel.broke,0);
+ put(Channel.mode,0);if(signal==Signal.bossBegin)put(Channel.rise,1);
  const p=f(Field.phase);put(Channel.cd,p==2?3:2);put(Channel.mask,p==0?7:p==1?3:0);
  put(Channel.arm,p==1?1:0);put(Channel.spread,p==2?1:0);put(Channel.index,p);
 } else if(signal==Signal.bossClamp){put(Channel.hp,Math.max(1,Math.round(f(Field.fullHp)*f(Field.share))));
@@ -106,6 +107,11 @@ if(signal==Signal.arenaClocks){
  put(Channel.rise,u);put(Channel.kneel,f(Field.phase)==1?u:0);put(Channel.alpha,f(Field.phase)==1?1-.45*u:1);
  put(Channel.flash,t>len*.7?Math.max(0,1-(t-len*.7)*2):0);
  const bolt=!short&&t>2.5&&f(Field.introBolt)==0;put(Channel.strike,bolt?1:0);put(Channel.introBolt,bolt?1:f(Field.introBolt));
+ } else if(signal==Signal.bossSupport){put(Channel.hp,Math.max(0,f(Field.hp)));put(Channel.broke,f(Field.broke));
+} else if(signal==Signal.bossPoint){
+ const dx=f(Field.cx)-f(Field.x),dz=f(Field.cz)-f(Field.z),length=Math.sqrt(dx*dx+dz*dz),distance=f(Field.amount)>0?f(Field.respawnDistance):f(Field.rewardDistance),k=length==0?1:length;
+ const x=f(Field.x)+dx/k*distance,z=f(Field.z)+dz/k*distance;
+ put(Channel.x,x);put(Channel.z,z);put(Channel.yaw,heading(-(f(Field.bodyX)-x),-(f(Field.bodyZ)-z)));
 } else if(signal==Signal.bossStep){
  const phase=f(Field.phase),open=f(Field.fighting)>0&&f(Field.invuln)==0&&(phase==0?f(Field.mode)==3:phase==1?f(Field.broke)>0:true),victory=f(Field.victoryT);
  const dx=f(Field.px)-f(Field.cx),dz=f(Field.pz)-f(Field.cz),r=f(Field.radius)-2;
@@ -114,5 +120,24 @@ if(signal==Signal.arenaClocks){
  put(Channel.shield,phase==1&&f(Field.broke)==0?1:0);put(Channel.open,open?1:0);put(Channel.immuneT,f(Field.immuneT)-f(Field.dt));put(Channel.victoryT,victory<0?-1:victory+f(Field.dt));
  put(Channel.broke,f(Field.broke));put(Channel.hp,f(Field.hp));put(Channel.show,victory<0||victory+f(Field.dt)<=3.6?1:0);
  put(Channel.active,f(Field.fighting)>0&&victory<0?1:0);put(Channel.arm,phase==1?1:0);put(Channel.spread,phase==2?1:0);
+ put(Channel.weapon,phase!=1&&victory<0?1:0);put(Channel.dome,phase==1&&f(Field.broke)==0&&victory<0?1:0);
+ const distance=Math.sqrt(dx*dx+dz*dz),radius=f(Field.radius),mounted=f(Field.mounted)>0;
+ const wall=f(Field.engaged)>0&&f(Field.sealed)>0&&distance>radius-2.5&&!mounted,cd=f(Field.wall)-f(Field.dt),k=distance>0?(radius-4)/distance:0;
+ put(Channel.disarm,f(Field.armed)>0&&(f(Field.storm)==0||distance>radius+30)?1:0);
+ put(Channel.x,wall?f(Field.cx)+dx*k:f(Field.px));put(Channel.z,wall?f(Field.cz)+dz*k:f(Field.pz));
+ put(Channel.hurt,wall&&cd<=0?1:0);put(Channel.wall,wall&&cd<=0?1.2:cd);
+ put(Channel.clear,f(Field.victory)>0&&f(Field.tied)>0?1:0);
+ put(Channel.radius,f(Field.engaged)>0||(f(Field.armed)>0&&f(Field.tied)>0)?0:4.6);put(Channel.label,!mounted?1:f(Field.storm)==0?2:0);
+
+} else if(signal==Signal.bossTell){
+ const mode=f(Field.mode),phase=f(Field.phase),t=f(Field.t),st=f(Field.spearT),aim=f(Field.spearAim),victory=f(Field.victoryT);
+ const pulse=.6+.4*sine(t*(st>aim-f(Field.spearLock)?30:12)),telling=mode==1&&phase!=1&&victory<0;
+ put(Channel.chainRadius,f(Field.chainRadius));put(Channel.chainAlpha,.85*(.6+.4*sine(t*24)));
+ put(Channel.tell,telling?1:0);put(Channel.ringRadius,f(Field.spearRadius));put(Channel.ringAlpha,.95*pulse);
+ put(Channel.forkRadius,f(Field.spearRadius)*(.3+.7*(1-st/aim)));put(Channel.forkAlpha,.8*pulse);
+ put(Channel.bend,mode==0?0:mode==1?f(Field.bend):1);put(Channel.bendRate,mode==0?2:5);
+ put(Channel.raise,mode==0?.2:mode==1?1:mode==2?0:f(Field.raise));put(Channel.raiseRate,mode==0?2:mode==1?4:8);
+ put(Channel.castL,f(Field.chainLeft)>0?1:0);put(Channel.struck,mode==2||mode==3?1:0);
+ put(Channel.alpha,phase!=1&&victory<0?(mode==3?1:.85):0);
 }
 }

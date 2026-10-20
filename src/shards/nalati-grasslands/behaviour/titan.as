@@ -11,7 +11,7 @@ import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombine
 @inline export function cosine(value:f64):f64{return sine(value+Math.PI/2);}
 // Bounded heading polynomial: error < .00002 rad, without the general
 // atan2 runtime's nested calls on the combined module's fixed fuel budget.
-@inline function heading(y:f64,x:f64):f64 {
+@inline export function heading(y:f64,x:f64):f64 {
  const ax=Math.abs(x),ay=Math.abs(y),m=Math.max(ax,ay);if(m==0)return 0;
  const a=Math.min(ax,ay)/m,s=a*a;
  let r=((((.0208351*s-.085133)*s+.180141)*s-.3302995)*s+.999866)*a;

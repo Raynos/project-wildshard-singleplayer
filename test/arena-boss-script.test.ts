@@ -10,7 +10,7 @@ const frame = { mode: 3, broke: 0, px: 0, pz: 0, cx: 0, cz: 0, radius: 10, mount
 
 test('boss host retains AS lifecycle, heart damage and bounded decisions', () => {
   const host = bossFight(parse(ArenaScriptBossProfileSchema,TITAN_SCRIPT),{ program: ReturnProgram.page(programs.rules) });
-  host.reset({ phase: 0,share: 1 }); host.event('begin',{ phase: 0 }); host.event('tie',{ amount: 1 });
+  host.reset({ phase: 0,share: 1 }); host.event('begin',{ phase: 0 }); host.event('tied',{ amount: 1 });
   expect(host.step(.05,frame)).toEqual({ dt: 0,values: {} });
   const first = host.step(.05,frame); expect(first.values['enter']).toBe(1); expect(host.value('open')).toBe(1);
   host.event('damage',{ mode: 3,amount: 80 }); expect(host.value('hp')).toBe(2400);
@@ -27,6 +27,21 @@ test('an orchard boss uses different health and parameters on the same boss host
   host.event('begin',{ phase: 2 }); host.event('damage',{ mode: 0,amount: 20 }); expect(host.value('hp')).toBe(55);
   host.event('clamp',{ share: .2 }); expect(host.value('hp')).toBe(30);
   expect(() => host.event('undeclared')).toThrow('Missing arena script event');
+});
+
+test('arena script emits tells, placement and one wall hit while retaining admission', () => {
+  const host = bossFight(parse(ArenaScriptBossProfileSchema,TITAN_SCRIPT),{ program: ReturnProgram.page(programs.rules) });
+  host.event('tied',{ amount: 1 }); host.event('seal',{ amount: 1 });
+  host.reset({ phase: 2,share: .34,tied: host.value('tied'),sealed: host.value('sealed') });
+  expect(host.value('tied')).toBe(1); expect(host.value('sealed')).toBe(1);
+  expect(host.event('begin',{ phase: 2 })).toMatchObject({ mode: 0,rise: 1,spread: 1 });
+  const tell = host.event('tell',{ t: 1,mode: 1,spearT: .2,chainLeft: 2,bend: 0,raise: .2 });
+  expect(tell).toMatchObject({ tell: 1,raise: 1,castL: 1,struck: 0 });
+  expect(tell['ringAlpha']).toBeGreaterThan(0);
+  const wall = { ...frame,px: 11,pz: 0,mounted: 0,engaged: 1,fighting: 1 };
+  expect(host.step(.1,wall).values).toMatchObject({ hurt: 1,x: 6,mask: 3 });
+  expect(host.step(.1,wall).values['hurt']).toBe(0);
+  expect(host.event('point',{ x: 0,z: 0,cx: 0,cz: 20,bodyX: 0,bodyZ: 30,amount: 1 })).toMatchObject({ x: 0,z: 16 });
 });
 
 

@@ -17,6 +17,7 @@ import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../population/returnProgram';
 import { RideHUD } from './hud';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import { arenaBoundaryBlocked } from '../boss/arenaField';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 
 const Profile = v.strictObject({ upgradeKind: v.string(), bonds: v.tuple([v.string(), v.string()]), names: v.tuple([v.string(), v.string()]),
@@ -131,7 +132,7 @@ export class RidingActions {
   private events: RidingActionEvent[] = [];
   private readonly rules: ReturnProgram;
   private readonly herds: readonly HerdBrain<Animal>[];
-  constructor(ctx: LevelContext, private readonly mount: Mount, private readonly taming: PageTamingOwner,
+  constructor(private readonly ctx: LevelContext, private readonly mount: Mount, private readonly taming: PageTamingOwner,
     private readonly player: Player, private readonly camera: THREE.PerspectiveCamera, private readonly animals: AnimalManager, private readonly rows: RidingActionRows) {
     const herds = collections.get(ctx.scope)?.get(rows.herds); if (herds === undefined) throw new Error('Missing rendered riding herds'); this.herds = herds;
     this.rules = ReturnProgram.page(rows.program, ctx.scope);
@@ -149,7 +150,8 @@ export class RidingActions {
   }
   /** Native mounted physics runs every frame; decisions keep their original guest. */
   advanceMount(dt: number, wet: boolean, blocked: boolean): void {
-    const mount = this.mount; mount.wet = wet; mount.blockedAhead = blocked;
+    const mount = this.mount, ahead = 2+mount.speed*.4; mount.wet = wet;
+    mount.blockedAhead = blocked || arenaBoundaryBlocked(this.ctx.scope,mount.feet.x+Math.sin(mount.heading)*ahead,mount.feet.z+Math.cos(mount.heading)*ahead);
     mount.stampedes = new Set(this.herds.flatMap(herd => herd.stampeding ? herd.members.map(actor => actor.entityId) : herd.stallionState === 'charge' && herd.stallion !== null ? [herd.stallion.entityId] : []));
     mount.update(dt);
     for (const event of mount.drainEvents()) {
@@ -210,11 +212,27 @@ export interface PageRidingSession {
   drainEvents: () => PageRidingEvent[];
 }
 const mountedSessions = new WeakMap<Scope, Mount>();
+const mountedOwners = new WeakMap<Scope, { readonly player: Player; readonly taming: PageTamingOwner }>();
 /** Native practice rooms borrow the entered mount owner without author callbacks. */
 export function pageRidingMount(ctx: LevelContext): Mount {
   const mount = mountedSessions.get(ctx.scope);
   if (mount === undefined || ctx.scope.disposed) throw new Error('Missing entered riding session');
   return mount;
+}
+/** Restore the actual player and a native eligible companion at an arena exit. */
+export function respawnPageMounted(ctx: LevelContext, position: THREE.Vector3, yaw: number, row: { readonly yaw: number; readonly steed: number }): void {
+  const mount = pageRidingMount(ctx), owner = mountedOwners.get(ctx.scope);
+  if (owner===undefined) throw new Error('Missing entered riding owner');
+  const player = owner.player;
+  if (mount.mounted) mount.dismount();
+  player.position.copy(position); player.velocity.set(0,0,0); player.yaw = yaw; player.pitch = 0;
+  const companion = owner.taming.companion;
+  const candidates = [...(companion===null ? [] : [companion]),...mount.mountables.map(entry => entry.a)];
+  for (const actor of candidates) {
+    if (!mount.canRide(actor)) continue;
+    actor.place(position.x,position.z,yaw+row.yaw);
+    if (mount.mount(actor)) { mount.teleport(position.x,position.z,yaw+row.yaw); mount.steed = row.steed; mount.winded = false; return; }
+  }
 }
 export function createPageRiding(ctx: LevelContext, player: Player, animals: AnimalManager, camera: THREE.PerspectiveCamera, rows: PageRidingRows): PageRidingSession {
   const controls=rows.controls===undefined?undefined:v.parse(RidingControlsSchema,rows.controls);
@@ -225,6 +243,8 @@ export function createPageRiding(ctx: LevelContext, player: Player, animals: Ani
   for (const entry of rows.mountables) mount.addMountable(entry.id, entry.name);
   playerModes(player).register(rows.mode, ctx.scope);
   const taming = createPageTaming(ctx, player, animals, mount, controls===undefined?rows.taming:{...rows.taming,breakingContext:controls.breaking});
+  const owner = { player,taming }; mountedOwners.set(ctx.scope,owner);
+  ctx.scope.onDispose(() => { if (mountedOwners.get(ctx.scope)===owner) mountedOwners.delete(ctx.scope); });
   const actions = new RidingActions(ctx, mount, taming, player, camera, animals, rows.actions);
   if (controls !== undefined) bindRidingControls(ctx,mount,taming,actions.hud,controls);
   return { mount, taming, hud: actions.hud, interactable: actions.interactable, names: rows.profile.names,
