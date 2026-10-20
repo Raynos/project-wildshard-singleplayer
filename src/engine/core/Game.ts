@@ -44,7 +44,6 @@ import { boundEntryWarmup } from '../render/entryWarmupBound';
 import { onSettingChange, setting } from '../ui/Settings';
 import { dropOutputDepth, halfLuminance, installMemorySaver, memorySaverOn, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
-import { installShadowMaterialOwnership } from '../render/shadowMaterialOwnership';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
 import { exploreEntryPending, recordExploreFrame, recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
 import { cullPlaced } from '../models/place';
@@ -393,7 +392,7 @@ export class Game {
     const tracedBoot = bootTraceActive();
     if (tracedBoot) recordBootCheckpoint('renderer:before', { userAgent: navigator.userAgent.slice(0, 250), devicePixelRatio: window.devicePixelRatio });
     try {
-      this.renderer = createRenderer(canvas, context);
+      this.renderer = createRenderer(canvas, context, { assets: app.assets, scope: this.engineScope, uploads: this.uploads });
     } catch (error) {
       if (tracedBoot) recordBootCheckpoint('renderer:failed', { message: error instanceof Error ? error.message.slice(0, 250) : String(error).slice(0, 250) });
       throw error;
@@ -406,8 +405,6 @@ export class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap; // r186 removed PCFSoft: it renders PCF anyway, and the type is in every program's cache key
     setAnisotropy(this.renderer);
-    this.uploads.attach(this.renderer);
-    installShadowMaterialOwnership(this.renderer, app.assets, this.engineScope);
     installMemorySaver(this.renderer); // SF22d: Debug ▸ Memory saver (off: nothing installed)
     // shadow-only casters (shadowLayer.ts): the shadow pass tests layers against the view camera, so the view camera sees
     // SHADOW_LAYER while — and only while — the shadow maps draw. Before this the cabins' depth proxies (PLAY-PERF lever

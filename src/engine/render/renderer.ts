@@ -8,6 +8,10 @@ import * as THREE from 'three';
 import { installGpuLabels, labelledCreation } from './gpuLabels';
 import { installFrameCounter } from './frameCounter';
 import { installDiagnosticJournal } from './diagnosticJournal';
+import { installShadowMaterialOwnership } from './shadowMaterialOwnership';
+import type { AssetService } from '../app/assets';
+import type { Scope } from '../app/scope';
+import type { UploadOwnership } from './uploadOwnership';
 
 /** the renderer every layer is handed (today three's WebGL renderer) */
 export type Renderer = THREE.WebGLRenderer;
@@ -18,10 +22,12 @@ export function probeRenderer(): Renderer {
 }
 
 
-/** Create the game's renderer on its recovered WebGL context. */
-export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2RenderingContext): Renderer {
+/** Create the client renderer and install upload observation before native shadow-cache ownership. */
+export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2RenderingContext, ownership: { assets: AssetService; scope: Scope; uploads: UploadOwnership }): Renderer {
   const stopJournal = installDiagnosticJournal(context);
   const renderer = labelledCreation('engine/renderer', 'builtin/renderer-initialization', () => new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true }));
+  ownership.uploads.attach(renderer);
+  installShadowMaterialOwnership(renderer, ownership.assets, ownership.scope);
   installGpuLabels(renderer);
   const dispose = renderer.dispose.bind(renderer);
   renderer.dispose = () => { try { dispose(); } finally { stopJournal(); } };
