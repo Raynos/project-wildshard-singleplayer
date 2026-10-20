@@ -1,5 +1,8 @@
 import * as v from 'valibot';
 import { NativeGroupRowsSchema } from '@wildshard/format/creatures';
+import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
+import fieldRows from '../data/populationField.generated.json' with { type: 'json' };
+import { nalatiDayClockRow } from './dayClock';
 import assembly from '../data/headlessAssembly.json' with { type: 'json' };
 import boot from '../data/headlessBoot.json' with { type: 'json' };
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
@@ -25,4 +28,5 @@ export const nalatiNativeGroupRows = v.parse(NativeGroupRowsSchema, {
     { kind: 'group', row: { ...brains.herd, members: lair }, adopt },
   ],
 });
-export const headlessAssembly = { ...assembly, constants: { ...assembly.constants, groupRows: nalatiNativeGroupRows, groupAdmission: admission } };
+const nativeField = v.parse(PopulationFieldSchema,fieldRows);
+export const headlessAssembly = { ...assembly,constants: { ...assembly.constants,groupRows: nalatiNativeGroupRows,groupAdmission: admission,nativeField,nativeDayClock: nalatiDayClockRow() } };

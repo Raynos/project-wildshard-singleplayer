@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import { ATTACK_TURN, type HuntBody } from '@wildshard/engine/ai/hunt';
+import { ATTACK_TURN, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -15,11 +15,12 @@ import { FlockBrain, type FlockPorts } from '@wildshard/engine/ai/flock';
 import type { PackBrain, PackPrey } from '@wildshard/engine/ai/pack';
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import { nativeGroupCollection } from '../shardfile/groupRuntime';
-import { admitNativeRosterServices, createNativeCreatureRoster, NativeDeferredRoster, type NativeCreatureSlot } from '../shardfile/homeKeeper';
+import { creatureFloor, admitNativeRosterServices, createNativeCreatureRoster, NativeDeferredRoster, type NativeCreatureSlot } from '../shardfile/homeKeeper';
 import { admitMountRoster, BondedMountRoster } from './roster';
 import { mountedPlayerOf } from './native';
 import { nativeTamingOf } from './nativeTaming';
-import { nativeHuntGround } from '../plugin/brain';
+import { nativeHuntGround, createNativeHunt } from '../plugin/brain';
+import { NativePopulationField } from '../population/environment';
 import type { EliteBindings } from '../shardfile/eliteEncounters';
 import { ReturnProgram } from '../population/returnProgram';
 import { NativeManager, NativePopulationDriver, NativeWildlifeFrame, type NativeWildlifeRows } from '../population/nativeManager';
@@ -156,6 +157,50 @@ export interface NativePopulationConfig {
 }
 export interface NativePopulationBoot {
   admission: unknown; pasture: unknown; streamSeed: number; species: Readonly<Record<string, unknown>>; recipes: readonly AnimalSimSpec[];
+}
+/** Boot identity rows join the admitted physics bake before any body exists. */
+export interface NativePopulationBootBody {
+  readonly id: string; readonly kind: string; readonly variant: { readonly id: string }; readonly seed: number; readonly scale: number;
+  readonly herd: number; readonly position: { readonly x: number; readonly z: number }; readonly yaw: number;
+  readonly adopted: { readonly stream: RngState; readonly x: number; readonly z: number };
+}
+export interface NativePopulationBootHerd { readonly kind: string; readonly cx: number; readonly cz: number; readonly members: readonly NativePopulationBootBody[] }
+export interface NativePopulationBootRows extends NativePopulationBoot {
+  readonly phases: readonly string[]; readonly hunt: Readonly<Record<string,unknown>>;
+  readonly roster: { readonly bodies: readonly NativePopulationBootBody[]; readonly herds: readonly NativePopulationBootHerd[]; readonly stream: RngState; readonly wildStream: RngState };
+}
+interface BootBake {
+  readonly actors: readonly { readonly id: string; readonly kind: string; readonly variant: string; readonly seed: number; readonly scale: number; readonly herd: number; readonly spec: AnimalSimSpec; readonly scripted: boolean }[];
+  readonly herds: readonly { readonly kind: string; readonly members: readonly string[] }[];
+}
+/** Compare the exact admitted identity join before spawning on native floors. */
+export function installNativeBootRoster(host: SimHost, ports: { boot: NativePopulationBootRows; bake: BootBake; field: NativePopulationField; spawnY: number;
+  clock: { readonly phase: string; readonly storm: boolean }; elites: EliteBindings }): {
+  bodies: { boot: NativePopulationBootBody; baked: BootBake['actors'][number]; actor: AnimalSim }[]; herds: readonly NativePopulationBootHerd[]; stream: RngState; wildStream: RngState;
+} {
+  const { bake,boot,field } = ports, roster = structuredClone(boot.roster);
+  if (!(field instanceof NativePopulationField) || !boot.phases.includes(ports.clock.phase) || ports.clock.storm) throw new Error('Native boot phase is not hosted');
+  if (roster.bodies.length !== bake.actors.length || JSON.stringify(roster.herds.map(h => ({ kind: h.kind,members: h.members.map(m => m.id) }))) !== JSON.stringify(bake.herds)
+    || roster.bodies.some((row,index) => { const body = bake.actors[index]; return body?.id !== row.id || body.kind !== row.kind || body.variant !== row.variant.id || body.seed !== row.seed || body.scale !== row.scale || body.herd !== row.herd; })) throw new Error('Native boot roster diverges from its admitted bake');
+  host.useBodyBands({ present: actor => !ports.elites.absent.has(actor) && (!('hidden' in actor) || actor.hidden !== true),
+    rate: actor => actor.driven || actor.state === 'sidestep' || ports.elites.pinned.has(actor) ? 'always' : 'ai' });
+  const floorAt = creatureFloor(host,field.hunt.heightAt);
+  const bodies = roster.bodies.map((row,index) => {
+    const baked = bake.actors[index]; if (baked === undefined) throw new Error('Missing native boot body');
+    const { x,z } = row.position, at = floorAt(x,z,Math.max(ports.spawnY,field.hunt.heightAt(x,z))+1);
+    const actor = host.spawn({ id: row.id,spec: baked.spec,seed: row.seed,scale: row.scale,at: { x,y: at.y,z },yaw: row.yaw });
+    actor.levelGround = at.structure; if (at.structure) actor.groundHeight = (px,pz,py) => floorAt(px,pz,py).y;
+    actor.herd = row.herd; actor.scripted = baked.scripted; actor.attackTurnCap = ATTACK_TURN; return { boot: row,baked,actor };
+  });
+  return { bodies,herds: roster.herds,stream: roster.stream,wildStream: roster.wildStream };
+}
+/** Bind the built-in hunt to an admitted world owner, rather than shard queries. */
+export function installNativePopulationHunt(host: SimHost, ports: NativePopulationBindings & { boot: NativePopulationBootRows; field: NativePopulationField; nav: HuntNav }): NativePopulation {
+  if (!(ports.field instanceof NativePopulationField)) throw new Error('Missing native population field');
+  const rng = new Rng(ports.boot.streamSeed);
+  const { hunt } = createNativeHunt(host,{ limit: 64,fight: { telegraphed: true },player: 'origin',bands: null,hit: { namespace: 'creature',tags: ['feel.blow','cover.checked'] } },
+    { rng,ground: ports.field.hunt,nav: ports.nav,species: new Map(Object.entries(ports.boot.hunt).map(([kind,row]) => [kind,v.parse(v.object(v.pick(SpeciesSchema,['aggressive','tuning','sounds','walkSpeed','chargeSpeed','chargeWindup','ringRadius']).entries),row)])) });
+  hunt.navSteer = true; return installNativePopulation(host,hunt,rng,ports);
 }
 export interface NativePopulationBindings {
   boot: NativePopulationBoot; config: NativePopulationConfig;

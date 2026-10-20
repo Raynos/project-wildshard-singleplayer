@@ -1,25 +1,10 @@
 {
   "version": 1,
   "modules": {
-    "src/shards/nalati-grasslands/world/weatherStep": [
-      "readWeatherProgram"
-    ],
     "src/shards/nalati-grasslands/runtime/baked": [
       "nalatiBake",
       "NALATI_GROUND_RES",
       "NALATI_GROUND_SIZE"
-    ],
-    "src/shards/nalati-grasslands/runtime/headless": [
-      "nalatiTerrainGrid",
-      "nalatiWorldQueries",
-      "nalatiDayClock",
-      "nalatiBootClock",
-      "installNalatiRoster",
-      "nalatiGrassView",
-      "installNalatiTrample",
-      "installNalatiWeather",
-      "nalatiLightningGround",
-      "installNalatiCreatures"
     ],
     "@wildshard/engine/world/BakedTerrain": [
       "bakedSamplers"
@@ -74,6 +59,24 @@
     ],
     "@wildshard/game/population/nativeManager": [
       "NativeWildEnvironment"
+    ],
+    "@wildshard/game/population/environment": [
+      "populationTerrain",
+      "NativePopulationField"
+    ],
+    "@wildshard/game/riding/nativePopulation": [
+      "installNativeBootRoster",
+      "installNativePopulationHunt"
+    ],
+    "@wildshard/game/plugin/weather": [
+      "nativeWeatherBundle",
+      "installNativeWeatherWorld"
+    ],
+    "@wildshard/engine/world/dayCycle": [
+      "DayCycle"
+    ],
+    "@wildshard/game/systems/looks/trample": [
+      "installTrampleTrail"
     ]
   },
   "constants": {
@@ -107,12 +110,12 @@
         "labels": {
           "mount": "Mount the stallion",
           "breaking": "Break the stallion",
-          "trust": "The herd saw you drive the wolves off \u00b7 TRUST +30",
-          "start": "HOLD ON \u2014 lean against him (A / D, LEAN L / LEAN R)",
-          "thrown": "Thrown! TRUST \u221240 \u2014 find him again when the herd settles",
+          "trust": "The herd saw you drive the wolves off · TRUST +30",
+          "start": "HOLD ON — lean against him (A / D, LEAN L / LEAN R)",
+          "thrown": "Thrown! TRUST −40 — find him again when the herd settles",
           "bonded": [
-            "TULPAR is yours \u00b7 he waits at the camp's hitching rail \u00b7 whistle (X / HORSE) to call him",
-            "ARGYMAQ is yours \u2014 he takes Tulpar's place at the camp's rail \u00b7 whistle (X / HORSE) to call him"
+            "TULPAR is yours · he waits at the camp's hitching rail · whistle (X / HORSE) to call him",
+            "ARGYMAQ is yours — he takes Tulpar's place at the camp's rail · whistle (X / HORSE) to call him"
           ]
         }
       },
@@ -202,6 +205,41 @@
           "strength": "horseWindStrength"
         }
       }
+    },
+    "nativeWeather": {
+      "step": "nalati.weather",
+      "scareRadius": 60,
+      "windReference": 10,
+      "light": {
+        "base": 0.4,
+        "storm": 0.6,
+        "ramps": [
+          [
+            -14,
+            -2,
+            0.3
+          ],
+          [
+            -2,
+            10,
+            0.3
+          ]
+        ]
+      },
+      "hit": {
+        "ask": "weather.damage",
+        "tags": [
+          "env.lightning",
+          "feel.jolt",
+          "cover.checked"
+        ],
+        "cause": {
+          "kind": "env.lightning",
+          "label": "Struck by lightning",
+          "text": "Struck by lightning"
+        },
+        "toast": "Struck by lightning — get low in a storm"
+      }
     }
   },
   "prepare": [
@@ -250,8 +288,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/world/weatherStep",
-              "readWeatherProgram"
+              "@wildshard/game/plugin/weather",
+              "nativeWeatherBundle"
             ]
           },
           {
@@ -300,8 +338,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headless",
-              "nalatiTerrainGrid"
+              "@wildshard/game/population/environment",
+              "populationTerrain"
             ]
           },
           {
@@ -353,6 +391,10 @@
               "identity",
               "seed"
             ]
+          },
+          {
+            "resolution": 256,
+            "size": 500
           }
         ]
       }
@@ -385,20 +427,47 @@
       }
     },
     {
-      "name": "queries",
+      "name": "populationField",
       "value": {
-        "$call": [
+        "$new": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headless",
-              "nalatiWorldQueries"
+              "@wildshard/game/population/environment",
+              "NativePopulationField"
             ]
           },
           {
             "$ref": [
               "grid"
             ]
+          },
+          {
+            "$ref": [
+              "constants",
+              "nativeField"
+            ]
+          },
+          {
+            "$ref": [
+              "bake",
+              "trees"
+            ]
+          },
+          {
+            "$ref": [
+              "bake",
+              "tops"
+            ]
           }
+        ]
+      }
+    },
+    {
+      "name": "queries",
+      "value": {
+        "$ref": [
+          "populationField",
+          "queries"
         ]
       }
     },
@@ -521,11 +590,17 @@
             ]
           },
           {
-            "$call": [
+            "$new": [
               {
                 "$ref": [
-                  "src/shards/nalati-grasslands/runtime/headless",
-                  "nalatiDayClock"
+                  "@wildshard/engine/world/dayCycle",
+                  "DayCycle"
+                ]
+              },
+              {
+                "$ref": [
+                  "constants",
+                  "nativeDayClock"
                 ]
               }
             ]
@@ -552,8 +627,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headless",
-              "installNalatiRoster"
+              "@wildshard/game/riding/nativePopulation",
+              "installNativeBootRoster"
             ]
           },
           {
@@ -572,11 +647,6 @@
                 "bake"
               ]
             },
-            "grid": {
-              "$ref": [
-                "grid"
-              ]
-            },
             "spawnY": {
               "$ref": [
                 "shard",
@@ -585,23 +655,22 @@
               ]
             },
             "clock": {
-              "$call": [
-                {
-                  "$ref": [
-                    "src/shards/nalati-grasslands/runtime/headless",
-                    "nalatiBootClock"
-                  ]
-                },
-                {
-                  "$ref": [
-                    "clock"
-                  ]
-                }
-              ]
+              "phase": {
+                "$ref": [
+                  "clock",
+                  "dayPhase"
+                ]
+              },
+              "storm": false
             },
             "elites": {
               "$ref": [
                 "bindings"
+              ]
+            },
+            "field": {
+              "$ref": [
+                "populationField"
               ]
             }
           }
@@ -620,25 +689,9 @@
     {
       "name": "grass",
       "value": {
-        "$call": [
-          {
-            "$ref": [
-              "src/shards/nalati-grasslands/runtime/headless",
-              "nalatiGrassView"
-            ]
-          },
-          {
-            "$ref": [
-              "grid"
-            ]
-          },
-          {
-            "$ref": [
-              "shard",
-              "identity",
-              "seed"
-            ]
-          }
+        "$ref": [
+          "populationField",
+          "grass"
         ]
       }
     },
@@ -648,8 +701,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headless",
-              "installNalatiTrample"
+              "@wildshard/game/systems/looks/trample",
+              "installTrampleTrail"
             ]
           },
           {
@@ -662,6 +715,12 @@
               "grass",
               "trample"
             ]
+          },
+          {
+            "id": "nalati.trample",
+            "radius": 0.55,
+            "strength": 1,
+            "speedLimit": 30
           }
         ]
       }
@@ -705,8 +764,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headless",
-              "installNalatiWeather"
+              "@wildshard/game/plugin/weather",
+              "installNativeWeatherWorld"
             ]
           },
           {
@@ -718,11 +777,6 @@
             "program": {
               "$ref": [
                 "weatherProgram"
-              ]
-            },
-            "heightAt": {
-              "$ref": [
-                "heightAt"
               ]
             },
             "clock": {
@@ -740,30 +794,11 @@
                 "bake"
               ]
             },
-            "scare": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": [
-                      "creatures",
-                      "scare"
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      0
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      1
-                    ]
-                  },
-                  60
-                ]
-              }
+            "rows": {
+              "$ref": [
+                "constants",
+                "nativeWeather"
+              ]
             }
           }
         ]
@@ -1230,31 +1265,13 @@
       }
     },
     {
-      "name": "forest",
-      "value": {
-        "$call": [
-          {
-            "$ref": [
-              "src/shards/nalati-grasslands/runtime/headless",
-              "nalatiLightningGround"
-            ]
-          },
-          {
-            "$ref": [
-              "bake"
-            ]
-          }
-        ]
-      }
-    },
-    {
       "name": "creatures",
       "value": {
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headless",
-              "installNalatiCreatures"
+              "@wildshard/game/riding/nativePopulation",
+              "installNativePopulationHunt"
             ]
           },
           {
@@ -1292,46 +1309,10 @@
                     "herds"
                   ]
                 },
-                "grid": {
-                  "$ref": [
-                    "grid"
-                  ]
-                },
                 "nav": {
                   "$ref": [
                     "nav"
                   ]
-                },
-                "trees": {
-                  "$fn": {
-                    "$call": [
-                      {
-                        "$ref": [
-                          "forest",
-                          "trees",
-                          "nearby"
-                        ]
-                      },
-                      {
-                        "$ref": [
-                          "args",
-                          0
-                        ]
-                      },
-                      {
-                        "$ref": [
-                          "args",
-                          1
-                        ]
-                      },
-                      {
-                        "$ref": [
-                          "args",
-                          2
-                        ]
-                      }
-                    ]
-                  }
                 },
                 "stream": {
                   "$ref": [
@@ -1361,6 +1342,11 @@
                   "$ref": [
                     "constants",
                     "nativePopulation"
+                  ]
+                },
+                "field": {
+                  "$ref": [
+                    "populationField"
                   ]
                 }
               },

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { NativeRidingSchema } from './nativeRiding';
 
 const finite = v.pipe(v.number(), v.finite());
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
@@ -23,3 +24,14 @@ export const PopulationEnvironmentSchema = v.strictObject({
   stream: v.nullable(stream),
 });
 export type PopulationEnvironmentRows = v.InferOutput<typeof PopulationEnvironmentSchema>;
+
+const zone = v.strictObject({ ...point.entries, r: finite, h: finite });
+/** Native field geography uses admitted rasters and uniform cross-section rows,
+ * never content-owned terrain or grass query functions. */
+export const PopulationFieldSchema = v.strictObject({
+  seed: finite, world: NativeRidingSchema.entries.world,
+  trails: v.pipe(v.array(v.pipe(v.array(v.tuple([finite,finite])), v.maxLength(1024))), v.maxLength(128)),
+  river: v.strictObject({ from: finite, step: v.pipe(finite,v.minValue(Number.MIN_VALUE)),
+    values: v.pipe(v.array(v.tuple([finite,finite])),v.minLength(2),v.maxLength(4096)) }),
+  meadow: v.strictObject({ short: v.array(zone), tall: v.array(zone), bare: v.array(zone), valley: finite, plateau: finite }),
+});

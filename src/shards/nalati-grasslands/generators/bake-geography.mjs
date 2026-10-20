@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { zlibSync } from 'fflate';
 import { Rng } from '@wildshard/engine/core/rng';
+import { NALATI_GRASS_LAYOUT } from './grassFieldLayout.ts';
 import { SEED, TERRAIN, RIVER, BRIDGE, SPAWN, groundColor, surfaceAt, zoneAt, riverMask, brookMask, loneSpruceMask, inSpruceClearing, edgeBermAt } from './terrainRecipe.ts';
 import { edgeSpruceMask } from './edgeRecipe.ts';
 import { nalatiWetAt } from './wetRecipe.ts';
@@ -37,4 +38,5 @@ const writer = byteWriter(process.argv.includes('--check'), 'nalati-geography');
 writer.put(resolve(import.meta.dirname, '..', 'boot', 'geography.generated.json'), jsonBytes(data, 0));
 writer.put(resolve(import.meta.dirname, '..', 'boot', 'geography.generated.d.json.ts'), Buffer.from("import type { GeographyRows } from '../data/geographyTypes';\ndeclare const rows: GeographyRows;\nexport default rows;\n"));
 writer.put(resolve(import.meta.dirname, '..', 'data', 'ridingTerrain.generated.json'), jsonBytes({ res, size, water: RIVER.level, wet: data.channels.wet, pond: data.channels.pond }, 0));
+writer.put(resolve(import.meta.dirname, '..', 'data', 'populationField.generated.json'), jsonBytes({ seed: SEED, world: { res,size,water: RIVER.level,wet: data.channels.wet,pond: data.channels.pond }, trails: TERRAIN.trails, river: { from: -250,step: 1,values: profile },meadow: NALATI_GRASS_LAYOUT },0));
 writer.finish();

@@ -1,8 +1,11 @@
 import * as v from 'valibot';
-import { PopulationEnvironmentSchema, type PopulationEnvironmentRows } from '@wildshard/format/populationEnvironment';
+import { PopulationEnvironmentSchema, PopulationFieldSchema, type PopulationEnvironmentRows } from '@wildshard/format/populationEnvironment';
+import { unzlibSync } from 'fflate';
+import { GrassField } from '../systems/looks/grassField';
+import { TrampleField } from '../systems/looks/trample';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
-import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
+import { terrainTileHeight, decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { HuntGround, HuntTree } from '@wildshard/engine/ai/hunt';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
@@ -69,4 +72,47 @@ export function installPopulationEnvironment(host: SimHost, grid: Pick<BakedGrid
   };
   services.set(rows.id, ground); installed.set(host, services);
   host.scope.onDispose(() => { services.delete(rows.id); });
+}
+
+/** Decode only the exact admitted sampling lattice requested by the boot rows. */
+export function populationTerrain(bytes: Uint8Array | undefined, seed: number, row: { resolution: number; size: number }): BakedGrid {
+  const tile = bytes === undefined ? null : decodeTerrainTile(bytes);
+  if (tile?.splat === undefined || tile.colours !== undefined || tile.resolution !== row.resolution || tile.size !== row.size
+    || tile.x !== -row.size/2 || tile.z !== -row.size/2) throw new Error('Native population needs its admitted query terrain sampling');
+  return { res: tile.resolution,size: tile.size,seed,landscapeHash: 0,heights: tile.heights,splat: tile.splat,undergrowth: null };
+}
+
+/** G474 renderer-free grass, water and hunt observations. This concrete owner
+ * accepts data only and retains no shard query, clock or placement callbacks. */
+export class NativePopulationField {
+  readonly grass: { field: GrassField; trample: TrampleField };
+  readonly hunt: HuntGround;
+  readonly trees = new TreeGrid<{ x: number; z: number; r: number; top: number }>();
+  readonly queries: { normalY: (x: number,z: number) => number; surfaceAt: (x: number,z: number) => number | null; inBounds: (x: number,z: number,margin: number) => boolean };
+  constructor(grid: BakedGrid, input: unknown, treeRows: readonly (readonly [number,number,number])[], tops: readonly number[]) {
+    const rows = v.parse(PopulationFieldSchema,input), sample = bakedSamplers(grid), world = rows.world;
+    if (grid.size !== world.size || grid.seed !== rows.seed || tops.length !== treeRows.length) throw new Error('Incompatible native population field');
+    const channel = (encoded: string): ((x: number,z: number) => number) => {
+      const bytes = unzlibSync(Uint8Array.from(atob(encoded),value => value.codePointAt(0) ?? 0));
+      if (bytes.byteLength !== world.res*world.res*4) throw new Error('Invalid population field raster');
+      const values = new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4);
+      if (values.some(value => !Number.isFinite(value))) throw new Error('Invalid population field sample');
+      return bakedSamplers({ ...grid,res: world.res,size: world.size,heights: values }).heightAt;
+    };
+    const pond = channel(world.pond), wet = channel(world.wet), meta = buildTerrainMetadata(rows.seed,{ trails: rows.trails,cabinSites: [] },() => world.water);
+    treeRows.forEach(([x,z,r],index) => { const top = tops[index]; if (top === undefined || ![x,z,r,top].every(Number.isFinite)) throw new Error('Invalid population tree'); this.trees.add({ x,z,r,top }); });
+    this.queries = { normalY: (x,z) => sample.normalAt(x,z)[1],surfaceAt: (x,z) => pond(x,z) > 0 ? world.water : null,
+      inBounds: (x,z,margin) => Math.abs(x) < world.size/2-margin && Math.abs(z) < world.size/2-margin };
+    const profile = (x: number,index: 0 | 1): number => {
+      const row = rows.river, at = Math.max(0,Math.min(row.values.length-1,(x-row.from)/row.step)), i = Math.min(row.values.length-2,Math.floor(at));
+      const a = row.values[i]?.[index] ?? 0,b = row.values[i+1]?.[index] ?? a; return a+(b-a)*(at-i);
+    };
+    this.grass = { field: new GrassField({ seed: rows.seed,half: world.size/2,heightAt: sample.heightAt,normalAt: sample.normalAt,splatAt: sample.splatAt,
+      trailDistance: meta.trailDistance,cabinMask: meta.cabinMask,pondMask: pond,waterLevel: meta.waterLevel,paint: () => false,
+      layout: { ...rows.meadow,riverZ: x => profile(x,0),riverHalf: x => profile(x,1) } }),trample: new TrampleField() };
+    this.hunt = { heightAt: sample.heightAt,normalY: this.queries.normalY,trailDistance: meta.trailDistance,cabinMask: meta.cabinMask,
+      inChunk: (x,z,margin) => Math.abs(x) <= world.size/2-margin && Math.abs(z) <= world.size/2-margin,
+      streamAt: () => null,waterLevel: meta.waterLevel,pond: () => null,sea: () => false,wetAt: (x,z) => wet(x,z) > .5,
+      trees: (x,z,r) => this.trees.nearby(x,z,r),treeless: () => false,terrain: () => true,chunkHalf: world.size/2 };
+  }
 }

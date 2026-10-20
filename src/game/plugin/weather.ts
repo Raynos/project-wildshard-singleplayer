@@ -7,7 +7,11 @@ import type { ShardContext } from './context';
 
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { SimHost } from '@wildshard/engine/sim';
-import type { WeatherProgram, WeatherReactionRows } from '@wildshard/format/weatherProgram';
+import { parseWeatherProgram, parseWeatherReactions, WeatherWorldSchema, WindStateSchema, type WeatherProgram, type WeatherReactionRows } from '@wildshard/format/weatherProgram';
+import { Wind } from '@wildshard/engine/world/steppeWind';
+import { Vector3 } from 'three';
+import { NativeWildEnvironment } from '../population/nativeManager';
+import { nativePopulationOf } from '../riding/nativePopulation';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import type { WeatherHUD } from '@wildshard/engine/ui/HUD';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -176,4 +180,39 @@ export class WeatherReactions {
 /** Reactions on a page (its scope owns the program) or a renderer-free host (one admitted instance per host scope). */
 export function installWeatherReactions(air: WeatherContinuation, rows: WeatherReactionRows, owner: { readonly host: SimHost } | { readonly scope: Scope }): WeatherReactions {
   return new WeatherReactions(air, rows, 'host' in owner ? ReturnProgram.native(owner.host, { script: rows.script, bytes: rows.bytes }) : ReturnProgram.page({ script: rows.script, bytes: rows.bytes }, owner.scope));
+}
+
+/** Admit a phase program and its reaction guest as one data-only native bundle. */
+export function nativeWeatherBundle(input: unknown): { weather: WeatherProgram; reactions: WeatherReactionRows } {
+  const data = v.parse(v.object({ weather: v.unknown(),reactions: v.unknown() }),input), weather = parseWeatherProgram(data.weather);
+  return { weather,reactions: parseWeatherReactions(data.reactions,weather) };
+}
+/** G474 fixed-step weather observes concrete world owners and routes its effects
+ * through the native population/combat authorities, never content callbacks. */
+export function installNativeWeatherWorld(host: SimHost, ports: { program: ReturnType<typeof nativeWeatherBundle>; rows: unknown;
+  clock: Pick<DayCycleClock,'sunElevation'>; env: NativeWildEnvironment;
+  bake: { readonly trees: readonly (readonly [number,number,number])[]; readonly tops: readonly number[]; readonly yurts: readonly (readonly [number,number,number])[] } }): { wind: Wind; storm: WeatherReactions } {
+  const rows = v.parse(WeatherWorldSchema,ports.rows), { env,clock,bake,program } = ports;
+  if (!(env instanceof NativeWildEnvironment) || bake.trees.length !== bake.tops.length) throw new Error('Invalid native weather observations');
+  const wind = new Wind({ value: 1 });
+  const storm = installWeatherReactions(installWeatherContinuation(host,program.weather,{ phase: 0 },undefined),
+    { ...program.reactions,points: bake.trees.map(([x,z],index) => [x,z,bake.tops[index] ?? 0]),shelter: { ...program.reactions.shelter,circles: bake.yurts.map(([x,z,r]) => [x,z,r]) } },{ host });
+  Object.assign(storm.inputs,{ calmSpeed: wind.speed,calmDir: wind.dir,calmGust: wind.gustiness,titanHeld: 0,crouched: 0,mounted: 0 });
+  storm.on('strike',event => { const population = nativePopulationOf(host); if (population === undefined) throw new Error('Missing native weather population'); population.scare(event['x'] ?? 0,event['z'] ?? 0,rows.scareRadius); });
+  storm.on('wind',event => { wind.setTarget(event['speed'] ?? wind.speed,event['dir'] ?? wind.dir,event['gustiness'],event['seconds']); });
+  storm.on('hurt',event => { host.combat.hit({ source: 'env',sourceTags: rows.hit.tags,target: host.player.health,amount: host.events.ask(rows.hit.ask,event['damage'] ?? 0),
+    point: host.player.position.clone(),dir: new Vector3(),cause: rows.hit.cause,toast: rows.hit.toast }); });
+  const view = (): void => {
+    let light = rows.light.base;
+    for (const [from,to,scale] of rows.light.ramps) { const t = Math.min(1,Math.max(0,(clock.sunElevation-from)/(to-from))); light += scale*(t*t*(3-2*t)); }
+    env.light = Math.min(light,storm.stormActive ? rows.light.storm : 1); env.storm = storm.stormActive;
+    env.wind.x = wind.dirX; env.wind.z = wind.dirZ; env.wind.strength = Math.min(1,wind.speed/rows.windReference);
+  };
+  const saved = v.strictObject({ wind: WindStateSchema,storm: v.unknown() });
+  host.onStep(rows.step,dt => {
+    wind.update(dt); const player = host.player.position;
+    Object.assign(storm.inputs,{ px: player.x,py: player.y,pz: player.z,crouched: Number(env.playerCrouched),mounted: Number(env.playerMounted) });
+    storm.update(dt); view();
+  },{ snapshot: () => { const state = wind.snapshot(); return { wind: { ...state,target: { ...state.target } },storm: storm.snapshot() }; },restore: value => { const state = v.parse(saved,value); wind.restore(state.wind); storm.restore(state.storm); view(); } });
+  view(); return { wind,storm };
 }

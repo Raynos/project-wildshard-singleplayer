@@ -5,6 +5,16 @@ const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const duration = v.tuple([v.pipe(finite, v.minValue(Number.MIN_VALUE)), v.pipe(finite, v.minValue(Number.MIN_VALUE))]);
 const fields = v.pipe(v.record(id, finite), v.check(rows => Object.keys(rows).length <= 32));
+/** Fixed-step native wind/weather binding, including gameplay cue data. */
+export const WeatherWorldSchema = v.strictObject({
+  step: id, scareRadius: v.pipe(finite,v.minValue(0)), windReference: v.pipe(finite,v.minValue(Number.MIN_VALUE)),
+  light: v.strictObject({ base: finite, storm: finite, ramps: v.pipe(v.array(v.tuple([finite,finite,finite])),v.maxLength(8)) }),
+  hit: v.strictObject({ ask: v.literal('weather.damage'), tags: v.array(v.custom<`${string}.${string}`>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.*-]+$/u.test(value))),
+    cause: v.strictObject({ kind: id,label: id,text: id }),toast: id }),
+});
+/** The physical wind's own continuation; never shared with a renderer global. */
+export const WindStateSchema = v.strictObject({ speed: finite,dir: finite,gustiness: finite,time: finite,travel: finite,wander: v.boolean(),baseSpeed: finite,baseDir: finite,
+  target: v.strictObject({ speed: finite,dir: finite,gustiness: finite,rate: finite }) });
 const actionSchema = v.strictObject({target:id, when:v.exactOptional(AudioMixExpressionSchema),
   value:v.union([AudioMixExpressionSchema,v.strictObject({range:v.tuple([AudioMixExpressionSchema,AudioMixExpressionSchema])})])});
 /** Bounded scalar weather program. Phase transitions, cadence and random ownership remain engine mechanics. */
