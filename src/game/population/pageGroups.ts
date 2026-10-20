@@ -11,6 +11,28 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { terrainHeight, terrainNormal, terrainWaterLevel } from '@wildshard/engine/world/terrainHeight';
 import { Vector3 } from 'three';
 import { ReturnGate } from './respawn';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { EncounterRegistry, SpawnContext, SpawnEntry, SpawnPoint, Spawner } from '@wildshard/engine/ai/encounters';
+
+/** A fixed encounter table borrows the actual manager's spawn and retirement
+ * services. The table consumes no random draw; scope-free previews use the
+ * supplied fallback entry, with the same native admission and identity path. */
+export class FixedPageSpawnTable {
+  private readonly spawner: Spawner<Animal> | null;
+  constructor(private readonly animals: AnimalManager, registry: EncounterRegistry, scope: Scope | null, id: string) {
+    this.spawner = scope === null ? null : registry.spawn(id, scope, {
+      create: (entry, point) => animals.spawn(entry.kind, point.x, point.z, point.yaw, entry.variant),
+      retire: actor => { animals.retire(actor); },
+    });
+  }
+  spawn(context: SpawnContext, point: SpawnPoint, fallback: SpawnEntry): Animal {
+    if (this.spawner === null) return this.animals.spawn(fallback.kind, point.x, point.z, point.yaw, fallback.variant);
+    const actor = this.spawner.spawn(context, point, () => { throw new Error('Fixed spawn table must not consume a random draw'); })[0];
+    if (actor === undefined) throw new Error('Fixed spawn table returned no actor');
+    return actor;
+  }
+  retire(actor: Animal): void { if (this.spawner === null) this.animals.retire(actor); else this.spawner.retire(actor); }
+}
 
 type Placement = CreatureSpawnRow & { readonly herd: number; readonly practice?: true };
 interface Counts { readonly bodies: Map<string, number>; readonly groups: Map<string, number> }

@@ -15,7 +15,7 @@ import { CueDirector } from '@wildshard/game/audio/cueDirector';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
+import { FixedPageSpawnTable } from '@wildshard/game/population/pageGroups';
 import * as THREE from 'three';
 import type { BossEncounter } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
@@ -110,7 +110,7 @@ const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _col = new THREE.Color
  */
 export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgramData, decisions:SpeciesDecisionAuthority, entered?: (install: () => () => void) => void, body?: () => Animal): KingFight<Animal> {
   const scene = ctx.game.scene, kit = makeKingKit(ctx.sky), encounterRows = pineView().BOSS_ENCOUNTER, actions = new Map(Object.entries(encounterRows.actions));
-  const spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
+  const spawner = new FixedPageSpawnTable(ctx.animals, app.encounters, app.levelScope, 'pine.spawn.thrall');
   const tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
   const waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', EMBER), r: 0, on: false, hit: false, delay: 0 }));
   const profiles = new Map(program.strikes.map(row => [row.id, strikeFromData(row)]));
@@ -167,10 +167,10 @@ export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgra
     },
     adds: {
       spawn: (kind, x, z, yaw) => {
-        const a = spawnThrallFrom(spawner, kind, x, z, yaw, () => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
+        const a = spawner.spawn({ kind, tags: ['night'] }, { x, z, yaw }, { kind, variant: thrallVariant(kind) });
         own(a); return a;
       },
-      retire: a => { if (spawner === null) retire(ctx.animals, a); else spawner.retire(a); }, lanes: () => thrallLanes,
+      retire: a => { spawner.retire(a); }, lanes: () => thrallLanes,
     },
     lane: () => lane, rings: () => waves,
     weakPoint: p => look !== null && p.distanceTo(look.ribcageWorld(_v)) < look.ribcageRadius,
