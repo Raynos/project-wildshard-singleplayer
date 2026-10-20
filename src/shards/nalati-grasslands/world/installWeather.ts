@@ -48,6 +48,7 @@ import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
 import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
 import { lentLook, setLentTexture, pushLentParams, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { smoothstep } from '@wildshard/engine/core/noise';
+import { panFromYaw } from '@wildshard/engine/audio/util';
 
 declare module '@wildshard/engine/events/maps' { interface EventMap { 'weather.changed': WeatherHUD } }
 
@@ -125,6 +126,8 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
 
   const fx = weatherEffects(ctx,rig.rows);
 
+  /** stereo pan of a world point for the listener (centred within a metre) */
+  const panOf = (x: number, z: number): number => panFromYaw(x - player.position.x, z - player.position.z, player.yaw, 0.7, undefined, 1);
   // the storm's effects place themselves from the events' records (generators/weatherFxChannels.ts)
   weather.on('telegraph', (s) => {
     const d = Math.hypot((s['x'] ?? 0) - player.position.x, (s['z'] ?? 0) - player.position.z);
@@ -137,13 +140,6 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   // the wind: the storm asks for its own; back to the calm prevailing westerly after
   weather.on('wind', (e) => { wind.setTarget(e['speed'] ?? wind.speed, e['dir'] ?? wind.dir, e['gustiness'], e['seconds']); });
 
-  /** stereo pan of a world point for the listener (Player.yaw convention: forward = (−sin, −cos)) */
-  function panOf(x: number, z: number): number {
-    const dx = x - player.position.x, dz = z - player.position.z, d = Math.hypot(dx, dz);
-    if (d < 1) return 0;
-    const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
-    return ((dx * rx + dz * rz) / d) * 0.7;
-  }
 
   // ── audio, throttled ──
   let audioT = 0;
