@@ -4,21 +4,18 @@
  * vm/arms.ts). That is the whole kit: no rifle slot on a sword shard (E333), no iron sword (E314 A: nothing here unlocks it).
  */
 import * as THREE from 'three';
+import { specimens } from '../boot/metadata.generated.json' with { type: 'json' };
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { NineDragonArms } from '../vm/fpArms';
 
+const rows = specimens.gear;
+
 /** fp-rig.glb's clips (src/shards/nine-dragon-stack/blender/viewmodel/rig/check-clips.mjs holds them to moves.ts): the right
  *  arm's base loops, cuts, charge and parry, the draw and sheathe; the left arm's loops and the grapple's poses */
-export const FP_ARMS_CLIPS: readonly string[] = [
-  'idle', 'walk', 'light', 'light2', 'light3', 'charge', 'heavy', 'parry', 'sheathe', 'draw', 'sheathed',
-  'idleL', 'walkL', 'grapple_aim', 'grapple_fire', 'grapple_hold',
-];
-
-/** frames of the idle the specimen is stepped through before it stands: the tassel and the talisman settle and hang */
-const SETTLE_FRAMES = 45;
+export const FP_ARMS_CLIPS: readonly string[] = rows.clips;
 
 /**
  * The rig standing still: its own `NineDragonArms` — its own parse of the GLB, its own maps, materials, uniforms and mixer,
@@ -28,7 +25,7 @@ const SETTLE_FRAMES = 45;
  */
 function standStill(rig: NineDragonArms, renderer: Renderer | null): THREE.Object3D {
   const still = { speed: 0, lookVel: new THREE.Vector2(), gravity: new THREE.Vector3(0, -9.8, 0) };
-  for (let i = 0; i < SETTLE_FRAMES; i++) rig.update(1 / 60, still);
+  for (let i = 0; i < rows.settleFrames; i++) rig.update(1 / 60, still);
   let bw = 0, bh = 0, pr = 0;
   const fit = (r: Renderer): void => {
     const c = r.domElement, p = r.getPixelRatio();
@@ -55,8 +52,7 @@ function standStill(rig: NineDragonArms, renderer: Renderer | null): THREE.Objec
  * the knot, the edge halo, the ink trail. Camera space, as held: the eye at the origin, −Z forward.
  */
 export const fpArms: ModelDef<object> = defineModel<object>({
-  id: 'nine-dragon-stack/fp-arms', name: 'Arms: Neon Jian & Fei Zhua', category: 'gear', pipeline: ['blender', 'trellis', 'code'], file: 'src/shards/nine-dragon-stack/models/gear.ts',
-  defaults: {},
+  ...rows.model, category: 'gear', pipeline: ['blender', 'trellis', 'code'],
   rig: { clips: FP_ARMS_CLIPS },
   build: (ctx) => loadingSpecimen(fpArms.id, [0.9, 0.6, 0.9], async () => standStill(await NineDragonArms.load(), ctx.renderer)),
 });

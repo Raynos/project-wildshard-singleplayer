@@ -19,7 +19,7 @@ export function layoutBlobs(): NamedBlob[] {
   const rows = v.parse(LayoutRowsSchema, JSON.parse(JSON.stringify(layout.rows), revive));
   const records = layout.records.map(value => revive('', value));
   if (records.length !== layout.count || records.some(value => typeof value !== 'number' || Number.isNaN(value))) throw new Error('Nine layout record inventory differs');
-  const numeric = v.parse(v.array(v.number()), records), floats = Float64Array.from(numeric);
+  const numeric = v.parse(v.array(v.number()), records);
   const tiles = v.parse(v.array(v.object({ file: v.string(), additionalFiles: v.exactOptional(v.array(v.string())) })), world.props.tiles);
   const library = { ...world.libraries, layout: [...tiles.flatMap(tile => [tile.file].concat(tile.additionalFiles ?? [])), ...world.libraries.layout.filter(hash => !SET_TILES.has(hash))],
     specimenBoxes: world.specimenBoxes, records: numeric.length, layoutDraws: rows.geometries.length };
@@ -31,7 +31,6 @@ export function layoutBlobs(): NamedBlob[] {
   locate(rows, []);
   const boot = v.parse(GeometryBootSchema, { rows, library, negativeZeros, world: worldRows.rows, volumes: lightVolumeRows() });
   return [nameBlob('geometry/layout.json', 'json', json(boot), { jsonSchema: wireSchema }),
-    nameBlob('geometry/layout-f64.bin', 'bin', new Uint8Array(floats.buffer)),
     nameBlob('geometry/layout-projection.json', 'json', new TextEncoder().encode(JSON.stringify(layoutProjection(rows, numeric),
       (_key, value: unknown) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value))),
     nameBlob('geometry/world-f64.bin', 'bin', new Uint8Array(Float64Array.from(worldRows.records).buffer))];

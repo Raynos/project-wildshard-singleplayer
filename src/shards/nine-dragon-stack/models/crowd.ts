@@ -10,19 +10,18 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
  * nothing past 130 m (the silk fog has swallowed them). ../world/crowd.ts `dealCrowd` deals the figures to the colourways.
  */
 import type { BufferGeometry } from 'three';
-import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
-import { lod as lodRows } from '../boot/metadata.generated.json' with { type: 'json' };
+import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '@wildshard/engine/models/model';
+import { lod as lodRows, specimens } from '../boot/metadata.generated.json' with { type: 'json' };
 import { loadCast, loadCastLods } from '../world/casts';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
-type WalkerPick = 'dark' | 'light' | 'oxblood' | 'paper' | 'blue';
-type SitterPick = 'dark' | 'light';
 
+const rows = specimens.crowd;
 const FILE = 'src/shards/nine-dragon-stack/models/crowd.ts';
 
 /** load both casts in both ramps into the look (the fragment awaits it before placing) */
 export async function loadCrowd(look: NdLook): Promise<void> {
-  const names = ['walker-dark', 'walker-light', 'walker-oxblood', 'walker-paper', 'walker-blue', 'sitter-dark', 'sitter-light'] as const;
+  const names = Object.entries(rows).flatMap(([key, row]) => row.variants.map(variant => `${key}-${variant.id}`));
   await Promise.all(names.map(async key => {
     const base = await loadCast(key);
     look.geo.set(key, base);
@@ -30,49 +29,29 @@ export async function loadCrowd(look: NdLook): Promise<void> {
   }));
 }
 
-/** Every colourway keeps its own shared full/middle-level vertex buffers. */
-export function walkerGeometry(ctx: ModelContext, pick: WalkerPick): BufferGeometry {
-  return need(ndLook(ctx).geo.get(`walker-${pick}`), 'the walker cast');
-}
-
-export function sitterGeometry(ctx: ModelContext, pick: SitterPick): BufferGeometry {
-  return need(ndLook(ctx).geo.get(`sitter-${pick}`), 'the sitter cast');
-}
-
 const figure = (ctx: ModelContext, geometry: BufferGeometry): readonly ModelPart[] => [{ geometry, material: lowPolyLookMaterial(ctx.sky, 'nine-architecture') }];
 
 /** the levels past full detail: the middle copies (the full geometry without the simplifier: the culler leaves them
  *  out), the clustered far copy, none past lodRows.LOD_FAR */
-function levels<P extends object>(key: (p: P) => string): readonly ModelLod<P>[] {
-  const mid = (d: number): ModelLod<P> => ({
+function levels(key: string): readonly ModelLod<FigureParams>[] {
+  const mid = (d: number): ModelLod<FigureParams> => ({
     from: d,
-    build: (ctx, p) => figure(ctx, need(ndLook(ctx).geo.get(`${key(p)}:mid${d}`), 'the prepared crowd LOD')),
+    build: (ctx, p) => figure(ctx, need(ndLook(ctx).geo.get(`${key}-${p.pick}:mid${d}`), 'the prepared crowd LOD')),
   });
   return [
     ...lodRows.MID_FROM.map(mid),
-    { from: lodRows.LOD_NEAR, build: (ctx, p) => figure(ctx, need(ndLook(ctx).geo.get(`${key(p)}:far`), 'the prepared far crowd')) },
+    { from: lodRows.LOD_NEAR, build: (ctx, p) => figure(ctx, need(ndLook(ctx).geo.get(`${key}-${p.pick}:far`), 'the prepared far crowd')) },
     { from: lodRows.LOD_FAR, build: () => [] },
   ];
 }
 
-export interface WalkerParams { readonly pick: WalkerPick }
-export interface SitterParams { readonly pick: SitterPick }
+interface FigureParams { readonly pick: string }
 
-const walkerVariant = (pick: WalkerPick, label: string): ModelVariant<WalkerParams> => ({ id: pick, label, params: { pick } });
-
-export const umbrellaWalker = defineModel<WalkerParams>({
-  id: 'nine-dragon-stack/umbrella-walker', name: 'Umbrella walker', category: 'people', pipeline: 'trellis', file: FILE, defaults: { pick: 'dark' },
-  variants: [
-    walkerVariant('dark', 'Dark coat · black umbrella'), walkerVariant('light', 'Beige jacket'), walkerVariant('oxblood', 'Oxblood oil-paper umbrella'),
-    walkerVariant('paper', 'Ochre oil-paper umbrella'), walkerVariant('blue', 'Dark blue umbrella'),
-  ],
-  build: (ctx, p) => figure(ctx, walkerGeometry(ctx, p.pick)),
-  lods: levels<WalkerParams>((p) => `walker-${p.pick}`),
+const model = (key: keyof typeof rows) => defineModel<FigureParams>({
+  ...rows[key], category: 'people', pipeline: 'trellis', file: FILE,
+  build: (ctx, p) => figure(ctx, need(ndLook(ctx).geo.get(`${key}-${p.pick}`), 'the figure cast')),
+  lods: levels(key),
 });
 
-export const mahjongSitter = defineModel<SitterParams>({
-  id: 'nine-dragon-stack/mahjong-sitter', name: 'Mahjong sitter', category: 'people', pipeline: 'trellis', file: FILE, defaults: { pick: 'dark' },
-  variants: [{ id: 'dark', label: 'Dark coat', params: { pick: 'dark' } }, { id: 'light', label: 'Beige jacket', params: { pick: 'light' } }],
-  build: (ctx, p) => figure(ctx, sitterGeometry(ctx, p.pick)),
-  lods: levels<SitterParams>((p) => `sitter-${p.pick}`),
-});
+export const umbrellaWalker = model('walker');
+export const mahjongSitter = model('sitter');

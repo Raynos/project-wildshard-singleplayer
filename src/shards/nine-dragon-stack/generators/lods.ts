@@ -1,8 +1,10 @@
-import { type BufferGeometry, Color, Float32BufferAttribute, Mesh, type Object3D } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { type BufferGeometry, Color, Float32BufferAttribute, MeshStandardMaterial } from 'three';
+import { hookGeometry } from './hookGeometry';
+import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { castGeometry, packGeometry } from './casts';
 import { lodReady, simplifiedCopy, clusterLod, PX_PER_M } from './meshLod';
 import lodRows from '../data/lod.json' with { type: 'json' };
+import hookRows from '../data/hookSpecimen.json' with { type: 'json' };
 
 const { MID_FROM, MID_PX, SCULPT_PX, LOD_TRIS } = lodRows;
 
@@ -42,24 +44,9 @@ export async function bakeLods(read: (url: string) => Uint8Array): Promise<Map<s
   };
   const lion = await castGeometry('lion', read);
   for (const d of [10, 30]) mid('lion', lion, d, d * PX_PER_M * SCULPT_PX);
-  const { gltf } = await readSourceModel(read('/assets/nine-dragon/lab/grapple/dragon-hook.glb'));
-  gltf.scene.updateMatrixWorld(true);
-  const meshes: Mesh[] = [];
-  const isMesh = (object: Object3D): object is Mesh => object instanceof Mesh;
-  gltf.scene.traverse(object => { if (isMesh(object)) meshes.push(object); });
-  const source = meshes[0];
-  if (source === undefined) throw new Error('Nine hook author has no mesh');
-  const hook = source.geometry.clone();
-  for (const name of ['position', 'normal', 'tangent']) {
-    if (!hook.hasAttribute(name)) continue;
-    const a = hook.getAttribute(name);
-    if (a.array instanceof Float32Array && !a.normalized) continue;
-    const out = new Float32Array(a.count * a.itemSize);
-    for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) out[i * a.itemSize + c] = a.getComponent(i, c);
-    hook.setAttribute(name, new Float32BufferAttribute(out, a.itemSize));
-  }
-  hook.applyMatrix4(source.matrixWorld);
-  for (const d of [15, 40]) mid('dragon-hook', hook, d, (d * PX_PER_M * SCULPT_PX) / 0.62);
+  const hook = await hookGeometry(read);
+  rows.set('dragon-hook', staticGlb([{ name: 'dragon-hook', geometry: hook, material: new MeshStandardMaterial(), nativeAttributes: true, compactIndex: true }], 'nine-hook'));
+  for (const d of hookRows.lods) mid('dragon-hook', hook, d, (d * PX_PER_M * SCULPT_PX) / hookRows.scale);
   for (const name of ['walker-dark', 'walker-light', 'sitter-dark', 'sitter-light'] as const) {
     const base = await castGeometry(name, read);
     const variants: [string, BufferGeometry][] = [[name, base]];

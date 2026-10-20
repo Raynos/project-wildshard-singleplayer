@@ -17,7 +17,6 @@ import { readItemEquipment } from '../src/game/plugin/nativeItems';
 import source from '../src/shards/nine-dragon-stack/shard.config';
 import manifest from '../src/shards/nine-dragon-stack/manifest';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
-import { FEI_ZHUA_ROW } from '../src/shards/nine-dragon-stack/grapple/row';
 import { GrappleTool } from '../src/game/grapple/tool';
 import { NdPlugin } from '../src/shards/nine-dragon-stack/plugin';
 import baseline from './fixtures/nine-item-equipment.json' with { type: 'json' };
@@ -32,12 +31,12 @@ class NativeWeapon extends Weapon {
 
 test('Nine item JSON preserves every contact/profile and both native equipment presentations', () => {
   const original = { ...items, rows: items.rows.map(row => {
-    const { equipment: _equipment, ...rest } = 'equipment' in row ? row : { ...row, equipment: undefined };
+    const { equipment: _equipment, ...rest } = row;
     return rest;
   }) };
   expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('30ab3dd78bc885a78cdbc22621351f055ff02f4ecffc7205643368c351597e44');
   expect(readItemEquipment(items, 'weapon.jian')).toEqual(baseline.equipment);
-  expect(FEI_ZHUA_ROW).toEqual(baseline.tool);
+  expect(readItemEquipment(items, 'tool.fei-zhua')).toEqual(baseline.tool);
 });
 
 test('Nine play admits the complete primary/tool set before installing the native grapple', async () => {

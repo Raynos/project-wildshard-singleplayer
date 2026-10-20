@@ -6,20 +6,22 @@
  * on the mount's ring at FEI_ZHUA_SCALE. One instanced draw, E283's meshoptimizer copies from 15 m and 40 m. Its back
  * is the flat wall plate, so the Model Explorer turns it round to face the first view (E289).
  */
-import { type BufferGeometry, Color, Float32BufferAttribute, type Material, Matrix4, Mesh, MeshStandardMaterial, type Vector3 } from 'three';
+import { specimens } from '../boot/metadata.generated.json' with { type: 'json' };
+import { type BufferGeometry, Box3, Sphere, Vector3, Color, type Material, Matrix4, Mesh, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '@wildshard/engine/models/model';
+import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { loadCastLods } from '../world/casts';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
-const FILE = 'src/shards/nine-dragon-stack/models/feiZhuaHook.ts';
+const rows = specimens.hook;
 
 /** the cast's scale on a Well hook */
-export const FEI_ZHUA_SCALE = 0.62;
+export const FEI_ZHUA_SCALE = rows.scale;
 /** the ring the claw bites, in the cast's own space */
-const RING = { x: -0.02, y: 0.26, z: 0.73 } as const;
+const RING = rows.ring;
 
 /** a copy hung on a mount: its ring on the mount's ring, turned to face out from the wall along `out` */
 export function feiZhuaAt(ring: Vector3, out: Vector3): Matrix4 {
@@ -42,24 +44,18 @@ export async function loadFeiZhuaHook(look: NdLook): Promise<void> {
   cast.scene.traverse((object) => { if (object instanceof Mesh) meshes.push(object as Mesh); });
   const source = meshes[0];
   if (source === undefined) return;
-  const geo = source.geometry.clone();
-  for (const name of ['position', 'normal', 'tangent']) {
-    if (!geo.hasAttribute(name)) continue;
-    const a = geo.getAttribute(name);
-    if (a.array instanceof Float32Array && !a.normalized) continue;
-    const out = new Float32Array(a.count * a.itemSize);
-    for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) out[i * a.itemSize + c] = a.getComponent(i, c);
-    geo.setAttribute(name, new Float32BufferAttribute(out, a.itemSize));
-  }
-  geo.applyMatrix4(source.matrixWorld);
-  const mat = source.material instanceof MeshStandardMaterial ? source.material.clone() : new MeshStandardMaterial({ color: 0xc9a24a });
-  mat.color.multiply(new Color(0xffd891));
-  mat.metalness = 0.58;
-  mat.roughness = 0.38;
+  const intake = createOwnedGeometry('/assets/nine-dragon/baked/casts/dragon-hook.glb');
+  await intake.load(); const geo = intake.take();
+  geo.boundingBox = new Box3(new Vector3().fromArray(rows.bounds.box.min), new Vector3().fromArray(rows.bounds.box.max));
+  geo.boundingSphere = new Sphere(new Vector3().fromArray(rows.bounds.sphere.center), rows.bounds.sphere.radius);
+  const mat = source.material instanceof MeshStandardMaterial ? source.material.clone() : new MeshStandardMaterial({ color: rows.material.fallback });
+  mat.color.multiply(new Color(rows.material.tint));
+  mat.metalness = rows.material.metalness;
+  mat.roughness = rows.material.roughness;
   // (E264) the sculpt's decoded maps (two 1024² bitmaps, 4 MB each) are on the GPU after the first draw
   for (const t of [mat.map, mat.normalMap, mat.roughnessMap, mat.metalnessMap, mat.aoMap, mat.emissiveMap]) if (t !== null) gpuOnlyTexture(t, 'the Fei Zhua sculpt maps (GPU only)');
   look.geo.set('dragon-hook', geo);
-  await loadCastLods(look.geo, 'dragon-hook', geo, [15, 40], []);
+  await loadCastLods(look.geo, 'dragon-hook', geo, rows.lods, []);
   look.hookMat = mat;
 }
 
@@ -74,8 +70,8 @@ const sculptLod = (d: number): ModelLod<object> => ({
 });
 
 export const feiZhuaHook = defineModel({
-  id: 'nine-dragon-stack/fei-zhua-hook', name: 'Fei Zhua dragon hook', category: 'props', pipeline: 'trellis', file: FILE, defaults: {},
+  ...rows.model, category: 'props', pipeline: 'trellis',
   build: (ctx) => parts(ctx, cast(ctx)),
-  lods: [sculptLod(15), sculptLod(40)],
-  specimenYaw: Math.PI,
+  lods: rows.lods.map(sculptLod),
+  specimenYaw: rows.specimenYaw,
 });

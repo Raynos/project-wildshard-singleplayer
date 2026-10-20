@@ -1,0 +1,69 @@
+{
+  "walker": {
+    "id": "nine-dragon-stack/umbrella-walker",
+    "name": "Umbrella walker",
+    "defaults": {
+      "pick": "dark"
+    },
+    "variants": [
+      {
+        "id": "dark",
+        "label": "Dark coat · black umbrella",
+        "params": {
+          "pick": "dark"
+        }
+      },
+      {
+        "id": "light",
+        "label": "Beige jacket",
+        "params": {
+          "pick": "light"
+        }
+      },
+      {
+        "id": "oxblood",
+        "label": "Oxblood oil-paper umbrella",
+        "params": {
+          "pick": "oxblood"
+        }
+      },
+      {
+        "id": "paper",
+        "label": "Ochre oil-paper umbrella",
+        "params": {
+          "pick": "paper"
+        }
+      },
+      {
+        "id": "blue",
+        "label": "Dark blue umbrella",
+        "params": {
+          "pick": "blue"
+        }
+      }
+    ]
+  },
+  "sitter": {
+    "id": "nine-dragon-stack/mahjong-sitter",
+    "name": "Mahjong sitter",
+    "defaults": {
+      "pick": "dark"
+    },
+    "variants": [
+      {
+        "id": "dark",
+        "label": "Dark coat",
+        "params": {
+          "pick": "dark"
+        }
+      },
+      {
+        "id": "light",
+        "label": "Beige jacket",
+        "params": {
+          "pick": "light"
+        }
+      }
+    ]
+  }
+}

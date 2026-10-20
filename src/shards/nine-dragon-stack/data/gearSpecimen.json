@@ -1,0 +1,27 @@
+{
+  "clips": [
+    "idle",
+    "walk",
+    "light",
+    "light2",
+    "light3",
+    "charge",
+    "heavy",
+    "parry",
+    "sheathe",
+    "draw",
+    "sheathed",
+    "idleL",
+    "walkL",
+    "grapple_aim",
+    "grapple_fire",
+    "grapple_hold"
+  ],
+  "settleFrames": 45,
+  "model": {
+    "id": "nine-dragon-stack/fp-arms",
+    "name": "Arms: Neon Jian & Fei Zhua",
+    "file": "src/shards/nine-dragon-stack/models/gear.ts",
+    "defaults": {}
+  }
+}

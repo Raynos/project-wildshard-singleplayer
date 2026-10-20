@@ -10685,6 +10685,7 @@
         "src/shards/nine-dragon-stack/data/deckFloors.generated.json",
         "public/assets/nine-dragon/baked/casts/lion-mid10.glb",
         "public/assets/nine-dragon/baked/casts/lion-mid30.glb",
+        "public/assets/nine-dragon/baked/casts/dragon-hook.glb",
         "public/assets/nine-dragon/baked/casts/dragon-hook-mid15.glb",
         "public/assets/nine-dragon/baked/casts/dragon-hook-mid40.glb",
         "public/assets/nine-dragon/baked/casts/walker-dark-mid12.glb",
@@ -10726,6 +10727,7 @@
         "src/shards/nine-dragon-stack/data/deckFloors.generated.json",
         "public/assets/nine-dragon/baked/casts/lion-mid10.glb",
         "public/assets/nine-dragon/baked/casts/lion-mid30.glb",
+        "public/assets/nine-dragon/baked/casts/dragon-hook.glb",
         "public/assets/nine-dragon/baked/casts/dragon-hook-mid15.glb",
         "public/assets/nine-dragon/baked/casts/dragon-hook-mid40.glb",
         "public/assets/nine-dragon/baked/casts/walker-dark-mid12.glb",
@@ -18924,7 +18926,12 @@
         "src/shards/nine-dragon-stack/generators/compositeFog.ts",
         "src/shards/nine-dragon-stack/generators/compositeLight.ts",
         "src/shards/nine-dragon-stack/generators/compositeProgram.ts",
-        "src/engine/render/lut.ts"
+        "src/engine/render/lut.ts",
+        "src/shards/nine-dragon-stack/generators/hookGeometry.ts",
+        "src/sdk",
+        "src/shards/nine-dragon-stack/data/crowdModels.json",
+        "src/shards/nine-dragon-stack/data/gearSpecimen.json",
+        "src/shards/nine-dragon-stack/data/hookSpecimen.json"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/boot/metadata.generated.json",

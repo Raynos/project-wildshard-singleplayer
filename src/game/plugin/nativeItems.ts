@@ -356,10 +356,10 @@ export function installNativeItems(host: SimHost, frame: NativeCombatFrame, inpu
  * Native constructors keep their profile and pickup service; this supplies only portable presentation. */
 export function readItemEquipment(input: unknown, id: string): EquipmentRow {
   const item = parseItems(input).rows.find(row => row.id === id);
-  if (item?.kind !== 'weapon' || item.equipment === undefined) throw new Error(`Missing declared equipment presentation: ${id}`);
+  if (item?.equipment === undefined) throw new Error(`Missing declared equipment presentation: ${id}`);
   const { id: equipmentId, cues, ...presentation } = item.equipment;
   const cueId = (value: string): `cue.${string}` => `cue.${value.slice(4)}`;
-  return { ...presentation, id: `weapon.${equipmentId.slice(7)}`,
+  return { ...presentation, id: item.kind === 'weapon' ? `weapon.${equipmentId.slice(7)}` : `tool.${equipmentId.slice(5)}`,
     ...(cues === undefined ? {} : { cues: { fire: cueId(cues.fire), reload: cueId(cues.reload), impact: cueId(cues.impact),
       ...(cues.dry === undefined ? {} : { dry: cueId(cues.dry) }), ...(cues.hit === undefined ? {} : { hit: cueId(cues.hit) }),
       ...(cues.heavy === undefined ? {} : { heavy: cueId(cues.heavy) }),

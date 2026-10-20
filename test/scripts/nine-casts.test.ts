@@ -3,7 +3,9 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The offline proof reads retained GLBs and published layout inputs.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { BufferAttribute, Float32BufferAttribute, Mesh, type Object3D, type BufferGeometry } from 'three';
+import { BufferAttribute, Float32BufferAttribute, Mesh, Box3, Sphere, Vector3, type Object3D, type BufferGeometry } from 'three';
+import { createOwnedGeometry } from '../../src/engine/models/ownedGeometry';
+import metadata from '../../src/shards/nine-dragon-stack/boot/metadata.generated.json' with { type: 'json' };
 import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
 import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/casts';
@@ -76,13 +78,10 @@ test('layout blobs retain every float64 bit and signed author zero', () => {
   const raw: unknown = JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/layout.generated.json', 'utf8'), layoutReviver);
   const original = v.parse(v.object({ rows: LayoutRowsSchema, count: v.number(), records: v.array(v.number()) }), raw);
   const blobs = layoutBlobs(), rows = blobs.find(row => row.file.name === 'geometry/layout.json');
-  const binary = blobs.find(row => row.file.name === 'geometry/layout-f64.bin');
-  if (rows === undefined || binary === undefined) throw new Error('Missing layout boot blobs');
+  if (rows === undefined) throw new Error('Missing layout boot blobs');
+  expect(blobs.some(row => row.file.name === 'geometry/layout-f64.bin')).toBe(false);
   const decoded: unknown = JSON.parse(new TextDecoder().decode(rows.bytes));
   expect(restoreLayoutZeros(v.parse(GeometryBootSchema, decoded))).toEqual(original.rows);
-  const floats = new Float64Array(Uint8Array.from(binary.bytes).buffer);
-  expect(floats.length).toBe(original.count);
-  expect(floats.every((value, i) => Object.is(value, original.records[i]))).toBe(true);
   expect(rows.file.jsonSchema).toBeDefined();
   const projection = blobs.find(row => row.file.name === 'geometry/layout-projection.json');
   if (projection === undefined) throw new Error('Missing client layout projection');
@@ -121,6 +120,12 @@ beforeAll(async () => {
     hook.setAttribute(name, new Float32BufferAttribute(out, a.itemSize));
   }
   hook.applyMatrix4(source.matrixWorld); lodBases.set('dragon-hook', hook);
+  const bakedHook = createOwnedGeometry('hook');
+  await bakedHook.load(read('/assets/nine-dragon/baked/casts/dragon-hook.glb'));
+  const nativeHook = bakedHook.take(), bounds = metadata.specimens.hook.bounds;
+  nativeHook.boundingBox = new Box3(new Vector3().fromArray(bounds.box.min), new Vector3().fromArray(bounds.box.max));
+  nativeHook.boundingSphere = new Sphere(new Vector3().fromArray(bounds.sphere.center), bounds.sphere.radius);
+  expect(channels(nativeHook)).toEqual(channels(hook));
   for (const key of Object.keys(lodBasis)) {
     const [name, suffix] = key.split(':'), base = lodBases.get(name ?? '');
     if (base === undefined || suffix === undefined) throw new Error(`Missing native LOD base ${key}`);

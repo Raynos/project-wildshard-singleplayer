@@ -3,6 +3,7 @@ import { readItemEquipment } from '../src/game/plugin/nativeItems';
 import { parseItems } from '../src/format/items';
 import PINE_ITEMS from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
 import DRIFTWOOD_SWORDS from '../src/shards/driftwood-isle/data/items.generated.json' with { type: 'json' };
+import NINE_ITEMS from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { CROSSBOW, LEVER, LONGBOW } from '../src/shards/pine-hollow/generators/equipment';
 import { SWORD_WOOD, SWORD_IRON } from '../src/game/weapons/starterMeleeProfile';
 
@@ -36,4 +37,13 @@ test('equipment refuses executable, undeclared and malformed presentation before
     { ...original, legacySlot: 'unknown' },
   ]) expect(() => readItemEquipment(mutate(equipment), original.id)).toThrow();
   expect(readItemEquipment(source, original.id)).toEqual(original);
+});
+
+test('tool presentation uses the same reader and retains its tool identity', () => {
+  const row = NINE_ITEMS.rows.find(item => item.kind === 'tool');
+  if (row === undefined) throw new Error('Missing authored tool');
+  expect(readItemEquipment(NINE_ITEMS, row.id)).toEqual(row.equipment);
+  const bad = structuredClone(NINE_ITEMS);
+  for (const item of bad.rows) if (item.id === row.id) item.equipment.id = 'weapon.wrong';
+  expect(() => readItemEquipment(bad, row.id)).toThrow();
 });

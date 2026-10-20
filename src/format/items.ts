@@ -49,7 +49,9 @@ const weapon = v.strictObject({ id: weaponId, kind: v.literal('weapon'), family:
   profile: v.exactOptional(WeaponProfileSchema), ranged: v.exactOptional(NativeRangedRowSchema), contacts: v.exactOptional(MeleeContactsSchema),
   secondary: v.exactOptional(secondary), native: v.exactOptional(NativeMeleeRowSchema),
   light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });
-const tool = v.strictObject({ id: toolId, kind: v.literal('tool'), family: name, ui, view, hook, action: v.nullable(v.custom<`${string}.${string}`>((value) => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))),
+const tool = v.strictObject({ id: toolId, kind: v.literal('tool'), family: name, ui, view, hook,
+  equipment: v.exactOptional(v.strictObject({ ...equipment.entries, id: toolId,
+    meta: v.strictObject({ ...equipment.entries.meta.entries, category: text }) })), action: v.nullable(v.custom<`${string}.${string}`>((value) => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))),
   fuelSeconds: duration, intensity: v.pipe(finite, v.minValue(0), v.maxValue(10)) });
 /** The closed baseline weapon context with optional declared controls. */
 export const ItemContextSchema = v.variant('keysFrom', [

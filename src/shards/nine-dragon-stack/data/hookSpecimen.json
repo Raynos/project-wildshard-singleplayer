@@ -1,0 +1,25 @@
+{
+  "scale": 0.62,
+  "ring": {
+    "x": -0.02,
+    "y": 0.26,
+    "z": 0.73
+  },
+  "lods": [
+    15,
+    40
+  ],
+  "material": {
+    "tint": 16767121,
+    "metalness": 0.58,
+    "roughness": 0.38,
+    "fallback": 13214282
+  },
+  "model": {
+    "id": "nine-dragon-stack/fei-zhua-hook",
+    "name": "Fei Zhua dragon hook",
+    "file": "src/shards/nine-dragon-stack/models/feiZhuaHook.ts",
+    "defaults": {}
+  },
+  "specimenYaw": 3.141592653589793
+}
