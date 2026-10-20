@@ -292,6 +292,7 @@
         "src/shards/nalati-grasslands/generators/balbalCracks.ts",
         "src/shards/nalati-grasslands/behaviour/balbal.as",
         "src/shards/nalati-grasslands/data/bodies.json",
+        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json",
         "public/assets/nalati/baked/bodies.bin",
         "src/sdk",
         "src/format",
@@ -309,7 +310,8 @@
         "src/shards/nalati-grasslands/data/species.generated.json",
         "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "catalogueDependencies": ["nalati-kurgan"]
     },
     {
       "id": "nalati-boot-metadata",
