@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
-import { Matrix4, MeshLambertMaterial, Texture, Vector3, Vector4 } from 'three';
+import { BufferAttribute, Matrix4, MeshLambertMaterial, Texture, Vector3, Vector4 } from 'three';
 import { Terrain } from '../src/engine/world/Terrain';
 import type { PainterField } from '../src/engine/render/look';
 import { Scope } from '../src/engine/app/scope';
@@ -13,13 +13,14 @@ import slate from '../src/shards/far-reach/data/rocSlate.json' with { type: 'jso
 // A made-up reed marsh (the painted ground's fixture second user): two tile layers, its own colour graph, ground and bank.
 function triangle(): Uint8Array {
   const json = new TextEncoder().encode(JSON.stringify({ asset: { version: '2.0' }, scene: 0, scenes: [{ nodes: [0] }], nodes: [{ mesh: 0 }],
-    meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }], buffers: [{ byteLength: 36 }],
-    bufferViews: [{ buffer: 0, byteOffset: 0, byteLength: 36 }], accessors: [{ bufferView: 0, componentType: 5126, count: 3, type: 'VEC3', min: [0, 0, 0], max: [1, 1, 0] }] }));
-  const padded = Math.ceil(json.length / 4) * 4, bytes = new Uint8Array(12 + 8 + padded + 8 + 36), header = new DataView(bytes.buffer);
+    meshes: [{ primitives: [{ attributes: { POSITION: 0, NORMAL: 1 } }] }], buffers: [{ byteLength: 72 }],
+    bufferViews: [{ buffer: 0, byteOffset: 0, byteLength: 36 }, { buffer: 0, byteOffset: 36, byteLength: 36 }], accessors: [{ bufferView: 0, componentType: 5126, count: 3, type: 'VEC3', min: [0, 0, 0], max: [1, 1, 0] }, { bufferView: 1, componentType: 5126, count: 3, type: 'VEC3' }] }));
+  const padded = Math.ceil(json.length / 4) * 4, bytes = new Uint8Array(12 + 8 + padded + 8 + 72), header = new DataView(bytes.buffer);
   header.setUint32(0, 0x46546c67, true); header.setUint32(4, 2, true); header.setUint32(8, bytes.length, true);
   header.setUint32(12, padded, true); header.setUint32(16, 0x4e4f534a, true); bytes.fill(32, 20, 20 + padded); bytes.set(json, 20);
-  header.setUint32(20 + padded, 36, true); header.setUint32(24 + padded, 0x004e4942, true);
+  header.setUint32(20 + padded, 72, true); header.setUint32(24 + padded, 0x004e4942, true);
   bytes.set(new Uint8Array(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]).buffer), 28 + padded);
+  bytes.set(new Uint8Array(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]).buffer), 64 + padded);
   return bytes;
 }
 const tile = (name: string) => ({ url: `/assets/marsh/${name}.webp`, phoneUrl: `/assets/marsh/${name}.phone.webp`, name: `marsh-${name}` });
@@ -51,6 +52,12 @@ test('a second shard paints its ground from its own tiles, colour graph, shapes 
   expect(reads).toEqual(['world/terrain/bed.glb', 'world/terrain/bank.glb', 'world/marsh.json']);
   expect(terrain.material).toBeInstanceOf(MeshLambertMaterial); expect(terrain.mesh.material).toBe(terrain.material);
   expect(terrain.group.children.map(child => child.name || child.type)).toHaveLength(2);
+  const geometry = terrain.mesh.geometry, normal = geometry.getAttribute('normal');
+  if (!(normal instanceof BufferAttribute)) throw new Error('Missing ground normals');
+  expect(normal.array.byteLength).toBe(36); normal.onUploadCallback();
+  expect(normal.array.byteLength).toBe(0); expect(normal.count).toBe(3);
+  expect(geometry.getAttribute('position').array.byteLength).toBe(36);
+  expect(geometry.boundingSphere?.radius).toBeGreaterThan(0);
 });
 
 test('rows refuse a missing tile, an unknown colour graph and a recipe without its named mesh', async () => {

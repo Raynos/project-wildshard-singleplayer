@@ -5,6 +5,7 @@ import * as v from 'valibot';
 import type { TerrainPainter } from '@wildshard/engine/render/look';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { loadTextureRow } from '@wildshard/engine/core/assets';
+import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { TIER } from '@wildshard/engine/core/tier';
 import { headingTexture } from '@wildshard/engine/render/dataLook';
@@ -82,6 +83,9 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
       }
       ground.removeFromParent(); ground.geometry.dispose();
     }
+    // These owned ground draws never clone or rewrite vertex channels again.
+    // Terrain openings and picking use only the retained positions and index.
+    gpuOnlyTrees([scene.root], 'painted.ground');
     terrain.group.add(...scene.root.children);
   } };
 }
