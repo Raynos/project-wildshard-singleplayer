@@ -104,3 +104,5 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - G483 declared runtime entry: `game/shardfile/clientWaterSurfaces` consumes geometry and water-profile rows; `game/shardfile/clientPlaceSets` consumes named group and spatial membership rows. Client-only setup, with unrelated orchard fixtures.
 
 - G483 world scene assembly: `game/shardfile/sceneDressing` and `game/shardfile/sceneInstances` consume admitted geometry, material, scatter, private-scene and numeric pose rows; client-only presentation. The unrelated orchard fixture constructs, updates and retires these projections.
+
+- G483 declared page preparation: `game/shardfile/pageWater` binds admitted texture slots and look ids to the native pond; `game/shardfile/pagePreparation` binds native script-memory leases and generated terrain openings. Both are client-only setup, with data-only entry points and orchard coverage in `test/page-preparation.test.ts`.

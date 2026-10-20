@@ -3,7 +3,7 @@
   "entries": [
     {
       "module": "src/game/shardfile/pageWater.ts",
-      "documentation": "docs/ENGINE.md",
+      "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "declared runtime entry",
         "decision": {
@@ -14,7 +14,7 @@
     },
     {
       "module": "src/game/shardfile/pagePreparation.ts",
-      "documentation": "docs/ENGINE.md",
+      "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "declared runtime entry",
         "decision": {
