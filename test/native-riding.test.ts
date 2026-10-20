@@ -1,3 +1,4 @@
+import type { PackPrey } from '@wildshard/engine/ai/pack';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
 // oxlint-disable-next-line import/no-nodejs-modules -- Real native capsule continuation uses the shipped physics bytes.
@@ -137,7 +138,8 @@ test('orchard deferred actors share allocator, stream and native retirement owne
 test('orchard wildlife frame continues real foragers and tramples through numeric rows', async () => {
   const { ForagerPopulation } = await import('@wildshard/engine/ai/ambientForager');
   const { ForagerPopulationSchema } = await import('@wildshard/format/ambientLife');
-  const { NativeWildlifeFrame } = await import('@wildshard/game/population/nativeManager');
+  const { NativeWildlifeFrame, NativeWildEnvironment } = await import('@wildshard/game/population/nativeManager');
+  const { GrassField } = await import('@wildshard/game/systems/looks/grassField');
   const { ReturnProgram } = await import('@wildshard/game/population/returnProgram');
   const { TrampleField } = await import('@wildshard/game/systems/looks/trample');
   const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
@@ -155,14 +157,52 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
   const frame = new NativeWildlifeFrame(host, ReturnProgram.native(host, admission), [actor], [], wolves, [], [], [], population, trample,
     { speed: 'speed', alert: 'whistle', range: 'scare', packRadius: 20, scareSeconds: 6, scareRadius: 60, foragerRunSpeed: 5,
       trample: { kinds: { boar: .5 }, minSpeed: .6, range: 80, fullSpeed: 6 }, knockdown: { speed: 7, min: .4, max: 1.5, seconds: .28 } });
+  const field = new GrassField({ seed: 9, half: 16, heightAt: () => 0, normalAt: () => [0, 1, 0], splatAt: () => [1, 0, 0, 0], trailDistance: () => Infinity, cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
+  const environment = new NativeWildEnvironment(field, trample, { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 });
+  expect(() => environment.onEvent('scare', 0, 0)).toThrow('Unbound'); environment.bind(host, frame);
   host.events.on('creature.signal', event => { signals.push(event.name); }, host.scope);
   host.onStep('orchard.wildlife', dt => { trample.update(dt, host.player.position); frame.update(dt, false); });
   try {
     for (let i = 0; i < 12; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
     const saved = frame.snapshot(); expect(saved.wild.at).toBeGreaterThan(0); expect(population.rows.length).toBeGreaterThan(0);
     expect(trample.amountAt(actor.position.x, actor.position.z)).toBeGreaterThan(0);
-    frame.scare(3, 4); host.step({ moveX: 0, moveZ: 0, yaw: 0 }); expect(signals).toEqual(['scare']);
+    const standing = environment.grassStandingAt(actor.position.x, actor.position.z);
+    expect(environment.grassHeightAt(actor.position.x, actor.position.z)).toBeLessThan(standing);
+    environment.onEvent('scare', 3, 4); host.step({ moveX: 0, moveZ: 0, yaw: 0 }); expect(signals).toEqual(['scare']);
     frame.update(.1, true); frame.restore(saved); expect(frame.snapshot()).toEqual(saved);
   } finally { host.dispose(); }
 });
 
+
+test('orchard group collection forks native packs and owns real crowd prey identities', async () => {
+  const { PackBrain } = await import('@wildshard/engine/ai/pack');
+  const { FlockBrain } = await import('@wildshard/engine/ai/flock');
+  const { NativeGroupCollection, nativeGroupCollection } = await import('@wildshard/game/shardfile/groupRuntime');
+  const { nativeGroupBrain } = await import('@wildshard/format/groupBrains');
+  const { default: brains } = await import('../src/shards/nalati-grasslands/data/brains.json');
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, quests: [] }, { rapier });
+  const first = host.entities.get('boar:1'), recipe = SIM_LEVEL.entities[0]; if (first === undefined || recipe === undefined) throw new Error('Missing native pack fixture');
+  const second = host.spawn({ ...recipe, id: 'orchard.boar' }), ids = new WeakMap<PackPrey, string>(), prey = new Map<string, PackPrey>();
+  const spec = nativeGroupBrain({ ...brains.pack, id: 'orchard.pack', home: [0, 0], members: [first.entityId] }); if (spec.kind !== 'pack') throw new Error('Missing native pack preset');
+  const source = new PackBrain([first], 0, 0, spec, { sharedRng: () => host.rng.stream('ai'),
+    environment: () => ({ playerFwdX: 0, playerFwdZ: -1, playerMounted: false, playerHealth01: 1, grassHeightAt: () => 0 }),
+    visibility: () => 1, hearing: () => 10, downwind: () => false, inBounds: () => true, normalY: () => 1,
+    register: () => undefined, bite: () => undefined, preyIdentity: actor => ids.get(actor) ?? '', resolvePrey: id => prey.get(id) ?? null });
+  source.initialize();
+  const packs = [source], wolves = [first], actors = new Map([[first.entityId, first]]), packOf = new WeakMap<AnimalSim, typeof source>();
+  const collection = new NativeGroupCollection(host, packs, [], actors, prey, ids, wolves, packOf, { id: 'orchard.groups', firstRaid: 14 });
+  const flock = new FlockBrain({ heightAt: () => 0, normalY: () => 1, inBounds: () => true, wetAt: () => false,
+    playerCrouched: () => false, grassHeightAt: () => .2, trample: () => undefined, centre: () => undefined },
+    { x: 2, z: 3, count: 2, seed: 9, range: 25, runSpeed: 6, walkSpeed: 1.2, grazeStep: .3, bleatCue: 'deer.call' }); flock.initialize();
+  try {
+    expect(nativeGroupCollection(host, 'orchard.groups')).toBe(collection); expect(collection.firstRaid).toBe(14);
+    const before = source.snapshot(), next = collection.addPack([second], 3, 4);
+    expect(packs).toEqual([source, next]); expect(next.members).toEqual([second]); expect(actors.get(second.entityId)).toBe(second);
+    expect(packOf.get(second)).toBe(next); expect(wolves).toEqual([first, second]); expect(source.snapshot()).toBe(before);
+    const target = collection.bindFlocks([flock], 'orchard:')[0]?.[0]; if (target === undefined) throw new Error('Missing native crowd prey');
+    expect(ids.get(target)).toBe('orchard:0:0'); expect(prey.get('orchard:0:0')).toBe(target);
+    target.applyDamage(1, target.position, target.position); expect(target.alive).toBe(false); expect(flock.alive).toBe(1);
+    expect(() => collection.bindFlocks([flock], 'orchard:')).toThrow();
+  } finally { host.dispose(); }
+});

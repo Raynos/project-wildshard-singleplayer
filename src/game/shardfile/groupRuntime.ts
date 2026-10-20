@@ -1,4 +1,7 @@
-import { PackBrain, type PackPorts, type PackContext } from '@wildshard/engine/ai/pack';
+import { NativeWildEnvironment } from '../population/nativeManager';
+import { Vector3 } from 'three';
+import type { FlockBrain } from '@wildshard/engine/ai/flock';
+import { PackBrain, type PackPorts, type PackContext, type PackPrey } from '@wildshard/engine/ai/pack';
 import { HerdBrain, type HerdPorts, type HerdContext } from '@wildshard/engine/ai/herd';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -144,4 +147,48 @@ export function nativeHerds(host: SimHost, id: string): readonly HerdBrain<Anima
 /** Shared numeric wind observation; no world or weather callback is retained. */
 export function nativeHerdWind(host: SimHost, id: string): { x: number; z: number; strength: number } {
   const rows = nativeHerdCollections.get(host)?.get(id); if (rows === undefined) throw new Error('Missing native herd wind'); return rows.wind;
+}
+
+const collections = new WeakMap<SimHost, Map<string, NativeGroupCollection>>();
+/** Existing native group service, resolved by stable data id. */
+export function nativeGroupCollection(host: SimHost, id: string): NativeGroupCollection {
+  const owner = collections.get(host)?.get(id); if (owner === undefined) throw new Error('Missing native group collection'); return owner;
+}
+/** Native identity books and actual group owners. Deferred membership and crowd
+ * prey use these same maps, never a shard resolver or pack-factory callback. */
+export class NativeGroupCollection {
+  private preyRows: PackPrey[][] = [];
+  readonly environment: NativeWildEnvironment | undefined;
+  constructor(private readonly host: SimHost, readonly packs: PackBrain<AnimalSim>[], readonly herds: HerdBrain<AnimalSim>[],
+    private readonly actors: Map<string, AnimalSim>, private readonly prey: Map<string, PackPrey>, private readonly ids: WeakMap<PackPrey, string>,
+    private readonly wolves: AnimalSim[], private readonly packOf: WeakMap<AnimalSim, PackBrain<AnimalSim>>,
+    rows: { id: string; firstRaid: number; environment?: NativeWildEnvironment }) {
+    const map = collections.get(host) ?? new Map<string, NativeGroupCollection>();
+    if (rows.environment !== undefined && !(rows.environment instanceof NativeWildEnvironment)) throw new Error('Invalid native group world');
+    if (map.has(rows.id) || packs.length === 0 || packs.length > 8 || herds.length > 8 || packs.some(pack => !(pack instanceof PackBrain))
+      || herds.some(herd => !(herd instanceof HerdBrain)) || [...actors.values()].some(actor => host.entities.get(actor.entityId) !== actor)) throw new Error('Invalid native group owners');
+    map.set(rows.id, this); collections.set(host, map); host.scope.onDispose(() => { map.delete(rows.id); }); this.firstRaid = rows.firstRaid; this.environment = rows.environment;
+  }
+  readonly firstRaid: number;
+  addPack(members: AnimalSim[], x: number, z: number): PackBrain<AnimalSim> {
+    const source = this.packs[0]; if (source === undefined || this.packs.length >= 8 || members.length > 64 || members.some(actor => this.host.entities.get(actor.entityId) !== actor)) throw new Error('Invalid deferred native pack');
+    for (const actor of members) { this.actors.set(actor.entityId, actor); this.ids.set(actor, `actor:${actor.entityId}`); this.wolves.push(actor); }
+    const pack = source.sibling(members, x, z);
+    pack.findPrey = (px, pz, radius) => {
+      let selected: AnimalSim | null = null, best = radius;
+      for (const herd of this.herds) for (const actor of herd.foals) { const distance = Math.hypot(actor.position.x-px,actor.position.z-pz); if (actor.alive && distance < best) { selected = actor; best = distance; } }
+      return selected;
+    };
+    this.packs.push(pack); for (const actor of members) this.packOf.set(actor, pack); return pack;
+  }
+  bindFlocks(flocks: readonly FlockBrain[], prefix: string): readonly (readonly PackPrey[])[] {
+    if (this.preyRows.length > 0 || flocks.length > 4) throw new Error('Invalid native flock binding');
+    this.preyRows = flocks.map((flock, index) => Array.from({ length: flock.n }, (_, at) => {
+      const position = new Vector3(), id = `${prefix}${String(index)}:${String(at)}`;
+      if (this.prey.has(id)) throw new Error('Duplicate native flock prey');
+      const prey = { get position() { return flock.positions(at, position); }, get yaw() { return flock.headingOf(at); }, get alive() { return flock.isAlive(at); },
+        applyDamage: (): boolean => { flock.kill(at); return true; } };
+      this.prey.set(id, prey); this.ids.set(prey, id); return prey;
+    })); return this.preyRows;
+  }
 }

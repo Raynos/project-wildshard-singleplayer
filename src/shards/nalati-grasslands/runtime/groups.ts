@@ -1,8 +1,8 @@
-import { admitNativeManagerTokens } from '@wildshard/game/population/nativeManager';
+import { admitNativeManagerTokens, NativeWildEnvironment } from '@wildshard/game/population/nativeManager';
 import type { GrassField } from '@wildshard/game/systems/looks/grassField';
 import type { TrampleField } from '@wildshard/game/systems/looks/trample';
 import { bindEliteAdmission } from './argymaqKeeper';
-import { admitNativeHerds } from '@wildshard/game/shardfile/groupRuntime';
+import { admitNativeHerds, NativeGroupCollection } from '@wildshard/game/shardfile/groupRuntime';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import admission from '../behaviour/admission.generated.json' with {type:'json'};
 import * as v from 'valibot';
@@ -12,7 +12,6 @@ import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { declaredGroupFactories } from './groupDeclared';
-import { wildEnv, type WildEnv } from '../creatures/env';
 import { passThroughPlayer, type NativeGroupHost, type NativeGroupWorld } from './groupPorts';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { NalatiBody } from './headless';
@@ -21,15 +20,11 @@ import type { NalatiBody } from './headless';
 export interface NalatiGroups {
   readonly packs: readonly PackBrain<AnimalSim>[];
   readonly herds: readonly HerdBrain<AnimalSim>[];
-  /** the aggression director's registrations (the page's `app.aggression`): an attack token's claim and check for an actor */
-  readonly claim: (actor: AnimalSim) => boolean;
-  readonly mayAttack: (actor: AnimalSim) => boolean;
   /** the wild view the groups' senses read (runtime/groups.ts nalatiHeadlessEnv) */
-  readonly env: WildEnv;
+  readonly env: NativeWildEnvironment;
   /** the host's grass under that view: the page's field and the host's trample map (runtime/headless.ts) */
   readonly grass: NalatiGrassView;
   readonly firstRaid: number;
-  readonly bindPrey: (id: string, prey: PackPrey) => void;
   readonly addPack: (members: AnimalSim[], x: number, z: number) => PackBrain<AnimalSim>;
 }
 
@@ -42,8 +37,6 @@ export function nalatiGroupsOf(host: SimHost): NalatiGroups | undefined { return
 export function hostPassThrough(actor: AnimalSim, through: boolean): void {
   passThroughPlayer(actor.motor instanceof CharacterMotor ? actor.motor : null, through);
 }
-
-const unbound = (what: string) => (): never => { throw new Error(`Nalati headless ${what} is not modelled yet (sf72-nalati5 handoff)`); };
 
 /** The host's own grass (SF72): the page's field over the same baked grid and terrain field (game/systems/looks/grassField.ts
  *  GrassField) and a trample map of its own (game/systems/looks/trample.ts TrampleField); runtime/headless.ts builds them. */
@@ -59,11 +52,8 @@ export interface NalatiGrassView {
  * trampling, `grassHeightAt` = it × (1 − 0.85 × trample), as the page's GrassTrample `grassHeightAt`; pushes stamp the host's
  * map), and refusals for the event and knock-down routes: nothing decides until the groups tick, so nothing reads a refusal.
  */
-export function nalatiHeadlessEnv(grass: NalatiGrassView): WildEnv {
-  const { field, trample } = grass;
-  return { ...wildEnv, wind: { ...wildEnv.wind }, light: 1, storm: false, playerFwdX: 0, playerFwdZ: -1, playerCrouched: false, playerMounted: false, playerHealth01: 1, lastShotT: -1e9,
-    grassHeightAt: (x, z) => field.baseHeightAt(x, z) * (1 - 0.85 * trample.amountAt(x, z)), grassStandingAt: (x, z) => field.baseHeightAt(x, z),
-    trample: (x, z, r, s, vx, vz) => { trample.push(x, z, r, s, vx, vz); }, onEvent: unbound('creature signal'), onKnockdown: unbound('knock-down') };
+export function nalatiHeadlessEnv(grass: NalatiGrassView): NativeWildEnvironment {
+  return new NativeWildEnvironment(grass.field, grass.trample, { wind: { x: -.8, z: .6, strength: .5 }, flatten: .85 });
 }
 
 /**
@@ -78,14 +68,15 @@ export function nalatiHeadlessEnv(grass: NalatiGrassView): WildEnv {
  * weather step keeps current), else a fresh one (nalatiHeadlessEnv). They decide on the creatures' step
  * (runtime/headlessCreatures.ts), whose adapter carries their continuations.
  */
-export function installNalatiGroups(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly { readonly kind: string; readonly members: readonly string[] }[]; normalY: (x: number, z: number) => number; grass: NalatiGrassView; env?: WildEnv }): NalatiGroups {
+export function installNalatiGroups(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly { readonly kind: string; readonly members: readonly string[] }[]; normalY: (x: number, z: number) => number; grass: NalatiGrassView; env?: NativeWildEnvironment }): NalatiGroups {
   bindEliteAdmission(admission);
   const byId = new Map(ports.bodies.map(b => [b.boot.id, b.actor] as const));
   const actor = (id: string): AnimalSim => { const a = byId.get(id); if (a === undefined) throw new Error(`Nalati group member ${id} has no body`); return a; };
   const policies = new WeakMap<AnimalSim, Parameters<PackPorts<AnimalSim>['register']>[1]>();
   const group: NativeGroupHost<AnimalSim> = { sharedRng: () => host.rng.stream('ai'), register: (a, director) => { policies.set(a, director); } };
   const packOf = new WeakMap<AnimalSim, PackBrain<AnimalSim>>();
-  const world: NativeGroupWorld<AnimalSim> = { env: ports.env ?? nalatiHeadlessEnv(ports.grass), normalY: ports.normalY, passThrough: hostPassThrough, packOf: a => packOf.get(a) ?? null };
+  const environment = ports.env ?? nalatiHeadlessEnv(ports.grass);
+  const world: NativeGroupWorld<AnimalSim> = { env: environment, normalY: ports.normalY, passThrough: hostPassThrough, packOf: a => packOf.get(a) ?? null };
   const preyById = new Map<string, PackPrey>();
   const preyIds = new WeakMap<PackPrey, string>();
   ports.bodies.forEach(b => { preyIds.set(b.actor, `actor:${b.boot.id}`); });
@@ -137,11 +128,8 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   const lair = herdOf(3, 'horse'), argymaq = lair.find(a => a.kind === ecology.argymaq);
   if (argymaq === undefined || lair[lair.length - 1] !== argymaq) throw new Error('Argymaq\'s herd has no Argymaq');
   herd(lair.slice(0, -1)).adoptStallion(argymaq);
-  const bindPrey = (id: string, prey: PackPrey): void => {
-    if (preyById.has(id) || preyIds.has(prey)) throw new Error('Duplicate Nalati flock prey');
-    preyById.set(id, prey); preyIds.set(prey, id);
-  };
-  const groups: NalatiGroups = { packs, herds, firstRaid, bindPrey, addPack, env: world.env, grass: ports.grass, claim: a => policies.get(a)?.take(a) ?? true, mayAttack: a => policies.get(a)?.free(a) ?? true };
+  const collection = new NativeGroupCollection(host, packs, herds, byId, preyById, preyIds, wolves, packOf, { id: 'nalati.groups', firstRaid, environment });
+  const groups: NalatiGroups = { packs, herds, firstRaid, addPack: (members, x, z) => collection.addPack(members, x, z), env: environment, grass: ports.grass };
   admitNativeHerds(host, 'nalati.herds', herds, world.env.wind);
   admitNativeManagerTokens(host, 'nalati.tokens', policies);
   installed.set(host, groups);

@@ -1,4 +1,5 @@
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
+import { GrassField } from '../systems/looks/grassField';
 import { TrampleField } from '../systems/looks/trample';
 import { PopulationRelations } from './pageGroups';
 import { Vector3 } from 'three';
@@ -269,4 +270,27 @@ export class NativeWildlifeFrame {
     Object.assign(this.state, saved.wild, { at: saved.wild.at ?? this.host.clock.now }); this.foragers.restore(saved.marmots);
     saved.flocks.forEach((wire, index) => { this.flocks[index]?.restore(wire); });
   }
+}
+
+/** Native grass and weather observations are a concrete game service. Content
+ * supplies numeric defaults; signal and knockdown effects bind only game owners. */
+export class NativeWildEnvironment {
+  readonly wind: { x: number; z: number; strength: number };
+  playerFwdX = 0; playerFwdZ = -1; playerCrouched = false; playerMounted = false; playerHealth01 = 1;
+  lastShotT = -1e9; light = 1; storm = false;
+  private host: SimHost | null = null;
+  private frame: NativeWildlifeFrame | null = null;
+  constructor(readonly field: GrassField, readonly trampleField: TrampleField, private readonly rows: { wind: { x: number; z: number; strength: number }; flatten: number }) {
+    if (!(field instanceof GrassField) || !(trampleField instanceof TrampleField)) throw new Error('Invalid native grass owners'); this.wind = { ...rows.wind };
+  }
+  bind(host: SimHost, frame: NativeWildlifeFrame): void {
+    if (this.host !== null || !(frame instanceof NativeWildlifeFrame)) throw new Error('Invalid native world binding'); this.host = host; this.frame = frame;
+  }
+  grassStandingAt(x: number, z: number): number { return this.field.baseHeightAt(x,z); }
+  grassHeightAt(x: number, z: number): number { return this.field.baseHeightAt(x,z)*(1-this.rows.flatten*this.trampleField.amountAt(x,z)); }
+  trample(x: number, z: number, radius: number, strength: number, vx: number, vz: number): void { this.trampleField.push(x,z,radius,strength,vx,vz); }
+  onEvent(name: string, x: number, z: number): void {
+    if (this.host === null) throw new Error('Unbound native world signal'); this.host.events.emit('creature.signal', { name,x,z });
+  }
+  onKnockdown(x: number, z: number, strength: number): void { if (this.frame === null) throw new Error('Unbound native knockdown'); this.frame.knockdown(x,z,strength); }
 }

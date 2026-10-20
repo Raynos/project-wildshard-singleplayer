@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { nativeGroupCollection } from '@wildshard/game/shardfile/groupRuntime';
 import { admitMountRoster, BondedMountRoster } from '@wildshard/game/riding/roster';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { createNativeHunt } from '@wildshard/game/plugin/brain';
@@ -177,19 +177,13 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
   });
   const marmots = marmotColonies(SEED);
   marmots.restore(ports.bake.marmots);
-  const preyRows = flocks.map((f, index) => Array.from({ length: f.n }, (_, i) => {
-    const position = new Vector3();
-    const prey = { get position() { return f.positions(i, position); }, get yaw() { return f.headingOf(i); },
-      get alive() { return f.isAlive(i); }, applyDamage: (): boolean => { f.kill(i); return true; } };
-    groups.bindPrey(`sheep:${String(index)}:${String(i)}`, prey); return prey;
-  }));
+  const preyRows = nativeGroupCollection(host, 'nalati.groups').bindFlocks(flocks, 'sheep:');
   if (dogIndex !== dogs.length) throw new Error('Nalati roster has a sheepdog with no flock');
   const frame = new NativeWildlifeFrame(host, author, bodies, wildWolves, wolves, groups.packs, groups.herds, flocks, marmots, groups.grass.trample,
     { speed: 'speed', alert: 'whistle', range: 'scare', packRadius: 20, scareSeconds: 6, scareRadius: 60, foragerRunSpeed: 5,
       trample: { kinds: { wolf: .5, horse: .8, sheepdog: .4 }, minSpeed: .6, range: 80, fullSpeed: 6 }, knockdown: { speed: 7, min: .4, max: 1.5, seconds: .28 } });
   const wildScare = frame.scare.bind(frame);
-  env.onEvent = (name, x, z) => { host.events.emit('creature.signal', { name, x, z }); };
-  env.onKnockdown = (x, z, strength) => { frame.knockdown(x, z, strength); };
+  env.bind(host, frame);
 
   const manager = new NativeManager(host, hunt, rng, { limit: BODY_MAX, sightSlots: bodies.length, initialSight: false });
   const speed = manager.noise, seen = manager.sight;
