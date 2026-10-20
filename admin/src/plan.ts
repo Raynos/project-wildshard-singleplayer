@@ -58,6 +58,7 @@ function shardRow(r: RulerShardView): HTMLElement {
     h('div', { class: 'pmeta' },
       h('span', {}, `${num(r.custom)} / ${num(r.legacy)} lines · goal ${r.goal} %`),
       h('span', { class: `pgrid ${r.grid}` }, GRID[r.grid]),
+      h('span', {class:`pgrid ${r.frameFloor??'unknown'}`}, `frame floor ${r.frameFloor??'unknown'}`),
       r.gridOpen.length > 0 ? h('span', {}, r.gridOpen.join(', ')) : null));
 }
 
@@ -65,6 +66,7 @@ function shardRow(r: RulerShardView): HTMLElement {
 function progressCard(p: ProgressData): HTMLElement {
   const range = p.plan.lower === p.plan.upper ? `${num(p.plan.lower)} %` : `${num(p.plan.lower)}–${num(p.plan.upper)} %`;
   const m2 = [p.m2.unknown > 0 ? `${p.m2.unknown} unknown` : '', p.m2.fail > 0 ? `${p.m2.fail} failing` : ''].filter(Boolean).join(', ');
+  const floor=p.frameFloor??{ready:0,fail:0,unknown:p.m2.total,total:p.m2.total};
   const rebase = p.events.findLast((e) => e.label.startsWith('P4 re-base'));
   return h('section', { class: 'card progress', 'aria-label': 'SHARD-PLATFORM progress' },
     h('div', { class: 'ptop' }, h('h2', {}, 'Progress'), h('span', { class: 'small mono' }, `ruler @ ${p.revision}`)),
@@ -76,7 +78,8 @@ function progressCard(p: ProgressData): HTMLElement {
       h('div', { class: 'ptile' }, h('div', { class: 'plabel' }, 'M3 custom code cut'), h('div', { class: 'pmid' }, `${num(p.m3.pct)} %`),
         h('div', { class: 'small' }, `${num(p.m3.cut)} of ${num(Math.round(p.m3.mustGo))} must-go lines`)),
       h('div', { class: 'ptile' }, h('div', { class: 'plabel' }, 'M2 grid-ready'), h('div', { class: 'pmid' }, `${p.m2.ready} of ${p.m2.total}`),
-        h('div', { class: 'small' }, m2 || 'every check has a reading'))),
+        h('div', { class: 'small' }, m2 || 'every check has a reading'),
+        h('div', {class:'small'}, `Frame floor (separate): ${floor.ready} of ${floor.total} · ${floor.fail} failing · ${floor.unknown} unknown`))),
     h('div', { class: 'pwave' },
       h('div', { class: 'phead' }, h('span', { class: 'pchip now' }, p.wave.id), h('b', {}, p.wave.label.replace(/^[^·]*·\s*/, '')),
         h('span', { class: 'pnum' }, `${num(p.wave.pct)} %`)),

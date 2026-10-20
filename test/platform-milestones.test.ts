@@ -109,3 +109,14 @@ it('keeps admin source progress in one unit across closed and unclosed runtimes'
   expect(expected['far-reach']?.basis).toBe('source');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('reports frame floor alongside M2 without changing visual readiness or plan weights',()=>{
+ const input={basis:'source' as const,customLines:20,legacyLines:100};
+ const rows:Parameters<typeof planProgress>[0]={};
+ for(const slug of MILESTONE_SHARDS)rows[slug]={m3:m3Progress(slug,input),gridReady:{verdict:'pass',criteria:{},frameFloor:{verdict:'fail',evidence:'p95 50 ms'}}};
+ const result=planProgress(rows);
+ expect(result.m2).toMatchObject({ready:6,unknown:0});
+ expect(result.frameFloor).toEqual({ready:0,fail:6,unknown:0,total:6});
+ expect(result.plan?.lower).toBeCloseTo(.976);
+ expect(result.plan?.upper).toBeCloseTo(.976);
+});

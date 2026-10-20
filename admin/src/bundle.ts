@@ -163,6 +163,7 @@ export interface RulerShardView {
   /** Points since the previous measured commit (negative = custom code cut), or null without one. */
   delta: number | null;
   grid: 'pass' | 'fail' | 'unknown';
+  frameFloor?: 'pass' | 'fail' | 'unknown';
   /** The grid-ready checks not passing, as "memory unknown". */
   gridOpen: string[];
 }
@@ -178,6 +179,7 @@ export interface ProgressData {
   plan: { lower: number; upper: number };
   m3: { pct: number; cut: number; mustGo: number };
   m2: { ready: number; fail: number; unknown: number; total: number };
+  frameFloor?: { ready: number; fail: number; unknown: number; total: number };
   wave: { id: string; label: string; pct: number; until: string | null };
   shards: RulerShardView[];
   native: string[];

@@ -24,6 +24,9 @@ export const RULER_COMMAND = 'node scripts/shard-platform.mjs --json --source-pr
 export const RULER_SCHEMA = 'shard-platform-ruler/1';
 
 // Keep signed cuts: platform growth can exceed the custom shard reduction.
+const criterionSchema=v.object({verdict:v.picklist(['pass','fail','unknown']),evidence:v.string()});
+const floorSummarySchema=v.object({ready:v.number(),fail:v.number(),unknown:v.number(),total:v.number()});
+
 const netLinesSchema = v.array(v.object({
   wave: v.string(), revision: v.string(), customCut: v.nullable(v.number()),
   platformGrowth: v.number(), netCut: v.nullable(v.number()),
@@ -57,12 +60,12 @@ export const WAVES = [
   { id: 'NEXT', label: 'NEXT', shards: [], goal: 20, until: null, start: null },
 ];
 
-/** @typedef {{slug:string;name:string;wave:string;goal:number;custom:number;legacy:number;pct:number;grid:'pass'|'fail'|'unknown';criteria:Record<string,string>}} RulerShard */
+/** @typedef {{slug:string;name:string;wave:string;goal:number;custom:number;legacy:number;pct:number;grid:'pass'|'fail'|'unknown';criteria:Record<string,string>;frameFloor?:import('../shard-milestones.mjs').Criterion}} RulerShard */
 /** @typedef {{revision:string;at:string;basis:string;shards:Record<string,number>}} RulerPoint */
 /** @typedef {{id:string;startedAt:string;start:Record<string,number>;endedAt:string|null}} RulerWaveState */
 /** @typedef {{schema:string;command:string;revision:string;committedAt:string;measuredAt:string;basis:string;
  *   plan:{lower:number;upper:number};m3:{cut:number;mustGo:number;fraction:number};m2:{ready:number;fail:number;unknown:number;total:number};
- *   netLines?:import('./ruler.mjs').RulerNetLines[];customSectionFailures?:string[];shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
+ *   frameFloor?:{ready:number;fail:number;unknown:number;total:number};netLines?:import('./ruler.mjs').RulerNetLines[];customSectionFailures?:string[];shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
  *   components?:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>;
  *   componentWaves?:{id:string;components:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>}[];
  *   waves:RulerWaveState[];history:RulerPoint[];events:{at:string;label:string}[]}} Ruler */
@@ -110,7 +113,8 @@ export function nextRuler(raw, prev, at) {
     const grid = isObject(row.gridReady) ? row.gridReady : {};
     const verdict = grid.verdict === 'pass' || grid.verdict === 'fail' ? grid.verdict : 'unknown';
     const criteria = isObject(grid.criteria) ? Object.fromEntries(Object.entries(grid.criteria).map(([k, criterion]) => [k, isObject(criterion) && typeof criterion.verdict === 'string' ? criterion.verdict : 'unknown'])) : {};
-    return { slug, name, wave, goal, custom, legacy, pct: pct1((custom / legacy) * 100), grid: verdict, criteria };
+    const frameFloor=v.parse(criterionSchema,grid.frameFloor??{verdict:'unknown',evidence:'No qualified exact-SHA frame-floor receipt'});
+    return { slug, name, wave, goal, custom, legacy, pct: pct1((custom / legacy) * 100), grid: verdict, criteria,frameFloor };
   });
   const kinds = [...new Set(bases)];
   if (kinds.length !== 1) throw new Error('Ruler: the shards disagree on the basis');
@@ -155,6 +159,8 @@ export function nextRuler(raw, prev, at) {
     plan: { lower: num(progress.plan.lower, 'plan.lower'), upper: num(progress.plan.upper, 'plan.upper') },
     m3: { cut: num(progress.m3.cut, 'm3.cut'), mustGo: num(progress.m3.mustGo, 'm3.mustGo'), fraction: num(progress.m3.fraction, 'm3.fraction') },
     m2: { ready, fail: m2total - ready - unknown, unknown, total: m2total },
+    frameFloor: {ready:shards.filter(row=>row.frameFloor.verdict==='pass').length,fail:shards.filter(row=>row.frameFloor.verdict==='fail').length,
+      unknown:shards.filter(row=>row.frameFloor.verdict==='unknown').length,total:shards.length},
     netLines: v.parse(netLinesSchema, summary.netLines),
     ...(summary.components === undefined ? {} : { components: v.parse(componentStatesSchema, summary.components) }),
     ...(summary.waves === undefined ? {} : { componentWaves: v.parse(componentWavesSchema, summary.waves) }),
@@ -179,12 +185,14 @@ export function readRuler(value) {
     if (!isObject(s)) throw new Error('Ruler: a shard row is not an object');
     const slug = str(s.slug, 'shard slug');
     for (const key of ['custom', 'legacy', 'pct', 'goal']) num(s[key], `${slug}.${key}`);
+    if(s.frameFloor!==undefined)v.parse(criterionSchema,s.frameFloor);
     if (s.grid !== 'pass' && s.grid !== 'fail' && s.grid !== 'unknown') throw new Error(`Ruler: ${slug}.grid invalid`);
   }
   if (!isObject(plan) || !isObject(m3) || !isObject(m2) || !isObject(wave)) throw new Error('Ruler: plan, m3, m2 and wave are objects');
   for (const key of ['lower', 'upper']) if (num(plan[key], `plan.${key}`) > 1) throw new Error(`Ruler: plan.${key} above 1`);
   num(m3.fraction, 'm3.fraction'); num(m2.total, 'm2.total'); num(wave.pct, 'wave.pct');
   // Existing snapshots predate G496; newly measured snapshots always carry it.
+  if(value.frameFloor!==undefined)v.parse(floorSummarySchema,value.frameFloor);
   if (value.netLines !== undefined) v.parse(netLinesSchema, value.netLines);
   if (value.components !== undefined) v.parse(componentStatesSchema, value.components);
   if (value.componentWaves !== undefined) v.parse(componentWavesSchema, value.componentWaves);

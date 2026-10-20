@@ -122,3 +122,15 @@ it('publishes format-inclusive signed net lines and refuses an incomplete measur
   expect(readRuler(structuredClone(ruler)).netLines).toEqual(ruler.netLines);
   expect(() => readRuler({...ruler, netLines: [{...netLines[0], layers: {}}]})).toThrow();
 });
+
+it('persists the independent per-shard frame floor without folding it into M2',()=>{
+ const measured=raw({});
+ if(typeof measured!=='object'||measured===null||!('pine-hollow' in measured)||typeof measured['pine-hollow']!=='object'||measured['pine-hollow']===null)throw new Error('Missing fixture shard');
+ const row=measured['pine-hollow'];
+ Object.assign(row,{gridReady:{verdict:'pass',criteria:{oneFrameLooks:{verdict:'pass'}},frameFloor:{verdict:'fail',evidence:'p95 50 ms > 35 ms'}}});
+ const ruler=nextRuler(measured,null,{revision:'a'.repeat(40),committedAt:'2026-10-20T16:40:00Z',now:'2026-10-20T16:50:00Z'});
+ expect(ruler.shards.find(s=>s.slug==='pine-hollow')).toMatchObject({grid:'pass',frameFloor:{verdict:'fail',evidence:'p95 50 ms > 35 ms'}});
+ expect(ruler.frameFloor).toEqual({ready:0,fail:1,unknown:5,total:6});
+ expect(ruler.m2).toEqual({ready:0,fail:1,unknown:5,total:6});
+ expect(readRuler(structuredClone(ruler)).frameFloor).toEqual(ruler.frameFloor);
+});

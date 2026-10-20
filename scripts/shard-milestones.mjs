@@ -15,7 +15,7 @@ export function readinessVerdict(criteria) {
 export function unknownGridReady(evidence='No bound output validation evidence') {
   /** @type {Record<string,import('./shard-milestones.mjs').Criterion>} */
   const criteria=Object.fromEntries(['bakedTiles','edgeProfile','fourEntryways','memory','hudAccent','oneFrameLooks'].map(name=>[name,{verdict:'unknown',evidence}]));
-  return {verdict:readinessVerdict(criteria),criteria};
+  return {verdict:readinessVerdict(criteria),criteria,frameFloor:{verdict:'unknown',evidence:'No qualified exact-SHA frame-floor receipt'}};
 }
 /** Only byte-bound emitted metadata and the writer's matching receipt supply
  * evidence. Missing or stale artifacts stay unknown; source declarations and
@@ -23,10 +23,11 @@ export function unknownGridReady(evidence='No bound output validation evidence')
  * @param {string} root @param {string} slug @param {string} products
  * @param {{revision?:string|null,receipts?:readonly string[]}} options */
 export function gridReady(root,slug,products,{revision=null,receipts=[]}={}) {
-  const {criteria}=unknownGridReady();
+  const {criteria,frameFloor:unmeasuredFloor}=unknownGridReady();
+  let frameFloor=unmeasuredFloor;
   /** @type {import('./shard-milestones.mjs').GridReady['binding']} */
   let binding;
-  const result=()=>({verdict:readinessVerdict(criteria),criteria,...(binding===undefined?{}:{binding})});
+  const result=()=>({verdict:readinessVerdict(criteria),criteria,frameFloor,...(binding===undefined?{}:{binding})});
   const directory=resolve(products,slug),indexPath=resolve(directory,'shard.json'),receiptPath=resolve(directory,'validation.json');
   if(!existsSync(indexPath)||!existsSync(receiptPath))return result();
   try {
@@ -50,7 +51,10 @@ export function gridReady(root,slug,products,{revision=null,receipts=[]}={}) {
     const caps=JSON.parse(readFileSync(resolve(root,'src/format/memoryGates.json'),'utf8'));
     criteria.memory={verdict:'unknown',evidence:'No qualified exact-SHA boot/soak/milestone native memory receipt; declared costs are not readings'};
     criteria.oneFrameLooks={verdict:'unknown',evidence:'No exact-SHA Safari grid look/travel witness'};
-    if([caps.explorerMB,caps.loadingMB].every(value=>typeof value==='number'&&Number.isFinite(value)&&value>0))Object.assign(criteria,runtimeGridEvidence(root,slug,revision,receipts,caps));
+    if([caps.explorerMB,caps.loadingMB].every(value=>typeof value==='number'&&Number.isFinite(value)&&value>0)) {
+      const {frameFloor:measuredFloor,...readiness}=runtimeGridEvidence(root,slug,revision,receipts,caps);
+      frameFloor=measuredFloor??unmeasuredFloor;Object.assign(criteria,readiness);
+    }
   } catch(error) {
     criteria.validation={verdict:'fail',evidence:`Output validation refused: ${error instanceof Error?error.message:String(error)}`};
   }
@@ -64,7 +68,7 @@ export function m3Progress(slug,input) {
   const mustGo=input.legacyLines*(1-target),cut=Math.max(0,input.legacyLines-input.customLines);
   return {...input,target,mustGo,cut,fraction:cut/mustGo};
 }
-/** @param {Record<string,{m3:ReturnType<typeof m3Progress>,gridReady:{verdict:'pass'|'fail'|'unknown'}}|undefined>} rows */
+/** @param {Record<string,{m3:ReturnType<typeof m3Progress>,gridReady:{verdict:'pass'|'fail'|'unknown',frameFloor?:import('./shard-milestones.mjs').Criterion}}|undefined>} rows */
 export function planProgress(rows) {
   const ports=MILESTONE_SHARDS.map(slug=>rows[slug]),measured=ports.flatMap(row=>row?.m3??[]);
   const mustGo=measured.reduce((sum,row)=>sum+row.mustGo,0),cut=measured.reduce((sum,row)=>sum+row.cut,0);
@@ -72,8 +76,11 @@ export function planProgress(rows) {
   const ready=ports.filter(row=>row?.gridReady.verdict==='pass').length;
   const unknown=ports.filter(row=>row===undefined||row.gridReady.verdict==='unknown').length;
   const m2={lower:ready/6,upper:(ready+unknown)/6,ready,unknown,total:6};
+  const floorReady=ports.filter(row=>row?.gridReady.frameFloor?.verdict==='pass').length;
+  const floorFail=ports.filter(row=>row?.gridReady.frameFloor?.verdict==='fail').length;
+  const frameFloor={ready:floorReady,fail:floorFail,unknown:6-floorReady-floorFail,total:6};
   // M3 reports past 100 % honestly, but it can't carry the plan past its 60 % share.
   const m3Share=m3===null?null:Math.min(1,m3);
-  return {m3:{fraction:m3,cut,mustGo,shards:measured.length},m2,
+  return {m3:{fraction:m3,cut,mustGo,shards:measured.length},m2,frameFloor,
     plan:m3Share===null?null:{lower:.6*m3Share+.4*m2.lower,upper:.6*m3Share+.4*m2.upper}};
 }

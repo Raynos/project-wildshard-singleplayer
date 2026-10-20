@@ -426,6 +426,10 @@
     "memory": "unknown",
     "hudAccent": "pass",
     "oneFrameLooks": "unknown"
+   },
+   "frameFloor": {
+    "verdict": "unknown",
+    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
    }
   },
   {
@@ -444,6 +448,10 @@
     "memory": "unknown",
     "hudAccent": "pass",
     "oneFrameLooks": "unknown"
+   },
+   "frameFloor": {
+    "verdict": "unknown",
+    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
    }
   },
   {
@@ -462,6 +470,10 @@
     "memory": "unknown",
     "hudAccent": "pass",
     "oneFrameLooks": "unknown"
+   },
+   "frameFloor": {
+    "verdict": "unknown",
+    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
    }
   },
   {
@@ -480,6 +492,10 @@
     "memory": "unknown",
     "hudAccent": "pass",
     "oneFrameLooks": "unknown"
+   },
+   "frameFloor": {
+    "verdict": "unknown",
+    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
    }
   },
   {
@@ -498,6 +514,10 @@
     "memory": "unknown",
     "hudAccent": "pass",
     "oneFrameLooks": "unknown"
+   },
+   "frameFloor": {
+    "verdict": "unknown",
+    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
    }
   },
   {
@@ -516,6 +536,10 @@
     "memory": "unknown",
     "hudAccent": "pass",
     "oneFrameLooks": "unknown"
+   },
+   "frameFloor": {
+    "verdict": "unknown",
+    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
    }
   }
  ],
@@ -1537,5 +1561,11 @@
    "at": "2026-10-20T16:56:12.885Z",
    "label": "NEXT starts"
   }
- ]
+ ],
+ "frameFloor": {
+  "ready": 0,
+  "fail": 0,
+  "unknown": 6,
+  "total": 6
+ }
 }

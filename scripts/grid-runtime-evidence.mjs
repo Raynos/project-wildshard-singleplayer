@@ -7,10 +7,11 @@ import * as v from 'valibot';
 const sha=v.pipe(v.string(),v.regex(/^[a-f0-9]{40}$/u));
 const positive=v.pipe(v.number(),v.finite(),v.minValue(1));
 const memory=v.looseObject({measurement:v.literal('native-footprint+gpu'),samples:positive,playingPeakBytes:positive,loadingPeakBytes:positive});
-const run=v.looseObject({sha,when:v.string(),surface:v.literal('sim'),cohort:v.literal('grid'),complete:v.literal(true),glObserver:v.literal('off'),
+const run=v.looseObject({sha,when:v.string(),surface:v.picklist(['sim','desktop']),cohort:v.literal('grid'),complete:v.literal(true),glObserver:v.literal('off'),
   memory:v.optional(memory),cases:v.array(v.looseObject({shard:v.string(),complete:v.boolean(),errors:v.array(v.unknown()),
     routes:v.array(v.looseObject({name:v.string(),after:v.looseObject({current:v.nullable(v.string())})})),
-    rows:v.array(v.looseObject({name:v.string(),frames:positive,pass:v.boolean(),contextLost:v.optional(v.boolean())}))}))});
+    rows:v.array(v.looseObject({name:v.string(),frames:positive,pass:v.boolean(),contextLost:v.optional(v.boolean()),skipped:v.optional(v.pipe(v.number(),v.finite(),v.minValue(0))),
+      maxMs:v.optional(positive),worstMs:v.optional(positive),p95Ms:v.optional(positive),medianFps:v.optional(positive),stallPass:v.optional(v.boolean())}))}))});
 const milestone=v.looseObject({schema:v.literal(1),source:sha,protocol:v.looseObject({profiler:v.literal(false),glObserver:v.literal('off'),quiet:v.optional(v.boolean())}),runs:v.array(v.unknown())});
 const soak=v.looseObject({schema:v.literal(3),sha,driveStarted:v.string(),surface:v.literal('portrait iPhone Simulator Safari'),
   functionalPass:v.literal(true),seconds:positive,circuits:v.pipe(v.number(),v.integer(),v.minValue(2)),errors:v.pipe(v.array(v.unknown()),v.length(0)),grade:v.looseObject({
@@ -35,11 +36,11 @@ export function runtimeReceiptPaths(root) {
  * Current frame-floor receipts have no native memory readings: they cannot supply memory.
  * @param {string} root @param {string} slug @param {string|null} revision
  * @param {readonly string[]} paths @param {{explorerMB:number,loadingMB:number}} caps
- * @returns {Partial<Record<'memory'|'oneFrameLooks',import('./shard-milestones.mjs').Criterion>>} */
+ * @returns {Partial<Record<'memory'|'oneFrameLooks'|'frameFloor',import('./shard-milestones.mjs').Criterion>>} */
 export function runtimeGridEvidence(root,slug,revision,paths,caps) {
   if(revision===null||!v.is(sha,revision))return {};
-  /** @type {Record<'memory'|'oneFrameLooks',Array<{at:number,path:string,criterion:import('./shard-milestones.mjs').Criterion}>>} */
-  const candidates={memory:[],oneFrameLooks:[]};
+  /** @type {Record<'memory'|'oneFrameLooks'|'frameFloor',Array<{at:number,path:string,criterion:import('./shard-milestones.mjs').Criterion}>>} */
+  const candidates={memory:[],oneFrameLooks:[],frameFloor:[]};
   const add=(name,when,path,bytes,verdict,evidence)=>{
     const at=Date.parse(when);if(!Number.isFinite(at))return;
     candidates[name].push({at,path,criterion:{verdict,evidence:`${path} sha256:${hash(bytes)} at ${revision}: ${evidence}`}});
@@ -64,9 +65,23 @@ export function runtimeGridEvidence(root,slug,revision,paths,caps) {
         const names=scene.routes.filter(route=>route.after.current===slug).map(route=>`grid-${route.name}`);
         const rows=scene.rows.filter(row=>names.some(name=>row.name===name||row.name===`${name}-travel`||row.name===`${name}-drive`));
         if(rows.length===0||!names.every(name=>rows.some(row=>row.name===`${name}-drive`)))continue;
-        if(recordedMilestone.output.protocol.quiet!==false)add('oneFrameLooks',receipt.when,path,bytes,rows.every(row=>row.pass&&row.contextLost!==true)?'pass':'fail',
-          `completed Safari grid entry and ${rows.length} plain milestone look/travel windows for ${slug}`);
-        if(receipt.memory!==undefined)measured(receipt.when,path,bytes,receipt.memory.playingPeakBytes,receipt.memory.loadingPeakBytes);
+        if(recordedMilestone.output.protocol.quiet!==false) {
+          const invalid=rows.some(row=>row.contextLost===true||(row.skipped??0)>0);
+          // Complete error-free entry cases already passed the route's reload/hole witness. The composite row.pass
+          // also includes FPS and content CPU limits, so it cannot decide the separate visual/stall criterion.
+          if(receipt.surface==='sim') {
+            const stalled=rows.some(row=>row.stallPass===false||(row.maxMs??row.worstMs??0)>200);
+            const observed=rows.every(row=>row.contextLost===false&&(row.maxMs??row.worstMs)!==undefined);
+            add('oneFrameLooks',receipt.when,path,bytes,invalid||stalled?'fail':observed?'pass':'unknown',
+              `completed Safari entry without reload/hole; ${rows.length} look/travel windows, requires intact context and every observed frame <= 200 ms; missing observations stay unknown`);
+          }
+          const floor=receipt.surface==='sim'?30:60,limit=receipt.surface==='sim'?35:17.5;
+          const slow=rows.some(row=>row.p95Ms!==undefined&&row.p95Ms>limit||row.medianFps!==undefined&&Math.round(row.medianFps)<floor);
+          const observed=rows.every(row=>row.contextLost===false&&row.p95Ms!==undefined&&row.medianFps!==undefined);
+          add('frameFloor',receipt.when,path,bytes,invalid||slow?'fail':observed?'pass':'unknown',
+            `${receipt.surface}: every one of ${rows.length} grid entry/look/travel rows requires p95 <= ${limit} ms and rounded median >= ${floor} fps; missing observations stay unknown`);
+        }
+        if(receipt.surface==='sim'&&receipt.memory!==undefined)measured(receipt.when,path,bytes,receipt.memory.playingPeakBytes,receipt.memory.loadingPeakBytes);
       }
     }
   }
