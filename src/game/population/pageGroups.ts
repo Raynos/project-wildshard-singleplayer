@@ -148,3 +148,13 @@ export class PopulationRelations {
   ripple(): void { for (const herd of this.groups.herds) if (herd.stampeding) for (const pack of this.groups.packs) pack.scare(herd.cx, herd.cz, this.row.packRadius); }
   private admitted(x: number, z: number, px: number, pz: number, radius: number): boolean { return this.program.project(this.row.range, { x, z, px, pz, radius })['accept'] === 1; }
 }
+
+/** Nearest live body in a native ordered roster; ties preserve source order. */
+export function nearestPopulationActor(actors: readonly Animal[], x: number, z: number, radius: number): Animal | null {
+  let selected: Animal | null = null, distance = radius;
+  for (const actor of actors) if (actor.alive) {
+    const next = Math.hypot(actor.position.x - x, actor.position.z - z);
+    if (next < distance) { distance = next; selected = actor; }
+  }
+  return selected;
+}

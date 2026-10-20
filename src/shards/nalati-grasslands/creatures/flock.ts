@@ -40,7 +40,6 @@ export interface FlockBody { readonly geometry: THREE.BufferGeometry; readonly p
 
 export interface FlockOpts { x: number; z: number; count: number; seed: number; /** m the flock may wander from home (default 45) */ range?: number }
 
-const flockOfDog = new WeakMap<Animal, Flock>();
 const smooth = (t: number): number => t * t * (3 - 2 * t);
 /** the wolves the sheepdog watches for (Wildlife keeps it current) */
 export const dogWolves: Animal[] = [];
@@ -56,10 +55,9 @@ export class Flock extends CrowdTargets {
     if (controller.n !== opts.count) throw new Error('Flock view roster mismatch');
   }
 
-  static ofDog(dog: Animal): Flock | null { return flockOfDog.get(dog) ?? null; }
   /** make `dog` this flock's sheepdog */
   setDog(dog: Animal, author: ReturnProgram): void {
-    this.dog = dog; flockOfDog.set(dog, this);
+    this.dog = dog;
     // the dog's brain (species/sheepdog.ts, the host's too) reads this flock, the living wolves and the app's 'ai' stream
     setDogFlock(dog, { flock: this, wolves: dogWolves, rng: app.rng.stream('ai'), bark: (x, z) => { this.onSound?.('dog_bark', x, z); } }, author);
   }

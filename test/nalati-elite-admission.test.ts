@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { ReturnProgram, EventConditions } from '../src/game/population/returnProgram';
+import { ReturnProgram, EventConditions, ProjectedMotionSample } from '../src/game/population/returnProgram';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 
 test('AS owns named-elite gates, captain support and herd display/adoption decisions', () => {
@@ -24,4 +24,13 @@ test('encounter condition projections refresh at ten Hz while holding the prior 
   conditions.update(0, { phase: 0, storm: 0 }); expect(conditions.holds('dark')).toBe(false);
   for (let frame = 0; frame < 5; frame++) conditions.update(1 / 60, { phase: 2, storm: 0 });
   expect(conditions.holds('dark')).toBe(false); conditions.update(1 / 60, { phase: 2, storm: 0 }); expect(conditions.holds('dark')).toBe(true);
+});
+
+test('motion observations hold their scalar between ten-Hz AS projections', () => {
+  const motion = new ProjectedMotionSample(ReturnProgram.page(admission), 'speed');
+  expect(motion.update(.05, 0, 0)).toBe(0);
+  expect(motion.update(.05, 1, 0)).toBeCloseTo(6);
+  expect(motion.update(.05, 2, 0)).toBeCloseTo(6);
+  expect(motion.update(.05, 3, 0)).toBeCloseTo(10.8);
+  expect(motion.update(.1, 3, 0)).toBeCloseTo(4.32);
 });

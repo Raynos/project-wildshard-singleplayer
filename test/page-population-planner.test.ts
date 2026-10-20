@@ -1,7 +1,7 @@
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { afterEach, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { PagePopulationPlanner, PopulationRelations } from '../src/game/population/pageGroups';
+import { PagePopulationPlanner, PopulationRelations, nearestPopulationActor } from '../src/game/population/pageGroups';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import type { Animal } from '../src/engine/entities/AnimalView';
@@ -45,6 +45,8 @@ test('marsh groups apply AS alert and range gates to their original owners', () 
     disturb: (x: number) => { disturbances.push(x); }, stampede: (x: number) => { stampedes.push(x); } };
   const relations = new PopulationRelations(ReturnProgram.page(admission), { packs: [pack], herds: [herd], crowds: [] },
     { alert: 'whistle', range: 'scare', packRadius: 7, disturbRadius: 12, disturbSeconds: 2, scareSeconds: 3 });
+  expect(nearestPopulationActor([body], 2, 0, 3)).toBe(body);
+  expect(nearestPopulationActor([body], 2, 0, 2)).toBeNull();
   relations.alert(0, 0); expect(body.mem['aw']).toBeCloseTo(.3); expect(pack.awareness).toBeCloseTo(.4);
   relations.disturb(2, 0); expect(disturbances).toEqual([2]);
   relations.scare(0, 0, 20); expect(stampedes).toEqual([]); expect(scares).toEqual([7]);

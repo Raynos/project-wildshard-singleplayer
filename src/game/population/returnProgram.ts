@@ -126,3 +126,21 @@ export class EventConditions {
   }
   holds(id: string): boolean { return this.values.get(id) ?? false; }
 }
+
+/** Ten-Hz motion observation with a reused frame. The guest owns velocity caps
+ * and smoothing; renderer frames borrow the last projected scalar. */
+export class ProjectedMotionSample {
+  private initialized = false;
+  private readonly frame = { dt: 0, x: 0, z: 0, px: 0, pz: 0, speed: 0 };
+  constructor(private readonly program: ReturnProgram, private readonly signal: string) {}
+  update(dt: number, x: number, z: number): number {
+    const frame = this.frame;
+    if (!this.initialized) { frame.px = x; frame.pz = z; this.initialized = true; }
+    frame.dt += dt; frame.x = x; frame.z = z;
+    if (frame.dt + 1e-9 >= .1) {
+      frame.speed = this.program.project(this.signal, frame)['speed'] ?? frame.speed;
+      frame.px = x; frame.pz = z; frame.dt = 0;
+    }
+    return frame.speed;
+  }
+}

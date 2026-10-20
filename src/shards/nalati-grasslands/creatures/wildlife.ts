@@ -2,8 +2,8 @@ import { bindEliteAdmission } from '../runtime/argymaqKeeper';
 import { CrowdRoster } from '@wildshard/game/shardfile/crowdRuntime';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';
-import { PagePopulationPlanner, PopulationRelations } from '@wildshard/game/population/pageGroups';
-import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { PagePopulationPlanner, PopulationRelations, nearestPopulationActor } from '@wildshard/game/population/pageGroups';
+import { ReturnProgram, ProjectedMotionSample } from '@wildshard/game/population/returnProgram';
 import * as v from 'valibot';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -24,8 +24,6 @@ import { wildEnv } from './env';
 import { pushWildMovers } from '../look/trampleMovers';
 import { Marmots } from './marmots';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
-
-type WildlifeLayout = typeof ecology.wildlife;
 
 const { HITCH_HORSE_SPOTS } = poiLayoutRows;
 
@@ -52,11 +50,11 @@ const { HITCH_HORSE_SPOTS } = poiLayoutRows;
  */
 
 /** Group policy factories leave placement, prey, mounts and unique elites in their shipping native recipes. */
-export interface WildlifeControllers {
+interface WildlifeControllers {
   pack: (members: Animal[], x: number, z: number) => PackController;
   herd: (members: Animal[]) => HerdController;
 }
-export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; admission: unknown; pasture: unknown; layout?: WildlifeLayout; controllers?: WildlifeControllers; flock: (options: FlockOpts, index: number) => Flock }
+export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; admission: unknown; pasture: unknown; flock: (options: FlockOpts, index: number) => Flock }
 export interface SheepHit { flock: Flock; index: number; distance: number }
 
 /** the player surface Wildlife reads (Player satisfies it) */
@@ -73,17 +71,17 @@ export class Wildlife {
   private readonly population: PagePopulationPlanner;
   private readonly placement: ReturnProgram;
   readonly pastureAuthor: ReturnProgram;
-  private prev = new THREE.Vector3(); private speed = 0; private init = false; private senseElapsed = 0;
+  private readonly motion: ProjectedMotionSample;
   private wolves: Animal[] = [];
   private _v = new THREE.Vector3();
   private readonly targets: CrowdRoster<Flock>;
   private readonly relations: PopulationRelations;
-  private controllers: WildlifeControllers;
+  private readonly controllers: WildlifeControllers;
 
   constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { bindEliteAdmission(opts.admission); this.pastureAuthor = ReturnProgram.page(opts.pasture); this.placement = ReturnProgram.page(opts.admission); this.population = new PagePopulationPlanner(animals, this.placement, new Rng(opts.seed ^ 0x3a17), { begin: 'begin', spot: 'spot', accept: 'accept', yaw: 'yaw' }); this.targets = new CrowdRoster(animals.animals, this.flocks, 'sheep');
     this.relations = new PopulationRelations(this.placement, { packs: this.packs, herds: this.herds, crowds: this.flocks },
       { alert: 'whistle', range: 'scare', packRadius: 20, disturbRadius: 25, disturbSeconds: 4, scareSeconds: 6 });
-    this.controllers = opts.controllers ?? this.declaredControllers(); }
+    this.controllers = this.declaredControllers(); this.motion = new ProjectedMotionSample(this.placement, 'speed'); }
 
   private declaredControllers(): WildlifeControllers {
     const factory = declaredGroupFactories({ preyIdentity: prey => this.targets.identity(prey), resolvePrey: id => this.targets.resolve(id),
@@ -102,23 +100,22 @@ export class Wildlife {
     };
   }
 
-  build(controllers = this.opts.controllers): this {
-    const steps = this.buildSteps(controllers);
+  build(): this {
+    const steps = this.buildSteps();
     while (steps.next().done !== true) { /* every group now */ }
     return this;
   }
 
   /** `build`, a task apart per pack, herd, flock, the camp horses and the marmots (SF67: one ~370 ms task at 4x CPU); the
    *  same spawns in the same order from the same streams */
-  async buildSliced(yieldTask: () => Promise<void>, controllers = this.opts.controllers): Promise<this> {
-    const steps = this.buildSteps(controllers);
+  async buildSliced(yieldTask: () => Promise<void>): Promise<this> {
+    const steps = this.buildSteps();
     while (steps.next().done !== true) await yieldTask();
     return this;
   }
 
-  private *buildSteps(controllers: WildlifeControllers | undefined): Generator<void, void> {
-    this.controllers = controllers ?? this.declaredControllers();
-    const layout = this.opts.layout ?? ecology.wildlife;
+  private *buildSteps(): Generator<void, void> {
+    const layout = ecology.wildlife;
     for (const p of layout.packs) { this.spawnPack(p.x, p.z, p.variants); yield; }
     for (const h of layout.herds) { this.spawnHerd(h.x, h.z, h.mares, h.foals, h.stallion); yield; }
     for (const f of layout.flocks) { this.spawnFlock(f.x, f.z, f.count, f.dog, f.range); yield; }
@@ -173,16 +170,8 @@ export class Wildlife {
     return f;
   }
 
-  private nearestWolf(x: number, z: number, r: number): Animal | null {
-    let best: Animal | null = null, bd = r;
-    for (const w of this.wolves) { if (!w.alive) continue; const d = Math.hypot(w.position.x - x, w.position.z - z); if (d < bd) { bd = d; best = w; } }
-    return best;
-  }
-  private nearestFoal(x: number, z: number, r: number): Animal | null {
-    let best: Animal | null = null, bd = r;
-    for (const h of this.herds) for (const f of h.foals) { if (!f.alive) continue; const d = Math.hypot(f.position.x - x, f.position.z - z); if (d < bd) { bd = d; best = f; } }
-    return best;
-  }
+  private nearestWolf(x: number, z: number, radius: number): Animal | null { return nearestPopulationActor(this.wolves, x, z, radius); }
+  private nearestFoal(x: number, z: number, radius: number): Animal | null { return nearestPopulationActor(this.herds.flatMap(herd => herd.foals), x, z, radius); }
 
   /** the trample map's push, read when called (wildEnv.trample is rebound when the grass is wired) */
   private readonly pushTrample = (x: number, z: number, r: number, s: number, vx: number, vz: number): void => { wildEnv.trample(x, z, r, s, vx, vz); };
@@ -190,12 +179,7 @@ export class Wildlife {
   update(dt: number, _t: number, player: WildPlayer, extra: { mounted?: boolean; health01?: number },
     advanceFlock: (flock: Flock, index: number, playerSpeed: number) => void): void {
     const p = player.position;
-    if (!this.init) { this.prev.copy(p); this.init = true; }
-    this.senseElapsed += dt;
-    if (this.senseElapsed + 1e-9 >= .1) {
-      this.speed = this.placement.project('speed', { dt: this.senseElapsed, x: p.x, z: p.z, px: this.prev.x, pz: this.prev.z, speed: this.speed })['speed'] ?? this.speed;
-      this.prev.copy(p); this.senseElapsed = 0;
-    }
+    const speed = this.motion.update(dt, p.x, p.z);
     const fl = Math.hypot(player.forward.x, player.forward.z);
     if (fl > 1e-4) { wildEnv.playerFwdX = player.forward.x / fl; wildEnv.playerFwdZ = player.forward.z / fl; }
     wildEnv.playerCrouched = player.crouching;
@@ -206,9 +190,9 @@ export class Wildlife {
     // the grass parts around every moving wolf / horse / dog near the player (GrassTrample's live movers + the map)
     pushWildMovers(this.animals.animals, p.x, p.z, this.pushTrample);
     for (const [index, f] of this.flocks.entries()) {
-      advanceFlock(f, index, this.speed);
+      advanceFlock(f, index, speed);
     }
-    this.marmots?.update(dt, p, this.speed, player.crouching);
+    this.marmots?.update(dt, p, speed, player.crouching);
     // a wolf pack running through the flock scatters it (Flock reads the wolves); a stampede scatters packs in its path
     this.relations.ripple();
   }
