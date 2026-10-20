@@ -1,6 +1,6 @@
 /**
  * Pine Hollow's rain as data (PH-L10, E322 F-L5; SHARD-PLATFORM M3): the sizes of the SDK rain system's pieces
- * (runtime/looks/rainFx — the curtain with the canopy's drips, the puddles, the splashes at the feet, the drops on
+ * (sdk/looks/rainPresentation — the curtain with the canopy's drips, the puddles, the splashes at the feet, the drops on
  * the lens) and the curtain's, the splashes' and the lens drops' SF59 material graphs (`RAIN_GRAPHS`, the shardfile's
  * look.materials; `PINE_RAIN_PROGRAMS` their ids). The cave's hood is the bear cave's mouth in its own frame (lx across,
  * lz into the rock; the mouth faces −lz): half width, from, to, height over the mouth's ground — the arch's opening is

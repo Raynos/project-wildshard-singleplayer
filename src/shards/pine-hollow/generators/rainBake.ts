@@ -2,7 +2,7 @@
  * Pine Hollow's rain, the static half (SHARD-PLATFORM W2 C2): the crowns' cover map and the puddles in the ground's low
  * spots, baked offline by `bake-pine-rain.mjs` over the page's own ground and forest (the level selected, its terrain
  * grid installed and its trees planted, as scripts/bake-chunk.mjs does). The page's rain system
- * (runtime/looks/rainFx.ts) reads them back from `public/assets/pine-hollow/baked/rain[.phone].bin`; the roofs' channel
+ * (sdk/looks/rainPresentation.ts) reads them back from `public/assets/pine-hollow/baked/rain[.phone].bin`; the roofs' channel
  * of the cover map stays on the page (the cabins' decks and the cave are the page's own).
  */
 import * as THREE from 'three';

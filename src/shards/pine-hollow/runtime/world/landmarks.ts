@@ -21,7 +21,7 @@ import { installRangedPage } from '@wildshard/game/loadout/rangedPage';
 import { finishForestPageAudio } from '@wildshard/game/audio/forestPage';
 import { installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
-import { RainFx } from '../looks/rainFx';
+import { installForestWeather } from '@wildshard/sdk/looks/forestWeather';
 import { pineMemoryTrim, pineSetCap } from '../debug/options';
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
 
@@ -57,7 +57,7 @@ export class PineLandmarks {
     const ambience = await finishForestPageAudio(ctx, input.id); quest.bindAudio(input.id);
     const spots = this.crags?.cave.spots() ?? [];
     for (let i = 0; i < Math.min(spots.length, 256); i++) { const spot = spots[i]; if (spot !== undefined) ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); }
-    await RainFx.installPage(ctx, await ctx.product.json('world/weather-observations.json'));
+    await installForestWeather(ctx, await ctx.product.json('world/forest-weather.json'));
     const life = await installPageLife(ctx, await ctx.product.json(input.life), page.compendium?.state ?? null, ambience.sfx);
     Object.assign(runtime.objects, { pineLife: life });
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, { cabins: floor.cabins, props: floor.props, streams: floor.streams, pineLife: life });
