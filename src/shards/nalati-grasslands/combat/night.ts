@@ -22,6 +22,7 @@ import { wildEnv } from '@wildshard/game/population/pageGroups';
 import * as v from 'valibot';
 import { BalbalWarriors } from './balbalWarriors';
 import { GhostRiders } from './ghostRiders';
+import { CueDirector } from '@wildshard/game/audio/cueDirector';
 
 /**
  * The dusk + night enemies (row B11 of project/archive/2026-09-23-nalati.md) as one piece for the shard wiring (src/shards/nalati-grasslands/index.ts):
@@ -57,13 +58,15 @@ export async function wireNightEnemies(ctx: NightEnemiesCtx): Promise<NightEnemi
   const program = v.parse(v.object({ script: v.unknown(),bytes: v.string() }),weather.reactions);
   const rows: NightRows = { ...weather.night, program };
   if (ctx.game.levelScope.disposed) throw new Error('Nalati night owner was disposed during admission');
-  const balbals = new BalbalWarriors({ scene: ctx.game.scene, balbals: ctx.balbals, clock: ctx.clock, scope: ctx.game.levelScope }, rows);
-  const riders = new GhostRiders({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, clock: ctx.clock }, rows);
+  const cues = new CueDirector(ctx.game, rows.cues, ctx.game.levelScope);
+  const balbals = new BalbalWarriors({ cues, balbals: ctx.balbals, clock: ctx.clock, scope: ctx.game.levelScope }, rows, ctx.game.scene);
+  const riders = new GhostRiders({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, clock: ctx.clock, cues }, rows);
   return {
     balbals, riders,
     update(dt, t) {
-      balbals.update(dt, t, ctx.game.camera, ctx.game.renderer, wildEnv.light);
+      balbals.update(dt);
       riders.update(dt, t);
+      cues.setLight(Math.max(0.25, wildEnv.light)); cues.update(dt);
     },
     attach(animals) {
       // never let a night enemy stop the shard's boot (the shared tree is everyone's): a failed build logs and switches it off

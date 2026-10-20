@@ -1,7 +1,8 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, Points, Scene, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Points, Scene, ShaderMaterial, Vector3, type Vector2 } from 'three';
 import { parse } from 'valibot';
 import { Scope } from '../src/engine/app/scope';
+import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { app } from '../src/engine/app/runtime';
 import type { Game } from '../src/engine/core/Game';
 import { CombatCues } from '../src/engine/combat/cues';
@@ -17,7 +18,8 @@ afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
 function nativeGame(scope: Scope): Game {
   const game = {} as Game;
-  Object.defineProperties(game, { levelScope: { value: scope }, app: { value: app }, scene: { value: new Scene() }, onUpdate: { value: () => () => undefined } });
+  Object.defineProperties(game, { levelScope: { value: scope }, app: { value: app }, scene: { value: new Scene() }, onUpdate: { value: () => () => undefined },
+    camera: { value: new PerspectiveCamera(60) }, renderer: { value: { getDrawingBufferSize: (out: Vector2) => out.set(800, 600) } } });
   return game;
 }
 
@@ -88,4 +90,49 @@ test('unknown cues, callbacks, duplicate ids and unbound field targets refuse', 
     expect(() => parse(CueDirectorSchema, rows)).toThrow();
   const scope = new Scope('missing-cue'), director = new CueDirector(nativeGame(scope), king);
   expect(() => director.cue('cue.missing', new Vector3(), new Vector3())).toThrow('Unknown'); scope.dispose();
+});
+
+// A made-up ember marsh (the director's fixture second user): lit mud that falls and settles, unlit sparks pushed downwind.
+const marsh = { version: 1, fields: [], sprays: [
+  { id: 'mud', capacity: 8, additive: false, lit: true, renderOrder: 3, fade: [4, 0, 1], vertexShader: 'void main(){}', fragmentShader: 'void main(){}' },
+  { id: 'sparks', capacity: 4, additive: true, lit: false, renderOrder: 4, fade: [2, 6, 0.2], vertexShader: 'void main(){}', fragmentShader: 'void main(){}' }],
+rows: [{ id: 'cue.marsh.splash', vfx: [
+  { kind: 'spray', spray: 'mud', count: 6, speed: 2, up: 3, push: 0, life: 1, size: 0.1, colour: [0.3, 0.2, 0.1], jitter: 0, spread: 0.2, flags: ['gravity', 'bounce'], offset: [0, 0.5, 0] },
+  { kind: 'spray', spray: 'sparks', count: 2, speed: 0, up: 0, push: 4, life: 0.5, size: 0.2, colour: [2, 1, 0.2], jitter: 0, spread: 0, flags: ['grow'], offset: [0, 0, 0] }] }] };
+
+function sprayOf(scene: Scene, name: string): { renderOrder: number; attribute: (name: string) => BufferAttribute; material: ShaderMaterial } {
+  const points = scene.getObjectByName(name);
+  if (!(points instanceof Points)) throw new Error(`Missing spray ${name}`);
+  const geometry: unknown = points.geometry, material: unknown = points.material;
+  if (!(geometry instanceof BufferGeometry) || !(material instanceof ShaderMaterial)) throw new Error('Spray requires buffer geometry and its shaders');
+  return { renderOrder: points.renderOrder, material, attribute: attributeName => {
+    const attribute: unknown = geometry.getAttribute(attributeName);
+    if (!(attribute instanceof BufferAttribute)) throw new Error(`Missing ${attributeName}`); return attribute;
+  } };
+}
+
+test('a second shard\'s sprays burst, fall, settle, grow and fade by its rows, lit only where declared', () => {
+  const restore = overrideTerrain({ heightAt: () => 2 });
+  try {
+    const scope = new Scope('marsh-sprays'), game = nativeGame(scope), director = new CueDirector(game, marsh);
+    const mud = sprayOf(game.scene, 'cue-mud'), sparks = sprayOf(game.scene, 'cue-sparks');
+    expect(mud.renderOrder).toBe(3); expect(sparks.material.blending).not.toBe(mud.material.blending);
+    director.cue('cue.marsh.splash', new Vector3(10, 2, -4), new Vector3(1, 0, 0));
+    const lift = mud.attribute('position');
+    for (let i = 0; i < 6; i++) { expect(lift.getY(i)).toBeGreaterThanOrEqual(2.5); expect(Math.hypot(lift.getX(i) - 10, lift.getZ(i) + 4)).toBeLessThanOrEqual(0.2); }
+    director.update(0.1);
+    expect(sparks.attribute('position').getX(0)).toBeCloseTo(10 + 4 * 0.965 * 0.1, 5);
+    expect(sparks.attribute('aSize').getX(0)).toBeGreaterThan(0.2 * 0.6);
+    for (let i = 0; i < 60; i++) director.update(1 / 60);
+    for (let i = 0; i < 6; i++) expect(mud.attribute('position').getY(i)).toBeGreaterThan(2.029);
+    director.setLight(0.3); expect(mud.material.uniforms['uLight']?.value).toBe(0.3); expect(sparks.material.uniforms['uLight']?.value).toBe(1);
+    for (let i = 0; i < 60; i++) director.update(1 / 30);
+    for (let i = 0; i < 6; i++) expect(mud.attribute('aAlpha').getX(i)).toBe(0);
+    scope.dispose(); expect(game.scene.getObjectByName('cue-mud')).toBeUndefined();
+  } finally { restore(); }
+});
+
+test('spray targets refuse undeclared sprays', () => {
+  expect(() => parse(CueDirectorSchema, { ...marsh, sprays: [] })).toThrow();
+  expect(() => parse(CueDirectorSchema, { ...marsh, sprays: [marsh.sprays[0], marsh.sprays[0]] })).toThrow();
 });

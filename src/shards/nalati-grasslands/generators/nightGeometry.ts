@@ -78,3 +78,45 @@ export function ghostStyles(): Record<'rider' | 'captain' | 'storm', { key: stri
     storm: style('vec3(0.34, 0.38, 0.48)', 'vec3(1.5, 1.8, 2.6)', 'nalati-ghost-storm'),
   };
 }
+
+/** The night's sprays and cues (game/audio/cueDirector): the balbals' soil, turf, stone, dust and amber (lit by the dusk,
+ *  lumpy clumps) and the ghost riders' cyan mist (additive puffs). */
+export function nightCues(): unknown {
+  const vertexShader = `attribute float aSize; attribute float aAlpha; attribute vec3 aColor; varying float vA; varying vec3 vC; uniform float uScale;
+        void main(){ vA = aAlpha * (aSize > 0.45 ? 0.3 : 1.0); vC = aColor;   /* a big soft particle (dust, mist) is thin */ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = min(aSize * uScale / max(0.05, -mv.z), aSize > 0.45 ? 220.0 : 26.0);   /* a clod by the lens is a speck, not a disc */ gl_Position = projectionMatrix * mv; }`;
+  const SOIL = [0.26, 0.19, 0.12], TURF = [0.3, 0.36, 0.14], STONE = [0.55, 0.53, 0.49], DUST = [0.5, 0.44, 0.34], AMBER = [2.4, 1.1, 0.25], MIST = [0.18, 0.75, 0.85];
+  const spray = (id: string, count: number, speed: number, up: number, life: number, size: number, colour: number[], jitter: number, flags: string[], spread: number, offset = [0, 0, 0], push = 0) =>
+    ({ kind: 'spray', spray: id, count, speed, up, push, life, size, colour, jitter, spread, flags, offset });
+  const debris = (...args: Parameters<typeof spray> extends [string, ...infer R] ? R : never) => spray('debris', ...args);
+  const mist = (...args: Parameters<typeof spray> extends [string, ...infer R] ? R : never) => spray('mist', ...args);
+  const fall = ['gravity', 'bounce'], stone = debris(14, 2.6, 2.2, 0.9, 0.07, STONE, 0.2, fall, 0.35), amber = debris(12, 3, 2.5, 0.5, 0.05, AMBER, 0.2, ['gravity'], 0.3);
+  return { version: 1, fields: [],
+    sprays: [
+      { id: 'debris', capacity: 900, additive: false, lit: true, renderOrder: 11, fade: [4, 0, 1], vertexShader,
+        // a lumpy clump: a squashed disc with a darker lower half, the light from above
+        fragmentShader: 'varying float vA; varying vec3 vC; uniform float uLight; void main(){ vec2 d = gl_PointCoord - 0.5; float r = max(abs(d.x) * 1.7 + abs(d.y) * 0.9, length(d) * 2.1); if (r > 1.0 || vA <= 0.002) discard; float shade = 0.72 + 0.5 * (0.5 - d.y); gl_FragColor = vec4(vC * shade * uLight, vA * smoothstep(1.0, 0.8, r)); }' },
+      { id: 'mist', capacity: 900, additive: true, lit: false, renderOrder: 12, fade: [2.2, 6, 0.2], vertexShader,
+        fragmentShader: 'varying float vA; varying vec3 vC; void main(){ vec2 d = gl_PointCoord - 0.5; float r = dot(d, d) * 4.0; if (r > 1.0 || vA <= 0.002) discard; float a = (1.0 - r); a *= a; gl_FragColor = vec4(vC * a * vA, 1.0); }' },
+    ],
+    rows: [
+      // a balbal tears out of the ground; soil pours off it as it moves through the ground, a clod falls as it walks
+      { id: 'cue.balbal.wake', vfx: [debris(26, 2.2, 3.5, 1.6, 0.16, TURF, 0.25, fall, 0.6), debris(10, 1.2, 0.8, 2.2, 0.9, DUST, 0.15, ['grow'], 0.5)] },
+      { id: 'cue.balbal.soil', vfx: [debris(3, 1.2, 3.45, 1.4, 0.13, SOIL, 0, fall, 0.6)] },
+      { id: 'cue.balbal.dust', vfx: [debris(1, 0.6, 0.4, 2.2, 0.8, DUST, 0.15, ['grow'], 0.6)] },
+      { id: 'cue.balbal.clod', vfx: [debris(1, 0.4, 0, 1.3, 0.08, SOIL, 0, fall, 0.3, [0, 0.95, 0])] },
+      // a hit: stone chips (amber sparks off a crack or a heavy blow); the kill's rubble; the slam's turf, soil, dust and sparks
+      { id: 'cue.balbal.chip', vfx: [stone] },
+      { id: 'cue.balbal.chip.hard', vfx: [stone, amber] },
+      { id: 'cue.balbal.crack', vfx: [{ ...stone, count: 6 }, amber] },
+      { id: 'cue.balbal.broken', vfx: [debris(46, 3.2, 3, 1.8, 0.12, STONE, 0.25, fall, 0.6), debris(14, 1.5, 0.6, 2.4, 1.0, DUST, 0.15, ['grow'], 0.7)] },
+      { id: 'cue.balbal.slam', vfx: [debris(30, 3.5, 4.5, 1.5, 0.12, TURF, 0.25, fall, 0.5), debris(18, 2.6, 3.5, 1.4, 0.1, SOIL, 0.25, fall, 0.4),
+        debris(12, 3.2, 0.3, 1.8, 1.1, DUST, 0.12, ['grow'], 0.6, [0, 0.2, 0]), debris(10, 3.5, 2.5, 0.6, 0.05, AMBER, 0.2, ['gravity'], 0.4, [0, 0.2, 0])] },
+      // a ghost rider forms, trails smoke behind its gallop (pushed back along the cue's direction), looses, is struck, tears apart
+      { id: 'cue.ghost.form', vfx: [mist(24, 1.6, 0.8, 1.6, 0.9, MIST, 0.25, ['grow', 'rise'], 1.2)] },
+      { id: 'cue.ghost.trail', vfx: [mist(1, 0.35, 0.25, 1.15, 0.19, MIST.map(c => c * 0.6), 0, ['grow', 'rise'], 0.35, [0, -0.5, 0], 2.2)] },
+      { id: 'cue.ghost.loose', vfx: [mist(6, 0.8, 0.4, 0.5, 0.2, MIST, 0.2, ['grow'], 0.15)] },
+      { id: 'cue.ghost.hurt', vfx: [mist(10, 1.5, 0.6, 0.8, 0.25, MIST, 0.2, ['grow'], 0.2)] },
+      { id: 'cue.ghost.impact', vfx: [mist(8, 1.2, 1, 0.9, 0.3, MIST, 0.2, ['grow', 'rise'], 0.2)] },
+      { id: 'cue.ghost.tear', vfx: [mist(4, 0.6, 1.1, 1.4, 0.55, MIST, 0, ['grow', 'rise'], 0.8, [0, -0.7, 0])] },
+    ] };
+}

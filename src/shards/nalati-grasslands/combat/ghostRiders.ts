@@ -20,7 +20,7 @@ import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { NightRows } from './nightTypes';
 import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '../species/ghostRider';
 
-import { NightParticles, FLAG_RISE, FLAG_GROW } from './nightFx';
+import type { CueDirector } from '@wildshard/game/audio/cueDirector';
 
 /**
  * Ghost riders — the night half of row B11 (project/archive/2026-09-23-nalati.md; elites-and-bosses.md E5; mockups
@@ -52,7 +52,7 @@ import { NightParticles, FLAG_RISE, FLAG_GROW } from './nightFx';
  * output is replaced by a fresnel glow (additive, self-lit, no fog, no shadows): 2 programs (skinned / static).
  */
 
-export interface GhostRidersCtx { game: Game; sky: Sky; player: Player; forest: Forest; clock: DayCycleClock }
+export interface GhostRidersCtx { game: Game; sky: Sky; player: Player; forest: Forest; clock: DayCycleClock; cues: CueDirector }
 export type GhostVariant = 'rider' | 'captain';
 interface Rider { a: Animal; scope: Scope; mats: GhostMat[]; law: PatrolMember }
 interface GhostMat { mat: THREE.MeshLambertMaterial; fade: THREE.IUniform<number> }
@@ -85,13 +85,12 @@ function ghostArrowKind(nightRows: NightRows): ProjectileKind {
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _c = new THREE.Vector3(), _h = new THREE.Vector3(), _d = new THREE.Vector3(), _pv = new THREE.Vector3();
 const _ray = new THREE.Ray(), _sph = new THREE.Sphere();
 
-const MIST: readonly [number, number, number] = [0.18, 0.75, 0.85];
+const UP = new THREE.Vector3(0, 1, 0);
 
 export class GhostRiders extends GroupBrain<Animal> {
   readonly riders: Rider[] = [];
   private readonly patrol: EncounterPatrol<Animal>;
   readonly arrows: Projectiles;
-  readonly mist: NightParticles;
   /** B12: true = no automatic lines (the elite system drives the night) */
   hold = false;
   /** dev: the riders stand still where they are (screenshots) */
@@ -112,9 +111,8 @@ export class GhostRiders extends GroupBrain<Animal> {
     this.motion = new EncounterSchedule(nightRows.motion, this.author);
     this.arrows = new Projectiles({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest }, undefined, ghostArrowKind(nightRows));
     this.arrows.mesh.renderOrder = 13; this.arrows.mesh.receiveShadow = false;
-    this.arrows.onPlayerHit = (p, d) => { this.hurt?.(nightRows.damage, this.shooter); this.mist.burst(p, 10, 1.5, 0.6, 0.8, 0.25, MIST, 0.2, FLAG_GROW, 0.2); void d; };
-    this.arrows.onImpact = (_s, p) => { this.mist.burst(p, 8, 1.2, 1, 0.9, 0.3, MIST, 0.2, FLAG_GROW | FLAG_RISE, 0.2); };
-    this.mist = new NightParticles(ctx.game.scene, 'mist');
+    this.arrows.onPlayerHit = p => { this.hurt?.(nightRows.damage, this.shooter); ctx.cues.cue('cue.ghost.hurt', p, UP); };
+    this.arrows.onImpact = (_s, p) => { ctx.cues.cue('cue.ghost.impact', p, UP); };
     this.hitResult = { animal: this.placeholder(), point: new THREE.Vector3(), distance: 0, headshot: false };
   }
 
@@ -156,7 +154,7 @@ export class GhostRiders extends GroupBrain<Animal> {
     const r: Rider = { a, scope, mats: [horseMat, riderMat], law };
     this.riders.push(r);
     _v.set(a.position.x, heightAt(a.position.x, a.position.z) + 1, a.position.z);
-    this.mist.burst(_v, 24, 1.6, 0.8, 1.6, 0.9, MIST, 0.25, FLAG_GROW | FLAG_RISE, 1.2);
+    this.ctx.cues.cue('cue.ghost.form', _v, UP);
     return a;
   }
 
@@ -213,23 +211,18 @@ export class GhostRiders extends GroupBrain<Animal> {
       if (effect?.retire === true) { this.retire(r); this.riders.splice(i, 1); continue; }
       for (const m of r.mats) m.fade.value = state['fade'] ?? 0;
       if ((state['dying'] ?? 0) > 0) {
-        ghostSeat(a, _v);
-        for (let k = 0; k < 4; k++) this.mist.emit(_v.x + (app.rng.stream('cosmetic').next() - 0.5) * 1.6, _v.y - app.rng.stream('cosmetic').next() * 1.4, _v.z + (app.rng.stream('cosmetic').next() - 0.5) * 1.6,
-          (app.rng.stream('cosmetic').next() - 0.5) * 1.2, 0.6 + app.rng.stream('cosmetic').next(), (app.rng.stream('cosmetic').next() - 0.5) * 1.2, 1.4, 0.35 + app.rng.stream('cosmetic').next() * 0.4, MIST[0], MIST[1], MIST[2], FLAG_GROW | FLAG_RISE);
+        this.ctx.cues.cue('cue.ghost.tear', ghostSeat(a, _v), UP);
       }
       if (state['dead'] === 1 || a.hidden) continue;
       // the smoke trail: mist off the legs and the cloak, left behind as it gallops
       // (small wisps, left BEHIND the horse: the body itself must stay readable through them)
       if (app.rng.stream('cosmetic').next() < dt * 22) {
-        ghostSeat(a, _v);
         const back = _w.set(-Math.sin(a.yaw), 0, -Math.cos(a.yaw));
-        this.mist.emit(_v.x + back.x * 1.1 + (app.rng.stream('cosmetic').next() - 0.5) * 0.7, _v.y + 0.3 - app.rng.stream('cosmetic').next() * 1.6, _v.z + back.z * 1.1 + (app.rng.stream('cosmetic').next() - 0.5) * 0.7,
-          back.x * 2.2, 0.25, back.z * 2.2, 0.9 + app.rng.stream('cosmetic').next() * 0.5, 0.12 + app.rng.stream('cosmetic').next() * 0.14, MIST[0] * 0.6, MIST[1] * 0.6, MIST[2] * 0.6, FLAG_GROW | FLAG_RISE);
+        this.ctx.cues.cue('cue.ghost.trail', ghostSeat(a, _v).addScaledVector(back, 1.1), back);
       }
       if (!this.freeze && effect?.shoot === true) this.shoot(r);
     }
     this.arrows.update(dt);
-    this.mist.update(dt, this.ctx.game.renderer, this.ctx.game.camera);
   }
 
   /** loose one glowing arrow at the player: a ballistic solve with a lead, and a little spread */
@@ -241,7 +234,7 @@ export class GhostRiders extends GroupBrain<Animal> {
     _d.set(aim['dx'] ?? 0, aim['dy'] ?? 0, aim['dz'] ?? 0);
     this.shooter = a;
     this.arrows.launch(_v, _d, { damageScale: 1 });
-    this.mist.burst(_v, 6, 0.8, 0.4, 0.5, 0.2, MIST, 0.2, FLAG_GROW, 0.15);
+    this.ctx.cues.cue('cue.ghost.loose', _v, UP);
   }
 
   private retire(r: Rider): void {

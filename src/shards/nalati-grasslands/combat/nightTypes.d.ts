@@ -10,6 +10,7 @@ export interface NightRows {
   geometry: { data: unknown };
   arrow: Omit<ProjectileKind, 'geometry' | 'material'>;
   wedge: { vertexShader: string; fragmentShader: string };
+  cues: unknown;
   respawn: number;
   damage: number;
 }

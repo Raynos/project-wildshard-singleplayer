@@ -6,6 +6,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { CueDirector } from '@wildshard/game/audio/cueDirector';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
@@ -16,7 +17,6 @@ import type { Balbals } from '../world/Balbals';
 
 
 import { BALBAL_SLAM, onBalbalCrack } from '../species/balbal';
-import { type FxRenderer, NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';
 
 
 /**
@@ -39,14 +39,11 @@ import { type FxRenderer, NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW }
  * filling toward the tip through the 1.5 s wind-up, exactly the area the blow will hit.
  */
 
-export interface BalbalWarriorsCtx { scene: THREE.Scene; balbals: Balbals | null; clock: DayCycleClock; scope: Scope }
+export interface BalbalWarriorsCtx { cues: CueDirector; balbals: Balbals | null; clock: DayCycleClock; scope: Scope }
 interface Warrior { a: Animal; statue: number; sparkT: number; lastHp: number; wedge: GroundTell }
 
 
-const SOIL: readonly [number, number, number] = [0.26, 0.19, 0.12], TURF: readonly [number, number, number] = [0.3, 0.36, 0.14];
-const STONE: readonly [number, number, number] = [0.55, 0.53, 0.49], DUST: readonly [number, number, number] = [0.5, 0.44, 0.34];
-const AMBER: readonly [number, number, number] = [2.4, 1.1, 0.25];
-const _v = new THREE.Vector3(), _w = new THREE.Vector3();
+const _v = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
 
 /** Nalati's amber fill/rim shader; GroundTell owns sector geometry and terrain draping. */
 function wedgeStyle(nightRows: NightRows): GroundTellWedgeStyle {
@@ -60,17 +57,15 @@ function wedgeStyle(nightRows: NightRows): GroundTellWedgeStyle {
 
 export class BalbalWarriors {
   readonly awake: Warrior[] = [];
-  readonly debris: NightParticles;
   /** fired when one breaks (the kill feed / achievements already get it through animals.onKill) */
   onBroken?: ((a: Animal) => void) | undefined;
   private readonly wedges: GroundTell[] = [];
   private readonly roster: EncounterSlots<Animal>;
   private soilAcc = 0;
 
-  constructor(private readonly ctx: BalbalWarriorsCtx, nightRows: NightRows) {
+  constructor(private readonly ctx: BalbalWarriorsCtx, nightRows: NightRows, scene: THREE.Scene) {
     this.roster = new EncounterSlots<Animal>(nightRows.slots, ReturnProgram.page(nightRows.program, ctx.scope));
-    this.debris = new NightParticles(ctx.scene, 'debris');
-    for (let i = 0; i < 6; i++) this.wedges.push(new GroundTell(ctx.scene, 'wedge', 0, wedgeStyle(nightRows)));
+    for (let i = 0; i < 6; i++) this.wedges.push(new GroundTell(scene, 'wedge', 0, wedgeStyle(nightRows)));
     ctx.scope.onDispose(app.debug.scopedExpose('nalati.balbals', this)); // dev / screenshots
   }
 
@@ -89,9 +84,7 @@ export class BalbalWarriors {
       b.setAwake(i, true);
       this.awake.push({ a, statue: i, sparkT: 0, lastHp: a.hp, wedge });
       // the ground splits: a first spray of turf and soil
-      _v.set(s.x, heightAt(s.x, s.z) + 0.1, s.z);
-      this.debris.burst(_v, 26, 2.2, 3.5, 1.6, 0.16, TURF, 0.25, FLAG_GRAVITY | FLAG_BOUNCE, 0.6);
-      this.debris.burst(_v, 10, 1.2, 0.8, 2.2, 0.9, DUST, 0.15, FLAG_GROW, 0.5);
+      this.ctx.cues.cue('cue.balbal.wake', _v.set(s.x, heightAt(s.x, s.z) + 0.1, s.z), UP);
     }
   }
 
@@ -100,13 +93,12 @@ export class BalbalWarriors {
     for (const index of this.roster.dawnActors()) this.ctx.balbals?.setAwake(index,false);
   }
 
-  update(dt: number, _t: number, camera: THREE.PerspectiveCamera, renderer: FxRenderer, light: number): void {
+  update(dt: number): void {
     const phase = this.ctx.clock.dayPhase;
     const step = this.roster.updateActors(dt, { kind: Number(phase === 'dusk' || phase === 'night') });
     if (step.cycle['spawn'] === 1) this.wake();
     if (step.cycle['dissolve'] === 1) this.dawn();
     for (const row of step.released) { const index = row['index']; if (index !== undefined) this.ctx.balbals?.setAwake(index, false); }
-    this.debris.light = Math.max(0.25, light);
     this.soilAcc += dt;
     const soilTick = this.soilAcc > 0.05; if (soilTick) this.soilAcc = 0;
     const b = this.ctx.balbals;
@@ -117,9 +109,7 @@ export class BalbalWarriors {
       // ── hits: stone chips (or amber sparks off a crack) where it was struck ──
       if (a.hp < w.lastHp) {
         _v.set(a.position.x, a.position.y + 1.2 * sc, a.position.z);
-        const crack = onBalbalCrack(a, _v);
-        this.debris.burst(_v, crack ? 6 : 14, 2.6, 2.2, 0.9, 0.07, STONE, 0.2, FLAG_GRAVITY | FLAG_BOUNCE, 0.35);
-        if (crack || w.a.hp < w.lastHp - 40) this.debris.burst(_v, 12, 3, 2.5, 0.5, 0.05, AMBER, 0.2, FLAG_GRAVITY, 0.3);
+        this.ctx.cues.cue(onBalbalCrack(a, _v) ? 'cue.balbal.crack' : w.a.hp < w.lastHp - 40 ? 'cue.balbal.chip.hard' : 'cue.balbal.chip', _v, UP);
         w.lastHp = a.hp;
       }
       const state = step.members.get(a.entityId) ?? {};
@@ -127,9 +117,7 @@ export class BalbalWarriors {
       if (!a.alive) {
         w.wedge.hide();
         if (state['broken'] === 1) {
-          _v.set(a.position.x, a.position.y + sc, a.position.z);
-          this.debris.burst(_v, 46, 3.2, 3, 1.8, 0.12, STONE, 0.25, FLAG_GRAVITY | FLAG_BOUNCE, 0.6);
-          this.debris.burst(_v, 14, 1.5, 0.6, 2.4, 1.0, DUST, 0.15, FLAG_GROW, 0.7);
+          this.ctx.cues.cue('cue.balbal.broken', _v.set(a.position.x, a.position.y + sc, a.position.z), UP);
           this.onBroken?.(a);
         }
         if (state['retire'] === 1) { this.roster.retireActor(a,true); this.awake.splice(i, 1); }
@@ -141,20 +129,11 @@ export class BalbalWarriors {
       const moving = rise > 0 && rise < 1;
       // ── soil: pouring off it while it moves through the ground, a few clods from the body as it walks ──
       if (soilTick) {
+        const random = app.rng.stream('cosmetic');
         if (moving) {
-          for (let n = 0; n < 3; n++) {
-            const ang = app.rng.stream('cosmetic').next() * Math.PI * 2, r = (0.45 + app.rng.stream('cosmetic').next() * 0.35) * sc;
-            const x = a.position.x + Math.cos(ang) * r, z = a.position.z + Math.sin(ang) * r;
-            this.debris.emit(x, heightAt(x, z) + 0.05, z, Math.cos(ang) * 1.2, 2.2 + app.rng.stream('cosmetic').next() * 2.5, Math.sin(ang) * 1.2, 1.4, 0.08 + app.rng.stream('cosmetic').next() * 0.1,
-              SOIL[0], SOIL[1], SOIL[2], FLAG_GRAVITY | FLAG_BOUNCE);
-          }
-          if (app.rng.stream('cosmetic').next() < 0.35) { _v.set(a.position.x, heightAt(a.position.x, a.position.z) + 0.1, a.position.z); this.debris.burst(_v, 1, 0.6, 0.4, 2.2, 0.8, DUST, 0.15, FLAG_GROW, 0.6); }
-        } else if (rise >= 1 && app.rng.stream('cosmetic').next() < 0.18) {
-          const ang = app.rng.stream('cosmetic').next() * Math.PI * 2;
-          const x = a.position.x + Math.cos(ang) * 0.3 * sc, z = a.position.z + Math.sin(ang) * 0.3 * sc;
-          this.debris.emit(x, a.position.y + (0.3 + app.rng.stream('cosmetic').next() * 1.3) * sc, z, Math.cos(ang) * 0.4, 0, Math.sin(ang) * 0.4, 1.3, 0.05 + app.rng.stream('cosmetic').next() * 0.06,
-            SOIL[0], SOIL[1], SOIL[2], FLAG_GRAVITY | FLAG_BOUNCE);
-        }
+          this.ctx.cues.cue('cue.balbal.soil', _v.set(a.position.x, heightAt(a.position.x, a.position.z) + 0.05, a.position.z), UP);
+          if (random.next() < 0.35) this.ctx.cues.cue('cue.balbal.dust', _v.set(a.position.x, heightAt(a.position.x, a.position.z) + 0.1, a.position.z), UP);
+        } else if (rise >= 1 && random.next() < 0.18) this.ctx.cues.cue('cue.balbal.clod', a.position, UP);
       }
       // ── the slam: the telegraph wedge through the wind-up, turf + dust on the blow ──
       const p = a.attackPhase;
@@ -167,15 +146,10 @@ export class BalbalWarriors {
           m['slamT'] = 2;
           _v.set(a.position.x + Math.sin(a.yaw) * reach * 0.75, 0, a.position.z + Math.cos(a.yaw) * reach * 0.75);
           _v.y = heightAt(_v.x, _v.z) + 0.1;
-          this.debris.burst(_v, 30, 3.5, 4.5, 1.5, 0.12, TURF, 0.25, FLAG_GRAVITY | FLAG_BOUNCE, 0.5);
-          this.debris.burst(_v, 18, 2.6, 3.5, 1.4, 0.1, SOIL, 0.25, FLAG_GRAVITY | FLAG_BOUNCE, 0.4);
-          _w.copy(_v); _w.y += 0.2;
-          this.debris.burst(_w, 12, 3.2, 0.3, 1.8, 1.1, DUST, 0.12, FLAG_GROW, 0.6);
-          this.debris.burst(_w, 10, 3.5, 2.5, 0.6, 0.05, AMBER, 0.2, FLAG_GRAVITY, 0.4);
+          this.ctx.cues.cue('cue.balbal.slam', _v, UP);
         }
       } else w.wedge.hide();
     }
-    this.debris.update(dt, renderer, camera);
   }
 
 }
