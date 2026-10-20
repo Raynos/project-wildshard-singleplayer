@@ -1,4 +1,4 @@
-import { prepareRigidCorpse, rigidCorpseTransform, type RigidCorpseRecipe, type CorpsePosePublication } from './rigidCorpse';
+import { CORPSE_SETTLE, prepareRigidCorpse, rigidCorpseTransform, rigidCorpseBodyDescriptor, rigidCorpseCollider, type RigidCorpseRecipe, type CorpsePosePublication } from './rigidCorpse';
 /**
  * Ragdolls (project/archive/2026-09-23-physics.md P8): a dying animal's body is handed to the physics world, thrown by the killing hit,
  * and frozen to a static corpse once it has come to rest.
@@ -28,7 +28,8 @@ import { prepareRigidCorpse, rigidCorpseTransform, type RigidCorpseRecipe, type 
 import * as THREE from 'three';
 import type { Collider, ColliderDesc, ImpulseJoint, RigidBody } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
-import { groups } from './groups';
+import type { Scope } from '../app/scope';
+import type { NativeRigidCorpse } from './nativeRigidCorpse';
 import { castRay } from './query';
 import { FIXED_STEP } from '../core/fixedStep';
 import { TIER } from '../core/tier';
@@ -67,9 +68,9 @@ export interface RagdollSpec {
 }
 
 /** freeze when every body sleeps, or when none has moved faster than QUIET_V m/s for QUIET_T s, or after MAX_T s */
-const QUIET_V = 0.12, QUIET_T = 0.5, MAX_T = 5;
+const { speed: QUIET_V, quiet: QUIET_T, age: MAX_T } = CORPSE_SETTLE;
 /** a body's spin counts toward QUIET_V at this lever (m): a limb rolling on its own axis is invisible, a swing moves its centre */
-const SPIN_LEVER = 0.05;
+const SPIN_LEVER = CORPSE_SETTLE.spinLever;
 /** a hit's throw: m/s per hp, clamped */
 const THROW_PER_HP = 0.04, THROW_MIN = 0.8, THROW_MAX = 3.5, RIGID_THROW = [2, 2.5] as const;
 /**
@@ -219,20 +220,15 @@ export class Ragdoll {
     const spin = new THREE.Vector3().crossVectors(Y, dh).multiplyScalar(throwV * (rigid ? 2.5 : 0.5));
     const bodyDesc = (p: THREE.Vector3, q: THREE.Quaternion) => R.RigidBodyDesc.dynamic().setTranslation(p.x, p.y, p.z).setRotation(q)
       .setLinvel(lin.x, lin.y, lin.z).setLinearDamping(jointed ? LIN_DAMP : 0.1).setAngularDamping(jointed ? ANG_DAMP : 0.3);
-    const collider = (desc: ColliderDesc, mass: number) =>
-      desc.setMass(mass).setCollisionGroups(groups('DEBRIS')).setSolverGroups(groups('DEBRIS')).setFriction(0.9).setRestitution(0.05);
+    const collider = (desc: ColliderDesc, mass: number) => rigidCorpseCollider(desc, mass);
 
     if (spec.build !== 'quadruped') {
       // one body at the mesh root: a box around the body (rigid) or a ball at the feet (upright, rotations locked)
       worldPose(spec.root, _p, _q);
-      const desc = bodyDesc(_p, _q);
+      const desc = prepared === undefined ? bodyDesc(_p, _q)
+        : rigidCorpseBodyDescriptor(R, { position: _p, rotation: _q, velocity: v, dir: spec.dir, damage: spec.damage, dims: d, scale: s });
       if (spec.build === 'upright') desc.lockRotations();
-      else desc.setAngvel(spin);
-      if (prepared !== undefined) {
-        const x = d.halfWidth * s, y = d.bodyY * .5 * s, z = Math.max(d.bodyHalfLen, d.bodyRadius) * s;
-        desc.setAdditionalMassProperties(5, { x: 0, y: d.bodyY * .6 * s, z: 0 },
-          { x: 5 / 3 * (y * y + z * z), y: 5 / 3 * (x * x + z * z), z: 5 / 3 * (x * x + y * y) }, { x: 0, y: 0, z: 0, w: 1 });
-      }
+      else if (prepared === undefined) desc.setAngvel(spin);
       const body = world.createRigidBody(desc);
       try {
       if (prepared !== undefined) {
@@ -492,10 +488,56 @@ export class Ragdoll {
   }
 }
 
-/** A world's ragdolls: the cap and the live count. */
+const RESERVATION_KEY = Symbol('native corpse admission');
+type ReservationState = 'reserved' | 'prepared' | 'live' | 'released';
+
+/** @internal One scope-owned promise against the world's existing shared capacity, not a second pool. */
+export class NativeCorpseReservation {
+  private resource: NativeRigidCorpse | undefined;
+  private readonly forget: () => void;
+  private readonly system: Ragdolls;
+  readonly owner: Scope;
+  constructor(system: Ragdolls, owner: Scope, key: symbol) {
+    this.system = system; this.owner = owner;
+    if (key !== RESERVATION_KEY) throw new Error('Corpse capacity belongs to its world');
+    this.forget = owner.capture('resources', () => { this.dispose(); });
+  }
+  get physics(): Physics { return this.system.physics; }
+  get state(): ReservationState { return this.system.nativeState(this); }
+  /** @internal Claim only while preparing this actor's next lethal transaction. */
+  begin(): void { this.system.transitionNative(this, 'reserved', 'prepared'); }
+  /** @internal Failed preparation retains the admitted actor's guarantee. */
+  cancel(): void { if (this.state !== 'released') this.system.transitionNative(this, 'prepared', 'reserved'); }
+  /** @internal Bind the concrete nonrendering resource, never an authored cleanup callback. */
+  attach(resource: NativeRigidCorpse): void {
+    if (this.state !== 'prepared' || this.resource !== undefined) throw new Error('Invalid corpse reservation attachment');
+    this.resource = resource;
+  }
+  /** @internal Transfer reserved capacity to one actual live root without another cap check. */
+  activate(resource: NativeRigidCorpse): void {
+    if (this.resource !== resource) throw new Error('Wrong corpse reservation resource');
+    this.system.transitionNative(this, 'prepared', 'live');
+  }
+  /** @internal Abort retains admission; freeze/disposal releases exactly once. */
+  finish(resource: NativeRigidCorpse, retain: boolean): void {
+    if (this.resource !== resource) throw new Error('Wrong corpse reservation resource');
+    if (retain) this.system.transitionNative(this, 'prepared', 'reserved');
+    else { this.system.releaseNative(this); this.forget(); }
+    this.resource = undefined;
+  }
+  dispose(): void {
+    if (this.resource !== undefined) { this.resource.dispose(); return; }
+    this.system.releaseNative(this); this.forget();
+  }
+}
+
+/** A world's ragdolls: one shared cap, live physical count and explicitly reserved native admissions. */
 export class Ragdolls {
   /** ragdolls with bodies in the world right now (the bench reads it) */
   live = 0;
+  private readonly native = new Map<NativeCorpseReservation, Exclude<ReservationState, 'released'>>();
+  get reserved(): number { let n = 0; for (const state of this.native.values()) if (state !== 'live') n++; return n; }
+  get occupied(): number { return this.live + this.reserved; }
   private readonly posed = new Set<Ragdoll>();
   fixedPre(dt: number): void { for (const r of this.posed) r.fixedPre(dt); }
   fixedPost(dt: number): void { for (const r of this.posed) r.fixedPost(dt); }
@@ -507,9 +549,30 @@ export class Ragdolls {
     this.cap = cap;
   }
 
+  /** Admission only. Call before exposing the opponent; no dormant physics body is allocated. */
+  reserveNative(owner: Scope): NativeCorpseReservation | null {
+    if (owner.disposed || this.physics.disposed) throw new Error('Cannot reserve a disposed corpse owner');
+    if (this.occupied >= this.cap) return null;
+    const reservation = new NativeCorpseReservation(this, owner, RESERVATION_KEY);
+    this.native.set(reservation, 'reserved'); return reservation;
+  }
+  /** @internal Capacity token state; callers cannot add unissued tokens. */
+  nativeState(reservation: NativeCorpseReservation): ReservationState { return this.native.get(reservation) ?? 'released'; }
+  /** @internal No capacity check at lethal time: this exact slot was promised at admission. */
+  transitionNative(reservation: NativeCorpseReservation, from: 'reserved' | 'prepared', to: 'prepared' | 'reserved' | 'live'): void {
+    if (this.native.get(reservation) !== from || this.physics.disposed
+      || (from === 'reserved' ? to !== 'prepared' : to === 'prepared')) throw new Error('Invalid corpse reservation transition');
+    this.native.set(reservation, to); if (to === 'live') this.live++;
+  }
+  /** @internal Release is idempotent across freeze, owner disposal and world disposal. */
+  releaseNative(reservation: NativeCorpseReservation): void {
+    if (this.native.get(reservation) === 'live') this.live--;
+    this.native.delete(reservation);
+  }
+
   /** A ragdoll for this death, or null past the cap (the caller falls back to its keyframed collapse). */
   spawn(spec: RagdollSpec): Ragdoll | null {
-    if (this.live >= this.cap) return null;
+    if (this.occupied >= this.cap) return null;
     const ragdoll = new Ragdoll(this, spec);
     this.live++;
     if (ragdoll.fixedPose) this.posed.add(ragdoll);
