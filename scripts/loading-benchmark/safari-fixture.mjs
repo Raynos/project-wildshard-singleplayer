@@ -5,12 +5,12 @@ import { safariRecorder } from './safari-data.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 
 /** Only modify an owned served export. The original bytes are restored only if the exact fixture is intact. */
-export function installSafariFixture(dist) {
+export function installSafariFixture(dist, recorder = safariRecorder) {
   const html = resolvePath(dist, 'index.html'), setup = resolvePath(dist, 'sf67-start.html');
-  if (!html.includes('/wildshard-serve/') || existsSync(resolvePath(dist, 'package.json')) || existsSync(setup)) throw new Error('Requires an owned clean served export');
+  if ((!html.includes('/wildshard-serve/') && !html.startsWith(`${resolvePath(new URL('../../tmp/serve/', import.meta.url).pathname)}/`)) || existsSync(resolvePath(dist, 'package.json')) || existsSync(setup)) throw new Error('Requires an owned clean served export');
   const original = readFileSync(html, 'utf8');
   if (original.includes('data-sf67-safari')) throw new Error('Safari fixture already installed');
-  const injected = `<script data-sf67-safari>(${safariRecorder.toString()})();</script>`;
+  const injected = `<script data-sf67-safari>(${recorder.toString()})();</script>`;
   const patched = original.replace('<head>', `<head>${injected}`);
   if (patched === original || patched.replace(injected, '') !== original) throw new Error('Cannot inject first-HTML recorder');
   writeFileSync(html, patched);
