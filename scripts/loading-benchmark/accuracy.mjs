@@ -76,6 +76,8 @@ try {
     writeFileSync(resolve(out, `${path}.json`), JSON.stringify(receipt, null, 2));
     console.info(JSON.stringify({ path, status, networkBytes, displayedNetworkBytes: receipt.displayedNetworkBytes,
       stageSeconds: receipt.stageSeconds, clockSeconds: receipt.clockSeconds, unaccountedSeconds: receipt.unaccountedSeconds, maxDetailGapMs: receipt.maxDetailGapMs, errors }));
+    if (status === 'passed') await page.locator('.ws-load').waitFor({ state: 'detached', timeout: 10_000 });
+    await page.screenshot({ path: resolve(out, `${path}-${status === 'passed' ? 'first-frame' : 'stalled'}.jpg`), type: 'jpeg', quality: 75, scale: 'css' });
     await context.close(); await transport.close();
     if (status !== 'passed' || (arg('accept', '0') === '1' && report.failures.length > 0)) failed = true;
   }

@@ -1,6 +1,6 @@
 // scripts/sim-lane.sh run --max 20 wildshard-loading node scripts/loading-benchmark/accuracy-safari.mjs --base=URL --pin=SHA --dist=DIR --out=DIR
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { observeTransport } from './transport.mjs';
@@ -89,6 +89,9 @@ try {
     const result = { pin, path, device: 'iOS Simulator Safari / portrait phone tier', cpu: 'native', errors,
       ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, fixture: { originalSHA256: fixture.originalSHA256, injectedSHA256: fixture.injectedSHA256 } };
     writeFileSync(resolve(out, `${path}.json`), JSON.stringify(result, null, 2));
+    execFileSync('xcrun', ['simctl', 'io', udid, 'screenshot', resolve(out, `${path}.png`)], { stdio: 'ignore' });
+    execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '1000', resolve(out, `${path}.png`), '--out', resolve(out, `${path}.jpg`)], { stdio: 'ignore' });
+    unlinkSync(resolve(out, `${path}.png`));
     console.info(JSON.stringify({ path, errors, ...report }));
     if (errors.length > 0 || (arg('accept') === '1' && (report?.failures.length ?? 0) > 0)) failed = true;
   }
