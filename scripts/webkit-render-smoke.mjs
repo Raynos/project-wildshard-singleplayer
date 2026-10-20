@@ -73,24 +73,28 @@ function measure(arg) {
   return { held: window.__wildshard.world.weapons?.current?.row?.id ?? null, pixels: n, mean: n ? sum / n : 0, darkShare: n ? dark / n : 1, size: [w, h] };
 }
 
-const browser = await webkit.launch({ headless: true });
+let browser = await webkit.launch({ headless: true });
 const failures = [], rows = [];
 const errors = [], consoleErrors = [], httpErrors = [];
 /** @type {import('playwright').Page | undefined} */
 let page;
-try {
+async function phonePage(engine) {
   const { defaultBrowserType: _engine, ...phone } = devices['iPhone 16 Pro'];
-  const context = await browser.newContext({ ...phone, serviceWorkers: 'block' });
+  const context = await engine.newContext({ ...phone, serviceWorkers: 'block' });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true }); // the template is Developer-only
   await context.addInitScript(() => { HTMLMediaElement.prototype.play = () => Promise.resolve(); }); // muted, whatever the URL
-  page = await context.newPage();
-  page.on('pageerror', (e) => { errors.push(e.message.slice(0, 240)); });
-  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 500)); });
-  page.on('response', (response) => {
+  const opened = await context.newPage();
+  opened.on('pageerror', (e) => { errors.push(e.message.slice(0, 240)); });
+  opened.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 500)); });
+  opened.on('response', (response) => {
     if (response.status() < 400) return;
     const row = { status: response.status(), url: response.url() };
     httpErrors.push(row); console.error('HTTP', JSON.stringify(row));
   });
+  return opened;
+}
+try {
+  page = await phonePage(browser);
   await page.goto(`${base}?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game && window.__wildshard.world.weapons && !document.querySelector('.ws-load')), null, { timeout: 60_000, polling: 250 });
   await page.waitForTimeout(1500);
@@ -107,6 +111,10 @@ try {
     else if (m.mean < ITEM_MEAN || m.darkShare > ITEM_DARK_SHARE) failures.push(`${id}: held models near black (mean ${m.mean.toFixed(0)} < ${ITEM_MEAN} or ${(m.darkShare * 100).toFixed(0)}% below ${DARK} > ${ITEM_DARK_SHARE * 100}%)`);
   }
   // Driftwood's minimap (playtest round 3): the baked map must draw at the pier spawn and at the chunk's corner
+  // Independent cold render cases release their WebKit/GPU process before the next boot.
+  await browser.close();
+  browser = await webkit.launch({ headless: true });
+  page = await phonePage(browser);
   await page.goto(`${base}?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game && document.querySelector('.ws-minimap-canvas') && !document.querySelector('.ws-load')), null, { timeout: 90_000, polling: 250 });
   for (const spot of [null, { x: 200, z: 200 }]) {
