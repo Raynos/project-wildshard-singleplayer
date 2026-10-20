@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry, Object3D, Vector3 } from 'three';
 import { BoxCollider, CapsuleCollider, Collider, HullCollider, MeshCollider, type ColliderData } from './physics';
-import { Entry, Portal, SocketLift, type EntryData } from './entries';
+import { Entry, SocketLift, type EntryData } from './entries';
 import { PlayerStart, Spawn } from './spawns';
 import { AmbienceZone, Cue, Score } from './sceneAudio';
 import type { AudioData } from './audio';
@@ -73,7 +73,7 @@ function collider(shape: ColliderData): Collider {
 /** Recreate the defining SDK declaration without services, physics bodies, sound playback or gameplay grants. */
 export function restoreSceneDeclaration(row: SceneDeclaration, node: (id: string) => Object3D): Object3D {
   switch (row.kind) {
-    case 'entry': return row.data.kind === 'portalLink' ? new Portal(row.data.edge, row.data.portal) : row.data.kind === 'socketLift' ? new SocketLift(row.data.edge, row.data.lift) : new Entry(row.data.edge, row.data.kind);
+    case 'entry': return row.data.kind === 'portalLink' ? new Entry(row.data.edge, 'portalLink', row.data.portal === undefined ? {} : { portal: row.data.portal }) : row.data.kind === 'socketLift' ? new SocketLift(row.data.edge, row.data.lift) : new Entry(row.data.edge, row.data.kind);
     case 'playerStart': return new PlayerStart();
     case 'spawn': return new Spawn(row.species);
     case 'collider': return collider(row.shape);

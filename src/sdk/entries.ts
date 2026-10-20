@@ -55,21 +55,6 @@ export class Entry extends Object3D {
     }
 }
 
-/** A midpoint entry with the existing road/arrival/exit portal link and walked route. Cell-local link data
- * binds named authored floors; this declaration never teleports or constructs an arrival floor. */
-export class Portal extends Entry {
-    /** The bounded cell-local portal nodes, directed links and static walking route. */
-    portal: PortalLinkData | undefined;
-    constructor(edge: EntryEdge = 'north', portal?: PortalLinkData) { super(edge, 'portalLink'); this.portal = portal === undefined ? undefined : structuredClone(parsePortalLink(portal)); }
-    /** Copy independent data together with the fixed socket's normal graph state. */
-    override copy(source: this, recursive = true): this { super.copy(source, recursive); this.portal = source.portal === undefined ? undefined : structuredClone(source.portal); return this; }
-    /** Emit exactly the admitted existing entry wire shape, refusing a missing or malformed route. */
-    protected override entryBindings(): Pick<EntryData, 'portal'> {
-        if (this.portal === undefined || this.kind !== 'portalLink') throw new Error('Portal entry requires its portal link');
-        return { portal: parsePortalLink(this.portal) };
-    }
-}
-
 /** A midpoint entry whose named mover/gate takes real feet from the road to its authored top stop. */
 export class SocketLift extends Entry {
     /** The bounded cell-local lift, approach and onward route; native mover ownership stays with the host. */

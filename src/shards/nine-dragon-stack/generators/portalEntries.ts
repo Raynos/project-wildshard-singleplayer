@@ -1,5 +1,5 @@
 import { Group } from 'three';
-import { Portal } from '@wildshard/sdk/entries';
+import { Entry } from '@wildshard/sdk/entries';
 import { readScene } from '@wildshard/sdk/scene';
 import NINE_FLOOR_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import portals from '../data/portals.json' with { type: 'json' };
@@ -24,12 +24,12 @@ export function portalEntryScene(): Group {
     const inset = SOCKET_LENGTH - portals.deckRingShort, half = NINE_FLOOR_PLAN.CELL_HALF;
     const road = { id: `portal.${edge}`, at: at(-ix * half + ix * inset, 0, -iz * half + iz * inset), floor: `${NINE_FLOOR_PLAN.IDS.deckPrefix}${edge}`, yaw: yawAlong(-ix, -iz) };
     const exit = { id: `${portals.squareRing.id}.${edge}`, at: exitAt, floor, yaw: yawAlong(portals.squareRing.nx, portals.squareRing.nz) };
-    scene.add(new Portal(edge, { road, destination, exit, links: [{ from: road.id, to: destination.id }, { from: exit.id, to: road.id }], route }));
+    scene.add(new Entry(edge, 'portalLink', { portal: { road, destination, exit, links: [{ from: road.id, to: destination.id }, { from: exit.id, to: road.id }], route } }));
   }
   return scene;
 }
 
-/** Compile these real Portal objects into the existing admitted rows; no authoring object reaches the client. */
+/** Compile these portal-link entry data into the existing admitted rows; no authoring object reaches the client. */
 export function portalEntryRows(): ReturnType<typeof readScene>['entries'] { return readScene(portalEntryScene()).entries; }
 
 /** Client ring frames and the walked witness route, baked from the same authored portal nodes. */
