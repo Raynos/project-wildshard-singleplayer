@@ -5,6 +5,10 @@ import memoryGates from './memoryGates.json' with { type: 'json' };
 export const CHUNK_SIZE = 500;        // metres, square
 /** Half a cell width in metres. */
 export const CHUNK_HALF = CHUNK_SIZE / 2;
+/** Signed placement radius of the finite platform catalogue (SF88); residency budgets stay independent. */
+export const GRID_RADIUS = 2;
+/** Number of placements, including open plots, in the finite square platform. */
+export const GRID_CELL_COUNT = (2 * GRID_RADIUS + 1) ** 2;
 /** Legal midpoint entry opening in metres. */
 export const ENTRY_WIDTH = 8;
 /** Asphalt reserved inside each midpoint entry in metres. */

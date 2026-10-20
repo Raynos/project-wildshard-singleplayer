@@ -90,7 +90,7 @@ export function rightSide(segment: RoadSegment, dir: 1 | -1): 1 | -1 { return se
 
 /** The boulevard's layout for an assembly; `name` turns a slug into the shard name signs show. */
 export function roadLayout(assembly: GridAssembly, name: (slug: string) => string): RoadLayout {
-  const pitch = assembly.pitch, xs = assembly.cells.map((c) => c.cell[0]), zs = assembly.cells.map((c) => c.cell[1]);
+  const pitch = assembly.pitch, placements = [...assembly.cells, ...assembly.plots], xs = placements.map((c) => c.cell[0]), zs = placements.map((c) => c.cell[1]);
   const minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);
   const byCell = new Map<string, RoadSide>([...assembly.cells, ...assembly.plots].map((c) => [c.cell.join(','), c]));
   const at = (x: number, z: number): RoadSide | undefined => byCell.get(`${String(x)},${String(z)}`);

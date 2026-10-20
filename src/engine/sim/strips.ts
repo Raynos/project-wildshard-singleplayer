@@ -1,3 +1,4 @@
+import { GRID_RADIUS, GRID_CELL_COUNT } from '@wildshard/format/contentBounds';
 import { diagnosticNow } from '../core/clock';
 import { validateEdgeProfile } from './edgeProfiles';
 import { SHORE_DEPTH } from './shore';
@@ -58,9 +59,9 @@ export async function generatePlatformSliced(cells: readonly PlatformCell[], emp
 /** Shared ordered construction: partial seam certification remains private until each strip is complete. */
 function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile): Generator<void, readonly GeneratedStrip[]> {
   validateEdgeProfile(empty);
-  if (cells.length === 0 || cells.length > 9 || new Set(cells.map((c) => c.instance)).size !== cells.length
+  if (cells.length === 0 || cells.length > GRID_CELL_COUNT || new Set(cells.map((c) => c.instance)).size !== cells.length
     || new Set(cells.map((c) => c.cell.join(','))).size !== cells.length
-    || cells.some((c) => c.cell.some((n) => !Number.isInteger(n) || Math.abs(n) > 1) || c.origin.x !== c.cell[0] * 555 || c.origin.z !== c.cell[1] * 555)) throw new RangeError('Invalid platform cells');
+    || cells.some((c) => c.cell.some((n) => !Number.isInteger(n) || Math.abs(n) > GRID_RADIUS) || c.origin.x !== c.cell[0] * 555 || c.origin.z !== c.cell[1] * 555)) throw new RangeError('Invalid platform cells');
   for (const cell of cells) Object.values(cell.edges).forEach(validateEdgeProfile);
   const byCell = new Map(cells.map((c) => [c.cell.join(','), c]));
   const xs = cells.map((c) => c.cell[0]), zs = cells.map((c) => c.cell[1]), minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);

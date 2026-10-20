@@ -4,11 +4,11 @@ import type { GridMode } from './catalogue';
 declare const __DEVSERVER__: boolean;
 /**
  * The main menu's two entries (SHARD-PLATFORM §3.3, G58, G61, SF21a): **Select a shard** (today's one-shard flow) and
- * **Infinite Wildshard** (the 3 × 3 grid). What each mode lets the player enter is the §3.3 table:
+ * **Infinite Wildshard** (the 5 × 5 grid). What each mode lets the player enter is the §3.3 table:
  *
  *   | mode      | Select a shard enters                        | Infinite Wildshard           |
  *   | shipped   | the live and early-access shards             | hidden until SF22's gates pass   |
- *   | developer | every shard, as today (Jake, G58: Select a shard is the existing flow) | shown: 5 shards + 4 templates |
+ *   | developer | every shard, as today (Jake, G58: Select a shard is the existing flow) | shown: catalogue shards + open plots |
  *   | DEVSERVER | every shard                                  | + the `devserver` cell           |
  *
  * The grid's shard lists come from the grid catalogue (`singleplayer.json`), never from a shard name here.

@@ -1,6 +1,6 @@
 /**
  * The grid session (SHARD-PLATFORM SF17b / SF18a / SF18b / SF21a, the grid client): what turns EXPERIMENTAL Wildshard's
- * home-cell boot into a 3 × 3 grid inside the one page. The home cell boots through the normal shard flow (its own
+ * home-cell boot into a 5 × 5 grid inside the one page. The home cell boots through the normal shard flow (its own
  * player, camera, HUD and the page's one fixed step); this session adds, around it, in the home cell's frame:
  *
  * - **the highway deck and strips**: `generatePlatform` (the pure SF17b generator) over the assembly, drawn as one mesh
@@ -246,7 +246,7 @@ function neighbourEdges(cell: GridCell, home: Readonly<{ origin: Readonly<{ x: n
 }
 /** The closed outer rim on the outer road's shoulder: the void's rail (G89; the empty neighbour has no sim to wait for). */
 function rimEdges(assembly: GridAssembly, home: Readonly<{ origin: Readonly<{ x: number; z: number }> }>): ReadinessEdge[] {
-  const xs = assembly.cells.map((c) => c.cell[0]), zs = assembly.cells.map((c) => c.cell[1]), p = assembly.pitch;
+  const placements = [...assembly.cells, ...assembly.plots], xs = placements.map((c) => c.cell[0]), zs = placements.map((c) => c.cell[1]), p = assembly.pitch;
   const minX = Math.min(...xs) * p - p / 2 - RAIL_OFFSET, maxX = Math.max(...xs) * p + p / 2 + RAIL_OFFSET, minZ = Math.min(...zs) * p - p / 2 - RAIL_OFFSET, maxZ = Math.max(...zs) * p + p / 2 + RAIL_OFFSET;
   const cx = (minX + maxX) / 2 - home.origin.x, cz = (minZ + maxZ) / 2 - home.origin.z, hx = (maxX - minX) / 2, hz = (maxZ - minZ) / 2;
   return [

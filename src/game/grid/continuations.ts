@@ -1,8 +1,9 @@
+import { GRID_CELL_COUNT } from '@wildshard/format/contentBounds';
 import { serializeSimSnapshot, decodeSimSnapshot, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 
 /** In-memory exact continuations are separate from the512K durable region limit and its logical fallback. */
 export const GRID_CONTINUATION_CACHE_CHARS = 8 * 1024 * 1024;
-/** UTF16 pool plus an equally large atomic replacement buffer and bounded map metadata (at most nine region keys). */
+/** UTF16 pool plus an equally large atomic replacement buffer and bounded map metadata (at most one key per grid cell). */
 export const GRID_CONTINUATION_CACHE_BYTES = GRID_CONTINUATION_CACHE_CHARS * 4 + 16 * 1024;
 /** Bounded packed strings only; decoding/capture returns transient arrays to the host's continuation owner. */
 export class GridContinuationCache {
@@ -25,7 +26,7 @@ export class GridContinuationCache {
   }
   private fits(instance: string, wire: string): boolean {
     const previous = this.values.get(instance);
-    return instance.length > 0 && (previous !== undefined || this.values.size < 9)
+    return instance.length > 0 && (previous !== undefined || this.values.size < GRID_CELL_COUNT)
       && this.used - (previous === undefined ? 0 : previous.length + instance.length) + wire.length + instance.length <= this.limit;
   }
   /** Install only a prepared wire after the durable owner accepted the corresponding snapshot. */
