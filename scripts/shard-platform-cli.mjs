@@ -3,9 +3,10 @@
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {checkShares} from './shard-platform.mjs';
+import {checkShares,sourceProgressInventory} from './shard-platform.mjs';
 import {outputReport,refreshOutputReports} from './shard-output-report.mjs';
-import {componentWave,SHARD_WAVES} from './shard-components.mjs';
+import {componentStates,componentWave,SHARD_WAVES} from './shard-components.mjs';
+import {closedComponentFailures} from './check-closed-components.mjs';
 
 const ROOT=resolve(import.meta.dirname,'..'),LIST='lint/shard-platform.json';
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
@@ -31,11 +32,17 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     try {report=await outputReport(ROOT,{build,sourceProgress,products,...(receipts.length===0?{}:{receipts}),...(scriptReceipts.length===0?{}:{scriptReceipts})});}
     finally {console.log=log;console.info=info;}
     const {rows,measures,sectionFailures,progress,netLines,dailyLines}=report;
+    // Component closure in the labelled source-progress ruler must include
+    // transitional shards whose standalone output has not closed yet.
+    const componentMeasures=sourceProgress?sourceProgressInventory(ROOT,products):measures;
+    const policy=JSON.parse(readFileSync(resolve(ROOT,'lint/ratchet.json'),'utf8'));
+    const closingIds=[...new Set(Object.values(policy.closingComponents??{}).flatMap(row=>Object.keys(row)))];
+    const lockedShards=[...new Set([...Object.keys(policy.closedComponents??{}),...Object.keys(policy.closingComponents??{})])];
     // G514: custom-section budgets never stop the ruler; --check keeps them hard.
     const failures=process.argv.includes('--check')?[...sectionFailures]:[];
     if (failures.length===0) for (const failure of sectionFailures) console.error(`shard-platform: FAIL (report-only) ${failure}`);
     if (process.argv.includes('--write')) refreshOutputReports(ROOT,measures);
-    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:sourceProgress?'source-progress':'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,customSectionFailures:sectionFailures,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
+    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:sourceProgress?'source-progress':'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,customSectionFailures:sectionFailures,componentBasis:sourceProgress?'source':'built-output',components:componentStates(componentMeasures,lockedShards,closingIds),waves:SHARD_WAVES.map(wave=>componentWave(componentMeasures,wave.id,closingIds))}},null,2));
     else {
       console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  private JSON / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
       for (const [slug,row] of Object.entries(rows)) {
@@ -72,6 +79,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     if (process.argv.includes('--check')) {
       const recorded=JSON.parse(readFileSync(resolve(ROOT,LIST),'utf8'));
       failures.push(...checkShares(recorded,measures));
+      if(lockedShards.length>0)failures.push(...closedComponentFailures(sourceProgress?componentMeasures:sourceProgressInventory(ROOT,products),policy.closedComponents,policy.closingComponents));
     }
     for (const failure of failures) console.error(`shard-platform: ${failure}`);
     if (failures.length>0) process.exitCode=1;

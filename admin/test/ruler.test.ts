@@ -29,6 +29,22 @@ it('reads the ruler into the G458 card data with W1 first', () => {
   expect(readRuler(structuredClone(r))).toEqual(r);
 });
 
+it('persists component closure only when every shard has measured zero', () => {
+  const measured = raw({});
+  if (typeof measured !== 'object' || measured === null || !('_summary' in measured)
+    || typeof measured._summary !== 'object' || measured._summary === null) throw new Error('Missing fixture summary');
+  const summary = measured._summary;
+  const componentWaves = [{ id: 'W2', components: { C8: { closed: true, lines: { 'pine-hollow': 0, 'driftwood-isle': 0 } } } }];
+  const components = { C7: { closed: false, state: 'closing', lines: { 'pine-hollow': 0, 'nalati-grasslands': 93 } } };
+  Object.assign(summary, { waves: componentWaves, components });
+  const at = { revision: 'a'.repeat(40), committedAt: '2026-10-20T16:40:00Z', now: '2026-10-20T16:50:00Z' };
+  const ruler = nextRuler(measured, null, at);
+  expect(readRuler(ruler).componentWaves).toEqual(componentWaves);
+  expect(readRuler(ruler).components).toEqual(components);
+  Object.assign(summary, { waves: [{ id: 'W2', components: { C8: { closed: true, lines: { 'pine-hollow': 1, 'driftwood-isle': 0 } } } }] });
+  expect(() => nextRuler(measured, null, at)).toThrow('every shard at zero');
+});
+
 it('refreshes pre-correction history while enforcing the fresh plan bounds', () => {
   const previous = nextRuler(raw({}), null, { revision: 'a'.repeat(40), committedAt: '2026-10-16T16:40:00Z', now: '2026-10-16T16:50:00Z' });
   previous.plan.upper = 1.001688;

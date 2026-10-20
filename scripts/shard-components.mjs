@@ -107,6 +107,7 @@ const reviewedW2Owners = new Map([
   ['src/sdk/interactions.ts#interactionRules', 'C5'],
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
   ['src/engine/combat/ammo.ts', 'C6'],
+  ['src/engine/combat/cues.ts#resolveHitStop', 'C6'],
   ['src/engine/combat/Firearm.ts#RangedAction', 'C6'],
   ['src/engine/combat/Firearm.ts#RangedActionRow', 'C6'],
   ['src/engine/combat/view/projectile.ts#ProjectilePresentation', 'C6'],
@@ -266,13 +267,19 @@ function runtimeTags(source, path, fallback) {
     assign(node, node.specifiers.map(spec=>imports.get(spec.local.name)).find(Boolean),1,`import ${node.source.value}`);
   }
   const methods = { arm:'C6',armed:'C6',dress:'C6',enter:'C6',witnessed:'C4',ray:'C4',stage:'C5',build:'C1' };
+  const wire = node => node === null || node === undefined || ['Identifier', 'Literal', 'ThisExpression'].includes(node.type)
+    || (node.type === 'MemberExpression' && !node.computed && wire(node.object));
   const visit=(node,depth)=>{
     let role=null, reason='';
     if(node.type==='VariableDeclarator'||node.type==='FunctionDeclaration') {
-      const name=nodeName(node.id);role=(node.init?.type==='CallExpression' ? imports.get(calledName(node.init.callee)) ?? namedRole(calledName(node.init.callee),path) : null) ?? namedRole(name,path);reason=`declaration ${name}`;
+      const name=nodeName(node.id);role=(node.type==='VariableDeclarator' && (node.init?.type!=='Literal' && wire(node.init) || node.init?.type==='CallExpression' && node.init.callee.type==='MemberExpression' && calledName(node.init.callee)==='get') ? null : (node.init?.type==='CallExpression' ? imports.get(calledName(node.init.callee)) ?? namedRole(calledName(node.init.callee),path) : null) ?? namedRole(name,path));reason=`declaration ${name}`;
     } else if(node.type==='MethodDefinition') { const name=nodeName(node.key);role=(Object.hasOwn(methods,name)?methods[name]:null)??namedRole(name,path);reason=`method ${name}`;
     } else if(node.type==='Property'||node.type==='PropertyDefinition') {
-      const name=nodeName(node.key);role=namedRole(name,path);reason=`property ${name}`;
+      const name=nodeName(node.key);
+      // Borrowed service references and destructuring fields retain the enclosing
+      // declaration/call owner. A literal tuning row still owns its semantics.
+      const reference=node.type==='Property' && node.value?.type!=='Literal' && wire(node.value);
+      role=reference?null:namedRole(name,path);reason=`property ${name}`;
       // A world's winch prompt and its anchor are quest interaction handles,
       // distinct from the kinematic mover command/pose owners.
       if (path === 'src/shards/driftwood-isle/shard.config.ts' && name === 'movers') role='C9';
@@ -286,8 +293,6 @@ function runtimeTags(source, path, fallback) {
   visit(parsed.program,0);
   // G515: dependency crumbs belong to the enclosing file's component. Keep
   // imported owners above for real calls, but don't turn wiring into a feature.
-  const wire = node => node === null || node === undefined || ['Identifier', 'Literal', 'ThisExpression'].includes(node.type)
-    || (node.type === 'MemberExpression' && !node.computed && wire(node.object));
   const crumbs = node => {
     const field = (node.type === 'Property' || node.type === 'PropertyDefinition')
       && !node.computed && !node.method && node.kind !== 'get' && node.kind !== 'set'
@@ -338,12 +343,20 @@ export function componentInventory(root, shard, sources, canonical) {
   if(total!==canonical)throw new Error(`${shard}: component total ${total} differs from canonical ${canonical}`);
   return {shard,counts,total,unknown,spans};
 }
-/** A component closes only when its wave has known canonical inventories with zero left. */
-export function componentWave(rows, id=currentWave().id) {
+/** Known zero counts close independently. Unresolved ownership remains charged
+ * to C9 and prevents that component from closing; no charge is discarded. */
+export function componentStates(rows, slugs, closing = []) {
+  const shards = slugs.map(shard => rows[shard]?.components), known = shards.length > 0 && shards.every(row => row !== undefined);
+  return Object.fromEntries(Object.keys(COMPONENTS).map(key => {
+    const closed = known && shards.every(row => row.counts[key] === 0 && (key !== 'C9' || row.unknown.length === 0));
+    return [key, { closed, state: closed ? 'closed' : closing.includes(key) ? 'closing' : 'open',
+      lines: Object.fromEntries(slugs.map((slug, index) => [slug, shards[index]?.counts[key] ?? null])) }];
+  }));
+}
+/** A component closes when all measured shards in its wave reach zero. */
+export function componentWave(rows, id=currentWave().id, closing = []) {
   const wave=waveRow(id),slugs=wave.shards.map(row=>row.slug),shards=slugs.map(shard=>rows[shard]?.components);
-  const complete=shards.every(row=>row!==undefined && row.unknown.length===0);
-  const components=Object.fromEntries(Object.keys(COMPONENTS).map(key=>[key,{closed:complete && shards.every(row=>row.counts[key]===0),
-    lines:Object.fromEntries(slugs.map((slug,i)=>[slug,shards[i]?.counts[key]??null]))}]));
+  const components=componentStates(rows,slugs,closing);
   return {id:wave.id,status:wave.status,current:wave.current,shards:slugs,names:Object.fromEntries(wave.shards.map(row=>[row.slug,row.name])),
     unknown:Object.fromEntries(slugs.map((slug,i)=>[slug,shards[i]?.unknown??null])),
     closed:Object.values(components).filter(row=>row.closed).length,total:Object.keys(COMPONENTS).length,components};
@@ -354,12 +367,12 @@ export function componentMarkdown(rows) {
   for(const milestone of SHARD_WAVES.toSorted((a,b)=>Number(b.current)-Number(a.current))){
     const wave=componentWave(rows,milestone.id);
     lines.push('',`## ${wave.id} (${wave.status}) component checklist`,'',
-      `Components closed ${wave.closed} of ${wave.total}. Unknown ownership never counts closed.`,
+      `Components closed ${wave.closed} of ${wave.total}. Unknown ownership stays charged to C9.`,
       'Nine disjoint totals reconcile to canonical custom lines. Mixed TS uses AST declarations and owner calls;',
       'each code line has one owner. Extra GLSL belongs to its look/effect owner.','',
       `| Component | ${wave.shards.map(slug=>`${wave.names[slug]} lines`).join(' | ')} | Closed across both |`,
       `|---|${wave.shards.map(()=>'---:').join('|')}|---|`,
-      ...Object.entries(wave.components).map(([key,row])=>`| ${key} ${COMPONENTS[key]} | ${wave.shards.map(slug=>row.lines[slug]??'unavailable').join(' | ')} | ${row.closed?'yes':'no'} |`),
+      ...Object.entries(wave.components).map(([key,row])=>`| ${key} ${COMPONENTS[key]} | ${wave.shards.map(slug=>row.lines[slug]??'unavailable').join(' | ')} | ${row.state.toUpperCase()} |`),
       `| Total | ${wave.shards.map(slug=>rows[slug]?.components?.total??'unavailable').join(' | ')} | |`,'','### Custom contribution owners','',
       '| Shard | Source | Unit / span | Component | Lines | Owner rule |','|---|---|---|---|---:|---|');
     for(const slug of wave.shards){const report=rows[slug]?.components;if(!report)continue;

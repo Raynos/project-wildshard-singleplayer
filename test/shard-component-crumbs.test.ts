@@ -5,7 +5,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {join,dirname} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small disposable test roots.
 import {tmpdir} from 'node:os';
-import {componentInventory} from '../scripts/shard-components.mjs';
+import {componentInventory,componentStates} from '../scripts/shard-components.mjs';
 import {codeLines,outputShardLines} from '../scripts/shard-platform.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
@@ -60,4 +60,35 @@ test('type-only users share their declarations without sharing unrelated combat 
     platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {type SourceMulDef} from '@wildshard/engine/combat/types'; export type Source=SourceMulDef;"});
     expect(outputShardLines(root)['nalati-grasslands']?.conversion.gameSystemAttribution.exports.map(row=>row.name)).toEqual(['anyTag','sourceMultiplier']);
   }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+test('borrowed service fields retain their owner; calls and tuning keep semantics', () => {
+  const root = mkdtempSync(join(tmpdir(), 'component-borrowed-'));
+  const path = 'src/shards/nalati-grasslands/runtime/state.ts';
+  const source = [
+    'export const field = { audio: services.audio };',
+    'const {audio, score} = services;',
+    'const audio = services.audio;',
+    "const cues = book.presentations.get('night');",
+    'export const direct = installAudio();',
+    'export const row = { score: true };',
+  ].join('\n');
+  try {
+    mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), source);
+    const lines = codeLines(source, path), result = componentInventory(root, 'nalati-grasslands', [{ path, kind: 'runtime-ts', lines }], lines);
+    expect(result.counts.C8).toBe(2);
+    expect(result.counts.C9).toBe(4);
+    expect(result.total).toBe(lines);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('known zeros close; pending charges stay closing and unresolved owners stay in C9', () => {
+  const inventory = (lines: number) => componentInventory('', 'nalati-grasslands',
+    [{ path: 'src/game/riding/mountedFigure.ts', kind: 'sole-module', lines }], lines);
+  const pending = inventory(93); pending.unknown.push('unresolved boot binding');
+  const states = componentStates({ nalati: { components: pending } }, ['nalati'], ['C7']);
+  expect(states.C8.state).toBe('closed'); expect(states.C7.state).toBe('closing'); expect(states.C9.state).toBe('open');
+  expect(states.C7.lines['nalati']).toBe(93);
+  expect(componentStates({ nalati: { components: inventory(0) } }, ['nalati'], ['C7']).C7.state).toBe('closed');
+  expect(componentStates({}, ['missing'], ['C7']).C8.closed).toBe(false);
 });

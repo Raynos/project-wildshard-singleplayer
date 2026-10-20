@@ -18,6 +18,8 @@ export interface Ruler {
   m3:{cut:number;mustGo:number;fraction:number};
   m2:{ready:number;fail:number;unknown:number;total:number};
   netLines?:RulerNetLines[];
+  components?:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>;
+  componentWaves?:{id:string;components:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>}[];
   customSectionFailures?:string[];
   shards:RulerShard[]; native:string[];
   wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};

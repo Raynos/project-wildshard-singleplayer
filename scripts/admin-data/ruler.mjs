@@ -30,6 +30,12 @@ const netLinesSchema = v.array(v.object({
   layers: v.object(Object.fromEntries(['engine', 'game', 'format', 'sdk'].map(layer => [layer,
     v.object({ before: v.number(), after: v.number(), growth: v.number() })]))),
 }));
+const componentStatesSchema = v.record(v.pipe(v.string(), v.regex(/^C[1-9]$/u)),
+  v.pipe(v.object({ closed: v.boolean(), state: v.exactOptional(v.picklist(['closed', 'closing', 'open'])),
+    lines: v.record(v.string(), v.nullable(v.pipe(v.number(), v.integer(), v.minValue(0)))) }),
+    v.check(row => !row.closed || Object.keys(row.lines).length > 0 && Object.values(row.lines).every(lines => lines === 0), 'closed components require every shard at zero'),
+    v.check(row => row.state === undefined || (row.state === 'closed') === row.closed, 'component state must match closure')));
+const componentWavesSchema = v.array(v.object({ id: v.string(), components: componentStatesSchema }));
 
 /** The six legacy shards, in wave order. */
 export const SHARDS = /** @type {const} */ ([
@@ -57,6 +63,8 @@ export const WAVES = [
 /** @typedef {{schema:string;command:string;revision:string;committedAt:string;measuredAt:string;basis:string;
  *   plan:{lower:number;upper:number};m3:{cut:number;mustGo:number;fraction:number};m2:{ready:number;fail:number;unknown:number;total:number};
  *   netLines?:import('./ruler.mjs').RulerNetLines[];customSectionFailures?:string[];shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
+ *   components?:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>;
+ *   componentWaves?:{id:string;components:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>}[];
  *   waves:RulerWaveState[];history:RulerPoint[];events:{at:string;label:string}[]}} Ruler */
 
 /** @param {unknown} value @returns {value is Record<string,unknown>} */
@@ -148,6 +156,8 @@ export function nextRuler(raw, prev, at) {
     m3: { cut: num(progress.m3.cut, 'm3.cut'), mustGo: num(progress.m3.mustGo, 'm3.mustGo'), fraction: num(progress.m3.fraction, 'm3.fraction') },
     m2: { ready, fail: m2total - ready - unknown, unknown, total: m2total },
     netLines: v.parse(netLinesSchema, summary.netLines),
+    ...(summary.components === undefined ? {} : { components: v.parse(componentStatesSchema, summary.components) }),
+    ...(summary.waves === undefined ? {} : { componentWaves: v.parse(componentWavesSchema, summary.waves) }),
     // G514: budget overruns are recorded, never a reason to skip a measurement.
     customSectionFailures: v.parse(v.array(v.string()), summary.customSectionFailures ?? []),
     shards, native,
@@ -176,6 +186,8 @@ export function readRuler(value) {
   num(m3.fraction, 'm3.fraction'); num(m2.total, 'm2.total'); num(wave.pct, 'wave.pct');
   // Existing snapshots predate G496; newly measured snapshots always carry it.
   if (value.netLines !== undefined) v.parse(netLinesSchema, value.netLines);
+  if (value.components !== undefined) v.parse(componentStatesSchema, value.components);
+  if (value.componentWaves !== undefined) v.parse(componentWavesSchema, value.componentWaves);
   if (value.customSectionFailures !== undefined) v.parse(v.array(v.string()), value.customSectionFailures);
   if (!Array.isArray(value.history) || !Array.isArray(value.events) || !Array.isArray(value.native)) throw new Error('Ruler: history, events and native are arrays');
   return /** @type {Ruler} */ (/** @type {unknown} */ (value));
