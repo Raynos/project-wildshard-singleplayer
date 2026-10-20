@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json --source-progress",
- "revision": "33a416fcef78aedf56ed9ee704b4e6e26b938cae",
- "committedAt": "2026-10-20T18:08:37.000Z",
- "measuredAt": "2026-10-20T18:13:30.427Z",
+ "revision": "a39465a82bff36427342502358b78d2d8f67feb8",
+ "committedAt": "2026-10-20T18:12:53.000Z",
+ "measuredAt": "2026-10-20T18:17:21.369Z",
  "basis": "source",
  "plan": {
-  "lower": 0.6619934566744788,
-  "upper": 0.9286601233411456
+  "lower": 0.6620458431921848,
+  "upper": 0.9287125098588516
  },
  "m3": {
-  "cut": 88457,
+  "cut": 88464,
   "mustGo": 80173.3,
-  "fraction": 1.103322427790798
+  "fraction": 1.1034097386536414
  },
  "m2": {
   "ready": 0,
@@ -53,9 +53,9 @@
   {
    "wave": "W2",
    "revision": "68e72579516106c8307cb72e1ec1b91d3b7f649e",
-   "customCut": 36929,
+   "customCut": 36936,
    "platformGrowth": 57375,
-   "netCut": -20446,
+   "netCut": -20439,
    "layers": {
     "engine": {
      "before": 67897,
@@ -93,7 +93,7 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 20,
-   "custom": 2304,
+   "custom": 2297,
    "legacy": 21305,
    "pct": 10.8,
    "grid": "unknown",
@@ -1085,6 +1085,19 @@
    "basis": "source",
    "shards": {
     "pine-hollow": 10.814362825627786,
+    "driftwood-isle": 10.357080445039903,
+    "far-reach": 0,
+    "sunscar-dunes": 0,
+    "nalati-grasslands": 15.396545646810011,
+    "nine-dragon-stack": 9.222680119369048
+   }
+  },
+  {
+   "revision": "a39465a82bff36427342502358b78d2d8f67feb8",
+   "at": "2026-10-20T18:12:53.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 10.781506688570758,
     "driftwood-isle": 10.357080445039903,
     "far-reach": 0,
     "sunscar-dunes": 0,
