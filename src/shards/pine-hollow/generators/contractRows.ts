@@ -78,6 +78,7 @@ export function contractCatalogue(): ContractCatalogue {
       { below: 0.65, kind: 'rarity', targets: RARITY.map(row => row.id) },
       { below: 0.8, kind: 'elite', targets: ELITES }, { below: 1, kind: 'thrall', targets: ['thrall'] }],
     ranks: { common: 0, uncommon: 1, rare: 2, legendary: 3 }, defaultRank: 'common',
+    tags: [{ tag: 'thrall', any: [{ variant: 'thrall' }, { label: 'Thrall' }] }],
     matches: [{ kind: 'species', match: 'species', excludeTags: ['thrall'], excludeElite: false },
       { kind: 'rarity', match: 'rarity', excludeTags: ['thrall'], excludeElite: true, belowRank: 3 },
       { kind: 'elite', match: 'elite', excludeTags: [], excludeElite: false },

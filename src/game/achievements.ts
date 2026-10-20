@@ -70,6 +70,27 @@ export interface AchievementCounters {
   readonly count:(id:string,total:number)=>void;readonly replay:()=>void;
   readonly syncFlags:(flags:AchievementFlagPorts,submit?:(id:string,total:number)=>void)=>void;
 }
+/** Renderer-free counter book for native quest continuations. Outcomes queue
+ * plain fact rows for the existing ledger owner; restoring never replays them. */
+export class AchievementCounterBook {
+  private counts: Record<string, number> = {};
+  private facts: { readonly fact: string; readonly entity: string }[] = [];
+  readonly counters: AchievementCounters;
+  constructor(rows: AchievementCounterRows, initial: Readonly<Record<string, number>> = {}) {
+    this.restore(initial);
+    this.counters = createAchievementCounters(rows, { read: () => ({ ...this.counts }),
+      write: counts => { this.counts = counts; }, emit: (fact, entity) => { this.facts.push({ fact, entity }); } });
+  }
+  snapshot(): Record<string, number> { return { ...this.counts }; }
+  /** The containing quest validates its saved envelope before committing it. */
+  restore(counts: Readonly<Record<string, number>>): void {
+    if (Object.values(counts).some(count => !Number.isSafeInteger(count) || count < 0)) throw new RangeError('Invalid achievement totals');
+    this.counts = { ...counts }; this.facts.length = 0;
+  }
+  takeFacts(): readonly { readonly fact: string; readonly entity: string }[] {
+    const facts = this.facts; this.facts = []; return facts;
+  }
+}
 /** Match bounded authored outcomes and submit only newly reached stable identities. */
 export function createAchievementCounters(profile:AchievementCounterRows,ports:AchievementCounterPorts):AchievementCounters {
   if(profile.feats.length>256||new Set(profile.feats.map(row=>row.id)).size!==profile.feats.length||profile.prefix.length>96

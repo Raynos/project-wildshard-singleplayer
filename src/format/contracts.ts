@@ -14,6 +14,9 @@ export const ContractCatalogueSchema = v.strictObject({
   draws: v.pipe(v.array(v.strictObject({ below: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)),
     kind: text, targets: v.pipe(v.array(text), v.minLength(1), v.maxLength(64)) })), v.minLength(1), v.maxLength(32)),
   ranks: v.record(text, integer), defaultRank: text,
+  tags: v.exactOptional(v.pipe(v.array(v.strictObject({ tag: text,
+    any: v.pipe(v.array(v.pipe(v.strictObject({ kind: v.exactOptional(text), variant: v.exactOptional(text), label: v.exactOptional(text) }),
+      v.check(row => row.kind !== undefined || row.variant !== undefined || row.label !== undefined))), v.minLength(1), v.maxLength(64)) })), v.maxLength(64))),
   matches: v.pipe(v.array(v.strictObject({ kind: text, match: v.picklist(['species', 'rarity', 'elite', 'tag']),
     excludeTags: v.array(text), excludeElite: v.boolean(), belowRank: v.exactOptional(positive) })), v.minLength(1), v.maxLength(32)),
   milestones: v.pipe(v.array(v.strictObject({ claimed: positive, skin: text })), v.maxLength(32)),
@@ -35,6 +38,7 @@ export function parseContractCatalogue(input: unknown): ContractCatalogue {
   if (new Set(rows.rows.map(row => row.id)).size !== rows.rows.length
     || new Set(rows.rows.map(row => JSON.stringify([row.kind, row.target]))).size !== rows.rows.length
     || new Set(rows.matches.map(row => row.kind)).size !== rows.matches.length
+    || new Set(rows.tags?.map(row => row.tag)).size !== (rows.tags?.length ?? 0)
     || rows.rows.some(row => !rows.matches.some(match => match.kind === row.kind))
     || rows.draws.some((row, index) => (index > 0 && row.below <= (rows.draws[index - 1]?.below ?? 0))
       || row.targets.some(value => !has(row.kind, value)))

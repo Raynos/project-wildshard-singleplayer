@@ -1,7 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readProjectAssets } from '../src/sdk/project';
-import { claim, draw, loadBoard, recordKill, saveBoard } from '../src/game/quest/contracts';
+import { claim, contractKill, draw, loadBoard, recordKill, saveBoard } from '../src/game/quest/contracts';
 import { ContractBoard, CONTRACT_ACTION } from '../src/game/quest/contractBoard';
 import { parseContractCatalogue, type ContractCatalogue } from '../src/format/contracts';
 
@@ -34,6 +34,13 @@ test('compiled contract offers preserve every title, target, reward and determin
   expect([hash(contracts.rows), hash(contracts.species), hash(contracts.rarity), hash(contracts.elites)])
     .toEqual([originals.CONTRACT_ROWS, originals.SPECIES, originals.RARITY, originals.ELITE_TARGETS]);
   expect(hash(Array.from({ length: 128 }, (_, serial) => draw(contracts, serial)))).toBe(originals.draws);
+});
+
+test('compiled targets retain native thralls and the older labelled coat', () => {
+  const contracts = catalogue();
+  expect(contractKill(contracts, { kind: 'elk', variant: 'thrall' }).tags).toEqual(['thrall']);
+  expect(contractKill(contracts, { kind: 'boar', variant: 'moss', label: 'Thrall' }).tags).toEqual(['thrall']);
+  expect(contractKill(contracts, { kind: 'elk', variant: 'common' }).tags).toEqual([]);
 });
 
 test('the old board save restores silently on page and native, then claims the same offer and payout', () => {

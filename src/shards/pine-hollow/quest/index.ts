@@ -30,7 +30,6 @@ import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
-import { isPineThrall } from './featLaw';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
  * Hollow*, PH-C6 the mill hamlet, PH-C7 night play, PH-C8 collectibles + secrets, PH-C10's event achievements, the C9
@@ -62,7 +61,7 @@ import { PINE_FIGURES } from '../roster';
 import type { FigureRows as NpcFigure } from '@wildshard/game/systems/npc/figureRows';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { codePart, loadCodeParts } from '../runtime/world/codeParts';
-import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from '@wildshard/game/quest/contracts';
+import { loadBoard, saveBoard, recordKill, claim, reroll, contractKill, isFilled, type Board } from '@wildshard/game/quest/contracts';
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from '@wildshard/game/quest/story';
 import { Exchange } from '@wildshard/game/loot/exchange';
 import './pinehollow.css';
@@ -303,7 +302,7 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
   // ── kills: the King, thralls, the contracts ──
   const killed = bindQuestDeathEffects(native.pageDeaths, { flags, kill: featFacts.kill, event: featFacts.event,
     calls: new Map([['contracts', (a: AnimalManager['animals'][number]) => {
-      const moved = recordKill(contracts, board, { kind: a.kind, variant: a.variant, rarity: a.rarity, elite: eliteOf(contracts, a.kind, a.variant), tags: isPineThrall(a) ? ['thrall'] : [] });
+      const moved = recordKill(contracts, board, contractKill(contracts, a));
       if (moved.length === 0) return;
       persistBoard();
       for (const i of moved) {

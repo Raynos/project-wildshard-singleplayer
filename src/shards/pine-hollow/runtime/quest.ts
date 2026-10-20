@@ -12,13 +12,13 @@ import { installQuestGraph, bindQuestTableSpots, bindQuestDeathEffects, createRe
 import wardens from '../data/wardensHollow.json' with { type: 'json' };
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { PINE_PHASES } from '../look/dayKeys';
-import { createPineFacts, isPineThrall } from '../quest/featLaw';
+import { AchievementCounterBook } from '@wildshard/game/achievements';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import { DirectorScriptStageLane, type readDirectorProduct } from '@wildshard/game/plugin/director';
 import LEVER_FLAG from '../data/nativeLoadout.json' with { type: 'json' };
 import { NativeInventory, nativeInventorySchema, type NativeInventoryProfile } from '@wildshard/game/inventoryLaw';
 import { ContractBoard, CONTRACT_ACTION } from '@wildshard/game/quest/contractBoard';
-import { eliteOf } from '@wildshard/game/quest/contracts';
+import { contractKill } from '@wildshard/game/quest/contracts';
 import { questBenchPose } from '@wildshard/game/quest/storyLaw';
 import benchRows from '../data/questBench.json' with { type: 'json' };
 import { Exchange } from '@wildshard/game/loot/exchange';
@@ -233,8 +233,11 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   cables.state(cableId);
   const state = { rifle: false };
 
-  let counts: Record<string, number> = {};
-  const feats = createPineFacts(ports.counters, { read: () => ({ ...counts }), write: current => { counts = current; }, emit: ports.fact });
+  const counterBook = new AchievementCounterBook(ports.counters), feats = counterBook.counters;
+  const flushFacts = (): void => {
+    const facts = counterBook.takeFacts();
+    for (let i = 0; i < 1048576; i++) { const row = facts[i]; if (row === undefined) break; ports.fact(row.fact, row.entity); }
+  };
   const lodge = new ContractBoard({ contracts: ports.contracts, prompt: boardPrompt, radius: boardPrompt.radius });
   const useBoard = (value: number): void => {
     const claim = lodge.use(value, eye);
@@ -242,7 +245,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     for (let i = 0; i < 16; i++) { const item = claim.reward.items[i]; if (item === undefined) break; pack.add(item.id, item.n); }
     if (claim.reward.bolts > 0) ports.addBolts(claim.reward.bolts);
     if (claim.reward.skin === 'hollow-ash') hollowAsh = true;
-    feats.event('streak', claim.streak);
+    feats.event('streak', claim.streak); flushFacts();
   };
   const initialLodge = lodge.snapshot();
 
@@ -273,7 +276,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   };
 
   // ── one page/host feat law, fed only by committed flags and actual creature deaths ──
-  const syncFeats = (): void => { feats.syncFlags(flags); };
+  const syncFeats = (): void => { feats.syncFlags(flags); flushFacts(); };
   const offFlags = flags.onChange((f, on) => {
     if (!on) return;
     if (f === 'wait:night') clock.request('night.request');
@@ -282,11 +285,11 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   host.scope.onDispose(offFlags);
   const killed = bindQuestDeathEffects(content.deaths, { kill: feats.kill, event: feats.event,
     calls: new Map([['contracts', (body: SimHost['entities'] extends ReadonlyMap<string, infer Entity> ? Entity : never) => {
-      lodge.killed({ kind: body.kind, variant: body.variant, rarity: body.rarity, elite: eliteOf(ports.contracts, body.kind, body.variant), tags: isPineThrall(body) ? ['thrall'] : [] });
+      lodge.killed(contractKill(ports.contracts, body));
     }]]) });
   host.events.on('actor.died', ({ actor }) => {
     const body = [...host.entities.values()].find(candidate => candidate.combatActor() === actor);
-    if (body !== undefined) killed(body);
+    if (body !== undefined) { killed(body); flushFacts(); }
   }, host.scope);
   syncFeats();
 
@@ -335,7 +338,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (lead['event'] === 5) { followedFrame.flags = flags.all; commitQuestEffects(host, 'pack', steps.signal(followed, followedFrame)); }
   }, {
     snapshot: () => ({ stag: { ...stag }, dawn: clock.snapshot(), fast: fast.on === null ? null : { ...fast.on }, zip: cables.state(cableId).riding ? { s: cables.snapshot(cableId).s, v: cables.snapshot(cableId).v } : null,
-      rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), lodge: lodge.snapshot(), ...(hollowAsh ? { hollowAsh } : {}),
+      rifle: state.rifle, counts: counterBook.snapshot(), pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), lodge: lodge.snapshot(), ...(hollowAsh ? { hollowAsh } : {}),
       ...(trader.active || tradeSkins.size > 0 ? { trader: { modal: trader.snapshot(), skins: [...tradeSkins] } } : {}),
       ...(ports.ammunition?.changed === true ? { ammunition: ports.ammunition.snapshot() } : {}) }),
     restore: value => {
@@ -351,7 +354,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       if (saved.trader?.modal.open === true && (finish.open || saved.dialogue !== null || saved.zip !== null || ports.ammunition === undefined)) throw new RangeError('Invalid Pine trader/modal ownership');
       restoreClock(saved.dawn); if (saved.stag.i >= content.lead.path.length) throw new RangeError('Invalid stag continuation');
       Object.assign(stag, saved.stag); fast.on = saved.fast; cables.restore(cableId, { riding: saved.zip !== null, s: saved.zip?.s ?? 0, v: saved.zip?.v ?? 0 }); state.rifle = saved.rifle;
-      counts = { ...saved.counts };
+      counterBook.restore(saved.counts);
       pack.restore(saved.pack);
       restoreDialogue(); restoreLodge(); restoreTrader(); restoreAmmo?.(); hollowAsh = saved.hollowAsh; tradeSkins = new Set(saved.trader?.skins);
     },

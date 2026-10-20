@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { parseContractCatalogue } from '../src/format/contracts';
 import { ContractBoard, CONTRACT_ACTION } from '../src/game/quest/contractBoard';
-import { counts, draw, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/quest/contracts';
+import { contractKill, counts, draw, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/quest/contracts';
 
 // A made-up island has two notices, different species/ranks, a tag objective,
 // a first-claim finish and four-item rewards. It has no lodge or Pine ids.
@@ -11,6 +11,7 @@ const island = () => parseContractCatalogue({
   fallback: { kind: 'hunt', target: 'gull' },
   draws: [{ below: 0.2, kind: 'hunt', targets: ['crab', 'gull'] }, { below: 1, kind: 'clear', targets: ['invader'] }],
   ranks: { plain: 0, bright: 1, royal: 2 }, defaultRank: 'plain',
+  tags: [{ tag: 'invader', any: [{ kind: 'crab', variant: 'armoured' }, { label: 'Old Invader' }] }],
   matches: [{ kind: 'hunt', match: 'species', excludeTags: ['invader'], excludeElite: false },
     { kind: 'clear', match: 'tag', excludeTags: [], excludeElite: false },
     { kind: 'shine', match: 'rarity', excludeTags: [], excludeElite: true, belowRank: 2 },
@@ -27,6 +28,17 @@ const island = () => parseContractCatalogue({
   ],
 });
 const here = { x: 4, y: 2, z: 9 };
+test('death rows classify overlapping variants and legacy labels before board exclusions', () => {
+  const contracts = island(), board = newBoard(contracts);
+  const armoured = contractKill(contracts, { kind: 'crab', variant: 'armoured' });
+  expect(armoured.tags).toEqual(['invader']);
+  expect(contractKill(contracts, { kind: 'gull', variant: 'armoured' }).tags).toEqual([]);
+  expect(contractKill(contracts, { kind: 'gull', label: 'Old Invader' }).tags).toEqual(['invader']);
+  expect(contractKill(contracts, { kind: 'crab', variant: 'armoured', label: 'Old Invader' }).tags).toEqual(['invader']);
+  expect(contractKill(contracts, { kind: 'gull', variant: 'crowned' }).elite).toBe('captain');
+  recordKill(contracts, board, armoured);
+  expect(board.slots.map(row => row.have)).toEqual([0, 1]);
+});
 test('another shard accepts, counts, completes, rewards and tears through rows alone', () => {
   const contracts = island(), board = new ContractBoard({ contracts, prompt: here, radius: 3 });
   expect(board.snapshot().board.slots).toHaveLength(2);
@@ -97,4 +109,6 @@ test('admission refuses dangling targets and callback-shaped policy', () => {
   expect(() => parseContractCatalogue({ ...good, draws: [{ ...good.draws[0], below: 0.5 }] })).toThrow();
   expect(() => parseContractCatalogue({ ...good, decide: () => 1 })).toThrow();
   expect(() => parseContractCatalogue(Object.assign(new Date(), good))).toThrow();
+  expect(() => parseContractCatalogue({ ...good, tags: [{ tag: 'invader', any: [{}] }] })).toThrow();
+  expect(() => parseContractCatalogue({ ...good, tags: [...good.tags ?? [], ...good.tags ?? []] })).toThrow();
 });

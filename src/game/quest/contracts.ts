@@ -25,6 +25,17 @@ export function eliteOf(contracts: ContractCatalogue, kind: string, variant: str
   return null;
 }
 
+/** Classify actual death observations with the board's admitted target rows.
+ * Labels support legacy coats whose original variants did not carry a tag. */
+export function contractKill(contracts: ContractCatalogue, subject: {
+  readonly kind: string; readonly variant?: string; readonly rarity?: string; readonly label?: string;
+}): KillInfo {
+  return { kind: subject.kind, variant: subject.variant, rarity: subject.rarity,
+    elite: eliteOf(contracts, subject.kind, subject.variant), tags: (contracts.tags ?? []).filter(row => row.any.some(match =>
+      (match.kind === undefined || match.kind === subject.kind) && (match.variant === undefined || match.variant === subject.variant)
+      && (match.label === undefined || match.label === subject.label))).map(row => row.tag) };
+}
+
 function rand(serial: number, salt: number): number {
   let t = (serial * 0x9e3779b1 + salt * 0x85ebca6b) >>> 0;
   t = (t + 0x6d2b79f5) >>> 0;
