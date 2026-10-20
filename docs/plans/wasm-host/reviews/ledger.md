@@ -23,6 +23,9 @@ Settled. A seat reopens an item only with new evidence (file and line, quote, so
 - **W11** Threads: not now.
 - **W12** Done = a demo shard (combo, mover, view effect in pure AS, zero shard TS) + a phone reading ≤ 1 ms per frame
   for 20 active bindings + every script on v2 + v0/v1 deleted.
+- **W13** (added 2026-10-20, during round 2) Server-runnable sim, MMO-ready: state-based continuity through one
+  authoritative server; sim lane and ws_project run headless in Node from the same bytes, no client-only inputs, stable
+  save ids, versioned schema; the MMO server itself is a future plan.
 - Jake, 2026-10-20: *"we want to absolutely min-max the JavaScript wasm boundaries … as few boundary calls as
   possible, and for the wasm to do as much work with as much context as it needs"*; *"once you enter the WASM, it
   shouldn't be going back into JavaScript"*.

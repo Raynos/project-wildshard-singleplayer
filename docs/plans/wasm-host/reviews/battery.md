@@ -17,3 +17,6 @@ Walk each through docs/plans/WASM-HOST.md. A step the plan doesn't answer is a f
 7. **A desktop save loaded on the phone** mid-fight: does the fight continue identically (W6)?
 8. **H0 on Jake's phone**: what exactly he taps, what it measures, where the numbers land, and how the plan changes
    if Wasm→JS turns out cheap on JavaScriptCore.
+9. **Desktop to phone, MMO-style** (W13): play on desktop, finish half a quest, pick up items, log out mid-field; log in
+   on the phone and resume at the same place with the same quest step, items and timers; the same sim bytes run headless
+   in Node for a future server.
