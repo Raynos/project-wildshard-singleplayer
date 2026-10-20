@@ -16,5 +16,6 @@ its own gate next to M2: each row's `pass`.
 | sunscar-dunes-road-entry | sunscar-dunes | PASS | 36 / 78 ms | 34 / 82 ms | 34 ms | FAIL |
 
 The Simulator is Mac-backed Safari, not physical-iPhone performance. Approach profiles (Safari script profiler, not
-part of this receipt) put the remaining travel cost in shader warm-up and node builds (~29 %), texture uploads (10–15 %)
-and Developer-mode GPU labelling (12–14 %).
+part of this receipt) put the remaining travel cost in shader warm-up and node builds (~29 %) and texture uploads
+(10–15 %). GPU labelling's own work is ~3–5 % (its first-JS-frame share; an earlier 12–14 % figure counted the draw
+calls its renderBufferDirect wrapper encloses).
