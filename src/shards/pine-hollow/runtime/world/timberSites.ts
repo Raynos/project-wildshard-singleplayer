@@ -1,6 +1,4 @@
-import type { FloorRows } from '../productSections.generated.d.ts';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import type { UnderPlacements } from '../../world/undergrowth';
 /**
  * Pine Hollow's two site-fitted timber landmarks, the zipline landing and the creek footbridge (E315 M2; PH-B3), where
  * they stand and their offline bake (G285, SF72 "bake the code-built worlds"). Each is fitted to the ground under it: the
@@ -27,11 +25,4 @@ export async function loadSiteTimbers(ctx: ModelContext): Promise<Map<string, Wh
     refs));
   const ready = await pending; ctx.once('pine-hollow/timber:ready', () => ready);
   return ready;
-}
-
-
-/** Required named floor records, decoded during authoring rather than on the page. */
-export async function loadUnderPlacements(): Promise<UnderPlacements> {
-  const product = await loadFirstPartyProduct('pine-hollow');
-  return (await product.json<FloorRows>('world/floor.json')).layout;
 }

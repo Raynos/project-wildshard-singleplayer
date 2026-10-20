@@ -2,6 +2,72 @@
   "schema": "platform-pending-users/1",
   "entries": [
     {
+      "module": "src/game/audio/forestPage.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "declared runtime entry",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
+    },
+    {
+      "module": "src/game/loadout/rangedPage.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "declared runtime entry",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
+    },
+    {
+      "module": "src/game/shardfile/forestPage.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "declared runtime entry",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
+    },
+    {
+      "module": "src/game/looks/forestRoofMask.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "declared runtime entry",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
+    },
+    {
+      "module": "src/game/looks/forestWeather.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "declared runtime entry",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
+    },
+    {
+      "module": "src/game/looks/forestGround.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "declared runtime entry",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
+    },
+    {
       "module": "src/game/quest/nativeInputs.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {

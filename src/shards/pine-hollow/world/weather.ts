@@ -23,24 +23,19 @@
  * Antler King's sealed clearing sets it, so the fight's own fog (×26 on the clock's density) is the whole fog in there.
  * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
+import { forestWeatherObservations, type ForestWeatherObservations } from '@wildshard/game/looks/forestWeather';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
-import type { Game } from '@wildshard/engine/core/Game';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { TIER } from '@wildshard/engine/core/tier';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { fogUniforms, weatherUniforms, volumetricFog } from '@wildshard/engine/world/Atmosphere';
-import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { waterWeather } from './water';
 import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
-import type { Particles } from '@wildshard/game/systems/looks/particles';
-import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { keyedSkyOf } from '@wildshard/game/looks/keyedSky';
 import { installWeatherContinuation } from '@wildshard/game/plugin/weather';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
@@ -57,33 +52,17 @@ type ShardContext = Parameters<typeof installEnteredRuntimeService>[0];
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */
 export const weatherHold = { k: 0 };
 
-export interface PineWeatherHost {
-  game: Game;
-  sky: Sky;
-  trees: readonly TreeInstance[];
-  animals: AnimalManager;
-  particles: Particles | null;
-  ambience: DeclaredAmbience | null;
-  /** a roof over (x, z) — the cabins' floors and porch decks */
-  roofAt: (x: number, z: number) => boolean;
-  /** the quest's pale stag, when it is out */
-  stagAt: () => THREE.Vector3 | null;
-  /** the eye (the player, or the free camera) */
-  viewer: () => THREE.Vector3;
-  /** the painted horizon's veil (HorizonMatte PaintedHorizon.veil): x the deck over it all, y the fog on its low rows */
-  horizonVeil: { value: THREE.Vector2 } | null;
-  /** the rain's offline bake (`loadPineRain`) */
-  rain: RainBake;
-}
+export interface PineWeatherHost extends ForestWeatherObservations { readonly rain: RainBake }
 
 /** The tier's rain bake (generators/bake-pine-rain.mjs: the puddles, the crowns' cover), fetched before `installWeather`. */
 export const loadPineRain = (): Promise<RainBake> => loadRainBake(`/assets/pine-hollow/baked/rain${TIER === 'phone' ? '.phone' : ''}.bin`, rainRows[TIER]);
 
 export interface PineWeatherRig { weather: WeatherContinuation; fx: InstanceType<typeof RainFx>; setMode: (m: string, at?: number) => void }
 
-export async function installWeather(ctx: ShardContext, host: PineWeatherHost): Promise<PineWeatherRig | null> {
+export async function installWeather(ctx: ShardContext, input: unknown): Promise<PineWeatherRig | null> {
   const rows=parseWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.product.file('world/weather.json'))));
   const shelterRows = populationShelter(JSON.parse(new TextDecoder().decode(await ctx.product.file('actors/shelter.json'))));
+  const host = { ...forestWeatherObservations(ctx, input), rain: await loadPineRain() };
   return installPineWeather(host, ctx, rows, shelterRows, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
@@ -106,13 +85,13 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: Weather
 
   // the height fog's own floor / falloff (Sky set them from the chunk's atmosphere): the dawn fog lifts and steepens them
   const baseH = fogUniforms.fogHeight.value, baseFall = fogUniforms.fogHeightFalloff.value;
-  const baseMist = h.particles?.params.mistOpacity ?? 1;
+  const baseMist = h.particles.params.mistOpacity;
   const shelter = new HerdShelter(h.animals, h.trees.map(tree => ({ x: tree.x, z: tree.z, r: tree.r, height: tree.height, cover: fx.coverAt(tree.x, tree.z) })), shelterRows.look, ReturnProgram.page(shelterRows.program, ctx.scope));
   const wind = { x: 0, z: 0 };
 
   const veil = { x: { value: 0 }, y: { value: 0 } };
   const roots = new Map<string, unknown>(Object.entries({ mod: pine.mod, fog: fogUniforms, weather: weatherUniforms, volume: volumetricFog,
-    veil, particles: h.particles?.params ?? null, water: waterWeather, wind: windBoost, windVector: wind }));
+    veil, particles: h.particles.params, water: waterWeather, wind: windBoost, windVector: wind }));
   const channels=installChannelPrograms(ctx.product.shardfile.clientChannels,'weather',roots);
   const answers = (scope: Scope): void => {
     h.game.app.events.answer('projectile.modify', (input) => h.game.app.levelScope === h.game.levelScope ? (input.ammo.wet === undefined ? input : { ...input, ...wetFlight(input, rows.wetProjectile, weather.rain) }) : input, scope);
@@ -140,7 +119,7 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: Weather
   const blob = new THREE.Vector3();
   /** C7: the Ghost Stag — the quest's lead when it is out, else the elite when it is within 140 m — in a fog bank at dawn */
   const stagInFog = (eye: THREE.Vector3, dt: number): void => {
-    let p = h.stagAt();
+    let p = h.guideAt();
     if (p === null) {
       let bd = 140 * 140;
       for (const a of h.animals.animals) {
@@ -165,7 +144,7 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: Weather
       hold, eye.x, eye.z, baseH, baseFall, baseMist, Number(room), WIND_DIR.x, WIND_DIR.z];
     channels.evaluate({time:0,delta:dt,values});
     if (h.horizonVeil) h.horizonVeil.value.set(veil.x.value, veil.y.value);
-    if (h.ambience) h.ambience.inputs['rain'] = room ? 0 : weather.rain;
+    h.ambience.inputs['rain'] = room ? 0 : weather.rain;
     fx.update(dt, weather, wind, h.game.camera);
     shelter.update(dt, weather.rain);
     stagInFog(eye, dt);

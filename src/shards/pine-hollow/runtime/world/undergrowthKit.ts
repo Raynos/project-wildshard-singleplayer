@@ -8,24 +8,12 @@
  */
 import * as THREE from 'three';
 import type { ModelContext, ModelPart } from '@wildshard/engine/models/model';
-import { loadSiteTimbers } from './timberSites';
-import type { UnderPlacements, UnderKind, UnderKindDraw } from '../../world/undergrowth';
-/** The six original shapes are charged GLB library views, shared with the native world reader. */
-export type UnderShapes = Readonly<Record<UnderKind, THREE.BufferGeometry>>;
-export async function loadUnderShapes(ctx: ModelContext): Promise<UnderShapes> {
-  const views = await loadSiteTimbers(ctx);
-  const shape = (kind: UnderKind): THREE.BufferGeometry => {
-    const view = views.get(`pine-undergrowth-${kind}`);
-    if (view === undefined) throw new Error(`[undergrowth] missing admitted shape ${kind}`);
-    return view.geometry.clone();
-  };
-  return { ferns: shape('ferns'), shrubs: shape('shrubs'), litter: shape('litter'), stones: shape('stones'), moss: shape('moss'), reeds: shape('reeds') };
-}
+import type { ForestGroundDraw, ForestGround } from '@wildshard/game/looks/forestGround';
 
 const KEY = 'pine-hollow/undergrowth';
 
 /** what the field hands its models: its kinds' parts and where every copy stands */
-export interface UnderField { readonly kinds: Readonly<Record<UnderKind, UnderKindDraw>>; readonly placements: UnderPlacements }
+export interface UnderField { readonly kinds: Readonly<Record<string, ForestGroundDraw>>; readonly placements: ForestGround['layout'] }
 
 /** hand the field's kinds to the models */
 export function useUndergrowth(ctx: ModelContext, field: UnderField): void { ctx.once(KEY, () => field); }
@@ -33,14 +21,15 @@ export function useUndergrowth(ctx: ModelContext, field: UnderField): void { ctx
 const fieldOf = (ctx: ModelContext): UnderField => ctx.once<UnderField>(KEY, () => { throw new Error('[undergrowth] not built (useUndergrowth)'); });
 
 /** a kind's part as the field draws it: its geometry, its shader material, its shadow */
-export function underPart(ctx: ModelContext, kind: UnderKind): ModelPart[] {
-  const k = fieldOf(ctx).kinds[kind];
-  return [{ geometry: k.geometry, material: k.material, castShadow: k.castShadow, receiveShadow: true, ...(k.customDepthMaterial ? { customDepthMaterial: k.customDepthMaterial } : {}) }];
+export function underPart(ctx: ModelContext, kind: string): ModelPart[] {
+  const k = fieldOf(ctx).kinds[kind]; if (k === undefined) throw new Error('Missing forest cover kind');
+  return [{ geometry: k.geometry, material: k.material, castShadow: k.castShadow, receiveShadow: true,  }];
 }
 
 /** a kind's specimen part: the field's geometry, its texture in a plain lit material (one per kind per shard) */
-export function underSpecimen(ctx: ModelContext, kind: UnderKind): ModelPart[] {
-  const field = fieldOf(ctx), k = field.kinds[kind], first = field.placements[kind][0];
+export function underSpecimen(ctx: ModelContext, kind: string): ModelPart[] {
+  const field = fieldOf(ctx), k = field.kinds[kind], first = field.placements[kind]?.[0];
+  if (k === undefined) throw new Error('Missing forest cover kind');
   const material = ctx.once(`${KEY}:${kind}`, () => {
     const src = k.material;
     const m = new THREE.MeshStandardMaterial({ map: src.map, alphaTest: src.alphaTest, side: THREE.DoubleSide, roughness: src.roughness, metalness: 0 });

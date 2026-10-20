@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import type { Placement } from '@wildshard/engine/models/model';
 import { placeSliced } from '@wildshard/engine/models/place';
-import type { UnderPlacement, Undergrowth } from '../../world/undergrowth';
+import type { ForestGround } from '@wildshard/game/looks/forestGround';
 import type { FieldModelsContext } from '@wildshard/game/shard/manifest';
 import { pineModels } from './context';
 import { useUndergrowth } from './undergrowthKit';
@@ -30,7 +30,7 @@ const FLOOR_KINDS = 6;
 /** Place the forest's trees and the floor's kinds, each in slices (`placeSliced` pausing on `due`, SF67): the same draws,
  *  registrations and order as one `place` per model, with a frame let through between the pieces when the cell builds on
  *  the road (the trees' and the ferns' placements were 20–50 ms stretches). */
-export async function placeDrawnModels(h: FieldModelsContext<Undergrowth>, due: () => Promise<void> | null): Promise<void> {
+export async function placeDrawnModels(h: FieldModelsContext<ForestGround>, due: () => Promise<void> | null): Promise<void> {
   const ctx = pineModels(h.sky, h);
   const { forest, under, registry } = h;
   const treeVariants = forestTree.variants;
@@ -60,7 +60,7 @@ export async function placeDrawnModels(h: FieldModelsContext<Undergrowth>, due: 
     for (let i = 0; i < Math.min(kinds.length, FLOOR_KINDS); i++) {
       const entry = kinds[i];
       if (entry === undefined) continue;
-      const [model, kind] = entry, items: readonly UnderPlacement[] = under.layout[kind];
+      const [model, kind] = entry, items = under.layout[kind] ?? [];
       if (items.length === 0) continue;
       await placeSliced(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: new THREE.Matrix4().fromArray(it.matrix), color: new THREE.Color(it.r, it.g, it.b) })),
         { ctx, draw: 'instanced', registry, piece: { id: model.id }, cull, parent: under.group }, due);

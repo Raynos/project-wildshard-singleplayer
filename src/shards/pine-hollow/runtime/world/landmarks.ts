@@ -33,7 +33,8 @@ import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { type ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { PineCabins } from '../index';
+import type { LivingPage as PineCabins } from '@wildshard/game/shardfile/forestPage';
+import type { ShardContext } from '@wildshard/game/plugin/context';
 import { emptyBuildingLifeRows } from '@wildshard/format/buildings';
 import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
 import { loadCodeParts } from './codeParts';
@@ -184,7 +185,7 @@ export class PineLandmarks {
  * Build Pine Hollow's landmarks, register them (drawn, colliding, the decks as floors) and keep them updated. The hamlet's
  * buildings are not here: `new Cabins(sky, game.scene)` assembles them with the cabins from the bake (../generators/logCabin.ts).
  */
-export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: PineCabins | null; scenes: SceneHandles; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void; }): Promise<PineLandmarks> {
+export async function installPineLandmarks(ctx: ShardContext, h: { sky: Sky; registry: WorldRegistry; cabins: PineCabins | null; scenes: SceneHandles; }): Promise<PineLandmarks> {
   const lm = await new PineLandmarks(h.sky, h.scenes).build(h.cabins);
   // what is left is light: the waystones' flames and anchors, the cave's shaft and drips
   h.registry.add({ id: 'pine-landmarks', name: 'Landmark lights', category: 'props', file: 'src/shards/pine-hollow/runtime/world/landmarks.ts', object: lm.group });
@@ -194,6 +195,7 @@ export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistr
     await macrotask();
     h.registry.add({ id: 'pine-cave', name: 'Bear cave', category: 'nature', file: 'src/shards/pine-hollow/runtime/kit/caveInterior.ts', colliders: [...crags.cave.shell, ...crags.cave.roofPatch()], surface: 'rock' });
   }
-  h.onUpdate((_dt, t) => { lm.update(t); });
+  const run = (_dt: number, t: number): void => { lm.update(t); };
+  ctx.system({ id: 'pine.landmarks', phase: 'update', run });
   return lm;
 }

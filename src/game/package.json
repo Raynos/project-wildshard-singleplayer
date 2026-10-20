@@ -3,6 +3,12 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./audio/forestPage": "./audio/forestPage.ts",
+    "./loadout/rangedPage": "./loadout/rangedPage.ts",
+    "./shardfile/forestPage": "./shardfile/forestPage.ts",
+    "./looks/forestRoofMask": "./looks/forestRoofMask.ts",
+    "./looks/forestWeather": "./looks/forestWeather.ts",
+    "./looks/forestGround": "./looks/forestGround.ts",
     "./population/creatureGuest": "./population/creatureGuest.ts",
     "./quest/nativeInputs": "./quest/nativeInputs.ts",
     "./quest/nativeComposition": "./quest/nativeComposition.ts",

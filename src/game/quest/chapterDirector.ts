@@ -1,4 +1,5 @@
 import { Vector3 } from 'three';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { RewardCaption } from '@wildshard/engine/quest/view/ui';
 import { parseChapterDirector, parseChapterWake, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
 import { bindRuntimeBoss } from '../plugin/headless';
@@ -181,6 +182,13 @@ export async function installQuestSpawnDirector(ctx: ShardContext, input: unknow
     } };
 }
 
+const leadActors = new WeakMap<Scope, Map<string, { actor: Animal | null }>>();
+/** Native observation of the actual guide body, including its hidden lifetime. */
+export function chapterLeadPosition(scope: Scope, quest: string): Vector3 | null {
+  if (scope.disposed) return null;
+  return leadActors.get(scope)?.get(quest)?.actor?.position ?? null;
+}
+
 /** Client-only guide lifetime over the actual manager. The chapter's existing
  * AS projection decides at 10 Hz; the native body integrates each frame. A
  * guide is removed from combat, aim-assist and minimap lists immediately. */
@@ -195,6 +203,9 @@ export function installChapterLead(ctx: ShardContext, input: unknown): {
   if (world === undefined || world === null || animals === undefined) throw new Error('Chapter guide requires its entered world');
   if (!chapter.quest.def.steps.some(step => step.id === rows.step)) throw new Error('Unknown chapter guide step');
   let actor: Animal | null = null, pending = 0;
+  const lead = { get actor(): Animal | null { return actor; } }, book = leadActors.get(ctx.scope) ?? new Map<string, { actor: Animal | null }>();
+  if (book.has(rows.quest)) throw new Error('Duplicate native chapter guide');
+  book.set(rows.quest, lead); leadActors.set(ctx.scope, book); ctx.scope.onDispose(() => { book.delete(rows.quest); });
   const walk = { i: 0, mode: 0, elapsed: 0 }, observation = { i: 0, mode: 0, elapsed: 0, begin: 0, dt: 0, on: 0, playerX: 0, playerZ: 0, atX: 0, atZ: 0 };
   let puffs: { readonly kind: 'appear' | 'fade'; readonly x: number; readonly y: number; readonly z: number }[] = [];
   const puff = (kind: 'appear' | 'fade'): void => {

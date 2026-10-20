@@ -48,7 +48,7 @@ import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from '@wildshar
  * Dev: `?quest=ranger|pond|ridge|zip|den|stag|king|dawn|done` (beats.ts), `?resetquest`, `window.__pineQuest`.
  */
 import * as THREE from 'three';
-import type { PineCabins } from '../runtime/index';
+import type { LivingPage as PineCabins } from '@wildshard/game/shardfile/forestPage';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { PINE_PHASES } from '../look/dayKeys';

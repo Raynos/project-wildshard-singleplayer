@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./rangedPage": "./rangedPage.ts",
+    "./forestPage": "./forestPage.ts",
     "./creatureGuest": "./creatureGuest.ts",
     "./nativeQuestComposition": "./nativeQuestComposition.ts",
     "./roamingCombat": "./roamingCombat.ts",
