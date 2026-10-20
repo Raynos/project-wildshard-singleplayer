@@ -16,6 +16,12 @@ import { LightCheat } from './light';
 import { grassV2Uniforms, grassMood, terrainHeightTexture } from './field';
 import { createStaticCapture, PHONE_STATIC_OFF_CSM } from './capture';
 import { smoothstep } from '@wildshard/engine/core/noise';
+import { painterlyUniforms } from '@wildshard/engine/world/painterly';
+import { CRAG_LOOK } from '../models/cragRock';
+
+/** the lit look graphs on the painterly preset (data/lookGraphs.json): they take the world look's live shade, rim and wet */
+const PAINTERLY_GRAPHS = [CRAG_LOOK];
+const shadeV = [0, 0, 0], rimV = [0, 0, 0];
 
 export interface LookV2Ctx {
   game: Game; sky: Sky; weather: NalatiWeather;
@@ -79,6 +85,10 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     setLentParam('nalati-cloud-sea', 'uSunView', look.sunDir.toArray());
     for (const id of ['nalati-panorama', 'nalati-cloud-sea']) for (const [key, uniform] of graphUniforms) {
       const value = uniform.value; setLentParam(id, key, typeof value === 'number' ? value : value.toArray());
+    }
+    for (const id of PAINTERLY_GRAPHS) {
+      setLentParam(id, 'shade', painterlyUniforms.uPShade.value.toArray(shadeV)); setLentParam(id, 'rim', painterlyUniforms.uPRimColor.value.toArray(rimV));
+      setLentParam(id, 'wet', painterlyUniforms.uPWet.value);
     }
     grassV2Uniforms.uSunView.value.copy(look.sunDir); // the grass glows looking into the (painted, real) sun
     // night: the painted sky fades out above the ridge line, the rig's stars show through (it is hidden by day: no overdraw)

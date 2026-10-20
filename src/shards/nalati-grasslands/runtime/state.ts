@@ -190,7 +190,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     const geometry = welded.toNonIndexed(); welded.dispose(); geometry.computeBoundingBox(); geometry.computeBoundingSphere();
     return [part.key, geometry] as const;
   }));
-  const cragScene = createClientScene(crags.recipe, { geometry: key => cragGeometry.get(key), materials: new Map([['crag', cragMaterial(sky)]]) });
+  const cragScene = createClientScene(crags.recipe, { geometry: key => cragGeometry.get(key), materials: new Map([['crag', cragMaterial()]]) });
   game.scene.add(cragScene.root);
   await macrotask();
   const cragPlaced = place(cragRock, crags.placements, { ctx: rockCtx, draw: 'merged', registry: plugin.app.registry,

@@ -8,61 +8,36 @@
  *
  * Every piece is a stack of jittered polygon rings (5–7 sides) tapering to a split crown, with a stepped ledge or two
  * (the strata — snow lies on them), flat-shaded, drawn from its placer's rng stream (so the ring is bit-identical). On
- * one painterly material that paints them like the terrain's granite: the painted rock texture triplanar in world
- * space, vertical fractures and strata bands, snow on every face that looks up above the snow line, blue in the shade.
+ * one painterly look graph that paints them like the terrain's granite (data/lookGraphs.json 'nalati-crag', the phone's
+ * without the second rock octave): the painted rock texture triplanar in world space, vertical fractures and strata
+ * bands, snow on every face that looks up above the snow line, blue in the shade.
  * src/shards/nalati-grasslands/cragRock.ts places ~500 over the snow ring, merged into four quadrant meshes (drawnInto them); each
  * collides as the hull of what it draws.
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import * as v from 'valibot';
 import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
 import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
 import { loadSpecimenTexture } from '@wildshard/game/models/specimenCatalogue';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import cragRows from '../boot/cragRock.generated.json' with { type: 'json' };
 import { assetBytes } from '@wildshard/sdk/assets';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { defineModel } from '@wildshard/engine/models/model';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { CRAG_GLSL } from '../runtime/looks/cragGlsl';
 
 const { SNOW_LINE } = layoutRows;
 
-/** the GLSL below is trusted custom code (runtime/looks/cragGlsl.ts); `@{name}` splices the fragments this module passes */
-const CRAG_GLSL_FAMILY = new ShaderFamily(CRAG_GLSL, {});
+/** the crags' look graph: the phone's drops the second rock octave */
+export const CRAG_LOOK = TIER_CONFIG.maxTexture <= 1024 ? 'nalati-crag-phone' : 'nalati-crag';
 
-// ── the material: the terrain's granite (src/shards/nalati-grasslands/terrainSurface.ts cragRock), snow on what looks up ──────────
-
-const CRAG_FRAG_PARS = CRAG_GLSL_FAMILY.glsl(CRAG_GLSL.CRAG_FRAG_PARS);
-const cragFragMain = (phone: boolean): string => CRAG_GLSL_FAMILY.glsl(CRAG_GLSL.cragFragMain, { CRAG_DETAIL: phone ? '' : `vec2 st = vec2( 1.0, 0.45 ) * s * 0.21;
-  r *= mix( vec3( 1.0 ), ( texture2D( tCragRock, p.zy * st ).rgb * w.x + texture2D( tCragRock, p.xz * s * 0.21 ).rgb * w.y + texture2D( tCragRock, p.xy * st ).rgb * w.z ) / uCragRockMean, 0.6 );`, SNOW_LO: (SNOW_LINE - 14).toFixed(1), SNOW_HI: (SNOW_LINE - 2).toFixed(1) });
-
-export function cragMaterial(sky: Sky): THREE.MeshLambertMaterial {
-  const mat = painterlyMaterial(sky, { vertexColors: true, rim: 0.3, bands: 0.8 });
-  const white = new THREE.DataTexture(new Uint8Array([200, 200, 200, 255]), 1, 1);
-  white.colorSpace = THREE.SRGBColorSpace; white.wrapS = white.wrapT = THREE.RepeatWrapping; white.needsUpdate = true;
-  const uniforms = {
-    uPSunDir: painterlyUniforms.uPSunDir,
-    tCragRock: { value: white as THREE.Texture }, tCragSnow: { value: white as THREE.Texture },
-    uCragRockMean: { value: new THREE.Vector3(...paintedTextures.mean.rock) },
-    uCragScale: { value: new THREE.Vector2(1 / paintedTextures.metres.rock, 1 / paintedTextures.metres.snow) },
-  };
-  Promise.all([loadSpecimenTexture(specimenData.materials.rock.texture), loadSpecimenTexture(specimenData.materials.snow.texture)]).then(([rock, snow]) => { uniforms.tCragRock.value = rock; uniforms.tCragSnow.value = snow; return uniforms; }).catch(() => null);
-  const phone = TIER_CONFIG.maxTexture <= 1024;
-  patchShader(mat, 'nalati.crag-rock', PATCH_ORDER.decorate, (shader) => {
-    Object.assign(shader.uniforms, uniforms);
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vCragW; varying vec3 vCragN;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvCragW = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;\nvCragN = normalize( mat3( modelMatrix ) * objectNormal );');
-    shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\n${CRAG_FRAG_PARS}`)
-      .replace('#include <color_fragment>', cragFragMain(phone));
-  }, { key: `nalati-crag-rock${phone ? '-phone' : ''}` });
-  return mat;
+export function cragMaterial(): THREE.Material {
+  setLentParam(CRAG_LOOK, 'rockMean', paintedTextures.mean.rock);
+  setLentParam(CRAG_LOOK, 'scale', [1 / paintedTextures.metres.rock, 1 / paintedTextures.metres.snow]);
+  setLentParam(CRAG_LOOK, 'snowBand', [SNOW_LINE - 14, SNOW_LINE - 2]);
+  Promise.all([loadSpecimenTexture(specimenData.materials.rock.texture), loadSpecimenTexture(specimenData.materials.snow.texture)]).then(([rock, snow]) => { setLentTexture(CRAG_LOOK, 'rock', rock); setLentTexture(CRAG_LOOK, 'snow', snow); return rock; }).catch(() => null);
+  return lentLook(CRAG_LOOK);
 }
 
 export type CragKind = 'fin' | 'rib' | 'tower';
@@ -78,6 +53,6 @@ export const cragRock = defineModel<{ readonly kind: CragKind }>({
   build: (ctx, p) => {
     const part = cragRows.specimens[p.kind];
     const geometry = readBakedGeometry(assetBytes(part.bytes), 0, v.parse(CRAG_GEOMETRY, part.row));
-    return [{ geometry, material: ctx.once('nalati-crag-rock', () => cragMaterial(ctx.sky)), castShadow: true, receiveShadow: true }];
+    return [{ geometry, material: ctx.once('nalati-crag-rock', cragMaterial), castShadow: true, receiveShadow: true }];
   },
 });
