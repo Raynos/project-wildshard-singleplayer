@@ -1,3 +1,4 @@
+import { driftwoodJsonBlob as nameBlob } from './namedSchemas';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
 import authoredSpots from '../data/spotsRows.json' with { type: 'json' };
 import { CHAPTER_DIRECTOR } from './chapterDirector';
@@ -55,7 +56,7 @@ import type { PlatformDataSectionName } from '@wildshard/format/platformDataSect
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
 import * as v from 'valibot';
 import {SECTIONS,WIRE_SCHEMAS,FixedGeometryGroupsSchema} from './sectionSchemas.generated';
-import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
+import { emitNamedBlobs } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { DRIFTWOOD_FEAT_COUNTERS } from './questInventory';

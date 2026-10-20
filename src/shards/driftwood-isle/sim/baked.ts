@@ -100,7 +100,7 @@ export type NativeEnemyPlacements = v.InferOutput<typeof EnemyPlacements>;
 export function readEnemyPlacements(input: unknown): NativeEnemyPlacements { return v.parse(EnemyPlacements, input); }
 
 const stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
-const keeperRows = v.strictObject({ environment: PopulationEnvironmentSchema, seed: finite,
+export const KeeperRowsSchema = v.strictObject({ environment: PopulationEnvironmentSchema, seed: finite,
   volley: BodySlotsSchema,
   ecology: v.strictObject({ program: v.unknown(), outOfSight: v.pipe(finite, v.minValue(0)), rules: v.record(v.string(), v.strictObject({
     delay: v.strictObject({ min: v.pipe(finite, v.minValue(0)), max: v.pipe(finite, v.minValue(0)) }), night: v.exactOptional(v.boolean()) })) }),
@@ -111,5 +111,5 @@ const keeperRows = v.strictObject({ environment: PopulationEnvironmentSchema, se
   bodies: v.pipe(v.array(v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, x: finite, z: finite,
     yaw: finite, seed: finite, scale: finite, fauna: v.boolean(), practice: v.boolean(), stream: v.nullable(stream) })), v.length(34)) });
 /** Admitted immutable keeper boot rows; version-8 live continuation stays with the existing native owner. */
-export type NativeKeeperRows = v.InferOutput<typeof keeperRows>;
-export function readKeeperRows(input: unknown): NativeKeeperRows { return v.parse(keeperRows, input); }
+export type NativeKeeperRows = v.InferOutput<typeof KeeperRowsSchema>;
+export function readKeeperRows(input: unknown): NativeKeeperRows { return v.parse(KeeperRowsSchema, input); }
