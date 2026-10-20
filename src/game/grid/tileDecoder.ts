@@ -13,6 +13,7 @@ export type TileDecodeReply = { id: number; data: TerrainTileData; error?: undef
 /** A small pool of decode workers, round-robin. */
 export class TileDecoder {
   private readonly workers: Worker[] = [];
+  private readonly tails: Promise<void>[] = [];
   private readonly pending = new Map<number, { resolve: (data: TerrainTileData) => void; reject: (error: Error) => void }>();
   private next = 0;
   private id = 0;
@@ -26,8 +27,9 @@ export class TileDecoder {
         this.pending.delete(id);
         if (event.data.data !== undefined) waiter.resolve(event.data.data); else waiter.reject(new Error(`tile decode: ${event.data.error}`));
       };
-      worker.onerror = (event): void => { for (const waiter of this.pending.values()) waiter.reject(new Error(`tile decode worker: ${event.message}`)); this.pending.clear(); };
+      worker.onerror = (event): void => { this.dispose(new Error(`tile decode worker: ${event.message}`)); };
       this.workers.push(worker);
+      this.tails.push(Promise.resolve());
     }
   }
   /** True when decoding runs off the main thread. */
@@ -38,20 +40,30 @@ export class TileDecoder {
    */
   decode(bytes: Uint8Array, options: { transfer?: boolean } = {}): Promise<TerrainTileData> {
     if (this.disposed) return Promise.reject(new Error('tile decoder is disposed'));
-    const worker = this.workers[this.next++ % Math.max(1, this.workers.length)];
-    if (worker === undefined) return Promise.resolve().then(() => decodeTerrainTile(bytes));
-    const whole = options.transfer === true && bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength;
-    const buffer = whole && bytes.buffer instanceof ArrayBuffer ? bytes.buffer : bytes.slice().buffer, id = ++this.id;
-    return new Promise<TerrainTileData>((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      const request: TileDecodeRequest = { id, bytes: buffer };
-      worker.postMessage(request, [buffer]);
+    const slot = this.next++ % Math.max(1, this.workers.length), worker = this.workers[slot];
+    if (worker === undefined) return Promise.resolve().then(() => { if (this.disposed) throw new Error('tile decoder is disposed'); return decodeTerrainTile(bytes); });
+    const transfer = options.transfer === true;
+    // Reads remain parallel, but a queued tile keeps its existing source view.
+    // Copy/transfer only when this worker can decode it: no second wire buffer
+    // for every tile in an entire ring waiting in worker message queues.
+    const decoded = (this.tails[slot] ?? Promise.resolve()).then(() => {
+      if (this.disposed) throw new Error('tile decoder is disposed');
+      const whole = transfer && bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength;
+      const buffer = whole && bytes.buffer instanceof ArrayBuffer ? bytes.buffer : bytes.slice().buffer, id = ++this.id;
+      return new Promise<TerrainTileData>((resolve, reject) => {
+        this.pending.set(id, { resolve, reject });
+        const request: TileDecodeRequest = { id, bytes: buffer };
+        try { worker.postMessage(request, [buffer]); }
+        catch (error) { this.pending.delete(id); reject(error instanceof Error ? error : new Error(String(error))); }
+      });
     });
+    this.tails[slot] = decoded.then(() => undefined, () => undefined);
+    return decoded;
   }
-  dispose(): void {
+  dispose(reason = new Error('tile decoder is disposed')): void {
     if (this.disposed) return; this.disposed = true;
     for (const worker of this.workers) worker.terminate();
-    for (const waiter of this.pending.values()) waiter.reject(new Error('tile decoder is disposed'));
+    for (const waiter of this.pending.values()) waiter.reject(reason);
     this.pending.clear();
   }
 }
