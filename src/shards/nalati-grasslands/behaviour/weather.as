@@ -72,7 +72,12 @@ if (signal == Signal.lineStart) {
     put(Channel.x, tx); put(Channel.z, tz); put(Channel.speed, speed); put(Channel.turn, turn);
   }
 if(resultCount>0)return;
-if(signal==Signal.warriorCycle){
+if(signal==Signal.patrolMotion){
+ const dt=f(Field.dt),first=f(Field.first)>0;
+ let vx=first||dt<=0?0:(f(Field.px)-f(Field.x))/dt,vz=first||dt<=0?0:(f(Field.pz)-f(Field.z))/dt;
+ if(length(vx,vz)>f(Field.radius)){vx=0;vz=0;}
+ put(Channel.x,f(Field.px));put(Channel.z,f(Field.pz));put(Channel.vx,vx);put(Channel.vz,vz);put(Channel.first,0);
+} else if(signal==Signal.warriorCycle){
  const phase=f(Field.kind),previous=f(Field.phase),wake=phase==1&&previous!=1;
  put(Channel.phase,phase);put(Channel.spawn,wake?1:0);put(Channel.dissolve,phase==0&&previous!=0?1:0);
  put(Channel.t,f(Field.t)+(wake?1:0));put(Channel.statue,phase==0?1:0);

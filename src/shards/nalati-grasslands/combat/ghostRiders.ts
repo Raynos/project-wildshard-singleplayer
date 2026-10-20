@@ -15,7 +15,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 
-import { EncounterPatrol, type PatrolMember } from '@wildshard/game/boss/encounterPatrol';
+import { EncounterPatrol, EncounterSchedule, type PatrolMember } from '@wildshard/game/boss/encounterPatrol';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { NightRows } from './nightTypes';
 import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '../species/ghostRider';
@@ -102,8 +102,7 @@ export class GhostRiders extends GroupBrain<Animal> {
   hurt?: ((damage: number, from: Animal | null) => void) | undefined;
   private animals: AnimalManager | null = null;
   private readonly author: ReturnProgram;
-  private readonly lastPlayer = new THREE.Vector3();
-  private readonly playerVel = new THREE.Vector3();
+  private readonly motion: EncounterSchedule;
   private readonly hitResult: TargetHit;
   private shooter: Animal | null = null;
 
@@ -111,6 +110,7 @@ export class GhostRiders extends GroupBrain<Animal> {
     super([]);
     this.author = ReturnProgram.page(nightRows.program, ctx.game.levelScope);
     this.patrol = new EncounterPatrol(nightRows.patrol, this.author, app.rng.stream('ai'));
+    this.motion = new EncounterSchedule(nightRows.motion, this.author);
     this.arrows = new Projectiles({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest }, undefined, ghostArrowKind(nightRows));
     this.arrows.mesh.renderOrder = 13; this.arrows.mesh.receiveShadow = false;
     this.arrows.onPlayerHit = (p, d) => { this.hurt?.(nightRows.damage, this.shooter); this.mist.burst(p, 10, 1.5, 0.6, 0.8, 0.25, MIST, 0.2, FLAG_GROW, 0.2); void d; };
@@ -211,10 +211,9 @@ export class GhostRiders extends GroupBrain<Animal> {
   update(dt: number, t: number): void {
     GHOST_TIME.value = t;
     const p = this.ctx.player.position;
-    if (dt > 0) { this.playerVel.subVectors(p, this.lastPlayer).multiplyScalar(1 / dt); if (this.playerVel.length() > 20) this.playerVel.set(0, 0, 0); }
-    this.lastPlayer.copy(p);
     const step = this.patrol.update(this.animals === null ? 0 : dt, { px: p.x, py: p.y, pz: p.z, hold: Number(this.hold), night: Number(this.ctx.clock.dayPhase === 'night') },
       this.riders.map(r => ({ id: r.law.id, x: r.a.position.x, z: r.a.position.z, alive: Number(r.a.alive), hidden: Number(r.a.hidden) })));
+    if (step.dt > 0) this.motion.project({ dt: step.dt, px: p.x, pz: p.z });
     if (step.spawn) this.spawnLine();
     const effects = new Map(step.effects.map(effect => [effect.member.id, effect]));
     for (let i = this.riders.length - 1; i >= 0; i--) {
@@ -253,7 +252,7 @@ export class GhostRiders extends GroupBrain<Animal> {
     const a = r.a, p = this.ctx.player.position;
     ghostSeat(a, _v); _v.y += 0.7 * a.scale;                 // from the rider's shoulders
     const aim = this.author.project('aim', { x: _v.x, y: _v.y, z: _v.z, px: p.x, py: p.y, pz: p.z,
-      vx: this.playerVel.x, vz: this.playerVel.z }, app.rng.stream('ai'));
+      vx: this.motion.value('vx'), vz: this.motion.value('vz') }, app.rng.stream('ai'));
     _d.set(aim['dx'] ?? 0, aim['dy'] ?? 0, aim['dz'] ?? 0);
     this.shooter = a;
     this.arrows.launch(_v, _d, { damageScale: 1 });

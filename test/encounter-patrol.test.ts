@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { EncounterPatrol, EncounterPatrolSchema } from '../src/game/boss/encounterPatrol';
+import { EncounterPatrol, EncounterPatrolSchema, EncounterSchedule } from '../src/game/boss/encounterPatrol';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
@@ -63,4 +63,15 @@ test('an unrelated harbour patrol uses the host with its own route and group siz
   expect(Number.isFinite(first.state['tx'])).toBe(true);
   expect(first.state['v']).toBe(2);
   expect(() => host.plan(9, 0, { x: 0, z: 0 })).toThrow('group size');
+});
+
+test('aim motion samples use the patrol cadence and reject teleports inside AS', () => {
+  const host = make(), motion = new EncounterSchedule(night.motion, ReturnProgram.page(night.program));
+  const first = host.update(.1, frame, []); motion.project({ dt: first.dt, px: 0, pz: 0 });
+  expect(motion.value('vx')).toBe(0);
+  const next = host.update(.1, { ...frame, px: 1 }, []); motion.project({ dt: next.dt, px: 1, pz: 0 });
+  expect(motion.value('vx')).toBe(10);
+  expect(host.update(.05, frame, []).dt).toBe(0);
+  motion.project({ dt: .1, px: 100, pz: 100 });
+  expect(motion.value('vx')).toBe(0); expect(motion.value('vz')).toBe(0);
 });

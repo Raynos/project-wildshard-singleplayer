@@ -3,6 +3,7 @@ import type { ProjectileKind } from '@wildshard/engine/combat/view/projectile';
 export interface NightRows {
   program: unknown;
   patrol: unknown;
+  motion: unknown;
   slots: unknown;
   ghost: Readonly<Record<'rider' | 'captain' | 'storm', { key: string; common: string; fragment: string }>>;
   parameters: Readonly<Record<string, number>>;

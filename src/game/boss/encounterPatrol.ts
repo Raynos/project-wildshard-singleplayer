@@ -48,9 +48,9 @@ export class EncounterPatrol {
     this.groups.push(group); return { group, slots };
   }
   /** Retirements and shots are emitted once per bounded decision step. */
-  update(dt: number, frame: Readonly<Record<string, number>>, observations: readonly PatrolObservation[]): { spawn: boolean; effects: readonly PatrolEffect[] } {
+  update(dt: number, frame: Readonly<Record<string, number>>, observations: readonly PatrolObservation[]): { spawn: boolean; effects: readonly PatrolEffect[]; dt: number } {
     this.elapsed += dt;
-    if (this.elapsed + 1e-9 < .1) return { spawn: false, effects: [] };
+    if (this.elapsed + 1e-9 < .1) return { spawn: false, effects: [], dt: 0 };
     const step = this.elapsed; this.elapsed = 0;
     const live = new Map(observations.map(row => [row.id, row]));
     const cycle = this.program.project(this.rows.signals.cycle, { ...frame, ...this.cycle, dt: step, living: this.living });
@@ -89,7 +89,7 @@ export class EncounterPatrol {
       const group = this.groups[i];
       if (group?.members.every(member => member.state['dead'] === 1 || live.get(member.id)?.hidden === 1) === true) this.groups.splice(i, 1);
     }
-    return { spawn: cycle['spawn'] === 1, effects };
+    return { spawn: cycle['spawn'] === 1, effects, dt: step };
   }
 }
 
