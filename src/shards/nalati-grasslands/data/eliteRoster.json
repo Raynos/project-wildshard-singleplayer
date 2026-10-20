@@ -1,0 +1,48 @@
+{
+  "conditions": [
+    {
+      "id": "always",
+      "signal": "eliteRule",
+      "observations": {
+        "rule": 0
+      }
+    },
+    {
+      "id": "storm",
+      "signal": "eliteRule",
+      "observations": {
+        "rule": 1
+      }
+    },
+    {
+      "id": "night",
+      "signal": "eliteRule",
+      "observations": {
+        "rule": 2
+      }
+    },
+    {
+      "id": "dusk",
+      "signal": "eliteRule",
+      "observations": {
+        "rule": 3
+      }
+    }
+  ],
+  "knockDuration": 1,
+  "prewarm": [
+    {
+      "kind": "leopard",
+      "variant": "aqbars"
+    },
+    {
+      "kind": "eagle",
+      "variant": "qyran"
+    },
+    {
+      "kind": "kokbori",
+      "variant": "kokbori"
+    }
+  ],
+  "debug": "nalati.elites"
+}

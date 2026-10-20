@@ -122,9 +122,7 @@ export class NalatiPlugin extends ShardPlugin {
     await part();
     ctx.scope.run(() => rt.boss.bind(ctx,kit,weaponCatalogue.model('goldenBow'),bowVariant));
     await part();
-    ctx.scope.run(() => rt.elites.bind({ persistence: persistence.elites, animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables: shell.interactables, params,
-      toast: common.toast, feed: common.feed, record: (kind, variant) => { persistence.kill(kind, variant); persistence.feat(kind); }, pickupHum: common.pickupHum,
-      sound: (name, at) => { audio.animal(name, at, player.position, player.yaw); }, sting: (event) => { if (event === 'kill') music.sting('chunk'); else music.combat(event === 'phase2' ? 1 : 0.8); } }));
+    ctx.scope.run(() => rt.elites.bind({ persistence, animals, wildlife, taming: ride?.taming ?? null, interactables: shell.interactables, hud, audio, music }));
     await part();
     ctx.scope.run(() => rt.titan.bind({ ...common, persistence: persistence.bosses, wildlife, ride, get sabre() { return kit.sabre; }, upgradeSabre: (power) => { kit.upgradeSabre(weapons, power); },
       hurt: (amount, why) => { hurt('boss.storm-titan', amount, { kind: 'storm-titan', label: 'the Storm Titan' }, why); },

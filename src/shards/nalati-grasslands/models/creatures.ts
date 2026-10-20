@@ -14,7 +14,6 @@
  */
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
-import { registerArgymaq } from '../combat/elites';
 import type { CrowdBody as FlockBody } from '@wildshard/game/ambient/crowdDraw';
 import { createNativeFlocks, readFlockBody } from '../runtime/flockDeclared';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -24,7 +23,6 @@ import { titanCloud, titanPose } from '../combat/stormTitan';
 const FILE = 'src/shards/nalati-grasslands/models/creatures.ts';
 
 // Argymaq's kind is registered by the elite as he spawns (src/shards/nalati-grasslands/elites.ts); the roster lists him from boot
-registerArgymaq();
 
 /** the flock's seed for the card's sheep: its first draws make a cream sheep standing, head up */
 const SHEEP_SEED = 3;

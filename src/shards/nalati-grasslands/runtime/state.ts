@@ -1,3 +1,4 @@
+import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
 import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
@@ -9,13 +10,13 @@ import { PageWildlife, type WildlifeBuildStep } from '@wildshard/game/population
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import { setDogFlock } from '../species/sheepdog';
 import { Marmots,preloadCover } from '../creatures/marmots';
-import { bindEliteAdmission } from './argymaqKeeper';
+import { eliteAdmission, bindEliteAdmission } from './argymaqKeeper';
 import { wildEnv,bindHerdDamage } from '@wildshard/game/population/pageGroups';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { installRide } from '../ride/input';
-import { Vector3, type Object3D } from 'three';
+import { Group, Mesh, Vector3, type Object3D } from 'three';
 import * as v from 'valibot';
 import { clientWaterSurfaces } from '@wildshard/game/shardfile/clientWaterSurfaces';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
@@ -37,8 +38,9 @@ import { buildNalatiPOIs } from '../world/view';
 import type { NalatiPOIs } from '../world/viewTypes';
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { type ArenaRoomEncounter, arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
-import { bakedActorGeometries } from '../world/places';
-import { wireElites, type NalatiElites } from '../combat/elites';
+import { bakedActorGeometry, bakedActorGeometries } from '../world/places';
+import { EliteRosterPage, type EliteRosterRows } from '@wildshard/game/quest/eliteRosterPage';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { wireWeather, type NalatiWeather } from '../world/installWeather';
 import { windEnv } from '../world/weatherStep';
 
@@ -89,7 +91,7 @@ export interface Nalati {
   boss: ArenaRoomEncounter;
   /** the named elites (elites agent, B12; src/shards/nalati-grasslands/elites.ts): Aqbars, Kokbori, Qyran, Qara Batyr, Argymaq — `elites.bind(play)`
    *  from main.ts once the animals, the wildlife and the HUD exist */
-  elites: NalatiElites;
+  elites: EliteRosterPage<Flock>;
   /** the creatures (creatures agent, B4; src/engine/entities/Wildlife.ts): wolf packs, the horse herd + stallion, the sheep flock +
    *  its dog, marmots, the camp's saddled horses. main.ts calls `attachAnimals(animals)` right after its animals step. */
   attachAnimals: (animals: AnimalManager) => Wildlife;
@@ -201,7 +203,11 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
   const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
-  const elites = wireElites({ charge, game, sky, player: ctx.player, ledges: pois.cragLedges, phase: () => weather.clock.dayPhase, storm: () => weather.weather.stormActive });
+  const { constants: { pageElites } } = await plugin.product.json<{ constants: { pageElites: EliteRosterRows } }>('sim/headless-assembly.json');
+  const dropMaterial = painterlyMaterial(sky, { rim: .6 });
+  const drops = new Map([...pageElites.keepers, ...pageElites.external].map(row => { const model = new Group(); model.add(new Mesh(bakedActorGeometry(`trophy:${row.def.id}`), dropMaterial)); return [row.def.id, model] as const; }));
+  const elites = new EliteRosterPage<Flock>({ game, player: ctx.player, ledges: pois.cragLedges, rock: poiLayout.EAGLE_ROCK, clock: weather.clock, weather: weather.weather },
+    pageElites, eliteAdmission(), drops, charge);
   updates.push((dt, t) => {
     if (titan.engaged) { elites.bar?.hide(); return; }   // one boss bar at a time: the elites stand down while the Titan fights
     if (practiceRoom.open) { elites.bar?.hide(); return; }   // a practice room over the steppe: no banner, no bar, no lair found from 3 km up (E321)
