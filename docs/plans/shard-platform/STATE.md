@@ -4,7 +4,7 @@
 
 **G515/G516:** C8/C7/C3 landed; C6 G516 items, Jian combo, nalatiArms rename are ready-queue rows.
 
-**Jake's 16:38/16:44 live reports:** pier collision fixed (b5c30731ee, 515f9cb5b2, test ecaee42f77); grid park fixed (836c8d22a9, O1 02fb4e4288 + 8f220455e8); release held for sp-x9's 0-stuck pier walk. Stale-PWA fix ae06555bcf.
+**Jake's 16:38/16:44 live reports:** pier + grid stall FIXED and proven (e1799246dd: standalone and grid 8-leg Driftwood walk 0 stuck incl. pier and wreck, grid collider parity clean); release dispatched with the next CI + boot-smoke-green head (sp-x7). Stale-PWA fix ae06555bcf.
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
