@@ -1,3 +1,6 @@
+import cragRows from '../data/cragRock.generated.json' with {type:'json'};
+import paintedTextures from '../data/paintedTextures.json' with {type:'json'};
+import layout from '../data/layout.generated.json' with {type:'json'};
 import decorative from '../data/decorative.generated.json' with {type:'json'};
 import metrics from '../data/modelMetrics.json' with {type:'json'};
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
@@ -82,7 +85,16 @@ function compileDressingScene(tier:'phone'|'desktop') {
   geometry['wing']={kind:'packed',source:'cover',key:'wing'};geometry['halfBird']={kind:'packed',source:'cover',key:'halfBird'};
   materials['butterfly']={kind:'painterly',rim:.3,bands:.5,shade:.6,emissive:0x101010};materials['raptor']={kind:'painterly',rim:.6,bands:.6};
   const bowl=bowlScene(tier,geometry,materials);statics.push(...bowl.statics);
-  const result={instances:bowl.instances,staticModels:bowl.staticModels,name:'nalati-dressing',catalogues:[{rows:specimens.catalogue,packed:specimens.packed,materials:specimens.materials},{rows:profile.catalogue,packed:profile.packed,materials:cover.materials}],packs:{cover:{rows:profile.packed,materials:cover.materials}},geometry,materials,layers,statics,
+  const crags=cragRows[tier],cragGeometry:Record<string,string>={};
+  for(const part of crags.meshes){geometry[part.key]=baked('/assets/nalati/baked/crags.bin',part.offset,v.parse(SceneBakedGeometrySchema,part.row));cragGeometry[part.key]=part.key;}
+  const rockTexture=specimens.materials['rock']?.texture,snowTexture=specimens.materials['snow']?.texture;
+  if(rockTexture===undefined||snowTexture===undefined)throw new Error('Missing prepared crag tiles');
+  materials['crag']={kind:'look',look:phone?'nalati-crag-phone':'nalati-crag',params:{rockMean:paintedTextures.mean.rock,scale:[1/paintedTextures.metres.rock,1/paintedTextures.metres.snow],snowBand:[layout.SNOW_LINE-14,layout.SNOW_LINE-2]},textures:{rock:rockTexture,snow:snowTexture}};
+  const firstCrag=crags.meshes[0];if(firstCrag===undefined)throw new Error('Missing prepared crag shape');
+  const cragModel={model:{id:'nalati-grasslands/crag-rock',name:'Crag rock',category:'nature',pipeline:'code',file:'src/shards/nalati-grasslands/models/cragRock.ts',surface:'rock',defaults:{kind:'fin'},variants:[{id:'fin',label:'Fin',params:{}},{id:'rib',label:'Rib',params:{kind:'rib'}},{id:'tower',label:'Tower',params:{kind:'tower'}}]},geometry:firstCrag.key,material:'crag'};
+  const cragPoints=Float32Array.from(crags.hulls.flatMap(row=>row.points)),cragContacts={kind:'packed-hulls',data:encoded(new Uint8Array(cragPoints.buffer)),origins:crags.hulls.map(row=>[row.x,row.y,row.z,row.points.length]),surface:'rock'};
+  statics.push({name:'cragRocks',recipe:crags.recipe,geometry:cragGeometry,materials:{crag:'crag'},tris:crags.triangles,members:[{model:'nalati-grasslands/crag-rock',draw:'merged',placements:crags.placements,boxes:crags.boxes,contacts:cragContacts}]});
+  const result={instances:bowl.instances,staticModels:[...bowl.staticModels,cragModel],name:'nalati-dressing',catalogues:[{rows:specimens.catalogue,packed:specimens.packed,materials:specimens.materials},{rows:profile.catalogue,packed:profile.packed,materials:cover.materials}],packs:{cover:{rows:profile.packed,materials:cover.materials}},geometry,materials,layers,statics,
     wings:{groups:profile.life,layers:[{id:'butterfly',capacity:cover.butterflies[tier],palette:cover.hue,flap:[12,1.15,.25],geometry:'wing',material:'butterfly'},{id:'raptor',capacity:cover.raptors,palette:[],flap:null,geometry:'halfBird',material:'raptor'}]},
     motes:{name:'nalati-dress-pollen',count:phone?380:900,seed:0x9011e,look:'nalati-motes',drift:.35,driftParam:'drift',pixelParam:'px'},animations:[{look:'nalati-cloth',timeParam:'clothTime',windParam:'clothWind',windScale:.7,windMax:1.2}]};
   const payload:unknown=JSON.parse(encodeCanonicalJson(result)),bytes=new Uint8Array(addresses.length*4),view=new DataView(bytes.buffer);

@@ -13,11 +13,11 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { scatterLayer, instanceBoxes, type ScatterLayer } from '@wildshard/engine/render/scatterInstances';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { createPackedSpecimens, defineSpecimenCatalogue, loadBoundSpecimen, specimenMaterial } from '../models/specimenCatalogue';
+import { createPackedSpecimens, defineSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
 import { fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/ui';
 import { AmbientWingField } from '../ambient/wingField';
-import { hasLentLook, lendLooks, lentLook, lentMappedLook, setLentParam } from './lentLooks';
+import { hasLentLook, lendLooks, lentLook, lentMappedLook, setLentParam, setLentTexture } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
@@ -116,6 +116,10 @@ export class SceneDressing {
     for(const [key,source]of Object.entries(rows.materials).sort((a,b)=>Number(a[1].kind==='mapped')-Number(b[1].kind==='mapped'))){
       const material=source.kind==='specimen'?specimenMaterial(sky,source.row):source.kind==='asset'?(await loadBoundSpecimen(sky,source.row)).material
         :source.kind==='look'?lentLook(source.look):source.kind==='mapped'?lentMappedLook(source.look,requiredMaterial(materials,source.over)):painterlyMaterial(sky,source);
+      if(source.kind==='look'){
+        for(const [name,value]of Object.entries(source.params??{}))setLentParam(source.look,name,value);
+        for(const [name,row]of Object.entries(source.textures??{}))void loadSpecimenTexture(row).then(texture=>{if(!ctx.scope.disposed)setLentTexture(source.look,name,texture);return null;}).catch(()=>null);
+      }
       materials.set(key,material);await pause();
     }
     const needGeometry=(id:string):THREE.BufferGeometry=>{const value=geometry.get(id);if(value===undefined)throw new Error(`Missing scene shape ${id}`);return value;};
@@ -142,7 +146,7 @@ export class SceneDressing {
       this.group.add(made.root);this.props.push(...made.root.children.filter(meshObject));this.propTris+=row.tris;
       for(const member of row.members){
         const registered=withOwner(ctx.scope,()=>place(needModel(member.model),member.placements.map(({matrix,heading,...pose})=>({...pose,...(heading===undefined?{}:{yaw:Math.atan2(...heading)}),...(matrix===undefined?{}:{matrix:new THREE.Matrix4().fromArray(matrix)})})),{
-          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:contacts(member.contacts)},piece:{solidFloor:true,split:{every:150,yieldTask:pause}},
+          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts)},piece:{solidFloor:true,split:{every:150,yieldTask:pause}},
         }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);await pause();
       }
     }

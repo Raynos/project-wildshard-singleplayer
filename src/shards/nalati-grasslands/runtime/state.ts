@@ -29,14 +29,7 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 
 
 
-import cragRows from '../boot/cragRock.generated.json' with { type: 'json' };
-import { TIER } from '@wildshard/engine/core/tier';
-import { place } from '@wildshard/engine/models/place';
-import { createClientScene } from '@wildshard/game/plugin/ui';
-import { cragRock, cragMaterial, CRAG_GEOMETRY } from '../models/cragRock';
 import { preloadCover } from '../creatures/marmots';
-import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
-import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { buildNalatiPOIs } from '../world/view';
 import type { NalatiPOIs } from '../world/viewTypes';
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
@@ -154,7 +147,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   let completed = 0;
   const total = 7;
   progress?.set(0, total, 'Preparing world builders');
-  const [{ practiceRoom }, { modelContext }] = await Promise.all([import('@wildshard/engine/core/practiceRoom'), import('@wildshard/engine/models/model')]);
+  const { practiceRoom } = await import('@wildshard/engine/core/practiceRoom');
   const { trample, grassHeightAt } = await import('@wildshard/game/systems/looks/trample');
   const { grassBaseHeightAt } = await import('@wildshard/game/systems/looks/grassField');
   let declaredCrowds: NativeFlocks | null = null;
@@ -169,30 +162,15 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   const dressing = SceneDressing.current(plugin), outcrops = dressing.pieces.get('outcrops');
   if (outcrops === undefined) throw new Error('Missing declared outcrops');
-  const rockCtx = modelContext(sky), rockPlaced = [...outcrops.placed];
+  const rockPlaced = [...outcrops.placed];
   groups['outcrops'] = outcrops.object;
   await slice(++completed, total, 'Outcrops');
 
   // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
-  const crags = cragRows[TIER === 'phone' ? 'phone' : 'desktop'];
-  const cragBytes = await fetchLaneBake('/assets/nalati/baked/crags.bin');
-  const cragGeometry = new Map(crags.meshes.map(part => {
-    const welded = readBakedGeometry(cragBytes, part.offset, v.parse(CRAG_GEOMETRY, part.row));
-    if (!part.row.expand) return [part.key, welded] as const;
-    const geometry = welded.toNonIndexed(); welded.dispose(); geometry.computeBoundingBox(); geometry.computeBoundingSphere();
-    return [part.key, geometry] as const;
-  }));
-  const cragScene = createClientScene(crags.recipe, { geometry: key => cragGeometry.get(key), materials: new Map([['crag', cragMaterial()]]) });
-  game.scene.add(cragScene.root);
-  await macrotask();
-  const cragPlaced = place(cragRock, crags.placements, { ctx: rockCtx, draw: 'merged', registry: plugin.app.registry,
-    drawnInto: { object: cragScene.root, boxes: Float32Array.from(crags.boxes),
-      colliders: crags.hulls.map(row => ({ kind: 'hull', x: row.x, y: row.y, z: row.z, points: Float32Array.from(row.points), surface: 'rock' })) },
-    piece: { solidFloor: true, split: { every: 150, yieldTask: macrotask } } });
-  await cragPlaced.registered;
-  rockPlaced.push(cragPlaced);
+  const crags=dressing.pieces.get('cragRocks');if(crags===undefined)throw new Error('Missing declared crag rocks');
+  rockPlaced.push(...crags.placed);
   await slice(++completed, total, 'Crag rocks');
-  groups['crags'] = cragScene.root;
+  groups['crags'] = crags.object;
 
   // ── grass + wind (grass agent, B1): the blade rings are Grass.ts → look/grass.ts (main.ts builds it); the Wind object goes here ──
 

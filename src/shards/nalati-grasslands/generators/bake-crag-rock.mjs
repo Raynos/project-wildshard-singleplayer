@@ -50,4 +50,5 @@ for (let i = 0; i < words; i++) for (let b = 0; b < 4; b++) lanes[b * words + i]
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-crags');
 writer.put(resolve(root, 'public/assets/nalati/baked/crags.bin'), deflateSync(lanes, { level: 9 }));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/cragRock.generated.json'), jsonBytes(rows));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/data/cragRock.generated.json'), jsonBytes(rows));
 writer.finish();

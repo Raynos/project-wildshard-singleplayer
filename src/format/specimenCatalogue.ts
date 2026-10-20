@@ -7,10 +7,10 @@ const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const assetPath = v.pipe(text, v.regex(/^\/assets\/[a-zA-Z0-9/_.-]+$/u), v.check(path => !path.split('/').includes('..'), 'asset path stays within assets'));
 const paramsSchema = v.record(v.string(), v.unknown());
 const surfaceSchema = v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth']);
-const texture = v.strictObject({ url: assetPath, phoneUrl: assetPath, name: text });
+export const SpecimenTextureSchema = v.strictObject({ url: assetPath, phoneUrl: assetPath, name: text });
 export const SpecimenMaterialSchema = v.strictObject({ id: text, family: v.picklist(['lowpoly', 'painterly']), variant: v.optional(text),
   rim: v.optional(finite), bands: v.optional(finite), sway: v.optional(finite), floor: v.optional(finite),
-  color: v.optional(v.union([v.string(), finite, v.tuple([finite, finite, finite])])), texture: v.optional(texture) });
+  color: v.optional(v.union([v.string(), finite, v.tuple([finite, finite, finite])])), texture: v.optional(SpecimenTextureSchema) });
 const slot = v.pipe(whole, v.maxValue(128));
 export const SpecimenAssetSchema = v.strictObject({ url: assetPath, phoneUrl: v.optional(assetPath), material: SpecimenMaterialSchema,
   geometrySlot: v.optional(slot), materialSlot: v.optional(slot), retainedAttribute: v.optional(text),

@@ -1,7 +1,7 @@
 import { SceneInstancesSchema } from './sceneInstances';
 import * as v from 'valibot';
 import { isJsonData } from './json';
-import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema, SpecimenModelMetadataSchema } from './specimenCatalogue';
+import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema, SpecimenModelMetadataSchema, SpecimenTextureSchema } from './specimenCatalogue';
 import { AmbientFlockSchema, AmbientPerchesSchema } from './ambientLife';
 import { PrivateSceneSchema } from './clientChannels';
 
@@ -27,7 +27,8 @@ export const SceneDressingContactsSchema=list(v.variant('kind',[
   v.strictObject({kind:v.literal('capsule'),...base,halfHeight:finite,radius:finite}),
   v.strictObject({kind:v.literal('treads'),from:point,to:point,width:finite,count:v.pipe(finite,v.integer(),v.minValue(1)),surface}),
 ]),32768);
-const pose = v.strictObject({x:finite,y:finite,z:finite,yaw:v.exactOptional(finite),heading:v.exactOptional(v.tuple([finite,finite])),matrix:v.exactOptional(v.pipe(v.array(finite),v.length(16)))});
+const contactSource = v.union([SceneDressingContactsSchema,v.strictObject({kind:v.literal('packed-hulls'),data:v.pipe(v.string(),v.maxLength(1048576)),origins:list(v.tuple([finite,finite,finite,count]),8192),surface:v.picklist(['rock','wood','stone','ground'])})]);
+const pose = v.strictObject({x:finite,y:finite,z:finite,variant:v.exactOptional(id),yaw:v.exactOptional(finite),heading:v.exactOptional(v.tuple([finite,finite])),matrix:v.exactOptional(v.pipe(v.array(finite),v.length(16)))});
 /** Z2 client-only scatter/static/ambient projection; shader and model identities are declared data. */
 const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
   name:id,
@@ -40,13 +41,13 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
     v.strictObject({kind:v.literal('specimen'),row:SpecimenMaterialSchema}),
     v.strictObject({kind:v.literal('asset'),row:SpecimenAssetSchema}),
     v.strictObject({kind:v.literal('painterly'),rim:finite,bands:finite,sway:v.exactOptional(finite),shade:v.exactOptional(finite),emissive:v.exactOptional(finite)}),
-    v.strictObject({kind:v.literal('look'),look:id}),
+    v.strictObject({kind:v.literal('look'),look:id,params:v.exactOptional(v.record(id,v.union([finite,list(finite,16)]))),textures:v.exactOptional(v.record(id,SpecimenTextureSchema))}),
     v.strictObject({kind:v.literal('mapped'),look:id,over:id}),
   ])),
   layers:list(v.strictObject({id,model:id,geometry:id,material:id,file:id,binary:v.boolean(),far:finite,castShadow:v.boolean(),keepNear:finite,
-    select:v.exactOptional(v.strictObject({modulo:v.pipe(count,v.minValue(1)),remainder:count,equal:v.boolean()})),contacts:v.union([SceneDressingContactsSchema,v.strictObject({kind:v.literal('packed-hulls'),data:v.pipe(v.string(),v.maxLength(1048576)),origins:list(v.tuple([finite,finite,finite,count]),8192),surface:v.picklist(['rock','wood','stone','ground'])})])}),32),
+    select:v.exactOptional(v.strictObject({modulo:v.pipe(count,v.minValue(1)),remainder:count,equal:v.boolean()})),contacts:contactSource}),32),
   statics:list(v.strictObject({name:id,recipe:PrivateSceneSchema,geometry:v.record(id,id),materials:v.record(id,id),tris:finite,
-    members:list(v.strictObject({model:id,draw:v.picklist(['single','instanced','merged']),placements:list(pose,8192),boxes:list(finite,49152),contacts:SceneDressingContactsSchema}),128)}),32),
+    members:list(v.strictObject({model:id,draw:v.picklist(['single','instanced','merged']),placements:list(pose,8192),boxes:list(finite,49152),contacts:contactSource}),128)}),32),
   wings:v.exactOptional(v.strictObject({groups:list(v.strictObject({kind:id,row:AmbientFlockSchema,perches:AmbientPerchesSchema}),32),
     layers:list(v.strictObject({id,capacity:count,palette:list(v.union([finite,id]),256),flap:v.nullable(v.tuple([finite,finite,finite])),geometry:id,material:id}),32)})),
   animations:list(v.strictObject({look:id,timeParam:id,windParam:id,windScale:finite,windMax:finite}),32),

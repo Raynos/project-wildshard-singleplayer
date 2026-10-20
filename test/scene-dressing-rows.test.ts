@@ -1,3 +1,6 @@
+import { PrivateSceneSchema } from '../src/format/clientChannels';
+import cragRows from '../src/shards/nalati-grasslands/boot/cragRock.generated.json';
+import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { expect, test, vi } from 'vitest';
@@ -21,6 +24,14 @@ test('both Nalati tiers retain scatter policies, static contacts and GPU cloth b
     const input=wire(dressingScene(tier));expect(isJsonData(input)).toBe(true);
     const rows=v.parse(SceneDressingSchema,input);
     expect(rows.layers).toHaveLength(10);
+    const crags=rows.statics.find(row=>row.name==='cragRocks'),cragMember=crags?.members[0];
+    expect(crags?.recipe).toEqual(v.parse(PrivateSceneSchema,cragRows[tier].recipe));expect(cragMember?.placements).toEqual(cragRows[tier].placements);
+    expect(cragMember?.boxes).toEqual(cragRows[tier].boxes);expect(cragMember?.contacts).toMatchObject({kind:'packed-hulls',surface:'rock'});
+    if(cragMember!==undefined&&!Array.isArray(cragMember.contacts)){
+      const raw=unzlibSync(Uint8Array.from(atob(cragMember.contacts.data),c=>c.codePointAt(0)??0));
+      expect(raw).toEqual(new Uint8Array(Float32Array.from(cragRows[tier].hulls.flatMap(row=>row.points)).buffer));
+    }
+
     expect(rows.statics.find(row=>row.name==='farHerds')?.recipe.nodes.find(node=>node.kind==='group')?.name).toBe('nalati-far-herds');
     expect(rows.statics.find(row=>row.name==='snowLotus')?.recipe.nodes.filter(node=>node.kind==='group').find(node=>node.id==='root')?.name).toBe('nalati-snow-lotus');
     expect(rows.instances.filter(row=>row.group==='farHerds').every(row=>row.name==='nalati-far-herd')).toBe(true);
@@ -78,4 +89,13 @@ test('geometry source addresses remain binary while the JSON address word stays 
 
 test('the defining dressing contract converts to the admitted named JSON schema',()=>{
   expect(namedJsonSchema(SceneDressingSchema)['type']).toBe('object');
+});
+
+test('look bindings remain declared data on an unrelated static scene',async()=>{
+  const scope=new Scope('orchard-graph-rows'),root=new THREE.Group(),material=new THREE.MeshBasicMaterial(),setParam=vi.fn();
+  lendLooks(scope,{materials:new Map([['orchard-paint',material]]),setParam:(...args)=>{setParam(...args);},setTexture:()=>undefined,bindMeshMap:()=>material});
+  const ctx={} as ShardContext;Object.assign(ctx,{scope,root,system:vi.fn(),app:{registry:new WorldRegistry()},product:{},game:{runtime:{world:{sky:null,player:{position:new THREE.Vector3()},game:{camera:new THREE.PerspectiveCamera()}}}}});
+  const host=await SceneDressing.install(ctx,{name:'orchard',catalogues:[],packs:{},geometry:{},materials:{paint:{kind:'look',look:'orchard-paint',params:{threshold:.8,tint:[.2,.4,.6]}}},layers:[],statics:[],animations:[]});
+  expect(setParam.mock.calls).toEqual([['orchard-paint','threshold',.8],['orchard-paint','tint',[.2,.4,.6]]]);
+  expect(SceneDressing.current(ctx)).toBe(host);scope.dispose();material.dispose();
 });
