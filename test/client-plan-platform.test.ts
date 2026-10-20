@@ -27,6 +27,7 @@ import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { Color, MeshBasicMaterial, Vector3 } from 'three';
+import { ToonLook } from '../src/engine/render/families/toon';
 
 function context() {
   const source = emptyShardfile({ slug: 'fixture-harbour', name: 'Harbour', author: 'Fixture', revision: 1, seed: 7 });
@@ -46,7 +47,10 @@ test('entered world looks precede plan effects and release with their owner', as
   const compile = vi.spyOn(lookCompiler, 'runtimeLookMaterials').mockResolvedValue({
     materials: new Map([['orchard-leaves', material]]), setParam: () => undefined,
     setTexture: () => undefined, bindMeshMap: () => material,
-  } as Awaited<ReturnType<typeof lookCompiler.runtimeLookMaterials>>);
+    toon: new ToonLook(), textures: new Map<string, never>(), compile: () => material,
+    tick: () => undefined, outline: () => [], surfaces: null,
+    graphs: { bind: () => undefined, readout: { compiled: 0, fallback: 0, reasons: [] } },
+  });
   const plan = admitClientPlan({ version: 1, features: [{ kind: 'strings.register' }] }, f.ctx.product);
   f.strings.mockImplementation(() => { expect(lentLook('orchard-leaves')).toBe(material); });
   try {
