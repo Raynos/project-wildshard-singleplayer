@@ -1,0 +1,15 @@
+{
+  "status": "retained first construction, not admitted",
+  "witnesses": [
+    {
+      "kind": "plane clipping arithmetic",
+      "minimumY": -8.673617379884035e-19,
+      "reason": "scalar was snapped to plane but spatial Y retained interpolation residual; corrected by enforcing actual cut-plane equation"
+    },
+    {
+      "kind": "unnecessary source-normal renormalization",
+      "maxObservedNormalDelta": 1.0551608153885894e-07,
+      "reason": "first build unitized all original normals; corrected to preserve originals exactly and add cap normals only"
+    }
+  ]
+}
