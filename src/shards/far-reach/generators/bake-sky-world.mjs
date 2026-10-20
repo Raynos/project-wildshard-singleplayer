@@ -102,8 +102,11 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
   emit(resolve(project, 'data/placements.json'), `${JSON.stringify(placements)}\n`);
   console.info(`far-reach placements: ${String(placements.standalone.trees.reduce((n, t) => n + t.m.length / 16, 0))} trees, ${String(placements.standalone.falls.length / 16)} falls`);
 }
-// the folder holds exactly this bake: no orphan GLB from an older bake ships
-for (const entry of readdirSync(out)) if (entry.endsWith('.glb') && !keep.has(entry)) { if (check) throw new Error(`Orphan bake ${entry}`); rmSync(resolve(out, entry)); }
+// the folder holds this bake and the rest bakes (the sky-rest-* and sky-islet-rest jobs): an orphan is a GLB no other
+// generation job declares as its output, from an older run of this bake, and never ships
+const declared = new Set(v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), outputs: v.array(v.string()) })) }),
+  JSON.parse(readFileSync(resolve(root, 'scripts/generation-jobs.json'), 'utf8'))).jobs.filter(job => job.id !== 'sky-world').flatMap(job => job.outputs));
+for (const entry of readdirSync(out)) if (entry.endsWith('.glb') && !keep.has(entry) && !declared.has(`public/assets/far-reach/baked/${entry}`)) { if (check) throw new Error(`Orphan bake ${entry}`); rmSync(resolve(out, entry)); }
 
 }
 
