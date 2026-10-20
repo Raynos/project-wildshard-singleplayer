@@ -34,6 +34,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { place } from '@wildshard/engine/models/place';
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import { cragRock, cragMaterial, CRAG_GEOMETRY } from '../models/cragRock';
+import { preloadCover } from '../creatures/marmots';
 import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { buildNalatiPOIs, buildBakedOutcrops } from '../world/view';
@@ -341,6 +342,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
   const night = await wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
+  await preloadCover(); // the small-model pack the marmots and the ambient wings draw from (creatures/marmots.ts)
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
   const prepareWildlife = (animals: AnimalManager): Wildlife => {
     attachedAnimals = animals;
