@@ -18,6 +18,33 @@ import { createSimHost } from '../src/engine/sim';
 import { admitNativeRosterServices, createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
+test('orchard roster phases keep native charge order and reject dead, stunned or foreign movement', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }), rng = new Rng(83);
+  const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing native recipe');
+  const { hunt, services } = fixtureNativeRoster(host, rng), order: string[] = [];
+  const rows = { specs: [sample.spec], variants: new Map(), rng, services, hunted: 'every' as const, spawnY: 10,
+    bodyPhase: { animateWithin: 50, clearWithin: 3 } };
+  const intake = createNativeCreatureRoster(host, rows);
+  try {
+    const body = intake.body('orchard.guard', sample.spec.kind, sample.spec.variant, -1, { x: 4, z: 4 }, 0, [1, 1]);
+    const actor = intake.arrive(body); actor.state = 'charge';
+    const motion = vi.spyOn(hunt, 'advanceCharge').mockImplementation(() => { order.push('motion'); });
+    const contact = vi.spyOn(hunt, 'chargeContact').mockImplementation(() => { order.push('contact'); });
+    expect(intake.beforeBody('foreign', .1)).toBe(false);
+    expect(intake.beforeBody(body.id, .1)).toBe(true); intake.afterBody(body.id, .1);
+    expect(order).toEqual(['motion', 'contact']);
+    expect(motion).toHaveBeenCalledWith(actor, .1, host.player.position); expect(contact).toHaveBeenCalledWith(actor, host.player.position);
+    actor.stagger(new Vector3(0, 0, 1), 1);
+    expect(intake.beforeBody(body.id, .1)).toBe(false); intake.afterBody(body.id, .1); expect(order).toHaveLength(2);
+    actor.alive = false; expect(intake.beforeBody(body.id, .1)).toBe(false); intake.afterBody(body.id, .1); expect(order).toHaveLength(2);
+    intake.retire(body); expect(intake.beforeBody(body.id, .1)).toBe(false); intake.afterBody(body.id, .1); expect(order).toHaveLength(2);
+    const stream = rng.snapshot();
+    expect(() => createNativeCreatureRoster(host, { ...rows, bodyPhase: { animateWithin: Infinity, clearWithin: 3 } })).toThrow('ranges');
+    expect(rng.snapshot()).toEqual(stream);
+  } finally { host.dispose(); }
+});
+
 test('native replacement retains the recipe slot, herd/identity order and six spawn draws', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }), rng = new Rng(53), control = new Rng(53);

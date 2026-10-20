@@ -1,5 +1,6 @@
 import { NativeActors } from '../population/actors';
 import { NativeReturns } from '../population/nativeReturns';
+import { clearBody } from '@wildshard/engine/entities/bodyClear';
 import * as v from 'valibot';
 import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
@@ -279,6 +280,8 @@ export interface NativeRosterRows {
   readonly services: string;
   /** The kinds whose memory the hunting brain adopts at spawn (`remember`); every other kind skips its three draws. */
   readonly hunted: readonly string[] | 'every';
+  /** Native body-phase ranges. Policies keep their separate admitted decision clocks. */
+  readonly bodyPhase?: { readonly animateWithin: number; readonly clearWithin: number };
   /** A restoring host's decoded entities: a body it holds keeps its saved floor flag over a fresh install's sample. */
   readonly saved?: Pick<NativeRosterSaved, 'entities'>;
 }
@@ -315,6 +318,10 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
   identities: NativeActors<HuntBody>;
   /** Bind declared return rules to this roster's real identities and death events. */
   returns: (rows: unknown) => NativeReturns;
+  /** Advance native charge motion and report whether an owned live policy may move. */
+  beforeBody: (id: string, dt: number) => boolean;
+  /** Integrate the admitted pose, charge contact and hunted-body clearance in order. */
+  afterBody: (id: string, dt: number) => void;
   floor: (x: number, z: number, fromY: number) => number;
   /** Join an already materialized host actor without spawning, sampling or drawing. */
   attach: (body: B, actor: AnimalSim) => HuntBody;
@@ -343,6 +350,9 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
   const recipes = nativeCreatureRecipes(rows.specs, rows.duplicates), byId = new Map<string, B>(), { hunt, poses } = service;
   const identities = new NativeActors<HuntBody>('creature', 16384);
   const hunted = rows.hunted === 'every' ? null : new Set(rows.hunted);
+  const phase = rows.bodyPhase;
+  if (phase !== undefined && [phase.animateWithin, phase.clearWithin].some(value => !Number.isFinite(value) || value < 0))
+    throw new Error('Invalid native body phase ranges');
   const sample = creatureFloor(host, (x, z) => host.groundHeightAt(x, z), rows.heightfield);
   const floor = (x: number, z: number, fromY: number): number => sample(x, z, fromY).y;
   const spec = recipes.spec;
@@ -456,7 +466,25 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     return materialize(item, item.recipe, level ?? found.structure);
   };
   const returns = (input: unknown): NativeReturns => new NativeReturns(host, byId, hunt, input);
-  const roster = { body, spec, read: recipes.read, byId, identities, returns, floor, attach, materialize, arrive, draw, remember, retire, sleep, retireDead, refill, adopt, retarget, reinstall };
+  let poseNear = false;
+  const beforeBody = (id: string, dt: number): boolean => {
+    const actor = byId.get(id)?.actor;
+    if (phase === undefined || actor === null || actor === undefined) return false;
+    const player = host.player.position;
+    poseNear = actor.position.distanceToSquared(player) < phase.animateWithin * phase.animateWithin;
+    if (!actor.alive || actor.stunned) return false;
+    if ((hunted === null || hunted.has(actor.kind)) && actor.state === 'charge') hunt.advanceCharge(actor, dt, player);
+    return true;
+  };
+  const afterBody = (id: string, dt: number): void => {
+    const actor = byId.get(id)?.actor;
+    if (phase === undefined || actor === null || actor === undefined) return;
+    poses?.get(id)?.advance(dt, host.clock.now, poseNear);
+    const player = host.player.position;
+    if (actor.state === 'charge' && actor.alive && !actor.stunned) hunt.chargeContact(actor, player);
+    if ((hunted === null || hunted.has(actor.kind)) && actor.alive && actor.position.distanceToSquared(player) < phase.clearWithin * phase.clearWithin) clearBody(actor, player);
+  };
+  const roster = { body, spec, read: recipes.read, byId, identities, returns, beforeBody, afterBody, floor, attach, materialize, arrive, draw, remember, retire, sleep, retireDead, refill, adopt, retarget, reinstall };
   nativeRosters.set(roster, host); return roster;
 }
 

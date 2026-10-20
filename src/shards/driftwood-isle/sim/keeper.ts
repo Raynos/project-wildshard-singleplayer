@@ -11,7 +11,6 @@ import sailorClips from '../data/sailorClips.generated.json' with { type: 'json'
 import captainClips from '../data/captainClips.generated.json' with { type: 'json' };
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { MonkeyBinding } from '../species/monkeyBinding';
-import { clearBody } from '@wildshard/engine/entities/bodyClear';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -37,8 +36,6 @@ const ROSTER = 256; // bounded native ecology roster, captain fixed in slot 34
 export const CAPTAIN_SCALE: readonly [number, number] = [1.35, 1.35];
 /** AnimalView.fadeOut: a dead practice crab's shell fades 1.5 s before the new one is placed (Enemies.tickPractice). */
 const SHELL_FADE = 1.5;
-/** AnimalManager ANIM_LOD: the shipping rig leaves its pose/root transition frozen beyond this range. */
-const ANIM_LOD = 140;
 /** The island's fauna kinds: the manager's hunting brain decides for them (the enemies run their own policies). */
 const FAUNA = new Set(['boar', 'bear']);
 /** What a renderer-free body adds for the hunting brain: never hidden (no view), no ground tilt to sample. */
@@ -182,7 +179,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   // fauna adopted by the hunting brain, every body on the native pose roster
   const intake = createNativeCreatureRoster<IslandBody>(host, {
     specs: specs.values(), variants: new Map(roster.variants.map(row => [row.kind, row.rows])),
-    rng, spawnY: ports.spawnY, attackTurnCap: ATTACK_TURN, heightfield: 'any', services: admitNativeRosterServices(host, ISLAND_STEP, hunt, poses), hunted: [...FAUNA] });
+    rng, spawnY: ports.spawnY, bodyPhase: roster.bodyPhase, attackTurnCap: ATTACK_TURN, heightfield: 'any', services: admitNativeRosterServices(host, ISLAND_STEP, hunt, poses), hunted: [...FAUNA] });
   const entityIds = intake.identities;
   for (let i = 0; i < BODY_COUNT; i++) entityIds.allocate();
   /** a body the roster made: a sailor on a deck keeps the hold's floor under his feet; an enemy takes its shipping policy */
@@ -253,23 +250,9 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       bodies.push(body);
     }
   };
-  let poseNear = false; // recomputed before each body; never continuation state
-  const owned = (id: string, actor: AnimalSim): IslandBody | null => { const body = intake.byId.get(id); return body?.actor === actor ? body : null; };
   host.useBodyStep({
-    before: (id, actor, dt) => {
-      const body = owned(id, actor), a = body?.actor; if (body === null || a === null || a === undefined) return;
-      poseNear = a.position.distanceToSquared(player) < ANIM_LOD * ANIM_LOD;
-      if (!a.alive || a.stunned) return;
-      if (body.brain === null) { if (a.state === 'charge') hunt.advanceCharge(a, dt, player); }
-      else body.brain.move(dt);
-    },
-    after: (id, actor, dt) => {
-      const body = owned(id, actor), a = body?.actor; if (body === null || a === null || a === undefined) return;
-      // AnimalView.update moves first, then animateSailor advances its root offset, including dead/stunned bodies within the page animation range.
-      poses.get(body.id)?.advance(dt, host.clock.now, poseNear);
-      if (a.state === 'charge' && a.alive && !a.stunned) hunt.chargeContact(a, player);
-      if (body.brain === null && a.alive && a.position.distanceToSquared(player) < 36) clearBody(a, player);
-    },
+    before: (id, _actor, dt) => { if (intake.beforeBody(id, dt)) intake.byId.get(id)?.brain?.move(dt); },
+    after: (id, _actor, dt) => { intake.afterBody(id, dt); },
   });
   const keep = (): void => { host.onStep(ISLAND_STEP, dt => {
     // the coconuts' bodies after the host's world step (Bodies' fixed 'post' phase)

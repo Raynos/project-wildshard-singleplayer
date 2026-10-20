@@ -6,6 +6,7 @@ import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 const finite = v.pipe(v.number(), v.finite());
 const stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
 export const KeeperRowsSchema = v.strictObject({ environment: PopulationEnvironmentSchema, seed: finite,
+  bodyPhase: v.strictObject({ animateWithin: v.pipe(finite, v.minValue(0)), clearWithin: v.pipe(finite, v.minValue(0)) }),
   volley: BodySlotsSchema,
   ecology: NativeReturnRowsSchema,
   fauna: v.strictObject({ seed: finite, centres: v.pipe(v.array(v.tuple([finite, finite])), v.maxLength(32)),
