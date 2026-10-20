@@ -15,3 +15,6 @@ export type PageTerrainCutRows = v.InferOutput<typeof PageTerrainCutSchema>;
 /** Material bindings over a real engine pond surface and its probe. */
 export const PageWaterBindingSchema = v.strictObject({ object: id, look: id, looks: v.pipe(v.array(id), v.maxLength(4)),
   ripples: id, skyline: id, centre: id, probe: id });
+
+/** Native path ramps use the bound floor and registered deck carriers. */
+export const PagePathRampSchema = v.strictObject({ id, name: id });

@@ -9,9 +9,8 @@ import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { pathRampDescs } from '@wildshard/engine/physics/paths';
+import { installPagePathRamps } from '@wildshard/game/shardfile/pagePreparation';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { prepareGrassV2 } from '../look/field';
 import { installPageMeadow } from '@wildshard/game/shardfile/clientMeadow';
 import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
@@ -58,10 +57,7 @@ export class NalatiPlugin extends ShardPlugin {
     await prepareSpear(ctx.product);
     await prepareWeaponCatalogue();
     const rt = this.rt;
-    // the ramps sit on the live (baked) heightfield the capsule walks, not the analytic TERRAIN field (R2: the analytic
-    // heights laid 9 fewer ramps)
-    const ground = await import('@wildshard/engine/world/Heightfield');
-    registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground', colliders: pathRampDescs(ground.TRAILS, heightAt, (x, z) => ground.normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
+    installPagePathRamps(registry, { id: 'paths', name: 'Paths' });
     shell.hooks.animalsBuilt = async (animals) => { await rt.attachAnimalsSliced(animals, macrotask); }; // SF67: a task apart per wildlife group
     Object.assign(shell.objects, { nalati: rt, grass, particles });
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)

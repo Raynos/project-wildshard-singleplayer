@@ -1,10 +1,13 @@
 /** Client-only native preparation, with rows instead of author callbacks. */
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import { pathRampDescs } from '@wildshard/engine/physics/paths';
+import { TRAILS, heightAt, normalAt } from '@wildshard/engine/world/Heightfield';
 import * as v from 'valibot';
 import { prepareScriptMemoryLease } from '@wildshard/engine/script/host';
 import { cutTerrain } from '@wildshard/engine/physics/terrain';
 import { yawLocal, yawWorld } from '@wildshard/engine/world/yawFrame';
 import { slicer } from '@wildshard/engine/boot/plan';
-import { PageScriptPreparationSchema, PageTerrainCutSchema, type PageTerrainCutRows } from '@wildshard/format/pagePreparation';
+import { PagePathRampSchema, PageScriptPreparationSchema, PageTerrainCutSchema, type PageTerrainCutRows } from '@wildshard/format/pagePreparation';
 import { retainsRuntimeServices } from '../shard/retainedHooks';
 import type { ShardContext } from '../plugin/context';
 
@@ -26,4 +29,12 @@ export async function punchPageTerrain(ctx: ShardContext, input: unknown): Promi
   if (world === undefined || world === null) throw new Error('Terrain preparation requires its world');
   cutTerrain(world.physics, rows.cuts.map(row => { const [x, z] = yawWorld(rows.frame, row.lx, row.lz); return { x, z, hw: row.hw, hd: row.hd, yaw: rows.frame.yaw, below: row.below }; }));
   await world.terrain.punchSliced((...triangle) => terrainOpeningHits(rows, ...triangle), slicer(30).due);
+}
+
+/** Install after decks register; live floor bindings preserve the baked ramp
+ * profile and native registry lifetime without author query callbacks. */
+export function installPagePathRamps(registry: WorldRegistry, input: unknown): void {
+  const rows = v.parse(PagePathRampSchema, input);
+  registry.add({ ...rows, category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
+    colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
 }

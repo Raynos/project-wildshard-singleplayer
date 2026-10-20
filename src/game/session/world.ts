@@ -15,10 +15,10 @@ import { bootstrap } from '@wildshard/engine/core/bootstrap';
 import { TIER } from '@wildshard/engine/core/tier';
 import { cachedResourceAllocations } from '@wildshard/engine/render/textureBytes';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
-import { pathRampDescs } from '@wildshard/engine/physics/paths';
+import { installPagePathRamps } from '../shardfile/pagePreparation';
 import { showError } from '@wildshard/engine/ui/ErrorModal';
 import { Boundary } from '@wildshard/engine/world/Boundary';
-import { hasPond, heightAt, normalAt, TRAILS } from '@wildshard/engine/world/Heightfield';
+import { hasPond } from '@wildshard/engine/world/Heightfield';
 import { Horizon } from '@wildshard/engine/world/Horizon';
 import { HorizonMatte } from '@wildshard/engine/world/HorizonMatte';
 
@@ -83,14 +83,8 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
   });
   const { boundary, water, horizon } = edgeDressing;
   boot.runtime.horizonVeil = horizon.painted?.veil ?? null;
-  // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — now that the decks are
-  // registered, none where a deck carries the path (a board there pokes up through the bridge's planks); Nalati's decks
-  // register in its props step (NALATI-MERGE P1), so its paths are laid after that. heightAt / normalAt / TRAILS are
-  // Heightfield's live bindings, read when the paths are laid: bootstrap installs the baked grid after this module loads,
-  // and a copy taken earlier (the analytic field) laid 12 more ramps on Pine (R5)
-  const addPaths = (): void => { registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
-    colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) }); };
-  if (chunk.ground.paths !== 'plugin' && built === undefined) addPaths();
+  // Deferred plugin paths run after their decks; ordinary worlds are ready now.
+  if (chunk.ground.paths !== 'plugin' && built === undefined) installPagePathRamps(registry, { id: 'paths', name: 'Paths' });
 
   if (manifest.boot?.stagedWorld !== true) {
     await step('grass', () => undefined);
