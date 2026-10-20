@@ -9,14 +9,16 @@ import { insidePolygon, yawLocal, yawWorld, type YawFrame } from '@wildshard/eng
 import { CaveFileSchema, CaveInteriorSchema, type CaveFile, type CaveInteriorRows } from '@wildshard/format/caveInterior';
 import { lentLook, setLentParam, setLentTexture } from './lentLooks';
 import { loadFirstPartyProduct } from './runtimeProduct';
-import type { SceneHandles } from './sceneHandles';
+import { GeometryPack } from '@wildshard/engine/models/geometryPack';
+import { packedRows } from '@wildshard/format/geometryPack';
+import { fetchDeflated } from '../plugin/geometry';
 
 /** The walls' day fill each rock look reads, shared by every resident view of it. */
 const fills = new Map<string, { value: number }>();
 
 /**
  * A cave cut into the terrain: one interior baked by a shard's builder, described in its own frame (lx across, lz in,
- * y world height), and its look near the mouth. It answers the world's questions — the terrain's cut rows, the roof patch over the cut as a trimesh (its geometry a published handle), the reverb spots, the
+ * y world height), and its look near the mouth. It answers the world's questions — the terrain's cut rows, the roof patch over the cut as a trimesh (its geometry a part of a declared pack), the reverb spots, the
  * footprint, the passage's floor — and draws the shaft of light (a lent graph, additive) and the drips near the mouth,
  * fills the walls by day through the rock look's fill param and hides the sun's depth-less disc under the roof.
  */
@@ -36,12 +38,12 @@ export class CaveInterior {
   private readonly eye = new THREE.Vector3();
 
   /** Admit the rows, read the baked cave from its product and lend the rock look its textures (`cap` their size). */
-  static async load(input: unknown, resources: SceneHandles, cap: number): Promise<CaveInterior> {
+  static async load(input: unknown, cap: number): Promise<CaveInterior> {
     const rows = v.parse(CaveInteriorSchema, input);
-    const [product, rock, map, normalMap] = await Promise.all([loadFirstPartyProduct(rows.product), loadPBR(rows.rock.pbr, 1, cap),
-      loadTexture(texUrl(rows.rock.grit, 'diffuse'), true), loadTexture(texUrl(rows.rock.grit, 'nor_gl'))]);
+    const [product, rock, map, normalMap, roof] = await Promise.all([loadFirstPartyProduct(rows.product), loadPBR(rows.rock.pbr, 1, cap),
+      loadTexture(texUrl(rows.rock.grit, 'diffuse'), true), loadTexture(texUrl(rows.rock.grit, 'nor_gl')), fetchDeflated(rows.roof.url)]);
     const data = v.parse(CaveFileSchema, await product.json(rows.file));
-    const cave = new CaveInterior(rows, data.meta, resources);
+    const cave = new CaveInterior(rows, data.meta, new GeometryPack(roof, packedRows(rows.roof.rows), 'cave roof').geometry(rows.roof.part));
     cave.shell.push(...readColliderRows([data.shell], { kinds: ['trimesh'], surfaces: ['rock'], requireSurface: true }));
     const lend = (name: string, texture: THREE.Texture): void => {
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(1, 1); texture.needsUpdate = true;
@@ -52,7 +54,7 @@ export class CaveInterior {
     return cave;
   }
 
-  private constructor(private readonly rows: CaveInteriorRows, meta: CaveFile['meta'], private readonly resources: SceneHandles) {
+  private constructor(private readonly rows: CaveInteriorRows, meta: CaveFile['meta'], private readonly roof: THREE.BufferGeometry) {
     this.meta = meta; this.look = rows.look;
     this.frame = { x: rows.frame.x, z: rows.frame.z, yaw: rows.frame.yaw };
     let fill = fills.get(rows.rock.look);
@@ -93,9 +95,9 @@ export class CaveInterior {
     return undefined;
   }
 
-  /** The terrain over the cut as a trimesh (the ground above the mouth comes back), from the published roof geometry. */
+  /** The terrain over the cut as a trimesh (the ground above the mouth comes back), from the declared roof geometry. */
   roofPatch(): ColliderDesc[] {
-    const g = this.resources.geometry(this.rows.roof), idx = g.getIndex();
+    const g = this.roof, idx = g.getIndex();
     if (idx === null || idx.count === 0) return [];
     return [{ kind: 'trimesh', x: this.frame.x, y: 0, z: this.frame.z, vertices: Float32Array.from(g.getAttribute('position').array), indices: Uint32Array.from(idx.array), surface: this.look.surface }];
   }

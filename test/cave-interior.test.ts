@@ -3,9 +3,10 @@ import * as v from 'valibot';
 import { CaveFileSchema, CaveInteriorSchema } from '../src/format/caveInterior';
 import { CAVE_LOOK, CRAG_LOOK } from '../src/shards/pine-hollow/generators/cragLook';
 
-/** An unrelated quarry's adit: its own baked file, frame, rock look and roof handle, a dimmer shaft and no drips. */
+/** An unrelated quarry's adit: its own baked file, frame, rock look and roof pack part, a dimmer shaft and no drips. */
 const adit = {
-  product: 'quarry', file: 'world/adit.json', roof: 'quarry.adit-roof', frame: { x: 40, z: -12, yaw: 1.1 },
+  product: 'quarry', file: 'world/adit.json', frame: { x: 40, z: -12, yaw: 1.1 },
+  roof: { url: '/assets/quarry/adit-parts.bin', part: 0, rows: { bytes: 48, geometries: [{ attrs: [['position', 3]], count: 3, unique: 3, own: 'u16', indexCount: 3 }] } },
   rock: { look: 'quarry-rock', fill: 'aditFill', pbr: 'slate', grit: 'gravel' },
   look: { ...CAVE_LOOK, near: 30, shaft: { ...CAVE_LOOK.shaft, look: 'quarry-shaft', gain: 0.1 } },
 };

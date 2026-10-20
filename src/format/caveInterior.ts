@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { PackedGeometryRowsSchema } from './geometryPack';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const pair = v.tuple([n, n]), triple = v.tuple([n, n, n]);
@@ -18,10 +19,12 @@ export type CaveFile = v.InferOutput<typeof CaveFileSchema>;
 /**
  * A cave cut into the terrain as rows (G483 world scene assembly; client-only): its baked `file` in the product, its
  * mouth's frame, its look near the mouth (the shaft's lent graph and sizes, the drips, where the sun's disc hides under
- * the roof, the walls' day fill), the rock look it lends its two texture sets to and the published roof patch geometry.
+ * the roof, the walls' day fill), the rock look it lends its two texture sets to and the roof patch: one geometry `part`
+ * of a deflated geometry pack (`url`, its `rows`).
  */
 export const CaveInteriorSchema = v.strictObject({
-  product: id, file: id, frame: v.strictObject({ x: n, z: n, yaw: n }), roof: id,
+  product: id, file: id, frame: v.strictObject({ x: n, z: n, yaw: n }),
+  roof: v.strictObject({ url: id, rows: PackedGeometryRowsSchema, part: v.pipe(n, v.integer(), v.minValue(0)) }),
   rock: v.strictObject({ look: id, fill: id, pbr: id, grit: id }),
   look: v.strictObject({
     near: n, under: v.strictObject({ height: n, lzMin: n, lzMax: n }), fill: pair, surface: v.literal('rock'),

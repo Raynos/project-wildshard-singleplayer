@@ -1,3 +1,4 @@
+import codeParts from '../data/codeParts.json' with { type: 'json' };
 import * as v from 'valibot';
 import { CaveRowsSchema } from './sections';
 import { Matrix4 } from 'three';
@@ -27,7 +28,7 @@ const recipe = { scene: { version: 1, root: 'root', nodes: [
 ], materials: [{ kind: 'port', id: 'water', source: 'water' }, { kind: 'port', id: 'spray', source: 'spray' }] }, imports: [] };
 v.parse(CaveRowsSchema, CRAG_CAVE_ROWS);
 /** The bear cave (G483 world scene assembly): its baked interior, its mouth's frame, its look near the mouth and its rock. */
-const CAVE_INTERIOR = v.parse(CaveInteriorSchema, { product: 'pine-hollow', file: 'world/crag-cave.json', roof: 'pine.cave-roof', look: CAVE_LOOK,
+const CAVE_INTERIOR = v.parse(CaveInteriorSchema, { product: 'pine-hollow', file: 'world/crag-cave.json', roof: { url: codeParts.url, rows: codeParts.rows, part: codeParts.parts['cave-roof'] }, look: CAVE_LOOK,
   frame: { x: layout.BEAR_CAVE.x, z: layout.BEAR_CAVE.z, yaw: layout.BEAR_CAVE.rot }, rock: { look: CRAG_LOOK, fill: 'caveFill', pbr: 'mossy_rock', grit: 'rock_ground' } });
 export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('world/cave-interior.json', 'json', encode(CAVE_INTERIOR)), nameBlob('scenes/streams.json', 'json', encode(recipe)),
   ...CABIN_JSON_BLOBS, TREE_SET_BLOB,
