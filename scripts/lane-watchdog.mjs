@@ -192,6 +192,8 @@ async function poll() {
       observed.turn.alerted = true;
       console.info(`${new Date().toISOString()} ${message}`);
     }
+    // An idle pane whose footer still lists background shells is waiting on its own script (G510), not idle.
+    if (status === 'idle/done' && /\b\d+ shells? still running|· \d+ shells? ·|\b\d+ background terminals? running/u.test((text ?? '').slice(-2000))) continue;
     const age = now - (status === 'working' ? observed.changed : observed.since);
     const overdue = status === 'idle/done' ? age > 5 * 60_000 : status === 'working' && age > 45 * 60_000;
     if (!overdue || observed.alerted) continue;
