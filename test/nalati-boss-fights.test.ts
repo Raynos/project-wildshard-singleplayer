@@ -119,5 +119,6 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     }
     expect(e.brain.state).toBe('victory'); expect(e.trace).toEqual(['armed:0','intro:0','fight:0','beat:1','fight:1','beat:2','fight:2','victory:2']);
     expect(e.saved).toEqual({ defeated: true, rewardTaken: false, kills: 1 }); expect(e.rewards).toBe(1); expect(fight.dead).toBe(true);
+    fight.reset(0); expect(fight.inArena(f.player.position)).toBe(false); expect(fight.hp).toBe(data.place.heartHp);
   } finally { scope.dispose(); figure.dispose(); for (const material of materials.values()) material.dispose(); restore(); }
 });

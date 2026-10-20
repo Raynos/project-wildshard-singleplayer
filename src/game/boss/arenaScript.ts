@@ -195,6 +195,9 @@ export class ArenaScriptFight implements BossScript {
 
   reset(phase: number): void {
     this.life.reset({ phase,share: this.data.phases[phase]?.at ?? 1,tied: Number(this.tied),sealed: Number(this.sealed) }); this.clocks.reset(); this.introT = -1;
+    for (const key of Object.keys(this.frame)) delete this.frame[key];
+    this.tellFrame = {}; this.boundaryEffect = null; this.hazardDt = 0;
+    this.arenaReady = false; this.arenaShield = false; this.refusalMask = 0; this.boundary.mask = 0;
     const b = this.body;
     Object.assign(this.pose,this.data.pose);
     b.alpha.value = 1; b.part(this.data.view.dome).visible = false;
