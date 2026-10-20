@@ -16,10 +16,17 @@ const localMatrix = node => node.transformBits !== undefined && node.matrixAutoU
 export class MapWorld {
   constructor(assembly, base, section, catalogue, blobs) {
     this.assembly = assembly; this.base = base; this.section = section; this.catalogue = catalogue;
-    this.files = new Map(blobs.map(row => row.file === undefined ? [row.name, resolve(base, row.source)] : [row.file.name, JSON.parse(new TextDecoder().decode(row.bytes))]));
+    this.files = new Map(blobs.map(row => row.file === undefined ? [row.name, resolve(base, row.source)] : [row.file.name, row.file.kind === 'json' ? JSON.parse(new TextDecoder().decode(row.bytes)) : row.bytes]));
     this.geometry = new Map(); this.frames = new Map();
   }
-  json(file) { const source = this.files.get(file); if (source === undefined) throw new Error(`Missing map world JSON ${file}`); return typeof source === 'string' ? readMapJson(source) : source; }
+  json(file) { const source = this.files.get(file); if (source === undefined || source instanceof Uint8Array) throw new Error(`Missing map world JSON ${file}`); return typeof source === 'string' ? readMapJson(source) : source; }
+  /** A scene part's instance matrices: an instanceMatrix row (inline or a float32 product packet), else the recipe's. */
+  matrices(step, id, node) {
+    const row = (step.instanceAttributes ?? []).find(entry => entry.part === id && entry.target === 'instanceMatrix');
+    if (row === undefined) return node.matrices; if (row.values !== undefined) return row.values;
+    const bytes = this.files.get(row.packet.file); if (!(bytes instanceof Uint8Array)) throw new Error(`Missing map world packet ${row.packet.file}`);
+    return new Float32Array(bytes.buffer.slice(bytes.byteOffset + row.packet.byteOffset, bytes.byteOffset + row.packet.byteOffset + row.packet.count * 64));
+  }
   async shape(ref) {
     const key = `${ref.library}/${ref.model}`;
     let geometry = this.geometry.get(key);
@@ -78,7 +85,8 @@ export class MapWorld {
       const matrix = parent.clone().multiply(local), live = visible && node.visible !== false;
       if (node.kind === 'mesh' && live && !omitted.includes(id) && !this.ghost(step.materials[node.material])) {
         const ref = step.geometry[node.geometry]; if (ref === undefined) throw new Error(`Missing map recipe geometry ${node.geometry}`);
-        this.assembly.add(`scene:${step.id}:${id}`, await this.shape(ref), node.matrices === undefined ? [matrix] : Array.from({ length: node.instances }, (_, i) => matrix.clone().multiply(new Matrix4().fromArray(node.matrices, i * 16))));
+        const instanced = this.matrices(step, id, node);
+        this.assembly.add(`scene:${step.id}:${id}`, await this.shape(ref), instanced === undefined ? [matrix] : Array.from({ length: node.instances }, (_, i) => matrix.clone().multiply(new Matrix4().fromArray(instanced, i * 16))));
       } else if (!['mesh', 'group', 'anchor', 'light'].includes(node.kind)) throw new Error(`Unsupported map recipe ${node.kind}`);
       for (const child of node.children ?? []) await walk(child, matrix, live);
     };
