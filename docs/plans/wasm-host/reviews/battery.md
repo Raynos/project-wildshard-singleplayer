@@ -12,7 +12,7 @@ Walk each through docs/plans/WASM-HOST.md. A step the plan doesn't answer is a f
    Power Mode, with the phone throttled 2×.
 5. **A crowd of 40 animals with AS brains** at 10 Hz plus view-lane pose smoothing: the per-frame budget on the phone
    and what happens when it's over.
-6. **Porting today's scripts**: Nalati's 1,289 lines of AS, Pine's 489 and the v0 movers/client scripts move to v2 in
+6. **Porting today's scripts**: all 2,791 lines of AS (Nalati 1,346, Pine 501, …), every v0 ScriptHost user and every ReturnProgram family move to v2 in
    one wave, with saves made before the wave loading after it.
 7. **A desktop save loaded on the phone** mid-fight: does the fight continue identically (W6)?
 8. **H0 on Jake's phone**: what exactly he taps, what it measures, where the numbers land, and how the plan changes
