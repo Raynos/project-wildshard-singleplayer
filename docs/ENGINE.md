@@ -10350,3 +10350,21 @@ materials; this function installs no service, clock or save owner.
 Single-shard atlas packing stays in shard view code. Its per-frame focus and
 gesture expressions are generated client-channel data; terrain contact and
 world-matrix writes keep their original view phase.
+
+- `game/audio/forestPage`: Client ambience binds declared audio to native buildings, creatures and encounters.
+- `game/loadout/rangedPage`: Client equipment, pickups, collections and Developer lap spots bind to entered services from rows.
+- `game/shardfile/forestPage`: Client forest fields and living buildings share the native page resource lifetime.
+- `game/looks/forestRoofMask`: Client rain queries use admitted deck and cave roof facts.
+- `game/looks/forestWeather`: Client weather observations read the actual native page and quest owners.
+- `game/looks/forestGround`: Client ground cover reads admitted geometry and placement rows.
+- `game/quest/nativeInputs`: Native quest commands and typed channels share the worker-owned input service.
+- `game/quest/nativeComposition`: Native quest composition joins declared spots, stages, flags and inventory owners.
+- `game/combat/roamingSession`: Client roaming encounter composition binds admitted combat rows to entered services.
+- `game/boss/roamingProjection`: Client boss projection binds declared fight rows to the actual native actor and damage owner.
+- `game/boss/socketRig`: Client attachment rows bind actual actor joints, native weak-point queries and specimen cards.
+- `game/quest/pageResources`: Resident quest worlds publish native place anchors and flock resources under scoped ids.
+- `game/quest/pageComposition`: Client quest composition prepares declared placement and installs talks, traders, cables and panel holds.
+- `game/shardfile/clientPopulationProjection`: Client population rows bind the entered animal manager to native actor projections.
+- `game/population/projection`: Client population projection reads admitted body, pose and effect identities from native owners.
+- `game/population/perchBody`: Perch body rows bind existing decision guests, numeric poses and root motion to actual actors.
+- `game/population/mixedRoster`: Native mixed roster rows own policy selection, reserved slots, return gates, poses and volley continuation.

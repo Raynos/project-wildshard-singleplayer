@@ -106,3 +106,12 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - G483 world scene assembly: `game/shardfile/sceneDressing` and `game/shardfile/sceneInstances` consume admitted geometry, material, scatter, private-scene and numeric pose rows; client-only presentation. The unrelated orchard fixture constructs, updates and retires these projections.
 
 - G483 declared page preparation: `game/shardfile/pageWater` binds admitted texture slots and look ids to the native pond; `game/shardfile/pagePreparation` binds native script-memory leases and generated terrain openings. Both are client-only setup, with data-only entry points and orchard coverage in `test/page-preparation.test.ts`.
+
+- `game/riding/physics`: G478 riding physics binds admitted reins, gait and road observations to native movement.
+- `game/riding/taming`: G478 taming sessions evaluate declared approach, breaking and riding guests over candidate observations.
+- `game/riding/native`: G478 mounted-player rows bind native player, herd and mount owners with saved continuation.
+- `game/riding/roster`: G478 bonded-mount rows own admitted spawn identities, recipes and upgrades in the native roster.
+- `game/riding/presentation`: G478 numeric riding envelopes pose borrowed rig joints from admitted measurements.
+- `game/riding/nativeTaming`: G478 native taming rows bind the actual player, candidates and decision guests.
+- `game/riding/client`: G478 client riding rows bind entered herds, taming, actions and presentation to native services.
+- `game/riding/nativePopulation`: G478 native population rows bind boot recipes, hunting, pasture and mount state to the native host.
