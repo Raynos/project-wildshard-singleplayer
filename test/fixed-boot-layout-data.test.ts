@@ -8,7 +8,7 @@ import { creekSurfaceAt as originalSurface, inBeaverPool as originalPool } from 
 import { forestDensity, oldGrowthMask, speciesMix } from '../src/shards/pine-hollow/generators/forestGeography';
 import geography from '../src/shards/pine-hollow/data/geography.generated.json' with { type: 'json' };
 import manifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
-import { PINE_TREE_IDS } from '../src/shards/pine-hollow/world/treeSet';
+import { PINE_TREE_IDS } from '../src/shards/pine-hollow/generators/treeSet';
 
 const digest = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 

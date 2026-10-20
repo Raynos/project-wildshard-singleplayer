@@ -1,5 +1,5 @@
 /**
- * A tree set's species (PH-B4; E405: the set is content — Pine Hollow's is src/shards/pine-hollow/world/treeSet.ts): a
+ * A tree set's species (PH-B4; E405: the set is content — Pine Hollow's is src/shards/pine-hollow/generators/treeSet.ts): a
  * level names its species, how each is planted (ForestSpec.speciesTraits, in draw order) and the set's variants
  * (TreeSpec.setVariants). A leaf module (no imports).
  */

@@ -10202,6 +10202,12 @@ by a figure signal, an approach band or a timer in a distance band. Its ports ar
 only; the figure catalogue carries the rows (`FigureCatalogue.kit(id)`). Driftwood's castaway and trader are the first
 users; an unrelated harbour mender fixture drives the same rows in `test/kit-figure.test.ts`.
 
+`game/models/treeSet` (G483 world scene assembly over admitted geometry and material rows; client-only) draws a baked tree
+set from `format/treeSetRows` rows: `TreeSetFactory` builds the forest's `TreeFactory` from the rows' geometry pool, the set's
+card, impostor and bark textures and its four look.materials graphs (`productTreeSet(slug, file)` reads the rows), and
+`treeSetModel(rows)` is the one model the forest places, its LODs the forest's bands and each trunk the forest's capsule.
+Pine Hollow's species set is the first user; an orchard fixture declares its own set in `test/tree-set.test.ts`.
+
 A figure replaces a fallback with the declared baked skin after intake,
 using independent skeletons over cached geometry and textures. The existing
 humanoid `legBones`/`legPose` preserves the leg, talk, point and walk math;

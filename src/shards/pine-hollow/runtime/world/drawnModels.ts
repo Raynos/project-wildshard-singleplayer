@@ -21,7 +21,7 @@ import type { ForestGround } from '@wildshard/game/looks/forestGround';
 import type { FieldModelsContext } from '@wildshard/game/shard/manifest';
 import { pineModels } from './context';
 import { useUndergrowth } from './undergrowthKit';
-import { forestTree, useTreeFactory, type ForestTreeParams } from '../models/forestTree';
+import { productTreeSet, treeSetModel, type TreeSetParams } from '@wildshard/game/models/treeSet';
 import { UNDER_MODELS } from '../models/fern';
 
 /** the floor's kinds, each placed in turn (ferns, shrubs, litter, stones, moss, reeds) */
@@ -33,7 +33,7 @@ const FLOOR_KINDS = 6;
 export async function placeDrawnModels(h: FieldModelsContext<ForestGround>, due: () => Promise<void> | null): Promise<void> {
   const ctx = pineModels(h.sky, h);
   const { forest, under, registry } = h;
-  const treeVariants = forestTree.variants;
+  const trees = treeSetModel(await productTreeSet('pine-hollow', 'world/tree-set.json')), forestTree = trees.model, treeVariants = forestTree.variants;
   if (treeVariants === undefined) throw new Error('Forest model requires its variants');
   if (forest && forest.trees.length > 0) {
     // a build without the species set's files plants the runtime pines: the forest draws those itself (no model) and
@@ -43,10 +43,10 @@ export async function placeDrawnModels(h: FieldModelsContext<ForestGround>, due:
       forest.drawItself();
       if (own) registry.add({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() });
     } else {
-      useTreeFactory(ctx, forest.factory);
+      trees.use(ctx, forest.factory);
       // each tree's matrix composed as the forest's own drawing composed it (position, a turn about +Y, its scale)
       const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), at = new THREE.Vector3(), sc = new THREE.Vector3();
-      const pls = forest.trees.map((t): Placement<ForestTreeParams> => ({ x: t.x, y: t.y, z: t.z, variant: treeVariants[t.variant]?.id ?? 'pine-a', color: t.tint,
+      const pls = forest.trees.map((t): Placement<TreeSetParams> => ({ x: t.x, y: t.y, z: t.z, variant: treeVariants[t.variant]?.id ?? 'pine-a', color: t.tint,
         params: { height: t.height, r: t.r, scale: t.scale },
         matrix: new THREE.Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(t.scale, t.scale, t.scale)) }));
       await placeSliced(forestTree, pls, { ctx, draw: forest.path, registry, piece: { id: 'pine-hollow/forest-tree' }, sortObjects: false,

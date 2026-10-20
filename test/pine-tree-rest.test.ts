@@ -8,7 +8,7 @@ import { bakeTreeRest } from '../src/shards/pine-hollow/generators/treeRest';
 import { loadTreeSetGeometry } from '../src/engine/world/forest/treeSet';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { createModelLibrary } from '../src/game/plugin/geometry';
-import { PINE_TREE_SET } from '../src/shards/pine-hollow/world/treeSet';
+import { PINE_TREE_SET } from '../src/shards/pine-hollow/generators/treeSet';
 import rows from '../src/shards/pine-hollow/data/treeRest.generated.json';
 
 afterEach(()=>{vi.restoreAllMocks();});

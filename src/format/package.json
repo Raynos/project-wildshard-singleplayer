@@ -34,6 +34,7 @@
     "./chapterDirector": "./chapterDirector.ts",
     "./figures": "./figures.ts",
     "./kitFigure": "./kitFigure.ts",
+    "./treeSet": "./treeSet.ts",
     "./coverAppearance": "./coverAppearance.ts",
     "./eliteFeature": "./eliteFeature.ts",
     "./spawnCombat": "./spawnCombat.ts",

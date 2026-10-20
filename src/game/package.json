@@ -60,6 +60,7 @@
     "./models/figureCatalogue": "./models/figureCatalogue.ts",
     "./systems/npc/figureRows": "./systems/npc/figureRows.ts",
     "./systems/npc/kitFigure": "./systems/npc/kitFigure.ts",
+    "./looks/treeSet": "./looks/treeSet.ts",
     "./systems/npc/figureSkins": "./systems/npc/figureSkins.ts",
     "./looks/coverAppearance": "./looks/coverAppearance.ts",
     "./quest/eliteFeature": "./quest/eliteFeature.ts",
