@@ -1,17 +1,23 @@
 /** The painterly look host's world pieces (G478 point 3, with game/looks/paintedLook): a level that paints its own world
  * (Nalati's panorama painterly) declares them as rows; renderer construction and lifetime hooks stay here. */
-import { BufferGeometry, Mesh, MeshLambertMaterial, type Texture } from 'three';
+import { BufferGeometry, ClampToEdgeWrapping, Material, Mesh, MeshLambertMaterial, SphereGeometry, type IUniform, type Scene, type Texture, type Vector3 } from 'three';
 import * as v from 'valibot';
 import type { TerrainPainter } from '@wildshard/engine/render/look';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { loadTextureRow } from '@wildshard/engine/core/assets';
+import { smoothstep } from '@wildshard/engine/core/noise';
+import { TIER } from '@wildshard/engine/core/tier';
+import { headingTexture } from '@wildshard/engine/render/dataLook';
 import { applyPaintedTerrain, bindPaintedTerrainBake } from '@wildshard/engine/render/families/paintedTerrain';
+import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { materialColourGraph } from '@wildshard/engine/render/graph/colourFunction';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { parsePaintedTerrain } from '@wildshard/format/materialFamilies';
 import { parseWorldScene } from '@wildshard/format/clientChannels';
 import { SpecimenTextureSchema } from '@wildshard/format/specimenCatalogue';
 import { loadSpecimenTexture } from '../models/specimenCatalogue';
 import { createClientScene } from '../plugin/ui';
+import { lentLook, setLentParam, setLentTexture } from '../shardfile/lentLooks';
 import { loadFirstPartyProduct } from '../shardfile/runtimeProduct';
 import type { StaticCaptureUniforms } from './staticCapture';
 
@@ -58,4 +64,65 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
     terrain.material = material; terrain.mesh = ground;
     terrain.group.add(...scene.root.children);
   } };
+}
+
+const tiers = <T extends v.GenericSchema>(schema: T) => v.strictObject({ phone: schema, desktop: schema });
+const triple = v.tuple([finite, finite, finite]);
+/**
+ * The painted panorama (the painterly look host, G478): a level whose sky is one painting. The `dome` (a sphere of
+ * `radius` and `segments`, drawn first at `order`, centred on the camera) wears its lent `look`, given the painting
+ * (`image` per tier, its edge `pad` pixels over the image width, `fallbackWidth` until it reports one), the ridge line's
+ * heading texture (the level's `ridge`: v per azimuth sample), the level's fog LUT, the `zenith` colour per tier, the sun each frame
+ * and a night fade over the sun's elevation (`night` [from, to] degrees). The level's `sea` mesh (by name) takes its own
+ * lent look, sunk to `y`, with the same LUT and sun. Each frame both looks hear the level's lent uniforms, and the `lit`
+ * looks hear the painterly world's shade, rim and wet.
+ */
+export const PaintedPanoramaSchema = v.strictObject({
+  dome: v.strictObject({ name: shapeId, look: shapeId, image: tiers(v.pipe(v.string(), v.regex(/^\/assets\/[a-zA-Z0-9/_.-]+$/u))), pad: finite, fallbackWidth: v.pipe(finite, v.minValue(1)),
+    zenith: tiers(triple), radius: v.pipe(finite, v.minValue(1)),
+    segments: v.tuple([v.pipe(finite, v.integer(), v.minValue(3), v.maxValue(256)), v.pipe(finite, v.integer(), v.minValue(2), v.maxValue(256))]), order: v.pipe(finite, v.integer()),
+    night: v.tuple([finite, finite]), params: v.strictObject({ image: shapeId, ridge: shapeId, lut: shapeId, pad: shapeId, zenith: shapeId, sun: shapeId, night: shapeId }) }),
+  sea: v.strictObject({ name: shapeId, look: shapeId, y: finite, lut: shapeId, sun: shapeId }),
+  lit: v.strictObject({ looks: v.pipe(v.array(shapeId), v.maxLength(16)), shade: shapeId, rim: shapeId, wet: shapeId }),
+});
+type LentValue = number | { toArray: () => number[] };
+const shade: number[] = [0, 0, 0], rim: number[] = [0, 0, 0];
+/** The painted panorama built from its rows over the level's ridge, fog LUT and lent uniforms. */
+export class PaintedPanorama {
+  readonly dome: Mesh;
+  private readonly rows: v.InferOutput<typeof PaintedPanoramaSchema>;
+  private constructor(rows: v.InferOutput<typeof PaintedPanoramaSchema>, dome: Mesh, private readonly uniforms: Readonly<Record<string, IUniform<LentValue>>>) { this.rows = rows; this.dome = dome; }
+  static async build(scene: Scene, anisotropy: number, scope: Scope, input: unknown, level: { readonly ridge: readonly number[]; readonly lut: Texture; readonly uniforms: Readonly<Record<string, IUniform<LentValue>>> }): Promise<PaintedPanorama | null> {
+    const rows = v.parse(PaintedPanoramaSchema, input), d = rows.dome, p = d.params;
+    const image = scope.own(await loadTextureRow({ url: d.image[TIER], srgb: true, wrapT: ClampToEdgeWrapping, anisotropy }));
+    if (scope.disposed) return null;
+    setLentTexture(d.look, p.image, image); setLentTexture(d.look, p.ridge, scope.own(headingTexture({ samples: level.ridge, stride: 1, half: true })));
+    setLentTexture(d.look, p.lut, level.lut);
+    const size: unknown = image.image;
+    const width = typeof size === 'object' && size !== null && 'width' in size && typeof size.width === 'number' ? size.width : d.fallbackWidth;
+    setLentParam(d.look, p.pad, d.pad / Math.max(1, width)); setLentParam(d.look, p.zenith, d.zenith[TIER]);
+    const dome = new Mesh(scope.own(new SphereGeometry(d.radius, d.segments[0], d.segments[1])), lentLook(d.look));
+    dome.name = d.name; dome.frustumCulled = false; dome.renderOrder = d.order;
+    dome.onBeforeRender = (_renderer, _scene, camera) => { camera.getWorldPosition(dome.position); scene.worldToLocal(dome.position); dome.updateMatrixWorld(); };
+    scene.add(dome);
+    const sea = scene.getObjectByName(rows.sea.name);
+    if (sea instanceof Mesh) {
+      const old: unknown = sea.material;
+      sea.material = lentLook(rows.sea.look); sea.position.y = rows.sea.y;
+      setLentTexture(rows.sea.look, rows.sea.lut, level.lut);
+      if (old instanceof Material) old.dispose();
+    }
+    return new PaintedPanorama(rows, dome, level.uniforms);
+  }
+  /** Push this frame's sun and lent uniforms; the night (0 … 1) the dome fades to. */
+  update(sunDir: Vector3, sunElevation: number): number {
+    const { dome: d, sea, lit } = this.rows, sun = sunDir.toArray(), night = smoothstep(d.night[0], d.night[1], sunElevation);
+    setLentParam(d.look, d.params.sun, sun); setLentParam(sea.look, sea.sun, sun); setLentParam(d.look, d.params.night, night);
+    for (const look of [d.look, sea.look]) for (const [key, uniform] of Object.entries(this.uniforms)) {
+      const value = uniform.value; setLentParam(look, key, typeof value === 'number' ? value : value.toArray());
+    }
+    painterlyUniforms.uPShade.value.toArray(shade); painterlyUniforms.uPRimColor.value.toArray(rim);
+    for (const look of lit.looks) { setLentParam(look, lit.shade, shade); setLentParam(look, lit.rim, rim); setLentParam(look, lit.wet, painterlyUniforms.uPWet.value); }
+    return night;
+  }
 }

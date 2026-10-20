@@ -58,5 +58,11 @@ const m = paintedTextures.metres, ground = { layers: ['meadow', 'path', 'gravel'
     means: { base: [...paintedTextures.mean.meadow], rock: [...paintedTextures.mean.rock] }, snow: { line: SNOW_LINE, high: [44, 84] }, wet: [-9.2, -9.9],
     ice: { from: [GLACIER.x0, GLACIER.z0], to: [GLACIER.x1, GLACIER.z1], half: GLACIER.half } },
   shapes: ['ground', 'slab'], recipe: { file: 'world/water.json', key: 'terrain' }, mesh: 'ground' };
-writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground }));
+// the painted panorama (game/looks/painterlyLook PaintedPanorama): the painting as the sky dome (drawn first, just inside the far
+// plane), the cloud sea sunk below the rim, and the lit look graphs that hear the painterly world's shade, rim and wet
+const panorama = { dome: { name: 'sky-dome-v2', look: 'nalati-panorama', image: paintedTextures.panorama, pad: 16, fallbackWidth: 6176, zenith: paintedTextures.zenith,
+    radius: 2590, segments: [96, 48], order: -90, night: [2, -9], params: { image: 'tPano', ridge: 'tRidge', lut: 'tFogLut', pad: 'uPad', zenith: 'uZenith', sun: 'uSunNow', night: 'uNight' } },
+  sea: { name: 'cloud-sea', look: 'nalati-cloud-sea', y: -68, lut: 'tFogLut', sun: 'uSunView' },
+  lit: { looks: ['nalati-crag', 'nalati-crag-phone', 'nalati-riders', 'nalati-cloth'], shade: 'shade', rim: 'rim', wet: 'wet' } };
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama }));
 writer.finish();
