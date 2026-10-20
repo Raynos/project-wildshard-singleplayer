@@ -1,12 +1,13 @@
 import { CrowdPrey } from '@wildshard/game/shardfile/crowdRuntime';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';
+import { PagePopulationPlanner } from '@wildshard/game/population/pageGroups';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import * as v from 'valibot';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt, terrainNormal as normalAt, terrainWaterLevel as waterLevel } from '@wildshard/engine/world/terrainHeight';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 
 
@@ -26,7 +27,6 @@ import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json'
 type WildlifeLayout = typeof ecology.wildlife;
 
 const { HITCH_HORSE_SPOTS } = poiLayoutRows;
-const point = v.object({ x: v.number(), z: v.number() });
 
 /**
  * Wildlife — Nalati's creatures placed into the shard (row B4; the Driftwood `Enemies.ts` pattern): wolf packs, wild
@@ -69,7 +69,7 @@ export class Wildlife {
   /** the saddled horses at the camp's hitching rail */
   campHorses: Animal[] = [];
   onSound?: ((name: string, position: THREE.Vector3) => void) | undefined;
-  private rng: Rng;
+  private readonly population: PagePopulationPlanner;
   private readonly placement: ReturnProgram;
   readonly pastureAuthor: ReturnProgram;
   private prev = new THREE.Vector3(); private speed = 0; private init = false; private senseElapsed = 0;
@@ -79,7 +79,7 @@ export class Wildlife {
   private readonly preyBindings = new Map<string, PackPrey>();
   private controllers: WildlifeControllers;
 
-  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.pastureAuthor = ReturnProgram.page(opts.pasture); this.rng = new Rng(opts.seed ^ 0x3a17); this.placement = ReturnProgram.page(opts.admission); this.controllers = opts.controllers ?? this.declaredControllers(); }
+  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.pastureAuthor = ReturnProgram.page(opts.pasture); this.placement = ReturnProgram.page(opts.admission); this.population = new PagePopulationPlanner(animals, this.placement, new Rng(opts.seed ^ 0x3a17), { begin: 'begin', spot: 'spot', accept: 'accept', yaw: 'yaw' }); this.controllers = opts.controllers ?? this.declaredControllers(); }
 
   private declaredControllers(): WildlifeControllers {
     const factory = declaredGroupFactories({ preyIdentity: prey => this.preyIdentity(prey), resolvePrey: id => this.resolvePrey(id),
@@ -142,27 +142,10 @@ export class Wildlife {
     }
   }
 
-  /** The AS owner chooses retries and accepts live terrain/body observations. */
-  private spot(x: number, z: number, radius: number): { x: number; z: number } {
-    const attempts = v.parse(v.number(), this.placement.project('begin', {})['attempts']);
-    for (let i = 0; i < Math.min(attempts, 1024); i++) {
-      const at = v.parse(point, this.placement.project('spot', { x, z, radius }, this.rng));
-      const clash = this.animals.animals.some(a => Math.abs(a.position.x - at.x) < 2 && Math.abs(a.position.z - at.z) < 2);
-      if (this.placement.project('accept', { ...at, normal: normalAt(at.x, at.z)[1], height: heightAt(at.x, at.z), water: waterLevel(),
-        wet: Number(wildEnv.wetAt?.(at.x, at.z) === true), clash: Number(clash) })['accept'] === 1) return at;
-    }
-    return { x, z };
-  }
-  private yaw(): number { return v.parse(v.number(), this.placement.project('yaw', {}, this.rng)['yaw']); }
-  private place(kind: string, variant: string, x: number, z: number, radius: number): Animal {
-    const at = this.spot(x, z, radius); return this.animals.spawn(kind, at.x, at.z, this.yaw(), variant);
-  }
-
   spawnPack(x: number, z: number, variants: string[]): PackController {
-    const herd = this.animals.addHerd('wolf', x, z);
     const radius = v.parse(v.number(), this.placement.project('packPlan', {})['radius']);
-    const members = variants.map(variant => { const w = this.place('wolf', variant, x, z, radius);
-      w.herd = herd; this.animals.herds[herd]?.members.push(w); this.wolves.push(w); return w; });
+    const members = this.population.scatter({ kind: 'wolf', variants, x, z, radius });
+    this.wolves.push(...members);
     const pack = this.controllers.pack(members, x, z);
     pack.findPrey = (px, pz, r) => this.nearestFoal(px, pz, r);
     this.packs.push(pack);
@@ -170,20 +153,8 @@ export class Wildlife {
   }
 
   spawnHerd(x: number, z: number, mares: number, foals: number, stallion: boolean): HerdController {
-    const herd = this.animals.addHerd('horse', x, z);
-    const params = { mares, foals, stallion: Number(stallion), coats: ecology.mareVariants.length };
-    const start = v.parse(v.object({ start: v.number(), count: v.number() }), this.placement.project('herdStart', params, this.rng));
-    const variants = [...ecology.mareVariants, 'foal-bay', 'foal-chestnut', 'stallion'], members: Animal[] = [];
-    for (let index = 0; index < start.count; index++) {
-      const plan = this.placement.project('herdMember', { ...params, ...start, index });
-      const variant = variants[v.parse(v.number(), plan['variant'])]; if (variant === undefined) throw new Error('Missing herd variant');
-      const a = this.place('horse', variant, x, z, v.parse(v.number(), plan['radius']));
-      a.herd = herd; this.animals.herds[herd]?.members.push(a); members.push(a);
-      if (plan['place'] === 1) {
-        const at = v.parse(v.number(), plan['mother']), mother = at < mares ? members[at] : undefined;
-        if (mother !== undefined) { const offset = v.parse(point, this.placement.project('foal', {}, this.rng)); a.place(mother.position.x + offset.x, mother.position.z + offset.z, mother.yaw); }
-      } else if (plan['place'] === 2) a.place(x + v.parse(v.number(), plan['x']), z + v.parse(v.number(), plan['z']), v.parse(v.number(), plan['yaw']));
-    }
+    const members = this.population.planned({ kind: 'horse', x, z, observations: { mares, foals, stallion: Number(stallion), coats: ecology.mareVariants.length },
+      variants: [...ecology.mareVariants, 'foal-bay', 'foal-chestnut', 'stallion'], start: 'herdStart', member: 'herdMember', offset: 'foal' });
     const h = this.controllers.herd(members);
     h.findWolf = (px, pz, r) => this.nearestWolf(px, pz, r);
     this.herds.push(h);
@@ -196,8 +167,8 @@ export class Wildlife {
     this.opts.scene.add(f.mesh);
     f.onSound = (name, sx, sz) => { this._v.set(sx, heightAt(sx, sz) + 0.6, sz); this.onSound?.(name, this._v); };
     if (dog) {
-      const plan = v.parse(v.object({ ...point.entries, radius: v.number() }), this.placement.project('dogPlan', { x, z }));
-      const at = this.spot(plan.x, plan.z, plan.radius), d = this.animals.spawn('sheepdog', at.x, at.z, 0, 'collie');
+      const plan = v.parse(v.object({ x: v.number(), z: v.number(), radius: v.number() }), this.placement.project('dogPlan', { x, z }));
+      const at = this.population.spot(plan.x, plan.z, plan.radius), d = this.animals.spawn('sheepdog', at.x, at.z, 0, 'collie');
       d.herd = this.animals.addHerd('sheepdog', x, z);
       f.setDog(d, this.placement);
     }

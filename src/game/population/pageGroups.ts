@@ -1,7 +1,10 @@
+import * as v from 'valibot';
+import type { Rng } from '@wildshard/engine/core/rng';
+import type { ReturnProgram } from './returnProgram';
 import { createCreatureSpawner, type CreatureSpawnRow } from '../plugin/brain';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { terrainHeight, terrainNormal, terrainWaterLevel } from '@wildshard/engine/world/terrainHeight';
 import { Vector3 } from 'three';
 import { ReturnGate } from './respawn';
 
@@ -61,4 +64,52 @@ export class PageActorGroups {
     }
   }
   dispose(): void { this.owner.dispose(); this.training = null; }
+}
+
+const point = v.object({ x: v.number(), z: v.number() });
+const whole = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024));
+/** Ordered page placement on the population owner. The admitted event program
+ * chooses retries, terrain admission, member variants and relative placements.
+ * Inputs are data and existing authorities; no content callback crosses it. */
+export class PagePopulationPlanner {
+  constructor(private readonly animals: AnimalManager, private readonly program: ReturnProgram, private readonly random: Rng,
+    private readonly signals: { readonly begin: string; readonly spot: string; readonly accept: string; readonly yaw: string }) {}
+  spot(x: number, z: number, radius: number): { x: number; z: number } {
+    const attempts = v.parse(whole, this.program.project(this.signals.begin, {})['attempts']);
+    for (let i = 0; i < attempts; i++) {
+      const at = v.parse(point, this.program.project(this.signals.spot, { x, z, radius }, this.random));
+      const clash = this.animals.animals.some(a => Math.abs(a.position.x - at.x) < 2 && Math.abs(a.position.z - at.z) < 2);
+      if (this.program.project(this.signals.accept, { ...at, normal: terrainNormal(at.x, at.z)[1], height: terrainHeight(at.x, at.z), water: terrainWaterLevel(),
+        wet: Number(this.animals.wetAt?.(at.x, at.z) === true), clash: Number(clash) })['accept'] === 1) return at;
+    }
+    return { x, z };
+  }
+  place(kind: string, variant: string, x: number, z: number, radius: number): Animal {
+    const at = this.spot(x, z, radius), yaw = v.parse(v.number(), this.program.project(this.signals.yaw, {}, this.random)['yaw']);
+    return this.animals.spawn(kind, at.x, at.z, yaw, variant);
+  }
+  /** Scatter a known ordered roster into one manager-owned group. */
+  scatter(row: { readonly kind: string; readonly variants: readonly string[]; readonly x: number; readonly z: number; readonly radius: number }): Animal[] {
+    const herd = this.animals.addHerd(row.kind, row.x, row.z);
+    return row.variants.map(variant => this.member(this.place(row.kind, variant, row.x, row.z, row.radius), herd));
+  }
+  /** A bounded guest plan selects each member and optional placement relative to
+   * an earlier member or the group's origin. Allocation stays in source order. */
+  planned(row: { readonly kind: string; readonly x: number; readonly z: number; readonly variants: readonly string[];
+    readonly observations: Readonly<Record<string, number>>; readonly start: string; readonly member: string; readonly offset: string }): Animal[] {
+    const herd = this.animals.addHerd(row.kind, row.x, row.z);
+    const start = v.parse(v.object({ start: v.number(), count: whole }), this.program.project(row.start, row.observations, this.random));
+    const members: Animal[] = [];
+    for (let index = 0; index < start.count; index++) {
+      const plan = this.program.project(row.member, { ...row.observations, ...start, index });
+      const variant = row.variants[v.parse(whole, plan['variant'])]; if (variant === undefined) throw new Error('Missing population variant');
+      const actor = this.member(this.place(row.kind, variant, row.x, row.z, v.parse(v.number(), plan['radius'])), herd); members.push(actor);
+      if (plan['place'] === 1) {
+        const parent = members[v.parse(whole, plan['mother'])];
+        if (parent !== undefined && parent !== actor) { const offset = v.parse(point, this.program.project(row.offset, {}, this.random)); actor.place(parent.position.x + offset.x, parent.position.z + offset.z, parent.yaw); }
+      } else if (plan['place'] === 2) actor.place(row.x + v.parse(v.number(), plan['x']), row.z + v.parse(v.number(), plan['z']), v.parse(v.number(), plan['yaw']));
+    }
+    return members;
+  }
+  private member(actor: Animal, herd: number): Animal { actor.herd = herd; this.animals.herds[herd]?.members.push(actor); return actor; }
 }
