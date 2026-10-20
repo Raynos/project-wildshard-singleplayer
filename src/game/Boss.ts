@@ -8,6 +8,74 @@ import { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { bossesSave, saveSlug } from './saves';
 import * as THREE from 'three';
+import * as v from 'valibot';
+import type { ShardContext } from './plugin/context';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import { canReach } from '@wildshard/engine/ai/reach';
+import { CameraFX } from '@wildshard/engine/player/CameraFX';
+import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
+import type { ItemId } from './Inventory';
+import type { SkinId } from '@wildshard/engine/player/Skins';
+import { HeldFinishes } from './loadout/finishes';
+
+const combatId = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
+const combatEffectId = v.pipe(combatId, v.regex(/^effect\./u)) as v.GenericSchema<`effect.${string}`>;
+const combatSessionRows = v.strictObject({ god: v.boolean(), bossKinds: v.pipe(v.array(combatId), v.maxLength(64)),
+  stunEffect: combatEffectId, unlockSkins: v.pipe(v.array(combatId), v.maxLength(64)) });
+
+/** Client-only combat effects over the entered player, equipment and mixer.
+ * Content supplies ids and policy values; callbacks, renderers and save owners
+ * are never author inputs. Existing encounters retain their own update phase. */
+export class PageCombatSession {
+  readonly context;
+  private readonly legsOwner;
+  private readonly equipment;
+  private readonly rows;
+  private introLock = false;
+  private bank: DeclaredSoundBank | null = null;
+  private readonly owner: ShardContext;
+  constructor(owner: ShardContext, input: unknown) {
+    this.owner = owner;
+    const rows = this.rows = v.parse(combatSessionRows, input), runtime = owner.game.runtime, world = runtime?.world, play = runtime?.play;
+    if (owner.scope.disposed || world === undefined || world === null || play === undefined || play === null) throw new Error('Combat session requires its entered player');
+    const { game, sky, player } = world, { animals } = play, direction = new THREE.Vector3();
+    this.legsOwner = player; this.equipment = play.weapons;
+    this.context = {
+      game, sky, player, animals, god: rows.god,
+      reach: (actor: Animal, target: { x: number; y: number; z: number }) => canReach(actor, target, owner.app.physics),
+      hurt: (actor: Animal, amount: number, throughWalls = false): void => {
+        const target = owner.app.player;
+        if (owner.scope.disposed || rows.god || target === null || (!throughWalls && !canReach(actor, player.position, owner.app.physics))) return;
+        owner.app.combat.hit({ source: actor.combatActor(), sourceTags: [`${rows.bossKinds.includes(actor.kind) ? 'boss' : 'creature'}.${actor.kind}`, 'feel.blow', 'cover.checked'],
+          target, amount, point: actor.position, dir: direction, throughWalls, cause: { kind: actor.kind, label: actor.label } });
+      },
+      stun: (seconds: number): void => {
+        const target = owner.app.player; if (owner.scope.disposed || rows.god || target === null) return;
+        owner.app.effects?.apply(target, rows.stunEffect, undefined, { duration: seconds }); this.legs();
+      },
+      trauma: (amount: number): void => { if (!owner.scope.disposed) CameraFX.for(game).addTrauma(amount); },
+      sound: (name: string, at: THREE.Vector3): void => { if (!owner.scope.disposed) animals.onSound?.(name, at); },
+      shot: (name: string, at: THREE.Vector3): void => { if (!owner.scope.disposed) this.bank?.shot(name, { at }); },
+      toast: (text: string): void => { if (!owner.scope.disposed) play.hud.toast(text); },
+      feed: (text: string): void => { if (!owner.scope.disposed) play.hud.killFeed(text); },
+      addItem: (id: ItemId, count?: number): void => { if (!owner.scope.disposed) play.inventory.add(id, count); },
+      ownSkin: (id: SkinId): void => {
+        if (owner.scope.disposed) return;
+        const skin = HeldFinishes.current(owner.product.slug).get(id); play.skins.own(id); play.wearSkin(skin);
+        if (rows.unlockSkins.includes(skin.weapon)) play.weapons.unlock(skin.weapon);
+      },
+      dusk: () => sky.dayNight?.dusk ?? 0, night: () => sky.dayNight?.night ?? 0,
+    };
+    owner.scope.onDispose(() => { this.bank = null; });
+  }
+  legs(): void { this.legsOwner.carried = (this.owner.app.player?.attributes['moveLocked'] ?? 0) > 0 || this.introLock; }
+  lockInput(on: boolean): void { this.introLock = on; this.legs(); this.equipment.setEnabled(!on); }
+  onPlayerDeath(): void {
+    const target = this.owner.app.player; if (target !== null) this.owner.app.effects?.remove(target, this.rows.stunEffect);
+    this.introLock = false; this.legs();
+  }
+  useSfx(bank: DeclaredSoundBank): void { this.bank = bank; }
+}
 
 /**
  * Boss — the engine's boss system (docs/design/nalati/elites-and-bosses.md §2 "The boss system"; plan NALATI.md row B13).

@@ -2,12 +2,11 @@ import { installEliteFeaturePage } from '@wildshard/game/quest/elitePage';
 import type { EliteFeatureRows } from '@wildshard/format/eliteFeature';
 import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
-import { installBossEncounter } from '@wildshard/game/Boss';
+import { installBossEncounter, PageCombatSession } from '@wildshard/game/Boss';
 import { Elites, GroundTell, type EliteRule } from '@wildshard/game/Elite';
 import type { Inventory } from '@wildshard/game/Inventory';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { bindAdventurePersistence } from '@wildshard/game/quest/persistence';
-import { canReach } from '@wildshard/engine/ai/reach';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -18,7 +17,6 @@ import { perfLap } from '@wildshard/engine/core/perfLap';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { lineOfSight } from '@wildshard/engine/physics/query';
-import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import type { Player } from '@wildshard/engine/player/Player';
 import { applySkin, type SkinDef, type SkinId } from '@wildshard/engine/player/Skins';
 import { EliteBar } from '@wildshard/engine/ui/EliteBar';
@@ -33,7 +31,7 @@ import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { voice, type PineCtx } from './ctx';
+import type { PineCtx } from './ctx';
 import { installPinePresentation } from './chargeTells';
 import { antlerKingFight, KING_KIND } from '../runtime/antlerKing';
 import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
@@ -96,10 +94,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const { game, sky, player, animals, weapons, params } = h;
   const entered = retainsRuntimeServices(h.context) ? h.context : undefined;
   const god = params.has('bossGod');
-  // the player's legs: a roar's stun and the King's intro both root you; either one holds
-  let introLock = false;
-  let sfx: PineHollowSfx | null = null;
-  const legs = (): void => { player.carried = (app.player?.attributes['moveLocked'] ?? 0) > 0 || introLock; };
+  const session = new PageCombatSession(h.context, { god, bossKinds: [KING_KIND], stunEffect: 'effect.stun', unlockSkins: ['rifle'] });
   // the drop orbs' skinned weapons, built now and parked (hidden) in the scene so the boot's precompile covers their
   // programs: the first elite kill / the King's reward then compiles nothing mid-play
   const buildSkin = (id: SkinId): THREE.Object3D => {
@@ -115,23 +110,8 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     ...(entered === undefined ? {} : { onDamage: (listener: Parameters<NonNullable<PineCtx['onDamage']>>[0]) => {
       installEnteredRuntimeService(entered, (scope) => { game.app.events.on('damage.dealt', listener, scope); });
     } }),
-    game, sky, player, animals, god,
-    reach: (actor, target) => canReach(actor, target, app.physics),
-    hurt: (a, dmg, throughWalls = false) => {
-      const target = app.player;
-      if (god || target === null || (!throughWalls && !canReach(a, player.position, app.physics))) return;
-      app.combat.hit({ source: a.combatActor(), sourceTags: [a.kind === KING_KIND ? `boss.${a.kind}` : `creature.${a.kind}`, 'feel.blow', 'cover.checked'],
-        target, amount: dmg, point: a.position, dir: new THREE.Vector3(), throughWalls, cause: { kind: a.kind, label: a.label } });
-    },
-    stun: (s) => { const target = app.player; if (god || target === null) return; app.effects?.apply(target, 'effect.stun', undefined, { duration: s }); legs(); },
-    trauma: (k) => { CameraFX.for(game).addTrauma(k); },
-    sound: (name, at) => { voice(animals, name, at); },
-    shot: (name, at) => { sfx?.shot(name, { at }); },
-    toast: (s) => { h.hud.toast(s); }, feed: (s) => { h.hud.killFeed(s); },
-    addItem: (id, n) => { h.inventory.add(id, n); },
-    ownSkin: (id) => { const s = HeldFinishes.current(source.identity.slug).get(id); h.skins.own(id); h.wearSkin(s); if (s.weapon === 'rifle') weapons.unlock('rifle'); },
+    ...session.context,
     skinModel: (id) => { const m = parked.get(id); if (m) { parked.delete(id); m.removeFromParent(); m.visible = true; return m; } return buildSkin(id); },
-    dusk: () => sky.dayNight?.dusk ?? 0, night: () => sky.dayNight?.night ?? 0,
     longbow: h.longbow ? {
       // the stave stands along the orb's item axis (−Z, tip up) at half size: a 1.7 m bow in a legendary's orb
       model: () => { const w = new THREE.Group(), m = h.longbow?.displayModel(); if (m) { m.rotation.x = -Math.PI / 2; m.scale.setScalar(0.5); w.add(m); } return w; },
@@ -171,7 +151,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     game, player, scope: app.levelScope, chunkId: 'pine-hollow', interactables: h.interactables,
     persistence: persistence.bosses,
     reward: { model: () => ctx.longbow?.model() ?? ctx.skinModel('warden'), grant: () => { ctx.ownSkin('warden'); ctx.longbow?.grant(); }, trophy: () => { ctx.addItem('amber-resin', 3); } },
-    lockInput: on => { player.carried = on; introLock = on; legs(); weapons.setEnabled(!on); },
+    lockInput: on => { session.lockInput(on); },
     respawn: (pos, yaw) => { player.spawn(pos.x, pos.z, yaw); player.pitch = 0; h.ironFirst?.(); h.crossbow.addBolts(h.pouchCapacity - (h.crossbow.state.bolts ?? h.pouchCapacity)); },
     skipHeld: () => app.input.held('skip') || app.input.held('jump') || app.input.held('use') || app.input.held('confirm'),
     toast: ctx.toast, feed: ctx.feed, pickupHum: on => { h.audio.pickupHum(on); },
@@ -212,7 +192,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   // The shell split its original frame into world / creature / HUD passes. Lair spawns must
   // still precede the first world pass and creature sync, which installs their hitboxes.
   const system: Parameters<ShardContext['system']>[0] = { id: 'elites', phase: 'update', before: ['main.world', 'engine.creatures.update', 'main.frame'], run: (dt, t) => {
-    legs();
+    session.legs();
     feel.update(dt, t);
     if (perfLap.active) return; // E350 F-J1: the PERF LAP's teleports find no lair and wake no King
     pineElites.update(dt, t);
@@ -221,7 +201,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   if (entered === undefined) game.app.addSystem(system, game.levelScope);
   else installEnteredRuntimeService(entered, scope => {
     game.app.addSystem(system, scope);
-    scope.onDispose(() => { if (app.player !== null) app.effects?.remove(app.player, 'effect.stun'); player.carried = false; });
+    scope.onDispose(() => { session.onPlayerDeath(); player.carried = false; });
   });
   if (entered === undefined) { for (const [name, observer] of Object.entries({ __pineElites: pineElites, __antlerKing: king })) game.levelScope.expose(window, name, observer); }
   else {
@@ -235,9 +215,9 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   return {
     elites,
     weatherHold: () => king.fight.sealK,
-    onPlayerDeath: () => { const target = app.player; if (target !== null) app.effects?.remove(target, 'effect.stun'); introLock = false; legs(); return king.onPlayerDeath(); },
+    onPlayerDeath: () => { session.onPlayerDeath(); return king.onPlayerDeath(); },
     isElite: pineElites.isElite,
-    useSfx: (s) => { sfx = s; },
+    useSfx: (s) => { session.useSfx(s); },
     eliteEngaged: () => elites.focus?.state === 'engaged',
   };
 }
