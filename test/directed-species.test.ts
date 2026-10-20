@@ -6,7 +6,8 @@ import { DirectedSpecies } from '../src/game/population/directedSpecies';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import { legacyDouble } from './fake/FakeGame';
 import { riderGeometry } from '../src/shards/nalati-grasslands/generators/ghostFigure';
-import { bakedActorGeometry } from '../src/shards/nalati-grasslands/world/places';
+import { shapeBook } from '../src/game/models/shapeBook';
+import shapeRows from '../src/shards/nalati-grasslands/boot/shapeBook.generated.json' with { type: 'json' };
 
 test('a marsh courier projects its own target memory, cadence and hit rules through the existing guest', () => {
   const row = { signal: 'steer', clock: 'courier.clock', every: .1, target: ['guide.x', 'guide.z'], motion: ['guide.speed', 'guide.turn'],
@@ -28,7 +29,7 @@ test('a marsh courier projects its own target memory, cadence and hit rules thro
 
 test('both spectral figure bakes retain every authored vertex and normal', () => {
   for (const captain of [false, true]) {
-    const source = riderGeometry(captain), baked = bakedActorGeometry(captain ? 'ghost-captain' : 'ghost-rider');
+    const source = riderGeometry(captain), baked = shapeBook(shapeRows).geometry(captain ? 'ghost-captain' : 'ghost-rider');
     try {
       expect(baked.getAttribute('position').array).toEqual(source.getAttribute('position').array);
       expect(baked.getAttribute('normal').array).toEqual(source.getAttribute('normal').array);

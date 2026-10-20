@@ -34,7 +34,8 @@ import { buildNalatiPOIs } from '../world/view';
 import type { NalatiPOIs } from '../world/viewTypes';
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { type ArenaRoomEncounter, arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
-import { bakedActorGeometry, bakedActorGeometries } from '../world/places';
+import { shapeBook } from '@wildshard/game/models/shapeBook';
+import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 import { EliteRosterPage, type EliteRosterRows } from '@wildshard/game/quest/eliteRosterPage';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { wireWeather, type NalatiWeather } from '../world/installWeather';
@@ -201,7 +202,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
   const { constants: { pageElites } } = await plugin.product.json<{ constants: { pageElites: EliteRosterRows } }>('sim/headless-assembly.json');
   const dropMaterial = painterlyMaterial(sky, { rim: .6 });
-  const drops = new Map([...pageElites.keepers, ...pageElites.external].map(row => { const model = new Group(); model.add(new Mesh(bakedActorGeometry(`trophy:${row.def.id}`), dropMaterial)); return [row.def.id, model] as const; }));
+  const drops = new Map([...pageElites.keepers, ...pageElites.external].map(row => { const model = new Group(); model.add(new Mesh(shapeBook(shapeRows).geometry(`trophy:${row.def.id}`), dropMaterial)); return [row.def.id, model] as const; }));
   const elites = new EliteRosterPage<Flock>({ game, player: ctx.player, ledges: pois.cragLedges, rock: poiLayout.EAGLE_ROCK, clock: weather.clock, weather: weather.weather },
     pageElites, eliteProgram, drops, charge);
   updates.push((dt, t) => {
@@ -217,7 +218,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
   const kingRows = v.parse(v.object({ king: v.record(v.string(),v.unknown()), arenaRoom: v.unknown(), programs: v.object({ rules: v.unknown() }) }), await plugin.product.json('combat/titan-fight.json'));
-  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },bakedActorGeometries(arenaRoomGeometryIds(kingRows.arenaRoom)),pois.kurganEntrance);
+  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },shapeBook(shapeRows).geometries(arenaRoomGeometryIds(kingRows.arenaRoom)),pois.kurganEntrance);
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
   weather.bind({ indoors: () => boss.inside }); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
@@ -261,7 +262,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
-  const riderFigure = game.levelScope.own(bakedActorGeometry('ghost-rider')), captainFigure = game.levelScope.own(bakedActorGeometry('ghost-captain'));
+  const riderFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-rider')), captainFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-captain'));
   const night = new TimedEncounters({ game, sky, player: ctx.player, forest: ctx.forest, sites: pois.balbals, clock: weather.clock },
     await plugin.product.json('combat/timed-encounters.json'), { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest());
   await preloadCover(); // the small-model pack the marmots and the ambient wings draw from (creatures/marmots.ts)

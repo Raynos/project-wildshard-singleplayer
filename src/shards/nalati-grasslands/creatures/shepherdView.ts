@@ -6,7 +6,8 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import * as THREE from 'three';
 import type { PageWildlife } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
-import { bakedActorGeometry } from '../world/places';
+import { shapeBook } from '@wildshard/game/models/shapeBook';
+import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 import { PagePastureRaid } from '@wildshard/game/riding/pagePasture';
 
 type Wildlife = PageWildlife<Flock>;
@@ -21,8 +22,8 @@ export function shepherdRider(): { rider: THREE.Group; arm: THREE.Mesh } {
   const mat = painterlyMaterial(null, { rim: 0.4, bands: 0.8 });
   const rider = new THREE.Group();
   rider.name = 'nalati-shepherd';
-  const body = new THREE.Mesh(bakedActorGeometry('shepherd-body'), mat);
-  const arm = new THREE.Mesh(bakedActorGeometry('shepherd-arm'), mat);
+  const body = new THREE.Mesh(shapeBook(shapeRows).geometry('shepherd-body'), mat);
+  const arm = new THREE.Mesh(shapeBook(shapeRows).geometry('shepherd-arm'), mat);
   arm.position.copy(SHOULDER_R);
   rider.add(body, arm);
   rider.position.copy(SEAT);

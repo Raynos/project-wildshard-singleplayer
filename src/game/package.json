@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./models/shapeBook": "./models/shapeBook.ts",
     "./models/runtimeSpecimens": "./models/runtimeSpecimens.ts",
     "./boss/timedEncounters": "./boss/timedEncounters.ts",
     "./shardfile/clientFinds": "./shardfile/clientFinds.ts",

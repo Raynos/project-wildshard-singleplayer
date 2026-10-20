@@ -84,9 +84,9 @@ const bodyFetch = vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
 try { await preloadNalatiBodies(); } finally { bodyFetch.mockRestore(); }
 const { unshuffleLanes: unshuffleBodyLanes } = await import('../src/engine/core/deflate');
 // and its camps' and bridge's places bake (world/placeBake.ts)
-const { provideNalatiPlaces, provideNalatiDressing } = await import('../src/shards/nalati-grasslands/world/places');
-provideNalatiPlaces(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/places.bin')))));
-provideNalatiDressing(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/dressing.bin')))));
+const { shapeBook } = await import('../src/game/models/shapeBook');
+const { default: shapeRows } = await import('../src/shards/nalati-grasslands/boot/shapeBook.generated.json');
+shapeBook(shapeRows).use(unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/places.bin')))));
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
 const { PINE_BOAR } = await import('../src/shards/pine-hollow/generators/speciesRows');
 const { PINE_BOAR_LOOK } = await import('../src/shards/pine-hollow/species/looks');

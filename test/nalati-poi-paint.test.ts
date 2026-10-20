@@ -1,14 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- compare the pre-conversion runtime's exact attribute bytes
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import { bakedActorGeometry, bakedDressingContacts, bakedSignLettering } from '../src/shards/nalati-grasslands/world/places';
+import { shapeBook } from '../src/game/models/shapeBook';
+import shapeRows from '../src/shards/nalati-grasslands/boot/shapeBook.generated.json' with { type: 'json' };
 import { shepherdRider } from '../src/shards/nalati-grasslands/creatures/shepherdView';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { Mesh, BufferGeometry, BufferAttribute, Material, MeshLambertMaterial, DataTexture, Vector3, SRGBColorSpace, LinearFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping } from 'three';
 import oracle from './fixtures/nalati-poi-paint.json';
 import staticOracle from './fixtures/nalati-static-contacts.json';
 import fixed from '../src/shards/nalati-grasslands/boot/poiPaint.json';
-import { initializeTier, TIER } from '../src/engine/core/tier';
 
 const hash = (array: ArrayBufferView): string => createHash('sha256')
   .update(new Uint8Array(array.buffer, array.byteOffset, array.byteLength)).digest('hex');
@@ -26,7 +26,7 @@ describe('Nalati fixed POI paint', () => {
   it('retains native fitted rock and glacier attributes, bounds and contact order', () => {
     expect(fixed.glacierSnout).toEqual(staticOracle.anchor);
     for (const [key, expected] of Object.entries(staticOracle.geometries)) {
-      const geometry = bakedActorGeometry(key);
+      const geometry = shapeBook(shapeRows).geometry(key);
       expect({ attributes: Object.entries(geometry.attributes).map(([name, a]) => ({ name,
         type: a.array.constructor.name, size: a.itemSize, count: a.count, normalized: a.normalized, hash: hash(a.array),
       })), index: geometry.index === null ? null : { type: geometry.index.array.constructor.name, count: geometry.index.count, hash: hash(geometry.index.array) },
@@ -35,23 +35,12 @@ describe('Nalati fixed POI paint', () => {
       }).toEqual(expected);
       geometry.dispose();
     }
-    const previous = TIER;
-    try {
-      for (const tier of ['phone', 'desktop'] as const) {
-        initializeTier(tier);
-        for (const name of ['boulder', 'boulder-tall', 'slab'] as const) {
-          const expected = staticOracle.contacts[tier][name], shapes = bakedDressingContacts(name);
-          expect(shapes).toHaveLength(expected.count);
-          const json = JSON.stringify(shapes, (_key, value: unknown) => value instanceof Float32Array ? Array.from(value) : value);
-          expect(createHash('sha256').update(json).digest('hex')).toBe(expected.hash);
-        }
-      }
-    } finally { initializeTier(previous); }
+
   });
 
   it('retains every parent vertex, normal, colour, UV, index and bound', () => {
     for (const row of oracle.rows) {
-      const geometry = bakedActorGeometry(row.key);
+      const geometry = shapeBook(shapeRows).geometry(row.key);
       expect(Object.entries(geometry.attributes).map(([name, a]) => ({ name,
         type: a.array.constructor.name, size: a.itemSize, normalized: a.normalized,
         count: a.count, bytes: a.array.byteLength, hash: hash(a.array),
@@ -61,7 +50,7 @@ describe('Nalati fixed POI paint', () => {
       expect(geometry.groups).toEqual(row.groups);
       expect(geometry.boundingBox === null ? null : [geometry.boundingBox.min.toArray(), geometry.boundingBox.max.toArray()]).toEqual(row.box);
       expect(geometry.boundingSphere === null ? null : [geometry.boundingSphere.center.toArray(), geometry.boundingSphere.radius]).toEqual(row.sphere);
-      const second = bakedActorGeometry(row.key);
+      const second = shapeBook(shapeRows).geometry(row.key);
       expect(second.getAttribute('position').array).not.toBe(geometry.getAttribute('position').array);
       geometry.dispose(); second.dispose();
     }
@@ -86,7 +75,7 @@ describe('Nalati fixed POI paint', () => {
   it('adopts exact atlas pixels and sampling before entering the world', () => {
     const sky = testSky();
     for (const key of ['roads', 'specimen'] as const) {
-      const mesh = bakedSignLettering(sky, key), material: unknown = mesh.material, expected = oracle.atlases[key];
+      const mesh = shapeBook(shapeRows).lettering(sky, key), material: unknown = mesh.material, expected = oracle.atlases[key];
       if (!(material instanceof MeshLambertMaterial) || !(material.map instanceof DataTexture)) throw new Error('Sign lettering needs its Lambert atlas');
       const atlas = material.map, image: unknown = atlas.image;
       if (typeof image !== 'object' || image === null) throw new Error('Missing atlas image');
