@@ -1,40 +1,58 @@
 import ts from '@typescript/typescript6';
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
+import { parseClientChannels, CLIENT_CHANNEL_LIMITS, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 
-/** Build-only expressions become bounded presentation DAGs, never evaluated JS. */
-export function visualChannel(target: string, path: string, expression: string, id: string, group: string): ClientChannelProgram {
-  const b = new ClientChannels(id);
-  const file = ts.createSourceFile('expression.ts', `(${expression})`, ts.ScriptTarget.Latest, true);
-  const statement = file.statements[0];
-  if (statement === undefined || !ts.isExpressionStatement(statement)) throw new Error('Missing visual expression');
-  function lower(n: ts.Expression): number {
-   if(ts.isParenthesizedExpression(n))return lower(n.expression);
+/** One visual output: a numeric field of `target` at `path`, from a build-only expression. */
+export interface VisualRow { readonly target: string; readonly path: string; readonly expression: string }
+const PROPERTIES = ['value', 'x', 'y', 'z', 'yaw', 'pitch', 'roll', 'scaleX', 'scaleY', 'scaleZ', 'turn', 'visible'] as const;
+
+/** Build-only expressions become bounded presentation DAGs, never evaluated JS: several outputs share one program. */
+function visualProgram(rows: readonly VisualRow[], id: string, group: string): ClientChannelProgram {
+  const b = new ClientChannels(id), reads = new Map<string, number>();
+  function lower(n: ts.Expression, file: ts.SourceFile): number {
+   if(ts.isParenthesizedExpression(n))return lower(n.expression,file);
    if(ts.isNumericLiteral(n))return b.constant(Number(n.text));
-   if(ts.isIdentifier(n)||ts.isPropertyAccessExpression(n)||ts.isElementAccessExpression(n))return b.read(n.getText(file).replaceAll(/\[(\d+)\]/gu, '.$1'));
-   if(ts.isConditionalExpression(n))return b.select(lower(n.condition),lower(n.whenTrue),lower(n.whenFalse));
-   if(ts.isPrefixUnaryExpression(n)&&n.operator===ts.SyntaxKind.MinusToken)return b.unary('neg',lower(n.operand));
+   if(ts.isIdentifier(n)||ts.isPropertyAccessExpression(n)||ts.isElementAccessExpression(n)){
+    const name=n.getText(file).replaceAll(/\[(\d+)\]/gu, '.$1'),found=reads.get(name);if(found!==undefined)return found;
+    const node=b.read(name);reads.set(name,node);return node;
+   }
+   if(ts.isConditionalExpression(n))return b.select(lower(n.condition,file),lower(n.whenTrue,file),lower(n.whenFalse,file));
+   if(ts.isPrefixUnaryExpression(n)&&n.operator===ts.SyntaxKind.MinusToken)return b.unary('neg',lower(n.operand,file));
    if(ts.isBinaryExpression(n)){
-    const op=n.operatorToken.getText(file),a=lower(n.left),c=lower(n.right);
+    const op=n.operatorToken.getText(file),a=lower(n.left,file),c=lower(n.right,file);
     switch(op){case '+':return b.binary('add',a,c);case '-':return b.binary('sub',a,c);case '*':return b.binary('mul',a,c);case '/':return b.binary('div',a,c);case '%':return b.binary('mod',a,c);case '>':return b.binary('gt',a,c);case '<':return b.binary('gt',c,a);case '&&':return b.binary('mul',a,c);case '||':return b.binary('max',a,c);default:throw new Error(`Unknown weather operation ${op}`);}
    }
    if(ts.isCallExpression(n)){
     const a=n.arguments[0],c=n.arguments[1];if(a===undefined)throw new Error('Missing visual argument');
-    switch(n.expression.getText(file)){case 'sin':return b.unary('sin',lower(a));case 'cos':return b.unary('cos',lower(a));
-     case 'ss':{const hi=n.arguments[1],x=n.arguments[2];if(hi===undefined||x===undefined)throw new Error('Missing smoothstep argument');const lo=lower(a),t=b.binary('min',b.constant(1),b.binary('max',b.constant(0),b.binary('div',b.binary('sub',lower(x),lo),b.binary('sub',lower(hi),lo))));return b.binary('mul',b.binary('mul',t,t),b.binary('sub',b.constant(3),b.binary('mul',b.constant(2),t)));}
-     case 'min':case 'max':if(c===undefined)throw new Error('Missing binary visual argument');return b.binary(n.expression.getText(file)==='min'?'min':'max',lower(a),lower(c));default:throw new Error('Unknown visual function');}
+    switch(n.expression.getText(file)){case 'sin':return b.unary('sin',lower(a,file));case 'cos':return b.unary('cos',lower(a,file));
+     case 'ss':{const hi=n.arguments[1],x=n.arguments[2];if(hi===undefined||x===undefined)throw new Error('Missing smoothstep argument');const lo=lower(a,file),t=b.binary('min',b.constant(1),b.binary('max',b.constant(0),b.binary('div',b.binary('sub',lower(x,file),lo),b.binary('sub',lower(hi,file),lo))));return b.binary('mul',b.binary('mul',t,t),b.binary('sub',b.constant(3),b.binary('mul',b.constant(2),t)));}
+     case 'min':case 'max':if(c===undefined)throw new Error('Missing binary visual argument');return b.binary(n.expression.getText(file)==='min'?'min':'max',lower(a,file),lower(c,file));default:throw new Error('Unknown visual function');}
    }
    throw new Error(`Unsupported visual expression ${n.getText(file)}`);
   }
-  b.output('value',lower(statement.expression));
+  const outputs=rows.map((row,i)=>{
+   const file=ts.createSourceFile('expression.ts',`(${row.expression})`,ts.ScriptTarget.Latest,true),statement=file.statements[0],property=PROPERTIES[i];
+   if(statement===undefined||!ts.isExpressionStatement(statement)||property===undefined)throw new Error('Missing visual expression');
+   b.output(property,lower(statement.expression,file));return {property,target:row.target,path:row.path.split('.')};
+  });
   const built=b.build();
-  const row=parseClientChannels([{...built,numeric:{group,outputs:[{property:'value',target,path:path.split('.')}],inputs:built.reads.filter(input=>input.includes('.')).map(input=>({input,owner:input.split('.')[0],path:input.split('.').slice(1).map(part=>/^\d+$/u.test(part)?Number(part):part)}))}}])[0];
+  const row=parseClientChannels([{...built,numeric:{group,outputs,inputs:built.reads.filter(input=>input.includes('.')).map(input=>({input,owner:input.split('.')[0],path:input.split('.').slice(1).map(part=>/^\d+$/u.test(part)?Number(part):part)}))}}])[0];
   if(row===undefined)throw new Error('Missing visual expression row');return row;
+}
+/** Greedy packing under the format's per-program bounds: fewer programs, the same arithmetic (a group snapshots every read
+ *  before it publishes, so the split never changes what a program sees). */
+export function visualPack(rows: readonly VisualRow[], prefix: string, group: string): ClientChannelProgram[] {
+  const programs: ClientChannelProgram[] = []; let current: VisualRow[] = [];
+  const build = (list: readonly VisualRow[]): ClientChannelProgram => visualProgram(list, `${prefix}.${String(programs.length)}`, group);
+  const fits = (list: readonly VisualRow[]): boolean => { if (list.length > PROPERTIES.length) return false; try { const p = build(list); return p.nodes.length <= CLIENT_CHANNEL_LIMITS.nodes && p.reads.length <= CLIENT_CHANNEL_LIMITS.reads; } catch { return false; } };
+  for (const row of rows) { if (current.length > 0 && !fits([...current, row])) { programs.push(build(current)); current = []; } current.push(row); }
+  if (current.length > 0) programs.push(build(current));
+  return programs;
 }
 
 export function weatherFxChannels(): ClientChannelProgram[] {
- const rows: ClientChannelProgram[] = [];
- const put=(target:string,path:string,expression:string):void=>{rows.push(visualChannel(target,path,expression,`nalati.fx.${String(rows.length)}`,'nalati.fx'));};
+ const rows: VisualRow[] = [];
+ const put=(target:string,path:string,expression:string):void=>{rows.push({target,path,expression});};
  const param=(id:string,path:string,expr:string):void=>put(`nalati-${id}`,path,expr);
  const flag=(id:string,expr:string):void=>put('flags',id,expr);
  const storm='(weather.front > .01 && weather.front < 1.499)';
@@ -69,5 +87,5 @@ export function weatherFxChannels(): ClientChannelProgram[] {
  put('rainU','uVelx','wind.x*.35');put('rainU','uVely','-9.5');put('rainU','uVelz','wind.z*.35');
  put('rainU','uLen',' .7+.4*weather.rain');put('rainU','uAlpha','.16+.16*weather.rain');
  put('draw','count','count*min(1,weather.rain*1.1)');
- return rows;
+ return visualPack(rows,'nalati.fx','nalati.fx');
 }

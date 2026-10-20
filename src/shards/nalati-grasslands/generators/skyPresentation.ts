@@ -1,7 +1,7 @@
 import { Color } from 'three';
 import type { SkyRows, SkySchema } from '../data/skyTypes';
 import { NALATI_MANIFEST_ROWS } from './manifestRows';
-import { visualChannel } from './weatherFxChannels';
+import { visualPack, type VisualRow } from './weatherFxChannels';
 import type { ClientChannelProgram } from '@wildshard/format/clientChannels';
 
 /** Numeric day keys and their live-preset field layout, built before admission. */
@@ -38,8 +38,8 @@ export function skyRows(): SkyRows {
 
 /** The day-key projection and the dome bindings are ordinary client channels. */
 export function skyChannels(): ClientChannelProgram[] {
- const rows:ClientChannelProgram[]=[];
- const sample=(path:string,expression:string):void=>{rows.push(visualChannel('look',path,expression,`nalati.sky.sample.${String(rows.length)}`,'nalati.sky.sample'));};
+ const samples:VisualRow[]=[],domes:VisualRow[]=[];
+ const sample=(path:string,expression:string):void=>{samples.push({target:'look',path,expression});};
  const sun='(clock.elevation > -1.5)',moon='ss(-2,-12,clock.elevation)';
  sample('moon',`${sun} ? 0 : 1`);sample('disc',`${sun} ? ss(-2.5,.5,clock.elevation) : ${moon}`);
  sample('keyIntensity',`${sun} ? key.sunI*ss(-1.5,1.5,clock.elevation) : .95*${moon}`);
@@ -49,9 +49,9 @@ export function skyChannels(): ClientChannelProgram[] {
  for(const [i,axis] of ['r','g','b'].entries())sample(`keyColor.${axis}`,`${sun} ? key.sun[${String(i)}] : ${String([.62,.74,1][i])}`);
  for(const field of ['fogDist','fogHeightDensity','brightness'])sample(field,`base.${field}`);
  sample('planetOpacity','1');
- const dome=(path:string,expr:string):void=>{rows.push(visualChannel('nalati-sky-dome',path,expr,`nalati.sky.dome.${String(rows.length)}`,'nalati.sky.dome'));};
+ const dome=(path:string,expression:string):void=>{domes.push({target:'nalati-sky-dome',path,expression});};
  for(const field of ['zenith','horizon','ground','glow'])for(const [axis,c] of [['x','r'],['y','g'],['z','b']])dome(`${field}.${axis}`,`look.${field}.${c}`);
  for(const axis of ['x','y','z']){dome(`sunDir.${axis}`,`look.sunDir.${axis}`);dome(`moonDir.${axis}`,`look.keyDir.${axis}`);}
  dome('moon','look.moon*look.disc');dome('stars','look.stars');dome('flash','flash');
- return rows;
+ return [...visualPack(samples,'nalati.sky.sample','nalati.sky.sample'),...visualPack(domes,'nalati.sky.dome','nalati.sky.dome')];
 }
