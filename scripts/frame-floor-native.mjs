@@ -1,7 +1,7 @@
 // Native memory is opt-in and separate from the timing floor. No GL observer,
 // heap collection, Inspector profiler or guessed RAM costs supply these reads.
-import { spawn, spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import { spawn } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
@@ -22,13 +22,6 @@ const expression = `(() => {
 export function startFloorNative(root, directory, device, read, interrupt) {
   const phase = join(directory, 'native.phase'), file = join(directory, 'native.jsonl');
   writeFileSync(phase, 'measure', { flag: 'wx' });
-  const quiet = join(root, '.git/quiet');
-  const pushes = () => spawnSync('lsof', ['-t', join(root, '.git/push.lock')], { encoding: 'utf8' }).stdout.trim() !== '';
-  if (pushes()) throw new Error('Native sampling deferred: push running or waiting');
-  const lease = JSON.stringify({ owner: 'sp-x8-native-memory', pid: process.pid, started: new Date().toISOString(), deadlineSeconds: 570 });
-  writeFileSync(quiet, lease, { flag: 'wx' });
-  const release = () => { try { if (readFileSync(quiet, 'utf8') === lease) unlinkSync(quiet); } catch { /* Already released. */ } };
-  if (pushes()) { release(); throw new Error('Native sampling deferred: push won admission'); }
   const sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', device,
     '--phase-file', phase, '--out', file, '--max', '590', '--sample-interval-high', '--process-identities'], { stdio: 'ignore' });
   const done = new Promise((resolve, reject) => { sampler.once('error', reject); sampler.once('close', code => { resolve(code); }); });
@@ -42,14 +35,12 @@ export function startFloorNative(root, directory, device, read, interrupt) {
     gpu.push(row);
   };
   let interrupted;
-  const abort = reason => { interrupted = reason; release(); controller.abort(); interrupt(); };
-  const expires = setTimeout(() => { abort('Native quiet window exhausted'); }, 570_000);
+  const abort = reason => { interrupted = reason; controller.abort(); interrupt(); };
+  const expires = setTimeout(() => { abort('Native memory window exhausted'); }, 570_000);
   const terminate = () => { abort('Native sample terminated'); sampler.kill('SIGTERM'); process.exitCode = 143; };
   process.once('SIGTERM', terminate);
-  process.once('exit', release);
   const observing = (async () => {
     while (!controller.signal.aborted) {
-      if (pushes()) { abort('Native sample invalidated: push running or waiting'); break; }
       try { accept(await read(expression)); }
       catch (error) { errors.push({ at: Date.now(), error: String(error) }); }
       await sleep(500);
@@ -59,8 +50,8 @@ export function startFloorNative(root, directory, device, read, interrupt) {
     controller.abort(); clearTimeout(expires);
     writeFileSync(phase, 'done');
     const code = await done;
-    release(); await observing;
-    process.removeListener('SIGTERM', terminate); process.removeListener('exit', release);
+    await observing;
+    process.removeListener('SIGTERM', terminate);
     writeFileSync(join(directory, 'gpu.json'), JSON.stringify({ gpu, errors }));
     const native = readFileSync(file, 'utf8').trim().split('\n').map(line => JSON.parse(line));
     if (interrupted !== undefined) throw new Error(interrupted);
@@ -98,7 +89,7 @@ export function gradeFloorNative(native, gpu, errors = [], code = 0) {
     }
     if (counts.playing < 3 || counts.loading < 3) throw new Error('Incomplete native phase coverage');
     const labelled = gpuPeak.memory.allocations.filter(row => row.domain === 'gpu');
-    return { measurement: 'native-footprint+gpu', samples: samples.length, gamePid: Number(gamePid),
+    return { measurement: 'native-footprint+gpu', quiet: false, timingCredit: false, samples: samples.length, gamePid: Number(gamePid),
       playingPeakBytes: peaks.playing + gpuPeak.memory.totals.gpu,
       loadingPeakBytes: peaks.loading + gpuPeak.memory.totals.gpu,
       nativePeakBytes: peaks, phaseSamples: counts, gpuPeakBytes: gpuPeak.memory.totals.gpu,

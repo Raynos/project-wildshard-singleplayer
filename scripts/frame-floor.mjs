@@ -677,7 +677,9 @@ async function safariPage(base) {
   throw new Error('Simulator Safari page not exposed by ios_webkit_debug_proxy (ports 9232–9240)');
 }
 async function worker() {
-  const base = flag('base', ''), deadline = Number(flag('deadline', '0')), rows = [];
+  const base = flag('base', ''), rows = [];
+  // Native memory owns a bounded Simulator window, not time spent queued for it.
+  const deadline = nativeDirectory === '' ? Number(flag('deadline', '0')) : Date.now() + 570_000;
   let browser, context, page, proxy, inspector, nativeMemory;
   /** @type {ReturnType<typeof startFloorNative> | undefined} */
   let stopNative;
