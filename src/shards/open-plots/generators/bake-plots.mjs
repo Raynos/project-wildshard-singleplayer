@@ -55,6 +55,41 @@ class Soup {
   }
 }
 
+/**
+ * Make the generated mesh's winding consistent (image-to-3D output mixes it): walk each island across its two-face edges,
+ * flipping a neighbour whose shared edge runs the same way, then turn an island inside out when its signed volume is
+ * negative. Smooth normals and the crease test both read the winding.
+ */
+function orient(triangles, points, id, edges) {
+  const flip = new Uint8Array(triangles.length), seen = new Uint8Array(triangles.length);
+  const runs = (f, a, b) => { const t = triangles[f], at = t.findIndex(v => id[v] === a); return id[t[(at + 1) % 3]] === b; };
+  for (let seed = 0; seed < triangles.length; seed++) {
+    if (seen[seed] === 1) continue;
+    const island = [seed], queue = [seed]; seen[seed] = 1;
+    while (queue.length > 0) {
+      const f = queue.pop(), t = triangles[f];
+      for (let c = 0; c < 3; c++) {
+        const a = id[t[c]], b = id[t[(c + 1) % 3]], faces = edges.get(a < b ? `${a}/${b}` : `${b}/${a}`) ?? [];
+        if (faces.length !== 2) continue;
+        const g = faces[0] === f ? faces[1] : faces[0];
+        if (g === undefined || seen[g] === 1) continue;
+        // as f is drawn, it runs a→b (or b→a when flipped); g must run the other way
+        const forward = flip[f] === 0, gRuns = runs(g, a, b);
+        flip[g] = (forward === gRuns) ? 1 : 0;
+        seen[g] = 1; island.push(g); queue.push(g);
+      }
+    }
+    let volume = 0;
+    for (const f of island) {
+      const [i, j, k] = flip[f] === 1 ? [triangles[f][0], triangles[f][2], triangles[f][1]] : triangles[f];
+      const p = points[i], q = points[j], r = points[k];
+      volume += p[0] * (q[1] * r[2] - q[2] * r[1]) - p[1] * (q[0] * r[2] - q[2] * r[0]) + p[2] * (q[0] * r[1] - q[1] * r[0]);
+    }
+    if (volume < 0) for (const f of island) flip[f] ^= 1;
+  }
+  triangles.forEach((t, f) => { if (flip[f] === 1) [t[1], t[2]] = [t[2], t[1]]; });
+}
+
 /** The hologram's triangles (metres, base centre at the origin) with smooth normals and the edge-coded colours. */
 async function hologram(file) {
   await MeshoptDecoder.ready;
@@ -75,9 +110,10 @@ async function hologram(file) {
   }
   // weld by position so creases are found across split vertices
   const key = (p) => p.map(c => Math.round(c * 1e4)).join(','), welded = new Map(), id = points.map(p => { const k = key(p); if (!welded.has(k)) welded.set(k, welded.size); return welded.get(k); });
-  const faceNormal = triangles.map(t => normalize(cross(sub(points[t[1]], points[t[0]]), sub(points[t[2]], points[t[0]]))));
   const edges = new Map();
   triangles.forEach((t, f) => { for (let c = 0; c < 3; c++) { const a = id[t[(c + 1) % 3]], b = id[t[(c + 2) % 3]], k = a < b ? `${a}/${b}` : `${b}/${a}`; const list = edges.get(k) ?? []; list.push(f); edges.set(k, list); } });
+  orient(triangles, points, id, edges);
+  const faceNormal = triangles.map(t => normalize(cross(sub(points[t[1]], points[t[0]]), sub(points[t[2]], points[t[0]]))));
   const limit = Math.cos(FEATURE_DEGREES * Math.PI / 180);
   const vertexNormal = new Map();
   triangles.forEach((t, f) => { const n = faceNormal[f]; for (const v of t) { const s = vertexNormal.get(id[v]) ?? [0, 0, 0]; vertexNormal.set(id[v], [s[0] + n[0], s[1] + n[1], s[2] + n[2]]); } });
