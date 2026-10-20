@@ -1,0 +1,15 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vite/rapier" without a file extension (docs/reviews/packed-creature-live-dimensions/vitest.config.ts:2:27). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  15:58:36
+   Duration  12.26s (transform 79%, setup 20%)
+
+  Transform  transforming modules took 9.52s · 79% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

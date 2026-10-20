@@ -1,0 +1,4 @@
+heavy-lane: queued build ticket 87
+heavy-lane: acquired build after 0.00s queue
+src/engine/boot/clearDownloads.ts(65,23): error TS2339: Property '__ws_prefetch' does not exist on type 'Window & typeof globalThis'.
+heavy-lane: finished build in 19.16s

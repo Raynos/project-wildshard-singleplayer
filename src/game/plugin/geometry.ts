@@ -1309,10 +1309,12 @@ export interface PackedCreatureBodies {
  * The compressed bytes are retained once; each copy inflates and copies its parts, never sharing mutable geometry.
  * Missing keys, early copies, unsafe paths, truncated blocks and incompatible metadata refuse before handing out a body.
  * A composition may lend a byte loader to resolve the validated authored asset path within its own mount.
+ * Existing live offsets/pitch and the bone-local X fore capsule are strict data, copied per spawn; they do not add shapes.
  */
 export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array) => Uint8Array = unzlibSync,
   load: (url: string) => Promise<Uint8Array> = fetchBuildFile): PackedCreatureBodies {
   const PackedBodyNumber = wholeV.pipe(wholeV.number(), wholeV.finite());
+  const PackedBodyPoint = wholeV.strictTuple([PackedBodyNumber, PackedBodyNumber, PackedBodyNumber]);
   const PackedBodyWhole = wholeV.pipe(PackedBodyNumber, wholeV.integer(), wholeV.minValue(0), wholeV.maxValue(268435456));
   const PackedBodyPart = wholeV.strictObject({ indexEncoding: wholeV.optional(wholeV.picklist(['delta', 'raw'])),
     groups: wholeV.optional(wholeV.pipe(wholeV.array(wholeV.tuple([PackedBodyWhole, PackedBodyWhole, PackedBodyWhole])), wholeV.maxLength(1024))),
@@ -1322,7 +1324,10 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
   const PackedBodyParts = wholeV.union([wholeV.null(), PackedBodyPart, wholeV.pipe(wholeV.array(PackedBodyPart), wholeV.maxLength(64))]);
   const PackedBody = wholeV.strictObject({ kind: wholeV.string(), variant: wholeV.string(),
     bones: wholeV.pipe(wholeV.array(wholeV.strictObject({ name: wholeV.string(), parent: wholeV.nullable(wholeV.string()), pos: wholeV.tuple([PackedBodyNumber, PackedBodyNumber, PackedBodyNumber]) })), wholeV.maxLength(512)),
-    dims: wholeV.strictObject({ rigidCorpse: wholeV.exactOptional(rigidCorpseSchema), bodyY: PackedBodyNumber, bodyHalfLen: PackedBodyNumber, bodyRadius: PackedBodyNumber, headRadius: PackedBodyNumber, legLen: PackedBodyNumber,
+    dims: wholeV.strictObject({ rigidCorpse: wholeV.exactOptional(rigidCorpseSchema),
+      bodyAt: wholeV.exactOptional(PackedBodyPoint), bodyPitch: wholeV.exactOptional(PackedBodyNumber), headAt: wholeV.exactOptional(PackedBodyPoint),
+      fore: wholeV.exactOptional(wholeV.strictObject({ bone: wholeV.pipe(wholeV.string(), wholeV.minLength(1)), at: PackedBodyPoint,
+        halfLen: wholeV.pipe(PackedBodyNumber, wholeV.minValue(0)), radius: wholeV.pipe(PackedBodyNumber, wholeV.gtValue(0)) })), bodyY: PackedBodyNumber, bodyHalfLen: PackedBodyNumber, bodyRadius: PackedBodyNumber, headRadius: PackedBodyNumber, legLen: PackedBodyNumber,
       feet: wholeV.pipe(wholeV.array(wholeV.tuple([PackedBodyNumber, PackedBodyNumber])), wholeV.maxLength(512)), halfWidth: PackedBodyNumber, capsuleAxis: wholeV.optional(wholeV.picklist(['y', 'z'])) }),
     fur: PackedBodyParts, hard: PackedBodyParts, eye: PackedBodyParts });
   const bake = wholeV.parse(wholeV.strictObject({ file: wholeV.pipe(wholeV.string(), wholeV.regex(/^\/assets\/[a-zA-Z0-9/_-]+-[0-9a-f]{64}\.bin$/u)),
@@ -1332,6 +1337,10 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
     const key = JSON.stringify([body.kind, body.variant]);
     if (keys.has(key)) throw new Error('Duplicate packed creature body');
     keys.add(key);
+    const hasBone = (name: string): boolean => body.bones.filter(bone => bone.name === name).length === 1;
+    if ((body.dims.bodyAt !== undefined || body.dims.bodyPitch !== undefined) && (body.dims.capsuleAxis === 'y' || !hasBone('body'))
+      || body.dims.headAt !== undefined && !hasBone('head')
+      || body.dims.fore !== undefined && !hasBone(body.dims.fore.bone)) throw new Error('Incompatible packed live dimensions');
     if (body.dims.rigidCorpse !== undefined && (body.dims.capsuleAxis === 'y' || body.dims.rigidCorpse.parts.some(part => !body.bones.some(bone => bone.name === part.bone)))) throw new Error('Incompatible packed rigid corpse');
     for (const part of [body.fur, body.hard, body.eye].flatMap(parts => parts === null ? [] : Array.isArray(parts) ? parts : [parts])) {
       const row = part.row;
@@ -1367,10 +1376,15 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
         for (const [start, count, material] of source.groups ?? []) g.addGroup(start, count, material);
         return g;
       });
-      const { capsuleAxis, rigidCorpse, ...dims } = body.dims;
+      const { capsuleAxis, rigidCorpse, bodyAt, bodyPitch, headAt, fore, ...dims } = body.dims;
       return { bones: body.bones.map(bone => ({ name: bone.name, parent: bone.parent, pos: [bone.pos[0], bone.pos[1], bone.pos[2]] })),
         furParts: part(body.fur), hardParts: part(body.hard), eyeParts: part(body.eye),
-        dims: { ...dims, ...(rigidCorpse === undefined ? {} : { rigidCorpse: copyRigidCorpse(rigidCorpse) }), feet: dims.feet.map((foot): [number, number] => [foot[0], foot[1]]), ...(capsuleAxis === undefined ? {} : { capsuleAxis }) } };
+        dims: { ...dims,
+          ...(bodyAt === undefined ? {} : { bodyAt: [bodyAt[0], bodyAt[1], bodyAt[2]] }),
+          ...(bodyPitch === undefined ? {} : { bodyPitch }),
+          ...(headAt === undefined ? {} : { headAt: [headAt[0], headAt[1], headAt[2]] }),
+          ...(fore === undefined ? {} : { fore: { bone: fore.bone, at: [fore.at[0], fore.at[1], fore.at[2]], halfLen: fore.halfLen, radius: fore.radius } }),
+          ...(rigidCorpse === undefined ? {} : { rigidCorpse: copyRigidCorpse(rigidCorpse) }), feet: dims.feet.map((foot): [number, number] => [foot[0], foot[1]]), ...(capsuleAxis === undefined ? {} : { capsuleAxis }) } };
     },
   };
 }

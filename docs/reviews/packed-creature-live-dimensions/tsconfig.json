@@ -1,0 +1,11 @@
+{
+  "extends": "../../../tsconfig.json",
+  "include": [
+    "../../../src/game/plugin/geometry.ts",
+    "../../../test/packed-creature-live-dimensions.test.ts",
+    "./candidate.test.ts",
+    "./vitest.config.ts",
+    "../../../src/**/*.d.ts",
+    "../../../src/engine/boot/shardPrefetch.ts"
+  ]
+}

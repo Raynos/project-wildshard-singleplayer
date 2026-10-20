@@ -1,0 +1,79 @@
+{
+  "frozenAtUtc": "2026-10-20T19:59:20Z",
+  "status": "bounded existing-field compatibility; no asset admission",
+  "files": [
+    {
+      "path": "src/game/plugin/geometry.ts",
+      "bytes": 138796,
+      "sha256": "98fe65663989e94c0418598276e42cf9fd97d618c670fd4d05ce86db7e62ec65"
+    },
+    {
+      "path": "test/packed-creature-live-dimensions.test.ts",
+      "bytes": 5983,
+      "sha256": "de42baca4a8b1ce4730761e4c5b37513251a06d57d85d8cdec224e1f8dbd5ba9"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/REPORT.md",
+      "bytes": 5075,
+      "sha256": "33411c2f151d3b29ec0420ed8124da9a5ac18addabcf37af825eedd2e0d1460b"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/candidate-tests.log",
+      "bytes": 787,
+      "sha256": "9a74d19d478b547910c3fadbd8ca2f1d6fce06d14415bd59f13e14429da1b45e"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/candidate.test.ts",
+      "bytes": 1859,
+      "sha256": "0ed4e1e62fde8eb6d1da102f7ca7fb2ea0aefb653047a5097098aa49c6273ee4"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/focused-tests.log",
+      "bytes": 951,
+      "sha256": "d32ca902861198e5a98ac4add287f1e50e4d3c748f8a8a3baed11a86620d82d1"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/focused-typecheck-first.log",
+      "bytes": 9566,
+      "sha256": "f8e61414a6bf2a0331efa86ead79c44b781e811fdf43ece02f69cfb3c916a510"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/focused-typecheck-second.log",
+      "bytes": 251,
+      "sha256": "c91dd91da01cbcdf9bf80ad7f5cefdf8dfc20cd82b5f318bc46891452c7ce774"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/focused-typecheck.log",
+      "bytes": 117,
+      "sha256": "098326b3af0a2c01306998811dca1fed3f9804687b024b0de4e2db8a85207187"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/lint.log",
+      "bytes": 50,
+      "sha256": "78e95ff1968f8a1b3badb2e921f0ecd598d0a2edf5b7260bcdf691c8e8d2ce22"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/tsconfig.json",
+      "bytes": 298,
+      "sha256": "912d0b21690ac18ec530170a51960c157b343bc657dd144cfff416fdcd24e4c9"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/typecheck.log",
+      "bytes": 130,
+      "sha256": "8dfc8346d515a1e1ba8429c935b80b981fbf819f97492014dbca426775d32cfb"
+    },
+    {
+      "path": "docs/reviews/packed-creature-live-dimensions/vitest.config.ts",
+      "bytes": 354,
+      "sha256": "5b69f358d4a8df275d55dae3680ea456a30b3a60652d2417298d1818f48a8058"
+    }
+  ],
+  "focusedTests": 8,
+  "unchangedCandidateTransportTests": 1,
+  "focusedStrictTypecheck": "passed",
+  "wholeRootTypecheck": "killed exit137 before diagnostics",
+  "typeAwareLint": "passed",
+  "physicsTrials": 0,
+  "appBuilds": 0,
+  "runtimeAcceptance": false
+}

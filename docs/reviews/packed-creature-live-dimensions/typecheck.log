@@ -1,0 +1,2 @@
+Command: node_modules/.bin/tsc --noEmit
+Result: process killed, exit 137, before compiler diagnostics. No typecheck pass claimed.
