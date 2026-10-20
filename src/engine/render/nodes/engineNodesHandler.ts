@@ -67,6 +67,7 @@ import { setting } from '../../ui/Settings';
 import type { Renderer } from '../renderer';
 import type { ProgramLike } from '../../boot/perflog';
 import { NodeUniformBuffers, type BlockGroup } from './nodeUniformBuffers';
+import { NodePlainUniforms } from './nodePlainUniforms';
 import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
 import { installNodeLayerFrame, layerFrameOf, type NodeLayerFrameInstaller } from '../nodeLayerFrame';
 import { bindGraphAttributeDefaults, copyGraphAttributeDefaults, prepareGraphAttributeDefaults } from './graphAttributes';
@@ -343,8 +344,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   buildMs = 0;
   private real: Renderer | null = null;
   private warnedLevelFog = false;
-  /** the node programs' uniform blocks, bound per draw (`nodeUniformBuffers.ts`; null without a WebGL 2 context) */
-  private blocks: NodeUniformBuffers | null = null;
+  /** the node programs' uniforms, sent per draw: plain program uniforms (`nodePlainUniforms.ts`), or the std140 blocks
+   *  (`nodeUniformBuffers.ts`) under the `graphUniforms` Developer tool; null without a WebGL 2 context */
+  private blocks: NodePlainUniforms | NodeUniformBuffers | null = null;
   /** builds of each material not yet paired with their programs (see `onUpdateProgram`) */
   private readonly pendingBuilds = new WeakMap<object, PendingBuild[]>();
   private readonly objectVariants = new NodeProgramVariants();
@@ -535,7 +537,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // precompile's shadow jobs compile the variant this handler's shadow draws use (sp-o289)
     registerShadowDepthResolver(renderer, (source, depthStock) => this.shadowDepthOf(source, depthStock));
     const gl: unknown = renderer.getContext();
-    if (typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext) this.blocks = new NodeUniformBuffers(gl);
+    if (typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext) this.blocks = setting('graphUniforms') === 'blocks' ? new NodeUniformBuffers(gl) : new NodePlainUniforms(gl);
     // the stock key reads the renderer's tone mapping and output space whatever is bound; the engine's follows the target
     const proxy: unknown = Reflect.get(this, 'renderer');
     if (typeof proxy === 'object' && proxy !== null) {
@@ -691,6 +693,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const updateNodes: unknown = typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'updateNodes') : undefined;
     const uniformsGroups = classicModelUniform(parameters, internals(this).collectUniformsGroups(builder).filter(isBlockGroup));
     stableBufferNames(builder, parameters, uniformsGroups);
+    if (this.blocks instanceof NodePlainUniforms) this.blocks.declare(parameters, uniformsGroups.filter(isBlockGroup));
     pending.push({ uniformsGroups, updateNodes,
       uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });
     // A cold precompile may never draw. Retain only the stock fallback's runtime
