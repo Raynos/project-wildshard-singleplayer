@@ -14,6 +14,7 @@ export const SpecimenMaterialSchema = v.strictObject({ id: text, family: v.pickl
 const slot = v.pipe(whole, v.maxValue(128));
 export const SpecimenAssetSchema = v.strictObject({ url: assetPath, phoneUrl: v.optional(assetPath), material: SpecimenMaterialSchema,
   geometrySlot: v.optional(slot), materialSlot: v.optional(slot), retainedAttribute: v.optional(text),
+  transform:v.exactOptional(v.strictObject({yaw:finite,scale:finite})),
   instance: v.optional(v.strictObject({ name: text, lod: v.picklist(['near', 'far']) })) });
 const pipeline = v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0']);
 export const SpecimenModelMetadataSchema = v.strictObject({ id: text, name: text, file: text, category: v.picklist(['buildings', 'nature', 'creatures', 'people', 'gear', 'props']),
@@ -22,14 +23,18 @@ export const SpecimenModelMetadataSchema = v.strictObject({ id: text, name: text
   seed: v.optional(finite), specimenYaw: v.optional(finite) });
 const box = v.strictObject({ kind: v.literal('box'), x: finite, y: finite, z: finite, hx: finite, hy: finite, hz: finite,
   yaw: v.optional(finite), surface: v.optional(surfaceSchema) });
+const geometrySchema = v.strictObject({ attrs: v.pipe(v.array(v.tuple([text, v.picklist(['f32', 'f16', 'u16', 'i8', 'u8']), whole, v.boolean()])), v.maxLength(32)),
+  count: whole, index: v.nullable(v.picklist(['u16', 'u32'])), indexCount: whole, box: v.boolean(), expand: v.boolean() });
+const specimenSource = v.variant('kind', [
+  v.strictObject({kind:v.literal('packed')}),v.strictObject({kind:v.literal('asset'),asset:SpecimenAssetSchema}),
+  v.strictObject({kind:v.literal('inline'),data:v.pipe(v.string(),v.maxLength(1048576)),geometry:geometrySchema,material:SpecimenMaterialSchema}),
+  v.strictObject({kind:v.literal('owned'),material:SpecimenMaterialSchema,variants:v.pipe(v.array(v.strictObject({params:paramsSchema,url:assetPath,size:v.tuple([finite,finite,finite])})),v.maxLength(256))}),
+]);
 /** Complete JSON wire schema. It deliberately has no executable fields or extension callbacks. */
 export const SpecimenCatalogueSchema = v.pipe(v.array(v.strictObject({ key: text, model:SpecimenModelMetadataSchema,
   colliders: v.optional(v.pipe(v.array(box), v.maxLength(1024))),
-  source: v.variant('kind', [v.strictObject({ kind: v.literal('packed') }), v.strictObject({ kind: v.literal('asset'), asset: SpecimenAssetSchema }),
-    v.strictObject({ kind: v.literal('owned'), material: SpecimenMaterialSchema, variants: v.pipe(v.array(v.strictObject({ params: paramsSchema, url: assetPath, size: v.tuple([finite, finite, finite]) })), v.maxLength(256)) })]),
+  source:v.union([specimenSource,v.strictObject({kind:v.literal('selection'),variants:v.pipe(v.array(v.strictObject({params:paramsSchema,source:specimenSource})),v.minLength(1),v.maxLength(256))})]),
 })), v.maxLength(1024));
-const geometrySchema = v.strictObject({ attrs: v.pipe(v.array(v.tuple([text, v.picklist(['f32', 'f16', 'u16', 'i8', 'u8']), whole, v.boolean()])), v.maxLength(32)),
-  count: whole, index: v.nullable(v.picklist(['u16', 'u32'])), indexCount: whole, box: v.boolean(), expand: v.boolean() });
 /** Packed bake metadata may also retain the generator's notice, part name and slot. */
 export const PackedSpecimenSchema = v.object({ bin: assetPath, bytes: whole,
   rows: v.pipe(v.array(v.object({ key: text, parts: v.pipe(v.array(v.object({ material: text, geometry: geometrySchema })), v.maxLength(64)) })), v.maxLength(4096)) });

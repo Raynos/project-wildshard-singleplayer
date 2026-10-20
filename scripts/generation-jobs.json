@@ -21889,6 +21889,39 @@
       "catalogueDependencies": [
         "driftwood-map-assembly"
       ]
+    },
+    {
+      "id": "nalati-balbal-specimen",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-balbal-specimen.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-balbal-specimen.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-balbal-specimen.mjs",
+        "src/shards/nalati-grasslands/data/placeRuntime.generated.json",
+        "src/shards/nalati-grasslands/data/specimens.generated.json",
+        "src/shards/nalati-grasslands/data/modelMetrics.json",
+        "public/assets/nalati/baked/places.bin",
+        "src/format",
+        "src/sdk/bake/source-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "nalati-place-runtime",
+        "camp-specimen-catalogue"
+      ]
     }
   ]
 }

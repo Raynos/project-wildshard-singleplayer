@@ -111,6 +111,7 @@ export interface SpecimenAssetRow {
   readonly materialSlot?: number | undefined;
   readonly material: SpecimenMaterialRow;
   readonly retainedAttribute?: string | undefined;
+  readonly transform?: { readonly yaw:number; readonly scale:number } | undefined;
   /** Inert identity for an existing placement owner; never a procedural builder. */
   readonly instance?: { readonly name: string; readonly lod: 'near' | 'far' } | undefined;
 }
@@ -155,17 +156,28 @@ export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl'
 export function loadBoundSpecimen(sky: SkyRig, row: SpecimenAssetRow): Promise<SpecimenAsset & { readonly material: THREE.Material }> {
   let bySky = bound.get(sky);
   if (bySky === undefined) { bySky = new Map(); bound.set(sky, bySky); }
-  const key = `${assetUrl(row)}|${row.geometrySlot ?? 0}|${row.materialSlot ?? 0}|${row.material.id}`;
+  const key = `${assetUrl(row)}|${row.geometrySlot ?? 0}|${row.materialSlot ?? 0}|${row.material.id}|${JSON.stringify(row.transform??null)}`;
   let pending = bySky.get(key);
   if (pending === undefined) {
     pending = loadSpecimenAsset(row).then(asset => {
-      const out = { ...asset, material: specimenMaterial(sky, row.material, asset.map) };
+      const transform=row.transform,geometry=transform===undefined?asset.geometry:asset.geometry.clone().rotateY(transform.yaw).scale(transform.scale,transform.scale,transform.scale);
+      const out = { ...asset,geometry, material: specimenMaterial(sky, row.material, asset.map) };
       const cache = bySky; cacheUntilDisposed(out, () => { cache.delete(key); });
       return out;
     });
     bySky.set(key, pending);
   }
   return pending;
+}
+
+/** Client-only replacement of native instance drawings by a declared prepared asset. */
+export function replaceSpecimenInstances(sky:SkyRig,row:SpecimenAssetRow,meshes:readonly THREE.InstancedMesh[]):void{
+  const replace=async():Promise<void>=>{
+    try{
+      const asset=await loadBoundSpecimen(sky,row);
+      for(const mesh of meshes){if(mesh.count===0)continue;mesh.geometry=asset.geometry;mesh.material=asset.material;mesh.computeBoundingSphere();}
+    }catch(error:unknown){console.warn('Prepared instance asset failed',error);}
+  };void replace();
 }
 
 /** Await only loads already requested; does not start a load or impose a timed delay. */
@@ -243,13 +255,23 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
   const materialRows = v.parse(v.record(v.string(), SpecimenMaterialSchema), materialRowsInput);
   const rows = v.parse(SpecimenCatalogueSchema, input);
   if (rows.length > 1024 || new Set(rows.map(row => row.key)).size !== rows.length || new Set(rows.map(row => row.model.id)).size !== rows.length) throw new Error('Specimen catalogue must be bounded and unique');
+  const parameterKey=(value:object):string=>JSON.stringify(Object.entries(value).sort(([a],[b])=>a<b?-1:a>b?1:0));
+  for(const row of rows)if(row.source.kind==='selection'&&new Set(row.source.variants.map(variant=>parameterKey(variant.params))).size!==row.source.variants.length)throw new Error('Duplicate specimen selection');
   const definitions = new Map<string, ModelDef<object>>();
   for (const row of rows) {
     const build = (ctx: ModelContext, params: object): THREE.Object3D => {
-      const source = row.source;
+      const source = row.source.kind==='selection'?row.source.variants.find(candidate=>parameterKey(candidate.params)===parameterKey(params))?.source:row.source;
+      if(source===undefined)throw new Error(`No authored specimen: ${row.model.id}`);
+      if(source.kind==='inline'){
+        const decodedBytes=unzlibSync(Uint8Array.from(atob(source.data),character=>character.codePointAt(0)??0));
+        if(decodedBytes.length!==bakedGeometryBytes(source.geometry))throw new Error('Inline specimen byte count differs');
+        const decoded=readBakedGeometry(decodedBytes,0,source.geometry),geometry=source.geometry.expand?decoded.toNonIndexed():decoded;
+        if(geometry!==decoded){decoded.dispose();geometry.computeBoundingBox();geometry.computeBoundingSphere();}
+        const group=new THREE.Group(),mesh=new THREE.Mesh(geometry,specimenMaterial(ctx.sky,source.material));
+        mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);queueMicrotask(()=>{announceModelReady(row.model.id);});return group;
+      }
       if (source.kind === 'owned') {
-        const key = (value: object): string => JSON.stringify(Object.entries(value).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
-        const variant = source.variants.find(candidate => key(candidate.params) === key(params));
+        const variant = source.variants.find(candidate => parameterKey(candidate.params) === parameterKey(params));
         if (variant === undefined) throw new Error(`No authored specimen: ${row.model.id}`);
         const material = specimenMaterial(ctx.sky, source.material);
         return loadingSpecimen(row.model.id, variant.size, async () => {
