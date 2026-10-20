@@ -1,6 +1,7 @@
 import catalogue from './singleplayer.json' with { type: 'json' };
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { parseGridCatalogue, type CopyIdentity, type GridMode } from './catalogue';
+import type { PlotIdea } from './openPlotLayout';
 
 /** A world-space or cell-local point; authoritative simulations only receive the latter. */
 export interface GridPoint { x: number; y: number; z: number }
@@ -11,9 +12,9 @@ export interface GridCell { readonly instance: string; readonly slug: string; re
 /**
  * G198 / G219: an open plot. A platform cell with no shard: the platform draws its floor, its four entry showrooms and its
  * centrepiece (`openPlot.ts`) and owns its colliders, so it is road-like ground (never in `cells`, never a sim, a save
- * namespace, a crossing or a ring tile).
+ * namespace, a crossing or a ring tile). `billboard` is the idea every one of its billboards pictures (G529).
  */
-export interface GridPlot { readonly instance: string; readonly cell: readonly [number, number]; readonly origin: Readonly<GridPoint> }
+export interface GridPlot { readonly instance: string; readonly cell: readonly [number, number]; readonly origin: Readonly<GridPoint>; readonly billboard: PlotIdea }
 /** Neighbour queries use the same signed convention as the grid: north is positive z. */
 export type GridSide = 'north' | 'east' | 'south' | 'west';
 /** Outside the finite grid, seams ease into road-level open water and fog instead of another sim. */
@@ -43,7 +44,7 @@ export class GridAssembly {
     this.cells = Object.freeze([...selected.values()].map((row): GridCell => Object.freeze({ instance: row.instance, slug: row.slug,
       cell: Object.freeze([row.cell[0], row.cell[1]] as const), origin: Object.freeze({ x: row.cell[0] * data.pitch, y: 0, z: row.cell[1] * data.pitch }),
       ...(row.identity === undefined ? {} : { identity: row.identity }) })));
-    this.plots = Object.freeze(data.plots.filter((row) => !selected.has(row.cell.join(','))).map((row): GridPlot => Object.freeze({ instance: row.instance,
+    this.plots = Object.freeze(data.plots.filter((row) => !selected.has(row.cell.join(','))).map((row): GridPlot => Object.freeze({ instance: row.instance, billboard: row.billboard,
       cell: Object.freeze([row.cell[0], row.cell[1]] as const), origin: Object.freeze({ x: row.cell[0] * data.pitch, y: 0, z: row.cell[1] * data.pitch }) })));
     this.byInstance = new Map(this.cells.map((row) => [row.instance, row])); this.byCell = new Map(this.cells.map((row) => [row.cell.join(','), row]));
     const colour = Object.freeze([...data.emptyNeighbour.edgeColour] as const);

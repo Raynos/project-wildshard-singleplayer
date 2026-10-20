@@ -1,7 +1,7 @@
 /**
  * The open plots (SHARD-PLATFORM G198 / G213 / G219): the grid's cells without a real shard that are not Template copies.
- * Each is a 500 × 500 m surveyed plot on the VR void's grid floor with a showroom at all four entries (a billboard of one
- * shard idea, a half-built demo corner of another, the survey sign "THIS PLOT IS YOURS TO BUILD") and a centrepiece (a
+ * Each is a 500 × 500 m surveyed plot on the VR void's grid floor with a showroom at all four entries (a billboard of the
+ * plot's one shard idea, a half-built demo corner, the survey sign "THIS PLOT IS YOURS TO BUILD") and a centrepiece (a
  * turning hologram of a shard being built over a stepped plinth, ringed by picture cards of every idea). The geometry is
  * `openPlotLayout.ts`; this file draws it and hands the platform its colliders.
  *
@@ -21,7 +21,7 @@ import type { StripMesh } from '@wildshard/engine/sim/strips';
 import type { GridPlot } from './assembly';
 import type { PlatformRenderAdmission } from './renderResidency';
 import { GAME_STRINGS } from '../strings';
-import { FACE, PICTURE_ATLAS, PLAQUE_RECT, PLOT_IDEAS, SIGN_RECT, TEXT_ATLAS, faceRect, labelRect, openPlotBytes, openPlotGeometry, type AtlasRect, type OpenPlotGeometry, type PlotIdea, type PlotSide } from './openPlotLayout';
+import { DEMO_IDEAS, FACE, PICTURE_ATLAS, PLAQUE_RECT, PLOT_IDEAS, SIGN_RECT, TEXT_ATLAS, faceRect, labelRect, openPlotBytes, openPlotGeometry, type AtlasRect, type OpenPlotGeometry, type PlotEntries, type PlotIdea } from './openPlotLayout';
 
 /** A plot farther than this (m, from the feet to its square) is hidden whole; its beacons' beams are the far marker until then. */
 const VISIBLE = 900;
@@ -35,8 +35,8 @@ const DISPLAY = "'Rajdhani', 'Bahnschrift', 'DIN Alternate', 'Helvetica Neue', A
 
 /** The platform colliders of every plot: its floor and every solid, one trimesh each in grid metres (origin = the plot centre). */
 export function openPlotColliders(plots: readonly GridPlot[]): StripMesh[] {
-  return plots.map((plot, ordinal) => {
-    const { collider } = openPlotGeometry(ordinal);
+  return plots.map((plot) => {
+    const { collider } = openPlotGeometry(plot.billboard);
     return { origin: { x: plot.origin.x, z: plot.origin.z }, positions: collider.positions, indices: collider.indices, colours: new Float32Array(collider.positions.length) };
   });
 }
@@ -99,7 +99,7 @@ function paintText(g: CanvasRenderingContext2D): void {
   panel(g, SIGN_RECT, 6); g.fillStyle = '#ffffff'; fit(g, s.sign, 700, 92, DISPLAY, SIGN_RECT.w - 80, 4); spaced(g, s.sign, SIGN_RECT.w / 2, SIGN_RECT.y + 98, 4);
   g.fillStyle = '#5fdcff'; fit(g, s.signSub, 600, 46, DISPLAY, SIGN_RECT.w - 90, 2); spaced(g, s.signSub, SIGN_RECT.w / 2, SIGN_RECT.y + 190, 2);
   panel(g, PLAQUE_RECT, 4); g.fillStyle = '#8fe3ff'; fit(g, s.centre, 600, 64, MONO, PLAQUE_RECT.w - 80, 6); spaced(g, s.centre, PLAQUE_RECT.w / 2, PLAQUE_RECT.y + PLAQUE_RECT.h / 2, 6);
-  for (const idea of PLOT_IDEAS) {
+  for (const idea of DEMO_IDEAS) {
     const r = labelRect(idea), text = s.demo(s.ideas[idea]);
     panel(g, r, 3); g.fillStyle = '#ffffff'; fit(g, text, 700, 44, DISPLAY, r.w - 40, 2); spaced(g, text, r.x + r.w / 2, r.y + r.h / 2 + 2, 2);
   }
@@ -118,7 +118,7 @@ function paintFace(g: CanvasRenderingContext2D, idea: PlotIdea, image: CanvasIma
 
 /** The readout. */
 export interface OpenPlotState {
-  readonly plots: readonly { readonly instance: string; readonly visible: boolean; readonly entries: Readonly<Record<PlotSide, { readonly billboard: PlotIdea; readonly demo: PlotIdea }>> }[];
+  readonly plots: readonly { readonly instance: string; readonly visible: boolean; readonly entries: PlotEntries }[];
   /** pictures decoded of PLOT_IDEAS.length */
   readonly pictures: number;
   readonly draws: number; readonly triangles: number;
@@ -140,7 +140,7 @@ export function installOpenPlots(input: {
 }): { readonly step: (dt: number) => void; readonly state: () => OpenPlotState } {
   const { plots, home } = input;
   if (plots.length === 0) return { step: () => undefined, state: () => ({ plots: [], pictures: 0, draws: 0, triangles: 0 }) };
-  const built = plots.map((plot, ordinal) => ({ plot, geometry: openPlotGeometry(ordinal) }));
+  const built = plots.map((plot) => ({ plot, geometry: openPlotGeometry(plot.billboard) }));
   const canvasOk = typeof document !== 'undefined';
   const atlasBytes = canvasOk ? (PICTURE_ATLAS.w * PICTURE_ATLAS.h + TEXT_ATLAS.w * TEXT_ATLAS.h) * 4 : 0;
   const bufferBytes = built.reduce((sum, row) => sum + openPlotBytes(row.geometry), 0) + 4 * 3 * 4 * plots.length;

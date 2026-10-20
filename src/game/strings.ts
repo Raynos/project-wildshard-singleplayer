@@ -112,9 +112,10 @@ export const GAME_STRINGS = {
       centre: '500 × 500 M · 4 ENTRIES',
       turnIn: 'OPEN PLOT',
       ideas: {
-        'sky-race': 'FLOATING ISLAND RACE', 'night-market': 'NEON NIGHT MARKET', 'frozen-lighthouse': 'FROZEN LIGHTHOUSE',
-        'canyon-railway': 'CANYON RAILWAY', 'coral-reef': 'CORAL REEF DIVE', 'alien-plain': 'PASTEL ALIEN PLAIN',
-        'desert-ruin': 'DESERT RUIN', 'ink-valley': 'INK VALLEY',
+        'showcase-template': 'SHOWCASE TEMPLATE', 'thin-ice': 'THIN ICE', 'frostline-peaks': 'FROSTLINE PEAKS', 'ember-forge': 'EMBER FORGE',
+        'lantern-bayou': 'LANTERN BAYOU', 'sky-harbor': 'SKY HARBOR', 'coral-drift': 'CORAL DRIFT', 'clockwork-canyon': 'CLOCKWORK CANYON',
+        'starfall-observatory': 'STARFALL OBSERVATORY', 'mosslight-ruins': 'MOSSLIGHT RUINS', 'alien-plain': 'PASTEL ALIEN PLAIN',
+        'desert-ruin': 'DESERT RUIN', 'night-market': 'NEON NIGHT MARKET', 'sky-race': 'FLOATING ISLAND RACE',
       },
     },
     reveal: (home: string): string => `Arriving at ${home}`,

@@ -4,10 +4,11 @@
  *
  * A plot is a 500 × 500 m surveyed cell with no shard (G213 B: the cyan border line, four striped corner beacons with sky
  * beams). Each of its four entries is a showroom (G219, `art/grid/round-25-open-plot-demos/H-showroom.jpg`): the survey sign
- * across the end of the entry stub, a billboard picturing a shard idea on the left, a half-built demo corner of another
- * idea on the right (finished at the front, grey blockout in the middle, cyan wireframe at the back, scaffold between),
- * each entry a different idea. The middle holds the centrepiece: a stepped plinth under a slowly turning hologram of a
- * shard being built, ringed by floating picture cards of every idea.
+ * across the end of the entry stub, a billboard on the left, a half-built demo corner on the right (finished at the front,
+ * grey blockout in the middle, cyan wireframe at the back, scaffold between), each entry a different demo. Every
+ * billboard of a plot pictures the plot's one idea (its catalogue row's `billboard`, G529), on its road face and on its
+ * back, so the idea reads from the road and from inside. The middle holds the centrepiece: a stepped plinth under a
+ * slowly turning hologram of a shard being built, ringed by floating picture cards of every idea.
  *
  * Draw classes (one draw each per plot): `solid` (vertex-coloured, shading baked in), `lines` (static cyan wireframe and
  * beams), `pictures` (billboard faces, atlas UVs), `text` (sign boards and demo labels, text-atlas UVs), and the turning
@@ -15,29 +16,33 @@
  */
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 
-/** The shard ideas the showrooms picture (`public/assets/grid/open-plot/<idea>.webp`, names in GAME_STRINGS.grid.plot.ideas). */
-export const PLOT_IDEAS = ['sky-race', 'night-market', 'frozen-lighthouse', 'canyon-railway', 'coral-reef', 'alien-plain', 'desert-ruin', 'ink-valley'] as const;
+/** The shard ideas the billboards picture (`public/assets/grid/open-plot/<idea>.webp`, names in GAME_STRINGS.grid.plot.ideas), G529. */
+export const PLOT_IDEAS = ['showcase-template', 'thin-ice', 'frostline-peaks', 'ember-forge', 'lantern-bayou', 'sky-harbor', 'coral-drift',
+  'clockwork-canyon', 'starfall-observatory', 'mosslight-ruins', 'alien-plain', 'desert-ruin', 'night-market', 'sky-race'] as const;
 export type PlotIdea = typeof PLOT_IDEAS[number];
+/** The ideas with a half-built demo corner (`DEMOS`); each plot shows all four, one per entry. */
+export const DEMO_IDEAS = ['sky-race', 'night-market', 'alien-plain', 'desert-ruin'] as const;
+export type DemoIdea = typeof DEMO_IDEAS[number];
 export type PlotSide = 'north' | 'east' | 'south' | 'west';
 export const PLOT_SIDES: readonly PlotSide[] = ['north', 'east', 'south', 'west'];
 /** Where a region of an atlas sits, in canvas pixels. */
 export interface AtlasRect { readonly x: number; readonly y: number; readonly w: number; readonly h: number }
 
-/** The picture atlas: one billboard face per idea (header band, 16:9 picture, caption band), two columns × four rows. */
+/** The picture atlas: one billboard face per idea (header band, 16:9 picture, caption band), two columns × seven rows. */
 export const FACE = { w: 640, h: 480, header: 60, picture: 360 } as const;
-export const PICTURE_ATLAS = { w: FACE.w * 2, h: FACE.h * 4 } as const;
+export const PICTURE_ATLAS = { w: FACE.w * 2, h: FACE.h * Math.ceil(PLOT_IDEAS.length / 2) } as const;
 export function faceRect(idea: PlotIdea): AtlasRect { const i = PLOT_IDEAS.indexOf(idea); return { x: (i % 2) * FACE.w, y: Math.floor(i / 2) * FACE.h, w: FACE.w, h: FACE.h }; }
-/** The text atlas: the survey sign (two lines), the centre plaque, then one demo label per idea. */
-export const TEXT_ATLAS = { w: 1024, h: 768 } as const;
+/** The text atlas: the survey sign (two lines), the centre plaque, then one label per demo. */
+export const TEXT_ATLAS = { w: 1024, h: 384 + 96 * Math.ceil(DEMO_IDEAS.length / 2) } as const;
 export const SIGN_RECT: AtlasRect = { x: 0, y: 0, w: 1024, h: 256 };
 export const PLAQUE_RECT: AtlasRect = { x: 0, y: 256, w: 1024, h: 128 };
-export function labelRect(idea: PlotIdea): AtlasRect { const i = PLOT_IDEAS.indexOf(idea); return { x: (i % 2) * 512, y: 384 + Math.floor(i / 2) * 96, w: 512, h: 96 }; }
+export function labelRect(idea: DemoIdea): AtlasRect { const i = DEMO_IDEAS.indexOf(idea); return { x: (i % 2) * 512, y: 384 + Math.floor(i / 2) * 96, w: 512, h: 96 }; }
 
-/** Each plot shows four different ideas, one per entry; neighbouring plots in the catalogue's order mostly differ. */
-export function plotIdeas(ordinal: number): Readonly<Record<PlotSide, { readonly billboard: PlotIdea; readonly demo: PlotIdea }>> {
-  const at = (n: number): PlotIdea => PLOT_IDEAS[((n % PLOT_IDEAS.length) + PLOT_IDEAS.length) % PLOT_IDEAS.length] ?? 'desert-ruin';
-  const base = 4 * ordinal + 2 * Math.floor(ordinal / 2);
-  const entry = (i: number): { billboard: PlotIdea; demo: PlotIdea } => ({ billboard: at(base + i), demo: at(base + i + 5) });
+/** What each entry of a plot shows: its one billboard idea everywhere, the four demos turned by the idea so plots differ. */
+export type PlotEntries = Readonly<Record<PlotSide, { readonly billboard: PlotIdea; readonly demo: DemoIdea }>>;
+export function plotEntries(billboard: PlotIdea): PlotEntries {
+  const turn = PLOT_IDEAS.indexOf(billboard);
+  const entry = (i: number): { billboard: PlotIdea; demo: DemoIdea } => ({ billboard, demo: DEMO_IDEAS[(turn + i) % DEMO_IDEAS.length] ?? 'desert-ruin' });
   return { north: entry(0), east: entry(1), south: entry(2), west: entry(3) };
 }
 
@@ -58,7 +63,7 @@ export interface OpenPlotGeometry {
   /** the collider: the floor and every solid, one trimesh (plot-local) */
   readonly collider: { readonly positions: Float32Array; readonly indices: Uint32Array };
   /** what each entry shows (for the readout and the captures) */
-  readonly entries: Readonly<Record<PlotSide, { readonly billboard: PlotIdea; readonly demo: PlotIdea }>>;
+  readonly entries: PlotEntries;
 }
 
 const LIGHT: V3 = norm([0.45, 0.8, 0.35]);
@@ -161,7 +166,7 @@ type Piece = { readonly kind: 'box'; readonly u: number; readonly w: number; rea
 const box = (u: number, w: number, y: number, hx: number, hz: number, h: number, c: number): Piece => ({ kind: 'box', u, w, y, hx, hz, h, c: hex(c) });
 const prism = (u: number, w: number, y: number, r0: number, r1: number, h: number, sides: number, c: number, top?: number): Piece => ({ kind: 'prism', u, w, y, r0, r1, h, sides, c: hex(c), ...(top === undefined ? {} : { top: hex(top) }) });
 /** `u` across (−14..14), `w` depth into the plot (−14 front .. 14 back), metres. */
-const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
+const DEMOS: Readonly<Record<DemoIdea, (out: Piece[]) => number>> = {
   'desert-ruin': (out) => {
     for (const u of [-9, -3, 3, 9]) out.push(box(u, -8, 0, 1.2, 1.2, 9, 0xd9a86a), box(u, 2, 0, 1.2, 1.2, 9, 0xd9a86a), box(u, 11, 0, 1.2, 1.2, 9, 0xd9a86a));
     out.push(box(0, -8, 9, 11, 1.4, 2, 0xe2b77a), box(0, 2, 9, 11, 1.4, 2, 0xe2b77a), box(0, 11, 9, 11, 1.4, 2, 0xe2b77a));
@@ -183,45 +188,6 @@ const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
     out.push(box(4, -6, 0, 1.6, 0.9, 1.2, 0xc8322b), box(4, -6, 1.2, 1.8, 1.1, 0.12, 0xf0e6d0), prism(5.1, -6, 1.32, 0.35, 0.35, 0.6, 8, 0xf6f0e8));
     return 0x2a2f3a;
   },
-  'frozen-lighthouse': (out) => {
-    out.push(prism(4, 0, 0, 7, 7.5, 2, 9, 0xb8c6d4, 0xf4f8fb));
-    for (let k = 0; k < 6; k++) out.push(prism(4, 0, 2 + k * 4, 4.2 - k * 0.35, 3.85 - k * 0.35, 4, 10, k % 2 === 0 ? 0xd8323a : 0xf3f3f3));
-    out.push(prism(4, 0, 26, 2.4, 2.4, 2.2, 10, 0xffe9a6), prism(4, 0, 28.2, 2.8, 0.4, 2.2, 10, 0x2b3540));
-    out.push(box(-8, -10, 0, 3, 2, 1.5, 0xdfeaf2), box(-10, 2, 0, 2, 3, 2.4, 0xcfe3ef), prism(-5, 9, 0, 3, 0.5, 4, 5, 0xe8f2f8));
-    // polish: the lantern gallery's railing, a keeper's hut, snowy pines, ice floes and a buoy
-    out.push(prism(4, 0, 25.6, 3.4, 3.4, 0.25, 10, 0x2b3540), prism(4, 0, 26.4, 3.2, 3.2, 0.12, 10, 0x2b3540));
-    out.push(box(-6, -10, 0, 2.6, 2.2, 2.6, 0x9c5a3a), prism(-6, -10, 2.6, 3.4, 0.2, 1.8, 4, 0xf4f8fb), box(-6, -12.25, 0.9, 0.45, 0.05, 0.7, 0xffd27a));
-    for (const [u, w, s2] of [[-12, -12, 1], [-11, -6, 0.8], [11, -11, 1.1], [12.5, -5, 0.7]] as const) {
-      out.push(prism(u, w, 0, 0.3, 0.3, 1.2 * s2, 6, 0x4a3426), prism(u, w, 1.2 * s2, 2.0 * s2, 0.2, 2.6 * s2, 7, 0x2a5a48, 0xf4f8fb), prism(u, w, 3.2 * s2, 1.4 * s2, 0.1, 2 * s2, 7, 0xeef5f8));
-    }
-    out.push(box(1, -12.5, 0, 2.2, 1.4, 0.3, 0xcfe8f4), box(9, -9, 0, 1.4, 1.8, 0.4, 0xd8eef8), prism(13, -1, 0, 0.6, 0.4, 1.8, 8, 0xd8323a, 0xf3f3f3));
-    return 0xe4eef4;
-  },
-  'canyon-railway': (out) => {
-    out.push(box(-10, -6, 0, 3.5, 5, 10, 0xb5522e), box(-10, -6, 10, 2.8, 4, 4, 0xc9673d), box(10, 6, 0, 3.5, 6, 13, 0xa94a2a));
-    for (let w = -13; w <= 13; w += 2) out.push(box(0, w, 4.6, 2.2, 0.35, 0.3, 0x6e4a2c));
-    out.push(box(-1, 0, 4.9, 0.12, 14, 0.25, 0x8c949b), box(1, 0, 4.9, 0.12, 14, 0.25, 0x8c949b));
-    for (const w of [-10, -2, 6, 13]) for (const u of [-1.8, 1.8]) out.push(box(u, w, 0, 0.3, 0.3, 4.6, 0x5a3a22));
-    // polish: a locomotive and tender on the trestle, a water tower, saguaro cacti, a signal post
-    out.push(box(0, -10, 5.2, 1.3, 3, 2, 0x1d1d22), box(0, -12.2, 5.2, 1.4, 1, 3.2, 0x8c2a22), prism(0, -8, 7.2, 0.45, 0.6, 1.4, 8, 0x1d1d22), box(0, -7, 5.2, 1.1, 0.25, 0.9, 0xd8a23a), box(0, -14, 5.2, 1.3, 0.8, 1.6, 0x3a2a22));
-    for (const [u, w] of [[6, -12], [8, -10]] as const) out.push(box(u, w, 0, 0.18, 0.18, 6, 0x5a3a22));
-    out.push(prism(7, -11, 6, 2, 2, 3, 10, 0x8a5a36, 0x6e4a2c), prism(7, -11, 9, 2.2, 0.3, 1, 10, 0x5a3a22));
-    for (const [u, w, h] of [[-5, -12, 4.5], [12, -2, 3.6], [-13, 4, 4]] as const) out.push(prism(u, w, 0, 0.5, 0.45, h, 8, 0x4f8a3a), box(u + 0.9, w, h * 0.45, 0.6, 0.3, 0.3, 0x4f8a3a), prism(u + 1.3, w, h * 0.45, 0.3, 0.28, h * 0.35, 6, 0x4f8a3a));
-    out.push(box(-3.6, -13, 0, 0.12, 0.12, 5, 0x2b3540), box(-3.6, -13, 4.4, 0.5, 0.2, 0.7, 0xd8323a));
-    return 0xd28a5a;
-  },
-  'coral-reef': (out) => {
-    for (const [u, w, r, h, c] of [[-9, -9, 2.2, 3, 0xff5f8f], [-3, -11, 1.4, 4.5, 0xffa040], [6, -8, 2.6, 2.4, 0x3ad6c8], [11, -2, 1.6, 5, 0xff5f8f], [-11, 3, 2, 3.4, 0x9a6bff], [2, 4, 3, 2, 0xffa040], [9, 10, 1.8, 4, 0x3ad6c8], [-6, 11, 2.4, 3, 0xff5f8f]] as const) {
-      out.push(prism(u, w, 0, r, r * 0.4, h, 7, c), prism(u + r * 0.6, w, h * 0.6, r * 0.5, 0.2, h * 0.7, 6, c));
-    }
-    out.push(box(-2, 0, 0, 2.5, 7, 2.5, 0x5b4636), box(-2, 4, 2.5, 0.3, 0.3, 8, 0x4a382a));
-    // polish: kelp swaying tall, a treasure chest, a sunken anchor, a school of fish and clam shells
-    for (const [u, w, h] of [[-13, -6, 9], [-12, -4, 7], [13, -12, 8], [12, 4, 10], [-4, 12, 7]] as const) out.push(prism(u, w, 0, 0.35, 0.15, h, 5, 0x3e9a5a), prism(u + 0.5, w + 0.4, 0, 0.3, 0.1, h * 0.7, 5, 0x58b86a));
-    out.push(box(-6, -12.5, 0, 1.2, 0.8, 0.9, 0x7a4a24), box(-6, -12.5, 0.9, 1.25, 0.85, 0.35, 0xe0b040), box(3, -12.5, 0, 0.2, 0.2, 3, 0x4a4d52), box(3, -12.5, 0.2, 1.4, 0.2, 0.25, 0x4a4d52));
-    for (let k = 0; k < 7; k++) out.push(box(-2 + k * 1.1, -6 + Math.sin(k) * 0.8, 5 + Math.cos(k * 1.7) * 0.7, 0.45, 0.15, 0.3, k % 2 === 0 ? 0xffa040 : 0xffe14d));
-    out.push(prism(9, -12, 0, 1, 0.6, 0.5, 9, 0xf3c6d6), prism(-12, -12, 0, 0.8, 0.5, 0.4, 9, 0xf3c6d6));
-    return 0xf0dca8;
-  },
   'alien-plain': (out) => {
     for (const [u, w, s] of [[-8, -9, 1.2], [6, -10, 0.8], [-10, 2, 1], [8, 1, 1.4], [0, 10, 1.1], [-6, 11, 0.7]] as const) {
       out.push(prism(u, w, 0, 0.7 * s, 0.6 * s, 7 * s, 8, 0xf2e3ff), prism(u, w, 7 * s, 4.4 * s, 0.6 * s, 2.4 * s, 10, s > 1 ? 0xff7ab8 : 0xb98cff, 0xffc4e1));
@@ -233,18 +199,6 @@ const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
     out.push(box(-1, -5, 9, 3.4, 2, 0.9, 0xa48cc8), prism(-1, -5, 6.4, 0.2, 2.2, 2.6, 6, 0x8a74b0));
     out.push(prism(8, -12, 0.8, 2.6, 1.2, 1.1, 10, 0xe9edf0, 0xb9f6ff), prism(8, -12, 1.9, 1.2, 0.2, 0.9, 10, 0x9ff3ff), box(8, -12, 0, 0.12, 2.2, 0.8, 0x55606b));
     return 0xd9b8e8;
-  },
-  'ink-valley': (out) => {
-    out.push(box(-4.5, -6, 0, 0.6, 0.6, 7, 0xc8322b), box(4.5, -6, 0, 0.6, 0.6, 7, 0xc8322b), box(0, -6, 7, 7, 0.8, 0.8, 0x1d1d22), box(0, -6, 5.6, 5.6, 0.4, 0.5, 0xc8322b));
-    for (let w = -12; w <= 12; w += 3) out.push(box(Math.sin(w / 5) * 2, w, 0, 1.6, 1.2, 0.18, 0x9a9f9c));
-    out.push(box(8, -10, 0, 1, 1, 1.4, 0x8e918d), box(8, -10, 1.4, 1.6, 1.6, 0.4, 0x6a6d69), box(8, -10, 1.8, 0.8, 0.8, 0.9, 0xfff0b8), prism(8, -10, 2.7, 1.8, 0.1, 1, 4, 0x4a4d49));
-    out.push(prism(-10, 4, 0, 0.6, 0.5, 6, 6, 0x4a3426), prism(-10, 4, 5, 4.2, 0.4, 4, 7, 0x2f5a3a), prism(10, 8, 0, 0.6, 0.5, 5, 6, 0x4a3426), prism(10, 8, 4, 3.6, 0.4, 3.6, 7, 0x2f5a3a));
-    // polish: a two-tier pagoda, a red maple, a stone bridge over an ink stream, a second lantern
-    out.push(box(-9, -11, 0, 2.6, 2.6, 0.6, 0x8e918d), box(-9, -11, 0.6, 1.8, 1.8, 2.4, 0xc8322b), box(-9, -11, 3, 3.2, 3.2, 0.35, 0x1d1d22), box(-9, -11, 3.35, 1.4, 1.4, 1.8, 0xc8322b), box(-9, -11, 5.15, 2.6, 2.6, 0.3, 0x1d1d22), prism(-9, -11, 5.45, 0.9, 0.05, 1.6, 4, 0xd8a23a));
-    out.push(prism(12, -3.5, 0, 0.4, 0.35, 3.6, 6, 0x4a3426), prism(12, -3.5, 3, 3, 0.4, 3.2, 7, 0xd2442e));
-    out.push(box(5, -12, 0, 1.2, 4, 0.06, 0x1c2a3a), box(5, -12, 0.06, 1.6, 1.4, 0.5, 0x9a9f9c), box(5, -12, 0.56, 1.7, 1.1, 0.2, 0x8e918d));
-    out.push(box(-3, -13, 0, 0.6, 0.6, 1.1, 0x8e918d), box(-3, -13, 1.1, 1, 1, 0.3, 0x6a6d69), box(-3, -13, 1.4, 0.5, 0.5, 0.6, 0xfff0b8), prism(-3, -13, 2, 1.1, 0.1, 0.7, 4, 0x4a4d49));
-    return 0xcfd3c8;
   },
   'sky-race': (out) => {
     for (const [u, w, r, y] of [[-8, -9, 4.5, 3], [7, -4, 3.6, 7], [-5, 6, 4, 11], [8, 11, 3.2, 15]] as const) {
@@ -262,12 +216,12 @@ const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
     return 0x9ad06f;
   },
 };
-function demoPieces(idea: PlotIdea): { ground: number; pieces: Piece[] } { const pieces: Piece[] = []; return { ground: DEMOS[idea](pieces), pieces }; }
+function demoPieces(idea: DemoIdea): { ground: number; pieces: Piece[] } { const pieces: Piece[] = []; return { ground: DEMOS[idea](pieces), pieces }; }
 
-/** The plot's whole geometry for its catalogue ordinal (which ideas it shows). */
-export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
+/** The plot's whole geometry for its billboard idea (the catalogue row's `billboard`). */
+export function openPlotGeometry(billboard: PlotIdea): OpenPlotGeometry {
   const solid = new Solid(), lines = new Lines(), holo = new Lines(), pictures = new Quads(PICTURE_ATLAS), text = new Quads(TEXT_ATLAS), cards = new Quads(PICTURE_ATLAS);
-  const entries = plotIdeas(ordinal), H = CHUNK_HALF;
+  const entries = plotEntries(billboard), H = CHUNK_HALF;
   // corner beacons (B): white-and-orange striped posts, a cyan beam to the sky
   for (const [x, z] of [[-H, -H], [H, -H], [H, H], [-H, H]] as const) {
     const cx = x - Math.sign(x) * 1.5, cz = z - Math.sign(z) * 1.5;
@@ -277,7 +231,7 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
     lines.seg([cx, 6.4, cz], [cx, 220, cz]); lines.seg([cx + 0.3, 6.4, cz], [cx + 0.3, 160, cz]);
   }
   for (const side of PLOT_SIDES) {
-    const frame = entryFrame(side), { billboard, demo } = entries[side], n = frame.out;
+    const frame = entryFrame(side), { demo } = entries[side], n = frame.out;
     const P = (s: number, t: number, y: number): V3 => { const p = frame.at(s, t); return [p.x, y, p.z]; };
     // the entry pad: the stub's asphalt carried in to the sign, half-laid at its end
     for (let s = 1; s < 18; s += 2) for (const t of [-3, -1, 1, 3]) {
@@ -296,9 +250,9 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
       const back = frame.at(44.5, -22); solid.box(back.x, back.z, bottom - 0.6, w / 2 + 0.6, 0.35, h + 1.2, frame.yaw, C.steel);
       for (const t of [-7, 0, 7]) { const p = frame.at(43.4, -22 + t); solid.box(p.x, p.z, bottom + h + 0.6, 0.15, 0.6, 0.25, frame.yaw, C.steelLight); }
       pictures.add([c.x + n.x * 0.1, bottom + h / 2, c.z + n.z * 0.1], n, w, h, faceRect(billboard));
-      // playtest round 2: its back carries a picture too (the demo corner's idea), so from inside the plot every entry
-      // shows a picture, never the blank grey slab that stood on the horizon in every direction
-      { const b = frame.at(44.9, -22); pictures.add([b.x, bottom + h / 2, b.z], { x: -n.x, z: -n.z }, w, h, faceRect(demo));
+      // playtest round 2: its back carries the picture too, so from inside the plot every entry shows the plot's idea,
+      // never the blank grey slab that stood on the horizon in every direction
+      { const b = frame.at(44.9, -22); pictures.add([b.x, bottom + h / 2, b.z], { x: -n.x, z: -n.z }, w, h, faceRect(billboard));
         const a = frame.at(45.15, -22 + w / 2 + 0.15), e = frame.at(45.15, -22 - w / 2 - 0.15), y0 = bottom - 0.15, y1 = bottom + h + 0.15;
         lines.seg([a.x, y0, a.z], [e.x, y0, e.z]); lines.seg([a.x, y1, a.z], [e.x, y1, e.z]); lines.seg([a.x, y0, a.z], [a.x, y1, a.z]); lines.seg([e.x, y0, e.z], [e.x, y1, e.z]); }
       // polish: a cyan edge on the face (the grid's line) and two flood lamps on arms over its top
@@ -351,9 +305,9 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
   for (const [x, z] of [[-S, -S], [S, -S], [S, S], [-S, S]] as const) holo.seg([x * 0.4, 0.8, z * 0.4], [x, base, z]);
   holo.seg([0, 0.8, 0], [0, 120, 0]); holo.seg([0.4, 0.8, 0], [0.4, 90, 0]);
   PLOT_IDEAS.forEach((idea, k) => {
-    // polish: 26 × 19.5 m cards (were 20 × 15) so the ring reads as pictures from the next boulevard
-    const a = k / PLOT_IDEAS.length * Math.PI * 2, r = 60, n = { x: Math.cos(a), z: Math.sin(a) };
-    cards.add([n.x * r, 46, n.z * r], n, 26, 19.5, faceRect(idea)); cards.add([n.x * (r - 0.05), 46, n.z * (r - 0.05)], { x: -n.x, z: -n.z }, 26, 19.5, faceRect(idea));
+    // polish: 24 × 18 m cards so the ring reads as pictures from the next boulevard; the radius leaves a gap between the 14
+    const a = k / PLOT_IDEAS.length * Math.PI * 2, r = 64, n = { x: Math.cos(a), z: Math.sin(a) };
+    cards.add([n.x * r, 46, n.z * r], n, 24, 18, faceRect(idea)); cards.add([n.x * (r - 0.05), 46, n.z * (r - 0.05)], { x: -n.x, z: -n.z }, 24, 18, faceRect(idea));
   });
   const floor = [-H, 0, -H, H, 0, -H, H, 0, H, -H, 0, H], solidPositions = new Float32Array(solid.p), solidIndices = new Uint32Array(solid.i);
   const colliderPositions = new Float32Array(floor.length + solidPositions.length); colliderPositions.set(floor); colliderPositions.set(solidPositions, floor.length);

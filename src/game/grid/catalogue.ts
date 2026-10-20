@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { GRID_RADIUS, GRID_CELL_COUNT } from '@wildshard/format/contentBounds';
 import { AccentSchema } from '@wildshard/format/accent';
+import { PLOT_IDEAS } from './openPlotLayout';
 
 const id = v.pipe(v.string(), v.regex(/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u));
 const signed = v.pipe(v.number(), v.integer(), v.minValue(-GRID_RADIUS), v.maxValue(GRID_RADIUS));
@@ -19,8 +20,8 @@ const copyPlot = v.strictObject({ x: local, z: local, half: v.pipe(v.number(), v
 const layout = v.strictObject({ seed: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(2 ** 31 - 1)), plots: v.pipe(v.array(copyPlot), v.maxLength(8)) });
 const identity = v.strictObject({ accent: AccentSchema, marks: v.pipe(v.array(mark), v.maxLength(8)), layout: v.optional(layout) });
 const placement = v.strictObject({ instance: id, slug: id, cell: v.tuple([signed, signed]), identity: v.optional(identity) });
-/** G198 / G219: an open plot, a platform cell with no shard (the void floor, four entry showrooms and a centrepiece). */
-const plot = v.strictObject({ instance: id, cell: v.tuple([signed, signed]) });
+/** G198 / G219: an open plot, a platform cell with no shard (the void floor, four entry showrooms and a centrepiece); G529: the idea its billboards picture. */
+const plot = v.strictObject({ instance: id, cell: v.tuple([signed, signed]), billboard: v.picklist(PLOT_IDEAS) });
 const channel = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1));
 const colour = v.tuple([channel, channel, channel]);
 const distance = v.pipe(v.number(), v.finite(), v.minValue(0));

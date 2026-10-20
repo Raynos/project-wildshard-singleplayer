@@ -4,6 +4,7 @@ import { GridAssembly } from '../src/game/grid/assembly';
 import { parseGridCatalogue } from '../src/game/grid/catalogue';
 import { GridContinuationCache } from '../src/game/grid/continuations';
 import { roadLayout, segmentPoint, RAIL_OFFSET } from '../src/game/grid/roadLayout';
+import { PLOT_IDEAS } from '../src/game/grid/openPlotLayout';
 import { generatePlatform, type PlatformCell } from '../src/engine/sim/strips';
 
 const modes = [{ developer: false, devserver: false }, { developer: true, devserver: false },
@@ -19,7 +20,10 @@ for (const mode of modes) test(`complete 25-cell layout ${JSON.stringify(mode)}`
   }
   if (mode.developer) {
     expect(assembly.cells.filter(row => Math.abs(row.cell[0]) <= 1 && Math.abs(row.cell[1]) <= 1)).toHaveLength(8);
-    expect(assembly.plots.filter(row => Math.abs(row.cell[0]) === 2 || Math.abs(row.cell[1]) === 2)).toHaveLength(14);
+    const outer = assembly.plots.filter(row => Math.abs(row.cell[0]) === 2 || Math.abs(row.cell[1]) === 2);
+    expect(outer).toHaveLength(14);
+    // G529: the 14 billboard plots show each of the 14 ideas once
+    expect(outer.map(row => row.billboard).sort()).toEqual([...PLOT_IDEAS].sort());
   }
   const road = roadLayout(assembly, slug => slug);
   expect(road.segments).toHaveLength(60);

@@ -277,133 +277,152 @@
         "cell": [
           -1,
           1
-        ]
+        ],
+        "billboard": "night-market"
       },
       {
         "instance": "open-plot-sw",
         "cell": [
           -1,
           -1
-        ]
+        ],
+        "billboard": "frostline-peaks"
       },
       {
         "instance": "open-plot-se",
         "cell": [
           1,
           -1
-        ]
+        ],
+        "billboard": "lantern-bayou"
       },
       {
         "instance": "open-plot-0-0",
         "cell": [
           -2,
           -2
-        ]
+        ],
+        "billboard": "coral-drift"
       },
       {
         "instance": "open-plot-1-0",
         "cell": [
           -1,
           -2
-        ]
+        ],
+        "billboard": "night-market"
       },
       {
         "instance": "open-plot-2-0",
         "cell": [
           0,
           -2
-        ]
+        ],
+        "billboard": "sky-race"
       },
       {
         "instance": "open-plot-3-0",
         "cell": [
           1,
           -2
-        ]
+        ],
+        "billboard": "desert-ruin"
       },
       {
         "instance": "open-plot-4-0",
         "cell": [
           2,
           -2
-        ]
+        ],
+        "billboard": "alien-plain"
       },
       {
         "instance": "open-plot-0-1",
         "cell": [
           -2,
           -1
-        ]
+        ],
+        "billboard": "lantern-bayou"
       },
       {
         "instance": "open-plot-4-1",
         "cell": [
           2,
           -1
-        ]
+        ],
+        "billboard": "ember-forge"
       },
       {
         "instance": "open-plot-0-2",
         "cell": [
           -2,
           0
-        ]
+        ],
+        "billboard": "ember-forge"
       },
       {
         "instance": "open-plot-4-2",
         "cell": [
           2,
           0
-        ]
+        ],
+        "billboard": "mosslight-ruins"
       },
       {
         "instance": "open-plot-0-3",
         "cell": [
           -2,
           1
-        ]
+        ],
+        "billboard": "mosslight-ruins"
       },
       {
         "instance": "open-plot-4-3",
         "cell": [
           2,
           1
-        ]
+        ],
+        "billboard": "clockwork-canyon"
       },
       {
         "instance": "open-plot-0-4",
         "cell": [
           -2,
           2
-        ]
+        ],
+        "billboard": "frostline-peaks"
       },
       {
         "instance": "open-plot-1-4",
         "cell": [
           -1,
           2
-        ]
+        ],
+        "billboard": "thin-ice"
       },
       {
         "instance": "open-plot-2-4",
         "cell": [
           0,
           2
-        ]
+        ],
+        "billboard": "showcase-template"
       },
       {
         "instance": "open-plot-3-4",
         "cell": [
           1,
           2
-        ]
+        ],
+        "billboard": "starfall-observatory"
       },
       {
         "instance": "open-plot-4-4",
         "cell": [
           2,
           2
-        ]
+        ],
+        "billboard": "sky-harbor"
       }
     ],
     "developer": [
