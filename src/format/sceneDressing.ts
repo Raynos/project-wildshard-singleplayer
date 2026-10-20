@@ -27,6 +27,10 @@ export const SceneDressingContactsSchema=list(v.variant('kind',[
   v.strictObject({kind:v.literal('capsule'),...base,halfHeight:finite,radius:finite}),
   v.strictObject({kind:v.literal('treads'),from:point,to:point,width:finite,count:v.pipe(finite,v.integer(),v.minValue(1)),surface}),
 ]),32768);
+export const SceneFloorSchema=v.union([
+  v.strictObject({rects:list(v.strictObject({x:finite,z:finite,hw:finite,hd:finite,y:finite,rot:v.exactOptional(finite),slope:v.exactOptional(finite),tilt:v.exactOptional(finite),profile:v.exactOptional(list(v.tuple([finite,finite,finite]),8))}),4096)}),
+  v.strictObject({x:finite,z:finite,size:v.pipe(finite,v.minValue(0)),res:v.pipe(count,v.minValue(2)),data:v.pipe(v.string(),v.maxLength(1048576))}),
+]);
 const contactSource = v.union([SceneDressingContactsSchema,v.strictObject({kind:v.literal('packed-hulls'),data:v.pipe(v.string(),v.maxLength(1048576)),origins:list(v.tuple([finite,finite,finite,count]),8192),surface:v.picklist(['rock','wood','stone','ground'])})]);
 const pose = v.strictObject({x:finite,y:finite,z:finite,variant:v.exactOptional(id),yaw:v.exactOptional(finite),heading:v.exactOptional(v.tuple([finite,finite])),matrix:v.exactOptional(v.pipe(v.array(finite),v.length(16)))});
 /** Z2 client-only scatter/static/ambient projection; shader and model identities are declared data. */
@@ -34,7 +38,7 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
   name:id,
   instances:v.optional(SceneInstancesSchema,[]),
   staticModels:v.optional(list(v.strictObject({model:SpecimenModelMetadataSchema,geometry:id,material:id}),128),[]),
-  catalogues:list(v.strictObject({rows:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,materials:v.record(id,SpecimenMaterialSchema)}),8),
+  catalogues:list(v.union([v.strictObject({rows:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,materials:v.record(id,SpecimenMaterialSchema)}),v.strictObject({rows:SpecimenCatalogueSchema,pack:id})]),8),
   packs:v.record(id,v.strictObject({rows:PackedSpecimenSchema,materials:v.record(id,SpecimenMaterialSchema)})),
   geometry:v.record(id,geometry),
   materials:v.record(id,v.variant('kind',[
@@ -47,7 +51,7 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
   layers:list(v.strictObject({id,model:id,geometry:id,material:id,file:id,binary:v.boolean(),far:finite,castShadow:v.boolean(),keepNear:finite,
     select:v.exactOptional(v.strictObject({modulo:v.pipe(count,v.minValue(1)),remainder:count,equal:v.boolean()})),contacts:contactSource}),32),
   statics:list(v.strictObject({name:id,recipe:PrivateSceneSchema,geometry:v.record(id,id),materials:v.record(id,id),tris:finite,
-    members:list(v.strictObject({model:id,draw:v.picklist(['single','instanced','merged']),placements:list(pose,8192),boxes:list(finite,49152),contacts:contactSource}),128)}),32),
+    members:list(v.strictObject({model:id,draw:v.picklist(['single','instanced','merged']),placements:list(pose,8192),boxes:list(finite,49152),contacts:contactSource,floors:v.optional(list(SceneFloorSchema,64),[])}),128)}),32),
   wings:v.exactOptional(v.strictObject({groups:list(v.strictObject({kind:id,row:AmbientFlockSchema,perches:AmbientPerchesSchema}),32),
     layers:list(v.strictObject({id,capacity:count,palette:list(v.union([finite,id]),256),flap:v.nullable(v.tuple([finite,finite,finite])),geometry:id,material:id}),32)})),
   animations:list(v.strictObject({look:id,timeParam:id,windParam:id,windScale:finite,windMax:finite}),32),
@@ -56,6 +60,7 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
   const models=new Set(rows.catalogues.flatMap(source=>source.rows.map(row=>row.model.id)).concat(rows.staticModels.map(row=>row.model.id)));
   const shape=(key:string)=>Object.hasOwn(rows.geometry,key),paint=(key:string)=>Object.hasOwn(rows.materials,key);
   return new Set(rows.statics.map(row=>row.name)).size===rows.statics.length
+    && rows.catalogues.every(source=>!('pack'in source)||Object.hasOwn(rows.packs,source.pack))
     && rows.staticModels.every(row=>shape(row.geometry)&&paint(row.material))
     && rows.instances.every(row=>shape(row.geometry)&&paint(row.material)&&rows.statics.some(group=>group.name===row.group))
     && rows.layers.every(row=>models.has(row.model)&&shape(row.geometry)&&paint(row.material)&&(row.select===undefined||row.select.remainder<row.select.modulo))

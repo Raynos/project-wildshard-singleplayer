@@ -9,7 +9,7 @@ import { POI_CLEARINGS } from './clearings';
 import { KOKPAR, KURGANS, SUMMER_YURTS } from './layout';
 import * as THREE from 'three';
 import { unzlibSync, zlibSync } from 'fflate';
-import { SceneDressingSchema, SceneBakedGeometrySchema, SceneDressingContactsSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
+import { SceneDressingSchema, SceneBakedGeometrySchema,SceneFloorSchema, SceneDressingContactsSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
@@ -25,7 +25,7 @@ import { AmbientFlockSchema, AmbientPerchesSchema } from '@wildshard/format/ambi
 import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
 
 const text=v.string(),number=v.number(),xyz=v.tuple([number,number,number]);
-const memberSchema=v.object({draw:v.picklist(['instanced','merged']),placements:v.array(v.object({x:number,y:number,z:number,yaw:v.exactOptional(number),heading:v.exactOptional(v.tuple([number,number])),matrix:v.exactOptional(v.array(number))})),boxes:v.array(number),floors:v.array(v.unknown()),solid:SceneDressingContactsSchema,descs:SceneDressingContactsSchema});
+const memberSchema=v.object({draw:v.picklist(['instanced','merged']),placements:v.array(v.object({x:number,y:number,z:number,yaw:v.exactOptional(number),heading:v.exactOptional(v.tuple([number,number])),matrix:v.exactOptional(v.array(number))})),boxes:v.array(number),floors:v.array(SceneFloorSchema),solid:v.array(v.unknown()),descs:v.array(v.unknown())});
 const place=v.object({name:text,tris:number,anchors:v.optional(v.object({riders:v.optional(v.array(v.object({t:number,k:number,w:number,bob:number})),[])}),{riders:[]}),instances:v.array(v.tuple([text,v.object({asset:SpecimenAssetSchema,scene:PrivateSceneSchema})])),effects:v.array(v.tupleWithRest([text,xyz],v.unknown())),members:v.array(v.tuple([text,memberSchema])),meshes:v.array(v.object({material:text,offset:number,geometry:SceneBakedGeometrySchema}))});
 const preparedSchema=v.object({places:v.object({rows:v.array(place)}),dressing:v.object({rows:v.array(v.object({key:text,offset:number,geometry:SceneBakedGeometrySchema}))})});
 const materialsSchema=v.record(text,SpecimenMaterialSchema);
@@ -34,7 +34,7 @@ const profileSchema=v.object({catalogue:SpecimenCatalogueSchema,packed:PackedSpe
 const coverSchema=v.object({phone:profileSchema,desktop:profileSchema,materials:materialsSchema,butterflies:v.object({phone:number,desktop:number}),hue:v.array(v.union([text,number])),raptors:number});
 const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),rows:v.array(v.object({key:text,data:text,geometry:SceneBakedGeometrySchema})),contacts:v.record(text,v.record(text,v.object({points:text,origins:v.array(v.tuple([number,number,number,number]))})))});
 // Shared authoring metadata is emitted alongside the runtime boot descriptors.
-const prepared=v.parse(preparedSchema,{...preparedInput,places:{rows:preparedInput.places.rows.filter(row=>['dressing-statics','dressing-clutter','kokpar','outcrops'].includes(row.name))}});
+const prepared=v.parse(preparedSchema,{...preparedInput,places:{rows:preparedInput.places.rows.filter(row=>['camp','bridge','roads','summerCamp','kurgans','eagleRock','cairn','crags','watchtower','dressing-statics','dressing-clutter','kokpar','outcrops'].includes(row.name))}});
 const scenes=v.parse(v.record(text,PrivateSceneSchema),scenesInput);
 const specimens=v.parse(specimensSchema,specimensInput);
 const paint=v.parse(paintSchema,paintInput);
@@ -42,6 +42,13 @@ const cover=v.parse(coverSchema,coverInput);
 
 const encoded=(raw:Uint8Array):string=>{let encodedText='';for(const byte of zlibSync(raw))encodedText+=String.fromCodePoint(byte);return btoa(encodedText);};
 const id=(name:string)=>`nalati-grasslands/${name}`;
+const preparedContacts=(inputs:readonly unknown[])=>{
+  const contacts=v.parse(SceneDressingContactsSchema,inputs.map(input=>{const parsed=v.parse(v.looseObject({heading:v.exactOptional(v.tuple([number,number]))}),input),{heading,...contact}=parsed;return heading===undefined?contact:Object.assign(contact,{yaw:Math.atan2(...heading)});}));
+  const hulls=contacts.filter(row=>row.kind==='hull');
+  if(hulls.length===0||hulls.length!==contacts.length||hulls.some(row=>row.surface!=='rock'||row.yaw!==undefined||row.rot!==undefined))return contacts;
+  return{kind:'packed-hulls',data:encoded(new Uint8Array(Float32Array.from(hulls.flatMap(row=>row.points)).buffer)),origins:hulls.map(row=>[row.x,row.y,row.z,row.points.length]),surface:'rock'};
+};
+
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
 function compileDressingScene(tier:'phone'|'desktop') {
@@ -64,11 +71,12 @@ function compileDressingScene(tier:'phone'|'desktop') {
       select:{modulo:name==='slab'?1:3,remainder:name==='slab'?0:2,equal:name!=='boulder'}})),
     ...(['stone','juniper','rose','willow','lupin','daisy','reed'] as const).map(name=>({id:`nalati-dress-${name}`,model:id(({rose:'wild-rose',willow:'dwarf-willow',reed:'reed'} as Record<string,string>)[name]??name),geometry:name,material:name==='stone'?'rock':name==='reed'?'reed':name==='lupin'||name==='daisy'?'flower':'shrub',file:`world/dressing-${name}.${name==='stone'||name==='daisy'?'bin':'json'}`,binary:name==='stone'||name==='daisy',far:phone?(name==='stone'||name==='lupin'||name==='daisy'?.55:.6):1,castShadow:!phone&&['juniper','rose','willow'].includes(name),keepNear:26,contacts:[]})),
   ];
-  const statics:unknown[]=['dressing-statics','dressing-clutter','kokpar','outcrops'].map(name=>{
+  const statics:unknown[]=['camp','bridge','roads','summerCamp','kurgans','eagleRock','cairn','crags','watchtower','dressing-statics','dressing-clutter','kokpar','outcrops'].map(name=>{
     const row=prepared.places.rows.find(candidate=>candidate.name===name),recipe=Object.entries(scenes).find(([key])=>key===name)?.[1];if(row===undefined||recipe===undefined)throw new Error('Missing dressing scene');
     const geo:Record<string,string>={},mats:Record<string,string>={};
     for(const [i,mesh]of row.meshes.entries()){
       const key=`${name}.${i}`;geometry[key]=baked('/assets/nalati/baked/places.bin',mesh.offset,mesh.geometry);geo[`mesh-${i}`]=key;mats[mesh.material]=mesh.material;
+      if(mesh.material==='yard'){const path=specimens.materials['path'];if(path===undefined)throw new Error('Missing yard tile');materials['yard']={kind:'specimen',row:{...path,id:'nalati-yard',rim:0,bands:.6,transparent:true,depthWrite:false,polygonOffset:[-2,-2],textureFallback:[200,160,120,255]}};continue;}
       const material=Object.entries(specimens.materials).find(([materialKey])=>materialKey===mesh.material)?.[1];if(material===undefined)throw new Error('Missing dressing static paint');materials[mesh.material]={kind:'specimen',row:material};
     }
     const copied=structuredClone(recipe),root=copied.nodes.find(node=>node.id===copied.root);
@@ -78,7 +86,7 @@ function compileDressingScene(tier:'phone'|'desktop') {
       const key=`${name}.instance.${index}`;geometry[key]={kind:'asset',row:instance.asset};materials[key]={kind:'asset',row:instance.asset};geo[key]=key;mats[key]=key;
       copied.materials.push({kind:'port',id:key,source:key});copied.nodes.push({...mesh,id:key,geometry:key,material:key});root.children.push(key);
     }
-    return{name,recipe:copied,geometry:geo,materials:mats,tris:row.tris+(name==='kokpar'?6*(phone?metrics.farTriangles['kokpar-rider']:metrics.triangles['kokpar-rider']):0),members:row.members.map(([model,member])=>{if(member.floors.length>0)throw new Error('Dressing needs a declared floor');return{model,draw:member.draw,placements:member.placements,boxes:member.boxes,contacts:[...member.solid,...member.descs]};})};
+    return{name,recipe:copied,geometry:geo,materials:mats,tris:row.tris+(name==='kokpar'?6*(phone?metrics.farTriangles['kokpar-rider']:metrics.triangles['kokpar-rider']):0),members:row.members.map(([model,member])=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,floors:member.floors,contacts:preparedContacts([...member.solid,...member.descs])}))};
   });
   const cloth=clothGeometry();geometry['cloth']={kind:'inline',...cloth};materials['cloth']={kind:'look',look:'nalati-cloth'};
   statics.push({name:'cloth',recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['cloth']},{kind:'mesh',id:'cloth',geometry:'shape',material:'paint',missing:'empty',castShadow:true,receiveShadow:true}]},geometry:{shape:'cloth'},materials:{paint:'cloth'},tris:cloth.row.indexCount/3,members:[]});
@@ -94,7 +102,7 @@ function compileDressingScene(tier:'phone'|'desktop') {
   const cragModel={model:{id:'nalati-grasslands/crag-rock',name:'Crag rock',category:'nature',pipeline:'code',file:'src/shards/nalati-grasslands/models/cragRock.ts',surface:'rock',defaults:{kind:'fin'},variants:[{id:'fin',label:'Fin',params:{}},{id:'rib',label:'Rib',params:{kind:'rib'}},{id:'tower',label:'Tower',params:{kind:'tower'}}]},geometry:firstCrag.key,material:'crag'};
   const cragPoints=Float32Array.from(crags.hulls.flatMap(row=>row.points)),cragContacts={kind:'packed-hulls',data:encoded(new Uint8Array(cragPoints.buffer)),origins:crags.hulls.map(row=>[row.x,row.y,row.z,row.points.length]),surface:'rock'};
   statics.push({name:'cragRocks',recipe:crags.recipe,geometry:cragGeometry,materials:{crag:'crag'},tris:crags.triangles,members:[{model:'nalati-grasslands/crag-rock',draw:'merged',placements:crags.placements,boxes:crags.boxes,contacts:cragContacts}]});
-  const result={instances:bowl.instances,staticModels:[...bowl.staticModels,cragModel],name:'nalati-dressing',catalogues:[{rows:specimens.catalogue,packed:specimens.packed,materials:specimens.materials},{rows:profile.catalogue,packed:profile.packed,materials:cover.materials}],packs:{cover:{rows:profile.packed,materials:cover.materials}},geometry,materials,layers,statics,
+  const result={instances:bowl.instances,staticModels:[...bowl.staticModels,cragModel],name:'nalati-dressing',catalogues:[{rows:specimens.catalogue,packed:specimens.packed,materials:specimens.materials},{rows:profile.catalogue,pack:'cover'}],packs:{cover:{rows:profile.packed,materials:cover.materials}},geometry,materials,layers,statics,
     wings:{groups:profile.life,layers:[{id:'butterfly',capacity:cover.butterflies[tier],palette:cover.hue,flap:[12,1.15,.25],geometry:'wing',material:'butterfly'},{id:'raptor',capacity:cover.raptors,palette:[],flap:null,geometry:'halfBird',material:'raptor'}]},
     motes:{name:'nalati-dress-pollen',count:phone?380:900,seed:0x9011e,look:'nalati-motes',drift:.35,driftParam:'drift',pixelParam:'px'},animations:[{look:'nalati-cloth',timeParam:'clothTime',windParam:'clothWind',windScale:.7,windMax:1.2}]};
   const payload:unknown=JSON.parse(encodeCanonicalJson(result)),bytes=new Uint8Array(addresses.length*4),view=new DataView(bytes.buffer);

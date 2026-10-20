@@ -6,7 +6,7 @@ import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { expect, test, vi } from 'vitest';
 import type { ShardContext } from '../src/game/plugin/context';
 import * as THREE from 'three';
-import { SceneDressing, readSceneGeometryAddress } from '../src/game/shardfile/sceneDressing';
+import { SceneDressing, readSceneGeometryAddress, readSceneFloors } from '../src/game/shardfile/sceneDressing';
 import { Scope } from '../src/engine/app/scope';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { zlibSync, unzlibSync } from 'fflate';
@@ -98,4 +98,13 @@ test('look bindings remain declared data on an unrelated static scene',async()=>
   const host=await SceneDressing.install(ctx,{name:'orchard',catalogues:[],packs:{},geometry:{},materials:{paint:{kind:'look',look:'orchard-paint',params:{threshold:.8,tint:[.2,.4,.6]}}},layers:[],statics:[],animations:[]});
   expect(setParam.mock.calls).toEqual([['orchard-paint','threshold',.8],['orchard-paint','tint',[.2,.4,.6]]]);
   expect(SceneDressing.current(ctx)).toBe(host);scope.dispose();material.dispose();
+});
+
+test('an orchard floor table shares the native highest-deck and sampled-height laws',()=>{
+  const [deck]=readSceneFloors([{rects:[{x:8,z:5,hw:2,hd:3,y:4},{x:8,z:5,hw:1,hd:1,y:6,slope:.5}]}]);
+  expect(deck?.(8,5)).toBe(6);expect(deck?.(8,5.5)).toBe(6.25);expect(deck?.(10,5)).toBe(4);expect(deck?.(20,5)).toBeUndefined();
+  const heights=new Float32Array([2,4,6,8]);let data='';for(const byte of zlibSync(new Uint8Array(heights.buffer)))data+=String.fromCodePoint(byte);
+  const [ground]=readSceneFloors([{x:30,z:40,size:2,res:2,data:btoa(data)}]);
+  expect(ground?.(30,40)).toBe(5);expect(ground?.(29,39)).toBe(2);expect(ground?.(31,41)).toBe(8);
+  expect(()=>readSceneFloors([{x:0,z:0,size:2,res:3,data:btoa(data)}])).toThrow('Floor sample byte count differs');
 });

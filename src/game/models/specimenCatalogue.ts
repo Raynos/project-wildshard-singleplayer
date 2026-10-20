@@ -61,6 +61,8 @@ export interface SpecimenMaterialRow {
   readonly sway?: number | undefined;
   readonly color?: string | number | readonly [number, number, number] | undefined;
   readonly floor?: number | undefined;
+  readonly transparent?: boolean | undefined; readonly depthWrite?: boolean | undefined;
+  readonly polygonOffset?: readonly [number,number] | undefined; readonly textureFallback?:readonly [number,number,number,number] | undefined;
   readonly texture?: { readonly url: string; readonly phoneUrl: string; readonly name: string } | undefined;
 }
 
@@ -90,10 +92,11 @@ export function specimenMaterial(sky: SkyRig, input: unknown, map?: THREE.Textur
   if (cached !== undefined) return cached;
   const color = typeof row.color === 'object' ? new THREE.Color().setRGB(...row.color) : row.color ?? 0xffffff;
   const material = painterlyMaterial(sky, { vertexColors: true, rim: row.rim ?? 0.35, bands: row.bands ?? 0.8,
-    sway: row.sway ?? 0, color, ...(map === undefined ? {} : { map }) });
+    sway: row.sway ?? 0, transparent:row.transparent??false,depthWrite:row.depthWrite??true,color, ...(map === undefined ? {} : { map }) });
+  if(row.polygonOffset!==undefined){material.polygonOffset=true;material.polygonOffsetFactor=row.polygonOffset[0];material.polygonOffsetUnits=row.polygonOffset[1];}
   if (row.floor !== undefined) { const knobs = painterlyKnobs(material); if (knobs !== undefined) knobs.uPFloorAmt.value = row.floor; }
   if (row.texture !== undefined) {
-    const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+    const white = new THREE.DataTexture(Uint8Array.from(row.textureFallback??[255,255,255,255]), 1, 1);
     white.colorSpace = THREE.SRGBColorSpace; white.wrapS = white.wrapT = THREE.RepeatWrapping; white.needsUpdate = true;
     material.map = white;
     void loadSpecimenTexture(row.texture).then(loaded => { material.map = loaded; return undefined; }).catch(() => undefined);

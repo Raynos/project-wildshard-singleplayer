@@ -22,7 +22,7 @@ import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' wi
 import preparedPlaces from '../src/shards/nalati-grasslands/boot/placeRuntime.generated.json' with { type: 'json' };
 import sourcePlaces from '../src/shards/nalati-grasslands/data/places.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
-import { bakedMember } from '../src/shards/nalati-grasslands/world/places';
+import { readSceneFloors } from '../src/game/shardfile/sceneDressing';
 import type { MemberRow } from '../src/shards/nalati-grasslands/world/placeTypes';
 import { deckFloor, torFloor, type PlaceRow } from '../src/shards/nalati-grasslands/generators/placeRows';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor } from '../src/shards/nalati-grasslands/generators/placement';
@@ -159,7 +159,7 @@ it('retains every POI collider and path-ramp descriptor after floor baking', () 
   const original = v.parse(v.custom<readonly PlaceRow[]>(Array.isArray), sourcePlaces.rows);
   const prepared = preparedPlaces.places.rows as readonly { readonly name: string; readonly colliders: readonly unknown[]; readonly members: readonly (readonly [string, MemberRow])[] }[];
   const before = original.flatMap(row => row.members.flatMap(([, member]) => member.floors.map(f => 'kind' in f ? f.kind === 'ledge' ? cragLedgeFloor(f) : f.kind === 'cave' ? leopardCaveFloor(f) : kurganEntranceFloor(f) : 'slabs' in f ? torFloor(f) : deckFloor(f))));
-  const after = prepared.flatMap(row => row.members.flatMap(([, member]) => bakedMember(member).floors));
+  const after = prepared.flatMap(row => row.members.flatMap(([, member]) => readSceneFloors(member.floors)));
   for (const row of original) {
     const actual = prepared.find(candidate => candidate.name === row.name);
     expect(actual?.colliders).toEqual(row.colliders);

@@ -10,6 +10,7 @@ const surfaceSchema = v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 
 export const SpecimenTextureSchema = v.strictObject({ url: assetPath, phoneUrl: assetPath, name: text });
 export const SpecimenMaterialSchema = v.strictObject({ id: text, family: v.picklist(['lowpoly', 'painterly']), variant: v.optional(text),
   rim: v.optional(finite), bands: v.optional(finite), sway: v.optional(finite), floor: v.optional(finite),
+  transparent:v.exactOptional(v.boolean()),depthWrite:v.exactOptional(v.boolean()),polygonOffset:v.exactOptional(v.tuple([finite,finite])),textureFallback:v.exactOptional(v.pipe(v.tuple([whole,whole,whole,whole]),v.check(channels=>channels.every(channel=>channel<=255)))),
   color: v.optional(v.union([v.string(), finite, v.tuple([finite, finite, finite])])), texture: v.optional(SpecimenTextureSchema) });
 const slot = v.pipe(whole, v.maxValue(128));
 export const SpecimenAssetSchema = v.strictObject({ url: assetPath, phoneUrl: v.optional(assetPath), material: SpecimenMaterialSchema,

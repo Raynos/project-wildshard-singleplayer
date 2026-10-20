@@ -1,8 +1,10 @@
+import { floorAtRects } from '@wildshard/engine/physics/box';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { SceneInstanceFields } from './sceneInstances';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
-import { SceneDressingSchema, SceneScatterPoseSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
+import { SceneDressingSchema, SceneScatterPoseSchema, SceneFloorSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { modelContext, defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
@@ -24,6 +26,18 @@ import type { ShardContext } from '../plugin/context';
 
 const books = new WeakMap<Scope,WeakMap<ShardContext['product'],SceneDressing>>();
 const contacts = (input: readonly unknown[]) => readColliderRows(input, {kinds:['box','treads','hull','capsule','ball','trimesh'],surfaces:['sand','wetSand','grass','rock','planks','stone','water','wood','metal','flesh','shell','ground','edge','felt','earth']});
+
+/** Prepared local floor tables retain their original highest-surface policy. */
+export function readSceneFloors(input:unknown):((x:number,z:number)=>number|undefined)[]{
+  return v.parse(v.array(SceneFloorSchema),input).map(row=>{
+    if('rects'in row)return(x,z)=>floorAtRects(row.rects,x,z,'highest');
+    const raw=unzlibSync(Uint8Array.from(atob(row.data),c=>c.codePointAt(0)??0));
+    if(raw.byteLength!==row.res*row.res*4)throw new Error('Floor sample byte count differs');
+    const heights=new Float32Array(raw.buffer,raw.byteOffset,raw.byteLength/4);
+    const sample=bakedSamplers({res:row.res,size:row.size,heights,splat:new Uint8Array(0),undergrowth:null,seed:0,landscapeHash:0}).heightAt;
+    return(x,z)=>{const height=sample(x-row.x,z-row.z);return Number.isFinite(height)?height:undefined;};
+  });
+}
 
 /** Numeric table decoder for dense scatter poses, preserving authored float64 values. */
 export function readSceneNumericTable(bytes: Uint8Array): Record<string, number>[] {
@@ -89,7 +103,8 @@ export class SceneDressing {
     const sky=world.sky, models=modelContext(sky), pause=()=>buildYield(ctx.scope);
     const definitions=new Map<string,ModelDef<object>>();
     for(const source of rows.catalogues){
-      const catalogue=defineSpecimenCatalogue<Record<string,object>>(source.rows,source.packed,source.materials);
+      const pack='pack'in source?rows.packs[source.pack]:source;if(pack===undefined)throw new Error('Missing catalogue pack');
+      const catalogue=defineSpecimenCatalogue<Record<string,object>>(source.rows,'packed'in pack?pack.packed:pack.rows,pack.materials);
       for(const row of source.rows)definitions.set(row.model.id,catalogue.model(row.key));
     }
     const packs=new Map(Object.entries(rows.packs).map(([key,source])=>[key,createPackedSpecimens(source.rows)]));
@@ -145,8 +160,9 @@ export class SceneDressing {
       const piece={name:row.name,object:made.root,tris:row.tris,placed:[] as Placed[]};this.pieces.set(row.name,piece);
       this.group.add(made.root);this.props.push(...made.root.children.filter(meshObject));this.propTris+=row.tris;
       for(const member of row.members){
+        const floors=readSceneFloors(member.floors),floor=(x:number,z:number):number|undefined=>{let top:number|undefined;for(const sample of floors){const height=sample(x,z);if(height!==undefined&&(top===undefined||height>top))top=height;}return top;};
         const registered=withOwner(ctx.scope,()=>place(needModel(member.model),member.placements.map(({matrix,heading,...pose})=>({...pose,...(heading===undefined?{}:{yaw:Math.atan2(...heading)}),...(matrix===undefined?{}:{matrix:new THREE.Matrix4().fromArray(matrix)})})),{
-          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts)},piece:{solidFloor:true,split:{every:150,yieldTask:pause}},
+          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts)},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),split:{every:150,yieldTask:pause}},
         }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);await pause();
       }
     }

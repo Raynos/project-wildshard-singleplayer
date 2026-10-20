@@ -1,4 +1,3 @@
-import { fence, signpostBaked as signpost, windCairn, kunesBridge, yurt, cart, barrel, feltRug, tetherLine, kurtBoard, ribbonPost, kazan, chest, ribbonPole, eaglePerch, stove, campBench, rugRack, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, firewood, kumisChurn, groundSaddle, perchedEagle, fieldstoneBaked as fieldstone, stoneStep, watchtower, cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/catalogue';
 import * as THREE from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { modelContext } from '@wildshard/engine/models/model';
@@ -10,7 +9,7 @@ import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { Flutter } from './Flutter';
-import { preloadNalatiPlaces, bakedPlaceSliced, bakedPlaceAnchors, bakedSignLettering, placer } from './places';
+import { preloadNalatiPlaces, bakedPlaceAnchors, bakedSignLettering, applyBakedPlaceEffects, bakedPlaceBounds } from './places';
 import { buildBalbals } from './Balbals';
 import type { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
@@ -22,10 +21,6 @@ import type { NalatiPOIs } from './viewTypes';
 import prepared from '../boot/placeRuntime.generated.json' with { type: 'json' };
 
 const SMOKE_LOOK = 'nalati-camp-smoke';
-const CAMP_PLACERS = new Map([placer(yurt), placer(ribbonPole), placer(eaglePerch), placer(stove), placer(campBench), placer(rugRack), placer(feltRug), placer(cart), placer(barrel), placer(hitchingRail), placer(waterTrough), placer(saddleRack), placer(corral), placer(hayPile), placer(feedTrough), placer(rugLine), placer(choppingBlock), placer(milkCans), placer(kazan), placer(chest), placer(firewood), placer(kumisChurn), placer(groundSaddle), placer(perchedEagle), placer(tetherLine), placer(kurtBoard), placer(ribbonPost), placer(kunesBridge), placer(windCairn), placer(fence), placer(signpost)]);
-const KURGAN_PLACERS = new Map([placer(kurganKerb), placer(fieldstone), placer(kurganEntrance)]);
-const EAGLE_PLACERS = new Map([placer(eagleRock)]);
-const CRAG_PLACERS = new Map([placer(cragLedge), placer(leopardCave)]);
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
 export async function buildNalatiPOIs(sky: Sky, scene: THREE.Object3D, player: { position: THREE.Vector3 }, yieldTask: () => Promise<void>, registry: WorldRegistry, declared: SceneDressing): Promise<NalatiPOIs> {
@@ -34,16 +29,16 @@ export async function buildNalatiPOIs(sky: Sky, scene: THREE.Object3D, player: {
  const smoke: Plumes = { emitter: () => undefined };
  const ctx: PoiCtx = { sky, ground: heightAt, flutter, smoke }, models = modelContext(sky);
  const pieces: PoiPiece[] = [], placed = new Map<string, readonly Placed[]>(), colliders: Box[] = [], timings: Record<string, number> = {};
- const places = new Map([['camp', CAMP_PLACERS], ['kurgan', KURGAN_PLACERS], ['eagle', EAGLE_PLACERS], ['crag', CRAG_PLACERS], ['tower', new Map([placer(watchtower), placer(fieldstone), placer(stoneStep)])]]);
+
  const kurgan = bakedPlaceAnchors('kurgans'), crags = bakedPlaceAnchors('crags'), cairn = poiLayout.WIND_CAIRN;
  const statues = buildBalbals(ctx, kurgan.balbalSpots ?? []);
- const declaredPiece=(name:string):PoiPiece=>{const piece=declared.pieces.get(name);if(piece===undefined)throw new Error(`Missing declared place ${name}`);return{name,object:piece.object,tris:piece.tris,colliders:[],surface:'ground',register:()=>piece.placed};};
+ const declaredPiece=(name:string):PoiPiece=>{const piece=declared.pieces.get(name);if(piece===undefined)throw new Error(`Missing declared place ${name}`);return{name,object:piece.object,tris:piece.tris,colliders:prepared.view.sequence.some(row=>row.name===name&&row.kind==='static')?bakedPlaceBounds(name).map(box=>structuredClone(box)):[],surface:'ground',register:()=>piece.placed};};
  const live = new Map<string, () => PoiPiece>([['balbals', () => statues.piece], ...['kokpar','farHerds','snowLotus','glacier'].map(name=>[name,()=>declaredPiece(name)] as const)]);
  await preloadNalatiPlaces();
  for (const row of prepared.view.sequence) {
-  const t0 = diagnosticNow(), builder = live.get(row.name), bindings = row.placers === undefined ? undefined : places.get(row.placers);
-  const p = row.kind === 'live' && builder !== undefined ? builder() : bindings === undefined ? undefined : await bakedPlaceSliced(row.name, ctx, bindings, yieldTask);
-  if (p === undefined) throw new Error(`Missing world view ${row.name}`);
+  const t0 = diagnosticNow(), builder = live.get(row.name);
+  const p = row.kind === 'live' && builder !== undefined ? builder() : declaredPiece(row.name);
+  if(row.kind==='static')applyBakedPlaceEffects(row.name,ctx);
   if (row.name === 'roads') { const text = bakedSignLettering(sky, 'roads'); p.object.children.splice(1, 0, text); text.parent = p.object; p.tris += (text.geometry.index?.count ?? 0) / 3; }
   timings[row.name] = Math.round(diagnosticNow() - t0); pieces.push(p); group.add(p.object); colliders.push(...p.colliders); await yieldTask();
  }

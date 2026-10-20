@@ -1,27 +1,15 @@
-import { loadBoundSpecimen, specimenMaterial, type SpecimenAssetRow } from '@wildshard/game/models/specimenCatalogue';
-import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
+import type { SpecimenAssetRow } from '@wildshard/game/models/specimenCatalogue';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
 import { TIER } from '@wildshard/engine/core/tier';
 import { readBakedGeometry, type BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
 import { fetchLaneBake } from '@wildshard/sdk/kit/geometryPack';
-import { readColliderRows } from '@wildshard/engine/models/colliders';
-import type { Placed } from '@wildshard/engine/models/place';
-import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import type { Material } from '@wildshard/engine/physics/surface';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { createClientScene } from '@wildshard/game/plugin/ui';
-import { yardMaterial } from './Yard';
-import type { NalatiTexName } from '../look/nalatiTextures';
-import type { PoiCtx, PoiPiece, PlaceAnchors } from './types';
-import type { PlaceGeometryRow, PlaceRow, MemberRow, EffectRow, MemberData, SetRegister } from './placeTypes';
-import { placeMember } from './painted';
-import { floorAtRects } from '@wildshard/engine/physics/box';
-import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
-import scenes from '../boot/poiScenes.generated.json' with { type: 'json' };
+import type { PoiCtx, PlaceAnchors } from './types';
+import type { PlaceGeometryRow, PlaceRow, MemberRow, EffectRow } from './placeTypes';
 import prepared from '../boot/placeRuntime.generated.json' with { type: 'json' };
 import poiPaint from '../boot/poiPaint.json' with { type: 'json' };
 import signAtlases from '../boot/signAtlases.json' with { type: 'json' };
@@ -81,18 +69,6 @@ export function bakedSignLettering(sky: SkyRig, key: 'roads' | 'specimen'): THRE
 export function bakedPlaceAnchors(name: string): PlaceAnchors {
  const anchors = rows.find(row => row.name === name)?.anchors; if (anchors === undefined) throw new Error(`Missing place anchors ${name}`); return anchors;
 }
-const colliders = (inputs: readonly MemberRow['descs'][number][]): ColliderDesc[] => { const decoded = inputs.map(({ heading, ...row }) => heading === undefined ? row : { ...row, yaw: Math.atan2(...heading) }); return readColliderRows(decoded, { kinds: ['box', 'treads', 'hull', 'capsule', 'ball', 'trimesh'], surfaces: ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'] }).map((parsed, i) => Object.assign(decoded[i] ?? {}, parsed)); };
-export function bakedMember(input: MemberRow): MemberData {
- const placements = input.placements.map(({ matrix, heading, ...p }): Omit<Placement<object>, 'params'> => ({ ...p, ...(heading === undefined ? {} : { yaw: Math.atan2(...heading) }), ...(matrix === undefined ? {} : { matrix: new THREE.Matrix4().fromArray(matrix) }) }));
- return { draw: input.draw === 'instanced' ? 'instanced' : 'merged', inKit: input.inKit, placements, boxes: [...input.boxes], solid: colliders(input.solid), descs: colliders(input.descs), floors: input.floors.map(f => {
-  if ('rects' in f) return (x: number,z: number) => floorAtRects(f.rects,x,z,'highest');
-  const raw=decode(f.data),heights=new Float32Array(raw.buffer,raw.byteOffset,raw.byteLength/4);
-  const sample=bakedSamplers({res:f.res,size:f.size,heights,splat:new Uint8Array(0),undergrowth:null,seed:0,landscapeHash:0}).heightAt;
-  return (x: number,z: number) => { const y=sample(x-f.x,z-f.z); return Number.isFinite(y)?y:undefined; };
- }) };
-}
-export type Placer = (m: MemberData, o: SetRegister, object: THREE.Object3D) => Placed;
-export const placer = <P extends object>(def: ModelDef<P>): readonly [string, Placer] => [def.id, (m, o, object) => placeMember(def, m, o, object)];
 function effects(ctx: PoiCtx, effectsRows: readonly EffectRow[]): void {
  const colour = (c: unknown): THREE.ColorRepresentation => { if (typeof c === 'number' || typeof c === 'string') return c; throw new Error('Invalid cloth colour'); };
  const options = (o: unknown): Record<string, never> => typeof o === 'object' && o !== null ? o as Record<string, never> : {};
@@ -103,17 +79,10 @@ function effects(ctx: PoiCtx, effectsRows: readonly EffectRow[]): void {
   else throw new Error('Invalid place effect');
  }
 }
-export function* bakedPlaceSteps(name: string, ctx: PoiCtx, placers: ReadonlyMap<string, Placer>, split?: SetRegister['split']): Generator<void, PoiPiece> {
- const row = rows.find(candidate => candidate.name === name), recipe = Object.entries(scenes).find(([key]) => key === name)?.[1];
- if (row === undefined || recipe === undefined) throw new Error(`Missing place scene ${name}`);
- const bytes = placeBytes(), geos = new Map<string, THREE.BufferGeometry>();
- for (const [i, mesh] of row.meshes.entries()) { geos.set(`mesh-${i}`, geometry(bytes, mesh.offset, mesh.geometry)); yield; }
- const object = createClientScene(recipe, { geometry: geos, materials: new Map(row.meshes.map(mesh => [mesh.material, mesh.material === 'yard' ? yardMaterial(ctx.sky) : mesh.material === 'poi' ? specimenMaterial(ctx.sky, specimenData.materials.poi) : specimenMaterial(ctx.sky, specimenData.materials[mesh.material as NalatiTexName])])) }).root;
- effects(ctx, row.effects);
- for (const [, instance] of row.instances) if (instance.placements.length > 0) { const load = async (): Promise<void> => { try { const model = await loadBoundSpecimen(ctx.sky, instance.asset); object.add(createClientScene(instance.scene, { geometry: new Map([['model', model.geometry]]), materials: new Map([['material', model.material]]) }).root); } catch (error: unknown) { console.warn('Prepared place model failed', error); } }; void load(); }
- const members = row.members.map(([id, m]) => [id, bakedMember(m)] as const);
- return { name: row.name, object, colliders: row.colliders.map(box => ({ ...box })), surface: row.surface as Material, tris: row.tris, descs: members.flatMap(([, member]) => member.descs), register: o => members.map(([id, member]) => { const put = placers.get(id); if (put === undefined) throw new Error(`Missing place model ${id}`); return put(member, { ...o, object, ...(split === undefined ? {} : { split }) }, object); }) };
+/** Keep the original cloth and smoke calls beside their shard presentation. */
+export function applyBakedPlaceEffects(name:string,ctx:PoiCtx):void{
+ const row=rows.find(candidate=>candidate.name===name);if(row===undefined)throw new Error(`Missing place ${name}`);effects(ctx,row.effects);
 }
-export async function bakedPlaceSliced(name: string, ctx: PoiCtx, placers: ReadonlyMap<string, Placer>, yieldTask: () => Promise<void>, split?: SetRegister['split']): Promise<PoiPiece> {
- const steps = bakedPlaceSteps(name, ctx, placers, split); for (;;) { const step = steps.next(); if (step.done === true) return step.value; await yieldTask(); }
+export function bakedPlaceBounds(name:string):PreparedPlace['colliders']{
+ const row=rows.find(candidate=>candidate.name===name);if(row===undefined)throw new Error(`Missing place ${name}`);return row.colliders;
 }
