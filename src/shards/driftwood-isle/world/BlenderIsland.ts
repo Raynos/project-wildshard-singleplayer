@@ -209,14 +209,23 @@ export class BlenderIsland {
     // shadow is lost; the camera's frustum and the casting cascades' frusta are taken as each choice starts (copy 0): a
     // cascade's getFrustum rebuilds its slice footprint (cascadeCull.ts), once per choice, not once per copy
     const frusta:THREE.Frustum[]=[];
-    const seen=(placed:{p:Placed|null})=>(i:number):boolean=>{
-      const p=placed.p; if(p===null)return true;
-      if(i===0){
-        const c=sky.viewCamera;c.updateMatrixWorld();view.setFromProjectionMatrix(pv.multiplyMatrices(c.projectionMatrix,c.matrixWorldInverse));
-        frusta.length=0;for(const l of sky.csm.lights)if(l.castShadow)frusta.push(l.shadow.getFrustum());
-      }
-      p.copyBox(i,box).getBoundingSphere(ball).applyMatrix4(this.group.matrixWorld);ball.radius+=4;
-      return view.intersectsSphere(ball)||frusta.some(cascade=>cascade.intersectsSphere(ball));
+    const seen=(placed:{p:Placed|null})=>{
+      // each copy's padded world sphere, made at its first test (the copies never move; a moved island remakes them)
+      let spheres:Float64Array|null=null;const at=new THREE.Matrix4();
+      return (i:number):boolean=>{
+        const p=placed.p; if(p===null)return true;
+        if(i===0){
+          const c=sky.viewCamera;c.updateMatrixWorld();view.setFromProjectionMatrix(pv.multiplyMatrices(c.projectionMatrix,c.matrixWorldInverse));
+          frusta.length=0;for(const l of sky.csm.lights)if(l.castShadow)frusta.push(l.shadow.getFrustum());
+          if(spheres?.length!==p.copies*4||!at.equals(this.group.matrixWorld)){spheres=new Float64Array(p.copies*4).fill(Number.NaN);at.copy(this.group.matrixWorld);}
+        }
+        const k=i*4;
+        if(spheres===null||Number.isNaN(spheres[k]??Number.NaN)){
+          p.copyBox(i,box).getBoundingSphere(ball).applyMatrix4(this.group.matrixWorld);ball.radius+=4;
+          if(spheres!==null&&k+3<spheres.length){spheres[k]=ball.center.x;spheres[k+1]=ball.center.y;spheres[k+2]=ball.center.z;spheres[k+3]=ball.radius;}
+        }else{ball.center.set(spheres[k]??0,spheres[k+1]??0,spheres[k+2]??0);ball.radius=spheres[k+3]??0;}
+        return view.intersectsSphere(ball)||frusta.some(cascade=>cascade.intersectsSphere(ball));
+      };
     };
     const culls:Readonly<Record<CoveLook,(placed:{p:Placed|null})=>CullOptions>>={cast:placed=>({test:seen(placed),flat:true}),cover:()=>({far:tierLook().cover.far+1,cells:cell}),big:()=>({far:tierLook().big.far+1,cells:cell})};
     for(const row of plan.families){
