@@ -2,6 +2,9 @@ import * as v from 'valibot';
 import { CaveRowsSchema } from './sections';
 import { Matrix4 } from 'three';
 import { CRAG_CAVE_ROWS } from './cragSceneContribution';
+import { CaveInteriorSchema } from '@wildshard/format/caveInterior';
+import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
+import layout from '../data/layout.generated.json' with { type: 'json' };
 import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows';
 import { CABIN_JSON_BLOBS } from './cabinSceneContribution';
 import { TREE_SET_BLOB } from './treeSet';
@@ -23,7 +26,10 @@ const recipe = { scene: { version: 1, root: 'root', nodes: [
   { kind: 'mesh', id: 'spray', geometry: 'quad', material: 'spray', missing: 'empty', name: 'waterfall-spray', renderOrder: 7, frustumCulled: false, instances: count, matrices },
 ], materials: [{ kind: 'port', id: 'water', source: 'water' }, { kind: 'port', id: 'spray', source: 'spray' }] }, imports: [] };
 v.parse(CaveRowsSchema, CRAG_CAVE_ROWS);
-export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('scenes/streams.json', 'json', encode(recipe)),
+/** The bear cave (G483 world scene assembly): its baked interior, its mouth's frame, its look near the mouth and its rock. */
+const CAVE_INTERIOR = v.parse(CaveInteriorSchema, { product: 'pine-hollow', file: 'world/crag-cave.json', roof: 'pine.cave-roof', look: CAVE_LOOK,
+  frame: { x: layout.BEAR_CAVE.x, z: layout.BEAR_CAVE.z, yaw: layout.BEAR_CAVE.rot }, rock: { look: CRAG_LOOK, fill: 'caveFill', pbr: 'mossy_rock', grit: 'rock_ground' } });
+export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('world/cave-interior.json', 'json', encode(CAVE_INTERIOR)), nameBlob('scenes/streams.json', 'json', encode(recipe)),
   ...CABIN_JSON_BLOBS, TREE_SET_BLOB,
   nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
   ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];

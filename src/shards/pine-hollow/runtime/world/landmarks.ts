@@ -38,15 +38,15 @@ import { forestPage, type LivingPage as PineCabins } from '@wildshard/game/shard
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { emptyBuildingLifeRows } from '@wildshard/format/buildings';
 import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
-import { loadCodeParts } from './codeParts';
-import { CaveInterior } from '../kit/caveInterior';
-import { TIER } from '@wildshard/engine/core/tier';
+import { codePart, loadCodeParts } from './codeParts';
+import { CaveInterior } from '@wildshard/game/shardfile/caveInterior';
+import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { installRangedPage } from '@wildshard/game/loadout/rangedPage';
 import { finishForestPageAudio } from '@wildshard/game/audio/forestPage';
 import { installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { RainFx } from '../looks/rainFx';
-import { pineMemoryTrim } from '../debug/options';
+import { pineMemoryTrim, pineSetCap } from '../debug/options';
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
 
 
@@ -95,9 +95,11 @@ export class PineLandmarks {
    * bake put them (G285: ../generators/crags.ts stepped them round the forest's trunks).
    */
   async build(cabins: PineCabins | null): Promise<this> {
-    await admitLandmarkRows(await loadFirstPartyProduct('pine-hollow'));
-    const cave = CaveInterior.load(); // the kit + the cave + their textures, fetched while the timber builds
-    await loadCodeParts(); // the retained cave roof still borrows its native collider part
+    const product = await loadFirstPartyProduct('pine-hollow');
+    await admitLandmarkRows(product);
+    // the cave + its textures, fetched while the timber builds; its roof patch borrows the native collider part
+    const cave = CaveInterior.load(await product.json('world/cave-interior.json'), this.scenes, pineSetCap(TIER_CONFIG.maxTexture));
+    await loadCodeParts(); this.scenes.publish('pine.cave-roof', codePart('cave-roof'));
     this.timberColliders.push(...(await this.scenes.place('timbers.fire-lookout')).colliders);
     this.floors.push(...landmarkFloors('pine-lookout'));
     await macrotask();
@@ -221,7 +223,7 @@ export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistr
   const crags = lm.crags;
   if (crags) {
     await macrotask();
-    h.registry.add({ id: 'pine-cave', name: 'Bear cave', category: 'nature', file: 'src/shards/pine-hollow/runtime/kit/caveInterior.ts', colliders: [...crags.cave.shell, ...crags.cave.roofPatch()], surface: 'rock' });
+    h.registry.add({ id: 'pine-cave', name: 'Bear cave', category: 'nature', file: 'src/game/shardfile/caveInterior.ts', colliders: [...crags.cave.shell, ...crags.cave.roofPatch()], surface: 'rock' });
   }
   return lm;
 }

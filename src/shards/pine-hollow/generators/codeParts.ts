@@ -6,7 +6,7 @@
  *   · the hamlet's three stand-in people and the ranger's lantern glass (./peopleParts.ts rows; ../models/people.ts);
  *   · the zipline trolley and the canoe (../quest/rides.ts);
  *   · the zip-line cable between the gantries' anchors (../models/zipCable.ts);
- *   · the terrain patch over the bear cave's cut, a collider trimesh (../runtime/kit/caveInterior.ts `roofPatch`).
+ *   · the terrain patch over the bear cave's cut, a collider trimesh (@wildshard/game/shardfile/caveInterior `roofPatch`).
  * Reads only data rows, seeded kits and the terrain lattice its runner passes in; no renderer, page or game service.
  */
 import * as THREE from 'three';

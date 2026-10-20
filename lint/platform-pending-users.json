@@ -2955,6 +2955,17 @@
           "row": "G483"
         }
       }
+    },
+    {
+      "module": "src/game/shardfile/caveInterior.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "world scene assembly",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
     }
   ]
 }

@@ -10208,6 +10208,13 @@ card, impostor and bark textures and its four look.materials graphs (`productTre
 `treeSetModel(rows)` is the one model the forest places, its LODs the forest's bands and each trunk the forest's capsule.
 Pine Hollow's species set is the first user; an orchard fixture declares its own set in `test/tree-set.test.ts`.
 
+`game/shardfile/caveInterior.CaveInterior` (G483 world scene assembly; client-only) loads a baked cave interior from
+`format/caveInterior` rows: the product's cave file (`CaveFileSchema`: holes, cuts, reverb spots, footprint, floor, shaft,
+drips and the shell's colliders), the mouth's frame, the look near the mouth (the shaft's lent graph, the drips, where the
+sun's disc hides under the roof, the walls' day fill param), the rock look it lends its two texture sets to and the
+published roof patch geometry. It answers cut rows, spots, the footprint and the floor, and draws the shaft and drips.
+Pine Hollow's bear cave is the first user; an unrelated quarry adit fixture is in `test/cave-interior.test.ts`.
+
 A figure replaces a fallback with the declared baked skin after intake,
 using independent skeletons over cached geometry and textures. The existing
 humanoid `legBones`/`legPose` preserves the leg, talk, point and walk math;

@@ -87,7 +87,7 @@ const reviewedW2Owners = new Map([
   ['src/sdk/kit/mergedPrimitives.ts', 'C1'],
   ['src/engine/physics/box.ts#FloorRect', 'C1'],
   ['src/shards/driftwood-isle/runtime/props/mooringLines.ts', 'C1'],
-  ['src/shards/pine-hollow/runtime/kit/caveInterior.ts', 'C1'],
+  ['src/game/shardfile/caveInterior.ts', 'C1'],
   // Material/rig look decoding and authored appearance rows.
   ['src/sdk/bake/rig.ts', 'C2'],
   // Weather and visual fight effects.

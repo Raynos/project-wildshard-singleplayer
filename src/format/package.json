@@ -35,6 +35,7 @@
     "./figures": "./figures.ts",
     "./kitFigure": "./kitFigure.ts",
     "./treeSetRows": "./treeSetRows.ts",
+    "./caveInterior": "./caveInterior.ts",
     "./coverAppearance": "./coverAppearance.ts",
     "./eliteFeature": "./eliteFeature.ts",
     "./spawnCombat": "./spawnCombat.ts",

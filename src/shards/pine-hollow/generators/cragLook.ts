@@ -2,7 +2,7 @@ import { CAVE_SHAFT_LOOK } from './caveShaftLook';
 
 // Pine Hollow's crag and cave looks as data (SHARD-PLATFORM M3, look-family rows): the triplanar granite's SF59 material
 // graph (data/lookGraphs.json: world/crags.ts draws the one BatchedMesh in it) and the cave's look near its mouth (CAVE_LOOK:
-// @wildshard/sdk/kit/caveInterior; the shaft's look is data/caveShaftLook.ts). The vertex `aCdata` = (AO, sun reach, wet,
+// @wildshard/game/shardfile/caveInterior; the shaft's look is data/caveShaftLook.ts). The vertex `aCdata` = (AO, sun reach, wet,
 // rock): AO multiplies the indirect light, sun reach the directional lights and the haze; `aCtint` = (tint shade, tint
 // path / face skin).
 
@@ -10,7 +10,7 @@ import { CAVE_SHAFT_LOOK } from './caveShaftLook';
 export const CRAG_LOOK = 'pine-crag';
 
 /**
- * The bear cave near its mouth (world/crags.ts hands it to @wildshard/sdk/kit/caveInterior): the shaft and the drips draw
+ * The bear cave near its mouth (world/crags.ts hands it to @wildshard/game/shardfile/caveInterior): the shaft and the drips draw
  * within 60 m; under the roof (the floor at the eye's depth, clamped to the passage, + 7 m) the sun's disc goes; the walls'
  * fill is 0.05 + 1.6 × day; the shaft is 0.2 × day × min(1, 0.4 + 2 × max(0, sun.y)) + 0.02; each drip forms on a
  * 1.7 s + (i mod 5) × 0.53 s clock, then falls.
