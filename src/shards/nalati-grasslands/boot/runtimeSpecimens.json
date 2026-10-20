@@ -1,0 +1,47 @@
+[
+  {
+    "key": "sheep",
+    "model": {
+      "id": "nalati-grasslands/sheep",
+      "name": "Fat-tailed sheep",
+      "category": "creatures",
+      "pipeline": [
+        "trellis",
+        "code"
+      ],
+      "file": "src/shards/nalati-grasslands/boot/runtimeSpecimens.json",
+      "surface": "flesh",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "crowd",
+      "slug": "nalati-grasslands",
+      "json": "actors/sheep.json",
+      "binary": "actors/sheep.bin",
+      "seed": 3,
+      "options": {
+        "x": 0,
+        "z": 0,
+        "count": 1,
+        "seed": 3
+      },
+      "hull": "sheep"
+    }
+  },
+  {
+    "key": "stormTitan",
+    "model": {
+      "id": "nalati-grasslands/storm-titan",
+      "name": "Jel Ata, the Storm Titan",
+      "category": "creatures",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/boot/runtimeSpecimens.json",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "cloud",
+      "slug": "nalati-grasslands",
+      "json": "models/cloud-specimen.json"
+    }
+  }
+]

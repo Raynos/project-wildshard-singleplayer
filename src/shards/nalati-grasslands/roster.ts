@@ -8,19 +8,22 @@ import ecology from './data/ecology.generated.json' with { type: 'json' };
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { swimHands } from '@wildshard/engine/models/swimHands';
 import content from './data/questContent.json' with { type: 'json' };
-import { sheep, stormTitan } from './models/creatures';
+import { defineRuntimeSpecimens } from '@wildshard/game/models/runtimeSpecimens';
+import runtimeSpecimens from './boot/runtimeSpecimens.json' with { type: 'json' };
 import { campPeople, shepherd } from './models/people';
 import gear from './boot/gear.generated.json' with { type: 'json' };
 import { weaponCatalogue } from './weapons/loadout';
 import { reins } from './models/reins';
+
+const creatureSpecimens = defineRuntimeSpecimens(runtimeSpecimens);
 
 /** the camp's flock (Wildlife ecology.wildlife: 40 sheep, one instanced draw) */
 const FLOCK = ecology.wildlife.flocks.reduce((n, f) => n + f.count, 0);
 
 export const ROSTER: readonly RosterEntry[] = [
   // the flock (Flock.ts: legs and head in the vertex shader) and the marmots (Marmots.ts): one instanced draw each
-  live(sheep, { copies: FLOCK, drawnAs: 'instanced' }),
-  live(stormTitan, { copies: 1, drawnAs: 'instanced' }),
+  live(creatureSpecimens.model('sheep'), { copies: FLOCK, drawnAs: 'instanced' }),
+  live(creatureSpecimens.model('stormTitan'), { copies: 1, drawnAs: 'instanced' }),
   // the dressing's ambient life (src/shards/nalati-grasslands/world/dressing/life.ts, E348): the butterflies over the drifts, the raptors
   // circling the valley — one instanced draw each
   // people: the camp's five (one skinned mesh) and the mounted shepherd (src/shards/nalati-grasslands/sheepRaid.ts)
