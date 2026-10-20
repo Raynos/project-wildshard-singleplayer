@@ -24,13 +24,32 @@ export interface RigInstance {
 }
 export interface RigRef { url: string; contract: RigContract; bake: RigBake }
 
+// FileLoader starts every network read immediately. Only the parser's temporary
+// meshopt/image/geometry allocations share this page-wide decode slot.
+let decodeTail: Promise<void> = Promise.resolve();
+class BoundedRigLoader extends GLTFLoader {
+  override parse(...[data, path, onLoad, onError]: Parameters<GLTFLoader['parse']>): void {
+    const parsed = decodeTail.then(() => new Promise<GLTF>((resolve, reject) => {
+      super.parse(data, path, resolve, reject);
+    }));
+    // A failed file must release the slot as well as a successful one. Keep no
+    // decoded scene in the tail after handing it to its existing resource owner.
+    decodeTail = parsed.then(() => undefined, () => undefined);
+    void parsed.then(onLoad, onError ?? ((error: unknown) => { console.error(error); }));
+  }
+}
+
+/** One native parser policy for rigs, model pools and owned geometry. Reads stay
+ * parallel; a page decodes one GLTF at a time, including direct parseAsync calls. */
+export function createRigLoader(): GLTFLoader { return new BoundedRigLoader().setMeshoptDecoder(MeshoptDecoder); }
+
 let loader: GLTFLoader | undefined;
 /** Cache/clone policy stays with the owning asset scope. All rig GLBs use this parser.
  * Optional resource aliases match the resolved URL pathname; both aliases and
  * ordinary dependencies retain the default manager's tier/pack resolution. */
 export async function loadRigFile(url: string, aliases: Readonly<Record<string, string>> = {}): Promise<GLTF> {
-  loader ??= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-  const read = Object.keys(aliases).length === 0 ? loader : new GLTFLoader(new LoadingManager()).setMeshoptDecoder(MeshoptDecoder);
+  loader ??= createRigLoader();
+  const read = Object.keys(aliases).length === 0 ? loader : new BoundedRigLoader(new LoadingManager()).setMeshoptDecoder(MeshoptDecoder);
   if (read !== loader) {
     const page = new URL(location.href), original = new URL(url, page);
     // Aliased glTFs can declare root-relative images. Three needs an absolute

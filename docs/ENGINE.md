@@ -1740,6 +1740,11 @@ The credits "Music: MiniMax-Music3" and "Powered by Stability AI" are licence co
 Alias and ordinary dependency URLs still pass through the default loading manager's tier and pack routing;
 the aliases use a private manager and never replace the session's resolver.
 
+`createRigLoader()` lends the same Meshopt-capable parser policy to model pools,
+specimens and owned geometry. File reads remain parallel; all returned loaders
+share one page-wide decode slot, including direct `parseAsync` calls. Completion
+or failure releases the slot without retaining the decoded scene.
+
 `ClipName` is `idle · walk · run · attack · hit · die · turn · swim · fly`, optionally with `.suffix`. A raw
 `new AnimationMixer` outside `src/engine/anim` is a lint error (`wildshard/no-raw-animation-mixer`). The template's blob
 declares its contract on its look row:

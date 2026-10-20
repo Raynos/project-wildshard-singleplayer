@@ -9,7 +9,7 @@ import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/mo
 import * as wholeV from 'valibot';
 import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { loadRigFile, type ClipName, type SocketName } from "@wildshard/engine/anim/rig";
+import { createRigLoader, loadRigFile, type ClipName, type SocketName } from "@wildshard/engine/anim/rig";
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
 import { releaseOnUpload } from "@wildshard/engine/render/memorySaver";
 import { ktx2File, prepareCompressedTexture } from "@wildshard/engine/core/ktx2";
@@ -530,7 +530,7 @@ function rawWeights(bytes: Uint8Array, decoder: MeshoptGltf): Map<string, Float3
 export function skinnedModel(url: string): SkinnedModel {
   let template: SkinnedAsset | undefined, pending: Promise<void> | undefined;
   const load = async (bytes?: Uint8Array): Promise<void> => {
-    const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/examples/jsm/loaders/GLTFLoader.js'), import('three/examples/jsm/libs/meshopt_decoder.module.js')]);
+    const { MeshoptDecoder } = await import('three/examples/jsm/libs/meshopt_decoder.module.js');
     let input = bytes;
     if (input === undefined) {
       const response: unknown = await new FileLoader().setResponseType('arraybuffer').loadAsync(url);
@@ -539,7 +539,7 @@ export function skinnedModel(url: string): SkinnedModel {
     }
     await MeshoptDecoder.ready;
     const weights = rawWeights(input, MeshoptDecoder);
-    const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(input).buffer, '');
+    const gltf = await createRigLoader().parseAsync(Uint8Array.from(input).buffer, '');
     const meshes: SkinnedMesh[] = [];
     gltf.scene.traverse((node: Object3D) => { if (isSkinnedMesh(node)) meshes.push(node); });
     const first = meshes[0];
@@ -1791,7 +1791,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
   const props = typeof source === 'string' ? product.source.props : source.props;
   const hashes = refs ?? [...props?.tiles.flatMap(row => [row.file, ...row.additionalFiles ?? []]) ?? [],
     ...typeof source === 'string' ? props?.wholeLibrary ?? [] : []];
-  const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js'), assembler = new WholeGeometryAssembler();
+  const assembler = new WholeGeometryAssembler();
   const slice = workSlice(undefined, scope);
   const assertLive = (): void => { if (scope.disposed) throw new Error('Whole geometry unloaded while reading'); };
   const check = async (): Promise<void> => {
@@ -1806,7 +1806,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
   };
   try {
     for (const hash of hashes) {
-      const bytes = await product.assets.read(hash), gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, ''), cleanup: (() => void)[] = [];
+      const bytes = await product.assets.read(hash), gltf = await createRigLoader().parseAsync(Uint8Array.from(bytes).buffer, ''), cleanup: (() => void)[] = [];
       try {
         const meshes: Mesh[] = [];
         gltf.scene.traverse(object => {

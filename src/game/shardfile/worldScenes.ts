@@ -252,8 +252,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
           paintedModels: row.painted.map(model => ({ name: model.id, url: product.url(model.file), geometry: model.geometry })),
           geometryPools: row.files.map(file => ({ url: product.url(tierFile(file.file)), parts: file.parts, ...(file.channels === undefined ? {} : { channels: file.channels }) })) }, 'world scene library', {},
           async url => { const file = [...row.files.map(entry => tierFile(entry.file)), ...row.painted.map(entry => entry.file)].find(name => product.url(name) === url); if (file === undefined) throw new Error('Missing scene library file');
-            const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/examples/jsm/loaders/GLTFLoader.js'), import('three/examples/jsm/libs/meshopt_decoder.module.js')]);
-            return new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(await product.file(file)).buffer, ''); });
+            const { createRigLoader } = await import('@wildshard/engine/anim/rig');
+            return createRigLoader().parseAsync(Uint8Array.from(await product.file(file)).buffer, ''); });
         await models.preload(() => buildYield(owner));
         if (row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
           const geometry = models.geometry(part); if (geometry === null) throw new Error(`Missing scene pool part: ${part}`);
