@@ -59,7 +59,7 @@ export const ArenaScriptRowsSchema = v.strictObject({
   script: ArenaScriptBossProfileSchema,clocks: v.unknown(),field: v.unknown(),support: v.unknown(),whirls: v.unknown(),arenaFire: v.unknown(),
   programs: v.strictObject({ attack: ReturnProgramSchema,fire: ReturnProgramSchema,wind: ReturnProgramSchema,rules: ReturnProgramSchema }),
   supportSites: v.pipe(v.array(v.strictObject({ x: finite,z: finite,theta: finite })),v.maxLength(8)),
-  arena: v.strictObject({ center: point,body: point,anchor: point }),place: v.strictObject({ arenaRadius: finite,heartHp: finite }),
+  arena: v.strictObject({ center: point,body: point,anchor: point,ground: point }),place: v.strictObject({ arenaRadius: finite,heartHp: finite }),
   phases: v.pipe(v.array(v.strictObject({ at: finite,caption: v.string(),name: label })),v.maxLength(16)),
   definition: BossEncounterDefinitionSchema,reward: BossEncounterPresentationSchema.entries.reward,
   skin: v.strictObject({ id: label,toast: label }),lines,tuning,boundary: v.strictObject({ x: finite,z: finite,radius: finite }),
@@ -91,7 +91,7 @@ export const arenaScriptPose = (): v.InferOutput<typeof pose> => ({ rise: 0,bend
 export function arenaScriptCloud(scene: THREE.Scene, state: Readonly<Record<string,number>>, data: ArenaScriptData): CloudBody {
   const g = data.geometry;
   return new CloudBody(scene,{ ...g.body,geometry: { ...g.body.geometry,eyes: g.eyes },poses: g.poses,
-    puffs: { ...g.body.puffs,rows: g[TIER].puffs } },state,new Map([['place',{ ...data.arena.body,ground: heightAt(data.arena.anchor.x,data.arena.anchor.z) }]]));
+    puffs: { ...g.body.puffs,rows: g[TIER].puffs } },state,new Map([['place',{ ...data.arena.body,ground: heightAt(data.arena.ground.x,data.arena.ground.z) }]]));
 }
 export interface ArenaScriptWorld { readonly game: Game; readonly player: Player; readonly weather: WeatherReactions; readonly air: WeatherContinuation; readonly tieSpot: THREE.Vector3 | null }
 interface SupportActor { readonly a: Animal; readonly lane: GroundTell; readonly law: CoupledMember }

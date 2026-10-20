@@ -145,7 +145,7 @@ export const TITAN_SCRIPT = { kind: 'boss', pattern: 'arena-script', fight: {
 /** G474 arena boss-script binding; native owners receive rows and resources. */
 export const TITAN_HOST = {
   script: TITAN_SCRIPT,clocks: TITAN_CLOCKS,field: TITAN_FIRE_FIELD,support: TITAN_SUPPORT,whirls: TITAN_WHIRLS,
-  supportSites: TITAN_SUPPORT_SITES,arena: { center: TITAN_ARENA.center,body: TITAN_ARENA.titan,anchor: { x: CAIRN.x,z: CAIRN.z+3 } },
+  supportSites: TITAN_SUPPORT_SITES,arena: { center: TITAN_ARENA.center,body: TITAN_ARENA.titan,anchor: { x: CAIRN.x,z: CAIRN.z+3 },ground: { x: CAIRN.x,z: CAIRN.z } },
   place: { arenaRadius: TITAN_PLACE.arenaRadius,heartHp: TITAN_PLACE.heartHp },phases: TITAN_PHASES,
   definition: TITAN_ENCOUNTER,reward: TITAN_REWARD,skin: TITAN_SKIN,tuning: TITAN_TUNING,boundary: TITAN_BOUNDARY,
   phaseLines: TITAN_PHASE_FEED,tieLines: TITAN_TIE_FEED,immuneLines: TITAN_IMMUNE_FEED,seeds: TITAN_FIRE_SEEDS,
