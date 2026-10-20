@@ -43,7 +43,7 @@ const pageWildlife = v.parse(WildlifePopulationSchema,{ combat:{kind:'sheep',dam
   kinds: { predator: 'wolf',mount: 'horse',guardian: 'sheepdog',guardianVariant: 'collie' },coats: ecology.mareVariants,young: ['foal-bay','foal-chestnut'],leader: 'stallion',
   packs: ecology.wildlife.packs,herds: ecology.wildlife.herds,flocks: ecology.wildlife.flocks,
   mountables: ecology.wildlife.campHorses === true ? poi.HITCH_HORSE_SPOTS.map((row,index) => ({ x: row.x,z: row.z,yaw: Math.atan2(row.face.x,row.face.z),variant: index === 0 ? 'camp-bay' : 'camp-black' })) : [],
-  foragers: ecology.wildlife.marmots === undefined ? null : { row: forager,seed: nativeField.seed ^ 0x6a2b,initial: physics.marmots,cue: 'marmot_whistle',runSpeed: 5 },
+  foragers: ecology.wildlife.marmots === undefined ? null : { row: forager,seed: nativeField.seed ^ 0x6a2b,initial: physics.marmots,cue: 'marmot_whistle',runSpeed: 5,view:{name:'marmots',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model:'marmot',rim:.8,bands:.85,tilt:-1.25,sink:-.45} },
   relations: { alert: 'whistle',range: 'scare',packRadius: 20,disturbRadius: 25,disturbSeconds: 4,scareSeconds: 6 },
   trample: { kinds: { wolf: .5,horse: .8,sheepdog: .4 },minSpeed: .6,range: 80,fullSpeed: 6 },soundHeight: .6 });
 export const headlessAssembly = { ...groupAssembly,constants: { ...groupAssembly.constants,pageWildlife } };

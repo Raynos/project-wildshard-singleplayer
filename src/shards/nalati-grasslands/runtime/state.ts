@@ -7,7 +7,7 @@ import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game
 import { createPageCrowds, readCrowdBody, type PageCrowdViews } from '@wildshard/game/ambient/crowdPage';
 import { PageWildlife, type WildlifeBuildStep } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
-import { Marmots,preloadCover } from '../creatures/marmots';
+import { prepareForagerDraw, type ForagerDraw } from '@wildshard/game/ambient/foragerDraw';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv,bindPageGroups } from '@wildshard/game/population/pageGroups';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -229,7 +229,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const player = ctx.player;
   const stealthRows=plugin.product.section('player/stealth');
   let wildlife: Wildlife | null = null;
-  let foragerView: Marmots | null = null;
+  let foragerView: ForagerDraw | null = null;
   let attachedAnimals: AnimalManager | null = null;
   let playKit: NalatiLoadout | null = null;
   let now = 0;
@@ -266,7 +266,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const riderFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-rider')), captainFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-captain'));
   const night = new TimedEncounters({ game, sky, player: ctx.player, forest: ctx.forest, sites: pois.balbals, clock: weather.clock },
     await plugin.product.json('combat/timed-encounters.json'), { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest());
-  await preloadCover(); // the small-model pack the marmots and the ambient wings draw from (creatures/marmots.ts)
+  const foragerDraw = await prepareForagerDraw(plugin,pageWildlife);
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
   const prepareWildlife = (animals: AnimalManager): Wildlife => {
     attachedAnimals = animals;
@@ -281,7 +281,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       const view = declaredCrowds.factory(step.options,step.index); game.scene.add(view.mesh);
       const dog = w.attachCrowd(step.index,view); if (dog !== null) { view.dog=dog;declaredCrowds.guardian(dog,step.index,w.placement,plugin.app.rng.stream('ai')); }
     } else if (step.kind === 'foragers' && w.foragers !== null) {
-      foragerView = new Marmots(sky,ctx.chunk.seed,w.foragers.rules).build(); game.scene.add(foragerView.mesh);
+      foragerView = foragerDraw.create(w.foragers.rules); game.scene.add(foragerView.mesh);
     }
   };
   const finishWildlife = (animals: AnimalManager, w: Wildlife): Wildlife => {

@@ -27,6 +27,9 @@ export type ForagerPolicyRows=v.InferOutput<typeof ForagerPolicySchema>;
 export const ForagerPopulationSchema=v.strictObject({id,count,policy:ForagerPolicySchema,place:v.variant('kind',[
   v.strictObject({kind:v.literal('colonies'),size:v.tuple([count,count]),radius:range,home:finite,timer:range}),
   v.strictObject({kind:v.literal('roam'),seat:range,reseat:range,range:positive,visibleRange:positive,retry:positive,view:v.tuple([finite,finite,positive])})])});
+/** Native forager view: prepared model book, material tuning and body projection. */
+export const ForagerDrawSchema=v.strictObject({name:id,books:v.strictObject({phone:id,desktop:id}),model:id,
+  rim:finite,bands:finite,tilt:finite,sink:finite});
 export type ForagerPopulationRows=v.InferOutput<typeof ForagerPopulationSchema>;
 const uint=v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),frame=v.pipe(v.number(),v.integer(),v.minValue(-1)),nonneg=v.pipe(finite,v.minValue(0));
 const clock=v.strictObject({elapsed:nonneg,credit:nonneg,frame,dt:nonneg,last:finite,due:v.boolean(),tickFrame:frame});
