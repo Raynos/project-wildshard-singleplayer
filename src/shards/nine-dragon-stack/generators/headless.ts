@@ -47,7 +47,7 @@ function withoutCaps(colliders: readonly ColliderDesc[]): ColliderDesc[] {
  * float32 payload. No runtime adapter filters or rewrites this payload. */
 export const headlessConstants: Record<string, unknown> = {
   spawnY: source.spawn.y + 0.1, hooks: NINE_HOOKS, grappleProfile,
-  fade: portals.fade, trigger: portals.trigger,
+  portalRide: { director: portals.director, trigger: portals.trigger, fade: portals.fade, veil: portals.veil, landings: portals.landings },
   pieces: NINE_PIECES.filter(piece => piece.active && !piece.file.startsWith(PRACTICE)).map(piece => ({
     id: piece.id, name: piece.name, category: 'buildings', file: piece.file, active: true,
     surface: piece.surface ?? 'wood', owner: piece.colliderOwner ?? piece.id,

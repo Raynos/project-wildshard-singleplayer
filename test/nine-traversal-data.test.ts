@@ -8,8 +8,7 @@ import before from './fixtures/nine-traversal.json' with { type: 'json' };
 import { portalEntryRows, portalPlanRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
 import portals from '../src/shards/nine-dragon-stack/data/portals.json' with { type: 'json' };
 import portalStages from '../src/shards/nine-dragon-stack/data/portalStages.json' with { type: 'json' };
-import { bindPortalRide as walkInRide } from '../src/shards/nine-dragon-stack/runtime/portals/hostRide';
-import type { PortalRider } from '../src/shards/nine-dragon-stack/runtime/portals/types';
+import { bindPortalRide as walkInRide, type PortalRider } from '../src/game/shardfile/portalRideBinding';
 
 // Recorded from executable authoring rows at a242b48db before removing their modules.
 test('JSON retains every grapple hint, course coordinate and portal frame', () => {
@@ -102,4 +101,11 @@ test('a second shard drives walk-in rides with its own nodes, cadence and direct
   for (let tick = 0; tick < 3; tick++) resumed.observe(0.1, { x: 10, y: 20, z: 30 });
   expect(resumed.snapshot().from).toBe('orchard.return');
   expect(() => createPortalRide({ ...profile, fade: { out: 0, hold: 0, in: 1 } })).toThrow('Invalid portal');
+  // the bound ride reports the orchard's own landing fact once, through its rider
+  const facts: (readonly [string, string])[] = [], position = { x: 240, y: 0, z: 0 };
+  const rider: PortalRider = { position, hold: () => undefined, settle: () => undefined,
+    teleport: from => { Object.assign(position, { x: 15, y: 20, z: 30 }); return { from, to: 'orchard.arrival', yaw: 0.3 }; } };
+  const bound = walkInRide(rider, () => undefined, profile, [{ node: 'orchard.arrival', fact: 'orchard.reached' }], (name, entity) => { facts.push([name, entity]); });
+  for (let tick = 0; tick < 10; tick++) bound.step(0.1);
+  expect(facts).toEqual([['orchard.reached', 'orchard.arrival']]);
 });

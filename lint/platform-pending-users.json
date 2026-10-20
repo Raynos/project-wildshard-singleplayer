@@ -2713,6 +2713,17 @@
       }
     },
     {
+      "module": "src/game/shardfile/portalRideBinding.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "walk-in-portal-ride",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G478"
+        }
+      }
+    },
+    {
       "module": "src/game/audio/voicePatches.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {

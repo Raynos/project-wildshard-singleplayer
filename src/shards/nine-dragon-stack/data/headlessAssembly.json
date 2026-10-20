@@ -17,20 +17,14 @@
       "installNineJian",
       "JIAN_ID"
     ],
-    "src/shards/nine-dragon-stack/runtime/portals/hostRide": [
-      "installHostRide",
-      "bindPortalRide",
-      "playerRider",
-      "declaredPortals"
-    ],
-    "src/shards/nine-dragon-stack/world/feats": [
-      "rideFeats"
-    ],
     "@wildshard/game/grapple/headless": [
       "installGrapple"
     ],
     "@wildshard/format/grapple": [
       "parseGrappleProfile"
+    ],
+    "@wildshard/game/shardfile/portalRideBinding": [
+      "installHostPortalRide"
     ]
   },
   "constants": {
@@ -255,57 +249,6 @@
             ]
           },
           "Nine Dragon declares four portal-link entryways"
-        ]
-      }
-    },
-    {
-      "name": "stages",
-      "value": {
-        "$call": [
-          {
-            "$ref": [
-              "assembly",
-              "need"
-            ]
-          },
-          {
-            "$call": [
-              {
-                "$fn": {
-                  "$call": [
-                    {
-                      "$ref": [
-                        "args",
-                        0,
-                        "find"
-                      ]
-                    },
-                    {
-                      "$fn": {
-                        "$eq": [
-                          {
-                            "$ref": [
-                              "args",
-                              0,
-                              "id"
-                            ]
-                          },
-                          "nine.portal-ride"
-                        ]
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "$ref": [
-                  "shard",
-                  "directors"
-                ]
-              }
-            ]
-          },
-          "Missing Nine portal director declaration"
         ]
       }
     },
@@ -668,8 +611,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nine-dragon-stack/runtime/portals/hostRide",
-              "installHostRide"
+              "@wildshard/game/shardfile/portalRideBinding",
+              "installHostPortalRide"
             ]
           },
           {
@@ -684,117 +627,20 @@
             ]
           },
           {
-            "$fn": {
-              "$call": [
-                {
-                  "$ref": [
-                    "src/shards/nine-dragon-stack/runtime/portals/hostRide",
-                    "bindPortalRide"
-                  ]
-                },
-                {
-                  "$call": [
-                    {
-                      "$ref": [
-                        "src/shards/nine-dragon-stack/runtime/portals/hostRide",
-                        "playerRider"
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        0
-                      ]
-                    },
-                    {
-                      "$fn": {
-                        "$ref": [
-                          "host",
-                          "physics"
-                        ]
-                      }
-                    },
-                    {
-                      "$ref": [
-                        "shard"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "$fn": {
-                    "$ref": [
-                      "absent"
-                    ]
-                  }
-                },
-                {
-                  "entries": {
-                    "$call": [
-                      {
-                        "$ref": [
-                          "src/shards/nine-dragon-stack/runtime/portals/hostRide",
-                          "declaredPortals"
-                        ]
-                      },
-                      {
-                        "$ref": [
-                          "shard"
-                        ]
-                      }
-                    ]
-                  },
-                  "trigger": {
-                    "$ref": [
-                      "payload",
-                      "trigger"
-                    ]
-                  },
-                  "fade": {
-                    "$ref": [
-                      "payload",
-                      "fade"
-                    ]
-                  },
-                  "stages": {
-                    "$ref": [
-                      "stages"
-                    ]
-                  }
-                }
-              ]
-            }
+            "$ref": [
+              "shard"
+            ]
           },
           {
-            "$fn": {
-              "$call": [
-                {
-                  "$ref": [
-                    "src/shards/nine-dragon-stack/world/feats",
-                    "rideFeats"
-                  ]
-                },
-                {
-                  "$ref": [
-                    "args",
-                    0,
-                    "step"
-                  ]
-                },
-                {
-                  "$ref": [
-                    "args",
-                    0,
-                    "rides"
-                  ]
-                },
-                {
-                  "$ref": [
-                    "fact"
-                  ]
-                }
-              ]
-            }
+            "$ref": [
+              "payload",
+              "portalRide"
+            ]
+          },
+          {
+            "$ref": [
+              "fact"
+            ]
           }
         ]
       }

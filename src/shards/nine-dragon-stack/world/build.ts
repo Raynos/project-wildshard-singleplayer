@@ -40,7 +40,6 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ndLook, ndModelContext, need } from './modelLook';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { buildPortals } from './portals';
-import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, umbrellaWalker } from '../models/crowd';
 import { loadLayoutBake, restoreLayout } from './layoutBake';
@@ -85,8 +84,6 @@ export interface NineDragonWorld {
   cull: (camera: PerspectiveCamera) => void;
   /** G200: whether the decks' open ends are closed by their standalone balustrades (world/entries.ts; the colliders follow) */
   readonly entryCaps?: boolean;
-  /** G224: the portals' ride step (world/portalRide.ts sets it in play), run by `update` with the frame's dt */
-  readonly portal?: PortalSlot;
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes; `opts.pause` ends a stretch between phases (the plugin's
@@ -362,11 +359,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(1, 'world ready');
   Reflect.set(window, '__ndPhaseProfile', phaseProfile);
 
-  let lastT = -1;
-  const portal: PortalSlot = { step: null };
   const update = (t: number, camera: PerspectiveCamera): void => {
-    if (lastT >= 0) portal.step?.(Math.max(0, t - lastT));
-    lastT = t;
     shared.u.uTime.value = t;
     shared.u.uNear.value = camera.near;
     shared.u.uCam.value.setFromMatrixPosition(camera.matrixWorld);
@@ -379,5 +372,5 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   };
   // The playable world only needs hook points from the build context. Retaining the full Ctx kept its
   // facade grammar, instance placement lists and atlas canvases alive alongside the finished meshes.
-  return { root, shared, ctx: { hooks: ctx.hooks, rimZ: worldRows.rim.z0 }, update, cull, entryCaps, portal };
+  return { root, shared, ctx: { hooks: ctx.hooks, rimZ: worldRows.rim.z0 }, update, cull, entryCaps };
 }

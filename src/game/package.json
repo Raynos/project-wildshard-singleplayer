@@ -181,6 +181,7 @@
     "./weapons/starterBowProfile": "./weapons/starterBowProfile.ts",
     "./weapons/Sword": "./weapons/Sword.ts",
     "./weapons/Bow": "./weapons/Bow.ts",
+    "./shardfile/portalRideBinding": "./shardfile/portalRideBinding.ts",
     "./shardfile/portalTraversal": "./shardfile/portalTraversal.ts",
     "./shardfile/portalLinkProof": "./shardfile/portalLinkProof.ts",
     "./systems/audio/weaponVoices": "./plugin/audio.ts",

@@ -27,8 +27,7 @@ import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
 import { bindNineFacts } from './runtime/facts';
 import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
-import { playerRider, type PortalRide } from './world/portalRide';
-import { installPortals } from './world/portalVeil';
+import { installPortalRide, type PortalRide, type PortalRideRows } from '@wildshard/game/shardfile/portalRideBinding';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
@@ -116,8 +115,10 @@ export class NdPlugin extends ShardPlugin {
     });
     equipment.add(grapple, { locked: false });
     // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the checked transfer under the dark)
-    const world = this.shell?.world, slot = this.ndWorld.portal;
-    if (world !== undefined && world !== null && slot !== undefined) this.portals = installPortals(slot, playerRider(world.player, () => world.physics, source), source, facts);
+    if (this.shell?.world !== undefined && this.shell.world !== null) {
+      const { portalRide } = await ctx.product.json<{ readonly portalRide: PortalRideRows }>('sim/headless-constants.json');
+      this.portals = installPortalRide(ctx, source, portalRide, facts);
+    }
   }
   /** G224: the portals while they run (captures read them through the shard handle) */
   portals: PortalRide | null = null;

@@ -2,6 +2,8 @@
   "ring": { "r": 2.1, "tube": 0.16, "lift": 2.75 },
   "trigger": { "front": 0.6, "back": 0.6, "half": 1, "feet": 0.15, "reach": 1.25 },
   "fade": { "out": 0.28, "hold": 0.12, "in": 0.4 },
+  "director": "nine.portal-ride",
+  "landings": [{ "node": "portal.square.arrival", "fact": "nine-dragon-stack.lantern-square" }],
   "deckRingShort": 1,
   "squareRing": { "id": "portal.square", "x": 12, "dy": 0, "z": -20, "nx": 0, "nz": -1 },
   "squareArrival": { "id": "portal.square.arrival", "x": 0.95, "dy": 0, "z": 7.5, "yawDeg": -12 },
