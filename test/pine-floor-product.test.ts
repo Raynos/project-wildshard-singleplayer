@@ -5,31 +5,38 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { decodeFloorRecords } from '../src/shards/pine-hollow/generators/floorRows.mjs';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { parseFloorRows } from '../src/shards/pine-hollow/generators/sections';
+import floorRows from '../src/shards/pine-hollow/data/floorLayout.generated.json' with { type: 'json' };
 
 test('the named floor preserves all 22,250 shipping placements and refuses malformed or oversized records', () => {
   const file = output.namedFiles.find(row => row.name === 'world/floor.json');
   const bytes = file === undefined ? undefined : output.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing named floor');
   const rows = parseFloorRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+  const source = parseFloorRows(floorRows);
   // Recorded from the actual shipping loadUnderPlacements at 238bcf425,
   // before moving its decoder: hash every value, tint, normal and array order.
-  const facts = Object.fromEntries(Object.entries(rows.layout).map(([kind, items]) => [kind, items.map(({ x, y, z, nx, ny, nz, rot, scale, r, g, b }) => ({ x, y, z, nx, ny, nz, rot, scale, r, g, b }))]));
+  const facts = Object.fromEntries(Object.entries(source.layout).map(([kind, items]) => [kind, items.map(({ x, y, z, nx, ny, nz, rot, scale, r, g, b }) => ({ x, y, z, nx, ny, nz, rot, scale, r, g, b }))]));
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(facts)))).toBe('7c0b23e88b4c31727bed35d146ded1db0c13a6b049657365a0616c44b9704dfb');
   // Compare all sixteen components with the actual frozen page composer.
   // Its native libm results vary by CPU even at a Float32 rounding boundary.
+  // The product rounds every number to 1e-5 (0.01 mm); compare it to the source.
   const matrix = new Matrix4();
-  let worst = 0, compared = 0;
-  for (const items of Object.values(rows.layout)) for (const item of items) {
-    const original = matrixOf(item, matrix).elements;
+  let worst = 0, rounded = 0, compared = 0;
+  const products = Object.values(rows.layout);
+  for (const [kind, items] of Object.values(source.layout).entries()) for (const [at, item] of items.entries()) {
+    const original = matrixOf(item, matrix).elements, product = products[kind]?.[at];
+    if (product === undefined) throw new Error('Missing product placement');
     for (let index = 0; index < 16; index++) {
-      const value = original[index], baked = item.matrix[index];
-      if (value === undefined || baked === undefined) throw new Error('Missing matrix component');
-      worst = Math.max(worst, Math.abs(value - baked));
+      const value = original[index], baked = item.matrix[index], shipped = product.matrix[index];
+      if (value === undefined || baked === undefined || shipped === undefined) throw new Error('Missing matrix component');
+      worst = Math.max(worst, Math.abs(value - baked)); rounded = Math.max(rounded, Math.abs(baked - shipped));
     }
+    for (const key of ['x', 'y', 'z', 'nx', 'ny', 'nz', 'rot', 'scale', 'r', 'g', 'b'] as const) rounded = Math.max(rounded, Math.abs(item[key] - product[key]));
     compared++;
   }
   expect(compared).toBe(22_250);
   expect(worst).toBeLessThanOrEqual(1e-12);
+  expect(rounded).toBeLessThanOrEqual(5.000001e-6);
   expect(rows.counts).toEqual([6000, 3750, 5000, 3000, 3000, 1500]);
   expect(() => parseFloorRows({ ...rows, counts: [1, 1, 1, 1, 1, 1] })).toThrow();
   expect(() => parseFloorRows({ ...rows, extra: true })).toThrow();
