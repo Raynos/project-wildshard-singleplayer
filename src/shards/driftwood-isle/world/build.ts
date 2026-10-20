@@ -113,7 +113,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/build.ts', surface: 'stone',
     colliders: landings.map(({ box }) => ({ ...box })), solidFloor: true,
     floor: (x, z) => (landings.some(({ box }) => Math.abs(x - box.x) <= box.hx && Math.abs(z - box.z) <= box.hz) ? 0 : undefined) });
-  place(entryDeck, deckRows.map(({ placement }) => placement), { ctx: modelContext(sky), draw: 'merged', registry,
+  place(entryDeck, deckRows.map(({ placement: { x, y, z, yaw } }) => ({ x, y, z, yaw, params: { deck: 'world' } })), { ctx: modelContext(sky), draw: 'merged', registry,
     piece: { id: 'entry-decks', floor: (x, z) => floorAtRects(fixed.entryFloors, x, z, 'first'), solidFloor: true } });
   const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it

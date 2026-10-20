@@ -17637,6 +17637,7 @@
         "src/sdk/bake/source-loader.mjs",
         "src/shards/driftwood-isle/data/cargoScenes.generated.json",
         "src/shards/driftwood-isle/generators/entryDeckGeometry.ts",
+        "src/shards/driftwood-isle/generators/entryDeckSpecimen.ts",
         "src/shards/driftwood-isle/data/entryDeckBoxes.json",
         "src/shards/driftwood-isle/data/entryDecks.generated.json",
         "src/format"

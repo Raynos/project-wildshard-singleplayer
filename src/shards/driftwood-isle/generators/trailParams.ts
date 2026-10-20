@@ -21,6 +21,6 @@ export interface CatalogueParams {
   readonly fencePost: Record<string, never>;
   readonly signpost: SignpostParams;
   readonly plankStep: PlankStepParams;
-  /** how far in from the cell edge the deck runs, and the seabed under its columns (own y) */
-  readonly entryDeck: { readonly run: number; readonly bed: number };
+  /** which baked deck: the world's entries, or the Explorer's deep and shallow seabeds */
+  readonly entryDeck: { readonly deck: string };
 }

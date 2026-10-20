@@ -1,5 +1,5 @@
 import { siteCatalogue } from './siteCatalogue.ts';
-import { entryDeckSpecimen } from './entryDeckGeometry.ts';
+import { entryDeckSpecimen } from './entryDeckSpecimen.ts';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
