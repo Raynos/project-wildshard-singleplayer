@@ -98,3 +98,6 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - G475 static captures: `game/looks/staticCapture` consumes bounds, quality and pass-program rows; client-only shadow/contact presentation.
 - G475 scatter projection: `engine/render/scatterInstances` consumes numeric pose, colour and range rows; client-only culling, shared with an unrelated orchard fixture.
 - G474 wing projection: `game/ambient/wingField` consumes ambient group, palette and paired-wing rows; client-only projection of the existing 10 Hz ambient host.
+
+- G474 loadout finishes: `game/loadout/cosmeticFinishes` and `game/shardfile/clientCosmeticFinishes` consume skin-card, grant, save and held-finish rows; client-only cosmetic presentation, with an unrelated orchard fixture.
+- G483 declared runtime entry: `game/shardfile/clientWaterSurfaces` consumes geometry and water-profile rows; `game/shardfile/clientPlaceSets` consumes named group and spatial membership rows. Client-only setup, with unrelated orchard fixtures.

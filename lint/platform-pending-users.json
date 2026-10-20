@@ -2601,6 +2601,50 @@
           "row": "G478"
         }
       }
+    },
+    {
+      "module": "src/game/loadout/cosmeticFinishes.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "loadout",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
+    },
+    {
+      "module": "src/game/shardfile/clientCosmeticFinishes.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "loadout",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
+    },
+    {
+      "module": "src/game/shardfile/clientWaterSurfaces.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "declared runtime entry",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
+    },
+    {
+      "module": "src/game/shardfile/clientPlaceSets.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "declared runtime entry",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
     }
   ]
 }
