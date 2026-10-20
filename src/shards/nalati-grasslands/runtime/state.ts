@@ -63,8 +63,6 @@ import { MountedReins as Reins } from '@wildshard/game/riding/reins';
 import { SheepRaid } from '../creatures/shepherdView';
 import { cleanHorseName } from '../ride/horseNames';
 import { legacyAdventureBond } from '@wildshard/game/quest/legacyRecords';
-import { Bow } from '@wildshard/game/weapons/Bow';
-import { Sabre, Spear } from '../weapons/nativeMelee';
 import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
 import type { CosmeticFinishLocker, CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
@@ -350,7 +348,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       stealth = new StealthController(plugin,player,stealthRows);
       nalati.stealth = stealth;
       if (wildlife === null || attachedAnimals === null) throw new Error('Nalati creatures have not been built');
-      ride = wireRide({ roads, rest, nativeTaming, nativeRide, preset: ridingPreset, programs: ridingPrograms, namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, animals: attachedAnimals, wildlife, camera: game.camera });
+      ride = wireRide({ kit:p, roads, rest, nativeTaming, nativeRide, preset: ridingPreset, programs: ridingPrograms, namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, animals: attachedAnimals, wildlife, camera: game.camera });
       nalati.ride = ride;
       plugin.debug.expose('nalati.ride',ride);
 
@@ -449,7 +447,7 @@ export interface Ride {
   reins: Reins; raid: SheepRaid; noteShot:(x:number,z:number)=>void;
 }
 interface RideCtx {
-  ctx: ShardContext; player: Player; camera: Game['camera']; animals: AnimalManager; wildlife: Wildlife; programs: RidingPrograms & {reins:unknown};
+  kit:NalatiLoadout; ctx: ShardContext; player: Player; camera: Game['camera']; animals: AnimalManager; wildlife: Wildlife; programs: RidingPrograms & {reins:unknown};
   preset: ReturnType<typeof readPageRidingPreset>; rest: {x:number;z:number;face:{x:number;z:number}}; roads: NonNullable<MountProfile['roads']>;
   nativeTaming: {binding:unknown;rail:{x:number;z:number}}; nativeRide: Pick<MountProfile,'speeds'|'thrownDamage'|'thrownLabel'>;
   namePanel: PanelDefinition; persistence?: NalatiPersistence;
@@ -479,7 +477,7 @@ function wireRide(ctx: RideCtx): Ride {
   }]]);
   ctx.ctx.scope.onDispose(() => { namer.close(); });
   const advanceSession = session.update, advanceRaid = raid.update.bind(raid), advanceReins = reins.update.bind(reins);
-  const weaponMount = { speed: 0, yaw: 0 }, noEquipment: [] = [];
+  const weaponMount = { speed: 0, yaw: 0 };
   const ride: Ride = {
     refuse: null, mount, taming, hud, interactable, reins, raid,
     get mounted() { return mount.mounted; },
@@ -504,13 +502,9 @@ function wireRide(ctx: RideCtx): Ride {
     },
     late(dt) {
       weaponMount.speed = mount.speed; weaponMount.yaw = mount.heading - Math.PI;
-      const state = mount.mounted ? weaponMount : null, available = ctx.ctx.app.equipment?.available ?? noEquipment;
-      for (let i = 0; i < 64; i++) {
-        const weapon = available[i]; if (weapon === undefined) break;
-        if (weapon instanceof Bow) { weapon.setMount(state); if (mount.gallopFloat) weapon.extraSpreadDeg *= .5; }
-        else if (weapon instanceof Sabre || weapon instanceof Spear) weapon.mount = state;
-      }
-      const weapon = ctx.ctx.app.equipment?.current, drawing = weapon instanceof Bow && (weapon.adsHeld || weapon.drawing);
+      ctx.kit.setMount(mount.mounted ? weaponMount : null);
+      if (mount.gallopFloat) ctx.kit.bow.extraSpreadDeg *= .5;
+      const bow=ctx.kit.bow,drawing=ctx.ctx.app.equipment?.current===bow && (bow.adsHeld || bow.drawing);
       advanceReins(dt, mount.horse, mount.mounted, mount.breaking || drawing);
     },
   };
