@@ -446,7 +446,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const ids = ['pois', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'ride', 'skins', 'sound'];
   let previous = 'main.world';
   if (updates.length !== ids.length) throw new Error('Nalati update registration lacks an id');
-  for (let index = 0; index < 13; index++) {
+  for (let index = 0; index < 12; index++) {
     const name = ids[index], run = updates[index];
     if (name === undefined || run === undefined) throw new Error('Nalati update registration lacks an id');
     const id = `shard.nalati.${name}`;
