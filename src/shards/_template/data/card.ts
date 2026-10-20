@@ -1,6 +1,7 @@
 // Build-time level metadata; the output is the only bridge to the client.
 export const CARD = {
   "api": 1,
+  "hoverSpeedClass": "road",
   "slug": "_template",
   "order": 1000,
   "status": "hidden",
