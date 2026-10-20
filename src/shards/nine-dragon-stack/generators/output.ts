@@ -1,3 +1,4 @@
+import practiceCard from '../data/practiceCard.json' with { type: 'json' };
 import entryProof from '../data/entryProof.generated.json' with { type: 'json' };
 import { heldGraphFiles } from './heldGraphFiles';
 import { heldView } from './heldView';
@@ -65,5 +66,5 @@ const emitted = emitNamedBlobs(glyphBlobs.concat(NINE_SCENE_BLOBS, signAtlasBlob
   nameBlob('weapons/jian-support.json', 'json', json({ sword: { ...support.sword.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000003' }, arms: { ...support.arms.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000004' }, tipY: support.tipY, baseY: support.baseY, material: { ...material.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000005' } })),
 ]));
 
-export const output = { namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
-  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', NINE_WORLD_SCENES]])) };
+export const output = { blobs: [{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"}], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
+  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', NINE_WORLD_SCENES], ['client/plan', {version:1,features:[practiceCard]}]])) };

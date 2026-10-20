@@ -16,7 +16,6 @@ import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
 import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' };
 import { installNalatiQuestView } from '../quest/kokpar';
-import { horsePlayground } from '../playground/registration';
 import { enteredAdventurePersistence } from '@wildshard/game/quest/chapterBindings';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { hasLentLook, lendLooks } from '@wildshard/sdk/looks/lentLooks';
@@ -96,7 +95,6 @@ export class NalatiPlugin extends ShardPlugin {
     if (retainsRuntimeServices(ctx)) rt.elites.initialize();
     await part();
     await installNalatiQuestView(ctx, rt, persistence);
-    ctx.playground(horsePlayground(ctx));
   }
 }
 

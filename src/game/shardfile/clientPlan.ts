@@ -1,4 +1,5 @@
 import { installClientAdventurePersistence } from '../quest/persistence';
+import { installPracticeCourse } from '../practice/registration';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { hasLentLook, lendLooks } from './lentLooks';
 import { installClientMeadow } from './clientMeadow';
@@ -61,6 +62,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   'world.meadow': { phase: 'world', rank: 46, lifetime: 'entered', sections: [], install: installClientMeadow },
   'world.paths': { phase: 'kit', rank: 0, lifetime: 'entered', sections: [], install: installClientPathRamps },
   'riding.session': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientRiding },
+  'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: installPracticeCourse },
   'population.wildlife': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientWildlife },
   'world.water': {phase:'world',rank:42,lifetime:'entered',sections:[],install:installClientWaterSurfaces},
   'audio.scene': {phase:'world',rank:48,lifetime:'entered',sections:[],install:installClientAudioScene,play:{rank:30,install:enterClientAudioScene}},
