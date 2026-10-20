@@ -1790,6 +1790,8 @@ the aliases use a private manager and never replace the session's resolver.
 specimens and owned geometry. File reads remain parallel; all returned loaders
 share one page-wide decode slot, including direct `parseAsync` calls. Completion
 or failure releases the slot without retaining the decoded scene.
+The browser pauses between spent construction slices so cached decodes leave
+task boundaries for frames/uploads; renderer-free Node parsing does not wait.
 
 `ClipName` is `idle · walk · run · attack · hit · die · turn · swim · fly`, optionally with `.suffix`. A raw
 `new AnimationMixer` outside `src/engine/anim` is a lint error (`wildshard/no-raw-animation-mixer`). The template's blob

@@ -2,6 +2,8 @@ import { type AnimationClip, type Object3D, BufferGeometry, DefaultLoadingManage
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { labelObjectTree } from '../render/gpuLabels';
+import { pageScope } from '../app/resources';
+import { workSlice, type WorkSlice } from '../core/workSlice';
 
 export type ClipName = `${'idle' | 'walk' | 'run' | 'attack' | 'hit' | 'die' | 'turn' | 'swim' | 'fly'}${'' | `.${string}`}`;
 export type SocketName = string;
@@ -27,11 +29,15 @@ export interface RigRef { url: string; contract: RigContract; bake: RigBake }
 // FileLoader starts every network read immediately. Only the parser's temporary
 // meshopt/image/geometry allocations share this page-wide decode slot.
 let decodeTail: Promise<void> = Promise.resolve();
+let decodeSlice: WorkSlice | undefined;
 class BoundedRigLoader extends GLTFLoader {
   override parse(...[data, path, onLoad, onError]: Parameters<GLTFLoader['parse']>): void {
-    const parsed = decodeTail.then(() => new Promise<GLTF>((resolve, reject) => {
-      super.parse(data, path, resolve, reject);
-    }));
+    const parsed = decodeTail.then(async () => {
+      // Cached CPU-only models otherwise chain every parse in microtasks. Let
+      // uploads/frames and temporary-buffer retirement run between spent slices.
+      if (typeof window !== 'undefined') await (decodeSlice ??= workSlice(undefined, pageScope)).check();
+      return new Promise<GLTF>((resolve, reject) => { super.parse(data, path, resolve, reject); });
+    });
     // A failed file must release the slot as well as a successful one. Keep no
     // decoded scene in the tail after handing it to its existing resource owner.
     decodeTail = parsed.then(() => undefined, () => undefined);

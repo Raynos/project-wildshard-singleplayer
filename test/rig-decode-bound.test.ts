@@ -1,6 +1,7 @@
 import { FileLoader } from 'three';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createRigLoader } from '@wildshard/engine/anim/rig';
+import * as clock from '../src/engine/core/clock';
 
 const document = JSON.stringify({ asset: { version: '2.0' }, scene: 0, scenes: [{ nodes: [] }], nodes: [] });
 afterEach(() => { vi.restoreAllMocks(); });
@@ -39,4 +40,27 @@ it('releases the shared slot after a synchronous parser failure', async () => {
   const following = createRigLoader().parseAsync(document, '');
   await expect(failed).rejects.toThrow(/Unsupported asset/u);
   expect((await following).scene.type).toBe('Group');
+});
+
+it('ends a spent browser decode slice before starting the next cached parse', async () => {
+  const previousWindow = globalThis.window;
+  vi.stubGlobal('window', {}); vi.useFakeTimers();
+  let time = 0;
+  vi.spyOn(clock, 'diagnosticNow').mockImplementation(() => time);
+  const entered: number[] = [], reads: string[] = [];
+  vi.spyOn(FileLoader.prototype, 'load').mockImplementation((url, onLoad) => {
+    reads.push(url); queueMicrotask(() => { onLoad?.(document); }); return undefined;
+  });
+  try {
+    const jobs = [0, 1].map(index => {
+      const loader = createRigLoader();
+      loader.register(() => ({ name: 'fixture-decode-slice', afterRoot: () => { entered.push(index); time = 10; } }));
+      return loader.loadAsync(`https://models.example/sliced-${index}.gltf`);
+    });
+    expect(reads).toHaveLength(2);
+    await jobs[0]; await Promise.resolve();
+    expect(entered).toEqual([0]);
+    await vi.runOnlyPendingTimersAsync();
+    await jobs[1]; expect(entered).toEqual([0, 1]);
+  } finally { vi.useRealTimers(); vi.stubGlobal('window', previousWindow); }
 });
