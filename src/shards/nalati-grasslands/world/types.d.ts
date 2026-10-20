@@ -4,27 +4,10 @@ import type { ModelContext } from '@wildshard/engine/models/model';
 import type { Placed } from '@wildshard/engine/models/place';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Box } from './solid';
-import type { Flutter } from './Flutter';
 
 export type Ground = (x: number, z: number) => number;
-
-/** a chimney / cook-fire plume's options: puffs in flight, rise (m), puff size from birth to death (m), life (s) */
-export interface PlumeOptions { puffs?: number; rise?: number; size?: [number, number]; life?: number; density?: number }
-/** where the places put their plumes: world/index.ts draws them all on the camp-smoke look; a bake records them */
-export interface Plumes { emitter: (p: THREE.Vector3, o?: PlumeOptions) => void }
 export type Platform = (x: number, z: number) => number | undefined;
-
-/** what every POI builder is handed: the sky (material), the terrain, and the two shared animated meshes */
-export interface PoiCtx {
-  sky: Sky;
-  ground: Ground;
-  /** all cloth (ribbons, pennants, strips) goes here — one draw call for the shard */
-  flutter: Flutter;
-  /** all chimney / fire plumes go here — one draw call for the shard */
-  smoke: Plumes;
-}
 
 /** what every POI builder returns — `NalatiPOIs` registers it with the world registry (NALATI-MERGE P1, src/shards/nalati-grasslands/world/solid.ts) */
 export interface PoiPiece {

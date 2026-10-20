@@ -10,7 +10,6 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
-import { Flutter } from './Flutter';
 import { shapeBook } from '@wildshard/game/models/shapeBook';
 import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 import { EncounterSites } from '@wildshard/game/boss/encounterView';
@@ -20,7 +19,7 @@ import modelMetrics from '../boot/modelMetrics.generated.json' with { type: 'jso
 import type { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import type { Box } from './solid';
-import type { Plumes, PlaceAnchors, PoiPiece } from './types';
+import type { PlaceAnchors, PoiPiece } from './types';
 
 
 import type { NalatiPOIs } from './viewTypes';
@@ -34,8 +33,6 @@ const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.m
 
 export async function buildNalatiPOIs(sky: Sky, scene: THREE.Object3D, player: { position: THREE.Vector3 }, yieldTask: () => Promise<void>, registry: WorldRegistry, declared: SceneDressing): Promise<NalatiPOIs> {
  const group = new THREE.Group(); group.name = 'nalati-pois';
- const flutter = new Flutter();
- const smoke: Plumes = { emitter: () => undefined };
  const models = modelContext(sky);
  const pieces: PoiPiece[] = [], placed = new Map<string, readonly Placed[]>(), colliders: Box[] = [], timings: Record<string, number> = {};
 
@@ -47,26 +44,18 @@ export async function buildNalatiPOIs(sky: Sky, scene: THREE.Object3D, player: {
  for (const row of prepared.view.sequence) {
   const t0 = diagnosticNow(), builder = live.get(row.name);
   const p = row.kind === 'live' && builder !== undefined ? builder() : declaredPiece(row.name);
-  if(row.kind==='static')for(const [kind,point,a,b,c,o] of preparedPlace(row.name).effects){
-   const at=new THREE.Vector3().fromArray(point);
-   if(typeof a!=='number')continue; // smoke already has its baked instanced draw
-   if(typeof b!=='number'||(typeof c!=='number'&&typeof c!=='string'))throw new Error('Invalid cloth row');
-   const options=typeof o==='object'&&o!==null?o:{};
-   if(kind==='streamer')flutter.streamer(at,a,b,c,options);else if(kind==='flag')flutter.flag(at,a,b,c,options);else if(kind==='strip')flutter.strip(at,a,b,c);else throw new Error('Invalid cloth effect');
-  }
   if (row.name === 'roads') { const text = shapeBook(shapeRows).lettering(sky, 'roads'); p.object.children.splice(1, 0, text); text.parent = p.object; p.tris += (text.geometry.index?.count ?? 0) / 3; }
   timings[row.name] = Math.round(diagnosticNow() - t0); pieces.push(p); group.add(p.object); colliders.push(...p.colliders); await yieldTask();
  }
- if (flutter.count > 0) group.add(flutter.build(sky));
  const smokeMesh = prepared.view.smoke.puffs > 0 && hasLentLook(SMOKE_LOOK) ? buildSmoke() : null;
  if (smokeMesh !== null) group.add(smokeMesh);
  scene.add(group);
  for (const p of pieces) { if (p.register !== undefined) placed.set(p.name, p.register({ registry, ctx: models })); else if (p.colliders.some(b => b.ghost !== true) || (p.descs?.length ?? 0) > 0) throw new Error(`Place ${p.name} lacks its model registration`); await yieldTask(); }
  statues.register(registry);
- return { group, pieces, flutter, smoke, colliders, timings, placed, balbals: statues, kurganEntrance: kurgan.entrance ?? null, cragLedges: crags.ledges ?? [], cragCave: crags.cave ?? null,
+ return { group, pieces, colliders, timings, placed, balbals: statues, kurganEntrance: kurgan.entrance ?? null, cragLedges: crags.ledges ?? [], cragCave: crags.cave ?? null,
   cairnTieSpot: new THREE.Vector3(cairn.x + 3.6, heightAt(cairn.x, cairn.z), cairn.z),
-  update: dt => { flutter.update(dt); if (smokeMesh !== null) { const wind = painterlyUniforms.uPWind.value, shade = painterlyUniforms.uPShade.value, sun = sky.sunColor; setLentParam(SMOKE_LOOK, 'wind', [clamp(wind.x, -8, 8), clamp(wind.y, -8, 8), clamp(wind.z, -8, 8)]); setLentParam(SMOKE_LOOK, 'shade', [shade.r, shade.g, shade.b]); setLentParam(SMOKE_LOOK, 'sunColour', [sun.r, sun.g, sun.b]); } for (const p of pieces) p.update?.(dt, player.position); },
-  stats: () => ({ ...Object.fromEntries(pieces.map(p => [p.name, p.tris])), cloth: (flutter.mesh?.geometry.index?.count ?? 0) / 3, smoke: smokeMesh === null ? 0 : 2 * prepared.view.smoke.puffs }),
+  update: dt => { if (smokeMesh !== null) { const wind = painterlyUniforms.uPWind.value, shade = painterlyUniforms.uPShade.value, sun = sky.sunColor; setLentParam(SMOKE_LOOK, 'wind', [clamp(wind.x, -8, 8), clamp(wind.y, -8, 8), clamp(wind.z, -8, 8)]); setLentParam(SMOKE_LOOK, 'shade', [shade.r, shade.g, shade.b]); setLentParam(SMOKE_LOOK, 'sunColour', [sun.r, sun.g, sun.b]); } for (const p of pieces) p.update?.(dt, player.position); },
+  stats: () => ({ ...Object.fromEntries(pieces.map(p => [p.name, p.tris])), smoke: smokeMesh === null ? 0 : 2 * prepared.view.smoke.puffs }),
  };
 }
 

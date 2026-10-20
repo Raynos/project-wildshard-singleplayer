@@ -112,9 +112,10 @@ function compileDressingScene(tier:'phone'|'desktop') {
 
 /** Capture static strip attributes once; the existing cloth graph owns all movement. */
 function clothGeometry(){
-  const source=prepared.places.rows.find(row=>row.name==='dressing-statics'),kokpar=prepared.places.rows.find(row=>row.name==='kokpar');if(source===undefined||kokpar===undefined)throw new Error('Missing dressing cloth');
+  // the places' own cloth (camp pole, yurt crowns, the cairn's strips) joins the dressing's in the one mesh
+  const sources=['camp','summerCamp','eagleRock','cairn','dressing-statics','kokpar'].map(name=>{const row=prepared.places.rows.find(candidate=>candidate.name===name);if(row===undefined)throw new Error('Missing dressing cloth');return row;});
   const A:number[]=[],S:number[]=[],P:number[]=[],F:number[]=[],col:number[]=[],index:number[]=[],bounds=new THREE.Box3();let strips=0,maxLen=0;
-  for(const effect of [...source.effects,...kokpar.effects]){
+  for(const effect of sources.flatMap(row=>row.effects)){
     const [kind,point]=effect;const a=effect[2],b=effect[3],color=effect[4],options=effect[5];
     if(kind==='emitter')continue;
     if(typeof a!=='number'||typeof b!=='number'||!(typeof color==='string'||typeof color==='number'))throw new Error('Invalid cloth rows');
