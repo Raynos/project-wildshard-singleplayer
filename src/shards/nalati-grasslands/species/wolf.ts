@@ -9,7 +9,7 @@ import { engineString } from '@wildshard/engine/strings';
 
 
 import { nalatiBody, poseNalatiCreature } from './presentation';
-import { Pack } from '../runtime/groupRegistry';
+import { renderedPackOf } from '@wildshard/game/population/pageGroups';
 
 /**
  * Steppe wolf (Nalati, row B4) — grey-tawny, a dark saddle over a buff coat, cream mask / throat / belly, a thick ruff on
@@ -77,9 +77,9 @@ export const WOLF_SPECIES: SpeciesDef = {
   ],
   build: buildCanid,
   postPose: canidPostPose,
-  act: (a, c) => { const pack = Pack.of(a); if (pack !== null && a.alive) { pack.drive(a, c, true); c.confine(a); } },
+  act: (a, c) => { const pack = renderedPackOf(a); if (pack !== null && a.alive) { pack.drive(a, c, true); c.confine(a); } },
   think: (a, c) => {
-    const pack = Pack.of(a); if (pack === null || !a.alive) { a.setMotion(a.yaw, 0, 1); return; }
+    const pack = renderedPackOf(a); if (pack === null || !a.alive) { a.setMotion(a.yaw, 0, 1); return; }
     const last = a.mem['groupThinkAt']; if (last !== undefined && c.t - last < .1 - 1e-9) return;
     a.mem['groupThinkAt'] = c.t; const step = { ...c, dt: last === undefined ? c.dt : c.t - last }; pack.tick(step); pack.drive(a, step); c.confine(a);
   },

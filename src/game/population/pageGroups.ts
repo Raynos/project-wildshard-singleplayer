@@ -1,10 +1,19 @@
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import type { PackBrain } from '@wildshard/engine/ai/pack';
-import type { HerdBrain } from '@wildshard/engine/ai/herd';
-import type { CrowdTargets } from '../shardfile/crowdRuntime';
+import { PackBrain, type PackPorts } from '@wildshard/engine/ai/pack';
+import { HerdBrain } from '@wildshard/engine/ai/herd';
+import { CrowdRoster, type CrowdTargets } from '../shardfile/crowdRuntime';
+import { app } from '@wildshard/engine/app/runtime';
+import { StrikeRunner } from '@wildshard/engine/ai/strikes';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
+import { nativeGroupBrain } from '@wildshard/format/groupBrains';
+import { PageGroupRowsSchema } from '@wildshard/format/creatures';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
+import { unzlibSync } from 'fflate';
+import { grassBaseHeightAt } from '../systems/looks/grassField';
+import { grassHeightAt, trample } from '../systems/looks/trample';
 import * as v from 'valibot';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { ReturnProgram } from './returnProgram';
+import { ReturnProgram } from './returnProgram';
 import { createCreatureSpawner, type CreatureSpawnRow } from '../plugin/brain';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -180,4 +189,118 @@ export function nearestPopulationActor(actors: readonly Animal[], x: number, z: 
     if (next < distance) { distance = next; selected = actor; }
   }
   return selected;
+}
+
+/** Client-only observations over the installed native grass and terrain. A scope
+ * lends numeric weather/player state and a baked wet mask; no query hook binds. */
+export class PageWildEnvironment {
+  wind = { x: 0,z: -1,strength: 0 };
+  playerFwdX = 0; playerFwdZ = -1; playerCrouched = false; playerMounted = false; playerHealth01 = 1;
+  lastShotT = -1e9; light = 1; storm = false;
+  private wet: ((x: number,z: number) => number) | null = null;
+  private readonly states = new WeakMap<object,PropertyDescriptorMap>();
+  enter(scope: Scope, input: unknown): void {
+    const rows = v.parse(PageGroupRowsSchema,input), world = rows.world, previous = Object.getOwnPropertyDescriptors(this);
+    if (input === null || typeof input !== 'object') throw new Error('Missing entered population rows');
+    const state = this.states.get(input);
+    if (state !== undefined) { Object.defineProperties(this,state); scope.onDispose(() => { this.states.set(input,Object.getOwnPropertyDescriptors(this)); Object.defineProperties(this,previous); }); return; }
+    const bytes = unzlibSync(Uint8Array.from(atob(world.wet),value => value.codePointAt(0) ?? 0));
+    if (bytes.byteLength !== world.res*world.res*4) throw new Error('Invalid population wet mask');
+    const heights = new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4);
+    if (heights.some(value => !Number.isFinite(value))) throw new Error('Invalid population wet sample');
+    this.wet = bakedSamplers({ res: world.res,size: world.size,seed: 0,landscapeHash: 0,heights,splat: new Uint8Array(0),undergrowth: null }).heightAt;
+    this.wind = { ...rows.wind };
+    scope.onDispose(() => { this.states.set(input,Object.getOwnPropertyDescriptors(this)); Object.defineProperties(this,previous); });
+  }
+  grassHeightAt(x: number,z: number): number { return grassHeightAt(x,z); }
+  grassStandingAt(x: number,z: number): number { return grassBaseHeightAt(x,z); }
+  trample(x: number,z: number,radius: number,strength: number,vx: number,vz: number): void { trample.push(x,z,radius,strength,vx,vz); }
+  wetAt(x: number,z: number): boolean { return (this.wet?.(x,z) ?? 0) > .5; }
+  onEvent(name: string,x: number,z: number): void { app.events.emit('creature.signal',{ name,x,z }); }
+  onKnockdown(x: number,z: number,strength: number): void { app.events.emit('creature.knockdown',{ x,z,strength }); }
+  visibility(x: number,z: number,player: Vector3,speed: number,now: number): number {
+    const cover = (height: number): number => Math.min(1,Math.max(0,(height-.15)/((this.playerCrouched ? 1.05 : 1.75)-.15)));
+    const dx = x-player.x,dz = z-player.z,distance = Math.hypot(dx,dz) || 1;
+    let screen = 0;
+    for (const step of [1.5,3,5]) { if (step > distance) break; screen += cover(this.grassHeightAt(player.x+dx/distance*step,player.z+dz/distance*step))/3; }
+    const motion = now-this.lastShotT < 1 ? 1.5 : speed < .4 ? .3 : speed <= 2.6 ? .7 : speed < 5.2 ? 1 : 1.5;
+    return (1-.9*Math.max(cover(this.grassStandingAt(player.x,player.z)),.7*screen))*motion*this.light;
+  }
+  downwind(x: number,z: number,player: Vector3): boolean {
+    const dx = x-player.x,dz = z-player.z,distance = Math.hypot(dx,dz),wind = this.wind;
+    return distance >= 1e-3 && wind.strength >= .05 && (dx*wind.x+dz*wind.z)/distance > .82;
+  }
+  hearing(radii: readonly [number,number,number,number],player: Vector3,speed: number): number {
+    return (speed < .4 ? radii[0] : speed <= 2.6 ? radii[1] : speed < 5.2 ? radii[2] : radii[3])
+      *(speed > .4 && this.grassStandingAt(player.x,player.z) >= .7 ? 1.25 : 1)*(this.storm ? .5 : 1);
+  }
+}
+/** The entered page's observation surface; construction installs no service. */
+export const wildEnv = new PageWildEnvironment();
+const renderedPacks = new WeakMap<Animal,PackBrain<Animal>>(), renderedHerds = new WeakMap<Animal,HerdBrain<Animal>>();
+let renderedDamage: { program: ReturnProgram; variant: string } | null = null;
+/** Entered damage policy is admitted data, with the same scope as the native actors. */
+export function bindHerdDamage(input: unknown,scope: Scope): void {
+  const rows = v.parse(PageGroupRowsSchema,input),herd = nativeGroupBrain(rows.herd);
+  if (herd.kind !== 'herd') throw new Error('Invalid rendered damage preset');
+  renderedDamage = { program: ReturnProgram.page(rows.damage,scope),variant: herd.stallionVariant };
+}
+/** Native page body lookup, independent from content ids and species names. */
+export function renderedPackOf(actor: Animal): PackBrain<Animal> | null { return renderedPacks.get(actor) ?? null; }
+export function renderedHerdOf(actor: Animal): HerdBrain<Animal> | null { return renderedHerds.get(actor) ?? null; }
+export function observeHerdDamage(actor: Animal): void {
+  const policy = renderedDamage; if (policy === null) throw new Error('Missing rendered damage policy');
+  actor.mem['damageScale'] = v.parse(v.number(),policy.program.project('damage',{ owned: Number(actor.mem['owned'] === 1),stallion: Number(actor.variant === policy.variant),health: actor.hp/actor.maxHp })['scale']);
+}
+
+/** Client-only group factories bind native app authorities internally. Rows
+ * choose brains, strikes, water and prey ids; no shard port object is accepted. */
+export class PageGroups {
+  readonly packs: PackBrain<Animal>[] = []; readonly herds: HerdBrain<Animal>[] = [];
+  private readonly packRow; readonly herdRow;
+  private readonly targets: CrowdRoster<CrowdTargets>;
+  private readonly strikes = new StrikeRunner();
+  private readonly rows: v.InferOutput<typeof PageGroupRowsSchema>;
+  constructor(private readonly animals: AnimalManager, crowds: readonly CrowdTargets[], input: unknown) {
+    this.rows = v.parse(PageGroupRowsSchema,input);
+    const pack = nativeGroupBrain(this.rows.pack),herd = nativeGroupBrain(this.rows.herd);
+    if (pack.kind !== 'pack' || herd.kind !== 'herd') throw new Error('Invalid rendered group presets');
+    this.packRow = pack; this.herdRow = herd;
+    this.targets = new CrowdRoster(animals.animals,crowds,this.rows.prey);
+  }
+  private actor(id: string): Animal { const actor = this.animals.animals.find(body => body.entityId === id); if (actor === undefined) throw new Error('Missing rendered group actor'); return actor; }
+  private nearest(bodies: readonly Animal[],x: number,z: number,radius: number): Animal | null { return nearestPopulationActor(bodies,x,z,radius); }
+  private common() {
+    return { sharedRng: () => app.rng.stream('ai'),environment: () => wildEnv,
+      visibility: (x: number,z: number,player: Vector3,speed: number,time: number) => wildEnv.visibility(x,z,player,speed,time),
+      hearing: (radii: readonly [number,number,number,number],player: Vector3,speed: number) => wildEnv.hearing(radii,player,speed),
+      downwind: (x: number,z: number,player: Vector3) => wildEnv.downwind(x,z,player),
+      inBounds: (x: number,z: number,margin = 0) => Math.abs(x) <= this.rows.world.size/2-margin && Math.abs(z) <= this.rows.world.size/2-margin,
+      normalY: (x: number,z: number) => terrainNormal(x,z)[1],onEvent: (name: string,x: number,z: number) => { wildEnv.onEvent(name,x,z); } };
+  }
+  private contact(actor: Animal,context: { player: Vector3 },radius: number,herd: boolean): void {
+    interface Contact { player: Vector3; reach: (actor: Animal) => boolean; hurt: (damage: number) => void }
+    const admitted = (value: { player: Vector3 }): value is Contact => 'reach' in value && typeof value.reach === 'function' && 'hurt' in value && typeof value.hurt === 'function';
+    if (!admitted(context)) throw new Error('Missing rendered contact authority');
+    const row = strikeFromData(herd ? this.rows.contacts.herd : this.rows.contacts.pack);
+    this.strikes.contact({ ...row,shape: { kind: 'point',radius,exclusive: true } },{ actor,target: context.player,canReach: () => context.reach(actor),hit: () => { context.hurt(actor.mods.chargeDamage); } });
+  }
+  pack(ids: readonly string[],x: number,z: number): PackBrain<Animal> {
+    const members = ids.map(id => this.actor(id)), row = { ...this.packRow,members: [...ids],home: [x,z] as [number,number] };
+    const ports: PackPorts<Animal> = { ...this.common(),register: (actor,director) => { app.aggression.register(actor,director); },
+      bite: (actor,context,radius) => { this.contact(actor,context,radius,false); },preyIdentity: prey => this.targets.identity(prey),resolvePrey: id => this.targets.resolve(id) };
+    const pack = new PackBrain(members,x,z,row,ports); pack.initialize();
+    pack.findPrey = (px,pz,radius) => this.nearest(this.herds.flatMap(herd => herd.foals),px,pz,radius);
+    this.packs.push(pack); for (const actor of members) { renderedPacks.set(actor,pack); } return pack;
+  }
+  herd(ids: readonly string[]): HerdBrain<Animal> {
+    const members = ids.map(id => this.actor(id)),row = { ...this.herdRow,members: [...ids] },herd = new HerdBrain(members,row,{ ...this.common(),
+      passThrough: (actor,through) => { actor.motor?.passThrough(through ? ['PLAYER'] : []); },resolveActor: id => this.animals.animals.find(body => body.entityId === id) ?? null,
+      chargeContact: (actor,context,radius) => { this.contact(actor,context,radius,true); },
+      scarePack: (actor,radius) => { const pack = renderedPacks.get(actor); if (pack === undefined) return false; pack.scare(actor.position.x,actor.position.z,radius); return true; },
+      onKnockdown: (x,z,strength) => { wildEnv.onKnockdown(x,z,strength); } });
+    herd.initialize(); herd.findThreat = (x,z,radius) => this.nearest(this.packs.flatMap(pack => pack.members),x,z,radius);
+    const adopt = herd.adoptStallion.bind(herd); herd.adoptStallion = actor => { adopt(actor); renderedHerds.set(actor,herd); };
+    this.herds.push(herd); for (const actor of members) { renderedHerds.set(actor,herd); } return herd;
+  }
 }

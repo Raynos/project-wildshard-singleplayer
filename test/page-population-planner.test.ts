@@ -1,7 +1,11 @@
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { afterEach, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { PagePopulationPlanner, PopulationRelations, nearestPopulationActor } from '../src/game/population/pageGroups';
+import { PagePopulationPlanner, PopulationRelations, nearestPopulationActor, PageGroups, wildEnv, renderedPackOf, renderedHerdOf } from '../src/game/population/pageGroups';
+import { Scope } from '../src/engine/app/scope';
+import { zlibSync } from 'fflate';
+import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
+import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import type { Animal } from '../src/engine/entities/AnimalView';
@@ -10,6 +14,27 @@ import { legacyDouble } from './fake/FakeGame';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 
 afterEach(() => { setTerrainHeight(() => 0); setTerrainPlacement(() => [0, 1, 0], () => -1000); });
+
+test('marsh page groups resolve native ids, adoption and water from rows without ports', () => {
+  const make = (id: string,variant: string,x: number): Animal => legacyDouble<Animal>({ entityId: id,variant,position: new Vector3(x,0,0),
+    yaw: 0,scale: 1,lastHitT: -Infinity,maxHp: 100,hp: 100,mem: {},alive: true });
+  const scout = make('marsh.scout','reed',0),kid = make('marsh.kid','fawn',3),buck = make('marsh.buck','antlered',5);
+  const manager = legacyDouble<AnimalManager>({ animals: [scout,kid,buck] });
+  const wet = btoa(String.fromCodePoint(...zlibSync(new Uint8Array(Float32Array.from([1,1,1,1]).buffer))));
+  const rows = { pack: { ...brains.pack,id: 'marsh.pack',members: ['unused'],home: [0,0],leaderVariant: 'reed',runSpeed: 6 },
+    herd: { ...brains.herd,id: 'marsh.herd',members: ['unused'],stallionVariant: 'antlered',foalPrefix: 'fawn' },
+    contacts: { pack: strikes.wolf,herd: strikes.stallion },world: { res: 2,size: 32,water: -1,wet,pond: wet },
+    wind: { x: 0,z: 1,strength: .5 },prey: 'marsh',damage: admission };
+  const scope = new Scope('marsh');
+  try {
+    wildEnv.enter(scope,rows); const groups = new PageGroups(manager,[],rows),pack = groups.pack([scout.entityId],0,0),herd = groups.herd([kid.entityId]);
+    herd.adoptStallion(buck);
+    expect(renderedPackOf(scout)).toBe(pack); expect(renderedHerdOf(kid)).toBe(herd); expect(renderedHerdOf(buck)).toBe(herd);
+    expect(pack.findPrey?.(0,0,10)).toBe(kid); expect(herd.findThreat?.(3,0,10)).toBe(scout);
+    expect(wildEnv.wetAt(0,0)).toBe(true); expect(wildEnv.downwind(0,5,new Vector3())).toBe(true);
+    expect(() => groups.pack(['marsh.missing'],0,0)).toThrow('Missing rendered group actor');
+  } finally { scope.dispose(); }
+});
 
 test('an unrelated marsh roster uses guest member plans and preserves group allocation order', () => {
   setTerrainHeight(() => 2); setTerrainPlacement(() => [0, 1, 0], () => 0);

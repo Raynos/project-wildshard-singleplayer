@@ -1,5 +1,5 @@
 import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
-import { wildEnv } from '../creatures/env';
+import { wildEnv } from '@wildshard/game/population/pageGroups';
 import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
 import * as v from 'valibot';
 import type { SkyKey as SteppeKey, SkyLook, SkyRows } from '../look/skyRig';

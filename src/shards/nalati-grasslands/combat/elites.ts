@@ -21,7 +21,7 @@ import { encounterHit } from './damage';
 import * as THREE from 'three';
 import type { Wildlife } from '../creatures/wildlife';
 import type { Ledge } from '../world/types';
-import { wildEnv } from '../creatures/env';
+import { wildEnv } from '@wildshard/game/population/pageGroups';
 import { LEOPARD } from '../species/leopard';
 import { EAGLE } from '../species/eagle';
 import { KOKBORI } from '../species/kokbori';
@@ -120,7 +120,7 @@ export class NalatiElites {
         const spec = dmg === 14 ? NALATI_STRIKES.swipe : dmg === 35 ? NALATI_STRIKES.pounce : dmg === 22 ? NALATI_STRIKES.bite : dmg === 30 ? NALATI_STRIKES.stoop : NALATI_STRIKES.captain;
         sampleStrike(spec, a, player.position, () => { encounterHit(a, dmg, `elite.${a.variant}`, player.position); }, { reach: () => canReach(a, player.position, app.physics) });
       },
-      knock: (dx, dz) => { const l = Math.hypot(dx, dz) || 1; wildEnv.onKnockdown?.(dx / l, dz / l, 1); },
+      knock: (dx, dz) => { const l = Math.hypot(dx, dz) || 1; wildEnv.onKnockdown(dx / l, dz / l, 1); },
       feed: play.feed, record: play.record,
       sound: (name, at) => { play.sound?.(name, at); },
     };

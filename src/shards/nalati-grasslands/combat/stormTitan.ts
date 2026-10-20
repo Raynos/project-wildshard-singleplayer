@@ -28,7 +28,7 @@ import { GroundTell } from '@wildshard/game/Elite';
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 
 
-import { wildEnv } from '../creatures/env';
+import { wildEnv } from '@wildshard/game/population/pageGroups';
 
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { LightningStrip } from '@wildshard/game/weapons/arcPower';
@@ -683,7 +683,7 @@ export class StormTitanFight implements BossScript {
     this.ctx.weather.weather.raise('strike', { x, y, z, kind: 0 });
     this.ctx.weather.weather.flash = 1;
     this.body.uni.uFlash.value = 1;
-    wildEnv.onEvent?.('lightning', x, z);
+    wildEnv.onEvent('lightning', x, z);
   }
 
   /** the storm wall and the fire line the horse will not ride into */

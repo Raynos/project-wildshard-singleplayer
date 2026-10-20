@@ -7,7 +7,7 @@ import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard
 import { Vector3 } from 'three';
 import { Flock, type FlockOpts, type FlockBody, dogWolves } from '../creatures/flock';
 import type { WildlifeOpts } from '../creatures/wildlife';
-import { wildEnv } from '../creatures/env';
+import { wildEnv } from '@wildshard/game/population/pageGroups';
 import { parseFlock } from '@wildshard/format/crowds';
 
 /** Admit the flock's exact static geometry and original seven shader pivots before any view builds. */
@@ -42,7 +42,7 @@ export function createNativeFlocks(sky: WildlifeOpts['sky'], seed: number, body:
     observations.set(row.id, observation);
     return { ports: { heightAt, normalY: (x, z) => normalAt(x, z)[1],
       inBounds: (x, z, margin) => Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin,
-      wetAt: (x, z) => wildEnv.wetAt?.(x, z) ?? false, playerCrouched: () => wildEnv.playerCrouched,
+      wetAt: (x, z) => wildEnv.wetAt(x,z), playerCrouched: () => wildEnv.playerCrouched,
       grassHeightAt: (x, z) => wildEnv.grassHeightAt(x, z), trample: (...values) => { wildEnv.trample(...values); }, centre: () => undefined },
     observe: () => observation,
     sound: (cue, x, z) => { views.get(row.id)?.onSound?.(cue, x, z); },

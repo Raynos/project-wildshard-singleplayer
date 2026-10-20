@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { ReturnProgramSchema } from './namedJsonContracts';
+import { NativeRidingSchema } from './nativeRiding';
 import { isJsonData } from './json';
 import { StalkerSchema, GuardianPatternsSchema, SkirmisherSchema, GuardianSchema, PerchHunterSchema, ScriptBrainSchema } from './brains';
 import { GroupBrainSchema, groupBrainRules } from './groupBrains';
@@ -125,4 +126,11 @@ export const NativeGroupRowsSchema = v.strictObject({
     v.strictObject({ kind: v.literal('group'), row: GroupBrainSchema, adopt: v.nullable(id) }),
     v.strictObject({ kind: v.literal('delay'), program: ReturnProgramSchema, signal: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), channel: id }),
   ])), v.maxLength(17)),
+});
+
+/** Client population groups use the same admitted brains and contact rows. */
+export const PageGroupRowsSchema = v.strictObject({
+  pack: GroupBrainSchema,herd: GroupBrainSchema,contacts: v.strictObject({ pack: CreatureStrikeSchema,herd: CreatureStrikeSchema }),
+  world: NativeRidingSchema.entries.world,wind: v.strictObject({ x: finite,z: finite,strength: finite }),
+  prey: id,damage: ReturnProgramSchema,
 });

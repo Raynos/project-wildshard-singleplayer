@@ -1,12 +1,12 @@
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
 import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
-import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
 import { createNativeFlocks, readFlockBody, type NativeFlocks } from './flockDeclared';
 import { bindEnteredEnvironment } from './enteredEnvironment';
 import { Wildlife, type SheepHit } from '../creatures/wildlife';
-import { wildEnv } from '../creatures/env';
+import { wildEnv,bindHerdDamage } from '@wildshard/game/population/pageGroups';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
@@ -41,7 +41,6 @@ import { windEnv } from '../world/weatherStep';
 
 import type { NalatiLoadout } from '../weapons/loadout';
 import { nalatiWetAt } from '../wet';
-import { HorseHerd } from './groupRegistry';
 import { wireNightEnemies } from '../combat/night';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
 import { clientAudioScene, type AudioSceneDirector } from '@wildshard/game/audio/sceneDirector';
@@ -134,11 +133,11 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const { admission, pasture, roads, rest } = v.parse(v.object({ admission: v.unknown(), pasture: v.unknown(),
     roads: v.array(v.array(v.tuple([v.number(),v.number()]))), rest: v.object({ x: v.number(), z: v.number(), face: v.object({ x:v.number(),z:v.number() }) }) }), await plugin.product.json('sim/headless-boot.json'));
   const ridingPrograms = await plugin.product.json<RidingPrograms>('ride/rules.json');
-  const { constants: { nativeTaming, nativeRide } } = v.parse(v.object({ constants: v.object({
-    nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
+  const { constants: { nativeTaming, nativeRide,pageGroups } } = v.parse(v.object({ constants: v.object({
+    pageGroups: v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
     nativeRide: v.object({ speeds:v.object({ walk:v.number(),trot:v.number(),canter:v.number(),gallop:v.number() }),thrownDamage:v.number(),thrownLabel:v.string() }) }) }), await plugin.product.json('sim/headless-assembly.json'));
   const ridingPreset = readPageRidingPreset(v.parse(v.object({ client:v.unknown() }),ridingPrograms).client);
-  HorseHerd.bind(admission, plugin.scope);
+  bindHerdDamage(pageGroups, plugin.scope); bindEnteredEnvironment(plugin,pageGroups);
   const flockBody = await readFlockBody(plugin.product); plugin.scope.own(flockBody.geometry);
   const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
   if (namePanel === undefined) throw new Error('Nalati requires its named horse panel');
@@ -148,8 +147,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const total = 7;
   progress?.set(0, total, 'Preparing world builders');
   const { practiceRoom } = await import('@wildshard/engine/core/practiceRoom');
-  const { trample, grassHeightAt } = await import('@wildshard/game/systems/looks/trample');
-  const { grassBaseHeightAt } = await import('@wildshard/game/systems/looks/grassField');
   let declaredCrowds: NativeFlocks | null = null;
   const updates: ((dt: number, t: number) => void)[] = [];
   const groups: Record<string, Object3D> = {};
@@ -236,13 +233,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   let play: NalatiPlay | null = null;
   let now = 0;
   // the grass hides you and is trampled by every mover (GrassTrample, B1); the river corridor + the brook are water to a walker
-  const previousEnv = { ...wildEnv, wind: { ...wildEnv.wind } };
-  if (!retainsRuntimeServices(plugin)) {
-    wildEnv.grassHeightAt = grassHeightAt;
-    wildEnv.grassStandingAt = (x, z) => grassBaseHeightAt(x, z);
-    wildEnv.trample = (x, z, r, s, vx, vz) => { trample.push(x, z, r, s, vx, vz); };
-    wildEnv.wetAt = nalatiWetAt;
-  }
   // Wildlife reads position / forward / crouching; Player.forward allocates, so a reused view of it
   const wildPlayer = { position: player.position, forward: new Vector3(0, 0, -1), crouching: false };
   const extra = { mounted: false, health01: 1 };
@@ -254,13 +244,13 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     lastToast.set(key, now); play?.toast(text);
   };
   const onSignal = (name: string, x: number, z: number): void => {
-    plugin.app.events.emit('creature.signal', { name, x, z });
+    void x; void z;
     if (name === 'howl') toastOnce(name, 'A wolf howls — the pack has your scent', 60);
     else if (name === 'stampede') toastOnce(name, 'Stampede!', 20);
     else if (name === 'pack-driven-off') toastOnce(name, 'The stallion drives the wolves off', 30);
     else if (name === 'stallion-beaten') toastOnce(name, 'The stallion gives ground', 30);
   };
-  if (!retainsRuntimeServices(plugin)) wildEnv.onEvent = onSignal;
+  installEnteredRuntimeService(plugin,scope => { plugin.app.events.on('creature.signal',({ name,x,z }) => { onSignal(name,x,z); },scope); });
   // bowled over (the stallion's charge, a stampede): shoved along the blow (creatures/knockdown.ts, the host's rule too), a red flash
   const knocked = { x: 0, z: 0 };
   const onKnockdown = (dirX: number, dirZ: number, strength: number): void => {
@@ -269,13 +259,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     play?.flash();
     toastOnce('knockdown', 'Knocked down!', 4);
   };
-  if (!retainsRuntimeServices(plugin)) {
-    wildEnv.onKnockdown = onKnockdown;
-    plugin.scope.onDispose(() => { if (wildEnv.onEvent === onSignal) Object.assign(wildEnv, previousEnv); });
-  } else bindEnteredEnvironment(plugin, { grassHeightAt, grassStandingAt: grassBaseHeightAt,
-    trample: (x, z, r, s, vx, vz) => { trample.push(x, z, r, s, vx, vz); }, wetAt: nalatiWetAt,
-    onEvent: onSignal, onKnockdown,
-  });
+  installEnteredRuntimeService(plugin,scope => { plugin.app.events.on('creature.knockdown',({ x,z,strength }) => { onKnockdown(x,z,strength); },scope); });
   let flockDelta = 0, flockTime = 0, flockAdvance: PreparedCrowds['advance'] | undefined;
   const missingCrowdFrame = new Error('Missing declared native crowd frame');
   const advanceFlock: NonNullable<Parameters<Wildlife['update']>[4]> = (view, index, speed) => {
@@ -320,7 +304,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     animals.wetAt = nalatiWetAt;
     animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
     declaredCrowds = createNativeFlocks(sky, ctx.chunk.seed, flockBody);
-    return new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed, admission, pasture,
+    return new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed, admission, pasture,groups: pageGroups,
       flock: declaredCrowds.factory });
   };
   const finishWildlife = (animals: AnimalManager, w: Wildlife): Wildlife => {
@@ -385,7 +369,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     if(stealth===null)return;const threats:StealthThreat[]=[];
     for(let i=0;i<96;i++){const pack=wildlife?.packs[i];if(pack===undefined)break;for(let j=0;j<96;j++){const actor=pack.members[j];if(actor===undefined)break;if(actor.alive)threats.push({x:actor.position.x,z:actor.position.z,awareness:pack.awareness,alert:.35,hunting:Number(pack.phase==='shadow'||pack.phase==='encircle'||pack.phase==='regroup')});}}
     for(let i=0;i<96;i++){const herd=wildlife?.herds[i];if(herd===undefined)break;for(let j=0;j<96;j++){const actor=herd.members[j];if(actor===undefined)break;if(actor.alive&&(actor.mem['ridden']??0)!==1&&(actor.mem['owned']??0)!==1)threats.push({x:actor.position.x,z:actor.position.z,awareness:actor.mem['aw']??0,alert:.45,hunting:0});}}
-    stealth.update(dt,t,{grass:grassBaseHeightAt(player.position.x,player.position.z),mounted:extra.mounted,forced:ride!==null&&ride.taming.view.trust!==null,threats:threats.sort((a,b)=>Math.hypot(a.x-player.position.x,a.z-player.position.z)-Math.hypot(b.x-player.position.x,b.z-player.position.z)).slice(0,8)});
+    stealth.update(dt,t,{grass:wildEnv.grassStandingAt(player.position.x,player.position.z),mounted:extra.mounted,forced:ride!==null&&ride.taming.view.trust!==null,threats:threats.sort((a,b)=>Math.hypot(a.x-player.position.x,a.z-player.position.z)-Math.hypot(b.x-player.position.x,b.z-player.position.z)).slice(0,8)});
     if(play!==null&&play.kit!==null)play.kit.spear.damageScale=stealth.sneakMultiplier();
   });
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
@@ -489,7 +473,7 @@ function wireRide(ctx: RideCtx): Ride {
     noteShot(x, z) { taming.noteShot(x, z); },
     update(dt) {
       const ahead = 2 + mount.speed * .4;
-      const wet = wildEnv.wetAt?.(mount.feet.x, mount.feet.z) === true;
+      const wet = wildEnv.wetAt(mount.feet.x, mount.feet.z);
       const blocked = ride.refuse?.(mount.feet.x + Math.sin(mount.heading) * ahead, mount.feet.z + Math.cos(mount.heading) * ahead) === true;
       advanceSession(dt, wet, blocked, namer.isOpen);
       wildEnv.playerMounted = mount.mounted;

@@ -19,7 +19,7 @@ import type { Balbals } from '../world/Balbals';
 
 
 import type { NalatiLoadout } from '../weapons/loadout';
-import { wildEnv } from '../creatures/env';
+import { wildEnv } from '@wildshard/game/population/pageGroups';
 import { BalbalWarriors } from './balbalWarriors';
 import { GhostRiders } from './ghostRiders';
 

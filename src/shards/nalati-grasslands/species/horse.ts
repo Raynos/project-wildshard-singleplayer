@@ -13,10 +13,9 @@ import type * as THREE from 'three';
 
 
 
-import { HorseHerd } from '../runtime/groupRegistry';
+import { renderedHerdOf, observeHerdDamage, wildEnv } from '@wildshard/game/population/pageGroups';
 
 import { nalatiBody, poseNalatiCreature } from './presentation';
-import { wildEnv } from '../creatures/env';
 
 /**
  * Wild steppe horse (Nalati, row B4) — a stocky Kazakh horse, 1.42 m at the withers: bay / chestnut / black / dun / grey
@@ -77,13 +76,13 @@ export const HORSE_SPECIES: SpeciesDef = {
   ...horseRows.definition, fur: NO_FUR,
   build: variant => nalatiBody('horse', variant),
   postPose: c => { poseNalatiHorse(c, wildEnv.wind); },
-  act: (a, c) => { if (a.alive) HorseHerd.of(a)?.drive(a, c, true); },
+  act: (a, c) => { if (a.alive) renderedHerdOf(a)?.drive(a, c, true); },
   think: (a, c) => {
     const last = a.mem['groupThinkAt']; if (last !== undefined && c.t - last < .1 - 1e-9) return;
-    a.mem['groupThinkAt'] = c.t; HorseHerd.sense(a);
+    a.mem['groupThinkAt'] = c.t; observeHerdDamage(a);
     if (a.mem['ridden'] === 1 || a.mem['owned'] === 1) return;
-    const herd = HorseHerd.of(a); if (herd === null || !a.alive) { a.setMotion(a.yaw, 0, 1); return; }
+    const herd = renderedHerdOf(a); if (herd === null || !a.alive) { a.setMotion(a.yaw, 0, 1); return; }
     const step = { ...c, dt: last === undefined ? c.dt : c.t - last }; herd.tick(step); herd.drive(a, step);
   },
-  damageMul: a => HorseHerd.damage(a),
+  damageMul: a => (a.mem['damageScale'] ?? 1),
 };

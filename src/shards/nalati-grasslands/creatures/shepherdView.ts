@@ -9,7 +9,9 @@ import type { Wildlife } from './wildlife';
 import { horseBones } from '../species/horse';
 import { bakedActorGeometry } from '../world/places';
 import { PastureRaid } from './pasture';
-import type { PackController } from '../runtime/groupRegistry';
+import type { PackBrain } from '@wildshard/engine/ai/pack';
+
+type PackController = PackBrain<Animal>;
 
 const SEAT = new THREE.Vector3(0, 0.36, 0.28);
 const SHOULDER_R = new THREE.Vector3(-0.2, 0.6, 0.0);

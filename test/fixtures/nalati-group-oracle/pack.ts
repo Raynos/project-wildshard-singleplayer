@@ -11,7 +11,9 @@ import * as THREE from 'three';
 
 
 
-import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from '../../../src/shards/nalati-grasslands/creatures/env';
+import { wildEnv } from '../../../src/game/population/pageGroups';
+const angDiff = (a: number,b: number): number => Math.atan2(Math.sin(a-b),Math.cos(a-b));
+const playerVisibility = wildEnv.visibility.bind(wildEnv),downwindOf = wildEnv.downwind.bind(wildEnv),hearingRadius = wildEnv.hearing.bind(wildEnv);
 
 /**
  * Pack — one wolf pack's shared hunt (docs/design/nalati/wolves-horses-taming.md "Steppe wolves"). The wolves are

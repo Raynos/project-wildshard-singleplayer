@@ -2,7 +2,7 @@ import { installWeatherContinuation, installWeatherReactions, type WeatherReacti
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SimHost } from '@wildshard/engine/sim';
 import { parseWeatherProgram, parseWeatherReactions, type WeatherProgram, type WeatherReactionRows } from '@wildshard/format/weatherProgram';
-import type { WildEnv } from '../creatures/env';
+import type { PageWildEnvironment as WildEnv } from '@wildshard/game/population/pageGroups';
 import { wildLight, type SunClock } from '../look/wildLight';
 import * as v from 'valibot';
 
