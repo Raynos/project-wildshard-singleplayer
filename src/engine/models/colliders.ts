@@ -22,13 +22,19 @@ export function readColliderRows(rows: readonly unknown[], policy: {
   const point = val.strictObject({ x: finite, y: finite, z: finite }, 'Collider lacks an endpoint');
   const surface = val.exactOptional(val.picklist(policy.surfaces));
   const at = { x: finite, y: finite, z: finite, yaw: val.exactOptional(finite), rot: val.exactOptional(val.strictObject({ x: finite, y: finite, z: finite, w: finite })), surface };
-  const lane = val.pipe(val.array(finite), val.maxLength(6_000_000));
+  // Validate the borrowed numeric lane in place. val.array would first clone
+  // every JS number, only for the owned typed-array conversion to copy it again.
+  const lane = val.custom<number[]>(input => {
+    if (!Array.isArray(input) || input.length > 6_000_000) return false;
+    for (const value of input) if (typeof value !== 'number' || !Number.isFinite(value)) return false;
+    return true;
+  }, 'Collider geometry must contain bounded finite values');
   const schema = val.variant('kind', [
     val.strictObject({ kind: val.literal('box'), ...at, hx: finite, hy: finite, hz: finite }),
     val.strictObject({ kind: val.literal('capsule'), ...at, halfHeight: finite, radius: finite }),
     val.strictObject({ kind: val.literal('ball'), ...at, radius: finite }),
     val.strictObject({ kind: val.literal('hull'), ...at, points: lane }),
-    val.strictObject({ kind: val.literal('trimesh'), ...at, vertices: lane, indices: val.pipe(val.array(val.pipe(finite, val.integer(), val.minValue(0), val.maxValue(0xffff_ffff))), val.maxLength(6_000_000)) }),
+    val.strictObject({ kind: val.literal('trimesh'), ...at, vertices: lane, indices: val.pipe(lane, val.check(values => values.every(value => Number.isInteger(value) && value >= 0 && value <= 0xffff_ffff))) }),
     val.strictObject({ kind: val.literal('treads'), from: point, to: point, width: finite, count: val.pipe(finite, val.integer(), val.minValue(1)), surface }),
   ]);
   return rows.map(raw => {
