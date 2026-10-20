@@ -15,7 +15,7 @@ import * as THREE from 'three';
 import type { Balbals } from '../world/Balbals';
 
 
-import { BALBAL, BALBAL_SLAM, onBalbalCrack } from '../species/rows';
+import { BALBAL, BALBAL_SLAM, onBalbalCrack } from '../species/balbal';
 import { type FxRenderer, NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';
 
 

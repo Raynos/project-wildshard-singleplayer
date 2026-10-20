@@ -245,7 +245,10 @@
         "src/shards/nalati-grasslands/species/kokbori.ts",
         "src/shards/nalati-grasslands/species/leopard.ts",
         "src/shards/nalati-grasslands/species/presentation.ts",
-        "src/shards/nalati-grasslands/species/rows.ts",
+        "src/shards/nalati-grasslands/species/definitions.ts",
+        "src/shards/nalati-grasslands/species/balbal.ts",
+        "src/shards/nalati-grasslands/species/goldenKing.ts",
+        "src/shards/nalati-grasslands/species/catalogue.ts",
         "src/shards/nalati-grasslands/species/sheepdog.ts",
         "src/shards/nalati-grasslands/species/wolf.ts",
         "src/engine",
@@ -300,7 +303,8 @@
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "src/shards/nalati-grasslands/behaviour"
+        "src/shards/nalati-grasslands/behaviour",
+        "src/shards/nalati-grasslands/data/speciesLooks.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/species.generated.json",
@@ -311,7 +315,9 @@
         "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin"
       ],
       "platform": "portable",
-      "catalogueDependencies": ["nalati-kurgan"]
+      "catalogueDependencies": [
+        "nalati-kurgan"
+      ]
     },
     {
       "id": "nalati-boot-metadata",

@@ -7,7 +7,7 @@ import { listenPage } from '@wildshard/engine/input/dom';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
 import * as THREE from 'three';
-import { BALBAL as KURGAN_BALBAL } from '../species/rows';
+import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
 import layout from '../data/kurganLayout.generated.json' with { type: 'json' };
 import { installBossEncounter, type Boss } from '@wildshard/game/Boss';
 import { GoldenBowPower } from '../runtime/weapons/GoldenBow';

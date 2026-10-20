@@ -67,8 +67,8 @@ for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
   if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));
 }
-const { prepareNalatiSpecies } = await import('../src/shards/nalati-grasslands/species/presentation');
-const { installNalatiSpeciesForTests, prepareGoldenKing } = await import('../src/shards/nalati-grasslands/species/rows');
+const { prepareNalatiSpecies,prepareGoldenKing } = await import('../src/shards/nalati-grasslands/species/presentation');
+const { installNalatiSpeciesForTests } = await import('../src/shards/nalati-grasslands/species/catalogue');
 prepareGoldenKing((await import('../src/shards/nalati-grasslands/data/goldenKingPose.generated.json')).default.programs);
 const speciesPresentation = (await import('../src/shards/nalati-grasslands/data/species.generated.json')).default;
 await prepareNalatiSpecies(speciesPresentation.presentation, Object.values(speciesPresentation.poses).flatMap(pose => pose.programs), Uint8Array.from(speciesPresentation.crackBytes));

@@ -2,7 +2,7 @@ import { EventConditions } from '@wildshard/game/population/returnProgram';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { eliteAdmission } from '../runtime/argymaqKeeper';
 import { NALATI_STRIKES, sampleStrike } from './strikes';
-import { registerNalatiDefinition } from '../species/rows';
+import { registerNalatiDefinition } from '../species/catalogue';
 import { argymaqDefinition } from './eliteRoster';
 import type { SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import { canReach } from '@wildshard/engine/ai/reach';

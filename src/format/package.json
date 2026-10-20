@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./speciesLooks": "./speciesLooks.ts",
     "./rangedPage": "./rangedPage.ts",
     "./forestPage": "./forestPage.ts",
     "./creatureGuest": "./creatureGuest.ts",

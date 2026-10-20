@@ -1,3 +1,4 @@
+import SPECIES_LOOK_ROWS from '../data/speciesLooks.json' with { type: 'json' };
 import strikes from '../data/strikeProfiles.generated.json' with { type: 'json' };
 import { inflateSync, deflateSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
@@ -76,7 +77,7 @@ let last=0;const deltas=Int32Array.from(crackIndex.array,index=>{const delta=ind
 const crackBytes=new Uint8Array(crackSize);let crackAt=0;for(const bytes of crackBlocks){crackBytes.set(bytes,crackAt);crackAt+=bytes.length;}
 const crackRow={attrs:crackAttrs,count:cracks.getAttribute('position').count,index:'u32',indexCount:crackIndex.count,box:false};
 const program={script,bytes:Buffer.from(blob.bytes).toString('base64')};
-const presentation={packedBodies:compactBodies,poses:poseConfigs,cracks:crackRow,program,strike:strikes.balbal};
+const presentation={packedBodies:compactBodies,poses:poseConfigs,cracks:crackRow,program,strike:strikes.balbal,lookBook:{slug:'nalati-grasslands',rows:SPECIES_LOOK_ROWS}};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-species');
 writer.put(fileURLToPath(new URL(`../../../../public${file}`,import.meta.url)),compressed);
 writer.put(fileURLToPath(new URL('../data/species.generated.json',import.meta.url)),jsonBytes({packedBodies,poses:SPECIES_POSES,presentation,crackBytes:Array.from(crackBytes),program}));

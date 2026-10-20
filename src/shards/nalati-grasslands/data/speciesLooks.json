@@ -1,0 +1,1483 @@
+[
+  {
+    "metadata": {
+      "id": "species.nalati.horse",
+      "kind": "horse",
+      "label": "Wild horse",
+      "variants": [
+        {
+          "id": "bay",
+          "label": "Bay mare",
+          "weight": 34,
+          "rarity": "common",
+          "scale": [
+            0.96,
+            1.03
+          ]
+        },
+        {
+          "id": "chestnut",
+          "label": "Chestnut mare",
+          "weight": 24,
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ]
+        },
+        {
+          "id": "dun",
+          "label": "Dun mare",
+          "weight": 14,
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ]
+        },
+        {
+          "id": "grey",
+          "label": "Grey mare",
+          "weight": 10,
+          "rarity": "uncommon",
+          "scale": [
+            0.96,
+            1.03
+          ]
+        },
+        {
+          "id": "black",
+          "label": "Black mare",
+          "weight": 8,
+          "rarity": "uncommon",
+          "scale": [
+            0.96,
+            1.03
+          ]
+        },
+        {
+          "id": "foal-bay",
+          "label": "Foal",
+          "weight": 0,
+          "rarity": "common",
+          "scale": [
+            0.6,
+            0.64
+          ],
+          "hp": 70
+        },
+        {
+          "id": "foal-chestnut",
+          "label": "Foal",
+          "weight": 0,
+          "rarity": "common",
+          "scale": [
+            0.6,
+            0.64
+          ],
+          "hp": 70
+        },
+        {
+          "id": "camp-bay",
+          "label": "Camp horse",
+          "weight": 0,
+          "rarity": "common",
+          "scale": [
+            1,
+            1
+          ]
+        },
+        {
+          "id": "tulpar",
+          "label": "Tulpar",
+          "weight": 0,
+          "rarity": "rare",
+          "scale": [
+            1.08,
+            1.08
+          ],
+          "hp": 150
+        },
+        {
+          "id": "camp-black",
+          "label": "Camp horse",
+          "weight": 0,
+          "rarity": "common",
+          "scale": [
+            1.02,
+            1.02
+          ]
+        },
+        {
+          "id": "stallion",
+          "label": "Black stallion",
+          "weight": 0,
+          "rarity": "rare",
+          "scale": [
+            1.08,
+            1.08
+          ],
+          "hp": 150,
+          "mods": {
+            "chargeDamage": 25
+          }
+        }
+      ],
+      "aggressive": false,
+      "walkSpeed": 1.8,
+      "chargeSpeed": 12,
+      "chargeDamage": 25,
+      "trampleRadius": 0.8,
+      "tuning": {
+        "hp": 150,
+        "sightRange": 45,
+        "sightRangeGraze": 20,
+        "sightCone": 1.2217304763960306,
+        "hearStill": 4,
+        "hearCrouch": 8,
+        "hearWalk": 15,
+        "hearSprint": 30,
+        "noticeRate": 0.4,
+        "forgetRate": 0.2,
+        "alertAt": 0.45,
+        "boltAt": 1,
+        "freezeMin": 2,
+        "freezeMax": 4,
+        "relaxAfter": 4,
+        "panicDist": 10,
+        "runSpeed": 12.5,
+        "trotSpeed": 4.5,
+        "fleeMinTime": 3,
+        "fleeUntil": 80,
+        "fleeUntilMax": 120,
+        "fleeMaxTime": 14,
+        "lookBack": 3,
+        "waryTime": 20,
+        "waryBoost": 1.3,
+        "herdAlertRadius": 20,
+        "herdBoltDelayMin": 0.2,
+        "herdBoltDelayMax": 0.8,
+        "impactSpook": 15,
+        "impactAlert": 40
+      },
+      "sounds": {
+        "call": "horse_neigh",
+        "hurt": "horse_squeal",
+        "callEvery": [
+          40,
+          120
+        ]
+      },
+      "tick": "ai"
+    },
+    "id": "look.nalati.horse",
+    "family": "horse",
+    "rigContract": {
+      "skeleton": "horse.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "pose": {
+      "grazeNeck": 0,
+      "gallopTail": 0.55
+    },
+    "gait": {
+      "trot": 3,
+      "gallop": 6.4
+    },
+    "variants": {
+      "bay": {
+        "body": "horse:{\"tint\":null,\"traits\":null}"
+      },
+      "chestnut": {
+        "body": "horse:{\"tint\":{\"belly\":[0.7,0.42,0.22],\"coat\":[0.62,0.32,0.14],\"dorsal\":[0.62,0.32,0.14],\"mane\":[0.78,0.52,0.28],\"muzzle\":[0.4,0.24,0.15],\"points\":[0.58,0.3,0.13]},\"traits\":{\"blaze\":1,\"socks\":1}}",
+        "tint": {
+          "coat": [
+            0.62,
+            0.32,
+            0.14
+          ],
+          "belly": [
+            0.7,
+            0.42,
+            0.22
+          ],
+          "points": [
+            0.58,
+            0.3,
+            0.13
+          ],
+          "mane": [
+            0.78,
+            0.52,
+            0.28
+          ],
+          "muzzle": [
+            0.4,
+            0.24,
+            0.15
+          ],
+          "dorsal": [
+            0.62,
+            0.32,
+            0.14
+          ]
+        },
+        "traits": {
+          "blaze": 1,
+          "socks": 1
+        }
+      },
+      "dun": {
+        "body": "horse:{\"tint\":{\"belly\":[0.84,0.74,0.56],\"coat\":[0.76,0.62,0.42],\"dorsal\":[0.24,0.17,0.12],\"mane\":[0.1,0.08,0.07],\"muzzle\":[0.3,0.24,0.2],\"points\":[0.1,0.08,0.07]},\"traits\":null}",
+        "tint": {
+          "coat": [
+            0.76,
+            0.62,
+            0.42
+          ],
+          "belly": [
+            0.84,
+            0.74,
+            0.56
+          ],
+          "points": [
+            0.1,
+            0.08,
+            0.07
+          ],
+          "mane": [
+            0.1,
+            0.08,
+            0.07
+          ],
+          "muzzle": [
+            0.3,
+            0.24,
+            0.2
+          ],
+          "dorsal": [
+            0.24,
+            0.17,
+            0.12
+          ]
+        }
+      },
+      "grey": {
+        "body": "horse:{\"tint\":{\"belly\":[0.88,0.88,0.86],\"coat\":[0.8,0.8,0.78],\"dorsal\":[0.8,0.8,0.78],\"earIn\":[0.45,0.4,0.4],\"mane\":[0.55,0.54,0.53],\"muzzle\":[0.24,0.22,0.22],\"points\":[0.36,0.35,0.35]},\"traits\":{\"dapple\":1}}",
+        "tint": {
+          "coat": [
+            0.8,
+            0.8,
+            0.78
+          ],
+          "belly": [
+            0.88,
+            0.88,
+            0.86
+          ],
+          "points": [
+            0.36,
+            0.35,
+            0.35
+          ],
+          "mane": [
+            0.55,
+            0.54,
+            0.53
+          ],
+          "muzzle": [
+            0.24,
+            0.22,
+            0.22
+          ],
+          "earIn": [
+            0.45,
+            0.4,
+            0.4
+          ],
+          "dorsal": [
+            0.8,
+            0.8,
+            0.78
+          ]
+        },
+        "traits": {
+          "dapple": 1
+        }
+      },
+      "black": {
+        "body": "horse:{\"tint\":{\"belly\":[0.18,0.165,0.16],\"coat\":[0.16,0.15,0.155],\"dorsal\":[0.13,0.12,0.125],\"earIn\":[0.1,0.08,0.08],\"mane\":[0.05,0.045,0.05],\"muzzle\":[0.14,0.12,0.12],\"points\":[0.07,0.065,0.068]},\"traits\":null}",
+        "tint": {
+          "coat": [
+            0.16,
+            0.15,
+            0.155
+          ],
+          "belly": [
+            0.18,
+            0.165,
+            0.16
+          ],
+          "points": [
+            0.07,
+            0.065,
+            0.068
+          ],
+          "mane": [
+            0.05,
+            0.045,
+            0.05
+          ],
+          "muzzle": [
+            0.14,
+            0.12,
+            0.12
+          ],
+          "earIn": [
+            0.1,
+            0.08,
+            0.08
+          ],
+          "dorsal": [
+            0.13,
+            0.12,
+            0.125
+          ]
+        }
+      },
+      "foal-bay": {
+        "body": "horse:{\"tint\":{\"belly\":[0.76,0.6,0.44],\"coat\":[0.66,0.45,0.3],\"dorsal\":[0.66,0.45,0.3],\"mane\":[0.3,0.22,0.16],\"muzzle\":[0.42,0.33,0.28],\"points\":[0.72,0.58,0.44]},\"traits\":{\"foal\":1,\"mane\":0.6}}",
+        "tint": {
+          "coat": [
+            0.66,
+            0.45,
+            0.3
+          ],
+          "belly": [
+            0.76,
+            0.6,
+            0.44
+          ],
+          "points": [
+            0.72,
+            0.58,
+            0.44
+          ],
+          "mane": [
+            0.3,
+            0.22,
+            0.16
+          ],
+          "muzzle": [
+            0.42,
+            0.33,
+            0.28
+          ],
+          "dorsal": [
+            0.66,
+            0.45,
+            0.3
+          ]
+        },
+        "traits": {
+          "foal": 1,
+          "mane": 0.6
+        }
+      },
+      "foal-chestnut": {
+        "body": "horse:{\"tint\":{\"belly\":[0.84,0.64,0.46],\"coat\":[0.74,0.46,0.26],\"dorsal\":[0.74,0.46,0.26],\"mane\":[0.84,0.62,0.4],\"muzzle\":[0.5,0.36,0.28],\"points\":[0.8,0.6,0.42]},\"traits\":{\"foal\":1,\"mane\":0.6}}",
+        "tint": {
+          "coat": [
+            0.74,
+            0.46,
+            0.26
+          ],
+          "belly": [
+            0.84,
+            0.64,
+            0.46
+          ],
+          "points": [
+            0.8,
+            0.6,
+            0.42
+          ],
+          "mane": [
+            0.84,
+            0.62,
+            0.4
+          ],
+          "muzzle": [
+            0.5,
+            0.36,
+            0.28
+          ],
+          "dorsal": [
+            0.74,
+            0.46,
+            0.26
+          ]
+        },
+        "traits": {
+          "foal": 1,
+          "mane": 0.6
+        }
+      },
+      "camp-bay": {
+        "body": "horse:{\"tint\":null,\"traits\":{\"tack\":1}}",
+        "traits": {
+          "tack": 1
+        }
+      },
+      "tulpar": {
+        "body": "horse:{\"tint\":{\"belly\":[0.18,0.165,0.16],\"coat\":[0.16,0.15,0.155],\"dorsal\":[0.13,0.12,0.125],\"earIn\":[0.1,0.08,0.08],\"mane\":[0.05,0.045,0.05],\"muzzle\":[0.14,0.12,0.12],\"points\":[0.07,0.065,0.068]},\"traits\":{\"mane\":1.7,\"stallion\":1,\"tack\":1}}",
+        "tint": {
+          "coat": [
+            0.16,
+            0.15,
+            0.155
+          ],
+          "belly": [
+            0.18,
+            0.165,
+            0.16
+          ],
+          "points": [
+            0.07,
+            0.065,
+            0.068
+          ],
+          "mane": [
+            0.05,
+            0.045,
+            0.05
+          ],
+          "muzzle": [
+            0.14,
+            0.12,
+            0.12
+          ],
+          "earIn": [
+            0.1,
+            0.08,
+            0.08
+          ],
+          "dorsal": [
+            0.13,
+            0.12,
+            0.125
+          ]
+        },
+        "traits": {
+          "tack": 1,
+          "mane": 1.7,
+          "stallion": 1
+        }
+      },
+      "camp-black": {
+        "body": "horse:{\"tint\":{\"belly\":[0.18,0.165,0.16],\"coat\":[0.16,0.15,0.155],\"dorsal\":[0.13,0.12,0.125],\"earIn\":[0.1,0.08,0.08],\"mane\":[0.05,0.045,0.05],\"muzzle\":[0.14,0.12,0.12],\"points\":[0.07,0.065,0.068]},\"traits\":{\"blaze\":1,\"mane\":1.3,\"tack\":1}}",
+        "tint": {
+          "coat": [
+            0.16,
+            0.15,
+            0.155
+          ],
+          "belly": [
+            0.18,
+            0.165,
+            0.16
+          ],
+          "points": [
+            0.07,
+            0.065,
+            0.068
+          ],
+          "mane": [
+            0.05,
+            0.045,
+            0.05
+          ],
+          "muzzle": [
+            0.14,
+            0.12,
+            0.12
+          ],
+          "earIn": [
+            0.1,
+            0.08,
+            0.08
+          ],
+          "dorsal": [
+            0.13,
+            0.12,
+            0.125
+          ]
+        },
+        "traits": {
+          "tack": 1,
+          "blaze": 1,
+          "mane": 1.3
+        }
+      },
+      "stallion": {
+        "body": "horse:{\"tint\":{\"belly\":[0.18,0.165,0.16],\"coat\":[0.16,0.15,0.155],\"dorsal\":[0.13,0.12,0.125],\"earIn\":[0.1,0.08,0.08],\"mane\":[0.05,0.045,0.05],\"muzzle\":[0.14,0.12,0.12],\"points\":[0.07,0.065,0.068]},\"traits\":{\"mane\":1.7,\"stallion\":1}}",
+        "tint": {
+          "coat": [
+            0.16,
+            0.15,
+            0.155
+          ],
+          "belly": [
+            0.18,
+            0.165,
+            0.16
+          ],
+          "points": [
+            0.07,
+            0.065,
+            0.068
+          ],
+          "mane": [
+            0.05,
+            0.045,
+            0.05
+          ],
+          "muzzle": [
+            0.14,
+            0.12,
+            0.12
+          ],
+          "earIn": [
+            0.1,
+            0.08,
+            0.08
+          ],
+          "dorsal": [
+            0.13,
+            0.12,
+            0.125
+          ]
+        },
+        "traits": {
+          "mane": 1.7,
+          "stallion": 1
+        }
+      }
+    },
+    "material": {
+      "rim": 0.8,
+      "bands": 0.85
+    }
+  },
+  {
+    "metadata": {
+      "id": "species.nalati.wolf",
+      "kind": "wolf",
+      "label": "Steppe wolf",
+      "variants": [
+        {
+          "id": "grey",
+          "label": "Steppe wolf",
+          "weight": 50,
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.05
+          ]
+        },
+        {
+          "id": "tawny",
+          "label": "Steppe wolf",
+          "weight": 30,
+          "rarity": "common",
+          "scale": [
+            0.92,
+            1.02
+          ]
+        },
+        {
+          "id": "dark",
+          "label": "Dark wolf",
+          "weight": 8,
+          "rarity": "uncommon",
+          "scale": [
+            1,
+            1.08
+          ]
+        },
+        {
+          "id": "scout",
+          "label": "Young wolf",
+          "weight": 12,
+          "rarity": "common",
+          "scale": [
+            0.84,
+            0.86
+          ],
+          "hp": 55
+        },
+        {
+          "id": "alpha",
+          "label": "Greymane",
+          "weight": 0,
+          "rarity": "rare",
+          "scale": [
+            1.16,
+            1.16
+          ],
+          "hp": 110,
+          "mods": {
+            "chargeDamage": 18
+          }
+        }
+      ],
+      "aggressive": true,
+      "walkSpeed": 1.6,
+      "chargeSpeed": 9.5,
+      "chargeDamage": 12,
+      "trampleRadius": 0.45,
+      "tuning": {
+        "hp": 70,
+        "sightRange": 35,
+        "sightRangeGraze": 35,
+        "sightCone": 1.2217304763960306,
+        "hearStill": 4,
+        "hearCrouch": 8,
+        "hearWalk": 16,
+        "hearSprint": 30,
+        "noticeRate": 0.45,
+        "forgetRate": 0.12,
+        "alertAt": 0.35,
+        "boltAt": 1,
+        "freezeMin": 0.5,
+        "freezeMax": 1,
+        "relaxAfter": 8,
+        "panicDist": 0,
+        "runSpeed": 9.5,
+        "trotSpeed": 4,
+        "fleeMinTime": 2,
+        "fleeUntil": 60,
+        "fleeUntilMax": 80,
+        "fleeMaxTime": 12,
+        "lookBack": 1,
+        "waryTime": 30,
+        "waryBoost": 1.3,
+        "herdAlertRadius": 40,
+        "herdBoltDelayMin": 0.2,
+        "herdBoltDelayMax": 0.6,
+        "impactSpook": 0,
+        "impactAlert": 25
+      },
+      "sounds": {
+        "call": "wolf_howl",
+        "hurt": "wolf_yelp",
+        "callEvery": [
+          60,
+          160
+        ]
+      },
+      "tick": "ai",
+      "lockable": true
+    },
+    "id": "look.nalati.wolf",
+    "family": "canid",
+    "rigContract": {
+      "skeleton": "wolf.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "pose": {
+      "grazeNeck": 0.5,
+      "gallopTail": 0.3
+    },
+    "gait": {
+      "trot": 1.8,
+      "gallop": 5.6
+    },
+    "variants": {
+      "grey": {
+        "body": "canid:{\"tint\":null,\"traits\":null}"
+      },
+      "tawny": {
+        "body": "canid:{\"tint\":{\"back\":[0.3,0.24,0.19],\"cream\":[0.92,0.84,0.7],\"leg\":[0.72,0.56,0.37],\"side\":[0.72,0.55,0.34]},\"traits\":null}",
+        "tint": {
+          "back": [
+            0.3,
+            0.24,
+            0.19
+          ],
+          "side": [
+            0.72,
+            0.55,
+            0.34
+          ],
+          "leg": [
+            0.72,
+            0.56,
+            0.37
+          ],
+          "cream": [
+            0.92,
+            0.84,
+            0.7
+          ]
+        }
+      },
+      "dark": {
+        "body": "canid:{\"tint\":{\"back\":[0.15,0.14,0.14],\"cream\":[0.62,0.58,0.52],\"leg\":[0.36,0.33,0.3],\"side\":[0.32,0.3,0.28]},\"traits\":null}",
+        "tint": {
+          "back": [
+            0.15,
+            0.14,
+            0.14
+          ],
+          "side": [
+            0.32,
+            0.3,
+            0.28
+          ],
+          "leg": [
+            0.36,
+            0.33,
+            0.3
+          ],
+          "cream": [
+            0.62,
+            0.58,
+            0.52
+          ]
+        }
+      },
+      "scout": {
+        "body": "canid:{\"tint\":{\"back\":[0.32,0.29,0.25],\"leg\":[0.74,0.64,0.5],\"side\":[0.72,0.62,0.48]},\"traits\":{\"ruff\":0.8}}",
+        "tint": {
+          "back": [
+            0.32,
+            0.29,
+            0.25
+          ],
+          "side": [
+            0.72,
+            0.62,
+            0.48
+          ],
+          "leg": [
+            0.74,
+            0.64,
+            0.5
+          ]
+        },
+        "traits": {
+          "ruff": 0.8
+        }
+      },
+      "alpha": {
+        "body": "canid:{\"tint\":{\"back\":[0.34,0.34,0.36],\"cream\":[0.95,0.94,0.91],\"leg\":[0.7,0.66,0.6],\"side\":[0.72,0.7,0.66]},\"traits\":{\"ruff\":1.25,\"scar\":1}}",
+        "tint": {
+          "back": [
+            0.34,
+            0.34,
+            0.36
+          ],
+          "side": [
+            0.72,
+            0.7,
+            0.66
+          ],
+          "cream": [
+            0.95,
+            0.94,
+            0.91
+          ],
+          "leg": [
+            0.7,
+            0.66,
+            0.6
+          ]
+        },
+        "traits": {
+          "scar": 1,
+          "ruff": 1.25
+        }
+      }
+    },
+    "material": {
+      "rim": 0.8,
+      "bands": 0.85
+    }
+  },
+  {
+    "metadata": {
+      "id": "species.nalati.sheepdog",
+      "kind": "sheepdog",
+      "label": "Sheepdog",
+      "variants": [
+        {
+          "id": "collie",
+          "label": "Sheepdog",
+          "weight": 1,
+          "rarity": "common",
+          "scale": [
+            0.7,
+            0.72
+          ],
+          "hp": 60
+        }
+      ],
+      "aggressive": false,
+      "walkSpeed": 1.4,
+      "sounds": {
+        "call": "dog_bark",
+        "hurt": "dog_yelp",
+        "callEvery": [
+          40,
+          120
+        ]
+      },
+      "tick": "ai"
+    },
+    "id": "look.nalati.sheepdog",
+    "family": "canid",
+    "rigContract": {
+      "skeleton": "sheepdog.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "pose": {
+      "grazeNeck": 0.5,
+      "gallopTail": 0.2
+    },
+    "gait": {
+      "trot": 1.6,
+      "gallop": 5
+    },
+    "variants": {
+      "collie": {
+        "body": "canid:{\"tint\":{\"back\":[0.06,0.06,0.065],\"cream\":[0.93,0.92,0.89],\"dark\":[0.05,0.05,0.05],\"earIn\":[0.3,0.22,0.2],\"eye\":[0.3,0.18,0.08],\"leg\":[0.92,0.91,0.88],\"side\":[0.08,0.075,0.08]},\"traits\":{\"dog\":1,\"ruff\":1.1}}",
+        "tint": {
+          "back": [
+            0.06,
+            0.06,
+            0.065
+          ],
+          "side": [
+            0.08,
+            0.075,
+            0.08
+          ],
+          "cream": [
+            0.93,
+            0.92,
+            0.89
+          ],
+          "leg": [
+            0.92,
+            0.91,
+            0.88
+          ],
+          "dark": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "earIn": [
+            0.3,
+            0.22,
+            0.2
+          ],
+          "eye": [
+            0.3,
+            0.18,
+            0.08
+          ]
+        },
+        "traits": {
+          "dog": 1,
+          "ruff": 1.1
+        }
+      }
+    },
+    "material": {
+      "rim": 0.8,
+      "bands": 0.85
+    }
+  },
+  {
+    "metadata": {
+      "id": "species.nalati.balbal",
+      "kind": "balbal",
+      "label": "Balbal",
+      "variants": [
+        {
+          "id": "warrior",
+          "label": "Balbal",
+          "weight": 2,
+          "rarity": "uncommon",
+          "scale": [
+            1.15,
+            1.22
+          ],
+          "hp": 220
+        },
+        {
+          "id": "capped",
+          "label": "Balbal",
+          "weight": 1,
+          "rarity": "uncommon",
+          "scale": [
+            1.15,
+            1.22
+          ],
+          "hp": 220
+        }
+      ],
+      "aggressive": true,
+      "walkSpeed": 1.25,
+      "chargeDamage": 30,
+      "sounds": {
+        "call": "bear_growl",
+        "hurt": "crab_click",
+        "callEvery": [
+          10,
+          22
+        ]
+      },
+      "tick": "ai",
+      "blood": false,
+      "lockable": true
+    },
+    "id": "look.nalati.balbal",
+    "family": "balbal",
+    "rigContract": {
+      "skeleton": "balbal.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "rig": "custom",
+    "variants": {
+      "warrior": {
+        "body": "balbal:{\"tint\":null,\"traits\":null}"
+      },
+      "capped": {
+        "body": "balbal:{\"tint\":null,\"traits\":{\"cap\":true}}",
+        "traits": {
+          "cap": true
+        }
+      }
+    },
+    "material": {
+      "rim": 0.8,
+      "bands": 0.85
+    }
+  },
+  {
+    "metadata": {
+      "id": "species.nalati.golden-king",
+      "kind": "golden-king",
+      "label": "The Golden King",
+      "variants": [
+        {
+          "id": "king",
+          "label": "The Golden King",
+          "weight": 1,
+          "rarity": "legendary",
+          "scale": [
+            1.22,
+            1.22
+          ],
+          "hp": 2400
+        }
+      ],
+      "aggressive": true,
+      "walkSpeed": 1.5,
+      "chargeDamage": 14,
+      "sounds": {
+        "call": "king_call",
+        "hurt": "king_hurt",
+        "callEvery": [
+          18,
+          40
+        ]
+      },
+      "tick": "always",
+      "lockable": true
+    },
+    "id": "look.nalati.golden-king",
+    "family": "goldenKing",
+    "rigContract": {
+      "skeleton": "goldenKing.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "rig": "custom",
+    "eyeGlow": [
+      0.9,
+      0.55,
+      0.12
+    ],
+    "eyeGlowIntensity": 0.18,
+    "variants": {
+      "king": {
+        "body": "goldenKing:{\"tint\":null,\"traits\":null}"
+      }
+    },
+    "material": {
+      "rim": 0.8,
+      "bands": 0.85
+    }
+  },
+  {
+    "metadata": {
+      "id": "species.nalati.leopard",
+      "kind": "leopard",
+      "label": "Snow leopard",
+      "variants": [
+        {
+          "id": "aqbars",
+          "label": "Aqbars the Pale",
+          "weight": 1,
+          "rarity": "legendary",
+          "scale": [
+            1.5,
+            1.5
+          ],
+          "hp": 700
+        }
+      ],
+      "aggressive": true,
+      "walkSpeed": 1.4,
+      "chargeSpeed": 11,
+      "chargeDamage": 14,
+      "sounds": {
+        "call": "leopard_growl",
+        "hurt": "leopard_growl",
+        "callEvery": [
+          40,
+          90
+        ]
+      },
+      "tick": "ai",
+      "lockable": true
+    },
+    "id": "look.nalati.leopard",
+    "family": "leopard",
+    "rigContract": {
+      "skeleton": "leopard.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "pose": {
+      "grazeNeck": 0.3,
+      "gallopTail": 0.2
+    },
+    "gait": {
+      "trot": 2.2,
+      "gallop": 6
+    },
+    "variants": {
+      "aqbars": {
+        "body": "leopard:{\"tint\":null,\"traits\":null}"
+      }
+    },
+    "material": {
+      "rim": 0.8,
+      "bands": 0.85
+    }
+  },
+  {
+    "metadata": {
+      "id": "species.nalati.eagle",
+      "kind": "eagle",
+      "label": "Golden eagle",
+      "variants": [
+        {
+          "id": "qyran",
+          "label": "Qyran the Storm-Wing",
+          "weight": 1,
+          "rarity": "legendary",
+          "scale": [
+            3,
+            3
+          ],
+          "hp": 600
+        }
+      ],
+      "aggressive": true,
+      "walkSpeed": 0.5,
+      "chargeDamage": 30,
+      "sounds": {
+        "call": "eagle_cry",
+        "hurt": "eagle_cry",
+        "callEvery": [
+          8,
+          18
+        ]
+      },
+      "tick": "ai",
+      "lockable": true
+    },
+    "id": "look.nalati.eagle",
+    "family": "eagle",
+    "rigContract": {
+      "skeleton": "eagle.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "rig": "custom",
+    "variants": {
+      "qyran": {
+        "body": "eagle:{\"tint\":null,\"traits\":null}"
+      }
+    },
+    "material": {
+      "rim": 0.8,
+      "bands": 0.85
+    }
+  },
+  {
+    "metadata": {
+      "id": "species.nalati.ghost-rider",
+      "kind": "ghost-rider",
+      "label": "Ghost rider",
+      "variants": [
+        {
+          "id": "rider",
+          "label": "Ghost rider",
+          "weight": 1,
+          "rarity": "rare",
+          "scale": [
+            1,
+            1.04
+          ],
+          "hp": 70
+        },
+        {
+          "id": "captain",
+          "label": "Qara Batyr",
+          "weight": 0,
+          "rarity": "legendary",
+          "scale": [
+            1.12,
+            1.12
+          ],
+          "hp": 800
+        }
+      ],
+      "aggressive": true,
+      "walkSpeed": 8.5,
+      "chargeSpeed": 13,
+      "chargeDamage": 20,
+      "sounds": {
+        "call": "horse_snort",
+        "hurt": "horse_squeal",
+        "callEvery": [
+          30,
+          70
+        ]
+      },
+      "tick": "ai",
+      "blood": false,
+      "lockable": true
+    },
+    "id": "look.nalati.ghost-rider",
+    "family": "horse",
+    "rigContract": {
+      "skeleton": "ghostRider.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "pose": {
+      "grazeNeck": 0,
+      "gallopTail": 0.55
+    },
+    "gait": {
+      "trot": 3,
+      "gallop": 6.4
+    },
+    "variants": {
+      "rider": {
+        "body": "horse:{\"tint\":null,\"traits\":{\"mane\":1.8,\"tack\":1}}",
+        "traits": {
+          "tack": 1,
+          "mane": 1.8
+        }
+      },
+      "captain": {
+        "body": "horse:{\"tint\":null,\"traits\":{\"mane\":2.2,\"stallion\":1,\"tack\":1}}",
+        "traits": {
+          "tack": 1,
+          "mane": 2.2,
+          "stallion": 1
+        }
+      }
+    },
+    "material": {
+      "rim": 0.8,
+      "bands": 0.85
+    }
+  },
+  {
+    "metadata": {
+      "id": "species.nalati.kokbori",
+      "kind": "kokbori",
+      "label": "Kokbori",
+      "variants": [
+        {
+          "id": "kokbori",
+          "label": "Kokbori, Mother of the Pack",
+          "weight": 1,
+          "rarity": "legendary",
+          "scale": [
+            2.6,
+            2.6
+          ],
+          "hp": 650
+        }
+      ],
+      "aggressive": true,
+      "walkSpeed": 1.8,
+      "chargeSpeed": 11,
+      "chargeDamage": 22,
+      "sounds": {
+        "call": "wolf_howl",
+        "hurt": "wolf_yelp",
+        "callEvery": [
+          50,
+          120
+        ]
+      },
+      "tick": "ai",
+      "lockable": true
+    },
+    "id": "look.nalati.kokbori",
+    "family": "canid",
+    "rigContract": {
+      "skeleton": "kokbori.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "pose": {
+      "grazeNeck": 0.5,
+      "gallopTail": 0.3
+    },
+    "gait": {
+      "trot": 1.8,
+      "gallop": 5.6
+    },
+    "variants": {
+      "kokbori": {
+        "body": "canid:{\"tint\":{\"back\":[0.4,0.44,0.5],\"cream\":[0.93,0.94,0.96],\"dark\":[0.2,0.22,0.26],\"earIn\":[0.7,0.7,0.74],\"eye\":[0.78,0.9,0.96],\"leg\":[0.6,0.64,0.69],\"side\":[0.64,0.68,0.73]},\"traits\":{\"ruff\":1.45}}",
+        "tint": {
+          "back": [
+            0.4,
+            0.44,
+            0.5
+          ],
+          "side": [
+            0.64,
+            0.68,
+            0.73
+          ],
+          "cream": [
+            0.93,
+            0.94,
+            0.96
+          ],
+          "leg": [
+            0.6,
+            0.64,
+            0.69
+          ],
+          "dark": [
+            0.2,
+            0.22,
+            0.26
+          ],
+          "eye": [
+            0.78,
+            0.9,
+            0.96
+          ],
+          "earIn": [
+            0.7,
+            0.7,
+            0.74
+          ]
+        },
+        "traits": {
+          "ruff": 1.45
+        }
+      }
+    },
+    "material": {
+      "rim": 0.8,
+      "bands": 0.85
+    }
+  },
+  {
+    "metadata": {
+      "id": "species.nalati.argymaq",
+      "kind": "argymaq",
+      "label": "Argymaq",
+      "variants": [
+        {
+          "id": "stallion",
+          "label": "Argymaq the Unbroken",
+          "weight": 1,
+          "rarity": "legendary",
+          "scale": [
+            1.3,
+            1.3
+          ],
+          "hp": 750,
+          "mods": {
+            "chargeDamage": 25
+          }
+        }
+      ],
+      "aggressive": false,
+      "walkSpeed": 1.8,
+      "chargeSpeed": 12,
+      "chargeDamage": 25,
+      "trampleRadius": 0.8,
+      "tuning": {
+        "hp": 150,
+        "sightRange": 45,
+        "sightRangeGraze": 20,
+        "sightCone": 1.2217304763960306,
+        "hearStill": 4,
+        "hearCrouch": 8,
+        "hearWalk": 15,
+        "hearSprint": 30,
+        "noticeRate": 0.4,
+        "forgetRate": 0.2,
+        "alertAt": 0.45,
+        "boltAt": 1,
+        "freezeMin": 2,
+        "freezeMax": 4,
+        "relaxAfter": 4,
+        "panicDist": 10,
+        "runSpeed": 12.5,
+        "trotSpeed": 4.5,
+        "fleeMinTime": 3,
+        "fleeUntil": 80,
+        "fleeUntilMax": 120,
+        "fleeMaxTime": 14,
+        "lookBack": 3,
+        "waryTime": 20,
+        "waryBoost": 1.3,
+        "herdAlertRadius": 20,
+        "herdBoltDelayMin": 0.2,
+        "herdBoltDelayMax": 0.8,
+        "impactSpook": 15,
+        "impactAlert": 40
+      },
+      "sounds": {
+        "call": "horse_neigh",
+        "hurt": "horse_squeal",
+        "callEvery": [
+          40,
+          120
+        ]
+      },
+      "tick": "ai"
+    },
+    "id": "look.nalati.argymaq",
+    "family": "horse",
+    "rigContract": {
+      "skeleton": "horse.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "pose": {
+      "grazeNeck": 0,
+      "gallopTail": 0.55
+    },
+    "gait": {
+      "trot": 3,
+      "gallop": 6.4
+    },
+    "variants": {
+      "stallion": {
+        "body": "horse:{\"tint\":{\"belly\":[0.18,0.165,0.16],\"coat\":[0.16,0.15,0.155],\"dorsal\":[0.13,0.12,0.125],\"earIn\":[0.1,0.08,0.08],\"mane\":[0.05,0.045,0.05],\"muzzle\":[0.14,0.12,0.12],\"points\":[0.07,0.065,0.068]},\"traits\":{\"mane\":2.2,\"scar\":1,\"stallion\":1}}",
+        "tint": {
+          "coat": [
+            0.16,
+            0.15,
+            0.155
+          ],
+          "belly": [
+            0.18,
+            0.165,
+            0.16
+          ],
+          "points": [
+            0.07,
+            0.065,
+            0.068
+          ],
+          "mane": [
+            0.05,
+            0.045,
+            0.05
+          ],
+          "muzzle": [
+            0.14,
+            0.12,
+            0.12
+          ],
+          "earIn": [
+            0.1,
+            0.08,
+            0.08
+          ],
+          "dorsal": [
+            0.13,
+            0.12,
+            0.125
+          ]
+        },
+        "traits": {
+          "mane": 2.2,
+          "stallion": 1,
+          "scar": 1
+        }
+      }
+    },
+    "material": {
+      "rim": 0.8,
+      "bands": 0.85
+    }
+  }
+]

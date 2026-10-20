@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./looks/speciesBook": "./looks/speciesBook.ts",
+    "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./audio/forestPage": "./audio/forestPage.ts",
     "./loadout/rangedPage": "./loadout/rangedPage.ts",
     "./shardfile/forestPage": "./shardfile/forestPage.ts",

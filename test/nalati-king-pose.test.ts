@@ -6,7 +6,8 @@ import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { expect, test } from 'vitest';
 import type { AnimalRigContext } from '../src/engine/entities/animalRig';
 import { Rng } from '../src/engine/core/rng';
-import { NALATI_DEFINITIONS, animateGoldenKing } from '../src/shards/nalati-grasslands/species/rows';
+import { NALATI_DEFINITIONS } from '../src/shards/nalati-grasslands/species/definitions';
+import { animateGoldenKing } from '../src/shards/nalati-grasslands/species/presentation';
 import { animateKing } from './fixtures/nalati-king-pose';
 
 const names = ['body', 'spine', 'chest', 'head', 'crown', 'cape', ...['L', 'R'].flatMap(side =>

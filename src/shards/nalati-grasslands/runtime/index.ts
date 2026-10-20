@@ -1,10 +1,10 @@
-import { prepareNalatiSpecies } from '../species/presentation';
+import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
 import { prepareStormTitan } from '../combat/stormTitan';
 import { prepareNalatiReins } from './reins';
 import { prepareSabre, prepareSpear } from '../weapons/nativeMelee';
 
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { NALATI_SPECIES, NALATI_LOOKS, prepareGoldenKing } from '../species/rows';
+import { nalatiSpecies,nalatiLooks } from '../species/catalogue';
 import NALATI_FEATS from '../data/feats.json' with { type: 'json' };
 import type { AchievementDef } from '@wildshard/game/achievements';
 import { renderFinds } from '@wildshard/game/bag/bag';
@@ -117,8 +117,8 @@ export class NalatiPlugin extends ShardPlugin {
   override kit(ctx: ShardContext): void {
     const shell = host(ctx), world = shell.world;
     if (world === null) throw new Error('Nalati equipment requires a world');
-    ctx.rows.species(NALATI_SPECIES);
-    ctx.rows.speciesLook(NALATI_LOOKS);
+    ctx.rows.species(nalatiSpecies());
+    ctx.rows.speciesLook(nalatiLooks());
     ctx.rows.feat(NALATI_FEATS.map(readFeat));
     ctx.rows.weapon(['weapon.bow', 'weapon.sabre', 'weapon.spear', 'weapon.rifle'].map(id => readItemEquipment(ctx.product.shardfile.items, id)));
     shell.buildEquipment = async (targets, nolock) => {

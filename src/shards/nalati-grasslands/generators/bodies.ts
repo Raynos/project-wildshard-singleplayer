@@ -15,7 +15,7 @@ import { KOKBORI_SPECIES } from '../species/kokbori';
 import { GHOSTRIDER_SPECIES } from '../species/ghostRider';
 import { LEOPARD_SPECIES } from '../species/leopard';
 import { EAGLE_SPECIES } from '../species/eagle';
-import { BALBAL_SPECIES } from '../species/rows';
+import { BALBAL_SPECIES } from '../species/balbal';
 import { argymaqDefinition } from '../combat/eliteRoster';
 import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from '../species/bodyKey';
 
