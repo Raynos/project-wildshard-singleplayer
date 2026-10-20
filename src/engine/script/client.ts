@@ -1,5 +1,6 @@
 import * as v from 'valibot';
-import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptHostState, type ScriptCall } from './host';
+import { ScriptHost, type ScriptHostState, type ScriptCall } from './host';
+import { SCRIPT_PARAMETER_QUERY } from '@wildshard/format/scriptAbi';
 import { ScriptWorld, type ScriptEffect, type EffectTransaction } from './effects';
 import type { ScriptModule } from './lane';
 

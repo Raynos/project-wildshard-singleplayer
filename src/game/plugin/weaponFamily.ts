@@ -14,7 +14,8 @@ import type { ItemFamily, ItemFamilyPorts } from "@wildshard/engine/combat/itemF
 import type { ItemSpec } from "@wildshard/engine/combat/items";
 import { buildSword } from "../systems/items/declaredSword";
 import { parseWeaponHooks, type WeaponHooksData } from "@wildshard/format/weaponHooks";
-import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptSnapshot } from "@wildshard/engine/script/host";
+import { ScriptHost, type ScriptSnapshot } from "@wildshard/engine/script/host";
+import { SCRIPT_PARAMETER_QUERY } from '@wildshard/format/scriptAbi';
 import { ScriptWorld, SCRIPT_OP, type EffectTransaction, type ScriptEffect } from "@wildshard/engine/script/effects";
 import type { LevelContext } from "@wildshard/engine/level/context";
 import { directorVariant } from "../shardfile/directorClient";

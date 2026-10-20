@@ -9,3 +9,6 @@ export const SCRIPT_IMPORTS: Readonly<Record<string, readonly number[]>> = Objec
   enter: [0], leave: [0], fuel: [0x7f, 0], abort: [0x7f, 0x7f, 0x7f, 0x7f, 0], query: [0x7f, 0x7f, 0x7f, 0x7f],
   finite32: [0x7d, 0x7d], finite64: [0x7c, 0x7c],
 });
+
+/** Read-only declared numeric parameters; the host supplies the trusted calling entity to the query adapter. */
+export const SCRIPT_PARAMETER_QUERY = 410;

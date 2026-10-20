@@ -1,5 +1,5 @@
 import * as scriptLimits from '@wildshard/format/scriptLimits';
-import { SCRIPT_ABI } from '@wildshard/format/scriptAbi';
+import { SCRIPT_ABI, SCRIPT_PARAMETER_QUERY } from '@wildshard/format/scriptAbi';
 import { admitScript, type ScriptAdmission } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_OP, type ScriptEffect, type ScriptEvent, type ScriptWorld } from './effects';
 import { scriptFailure } from './strings';
@@ -14,8 +14,6 @@ export type ScriptLimits = scriptLimits.ScriptLimits;
 export const SCRIPT_LIMITS = scriptLimits.SCRIPT_LIMITS;
 /** Deterministic, read-only query input/output; replies may be recorded for replay/conformance. */
 export type ScriptQuery = (kind: number, input: readonly number[], entity: number) => readonly number[];
-/** Read-only declared numeric parameters; the host supplies the trusted calling entity to the query adapter. */
-export const SCRIPT_PARAMETER_QUERY = 410;
 /** A complete linear-memory + mutable-global snapshot, never a live view of Wasm state. */
 export interface ScriptSnapshot { memory: Uint8Array; globals: ReadonlyMap<string, number | bigint> }
 /** JSON-compatible complete continuation; counters, pending events and quarantine history affect replay. */

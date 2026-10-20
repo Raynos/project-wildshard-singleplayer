@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type { AnimalSim } from '../entities/AnimalSim';
-import { SCRIPT_PARAMETER_QUERY, type ScriptQuery, type ScriptCall } from '../script/host';
+import type { ScriptQuery, ScriptCall } from '../script/host';
+import { SCRIPT_PARAMETER_QUERY } from '@wildshard/format/scriptAbi';
 import { ScriptWorld, SCRIPT_OP, type ScriptEffect, type EffectTransaction } from '../script/effects';
 import type { ScriptModule } from '../script/lane';
 import type { ScriptRole, ScriptSchedule, ScheduledScriptBinding } from '../script/composition';
