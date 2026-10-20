@@ -2,18 +2,18 @@
 
 Each task is a fresh session with this file and the task (G511); AGENTS.md and docs/process/ hold the rest.
 
-- **Small commits early and often (Jake):** land each green cut as its own commit at once; never bundle or sit on one.
+- **Small commits early and often (Jake):** land each green cut at once; never bundle or sit on one.
 - **Mega-build (G507):** only cut and land code; no boards, soaks, receipts or extra docs.
-- **Queue (G513, G518):** easy cuts toward 0 % on every shard (G518), biggest first; whole modules onto existing hosts or data; a new or grown host
-  needs a REAL second shard driving it this wave, never a fixture (G518), and HOST-BAR ≥ 5/6; state net lines; single-shard logic to AS + data at ≤ 10 Hz (G470, G503). AS engine work is WASM-HOST's (G517): no edits to
+- **Queue (G513, G518):** easy cuts toward 0 %, biggest first; whole modules onto existing hosts or data; a new or grown host
+  needs a REAL second shard this wave, never a fixture, and HOST-BAR ≥ 5/6; state net lines; one-shard logic to AS + data at ≤ 10 Hz (G470). AS engine work is WASM-HOST's (G517): no edits to
   engine/script, sdk/bake/compileScript, format/scriptAbi*/scriptAdmission* beyond bug fixes.
 - **Per batch (G506, G509):** `scripts/batch-check.sh <shard…>` (types, lint, focused tests, one headless boot of
-  each touched shard) + the push gate. One check covers all pending cuts; never re-check a landed commit. Similar, not identical
-  (G415); delete a fragile test that blocks a cut (G416).
+  each touched shard) + the push gate. Touched looks, scenes, client plan or boot: also a real browser first frame
+  of each touched shard (headless boots skip the client). One check per batch; never re-check a landed commit. Similar,
+  not identical (G415); delete a fragile test that blocks a cut (G416).
 - **No polling (G510):** waits run in a script that wakes you only on a new actionable failure. Logs go to a file;
-  read the failure before a rerun; never launch an identical job twice (G511).
-- **Messages:** none between lanes. Only `scripts/herdr-prompt.sh wildshard-new "<blocker>"`, only for a blocker.
-  Never message wildshard-v or use the question tool.
+  read the failure first; never rerun an identical job (G511).
+- **Messages:** only `scripts/herdr-prompt.sh wildshard-new "<blocker>"`; never wildshard-v or the question tool.
 - **Commits (GIT.md):** pathspec or a private index built on the current HEAD; never stash, reset or restore others'
   files; Conventional subject ≤ 50 chars, body wrapped at 72 with `net -N shard lines (<shard> -N)` and
   `Assisted-by: Codex:<model>`; never `git push` (sp-x7 pushes). Strict TS; never disable a guard or raise a limit.
