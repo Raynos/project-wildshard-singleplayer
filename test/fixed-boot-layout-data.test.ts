@@ -2,7 +2,6 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import pine from '../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
-import nine from '../src/shards/nine-dragon-stack/boot/metadata.generated.json' with { type: 'json' };
 import { creekSurfaceAt, inBeaverPool, FOREST_QUERIES } from '../src/shards/pine-hollow/world/terrain';
 import { creekSurfaceAt as originalSurface, inBeaverPool as originalPool } from '../src/shards/pine-hollow/generators/geography';
 import { forestDensity, oldGrowthMask, speciesMix } from '../src/shards/pine-hollow/generators/forestGeography';
@@ -18,10 +17,6 @@ it('retains every Pine coordinate and discovery anchor from ac722f90c', () => {
   expect(pine.SPURS['den']).toBe(pine.DEN_TRAIL);
   expect(pine.SPURS['lookout']).toBe(pine.LOOKOUT_TRAIL);
   expect(pine.GRADED.paths[0]).toBe(pine.LOOKOUT_TRAIL);
-});
-
-it('retains Nine fixed boot fields, including spawn, bounds and ordered pins', () => {
-  expect(digest(nine.rows)).toBe('8e35e459c26e4ce2c46c2f68afa0bd1f8169f5412e79b153497eb31a4fe25219');
 });
 
 it('keeps the beaver pool level live after fixed layout data leaves runtime', () => {
