@@ -162,7 +162,7 @@ test('filament graph binds the simulated rope and preserves target alpha', async
 
 
 test('fog writes follow each admitted graph declaration while unknown params remain strict', async () => {
-  const { setDeclaredGraphParam } = await import('../src/shards/nine-dragon-stack/look/facadeMaterial');
+  const { syncLooks } = await import('../src/shards/nine-dragon-stack/look/facadeMaterial');
   const { haloGraph } = await import('../src/shards/nine-dragon-stack/generators/haloGraph');
   const { default: authored } = await import('../src/shards/nine-dragon-stack/data/lookGraphs.json');
   const { validateGraph } = await import('../src/format/materialGraph');
@@ -175,10 +175,11 @@ test('fog writes follow each admitted graph declaration while unknown params rem
   lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([...graphs].map(([id, graph]) => [id, graph.material])),
     setParam: (id, name, value) => { graphs.get(id)?.setParam(name, value); writes.push(`${id}:${name}`); }, setTexture: () => undefined, bindMeshMap: () => new THREE.MeshBasicMaterial() });
   try {
-    for (const id of Object.keys(catalogue)) for (const [name, param] of Object.entries(fog.graph.params ?? {})) {
+    const shared = Object.fromEntries(Object.entries(fog.graph.params ?? {}).map(([name, param]) => {
       if (typeof param.value === 'string') throw new Error('Unexpected fog texture');
-      setDeclaredGraphParam(id, name, param.value, catalogue);
-    }
+      return [`u${name.charAt(0).toUpperCase()}${name.slice(1)}`, { value: param.value }];
+    }));
+    syncLooks(shared, { datum: 0, bandDepth: 1 }, catalogue);
     expect(writes.filter(name => name.endsWith(':fogBaseCol'))).toEqual(['nine-silk-fog:fogBaseCol']);
     expect(writes).toContain('nine-streaks:rootAt');
     expect(writes).toContain('nine-halo:rootAt');

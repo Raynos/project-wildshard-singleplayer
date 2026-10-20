@@ -15,6 +15,7 @@ const COMPUTED = new Set(['datum', 'bandDepth']);
 interface Binding { readonly id: string; readonly param: string; readonly source: string; readonly key: string }
 const books = new WeakMap<Readonly<Uniforms>, { readonly bindings: readonly Binding[]; readonly textures: Map<string, Texture> }>();
 function isTexture(value: unknown): value is Texture { return value instanceof Texture; }
+function isNumbers(value: unknown): value is number[] { return Array.isArray(value) && value.every(v => typeof v === 'number'); }
 /**
  * Every declared param of the shared graphs reads the shared uniform of its own name (`uWash`) or of `u` + its name
  * (`fogBase` ← `uFogBase`); `computed` holds the eye's own values. Uniform writes only.
@@ -26,7 +27,8 @@ export function syncLooks(shared: Readonly<Uniforms>, computed: Readonly<Record<
     const bindings: Binding[] = [];
     for (const id of IDS) {
       const material = catalogue[id];
-      if (material?.family !== 'graph' || !('graph' in material)) throw new Error(`Missing Nine graph ${id}`);
+      if (material === undefined) continue;
+      if (material.family !== 'graph' || !('graph' in material)) throw new Error(`Nine look ${id} is not a graph`);
       for (const param of Object.keys(material.graph.params ?? {})) {
         const source = /^u[A-Z]/.test(param) ? param : `u${param.charAt(0).toUpperCase()}${param.slice(1)}`;
         if (source in shared || COMPUTED.has(param)) bindings.push({ id, param, source, key: `${id}:${param}` });
@@ -40,7 +42,7 @@ export function syncLooks(shared: Readonly<Uniforms>, computed: Readonly<Record<
     const fixed = computed[param];
     if (fixed !== undefined) { setLentParam(id, param, fixed); continue; }
     const value: unknown = shared[source]?.value;
-    const numeric = typeof value === 'number' ? value : value instanceof Color ? value.toArray(tuple3) : value instanceof Vector3 ? value.toArray(tuple3)
+    const numeric = typeof value === 'number' || isNumbers(value) ? value : value instanceof Color ? value.toArray(tuple3) : value instanceof Vector3 ? value.toArray(tuple3)
       : value instanceof Vector2 ? value.toArray(tuple2) : value instanceof Vector4 ? value.toArray(tuple4) : null;
     if (numeric !== null) setLentParam(id, param, numeric);
     else if (isTexture(value) && book.textures.get(key) !== value) { setLentTexture(id, param, value); book.textures.set(key, value); }
