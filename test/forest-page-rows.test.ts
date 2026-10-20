@@ -37,3 +37,13 @@ test('an orchard page declares its own tree set, floor models and slice budget',
   expect(() => v.parse(ForestPageSchema, { ...orchard, sliceMs: 0 })).toThrow();
   expect(() => v.parse(ForestPageSchema, { ...orchard, ground: { ...orchard.ground, kinds: [{ id: 'clover', geometry: 'orchard-clover' }] } })).toThrow();
 });
+
+test('an orchard page places its own landmarks, a tier batch finishing after its modules', () => {
+  const forest = v.parse(ForestPageSchema, structuredClone(FOREST_PAGE));
+  const landmarks = [{ place: 'orchard.well' }, { place: 'orchard.phone.wall', tier: 'phone' }, { object: 'orchard.phone', tier: 'phone' }];
+  expect(v.parse(ForestPageSchema, { ...forest, landmarks }).landmarks).toEqual(landmarks);
+  expect(() => v.parse(ForestPageSchema, { ...forest, landmarks: [{ place: 'orchard.well', object: 'orchard.phone' }] })).toThrow();
+  expect(() => v.parse(ForestPageSchema, { ...forest, landmarks: [{ place: 'orchard.well', tier: 'console' }] })).toThrow();
+  const crags = forest.landmarks.filter(row => row.tier === 'phone');
+  expect(crags.at(-1)).toEqual({ object: 'crags.phone', tier: 'phone' });
+});

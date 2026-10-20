@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { macrotask, slicer } from '@wildshard/engine/boot/plan';
-import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { buildTier, TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { Grass } from '@wildshard/engine/world/Grass';
 import { setSight } from '@wildshard/engine/world/interact/Interactables';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
@@ -86,7 +86,9 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
   let finished = false;
   const page: ForestPage = { rows, resources, cabins, ...carpet, streams, props,
     finish: async () => { if (finished) throw new Error('Forest page already finished'); finished = true;
-      await step('props', async () => { for (const id of rows.props) contacts.push(...(await resources.place(id)).colliders); }); },
+      await step('props', async () => {
+        for (const mark of rows.landmarks) if (mark.tier === undefined || mark.tier === TIER) { if ('place' in mark) await resources.place(mark.place); else resources.object(mark.object); await macrotask(); }
+        for (const id of rows.props) contacts.push(...(await resources.place(id)).colliders); }); },
     roofAt: (x, z) => floorAtRects(row.floors, x, z, 'first') !== undefined,
     update: (dt, time) => { const viewer = runtime.viewer();
       for (const binding of rows.treeLooks) { const fade = world.forest.factory.fade[binding.band].value; setLentParam(binding.look, binding.fade, [fade.x, fade.y]); setLentParam(binding.look, binding.viewer, [viewer.x, viewer.y, viewer.z]); }

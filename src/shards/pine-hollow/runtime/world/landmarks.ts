@@ -26,13 +26,12 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
  *   lm.setLit('pond', true);                                                  // the quest relights a waystone
  */
 import * as THREE from 'three';
-import { admitLandmarkRows, landmarkRows, landmarkFloors } from './landmarkRows';
+import { admitLandmarkRows, landmarkRows } from './landmarkRows';
 import { PineQuestViews } from '../../quest/views';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { type FloorRect, floorAtRects } from '@wildshard/engine/physics/box';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { type ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
-import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import { modelPoseMatrix as placeMatrix } from '@wildshard/engine/models/placementBatch';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { forestPage, type LivingPage as PineCabins } from '@wildshard/game/shardfile/forestPage';
 import type { ShardContext } from '@wildshard/game/plugin/context';
@@ -40,7 +39,7 @@ import { emptyBuildingLifeRows } from '@wildshard/format/buildings';
 import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
 import { codePart, loadCodeParts } from './codeParts';
 import { CaveInterior } from '@wildshard/game/shardfile/caveInterior';
-import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { installRangedPage } from '@wildshard/game/loadout/rangedPage';
 import { finishForestPageAudio } from '@wildshard/game/audio/forestPage';
 import { installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
@@ -59,8 +58,6 @@ import type { RangedPageRows } from '@wildshard/format/rangedPage';
 
 // ───────────────────────────── the image-to-3D hero props ─────────────────────────────
 
-/** Native quest readers borrow the same generated landmark facts as the world. */
-export const CANOE_SITE = { x: -67.8, z: 119 };
 export type WaystoneId = 'pond' | 'ridge' | 'den';
 /** the three waystones, in their sites' order (the glow's points) */
 const WAYSTONE_IDS: readonly WaystoneId[] = ['pond', 'ridge', 'den'];
@@ -71,14 +68,7 @@ const WAYSTONES = 3;
 
 export class PineLandmarks {
   readonly group = new THREE.Group();
-  zip = { top: new THREE.Vector3(0, 0, 0), bottom: new THREE.Vector3(0, 0, 0), launch: new THREE.Vector3(0, 0, 0), landing: new THREE.Vector3(0, 0, 0) };
-  /** the timber models' colliders, then the props' (world space: the navmesh bake reads them) */
-  readonly timberColliders: ColliderDesc[] = [];
-  readonly propColliders: ColliderDesc[] = [];
-  private floors: FloorRect[] = [];
   private lit: Record<WaystoneId, { lit: boolean }> = { pond: { lit: true }, ridge: { lit: true }, den: { lit: true } };
-  /** the drawn-up canoe: its place and its copies (PH-C8 hides it while you paddle) */
-  private canoe: { place: Place; placed: Awaited<ReturnType<ModelPlacementBatch['place']>> } | null = null;
   private cabins: PineCabins | null = null;
   private chapter: PineQuestViews | null = null;
   private glow: THREE.Points | null = null;
@@ -90,51 +80,18 @@ export class PineLandmarks {
 
   constructor(private sky: Sky, private readonly scenes: SceneHandles) { this.group.name = 'pine-landmarks'; }
 
-  /**
-   * `registry`: where the placed models register (null: only built, and drawn under `group`). The crags stand where their
-   * bake put them (G285: ../generators/crags.ts stepped them round the forest's trunks).
-   */
+  /** The placed models are the forest page's landmark rows (world/forest-page.json), placed with its props. */
   async build(cabins: PineCabins | null): Promise<this> {
     const product = await loadFirstPartyProduct('pine-hollow');
     await admitLandmarkRows(product);
-    // the cave + its textures, fetched while the timber builds; its roof patch borrows the native collider part
+    // the cave + its textures; its roof patch borrows the native collider part
     const cave = CaveInterior.load(await product.json('world/cave-interior.json'), this.scenes, pineSetCap(TIER_CONFIG.maxTexture));
     await loadCodeParts(); this.scenes.publish('pine.cave-roof', codePart('cave-roof'));
-    this.timberColliders.push(...(await this.scenes.place('timbers.fire-lookout')).colliders);
-    this.floors.push(...landmarkFloors('pine-lookout'));
-    await macrotask();
-    this.timberColliders.push(...(await this.scenes.place('timbers.zipline-landing')).colliders);
-    this.floors.push(...landmarkFloors('pine-zip-landing'));
-    const zip = landmarkRows().zip;
-    this.zip = { top: new THREE.Vector3(...zip.top), bottom: new THREE.Vector3(...zip.bottom), launch: new THREE.Vector3(...zip.launch), landing: new THREE.Vector3(...zip.landing) };
-    this.timberColliders.push(...(await this.scenes.place('timbers.zip-cable')).colliders);
-    await macrotask();
-    this.timberColliders.push(...(await this.scenes.place('timbers.creek-footbridge')).colliders);
-    this.floors.push(...landmarkFloors('pine-footbridge'));
-    await macrotask();
     this.crags = { cave: await cave };
-    await this.buildProps(cabins);
-    await macrotask();
-    for (const kind of ['crag-cliff', 'crag-boulder', 'scree']) await this.scenes.place(`crags.${TIER}.${kind}`);
-    this.scenes.object(`crags.${TIER}`); // append the fixed skin and cave after the module placements
+    this.lanterns(cabins, await (await productCoverAppearance(product, 'look/cover-appearance.json')).texture(product, 'glow'));
     const cragFx = new THREE.Group(); cragFx.name = 'pine-crags';
     this.crags.cave.buildFx(); cragFx.add(...this.crags.cave.fx); this.group.add(cragFx);
     return this;
-  }
-
-  private async buildProps(cabins: PineCabins | null): Promise<void> {
-    const product = await loadFirstPartyProduct('pine-hollow');
-    const stones = landmarkRows().stones;
-    if (stones.length > 16) throw new Error('Standing-stone row bound exceeded');
-    for (let i = 0; i < Math.min(stones.length, 16); i++) { const row = stones[i]; if (row !== undefined) this.propColliders.push(...(await this.scenes.place(`heroes.${row.kind}`)).colliders); }
-    this.propColliders.push(...(await this.scenes.place('heroes.waystone')).colliders);
-    this.lanterns(cabins, await (await productCoverAppearance(product, 'look/cover-appearance.json')).texture(product, 'glow'));
-    this.propColliders.push(...(await this.scenes.place('heroes.beaver-dam')).colliders);
-    const drawnUp = await this.scenes.place('heroes.canoe'), canoePlace = landmarkRows().canoe[0];
-    this.propColliders.push(...drawnUp.colliders);
-    this.canoe = canoePlace === undefined ? null : { place: canoePlace, placed: drawnUp };
-    this.propColliders.push(...(await this.scenes.place('heroes.contract-board')).colliders);
-    this.propColliders.push(...(await this.scenes.place(this.crags?.cave ? 'heroes.cave-arch' : 'heroes.closed-arch')).colliders);
   }
 
   /** the waystones' flames (emissive, one instanced draw) and their glow (one Points draw), both on sky.lamps */
@@ -179,10 +136,10 @@ export class PineLandmarks {
 
   /** the canoe secret (PH-C8): the drawn-up canoe is gone from the shore while you paddle it (the ride draws its own) */
   setCanoeAway(away: boolean): void {
-    const c = this.canoe;
-    if (!c) return;
-    const m = away ? new THREE.Matrix4().makeScale(0, 0, 0) : placeMatrix(c.place);
-    c.placed.object.traverse((o) => { if (o instanceof THREE.InstancedMesh) { o.setMatrixAt(0, m); o.instanceMatrix.needsUpdate = true; } });
+    const place = landmarkRows().canoe[0];
+    if (place === undefined) return;
+    const m = away ? new THREE.Matrix4().makeScale(0, 0, 0) : placeMatrix(place);
+    this.scenes.object('heroes.canoe.root').traverse((o) => { if (o instanceof THREE.InstancedMesh) { o.setMatrixAt(0, m); o.instanceMatrix.needsUpdate = true; } });
   }
 
   setLit(id: WaystoneId, on: boolean): void {
@@ -192,8 +149,6 @@ export class PineLandmarks {
     const pos = this.glow?.geometry.getAttribute('position');
     if (pos && this.anchors) { const a = this.anchors[id]; pos.setY(i, on ? a.position.y : -1e4); pos.needsUpdate = true; }
   }
-
-  floorHeightAt(x: number, z: number): number | undefined { return floorAtRects(this.floors, x, z, 'highest'); }
 
   update(dt: number, t: number): void {
     this.chapter?.present(dt, t);

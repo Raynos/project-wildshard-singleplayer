@@ -6,7 +6,7 @@ import { isJsonData } from './json';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const point = { x: n, y: n, z: n }, count = v.pipe(n, v.integer(), v.minValue(0));
-const floor = v.strictObject({ ...point, hw: n, hd: n, rot: n });
+const floor = v.strictObject({ ...point, hw: n, hd: n, rot: n }), tier = v.picklist(['phone', 'desktop']);
 const place = v.strictObject({ ...point, nx: n, ny: n, nz: n, rot: n, scale: n, r: n, g: n, b: n, matrix: v.pipe(v.array(n), v.length(16)) });
 /** Client-only forest cover and living settlements, with native resources by id. */
 export const ForestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Forest page requires JSON rows'), v.strictObject({
@@ -22,6 +22,7 @@ export const ForestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Forest 
     hearth: id, sunParam: id, lampsParam: id, shadeParam: id, nightShade: n, sightSlack: n,
     material: id, save: id, floors: v.pipe(v.array(floor), v.maxLength(128)), firePits: v.pipe(v.array(v.strictObject(point)), v.maxLength(16)),
   }), props: v.pipe(v.array(id), v.maxLength(3)),
+  landmarks: v.pipe(v.array(v.union([v.strictObject({ place: id, tier: v.exactOptional(tier) }), v.strictObject({ object: id, tier: v.exactOptional(tier) })])), v.maxLength(48)),
 }));
 export type ForestPageRows = v.InferOutput<typeof ForestPageSchema>;
 /** Layout counts remain independently admitted and bounded across all kinds. */

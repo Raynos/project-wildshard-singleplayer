@@ -26,6 +26,11 @@ export const FOREST_PAGE = v.parse(ForestPageSchema, {
     light: CABIN_LIGHT, hearth: HEARTH_LOOKS.smoke, sunParam: 'sunColour', lampsParam: 'lamps', shadeParam: 'shade', nightShade: .8, sightSlack: .75,
     material: 'materials.', save: 'cabins', ...cabinAmbienceRows(),
   }, props: ['props.rocks', 'props.stumps', 'props.log'],
+  // the landmarks in their build order: the timbers, the hero props, then each tier's crag modules before its fixed skin
+  landmarks: [...['fire-lookout', 'zipline-landing', 'zip-cable', 'creek-footbridge'].map(id => ({ place: `timbers.${id}` })),
+    ...timbers.landmarks.stones.map(row => row.kind).concat(['waystone', 'beaver-dam', 'canoe', 'contract-board', 'cave-arch']).map(id => ({ place: `heroes.${id}` })),
+    ...(['phone', 'desktop'] as const).flatMap(tier => ['crag-cliff', 'crag-boulder', 'scree'].map((kind): { place: string; tier: string } | { object: string; tier: string } => ({ place: `crags.${tier}.${kind}`, tier }))
+      .concat([{ object: `crags.${tier}`, tier }]))],
 });
 export const LANDMARK_VIEW_BLOB = nameBlob('world/landmark-view.json', 'json', new TextEncoder().encode(JSON.stringify(timbers.landmarks)));
 export const FOREST_PAGE_BLOB = nameBlob('world/forest-page.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_PAGE)));
