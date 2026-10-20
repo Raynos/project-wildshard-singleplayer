@@ -15,6 +15,7 @@
  * a render or frame group (the camera, the clock) is compared once per camera pass. There are no binding points.
  */
 
+import { Color, Matrix3, Matrix4, Vector2, Vector3, Vector4 } from 'three';
 import type { BlockGroup } from './nodeUniformBuffers';
 
 /** the WebGL 2 calls the plain uniforms make (a context, or a test's recorder) */
@@ -111,6 +112,17 @@ function fill(value: unknown, out: Image, at: number, comps: number): void {
     for (let i = 0; i < list.length && at + i * comps < out.length; i++) fill(list[i], out, at + i * comps, comps);
     return;
   }
+  // three's value classes write their toArray order directly (a keyed native call per value per draw was a hot spot on
+  // the Simulator); anything else keeps its own toArray
+  if (value instanceof Matrix4 || value instanceof Matrix3) {
+    const e = value.elements, n = Math.min(e.length, out.length - at);
+    for (let i = 0; i < n; i++) out[at + i] = e[i] ?? 0;
+    return;
+  }
+  if (value instanceof Vector3) { out[at] = value.x; out[at + 1] = value.y; out[at + 2] = value.z; return; }
+  if (value instanceof Color) { out[at] = value.r; out[at + 1] = value.g; out[at + 2] = value.b; return; }
+  if (value instanceof Vector2) { out[at] = value.x; out[at + 1] = value.y; return; }
+  if (value instanceof Vector4) { out[at] = value.x; out[at + 1] = value.y; out[at + 2] = value.z; out[at + 3] = value.w; return; }
   if (!isObject(value)) return;
   const toArray: unknown = Reflect.get(value, 'toArray');
   if (typeof toArray === 'function') Reflect.apply(toArray, value, [out, at]);
