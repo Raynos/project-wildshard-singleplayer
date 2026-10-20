@@ -1,0 +1,121 @@
+{
+  "schema": "wildshard.pitcher.independent-verification.v1",
+  "sourceSha256": "34c80f467604fd6ae91c75f9b65d1e12d63de0045ff64596a076f63b27887e8a",
+  "glbSha256": "465657cbdf055d1f1da097a4e4f9e910897942750d5f21cddc89e4f96c46e2c3",
+  "rawManifestEntriesVerified": 64,
+  "rawManifestMismatches": [],
+  "individuallyInspectedRawImages": {
+    "tmp/pitcher-complete-next-20261020/final/hero.png": {
+      "sha256": "b4662291fd9d3eb9fe67f400c1549c9cc12be6ba5235759313c35489aa5d4b73",
+      "bytes": 901969
+    },
+    "tmp/pitcher-complete-next-20261020/final/front.png": {
+      "sha256": "078c5713d6f6b15626447772ad7f1bb5542d530e65c528c8a48ffabb08a5f76a",
+      "bytes": 678099
+    },
+    "tmp/pitcher-complete-next-20261020/final/left.png": {
+      "sha256": "26a0c460452dab242475ba56b8b830318bb67a0d8ae64fe5e84632fbb31ed893",
+      "bytes": 474619
+    },
+    "tmp/pitcher-complete-next-20261020/final/right.png": {
+      "sha256": "691d3e56ff88f94214875dbe83b20ef4a7394cc616a30c49103b4011a07d2a16",
+      "bytes": 478738
+    },
+    "tmp/pitcher-complete-next-20261020/final/back.png": {
+      "sha256": "4b58fa499ac83693f78cc9405040cba545df23b2e664e6215be9040f5c0c079d",
+      "bytes": 643559
+    },
+    "tmp/pitcher-complete-next-20261020/final/top.png": {
+      "sha256": "eadded855ea036c45e298f7fc25f321b07142a4d18c55b6b5929d51bd6d9fcd3",
+      "bytes": 870155
+    },
+    "tmp/pitcher-complete-next-20261020/final/elevated-front.png": {
+      "sha256": "fa1e80c63753bb66624af9527e20bd63962f65f2acaa25884b484392e99e3ed7",
+      "bytes": 912900
+    },
+    "tmp/pitcher-complete-next-20261020/final/elevated-left.png": {
+      "sha256": "b79b2192867150a92a93cf7affed1a30c6dbc9f599478c73ef3aa0ca60519ccf",
+      "bytes": 896016
+    },
+    "tmp/pitcher-complete-next-20261020/final/elevated-right.png": {
+      "sha256": "f5a57e5f5bfb59bc657b19a8ae770942429e8415f0ad346ac0c0458952a27611",
+      "bytes": 883908
+    },
+    "tmp/pitcher-complete-next-20261020/final/elevated-back.png": {
+      "sha256": "3e4acd693f170ad25801564d136ad2b892dfbb351376f501dac5be0a595fe20d",
+      "bytes": 937298
+    },
+    "tmp/pitcher-complete-next-20261020/baseline/hero.png": {
+      "sha256": "b72de082e765cc8d9e20d801f43c3ac9aead0657cf8429821ba8622eae1543ca",
+      "bytes": 865074
+    },
+    "tmp/pitcher-complete-next-20261020/baseline/front.png": {
+      "sha256": "b593353f3d613dd11a188f7bb178bbfd1e39a7b4ba46e4ecf3a10cdf3109abfb",
+      "bytes": 556769
+    },
+    "tmp/pitcher-complete-next-20261020/baseline/left.png": {
+      "sha256": "96cbac401e3ba1af8542fa1329c1cbd4ba34acec2aa2d7fc051e31766dc786a7",
+      "bytes": 440162
+    },
+    "tmp/pitcher-complete-next-20261020/baseline/right.png": {
+      "sha256": "208cb23f4a9b7b1e0463a3ac8887fa5367893bf5fbde65a92f02983c63cefe48",
+      "bytes": 441212
+    },
+    "tmp/pitcher-complete-next-20261020/baseline/back.png": {
+      "sha256": "bfed02ada9a29e92253b07a0094b0ecd0c7812153ad5f328902a9e499c988d29",
+      "bytes": 550135
+    },
+    "tmp/pitcher-complete-next-20261020/baseline/top.png": {
+      "sha256": "ad33b83a326473f15cfbc8e62ec1ba2b326cf218d1054efe38a6aa897306e749",
+      "bytes": 863404
+    },
+    "tmp/pitcher-complete-next-20261020/baseline/elevated-front.png": {
+      "sha256": "f9a40561b774077f703fde01bbc1cc6aea67997a24165ec9ee92d0e816004ddd",
+      "bytes": 912143
+    },
+    "tmp/pitcher-complete-next-20261020/baseline/elevated-left.png": {
+      "sha256": "c462cd821cb327045421b9f5c4ddae11df3b1224e7b05f6175c9e9387e8cfc5b",
+      "bytes": 877040
+    },
+    "tmp/pitcher-complete-next-20261020/baseline/elevated-right.png": {
+      "sha256": "bbb917d0b03be016f7d24371a17092a4cefd7c1ed6d34a4f1315ceeab7674ecd",
+      "bytes": 868672
+    },
+    "tmp/pitcher-complete-next-20261020/baseline/elevated-back.png": {
+      "sha256": "b3471dab0d09fb55c3f3cdb2638b9e069454f40f144818226a9171e5b0d6b339",
+      "bytes": 914444
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-final/hero.png": {
+      "sha256": "a7d0fc0f6117c7556d3abdb6200df3aae4b6addb6d5b92c9da4e78d2d59bb7dd",
+      "bytes": 868649
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-baseline/hero.png": {
+      "sha256": "a12fe199304e5d9fbe783dcff60094358e95280e8a84f4d8d1d3d6fa29aeda1b",
+      "bytes": 837365
+    }
+  },
+  "inspectedOriginalReferences": [
+    "art/driftwood-isle/concepts/approved-nine-2026-10-19/brine-pitcher-hero.png",
+    "art/driftwood-isle/concepts/approved-nine-2026-10-19/pitcherExplorerCorrectedGen.png",
+    "art/driftwood-isle/concepts/approved-nine-2026-10-19/corrections/pitcherWorldCorrectedGen-v2.png"
+  ],
+  "sourceRenderBlocksExactlyEqual": true,
+  "baselineNativeByteIdenticalToV3": true,
+  "readOnlyExactFloat32PositionColorRigidSkinOrientedTriangleParity": true,
+  "fullTopologyAuditRerun": false,
+  "rerendered": false,
+  "nativeRuntimeImageEquivalenceClaimed": false,
+  "protocolScale": 5,
+  "supplementalScaleBoth": 5.5,
+  "supplementalReplacesProtocol": false,
+  "observedClipping": [
+    "final/hero.png: left hood tip",
+    "final/elevated-back.png: central hood top"
+  ],
+  "minimumNativeBindYMetres": -0.0841098427772522,
+  "fanVeinProtrusionsObserved": true,
+  "failedClosedHoodScoredAsCurrent": false,
+  "physicalAcceptance": false,
+  "animationAcceptance": false,
+  "gameplayAcceptance": false
+}

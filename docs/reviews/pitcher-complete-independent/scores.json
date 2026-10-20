@@ -1,0 +1,38 @@
+{
+  "schema": "wildshard.pitcher.independent-static-review.v1",
+  "date": "2026-10-20",
+  "scaleMaximum": 5,
+  "weights": {
+    "silhouetteProportions": 0.35,
+    "mouthExpression": 0.3,
+    "definingDetails": 0.2,
+    "facetStyle": 0.15
+  },
+  "candidate": {
+    "name": "complete-character-next",
+    "scores": {
+      "silhouetteProportions": 3.4,
+      "mouthExpression": 3.05,
+      "definingDetails": 3.3,
+      "facetStyle": 3.1
+    },
+    "weightedTotal": 3.23,
+    "visualAcceptance": false
+  },
+  "baseline": {
+    "name": "same-run v3",
+    "scores": {
+      "silhouetteProportions": 2.95,
+      "mouthExpression": 2.65,
+      "definingDetails": 2.9,
+      "facetStyle": 2.95
+    },
+    "weightedTotal": 2.85,
+    "visualAcceptance": false
+  },
+  "preferredStaticSource": "complete-character-next",
+  "technicalPassCredit": false,
+  "animationScore": null,
+  "gameplayAcceptance": false,
+  "physicalAcceptance": false
+}

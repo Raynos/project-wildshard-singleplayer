@@ -1,0 +1,115 @@
+{
+  "reviewType": "Independent fresh paired static likeness; reviewer did not author either model",
+  "authority": "Original approved low-poly hero; corrected World/Explorer originals supporting and approximate",
+  "weights": {
+    "silhouetteProportions": 0.35,
+    "faceExpression": 0.3,
+    "definingDetails": 0.2,
+    "facetStyle": 0.15
+  },
+  "scale": 5,
+  "threshold": 4,
+  "selection": "complete-character-next",
+  "promotion": "Neither passes; retain predecessor as better likeness of this pair, not a runtime admission",
+  "historicalRatings": "Not reused or reconciled into these scores. Current plan contains historical ratings; these fresh scores are based on inspected raw pair.",
+  "scores": {
+    "predecessor": {
+      "version": "complete-character-next",
+      "categories": {
+        "silhouetteProportions": 3.6,
+        "faceExpression": 3.7,
+        "definingDetails": 3.65,
+        "facetStyle": 3.6
+      },
+      "weightedScore": 3.64,
+      "weightedScoreExact": "3.6400",
+      "passes": false,
+      "reasons": {
+        "silhouetteProportions": "Broad shoulders, long hanging hands, antler crown and bent wide legs identify the guardian. Hands remain segmented slab hooks, lower-leg/stone anchoring narrow, side torso reads as a smooth dark oval rather than layered root mass.",
+        "faceExpression": "Thin cyan eye slits and long pointed angular mask retain the stern original expression. Mask is still mechanical, symmetrical and darker than the warm pale tapered original.",
+        "definingDetails": "Root clasps visibly encircle and partially overlap the cyan core, closer to the authoritative hero. Canopy remains sparse, repeated triangular leaf groups and blocky stone toes simplify the organic layering.",
+        "facetStyle": "Readable low-poly bark/stone/foliage categories; long extruded angular bands and regular leaf wedges remain more assembled and less sculpted than the original."
+      }
+    },
+    "candidate": {
+      "version": "complete-character-refined",
+      "categories": {
+        "silhouetteProportions": 3.65,
+        "faceExpression": 3.35,
+        "definingDetails": 3.5,
+        "facetStyle": 3.65
+      },
+      "weightedScore": 3.53,
+      "weightedScoreExact": "3.5300",
+      "passes": false,
+      "reasons": {
+        "silhouetteProportions": "Slightly tighter hanging-arm spread, wider ankle roots and larger canopy islands improve cohesion. Same main wide shoulder-to-arm scaffolding, narrow lower legs and broad dark back remain; no major mass recovery.",
+        "faceExpression": "Larger cyan quadrilateral panels increase visibility but dilute the original narrow predatory slit expression, producing a mask/robot appearance. Longer central face ridge does not offset this identity regression.",
+        "definingDetails": "Deeper core seating and simpler long root paths reduce clutter, but removing encircling ribs/clasps exposes a plain crystal pendant and removes a defining original feature. Broader leaf clusters improve hierarchy but do not restore dense shoulder/nape growth.",
+        "facetStyle": "More continuous brown material strips and grouped canopy are modest improvements. Large lime polygon caps, uniform hanging triangles and long angular plank surfaces still dominate."
+      }
+    }
+  },
+  "individualViewInspection": [
+    {
+      "view": "hero",
+      "predecessor": "Core framed by short pointed roots; narrow eyes closer to original. Long angular fingers and sparse shoulder growth remain.",
+      "candidate": "Cleaner torso but open crystal and brighter broad eyes lose some original character; ankles slightly fuller.",
+      "bothFullyFramed": true
+    },
+    {
+      "view": "front",
+      "predecessor": "Stern slits, visible multiple inward rib tips; broad V torso, straight patterned arm lengths.",
+      "candidate": "Large cyan eye panels conspicuous; uncluttered oval chest opening less like original hooked cage.",
+      "bothFullyFramed": true
+    },
+    {
+      "view": "left",
+      "predecessor": "Thick dark oval back with hanging leaf triangles; cyan crystal projects forward; fingers form narrow slab profile.",
+      "candidate": "Core pulled in and nape canopy higher, but dark oval back and blade-flat finger profile persist.",
+      "bothFullyFramed": true
+    },
+    {
+      "view": "right",
+      "predecessor": "Flat side elbow facets, strong projecting core; limbs partly occlude body.",
+      "candidate": "Less core projection; broader foliage cap, but shoulder/forearm still long planar panels.",
+      "bothFullyFramed": true
+    },
+    {
+      "view": "back",
+      "predecessor": "Sparse leaf fringe over broad dark rear shell, isolated leafy hip joints, angular stone foot clusters.",
+      "candidate": "Larger canopy units reduce fine fringe; exposed lower back shell and sparse pelvis remain.",
+      "bothFullyFramed": true
+    },
+    {
+      "view": "top",
+      "predecessor": "Scattered polygon leaf islands and open timber spans; much less lush than supporting sheet.",
+      "candidate": "Larger simpler leaf islands but same sparse canopy depth and substantial exposed structural wood.",
+      "bothFullyFramed": true
+    },
+    {
+      "view": "diag-front",
+      "predecessor": "Core clasps and narrow eyes readable; oversized bent slab hands dominate low silhouette.",
+      "candidate": "Face brighter and less stern; core less rib-bound; slightly narrower arm stance.",
+      "bothFullyFramed": true
+    },
+    {
+      "view": "diag-left",
+      "predecessor": "Curved core cage reads layered, though fingers and shin roots look mechanically segmented.",
+      "candidate": "Simplified cage loses layered prongs; cyan eye panel and large foliage cap read flatter.",
+      "bothFullyFramed": true
+    },
+    {
+      "view": "diag-right",
+      "predecessor": "Narrow eye and inward core rib retain original cues despite angular forearm and claw.",
+      "candidate": "Eye becomes bright rectangular wedge; removed core ribs and continuous forearm color simplify forms.",
+      "bothFullyFramed": true
+    },
+    {
+      "view": "diag-back",
+      "predecessor": "Large smooth dark back zone below leaf fringe; angular hips and wrapped roots, limited leaf layering.",
+      "candidate": "Bigger foliage islands help upper mass slightly; same lower-back void of detail and slab-like wrist remain.",
+      "bothFullyFramed": true
+    }
+  ]
+}

@@ -1,0 +1,790 @@
+{
+  "closureSha256": "2a0b82e03768ff47a6ea42fe1afccae3e4f40a07470e19c336b1753f8b7c8e16",
+  "expectedClosureSha256": "2a0b82e03768ff47a6ea42fe1afccae3e4f40a07470e19c336b1753f8b7c8e16",
+  "publicationPins": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/README.md",
+      "sha256": "545e012bec7c49d25e65b8643dd56eb1e3999185f78f7916cbc3d43551a71e83",
+      "bytes": 4081,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/build_colossus_complete.py",
+      "sha256": "9131179d9b5c8a05fe41f5914cfd242936236b844096fdf3f74984729d5334f8",
+      "bytes": 30675,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/cameras.json",
+      "sha256": "99f1cc90e295b0265a515485554ff0a558131baf80299b6a38399913ffd1db48",
+      "bytes": 7057,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate/back.webp",
+      "sha256": "f4370b8455ae8ea57f43bce227ac9935da42938d037f16f3e9a07b04ae9c5100",
+      "bytes": 47146,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate/diag-back.webp",
+      "sha256": "607fe103e3439696ce5742e984f2fe653400fea1f83efed032ca6a52e14216bb",
+      "bytes": 57092,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate/diag-front.webp",
+      "sha256": "4be6998663b569ab52301608d2acae7637c71f181bdeb9c58b0a6f544391bcc0",
+      "bytes": 55390,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate/diag-left.webp",
+      "sha256": "8cf2c7b36c3ae7fe0eeb117545ced6adaf6943bed44f7e44386286bd5f925997",
+      "bytes": 48018,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate/diag-right.webp",
+      "sha256": "e2f84330fe057d5879c1aaee47e71b3525e5f0fe328e487d6cd9a47344105ba6",
+      "bytes": 53064,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate/front.webp",
+      "sha256": "7c2d01885f7fb76875ff5f43b1a25dbb060a2a336323c193852e08a5b0db1dc4",
+      "bytes": 36828,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate/hero.webp",
+      "sha256": "d8ac8c990f0fcdd3c3bf65917561f64537bf111374f48a04416b79abd4d24238",
+      "bytes": 52532,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate/left.webp",
+      "sha256": "7f72e58979a40b18d705fb45349d6676ecda588722c5e772d56ffdef9e8a274c",
+      "bytes": 25184,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate/right.webp",
+      "sha256": "7e98f34638ae06734392e4ecd2aceb15e7fa0a57f161738c899715291b0b7396",
+      "bytes": 26594,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate/top.webp",
+      "sha256": "6f43b27abf76bff3ef70d9ed47c0c3fb22d8494aa0d867d3a6efe8976503f5d7",
+      "bytes": 53224,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/candidate-nineview-sheet.webp",
+      "sha256": "5a5f506016f57a3122d1bfa7f3a408fa8d70e9fc9d7eebc6cdf47ab6032075fd",
+      "bytes": 139732,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/capture-receipt.json",
+      "sha256": "b7359f262f3cc84090b55215f371abcdbe64cd0ad4d58a402bcec3f3e8046315",
+      "bytes": 7819,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/editable-native.json",
+      "sha256": "96d7e83e76b92e2d55010a25ec720defd5ef8973051e56c59439557dadd74924",
+      "bytes": 330089,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/export_native.py",
+      "sha256": "59f3c9ab6589f4f20564377a209f507c749ea9efa5779ba6fe25a35511169d61",
+      "bytes": 4167,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/framing-check.json",
+      "sha256": "de64bbc6f1d370277edb39b5b6f4fc0d2e12d8e3cb0c99c1eab669348a6c05f4",
+      "bytes": 1427,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/input-preservation.json",
+      "sha256": "f0fa6a4f5bf53bcbcc1c0b129fcabf08bf8e1b073ab837db583582262038c955",
+      "bytes": 698,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/matched-hero-board.webp",
+      "sha256": "1ddac5c52a251586b1743e0950a503a70e1fe2915cd2a17a1b1bbb6f4777ba87",
+      "bytes": 107494,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/mesh-map.json",
+      "sha256": "ebbb56f2ec6d0919fc5057763d50a1935ba199b9f1bc7b4808b1b8ea4c6e9492",
+      "bytes": 24117,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/metadata.json",
+      "sha256": "5aad29421a9abd6be0d5e4c34aadca487879da9d6e83ecec23e1c1ec84271284",
+      "bytes": 5375,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/metrics-complete-character-refined.json",
+      "sha256": "43dab0650a63bc0677ccb801751a04b78f8ac9ec49a9a323f3245c9488ea3f7a",
+      "bytes": 482,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/native-consumer.test.ts",
+      "sha256": "b7d339377ed55ad5aa8d961cae9936ff10fe3cee3f726c368e110a3fbaec9f8d",
+      "bytes": 11798,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/native-source.json",
+      "sha256": "f4bca609b3ce9b10701617fd6f14713dda9f55bde2b7e46b1ab8d0cc0489f99f",
+      "bytes": 2523027,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/package_evidence.py",
+      "sha256": "e25f3cb09cd3077ff2ffd7b6c583ee25b33433c531b32699a66c566b13507c6c",
+      "bytes": 4985,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/payload.bin",
+      "sha256": "17936430354430423135b0a018b3e8dde216421716b51b2e2914302b8552935c",
+      "bytes": 82073,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor/back.webp",
+      "sha256": "52660d731b2a7bfb4330c237a074aa78aa4b4d36f2bd43c4ad59944b8897a72f",
+      "bytes": 49116,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor/diag-back.webp",
+      "sha256": "10c5135be590b739ec1b0024fd9c4b33bb59ac97f65a028e1fe3d0925c9a89ee",
+      "bytes": 62018,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor/diag-front.webp",
+      "sha256": "c82049ff858b9bbef0aa7fb2855c0de300dcd3393ff6e399cc5360f647a2e679",
+      "bytes": 57486,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor/diag-left.webp",
+      "sha256": "ad5f0645e78eaf7a5c04342ffdc64a85a3960f9754cb59f2f002b3e9c8bcae3b",
+      "bytes": 50396,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor/diag-right.webp",
+      "sha256": "e93ee47583334c1548877cc9f072e136fa00b8cb7c53fb98ce556807f73c13d3",
+      "bytes": 55844,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor/front.webp",
+      "sha256": "a587860b1a1ba9a9e9db25ab438923456b2158fbf493f0bade528d354e5a0bf8",
+      "bytes": 38616,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor/hero.webp",
+      "sha256": "64113ccf23573a1b0a90aeebab233fefeba2145d912ee71dda07b45a726e78bc",
+      "bytes": 55100,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor/left.webp",
+      "sha256": "cc4b4f0da7664eefd62dd22150c284e40dc3fc636291ffe72361b852bf889461",
+      "bytes": 26852,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor/right.webp",
+      "sha256": "40e31e193508d87d5e4ef627de6dfda576c0b4132af9caa5e131ff69da666495",
+      "bytes": 28168,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor/top.webp",
+      "sha256": "669e0df54164bb07ec920cbe10bef64b47bcb304d7b63e29bff26302529d0ddd",
+      "bytes": 58788,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/predecessor-nineview-sheet.webp",
+      "sha256": "dc8177df7b14282f815af3ad26a5560b4951645437435dd9cf04d786a69dadcb",
+      "bytes": 151486,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/render-equivalence.json",
+      "sha256": "278a2d0043b4dde009d076b5016f7f6d3db0a278ec28262b300e01fac75a6fd5",
+      "bytes": 611,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/render_matched.py",
+      "sha256": "65206966968e07081259858a6b81d17e1f8e3735d663d8e4b89c01a1c54282a3",
+      "bytes": 2700,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/rig-provenance.json",
+      "sha256": "6d799498bc8b11ee3f6732921ec9bd6e66412f2a55881af0e19ef36b47c7509d",
+      "bytes": 2634,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/tide-root-colossus-complete-character-refined.glb",
+      "sha256": "dfbe74b1192f507052c238c11b0dba0fd4fdc8d278066d2d87c5fac1cca83f0d",
+      "bytes": 886088,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/validate_glb.py",
+      "sha256": "e8857fd7e880e774cce64921669c96aa112816259587b5ec0751321e5040b62b",
+      "bytes": 5943,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/validation.json",
+      "sha256": "bd06ac1a94c95575e2b09f167eacdab1b9f419db342c9780b4858fe736de80c7",
+      "bytes": 101834,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/vitest.config.ts",
+      "sha256": "e1f1645211eb3546f9360d6c6fefa025f7337ac7b5e886ecfe059a1c56c5b2cb",
+      "bytes": 245,
+      "pass": true
+    }
+  ],
+  "rawCapturePins": [
+    {
+      "path": "tmp/colossus-complete-character-refined/author.py",
+      "sha256": "361e1ae496f772b84ac87225972810bbc0b6879be3003f95219989df5e76e12c",
+      "bytes": 5124,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/cameras.json",
+      "sha256": "ff3336026f828ed14dde550e3086c29e2fe3b99b4b0320a261e7f6a98269da68",
+      "bytes": 8317,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/back.png",
+      "sha256": "e56ac3e91fa3a1f70a226422c97574dc402dbd14f7efec94f629577ea8ba0c29",
+      "bytes": 532087,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/diag-back.png",
+      "sha256": "abeb1339ad767ef3432e5c13beffb3f3af7a471d9421611e4dded0dcddeb9ed7",
+      "bytes": 725633,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/diag-front.png",
+      "sha256": "8bea8d783cb3a3e85439a8dff847f2e429de6839e981c90651dfa7f7d01c0c77",
+      "bytes": 727227,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/diag-left.png",
+      "sha256": "28410dab06e7d467d5bed3b88f4919226dd45f5f7de7980de0f0d52a34f334de",
+      "bytes": 695033,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/diag-right.png",
+      "sha256": "f1eac83f92dd4ae2f7c7c2c0b7bfcc6b8496e46349f6decda3830825c4bd045f",
+      "bytes": 711796,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/editable-native.json",
+      "sha256": "96d7e83e76b92e2d55010a25ec720defd5ef8973051e56c59439557dadd74924",
+      "bytes": 330089,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/editable-source.blend",
+      "sha256": "58bd6eddeff6ce91a1f898c8ac0d87ba90ba13619698b6c1f0cdca3772f21b1b",
+      "bytes": 2275940,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/front.png",
+      "sha256": "de3804e464a030c7b7f394bc4a964dd651a3ab1c7dea7ecebfaa0fc147831fdc",
+      "bytes": 513775,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/hero.png",
+      "sha256": "ba48bba8829cd9157e4c957f7b8b28269094347dff500a0bae44ccdc77e28f43",
+      "bytes": 683363,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/left.png",
+      "sha256": "e2bc7a5f7169cb9ab287766e5c7e103392e9354bafad17063775b0c9493e7f7a",
+      "bytes": 405116,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/metrics-complete-character-refined.json",
+      "sha256": "43dab0650a63bc0677ccb801751a04b78f8ac9ec49a9a323f3245c9488ea3f7a",
+      "bytes": 482,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/right.png",
+      "sha256": "62bd6da838821b7b728b3671000815a2d47c8eed1c56831f4fcc43697e0d2f2c",
+      "bytes": 412575,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/tide-root-colossus-complete-character-refined.glb",
+      "sha256": "dfbe74b1192f507052c238c11b0dba0fd4fdc8d278066d2d87c5fac1cca83f0d",
+      "bytes": 886088,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/candidate/top.png",
+      "sha256": "667d9e0e598c3f6e4b314aea02e4b0c3616eeedf6eba418c896ff32af6077d10",
+      "bytes": 695362,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/exit.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/native-tests.log",
+      "sha256": "38bcb527c1968a7011014df2fa89e619fb366f3c4ccce9fd7468f7e48a2eace2",
+      "bytes": 1187,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/back.png",
+      "sha256": "6f7fad6dc0977b785b2344cbc65f44ad675032154f0ddaeac0e68b748e7bfbdc",
+      "bytes": 535828,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/diag-back.png",
+      "sha256": "891b9064ed04824edb9d68f7471925e938f094191207ea987947115fc2868495",
+      "bytes": 734795,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/diag-front.png",
+      "sha256": "16cb92c06d1897a69e8a2b32f15df1cb6a44029f56649e43ca66c7287a685d9a",
+      "bytes": 732713,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/diag-left.png",
+      "sha256": "053a31c2cdf8f864ef2a4bcfe84b8a2be2c7dbdd9d3e3e23b0e87e8c19b19137",
+      "bytes": 703678,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/diag-right.png",
+      "sha256": "cb066c384949027391039834be4860345fc41184df61d81a74b14369849c507d",
+      "bytes": 720605,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/editable-native.json",
+      "sha256": "98a6ccd73816748fcb8ff873be43897e7630ebb6d3191800f30c999962682f26",
+      "bytes": 366869,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/editable-source.blend",
+      "sha256": "617394e239de62d40e98640b3b0a147a4ca4a9291de04f089339c4894b289aa5",
+      "bytes": 2525964,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/front.png",
+      "sha256": "4bba39489448d029971eb5a98ef1e680200235d8528943061f496289f9851ddd",
+      "bytes": 517979,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/hero.png",
+      "sha256": "405f1d792a2f378a22975856c24a6fc9183b31adf607e7b165d5a1c653b6b2fe",
+      "bytes": 691179,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/left.png",
+      "sha256": "6bd39f88028c6a01f638ad21dbb7447b13b2735dcadd2ad2387c4b1cda9e0690",
+      "bytes": 417020,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/metrics-complete-character-next.json",
+      "sha256": "2c9e7fab60356f8f797d650ef113e26bff62c521258ef8ffb434154f7e9701fb",
+      "bytes": 482,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/right.png",
+      "sha256": "fd5c5e268f3a3bda0ce0d78aeffbbaa7dd8715fc37e2668d9b2d98706ead53c6",
+      "bytes": 421829,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/tide-root-colossus-complete-character-next.glb",
+      "sha256": "3850986dc692952441053cd8b47465898cfc3aa11fcfbe18cfcac0bb7bb6e467",
+      "bytes": 993940,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/predecessor/top.png",
+      "sha256": "313562f29df382f2ec8e70f6c393a9acdbad6ea53a184813c7d950a2004a75ee",
+      "bytes": 703614,
+      "pass": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-refined/render.log",
+      "sha256": "3423d6339fdd34033b32065f416c5dbbcb1c3cf205b6dbaf20cc8cb84aa3ddf9",
+      "bytes": 867521,
+      "pass": true
+    }
+  ],
+  "referencePins": [
+    {
+      "path": "../generated_images/tide-root-colossus-lowpoly-style-revision.png",
+      "sha256": "709015b080ce352b9561717f7c28b6711ad592b87e6eacde89dd582d6907d10c",
+      "bytes": 2017360,
+      "pass": true
+    },
+    {
+      "path": "../wildshard-review-site-current/source-evidence/approved-nine-qa/originals/corrections/colossusWorldCorrectedGen-v3.png",
+      "sha256": "52e33b3e7de75bb77844939c143a32862b1128f831559e73428975b0bb8c564d",
+      "bytes": 2559913,
+      "pass": true
+    },
+    {
+      "path": "../wildshard-review-site-current/source-evidence/approved-nine-qa/originals/corrections/colossusExplorerCorrectedGen-v3.png",
+      "sha256": "5e3d598b1aa97f80f073909d4bd6903142bf6e8fdf81438539c85608880ff523",
+      "bytes": 2091443,
+      "pass": true
+    }
+  ],
+  "preservationPins": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/build_colossus_complete.py",
+      "sha256": "a5b73ef6334c8d9a997e4271365554971e244eed45d4bba4a4489c37b64f3a7f",
+      "bytes": 31012,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/tide-root-colossus-complete-character-next.glb",
+      "sha256": "3850986dc692952441053cd8b47465898cfc3aa11fcfbe18cfcac0bb7bb6e467",
+      "bytes": 993940,
+      "pass": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/final-closure.json",
+      "sha256": "17fbbe8eadbc5be0dbdaa46b3c6b68903ce26e20f3d8ea0f432de89e1551d7e7",
+      "bytes": 8636,
+      "pass": true
+    }
+  ],
+  "closurePass": true,
+  "candidateGlbByteParity": true,
+  "predecessorGlbByteParity": true,
+  "framing": [
+    {
+      "version": "predecessor",
+      "view": "hero",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 22.356562432911414,
+      "verticalMarginPixels": 65.11276793077144,
+      "pass": true
+    },
+    {
+      "version": "candidate",
+      "view": "hero",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 24.782525934355295,
+      "verticalMarginPixels": 65.11276793077144,
+      "pass": true
+    },
+    {
+      "version": "predecessor",
+      "view": "front",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 15.654906359585866,
+      "verticalMarginPixels": 66.13238074562767,
+      "pass": true
+    },
+    {
+      "version": "candidate",
+      "view": "front",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 18.04990768432619,
+      "verticalMarginPixels": 66.13238074562767,
+      "pass": true
+    },
+    {
+      "version": "predecessor",
+      "view": "left",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 108.97213328968397,
+      "verticalMarginPixels": 66.13238074562767,
+      "pass": true
+    },
+    {
+      "version": "candidate",
+      "view": "left",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 124.77359554984353,
+      "verticalMarginPixels": 66.13238074562767,
+      "pass": true
+    },
+    {
+      "version": "predecessor",
+      "view": "right",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 108.97213328968397,
+      "verticalMarginPixels": 66.13238074562767,
+      "pass": true
+    },
+    {
+      "version": "candidate",
+      "view": "right",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 124.77359554984353,
+      "verticalMarginPixels": 66.13238074562767,
+      "pass": true
+    },
+    {
+      "version": "predecessor",
+      "view": "back",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 15.654906359585866,
+      "verticalMarginPixels": 66.13238074562767,
+      "pass": true
+    },
+    {
+      "version": "candidate",
+      "view": "back",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 18.04990768432619,
+      "verticalMarginPixels": 66.13238074562767,
+      "pass": true
+    },
+    {
+      "version": "predecessor",
+      "view": "top",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 15.654906359585866,
+      "verticalMarginPixels": 196.41011860441375,
+      "pass": true
+    },
+    {
+      "version": "candidate",
+      "view": "top",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 18.04990768432619,
+      "verticalMarginPixels": 212.2130202289134,
+      "pass": true
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-front",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 15.654906359585866,
+      "verticalMarginPixels": 85.71318813866536,
+      "pass": true
+    },
+    {
+      "version": "candidate",
+      "view": "diag-front",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 18.04990768432619,
+      "verticalMarginPixels": 85.71318813866536,
+      "pass": true
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-left",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 58.43288694930283,
+      "verticalMarginPixels": 52.93018719364576,
+      "pass": true
+    },
+    {
+      "version": "candidate",
+      "view": "diag-left",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 60.60290557011491,
+      "verticalMarginPixels": 52.93018719364576,
+      "pass": true
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-right",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 51.29749446397874,
+      "verticalMarginPixels": 52.93999276250155,
+      "pass": true
+    },
+    {
+      "version": "candidate",
+      "view": "diag-right",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 51.69937615912517,
+      "verticalMarginPixels": 52.93999276250155,
+      "pass": true
+    },
+    {
+      "version": "predecessor",
+      "view": "diag-back",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 58.43288694930283,
+      "verticalMarginPixels": 67.78278092648011,
+      "pass": true
+    },
+    {
+      "version": "candidate",
+      "view": "diag-back",
+      "dimensions": [
+        525,
+        700
+      ],
+      "horizontalMarginPixels": 60.60290557011491,
+      "verticalMarginPixels": 67.45653761847124,
+      "pass": true
+    }
+  ],
+  "pairedCameras": [
+    {
+      "view": "hero",
+      "pass": true
+    },
+    {
+      "view": "front",
+      "pass": true
+    },
+    {
+      "view": "left",
+      "pass": true
+    },
+    {
+      "view": "right",
+      "pass": true
+    },
+    {
+      "view": "back",
+      "pass": true
+    },
+    {
+      "view": "top",
+      "pass": true
+    },
+    {
+      "view": "diag-front",
+      "pass": true
+    },
+    {
+      "view": "diag-left",
+      "pass": true
+    },
+    {
+      "view": "diag-right",
+      "pass": true
+    },
+    {
+      "view": "diag-back",
+      "pass": true
+    }
+  ],
+  "method": "Read-only byte/hash, recorded-camera equality, independent orthographic projection of editable-native vertices; visual full-frame inspection of all 20 original PNGs. No rerender or scene execution.",
+  "renderProtocol": "Inspected renderer: common 525x700, 16 Cycles samples, no denoising, Standard, fixed three area lights, floor and ortho 7.7. Provenance supported by source and pins, not an independent rerender.",
+  "limitations": [
+    "AI auxiliary angles approximate; actual diagonal cameras are not exact sheet poses.",
+    "Projection verifies bounds, not contact or intersections.",
+    "Native consumer omits source emission; static Blender likeness is not native motion/gameplay/phone acceptance."
+  ]
+}
