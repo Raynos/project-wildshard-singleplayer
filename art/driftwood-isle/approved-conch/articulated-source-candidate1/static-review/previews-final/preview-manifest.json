@@ -1,0 +1,2849 @@
+{
+  "status": "final labelled delivery set, all raw bytes unchanged",
+  "previousDeliveryManifestSha256": "61dc73072d7d0c0e77608685b530bc7d5654b5d603a844639e6e7c0361ab186d",
+  "labelScriptSha256": "cc966a9edf555929ed6d93bc2c01a5c252619e690196383ba5b7ee859151cfeb",
+  "sourceCaptureReceiptSha256": "8c57f57653ee98ddae003bbc39bff2f7bafc3a5387c756e8ee28aa6f62b9ba35",
+  "totalPreviewBytes": 595508,
+  "outputs": [
+    {
+      "file": "matched-static-sheet-1.webp",
+      "bytes": 86918,
+      "sha256": "f01c6bddf81a0ab4f36153da76f230c5ccce1bafeda04b997f5631e28332f620",
+      "resolution": [
+        1060,
+        2360
+      ],
+      "preEncodingResolution": [
+        1060,
+        2360
+      ],
+      "deliveryScale": 1,
+      "quality": 76,
+      "method": 6,
+      "sources": [
+        {
+          "file": "front-selected.png",
+          "variant": "selected",
+          "view": "front",
+          "bytes": 430148,
+          "sha256": "7594460cf1c0d78b54eb1f155c3642020a46dc1f93ca541702f1f8f2e6e2c0f0",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.025915920734405518,
+              9.892037391662598,
+              1.8373935222625732
+            ],
+            "rotation": [
+              -1.570796251296997,
+              3.141592502593994,
+              -0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "front-articulated.png",
+          "variant": "articulated",
+          "view": "front",
+          "bytes": 430138,
+          "sha256": "7c763d574a4f5135b7f4525d06a0c8ab88af36b8f39f5a89c709d646cebefac5",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.025915920734405518,
+              9.892037391662598,
+              1.8373935222625732
+            ],
+            "rotation": [
+              -1.570796251296997,
+              3.141592502593994,
+              -0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "left-selected.png",
+          "variant": "selected",
+          "view": "left",
+          "bytes": 355196,
+          "sha256": "2d5b6141cf5478600ac00952cbd96a582c2fefa6b1c0044913d3acca7a3bdbf4",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -10.02591609954834,
+              -0.10796260833740234,
+              1.8373937606811523
+            ],
+            "rotation": [
+              1.5707963705062866,
+              -0.0,
+              -1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "left-articulated.png",
+          "variant": "articulated",
+          "view": "left",
+          "bytes": 355151,
+          "sha256": "f5512076929cdf9ff849b36cb560bfa0cae041503789ed6fd04c0a57a8a5be8f",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -10.02591609954834,
+              -0.10796260833740234,
+              1.8373937606811523
+            ],
+            "rotation": [
+              1.5707963705062866,
+              -0.0,
+              -1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "right-selected.png",
+          "variant": "selected",
+          "view": "right",
+          "bytes": 347593,
+          "sha256": "1a5f369b2b8b13f35e9849060c1f9dd0f3fd60700fc63df87dadf96f1dd48c92",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              9.97408390045166,
+              -0.10796260833740234,
+              1.8373937606811523
+            ],
+            "rotation": [
+              1.5707963705062866,
+              -0.0,
+              1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "right-articulated.png",
+          "variant": "articulated",
+          "view": "right",
+          "bytes": 347598,
+          "sha256": "7dafa219599fb219ab4f466271250d004a4759268c751485d1d64e82a5278f4f",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              9.97408390045166,
+              -0.10796260833740234,
+              1.8373937606811523
+            ],
+            "rotation": [
+              1.5707963705062866,
+              -0.0,
+              1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Full-frame side-by-side placement at original pixel dimensions; no crop or image retouch",
+        "Labels in outside margins",
+        "Optional additional delivery-only LANCZOS scale, recorded explicitly",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "matched-static-sheet-2.webp",
+      "bytes": 94036,
+      "sha256": "7023ff7c196311ccfe23592ca3ad85a103c47624727d115db32919fe6fe13f4c",
+      "resolution": [
+        1060,
+        2360
+      ],
+      "preEncodingResolution": [
+        1060,
+        2360
+      ],
+      "deliveryScale": 1,
+      "quality": 76,
+      "method": 6,
+      "sources": [
+        {
+          "file": "back-selected.png",
+          "variant": "selected",
+          "view": "back",
+          "bytes": 407138,
+          "sha256": "6da5b9f95d1bb127e9c99deb2ad90e27ee43ab89de0688ac1ca2ed4b53d72de4",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591574192047119,
+              -10.107962608337402,
+              1.8373925685882568
+            ],
+            "rotation": [
+              1.5707964897155762,
+              -0.0,
+              0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "back-articulated.png",
+          "variant": "articulated",
+          "view": "back",
+          "bytes": 407129,
+          "sha256": "e35a7a90a6d6ba12ace06752a73c2d8c31d17b12fbba0f505c2bdd9f0de10efb",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591574192047119,
+              -10.107962608337402,
+              1.8373925685882568
+            ],
+            "rotation": [
+              1.5707964897155762,
+              -0.0,
+              0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "top-selected.png",
+          "variant": "selected",
+          "view": "top",
+          "bytes": 626086,
+          "sha256": "30b0013bb2a74fa2f14b251ca5bd916b34294919167904ce568fe47cf7474493",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.025915861129760742,
+              -0.10588781535625458,
+              11.837394714355469
+            ],
+            "rotation": [
+              0.00020000040240120143,
+              8.742295082297957e-12,
+              3.141592502593994
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "top-articulated.png",
+          "variant": "articulated",
+          "view": "top",
+          "bytes": 626088,
+          "sha256": "23285952e0f8c775666381ca05de96db9d55883817de70cc7f9848213e32c217",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.025915861129760742,
+              -0.10588781535625458,
+              11.837394714355469
+            ],
+            "rotation": [
+              0.00020000040240120143,
+              8.742295082297957e-12,
+              3.141592502593994
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "diag-front-selected.png",
+          "variant": "selected",
+          "view": "diag-front",
+          "bytes": 643263,
+          "sha256": "cb9396b57b1c18562d185d6f5ae320df59a93a8b4022514948dcbe419b2ae7c9",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591494284570217,
+              9.99831485748291,
+              9.704547882080078
+            ],
+            "rotation": [
+              0.8960554599761963,
+              6.826572018781008e-08,
+              3.141592502593994
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "diag-front-articulated.png",
+          "variant": "articulated",
+          "view": "diag-front",
+          "bytes": 643266,
+          "sha256": "55d8b2706c0bc6a4d2e65fb4613f32c07bc66bf20c7df2e727e912b7b7e7eefe",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591494284570217,
+              9.99831485748291,
+              9.704547882080078
+            ],
+            "rotation": [
+              0.8960554599761963,
+              6.826572018781008e-08,
+              3.141592502593994
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Full-frame side-by-side placement at original pixel dimensions; no crop or image retouch",
+        "Labels in outside margins",
+        "Optional additional delivery-only LANCZOS scale, recorded explicitly",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "matched-static-sheet-3.webp",
+      "bytes": 99426,
+      "sha256": "d60ced59474b09904b1327f249bf9b841749d08556af7a5e62b0752ee286a71a",
+      "resolution": [
+        1060,
+        2360
+      ],
+      "preEncodingResolution": [
+        1060,
+        2360
+      ],
+      "deliveryScale": 1,
+      "quality": 64,
+      "method": 6,
+      "sources": [
+        {
+          "file": "diag-left-selected.png",
+          "variant": "selected",
+          "view": "diag-left",
+          "bytes": 670698,
+          "sha256": "cef9ea3b4e7bc3a0f6a0a9d15f15edb753a5e737db7d4e6ec154b09c82ef87f7",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -10.061528205871582,
+              -0.1079631969332695,
+              9.792880058288574
+            ],
+            "rotation": [
+              0.8960554599761963,
+              7.597417805982332e-08,
+              -1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "diag-left-articulated.png",
+          "variant": "articulated",
+          "view": "diag-left",
+          "bytes": 670697,
+          "sha256": "1a47aa67fefff02ffe2352497ae1f016e0283e7d33a711c5927457e21874dbe3",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -10.061528205871582,
+              -0.1079631969332695,
+              9.792880058288574
+            ],
+            "rotation": [
+              0.8960554599761963,
+              7.597417805982332e-08,
+              -1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "diag-right-selected.png",
+          "variant": "selected",
+          "view": "diag-right",
+          "bytes": 603034,
+          "sha256": "d5378da1f9520b5d5a6c82ed353a427c865e0b557140f7a338b79b47c0321a48",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              10.146685600280762,
+              -0.10796324163675308,
+              9.621642112731934
+            ],
+            "rotation": [
+              0.8960554599761963,
+              -7.597417805982332e-08,
+              1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "diag-right-articulated.png",
+          "variant": "articulated",
+          "view": "diag-right",
+          "bytes": 603034,
+          "sha256": "7e736337e5dd4f284f347924fc535daf6f815b56f0bdd2115ba0ae5401bf4db9",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              10.146685600280762,
+              -0.10796324163675308,
+              9.621642112731934
+            ],
+            "rotation": [
+              0.8960554599761963,
+              -7.597417805982332e-08,
+              1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "diag-back-selected.png",
+          "variant": "selected",
+          "view": "diag-back",
+          "bytes": 618947,
+          "sha256": "ceab966662260cc23c4bbb8c0a1c86e921228b331873fd902f0564b4254357bc",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591574192047119,
+              -10.132988929748535,
+              9.806111335754395
+            ],
+            "rotation": [
+              0.8960553407669067,
+              -0.0,
+              0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "diag-back-articulated.png",
+          "variant": "articulated",
+          "view": "diag-back",
+          "bytes": 618947,
+          "sha256": "16b1e47c74efba974133863b7fb5dd6d930e9fccfba8258f48ec935f5087adc6",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591574192047119,
+              -10.132988929748535,
+              9.806111335754395
+            ],
+            "rotation": [
+              0.8960553407669067,
+              -0.0,
+              0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Full-frame side-by-side placement at original pixel dimensions; no crop or image retouch",
+        "Labels in outside margins",
+        "Optional additional delivery-only LANCZOS scale, recorded explicitly",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "matched-static-hero-board.webp",
+      "bytes": 95388,
+      "sha256": "9d7c4914db9a2693db38e151c5b13b15322f8355aa1155de1e9d04b218e9cf1c",
+      "resolution": [
+        1600,
+        1070
+      ],
+      "preEncodingResolution": [
+        1600,
+        1070
+      ],
+      "deliveryScale": 1,
+      "quality": 80,
+      "method": 6,
+      "sources": [
+        {
+          "file": "hero-selected.png",
+          "variant": "selected",
+          "view": "hero",
+          "bytes": 1317332,
+          "sha256": "485bb09b84b5229d08683da9d78710794bf8f8acb6bca006761fbc05cd224f65",
+          "resolution": [
+            780,
+            960
+          ],
+          "camera": {
+            "location": [
+              -3,
+              7,
+              3.0
+            ],
+            "rotation": [
+              1.3915386199951172,
+              -1.2139258842580603e-07,
+              -2.736701011657715
+            ],
+            "orthoScale": 4.7
+          },
+          "lights": [
+            [
+              "Warm key",
+              [
+                -3,
+                4,
+                6
+              ],
+              650,
+              4
+            ],
+            [
+              "Cool fill",
+              [
+                4,
+                2,
+                3
+              ],
+              350,
+              4
+            ],
+            [
+              "Shell rim",
+              [
+                -1,
+                -4,
+                5
+              ],
+              800,
+              3
+            ]
+          ],
+          "samples": 24,
+          "seed": 0,
+          "groundZ": 0
+        },
+        {
+          "file": "hero-articulated.png",
+          "variant": "articulated",
+          "view": "hero",
+          "bytes": 1317328,
+          "sha256": "9ae2c6519bb1d32818950edb0d1dc51889c930707cd747152ee6ecf9307ced33",
+          "resolution": [
+            780,
+            960
+          ],
+          "camera": {
+            "location": [
+              -3,
+              7,
+              3.0
+            ],
+            "rotation": [
+              1.3915386199951172,
+              -1.2139258842580603e-07,
+              -2.736701011657715
+            ],
+            "orthoScale": 4.7
+          },
+          "lights": [
+            [
+              "Warm key",
+              [
+                -3,
+                4,
+                6
+              ],
+              650,
+              4
+            ],
+            [
+              "Cool fill",
+              [
+                4,
+                2,
+                3
+              ],
+              350,
+              4
+            ],
+            [
+              "Shell rim",
+              [
+                -1,
+                -4,
+                5
+              ],
+              800,
+              3
+            ]
+          ],
+          "samples": 24,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Original full-frame pixels arranged side by side; no crop",
+        "Labels outside frames",
+        "Optional additional delivery-only LANCZOS scale, recorded explicitly",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "front-selected.webp",
+      "bytes": 13952,
+      "sha256": "7518fe8dc24a6a4e24d5022fba28ae977b896cc5bbd9ec806ad0de46e64914f5",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "front-selected.png",
+          "variant": "selected",
+          "view": "front",
+          "bytes": 430148,
+          "sha256": "7594460cf1c0d78b54eb1f155c3642020a46dc1f93ca541702f1f8f2e6e2c0f0",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.025915920734405518,
+              9.892037391662598,
+              1.8373935222625732
+            ],
+            "rotation": [
+              -1.570796251296997,
+              3.141592502593994,
+              -0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "front-articulated.webp",
+      "bytes": 13992,
+      "sha256": "c0848d335a7327038e8f4b4e08178edfcee4b8ed0842bee54f1f83e02ece03f7",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "front-articulated.png",
+          "variant": "articulated",
+          "view": "front",
+          "bytes": 430138,
+          "sha256": "7c763d574a4f5135b7f4525d06a0c8ab88af36b8f39f5a89c709d646cebefac5",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.025915920734405518,
+              9.892037391662598,
+              1.8373935222625732
+            ],
+            "rotation": [
+              -1.570796251296997,
+              3.141592502593994,
+              -0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "left-selected.webp",
+      "bytes": 9138,
+      "sha256": "42de882c61bf9bc5c9e196515129f65b2240dc9699c69789b7e2d5c4ed77cbb0",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "left-selected.png",
+          "variant": "selected",
+          "view": "left",
+          "bytes": 355196,
+          "sha256": "2d5b6141cf5478600ac00952cbd96a582c2fefa6b1c0044913d3acca7a3bdbf4",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -10.02591609954834,
+              -0.10796260833740234,
+              1.8373937606811523
+            ],
+            "rotation": [
+              1.5707963705062866,
+              -0.0,
+              -1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "left-articulated.webp",
+      "bytes": 9460,
+      "sha256": "d4286237990bcc0121435100a2bc5f731f3c613014ff7436190748ef07f12e28",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "left-articulated.png",
+          "variant": "articulated",
+          "view": "left",
+          "bytes": 355151,
+          "sha256": "f5512076929cdf9ff849b36cb560bfa0cae041503789ed6fd04c0a57a8a5be8f",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -10.02591609954834,
+              -0.10796260833740234,
+              1.8373937606811523
+            ],
+            "rotation": [
+              1.5707963705062866,
+              -0.0,
+              -1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "right-selected.webp",
+      "bytes": 8418,
+      "sha256": "68e513d83f9ab396dbbe00e0d32f224033f5de8d0afdf7f8398f0370fbe00f28",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "right-selected.png",
+          "variant": "selected",
+          "view": "right",
+          "bytes": 347593,
+          "sha256": "1a5f369b2b8b13f35e9849060c1f9dd0f3fd60700fc63df87dadf96f1dd48c92",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              9.97408390045166,
+              -0.10796260833740234,
+              1.8373937606811523
+            ],
+            "rotation": [
+              1.5707963705062866,
+              -0.0,
+              1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "right-articulated.webp",
+      "bytes": 8566,
+      "sha256": "c0be6a979bb4580b575e6c2724a05f089987e386fde9f0ed4ddeaa0126a66cd7",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "right-articulated.png",
+          "variant": "articulated",
+          "view": "right",
+          "bytes": 347598,
+          "sha256": "7dafa219599fb219ab4f466271250d004a4759268c751485d1d64e82a5278f4f",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              9.97408390045166,
+              -0.10796260833740234,
+              1.8373937606811523
+            ],
+            "rotation": [
+              1.5707963705062866,
+              -0.0,
+              1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "back-selected.webp",
+      "bytes": 11272,
+      "sha256": "9055714b10cfdbd8b3192248671f59909172d58f2c48549e1ecad9d649102bcc",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "back-selected.png",
+          "variant": "selected",
+          "view": "back",
+          "bytes": 407138,
+          "sha256": "6da5b9f95d1bb127e9c99deb2ad90e27ee43ab89de0688ac1ca2ed4b53d72de4",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591574192047119,
+              -10.107962608337402,
+              1.8373925685882568
+            ],
+            "rotation": [
+              1.5707964897155762,
+              -0.0,
+              0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "back-articulated.webp",
+      "bytes": 11386,
+      "sha256": "80d1ccd470ad13d6cc945d16bb3e90f3d54cd0f162060e87993b248c7afb939b",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "back-articulated.png",
+          "variant": "articulated",
+          "view": "back",
+          "bytes": 407129,
+          "sha256": "e35a7a90a6d6ba12ace06752a73c2d8c31d17b12fbba0f505c2bdd9f0de10efb",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591574192047119,
+              -10.107962608337402,
+              1.8373925685882568
+            ],
+            "rotation": [
+              1.5707964897155762,
+              -0.0,
+              0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "top-selected.webp",
+      "bytes": 8396,
+      "sha256": "05c98aa1e17cee15f6ea817b78b329068d8d215dac966dba104a5e04ae31a674",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "top-selected.png",
+          "variant": "selected",
+          "view": "top",
+          "bytes": 626086,
+          "sha256": "30b0013bb2a74fa2f14b251ca5bd916b34294919167904ce568fe47cf7474493",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.025915861129760742,
+              -0.10588781535625458,
+              11.837394714355469
+            ],
+            "rotation": [
+              0.00020000040240120143,
+              8.742295082297957e-12,
+              3.141592502593994
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "top-articulated.webp",
+      "bytes": 8466,
+      "sha256": "38ba27f4f241c7af2bed494dace2f507db31cfc6643232a7a1abe7c8a5913c00",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "top-articulated.png",
+          "variant": "articulated",
+          "view": "top",
+          "bytes": 626088,
+          "sha256": "23285952e0f8c775666381ca05de96db9d55883817de70cc7f9848213e32c217",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.025915861129760742,
+              -0.10588781535625458,
+              11.837394714355469
+            ],
+            "rotation": [
+              0.00020000040240120143,
+              8.742295082297957e-12,
+              3.141592502593994
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "diag-front-selected.webp",
+      "bytes": 11482,
+      "sha256": "e026da6ecf16178a51e1f818554182cd033eeb3809b742df748490d2b8dabc06",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 80,
+      "method": 6,
+      "sources": [
+        {
+          "file": "diag-front-selected.png",
+          "variant": "selected",
+          "view": "diag-front",
+          "bytes": 643263,
+          "sha256": "cb9396b57b1c18562d185d6f5ae320df59a93a8b4022514948dcbe419b2ae7c9",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591494284570217,
+              9.99831485748291,
+              9.704547882080078
+            ],
+            "rotation": [
+              0.8960554599761963,
+              6.826572018781008e-08,
+              3.141592502593994
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "diag-front-articulated.webp",
+      "bytes": 11640,
+      "sha256": "a406134e84c88cf94c634f6b8ae47d71082a89f7b8f40c6be3ca5401711d781a",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 80,
+      "method": 6,
+      "sources": [
+        {
+          "file": "diag-front-articulated.png",
+          "variant": "articulated",
+          "view": "diag-front",
+          "bytes": 643266,
+          "sha256": "55d8b2706c0bc6a4d2e65fb4613f32c07bc66bf20c7df2e727e912b7b7e7eefe",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591494284570217,
+              9.99831485748291,
+              9.704547882080078
+            ],
+            "rotation": [
+              0.8960554599761963,
+              6.826572018781008e-08,
+              3.141592502593994
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "diag-left-selected.webp",
+      "bytes": 11680,
+      "sha256": "299d62f3bfe3ae0edbd8f1226e7dab569aa3729ee185d06372d51bdd7ed66cf9",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 76,
+      "method": 6,
+      "sources": [
+        {
+          "file": "diag-left-selected.png",
+          "variant": "selected",
+          "view": "diag-left",
+          "bytes": 670698,
+          "sha256": "cef9ea3b4e7bc3a0f6a0a9d15f15edb753a5e737db7d4e6ec154b09c82ef87f7",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -10.061528205871582,
+              -0.1079631969332695,
+              9.792880058288574
+            ],
+            "rotation": [
+              0.8960554599761963,
+              7.597417805982332e-08,
+              -1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "diag-left-articulated.webp",
+      "bytes": 11750,
+      "sha256": "5b1bc7d476495721e9fc597e61b7cb827a72e4588365f4bb7f5271439fb6448d",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 76,
+      "method": 6,
+      "sources": [
+        {
+          "file": "diag-left-articulated.png",
+          "variant": "articulated",
+          "view": "diag-left",
+          "bytes": 670697,
+          "sha256": "1a47aa67fefff02ffe2352497ae1f016e0283e7d33a711c5927457e21874dbe3",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -10.061528205871582,
+              -0.1079631969332695,
+              9.792880058288574
+            ],
+            "rotation": [
+              0.8960554599761963,
+              7.597417805982332e-08,
+              -1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "diag-right-selected.webp",
+      "bytes": 9972,
+      "sha256": "08ba23fc799c6388c9b988f523cb47e3a85c666493674ab82ac0598425e3d30f",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "diag-right-selected.png",
+          "variant": "selected",
+          "view": "diag-right",
+          "bytes": 603034,
+          "sha256": "d5378da1f9520b5d5a6c82ed353a427c865e0b557140f7a338b79b47c0321a48",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              10.146685600280762,
+              -0.10796324163675308,
+              9.621642112731934
+            ],
+            "rotation": [
+              0.8960554599761963,
+              -7.597417805982332e-08,
+              1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "diag-right-articulated.webp",
+      "bytes": 10162,
+      "sha256": "df760cf70bfab76804a4d1ab5a04c1651a44817a32be3db56fd03103de82d440",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "diag-right-articulated.png",
+          "variant": "articulated",
+          "view": "diag-right",
+          "bytes": 603034,
+          "sha256": "7e736337e5dd4f284f347924fc535daf6f815b56f0bdd2115ba0ae5401bf4db9",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              10.146685600280762,
+              -0.10796324163675308,
+              9.621642112731934
+            ],
+            "rotation": [
+              0.8960554599761963,
+              -7.597417805982332e-08,
+              1.5707963705062866
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "diag-back-selected.webp",
+      "bytes": 12794,
+      "sha256": "edc591be22223ca9e1e4ae26a7542d4bd5c554eb4d2e9aac1761972b9762ed56",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "diag-back-selected.png",
+          "variant": "selected",
+          "view": "diag-back",
+          "bytes": 618947,
+          "sha256": "ceab966662260cc23c4bbb8c0a1c86e921228b331873fd902f0564b4254357bc",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591574192047119,
+              -10.132988929748535,
+              9.806111335754395
+            ],
+            "rotation": [
+              0.8960553407669067,
+              -0.0,
+              0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "diag-back-articulated.webp",
+      "bytes": 12840,
+      "sha256": "772a603a7d522e6520d987988672d4f1a163ff3fad37451129a6d967f09b0f8b",
+      "resolution": [
+        360,
+        544
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "diag-back-articulated.png",
+          "variant": "articulated",
+          "view": "diag-back",
+          "bytes": 618947,
+          "sha256": "16b1e47c74efba974133863b7fb5dd6d930e9fccfba8258f48ec935f5087adc6",
+          "resolution": [
+            496,
+            700
+          ],
+          "camera": {
+            "location": [
+              -0.02591574192047119,
+              -10.132988929748535,
+              9.806111335754395
+            ],
+            "rotation": [
+              0.8960553407669067,
+              -0.0,
+              0.0
+            ],
+            "orthoScale": 5.03867244720459
+          },
+          "lights": [
+            [
+              "Key",
+              [
+                -3,
+                4,
+                7
+              ],
+              700,
+              4
+            ],
+            [
+              "Fill",
+              [
+                4,
+                2,
+                4
+              ],
+              400,
+              4
+            ],
+            [
+              "Rim",
+              [
+                0,
+                -5,
+                5
+              ],
+              850,
+              3
+            ]
+          ],
+          "samples": 16,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "hero-selected.webp",
+      "bytes": 12104,
+      "sha256": "1d85e65f81f3c8e5e9605c259fea403bd926721095ff53f5ac2a96c75a209d38",
+      "resolution": [
+        360,
+        479
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "hero-selected.png",
+          "variant": "selected",
+          "view": "hero",
+          "bytes": 1317332,
+          "sha256": "485bb09b84b5229d08683da9d78710794bf8f8acb6bca006761fbc05cd224f65",
+          "resolution": [
+            780,
+            960
+          ],
+          "camera": {
+            "location": [
+              -3,
+              7,
+              3.0
+            ],
+            "rotation": [
+              1.3915386199951172,
+              -1.2139258842580603e-07,
+              -2.736701011657715
+            ],
+            "orthoScale": 4.7
+          },
+          "lights": [
+            [
+              "Warm key",
+              [
+                -3,
+                4,
+                6
+              ],
+              650,
+              4
+            ],
+            [
+              "Cool fill",
+              [
+                4,
+                2,
+                3
+              ],
+              350,
+              4
+            ],
+            [
+              "Shell rim",
+              [
+                -1,
+                -4,
+                5
+              ],
+              800,
+              3
+            ]
+          ],
+          "samples": 24,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    },
+    {
+      "file": "hero-articulated.webp",
+      "bytes": 12270,
+      "sha256": "2450dcd4d00fc06ca5befc14e0ccb28420da611369a0ce4a6418073347268afb",
+      "resolution": [
+        360,
+        479
+      ],
+      "quality": 84,
+      "method": 6,
+      "sources": [
+        {
+          "file": "hero-articulated.png",
+          "variant": "articulated",
+          "view": "hero",
+          "bytes": 1317328,
+          "sha256": "9ae2c6519bb1d32818950edb0d1dc51889c930707cd747152ee6ecf9307ced33",
+          "resolution": [
+            780,
+            960
+          ],
+          "camera": {
+            "location": [
+              -3,
+              7,
+              3.0
+            ],
+            "rotation": [
+              1.3915386199951172,
+              -1.2139258842580603e-07,
+              -2.736701011657715
+            ],
+            "orthoScale": 4.7
+          },
+          "lights": [
+            [
+              "Warm key",
+              [
+                -3,
+                4,
+                6
+              ],
+              650,
+              4
+            ],
+            [
+              "Cool fill",
+              [
+                4,
+                2,
+                3
+              ],
+              350,
+              4
+            ],
+            [
+              "Shell rim",
+              [
+                -1,
+                -4,
+                5
+              ],
+              800,
+              3
+            ]
+          ],
+          "samples": 24,
+          "seed": 0,
+          "groundZ": 0
+        }
+      ],
+      "operations": [
+        "Opaque RGB conversion",
+        "Aspect-preserving LANCZOS thumbnail, max360x600",
+        "Variant/view label on separate36px top margin, no crop or retouch",
+        "Lossy WebP encoding"
+      ]
+    }
+  ]
+}

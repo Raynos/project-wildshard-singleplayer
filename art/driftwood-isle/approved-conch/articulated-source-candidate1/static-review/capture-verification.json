@@ -1,0 +1,32 @@
+{
+  "sourceManifestSha256": "eaa5c79468a8e181e49e3383591381adb78f3cfcfc46aad1fb3732ea7f07dd1b",
+  "all46FrozenSourceFilesUnchanged": true,
+  "renderScriptsUnchangedDuringCapture": true,
+  "matchedViewPairs": 10,
+  "rawFrames": 20,
+  "rawPngBytes": 12038811,
+  "originalResolutions": [
+    [
+      496,
+      700
+    ],
+    [
+      780,
+      960
+    ]
+  ],
+  "allRawOpaque": true,
+  "cameraLightSamplesSeedGroundResolutionEqualWithinEachPair": true,
+  "importPositionFloat32Exact": true,
+  "maximumCustomNormalImportDelta": 9.713997379265157e-05,
+  "previewImages": 24,
+  "previewBytes": 595508,
+  "builderInspected": "All nine matched views and hero via three full paired sheets and hero board; raw front pair also inspected",
+  "independentVisualReview": "pending",
+  "rawRemotePreservation": "not yet verified; raw files retained locally for approved native Site source-evidence route",
+  "runtimeAdmission": false,
+  "qualityAdmission": false,
+  "finalPreviewDirectory": "previews-final",
+  "individualPreviewLabels": true,
+  "firstUnlabelledDerivativeAttemptRetained": true
+}

@@ -1,0 +1,526 @@
+{
+  "status": "local complete evidence; native Site remote preservation not yet verified",
+  "files": {
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/FINAL-RESULT.md": {
+      "bytes": 4022,
+      "sha256": "f233d815902dc10ab8b9d01b3f70a70929257042efe21b2b03572ea0a05767fc"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/PACKED-SEAM-REPAIR.md": {
+      "bytes": 2872,
+      "sha256": "6e414bed265a4685456138f77d31cd9e8079d6434998918a30e2a7e99075ab15"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/REPORT.md": {
+      "bytes": 5344,
+      "sha256": "54344d428adce6b95cf4ada8e4ebdc1a491a9d8de5dad71d5ab6520184a62fca"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/checkpoint-manifest.json": {
+      "bytes": 3478,
+      "sha256": "65edd31ab8b64ef7615e65c981a0785a439d818106dbb1cf8e385593f0dd2a27"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/construction.json": {
+      "bytes": 13281,
+      "sha256": "2596d49ffffa72f255c4d8db6628b4ebc9090c7d1ec80e0918cb96ae164424e6"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/contract.json": {
+      "bytes": 2532,
+      "sha256": "37e10f67124db7c7e43eb5670643036ed8153a074314789cd030ca66553d6952"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-metadata-identifier/checkpoint-manifest.json": {
+      "bytes": 3478,
+      "sha256": "65edd31ab8b64ef7615e65c981a0785a439d818106dbb1cf8e385593f0dd2a27"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-metadata-identifier/failure.json": {
+      "bytes": 386,
+      "sha256": "709e94174d407930252616a8671722b6db2000c73d2ca82cf1ac07c4c721143e"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-metadata-identifier/freeze.json": {
+      "bytes": 3689,
+      "sha256": "886a4292c0bce0f76634b389bbec8d98242bb4371fc34c0b65e038a30e5e5698"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-metadata-identifier/generate.py": {
+      "bytes": 13125,
+      "sha256": "91b578ff0068ba84240f0d5b171112310a3d673e7b9bdd1d2e7766c4e406095f"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-metadata-identifier/metadata.json": {
+      "bytes": 24534,
+      "sha256": "8f0973a48ef0cf057fa19e837fa54d9c7655421515dbf179bf80841776649254"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/FINAL-RESULT.md": {
+      "bytes": 3785,
+      "sha256": "c72e61808db8a86919b222d84675508bc5f0d5a4f5c41023f44ea0e78856caf2"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/construction.json": {
+      "bytes": 13281,
+      "sha256": "336bd05306101b6db9bbdbf1edbd4643388abdfd232f1a2fc5685584fd7b055f"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/contract.json": {
+      "bytes": 2532,
+      "sha256": "37e10f67124db7c7e43eb5670643036ed8153a074314789cd030ca66553d6952"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/failure.json": {
+      "bytes": 571,
+      "sha256": "aa2b927df9a11fa4bc7a8234ae7070ef0af49e4f380803b8b70c777e544df816"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/final-manifest.json": {
+      "bytes": 4760,
+      "sha256": "2d844f031ee471dc269afb1175f817b294f34763883e524acdc5cfa271eb9e0b"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/final-receipt.json": {
+      "bytes": 788,
+      "sha256": "4a8f1f9b5177c5310e40bb67df4338618a5edc9d87c741c70207aeb0168e2c7f"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/freeze.json": {
+      "bytes": 3689,
+      "sha256": "d47912fb70d156826d8e92953addd7ba596165d286b9d4aa3e6eba10c7e7d597"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/generate.py": {
+      "bytes": 13193,
+      "sha256": "77ead9c8d44df36ede9efc49b4111d69f1e9b65da86f82ce8df844e7ee6352bf"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/metadata.json": {
+      "bytes": 24650,
+      "sha256": "2a863362e98b272ff03107bf5ff30b90e99b2236bcb0aa36c0a80b80ec8ffc05"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/model.json": {
+      "bytes": 1395237,
+      "sha256": "727d2f3c343f33e9b132304eb0e2ad159a2b9f6f5046289ba71c3b571857f765"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/payload.bin": {
+      "bytes": 48321,
+      "sha256": "d116f65ae2a70b605d82c7fe924ddfbaf8fd06be588016ac3130c06f468f5eb9"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/recipe.json": {
+      "bytes": 20894,
+      "sha256": "2dc438caca6a3396e48f9ae51a600c83a7cbf97ebd5ffd4a7654e7b8b14e5ed0"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/failed-packed-seam/test_source.py": {
+      "bytes": 8804,
+      "sha256": "a5a3f4581095bfdf0eb8d0f9835432adf8c9f397831be652bef82c7638194550"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/final-manifest.json": {
+      "bytes": 7058,
+      "sha256": "eaa5c79468a8e181e49e3383591381adb78f3cfcfc46aad1fb3732ea7f07dd1b"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/final-receipt.json": {
+      "bytes": 1120,
+      "sha256": "ee4f55b4195fd15278e7d0b786ebe40bafd34b3c60cb8c3463d2d00c4f4329b5"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/first-build-arithmetic-witness/construction.json": {
+      "bytes": 13281,
+      "sha256": "22f1e5331a8047287aa2ea638afa87c3a61aa76164f86878474d3a09ebe2dfea"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/first-build-arithmetic-witness/contract.json": {
+      "bytes": 2570,
+      "sha256": "85f75413a1578d06ae35475ad42f0edb6701c332efc87134cdf6eca59113b6a2"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/first-build-arithmetic-witness/failure.json": {
+      "bytes": 575,
+      "sha256": "828c49f1f79a39cfbcd2fd4e7803429eee20f741fe810b8c56e3d5b0f664b3da"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/first-build-arithmetic-witness/freeze.json": {
+      "bytes": 3689,
+      "sha256": "ca25129e6d0ff844be9d987713839949521b191e3db5047443b79b4698ecd611"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/first-build-arithmetic-witness/generate.py": {
+      "bytes": 12995,
+      "sha256": "a9c14aee82f81a5a27f4f00fd24a20778891f80bfbd94180436e36ef872793d6"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/first-build-arithmetic-witness/metadata.json": {
+      "bytes": 24534,
+      "sha256": "8f0973a48ef0cf057fa19e837fa54d9c7655421515dbf179bf80841776649254"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/first-build-arithmetic-witness/model.json": {
+      "bytes": 1396091,
+      "sha256": "807a9efcfa6682b43edd5dd23a795732262ec8d89fc979bf67e8f1e307fc3b56"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/first-build-arithmetic-witness/payload.bin": {
+      "bytes": 48403,
+      "sha256": "43fc8799cc02d225127d8238585b448621c05764adb30ad3c99a81f6842036c3"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/first-build-arithmetic-witness/recipe.json": {
+      "bytes": 20894,
+      "sha256": "2dc438caca6a3396e48f9ae51a600c83a7cbf97ebd5ffd4a7654e7b8b14e5ed0"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/first-build-arithmetic-witness/test_source.py": {
+      "bytes": 8812,
+      "sha256": "64d9266a6591d58fd24eee7255a6cc1865bb70e780af3d07150537ecee7bc48f"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/freeze.json": {
+      "bytes": 3689,
+      "sha256": "0ec903c0eef1639277048dee8098cd51c33980204a18f59a49d75a68f21390f3"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/generate.py": {
+      "bytes": 13748,
+      "sha256": "5e0f01f3b1ef4e747f6121a10d7575d6f448e86910f420edc7aae03b8bcfe7b5"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/metadata.json": {
+      "bytes": 24650,
+      "sha256": "6905f20ced953176fb0e316a8d18287735eef0fb996cd58af43ae918b8f87989"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/model.json": {
+      "bytes": 1395246,
+      "sha256": "560abb099f474ddb86733f143e39652874298bba67f15fd1da7a63f1c4e91b3e"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/native.test.ts": {
+      "bytes": 5957,
+      "sha256": "221eb37839494e96a5ab5f376ec9384817cd640cadb92afffd821699ac1b15f5"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/packed-seam-delta.json": {
+      "bytes": 1291,
+      "sha256": "06aa70938746cd9e76bbb045cc9ca1c4ac2b8176245bd3412bbde19130869bc5"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/payload.bin": {
+      "bytes": 48317,
+      "sha256": "9a1176e701ec58b6470d9898c11677512344e455c84da3bde84e1b5cee5364ed"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/recipe.json": {
+      "bytes": 20894,
+      "sha256": "2dc438caca6a3396e48f9ae51a600c83a7cbf97ebd5ffd4a7654e7b8b14e5ed0"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/REVIEW.md": {
+      "bytes": 4330,
+      "sha256": "34487eae349733c2f9ff878e304ed1a2750e5d340b1d4a0ce68c0b2c99a77813"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/capture-receipt.json": {
+      "bytes": 27547,
+      "sha256": "8c57f57653ee98ddae003bbc39bff2f7bafc3a5387c756e8ee28aa6f62b9ba35"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/capture-verification.json": {
+      "bytes": 1081,
+      "sha256": "8114322dba48dbc7a685db053566c636267c118c9e2dd09bf492fc7604b6cd09"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/game-publication-manifest.json": {
+      "bytes": 7582,
+      "sha256": "afe755ce28dffa9778af21a0e0bb3ce55e4bb5f9658f6883a3f1d264b3796710"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/label_individual_previews.py": {
+      "bytes": 2542,
+      "sha256": "cc966a9edf555929ed6d93bc2c01a5c252619e690196383ba5b7ee859151cfeb"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/prepare_previews.py": {
+      "bytes": 4742,
+      "sha256": "ccbdf658221cad00c526d0b1985de76b776cc14982f12e11e2409e87e6d31511"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/back-articulated.webp": {
+      "bytes": 10072,
+      "sha256": "431137fffad1c7edb436d17439f639e13b62a2f699295308a8b2402d7d376785"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/back-selected.webp": {
+      "bytes": 10076,
+      "sha256": "7193900a26ecadecc340f373450aeb0f564fee5af8dee17e3a5dda8c0b9e27d4"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/diag-back-articulated.webp": {
+      "bytes": 11588,
+      "sha256": "a6973e25e50873e77b54a8fc9b7e52a91c2cfe8cb4713279f8153a77666b616d"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/diag-back-selected.webp": {
+      "bytes": 11588,
+      "sha256": "a6973e25e50873e77b54a8fc9b7e52a91c2cfe8cb4713279f8153a77666b616d"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/diag-front-articulated.webp": {
+      "bytes": 12922,
+      "sha256": "d9be971b0d09aaa9372822ef7f29844738d3a8874bdd1211da5c72263653d18f"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/diag-front-selected.webp": {
+      "bytes": 12922,
+      "sha256": "d9be971b0d09aaa9372822ef7f29844738d3a8874bdd1211da5c72263653d18f"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/diag-left-articulated.webp": {
+      "bytes": 10686,
+      "sha256": "23eb8f285f2446e72a15ecebf48e6948b8f69ab1643ad96b8e526337baca112e"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/diag-left-selected.webp": {
+      "bytes": 10686,
+      "sha256": "23eb8f285f2446e72a15ecebf48e6948b8f69ab1643ad96b8e526337baca112e"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/diag-right-articulated.webp": {
+      "bytes": 8688,
+      "sha256": "34e429dceaf87bbe3010be2e2aeded2a3a9e79722cf88c2247c9a67751173e36"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/diag-right-selected.webp": {
+      "bytes": 8688,
+      "sha256": "34e429dceaf87bbe3010be2e2aeded2a3a9e79722cf88c2247c9a67751173e36"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/front-articulated.webp": {
+      "bytes": 12756,
+      "sha256": "f57f2cdcc31daaa4e820992849dc04bd88c3abd776d02ca6ddf0d25a6300ab7f"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/front-selected.webp": {
+      "bytes": 12760,
+      "sha256": "0ab36386f77c57ba9f99a909e0caf62d56f6562c44b3740546ebfe16d530d59a"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/hero-articulated.webp": {
+      "bytes": 10986,
+      "sha256": "22a9af889fa1c2b1c58b672cf3d50986eea2bdd2e95918fdf00b9f68f76bca42"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/hero-selected.webp": {
+      "bytes": 10986,
+      "sha256": "22a9af889fa1c2b1c58b672cf3d50986eea2bdd2e95918fdf00b9f68f76bca42"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/left-articulated.webp": {
+      "bytes": 8006,
+      "sha256": "0d123c9427b0727fc287591007e0bf54a3d0eb4845cdffb33183612dd94c9e6d"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/left-selected.webp": {
+      "bytes": 8010,
+      "sha256": "c734a721d18cf7c819453c2b311d05ac8b68bd6931f41150ce02c1674a303651"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/matched-static-hero-board.webp": {
+      "bytes": 95388,
+      "sha256": "9d7c4914db9a2693db38e151c5b13b15322f8355aa1155de1e9d04b218e9cf1c"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/matched-static-sheet-1.webp": {
+      "bytes": 86918,
+      "sha256": "f01c6bddf81a0ab4f36153da76f230c5ccce1bafeda04b997f5631e28332f620"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/matched-static-sheet-2.webp": {
+      "bytes": 94036,
+      "sha256": "7023ff7c196311ccfe23592ca3ad85a103c47624727d115db32919fe6fe13f4c"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/matched-static-sheet-3.webp": {
+      "bytes": 99426,
+      "sha256": "d60ced59474b09904b1327f249bf9b841749d08556af7a5e62b0752ee286a71a"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/preview-manifest.json": {
+      "bytes": 67322,
+      "sha256": "61dc73072d7d0c0e77608685b530bc7d5654b5d603a844639e6e7c0361ab186d"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/right-articulated.webp": {
+      "bytes": 7394,
+      "sha256": "a69f4d1d9515655c115485cbdfa115072cab2d90048ce62af520f4020d462432"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/right-selected.webp": {
+      "bytes": 7392,
+      "sha256": "53aeebc4c39804b4fe0afda312f04ff4305799e4dd287067e83b90f62d3b0043"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/top-articulated.webp": {
+      "bytes": 7304,
+      "sha256": "803e1d2a95c6822165c93923b05dc9c2d6293da4866176de5389efa6f2b92ccb"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-attempt1/top-selected.webp": {
+      "bytes": 7304,
+      "sha256": "803e1d2a95c6822165c93923b05dc9c2d6293da4866176de5389efa6f2b92ccb"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/back-articulated.webp": {
+      "bytes": 11386,
+      "sha256": "80d1ccd470ad13d6cc945d16bb3e90f3d54cd0f162060e87993b248c7afb939b"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/back-selected.webp": {
+      "bytes": 11272,
+      "sha256": "9055714b10cfdbd8b3192248671f59909172d58f2c48549e1ecad9d649102bcc"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/diag-back-articulated.webp": {
+      "bytes": 12840,
+      "sha256": "772a603a7d522e6520d987988672d4f1a163ff3fad37451129a6d967f09b0f8b"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/diag-back-selected.webp": {
+      "bytes": 12794,
+      "sha256": "edc591be22223ca9e1e4ae26a7542d4bd5c554eb4d2e9aac1761972b9762ed56"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/diag-front-articulated.webp": {
+      "bytes": 11640,
+      "sha256": "a406134e84c88cf94c634f6b8ae47d71082a89f7b8f40c6be3ca5401711d781a"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/diag-front-selected.webp": {
+      "bytes": 11482,
+      "sha256": "e026da6ecf16178a51e1f818554182cd033eeb3809b742df748490d2b8dabc06"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/diag-left-articulated.webp": {
+      "bytes": 11750,
+      "sha256": "5b1bc7d476495721e9fc597e61b7cb827a72e4588365f4bb7f5271439fb6448d"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/diag-left-selected.webp": {
+      "bytes": 11680,
+      "sha256": "299d62f3bfe3ae0edbd8f1226e7dab569aa3729ee185d06372d51bdd7ed66cf9"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/diag-right-articulated.webp": {
+      "bytes": 10162,
+      "sha256": "df760cf70bfab76804a4d1ab5a04c1651a44817a32be3db56fd03103de82d440"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/diag-right-selected.webp": {
+      "bytes": 9972,
+      "sha256": "08ba23fc799c6388c9b988f523cb47e3a85c666493674ab82ac0598425e3d30f"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/front-articulated.webp": {
+      "bytes": 13992,
+      "sha256": "c0848d335a7327038e8f4b4e08178edfcee4b8ed0842bee54f1f83e02ece03f7"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/front-selected.webp": {
+      "bytes": 13952,
+      "sha256": "7518fe8dc24a6a4e24d5022fba28ae977b896cc5bbd9ec806ad0de46e64914f5"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/hero-articulated.webp": {
+      "bytes": 12270,
+      "sha256": "2450dcd4d00fc06ca5befc14e0ccb28420da611369a0ce4a6418073347268afb"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/hero-selected.webp": {
+      "bytes": 12104,
+      "sha256": "1d85e65f81f3c8e5e9605c259fea403bd926721095ff53f5ac2a96c75a209d38"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/left-articulated.webp": {
+      "bytes": 9460,
+      "sha256": "d4286237990bcc0121435100a2bc5f731f3c613014ff7436190748ef07f12e28"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/left-selected.webp": {
+      "bytes": 9138,
+      "sha256": "42de882c61bf9bc5c9e196515129f65b2240dc9699c69789b7e2d5c4ed77cbb0"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/matched-static-hero-board.webp": {
+      "bytes": 95388,
+      "sha256": "9d7c4914db9a2693db38e151c5b13b15322f8355aa1155de1e9d04b218e9cf1c"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/matched-static-sheet-1.webp": {
+      "bytes": 86918,
+      "sha256": "f01c6bddf81a0ab4f36153da76f230c5ccce1bafeda04b997f5631e28332f620"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/matched-static-sheet-2.webp": {
+      "bytes": 94036,
+      "sha256": "7023ff7c196311ccfe23592ca3ad85a103c47624727d115db32919fe6fe13f4c"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/matched-static-sheet-3.webp": {
+      "bytes": 99426,
+      "sha256": "d60ced59474b09904b1327f249bf9b841749d08556af7a5e62b0752ee286a71a"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/preview-manifest.json": {
+      "bytes": 65085,
+      "sha256": "4caf42703b7059ee041a30a970910c0aa496395148e88b314acd4eafecc6fda0"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/right-articulated.webp": {
+      "bytes": 8566,
+      "sha256": "c0be6a979bb4580b575e6c2724a05f089987e386fde9f0ed4ddeaa0126a66cd7"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/right-selected.webp": {
+      "bytes": 8418,
+      "sha256": "68e513d83f9ab396dbbe00e0d32f224033f5de8d0afdf7f8398f0370fbe00f28"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/top-articulated.webp": {
+      "bytes": 8466,
+      "sha256": "38ba27f4f241c7af2bed494dace2f507db31cfc6643232a7a1abe7c8a5913c00"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/previews-final/top-selected.webp": {
+      "bytes": 8396,
+      "sha256": "05c98aa1e17cee15f6ea817b78b329068d8d215dac966dba104a5e04ae31a674"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/back-articulated.png": {
+      "bytes": 407129,
+      "sha256": "e35a7a90a6d6ba12ace06752a73c2d8c31d17b12fbba0f505c2bdd9f0de10efb"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/back-selected.png": {
+      "bytes": 407138,
+      "sha256": "6da5b9f95d1bb127e9c99deb2ad90e27ee43ab89de0688ac1ca2ed4b53d72de4"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/capture-receipt.json": {
+      "bytes": 27547,
+      "sha256": "8c57f57653ee98ddae003bbc39bff2f7bafc3a5387c756e8ee28aa6f62b9ba35"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/diag-back-articulated.png": {
+      "bytes": 618947,
+      "sha256": "16b1e47c74efba974133863b7fb5dd6d930e9fccfba8258f48ec935f5087adc6"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/diag-back-selected.png": {
+      "bytes": 618947,
+      "sha256": "ceab966662260cc23c4bbb8c0a1c86e921228b331873fd902f0564b4254357bc"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/diag-front-articulated.png": {
+      "bytes": 643266,
+      "sha256": "55d8b2706c0bc6a4d2e65fb4613f32c07bc66bf20c7df2e727e912b7b7e7eefe"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/diag-front-selected.png": {
+      "bytes": 643263,
+      "sha256": "cb9396b57b1c18562d185d6f5ae320df59a93a8b4022514948dcbe419b2ae7c9"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/diag-left-articulated.png": {
+      "bytes": 670697,
+      "sha256": "1a47aa67fefff02ffe2352497ae1f016e0283e7d33a711c5927457e21874dbe3"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/diag-left-selected.png": {
+      "bytes": 670698,
+      "sha256": "cef9ea3b4e7bc3a0f6a0a9d15f15edb753a5e737db7d4e6ec154b09c82ef87f7"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/diag-right-articulated.png": {
+      "bytes": 603034,
+      "sha256": "7e736337e5dd4f284f347924fc535daf6f815b56f0bdd2115ba0ae5401bf4db9"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/diag-right-selected.png": {
+      "bytes": 603034,
+      "sha256": "d5378da1f9520b5d5a6c82ed353a427c865e0b557140f7a338b79b47c0321a48"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/front-articulated.png": {
+      "bytes": 430138,
+      "sha256": "7c763d574a4f5135b7f4525d06a0c8ab88af36b8f39f5a89c709d646cebefac5"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/front-selected.png": {
+      "bytes": 430148,
+      "sha256": "7594460cf1c0d78b54eb1f155c3642020a46dc1f93ca541702f1f8f2e6e2c0f0"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/hero-articulated.png": {
+      "bytes": 1317328,
+      "sha256": "9ae2c6519bb1d32818950edb0d1dc51889c930707cd747152ee6ecf9307ced33"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/hero-selected.png": {
+      "bytes": 1317332,
+      "sha256": "485bb09b84b5229d08683da9d78710794bf8f8acb6bca006761fbc05cd224f65"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/left-articulated.png": {
+      "bytes": 355151,
+      "sha256": "f5512076929cdf9ff849b36cb560bfa0cae041503789ed6fd04c0a57a8a5be8f"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/left-selected.png": {
+      "bytes": 355196,
+      "sha256": "2d5b6141cf5478600ac00952cbd96a582c2fefa6b1c0044913d3acca7a3bdbf4"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/right-articulated.png": {
+      "bytes": 347598,
+      "sha256": "7dafa219599fb219ab4f466271250d004a4759268c751485d1d64e82a5278f4f"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/right-selected.png": {
+      "bytes": 347593,
+      "sha256": "1a5f369b2b8b13f35e9849060c1f9dd0f3fd60700fc63df87dadf96f1dd48c92"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/top-articulated.png": {
+      "bytes": 626088,
+      "sha256": "23285952e0f8c775666381ca05de96db9d55883817de70cc7f9848213e32c217"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/raw-attempt1/top-selected.png": {
+      "bytes": 626086,
+      "sha256": "30b0013bb2a74fa2f14b251ca5bd916b34294919167904ce568fe47cf7474493"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/render-attempt1.log": {
+      "bytes": 132019,
+      "sha256": "9a4cfac738e7e0f356c6a6c70d5daa2efcf831d24def651d93eed2d4e1bf233b"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/render-source-freeze.json": {
+      "bytes": 375,
+      "sha256": "f7940382a858e221899a7a7cb8493de640198e59e40318191e386d622c7d45a1"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/static-review/render_matches.py": {
+      "bytes": 7792,
+      "sha256": "6effda79ce0d8bba677ec32606daa5f7775a9172980ad08c3e39f531d0add7c2"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/test_source.py": {
+      "bytes": 10518,
+      "sha256": "44659056058824d04a74d80e589bcbb6fb5fedd98eb4d49c678753461ae8d15e"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/tsconfig.json": {
+      "bytes": 222,
+      "sha256": "488016c6201ff075e4a0d97cab57cab5e6ba8f6632c69f2dcbdeba0fce8344b8"
+    },
+    "art/driftwood-isle/approved-conch/articulated-source-candidate1/vitest.config.ts": {
+      "bytes": 242,
+      "sha256": "fc39e0035e7ad1a921ace33425c965b68b8749b6d8a3f262155671b36e45881f"
+    },
+    "art/driftwood-isle/approved-conch/complete-pass1/cameras-complete-pass1.json": {
+      "bytes": 2575,
+      "sha256": "305663ad9378980ae5e3950a6b1d75b9057c34634304bf1994f30d5a84dc27ae"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/native/conch-character-pass-native.json": {
+      "bytes": 1286235,
+      "sha256": "3dddaf6a2845ffea0c372fe46d8d422baaa2864bfaf5cc5f4c4cd98a9faa0929"
+    },
+    "art/driftwood-isle/approved-conch/selected-native-normals/native/mesh-map.json": {
+      "bytes": 13607,
+      "sha256": "f6bb1437095c4f13c268b35d25f4710bbf7d6b728eacbeef825506d0fb2a60d6"
+    }
+  },
+  "totalBytes": 19543324
+}

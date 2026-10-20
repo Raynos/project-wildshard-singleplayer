@@ -1,0 +1,1396 @@
+{
+  "status": "complete: 20 matched static source frames; no quality or motion admission",
+  "sourcePins": {
+    "selected": "3dddaf6a2845ffea0c372fe46d8d422baaa2864bfaf5cc5f4c4cd98a9faa0929",
+    "articulated": "560abb099f474ddb86733f143e39652874298bba67f15fd1da7a63f1c4e91b3e"
+  },
+  "rendererSha256": "6effda79ce0d8bba677ec32606daa5f7775a9172980ad08c3e39f531d0add7c2",
+  "cameraSourceSha256": "305663ad9378980ae5e3950a6b1d75b9057c34634304bf1994f30d5a84dc27ae",
+  "blenderVersion": "4.3.2",
+  "coordinateContract": {
+    "baselineToActor": "B=Ry(pi): (-x,y,-z)",
+    "actorToBlender": "C=(-x,z,y), determinant+1; C B recovers original Conch studio frame",
+    "actorForward": "+Z",
+    "studioForward": "+Y",
+    "rootOffsets": "none; all object transforms identity; static absolute bind geometry"
+  },
+  "materialContract": {
+    "source": "native linear corner color, no palette edits",
+    "roughness": 0.76,
+    "metallic": 0,
+    "normalHandling": "native normal transformed with B/C and loaded as Blender custom loop normals; Blender normalization/quantization is measured, not claimed bit-identical",
+    "renderer": "Cycles CPU, AgX, no denoising; source-native studio not engine shader equivalence"
+  },
+  "frames": [
+    {
+      "file": "front-selected.png",
+      "variant": "selected",
+      "view": "front",
+      "bytes": 430148,
+      "sha256": "7594460cf1c0d78b54eb1f155c3642020a46dc1f93ca541702f1f8f2e6e2c0f0",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -0.025915920734405518,
+          9.892037391662598,
+          1.8373935222625732
+        ],
+        "rotation": [
+          -1.570796251296997,
+          3.141592502593994,
+          -0.0
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "front-articulated.png",
+      "variant": "articulated",
+      "view": "front",
+      "bytes": 430138,
+      "sha256": "7c763d574a4f5135b7f4525d06a0c8ab88af36b8f39f5a89c709d646cebefac5",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -0.025915920734405518,
+          9.892037391662598,
+          1.8373935222625732
+        ],
+        "rotation": [
+          -1.570796251296997,
+          3.141592502593994,
+          -0.0
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "left-selected.png",
+      "variant": "selected",
+      "view": "left",
+      "bytes": 355196,
+      "sha256": "2d5b6141cf5478600ac00952cbd96a582c2fefa6b1c0044913d3acca7a3bdbf4",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -10.02591609954834,
+          -0.10796260833740234,
+          1.8373937606811523
+        ],
+        "rotation": [
+          1.5707963705062866,
+          -0.0,
+          -1.5707963705062866
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "left-articulated.png",
+      "variant": "articulated",
+      "view": "left",
+      "bytes": 355151,
+      "sha256": "f5512076929cdf9ff849b36cb560bfa0cae041503789ed6fd04c0a57a8a5be8f",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -10.02591609954834,
+          -0.10796260833740234,
+          1.8373937606811523
+        ],
+        "rotation": [
+          1.5707963705062866,
+          -0.0,
+          -1.5707963705062866
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "right-selected.png",
+      "variant": "selected",
+      "view": "right",
+      "bytes": 347593,
+      "sha256": "1a5f369b2b8b13f35e9849060c1f9dd0f3fd60700fc63df87dadf96f1dd48c92",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          9.97408390045166,
+          -0.10796260833740234,
+          1.8373937606811523
+        ],
+        "rotation": [
+          1.5707963705062866,
+          -0.0,
+          1.5707963705062866
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "right-articulated.png",
+      "variant": "articulated",
+      "view": "right",
+      "bytes": 347598,
+      "sha256": "7dafa219599fb219ab4f466271250d004a4759268c751485d1d64e82a5278f4f",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          9.97408390045166,
+          -0.10796260833740234,
+          1.8373937606811523
+        ],
+        "rotation": [
+          1.5707963705062866,
+          -0.0,
+          1.5707963705062866
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "back-selected.png",
+      "variant": "selected",
+      "view": "back",
+      "bytes": 407138,
+      "sha256": "6da5b9f95d1bb127e9c99deb2ad90e27ee43ab89de0688ac1ca2ed4b53d72de4",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -0.02591574192047119,
+          -10.107962608337402,
+          1.8373925685882568
+        ],
+        "rotation": [
+          1.5707964897155762,
+          -0.0,
+          0.0
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "back-articulated.png",
+      "variant": "articulated",
+      "view": "back",
+      "bytes": 407129,
+      "sha256": "e35a7a90a6d6ba12ace06752a73c2d8c31d17b12fbba0f505c2bdd9f0de10efb",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -0.02591574192047119,
+          -10.107962608337402,
+          1.8373925685882568
+        ],
+        "rotation": [
+          1.5707964897155762,
+          -0.0,
+          0.0
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "top-selected.png",
+      "variant": "selected",
+      "view": "top",
+      "bytes": 626086,
+      "sha256": "30b0013bb2a74fa2f14b251ca5bd916b34294919167904ce568fe47cf7474493",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -0.025915861129760742,
+          -0.10588781535625458,
+          11.837394714355469
+        ],
+        "rotation": [
+          0.00020000040240120143,
+          8.742295082297957e-12,
+          3.141592502593994
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "top-articulated.png",
+      "variant": "articulated",
+      "view": "top",
+      "bytes": 626088,
+      "sha256": "23285952e0f8c775666381ca05de96db9d55883817de70cc7f9848213e32c217",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -0.025915861129760742,
+          -0.10588781535625458,
+          11.837394714355469
+        ],
+        "rotation": [
+          0.00020000040240120143,
+          8.742295082297957e-12,
+          3.141592502593994
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "diag-front-selected.png",
+      "variant": "selected",
+      "view": "diag-front",
+      "bytes": 643263,
+      "sha256": "cb9396b57b1c18562d185d6f5ae320df59a93a8b4022514948dcbe419b2ae7c9",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -0.02591494284570217,
+          9.99831485748291,
+          9.704547882080078
+        ],
+        "rotation": [
+          0.8960554599761963,
+          6.826572018781008e-08,
+          3.141592502593994
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "diag-front-articulated.png",
+      "variant": "articulated",
+      "view": "diag-front",
+      "bytes": 643266,
+      "sha256": "55d8b2706c0bc6a4d2e65fb4613f32c07bc66bf20c7df2e727e912b7b7e7eefe",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -0.02591494284570217,
+          9.99831485748291,
+          9.704547882080078
+        ],
+        "rotation": [
+          0.8960554599761963,
+          6.826572018781008e-08,
+          3.141592502593994
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "diag-left-selected.png",
+      "variant": "selected",
+      "view": "diag-left",
+      "bytes": 670698,
+      "sha256": "cef9ea3b4e7bc3a0f6a0a9d15f15edb753a5e737db7d4e6ec154b09c82ef87f7",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -10.061528205871582,
+          -0.1079631969332695,
+          9.792880058288574
+        ],
+        "rotation": [
+          0.8960554599761963,
+          7.597417805982332e-08,
+          -1.5707963705062866
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "diag-left-articulated.png",
+      "variant": "articulated",
+      "view": "diag-left",
+      "bytes": 670697,
+      "sha256": "1a47aa67fefff02ffe2352497ae1f016e0283e7d33a711c5927457e21874dbe3",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -10.061528205871582,
+          -0.1079631969332695,
+          9.792880058288574
+        ],
+        "rotation": [
+          0.8960554599761963,
+          7.597417805982332e-08,
+          -1.5707963705062866
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "diag-right-selected.png",
+      "variant": "selected",
+      "view": "diag-right",
+      "bytes": 603034,
+      "sha256": "d5378da1f9520b5d5a6c82ed353a427c865e0b557140f7a338b79b47c0321a48",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          10.146685600280762,
+          -0.10796324163675308,
+          9.621642112731934
+        ],
+        "rotation": [
+          0.8960554599761963,
+          -7.597417805982332e-08,
+          1.5707963705062866
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "diag-right-articulated.png",
+      "variant": "articulated",
+      "view": "diag-right",
+      "bytes": 603034,
+      "sha256": "7e736337e5dd4f284f347924fc535daf6f815b56f0bdd2115ba0ae5401bf4db9",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          10.146685600280762,
+          -0.10796324163675308,
+          9.621642112731934
+        ],
+        "rotation": [
+          0.8960554599761963,
+          -7.597417805982332e-08,
+          1.5707963705062866
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "diag-back-selected.png",
+      "variant": "selected",
+      "view": "diag-back",
+      "bytes": 618947,
+      "sha256": "ceab966662260cc23c4bbb8c0a1c86e921228b331873fd902f0564b4254357bc",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -0.02591574192047119,
+          -10.132988929748535,
+          9.806111335754395
+        ],
+        "rotation": [
+          0.8960553407669067,
+          -0.0,
+          0.0
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "diag-back-articulated.png",
+      "variant": "articulated",
+      "view": "diag-back",
+      "bytes": 618947,
+      "sha256": "16b1e47c74efba974133863b7fb5dd6d930e9fccfba8258f48ec935f5087adc6",
+      "resolution": [
+        496,
+        700
+      ],
+      "camera": {
+        "location": [
+          -0.02591574192047119,
+          -10.132988929748535,
+          9.806111335754395
+        ],
+        "rotation": [
+          0.8960553407669067,
+          -0.0,
+          0.0
+        ],
+        "orthoScale": 5.03867244720459
+      },
+      "lights": [
+        [
+          "Key",
+          [
+            -3,
+            4,
+            7
+          ],
+          700,
+          4
+        ],
+        [
+          "Fill",
+          [
+            4,
+            2,
+            4
+          ],
+          400,
+          4
+        ],
+        [
+          "Rim",
+          [
+            0,
+            -5,
+            5
+          ],
+          850,
+          3
+        ]
+      ],
+      "samples": 16,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "hero-selected.png",
+      "variant": "selected",
+      "view": "hero",
+      "bytes": 1317332,
+      "sha256": "485bb09b84b5229d08683da9d78710794bf8f8acb6bca006761fbc05cd224f65",
+      "resolution": [
+        780,
+        960
+      ],
+      "camera": {
+        "location": [
+          -3,
+          7,
+          3.0
+        ],
+        "rotation": [
+          1.3915386199951172,
+          -1.2139258842580603e-07,
+          -2.736701011657715
+        ],
+        "orthoScale": 4.7
+      },
+      "lights": [
+        [
+          "Warm key",
+          [
+            -3,
+            4,
+            6
+          ],
+          650,
+          4
+        ],
+        [
+          "Cool fill",
+          [
+            4,
+            2,
+            3
+          ],
+          350,
+          4
+        ],
+        [
+          "Shell rim",
+          [
+            -1,
+            -4,
+            5
+          ],
+          800,
+          3
+        ]
+      ],
+      "samples": 24,
+      "seed": 0,
+      "groundZ": 0
+    },
+    {
+      "file": "hero-articulated.png",
+      "variant": "articulated",
+      "view": "hero",
+      "bytes": 1317328,
+      "sha256": "9ae2c6519bb1d32818950edb0d1dc51889c930707cd747152ee6ecf9307ced33",
+      "resolution": [
+        780,
+        960
+      ],
+      "camera": {
+        "location": [
+          -3,
+          7,
+          3.0
+        ],
+        "rotation": [
+          1.3915386199951172,
+          -1.2139258842580603e-07,
+          -2.736701011657715
+        ],
+        "orthoScale": 4.7
+      },
+      "lights": [
+        [
+          "Warm key",
+          [
+            -3,
+            4,
+            6
+          ],
+          650,
+          4
+        ],
+        [
+          "Cool fill",
+          [
+            4,
+            2,
+            3
+          ],
+          350,
+          4
+        ],
+        [
+          "Shell rim",
+          [
+            -1,
+            -4,
+            5
+          ],
+          800,
+          3
+        ]
+      ],
+      "samples": 24,
+      "seed": 0,
+      "groundZ": 0
+    }
+  ],
+  "importChecks": [
+    {
+      "variant": "selected",
+      "part": "body",
+      "corners": 744,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 6.899379240605445e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "shell",
+      "corners": 1398,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.961519742578697e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "head",
+      "corners": 606,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 9.713997379265157e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "eyestalkLeft",
+      "corners": 339,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 6.953155176599201e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "eyestalkRight",
+      "corners": 339,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.243455529237396e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "shieldArm",
+      "corners": 342,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.336692604034602e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "shieldForearm",
+      "corners": 486,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.039043577376966e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "rapierArm",
+      "corners": 342,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 6.917258502471526e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "rapierForearm",
+      "corners": 582,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.588701298121814e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "legLeft",
+      "corners": 312,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.121942298698442e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "legLeftKnee",
+      "corners": 132,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 6.732057020250754e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "legLeftAnkle",
+      "corners": 252,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.833923659639225e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "legRight",
+      "corners": 312,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 6.637969417128523e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "legRightKnee",
+      "corners": 132,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 6.620191493768108e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "selected",
+      "part": "legRightAnkle",
+      "corners": 252,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.770574237806827e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "articulated",
+      "part": "body",
+      "corners": 4254,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 9.713997379265157e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "articulated",
+      "part": "rapierArm",
+      "corners": 924,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.588701298121814e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "articulated",
+      "part": "legLeft",
+      "corners": 270,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.121942298698442e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "articulated",
+      "part": "legLeftKnee",
+      "corners": 276,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 6.732057020250754e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "articulated",
+      "part": "legLeftAnkle",
+      "corners": 462,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 8.887964448284798e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "articulated",
+      "part": "legRight",
+      "corners": 270,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 6.637969417128523e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "articulated",
+      "part": "legRightKnee",
+      "corners": 276,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 6.620191493768108e-05,
+      "transformIdentity": true
+    },
+    {
+      "variant": "articulated",
+      "part": "legRightAnkle",
+      "corners": 462,
+      "positionsExactFloat32": true,
+      "maximumCustomNormalDelta": 7.770574237806827e-05,
+      "transformIdentity": true
+    }
+  ],
+  "motionAuthored": false,
+  "qualityAdmission": false,
+  "runtimeAdmission": false,
+  "sourceIdentityUnchanged": true
+}
