@@ -207,10 +207,13 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
     boss: boss === null ? null : { draw: () => drawBody(boss), free: () => { freeBody(boss); }, actor: () => boss.actor } };
 }
 
+/** The roster owns visibility; hunting consumers only read it through HuntBody. */
+interface NativeCreatureActor extends HuntBody { hidden: boolean }
+
 /** Mutable identity/recipe slot owned by a native roster; a retired slot keeps its recipe with no live actor. */
 export interface NativeCreatureSlot {
   id: string; kind: string; variant: string; herd: number; readonly recipe: SimSpawn;
-  range: readonly [number, number]; actor: HuntBody | null;
+  range: readonly [number, number]; actor: NativeCreatureActor | null;
 }
 
 const nativeRosterServices = new WeakMap<SimHost, Map<string, { hunt: StalkerBrain<HuntBody>; poses?: ReturnType<typeof createNativeCreaturePoses> }>>();
@@ -291,7 +294,7 @@ export interface NativeRetirementRows {
 }
 
 /** A bare native body for the hunting brain: never hidden (no view), no ground tilt to sample. */
-const bareBody = (native: AnimalSim): HuntBody => Object.assign(native, { hidden: false, sampleTerrain: (): void => undefined });
+const bareBody = (native: AnimalSim): NativeCreatureActor => Object.assign(native, { hidden: false, sampleTerrain: (): void => undefined });
 
 const nativeRosters = new WeakMap<object, SimHost>();
 
@@ -347,7 +350,7 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     return { id, kind, variant, herd, range: scale, actor: null,
       recipe: { id, spec: spec(kind, variant), seed: authored?.seed ?? 0, scale: authored?.scale ?? 1, at: { x: at.x, y: 0, z: at.z }, yaw } };
   };
-  const attach = (item: B, native: AnimalSim): HuntBody => {
+  const attach = (item: B, native: AnimalSim): NativeCreatureActor => {
     if (host.entities.get(item.id) !== native || native.entityId !== item.id || native.kind !== item.kind || native.variant !== item.variant)
       throw new Error('Foreign native roster admission');
     poses?.binding.preflight(item); identities.preflight(item);
@@ -494,8 +497,8 @@ export class NativeDeferredRoster {
   /** A living encounter member leaves the manager while its original group
    * retains the exact dormant body for saved identity and membership checks. */
   park(id: string): void {
-    const actor = this.bodies.find(body => body.entityId === id), at = actor === undefined ? -1 : this.bodies.indexOf(actor);
-    if (actor === undefined || this.absent.has(actor)) throw new Error('Foreign dormant native actor');
+    const actor = this.intake.byId.get(id)?.actor, at = actor === undefined || actor === null ? -1 : this.bodies.indexOf(actor);
+    if (actor === undefined || actor === null || at === -1 || this.absent.has(actor)) throw new Error('Foreign dormant native actor');
     actor.hidden = true; actor.alive = false; actor.position.y = this.rows.retiredY; actor.motor?.dispose(); actor.motor = null; this.absent.add(actor);
     const owner = this.intake.identities.identity(id); if (owner !== null) this.intake.identities.own(id, { ...owner, listed: false });
     this.host.bodyDt(id); this.host.brainDt(id); this.hunt.forget(actor); this.intake.byId.delete(id); this.bodies.splice(at, 1); this.sight.splice(at, 1);
