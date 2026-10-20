@@ -52,7 +52,7 @@ class Surface extends LookGraph {
     return this.mix(this.clamp(this.div(w, spacing)), this.line(distance, fw, w), this.smooth(3, 6, spacing));
   }
   projected(p: Ref): string { const n = this.abs(this.normal); return this.choose(this.gt(this.sw(n, 'y'), 0.6), this.sw(p, 'xz'), this.choose(this.gt(this.sw(n, 'x'), this.sw(n, 'z')), this.sw(p, 'zy'), this.sw(p, 'xy'))); }
-  paint(q: Ref, layer: Ref, scale: Ref, strength: Ref, ratio = 2): string {
+  paint(q: Ref, layer: Ref, scale: Ref, strength: Ref, ratio: Ref = 2): string {
     const tex = this.sw(this.tex('uPaint', this.div(q, scale), layer), 'xyz');
     const detail = this.sw(this.tex('uPaint', this.add(this.div(q, this.mul(scale, 0.383)), [0.37, 0.61]), 2), 'xyz');
     const m = this.mul(this.mul(tex, ratio), this.mix([1, 1, 1], this.mul(detail, 2), this.mul(this.sw(this.u('uPaintK2'), 'x'), 0.55)));
@@ -267,36 +267,40 @@ function architecture(cut: boolean): GraphIr {
   for (const [distance, pixel, edge, ground] of [[x, gu, 1, 256], [sub(w, x), gu, 2, 512], [y, gv, 4, 1024], [sub(h, y), gv, 8, 2048]] as const) lines = max(lines, mul(max(g.bit(flags, edge), g.bit(flags, ground)), g.line(distance, pixel, mix(W, Wg, g.bit(flags, ground)))));
   const detail = sub(1, g.smooth(15, 30, g.distance)), pk = mul(mul(sw(g.u('uPaintK'), 'x'), choose(g.eq(surf, 1), 0, 1)), detail);
   const wet = mul(sw(misc, 'z'), sub(1, g.u('uDry'))), Qx = sw(q, 'x'), Qy = sw(q, 'y');
+  // Every kind takes exactly one paint (its own, or the explicit surface's): the kind chain carries the colour the paint
+  // multiplies and kind 1's window light beside it, so the chain samples nothing and branches per kind, and the one paint
+  // is sampled after it with the kind's parameters (none where its strength is 0, past the detail range)
   let colour: Ref = base, emit: Ref = mul(base, sw(misc, 'x'));
   const use = (k: number, col: Ref, ink: Ref): void => { const on = g.eq(kind, k); colour = choose(on, col, colour); lines = choose(on, max(lines, ink), lines); };
   const grid = div(q, g.vec(sw(pat, 'z'), sw(pat, 'y'))), cell = g.floor(grid), local = g.fract(grid), gridFw = max(g.op('fwidth', [grid]), [1e-6, 1e-6]), seed = sw(pat, 'w');
   const win = mul(g.cover(sw(local, 'x'), 0.17, 0.83, sw(gridFw, 'x')), g.cover(sw(local, 'y'), 0.24, 0.82, sw(gridFw, 'y'))), isLit = g.step(g.hash(add(cell, mul(seed, 7))), 0.5), cool = g.step(0.92, g.hash(add(cell, seed)));
-  const wall = mul(base, g.paint(q, 4, 6, mul(mul(pk, sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z'))));
   const light = mix(g.u('uWinWarm'), g.u('uWinCool'), cool), windowC = mix(mul(base, g.u('uWinDark')), mul(light, 0.6), isLit);
-  use(1, mix(wall, windowC, win), mul(max(g.rule(Qy, sw(pat, 'y'), gv, mul(Wr, 0.8)), g.rule(Qx, sw(pat, 'z'), gu, mul(Wr, 0.45))), 0.65));
+  use(1, mul(base, sub(1, win)), mul(max(g.rule(Qy, sw(pat, 'y'), gv, mul(Wr, 0.8)), g.rule(Qx, sw(pat, 'z'), gu, mul(Wr, 0.45))), 0.65));
   emit = add(emit, mul(light, mul(mul(win, isLit), choose(g.eq(kind, 1), 1.15, 0))));
-  const pitch = g.u('uTilePitch'), tiles = mul(mul(base, add(0.93, mul(g.hash(g.floor(div(q, pitch))), 0.14))), g.paint(q, 5, pitch, mul(pk, sw(g.u('uPaintK'), 'w')), 3));
+  const pitch = g.u('uTilePitch'), tiles = mul(base, add(0.93, mul(g.hash(g.floor(div(q, pitch))), 0.14)));
   use(2, tiles, max(g.rule(Qy, sw(pitch, 'y'), gv, mul(Wr, 0.8)), mul(g.rule(Qx, sw(pitch, 'x'), gu, mul(Wr, 0.55)), 0.8)));
   const p = sw(g.world, 'xz'), course = g.floor(div(sw(p, 'y'), 0.62)), length = add(0.64, mul(g.h11(add(mul(course, 9.1), 2)), 0.28)), offset = mul(g.h11(mul(course, 3.7)), 1.1);
   const cx = g.floor(div(add(sw(p, 'x'), offset), length)), stoneLocal = g.vec(sub(add(sw(p, 'x'), offset), mul(cx, length)), sub(sw(p, 'y'), mul(course, 0.62))), stoneSize = g.vec(length, 0.62);
   const stoneFw = max(g.op('fwidth', [p]), [1e-5, 1e-5]), stoneEdge = min(stoneLocal, sub(stoneSize, stoneLocal)), jointW = max(min(mul(stoneFw, 1.1), [0.012, 0.012]), g.u('uFlagJoint'));
   const joint2 = mul(sub(1, g.smooth(jointW, add(jointW, stoneFw), stoneEdge)), g.smooth(4, 9, div(stoneSize, stoneFw))), joint = max(sw(joint2, 'x'), sw(joint2, 'y'));
-  const id = g.hash(g.vec(cx, course)), puddle = g.smooth(0.42, 0.72, add(mul(g.noise(add(mul(p, 0.21), 3)), 0.6), mul(g.noise(mul(p, 0.83)), 0.4))), wAmt = mul(wet, mix(0.55, 1, puddle));
+  const id = g.hash(g.vec(cx, course)), puddle = g.smooth(0.42, 0.72, add(mul(g.noise(add(mul(p, 0.21), 3)), 0.6), mul(g.noise(mul(p, 0.83)), 0.4))), wAmt = choose(g.gt(wet, 0), mul(wet, mix(0.55, 1, puddle)), 0);
   const speckle = add(add(mul(g.noise(mul(p, 23)), 0.4), mul(g.noise(mul(p, 61)), 0.35)), mul(g.noise(mul(p, 157)), 0.25));
   let stone = mul(mul(base, add(sub(1, mul(sw(g.u('uFlag'), 'x'), 0.6)), mul(sw(g.u('uFlag'), 'x'), id))), add(sub(1, mul(sw(g.u('uFlag'), 'y'), 0.5)), mul(sw(g.u('uFlag'), 'y'), speckle)));
-  stone = mul(mul(stone, sub(1, mul(wAmt, 0.6))), g.paint(p, 0, 2.4, mul(mul(pk, sw(g.u('uPaintK'), 'y')), g.u('uPaintFlag')), 2.5));
+  stone = mul(stone, sub(1, mul(wAmt, 0.6)));
   use(3, stone, mul(joint, 0.6));
   const wetPool = choose(g.eq(kind, 3), mul(wAmt, sub(1, joint)), mul(mul(wet, 0.5), g.step(0.6, sw(g.normal, 'y'))));
   const fresnel = add(0.04, mul(g.pow(sub(1, g.clamp(g.op('dot', [g.normal, g.view]))), 5), 0.96));
   const reflection = sub(mul(g.normal, mul(g.op('dot', [g.normal, g.view]), 2)), g.view), spec = g.u('uLpSpec');
-  const sheen = mul(mul(add(mul(g.raw(add(g.world, mul(reflection, sw(spec, 'y')))), 0.6), mul(g.raw(add(g.world, mul(reflection, sw(spec, 'z')))), 0.4)), sw(spec, 'x')), mul(max(mul(gloss, 0.45), wetPool), mul(fresnel, detail)));
+  // the light volume's four reflection taps only where a sheen shows (gloss or wet, inside the detail range)
+  const sheenK = mul(max(mul(gloss, 0.45), wetPool), mul(fresnel, detail));
+  const sheen = choose(g.gt(sheenK, 0), mul(mul(add(mul(g.raw(add(g.world, mul(reflection, sw(spec, 'y')))), 0.6), mul(g.raw(add(g.world, mul(reflection, sw(spec, 'z')))), 0.4)), sw(spec, 'x')), sheenK), [0, 0, 0]);
   emit = add(emit, add(sheen, mul(g.u('uFogBaseCol'), mul(mul(wetPool, fresnel), sw(g.u('uWetSky'), 'x')))));
   const cp = sw(pat, 'z'), bars = g.rule(Qx, cp, gu, mul(Wr, 0.9)), mid = mul(g.line(g.abs(sub(y, mul(h, 0.5))), gv, mul(Wr, 0.8)), g.step(0.5, sw(pat, 'y')));
   const barCoverage = max(max(bars, mid), lines); use(4, base, barCoverage);
   const inset = min(min(x, sub(w, x)), min(y, sub(h, y))), density = g.smooth(3, 7, div(0.06, fw));
   const panelLines = mul(max(g.line(g.abs(sub(inset, 0.06)), fw, mul(Wr, 0.8)), g.line(g.abs(sub(inset, 0.12)), fw, mul(Wr, 0.55))), density);
   const panelLayer = choose(g.gt(surf, 4.5), 7, choose(g.gt(accent, 0.5), 6, 3));
-  use(5, mul(mul(base, mix(1, 0.9, mul(g.step(0.12, inset), density))), g.paint(q, panelLayer, 1.5, mul(pk, sw(g.u('uPaintK'), 'w')))), panelLines);
+  use(5, mul(base, mix(1, 0.9, mul(g.step(0.12, inset), density))), panelLines);
   const rq = mul(g.vec(add(Qx, Qy), sub(Qx, Qy)), 0.7071), gr = max(footprint(sw(rq, 'x')), footprint(sw(rq, 'y'))), meshCoverage = max(max(g.rule(sw(rq, 'x'), cp, gr, mul(Wr, 0.8)), g.rule(sw(rq, 'y'), cp, gr, mul(Wr, 0.8))), lines);
   use(6, base, meshCoverage);
   const leaf = div(g.projected(g.world), 0.24), leafCell = g.floor(leaf), leafLocal = g.fract(leaf), leafFw = max(g.op('fwidth', [sw(leaf, 'x')]), g.op('fwidth', [sw(leaf, 'y')]));
@@ -305,8 +309,12 @@ function architecture(cut: boolean): GraphIr {
   use(7, mul(base, add(0.72, mul(g.hash(leafCell), 0.55))), mul(g.line(leafEdge, leafFw, mul(Wr, 0.6)), mul(g.smooth(2.5, 6, div(1, leafFw)), 0.45)));
   use(8, mix(base, [0.86, 0.84, 0.78], mul(g.cover(g.fract(div(Qx, cp)), 0, 0.5, div(gu, cp)), sw(pat, 'y'))), 0);
   const surfaceLayer = choose(g.eq(surf, 4), 6, choose(g.eq(surf, 5), 7, choose(g.op('or', [g.eq(surf, 3), g.eq(surf, 6)]), 4, 2)));
-  const explicit = g.op('and', [g.op('and', [g.op('not', [g.eq(kind, 1)]), g.op('not', [g.eq(kind, 2)])]), g.op('and', [g.op('not', [g.eq(kind, 3)]), g.op('not', [g.eq(kind, 5)])])]);
-  colour = choose(explicit, mul(colour, g.paint(q, surfaceLayer, choose(g.eq(surfaceLayer, 4), 6, 1.7), pk)), colour);
+  const own = (k: number, value: Ref, other: Ref): string => choose(g.eq(kind, k), value, other);
+  const paintAt = own(3, p, q), paintLayer = own(1, 4, own(2, 5, own(3, 0, own(5, panelLayer, surfaceLayer))));
+  const paintScale = own(1, [6, 6], own(2, pitch, own(3, [2.4, 2.4], own(5, [1.5, 1.5], g.vec(choose(g.eq(surfaceLayer, 4), 6, 1.7), choose(g.eq(surfaceLayer, 4), 6, 1.7))))));
+  const paintStrength = own(1, mul(mul(pk, sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')), own(2, mul(pk, sw(g.u('uPaintK'), 'w')), own(3, mul(mul(pk, sw(g.u('uPaintK'), 'y')), g.u('uPaintFlag')), own(5, mul(pk, sw(g.u('uPaintK'), 'w')), pk))));
+  const painted = choose(g.gt(paintStrength, 0), g.paint(paintAt, paintLayer, paintScale, paintStrength, own(2, 3, own(3, 2.5, 2))), [1, 1, 1]);
+  colour = add(mul(colour, painted), choose(g.eq(kind, 1), mul(windowC, win), [0, 0, 0]));
   const shaded = g.shade(colour), wetShade = mul(shaded, mul(sub(1, mul(wet, mix(0.6, 0.9, g.step(0.6, sw(g.normal, 'y'))))), mix([1, 1, 1], [0.88, 0.95, 1.1], wet)));
   colour = choose(g.eq(kind, 3), shaded, wetShade);
   colour = add(colour, mul(mul(colour, min(spill, [0.7, 0.7, 0.7])), mul(1.3, mix(1, 0.4, accent))));
