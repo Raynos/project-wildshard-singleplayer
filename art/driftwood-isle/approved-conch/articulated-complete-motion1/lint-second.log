@@ -1,0 +1,4 @@
+heavy-lane: queued check ticket 166
+heavy-lane: acquired check after 0.00s queue
+test/conch-articulated-complete-motion.test.ts:108:96: error unicorn(no-new-array): Do not use `new Array(singleArgument)`. help: It's not clear whether the argument is meant to be the length of the array or the only element. If the argument is the array's length, consider using `Array.from({ length: n })`. If the argument is the only element, use `[element]`.
+heavy-lane: finished check in 7.63s

@@ -1,0 +1,31 @@
+{
+  "status": "unadmitted authored candidate; actual native validation fails physical floor and cross-program restore identity",
+  "selectionChanged": false,
+  "source": "art/driftwood-isle/approved-conch/articulated-source-candidate1",
+  "motion": "motion.json",
+  "physicalRecipe": "../articulated-source-candidate1/recipe.json",
+  "nativeSelection": {
+    "poseFile": "poses/conch-articulated-complete1.json",
+    "corpse": "rigid"
+  },
+  "requirements": {
+    "geometry": "Exact loader-emitted dimensions identity and original payload, no spread or forged provenance",
+    "recipe": "practice=true custom=true deathSplay=false rootFlinch=authored-pose; derive exact local bind transforms from actual15-bone hierarchy",
+    "contact": "Same finite arena slab lease, unchanged18 exclusive direct copies and immutable body ancestor",
+    "living": "PracticeNativeActor real decision owner and one existing world physics fixed tick; actual movement not intended-speed gait",
+    "lethal": "Synchronous damage captures current locals, releases foot ownership and activates NativeCorpseOwner; no root teleport or manual integration",
+    "dead": "NativeCorpseOwner.pre -> existing physics.step -> native fixed.post; shoulder folds from lethal entry while six solved leg rotations remain fixed; root translation/quaternion are physical outputs",
+    "frozen": "Native pose completion freezes local endpoint at deathT>=1; root freezing remains NativeRigidCorpse policy, not an authored transform",
+    "persistence": "Physical native pose-only restore is unsupported; lifecycle/reload admission remains separate"
+  },
+  "tradeoff": "Body/head/eyes/shell/shield fixed together, rapier elbow locked; only shoulder upper articulation. Fresh static3.89/5 tie is not4/5.",
+  "unpassed": [
+    "Cross-program continuation refusal: .6 -> .61 shoulder denominator accepted",
+    "Exact-source native physical contact/floor",
+    "Shoulder self-collision and joint-range review",
+    "Independent animation/readability",
+    "Actual isolated app damage/loot/Retry/reload lifecycle",
+    "Phone performance",
+    "Strict admission and exact-pin GO"
+  ]
+}

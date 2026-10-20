@@ -1,0 +1,25 @@
+Scope: all 6 workspace projects
+[ENOENT] ENOENT: no such file or directory, mkdir '<home>/.local/share/pnpm'
+
+pnpm: ENOENT: no such file or directory, mkdir '<home>/.local/share/pnpm'
+    at async Object.mkdir (node:internal/fs/promises:916:10)
+    at async createNewStoreController (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:185789:5)
+    at async installDeps (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:224851:17)
+    at async Object.handler5 (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:225946:3)
+    at async file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:328619:19
+    at async main4 (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:328587:30)
+    at async runPnpm (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:328883:5)
+    at async file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:328876:3
+[ERROR] Command failed with exit code 254: <runtime>/dependencies/node/bin/node <runtime>/dependencies/node/node_modules/pnpm/bin/pnpm.mjs install
+
+pnpm: Command failed with exit code 254: <runtime>/dependencies/node/bin/node <runtime>/dependencies/node/node_modules/pnpm/bin/pnpm.mjs install
+    at getFinalError (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:89986:14)
+    at makeError (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:92293:21)
+    at getSyncResult (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:94137:10)
+    at spawnSubprocessSync (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:94097:14)
+    at execaCoreSync (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:94027:23)
+    at callBoundExeca (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:96555:23)
+    at boundExeca (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:96532:49)
+    at sync2 (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:96691:10)
+    at runPnpmCli (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:276904:5)
+    at runDepsStatusCheck (file://<runtime>/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:278122:7)

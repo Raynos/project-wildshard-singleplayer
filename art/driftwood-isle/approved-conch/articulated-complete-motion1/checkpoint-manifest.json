@@ -1,0 +1,204 @@
+{
+  "status": "frozen source-only failed admission; 5/7 tests pass; strict TypeScript and lint pass",
+  "sharedBaseCommit": "acda1591ea34a9140796a3a526948bfcc43c3c85",
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/RESULT.md",
+      "bytes": 3944,
+      "sha256": "3d19c2ab45306c9e0d38254f1703c3a540e092ee00d28e3bfd1a7b0a1f3bebcd"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/integration.json",
+      "bytes": 2141,
+      "sha256": "87db9a20067a1002935e1b9680db0ff0f9c6115dbce738426acbb7a85ebd7ed2"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/lint-final.log",
+      "bytes": 117,
+      "sha256": "8b77a1aaf5e583845a20491bc0bb9fb0118e0172c560b0239d6f79ed1ca51a98"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/lint-first.log",
+      "bytes": 2225,
+      "sha256": "b84e226c633b960f2abdc5eff7debc1b9d152216468129b6d921db8736836caa"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/lint-resumed.log",
+      "bytes": 499,
+      "sha256": "5ff2307c06ebf046faab3c0fb14513e2dcfe4819ee6281c2587e2feaff6da57a"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/lint-second.log",
+      "bytes": 480,
+      "sha256": "46e128c356ac6709dc58d983075e75cb5a46c0b4b32e243f11ffea73ba89610b"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/motion.json",
+      "bytes": 95439,
+      "sha256": "494d35c49765df3623a6943b9834ecc7d244ae6ba0ba3b53a9ffe6f4e09d9596"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/prepare.py",
+      "bytes": 6196,
+      "sha256": "bbdaea8b88fca69e0d35d4f5ce698138078ed14ebd64ab4b7d79178c6adadde5"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/program-identity-failure.json",
+      "bytes": 267,
+      "sha256": "76768e27958bf256bc5d440410e9972aef6ebe174ca342db97c2dc3ff440a4a1"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/shoulder-authoring.json",
+      "bytes": 1187,
+      "sha256": "167c824e436f6f6e8464d21ddfe007a9f444c397383ffc43a9e8c6ff2b801f91"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/strict-lint-final.log",
+      "bytes": 118,
+      "sha256": "7f29b21a1b9b4cd62cadbc82e4960c44053918ddf0ac40cbbb49e18fdb075448"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/test-final.log",
+      "bytes": 3146,
+      "sha256": "6a0c7e43a94db6643ef07684d376e7aee496d8858e85a838ac8162da019445d1"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/test-first.log",
+      "bytes": 2225,
+      "sha256": "b84e226c633b960f2abdc5eff7debc1b9d152216468129b6d921db8736836caa"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/test-resumed.log",
+      "bytes": 3147,
+      "sha256": "61ab90d81ed8776ce7003f82a9131e3ba58944cfe5cfe201eeb3819e91ad42a1"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/tsconfig.json",
+      "bytes": 264,
+      "sha256": "2bb8e26e4a1f3f53a8a011e8256454be652220ebb3cfde93658c3095e8238864"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/typecheck-final.log",
+      "bytes": 379,
+      "sha256": "01874e7c655ded9824d04b9a3c31d769ab54eaff1827993987e82279055fcaab"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/typecheck-first.log",
+      "bytes": 2225,
+      "sha256": "b84e226c633b960f2abdc5eff7debc1b9d152216468129b6d921db8736836caa"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/typecheck-instrumentation.log",
+      "bytes": 379,
+      "sha256": "01874e7c655ded9824d04b9a3c31d769ab54eaff1827993987e82279055fcaab"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/articulated-complete-motion1/typecheck-resumed.log",
+      "bytes": 117,
+      "sha256": "bad73f32b9072b58eadb4e8d4dea93aa8dc2daf7675be429d02fbc08bfa0dca2"
+    },
+    {
+      "path": "test/conch-articulated-complete-motion.test.ts",
+      "bytes": 16292,
+      "sha256": "879678291fb136d7dda2c1a2881e2c06d345f57fe8fa311a6dde1cd0a30bc0a0"
+    },
+    {
+      "path": "test/proof/conch-articulated-complete-motion/conchDuelist.as",
+      "bytes": 1898,
+      "sha256": "07ded78edf914ccc41c2d636b1d9e99d08f5fd4617a509fc3b3c0b3caea93714"
+    },
+    {
+      "path": "test/proof/conch-articulated-complete-motion/contract.json",
+      "bytes": 2532,
+      "sha256": "37e10f67124db7c7e43eb5670643036ed8153a074314789cd030ca66553d6952"
+    },
+    {
+      "path": "test/proof/conch-articulated-complete-motion/decision-inputs.json",
+      "bytes": 810,
+      "sha256": "9874b537006fd92a1b7d103d4063e29a957475bff721635bcebddab5912c8c58"
+    },
+    {
+      "path": "test/proof/conch-articulated-complete-motion/decision.json",
+      "bytes": 1109,
+      "sha256": "027cbd43dcbd498716e20efa43f96365d383beee584ed517a1480c963b02883e"
+    },
+    {
+      "path": "test/proof/conch-articulated-complete-motion/decision.wasm",
+      "bytes": 9255,
+      "sha256": "2393ffa90be5023cc70b69978b4328579091e171481b06b2ad25c5e63affae02"
+    },
+    {
+      "path": "test/proof/conch-articulated-complete-motion/inputs.json",
+      "bytes": 2001,
+      "sha256": "5e88c2c37b992f39b6a6bc8ab173488a5b5e81500b6ae6e6a9bfe4fa90e8c08e"
+    },
+    {
+      "path": "test/proof/conch-articulated-complete-motion/motion.json",
+      "bytes": 95439,
+      "sha256": "494d35c49765df3623a6943b9834ecc7d244ae6ba0ba3b53a9ffe6f4e09d9596"
+    },
+    {
+      "path": "test/proof/conch-articulated-complete-motion/physical-diagnostic.json",
+      "bytes": 80581,
+      "sha256": "1dbad7ad923bc5bf5dc6e8c9e10c7e8e8da321e0abadbd425c690194e39cf316"
+    },
+    {
+      "path": "test/proof/conch-articulated-complete-motion/program-identity-diagnostic.json",
+      "bytes": 267,
+      "sha256": "76768e27958bf256bc5d440410e9972aef6ebe174ca342db97c2dc3ff440a4a1"
+    },
+    {
+      "path": "test/proof/conch-articulated-complete-motion/shoulder-authoring.json",
+      "bytes": 1187,
+      "sha256": "167c824e436f6f6e8464d21ddfe007a9f444c397383ffc43a9e8c6ff2b801f91"
+    }
+  ],
+  "dependencies": [
+    {
+      "path": "test/proof/conch-grounded-source/model.json",
+      "bytes": 1395246,
+      "sha256": "560abb099f474ddb86733f143e39652874298bba67f15fd1da7a63f1c4e91b3e"
+    },
+    {
+      "path": "test/proof/conch-grounded-source/metadata.json",
+      "bytes": 24650,
+      "sha256": "6905f20ced953176fb0e316a8d18287735eef0fb996cd58af43ae918b8f87989"
+    },
+    {
+      "path": "test/proof/conch-grounded-source/recipe.json",
+      "bytes": 20894,
+      "sha256": "2dc438caca6a3396e48f9ae51a600c83a7cbf97ebd5ffd4a7654e7b8b14e5ed0"
+    },
+    {
+      "path": "test/proof/conch-grounded-source/payload.bin",
+      "bytes": 48317,
+      "sha256": "9a1176e701ec58b6470d9898c11677512344e455c84da3bde84e1b5cee5364ed"
+    },
+    {
+      "path": "test/proof/conch-grounded-source/motion.json",
+      "bytes": 61063,
+      "sha256": "1e9e57b985b9eea412cbac566c7bd82f6a40b6ee4ffd8401440661d8b821ad55"
+    },
+    {
+      "path": "src/game/plugin/animation.ts",
+      "bytes": 89468,
+      "sha256": "2e5c30443666b1b6dddc1caa650808289462fcc837b3473ae55aef1c5f845170"
+    },
+    {
+      "path": "src/game/plugin/channelPrograms.ts",
+      "bytes": 19234,
+      "sha256": "b3e277d7c3029a20b58babc76bb968c319da815984ddf017489f67599dcda028"
+    },
+    {
+      "path": "src/game/plugin/practicePoseContract.ts",
+      "bytes": 1415,
+      "sha256": "ad164b2c2deb0149b1b023bfd8f7ee99d0af67e3d63f6367e942804e4f2d7b6a"
+    },
+    {
+      "path": "src/engine/physics/nativeRigidCorpse.ts",
+      "bytes": 11974,
+      "sha256": "dfd895f28037766c68a9c532f7336c09424d726dcd82685c8982d89650011f94"
+    }
+  ],
+  "publicationConversion": "Private build-workspace locations omitted from decision provenance; exact fixture bytes and public source pins unchanged."
+}

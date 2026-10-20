@@ -1,0 +1,5 @@
+heavy-lane: queued check ticket 165
+heavy-lane: acquired check after 0.00s queue
+test/conch-articulated-complete-motion.test.ts:103:37: error oxc(no-map-spread): Spreading to modify array elements in `map` calls is inefficient help: If in-place mutation is acceptable, use `push` (or `concat` when semantics match) instead of spreading
+test/conch-articulated-complete-motion.test.ts:108:96: error unicorn(new-for-builtins): Use `new Array()` instead of `Array()`
+heavy-lane: finished check in 6.86s

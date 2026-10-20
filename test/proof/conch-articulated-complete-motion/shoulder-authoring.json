@@ -1,0 +1,59 @@
+{
+  "basis": [
+    [
+      -1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      -1.0
+    ]
+  ],
+  "rotationOrder": "XYZ",
+  "method": "Shortest-arc quaternion from actual shoulder-to-tip bind vector, then intrinsic XYZ Euler; no label remapping",
+  "shoulder": [
+    0.27,
+    1.36,
+    -0.015
+  ],
+  "tip": [
+    1.6086543798446655,
+    0.1003054529428482,
+    0.9324346780776978
+  ],
+  "poses": {
+    "ready": [
+      -0.6926128113501916,
+      -0.5941983257095803,
+      -0.17509627007557815
+    ],
+    "tell": [
+      -0.6341892370336812,
+      -0.527711290016007,
+      0.17352989097293522
+    ],
+    "active": [
+      -1.0447279777559184,
+      -0.7295573513481066,
+      -0.5488024404273892
+    ],
+    "brace": [
+      -0.8534011391612994,
+      -0.6721058954954929,
+      -0.38555769827667774
+    ],
+    "dead": [
+      -0.3535341039392419,
+      -0.3470768279964498,
+      -0.046610875306326655
+    ]
+  },
+  "tradeoff": "Torso/head/eyes/shell/shield form a fixed braced guard assembly; independent articulation lost. Rapier elbow fixed; shoulder retains articulation. Broad union obstacle envelope is not admitted."
+}

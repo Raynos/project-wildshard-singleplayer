@@ -1,0 +1,1 @@
+{"extends":"../../../../tsconfig.json","compilerOptions":{"types":["vite/client","node"],"resolveJsonModule":true},"include":["../../../../test/conch-articulated-complete-motion.test.ts","../../../../src/**/*.d.ts","../../../../src/engine/boot/shardPrefetch.ts"]}

@@ -1,0 +1,20 @@
+[
+  {
+    "file": "decision.json",
+    "sha256": "027cbd43dcbd498716e20efa43f96365d383beee584ed517a1480c963b02883e",
+    "bytes": 1109,
+    "originDescription": "Retained canonical Conch build output; private build-workspace location omitted. Exact bytes are included in this fixture directory."
+  },
+  {
+    "file": "decision.wasm",
+    "sha256": "2393ffa90be5023cc70b69978b4328579091e171481b06b2ad25c5e63affae02",
+    "bytes": 9255,
+    "originDescription": "Retained canonical Conch build output; private build-workspace location omitted. Exact bytes are included in this fixture directory."
+  },
+  {
+    "file": "conchDuelist.as",
+    "origin": "src/shards/driftwood-isle/behaviour/conchDuelist.as",
+    "sha256": "07ded78edf914ccc41c2d636b1d9e99d08f5fd4617a509fc3b3c0b3caea93714",
+    "bytes": 1898
+  }
+]

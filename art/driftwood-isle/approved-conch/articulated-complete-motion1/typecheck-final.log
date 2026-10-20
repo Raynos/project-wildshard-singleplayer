@@ -1,0 +1,5 @@
+heavy-lane: queued check ticket 170
+heavy-lane: acquired check after 0.00s queue
+test/conch-articulated-complete-motion.test.ts(150,114): error TS2322: Type '"disposed" | "failed" | "frozen" | "live" | "prepared" | null | undefined' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+heavy-lane: finished check in 7.06s

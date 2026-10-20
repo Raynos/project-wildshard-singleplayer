@@ -1,0 +1,46 @@
+{
+  "completeByteCopies": true,
+  "sharedSourceFixture": "test/proof/conch-grounded-source",
+  "files": {
+    "motion.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-complete-motion1/motion.json",
+      "sha256": "494d35c49765df3623a6943b9834ecc7d244ae6ba0ba3b53a9ffe6f4e09d9596",
+      "bytes": 95439
+    },
+    "shoulder-authoring.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-complete-motion1/shoulder-authoring.json",
+      "sha256": "167c824e436f6f6e8464d21ddfe007a9f444c397383ffc43a9e8c6ff2b801f91",
+      "bytes": 1187
+    },
+    "contract.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/contract.json",
+      "sha256": "37e10f67124db7c7e43eb5670643036ed8153a074314789cd030ca66553d6952",
+      "bytes": 2532
+    },
+    "source/model.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/model.json",
+      "sha256": "560abb099f474ddb86733f143e39652874298bba67f15fd1da7a63f1c4e91b3e",
+      "bytes": 1395246
+    },
+    "source/metadata.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/metadata.json",
+      "sha256": "6905f20ced953176fb0e316a8d18287735eef0fb996cd58af43ae918b8f87989",
+      "bytes": 24650
+    },
+    "source/payload.bin": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/payload.bin",
+      "sha256": "9a1176e701ec58b6470d9898c11677512344e455c84da3bde84e1b5cee5364ed",
+      "bytes": 48317
+    },
+    "source/recipe.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/recipe.json",
+      "sha256": "2dc438caca6a3396e48f9ae51a600c83a7cbf97ebd5ffd4a7654e7b8b14e5ed0",
+      "bytes": 20894
+    },
+    "source/contract.json": {
+      "origin": "art/driftwood-isle/approved-conch/articulated-source-candidate1/contract.json",
+      "sha256": "37e10f67124db7c7e43eb5670643036ed8153a074314789cd030ca66553d6952",
+      "bytes": 2532
+    }
+  }
+}

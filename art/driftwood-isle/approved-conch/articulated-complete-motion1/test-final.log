@@ -1,0 +1,58 @@
+heavy-lane: queued check ticket 171
+heavy-lane: acquired check after 0.00s queue
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <project>
+
+ ❯ test/conch-articulated-complete-motion.test.ts (7 tests | 2 failed) 4508ms
+   × actual eight-owner native physical-root handoff reaches authored endpoint without synthetic geometry 1526ms
+   × continuation refuses a different authored program even with the same packed geometry 751ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/conch-articulated-complete-motion.test.ts > actual eight-owner native physical-root handoff reaches authored endpoint without synthetic geometry
+AssertionError: expected 899.9706519004138 to be greater than or equal to 899.9999999999
+ ❯ test/conch-articulated-complete-motion.test.ts:161:32
+    159|     expect(result.localEndpointFrozen).toBe(true);
+    160|     expect(result.owner?.resource).toBe('frozen');
+    161|     expect(result.minimumSkin).toBeGreaterThanOrEqual(900 - CONTACT_AR…
+       |                                ^
+    162|     expect(result.minimumHull).toBeGreaterThanOrEqual(900 - CONTACT_AR…
+    163|   } finally { f.scope.dispose(); }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/conch-articulated-complete-motion.test.ts > continuation refuses a different authored program even with the same packed geometry
+AssertionError: Packed geometry provenance does not establish motion program identity: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/conch-articulated-complete-motion.test.ts:212:94
+    210|       source: motion.footContact.source, change: 'Actual thrust windup…
+    211|       refused, targetUnchanged: b.native.pose.snapshot() === before, q…
+    212|     expect(refused, 'Packed geometry provenance does not establish mot…
+       |                                                                                              ^
+    213|     expect(b.native.pose.snapshot()).toBe(before);
+    214|   } finally { a.scope.dispose(); b.scope.dispose(); }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 5 passed (7)
+   Start at  19:09:16
+   Duration  18.73s (transform 56%, tests 24%, setup 12%, import 8%)
+
+  Transform  transforming modules took 10.40s · 56% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
+heavy-lane: finished check in 19.32s

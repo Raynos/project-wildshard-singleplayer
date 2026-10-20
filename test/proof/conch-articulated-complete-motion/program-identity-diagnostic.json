@@ -1,0 +1,7 @@
+{
+  "source": "9a1176e701ec58b6470d9898c11677512344e455c84da3bde84e1b5cee5364ed",
+  "change": "Actual thrust windup denominator .6 -> .61; packed source and contact declaration identical",
+  "refused": false,
+  "targetUnchanged": true,
+  "qualityAcceptance": false
+}
