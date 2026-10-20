@@ -9,7 +9,7 @@ import { bodySpecies } from '../../src/shards/nalati-grasslands/generators/speci
 import { poseRidingEnvelopes } from '../../src/game/riding/presentation';
 import { numericCreaturePose } from '../../src/game/plugin/channelPrograms';
 import envelopes from '../../src/shards/nalati-grasslands/data/horsePresentation.json' with { type: 'json' };
-import { bodyKey } from '../../src/shards/nalati-grasslands/species/bodyKey';
+import { bodyKey } from '../../src/shards/nalati-grasslands/generators/bodyKey';
 import rows from '../../src/shards/nalati-grasslands/data/bodies.json' with { type: 'json' };
 
 const HORSE_SPECIES = bodySpecies('horse');

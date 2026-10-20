@@ -271,7 +271,7 @@
         "src/shards/nalati-grasslands/generators/horseBody.ts",
         "src/shards/nalati-grasslands/generators/leopardBody.ts",
         "src/shards/nalati-grasslands/generators/shape.ts",
-        "src/shards/nalati-grasslands/species/bodyKey.ts",
+        "src/shards/nalati-grasslands/generators/bodyKey.ts",
         "src/shards/nalati-grasslands/species/eagle.ts",
         "src/shards/nalati-grasslands/generators/ghostFigure.ts",
         "src/shards/nalati-grasslands/generators/speciesRows.ts",

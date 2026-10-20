@@ -1,10 +1,9 @@
 import { arenaRoomBrain } from '@wildshard/game/boss/arenaRoom';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesDef,ThinkCtx } from '@wildshard/engine/entities/species/registry';
-import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import type { Vector3 } from 'three';
 import speciesRows from './speciesRows.json' with { type:'json' };
-import { nalatiBody,animateGoldenKing } from './presentation';
+import { animateGoldenKing } from './presentation';
 
 export const GOLDEN_KING = speciesRows.king.kind;
 export interface GoldenKingPorts {
@@ -13,9 +12,9 @@ export interface GoldenKingPorts {
 }
 const kingBrains = new WeakMap<Animal, GoldenKingPorts>();
 export function bindGoldenKing(a: Animal, ports: GoldenKingPorts): void { kingBrains.set(a, ports); }
-export const GOLDENKING_SPECIES: SpeciesDef = {
-  ...speciesRows.king, fur: NO_FUR,
-  build: v => nalatiBody('goldenKing', v), animate: animateGoldenKing, tick: 'always',
+/** The Golden King's page controls; his body, rig, look and tick are the look book's rows. */
+export const GOLDENKING_SPECIES: Pick<SpeciesDef, 'kind' | 'animate' | 'think' | 'act' | 'damageMul'> = {
+  kind: GOLDEN_KING, animate: animateGoldenKing,
   think: (a, c) => {
     const m = a.mem;
     if (m['init'] !== 1) { m['init'] = 1; m['pose'] ??= 0; m['rise'] ??= 0; m['cape'] ??= 1; m['crown'] ??= 1; m['floorY'] ??= c.heightAt(a.position.x, a.position.z); }

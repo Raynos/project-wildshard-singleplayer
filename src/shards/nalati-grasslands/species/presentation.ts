@@ -1,8 +1,6 @@
 import { CreatureFrame } from '@wildshard/game/population/creatureFrame';
 import { parseClientChannels } from '@wildshard/format/clientChannels';
 import speciesRows from './speciesRows.json' with { type:'json' };
-import { bodyKey, type BodyFamily } from './bodyKey';
-import type { AnimalSpecies, VariantDef } from '@wildshard/engine/entities/species/registry';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { SpeciesLookBook } from '@wildshard/game/looks/speciesBook';
 import type * as THREE from 'three';
@@ -29,7 +27,6 @@ export function poseNalatiCreature(kind: string, c: AnimalRigContext): void {
 /** The page and specimens share the same data-owned packed body cache. */
 export function speciesLookBook():SpeciesLookBook{if(book===null)throw new Error('Species look book is not prepared');return book;}
 export async function preloadNalatiBodies():Promise<void>{await speciesLookBook().preloadBodies();}
-export function nalatiBody(family:BodyFamily,variant:VariantDef):AnimalSpecies{return speciesLookBook().copy(family,bodyKey(family,variant));}
 
 /** The crack mesh is generated once against the original skeleton at build time. */
 export function balbalCrackGeometry(): THREE.BufferGeometry { if (crackGeometry === null) throw new Error('Missing balbal crack geometry'); return crackGeometry; }

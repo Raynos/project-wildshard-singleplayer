@@ -10,8 +10,7 @@ import { buildEagle } from './eagleBody';
 import { buildKing } from './goldenKingBody';
 import { buildBalbal } from './balbalBody';
 import { bodySpecies } from './speciesRows';
-import { BALBAL_SPECIES } from '../species/balbal';
-import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from '../species/bodyKey';
+import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from './bodyKey';
 
 const HORSE_SPECIES = bodySpecies('horse'), WOLF_SPECIES = bodySpecies('wolf'), SHEEPDOG_VARIANTS = bodySpecies('sheepdog').variants;
 
@@ -44,7 +43,7 @@ export function bodyVariants(): { family: BodyFamily; variant: VariantDef }[] {
   // supplies the loft's variant shape without importing gameplay or page code.
   const statue: VariantDef = { id: 'body', label: '', weight: 0, rarity: 'common', scale: [1, 1] };
   return [...horse.map((variant) => ({ family: 'horse' as const, variant })), ...canid.map((variant) => ({ family: 'canid' as const, variant })),
-    ...own('leopard', bodySpecies('leopard')), ...own('eagle', bodySpecies('eagle')), { family: 'goldenKing', variant: statue }, ...own('balbal', BALBAL_SPECIES)];
+    ...own('leopard', bodySpecies('leopard')), ...own('eagle', bodySpecies('eagle')), { family: 'goldenKing', variant: statue }, ...own('balbal', bodySpecies('balbal'))];
 }
 
 const BUILD: Readonly<Record<BodyFamily, (v: VariantDef, rng: Rng) => AnimalSpecies>> = {

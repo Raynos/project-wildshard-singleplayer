@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesDef,RigAnimCtx } from '@wildshard/engine/entities/species/registry';
-import { NO_FUR,smooth01,step } from '@wildshard/engine/entities/species/rigs';
+import { smooth01,step } from '@wildshard/engine/entities/species/rigs';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { PageCreatureGuest } from '@wildshard/game/population/creatureGuest';
 import speciesRows from './speciesRows.json' with { type:'json' };
-import { nalatiBody,poseNalatiCreature,balbalCrackGeometry,speciesGuestRows } from './presentation';
+import { poseNalatiCreature,balbalCrackGeometry,speciesGuestRows } from './presentation';
 
 export const BALBAL = speciesRows.balbal.kind;
 export const BALBAL_SLAM = speciesRows.slam;
@@ -33,9 +33,9 @@ function animateBalbal(c: RigAnimCtx): void {
   a.yOffset = (m['field'] === 1 ? -(1 - smooth01(m['rise'] ?? 1)) * 2.5 * a.scale : (m['floorY'] ?? ground) - ground) - sink;
   poseNalatiCreature('balbal', c);
 }
-export const BALBAL_SPECIES: SpeciesDef = {
-  ...speciesRows.balbal, fur: NO_FUR,
-  build: variant => nalatiBody('balbal', variant), animate: animateBalbal,
+/** The balbals' page controls; their body, rig and look are the look book's rows. */
+export const BALBAL_SPECIES: Pick<SpeciesDef, 'kind' | 'animate' | 'think' | 'damageMul'> = {
+  kind: BALBAL, animate: animateBalbal,
   think: (actor,context) => { creatureGuest().binding.think(actor,context); },
   damageMul: (actor,point,direction,request) => creatureGuest().binding.damageMul(actor,point,direction,request),
 };
