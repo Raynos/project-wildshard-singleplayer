@@ -70,7 +70,6 @@ export class NalatiPlugin extends ShardPlugin {
       cosmetics: () => nalatiSkinsSave.read(ctx.product.shardfile.identity.slug),
       bond: () => tulparSave.read(ctx.product.shardfile.identity.slug),
     });
-    ctx.strings(bootMetadata.strings);
     const { Grass } = await import('@wildshard/engine/world/Grass');
     await import('@wildshard/game/systems/looks/trample');
     const grassField = await import('@wildshard/game/systems/looks/grassField');
