@@ -5,6 +5,17 @@
       "kind": "strings.register"
     },
     {
+      "kind": "content.catalogue",
+      "quests": true,
+      "finishes": false,
+      "economy": true,
+      "weapons": [],
+      "ammunition": [],
+      "effects": [],
+      "compendiums": [],
+      "encounters": []
+    },
+    {
       "kind": "debug.expose",
       "name": "driftwood"
     }

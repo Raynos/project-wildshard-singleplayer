@@ -5,7 +5,7 @@ import { heldFinishEffect } from '../loadout/effects';
 import { readItemEquipment, readItemAmmunition } from '../plugin/nativeItems';
 import { STARTER_EFFECTS } from '../plugin/ui';
 import { installQuestCatalogue } from '../quest/chapter';
-import { declaredProductCompendium } from '../shard/declaredRows';
+import { declaredLootEconomy, declaredProductCompendium } from '../shard/declaredRows';
 
 /** Kit-only catalogue registration from admitted ids. Preparation stays with
  * the resident resource owner; this feature registers no frame or save owner. */
@@ -16,6 +16,7 @@ export function installClientCatalogue(ctx: ShardContext, row: ClientFeatureRow)
   const ammunition = row.ammunition.flatMap(id => [...readItemAmmunition(ctx.product.shardfile.items, id).values()].map(ammo => ammo.row));
   const finishes = row.finishes || row.effects.includes('finishes') ? HeldFinishes.current(ctx.product.slug) : null;
   const journals = row.compendiums.map(id => Object.assign(declaredProductCompendium(ctx.product, id), { id }));
+  const economy = row.economy === true ? declaredLootEconomy(ctx.product.section('economy/loot').rows.loot) : undefined;
   const effects = row.effects.flatMap(kind => kind === 'starter' ? STARTER_EFFECTS
     : finishes?.cards.map(({ id }) => heldFinishEffect(id, finishes.get(id).weapon)) ?? []);
   if (row.quests) installQuestCatalogue(ctx);
@@ -24,5 +25,6 @@ export function installClientCatalogue(ctx: ShardContext, row: ClientFeatureRow)
   if (weapons.length > 0) ctx.rows.weapon(weapons);
   if (ammunition.length > 0) ctx.rows.ammo(ammunition);
   if (effects.length > 0) ctx.rows.effect(effects);
+  if (economy !== undefined) { ctx.rows.effect(economy.effects); ctx.rows.shop(economy.goods); }
   if (row.finishes && finishes !== null) ctx.rows.skin(finishes.list());
 }

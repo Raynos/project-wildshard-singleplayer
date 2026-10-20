@@ -7,14 +7,16 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { readItemEquipment, readItemAmmunition } from '../src/game/plugin/nativeItems';
 import source from '../src/shards/pine-hollow/shard.config';
 import { STARTER_EFFECTS } from '../src/game/plugin/ui';
+import loot from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { declaredLootEconomy } from '../src/game/shard/declaredRows';
 
 test('salt-marsh kit registers authored equipment, ammunition and encounters without a runtime hook', () => {
   const scope = new Scope('marsh.catalogue'), product = createShardProduct({ slug: 'salt-marsh', revision: 1,
     shardfile: { ...source, identity: { ...source.identity, slug: 'salt-marsh' } },
-    sections: new Map([['combat/items', { items: source.items }]]), files: new Map(),
+    sections: new Map<string, unknown>([['combat/items', { items: source.items }], ['economy/loot', { rows: { loot: [{ economy: loot.economy }] } }]]), files: new Map(),
     read: () => Promise.reject(new Error('No catalogue blob needed')), check: false });
   const rows = { weapon: vi.fn<ShardContext['rows']['weapon']>(), ammo: vi.fn<ShardContext['rows']['ammo']>(),
-    effect: vi.fn<ShardContext['rows']['effect']>(), encounter: vi.fn<ShardContext['rows']['encounter']>() };
+    effect: vi.fn<ShardContext['rows']['effect']>(), shop: vi.fn<ShardContext['rows']['shop']>(), encounter: vi.fn<ShardContext['rows']['encounter']>() };
   const context = { scope, product } as ShardContext;
   Object.defineProperty(context, 'rows', { value: rows });
   const input = { kind: 'content.catalogue', quests: false, finishes: false,
@@ -28,6 +30,11 @@ test('salt-marsh kit registers authored equipment, ammunition and encounters wit
     expect(rows.ammo).toHaveBeenCalledWith([...readItemAmmunition(source.items, 'weapon.crossbow').values()].map(ammo => ammo.row));
     expect(rows.effect).toHaveBeenCalledWith(STARTER_EFFECTS);
     expect(rows.encounter).toHaveBeenCalledWith({ id: 'marsh.sentry', displayName: 'The Reed Sentry', showHeadBar: true });
+    expect(rows.shop).not.toHaveBeenCalled();
+    installClientCatalogue(context, { ...row, economy: true });
+    const economy = declaredLootEconomy(product.section('economy/loot').rows.loot);
+    expect(rows.effect).toHaveBeenLastCalledWith(economy.effects);
+    expect(rows.shop).toHaveBeenCalledWith(economy.goods);
     expect(() => parseClientPlan({ version: 1, features: [{ ...input, install: () => undefined }] })).toThrow();
     const before = rows.weapon.mock.calls.length;
     expect(() => installClientCatalogue(context, { ...row, weapons: ['missing'] })).toThrow();

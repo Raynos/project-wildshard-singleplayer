@@ -143,9 +143,15 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     if(plan.features.some(row=>row.kind==='world.dressing')){const rows=product.section('world/scenes').dressing;if(rows===undefined||!product.hasFile(rows.phone)||!product.hasFile(rows.desktop))throw new Error('Dressing requires both declared tier files');}
     if (plan.features.some(row => row.kind === 'weather.fields' && !product.shardfile.quests.quests.some(quest => quest.id === row.quest))) throw new Error('Weather fields require their declared quest');
     for(const row of plan.features)if(row.kind==='bag.finds'&&(!product.hasFile(row.file)||!product.shardfile.quests.quests.some(quest=>quest.id===row.quest)))throw new Error('Finds require their admitted file and quest');
-    for (const row of plan.features) for (const name of CLIENT_FEATURES[row.kind].sections) {
-      if (!product.has(name)) throw new Error(`Missing feature section ${name}`);
-      product.section(name); // A listed stream section is not an admitted boot dependency.
+    for (const row of plan.features) {
+      const required = row.kind === 'content.catalogue' ? [
+        ...(row.finishes || row.effects.includes('finishes') ? CLIENT_FEATURES[row.kind].sections : []),
+        ...(row.economy === true ? ['economy/loot'] as const : []),
+      ] : CLIENT_FEATURES[row.kind].sections;
+      for (const name of required) {
+        if (!product.has(name)) throw new Error(`Missing feature section ${name}`);
+        product.section(name); // A listed stream section is not an admitted boot dependency.
+      }
     }
     return { features: plan.features };
   } catch (error) { throw new ProductError(product.slug, 'client/plan', 'schema', error instanceof Error ? error.message : 'Invalid client plan'); }

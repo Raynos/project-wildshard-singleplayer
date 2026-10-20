@@ -1,7 +1,5 @@
-import { installQuestCatalogue } from '@wildshard/game/quest/chapter';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
-import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
 
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '../world/build';
@@ -63,9 +61,6 @@ export class DriftwoodPlugin extends ShardPlugin {
     const held = await HeldClaims.prepare(ctx);
     await installDriftwoodCreatures(ctx,await pageDecisionAuthority(ctx));
     held.install();
-    installQuestCatalogue(ctx);
-    const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
-    ctx.rows.effect(economy.effects); ctx.rows.shop(economy.goods);
   }
 
 

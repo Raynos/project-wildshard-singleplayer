@@ -190,3 +190,17 @@ test('a trusted runtime honors required graph rows before allocating presentatio
     expect(compile.mock.calls[0]?.[4]).toMatchObject({trustedGraphs:true,graphs:true});
   }finally{compile.mockRestore();textures.mockRestore();f.ctx.scope.dispose();}
 });
+
+
+test('catalogues require only the optional sections their rows select', () => {
+  const f = context(), row = { kind: 'content.catalogue', quests: false, finishes: false,
+    weapons: [], ammunition: [], effects: [], compendiums: [], encounters: [] };
+  const plan = (feature: unknown) => ({ version: 1, features: [feature] });
+  try {
+    expect(() => admitClientPlan(plan(row), f.ctx.product)).not.toThrow();
+    expect(() => admitClientPlan(plan({ ...row, finishes: true }), f.ctx.product)).toThrow('held/finishes');
+    expect(() => admitClientPlan(plan({ ...row, effects: ['finishes'] }), f.ctx.product)).toThrow('held/finishes');
+    expect(() => admitClientPlan(plan({ ...row, economy: true }), f.ctx.product)).toThrow('economy/loot');
+    expect(f.strings).not.toHaveBeenCalled(); expect(f.expose).not.toHaveBeenCalled();
+  } finally { f.ctx.scope.dispose(); }
+});

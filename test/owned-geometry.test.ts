@@ -43,6 +43,23 @@ it('loads the declared batch while retaining each handle ownership and retry', a
   } finally { fetch.mockRestore(); source.dispose(); }
 });
 
+it('admits stable slot tables atomically and retains independent take/copy handles', async () => {
+  const batch = createOwnedGeometryBatch(), source = new BoxGeometry();
+  const rows = [{ slot: 'beam', channels: [] }, { slot: 'panel', channels: [] }];
+  try {
+    expect(() => batch.declare([...rows, rows[0] ?? rows[1] ?? { slot: '', channels: [] }])).toThrow('declaration');
+    expect(() => batch.handle('beam')).toThrow('not loaded');
+    batch.declare(rows); batch.declare(structuredClone(rows));
+    expect(() => batch.declare([{ slot: 'other', channels: [] }])).toThrow('changed');
+    expect(() => batch.geometry('extra')).toThrow('declaration'); expect(batch.ready).toBe(false);
+    await batch.load(new Map(rows.map(row => [row.slot, source]))); expect(batch.ready).toBe(true);
+    const beam = batch.handle('beam').take(), panel = batch.handle('panel').copy();
+    expect(beam.getAttribute('position').array).toEqual(panel.getAttribute('position').array);
+    expect(beam.getAttribute('position').array.buffer).not.toBe(panel.getAttribute('position').array.buffer);
+    beam.dispose(); panel.dispose(); batch.handle('panel').take().dispose();
+  } finally { source.dispose(); }
+});
+
 it('restores native half-float bits, packed vec4 normals and explicit identity indices', async () => {
   const geometry = new BufferGeometry(), material = new MeshStandardMaterial();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));
