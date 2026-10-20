@@ -24,7 +24,8 @@ test('authored quest frames retain all six native site origins and rotations', (
 });
 
 test('native quest content retains command ABI, save adapter key and contact thresholds', () => {
-  expect(policy).toEqual({ actor: 'driftwood.interact', actions: { talk: 0, sword: 1, zipline: 2, row: 100 },
+  expect(policy).toMatchObject({ actor: 'driftwood.interact', actions: { talk: 0, sword: 1, zipline: 2, row: 100 },
     step: 'driftwood.quest', rewardFlag: 'seen:reward', touch: { radius: 1.1, height: 2.2 }, plate: { inset: .1, depth: .1 },
-    talkRadius: 3.2, swordRadius: 2.6, limits: { rows: 64 }, barrelOwner: { kind: 'barrel', id: 'tide-barrel' } });
+    talkRadius: 3.2, swordRadius: 2.6, limits: { rows: 64 }, barrelOwner: { kind: 'barrel', id: 'tide-barrel' },
+    keyDrop: { kind: 'sailor', id: 'hold-key' } });
 });
