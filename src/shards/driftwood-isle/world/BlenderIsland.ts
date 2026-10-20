@@ -41,7 +41,6 @@ import type { CustomSections } from '../runtime/productSections.generated.d.ts';
 import sea from '../boot/sea.generated.json' with { type: 'json' };
 import { smallRock, coveModels } from '../models/catalogue';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import rockMetadata from '../boot/modelCatalogue.generated.json' with { type: 'json' };
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import type { IslandCover } from './islandCover';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
@@ -51,7 +50,7 @@ import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { TIER } from '@wildshard/engine/core/tier';
 import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
-import { place, placeSliced, type Placed } from '@wildshard/engine/models/place';
+import { placeSliced, type Placed } from '@wildshard/engine/models/place';
 import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
@@ -82,12 +81,10 @@ const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
 function load<T>(f: (ok: (v: T) => void, bad: (e: unknown) => void) => void): Promise<T> { return new Promise<T>((resolve, reject) => { f(resolve, reject); }); }
 
 const planFloat=v.pipe(v.number(),v.finite()),planIndex=v.pipe(planFloat,v.integer(),v.minValue(0),v.maxValue(50_000));
-const planPoint={x:planFloat,y:planFloat,z:planFloat};
 const planBox=v.object({x:planFloat,z:planFloat,hw:planFloat,hd:planFloat,rot:planFloat,yTop:planFloat,yBottom:planFloat});
 const planIndices=v.pipe(v.array(planIndex),v.maxLength(50_000));
 const placementPlan=v.object({
   version:v.literal(1),used:planIndex,
-  smallRocks:v.pipe(v.array(v.object({...planPoint,matrix:v.pipe(v.array(planFloat),v.length(16)),params:v.object({r:planFloat,sq:planFloat})})),v.maxLength(512)),
   families:v.pipe(v.array(v.object({key:v.custom<string>(value=>typeof value==='string'&&driftwoodRows('custom/fixedLayouts').island.models.some(row=>row.key===value)),indices:planIndices,colliders:v.pipe(v.array(planBox),v.maxLength(512))})),v.maxLength(16)),
   unclaimed:v.pipe(v.array(planBox),v.maxLength(512)),
 });
@@ -169,15 +166,9 @@ export class BlenderIsland {
     // SF67: the build ends its task at each ~30 ms between its sections (the order and every result are unchanged)
     const slice = slicer();
     await slice();
-    if (plan.smallRocks.length > 0) {
-      // E315 M1: the small-rock model, merged into one mesh (piece `cove-small-rocks`; it used to hang in this group)
-      const { colliders: _hulls, ...metadata } = smallRock, mesh = ctx.scenes.mesh('rocks.small');
-      mesh.name = smallRock.id;
-      const rows = rockMetadata.rockWorld.small;
-      const placed = place(metadata, plan.smallRocks.map(row => ({ ...row, matrix: new THREE.Matrix4().fromArray(row.matrix) })), { ctx: models, draw: 'merged', registry: ctx.registry,
-        drawnInto: { object: mesh, boxes: Float32Array.from(rows.flatMap(row => row.box)) }, piece: { id: 'cove-small-rocks' } });
-      await placed.registered; ctx.scene.add(mesh);
-    }
+    // E315 M1: the small-rock model's declared copies, merged into the rocks scene's small weld (piece `cove-small-rocks`)
+    await ctx.scenes.place('rocks.small.copies');
+    const smallRocks = ctx.scenes.mesh('rocks.small'); smallRocks.name = smallRock.id; ctx.scene.add(smallRocks);
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
     const unclaimed = await this.placeModels(models, new Float32Array(placementBytes), plan, protos, { cast: propsMat, cover: coverMat, big: bigMat });

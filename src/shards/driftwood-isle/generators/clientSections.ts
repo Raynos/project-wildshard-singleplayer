@@ -23,6 +23,7 @@ import piers from '../data/piers.generated.json' with { type: 'json' };
 import { GULL_FLOCK } from './gullsLook';
 import { OCEAN_SURFACE } from './oceanLook';
 import { OCEAN_FILES } from './oceanFiles';
+import { OCEAN_FOAM } from './oceanFoam';
 
 
 /** Build-only client row assembly; the canonical registry validates it at publication. */
@@ -30,7 +31,7 @@ export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] =
   {name:'custom/collections',value:collectionRows()},
   {name:'custom/cumulusPuffs', value:cumulusPuffs},
   {name:'custom/gullFlock', value:GULL_FLOCK},
-  {name:'custom/oceanSurface', value:{surface:{...OCEAN_SURFACE,params:{level:OCEAN.level,deepDepth:OCEAN.deepDepth,shallow:[...OCEAN.shallowColor],deep:[...OCEAN.deepColor],edgeInset:SHORE_REVETMENT_INNER_FACE,seaEnd:HORIZON_RADIUS}}, files:OCEAN_FILES}},
+  {name:'custom/oceanSurface', value:{surface:{...OCEAN_SURFACE,params:{level:OCEAN.level,deepDepth:OCEAN.deepDepth,shallow:[...OCEAN.shallowColor],deep:[...OCEAN.deepColor],edgeInset:SHORE_REVETMENT_INNER_FACE,seaEnd:HORIZON_RADIUS}}, files:OCEAN_FILES, foam:OCEAN_FOAM}},
   {name:'custom/fixedLayouts', value:{assembly:WORLD_ASSEMBLY,nativeView:NATIVE_VIEW, fixedDraws:FIXED_DRAW_ROWS, shadowTiers:Object.fromEntries(Object.entries(ISLAND_KNOBS).map(([tier,row])=>[tier,{bush:row.bushShadows,boulder:row.boulderShadows}])), entryDecks:ENTRY_DECKS, entryFloors:ENTRY_FLOORS, foliage:{seed:foliage.seed,tiers:foliage.tiers}, npcScenes, gullPerches:WORLD_GULL_PERCHES, boat:STATIC_BOAT, shoreBoulders:SHORE_BOULDERS, cove:{...coveBake,composition:coveComposition},island:{...islandAssets,models:COVE_MODELS}, shrine:shrineBake, hut, lookout, piers:piers.map(({paramKey,colliders})=>({paramKey,colliders}))}},
   {name:'custom/trailside', value:trailside},
 ];

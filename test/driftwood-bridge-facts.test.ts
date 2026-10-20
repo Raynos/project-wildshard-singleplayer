@@ -44,15 +44,9 @@ it('keeps deck owners and the walk floor on the live chain poses', () => {
   }
 });
 
-it('returns independent static descriptors and refuses an unbaked site', () => {
-  const bridge=ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0});
-  const a=bridge.deckDescs(),b=bridge.deckDescs();
-  const first=a[0],second=b[0];
-  if(first?.kind!=='box'||second?.kind!=='box')throw new Error('Bridge rest slab absent');
-  const x=second.x;first.x+=1;expect(second.x).toBe(x);
+it('refuses an unbaked site', () => {
   expect(()=>admitBridgeFacts({...span,width:3},()=>0)).toThrow('Unbaked');
   expect(()=>admitBridgeFacts(span,()=>1)).toThrow('terrain changed');
-  bridge.mesh.traverse(o=>{if(isMesh(o)){o.geometry.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])material.dispose();}});bridge.mesh.clear();
 });
 
 it('draws the baked anchor posts, painted, and refuses to draw before they load', async () => {

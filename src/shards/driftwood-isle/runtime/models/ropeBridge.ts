@@ -21,7 +21,6 @@ import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/blobAs
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { defineModel } from '@wildshard/engine/models/model';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -50,7 +49,6 @@ const _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3
 class RopeBridgeBuilder {
   /** the posts (static), the planks and ropes (instanced, posed by `setPoses`), and one holder per deck segment */
   mesh!: THREE.Group;
-  colliders: Collider[] = [];
   private len = 0; private dir = new THREE.Vector2(); private width = 1.4;
   private segs: DeckSegment[] = [];
   /** per segment: an Object3D at its pose (a bolt stuck in the deck rides it) */
@@ -107,7 +105,6 @@ class RopeBridgeBuilder {
     };
     live(this.planks); live(this.ropes);
 
-    this.colliders=structuredClone(facts.colliders);
     this.setPoses(null, 1);
     return this;
   }
@@ -171,14 +168,9 @@ class RopeBridgeBuilder {
     return (this.live[i] ?? 0) * (1 - f) + (this.live[i + 1] ?? 0) * f + this.o.y; // the live joints are own space
   }
 
-  /** Fresh native post, rail and end-tread descriptors from the authored rest plan. */
-  colliderDescs(): ColliderDesc[] { return readColliderRows(this.facts.descs, { kinds: ['box', 'treads'], surfaces: [] }); }
-  /** Static rest slabs for navmesh and trail probes; live collision remains the RopeChain. */
-  deckDescs(): ColliderDesc[] { return readColliderRows(this.facts.deck, { kinds: ['box', 'treads'], surfaces: [] }); }
-
 }
 
-export type RopeBridgeLayout = Pick<RopeBridgeBuilder, 'o' | 'colliders' | 'descs' | 'chainSpec' | 'setPoses' | 'floorHeightAt' | 'colliderDescs' | 'deckDescs' | 'mesh'>;
+export type RopeBridgeLayout = Pick<RopeBridgeBuilder, 'o' | 'descs' | 'chainSpec' | 'setPoses' | 'floorHeightAt' | 'mesh'>;
 
 export interface RopeBridgeParams {
   readonly span: RopeBridgeSpec;

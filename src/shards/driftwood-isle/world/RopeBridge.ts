@@ -18,14 +18,13 @@ import { ropeBridge, ropeBridgeLayout, type RopeBridgeLayout, type RopeBridgeSpe
 
 
 /** Place the model and lend its original chain, pose and live floor owners. */
-export function placeRopeBridge(sky: Sky, spec: RopeBridgeSpec, registry: WorldRegistry): Pick<RopeBridgeLayout, 'colliders' | 'chainSpec' | 'setPoses' | 'floorHeightAt'> & { placed: Placed } {
+export function placeRopeBridge(sky: Sky, spec: RopeBridgeSpec, registry: WorldRegistry): Pick<RopeBridgeLayout, 'chainSpec' | 'setPoses' | 'floorHeightAt'> & { placed: Placed } {
   const params = { span: spec, ground: heightAt };
   const lay = ropeBridgeLayout(sky, params), o = lay.o;
   const placed = place(ropeBridge, [{ x: o.x, y: o.y, z: o.z, params }], { ctx: modelContext(sky), draw: 'single', registry,
     piece: { id: 'bridge', floor: (px, pz) => lay.floorHeightAt(px, pz), solidFloor: true } });
   return {
     placed,
-    colliders: lay.colliders,
     chainSpec: lay.chainSpec.bind(lay),
     setPoses: lay.setPoses.bind(lay),
     floorHeightAt: lay.floorHeightAt.bind(lay),
