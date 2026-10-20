@@ -1,3 +1,4 @@
+import type { ExternalEliteData } from '@wildshard/format/eliteFeature';
 import type AqbarsProfile from './aqbarsProfile.json';
 import type KokboriProfile from './kokboriProfile.json';
 import type QyranProfile from './qyranProfile.json';
@@ -34,6 +35,7 @@ export interface Ecology {
   profiles: { aqbars: typeof AqbarsProfile; kokbori: typeof KokboriProfile; qyran: typeof QyranProfile };
   elites: Record<string, EliteRow>;
   keeperElites: KeeperEliteRow[];
+  externalElites: ExternalEliteData[];
   wildlife: WildlifeLayout;
   mareVariants: string[];
   modes: { traverse: []; ride: [ReturnType<Mount['toModeData']>] };

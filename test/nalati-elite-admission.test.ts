@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { ReturnProgram, EventConditions } from '../src/game/population/returnProgram';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 
 test('AS owns named-elite gates, captain support and herd display/adoption decisions', () => {
@@ -17,4 +17,11 @@ test('AS owns named-elite gates, captain support and herd display/adoption decis
   expect(display['laneT']).toBeCloseTo(1.1);
   const held = policy.project('argymaqTick', { ...row, previousState: 1, state: 3, bonded: 0, health: 1 });
   expect(held['lead']).toBeUndefined(); expect(held['adopt']).toBe(0); expect(held['fraction']).toBe(1);
+});
+
+test('encounter condition projections refresh at ten Hz while holding the prior frame', () => {
+  const conditions = new EventConditions(ReturnProgram.page(admission), [{ id: 'dark', signal: 'eliteRule', observations: { rule: 2 } }]);
+  conditions.update(0, { phase: 0, storm: 0 }); expect(conditions.holds('dark')).toBe(false);
+  for (let frame = 0; frame < 5; frame++) conditions.update(1 / 60, { phase: 2, storm: 0 });
+  expect(conditions.holds('dark')).toBe(false); conditions.update(1 / 60, { phase: 2, storm: 0 }); expect(conditions.holds('dark')).toBe(true);
 });

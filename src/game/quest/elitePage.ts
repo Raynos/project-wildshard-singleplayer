@@ -1,3 +1,6 @@
+import type { HerdBrain } from '@wildshard/engine/ai/herd';
+import type { ReturnProgram } from '../population/returnProgram';
+import type { SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import { app } from '@wildshard/engine/app/runtime';
 import { pinBrain } from '@wildshard/engine/ai/inspect';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -19,7 +22,7 @@ import { GroundTell, type Elites, type EliteScript, type EliteDef } from '../Eli
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { SpawnScript } from '../population/spawnScript';
 import { EliteDecisions } from './eliteDecisions';
-import { parseEliteFeature, type EliteFeatureRows } from '@wildshard/format/eliteFeature';
+import { parseEliteFeature, type EliteFeatureRows, parseExternalElite, type ExternalEliteData } from '@wildshard/format/eliteFeature';
 
 /** Private bounded dome presentation; all geometry, pool and style choices come from the admitted feature rows. */
 class Puffs {
@@ -238,4 +241,117 @@ export class KeeperElitePage implements EliteScript {
     if (this.policy instanceof StalkerBrain) this.policy.advance(this.animal, dt, time, engaged, leashing); else this.policy.advanceWind(this.animal, dt, time, engaged, leashing);
   }
   drainEffects(): KeeperEliteEffect[] { return this.events.splice(0); }
+}
+
+/** External native allocation remains with its existing body owner. These rows
+ * bind either a v1 fight slot or an AS-projected herd encounter to that body. */
+export type ExternalEliteRow = ExternalEliteData;
+export type ExternalEliteEffect = KeeperEliteEffect | { readonly kind: 'request'; readonly row: ExternalEliteRow }
+  | { readonly kind: 'retire'; readonly actor: Animal } | { readonly kind: 'support'; readonly count: number }
+  | { readonly kind: 'record'; readonly species: string; readonly variant: string };
+type EncounterHerd = Pick<HerdBrain<Animal>, 'stallionState' | 'stallion' | 'leadAway'>;
+/** Common native projection over admitted AS decisions. Observations and adopted
+ * bodies are values; shard callbacks, subclass hooks and service factories are
+ * never admitted. Support and exceptional allocation leave as typed requests. */
+export class ExternalElitePage implements EliteScript {
+  readonly def: EliteDef;
+  animal: Animal | null = null;
+  private herd: EncounterHerd | null = null;
+  private line: readonly Animal[] = [];
+  private program: SpawnScript | null = null;
+  private readonly events: ExternalEliteEffect[] = [];
+  private readonly tell: GroundTell;
+  private scope: Scope | null = null;
+  private phase2 = false; private pending = false; private elapsed = 0; private readyTime = 0; private initialized = false;
+  private laneT = 0; private runT = 0; private previousState = 0; private fraction = 0; private isBroken = false;
+  private readonly from = new THREE.Vector3(); private readonly to = new THREE.Vector3();
+  private observations: { available: boolean; kills: number; bonded: boolean; mount: Animal | null } = { available: false, kills: 0, bonded: false, mount: null };
+  private eligible = false;
+  constructor(readonly row: ExternalEliteRow, private readonly services: Pick<KeeperEliteServices, 'game' | 'animals' | 'player' | 'elites'>,
+    private readonly decisions: ReturnProgram, private readonly drop: THREE.Object3D, private readonly fight?: SpawnScriptRows) {
+    this.row = parseExternalElite(row); this.def = row.def; this.tell = new GroundTell(services.game.scene, 'lane', new THREE.Color(...row.tell));
+    if (row.mode === 'script' && fight === undefined) throw new Error('Script encounter needs an admitted fight');
+  }
+  observe(dt: number, observations: typeof this.observations): void {
+    this.observations = observations; this.readyTime += dt;
+    if (!this.initialized || this.readyTime + 1e-9 >= .1) {
+      this.initialized = true; this.readyTime = 0;
+      this.eligible = this.row.mode === 'herd' || this.decisions.project(this.row.ready, { kills: observations.kills, engaged: 0, line: 0 })['accept'] === 1;
+    }
+  }
+  canSpawn(): boolean { return this.observations.available && this.eligible; }
+  spawn(): void { if (this.animal?.alive === true || this.pending) return; this.pending = true; this.events.push({ kind: 'request', row: this.row }); }
+  adopt(animal: Animal, herd: EncounterHerd | null = null): void {
+    if (!this.pending) throw new Error('Unrequested encounter body');
+    this.pending = false; this.animal = animal; this.herd = herd;
+    if (this.row.mode === 'script') {
+      const fight = this.fight; if (fight === undefined) throw new Error('Missing encounter fight');
+      this.program = SpawnScript.page(this.services.animals, fight, this.services.game.app.physics); this.program.adopt('main', animal.entityId);
+      setEliteDamage(animal, (_body, point) => this.decisions.project(this.row.damage, { mode: Number(this.program?.state('main')['mode'] ?? 0), distance: point.distanceTo(this.services.player.position) })['scale'] ?? 1);
+    } else {
+      for (const material of Array.isArray(animal.mesh.material) ? animal.mesh.material : [animal.mesh.material]) if (material instanceof THREE.MeshLambertMaterial) material.color.setRGB(...this.row.spawn.color);
+    }
+  }
+  support(actors: readonly Animal[]): void { this.line = actors; }
+  despawn(): void {
+    this.scope?.dispose(); this.scope = null; this.tell.hide(); this.program?.interrupt(); this.pending = false;
+    if (this.row.mode === 'herd') return;
+    for (const actor of this.line) if (actor.alive) this.events.push({ kind: 'retire', actor }); this.line = [];
+    if (this.animal !== null) this.events.push({ kind: 'retire', actor: this.animal }); this.animal = null; this.program = null;
+  }
+  reset(): void { this.phase2 = false; this.program?.interrupt(); this.program?.signal('main', 0); this.tell.hide(); }
+  enterPhase2(): void { this.phase2 = true; }
+  broken(): boolean { return this.isBroken; }
+  barFrac(): number { return this.row.mode === 'script' && this.animal !== null ? this.animal.hp / this.animal.maxHp : this.fraction; }
+  trophy(): void { /* The encounter host owns rewards. */ }
+  dropModel(): THREE.Object3D { return this.drop.clone(true); }
+  tick(dt: number, time: number, engaged: boolean, leashing: boolean): void {
+    const animal = this.animal; if (animal === null) return;
+    if (engaged && this.scope === null) { this.scope = this.services.game.levelScope.child(`elite.${this.def.id}`); pinBrain(animal, this.scope); }
+    else if (!engaged) { this.scope?.dispose(); this.scope = null; }
+    this.elapsed += dt;
+    if (this.row.mode === 'script') {
+      const program = this.program; if (program === null) return;
+      if (this.elapsed + 1e-9 >= .1) {
+        this.elapsed = 0;
+        const count = this.decisions.project(this.row.step, { kills: this.observations.kills, engaged: Number(engaged), line: this.line.filter(actor => actor.alive).length })['count'] ?? 0;
+        if (count > 0) this.events.push({ kind: 'support', count });
+      }
+      program.frame(this.services.player.position, 0, { engaged: Number(engaged), leashing: Number(leashing), phase2: Number(this.phase2), clock: time }); program.advanceFrame(dt);
+      for (const effect of program.drainEffects()) {
+        if (effect.kind === 'hit') { this.events.push({ kind: 'hit', animal, amount: effect.hit.damage }, { kind: 'knock', x: Math.sin(animal.yaw), z: Math.cos(animal.yaw) }); }
+        else if (effect.kind === 'cue') {
+          const cue = this.row.cues[program.cue(effect.id)]; if (cue === undefined) continue;
+          if (cue.signature === true) this.services.elites.signature(this.def.id);
+          if (cue.voice !== undefined) this.events.push({ kind: 'sound', id: cue.voice, at: animal.position.clone() });
+          if (cue.feed !== undefined) this.events.push({ kind: 'feed', id: cue.feed, at: animal.position.clone() });
+        }
+      }
+      this.tell.hide(); this.tell.setTime(time);
+      for (const strike of program.strikePresentation()) if (strike.phase === 'windup' || strike.phase === 'active') this.tell.lane(strike.x0, strike.z0, strike.x1, strike.z1, strike.width, strike.phase === 'windup' ? .42 : .36);
+      return;
+    }
+    const herd = this.herd; if (herd === null) return;
+    if (this.elapsed + 1e-9 >= .1) {
+      const state = this.row.states[herd.stallionState] ?? 0;
+      const result = this.decisions.project(this.row.step, { dt: this.elapsed, state, previousState: this.previousState, laneT: this.laneT, runT: this.runT,
+        phase2: Number(this.phase2), engaged: Number(engaged), bonded: Number(this.observations.bonded), same: Number(herd.stallion === animal), health: animal.hp / animal.maxHp });
+      this.elapsed = 0; this.previousState = state; this.laneT = result['laneT'] ?? this.laneT; this.runT = result['runT'] ?? this.runT; this.fraction = result['fraction'] ?? 0;
+      this.isBroken = herd.stallionState === this.row.broken;
+      if (result['capture'] === 1) { this.from.copy(animal.position); this.to.copy(this.services.player.position); }
+      if (result['signature'] === 1) this.services.elites.signature(this.def.id);
+      if (result['lead'] === 1) herd.leadAway(this.services.player.position.x, this.services.player.position.z);
+      const mount = this.observations.mount;
+      if (result['adopt'] === 1 && mount !== null) {
+        mount.scale = this.row.adopted.scale; mount.mesh.scale.setScalar(mount.scale); this.services.elites.won(this.def.id); this.herd = null;
+        this.events.push({ kind: 'record', species: this.row.adopted.kind, variant: this.row.adopted.variant }, { kind: 'feed', id: this.row.adopted.feed, at: mount.position.clone() });
+      }
+    }
+    this.tell.setTime(time);
+    if (this.laneT > 0) {
+      const dx = this.to.x - this.from.x, dz = this.to.z - this.from.z, distance = Math.hypot(dx, dz) || 1, k = Math.max(0, distance - 3) / distance;
+      this.tell.lane(this.from.x, this.from.z, this.from.x + dx * k, this.from.z + dz * k, 3, .55 * Math.min(1, this.laneT * 2));
+    } else this.tell.hide();
+  }
+  drainEffects(): ExternalEliteEffect[] { return this.events.splice(0); }
 }

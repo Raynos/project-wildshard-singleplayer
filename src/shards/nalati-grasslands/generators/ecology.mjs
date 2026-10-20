@@ -35,8 +35,16 @@ export function ecologyRows() {
     { id: 'kokbori', kind: 'kokbori', pattern: 'howler', spec: kokbori.spec, yaw: Math.PI, offset: [0, 0], memory: {}, tell: [.9, 1.15, 1.4], messages: { regrouped: kokbori.regrouped, interrupted: kokbori.interrupted, closed: kokbori.closed }, pack: { offset: [-6, 4], variants: ['grey', 'tawny', 'grey', 'dark', 'scout'] } },
     { id: 'qyran', kind: 'eagle', pattern: 'wind', spec: qyran.spec, yaw: 0, offset: [26, 0], memory: {}, tell: [2.4, .9, .35], messages: { grounded: qyran.grounded } },
   ].map(({ id, ...row }) => Object.assign(row, { def: elites[id], beam: [2.4, 1.7, .5], voices: { growl: 'leopard_growl', howl: 'wolf_howl', cry: 'eagle_cry' } }));
+  const externalElites = [
+    { def: elites['qara-batyr'], mode: 'script', tell: [.35, 1.6, 1.9], step: 'eliteAux', ready: 'eliteAux', damage: 'eliteDamage', broken: '',
+      states: {}, adopted: { scale: 1, kind: '', variant: '', feed: '' }, spawn: { source: 'rider', variant: 'captain', yaw: 0 },
+      cues: { signature: { signature: true }, squeal: { voice: 'horse_squeal' }, opened: { feed: 'He passes — his back is OPEN' } } },
+    { def: elites.argymaq, mode: 'herd', tell: [2.4, .9, .35], step: 'argymaqTick', ready: '', damage: '', broken: 'beaten',
+      states: { display: 1, charge: 2, beaten: 3 }, adopted: { scale: 1.3, kind: author.argymaq, variant: 'stallion', feed: 'Argymaq is yours — the best horse in Nalati' },
+      spawn: { source: 'herd', kind: author.argymaq, variant: 'stallion', yaw: 0, offset: [-8, 6], mares: 8, foals: 1, stallion: false, color: [.62, .64, .72] }, cues: {} },
+  ];
   return { argymaq: author.argymaq, profiles: { aqbars, kokbori, qyran },
-    elites, keeperElites,
+    elites, keeperElites, externalElites,
     wildlife, mareVariants: author.mareVariants, modes: author.modes, gameplay, species: author.species,
     flocks: { world: rows(wildlife.flocks), specimen: rows(author.specimenFlocks) } };
 }

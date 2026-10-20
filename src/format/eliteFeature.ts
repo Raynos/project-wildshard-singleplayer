@@ -73,3 +73,16 @@ export function parseEliteFeature(input: unknown): EliteFeatureRows {
   });
   return { ...rows, fights };
 }
+
+const externalCommon = { def: definition, tell: v.tuple([finite, finite, finite]), step: id, ready: text, damage: text, broken: text,
+  cues: v.record(id, v.strictObject({ signature: v.exactOptional(v.boolean()), voice: v.exactOptional(id), feed: v.exactOptional(text) })),
+  adopted: v.strictObject({ scale: v.pipe(finite, v.minValue(.01), v.maxValue(10)), kind: text, variant: text, feed: text }), states: v.record(id, finite) };
+/** External body allocation and AS-projected encounter rows. All content is data;
+ * native actor and herd adoption occurs through the existing owner. */
+export const ExternalEliteSchema = v.variant('mode', [
+  v.strictObject({ ...externalCommon, mode: v.literal('script'), spawn: v.strictObject({ source: v.literal('rider'), variant: v.picklist(['rider', 'captain']), yaw: finite }) }),
+  v.strictObject({ ...externalCommon, mode: v.literal('herd'), spawn: v.strictObject({ source: v.literal('herd'), kind: id, variant: id, yaw: finite,
+    offset: v.tuple([finite, finite]), mares: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(256)), foals: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(256)), stallion: v.boolean(), color: v.tuple([finite, finite, finite]) }) }),
+]);
+export type ExternalEliteData = v.InferOutput<typeof ExternalEliteSchema>;
+export function parseExternalElite(input: unknown): ExternalEliteData { return v.parse(ExternalEliteSchema, input); }
