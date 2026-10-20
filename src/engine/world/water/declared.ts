@@ -1,5 +1,6 @@
 import type { WaterBody } from './body';
-import { waveHeight } from '../waves';
+import { waterExtent, waveHeight } from '../waves';
+import { SHORE_REVETMENT_INNER_FACE } from '../../sim/shore';
 import { insidePolygon } from '../yawFrame';
 import { CHUNK_HALF, ENTRY_WIDTH, ENTRY_ASPHALT } from '../../core/config';
 
@@ -23,14 +24,15 @@ export type WaterDeclaration = (
   | { id: string; kind: 'stream'; width: number; points: readonly { x: number; z: number; level: number }[] }
 ) & { dryEntries?: readonly DryEntryEdge[] | undefined };
 
-/** Compile validated data into the existing swim/wade port, with no renderer or import-time registration. */
+/** Compile validated data into the existing swim/wade port, with no renderer or import-time registration. A sea stops
+ *  at the shore revetment's inner face when a grid cell confines the water (`waterExtent`; unbounded standalone). */
 export function declaredWaterBody(input: WaterDeclaration): WaterBody {
   const data = structuredClone(input);
   const level = data.kind === 'stream' ? data.points[0]?.level ?? 0 : data.level;
   const restAt = (x: number, z: number): number | null => {
     if (![x, z].every(Number.isFinite) || Math.abs(x) > 250 || Math.abs(z) > 250) return null;
     if (data.dryEntries?.some((edge) => dryEntryContains(edge, x, z))) return null;
-    if (data.kind === 'sea') return data.level;
+    if (data.kind === 'sea') return Math.max(Math.abs(x), Math.abs(z)) <= waterExtent.uWaterHalf.value - SHORE_REVETMENT_INNER_FACE ? data.level : null;
     if (data.kind === 'pool') {
       const shape = data.shape;
       if (shape.kind === 'circle') return Math.hypot(x - shape.x, z - shape.z) < shape.radius ? data.level : null;
