@@ -574,6 +574,7 @@ export class NativeCreaturePose {
   private readonly physicalPrevious = new Quaternion();
   private readonly physicalCurrent = new Quaternion();
   private physicalRoot = false;
+  private physicalFrozen = false;
   private pendingCorpse: { joints: AnimalRigJoint[]; law: AnimalPoseLaw; context: AnimalRigContext; time: number; elapsed: number } | undefined;
   /** Bind only the concrete host-owned resource manager, never an authored resource callback. */
   bindCorpse(owner: NativeCorpseOwner): void {
@@ -615,7 +616,7 @@ export class NativeCreaturePose {
   }
   cancelCorpseStep(): void { this.pendingCorpse = undefined; }
   /** Publish the actual physical root even after a refused pre step, retaining the last accepted locals. */
-  publishCorpseRoot(endpoint: CorpseRootEndpoint, prepared: boolean): void {
+  publishCorpseRoot(endpoint: CorpseRootEndpoint, prepared: boolean, frozen: boolean): void {
     const h = this.history, pending = prepared ? this.pendingCorpse : undefined;
     if (h === undefined || !this.physicalRoot || prepared && pending === undefined) throw new Error('Missing native corpse pose step');
     const sources = pending?.joints ?? this.joints, fk = new CollisionPose(this.recipe.joints);
@@ -641,6 +642,10 @@ export class NativeCreaturePose {
     this.root.position.copy(endpoint.position); this.physicalCurrent.copy(endpoint.rotation); this.root.rotation.setFromQuaternion(this.physicalCurrent);
     this.published.set(published); this.publishedFrame.set(frame.elements); this.frame.copy(frame); this.fk = fk;
     h.root.set(NativeCreaturePose.values(this.root)); this.pendingCorpse = undefined;
+    this.physicalFrozen = frozen;
+    if (frozen) {
+      h.previous.set(this.published); h.previousRoot.set(h.root); this.physicalPrevious.copy(this.physicalCurrent);
+    }
   }
 
   private readonly identity: string;
@@ -762,6 +767,10 @@ export class NativeCreaturePose {
   prepareAppliedHit(hit: AnimalAppliedHit): AnimalHitPublication | undefined {
     const h = this.history;
     if (h === undefined) return undefined;
+    if (this.corpse !== undefined && (hit.amount < 0 || ![hit.amount, hit.hp, hit.lastHitT, hit.deathT,
+      hit.deathSide, hit.desiredSpeed, hit.flinch, hit.flinchRoll, hit.flinchPitch,
+      hit.point.x, hit.point.y, hit.point.z, hit.direction.x, hit.direction.y, hit.direction.z].every(Number.isFinite)))
+      throw new Error('Invalid native contact');
     if (h.ordinal >= Number.MAX_SAFE_INTEGER) throw new Error('Practice hit ordinal exhausted');
     const ordinal = h.ordinal + 1, kind = hit.alive ? 1 : 2, entry = this.published.slice();
     const bones: Record<string, AnimalRigJoint> = {};
@@ -847,20 +856,23 @@ export class NativeCreaturePose {
     const h = this.history;
     if (h === undefined || !Number.isFinite(alpha) || alpha < 0 || alpha > 1
       || this.recipe.joints.some(row => bones[row.name] === undefined)) throw new Error('Invalid native practice pose consumer');
+    // The frozen endpoint is exact, not another Euler/quaternion interpolation.
+    const blend = this.physicalFrozen ? 1 : alpha;
     const copy = (target: AnimalRigJoint, previous: Float64Array, current: Float64Array, start: number): void => {
       const from = this.renderPrevious, to = this.renderCurrent;
       NativeCreaturePose.read(from, Array.from(previous.subarray(start, start + 10)), 0);
       NativeCreaturePose.read(to, Array.from(current.subarray(start, start + 10)), 0);
-      if (alpha === 1) { target.position.copy(to.position); target.rotation.copy(to.rotation); target.scale.copy(to.scale); return; }
-      if (alpha === 0) { target.position.copy(from.position); target.rotation.copy(from.rotation); target.scale.copy(from.scale); return; }
-      target.position.lerpVectors(from.position, to.position, alpha); target.scale.lerpVectors(from.scale, to.scale, alpha);
+      if (blend === 1) { target.position.copy(to.position); target.rotation.copy(to.rotation); target.scale.copy(to.scale); return; }
+      if (blend === 0) { target.position.copy(from.position); target.rotation.copy(from.rotation); target.scale.copy(from.scale); return; }
+      target.position.lerpVectors(from.position, to.position, blend); target.scale.lerpVectors(from.scale, to.scale, blend);
       this.quaternion.setFromEuler(from.rotation); this.renderQuaternion.setFromEuler(to.rotation);
-      target.rotation.setFromQuaternion(this.quaternion.slerp(this.renderQuaternion, alpha), to.rotation.order);
+      target.rotation.setFromQuaternion(this.quaternion.slerp(this.renderQuaternion, blend), to.rotation.order);
     };
     this.recipe.joints.forEach((row, index) => { const joint = bones[row.name]; if (joint !== undefined) copy(joint, h.previous, this.published, index * 10); });
     copy(root, h.previousRoot, h.root, 0);
     if (this.physicalRoot) {
-      this.renderQuaternion.copy(this.physicalPrevious).slerp(this.physicalCurrent, alpha);
+      this.renderQuaternion.copy(blend === 1 ? this.physicalCurrent : this.physicalPrevious);
+      if (blend > 0 && blend < 1) this.renderQuaternion.slerp(this.physicalCurrent, blend);
       if (root.quaternion === undefined) root.rotation.setFromQuaternion(this.renderQuaternion);
       else root.quaternion.copy(this.renderQuaternion);
     }

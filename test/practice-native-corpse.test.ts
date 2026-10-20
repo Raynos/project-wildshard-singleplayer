@@ -121,3 +121,75 @@ test('refused native corpse pre keeps locals but post publishes the actual physi
     f.tick(); expect(f.native.pose.context.deathT).toBeCloseTo(1 / 48, 12);
   } finally { f.owner.dispose(); }
 });
+
+test('frozen physical publication holds the exact final root, quaternion and locals at every render alpha', async () => {
+  const f = await fixture(product, true), system = ragdollsFor(f.outside.physics);
+  try {
+    let final: { position: number[]; rotation: number[] } | undefined;
+    const remove = f.outside.physics.world.removeRigidBody.bind(f.outside.physics.world);
+    vi.spyOn(f.outside.physics.world, 'removeRigidBody').mockImplementation(body => {
+      const p = body.translation(), q = body.rotation(); final = { position: [p.x, p.y, p.z], rotation: [q.x, q.y, q.z, q.w] }; remove(body);
+    });
+    hit(f, 10000); for (let i = 0; i < 310 && system.occupied > 0; i++) f.tick();
+    expect(system.occupied).toBe(0); f.view.renderPublishedPose(1);
+    const read = () => ({ position: f.view.mesh.position.toArray(), rotation: f.view.mesh.quaternion.toArray(),
+      bones: f.rig.mesh.skeleton.bones.map(bone => ({ p: bone.position.toArray(), r: bone.rotation.toArray(), s: bone.scale.toArray() })) });
+    const frozen = read(); expect(frozen.position).toEqual(final?.position); expect(frozen.rotation).toEqual(final?.rotation);
+    const scalar = f.native.pose.law.snapshot();
+    for (let frame = 0; frame < 4; frame++) {
+      f.tick(); for (const alpha of [0, .5, 1]) { f.view.renderPublishedPose(alpha); expect(read()).toEqual(frozen); }
+    }
+    expect(f.native.pose.law.snapshot()).toBe(scalar); expect(f.native.actor.motor).toBeNull();
+  } finally { f.owner.dispose(); }
+});
+
+test.each([false, true])('post publication failure at final freeze=%s closes the physical owner instead of silently stranding its endpoint', async frozen => {
+  const f = await fixture(product, true), system = ragdollsFor(f.outside.physics);
+  try {
+    hit(f, 10000);
+    if (frozen) for (let i = 0; i < 300; i++) f.tick();
+    expect(system.live).toBe(1);
+    const fault = vi.spyOn(f.native.pose, 'publishCorpseRoot').mockImplementationOnce(() => { throw new Error('publication fault'); });
+    f.native.preFixed(); f.outside.physics.step(); expect(() => f.native.fixed()).toThrow('publication fault');
+    expect(fault.mock.calls[0]?.[2]).toBe(frozen); fault.mockRestore();
+    expect(f.native.corpse?.scope.disposed).toBe(true); expect(system.occupied).toBe(0);
+    expect(() => f.native.snapshot()).toThrow('disposed');
+    const clock = f.native.host.clock.snapshot(); f.native.preFixed(); f.native.fixed(); expect(f.native.host.clock.snapshot()).toEqual(clock);
+    f.native.dispose(); f.native.dispose(); expect(system.occupied).toBe(0);
+  } finally { f.owner.dispose(); }
+});
+
+test.each([1, 10000].flatMap(amount => ['amount', 'point', 'direction'].flatMap(field => [Number.NaN, Infinity].map(value => ({ amount, field, value })))))(
+  'nonfinite native contact $field=$value refuses nominal damage $amount before damage, publication or allocation', async ({ amount, field, value }) => {
+  const f = await fixture(product, true);
+  try {
+    f.tick(); hit(f, 1); const state = f.native.snapshot(), actor = f.native.actor.snapshot(), old = motor(f);
+    const point = f.native.actor.position.clone(), dir = new Vector3(.7, .2, -.5);
+    if (field === 'point') point.x = value; else if (field === 'direction') dir.y = value;
+    const allocate = vi.spyOn(f.outside.physics.world, 'createRigidBody');
+    expect(() => f.combat.hit({ source: 'env', sourceTags: ['dmg.melee'], target: f.native.actor.combatActor(),
+      amount: field === 'amount' ? value : amount, point, dir })).toThrow('Invalid native contact');
+    expect(f.native.snapshot()).toEqual(state); expect(f.native.actor.snapshot()).toEqual(actor); expect(f.native.actor.motor).toBe(old);
+    expect(old.collider.isEnabled()).toBe(true); expect(old.snapshot().enabled).toBe(true); expect(allocate).not.toHaveBeenCalled();
+    expect(ragdollsFor(f.outside.physics).reserved).toBe(1); expect(hit(f, 10000)?.killed).toBe(true);
+  } finally { f.owner.dispose(); }
+});
+
+test('terminal post failure retains the exact occupied body after owner closure until explicit cleanup retry', async () => {
+  const f = await fixture(product, true), system = ragdollsFor(f.outside.physics);
+  try {
+    hit(f, 10000); f.native.preFixed(); f.outside.physics.step();
+    const handles = () => { const result: number[] = []; f.outside.physics.world.forEachRigidBody(body => { result.push(body.handle); }); return result; };
+    const retained = handles(); expect(retained).toHaveLength(1);
+    const remove = vi.spyOn(f.outside.physics.world, 'removeRigidBody').mockImplementation(() => { throw new Error('retained body'); });
+    const publish = vi.spyOn(f.native.pose, 'publishCorpseRoot').mockImplementationOnce(() => { throw new Error('post failed'); });
+    expect(() => f.native.fixed()).toThrow(); publish.mockRestore();
+    expect(f.native.corpse?.scope.disposed).toBe(true); expect(f.native.actor.alive).toBe(false);
+    expect(handles()).toEqual(retained); expect(system.occupied).toBe(1); expect(system.live).toBe(1);
+    expect(() => f.native.dispose()).toThrow(); expect(handles()).toEqual(retained); expect(system.occupied).toBe(1);
+    for (let i = 1; i < system.cap; i++) expect(system.reserveNative(f.owner.child(`other-reservation-${String(i)}`))).not.toBeNull();
+    expect(system.occupied).toBe(system.cap); expect(system.reserveNative(f.owner.child('overbook-refused'))).toBeNull();
+    remove.mockRestore(); f.native.dispose(); f.native.dispose();
+    expect(handles()).toEqual([]); expect(system.occupied).toBe(system.cap - 1); expect(system.live).toBe(0);
+  } finally { f.owner.dispose(); }
+});

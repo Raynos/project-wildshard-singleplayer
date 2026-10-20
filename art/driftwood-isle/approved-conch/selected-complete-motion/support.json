@@ -1,0 +1,55 @@
+{
+  "scope": "Conditional planar enclosure only. All source corners retained. Convexity includes every triangle. Requires declared locked-relative transforms and unchanged weights. No contact/terrain/weapon/quality claim.",
+  "rows": [
+    {
+      "owner": "body",
+      "corners": 2142,
+      "float32HullPoints": 84,
+      "maxOutsidePlaneMeters": 1.6645035183504575e-08
+    },
+    {
+      "owner": "head",
+      "corners": 1284,
+      "float32HullPoints": 46,
+      "maxOutsidePlaneMeters": 1.4305114648394124e-08
+    },
+    {
+      "owner": "shieldArm",
+      "corners": 342,
+      "float32HullPoints": 29,
+      "maxOutsidePlaneMeters": 1.5770914463253405e-08
+    },
+    {
+      "owner": "shieldForearm",
+      "corners": 486,
+      "float32HullPoints": 27,
+      "maxOutsidePlaneMeters": 2.796429021678648e-08
+    },
+    {
+      "owner": "rapierArm",
+      "corners": 342,
+      "float32HullPoints": 30,
+      "maxOutsidePlaneMeters": 1.7276477914940358e-08
+    },
+    {
+      "owner": "rapierForearm",
+      "corners": 582,
+      "float32HullPoints": 39,
+      "maxOutsidePlaneMeters": 5.687476001270397e-08
+    },
+    {
+      "owner": "legLeft",
+      "corners": 696,
+      "float32HullPoints": 55,
+      "maxOutsidePlaneMeters": 3.0317986177141876e-08
+    },
+    {
+      "owner": "legRight",
+      "corners": 696,
+      "float32HullPoints": 51,
+      "maxOutsidePlaneMeters": 4.261775965463954e-08
+    }
+  ],
+  "totalCorners": 6570,
+  "maxOutsidePlaneMeters": 5.687476001270397e-08
+}

@@ -12,7 +12,7 @@ export interface NativeCorpsePosePort {
   readonly entityId: string;
   prepareCorpseStep: (dt: number, time: number) => { readonly joints: readonly NumericCorpseJoint[]; readonly complete: boolean };
   cancelCorpseStep: () => void;
-  publishCorpseRoot: (root: CorpseRootEndpoint, prepared: boolean) => void;
+  publishCorpseRoot: (root: CorpseRootEndpoint, prepared: boolean, frozen: boolean) => void;
 }
 interface LethalPose extends CorpseRootEndpoint {
   readonly joints: readonly NumericCorpseJoint[];
@@ -109,16 +109,21 @@ export class NativeCorpseOwner {
   }
   post(tick: number): void {
     if (this.terminal || this.scope.disposed || this.resource === undefined) return;
+    const resource = this.resource;
     if (tick <= this.postTick || tick !== this.clock.frame) throw new Error('Duplicate or mismatched native corpse post');
     this.postTick = tick;
     // A hit inside this post occurred after physics and must retain its zero-time lethal endpoint.
     if (this.birthFrame === this.clock.frame || this.resource.state === 'frozen') return;
     if (this.preTick !== tick) throw new Error('Native corpse post has no matching pre');
     try {
-      this.resource.capture(FIXED_STEP);
-      const root = this.resource.endpoints().current;
-      this.pose.publishCorpseRoot(root, this.prepared); this.actor.position.copy(root.position); this.prepared = false;
-    } catch (error) { if (this.resource.state === 'failed' || this.resource.state === 'disposed') this.fail(error); throw error; }
+      resource.capture(FIXED_STEP);
+      const root = resource.endpoints().current;
+      this.pose.publishCorpseRoot(root, this.prepared, resource.state === 'frozen'); this.actor.position.copy(root.position); this.prepared = false;
+    } catch (error) {
+      // Physics/capture already happened. A failed final publication cannot be
+      // treated as a recoverable pre refusal or leave a healthy frozen owner.
+      this.fail(error);
+    }
   }
   fail(error: unknown): never {
     this.terminal = true; this.actor.alive = false;
