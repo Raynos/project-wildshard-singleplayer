@@ -12,7 +12,8 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { installChapterStory } from '@wildshard/game/quest/chapter';
 import type { AdventurePersistence } from '@wildshard/game/quest/persistence';
 import type { Nalati } from '../runtime/state';
-import { enteredPeople } from '../models/people';
+import { enterFigureGroup } from '@wildshard/game/systems/npc/figureRows';
+import population from '../boot/peopleFrames.generated.json' with { type: 'json' };
 
 export interface KokparMount {
   readonly mounted: boolean;
@@ -96,7 +97,7 @@ export async function installNalatiQuestView(ctx: ShardContext, rt: Pick<Nalati,
   const story: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(storyBytes));
   const content: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(contentBytes));
   const floorAt = (x: number, z: number): number => { const y = heightAt(x, z), deck = registry.floorAt(x, z); return deck !== undefined && deck > y && deck < y + 2 ? deck : y; };
-  const people = enteredPeople({ ctx, sky, registry }, floorAt);
+  const people = enterFigureGroup({ scope: ctx.scope, sky, registry, channels: ctx.product.shardfile.clientChannels }, population);
   const kokparRows = v.parse(v.object({ kokpar: KokparRows }), content).kokpar;
   const chapter = installChapterStory(ctx, story, { content, program: kokparRows.program }), { chip, markers, places, line } = chapter;
   if (places === null || line === null) throw new Error('The chapter requires its original discovery and quest line');

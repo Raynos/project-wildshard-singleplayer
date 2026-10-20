@@ -1,9 +1,12 @@
 /** Client-only baked humanoid skin intake for the figure row host. */
 import * as THREE from 'three';
 import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
-import { loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
+import * as v from 'valibot';
+import { bindRig, loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import type { FigureSkinRow } from '@wildshard/format/figures';
+import { FigureAtlasSchema, type FigureSkinRow } from '@wildshard/format/figures';
 import { legBones, legPose, LEG_BONE_NAMES, type LegBuilt } from './npcRig';
 
 const MAX_SURFACES = 8;
@@ -89,4 +92,35 @@ export class FigureSkins {
       pose: (t, talk, point, pointYaw, look, walk, phase) => { pose({ t, talk, point, pointYaw, look, walk, phase }); },
     };
   }
+}
+
+/** A merged figure atlas's skin (format/figures.ts FigureAtlasSchema): the prepared skin, its joints in their declared
+ *  order, painted on one painterly material from the original images packed onto the atlas's canvas cells. The owner
+ *  owns the draw; joints are left for the caller to publish and drive. */
+export async function atlasFigureSkin(input: unknown, sky: SkyRig, owner: Scope): Promise<THREE.SkinnedMesh> {
+  const row = v.parse(FigureAtlasSchema, input);
+  if (row.sources.length > row.columns * row.rows || new Set(row.joints).size !== row.joints.length) throw new Error('Invalid figure atlas layout');
+  const [mesh, sources] = await Promise.all([FigureSkins.prepared(row.url), Promise.all(row.sources.map(url => loadRigFile(url)))]);
+  owner.own(mesh.geometry); owner.own(mesh.skeleton);
+  for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.dispose();
+  if (owner.disposed) throw new Error('Figure left during skin admission');
+  if (mesh.skeleton.bones.length !== row.joints.length || mesh.skeleton.bones.some((bone, i) => bone.name !== row.joints[i]))
+    throw new Error('Prepared figure joint order differs');
+  const canvas = document.createElement('canvas'); canvas.width = row.cell * row.columns; canvas.height = row.cell * row.rows;
+  const context = canvas.getContext('2d');
+  if (context === null) throw new Error('Figure atlas canvas unavailable');
+  context.imageSmoothingQuality = 'high';
+  sources.forEach((source, i) => {
+    const object = source.scene.getObjectByProperty('isMesh', true);
+    if (!(object instanceof THREE.Mesh)) throw new Error('Missing figure atlas source');
+    const material: unknown = Array.isArray(object.material) ? object.material[0] : object.material;
+    if (!(material instanceof THREE.MeshStandardMaterial) || material.map === null) throw new Error('Missing figure atlas image');
+    context.drawImage(material.map.image as CanvasImageSource, i % row.columns * row.cell, Math.floor(i / row.columns) * row.cell, row.cell, row.cell);
+  });
+  const map = owner.own(new THREE.CanvasTexture(canvas)); map.flipY = false; map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4;
+  const material = owner.own(painterlyMaterial(sky, { map, rim: row.rim, bands: row.bands })); material.side = THREE.DoubleSide;
+  mesh.material = material; mesh.name = row.name; mesh.frustumCulled = false; mesh.castShadow = true; mesh.receiveShadow = true;
+  for (const bone of mesh.skeleton.bones) { bone.removeFromParent(); bone.matrixAutoUpdate = false; bone.matrixWorldAutoUpdate = false; }
+  bindRig(mesh, [], { skeleton: row.skeleton, clips: [], sockets: [] }, { skeleton: row.skeleton, joints: [row.joints] });
+  return mesh;
 }

@@ -51,3 +51,34 @@ export const FigureCatalogueSchema = v.strictObject({
   })),
 });
 export type FigureCatalogueRow = v.InferOutput<typeof FigureCatalogueSchema>;
+
+/** A merged three-joint figure atlas: one prepared skin whose joints are each figure's root, head and arm, painted from
+ *  the original images packed onto a canvas grid in the same cells as its offline UVs. No fitting, fallback or callback. */
+export const FigureAtlasSchema = v.strictObject({
+  url: text, name: text, skeleton: text,
+  columns: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(8)),
+  rows: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(8)),
+  cell: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(2048)),
+  sources: v.pipe(v.array(text), v.minLength(1), v.maxLength(64)),
+  joints: v.pipe(v.array(text), v.minLength(1), v.maxLength(128)),
+  rim: finite, bands: finite,
+});
+export type FigureAtlasRow = v.InferOutput<typeof FigureAtlasSchema>;
+const tiered = v.strictObject({ phone: FigureAtlasSchema, desktop: FigureAtlasSchema });
+const groupPiece = v.strictObject({ id: text, name: text, category: v.literal('people'), file: text, surface: v.literal('flesh') });
+/**
+ * A group of root/head/arm figures drawn as one merged atlas skin: each figure's frame (its neck and shoulder pivots),
+ * its row (FigureRowSchema), an optional orbit it walks while no one is near, and the registry pieces for the still and
+ * the moving figures. Its head, face and arm motion are the shard's admitted channel programs, one group per
+ * figure id; the group sleeps beyond `sleep.distance` of `sleep.figure`.
+ */
+export const FigureGroupSchema = v.strictObject({
+  name: text, sleep: v.strictObject({ figure: text, distance: finite }), atlas: tiered,
+  figures: v.pipe(v.record(text, v.object({
+    frame: v.object({ neck: point, shoulder: point }),
+    motion: v.object({ orbit: v.exactOptional(v.object({ x: finite, z: finite, radius: finite, speed: finite, stopDistance: finite, lift: finite, frequency: finite })) }),
+    phase: finite, glanceAfter: finite, row: v.unknown(), moving: v.boolean(), atlas: tiered,
+  })), v.check(rows => Object.keys(rows).length <= 64, 'bounded figure group')),
+  pieces: v.strictObject({ still: groupPiece, moving: groupPiece }),
+});
+export type FigureGroupRows = v.InferOutput<typeof FigureGroupSchema>;
