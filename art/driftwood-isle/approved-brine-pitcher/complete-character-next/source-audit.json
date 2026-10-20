@@ -16,15 +16,15 @@
   "outwardRimTriangles": 432,
   "singleSidedGlbMaterials": true,
   "numericalSingleSidedVisibilityParity": {
-    "front": 2096,
-    "left": 1760,
-    "right": 1783,
-    "back": 1624,
+    "front": 2097,
+    "left": 1762,
+    "right": 1781,
+    "back": 1623,
     "top": 1935,
     "elevated-front": 1966,
     "elevated-left": 1901,
     "elevated-right": 1942,
-    "elevated-back": 1820
+    "elevated-back": 1827
   },
   "positiveClosedComponents": [
     {
@@ -504,9 +504,9 @@
     "head": 0.7749475577783178,
     "leftHead": 0.30877243267556465,
     "rightHead": 0.25311815505092566,
-    "head hood": 0.39296054943467573,
-    "leftHead hood": 0.15657235600633618,
-    "rightHead hood": 0.12835112328722303
+    "head hood": 0.3722608158081433,
+    "leftHead hood": 0.14832479649847327,
+    "rightHead hood": 0.12159014450960967
   },
   "intentionalOpenComponents": [
     "head deep inner chamber",
@@ -548,8 +548,8 @@
     ],
     [
       1.9424000000000001,
-      4.108827907032669,
-      1.4291927814483643
+      4.374954222943752,
+      1.5277624718268372
     ]
   ],
   "coordinateConvention": "+Y-up +Z-forward right-handed; Blender x,-z,y",
@@ -557,10 +557,10 @@
   "colliderAcceptance": false,
   "runtimeAcceptance": false,
   "files": {
-    "brine-pitcher-v1.glb": "d3e5860cb4b5e1738dddbe3c0b1058dc3b3c7d5de16beca83d506f74ee46c22a",
-    "metadata.json": "203c5e7ff559e28564cc3c3c3824fb84156c07aa6eac484446421eb38ada6a9e",
-    "native-source.json": "ab2321dfb0f6ccd4231151e8970db7881d6a2941741bc2e92827c713b0d13198",
-    "construction.json": "c505ffe8a155d349dfc9b65476966773ed63f10aced54a647f7a8d175e3899b0",
-    "payload.bin": "c0f9c3af786cb9ed660594fc91945a863aea4a2f575cfb573b5b377817d2e9f1"
+    "brine-pitcher-v1.glb": "465657cbdf055d1f1da097a4e4f9e910897942750d5f21cddc89e4f96c46e2c3",
+    "metadata.json": "911efbaf7bee02496d535480abec0de6e48e512418c092c0a3f2cce1553f85fa",
+    "native-source.json": "5230fb109a4d89163e84fff6569a2a6bb1ea5fd402c79fa7be4a14085ac4fecf",
+    "construction.json": "430bf74708c2079f005b7237b1069549390931ce077f188c37340eac3a49ddde",
+    "payload.bin": "75823a44e5376318e988ed5c89a504382fe81b2db91edc247952f249495277ec"
   }
 }

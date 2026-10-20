@@ -730,11 +730,11 @@
       "triangles": 36
     }
   ],
-  "nativeBytes": 1460482,
-  "packedBytes": 38648,
-  "glbBytes": 856624,
+  "nativeBytes": 1460442,
+  "packedBytes": 38655,
+  "glbBytes": 856628,
   "visualAcceptance": false,
   "runtimeAcceptance": false,
   "colliderAcceptance": false,
-  "sourceSha256": "a73fec30a0f270ac6d918872f54d218dec3171a3943be7aecfb573f1d4833328"
+  "sourceSha256": "34c80f467604fd6ae91c75f9b65d1e12d63de0045ff64596a076f63b27887e8a"
 }

@@ -132,9 +132,9 @@ def vessel(name,c,s):
  for level in range(2):
   for k in range(hn):
    t=math.tau*k/hn;xx=.88*math.cos(t)*(1+.045*math.sin(3*t));zz=.04+.64*math.sin(t)
-   yy=1.70+.16*xx-.20*zz+(0 if level==0 else -.14)
+   yy=1.86+.13*xx+1.0*zz+(0 if level==0 else -.14)
    hv.append((x+s*xx,y+s*yy,z+s*zz))
- hv += [(x-.08*s,y+1.98*s,z+.01*s),(x-.03*s,y+1.67*s,z+.01*s)]
+ hv += [(x-.08*s,y+2.06*s,z+.01*s),(x-.03*s,y+1.78*s,z+.01*s)]
  top=[(k,(k+1)%hn,20) for k in range(hn)]
  # Native XZ outline winds downward; top is reversed, lower skin is not.
  mesh(name+' hood green crown',hv,[tuple(reversed(f)) for f in top],['leafLight','leaf','leafTeal','leafLight'],joint)
