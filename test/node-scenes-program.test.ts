@@ -1,4 +1,4 @@
-import { afterAll, expect, test, vi } from 'vitest';
+import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
@@ -50,7 +50,10 @@ class Buffers {
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 vi.stubGlobal('WebGLProgram', LinkedProgram);
 vi.stubGlobal('WebGL2RenderingContext', Buffers);
-afterAll(() => { vi.unstubAllGlobals(); });
+// These cases cover the uniform-block transport (the Graph material uniforms Developer tool); plain uniforms have their own.
+const developerBefore = isDev();
+beforeAll(() => { setDev(true); overrideSetting('graphUniforms', 'blocks'); });
+afterAll(() => { vi.unstubAllGlobals(); overrideSetting('graphUniforms', null); setDev(developerBefore); });
 
 test.each(['on', 'links'] as const)('a live draw isolates future variant discovery with %s pacing', async pacing => {
   const developer = isDev(); setDev(true); overrideSetting('buildPacing', pacing);
