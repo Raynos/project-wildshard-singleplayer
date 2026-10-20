@@ -39,7 +39,6 @@ const centre=low.map((v,i)=>(v+high[i])/2),radius=Math.sqrt(high.reduce((sum,v,i
 const smoke={attributes,centre,radius,puffs};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-place-runtime');
 writer.put(resolve(root,shard,'boot/placeRuntime.generated.json'),jsonBytes({places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
-writer.put(resolve(root,shard,'data/placeRuntime.generated.json'),jsonBytes({places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
 writer.put(resolve(root,shard,'boot/modelMetrics.generated.json'),jsonBytes(read('data/modelMetrics.json')));
 writer.put(resolve(root,shard,'boot/staticCapture.generated.json'),jsonBytes(read('data/staticCapture.json')));
 writer.finish();

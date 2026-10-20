@@ -1,7 +1,5 @@
 import { installClientWaterSurfaces } from './clientWaterSurfaces';
 import { installClientCosmeticFinishes } from './clientCosmeticFinishes';
-import { TIER } from '@wildshard/engine/core/tier';
-import { SceneDressing } from './sceneDressing';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { installClientCues } from './clientCues';
 import { installClientTrails } from './clientTrails';
@@ -46,10 +44,6 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       if (!retainsRuntimeServices(ctx)) { ctx.strings(rows); return; }
       installEnteredRuntimeService(ctx, scope => { ctx.app.levelRegistrations.strings(rows, scope); });
     } },
-  'world.dressing': {phase:'world',rank:45,lifetime:'entered',sections:['world/scenes'],install:async(ctx)=>{
-    const rows=ctx.product.section('world/scenes').dressing;if(rows===undefined)throw new Error('Dressing feature requires its scene rows');
-    await SceneDressing.install(ctx,await ctx.product.json<unknown>(rows[TIER]));
-  }},
   'world.scenes': { phase: 'world', rank: 20, lifetime: 'resident', sections: ['world/scenes'],
     install: async (ctx, _row, resident) => {
       const value = await installWorldScenes(ctx, ctx.product.section('world/scenes'), resident);
@@ -103,10 +97,6 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     const errors = clientOwnershipRules(product.shardfile, sections); if (errors.length > 0) throw new Error(errors.join('; '));
     if (plan.features.some(row => row.kind === 'light.emitters') && !plan.features.some(row => row.kind === 'world.scenes')) throw new Error('Emitters require the scene feature');
     if (plan.features.some(row => row.kind === 'motion.channels') && !plan.features.some(row => row.kind === 'world.scenes')) throw new Error('Motion requires the scene feature');
-    if (plan.features.some(row => row.kind === 'world.dressing')) {
-      const rows = product.section('world/scenes').dressing;
-      if (rows === undefined || !product.hasFile(rows.phone) || !product.hasFile(rows.desktop)) throw new Error('Dressing requires both declared tier files');
-    }
     if(plan.features.some(row=>row.kind==='held.cosmetics')&&product.section('held/finishes').cosmetics===undefined)throw new Error('Cosmetic feature requires declared finishes');
     for(const row of plan.features)if(row.kind==='world.water')for(const water of row.rows){if(!product.hasFile(water.geometry)||product.shardfile.look.materials[water.surface.look]===undefined||water.surface.floor!==undefined)throw new Error('Water requires declared geometry and look without floor textures');}
     if (plan.features.some(row => row.kind === 'weather.fields' && !product.shardfile.quests.quests.some(quest => quest.id === row.quest))) throw new Error('Weather fields require their declared quest');

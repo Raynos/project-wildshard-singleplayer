@@ -69,6 +69,5 @@ const rows = meshes.map(([key, geometry]) => {
 });
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-poi-paint');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/poiPaint.json'), jsonBytes({ bin: fingerprint.digest('hex'), bytes: totalBytes, rows, glacierSnout, contacts }));
-writer.put(resolve(root, 'src/shards/nalati-grasslands/data/poiPaint.json'), jsonBytes({ bin: fingerprint.digest('hex'), bytes: totalBytes, rows, glacierSnout, contacts }));
 writer.finish();
 console.log(`${rows.length} fixed paint meshes, ${totalBytes} raw bytes`);

@@ -130,10 +130,7 @@ test('regional trusted entry runs the declared plan around raw runtime hooks', a
   session.leave(); expect(session.state().ready).toBe(false); f.ctx.scope.dispose();
 });
 
-test('dressing admission requires its tier declarations before world mutation',()=>{
-  const f=context();
-  expect(()=>admitClientPlan({version:1,features:[{kind:'world.dressing'}]},f.ctx.product)).toThrow('Dressing requires both declared tier files');
-});
+
 
 
 test('an orchard kit borrows its declared cosmetic feature and entered saved owner', async () => {

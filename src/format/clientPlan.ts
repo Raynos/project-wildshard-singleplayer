@@ -12,7 +12,6 @@ const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^[a-zA-
 /** Client-only declarations select compiled platform features, never modules, owners or property paths. */
 export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('strings.register') }),
-  v.strictObject({ kind: v.literal('world.dressing') }),
   v.strictObject({ kind: v.literal('held.cosmetics') }),
   v.strictObject({kind:v.literal('world.water'),rows:v.pipe(v.array(v.strictObject({id,surface:WaterSurfaceSchema,geometry:v.pipe(v.string(),v.minLength(1),v.maxLength(256))})),v.minLength(1),v.maxLength(8),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))}),
   v.strictObject({ kind: v.literal('world.scenes'), graphs: v.exactOptional(v.picklist(['required', 'debug'])) }),

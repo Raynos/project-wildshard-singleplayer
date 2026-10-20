@@ -12,7 +12,7 @@ export const SpecimenMaterialSchema = v.strictObject({ id: text, family: v.pickl
   rim: v.optional(finite), bands: v.optional(finite), sway: v.optional(finite), floor: v.optional(finite),
   color: v.optional(v.union([v.string(), finite, v.tuple([finite, finite, finite])])), texture: v.optional(texture) });
 const slot = v.pipe(whole, v.maxValue(128));
-export const SpecimenAssetSchema = v.strictObject({ url: assetPath, phoneUrl: v.optional(assetPath), material: SpecimenMaterialSchema,
+const assetSchema = v.strictObject({ url: assetPath, phoneUrl: v.optional(assetPath), material: SpecimenMaterialSchema,
   geometrySlot: v.optional(slot), materialSlot: v.optional(slot), retainedAttribute: v.optional(text),
   instance: v.optional(v.strictObject({ name: text, lod: v.picklist(['near', 'far']) })) });
 const pipeline = v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0']);
@@ -25,7 +25,7 @@ const box = v.strictObject({ kind: v.literal('box'), x: finite, y: finite, z: fi
 /** Complete JSON wire schema. It deliberately has no executable fields or extension callbacks. */
 export const SpecimenCatalogueSchema = v.pipe(v.array(v.strictObject({ key: text, model,
   colliders: v.optional(v.pipe(v.array(box), v.maxLength(1024))),
-  source: v.variant('kind', [v.strictObject({ kind: v.literal('packed') }), v.strictObject({ kind: v.literal('asset'), asset: SpecimenAssetSchema }),
+  source: v.variant('kind', [v.strictObject({ kind: v.literal('packed') }), v.strictObject({ kind: v.literal('asset'), asset: assetSchema }),
     v.strictObject({ kind: v.literal('owned'), material: SpecimenMaterialSchema, variants: v.pipe(v.array(v.strictObject({ params: paramsSchema, url: assetPath, size: v.tuple([finite, finite, finite]) })), v.maxLength(256)) })]),
 })), v.maxLength(1024));
 const geometrySchema = v.strictObject({ attrs: v.pipe(v.array(v.tuple([text, v.picklist(['f32', 'f16', 'u16', 'i8', 'u8']), whole, v.boolean()])), v.maxLength(32)),

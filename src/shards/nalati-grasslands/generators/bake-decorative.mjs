@@ -17,5 +17,4 @@ const scenes = Object.fromEntries(places.rows.filter(row => !row.name.startsWith
     materials: [...new Set(row.meshes.map(mesh => mesh.material))].map(id => ({ id, kind: 'port', source: id })) }];
 }));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/poiScenes.generated.json'), jsonBytes(scenes));
-writer.put(resolve(root, 'src/shards/nalati-grasslands/data/poiScenes.generated.json'), jsonBytes(scenes));
 writer.finish();
