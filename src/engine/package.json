@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./entities/nativeCorpseOwner": "./entities/nativeCorpseOwner.ts",
+    "./physics/nativeRigidCorpse": "./physics/nativeRigidCorpse.ts",
     "./entities/rigidCorpsePose": "./entities/rigidCorpsePose.ts",
     "./physics/rigidCorpse": "./physics/rigidCorpse.ts",
     "./physics/ragdoll": "./physics/ragdoll.ts",

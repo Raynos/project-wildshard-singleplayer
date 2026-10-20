@@ -1,3 +1,6 @@
+import { ragdollsFor } from '@wildshard/engine/physics/ragdoll';
+import { prepareNumericRigidCorpse, validateRigidCorpse } from '@wildshard/engine/physics/rigidCorpse';
+import type { NativeCorpseOwner } from '@wildshard/engine/entities/nativeCorpseOwner';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { GameClock } from '@wildshard/engine/core/clock';
@@ -15,9 +18,11 @@ import type { preparePracticeDecision } from './PracticeDecisions';
 export interface PracticeNativeSelection {
   /** Logical JSON file in the already verified loaded product. No URL, callback or alternate rig. */
   readonly poseFile: string;
+  readonly corpse?: 'rigid';
 }
 type Decision = Awaited<ReturnType<typeof preparePracticeDecision>>;
 interface Options {
+  readonly corpse?: 'rigid';
   readonly scope: Scope;
   readonly ports: Required<Pick<SimHostPorts, 'physics' | 'player' | 'events' | 'combat'>>;
   readonly spawn: SimSpawn;
@@ -68,6 +73,7 @@ export class PracticeNativeActor {
   readonly actor;
   readonly pose: NativeCreaturePose;
   readonly control: BorrowedSpeciesControl;
+  readonly corpse: NativeCorpseOwner | undefined;
   private readonly scope: Scope;
   private readonly clock = new GameClock();
 
@@ -79,8 +85,14 @@ export class PracticeNativeActor {
       throw new Error('Native practice requires one admitted grounded decision actor');
     const animate = numericCreaturePose(options.pose);
     if (practicePoseTransition(animate) === undefined) throw new Error('Native practice requires explicit transition rows');
-    const scope = options.scope.child('native-practice'); this.scope = scope;
+    const scope = options.scope.child('native-practice'); this.scope = scope; this.corpse = undefined;
     try {
+      if (options.corpse !== undefined) {
+        validateRigidCorpse(options.spawn.spec.dims.rigidCorpse);
+        if (options.spawn.spec.dims.rigidCorpse.posePolicy !== undefined) throw new Error('Native corpse requires animated pose ownership');
+      }
+      const lease = options.corpse === undefined ? undefined : ragdollsFor(options.ports.physics).reserveNative(scope);
+      if (lease === null) throw new Error('Native corpse admission capacity unavailable');
       this.host = createSimHost({ version: 1, id: 'isolated-practice', seed: options.spawn.seed,
         ground: { size: 100, height: options.spawn.at.y },
         player: { at: options.ports.player.position, yaw: options.ports.player.yaw, speed: 0 },
@@ -102,12 +114,19 @@ export class PracticeNativeActor {
       this.control.observe(options.observation); this.control.fighting = true;
       this.pose = new NativeCreaturePose(actor, options.recipe, animate);
       actor.bindVolumes(this.pose); this.pose.sampleTerrain(); this.pose.initializePractice();
+      if (lease !== undefined) {
+        prepareNumericRigidCorpse(options.ports.physics.R, actor.dims.rigidCorpse, this.pose.corpseJoints(), actor.scale);
+        this.corpse = this.host.bindNativeCorpse(actor, this.pose, lease); this.pose.bindCorpse(this.corpse);
+      }
       this.host.useBodyStep({ after: (_id, _actor, dt) => {
         this.pose.advance(dt, this.clock.now, true); this.pose.publish();
       } });
       scope.onDispose(() => { actor.alive = false; });
     } catch (error: unknown) { scope.dispose(); throw error; }
   }
+
+  /** Existing fixed.pre only. The arena retains its sole physics step. */
+  preFixed(): void { if (!this.scope.disposed && this.corpse !== undefined) this.host.preEmbeddedBodies(); }
 
   /** Called from the arena's existing fixed.post phase, after its one physics/player step. */
   fixed(): void {
@@ -130,5 +149,10 @@ export class PracticeNativeActor {
     this.pose.resetMotionAnchor();
   }
 
-  dispose(): void { this.scope.dispose(); }
+  dispose(): void {
+    const errors: unknown[] = [];
+    try { this.scope.dispose(); } catch (error) { errors.push(error); }
+    try { this.corpse?.dispose(); } catch (error) { errors.push(error); }
+    if (errors.length > 0) throw new AggregateError(errors, 'Native practice cleanup failed', { cause: errors[0] });
+  }
 }

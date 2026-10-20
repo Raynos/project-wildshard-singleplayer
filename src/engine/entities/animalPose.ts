@@ -108,6 +108,13 @@ export class AnimalPoseLaw {
     this.footDelta.set(footDelta); this.footDeltaT.set(footDeltaT);
     this.phase = phase; this.lookAmt = lookAmt; this.tiltPitch = tiltPitch; this.tiltRoll = tiltRoll; this.tiltPitchT = tiltPitchT; this.poseFrozen = state.poseFrozen;
   }
+  /** Internal next-step preparation, not historical actor/world restoration. No evaluator runs here. */
+  copyFrom(source: AnimalPoseLaw): void {
+    for (const key of ['pose', 'tmp', 'gaitW', 'gaitTarget', 'lastFootPhase', 'footDelta', 'footDeltaT'] as const) this[key].set(source[key]);
+    this.phase = source.phase; this.lookAmt = source.lookAmt; this.tiltPitch = source.tiltPitch;
+    this.tiltRoll = source.tiltRoll; this.tiltPitchT = source.tiltPitchT; this.poseFrozen = source.poseFrozen;
+    Object.assign(this.input, source.input);
+  }
   private get attackPhase():number{return this.input.attackT<0?-1:Math.min(1,this.input.attackT/this.input.attackDur);}
 
   /** Same ordering/rounding as AnimalView: gait, overlays, terrain; the caller applies bones afterward. */

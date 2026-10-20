@@ -6,6 +6,8 @@ import { Events } from './events/events';
 import { GameClock } from './core/clock';
 import { RngService } from './core/rng';
 import { FIXED_STEP } from './core/fixedStep';
+import { NativeCorpseOwner, type NativeCorpsePosePort } from './entities/nativeCorpseOwner';
+import type { NativeCorpseReservation } from './physics/ragdoll';
 import { AnimalSim, type AnimalSimSpec } from './entities/AnimalSim';
 import { StrikeRunner, type StrikeSpec } from './ai/strikes';
 import { canReach } from './ai/reach';
@@ -255,6 +257,7 @@ export class SimHost {
   private externalPlayer: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
   private heightAt: (x: number, z: number) => number;
   private bands: { clocks: BodyBandClocks; rate: (body: AnimalSim) => string; present: ((body: AnimalSim) => boolean) | undefined; physics: boolean } | undefined;
+  private readonly nativeCorpses = new Map<string, NativeCorpseOwner>();
   private bodyStep: SimBodyStep | undefined;
   private floorQuery: ((x: number, z: number, fromY: number, maxDrop: number) => number | undefined) | undefined;
   private day: SimDayClock | undefined;
@@ -405,6 +408,17 @@ export class SimHost {
   }
   /** Wrap every body's step (SimBodyStep), once, by the installer that owns the bodies' brains (restoring too: hooks hold
    *  no state of the host's). A body that does not step this tick (paused, the off tick of 'half') runs neither hook. */
+  /** Bind one opt-in concrete corpse owner; this creates no body and advances nothing. */
+  bindNativeCorpse(actor: AnimalSim, pose: NativeCorpsePosePort, lease: NativeCorpseReservation): NativeCorpseOwner {
+    if (this.disposed || !this.embedded || !this.pageCreatureBodies || this.entities.get(actor.entityId) !== actor
+      || this.nativeCorpses.has(actor.entityId) || lease.physics !== this.physics) throw new Error('Invalid native corpse binding');
+    const owner = new NativeCorpseOwner(actor, pose, lease, this.scope, this.clock); this.nativeCorpses.set(actor.entityId, owner); return owner;
+  }
+  /** Existing borrowed-world pre phase only; never steps clocks, physics, decisions, events or player. */
+  preEmbeddedBodies(): void {
+    if (this.disposed || !this.embedded) throw new Error('Invalid borrowed body preparation');
+    for (const owner of this.nativeCorpses.values()) owner.pre(this.state.tick + 1, this.clock.now + FIXED_STEP);
+  }
   useBodyStep(hooks: SimBodyStep): void {
     if (this.disposed || this.bodyStep !== undefined) throw new Error('Body step hooks belong to one installer, once');
     this.bodyStep = hooks;
@@ -477,6 +491,7 @@ export class SimHost {
   private syncBodies(): void {
     const player = this.player.position;
     for (const entity of this.entities.values()) {
+      if (this.nativeCorpses.get(entity.entityId)?.ownsRoot === true) continue;
       const keep = this.bands?.present?.(entity) !== false
         && keepsCreatureBody(entity.motor !== null, entity.alive, entity.driven, creatureBodyDistance(entity.position, player));
       if (entity.motor === null && keep) {
@@ -878,8 +893,9 @@ export class SimHost {
       const dt = bands === undefined ? FIXED_STEP : this.bodyDt(id);
       if (dt <= 0) continue;
       hooks?.before?.(id, entity, dt);
-      entity.step(dt);
-      hooks?.after?.(id, entity, dt);
+      const corpse = this.nativeCorpses.get(id);
+      if (corpse?.ownsRoot === true) corpse.post(this.state.tick);
+      else { entity.step(dt); hooks?.after?.(id, entity, dt); }
     }
     for (const run of this.afterCallbacks.values()) run(FIXED_STEP, this);
     if (this.pageCreatureBodies) this.syncBodies();

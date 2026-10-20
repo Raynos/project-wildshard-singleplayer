@@ -1,9 +1,9 @@
-import type { Euler, Vector3 } from 'three';
+import type { Euler, Quaternion, Vector3 } from 'three';
 import type { AnimalSim } from './AnimalSim';
 import type { RigAnimCtx, SpeciesDef } from './species/registry';
 
 /** A joint's numeric local transform. Real visual bones and renderer-free joints satisfy the same port. */
-export interface AnimalRigJoint { readonly position: Vector3; readonly rotation: Euler; readonly scale: Vector3 }
+export interface AnimalRigJoint { readonly position: Vector3; readonly rotation: Euler; readonly scale: Vector3; readonly quaternion?: Quaternion }
 /** Detached, bounded observations from the sole native practice pose owner. No mutable actor or clock is lent. */
 export interface AnimalPoseTransition {
   readonly ordinal: number;

@@ -211,6 +211,7 @@ export class PracticeCreature {
     const spawn = practiceNativeSpawn(model, 7001, scale, at,
       Math.atan2(this.options.player.position.x - at.x, this.options.player.position.z - at.z));
     const native = new PracticeNativeActor({ scope, spawn, species: this.options.species,
+      ...(this.options.nativePose?.corpse === undefined ? {} : { corpse: this.options.nativePose.corpse }),
       recipe: practiceNativeRecipe(model, rig), pose: this.nativePoseInput, decision,
       ports: { events, combat, physics: this.options.physics,
         player: { id: player.health.id, position: this.options.player.position, health: player.health,
@@ -240,10 +241,13 @@ export class PracticeCreature {
     }, scope);
     events.on('actor.died', ({ actor: dead }) => {
       if (dead !== actor) return;
-      this.loot?.drop({ kind: animal.kind, variant: animal.variant, position: animal.position }); this.options.onDeath?.();
+      this.loot?.drop({ kind: animal.kind, variant: animal.variant, position: new Vector3().copy(native.corpse?.deathPosition ?? animal.position) }); this.options.onDeath?.();
     }, scope);
     this.bodies.sync(this.targets, animal.position); animal.renderPublishedPose();
   }
+
+  /** Opt-in native physical owners prepare before the arena's existing physics step. */
+  preFixedUpdate(): void { this.native?.preFixed(); }
 
   /** Only the explicit native composition calls this from its existing fixed.post slot. */
   fixedUpdate(): void {
@@ -328,7 +332,11 @@ export class PracticeCreature {
 
   exit(): void {
     const scope = this.bout; this.bout = null;
-    scope?.dispose(); this.native = null; this.targets.length = 0; this.bodies = null; this.context = null; this.events = null; this.practicePlayer = null; this.loot = null; this.callbacks = null; this.fixed.clear();
+    const errors: unknown[] = [];
+    try { scope?.dispose(); } catch (error) { errors.push(error); }
+    try { this.native?.dispose(); } catch (error) { errors.push(error); }
+    if (errors.length > 0) throw new AggregateError(errors, 'Practice bout cleanup failed', { cause: errors[0] });
+    this.native = null; this.targets.length = 0; this.bodies = null; this.context = null; this.events = null; this.practicePlayer = null; this.loot = null; this.callbacks = null; this.fixed.clear();
   }
 
   /** Reuse the loaded model but rebuild all bout health, guest, contacts and reward state. */

@@ -1,6 +1,10 @@
 import { Euler, Matrix4, Quaternion, Vector3, type EulerOrder, BufferAttribute, BufferGeometry } from 'three';
 import * as poseSchema from 'valibot';
 import type { AnimalSim, AnimalAppliedHit, AnimalHitPublication } from '@wildshard/engine/entities/AnimalSim';
+import type { NativeCorpseOwner, NativeCorpseHandoff } from '@wildshard/engine/entities/nativeCorpseOwner';
+import type { CorpseRootEndpoint } from '@wildshard/engine/physics/nativeRigidCorpse';
+import type { NumericCorpseJoint } from '@wildshard/engine/physics/rigidCorpse';
+import { FIXED_STEP } from '@wildshard/engine/core/fixedStep';
 import { AnimalPoseLaw, type AnimalPoseRecipe } from '@wildshard/engine/entities/animalPose';
 import { applyAnimalRoot, QuadrupedRigPose, type AnimalRigContext, type AnimalRigJoint, type AnimalPoseTransition } from '@wildshard/engine/entities/animalRig';
 import { practicePoseTransition } from './practicePoseContract';
@@ -566,6 +570,79 @@ export class NativeCreaturePose {
   /** Borrowed numeric frame for overlays inside the existing body-step callback. */
   readonly context: AnimalRigContext;
   private wasAlive = true;
+  private corpse: NativeCorpseOwner | undefined;
+  private readonly physicalPrevious = new Quaternion();
+  private readonly physicalCurrent = new Quaternion();
+  private physicalRoot = false;
+  private pendingCorpse: { joints: AnimalRigJoint[]; law: AnimalPoseLaw; context: AnimalRigContext; time: number; elapsed: number } | undefined;
+  /** Bind only the concrete host-owned resource manager, never an authored resource callback. */
+  bindCorpse(owner: NativeCorpseOwner): void {
+    if (this.corpse !== undefined || this.history === undefined || !this.recipe.custom || owner.actor !== this.actor)
+      throw new Error('Invalid native corpse pose binding');
+    this.corpse = owner;
+  }
+  /** Quiet detached rigid local inputs. No FK, evaluator, clock or publication is advanced. */
+  corpseJoints(joints: readonly AnimalRigJoint[] = this.joints): NumericCorpseJoint[] {
+    return joints.map((joint, index) => {
+      const row = this.recipe.joints[index]; if (row === undefined) throw new Error('Missing native corpse joint');
+      const q = new Quaternion().setFromEuler(joint.rotation);
+      return { name: row.name, parent: row.parent, position: { x: joint.position.x, y: joint.position.y, z: joint.position.z },
+        rotation: { x: q.x, y: q.y, z: q.z, w: q.w }, scale: { x: joint.scale.x, y: joint.scale.y, z: joint.scale.z } };
+    });
+  }
+  /** Prepare the next dead local/scalar step off live actor state. One numeric evaluation, committed in post. */
+  prepareCorpseStep(dt: number, time: number): { joints: NumericCorpseJoint[]; complete: boolean } {
+    const h = this.history;
+    if (h === undefined || !this.physicalRoot || this.actor.alive || this.pendingCorpse !== undefined
+      || dt !== FIXED_STEP || !Number.isFinite(time) || time <= h.time) throw new Error('Invalid native corpse pose step');
+    const law = new AnimalPoseLaw(this.law.recipe); law.copyFrom(this.law); this.actor.readPoseInputs(law, false); law.advance(dt, time, true);
+    const bones: Record<string, AnimalRigJoint> = {};
+    const joints = this.joints.map((source, index) => {
+      const row = this.recipe.joints[index]; if (row === undefined) throw new Error('Missing native corpse joint');
+      const joint = NativeCreaturePose.joint(); joint.position.copy(source.position); joint.rotation.copy(source.rotation); joint.scale.copy(source.scale);
+      bones[row.name] = joint; return joint;
+    });
+    const elapsed = h.elapsed + dt, context: AnimalRigContext = { ...this.context, bones,
+      transition: this.transitionObservation({ ...h, elapsed }) };
+    this.refreshPracticeContext(dt, time, context);
+    context.deathT = law.input.deathT; context.flinch = law.input.flinch; context.phase = law.phase;
+    context.brace = law.input.brace * law.input.brace * (3 - 2 * law.input.brace); context.lookWeight = law.lookAmt;
+    this.animate?.(context);
+    // Full numeric FK validation occurs before any collider or live pose state changes.
+    const fk = new CollisionPose(this.recipe.joints); joints.forEach((joint, index) => { fk.setLocal(index, joint); }); fk.solve(this.frame);
+    this.pendingCorpse = { joints, law, context, time, elapsed };
+    return { joints: this.corpseJoints(joints), complete: law.input.deathT >= 1 };
+  }
+  cancelCorpseStep(): void { this.pendingCorpse = undefined; }
+  /** Publish the actual physical root even after a refused pre step, retaining the last accepted locals. */
+  publishCorpseRoot(endpoint: CorpseRootEndpoint, prepared: boolean): void {
+    const h = this.history, pending = prepared ? this.pendingCorpse : undefined;
+    if (h === undefined || !this.physicalRoot || prepared && pending === undefined) throw new Error('Missing native corpse pose step');
+    const sources = pending?.joints ?? this.joints, fk = new CollisionPose(this.recipe.joints);
+    const published = new Float64Array(this.published.length), q = new Quaternion().copy(endpoint.rotation);
+    sources.forEach((joint, index) => { fk.setLocal(index, joint); published.set(NativeCreaturePose.values(joint), index * 10); });
+    const position = new Vector3().copy(endpoint.position), frame = new Matrix4().compose(position, q, this.root.scale);
+    fk.solve(frame);
+    h.previous.set(this.published); h.previousRoot.set(h.root); this.physicalPrevious.copy(this.physicalCurrent);
+    if (pending !== undefined) {
+      this.joints.forEach((joint, index) => { const source = pending.joints[index]; if (source !== undefined) {
+        joint.position.copy(source.position); joint.rotation.copy(source.rotation); joint.scale.copy(source.scale);
+      } });
+      this.law.copyFrom(pending.law); this.actor.commitPose(this.law); this.wasAlive = false;
+      h.time = pending.time; h.elapsed = pending.elapsed;
+      const c = this.context, next = pending.context;
+      c.dt = next.dt; c.t = next.t; c.speed = next.speed; c.strafe = next.strafe; c.phase = next.phase;
+      c.state = next.state; c.alive = next.alive; c.deathT = next.deathT; c.flinch = next.flinch;
+      c.brace = next.brace; c.attack = next.attack; c.lookWeight = next.lookWeight; c.yaw = next.yaw; c.mem = next.mem;
+    }
+    const dx = endpoint.position.x - (h.anchor[0] ?? 0), dy = endpoint.position.y - (h.anchor[1] ?? 0), dz = endpoint.position.z - (h.anchor[2] ?? 0);
+    const distance = Math.hypot(dx, dy, dz); h.motion.set([dx, dy, dz, distance, (h.motion[4] ?? 0) + distance, 0]);
+    h.anchor.set([endpoint.position.x, endpoint.position.y, endpoint.position.z, this.actor.yaw]);
+    this.root.position.copy(endpoint.position); this.physicalCurrent.copy(endpoint.rotation); this.root.rotation.setFromQuaternion(this.physicalCurrent);
+    this.published.set(published); this.publishedFrame.set(frame.elements); this.frame.copy(frame); this.fk = fk;
+    h.root.set(NativeCreaturePose.values(this.root)); this.pendingCorpse = undefined;
+  }
+
   private readonly identity: string;
   private readonly quadClock;
   private readonly actor: AnimalSim;
@@ -676,7 +753,7 @@ export class NativeCreaturePose {
       this.published[p + 3] = j.rotation.x; this.published[p + 4] = j.rotation.y; this.published[p + 5] = j.rotation.z; this.published[p + 6] = NativeCreaturePose.ORDERS.indexOf(j.rotation.order);
       this.published[p + 7] = j.scale.x; this.published[p + 8] = j.scale.y; this.published[p + 9] = j.scale.z;
     }
-    this.frame.compose(this.root.position, this.quaternion.setFromEuler(this.root.rotation), this.root.scale); this.publishedFrame.set(this.frame.elements); this.fk.solve(this.frame, last);
+    this.frame.compose(this.root.position, this.physicalRoot ? this.physicalCurrent : this.quaternion.setFromEuler(this.root.rotation), this.root.scale); this.publishedFrame.set(this.frame.elements); this.fk.solve(this.frame, last);
     this.history?.root.set(NativeCreaturePose.values(this.root));
   }
   /** Prepare a prospective hit entirely off the live joints/history/context. The same admitted numeric
@@ -705,14 +782,29 @@ export class NativeCreaturePose {
     joints.forEach((joint, index) => { fk.setLocal(index, joint); published.set(NativeCreaturePose.values(joint), index * 10); });
     const frame = new Matrix4().compose(this.root.position, new Quaternion().setFromEuler(this.root.rotation), this.root.scale);
     fk.solve(frame);
-    const root = NativeCreaturePose.values(this.root);
-    return { commit: () => {
+    let handoff: NativeCorpseHandoff | undefined;
+    const rootJoint = NativeCreaturePose.joint(); rootJoint.position.copy(this.root.position); rootJoint.rotation.copy(this.root.rotation); rootJoint.scale.copy(this.root.scale);
+    let physical: CorpseRootEndpoint | undefined;
+    if (!hit.alive && this.corpse !== undefined) {
+      handoff = this.corpse.prepare(hit, { position: this.root.position, rotation: new Quaternion().setFromEuler(this.root.rotation),
+        joints: this.corpseJoints(joints), velocity: { x: (h.motion[0] ?? 0) / FIXED_STEP, y: (h.motion[1] ?? 0) / FIXED_STEP, z: (h.motion[2] ?? 0) / FIXED_STEP } });
+      try {
+        physical = handoff.root; rootJoint.position.copy(physical.position); const q = new Quaternion().copy(physical.rotation);
+        rootJoint.rotation.setFromQuaternion(q); frame.compose(rootJoint.position, q, rootJoint.scale); fk.solve(frame);
+      } catch (error) { handoff.abort(); throw error; }
+    }
+    const root = NativeCreaturePose.values(rootJoint);
+    return { ...(handoff === undefined ? {} : { handoff }), commit: () => {
       // No user code, validation or clock lies beyond this point. All storage and joints are owner-created.
       this.joints.forEach((joint, index) => {
         const source = joints[index];
         if (source !== undefined) { joint.position.copy(source.position); joint.rotation.copy(source.rotation); joint.scale.copy(source.scale); }
       });
       this.published.set(published); this.publishedFrame.set(frame.elements); this.frame.copy(frame); this.fk = fk;
+      if (physical !== undefined) {
+        this.physicalRoot = true; this.physicalCurrent.copy(physical.rotation); this.physicalPrevious.copy(physical.rotation);
+        this.root.position.copy(rootJoint.position); this.root.rotation.copy(rootJoint.rotation);
+      }
       h.entry.set(entry); h.ordinal = ordinal; h.kind = kind; h.elapsed = 0; h.root.set(root);
       const c = this.context;
       c.dt = context.dt; c.t = context.t; c.speed = context.speed; c.strafe = context.strafe; c.phase = context.phase;
@@ -744,7 +836,7 @@ export class NativeCreaturePose {
   }
   /** Explicit diagnostic placement/re-entry boundary, never inferred from a large distance threshold. */
   resetMotionAnchor(): void {
-    const h = this.history; if (h === undefined) throw new Error('Missing native practice pose owner');
+    const h = this.history; if (h === undefined || this.physicalRoot) throw new Error('Missing living native practice pose owner');
     const a = this.actor;
     h.anchor.set([a.position.x, a.position.y, a.position.z, a.yaw]); h.motion.fill(0);
     this.root.position.copy(a.position); this.root.rotation.y = a.yaw; this.root.scale.setScalar(a.scale);
@@ -767,6 +859,11 @@ export class NativeCreaturePose {
     };
     this.recipe.joints.forEach((row, index) => { const joint = bones[row.name]; if (joint !== undefined) copy(joint, h.previous, this.published, index * 10); });
     copy(root, h.previousRoot, h.root, 0);
+    if (this.physicalRoot) {
+      this.renderQuaternion.copy(this.physicalPrevious).slerp(this.physicalCurrent, alpha);
+      if (root.quaternion === undefined) root.rotation.setFromQuaternion(this.renderQuaternion);
+      else root.quaternion.copy(this.renderQuaternion);
+    }
   }
   /** An extra contact point on any recipe joint (a weak point, an anchor), read from the last publication. */
   jointPoint(name: string, at: readonly [number, number, number], out: Vector3): Vector3 {
@@ -822,6 +919,7 @@ export class NativeCreaturePose {
   }
   /** Strict bounded atomic restore. No posing, terrain, body, contact, RNG or publications of current locals. */
   restore(value: string): void {
+    if (this.corpse !== undefined) throw new Error('Physical native pose-only restoration is unsupported');
     if (value.length > 65536) throw new Error('Invalid native creature pose continuation');
     const parsed: unknown = JSON.parse(value);
     if (typeof parsed === 'object' && parsed !== null && !Object.hasOwn(parsed, 'version')) { this.adopt(parsed); return; }

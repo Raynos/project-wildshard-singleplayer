@@ -24,6 +24,7 @@ import { preparePracticeDecision } from '../src/game/practice/PracticeDecisions'
 import { PracticeNativeActor, practiceNativeRecipe, practiceNativeSpawn } from '../src/game/practice/PracticeNativeActor';
 import { PracticePlayer } from '../src/game/practice/PracticePlayer';
 import { CONCH_NATIVE_JOINTS } from '../src/shards/driftwood-isle/generators/conchNativeClips';
+import type { RigidCorpseRecipe } from '../src/engine/physics/rigidCorpse';
 import type { ClientChannelProgram } from '../src/format/clientChannels';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -73,7 +74,9 @@ export async function prepareFixture(): Promise<ShardProduct> {
   return loadHeadlessProduct(root);
 }
 export function removeFixture(): void { if (root !== '') { rmSync(root, { recursive: true, force: true }); root = ''; } }
-export async function fixture(product: ShardProduct): Promise<{ owner: Scope; outside: ReturnType<typeof createSimHost>;
+// Deliberately synthetic ownership-only hull. This is not a selected Conch contact recipe.
+export const fixtureRigidCorpse: RigidCorpseRecipe = { parts: [{ bone: 'body', points: [[0, 0, 0], [.3, 0, 0], [0, .4, 0], [0, 0, .5]] }] };
+export async function fixture(product: ShardProduct, corpse = false): Promise<{ owner: Scope; outside: ReturnType<typeof createSimHost>;
   events: Events; combat: CombatPipeline; native: PracticeNativeActor; view: Animal; rig: AnimalRig; model: AnimalModel;
   player: PracticePlayer; tick: () => void }> {
   const owner = new Scope('native-proof'), outside = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] },
@@ -91,7 +94,7 @@ export async function fixture(product: ShardProduct): Promise<{ owner: Scope; ou
   const material = new MeshStandardMaterial(), geometry = mergeAnimalGeometry(parts.furParts, parts.hardParts, parts.eyeParts);
   const model: AnimalModel = { kind: species.kind, variant: variant.id, species: definition, variantDef: variant,
     style: 'toon', render: { ...DEFAULT_CREATURE_RENDER, furRim: false, oneMaterial: true },
-    geometry, bones: parts.bones, dims: parts.dims, fur: material, hard: material, eye: material, shells: [] };
+    geometry, bones: parts.bones, dims: corpse ? { ...parts.dims, rigidCorpse: fixtureRigidCorpse } : parts.dims, fur: material, hard: material, eye: material, shells: [] };
   const mesh = new SkinnedMesh(geometry, material), bones: Record<string, Bone> = {}, ordered: Bone[] = [];
   for (const row of parts.bones) {
     const bone = new Bone(); bone.name = row.name; bone.position.fromArray(row.pos); bones[row.name] = bone; ordered.push(bone);
@@ -107,7 +110,7 @@ export async function fixture(product: ShardProduct): Promise<{ owner: Scope; ou
   const link: { native?: PracticeNativeActor } = {};
   const player = new PracticePlayer({ owner, events, combat, player: playerPort, now: () => (link.native?.host.clock.now ?? 0) * 1000 });
   const spawn = practiceNativeSpawn(model, 17, 1, { x: 0, y: 0, z: 3.1 }, Math.PI);
-  const native: PracticeNativeActor = new PracticeNativeActor({ scope: owner, ports: { physics: outside.physics,
+  const native: PracticeNativeActor = new PracticeNativeActor({ scope: owner, ...(corpse ? { corpse: 'rigid' } : {}), ports: { physics: outside.physics,
     player: { ...outside.player, health: player.health }, events, combat }, spawn, species,
     recipe: practiceNativeRecipe(model, rig), pose: JSON.parse(new TextDecoder().decode(await product.file('poses/native-proof.json'))), decision,
     observation: { get calm(): boolean { return player.defeated; }, reach: () => true, claim: () => true,
@@ -118,5 +121,5 @@ export async function fixture(product: ShardProduct): Promise<{ owner: Scope; ou
   view.bindPublishedPose(instance.pose);
   owner.onDispose(() => { view.retireBody(); mesh.skeleton.dispose(); geometry.dispose(); material.dispose(); });
   return { owner, outside, events, combat, native: instance, view, rig, model, player,
-    tick: () => { outside.physics.step(); instance.fixed(); player.update(1 / 60); } };
+    tick: () => { instance.preFixed(); outside.physics.step(); instance.fixed(); player.update(1 / 60); } };
 }

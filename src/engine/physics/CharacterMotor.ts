@@ -267,6 +267,12 @@ export class CharacterMotor {
   /** Parked (Explore's free camera, a menu that owns the player): the capsule leaves the world's way. */
   setEnabled(on: boolean): void { if (on === this.enabled) return; this.enabled = on; this.collider.setEnabled(on); }
 
+  /** Internal synchronous handoff rollback: force native and cached state to agree, even if setEnabled threw after caching. */
+  restoreEnabledState(on: boolean): void {
+    if (this.physics.disposed || !this.collider.isValid()) throw new Error('Cannot restore a retired motor');
+    this.collider.setEnabled(on); this.enabled = on;
+  }
+
   /**
    * Move `feet` by as much of `want` as the world allows; `feet` is updated in place. `result` says whether the
    * character ended on ground and what that ground is like. `ignoreGround`: the terrain doesn't stop this move.
@@ -360,6 +366,15 @@ export class CharacterMotor {
     a.y = iy * w + iw * -cy + iz * -cx - ix * -cz;
     a.z = iz * w + iw * -cz + ix * -cy - iy * -cx;
     this.anchorBody = body;
+  }
+
+  /** Internal native handoff retirement, retryable after before/after native removal failures. */
+  retireForHandoff(): void {
+    if (this.physics.disposed) return;
+    const errors: unknown[] = [];
+    try { if (this.physics.world.characterControllers.has(this.kcc)) this.physics.world.removeCharacterController(this.kcc); } catch (error) { errors.push(error); }
+    try { if (this.collider.isValid()) this.physics.world.removeCollider(this.collider, false); } catch (error) { errors.push(error); }
+    if (errors.length > 0) throw new AggregateError(errors, 'Native motor retirement failed', { cause: errors[0] });
   }
 
   dispose(): void {

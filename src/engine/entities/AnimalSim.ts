@@ -1,4 +1,5 @@
 import { Vector3, MathUtils } from 'three';
+import type { NativeCorpseHandoff } from './nativeCorpseOwner';
 import type { AnimalPoseLaw } from './animalPose';
 import { FlightMotion, type SpeciesFlight } from '../ai/flight';
 import type { Actor, DamageRequest, DamageDealt } from '../combat/pipeline';
@@ -20,13 +21,15 @@ export interface AnimalMotor {
 }
 /** Detached prospective damage state. Preparing its pose must not mutate the actor or publish anything. */
 export interface AnimalAppliedHit {
+  readonly amount: number; readonly point: Readonly<{ x: number; y: number; z: number }>;
+  readonly direction: Readonly<{ x: number; y: number; z: number }>;
   readonly hp: number; readonly lastHitT: number; readonly alive: boolean; readonly state: AnimalState;
   readonly deathT: number; readonly deathSide: number; readonly desiredSpeed: number;
   readonly flinch: number; readonly flinchRoll: number; readonly flinchPitch: number;
 }
 /** Trusted prepared publication, consumed once on the same synchronous damage stack.
  * Commit only copies already validated data; it cannot evaluate authored code or advance any owner. */
-export interface AnimalHitPublication { commit: () => void }
+export interface AnimalHitPublication { readonly handoff?: NativeCorpseHandoff; commit: () => void }
 /** Trusted collision-pose owner. It reads only the last published joints, never advances a body or pose.
  * The installer snapshots/restores its publication history through the host adapter alongside this actor. */
 export interface AnimalVolumePort {
@@ -199,6 +202,10 @@ export class AnimalSim {
   advancePose(law: AnimalPoseLaw, dt: number, t: number, near: boolean, advanceAttack = false,
     debugGait?: { gait: string; phase: number }): void {
     this.readPoseInputs(law, advanceAttack, debugGait); law.advance(dt, t, near);
+    this.commitPose(law);
+  }
+  /** Copy only the validated next scalar pose state; no evaluator or historical restoration. */
+  commitPose(law: AnimalPoseLaw): void {
     const input = law.input;
     this.speed = input.speed; this.desiredSpeed = input.desiredSpeed; this.attackT = input.attackT;
     this.flinch = input.flinch; this.brace = input.brace; this.deathT = input.deathT;
@@ -207,7 +214,8 @@ export class AnimalSim {
   samplePoseTerrain(law: AnimalPoseLaw): void {
     this.readPoseInputs(law, false); law.sampleTerrain(this.simPorts.heightAt); this.tiltRollT = law.input.tiltRollT;
   }
-  private readPoseInputs(law: AnimalPoseLaw, advanceAttack: boolean, debugGait?: { gait: string; phase: number }): void {
+  /** Quiet input copy for the next detached owning pose step. */
+  readPoseInputs(law: AnimalPoseLaw, advanceAttack: boolean, debugGait?: { gait: string; phase: number }): void {
     const i = law.input;
     i.speed = this.speed; i.strafe = this.strafe; i.scale = this.scale; i.seed = this.seed; i.state = this.state; i.alive = this.alive;
     i.position = this.position; i.lookTarget = this.lookTarget; i.yaw = this.yaw; i.lookWeight = this.lookWeight;
@@ -265,16 +273,18 @@ export class AnimalSim {
     const cos = Math.cos(this.yaw), sin = Math.sin(this.yaw);
     const lx = dir.x * cos - dir.z * sin, lz = dir.x * sin + dir.z * cos;
     const hit: AnimalAppliedHit = {
+      amount: dealt, point: { x: hitPoint.x, y: hitPoint.y, z: hitPoint.z }, direction: { x: dir.x, y: dir.y, z: dir.z },
       hp: killed ? 0 : hp, lastHitT: this.hitTime(), alive: !killed, state: killed ? 'dead' : this.state,
       deathT: killed ? 0 : this.deathT, deathSide: killed ? lx >= 0 ? -1 : 1 : this.deathSide,
       desiredSpeed: killed ? 0 : this.desiredSpeed, flinch: 1, flinchRoll: -lx * 0.25,
       flinchPitch: -lz * 0.12 + (hitPoint.y - this.position.y > this.dims.bodyY ? 0.05 : -0.03),
     };
     const publication = this.volumePort?.prepareAppliedHit?.(hit);
+    publication?.handoff?.activate();
     this.hp = hit.hp; this.lastHitT = hit.lastHitT; this.alive = hit.alive; this.state = hit.state;
     this.deathT = hit.deathT; this.deathSide = hit.deathSide; this.desiredSpeed = hit.desiredSpeed;
     this.flinch = hit.flinch; this.flinchRoll = hit.flinchRoll; this.flinchPitch = hit.flinchPitch;
-    publication?.commit();
+    publication?.commit(); publication?.handoff?.commit();
     if (killed) {
       tap.kill?.(this.kind); this.died(dealt, hitPoint, dir);
       this.damaged(dealt, hitPoint, dir, true); return true;

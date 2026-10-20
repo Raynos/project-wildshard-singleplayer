@@ -124,6 +124,8 @@ export async function startPracticeDemo(options: PracticeDemoOptions): Promise<P
     app.addSystem({ id: 'engine.input.collect', phase: 'input', before: ['engine.player.input'], run: () => { player.collectActions(); } }, owner);
     game.onInput(dt => { player.input(dt); }, 'engine.player.input');
     game.onFixed('pre', dt => { ragdollsFor(physics).fixedPre(dt); }, 'physics.corpse.pre', true);
+    if (options.nativePractice !== undefined) app.addSystem({ id: 'demo.native-corpse.pre', phase: 'fixed.pre',
+      when: () => app.state === 'practice', run: () => { encounter.snapshot.actor?.preFixedUpdate(); } }, owner);
     game.onFixed('step', () => { physics.step(); }, 'physics.step', true);
     game.onFixed('post', dt => { ragdollsFor(physics).fixedPost(dt); }, 'physics.corpse.post', true);
     game.onFixed('post', dt => { player.step(dt); }, 'player.step', true);

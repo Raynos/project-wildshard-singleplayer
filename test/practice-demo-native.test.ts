@@ -8,7 +8,7 @@ import { CreatureBodies } from '../src/engine/physics/creatures';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { tagOf } from '../src/engine/physics/surface';
 import { groups } from '../src/engine/physics/groups';
-import { Ragdolls } from '../src/engine/physics/ragdoll';
+import { Ragdolls, ragdollsFor } from '../src/engine/physics/ragdoll';
 import { Animal } from '../src/engine/entities/AnimalView';
 import { Physics } from '../src/engine/physics/Physics';
 import { Scope } from '../src/engine/app/scope';
@@ -36,7 +36,7 @@ import { PracticeCreature } from '../src/game/practice/PracticeCreature';
 import { PracticeNativeActor } from '../src/game/practice/PracticeNativeActor';
 import { graphicsOnly } from './practice-demo-headless';
 import { readPracticePresentation } from '../src/practicePresentation';
-import { prepareFixture, removeFixture } from './practice-native-fixture';
+import { fixtureRigidCorpse, prepareFixture, removeFixture } from './practice-native-fixture';
 
 
 let product: Awaited<ReturnType<typeof prepareFixture>>;
@@ -49,7 +49,7 @@ beforeAll(async () => {
 }, 60000);
 afterAll(removeFixture);
 
-async function boot(poseFile: string | null = 'poses/native-proof.json') {
+async function boot(poseFile: string | null = 'poses/native-proof.json', corpse = false) {
   const graphics = graphicsOnly(), statuses: string[] = [];
   document.body.innerHTML = '<canvas id="game"></canvas><div id="hud"></div>';
   const canvas = document.querySelector('canvas'); if (canvas === null) throw new Error('Missing canvas');
@@ -62,7 +62,7 @@ async function boot(poseFile: string | null = 'poses/native-proof.json') {
   localStorage.setItem('world-save-sentinel', 'unrelated progress and purse');
   const enter = vi.spyOn(PracticeCreature.prototype, 'enter');
   const demo = await graphics.load(startPracticeDemo({
-    canvas, level: practiceLevel(), product, ...(poseFile === null ? {} : { nativePractice: { 'conch-duelist:conch-duelist': { poseFile } } }),
+    canvas, level: practiceLevel(), product, ...(poseFile === null ? {} : { nativePractice: { 'conch-duelist:conch-duelist': { poseFile, ...(corpse ? { corpse: 'rigid' as const } : {}) } } }),
     status: message => { statuses.push(message); },
     prepare: async game => {
       graphics.bind(game); app.registerPlayer(worldHealth, game.levelScope);
@@ -79,7 +79,7 @@ async function boot(poseFile: string | null = 'poses/native-proof.json') {
       app.species.registerRow(species, game.levelScope);
       app.species.registerLook({ id: 'practice.proof.look', species: species.id, kind: species.kind,
         rigContract: { skeleton: 'conch-duelist.character-native15', clips: [], sockets: ['body', 'head'] },
-        fur: NO_FUR, rig: 'custom', rootFlinch: 'authored-pose', build: variant => bodies.copy(species.kind, variant.id),
+        fur: NO_FUR, rig: 'custom', rootFlinch: 'authored-pose', build: variant => { const parts = bodies.copy(species.kind, variant.id); return corpse ? { ...parts, dims: { ...parts.dims, rigidCorpse: fixtureRigidCorpse } } : parts; },
         material: () => new MeshStandardMaterial(), animate,
       }, game.levelScope);
       return { row: SWORD_WOOD, rig: { sword: new BoxGeometry(.05, 1, .05), arms: new BoxGeometry(.05, .2, .05),
@@ -328,5 +328,33 @@ test('absent selection still boots the actual existing practice owner without na
     for (let i = 0; i < 12; i++) f.graphics.frame(1 / 60);
     expect(fixed).not.toHaveBeenCalled(); expect(pose).not.toHaveBeenCalled(); expect(f.creature().targets[0]?.alive).toBe(true);
     expect(f.demo.game.dead).toBe(false); expect(f.faults).toEqual([]); f.worldUnchanged();
+  } finally { f.dispose(); }
+});
+
+
+test('actual demo physical opt-in pairs one scheduler, late weapon death, fixed corpse root and fresh Retry', async () => {
+  const f = await boot('poses/native-proof.json', true);
+  try {
+    const native = nativeOf(f.creature()), system = ragdollsFor(f.physics), old = native.actor.motor;
+    if (!(old instanceof CharacterMotor)) throw new Error('Missing real motor');
+    expect(system.reserved).toBe(1); const drop = vi.spyOn(lootOf(f.creature()), 'drop');
+    const advance = vi.spyOn(native.pose, 'advance'), pre = vi.spyOn(native, 'preFixed'), physics = vi.spyOn(f.physics, 'step');
+    swing(f, 10000, () => !native.actor.alive);
+    expect(drop).toHaveBeenCalledOnce(); expect(native.pose.context.deathT).toBe(0); expect(native.actor.motor).toBeNull();
+    const lethal = native.actor.position.clone(), ordinary = advance.mock.calls.length;
+    const physicsBefore = physics.mock.calls.length, preBefore = pre.mock.calls.length, clock = native.host.clock.frame;
+    f.graphics.frame(0); expect(physics.mock.calls.length).toBe(physicsBefore); expect(native.host.clock.frame).toBe(clock);
+    f.graphics.frame(1 / 60); expect(physics.mock.calls.length - physicsBefore).toBe(1); expect(pre.mock.calls.length - preBefore).toBe(1);
+    expect(old.collider.isValid()).toBe(false); expect(native.actor.position.equals(lethal)).toBe(false);
+    expect(advance).toHaveBeenCalledTimes(ordinary); expect(native.pose.context.deathT).toBeGreaterThan(0);
+    const view = f.creature().targets[0]; if (view === undefined) throw new Error('Missing bound view');
+    for (let i = 0; i < 310; i++) f.graphics.frame(1 / 60);
+    expect(native.actor.motor).toBeNull(); expect(system.occupied).toBe(0); expect(drop).toHaveBeenCalledOnce();
+    expect(drop.mock.calls[0]?.[0].position).toEqual(lethal); expect(advance).toHaveBeenCalledTimes(ordinary);
+    view.renderPublishedPose(1); expect(view.mesh.position).toEqual(native.actor.position);
+    f.demo.retry(); const fresh = nativeOf(f.creature()); expect(fresh).not.toBe(native); expect(system.reserved).toBe(1);
+    expect(fresh.actor.hp).toBe(fresh.actor.maxHp); expect(fresh.host.clock.frame).toBe(0);
+    swing(f, 10000, () => !fresh.actor.alive); f.demo.retry(); expect(system.reserved).toBe(1); expect(system.live).toBe(0);
+    expect(f.faults).toEqual([]); f.worldUnchanged();
   } finally { f.dispose(); }
 });
