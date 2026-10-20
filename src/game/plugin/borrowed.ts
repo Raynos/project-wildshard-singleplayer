@@ -3,13 +3,23 @@ export interface BorrowedOwnerPath { readonly owner: string; readonly path: read
 /** The resolved field and its actual receiver; methods retain that receiver when lent to another host. */
 export interface BorrowedOwnerValue { readonly receiver: Record<string, unknown>; readonly key: string; readonly value: unknown }
 const borrowedRecord = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object';
-/** Resolve only a supplied owner. Refuse traversal, prototype keys and missing fields; optional null intermediates stay absent. */
-export function readBorrowedOwner(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath): BorrowedOwnerValue | null {
+/** Refuse an unbounded path, traversal and prototype keys (the row's own shape; it never changes once read). */
+export function checkBorrowedOwnerPath(row: BorrowedOwnerPath): void {
   if (row.path.length === 0 || row.path.length > 16 || row.owner.length === 0 || row.owner.length > 96) throw new Error('Invalid borrowed owner path');
   for (const part of row.path) {
     if (typeof part === 'number' ? !Number.isSafeInteger(part) || part < 0 || part > 1024
       : !/^[A-Za-z][A-Za-z0-9_-]*$/u.test(part) || ['constructor', 'prototype', '__proto__', 'caller', 'callee', 'arguments'].includes(part)) throw new Error('Unsafe borrowed owner path');
   }
+}
+
+/** Resolve only a supplied owner. Refuse traversal, prototype keys and missing fields; optional null intermediates stay absent. */
+export function readBorrowedOwner(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath): BorrowedOwnerValue | null {
+  checkBorrowedOwnerPath(row);
+  return resolveBorrowedOwner(owners, row);
+}
+
+/** `readBorrowedOwner` for a row whose path `checkBorrowedOwnerPath` already accepted: a per-frame read checks its path once. */
+export function resolveBorrowedOwner(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath): BorrowedOwnerValue | null {
   if (!owners.has(row.owner)) throw new Error(`Missing borrowed owner ${row.owner}`);
   let receiver = owners.get(row.owner);
   for (let index = 0; index < row.path.length; index++) {

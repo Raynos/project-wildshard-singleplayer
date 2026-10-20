@@ -1,6 +1,6 @@
 import { Object3D } from 'three';
 import { parseClientChannelInputs, parseClientChannels, type ClientChannelProperty } from '@wildshard/format/clientChannels';
-import { readBorrowedOwner } from './borrowed';
+import { checkBorrowedOwnerPath, resolveBorrowedOwner } from './borrowed';
 
 /** Detached coordinate outputs for a private geometry kernel. */
 export interface ClientTubeFrame { readonly fromX: number; readonly fromY: number; readonly fromZ: number;
@@ -28,6 +28,8 @@ export function createClientChannels(input: unknown): {
   const nodes = structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
   const slots = structuredClone(program.locals ?? []), locals = new Float64Array(slots.length), previous = new Float64Array(slots.length), next = new Float64Array(slots.length);
   let initialized = false;
+  // each expression's operand slots, read once (-1: none), so the evaluator never asks a node which fields it has
+  const operandA = Int32Array.from(nodes, node => 'a' in node ? node.a : -1), operandB = Int32Array.from(nodes, node => 'b' in node ? node.b : -1);
   const frame: Partial<Record<ClientChannelProperty, number>> = {};
   for (const channel of program.channels) Object.defineProperty(frame, channel.property, { enumerable: true, get: () => published[channel.value] });
   Object.freeze(frame);
@@ -60,7 +62,8 @@ export function createClientChannels(input: unknown): {
     }
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i]; if (node === undefined) throw new Error('Missing client expression');
-      const a = 'a' in node ? scratch[node.a] ?? Number.NaN : 0, b = 'b' in node ? scratch[node.b] ?? Number.NaN : 0;
+      const ai = operandA[i] ?? -1, bi = operandB[i] ?? -1;
+      const a = ai >= 0 ? scratch[ai] ?? Number.NaN : 0, b = bi >= 0 ? scratch[bi] ?? Number.NaN : 0;
       let value: number;
       switch (node.op) {
         case 'constant': value = node.value; break;
@@ -160,8 +163,10 @@ export function bindClientChannelInputs(input: unknown, owners: ReadonlyMap<stri
   const rows = parseClientChannelInputs(input), bound = new Map<string, () => number>();
   for (const row of rows) {
     if (!reads.has(row.input)) throw new Error(`Unused numeric input ${row.input}`);
+    // the row's path is checked once here; every later read resolves it
+    checkBorrowedOwnerPath(row);
     const read = (): number => {
-      const field = readBorrowedOwner(owners, row), value = field?.value;
+      const field = resolveBorrowedOwner(owners, row), value = field?.value;
       if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error(`Invalid numeric input ${row.input}`);
       return value;
     };
