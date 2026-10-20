@@ -16,6 +16,7 @@ import { outputRuntime, outputSections } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
+import { chargePlatformUsers, hasChargebackDeclarations, platformChargeback } from './platform-chargebacks.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -598,13 +599,19 @@ export function partitionPendingPlatformUsers(slug,modules,exports,allowances) {
   /** @type {import('./shard-platform.mjs').PendingPlatformCharge[]} */
   const pending=[];
   const charged=(row)=>{
+    if (platformChargeback(row.path, 'name' in row ? row.name : undefined) !== null) return true;
     const eligibleWave=SHARD_WAVES.some(wave=>(wave.current||wave.status.startsWith('closed'))&&wave.shards.some(shard=>shard.slug===slug));
     const matches=allowances.filter(entry=>(approvedFeature(entry)||(eligibleWave&&entry.shard!==undefined))&&entry.shard!==slug&&entry.module===row.path
       && (entry.export===undefined||('name' in row&&row.exported&&entry.export===row.name)));
     if(matches.length===0)return true;
     pending.push({...row,status:'pending second user',users:matches});return false;
   };
-  return {modules:modules.filter(charged),exports:exports.filter(charged),pending};
+  const keptModules = modules.filter(charged);
+  const keptExports = exports.filter(row => !keptModules.some(module => module.path === row.path)).filter(charged);
+  // A one-user module may retain older approved code while its new declarations
+  // charge back. Report its pending remainder once, excluding those declarations.
+  for (const row of pending) if (!('name' in row)) row.lines -= keptExports.filter(entry => entry.path === row.path).reduce((sum, entry) => sum + entry.lines, 0);
+  return {modules:keptModules,exports:keptExports,pending:pending.filter(row => row.lines > 0)};
 }
 
 // The application's real composition roots are a consumer, not a shard. Their
@@ -629,6 +636,8 @@ const shellControl = (path, local = null) => SHELL_CONTROL_PREFIXES.some(prefix 
 
 /** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs @param {boolean} sourceProgress @param {string} sectionProducts */
 function countOutput(root, includeSources, products, slugs, sourceProgress = false, sectionProducts = resolve(root,'out')) {
+  const attributed = path => RULES.attributedLayers.test(path) || platformChargeback(path) !== null || path === 'src/format/bossProfiles.ts';
+  const platform = path => /^src\/(?:engine|game|sdk|commons)\//u.test(path) || attributed(path);
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
@@ -744,16 +753,19 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       if (!sourceFile.test(path) || path.endsWith('.d.ts') || RULES.tests.test(path) || !exists(path)) continue;
       // Other shards are never consumers of this one's closure; follow defining engine modules too (G303).
       if (slug === SHELL_USER ? !path.startsWith('src/') || path.startsWith('src/shards/')
-        : !path.startsWith(prefix) && !/^src\/(?:engine|game|sdk|commons)\//u.test(path)) continue;
-      if (RULES.attributedLayers.test(path) && (slug !== SHELL_USER || shellControl(path))) {
+        : !path.startsWith(prefix) && !platform(path)) continue;
+      if (attributed(path) && (slug !== SHELL_USER || shellControl(path))) {
         if (!moduleUsers.has(path)) moduleUsers.set(path, new Set());
         moduleUsers.get(path).add(slug);
       }
       for (const edge of graph(path)) if (edge.to !== null) queue.push(edge.to);
     }
   }
+  chargePlatformUsers(moduleUsers, new Map());
   const privateModules = new Map(Object.keys(shardFiles).map(slug => [slug, []]));
   for (const [path, users] of [...moduleUsers].sort(([a], [b]) => a.localeCompare(b))) {
+    // This format module enters attribution only for the reviewed arena rows.
+    if (path === 'src/format/bossProfiles.ts') continue;
     if (RULES.buildOnlySdk.test(path) || users.has(SHELL_USER) || users.size >= RULES.publicUserCount || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
     const lines = count(path);
     if (lines > 0) privateModules.get([...users][0]).push({ path, lines });
@@ -769,7 +781,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     const prefix = prefixOf(slug), seen = new Set(), queue = files.filter(path => !RULES.tests.test(path)).map(path => [path, null]);
     const follow = path => typeof path === 'string' && sourceFile.test(path) && !path.endsWith('.d.ts') && !RULES.tests.test(path) && exists(path)
       && (slug === SHELL_USER ? path.startsWith('src/') && !path.startsWith('src/shards/')
-        : path.startsWith(prefix) || /^src\/(?:engine|game|sdk|commons)\//u.test(path));
+        : path.startsWith(prefix) || platform(path));
     // Resolve an exported name (or `*`, every export) to the local declaration(s) behind it; reaching it evaluates the module.
     const exported = (path, name, stack = new Set()) => {
       if (path === null || !follow(path)) return;
@@ -819,21 +831,24 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       }
       const row = sym.bindings.get(local);
       if (row === undefined) continue;
-      if (RULES.attributedLayers.test(path) && (slug !== SHELL_USER || shellControl(path, local))) {
+      if (attributed(path) && (slug !== SHELL_USER || shellControl(path, local))) {
         if (!bindingUsers.has(key)) bindingUsers.set(key, new Set());
         bindingUsers.get(key).add(slug);
       }
       reach(path, sym, row.refs);
     }
   }
+  chargePlatformUsers(moduleUsers, bindingUsers);
   const privateExports = new Map(Object.keys(shardFiles).map(slug => [slug, []]));
   for (const [path, users] of [...moduleUsers].sort(([a], [b]) => a.localeCompare(b))) {
-    if (RULES.buildOnlySdk.test(path) || users.size < RULES.publicUserCount || !parsedTs(path) || ignored(path)) continue;
+    if (RULES.buildOnlySdk.test(path) || (users.size < RULES.publicUserCount && !hasChargebackDeclarations(path)) || !parsedTs(path) || ignored(path)) continue;
     const sym = symbolsOf(path), claimed = new Set();
     if (!masks.has(path)) masks.set(path, codeLineMask(text(path), info(path).comments));
     const { code, lineOf } = masks.get(path), exportedLocals = new Set([...sym.exports.values()].flatMap(row => row.local ?? []));
     const sole = [...sym.bindings].map(([local, row]) => ({ local, row, owners: bindingUsers.get(`${path}\0${local}`) }))
-      .filter(entry => entry.owners?.size === 1 && !entry.owners.has(SHELL_USER)).sort((a, b) => a.row.spans[0].start - b.row.spans[0].start);
+      .filter(entry => entry.owners?.size === 1 && !entry.owners.has(SHELL_USER)
+        && (path !== 'src/format/bossProfiles.ts' || platformChargeback(path, entry.local) !== null)
+        && (users.size >= RULES.publicUserCount || platformChargeback(path, entry.local) !== null)).sort((a, b) => a.row.spans[0].start - b.row.spans[0].start);
     for (const { local, row, owners } of sole) {
       let lines = 0;
       for (const span of row.spans) for (let line = lineOf(span.start); line <= lineOf(Math.max(span.start, span.end - 1)); line++) {

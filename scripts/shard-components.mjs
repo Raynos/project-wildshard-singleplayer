@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseSync } from 'vite';
+import { platformChargeback } from './platform-chargebacks.mjs';
 
 /** One milestone roster drives component collection and every report. */
 export const SHARD_WAVES = [
@@ -307,6 +308,12 @@ function runtimeTags(source, path, fallback) {
 export function componentInventory(root, shard, sources, canonical) {
   const counts=Object.fromEntries(Object.keys(COMPONENTS).map(key=>[key,0])), unknown=[], spans=[];
   for(const row of sources) {
+    const reviewed = platformChargeback(row.path, row.name);
+    if (reviewed !== null) {
+      counts[reviewed] += row.lines;
+      spans.push({path:row.path,kind:row.kind,component:reviewed,lines:row.lines,reason:'G520 fixture-only host; real second shard absent'});
+      continue;
+    }
     const ownerPath=row.ownerPath??row.path;
     const role=fileRole(ownerPath,row.name) ?? (/^(?:nalati-grasslands|nine-dragon-stack)$/u.test(shard) ? w3SharedOwners.get(ownerPath) ?? null : null);
     if(role===null)unknown.push(`${row.path}${row.name?`#${row.name}`:''}`);
