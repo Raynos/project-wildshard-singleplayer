@@ -1,0 +1,288 @@
+{
+  "schema": "wildshard.keelmaw.complete-refined-verification.v1",
+  "status": "source-only complete revision; independent visual review pending",
+  "selfScore": null,
+  "priorIndependentReview": {
+    "path": "docs/reviews/keelmaw-complete-independent/REPORT.md",
+    "sha256": "049865b9d0acbb492f409954424dc0505b2333508c4c8ffecf84946358df1c7f"
+  },
+  "boneContractUnchanged": true,
+  "partContractUnchanged": true,
+  "boneCount": 19,
+  "partCount": 19,
+  "baselineNativePayloadMetadataByteIdentical": true,
+  "finalModelMatchesRenderedBytes": true,
+  "lightingCameraRenderSetupSourceIdentical": true,
+  "rawCaptures": 20,
+  "framing": {
+    "candidate": {
+      "minimumMarginPixels": 31.906618603712744,
+      "producerVsIndependentMaximumNdcError": 2.1676133967918343e-05,
+      "conservativeMaximumPixelError": 0.015606816456901207,
+      "comparisonTolerancePixels": 0.1
+    },
+    "baseline": {
+      "minimumMarginPixels": 14.55447530229308,
+      "producerVsIndependentMaximumNdcError": 2.1643610431665294e-05,
+      "conservativeMaximumPixelError": 0.015583399510799012,
+      "comparisonTolerancePixels": 0.1
+    }
+  },
+  "storage": {
+    "allFilesUnderPerBlobCaps": true,
+    "candidateBinaryBytes": 1667293,
+    "candidateBudgetBytes": 10000000,
+    "wholeRepositoryPushBudgetChecked": false,
+    "reason": "No index, commit or push was requested; candidate-local budget only."
+  },
+  "checks": {
+    "exactNativeGlbAndNormalsTopology": "model/source-audit.json",
+    "nativeConsumer": "1 focused native-consumer test passed; original diagnostic retained locally",
+    "lint": "Art test/config paths ignored by repository oxlint configuration, including no-ignore retry; not represented as lint pass.",
+    "fullSuite": "Not run; source-only scope."
+  },
+  "limits": [
+    "No visual acceptance or self-score",
+    "No runtime admission or promotion",
+    "No animation/contact/combat/performance acceptance",
+    "Closed individual components, not welded anatomy",
+    "Existing dimension metadata unadmitted",
+    "Historical raw producer framing invalid; current audit_framing is authoritative"
+  ],
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/README.md",
+      "bytes": 5885,
+      "sha256": "90725dccc5048eff31181b4b8bcf6ec8bce0529d8f26c193a1aaca782128ce83",
+      "capBytes": 1000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/audit_framing.py",
+      "bytes": 2019,
+      "sha256": "aebc1399a1f245e77173ba980c8173f48c183d68ba73034b9cbccf9194cf6a63",
+      "capBytes": 1000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/audit_source.py",
+      "bytes": 8965,
+      "sha256": "684e748b93d9afc0b5ba66bb9df0b2c54964b85c7fa85094a00328448450eb07",
+      "capBytes": 1000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/build_keelmaw.py",
+      "bytes": 20530,
+      "sha256": "42d83803821e547b5f4f1ed1c7f7c092a2acafb41f34a1cc05c7d7fd0434e3d0",
+      "capBytes": 1000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/capture_baseline.py",
+      "bytes": 18016,
+      "sha256": "2f4229cd45c9b4b8cbcd3e9c192705bdc3899609f741fc3688530ead84fd7221",
+      "capBytes": 1000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/make_review.py",
+      "bytes": 5163,
+      "sha256": "7f342c9348564003b121852ea65e88a4afcfc0e4bea2a0fb0c8299012e64d7ea",
+      "capBytes": 1000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/model/construction.json",
+      "bytes": 40585,
+      "sha256": "a1a9cb2e260d423a0629ed3039a460c8883fc84c401b1ef8da1c3481fda14a6c",
+      "capBytes": 5000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/model/keelmaw-v1.glb",
+      "bytes": 911560,
+      "sha256": "9352bba988b81d8f7af57e699b908d38497acf1b05da1b65c896565b3d267022",
+      "capBytes": 1000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/model/metadata.json",
+      "bytes": 22054,
+      "sha256": "6736293d157d30d1416e0033196dcb5479acff7a0100778d12a350831636b58d",
+      "capBytes": 5000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/model/native-source.json",
+      "bytes": 1492706,
+      "sha256": "32fb9e7dde21acfe0dbe42225c716c9f6a881b31b3aa4fa61c0e1e00aabf4dcc",
+      "capBytes": 5000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/model/payload.bin",
+      "bytes": 64269,
+      "sha256": "69fa4a3b91d819cd6ad0cbd6aba6477f62def3bebde598a8b138f8f50d6ce012",
+      "capBytes": 1000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/model/source-audit.json",
+      "bytes": 23334,
+      "sha256": "b3b8e84e524dce54a4e5271919924891f60ac9341470d5a2d8edcb08b4aae267",
+      "capBytes": 5000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/baseline-back.webp",
+      "bytes": 7944,
+      "sha256": "90ff706e02ac5e1bbd0aa6fad5ee7448841f0ce984e51416a470eb55a4b2c097",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/baseline-elevated-back.webp",
+      "bytes": 12048,
+      "sha256": "59793323733ac21f3e051e9cd9eea1ee90710b410ec2928f3901e4164e179466",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/baseline-elevated-front.webp",
+      "bytes": 14258,
+      "sha256": "0d9e947af372c49273f8886a13aa2ea421681631e3e8f614a312bf9982edb4aa",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/baseline-elevated-left.webp",
+      "bytes": 14700,
+      "sha256": "7c296599acf811535bb982149d6600e5e4fa0641ca84830bb0e87dc949595d32",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/baseline-elevated-right.webp",
+      "bytes": 13962,
+      "sha256": "f15ddf6876c32b1f35838ce12bd70aeb7c8c707abb4534fed7dadd7128788a9f",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/baseline-front.webp",
+      "bytes": 9398,
+      "sha256": "789d61f60f427ac55e305d6adcfcd723c6cb8d9c39f5c341fd66ae7c2ce9cf95",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/baseline-hero.webp",
+      "bytes": 12382,
+      "sha256": "e503243d45a3997c3609c21e2858b14688e00d996a7a87ce2513f3c3e5c5e571",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/baseline-left.webp",
+      "bytes": 11858,
+      "sha256": "c0b0d1a06fc10bc073eb813741e697b380ef872d4e59960acca6176fe1030287",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/baseline-right.webp",
+      "bytes": 10660,
+      "sha256": "b1dedd90f23ed199187eb3ff10ae3be77468a184a3201c94dc9de534e72dbf4a",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/baseline-top.webp",
+      "bytes": 14944,
+      "sha256": "f73e3f1c274b9d697751486814da794c39125a01537e6efe6b099278dfbcb42f",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/candidate-back.webp",
+      "bytes": 8760,
+      "sha256": "bac3944b821d32dc91ed14fde181dfa22eba915c4455ad2ba195c08e61cc357c",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/candidate-elevated-back.webp",
+      "bytes": 12432,
+      "sha256": "370a81d467e32b9b82c5d372ec36bfb0e5934113d057c2dae2f3c810ef9edf9d",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/candidate-elevated-front.webp",
+      "bytes": 13466,
+      "sha256": "46464014afe951b78b4daaee6c89d6aa8bd9c9190e8019056a71404ba571c980",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/candidate-elevated-left.webp",
+      "bytes": 13548,
+      "sha256": "c68e6b66becb7763dae86ae0fa7aa40abfa0c917241535de2b5f99071c7df2a3",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/candidate-elevated-right.webp",
+      "bytes": 13238,
+      "sha256": "2572187631c955e517b259cc1973d870081b53617932665cbc08db183c8ac530",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/candidate-front.webp",
+      "bytes": 9364,
+      "sha256": "7d29f738a6301a3e61578fe5aed3650b35c3715c8ec51c93e2a4be1fedb74c95",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/candidate-hero.webp",
+      "bytes": 11892,
+      "sha256": "69038a326e62c41bcb4dc47ea523eaa188f92d5d6f88480ae9e32acf9c309979",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/candidate-left.webp",
+      "bytes": 11380,
+      "sha256": "114ea9787e9e7a5524157c33fcda2e1af185548f6e3bc839aaddca5f639cb3aa",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/candidate-right.webp",
+      "bytes": 10196,
+      "sha256": "aed3526d175ca4fc88b5caefae83ae95663c2547884811291a8a89fce1f3db18",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/candidate-top.webp",
+      "bytes": 14342,
+      "sha256": "ae5636d403fbace8b46b86f8a1b901d8809b1241ed8e854bc3d5dcbffc698976",
+      "capBytes": 250000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/capture-receipt.json",
+      "bytes": 27540,
+      "sha256": "adf0e55d136f27dd14e95e56e8ced56ad90bb63d16a2a5131ca1ea88f29c94ce",
+      "capBytes": 5000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/explorer-matched-nine-board.webp",
+      "bytes": 175796,
+      "sha256": "945355b126f5add6e547fc52b619a60c97a1ae2375cf3ac082b46279d1300132",
+      "capBytes": 500000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/hero-matched-board.webp",
+      "bytes": 79896,
+      "sha256": "37a89e3dd9f7d45da857c118166467fc43be4e234c2183baf2072c2838cef971",
+      "capBytes": 500000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/review/world-matched-nine-board.webp",
+      "bytes": 195000,
+      "sha256": "eb0b549ce9160abe1a65f0a8cc01e630513a6e08edf199e1877ed1ada285b557",
+      "capBytes": 500000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/source.test.ts",
+      "bytes": 1634,
+      "sha256": "64fbc06688f83d600541301c372dacdadf9a2bf9f1c2d91e5ef266ab76c29e1a",
+      "capBytes": 1000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/verify_delivery.py",
+      "bytes": 4491,
+      "sha256": "339d60d62b95dbfe1b3b6ace3de8bd5ba513c168be8d7bb916f015a1c8693067",
+      "capBytes": 1000000
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-refined/vitest.config.ts",
+      "bytes": 371,
+      "sha256": "09f6de25bb382a8bd099d8347157077e1ae9f7fd0e7c37ef06dde8b067a3c03a",
+      "capBytes": 1000000
+    }
+  ]
+}

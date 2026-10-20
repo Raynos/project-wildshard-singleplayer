@@ -1,0 +1,1044 @@
+{
+  "scope": "Matched actual Blender source mesh renders. Native and GLB exact structural parity audited separately. Not native runtime admission or gameplay.",
+  "cameraProtocol": "Same explicit camera, target, orthographic scale, lighting, resolution, samples and ground for baseline and candidate; no per-image crops. Top rolls 90 degrees to match Explorer category. AI world top differs. Fresh paired framing differs from historical clipped renders.",
+  "cameraEquality": true,
+  "rawCameraBoundsValid": true,
+  "framingCorrection": "Both producers update the Blender dependency graph before projection. Independent audit_framing.py recomputes every vertex from explicit eye/target/roll/aspect; verifiedFraming is authoritative. Historical complete-character-next raw framingNDC remains invalid.",
+  "verifiedFraming": {
+    "candidate": {
+      "method": "Independent orthographic projection using explicit camera eye/target, +Z Blender up, 90-degree top local-Z roll, 600x720 aspect, and all native vertices mapped (x,-z,y).",
+      "supersedes": "Raw cameras.json framingNDC was sampled before Blender depsgraph update and can use the previous camera transform. Those bounds are invalid evidence and retained only as raw history. Actual PNG renders use evaluated current camera. This independently computed report supplies framing evidence.",
+      "sourceSha256": "32fb9e7dde21acfe0dbe42225c716c9f6a881b31b3aa4fa61c0e1e00aabf4dcc",
+      "views": [
+        {
+          "view": "hero",
+          "framingNDC": {
+            "minX": 0.05494897772303586,
+            "maxX": 0.9012229316519356,
+            "minY": 0.3106249850319836,
+            "maxY": 0.6697361587330448
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 32.969386633821514
+        },
+        {
+          "view": "front",
+          "framingNDC": {
+            "minX": 0.17848819190933046,
+            "maxX": 0.8375903605840292,
+            "minY": 0.3622218384414314,
+            "maxY": 0.6737343363587159
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 97.44578364958245
+        },
+        {
+          "view": "left",
+          "framingNDC": {
+            "minX": 0.12610602409638555,
+            "maxX": 0.9065237108433735,
+            "minY": 0.3486686613800859,
+            "maxY": 0.668905331323413
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 56.08577349397592
+        },
+        {
+          "view": "right",
+          "framingNDC": {
+            "minX": 0.09347628915662654,
+            "maxX": 0.8738939759036144,
+            "minY": 0.3589467989745301,
+            "maxY": 0.6761023361494061
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 56.08577349397592
+        },
+        {
+          "view": "back",
+          "framingNDC": {
+            "minX": 0.16240963941597075,
+            "maxX": 0.8215118080906696,
+            "minY": 0.38109323618966906,
+            "maxY": 0.6725236362127124
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 97.44578364958245
+        },
+        {
+          "view": "top",
+          "framingNDC": {
+            "minX": 0.12613939733395724,
+            "maxX": 0.9066679124607047,
+            "minY": 0.21867469951330898,
+            "maxY": 0.7679265067422245
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 55.999252523577205
+        },
+        {
+          "view": "elevated-front",
+          "framingNDC": {
+            "minX": 0.17848819190933046,
+            "maxX": 0.8375903605840292,
+            "minY": 0.23403102636806167,
+            "maxY": 0.7936494997773282
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 97.44578364958245
+        },
+        {
+          "view": "elevated-left",
+          "framingNDC": {
+            "minX": 0.16852738939964518,
+            "maxX": 0.7895759291180882,
+            "minY": 0.23565492568573776,
+            "maxY": 0.7891940663219652
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 101.1164336397871
+        },
+        {
+          "view": "elevated-right",
+          "framingNDC": {
+            "minX": 0.053177697672854574,
+            "maxX": 0.8894815688988345,
+            "minY": 0.2702404029551276,
+            "maxY": 0.6629654937560346
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 31.906618603712744
+        },
+        {
+          "view": "elevated-back",
+          "framingNDC": {
+            "minX": 0.16240963941597075,
+            "maxX": 0.8215118080906696,
+            "minY": 0.29774469146105864,
+            "maxY": 0.7222535945973783
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 97.44578364958245
+        }
+      ]
+    },
+    "baseline": {
+      "method": "Independent orthographic projection using explicit camera eye/target, +Z Blender up, 90-degree top local-Z roll, 600x720 aspect, and all native vertices mapped (x,-z,y).",
+      "supersedes": "Raw cameras.json framingNDC was sampled before Blender depsgraph update and can use the previous camera transform. Those bounds are invalid evidence and retained only as raw history. Actual PNG renders use evaluated current camera. This independently computed report supplies framing evidence.",
+      "sourceSha256": "ff70566f6eb96760a9dbff3a54ecf59e81e4c13b904784a33ac3c1c061191fab",
+      "views": [
+        {
+          "view": "hero",
+          "framingNDC": {
+            "minX": 0.024563863677481423,
+            "maxX": 0.9012229316519356,
+            "minY": 0.3106249850319836,
+            "maxY": 0.7037261207691724
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 14.738318206488854
+        },
+        {
+          "view": "front",
+          "framingNDC": {
+            "minX": 0.15817305937920995,
+            "maxX": 0.8375903605840292,
+            "minY": 0.3584158081076597,
+            "maxY": 0.721829519404087
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 94.90383562752596
+        },
+        {
+          "view": "left",
+          "framingNDC": {
+            "minX": 0.08506024096385545,
+            "maxX": 0.9305229879518073,
+            "minY": 0.35406996951171577,
+            "maxY": 0.7137244760234879
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 41.686207228915606
+        },
+        {
+          "view": "right",
+          "framingNDC": {
+            "minX": 0.06947701204819273,
+            "maxX": 0.9149397590361446,
+            "minY": 0.36434810711347265,
+            "maxY": 0.6611591508649917
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 41.68620722891564
+        },
+        {
+          "view": "back",
+          "framingNDC": {
+            "minX": 0.16240963941597075,
+            "maxX": 0.8418269406207901,
+            "minY": 0.37847400225878036,
+            "maxY": 0.6457713118433146
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 94.90383562752594
+        },
+        {
+          "view": "top",
+          "framingNDC": {
+            "minX": 0.0850936767177124,
+            "maxX": 0.9307242625988039,
+            "minY": 0.21867469951330898,
+            "maxY": 0.7848557838506584
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 41.565442440717646
+        },
+        {
+          "view": "elevated-front",
+          "framingNDC": {
+            "minX": 0.15817305937920995,
+            "maxX": 0.8375903605840292,
+            "minY": 0.21034075997671653,
+            "maxY": 0.846399452500783
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 94.90383562752596
+        },
+        {
+          "view": "elevated-left",
+          "framingNDC": {
+            "minX": 0.15056942723026884,
+            "maxX": 0.8010503890107425,
+            "minY": 0.23565492568573776,
+            "maxY": 0.8504311381480635
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 90.3416563381613
+        },
+        {
+          "view": "elevated-right",
+          "framingNDC": {
+            "minX": 0.024257458837155133,
+            "maxX": 0.90756218826445,
+            "minY": 0.2702404029551276,
+            "maxY": 0.6967019825141655
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 14.55447530229308
+        },
+        {
+          "view": "elevated-back",
+          "framingNDC": {
+            "minX": 0.16240963941597075,
+            "maxX": 0.8418269406207901,
+            "minY": 0.2907871247632121,
+            "maxY": 0.7444919527608017
+          },
+          "allVerticesInside": true,
+          "minimumMarginPixels": 94.90383562752594
+        }
+      ]
+    }
+  },
+  "candidateCameras": [
+    {
+      "name": "hero",
+      "azimuthDegrees": -48,
+      "elevationDegrees": 18,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.05494873970746994,
+        "maxX": 0.9012227654457092,
+        "minY": 0.3106248676776886,
+        "maxY": 0.6697359681129456
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -7.417726993560791,
+        -6.363810062408447,
+        4.040169715881348
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "front",
+      "azimuthDegrees": 0,
+      "elevationDegrees": 7,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.17848816514015198,
+        "maxX": 0.8375903964042664,
+        "minY": 0.3622218668460846,
+        "maxY": 0.6737343072891235
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -0.3499999940395355,
+        -9.925461769104004,
+        2.1686933040618896
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "left",
+      "azimuthDegrees": 90,
+      "elevationDegrees": 7,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.12610606849193573,
+        "maxX": 0.9065238237380981,
+        "minY": 0.3486686646938324,
+        "maxY": 0.6689052581787109
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        9.575461387634277,
+        -6.077592157260837e-16,
+        2.1686933040618896
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "right",
+      "azimuthDegrees": -90,
+      "elevationDegrees": 7,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.09347620606422424,
+        "maxX": 0.8738939166069031,
+        "minY": 0.358946830034256,
+        "maxY": 0.6761022806167603
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -10.27546215057373,
+        -6.077592157260837e-16,
+        2.1686933040618896
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "back",
+      "azimuthDegrees": 180,
+      "elevationDegrees": 7,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.16240976750850677,
+        "maxX": 0.8215119242668152,
+        "minY": 0.38109323382377625,
+        "maxY": 0.672523558139801
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -0.3499999940395355,
+        9.925461769104004,
+        2.1686933040618896
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "top",
+      "azimuthDegrees": 0,
+      "elevationDegrees": 89.9,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 90,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.12611772119998932,
+        "maxX": 0.9066472053527832,
+        "minY": 0.2186747044324875,
+        "maxY": 0.7679265141487122
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -0.3499999940395355,
+        -0.017453283071517944,
+        10.949984550476074
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "elevated-front",
+      "azimuthDegrees": 0,
+      "elevationDegrees": 39,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.17848816514015198,
+        "maxX": 0.8375903964042664,
+        "minY": 0.23403115570545197,
+        "maxY": 0.7936496734619141
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -0.3499999940395355,
+        -7.771459579467773,
+        7.243203639984131
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "elevated-left",
+      "azimuthDegrees": 55,
+      "elevationDegrees": 30,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.16852745413780212,
+        "maxX": 0.7895759344100952,
+        "minY": 0.23565490543842316,
+        "maxY": 0.7891939878463745
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        6.744064807891846,
+        -4.967317581176758,
+        5.949999809265137
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "elevated-right",
+      "azimuthDegrees": -55,
+      "elevationDegrees": 30,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.05317769572138786,
+        "maxX": 0.8894814848899841,
+        "minY": 0.2702403664588928,
+        "maxY": 0.6629654169082642
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -7.444064617156982,
+        -4.967317581176758,
+        5.949999809265137
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "elevated-back",
+      "azimuthDegrees": 180,
+      "elevationDegrees": 39,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.1624094843864441,
+        "maxX": 0.8215117454528809,
+        "minY": 0.2977447211742401,
+        "maxY": 0.7222536206245422
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -0.3499999940395355,
+        7.771459579467773,
+        7.243203639984131
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    }
+  ],
+  "baselineCameras": [
+    {
+      "name": "hero",
+      "azimuthDegrees": -48,
+      "elevationDegrees": 18,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.024563640356063843,
+        "maxX": 0.9012227654457092,
+        "minY": 0.3106248676776886,
+        "maxY": 0.7037258744239807
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -7.417726993560791,
+        -6.363810062408447,
+        4.040169715881348
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "front",
+      "azimuthDegrees": 0,
+      "elevationDegrees": 7,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.15817303955554962,
+        "maxX": 0.8375903964042664,
+        "minY": 0.358415812253952,
+        "maxY": 0.7218294739723206
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -0.3499999940395355,
+        -9.925461769104004,
+        2.1686933040618896
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "left",
+      "azimuthDegrees": 90,
+      "elevationDegrees": 7,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.08506031334400177,
+        "maxX": 0.9305230379104614,
+        "minY": 0.3540699779987335,
+        "maxY": 0.7137244343757629
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        9.575461387634277,
+        -6.077592157260837e-16,
+        2.1686933040618896
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "right",
+      "azimuthDegrees": -90,
+      "elevationDegrees": 7,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.06947694718837738,
+        "maxX": 0.9149397015571594,
+        "minY": 0.3643481135368347,
+        "maxY": 0.661159098148346
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -10.27546215057373,
+        -6.077592157260837e-16,
+        2.1686933040618896
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "back",
+      "azimuthDegrees": 180,
+      "elevationDegrees": 7,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.16240976750850677,
+        "maxX": 0.8418270945549011,
+        "minY": 0.37847399711608887,
+        "maxY": 0.645771324634552
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -0.3499999940395355,
+        9.925461769104004,
+        2.1686933040618896
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "top",
+      "azimuthDegrees": 0,
+      "elevationDegrees": 89.9,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 90,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.08507203310728073,
+        "maxX": 0.9307040572166443,
+        "minY": 0.2186747044324875,
+        "maxY": 0.7848557829856873
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -0.3499999940395355,
+        -0.017453283071517944,
+        10.949984550476074
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "elevated-front",
+      "azimuthDegrees": 0,
+      "elevationDegrees": 39,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.15817303955554962,
+        "maxX": 0.8375903964042664,
+        "minY": 0.21034090220928192,
+        "maxY": 0.8463996052742004
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -0.3499999940395355,
+        -7.771459579467773,
+        7.243203639984131
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "elevated-left",
+      "azimuthDegrees": 55,
+      "elevationDegrees": 30,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.15056949853897095,
+        "maxX": 0.8010503649711609,
+        "minY": 0.23565490543842316,
+        "maxY": 0.8504310846328735
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        6.744064807891846,
+        -4.967317581176758,
+        5.949999809265137
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "elevated-right",
+      "azimuthDegrees": -55,
+      "elevationDegrees": 30,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.02425747737288475,
+        "maxX": 0.9075620770454407,
+        "minY": 0.2702403664588928,
+        "maxY": 0.6967018842697144
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -7.444064617156982,
+        -4.967317581176758,
+        5.949999809265137
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    },
+    {
+      "name": "elevated-back",
+      "azimuthDegrees": 180,
+      "elevationDegrees": 39,
+      "orthoScale": 8.3,
+      "cameraRollDegrees": 0,
+      "actualRender": true,
+      "framingNDC": {
+        "minX": 0.1624094843864441,
+        "maxX": 0.841826856136322,
+        "minY": 0.2907871603965759,
+        "maxY": 0.7444919347763062
+      },
+      "targetBlender": [
+        -0.3499999940395355,
+        0.0,
+        0.949999988079071
+      ],
+      "cameraBlender": [
+        -0.3499999940395355,
+        7.771459579467773,
+        7.243203639984131
+      ],
+      "resolution": [
+        600,
+        720
+      ],
+      "samples": 32
+    }
+  ],
+  "rawPins": [
+    {
+      "role": "candidate",
+      "view": "hero",
+      "path": "final/hero.png",
+      "sha256": "1206f0400155f6c2967b8e507462d1f8d83dd0b3014f50226df291eff132bb86",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "front",
+      "path": "final/front.png",
+      "sha256": "bc7a9d84096d84445c961d491568621e22cae9880695303f9f15aa8349325abc",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "left",
+      "path": "final/left.png",
+      "sha256": "c097069eb10de5258ad6e81b603c9eaf0cdce275446b68ef9fb9f475953f6237",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "right",
+      "path": "final/right.png",
+      "sha256": "b65512135b989eaa2ee5ce44639803d90b61ff2c93af8177847dced80e6a89f8",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "back",
+      "path": "final/back.png",
+      "sha256": "fb95d68b3a0d835328e6c053e042393bd8d8e0f23b966433cb2a3743cc25964a",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "top",
+      "path": "final/top.png",
+      "sha256": "ee30b68024308914b3c09c01af7e4911deb512b8b8aecf66c65a224e05a0ae11",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "elevated-front",
+      "path": "final/elevated-front.png",
+      "sha256": "df4a81e29ab714783de5b00308bb02d50e4225930d7317919eb25f4e875480ac",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "elevated-left",
+      "path": "final/elevated-left.png",
+      "sha256": "268038a6faa8fb07085eb2fc8b1deab440666c015b84ee19d15ff5c3d0efb252",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "elevated-right",
+      "path": "final/elevated-right.png",
+      "sha256": "6775607bbbc2540a8a062651b8a4549cc6e7af58e0c14145da8acf8e8a6a529f",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "candidate",
+      "view": "elevated-back",
+      "path": "final/elevated-back.png",
+      "sha256": "6a5236744e33b4b68457df0b56472c4200a18b35049973271d2297d6dd844a03",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "hero",
+      "path": "baseline/hero.png",
+      "sha256": "050cc389da09e5b6915d545abfc86af0083c0b8bf076c6db69d57fd73f752188",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "front",
+      "path": "baseline/front.png",
+      "sha256": "747f66ae3c89bc0bdb3b84fb77e7ee44ef598261f2acb00e028483281ccd92bb",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "left",
+      "path": "baseline/left.png",
+      "sha256": "3a4be5b674c90f7bc43825c824d20bbaa175f8a18033748d100d17b0fa46c027",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "right",
+      "path": "baseline/right.png",
+      "sha256": "b4a0a73bc6d1cb86d5bc969ea4660d51715e0415701f66c199ab9df25736079d",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "back",
+      "path": "baseline/back.png",
+      "sha256": "cb587942f72de616c85641652ae4e9d540d489e87eb4e1d2c071e20a5f665dd4",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "top",
+      "path": "baseline/top.png",
+      "sha256": "cabb31f6939c1707efdfd8e815dadecb08d1d9892790ed4c60e80076c578e29c",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "elevated-front",
+      "path": "baseline/elevated-front.png",
+      "sha256": "50cfd50f5c6c192db4e07ffc3bd11b3fbb2cfd5a8ea35187e39d0e7f446cd2e1",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "elevated-left",
+      "path": "baseline/elevated-left.png",
+      "sha256": "68f3954be40b34c85273cefdcae6d04e9c94410810659c712c7c3e3b45afbcc1",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "elevated-right",
+      "path": "baseline/elevated-right.png",
+      "sha256": "3259fd634e63f7a4f64e4975ecc1268535091fc2b46770bc116f3652d1db4243",
+      "dimensions": [
+        600,
+        720
+      ]
+    },
+    {
+      "role": "baseline",
+      "view": "elevated-back",
+      "path": "baseline/elevated-back.png",
+      "sha256": "dcb7024a41deb42387a09c1e8c8876c7940388a516d3445a3972b69693552890",
+      "dimensions": [
+        600,
+        720
+      ]
+    }
+  ],
+  "referencePins": [
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/keelmaw-hero.png",
+      "sha256": "69eb665a0f2224f1a35e61934304eb0ee4e205912c5b38d0bbfbe9ca160ac4d3"
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/keelmawWorldGen.png",
+      "sha256": "bad000719ab4abe7c66ff48a7d1b524e6a1f892dfb535705beac654846a77cfe"
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/keelmawExplorerCorrectedGen.png",
+      "sha256": "10aaa6cb65464c3359533dc10afaec8ccc6b109813ab7e04e18e01da71ed3561"
+    }
+  ],
+  "rawPinPathBasis": "Paths are relative to the caller-supplied capture directory; machine-specific storage locations are omitted."
+}
