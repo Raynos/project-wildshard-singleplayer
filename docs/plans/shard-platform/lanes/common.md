@@ -1,12 +1,13 @@
 # SHARD-PLATFORM lanes: the common brief (≤ 2 KB, G511)
 
-Each task is a fresh session with this file and the task (G511); AGENTS.md and docs/process/ hold the rest.
+AGENTS.md and docs/process/ hold the rest.
 
-- **Small commits early and often (Jake):** land each green cut at once; never bundle or sit on one.
-- **Mega-build (G507):** only cut and land code; no boards, soaks, receipts or extra docs.
+- **Small commits early and often (Jake):** land each green cut at once. **Mega-build (G507):** only cut and land code.
+- **Never idle (Jake):** task done = take the top open row of your type in `ready-queue.md` yourself (claim it,
+  tell wildshard-new); while a check runs, prepare your next cut.
 - **Queue (G513, G518):** easy cuts toward 0 %, biggest first; whole modules onto existing hosts or data; a new or grown host
-  needs a REAL second shard this wave, never a fixture, and HOST-BAR ≥ 5/6; state net lines; one-shard logic to AS + data at ≤ 10 Hz (G470). AS engine work is WASM-HOST's (G517): no edits to
-  engine/script, sdk/bake/compileScript, format/scriptAbi*/scriptAdmission* beyond bug fixes.
+  needs a REAL second shard this wave, never a fixture, and HOST-BAR ≥ 5/6; state net lines; one-shard logic to AS + data at ≤ 10 Hz (G470). G517: AS engine files
+  (engine/script, compileScript, scriptAbi/scriptAdmission) only for bug fixes.
 - **Per batch (G506, G509):** `scripts/batch-check.sh <shard…>` (types, lint, focused tests, one headless boot of
   each touched shard) + the push gate. Touched looks, scenes, client plan or boot: also a real browser first frame
   of each touched shard (headless boots skip the client). One check per batch; never re-check a landed commit. Similar,
