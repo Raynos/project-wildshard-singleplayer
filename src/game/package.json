@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./quest/legacyRecords": "./quest/legacyRecords.ts",
     "./shardfile/pageWater": "./shardfile/pageWater.ts",
     "./shardfile/pagePreparation": "./shardfile/pagePreparation.ts",
     "./quest/nativeStory": "./quest/nativeStory.ts",

@@ -11,8 +11,7 @@ const saved = { kokbori: { timer: 0, discovered: false, skinTaken: false, kills:
 
 function fixture(name: string) {
   const scope = new Scope(name);
-  const persistence = bindAdventurePersistence({ app, scope }, source, rows, name,
-    { names: () => ({}), cosmetics: () => ({ owned: [], worn: {} }), bond: () => null });
+  const persistence = bindAdventurePersistence({ app, scope }, source, rows, name);
   return { scope, persistence };
 }
 

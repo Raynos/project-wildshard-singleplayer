@@ -29,8 +29,6 @@ import { installNalatiQuestView } from '../quest/kokpar';
 import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
 import { bindAdventurePersistence, readAdventurePersistence, type AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
-import { horseNamesSave, tulparSave } from '../ride/saves';
-import { nalatiSkinsSave } from '../weapons/saves';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { hasLentLook, lendLooks } from '@wildshard/sdk/looks/lentLooks';
 
@@ -58,11 +56,7 @@ export class NalatiPlugin extends ShardPlugin {
     const { game, registry } = world;
     // the look.materials graphs (data/lookGraphs.json: the camp smoke), compiled and lent before the places draw on them
     lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, game, ctx.product.shardfile, Object.keys(ctx.product.shardfile.look.materials).filter(id=>!hasLentLook(id))));
-    this.persistence = bindAdventurePersistence(ctx, ctx.product.shardfile, await readAdventurePersistence(ctx), world.chunk.slug, {
-      names: () => horseNamesSave.read(ctx.product.shardfile.identity.slug),
-      cosmetics: () => nalatiSkinsSave.read(ctx.product.shardfile.identity.slug),
-      bond: () => tulparSave.read(ctx.product.shardfile.identity.slug),
-    });
+    this.persistence = bindAdventurePersistence(ctx, ctx.product.shardfile, await readAdventurePersistence(ctx), world.chunk.slug);
     const meadow=await ctx.product.json<{constants:{nativeField:unknown}}>('sim/headless-assembly.json');
     await prepareGrassV2(macrotask);
     const {grass,particles}=await installPageMeadow(ctx,meadow.constants.nativeField);

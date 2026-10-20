@@ -148,8 +148,7 @@ test('entered chapter rows preserve carving order and continue the same saved ch
       hud: { toast: (text: string) => { notices.push(text); } }, music: { sting: () => undefined },
       audio: { weaponSwap: () => undefined }, fullMap: { setQuest: () => undefined, setPois: () => undefined },
     } } });
-    const saved = bindAdventurePersistence(ctx, nalati, persistenceRows, instance,
-      { names: () => ({}), cosmetics: () => ({ owned: [], worn: {} }) });
+    const saved = bindAdventurePersistence(ctx, nalati, persistenceRows, instance);
     for (const talk of policy.talks) new FigureRows(new SceneHandles({ setupMaterial: () => undefined }), {
       id: talk.figure, name: talk.id, feet: [0, 0, 0], yaw: 0, talkHeight: 1.5, pointAt: [0, 1.5, 0], points: false, rig: { skeleton: 'npc.test', clips: [], sockets: [] },
       joints: [], sockets: [], visible: [], drawDistance: 90,

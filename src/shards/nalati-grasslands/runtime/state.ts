@@ -59,7 +59,7 @@ import type { PanelDefinition } from '@wildshard/format/panelTemplate';
 import { Reins } from '../ride/Reins';
 import { SheepRaid } from '../creatures/shepherdView';
 import { cleanHorseName } from '../ride/horseNames';
-import { tulparSave } from '../ride/saves';
+import { legacyAdventureBond } from '@wildshard/game/quest/legacyRecords';
 import { Bow } from '@wildshard/game/weapons/Bow';
 import { Sabre, Spear } from '../weapons/nativeMelee';
 import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
@@ -461,7 +461,7 @@ interface RideCtx {
 /** Bind this shard's remaining presentation and persistence to the game owner. */
 function wireRide(ctx: RideCtx): Ride {
   let play: { toast: (text: string) => void } | null = null, savedBond: string | null = null, namingActor: string | null = null;
-  try { savedBond = ctx.persistence?.bond.read() ?? tulparSave.read('nalati-grasslands'); } catch { /* unavailable storage */ }
+  try { savedBond = ctx.persistence?.bond.read() ?? legacyAdventureBond('tulpar').read('nalati-grasslands'); } catch { /* unavailable storage */ }
   admitRenderedHerds(ctx.ctx.scope, ctx.preset.taming.herds, ctx.wildlife.herds);
   admitRidingWind(ctx.ctx.scope, wildEnv.wind);
   const names = ctx.persistence?.names.read() ?? {};

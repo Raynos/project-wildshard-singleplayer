@@ -1,7 +1,8 @@
-import { expect, test } from 'vitest';
+import { expect, test,vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { bossesSave, elitesSave, progressSave } from '../src/game/saves';
+import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } from '../src/game/quest/legacyRecords';
 import { bindAdventurePersistence } from '../src/game/quest/persistence';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import rows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
@@ -12,17 +13,18 @@ test('Nalati adopts old saves, replays stable feat identities and reloads only d
   const previous = { bosses: bossesSave.read(slug), elites: elitesSave.read(slug), progress: progressSave.read(slug) };
   const bosses = { 'golden-king': { defeated: true, rewardTaken: true, kills: 2 } };
   const elites = { aqbars: { timer: 0, discovered: true, skinTaken: true, kills: 1, retired: false } };
-  let reads = 0;
-  const legacy = { names: () => { reads++; return { 'Camp horse|horse:camp-bay': 'Kara Jorga' }; },
-    cosmetics: () => ({ owned: ['irbis-sabre'], worn: { sabre: 'irbis-sabre' } }), bond: () => '1' };
+  const legacy={names:'orchard.old-names',cosmetics:'orchard.old-coats',bond:'orchard.old-bond'},policy={...rows,legacy};
+  const oldNames=legacyAdventureNames(legacy.names),oldCosmetics=legacyAdventureCosmetics(legacy.cosmetics),oldBond=legacyAdventureBond(legacy.bond);
+  oldNames.write({'Camp horse|horse:camp-bay':'Kara Jorga'},slug);oldCosmetics.write({owned:['irbis-sabre'],worn:{sabre:'irbis-sabre'}},slug);oldBond.write('1',slug);
+  const reads=vi.spyOn(oldNames,'read');
   bossesSave.write(bosses, slug); elitesSave.write(elites, slug);
   progressSave.write({ ...previous.progress, counts: { wolf5: 3, wolf25: 3, tulpar: 1 } }, slug);
   try {
-    const saved = bindAdventurePersistence({ app, scope }, source, rows, instance, legacy);
+    const saved = bindAdventurePersistence({ app, scope }, source, policy, instance);
     expect(saved.bosses.read()).toEqual(bosses); expect(saved.elites.read()).toEqual(elites);
     expect(saved.names.read()).toEqual({ 'Camp horse|horse:camp-bay': 'Kara Jorga' });
     expect(saved.flags.all).toEqual(expect.arrayContaining(['dead:golden-king', 'felled:aqbars', 'owned:irbis-sabre', 'tamed:horse']));
-    expect(saved.flags.has('tamed:argymaq')).toBe(false); expect(reads).toBe(1);
+    expect(saved.flags.has('tamed:argymaq')).toBe(false); expect(reads).toHaveBeenCalledTimes(1);
     expect(saved.facts.achievement('wolf5')?.count).toBe(3);
     expect(saved.facts.achievement('tulpar')?.count ?? 0).toBe(0);
     saved.kill('wolf', 'alpha'); saved.feat('tame', 1); saved.feat('tame', 1);
@@ -40,15 +42,15 @@ test('Nalati adopts old saves, replays stable feat identities and reloads only d
     scope.dispose();
     bossesSave.write({}, slug); elitesSave.write({}, slug);
     progressSave.write({ ...previous.progress, counts: {} }, slug);
-    const resumed = bindAdventurePersistence({ app, scope: next }, source, rows, instance, legacy);
+    const resumed = bindAdventurePersistence({ app, scope: next }, source, policy, instance);
     expect(resumed.bosses.read()).toEqual(bosses); expect(resumed.elites.read()).toEqual(elites);
     expect(resumed.names.read()).toEqual({ tulpar: 'Argymaq' });
-    expect(resumed.bond.read()).toBe('argymaq'); expect(reads).toBe(1);
+    expect(resumed.bond.read()).toBe('argymaq'); expect(reads).toHaveBeenCalledTimes(1);
     expect(resumed.facts.achievement('wolf5')?.count).toBe(4);
     resumed.kill('wolf'); expect(resumed.facts.achievement('wolf5')?.count).toBe(5);
     expect(() => saved.bosses.read()).toThrow('disposed');
   } finally {
-    scope.dispose(); next.dispose();
+    reads.mockRestore();scope.dispose(); next.dispose();
     bossesSave.write(previous.bosses, slug); elitesSave.write(previous.elites, slug); progressSave.write(previous.progress, slug);
   }
 });

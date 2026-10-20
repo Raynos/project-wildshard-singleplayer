@@ -32,5 +32,10 @@
     "maximum": 25
   },
   "legacyNamespace": "content",
-  "refuseWrites": true
+  "refuseWrites": true,
+  "legacy": {
+    "names": "horseNames",
+    "cosmetics": "nalati.skins",
+    "bond": "tulpar"
+  }
 }

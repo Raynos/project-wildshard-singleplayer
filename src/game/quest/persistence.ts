@@ -1,3 +1,4 @@
+import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } from './legacyRecords';
 import { AdventurePersistenceSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { Flags } from '@wildshard/engine/world/interact/flags';
@@ -15,13 +16,6 @@ const names = v.record(v.string(), v.string());
 const cosmetics = v.object({ owned: v.array(v.string()), worn: names });
 /** A durable typed record; failure to persist refuses progression explicitly. */
 export interface SavedRecord<T> { read: (namespace?: string) => T; write: (value: T, namespace?: string) => boolean }
-/** Existing shard-specific legacy slots are read only when their declared field initializes. */
-export interface AdventureLegacy {
-  names?: () => Record<string, string>;
-  cosmetics?: () => v.InferOutput<typeof cosmetics>;
-  bond?: () => string | null;
-}
-
 /** Native records and projected progress share one placement identity. */
 export interface AdventurePersistence {
   flags: Flags; facts: RuntimeFacts;
@@ -44,7 +38,7 @@ export async function readAdventurePersistence(ctx: Pick<ShardContext, 'product'
  * state fields. Pine and Nalati share this owner; rows retain their validation,
  * stable fact identities, flag projections and checkpoint boundaries. */
 export function bindAdventurePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
-  input: unknown, instance = source.identity.slug, legacy: AdventureLegacy = {}): AdventurePersistence {
+  input: unknown, instance = source.identity.slug): AdventurePersistence {
   const rows = v.parse(AdventurePersistenceSchema, input), flags = new Flags(instance);
   const legacyInstance = rows.legacyNamespace === 'instance' ? instance : source.identity.slug;
   const facts = projectRuntimeFacts(bindRuntimeLedger(ctx, source, instance), undefined);
@@ -69,12 +63,12 @@ export function bindAdventurePersistence(ctx: Pick<ShardContext, 'app' | 'scope'
   const elites = record(rows.elites.key, eliteSchema, () => elitesSave.read(legacyInstance), value => {
     if (rows.elites.flagPrefix !== undefined) for (const [id, saved] of Object.entries(value)) if (saved.kills > 0 || saved.retired) flags.set(rows.elites.flagPrefix + id);
   });
-  const nameRecord = record(rows.names, names, () => { if (legacy.names === undefined) throw new Error('Missing legacy name reader'); return legacy.names(); });
-  const cosmeticRecord = record(rows.cosmetics?.key, cosmetics, () => { if (legacy.cosmetics === undefined) throw new Error('Missing legacy cosmetic reader'); return legacy.cosmetics(); }, value => {
+  const nameRecord = record(rows.names, names, () => rows.legacy?.names===undefined?{}:legacyAdventureNames(rows.legacy.names).read(legacyInstance));
+  const cosmeticRecord = record(rows.cosmetics?.key, cosmetics, () => rows.legacy?.cosmetics===undefined?{owned:[],worn:{}}:legacyAdventureCosmetics(rows.legacy.cosmetics).read(legacyInstance), value => {
     const prefix = rows.cosmetics?.flagPrefix;
     if (prefix !== undefined) for (const id of value.owned) flags.set(prefix + id);
   });
-  const bondState = rows.bond === undefined ? undefined : bindRuntimeState(ctx, source, rows.bond.key, () => legacy.bond?.() ?? '', instance);
+  const bondState = rows.bond === undefined ? undefined : bindRuntimeState(ctx, source, rows.bond.key, () => (rows.legacy?.bond===undefined?null:legacyAdventureBond(rows.legacy.bond).read(legacyInstance))??'', instance);
   const projectBond = (value: string | null): void => {
     if (value === null) return;
     for (const row of rows.bond?.flags ?? []) if (row.equals === undefined || row.equals === value) flags.set(row.flag);

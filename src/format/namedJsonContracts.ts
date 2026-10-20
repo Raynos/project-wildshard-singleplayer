@@ -35,6 +35,7 @@ export const AdventurePersistenceSchema = v.strictObject({
   bosses: recordRow, elites: recordRow, nonnegative: v.boolean(),
   legacyNamespace: v.picklist(['content', 'instance']), refuseWrites: v.boolean(),
   names: v.exactOptional(key), cosmetics: v.exactOptional(recordRow),
+  legacy:v.exactOptional(v.strictObject({names:v.exactOptional(key),cosmetics:v.exactOptional(key),bond:v.exactOptional(key)})),
   bond: v.exactOptional(v.strictObject({ key, flags: v.pipe(v.array(v.strictObject({ flag: key, equals: v.exactOptional(v.string()) })), v.maxLength(16)) })),
   counters: v.exactOptional(v.strictObject({ key, prefix: v.string(), separator: v.string(), maximum: v.pipe(natural, v.integer(), v.maxValue(4096)),
     feats: v.pipe(v.array(v.strictObject({ id: key, count: v.pipe(natural, v.integer(), v.maxValue(4096)),
