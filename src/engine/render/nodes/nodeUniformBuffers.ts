@@ -145,6 +145,8 @@ export class NodeUniformBuffers {
   /** each program's block indices by block name, and the binding point each block index was last pointed at */
   private readonly programs = new WeakMap<WebGLProgram, { readonly index: Map<string, number>; readonly point: Map<number, number> }>();
   private readonly bound = new Map<number, WebGLBuffer>();
+  /** the buffer this class last left on the generic UNIFORM_BUFFER binding (bindBufferBase sets it too); null: unknown */
+  private generic: WebGLBuffer | null = null;
   private readonly top: number;
   private readonly gl: UniformBlockGl;
 
@@ -175,11 +177,12 @@ export class NodeUniformBuffers {
       const group = groups[i];
       if (group === undefined) continue;
       const block = this.block(group);
-      if (pass === undefined || !block.passScoped || block.pass !== pass) { this.upload(block); block.pass = pass ?? -1; }
       const point = this.top - i;
+      // bind first: bindBufferBase also leaves the buffer on the generic binding, which the upload then writes through
       if (this.bound.get(point) !== block.buffer) {
-        gl.bindBufferBase(gl.UNIFORM_BUFFER, point, block.buffer); this.bound.set(point, block.buffer);
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, point, block.buffer); this.bound.set(point, block.buffer); this.generic = block.buffer;
       }
+      if (pass === undefined || !block.passScoped || block.pass !== pass) { this.upload(block); block.pass = pass ?? -1; }
       let index = known.index.get(group.name);
       if (index === undefined) { index = gl.getUniformBlockIndex(program, group.name); known.index.set(group.name, index); }
       if (index === gl.INVALID_INDEX || known.point.get(index) === point) continue;
@@ -189,7 +192,7 @@ export class NodeUniformBuffers {
   }
 
   /** Classic draws and render boundaries may bind external groups. */
-  invalidateBindings(): void { this.bound.clear(); }
+  invalidateBindings(): void { this.bound.clear(); this.generic = null; }
 
   /** free a group's buffer (its material was disposed) */
   release(group: object): void {
@@ -197,6 +200,7 @@ export class NodeUniformBuffers {
     if (block === undefined) return;
     this.gl.deleteBuffer(block.buffer);
     for (const [point, buffer] of this.bound) if (buffer === block.buffer) this.bound.delete(point);
+    if (this.generic === block.buffer) this.generic = null;
     this.blocks.delete(group);
   }
 
@@ -206,7 +210,7 @@ export class NodeUniformBuffers {
     const gl = this.gl, layout = std140Layout(group), buffer = gl.createBuffer();
     gl.bindBuffer(gl.UNIFORM_BUFFER, buffer);
     gl.bufferData(gl.UNIFORM_BUFFER, layout.size, gl.DYNAMIC_DRAW);
-    gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+    this.generic = buffer;
     // One CPU image retains unchanged slots and std140 padding between edits.
     // Slot views are made once; uploads use WebGL2's source offset/count overload.
     const data = new Float32Array(layout.size / 4);
@@ -242,12 +246,12 @@ export class NodeUniformBuffers {
       first ??= slot; last = slot;
     }
     if (first !== undefined && last !== undefined) {
-      gl.bindBuffer(gl.UNIFORM_BUFFER, block.buffer);
+      // The generic binding is left on this buffer (every UNIFORM_BUFFER user binds before it writes): no unbind call.
+      if (this.generic !== block.buffer) { gl.bindBuffer(gl.UNIFORM_BUFFER, block.buffer); this.generic = block.buffer; }
       // Layout slots are ordered. Keep the ordinary three-argument call when
       // only one changed; the span overload pays off for multiple dirty slots.
       if (first === last) gl.bufferSubData(gl.UNIFORM_BUFFER, first.offset, first.data);
       else gl.bufferSubData(gl.UNIFORM_BUFFER, first.offset, block.data, first.offset / 4, (last.offset + last.data.byteLength - first.offset) / 4);
-      gl.bindBuffer(gl.UNIFORM_BUFFER, null);
     }
   }
 }
