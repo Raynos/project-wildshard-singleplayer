@@ -10,6 +10,7 @@ import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
 import { compareLegacyInventory, legacyInventory, registeredLegacyFile, LEGACY_INVENTORY } from './legacy-shards.mjs';
 import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
 import { compareCustomSections, CUSTOM_SECTION_POLICY } from './custom-section-policy.mjs';
+import { compareClosedComponents } from './check-closed-components.mjs';
 
 export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/ratchet.json', CUSTOM_SECTION_POLICY, 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY, RUNTIME_FILES_LIST];
 
@@ -221,10 +222,11 @@ function retiredClassCeilings(trees) {
 export function comparePlatformList(list, baselineFile, candidateFile, trees) {
   if (list === 'lint/ratchet.json' || list === CUSTOM_SECTION_POLICY) {
     const read=file=>existsSync(file)?JSON.parse(readFileSync(file,'utf8')):undefined;
+    const locks = list === 'lint/ratchet.json' ? compareClosedComponents(read(baselineFile)?.closedComponents, read(candidateFile)?.closedComponents) : [];
     if(trees!==undefined)return compareCustomSections(read(resolve(trees.baselineRoot,'lint/ratchet.json'))?.budgets??{},
-      read(resolve(trees.candidateRoot,'lint/ratchet.json'))?.budgets??{},read(resolve(trees.baselineRoot,CUSTOM_SECTION_POLICY)),read(resolve(trees.candidateRoot,CUSTOM_SECTION_POLICY)));
+      read(resolve(trees.candidateRoot,'lint/ratchet.json'))?.budgets??{},read(resolve(trees.baselineRoot,CUSTOM_SECTION_POLICY)),read(resolve(trees.candidateRoot,CUSTOM_SECTION_POLICY))).concat(locks);
     if(list===CUSTOM_SECTION_POLICY)return ['custom-section policy comparison requires immutable trees'];
-    return compareCustomSections(read(baselineFile)?.budgets??{},read(candidateFile)?.budgets??{},undefined,undefined);
+    return compareCustomSections(read(baselineFile)?.budgets??{},read(candidateFile)?.budgets??{},undefined,undefined).concat(locks);
   }
   if (list === CLASS_MOVE_LIST) {
     const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')).moves : {};

@@ -121,6 +121,7 @@ def main():
         shape = re.fullmatch(r"python3 scripts/heavy-lane\.py build -- bash -c 'pnpm gen && ([^']+)'", build)
         command = ['pnpm', 'exec', 'bash', '-c', shape.group(1)] if shape else ['pnpm', 'build']
         run('build', [sys.executable, 'scripts/heavy-lane.py', 'gate', '--', *command])
+        run('closed-components', ['node', 'scripts/check-closed-components.mjs'])
         # A carrier older than 7db7073437 has no growth check in its tree; skip it there rather than fail the push.
         growth = custom_section_growth_command(tree, root, base, sha, common)
         if growth is not None:

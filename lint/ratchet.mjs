@@ -9,9 +9,10 @@ import { fileURLToPath } from 'node:url';
 import { TIME_ALLOW } from './wildshard-plugin.js';
 import { compareCounts, hardRules, requiredGuardRules } from '../scripts/guard-counts.mjs';
 import { legacyInventory, registeredLegacyFile } from '../scripts/legacy-shards.mjs';
+import { closedComponents } from '../scripts/check-closed-components.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
-const NON_FILE = new Set(['allow', 'budgets', 'debugRows']);
+const NON_FILE = new Set(['allow', 'budgets', 'debugRows', 'closedComponents']);
 const configFile = resolve(REPO, '.oxlintrc.ratchet.json');
 const ruleNames = new Set(Object.keys(JSON.parse(readFileSync(configFile, 'utf8')).rules));
 const object = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -27,6 +28,8 @@ function validate(baseline) {
       if (!object(value) || Object.values(value).some((entries) => !object(entries) || Object.values(entries).some((reason) => typeof reason !== 'string' || !reason.trim()))) throw new Error('Invalid allow section: every file needs a reason');
     } else if (key === 'budgets') {
       if (!object(value) || Object.values(value).some((n) => !number(n))) throw new Error('Invalid budgets section');
+    } else if (key === 'closedComponents') {
+      closedComponents(value);
     } else if (key === 'debugRows') {
       if (!object(value) || !number(value.max) || !Number.isInteger(value.max) || !Array.isArray(value.raisedBy)) throw new Error('Invalid debugRows section');
     } else if (!ruleNames.has(key) || !object(value) || Object.values(value).some((n) => !number(n) || !Number.isInteger(n))) throw new Error(`Invalid or unconfigured rule section: ${key}`);

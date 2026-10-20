@@ -9,6 +9,7 @@ import { discoverGeneration, generateShardJob } from './generate.mjs';
 import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
 import { compareCustomSections, CUSTOM_SECTION_POLICY } from './custom-section-policy.mjs';
 import { PORT_SHARES_JSON, portSharesMismatch, RULER_JSON } from './gen-port-shares.mjs';
+import { compareClosedComponents } from './check-closed-components.mjs';
 
 /** A warm mirror needs missing declared build outputs before resolving typed imports. */
 export async function prepareMissingCheapInputs(root = resolve(import.meta.dirname, '..')) {
@@ -29,6 +30,7 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
     const show=spec=>{try{return JSON.parse(git(['show',spec]));}catch{return undefined;}};
     const failures=compareCustomSections(show('HEAD:lint/ratchet.json')?.budgets??{},show(':lint/ratchet.json')?.budgets??{},
       show(`HEAD:${CUSTOM_SECTION_POLICY}`),show(`:${CUSTOM_SECTION_POLICY}`));
+    failures.push(...compareClosedComponents(show('HEAD:lint/ratchet.json')?.closedComponents, show(':lint/ratchet.json')?.closedComponents));
     if(failures.length>0)throw new Error(failures.join('\n'));
   }
   // Per-shard runtime/ file ceilings are shrink-only: a rise needs a new raises line (lint/runtime-files.mjs).
@@ -58,6 +60,7 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
     // Discovery changes when authored manifests change, even in an already warm
     // slot. Refresh this cheap source glue before typed lint resolves imports.
     run(process.execPath, ['scripts/gen-shards.mjs']);
+    run(process.execPath, ['scripts/check-closed-components.mjs', '--source-only']);
     const present = changed.filter(file => existsSync(resolve(scratch, file)) && /\.[cm]?[jt]sx?$/u.test(file));
     if (present.length > 0) {
       // oxlint exits 1 on 'No files found to lint' when every staged file is in its ignorePatterns (e.g. test/fixtures/).
