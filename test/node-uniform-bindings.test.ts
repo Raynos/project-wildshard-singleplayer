@@ -115,3 +115,19 @@ test('retains consecutive bindings while still uploading live changes and restor
   blocks.release(render); blocks.bind(first, [render]);
   expect(gl.bindings.get(23)).not.toBe(buffer); expect(gl.baseCalls).toBe(6);
 });
+
+test('uploads a render or frame block once per camera pass, an object block on every change', () => {
+  const gl = new Gl(), blocks = new NodeUniformBuffers(gl), program: WebGLProgram = {};
+  const camera = { value: new Matrix4() }, tint = { value: 1 };
+  const render: BlockGroup = { name: 'render', uniforms: [camera] }, object: BlockGroup = { name: 'object', uniforms: [tint] };
+  blocks.bind(program, [render, object], 1);
+  expect(gl.writes).toBe(2);
+  camera.value.makeTranslation(1, 2, 3); tint.value = 2;
+  blocks.bind(program, [render, object], 1);
+  expect(gl.writes).toBe(3);
+  blocks.bind(program, [render, object], 2);
+  expect(gl.writes).toBe(4);
+  camera.value.makeTranslation(4, 5, 6);
+  blocks.bind(program, [render, object]);
+  expect(gl.writes).toBe(5);
+});

@@ -26,8 +26,14 @@ export interface BlockGroup { readonly name: string; readonly uniforms: readonly
 
 /** where one uniform value lives in its block, and what it last wrote */
 interface Slot { readonly uniform: BlockUniform; readonly element: number; readonly offset: number; readonly data: Float32Array; last: unknown }
-/** a group's buffer and layout */
-interface Block { readonly buffer: WebGLBuffer; readonly data: Float32Array; readonly slots: readonly Slot[] }
+/** a group's buffer and layout; `pass` is the camera pass a pass-scoped block last uploaded in */
+interface Block { readonly buffer: WebGLBuffer; readonly data: Float32Array; readonly slots: readonly Slot[]; readonly passScoped: boolean; pass: number }
+
+/**
+ * three's shared groups whose uniforms only move at a render or frame update (the camera, the clock, the lights): their
+ * values are fixed within one camera pass, so a block of one uploads once per pass, not on every draw of its material.
+ */
+const PASS_GROUPS: ReadonlySet<string> = new Set(['render', 'frame']);
 
 const CHUNK = 16;
 
@@ -138,8 +144,12 @@ export class NodeUniformBuffers {
     for (const group of groups) if (!known.index.has(group.name)) known.index.set(group.name, this.gl.getUniformBlockIndex(program, group.name));
   }
 
-  /** upload what changed in `groups` and bind them, in order, to the top binding points for `program` (a linked GL program) */
-  bind(program: WebGLProgram, groups: readonly BlockGroup[]): void {
+  /**
+   * upload what changed in `groups` and bind them, in order, to the top binding points for `program` (a linked GL program).
+   * `pass` names the current camera pass (the node frame's render id; omitted: every block compares its values): a
+   * `render` / `frame` block already uploaded in that pass is bound as it is.
+   */
+  bind(program: WebGLProgram, groups: readonly BlockGroup[], pass?: number): void {
     const gl = this.gl;
     let known = this.programs.get(program);
     if (known === undefined) { known = { index: new Map(), point: new Map() }; this.programs.set(program, known); }
@@ -147,7 +157,7 @@ export class NodeUniformBuffers {
       const group = groups[i];
       if (group === undefined) continue;
       const block = this.block(group);
-      this.upload(block);
+      if (pass === undefined || !block.passScoped || block.pass !== pass) { this.upload(block); block.pass = pass ?? -1; }
       const point = this.top - i;
       if (this.bound.get(point) !== block.buffer) {
         gl.bindBufferBase(gl.UNIFORM_BUFFER, point, block.buffer); this.bound.set(point, block.buffer);
@@ -183,7 +193,7 @@ export class NodeUniformBuffers {
     // Slot views are made once; uploads use WebGL2's source offset/count overload.
     const data = new Float32Array(layout.size / 4);
     const block: Block = { buffer, data, slots: layout.slots.map((s) => ({ uniform: s.uniform, element: s.element, offset: s.offset,
-      data: new Float32Array(data.buffer, s.offset, s.storage / 4), last: undefined })) };
+      data: new Float32Array(data.buffer, s.offset, s.storage / 4), last: undefined })), passScoped: PASS_GROUPS.has(group.name), pass: -1 };
     this.blocks.set(group, block);
     return block;
   }

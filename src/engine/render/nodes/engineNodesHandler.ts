@@ -775,7 +775,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const blocks = this.blocks;
     if (blocks === null) return;
     Reflect.set(material, 'uniformsGroups', NO_GROUPS);
-    if (draw !== undefined && draw.linked !== null) blocks.bind(draw.linked, draw.groups);
+    // the node frame's render id is the camera pass the draw's updates just ran in (`textureUpdates.ts`)
+    if (draw !== undefined && draw.linked !== null) blocks.bind(draw.linked, draw.groups, this.frame.renderId);
   }
 
   /** Warm draws borrow the paired program view without rebuilding block lists.
