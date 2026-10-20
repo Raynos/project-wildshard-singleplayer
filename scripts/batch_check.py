@@ -95,7 +95,7 @@ def main():
     if args.inside:
         check_sources(root, sha, base)
         return 0
-    run(['node', str(root / 'scripts/build-mirror.mjs'), 'run', sha, '--slot', 'check', '--',
+    run(['node', str(root / 'scripts/build-mirror.mjs'), 'run', sha, '--slot', os.environ.get('WILDSHARD_MIRROR_SLOT', 'check'), '--',
          sys.executable, str(root / 'scripts/batch_check.py'), '--inside', '--rev', sha, '--base', base, *args.shards], cwd=root)
     # Release the check mirror before serve-build acquires it, then build inside its lease.
     (root / 'tmp').mkdir(exist_ok=True)
