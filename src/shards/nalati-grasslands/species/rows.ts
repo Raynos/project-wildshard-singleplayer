@@ -15,6 +15,7 @@ import { PageCreatureGuest } from '@wildshard/game/population/creatureGuest';
 import { preloadNalatiBodies, nalatiBody, poseNalatiCreature, balbalCrackGeometry, speciesGuestRows } from './presentation';
 import * as THREE from 'three';
 import { CreatureFrame } from '@wildshard/game/population/creatureFrame';
+import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { NO_FUR, smooth01, step } from '@wildshard/engine/entities/species/rigs';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -73,7 +74,7 @@ export function prepareGoldenKing(input: unknown): void {
     observations: programs.filter(row => row.numeric?.group === 'king.observe'),
     pose: { group: 'creature.pose',programs: programs.filter(row => row.numeric?.group === 'creature.pose') } });
 }
-export function animateGoldenKing(c: RigAnimCtx): void {
+export function animateGoldenKing(c: AnimalRigContext): void {
   if (clips === null) throw new Error('Golden King pose rows are not prepared');
   clips.animate(c);
 }
