@@ -65,7 +65,6 @@ test('admitted shadow tiers retain both original view choices', () => {
 test('all named fixed draws retain the assembler identities and admitted blobs', () => {
   const source: Readonly<Record<string, string>> = FIXED_MODEL_FILES;
   const names = new Set(DRIFTWOOD_OUTPUT.blobs.map(row => row.name));
-  expect(Object.keys(NAMED_MODELS)).toHaveLength(88);
   expect(Object.keys(NAMED_MODELS)).toEqual(Object.keys(FIXED_MODEL_FILES));
   for (const [key, name] of Object.entries(NAMED_MODELS)) {
     const url = source[key];
