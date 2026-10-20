@@ -2,6 +2,21 @@ import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombine
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
 @inline function length2(x:f64,z:f64):f64{return Math.sqrt(x*x+z*z);}
+// Range-reduced odd polynomial, absolute error < 1e-8 over bounded headings.
+@inline export function sine(value:f64):f64 {
+ let x=value-Math.floor(value/(2*Math.PI))*(2*Math.PI);if(x>Math.PI)x-=2*Math.PI;
+ if(x>Math.PI/2)x=Math.PI-x;else if(x< -Math.PI/2)x=-Math.PI-x;
+ const z=x*x;return x*(1+z*(-1.0/6+z*(1.0/120+z*(-1.0/5040+z*(1.0/362880+z*(-1.0/39916800+z/6227020800))))));
+}
+@inline export function cosine(value:f64):f64{return sine(value+Math.PI/2);}
+// Bounded heading polynomial: error < .00002 rad, without the general
+// atan2 runtime's nested calls on the combined module's fixed fuel budget.
+@inline function heading(y:f64,x:f64):f64 {
+ const ax=Math.abs(x),ay=Math.abs(y),m=Math.max(ax,ay);if(m==0)return 0;
+ const a=Math.min(ax,ay)/m,s=a*a;
+ let r=((((.0208351*s-.085133)*s+.180141)*s-.3302995)*s+.999866)*a;
+ if(ay>ax)r=Math.PI/2-r;if(x<0)r=Math.PI-r;return y<0?-r:r;
+}
 // Event projections; retained state belongs to the native binding at <= 10 Hz.
 @inline export function attackEntry(signal:i32,value:f64,source:i32):void {
 if(signal==Signal.spear||signal==Signal.spearResolve||signal==Signal.arenaSpear){
@@ -17,7 +32,7 @@ if(signal==Signal.spear||signal==Signal.spearResolve||signal==Signal.arenaSpear)
   } else if(signal==Signal.rider){
     const dt=f(Field.dt),px=f(Field.px),pz=f(Field.pz),ax=f(Field.ax),az=f(Field.az),x0=f(Field.x0),z0=f(Field.z0),x1=f(Field.x1),z1=f(Field.z1);
     let mode=f(Field.mode),t=f(Field.t)+dt,theta=f(Field.theta),hit=f(Field.hit),x=0.0,z=0.0,speed=0.0,turn=0.0,alpha=0.0,show=0.0,hurt=0.0;
-    if(mode==0){theta+=dt*12/26;x=px+Math.sin(theta)*26;z=pz+Math.cos(theta)*26;speed=12;turn=2.8;}
+    if(mode==0){theta+=dt*12/26;x=px+sine(theta)*26;z=pz+cosine(theta)*26;speed=12;turn=2.8;}
     else if(mode==1){x=x0;z=z0;speed=.5;turn=5;show=1;alpha=.9*(.65+.35*Math.sin(t*18));if(t>=f(Field.lane)){mode=2;t=0;hit=0;}}
     else if(mode==2){
       x=x1;z=z1;speed=21;turn=6;show=1;alpha=Math.max(0,.5-t*.3);
@@ -26,7 +41,7 @@ if(signal==Signal.spear||signal==Signal.spearResolve||signal==Signal.arenaSpear)
     }else if(mode==3){
       const dx=x1-x0,dz=z1-z0,d=length2(dx,dz),length=d==0?1:d;
       x=x1+dx/length*14;z=z1+dz/length*14;speed=7;turn=2;
-      if(t>=f(Field.flank)){mode=0;t=0;theta=Math.atan2(ax-px,az-pz);}
+      if(t>=f(Field.flank)){mode=0;t=0;theta=heading(ax-px,az-pz);}
     }
     put(Channel.mode,mode);put(Channel.t,t);put(Channel.theta,theta);put(Channel.hit,hit);put(Channel.x,x);put(Channel.z,z);
     put(Channel.speed,speed);put(Channel.turn,turn);put(Channel.alpha,alpha);put(Channel.show,show);put(Channel.hurt,hurt);

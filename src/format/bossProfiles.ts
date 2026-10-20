@@ -625,6 +625,17 @@ export const HeldBossProfileSchema = v.pipe(v.strictObject({ kind: v.literal('bo
   v.check(row => thresholds(row.fight.hpShares), 'Descending held checkpoint shares'));
 /** Strict existing AS policy wrapper; module, slots, contacts and action order remain the elite-script contract. */
 export const ScriptBossProfileSchema = v.strictObject({ kind: v.literal('boss'), pattern: v.literal('script'), fight: EliteScriptSchema });
+/** The boss host owns retained values and cadence; an admitted AS module owns
+ * lifecycle, phase, damage and boundary policy. No authored ports are lent. */
+export const ArenaScriptBossProfileSchema = v.strictObject({
+  kind: v.literal('boss'), pattern: v.literal('arena-script'), fight: v.strictObject({
+    initial: v.pipe(v.record(key, finite), v.maxEntries(32)),
+    parameters: v.pipe(v.record(key, finite), v.maxEntries(32)),
+    signals: v.pipe(v.record(key, key), v.maxEntries(16)),
+    retain: v.pipe(v.record(key, key), v.maxEntries(32)),
+  }),
+});
+export type ArenaScriptBossProfile = v.InferOutput<typeof ArenaScriptBossProfileSchema>;
 /** One bounded boss declaration; a host must bind the selected native pattern before allocating the fight. */
 export const BossProfileSchema = v.variant('pattern', [ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema]);
 /** Admitted native or existing AS boss policy data; no host, renderer, clock or callback is serialized here. */

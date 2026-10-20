@@ -1,3 +1,6 @@
+import { bossFight, type ArenaBossScript } from '@wildshard/game/plugin/bossPhase';
+import { ArenaScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
+import { parse } from 'valibot';
 import { CoupledEncounter, type EncounterSchedule } from '@wildshard/game/boss/encounterPatrol';
 import type { TitanCtx, TitanFightHost, TitanPlay, TitanRiders, Chain, StormRider } from './bossBindings';
 import { weaponSpecimen } from '../weapons/loadout';
@@ -91,6 +94,7 @@ export class StormTitanFight implements BossScript {
   private arenaReady = false; private arenaShield = false; private refusalMask = 0;
   private readonly author: ReturnProgram;
   private readonly rules: ReturnProgram;
+  private readonly life: ArenaBossScript;
   private readonly fightDraw: ReturnType<typeof installChannelPrograms>;
   private readonly viewRead = { fighting: 0, victoryT: -1, phase: 0, domeBroken: 0, open: 0, flash: 0 };
 
@@ -103,6 +107,7 @@ export class StormTitanFight implements BossScript {
     this.field = new ArenaField(this.data.TITAN_FIRE_FIELD, fireLaw, app.rng.stream('ai'));
     const windLaw = ReturnProgram.page(this.data.programs.wind, ctx.game.levelScope);
     this.rules = ReturnProgram.page(this.data.programs.rules, ctx.game.levelScope);
+    this.life = bossFight(parse(ArenaScriptBossProfileSchema,this.data.TITAN_SCRIPT),{ program: this.rules });
     this.support = new CoupledEncounter(this.data.TITAN_SUPPORT, this.rules, app.rng.stream('ai'));
     this.body = titanCloud(scene, this.pose);
     this.fightDraw = installChannelPrograms(this.data.geometry.poses, 'titan.fight', new Map<string,unknown>([
@@ -123,7 +128,7 @@ export class StormTitanFight implements BossScript {
     return this.open;
   }
   private heartDecision(amount: number): Readonly<Record<string, number>> {
-    return this.rules.project('heart', { phase: this.phase, fighting: Number(this.fighting), invuln: Number(this.invuln),
+    return this.life.event('damage', { phase: this.phase, fighting: Number(this.fighting), invuln: Number(this.invuln),
       mode: ['idle', 'aim', 'strike', 'stuck'].indexOf(this.spear), broke: Number(this.domeBroken), hp: this.hp, amount,
       fullDraw: this.data.TITAN_TUNING.fullDraw, fullDrawMul: this.data.TITAN_TUNING.fullDrawMul });
   }

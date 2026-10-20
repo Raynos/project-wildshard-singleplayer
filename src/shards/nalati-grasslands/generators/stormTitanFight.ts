@@ -130,3 +130,12 @@ export const TITAN_CLOCKS = {
     { id: 'chain', law: { ...TITAN_SCHEDULES.chain, signal: 'arenaChain' } }],
   volley: { launcher: 'chain', capacity: TITAN_CHAINS.count, landing: TITAN_CHAINS.law, trail: TITAN_TRAIL },
 };
+
+/** Arena boss-script contract: retained lifecycle state is owned by G474. */
+export const TITAN_SCRIPT = { kind: 'boss', pattern: 'arena-script', fight: {
+  initial: { phase: 0, hp: TITAN_PLACE.heartHp, invuln: 0, fighting: 0, open: 0, victoryT: -1, tied: 0, sealed: 0, broke: 0, immuneT: 0, introBolt: 0 },
+  parameters: { fullHp: TITAN_PLACE.heartHp, fullDraw: TITAN_TUNING.fullDraw, fullDrawMul: TITAN_TUNING.fullDrawMul },
+  signals: { reset: 'bossReset', begin: 'bossBegin', phase: 'bossPhase', damage: 'bossDamage', step: 'bossStep', victory: 'bossVictory',
+    clamp: 'bossClamp', invulnerable: 'bossShield', seal: 'bossSeal', tie: 'bossTie', intro: 'bossIntro' },
+  retain: Object.fromEntries(['phase','hp','invuln','fighting','open','victoryT','tied','sealed','broke','immuneT','introBolt'].map(field => [field,field])),
+} };
