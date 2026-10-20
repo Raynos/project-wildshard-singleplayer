@@ -1,6 +1,6 @@
 /** Schedule render inputs and coalesce stock pure reads between callbacks. */
 import type { Object3D, Texture } from 'three';
-import { MaterialReferenceNode, ModelNode, NodeUpdateType, ReferenceNode, TextureNode, UniformGroupNode, UniformNode, type Node, type NodeFrame } from 'three/webgpu';
+import { MaterialReferenceNode, ModelNode, Node, NodeUpdateType, ReferenceNode, TextureNode, UniformGroupNode, UniformNode, type NodeFrame } from 'three/webgpu';
 
 interface FlipTexture extends TextureNode {
   readonly _matrixUniform: object | null;
@@ -28,6 +28,12 @@ type Update = { readonly kind: 'ordinary'; readonly node: Node } | {
   /** the stock model world matrix: the drawn object and its matrixWorld */
   readonly kind: 'model'; readonly node: Node; readonly parts: { object3d: Object3D | null }; readonly uniform: ValueParts;
 } | {
+  /**
+   * a stock UniformNode updated per render pass or per frame (the camera inputs, the clock: `onRenderUpdate` /
+   * `onFrameUpdate`, whose updates never refuse): dispatched once per pass / frame id by this plan, `done` the id it last ran
+   */
+  readonly kind: 'pass'; readonly node: Node; done: number;
+} | {
   /** a stock object uniform group: marked for update on every draw */
   readonly kind: 'group'; readonly node: Node; readonly group: { needsUpdate: boolean };
 };
@@ -49,6 +55,7 @@ const methodOf = (stock: unknown, name: string): unknown => typeof stock === 'ob
 const referenceUpdate = methodOf(referenceStock, 'update'), referenceSource = methodOf(referenceStock, 'updateReference');
 const materialSource = methodOf(materialStock, 'updateReference');
 const modelUpdate = methodOf(modelStock, 'update'), groupUpdate = methodOf(groupStock, 'update');
+const uniformStock = prototypeOf(UniformNode), nodeSource = methodOf(prototypeOf(Node), 'updateReference');
 function stockDispatch(node: Node, stock: unknown): boolean {
   return Object.getPrototypeOf(node) === stock && node.updateType === NodeUpdateType.OBJECT && DISPATCH.every(name => !Object.hasOwn(node, name));
 }
@@ -85,6 +92,8 @@ function directUpdate(node: Node): Update | null {
     return isModelParts(node) && isValueParts(uniform) ? { kind: 'model', node, parts: node, uniform } : null;
   }
   if (stockDispatch(node, groupStock)) return isGroupParts(node) ? { kind: 'group', node, group: node } : null;
+  if (Object.getPrototypeOf(node) === uniformStock && node.updateReference === nodeSource &&
+    (node.updateType === NodeUpdateType.RENDER || node.updateType === NodeUpdateType.FRAME)) return { kind: 'pass', node, done: -1 };
   return null;
 }
 
@@ -155,6 +164,14 @@ export class TextureUpdates {
         const object = frame.object;
         if (object !== null && entry.node.update === modelUpdate) { entry.parts.object3d = object; entry.uniform.value = object.matrixWorld; continue; }
       } else if (entry.kind === 'group' && entry.node.update === groupUpdate) { entry.group.needsUpdate = true; continue; }
+      else if (entry.kind === 'pass') {
+        // NodeFrame runs it at most once per pass / frame anyway: this plan asks once per id, not on every draw
+        const type = entry.node.updateType, id = type === NodeUpdateType.RENDER ? frame.renderId : type === NodeUpdateType.FRAME ? frame.frameId : -1;
+        if (id >= 0) {
+          if (entry.done === id) continue;
+          entry.done = id;
+        }
+      }
       frame.updateNode(entry.node);
       // A callback can retarget a sampler, edit its texture or recursively render.
       epoch = ++plan.epoch;
