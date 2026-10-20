@@ -20,7 +20,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 
 | # | Task | Refs | Taken |
 |---|---|---|---|
-| X1 | G540 hover speed classes (padding shards keep road speed via a per-shard row) + Developer-only BOOST HUD toggle (2x road / 4x in-shard); announce the HUD change on herdr before/after (E332) | G540 | |
+| X1 | G540 hover speed classes (padding shards keep road speed via a per-shard row) + Developer-only BOOST HUD toggle (2x road / 4x in-shard); announce the HUD change on herdr before/after (E332) | G540 | sp-x6 17:45 |
 | X2 | C6 G516 items A: 1 wearSkin (Nalati adopts), 3 DW loot economy (Pine shop moves on), 5 rangedFeel (Nalati crossbow), 7 CrowdWeaponTarget (Pine wildlife), 12 firearm/nativeItems/melee profiles merge or delete | G516, G533 step 3 | |
 | X3 | C6 G516 items B: 2 bowVariant, 4 heldLauncher to game/weapons, 6 loadout/mounted, 9 ridingCourse, 10 Thrown (approve at HOST-BAR >= 5/6 with a real second shard, else charge back), 8 rename engine/player/nalatiArms.ts to a generic FP arms builder; Nine Jian combo onto the held-melee host | G516, G515, G533 step 3 | |
 | X4 | Cut the G520 charged-back hosts (Nalati +998, Nine +196, Pine +137, DW +12): each gets a real second shard this wave or moves into its shard's AS + data and the platform module is deleted | G520, G518 | |
