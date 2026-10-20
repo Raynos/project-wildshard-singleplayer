@@ -14,8 +14,8 @@ import {
 import type { GridCell } from './assembly';
 import { ROAD_SKY } from './frameModel';
 import { coverageMaterial, coverageTable, gpuOnlyTextureBytes, uniformPart, type CoverageColours, type SolidPart } from './roadSolid';
-import { bytePlan, cullIntoSteps, finishRoadSteps, gpuOnlyRoad, meshBytes, meshBytesSteps, type CullSource, type RoadCuller } from './roadCull';
-import { allocateRenderSteps, type PlatformRenderAdmission, type PlatformRenderBytePlan } from './renderResidency';
+import { bytePlan, cullIntoSteps, gpuOnlyRoad, meshBytesSteps, type CullSource, type RoadCuller } from './roadCull';
+import { allocateRenderSteps, type PlatformRenderAdmission } from './renderResidency';
 import {
   ENTRY_ASPHALT, GAP_HALF, RING_ISLAND, RING_OUTER, ROAD_HALF, SEGMENT_HALF, TURN_IN_HALF, segmentPoint,
   type ArmSide, type LookScope, type RoadJunction, type RoadLayout, type RoadSign, type SignLine,
@@ -466,26 +466,8 @@ function texturedSources(layout: RoadLayout, home: GridCell): TexturedSource[] {
     { id: 'road.signs', name: 'grid-signs', mesher: signMesher(layout.signs, home, atlas), width: atlas.width, height: atlas.height, paint: () => signAtlasTexture(atlas), overlay: false, texelBytes: 2, source: 'data', material: (map) => coverageMaterial(map, signCoverage(), 'g227-grid-sign-cover') },
   ];
 }
-function texturedPlan(source: TexturedSource, cull: RoadCuller | undefined): PlatformRenderBytePlan {
-  return bytePlan(source.id, meshBytes([mesherSource(source.mesher)], ROAD_FLOATS, cull === undefined ? undefined : { pitch: cull.pitch }, true), gpuOnlyTextureBytes(source.width, source.height, 1, source.source, source.texelBytes));
-}
-/**
- * G144's preflight for the boulevard: per textured mesh (asphalt, junctions, signs) the exact retained bytes its admitted
- * build will hold once uploaded (vertex buffers and every canvas mip on the GPU, only the indices and a one-pixel canvas on
- * the JS side, `gpuOnlyRoad`), from the same meshers and the atlas layout,
- * without building a geometry or painting a canvas. The kerbs, islands and streetlights belong to the deck's plan.
- */
-export function roadLookPlans(layout: RoadLayout, home: GridCell, cull?: RoadCuller): PlatformRenderBytePlan[] {
-  return texturedSources(layout, home).map((source) => texturedPlan(source, cull));
-}
 
-/**
- * Draw the boulevard; everything is disposed with the scope. The asphalt, junctions and signs are three textured meshes (each
- * culled per view through `cull`, the per-view budget); the kerbs, islands and streetlights go to `solid`, the road system's
- * one solid material. With `admission` (G144, the Grid memory admission row) each textured mesh is built only after its
- * byte plan is admitted, and disposes on the admission's scope; without it the build is unchanged.
- */
-export function installRoadLook(input: RoadLookInput): RoadLookState { return finishRoadSteps(installRoadLookSteps(input)); }
+
 
 /** The same admitted road builders, with paint opportunities during their counts and clipped indices. */
 export function* installRoadLookSteps(input: RoadLookInput): Generator<void, RoadLookState> {

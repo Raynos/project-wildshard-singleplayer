@@ -177,8 +177,6 @@ async function regionalPresentation(admitted: AdmittedProduct, start: { readonly
 /** What a leak check reads from a prepared region, beside the view's own census. */
 export interface RegionalWorldCensus { readonly bodies: number; readonly colliders: number; readonly sceneBound: boolean; readonly parented: boolean; readonly disposed: boolean }
 const census = new WeakMap<RegionalRuntimeFoundation, () => RegionalWorldCensus>();
-/** The live native and scene state of a foundation this module prepared (null for any other foundation). */
-export function regionalWorldCensus(foundation: RegionalRuntimeFoundation): RegionalWorldCensus | null { return census.get(foundation)?.() ?? null; }
 
 const isMaterial = (value: unknown): value is Material => value instanceof Material;
 /** a level's sky backdrop as the page's sky layers it (G223) */

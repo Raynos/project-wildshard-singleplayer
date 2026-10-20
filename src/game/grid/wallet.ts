@@ -1,7 +1,6 @@
 import * as v from 'valibot';
 import type { SaveStore, InstanceSaveSlot } from '@wildshard/engine/saves/store';
 import type { ItemRuntime } from '@wildshard/engine/combat/items';
-import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
 import { inventoryKey, purseKey } from '../localSaveKeys';
 
@@ -81,16 +80,6 @@ export class GridWallet {
   }
 }
 
-/** At the cell edge cancel local input immediately; ownership, ammo, fuel and selection stay in the source shard. */
-export function stowGridEquipment(equipment: EquipmentService, runtimes: ReadonlyMap<string, ItemRuntime>): void {
-  if (runtimes.has(equipment.current.row.id)) {
-    equipment.stowed = true; equipment.adsHeld = false; equipment.altHeld = false; equipment.visible = false;
-  }
-  for (const runtime of runtimes.values()) {
-    const saved = runtime.snapshot(); runtime.restore({ ...saved, held: false, chargeTime: 0, pending: [] });
-  }
-  for (const tool of equipment.tools) if (runtimes.has(tool.row.id)) tool.enabled = false;
-}
 
 /** Retire a shard-owned ride through its original owner; the platform hoverboard is a separate traveller mode. */
 export function stowGridMount(traveller: { readonly ride?: { dismount: () => void } | null }): void {

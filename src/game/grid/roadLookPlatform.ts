@@ -17,11 +17,11 @@ import { Mesh, type Camera, type Object3D } from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { GridCell } from './assembly';
 import type { LookScope, RoadLayout } from './roadLayout';
-import { allocateRenderSteps, type PlatformRenderAdmission, type PlatformRenderBytePlan } from './renderResidency';
+import { allocateRenderSteps, type PlatformRenderAdmission } from './renderResidency';
 import { installRoadLookSteps, RoadOverlayLight, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
-import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSource, stone, strata, type SeamCurtain, type SeamLookState, type SeamPiece } from './seamLook';
-import { bytePlan, cullIntoSteps, finishRoadSteps, gpuOnlyRoad, meshBytes, meshBytesSteps, ROAD_LOD, type CullPlan, type RoadCuller } from './roadCull';
+import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSource, stone, strata, type SeamLookState, type SeamPiece } from './seamLook';
+import { bytePlan, cullIntoSteps, finishRoadSteps, gpuOnlyRoad, meshBytesSteps, ROAD_LOD, type CullPlan, type RoadCuller } from './roadCull';
 import { GRAIN_LAYERS, GRAIN_SIZE, gpuOnlyTextureBytes, grainArray, SOLID_FLOATS, solidGeometry, solidMaterial, solidSource, type SolidPart } from './roadSolid';
 
 /** What the road system reads and where it draws. */
@@ -49,15 +49,6 @@ export interface PlatformRoad {
   readonly overlayLight: (roadWeight: number) => void;
 }
 
-/** G144's preflight for the deck: the merged solid parts after clip and far LOD, and the grain array (every mip of every
- *  layer); admitted, the vertex buffers and the grain data keep no JS copy once uploaded (`gpuOnlyRoad`). */
-export function deckPlan(parts: readonly SolidPart[], pitch: number): PlatformRenderBytePlan {
-  return bytePlan('road.deck', meshBytes(parts.map(solidSource), SOLID_FLOATS, { pitch, lod: ROAD_LOD }, true), gpuOnlyTextureBytes(GRAIN_SIZE, GRAIN_SIZE, GRAIN_LAYERS.length, 'data'));
-}
-/** G144's preflight for the curtain: its positions and index after clip (no LOD, no texture), positions GPU-only. */
-export function curtainPlan(curtain: SeamCurtain, pitch: number): PlatformRenderBytePlan {
-  return bytePlan('road.curtain', meshBytes([curtainSource(curtain)], CURTAIN_FLOATS, { pitch }, true));
-}
 
 /** Install the platform's road system; everything disposes with `scope` (or, admitted, with each allocation's child scope). */
 export function installPlatformRoad(input: PlatformRoadInput): PlatformRoad {

@@ -176,10 +176,6 @@ export function mipTexels(width: number, height: number): number {
   for (let w = width, h = height; ; w = Math.max(1, w >> 1), h = Math.max(1, h >> 1)) { texels += w * h; if (w === 1 && h === 1) break; }
   return texels;
 }
-/** An RGBA8 texture's retained bytes: its pixels on the CPU (the canvas backing store or the data array) and every mip level on the GPU. */
-export function rgbaTextureBytes(width: number, height: number, layers = 1): { readonly jsBytes: number; readonly gpuBytes: number } {
-  return { jsBytes: width * height * 4 * layers, gpuBytes: mipTexels(width, height) * 4 * layers };
-}
 /** G144: the same texture once `gpuOnlyTexture` let its source go on upload: a canvas shrinks to one RGBA pixel, a data
  *  array empties; the GPU copy is unchanged. `texelBytes` is the GPU format's bytes per texel (4 for RGBA8, 1 for an R8
  *  canvas upload such as the sign atlas). */

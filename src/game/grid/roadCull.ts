@@ -38,13 +38,6 @@ const CELL_EDGE = CHUNK_HALF;
 /** The bin a point falls in: squares of `pitch / BIN_DIVISOR` (half a pitch), centred on multiples of it (junctions, segment middles, cell middles). */
 export function cullBin(x: number, z: number, pitch: number): string { const s = pitch / BIN_DIVISOR; return `${String(Math.round(x / s))},${String(Math.round(z / s))}`; }
 
-/**
- * Split (for drawing only) every triangle that crosses a bin edge, so each bin's sphere stays inside its square: the
- * generator's adaptive lattice lays flat road runs as triangles a whole segment long. A new vertex sits on the cut edge with
- * every attribute interpolated linearly, so the drawn surface, its colours, normals and uvs are exactly the old ones. The
- * collider is the generator's own mesh and never sees this.
- */
-export function clipToBins(geometry: BufferGeometry, pitch: number): void { finishRoadSteps(clipToBinsSteps(geometry, pitch)); }
 
 /** The same attribute interpolation and index order, yielding between bounded triangle/copy batches. */
 export function* clipToBinsSteps(geometry: BufferGeometry, pitch: number): Generator<void> {
@@ -119,8 +112,6 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
   return { extra, out };
 }
 
-/** Sort a geometry's triangles into bins by centroid; returns the sorted index and each bin's sphere and range. */
-export function cullPlan(geometry: BufferGeometry, pitch: number, lod: readonly CullLod[] = []): CullPlan { return finishRoadSteps(cullPlanSteps(geometry, pitch, lod)); }
 
 /** Sort the identical bin/LOD runs with pauses inside triangle batches; no partial plan is published. */
 export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: readonly CullLod[] = []): Generator<void, CullPlan> {
@@ -190,8 +181,6 @@ function lodKey(x: number, y: number, z: number, layer: number, unlit: number, p
 
 /** How the road builders cull a mesh (`cullRoadMesh` at `pitch`, the view camera) and where each mesh's plan is kept. */
 export interface RoadCuller { readonly pitch: number; readonly camera?: () => Camera | undefined; readonly plans: Map<Mesh, CullPlan> }
-/** Cull `mesh` per view (with the deck's far `lod`), keeping its plan for the budget readouts. */
-export function cullInto(culler: RoadCuller, mesh: Mesh, lod: readonly CullLod[] = []): void { finishRoadSteps(cullIntoSteps(culler, mesh, lod)); }
 
 /** Complete clipping and sorting before installing the live view hook and publishing its plan. */
 export function* cullIntoSteps(culler: RoadCuller, mesh: Mesh, lod: readonly CullLod[] = []): Generator<void> {
@@ -210,13 +199,6 @@ export interface CullSource { readonly vertices: number; readonly position: (k: 
 /** What `cullRoadMesh` will hold: the geometry's vertices before and after `clipToBins`, and the sorted source's length. */
 export interface CullCounts { readonly vertices: number; readonly clipped: number; readonly source: number }
 
-/**
- * G144's preflight for a culled mesh: the vertex and index counts `clipToBins` and `cullPlan` will produce, from the same
- * clip arithmetic (`clipCore`, positions only) and the same LOD key, without allocating the geometry. Far LOD: a bin keeps a
- * clipped triangle at a tier iff its three vertices cluster to three different representatives, i.e. no two of them share
- * a lattice key (a vertex on a line keeps itself), so the count is independent of bin order.
- */
-export function cullCounts(sources: readonly CullSource[], pitch: number, lod: readonly CullLod[] = []): CullCounts { return finishRoadSteps(cullCountsSteps(sources, pitch, lod)); }
 
 /** Exact pre-allocation counts, with the same clipping arithmetic yielded in bounded batches. */
 export function* cullCountsSteps(sources: readonly CullSource[], pitch: number, lod: readonly CullLod[] = []): Generator<void, CullCounts> {
@@ -242,13 +224,6 @@ export function* cullCountsSteps(sources: readonly CullSource[], pitch: number, 
 
 /** Retained bytes: JS (typed arrays kept on the CPU) and GPU (buffers and every mip level). */
 export interface RenderBytes { readonly jsBytes: number; readonly gpuBytes: number }
-/**
- * The retained bytes of a road mesh of `floats` Float32 values per vertex and a Uint32 index: culled, its clipped vertex
- * buffers (CPU + GPU), the dynamic drawn index (CPU + GPU, the source's length) and the sorted source (CPU only); unculled,
- * its vertex buffers and index as built. `gpuOnly` (an admitted mesh, `gpuOnlyRoad`): the vertex buffers hold no CPU copy
- * once uploaded, so only the indices count on the JS side.
- */
-export function meshBytes(sources: readonly CullSource[], floats: number, cull?: { readonly pitch: number; readonly lod?: readonly CullLod[] }, gpuOnly = false): RenderBytes { return finishRoadSteps(meshBytesSteps(sources, floats, cull, gpuOnly)); }
 
 /** Yielded byte planning remains exact and completes before an allocation can be admitted. */
 export function* meshBytesSteps(sources: readonly CullSource[], floats: number, cull?: { readonly pitch: number; readonly lod?: readonly CullLod[] }, gpuOnly = false): Generator<void, RenderBytes> {
@@ -300,16 +275,6 @@ function visibleRuns(plan: CullPlan, matrixWorld: Matrix4, frustum: Frustum, sph
 /** A culled mesh's live readout. */
 export interface CullState { readonly bins: number; readonly visible: number; readonly triangles: number; readonly rebuilds: number }
 
-/**
- * Cull a road mesh by bins before every draw. `main` names the view camera (other cameras, a reflection or a probe, draw
- * the main camera's last set rather than thrash the index); without one every camera culls. Returns the readout.
- */
-export function cullRoadMesh(mesh: Mesh, pitch: number, main?: () => Camera | undefined, lod: readonly CullLod[] = []): { plan: CullPlan; state: () => CullState } {
-  const geometry = mesh.geometry;
-  clipToBins(geometry, pitch);
-  const plan = cullPlan(geometry, pitch, lod);
-  return attachRoadCull(mesh, plan, main);
-}
 
 function attachRoadCull(mesh: Mesh, plan: CullPlan, main?: () => Camera | undefined): { plan: CullPlan; state: () => CullState } {
   const geometry = mesh.geometry;

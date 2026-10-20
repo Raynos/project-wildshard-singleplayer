@@ -214,15 +214,6 @@ void main() {
 const STONE = 0xc9c4b8, DIKE = 0xe0dcd2;
 const LAYER_OF: Readonly<Record<Exclude<SeamBucket, 'curtain'>, GrainLayer>> = { ground: 'gravel', stone: 'stone', rock: 'strata', dike: 'riprap', rail: 'white' };
 
-/**
- * The seams for the one solid road material (SF17b per-view budget): ground, stone, rock, dike and rail become solid parts
- * (their own vertices, the old material colour or the generator's, the old texture as a grain layer, the rail unlit), and
- * the additive curtain its own small geometry. The triangles are exactly `seamLookGeometry`'s.
- */
-export function seamSolid(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch = 555): { parts: SolidPart[]; curtain: BufferGeometry; state: SeamLookState } {
-  const { parts, curtain, state } = seamSolidSource(pieces, home, surfaces, pitch);
-  return { parts, curtain: curtainGeometry(curtain), state };
-}
 /** `seamSolid` with the curtain still as arrays, so its geometry is built (and admitted, G144) by `roadLookPlatform.ts`. */
 export function seamSolidSource(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch = 555): { parts: SolidPart[]; curtain: SeamCurtain; state: SeamLookState } {
   const { geometry, state } = seamLookGeometry(pieces, home, surfaces, pitch), bucketOfTriangle = new Int8Array((geometry.getIndex()?.count ?? 0) / 3).fill(-1);

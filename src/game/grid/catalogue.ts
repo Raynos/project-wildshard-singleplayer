@@ -39,10 +39,6 @@ export const GridCatalogueSchema = v.pipe(v.strictObject({ version: v.literal(0)
 export type GridCatalogue = v.InferOutput<typeof GridCatalogueSchema>;
 /** A copy's declared identity: its accent and its number panels (copyIdentity.ts). */
 export type CopyIdentity = v.InferOutput<typeof identity>;
-/** Catalogue placement before its render origin is derived. */
-export type GridPlacement = GridCatalogue['cells'][number];
-/** An open plot's placement (G198): no shard, so no slug, no save namespace and no simulation. */
-export type GridPlotPlacement = GridCatalogue['plots'][number];
 /** Runtime switches originate from Settings and build-time DEVSERVER; Nine Dragon defaults on only in DEVSERVER. */
 export interface GridMode { developer: boolean; devserver: boolean; nineDragon?: boolean }
 /** Reject malformed or duplicate placement data before allocating an assembly. */
