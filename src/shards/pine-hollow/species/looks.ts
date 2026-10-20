@@ -62,8 +62,3 @@ export function pineLooks(thrall: ThrallLook): SpeciesLook[] {
     pineElkLook(thrall), legacyLook('antler-king', undefined, true)];
 }
 
-/** King registers its bespoke body at prewarm; only the hull strategy must be declared at kit. */
-export const KING_HULL_LOOK: Pick<SpeciesLook, 'preload' | 'skin'> = {
-  preload: preloadPineCreatures,
-  skin: (v, bones) => skinPineHull('antler-king', v.id, bones),
-};
