@@ -540,7 +540,7 @@ export function skinnedModel(url: string): SkinnedModel {
     }
     await MeshoptDecoder.ready;
     const weights = rawWeights(input, MeshoptDecoder);
-    const gltf = await createRigLoader().parseAsync(Uint8Array.from(input).buffer, '');
+    const gltf = await createRigLoader().parseBytesAsync(input, '');
     const meshes: SkinnedMesh[] = [];
     gltf.scene.traverse((node: Object3D) => { if (isSkinnedMesh(node)) meshes.push(node); });
     const first = meshes[0];
@@ -1816,7 +1816,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
   };
   try {
     for (const hash of hashes) {
-      const bytes = await product.assets.read(hash), gltf = await createRigLoader().parseAsync(Uint8Array.from(bytes).buffer, ''), cleanup: (() => void)[] = [];
+      const bytes = await product.assets.read(hash), gltf = await createRigLoader().parseBytesAsync(bytes, ''), cleanup: (() => void)[] = [];
       try {
         const meshes: Mesh[] = [];
         gltf.scene.traverse(object => {
