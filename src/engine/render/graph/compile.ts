@@ -432,9 +432,11 @@ function firstSkyLight(frame: NodeFrame): THREE.DirectionalLight | null {
   }
   return first;
 }
+/** The sky light's direction or colour: one light per camera pass, so it updates once per pass, never per draw (its world
+ *  position walks the light's parent chain). */
 function skyLightInput(colour: boolean): Node<'vec3'> {
   const value = new THREE.Vector3(), target = new THREE.Vector3();
-  return uniform(value).onObjectUpdate(frame => {
+  return uniform(value).onRenderUpdate(frame => {
     const light = firstSkyLight(frame);
     if (light === null) return value.set(0, 0, 0);
     if (colour) return value.set(light.color.r, light.color.g, light.color.b).multiplyScalar(light.intensity);
