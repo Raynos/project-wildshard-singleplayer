@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./population/creatureFrame": "./population/creatureFrame.ts",
     "./ambient/crowdDraw": "./ambient/crowdDraw.ts",
     "./riding/pagePasture": "./riding/pagePasture.ts",
     "./population/relations": "./population/relations.ts",

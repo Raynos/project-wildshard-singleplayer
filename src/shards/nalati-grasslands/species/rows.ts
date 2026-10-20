@@ -1,5 +1,5 @@
 import { arenaRoomBrain } from '@wildshard/game/boss/arenaRoom';
-import { parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
+import { parseClientChannels } from '@wildshard/format/clientChannels';
 import speciesRows from './speciesRows.json' with { type: 'json' };
 import type { SpeciesRow, SpeciesVariant } from '@wildshard/engine/ai/species';
 import { app } from '@wildshard/engine/app/runtime';
@@ -16,11 +16,10 @@ import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { preloadNalatiBodies, nalatiBody, poseNalatiCreature, balbalCrackGeometry, balbalProgram } from './presentation';
 import * as THREE from 'three';
 import * as schema from 'valibot';
-import { numericCreaturePose, installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
-import { NO_FUR, lookAngles, smooth01, step } from '@wildshard/engine/entities/species/rigs';
+import { CreatureFrame } from '@wildshard/game/population/creatureFrame';
+import { NO_FUR, smooth01, step } from '@wildshard/engine/entities/species/rigs';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import type { Vector3 } from 'three';
 
 import { LEOPARD_SPECIES } from './leopard';
@@ -98,32 +97,17 @@ export interface GoldenKingPorts {
 }
 const kingBrains = new WeakMap<Animal, GoldenKingPorts>();
 export function bindGoldenKing(a: Animal, ports: GoldenKingPorts): void { kingBrains.set(a, ports); }
-let clips: ReturnType<typeof numericCreaturePose> | null = null;
-/** Bind the admitted numeric channels before the first body or Explorer pose. */
-let observationRows: ClientChannelProgram[] = [];
+let clips: CreatureFrame | null = null;
+/** Bind the admitted visual state and numeric channels before any body pose. */
 export function prepareGoldenKing(input: unknown): void {
-  const programs = parseClientChannels(input); observationRows = programs.filter(row => row.numeric?.group === 'king.observe');
-  clips = numericCreaturePose({ group: 'creature.pose', programs: programs.filter(row => row.numeric?.group === 'creature.pose') });
+  const programs = parseClientChannels(input);
+  clips = new CreatureFrame({ ...speciesRows.kingFrame,defaults: speciesRows.kingPoseDefaults,
+    observations: programs.filter(row => row.numeric?.group === 'king.observe'),
+    pose: { group: 'creature.pose',programs: programs.filter(row => row.numeric?.group === 'creature.pose') } });
 }
-const kingFrames = new WeakMap<AnimalRigContext['bones'], { frame: AnimalRigContext; look: { yaw: number; pitch: number }; draw: ReturnType<typeof installChannelPrograms> }>();
-/** Frame observations and terrain attachment; ordered rows pose the original bones. */
-export function animateGoldenKing(c: AnimalRigContext): void {
-  const retained = c.mem, dt = c.dt;
-  retained['floorS'] = (retained['floorS'] ?? retained['floorY'] ?? 0) + ((retained['floorY'] ?? 0) - (retained['floorS'] ?? retained['floorY'] ?? 0)) * Math.min(1, dt * 8);
-  if (!c.alive) retained['deadT'] = (retained['deadT'] ?? 0) + dt;
-  c.animal.yOffset = (retained['floorS'] ?? 0) - terrainHeight(c.animal.position.x, c.animal.position.z) + (retained['lift'] ?? 0) - Math.max(0, (retained['deadT'] ?? 0) - .9) * .9;
-  retained['kneelS'] = (retained['kneelS'] ?? 0) + ((retained['kneel'] ?? 0) - (retained['kneelS'] ?? 0)) * Math.min(1, dt * 5);
-  retained['raiseS'] = (retained['raiseS'] ?? 0) + ((retained['raise'] ?? 0) - (retained['raiseS'] ?? 0)) * Math.min(1, dt * 6);
-  let rig = kingFrames.get(c.bones);
-  if (rig === undefined) {
-    const frame = { ...c, mem: { ...speciesRows.kingPoseDefaults } }, look = { yaw: 0, pitch: 0 };
-    for (const row of observationRows) for (const output of row.numeric?.outputs ?? []) { const key = output.path[0]; if (key === undefined) throw new Error('Missing King visual field'); frame.mem[key] = 0; }
-    rig = { frame, look, draw: installChannelPrograms(observationRows, 'king.observe', new Map<string, unknown>([['frame',frame],['mem',frame.mem],['look',look]])) }; kingFrames.set(c.bones, rig);
-  }
-  const { frame, look, draw } = rig, m = frame.mem; Object.assign(frame, c); frame.mem = m; Object.assign(m, retained); Object.assign(look, lookAngles(c, 1.65, 1, .5));
-  draw.evaluate({ time: c.t, delta: c.dt, values: {} });
+export function animateGoldenKing(c: RigAnimCtx): void {
   if (clips === null) throw new Error('Golden King pose rows are not prepared');
-  clips(frame);
+  clips.animate(c);
 }
 export const GOLDENKING_SPECIES: SpeciesDef = {
   ...speciesRows.king, fur: NO_FUR,

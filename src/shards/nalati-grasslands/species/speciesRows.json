@@ -129,5 +129,40 @@
     "crown": 1,
     "kneelS": 0,
     "raiseS": 0
+  },
+  "kingFrame": {
+    "smooth": [
+      {
+        "input": "floorY",
+        "output": "floorS",
+        "rate": 8,
+        "initial": null
+      },
+      {
+        "input": "kneel",
+        "output": "kneelS",
+        "rate": 5,
+        "initial": 0
+      },
+      {
+        "input": "raise",
+        "output": "raiseS",
+        "rate": 6,
+        "initial": 0
+      }
+    ],
+    "floor": {
+      "field": "floorS",
+      "lift": "lift",
+      "death": "deadT",
+      "delay": 0.9,
+      "rate": 0.9
+    },
+    "look": [
+      1.65,
+      1,
+      0.5
+    ],
+    "group": "king.observe"
   }
 }
