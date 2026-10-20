@@ -31,12 +31,19 @@ import { expectedDurations, saveTimings, type Timings } from './timing';
 import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
 import { WORK_SLICE_MS } from '../core/workSlice';
 import { WaitRegistry, type BootWait, type WaitKind } from './waits';
+import { currentLoadingTimeline } from './timeline';
 
 const waits = new WaitRegistry();
 /** Observe an existing promise; callers retain their admission, lifetime and concurrency policy. */
 export function waitFor<T>(label: string, promise: Promise<T>, kind: WaitKind = 'work'): Promise<T> { return waits.waitFor(label, promise, kind); }
 /** Live page waits in registration order, including an age from the same monotonic clock. */
 export function bootWaits(): readonly BootWait[] { return waits.snapshot(); }
+/** Account for all awaits at a semantic boundary, including work between the older bootstrap steps. */
+export async function loadingStage<T>(key: string, work: () => T | Promise<T>): Promise<T> {
+  const stage = currentLoadingTimeline()?.begin(key);
+  try { return await work(); }
+  finally { stage?.end(); }
+}
 
 export interface StepProgress {
   /** Progress in the step's own unit; the step's contribution becomes max(previous, done / (total + 1)). */
@@ -269,10 +276,10 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
           s.sub = Math.max(s.sub, d / total);
           s.fraction = Math.max(s.fraction, clamp01(d / (total + 1)));
         }
-        if (detail !== undefined) s.detail = detail;
+        if (detail !== undefined) { s.detail = detail; currentLoadingTimeline()?.report(key, detail); }
         publish();
       },
-      detail(text) { if (s.state !== 'on') return; s.detail = text; publish(); },
+      detail(text) { if (s.state !== 'on') return; s.detail = text; currentLoadingTimeline()?.report(key, text); publish(); },
     };
   }
 
@@ -297,7 +304,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
     s.state = 'on'; s.t0 = startedAt; current = key;
     publish();
     tick();
-    const value = await work(progressFor(key));
+    const value = await loadingStage(key, () => work(progressFor(key)));
     const endedAt = now();
     s.state = 'ok'; s.fraction = 1; s.sub = 1; s.ms = endedAt - s.t0;
     const running = BOOT_STEPS.find(step => steps[step].state === 'on');

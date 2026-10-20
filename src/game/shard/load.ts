@@ -2,6 +2,7 @@ import { SHARD_API } from './api';
 import type { ShardManifest } from './manifest';
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { LoadFailure } from '@wildshard/engine/core/errorReport';
+import { loadingStage } from '@wildshard/engine/boot/plan';
 
 const tables = new WeakMap<ShardManifest, Promise<void>>();
 
@@ -37,7 +38,7 @@ export class ShardLoadError extends Error {
 
 /** The innermost failing stage wins, including promises started in parallel with world construction. */
 export const loadStage: LoadStage = async (name, work) => {
-  try { return await work(); }
+  try { return await loadingStage(name, work); }
   catch (error) { throw error instanceof ShardLoadError ? error : new ShardLoadError(name, error); }
 };
 

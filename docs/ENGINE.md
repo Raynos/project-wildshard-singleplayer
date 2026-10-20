@@ -857,6 +857,15 @@ cache/texture workers, Wasm preparation and shader linking use this registry;
 Loading displays the active dependency and files in flight without changing
 ownership, scheduling or concurrency. Synchronous work remains a reported stage.
 
+`Loading.setPath({id, steps, ignored?})` accepts a data-only step vocabulary.
+`loadingStage(key, work)` in `@wildshard/engine/boot/plan` measures semantic
+boundaries, including LevelLoader hooks and initial home entry. Nested stages
+own exclusive wall intervals, so stage and explicit gap rows sum to the loading
+clock. Unknown stages become visible rows; ignored shell stages remain inside
+their reported parent. The game supplies legacy, shardfile, grid and crossing
+tables. Crossing diagnostics partition preparation, boundary wait, checkpoint,
+commit and activation using the existing same-clock transition timestamps.
+
 ### Pre-entry safe
 
 `@wildshard/engine/boot/retry` is the import-free retry module: it exports only `retried`. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Every other loader imports the same module.

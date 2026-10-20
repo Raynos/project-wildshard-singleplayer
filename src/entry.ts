@@ -129,6 +129,8 @@ async function startSelected(): Promise<void> {
   let page: ReturnType<typeof preparePageResidency> | undefined;
   try {
     page = preparePageResidency(game.shard, source?.identity.slug);
+    const { loadingPath } = await retried(() => import('./game/boot/loadingPaths'));
+    loading.setPath(loadingPath(page.mode === 'grid' ? 'grid' : source !== null || game.shard.shardfile !== undefined ? 'shardfile' : 'legacy', game.shard.boot?.steps));
     const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
     const bindings: Parameters<typeof installShardfileProduct>[2] = {
       instance: page.instance ?? (source === null ? 'template-solo' : `standalone-${source.identity.slug}`), catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,

@@ -1,6 +1,6 @@
 import type { App } from '../app/app';
 import type { Scope } from '../app/scope';
-import type { StepProgress } from '../boot/plan';
+import { loadingStage, type StepProgress } from '../boot/plan';
 import type { LevelAdapters, LevelContext, LevelHooks } from './context';
 import type { LevelSpec } from './spec';
 import { createLevelInstallation } from './installation';
@@ -52,7 +52,7 @@ export class LevelLoader {
     this.level = { spec, scope, ctx, driver }; this.app.levelScope = scope;
     const run = async (next: LevelStage, work: () => Promise<void>): Promise<void> => {
       stage = next;
-      try { live(); await work(); live(); } catch (error) { throw new LevelLoadError(next, error); }
+      try { live(); await loadingStage(next, work); live(); } catch (error) { throw new LevelLoadError(next, error); }
     };
     try {
       this.app.setState('loading');

@@ -1,7 +1,7 @@
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
 import { saveStorage } from '../saves/slots';
-import { bootWaits, formatMB, type ProgressView, type LogRow, type GapRow } from '../boot/plan';
+import { bootWaits, formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
@@ -9,6 +9,7 @@ import { lastEndLine } from '../boot/lastEnd';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
 import { BOOT_STEPS } from '../boot/steps';
 import { DownloadAccounting, installDownloadAccounting } from '../boot/download';
+import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
 import './loading.css';
 
 const savedStorage = saveStorage('session');
@@ -63,6 +64,9 @@ export class Loading {
   private hasProductAdmission = false;
   private readonly downloads: DownloadAccounting;
   private readonly downloadObserver: PerformanceObserver;
+  private readonly timeline: LoadingTimeline;
+  private phase: { end: () => void; detail: (text: string) => void } | undefined;
+  private phaseKey = 'modules';
   private readonly admissionPhases = new Set<string>();
 
   constructor(chunk: { id: string; name: string; trace?: boolean }) {
@@ -79,6 +83,9 @@ export class Loading {
     }
     const startedAt = Number(this.root.dataset['startedAt']);
     if (Number.isFinite(startedAt) && startedAt >= 0 && startedAt <= this.t0) this.t0 = startedAt;
+    this.timeline = new LoadingTimeline({ id: 'pending', steps: [{ key: 'modules', label: engineString('s_loading_modules'), weight: 1 }] }, this.t0);
+    this.phase = this.timeline.begin('modules');
+    this.scope.onDispose(installLoadingTimeline(this.timeline));
     this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
     this.scope.onDispose(installDownloadAccounting(this.downloads));
     this.downloadObserver = new PerformanceObserver(list => {
@@ -114,6 +121,9 @@ export class Loading {
     if (this.view !== null) throw new Error('Admission progress arrived after world setup started');
     if (!this.admissionPhases.has(progress.phase)) { this.admissionPhases.add(progress.phase); recordBootCheckpoint(`admission:${progress.phase}`, { detail: progress.detail }); }
     this.admission = progress;
+    const phase = progress.phase === 'modules' ? 'modules' : 'admission';
+    if (this.phase !== undefined && phase !== this.phaseKey) { this.phase.end(); this.phase = this.timeline.begin(phase); this.phaseKey = phase; }
+    this.phase?.detail(progress.detail);
     if (progress.phase !== 'modules') {
       this.hasProductAdmission = true;
       this.admissionUnits = Math.max(this.admissionUnits, progress.phase === 'complete' ? 4 : progress.phase === 'cache' ? 3 : progress.phase === 'validation' ? 2 : progress.phase === 'assets' || progress.phase === 'hash' ? 1 : 0);
@@ -127,6 +137,11 @@ export class Loading {
     this.paintAdmission({ phase: 'modules', detail, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
   }
 
+  /** The composition root supplies the actual path's vocabulary before its product or world starts. */
+  setPath(path: LoadingPath): void { this.timeline.configure(path); setData(this.root, 'path', path.id); }
+  /** End pre-session admission before LevelLoader's data/world boundaries take over. */
+  endAdmission(): void { this.phase?.end(); this.phase = undefined; }
+
   /**
    * The plan publishes a view on every event (every byte chunk of every fetch, every sub-step); the
    * cheap attributes land at once (`data-step` is what the bench and the tests read), the text and
@@ -134,6 +149,7 @@ export class Loading {
    * of a phone-tier load at 4× CPU (project/archive/2026-09-22-load-perf.md Status). Integers floor, so 100 means done.
    */
   paint(view: ProgressView): void {
+    this.phase?.end(); this.phase = undefined;
     let v = view;
     if (this.hasProductAdmission) v = { ...v, setup: (v.setup * BOOT_STEPS.length + this.admissionUnits) / (BOOT_STEPS.length + 4) };
     const transfer = this.downloadProgress(v.done);
@@ -145,7 +161,6 @@ export class Loading {
     const pct = (f: number): string => String(Math.floor(f * 100));
     setData(this.root, 'download', pct(v.download));
     setData(this.root, 'setup', pct(v.setup));
-    setData(this.root, 'step', v.step);
     if (v.error) { this.els.foot.textContent = v.error; this.paintNow(); }
     else if (v.done) this.paintNow();
   }
@@ -170,7 +185,6 @@ export class Loading {
     if (this.els.bar.style.width !== allW) this.els.bar.style.width = allW;
     set(this.els.line, v.done ? engineString('s_5fa7aac5375c') : engineString('s_bf5e849564ae', [v.worldBytesReady ? 'Building the world' : engineString('s_37b345555d7e'), pct(all)]));
     this.paintDownloads(v.done);
-    set(this.els.suFact, engineString('s_af18899b96b3', [v.rows.findIndex(row => row.key === v.step) + 1, v.rows.length, v.label, v.detail ? engineString('s_614cafefe4f0', [v.detail]) : '']));
     this.paintRows();
   }
 
@@ -186,6 +200,7 @@ export class Loading {
     this.els.dlBar.style.width = `${download * 100}%`; this.els.suBar.style.width = `${setup * 100}%`;
     this.els.bar.style.width = `${(download + setup) * 50}%`;
     set(this.els.suFact, p.detail); set(this.els.line, p.detail);
+    this.paintRows();
   }
 
   private downloadProgress(done: boolean) {
@@ -206,23 +221,27 @@ export class Loading {
   }
 
   private paintRows(): void {
-    const v = this.view; if (!v) return;
-    // every step that has started, newest last; todo steps are not rows (nothing to say about them yet)
-    const shown: (LogRow | GapRow)[] = [];
-    for (const gap of v.gaps) if (gap.after === null) shown.push(gap);
-    for (const row of v.rows) {
+    const timeline = this.timeline.snapshot();
+    const current = timeline.rows.find(row => row.key === timeline.current);
+    const currentGap = timeline.gaps.find(row => row.state === 'on');
+    setData(this.root, 'step', current?.key ?? 'gap');
+    if (current !== undefined) set(this.els.suFact, engineString('s_af18899b96b3', [current.number, timeline.rows.length, current.label, current.detail ? engineString('s_614cafefe4f0', [current.detail]) : '']));
+    else if (currentGap !== undefined) set(this.els.suFact, currentGap.label);
+    const shown: (LoadingRow | LoadingGap)[] = [];
+    for (const gap of timeline.gaps) if (gap.after === null) shown.push(gap);
+    for (const row of timeline.rows) {
       if (row.state === 'todo') continue;
       shown.push(row);
-      for (const gap of v.gaps) if (gap.after === row.key) shown.push(gap);
+      for (const gap of timeline.gaps) if (gap.after === row.key) shown.push(gap);
     }
     while (this.rowsEl.children.length < shown.length) { const d = document.createElement('div'); d.innerHTML = engineString('s_a9fadf880555'); this.rowsEl.append(d); }
     shown.forEach((r, i) => {
       const el = this.rowsEl.children[i] as HTMLElement;
       const cls = r.state === 'on' ? 'on' : 'ok';
       if (el.className !== cls) el.className = cls;
-      set(el.children[0] as HTMLElement, engineString('s_dd0d06d0c0aa', ['key' in r ? engineString('s_loading_step_label', [v.rows.indexOf(r) + 1, r.label]) : r.label]));
-      set(el.children[1] as HTMLElement, r.detail);
-      const ms = r.state === 'on' ? performance.now() - r.t0 : r.ms;
+      set(el.children[0] as HTMLElement, engineString('s_dd0d06d0c0aa', ['number' in r ? engineString('s_loading_step_label', [r.number, r.label]) : r.label]));
+      set(el.children[1] as HTMLElement, 'detail' in r ? r.detail : '');
+      const ms = r.ms;
       set(el.children[2] as HTMLElement, ms >= 1000 ? engineString('s_51b784eb9dd6', [(ms / 1000).toFixed(1)]) : engineString('s_f3813306296c', [Math.round(ms)]));
     });
   }
@@ -249,7 +268,7 @@ export class Loading {
     set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
     // the running step's ms is live: repaint rows so its clock moves without a plan event
     if (this.dirty) this.paintNow();
-    else if (this.view && !this.view.done) this.paintRows();
+    else if (!this.view?.done) this.paintRows();
   }
 
   private paintWaiting(): void {

@@ -1,5 +1,7 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
+  "s_loading_modules": "Application modules",
+  "s_loading_gap_setup": "gap before setup",
   "s_loading_gap_before": "gap before ⟦0⟧",
   "s_loading_gap_after": "gap after ⟦0⟧",
   "s_loading_step_label": "⟦0⟧ · ⟦1⟧",

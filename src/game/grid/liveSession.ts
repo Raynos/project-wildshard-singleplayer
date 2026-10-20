@@ -1,5 +1,6 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
+import { crossingLoadingRows } from '../boot/loadingPaths';
 /**
  * The live crossing inside EXPERIMENTAL Wildshard (SHARD-PLATFORM SF18a / SF20a / SF17b, the grid client step 2): what
  * turns the step-1 session's closed soft walls into a real crossing. It composes sp-x2's `LiveGridHost` and sp-x1's
@@ -139,6 +140,7 @@ export interface LiveGridSessionState {
   readonly runtimeTiming: ReturnType<HybridRuntimeSession['timings']>;
   /** Committed synchronous transitions; approach preparation wall intervals remain separate. */
   readonly crossingTiming: ReturnType<GridCrossingSession['crossing']['timings']>;
+  readonly crossingLoading: readonly ReturnType<typeof crossingLoadingRows>[];
   /** the board's cap now (m/s; null off the board's grid rule) and whether the home client's simulation runs (null: no handoff) */
   readonly hoverCap: number | null; readonly homeActive: boolean | null;
 }
@@ -862,7 +864,7 @@ export class LiveGridSession {
 
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
-    return { bootPrograms: this.bootPrograms, live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(),
+    return { bootPrograms: this.bootPrograms, live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
       hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
   }
 }

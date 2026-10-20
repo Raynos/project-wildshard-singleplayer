@@ -5,7 +5,7 @@ import { asShell } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
 import { releaseByteCounter } from '@wildshard/engine/boot/bytes';
 import { startAudioPreload } from '@wildshard/engine/boot/extras';
-import { macrotask } from '@wildshard/engine/boot/plan';
+import { loadingStage, macrotask } from '@wildshard/engine/boot/plan';
 import { loadExplore } from '@wildshard/engine/boot/runtime';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
 import { installGpuRecovery } from '@wildshard/engine/core/GpuRecovery';
@@ -35,7 +35,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
       if (pose.road) gridCells.leave();
     }
   };
-  if (!warmGrid) await enterGrid();
+  if (!warmGrid && (ctx.gridLive !== null || ctx.session.recovery !== undefined)) await loadingStage('home', enterGrid);
   if (ctx.gridLive !== null) {
     const grid = ctx.gridLive;
     // GPU/background own the same checkpoint port above; New game captured it before resetting and suppresses stale saves.
@@ -59,8 +59,8 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   try {
     await step('shaders', async (p) => {
       if (warmGrid && ctx.gridLive !== null) {
-        await ctx.gridLive.prepareBootPrograms();
-        await enterGrid();
+        await loadingStage('homePrograms', () => ctx.gridLive?.prepareBootPrograms());
+        await loadingStage('home', enterGrid);
         ctx.grid?.prepareFrame(); game.sky.prepareLayers();
       }
       await precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`));
