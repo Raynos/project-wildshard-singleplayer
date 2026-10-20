@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import kokpar from '../data/kokpar.generated.json' with {type:'json'};
 import { CourseKit as DevKit, courseLabel as devLabel, courseMaterial as devMaterial, courseChecker as checkerLine, captureCourse } from '@wildshard/sdk/bake/practiceCourse';
 import type { RidingPracticeLayout, PracticeScene } from '@wildshard/format/practiceCourse';
 import { FIELD, HORSE_START, JUMPS, JUMP_WIDTH, LINE_X, OVAL, POST_GAP, POST_OFF, RIDER_START, ovalLine } from './horseCourse';
@@ -134,4 +135,7 @@ function trackBand(o: THREE.Vector3): THREE.Mesh {
 }
 
 
-export function horseCourseRows(): RidingPracticeLayout { const origin = new THREE.Vector3(); const {root,colliders}=build(origin); return { presentation: captureCourse(root,colliders,fieldMap(origin)), road: ovalLine(4), fieldAt: { x: 40, z: 60 }, horseStart: HORSE_START, riderStart: RIDER_START, oval: OVAL, lineX: LINE_X }; }
+export function horseCourseRows(): RidingPracticeLayout { const origin = new THREE.Vector3(); const {root,colliders}=build(origin); return { title:'Horse playground',chip:'Horse track',piece:{id:'playground-horse',name:'Horse playground',file:'src/shards/nalati-grasslands/generators/courseScene.ts'},
+actor:{kind:'horse',variant:'camp-bay',name:'Track horse'},riderPitch:-.28,shoulder:.6,program:kokpar.program,
+words:{ready:'READY · MOUNT UP',ride:'RIDE OVER THE LINE ▶',lap:'LAP {lap}{half}{last}',half:' · ½',last:' · LAST {time}',best:' · BEST',fell:'OFF THE FIELD · BACK ON THE START',lapNotice:'LAP {lap} · {time}{best}',halfNotice:'HALF WAY · {time}'},
+presentation: captureCourse(root,colliders,fieldMap(origin)), road: ovalLine(4), fieldAt: { x: 40, z: 60 }, horseStart: HORSE_START, riderStart: RIDER_START, oval: OVAL, lineX: LINE_X }; }

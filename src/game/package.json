@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./practice/ridingCourse": "./practice/ridingCourse.ts",
     "./shardfile/sceneDressing": "./shardfile/sceneDressing.ts",
     "./riding/nativePopulation": "./riding/nativePopulation.ts",
     "./shardfile/clientPlaceSets": "./shardfile/clientPlaceSets.ts",

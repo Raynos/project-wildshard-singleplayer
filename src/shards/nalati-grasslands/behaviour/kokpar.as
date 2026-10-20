@@ -1,11 +1,12 @@
 import { chapterSignal } from './chapter';
+import { courseSignal } from './course';
 import { Signal, Field, Channel, Read, Do, Params } from './generated/nalatiKokpar';
 
 @inline function get(field:i32):f64 { return Read.field(0,field); }
 @inline function distance(x:f64,z:f64,tx:f64,tz:f64):f64 { return Math.hypot(x-tx,z-tz); }
 // Stateless requests borrow the original page clocks; no actor or RNG is created.
 export function onSignal(signal:i32,value:f64,source:i32):void {
-  if(chapterSignal(signal))return;
+  if(chapterSignal(signal)||courseSignal(signal))return;
   let carrying=get(Field.carrying),left=get(Field.left),slow=get(Field.slow),cheer=get(Field.cheer),warned=get(Field.warned);
   let event:i32=0,pose:i32=0,goal:i32=0,warning:i32=0;
   const dt=get(Field.dt),px=get(Field.playerX),pz=get(Field.playerZ);

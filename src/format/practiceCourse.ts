@@ -1,4 +1,6 @@
 import * as v from 'valibot';
+import { ReturnProgramSchema } from './namedJsonContracts';
+import { isJsonData } from './json';
 
 const n = v.pipe(v.number(), v.finite(), v.minValue(-10000), v.maxValue(10000));
 const text = v.pipe(v.string(), v.maxLength(256));
@@ -40,11 +42,21 @@ export type PracticeScene = v.InferOutput<typeof PracticeSceneSchema>;
 /** Reject malformed or unbounded scene data before allocating client geometry. */
 export function parsePracticeScene(value: unknown): PracticeScene { return v.parse(PracticeSceneSchema, value); }
 
-/** Offline riding-room layout. Positions remain local to the elevated practice field. */
-export interface RidingPracticeLayout {
-  presentation: PracticeScene; road: [number, number][]; fieldAt: { x: number; z: number };
-  horseStart: { x: number; z: number; yaw: number }; riderStart: { x: number; z: number };
-  oval: { halfLen: number; radius: number; width: number }; lineX: number;
+/** Client-only mounted practice. The guest owns laps; rows own the room and labels. */
+export const RidingPracticeSchema = v.strictObject({
+  presentation: PracticeSceneSchema, road: v.pipe(v.array(v.tuple([n,n])), v.minLength(2), v.maxLength(2048)),
+  fieldAt: v.strictObject({x:n,z:n}), horseStart: v.strictObject({x:n,z:n,yaw:n}), riderStart: v.strictObject({x:n,z:n}),
+  oval: v.strictObject({halfLen:positive,radius:positive,width:positive}), lineX:n,
+  title:text, chip:text, piece:v.strictObject({id:text,name:text,file:text}),
+  actor:v.strictObject({kind:text,variant:text,name:text}), riderPitch:n, shoulder:n,
+  program:ReturnProgramSchema,
+  words:v.strictObject({ready:text,ride:text,lap:text,half:text,last:text,best:text,fell:text,lapNotice:text,halfNotice:text}),
+});
+export type RidingPracticeLayout = v.InferOutput<typeof RidingPracticeSchema>;
+/** Refuse incomplete room and run rows before constructing the native presentation. */
+export function parseRidingPractice(input:unknown):RidingPracticeLayout {
+  if(!isJsonData(input))throw new Error('Practice rows require JSON data');
+  return v.parse(RidingPracticeSchema,input);
 }
 /** Pad, hook and run declarations used by the build-time layout and the live traversal adapter. */
 export interface HookPracticeRow {

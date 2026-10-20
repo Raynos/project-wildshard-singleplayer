@@ -209,8 +209,17 @@ export interface PageRidingSession {
   readonly names: Record<string, string>; update: (dt: number, wet: boolean, blocked: boolean, namingOpen: boolean) => void;
   drainEvents: () => PageRidingEvent[];
 }
+const mountedSessions = new WeakMap<Scope, Mount>();
+/** Native practice rooms borrow the entered mount owner without author callbacks. */
+export function pageRidingMount(ctx: LevelContext): Mount {
+  const mount = mountedSessions.get(ctx.scope);
+  if (mount === undefined || ctx.scope.disposed) throw new Error('Missing entered riding session');
+  return mount;
+}
 export function createPageRiding(ctx: LevelContext, player: Player, animals: AnimalManager, camera: THREE.PerspectiveCamera, rows: PageRidingRows): PageRidingSession {
   const mount = new Mount(ctx, player, animals, rows.profile);
+  mountedSessions.set(ctx.scope,mount);
+  ctx.scope.onDispose(()=>{if(mountedSessions.get(ctx.scope)===mount)mountedSessions.delete(ctx.scope);});
   for (const entry of rows.mountables) mount.addMountable(entry.id, entry.name);
   playerModes(player).register(rows.mode, ctx.scope);
   const taming = createPageTaming(ctx, player, animals, mount, rows.taming);

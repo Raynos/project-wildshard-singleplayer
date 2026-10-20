@@ -20290,6 +20290,7 @@
         "src/shards/nalati-grasslands/behaviour",
         "src/shards/nalati-grasslands/data/layout.generated.json",
         "src/shards/nalati-grasslands/generators/bake-kokpar.mjs",
+        "src/shards/nalati-grasslands/generators/horseCourse.ts",
         "src/shards/nalati-grasslands/data/questContent.json"
       ],
       "outputs": [
