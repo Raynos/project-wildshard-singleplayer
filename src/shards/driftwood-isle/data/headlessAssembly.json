@@ -927,48 +927,7 @@
                 }
               ]
             },
-            "floorAt": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["assembly", "max"]
-                  },
-                  {
-                    "$call": [
-                      {
-                        "$ref": ["heightAt"]
-                      },
-                      {
-                        "$ref": ["args", 0]
-                      },
-                      {
-                        "$ref": ["args", 1]
-                      }
-                    ]
-                  },
-                  {
-                    "$coalesce": [
-                      {
-                        "$call": [
-                          {
-                            "$ref": ["bake", "holdFloorAt"]
-                          },
-                          {
-                            "$ref": ["args", 0]
-                          },
-                          {
-                            "$ref": ["args", 1]
-                          }
-                        ]
-                      },
-                      {
-                        "$ref": ["assembly", "negativeInfinity"]
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
+            "props": { "$ref": ["constants", "questProps"] },
             "ironTaken": {
               "$fn": {
                 "$call": [
@@ -984,9 +943,6 @@
             },
             "reward": {
               "$ref": ["reward"]
-            },
-            "waterLevel": {
-              "$ref": ["src/shards/driftwood-isle/world/sea", "LOWERED_SEA"]
             },
             "restoring": {
               "$ref": ["context", "restoring"]

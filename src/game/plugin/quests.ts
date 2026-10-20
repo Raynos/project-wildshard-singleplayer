@@ -11,6 +11,12 @@ import { bindHeadlessPrompts, createHeadlessPromptPicker, type HeadlessPrompt, t
 import { autoFlag, type InteractTable } from "@wildshard/engine/world/interact/types";
 import { bindInteractionState, type Flags } from "@wildshard/engine/world/interact/flags";
 import type { QuestData } from "@wildshard/format/quests";
+import { NativeQuestProps } from '../quest/nativeProps';
+
+/** Bind physical quest prop declarations to the existing native world. */
+export function installNativeQuestProps(host: SimHost, input: unknown, restoring: boolean): NativeQuestProps {
+  return new NativeQuestProps(host, input, restoring);
+}
 
 /** Mutable pose lent by a reward's player owner; this law creates no player, motor, camera or view. */
 export interface QuestRewardPosePlayer { position: Vector3; velocity: Vector3; yaw: number; pitch: number }

@@ -1,14 +1,12 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
-import { Bodies, Body } from '@wildshard/engine/physics/bodies';
-import type { Collider } from '@dimforge/rapier3d-simd';
-import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, plateOverlap, type BarrelEnv } from '@wildshard/engine/world/interact/barrel';
+import { plateOverlap } from '@wildshard/engine/world/interact/barrel';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import { bindInteractionTransitions } from '@wildshard/engine/world/interact/flags';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { bindQuestTableSpots, QuestRewardController } from '@wildshard/game/plugin/quests';
+import { bindQuestTableSpots, QuestRewardController, installNativeQuestProps } from '@wildshard/game/plugin/quests';
 import { installDeclaredQuestHost } from '@wildshard/game/plugin/simulation';
 import { AchievementCounterBook, type AchievementCounterRows } from '@wildshard/game/achievements';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -53,12 +51,10 @@ export interface DriftwoodQuestPorts {
   readonly fact: (name: string, entity: string) => void;
   readonly coins: (amount: number, entity: string) => void;
   readonly bodies: () => readonly QuestBody[];
-  /** the floor a dropped key lies on (the adventure's floorAt: the ground, else the wreck's deck) */
-  readonly floorAt: (x: number, z: number) => number;
+  /** Admitted physical prop declarations and captured platform floor samples. */
+  readonly props: unknown;
   /** the iron sword taken: it goes into the hand (EquipmentService's pickup selects it) */
   readonly ironTaken: () => void;
-  /** the still sea the barrel's watch reads (the island's lowered sea) */
-  readonly waterLevel: number;
   /** the walk velocity the player asks for this tick (m/s; the page's Player.velocity, which BarrelWatch reads) */
   readonly walk: () => { readonly x: number; readonly z: number };
   /** a restoring install: the barrel's native body comes back with the saved world, never spawned again */
@@ -69,23 +65,10 @@ export interface DriftwoodQuestPorts {
   readonly reward: { readonly started: boolean };
 }
 
-/** The fixed cuboid the page baked for a kit collider box (its centre and half extents), or throws: the world lacks it. */
-function bakedBox(physics: SimHost['physics'], c: { x: number; z: number; hw: number; hd: number; yTop: number; yBottom: number }): Collider {
-  const cy = (c.yTop + c.yBottom) / 2, hy = (c.yTop - c.yBottom) / 2, hits: Collider[] = [];
-  const near = (a: number, b: number): boolean => Math.abs(a - b) < 1e-3;
-  physics.world.forEachCollider(collider => {
-    const t = collider.translation(), h = collider.halfExtents();
-    if (h !== null && collider.parent() === null && near(t.x, c.x) && near(t.y, cy) && near(t.z, c.z) && near(h.x, c.hw) && near(h.y, hy) && near(h.z, c.hd)) hits.push(collider);
-  });
-  const found = hits[0];
-  if (found === undefined) throw new Error('Driftwood\'s baked world has no collider for a kit box');
-  return found;
-}
-
 const Watch = v.strictObject({ lost: finite, wedge: finite, from: v.strictObject(xyz) });
 const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.string(), iron: v.boolean(), counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
   pack: v.unknown(), zipline: v.unknown(), reward: v.unknown(),
-  barrel: v.nullable(v.strictObject({ handle: v.pipe(finite, v.integer(), v.minValue(0)), watch: Watch })) });
+  barrel: v.nullable(v.strictObject({ handle: v.pipe(finite, v.minValue(0)), watch: Watch })) });
 
 
 /**
@@ -112,6 +95,8 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const rules = [...bindQuestTableSpots(table, spots.rows, flags, { rows: policy.limits.rows, items: policy.limits.rows, ordered: true }).values()];
 
   const pack = new NativeInventory(readItemInventory(ports.source.items), host);
+  const props = installNativeQuestProps(host, ports.props, ports.restoring);
+  const walked = { x: 0, z: 0 };
   // The page's carried branch leaves the motor alone and clears impulse/velocity before the ride's post-player update.
   // This one player owner will also host the reward carry; an inactive ride retains the ordinary host motion law.
   const cables = cableModes(host.scope), cableId = 'driftwood.zipline', rider = cables.nativeRider(cableId);
@@ -178,7 +163,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     const body = ports.bodies().find(b => b.actor?.combatActor() === actor);
     if (body?.kind !== 'sailor' || body.actor === null) return;
     const { x, z } = body.actor.position;
-    state.key = { x, y: ports.floorAt(x, z), z };
+    state.key = { x, y: props.floorAt(x, z), z };
   }, host.scope);
 
   const offFlags = flags.onChange((f, on) => {
@@ -189,43 +174,10 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   });
   host.scope.onDispose(offFlags);
 
-  // the puzzle barrel (Interactables.placeLive's 'barrel'): the kit's body at its home, upright on the row's yaw, in its
-  // own body service over the host's world (pre / post around the host's world step, as the page's fixed phases)
-  const barrelRule = rules.find(r => r.d.kind === 'barrel'), plates = rules.filter(r => r.d.kind === 'plate');
-  const leash = barrelRule?.d.kind === 'barrel' ? barrelRule.d.leash : 0;
-  const home = barrelRule === undefined ? null : { x: barrelRule.spot.x, y: barrelRule.spot.y, z: barrelRule.spot.z };
-  const upright = { x: 0, y: Math.sin((barrelRule?.spot.yaw ?? 0) / 2), z: 0, w: Math.cos((barrelRule?.spot.yaw ?? 0) / 2) };
-  const walked = { x: 0, y: 0, z: 0 }, player = { position: host.player.position, velocity: walked };
-  let service = new Bodies(host.physics, host.player.position), barrel: Body | null = null, watch: BarrelWatch | null = null, adopt: number | null = null;
-  const env: BarrelEnv = {
-    player, floorAt: ports.floorAt, water: () => ports.waterLevel,
-    onPlate: c => plates.some(p => p.d.kind === 'plate' && p.shown() && barrelAtPlate(c, p.spot, p.d.size)),
-  };
-  const lifted = { x: 0, y: 0, z: 0 };
-  const lift = (p: { x: number; y: number; z: number }): { x: number; y: number; z: number } => { lifted.x = p.x; lifted.y = p.y + BARREL_HALF + 0.01; lifted.z = p.z; return lifted; };
-  const spawnBarrel = (): void => {
-    if (home === null) return;
-    barrel = service.spawn({ ...BARREL_BODY, owner: policy.barrelOwner }, lift(home), undefined, upright);
-    watch = new BarrelWatch(home, leash);
-  };
-  /** the barrel back at its start, upright, at rest (Interactables.sendHome) */
-  const sendHome = (b: Body): void => { if (home !== null) b.teleport(lift(home), upright); watch?.clear(); };
-  // the sluice's baked collider (the gate as the page loaded it, shut): it leaves the world once the gate opens
-  const sluiceRule = rules.find(r => r.d.kind === 'door' && r.d.latch === true && r.d.opensWhen !== undefined && r.spot.collider !== undefined);
-  let sluice: Collider | null = null;
-  const findSluice = (): void => { sluice = sluiceRule?.spot.collider === undefined ? null : bakedBox(host.physics, sluiceRule.spot.collider); };
   host.onStep(policy.step, dt => {
-    // the barrel first (Interactables.update: its pose from the body, then the never-jam rule; plates feel the body itself)
-    const b = barrel;
-    if (b !== null) {
-      service.post(dt);
-      const asked = ports.walk(); walked.x = rider.carried ? 0 : asked.x; walked.z = rider.carried ? 0 : asked.z;
-      if (watch?.check(b.curr, dt, env) === true) sendHome(b);
-      service.pre(dt);
-    }
-    transitions.step();
-    // the open gate's collider leaves the world (Interactables.syncDoor parks it; the sluice latches open)
-    if (sluiceRule !== undefined && flags.has(sluiceRule.open) && sluice?.isEnabled() === true) sluice.setEnabled(false);
+    const asked = ports.walk();
+    walked.x = rider.carried ? 0 : asked.x; walked.z = rider.carried ? 0 : asked.z; props.step(dt, walked);
+    transitions.step(); props.syncGates();
     // Adventure's zipline update is after the player/kit and before the finale's reward beat.
     cables.updateNative(cableId, dt, host);
     // Only the admitted script owns finale timing; the native quest/body clock keeps its original phase.
@@ -233,7 +185,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     reward.update(dt, flags.has(policy.rewardFlag));
   }, {
     snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: cables.snapshot(cableId), reward: reward.snapshot(), counts: counterBook.snapshot(),
-      barrel: barrel === null || watch === null ? null : { handle: barrel.rb.handle, watch: watch.state() } }),
+      barrel: props.snapshot(policy.barrelOwner.id) }),
     restore: value => {
       const saved = v.parse(Saved, value);
       cables.restore(cableId, saved.zipline);
@@ -241,20 +193,9 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
       pack.restore(saved.pack);
       ports.finale.restore(saved.finale); state.key = saved.key; state.iron = saved.iron;
       counterBook.restore(Object.fromEntries(feats.map(f=>[f.id,saved.counts[f.id]??0])));
-      if ((saved.barrel === null) !== (home === null)) throw new Error('Incompatible Driftwood barrel continuation');
-      if (saved.barrel !== null && home !== null) { watch = new BarrelWatch(home, leash); watch.restore(saved.barrel.watch); adopt = saved.barrel.handle; }
+      props.restore(policy.barrelOwner.id, saved.barrel);
     },
-    // the restored world holds the barrel's native body: a body service over it adopts it by handle (its pose and last
-    // velocity read back off the body, as a step leaves them); the sluice's collider is found again in the new world
-    physicsRestored: () => {
-      service = new Bodies(host.physics, host.player.position); findSluice();
-      if (adopt === null) return;
-      const world = host.physics.world;
-      if (!world.bodies.contains(adopt)) throw new Error('Saved Driftwood barrel has no native body');
-      const rb = world.getRigidBody(adopt), b = new Body(rb, rb.collider(0), { ...BARREL_BODY, owner: policy.barrelOwner }, 0);
-      service.list.push(b); barrel = b; adopt = null;
-    },
+    physicsRestored: () => { props.physicsRestored(); },
   });
-  if (!ports.restoring) { spawnBarrel(); findSluice(); }
   return { quests: graph.quests, pack };
 }

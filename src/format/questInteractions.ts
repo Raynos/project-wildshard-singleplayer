@@ -3,6 +3,20 @@ import * as v from 'valibot';
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
 const names = v.pipe(v.array(name), v.maxLength(64));
 const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names) });
+const propFinite = v.pipe(v.number(), v.finite());
+const propPoint = v.strictObject({ x: propFinite, y: propFinite, z: propFinite });
+const propCount = v.pipe(propFinite, v.integer(), v.minValue(1), v.maxValue(64));
+/** Native physical quest props use the existing barrel and gate mechanics.
+ * Layered floor rasters preserve captured platform sampling without callbacks. */
+export const NativeQuestPropsSchema = v.strictObject({ water: propFinite,
+  floors: v.pipe(v.array(v.strictObject({ x: propFinite, z: propFinite, step: v.pipe(propFinite, v.minValue(0.001)),
+    width: propCount, height: propCount, values: v.pipe(v.array(v.nullable(propFinite)), v.maxLength(4096)) })), v.maxLength(64)),
+  barrels: v.pipe(v.array(v.strictObject({ id: name, home: propPoint, yaw: propFinite, leash: v.pipe(propFinite, v.minValue(0)),
+    owner: v.strictObject({ kind: name, id: name }) })), v.maxLength(64)),
+  plates: v.pipe(v.array(v.strictObject({ at: propPoint, size: v.pipe(propFinite, v.minValue(0)), when: v.exactOptional(condition) })), v.maxLength(64)),
+  gates: v.pipe(v.array(v.strictObject({ flag: name,
+    box: v.strictObject({ x: propFinite, z: propFinite, hw: propFinite, hd: propFinite, yTop: propFinite, yBottom: propFinite }) })), v.maxLength(64)),
+});
 const need = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names), else: v.exactOptional(name) });
 const row = v.strictObject({
   id: name, act: v.pipe(v.number(), v.safeInteger(), v.minValue(0)), at: name, crack: v.exactOptional(v.picklist(['light', 'heavy'])),
