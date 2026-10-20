@@ -25,8 +25,6 @@ export interface PoiPiece {
   floor?: Platform;
   /** triangles in `object` (for the perf report) */
   tris: number;
-  /** per-frame animation (NalatiPOIs.update calls it with the viewer's position when it has one) */
-  update?: (dt: number, viewer: THREE.Vector3 | null) => void;
   /**
    * A POI on the model contract (E306 / E315 M3): it registers itself — one `place` per model (its colliders, its floor,
    * its catalog entry) — instead of being one registry piece; `colliders` stay as data. What each call placed (its set's

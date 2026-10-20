@@ -1,7 +1,6 @@
 import * as schema from 'valibot';
 import type { PlaceRow } from './placeTypes';
 import * as THREE from 'three';
-import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { modelContext } from '@wildshard/engine/models/model';
 import type { Placed } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -31,10 +30,10 @@ const anchors = (name:string):PlaceAnchors => schema.parse(schema.custom<PlaceAn
 const SMOKE_LOOK = 'nalati-camp-smoke';
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
-export async function buildNalatiPOIs(sky: Sky, scene: THREE.Object3D, player: { position: THREE.Vector3 }, yieldTask: () => Promise<void>, registry: WorldRegistry, declared: SceneDressing): Promise<NalatiPOIs> {
+export async function buildNalatiPOIs(sky: Sky, scene: THREE.Object3D, _player: { position: THREE.Vector3 }, yieldTask: () => Promise<void>, registry: WorldRegistry, declared: SceneDressing): Promise<NalatiPOIs> {
  const group = new THREE.Group(); group.name = 'nalati-pois';
  const models = modelContext(sky);
- const pieces: PoiPiece[] = [], placed = new Map<string, readonly Placed[]>(), colliders: Box[] = [], timings: Record<string, number> = {};
+ const pieces: PoiPiece[] = [], placed = new Map<string, readonly Placed[]>(), colliders: Box[] = [];
 
  const kurgan = anchors('kurgans'), crags = anchors('crags'), cairn = poiLayout.WIND_CAIRN;
  const statues = new EncounterSites({ ...balbalSpecimen.sites, generated: balbalSpecimen.generated, sites: kurgan.balbalSpots ?? [] });   // the crown balbals (B11 wakes them)
@@ -42,20 +41,19 @@ export async function buildNalatiPOIs(sky: Sky, scene: THREE.Object3D, player: {
  const live = new Map<string, () => PoiPiece>([['balbals', () => ({ name: 'balbals', object: statues.object, colliders: [...statues.colliders], surface: 'stone', tris: modelMetrics.triangles.balbal * statues.sites.length, register: ({ registry: r, ctx: c }) => [statues.place(balbal, c, r, sky)] })], ...['kokpar','farHerds','snowLotus','glacier'].map(name=>[name,()=>declaredPiece(name)] as const)]);
  await shapeBook(shapeRows).load();
  for (const row of prepared.view.sequence) {
-  const t0 = diagnosticNow(), builder = live.get(row.name);
+  const builder = live.get(row.name);
   const p = row.kind === 'live' && builder !== undefined ? builder() : declaredPiece(row.name);
-  if (row.name === 'roads') { const text = shapeBook(shapeRows).lettering(sky, 'roads'); p.object.children.splice(1, 0, text); text.parent = p.object; p.tris += (text.geometry.index?.count ?? 0) / 3; }
-  timings[row.name] = Math.round(diagnosticNow() - t0); pieces.push(p); group.add(p.object); colliders.push(...p.colliders); await yieldTask();
+  if (row.name === 'roads') { const text = shapeBook(shapeRows).lettering(sky, 'roads'); p.object.children.splice(1, 0, text); text.parent = p.object; }
+  pieces.push(p); group.add(p.object); colliders.push(...p.colliders); await yieldTask();
  }
  const smokeMesh = prepared.view.smoke.puffs > 0 && hasLentLook(SMOKE_LOOK) ? buildSmoke() : null;
  if (smokeMesh !== null) group.add(smokeMesh);
  scene.add(group);
  for (const p of pieces) { if (p.register !== undefined) placed.set(p.name, p.register({ registry, ctx: models })); else if (p.colliders.some(b => b.ghost !== true) || (p.descs?.length ?? 0) > 0) throw new Error(`Place ${p.name} lacks its model registration`); await yieldTask(); }
  statues.register(registry);
- return { group, pieces, colliders, timings, placed, balbals: statues, kurganEntrance: kurgan.entrance ?? null, cragLedges: crags.ledges ?? [], cragCave: crags.cave ?? null,
+ return { group, colliders, placed, balbals: statues, kurganEntrance: kurgan.entrance ?? null, cragLedges: crags.ledges ?? [],
   cairnTieSpot: new THREE.Vector3(cairn.x + 3.6, heightAt(cairn.x, cairn.z), cairn.z),
-  update: dt => { if (smokeMesh !== null) { const wind = painterlyUniforms.uPWind.value, shade = painterlyUniforms.uPShade.value, sun = sky.sunColor; setLentParam(SMOKE_LOOK, 'wind', [clamp(wind.x, -8, 8), clamp(wind.y, -8, 8), clamp(wind.z, -8, 8)]); setLentParam(SMOKE_LOOK, 'shade', [shade.r, shade.g, shade.b]); setLentParam(SMOKE_LOOK, 'sunColour', [sun.r, sun.g, sun.b]); } for (const p of pieces) p.update?.(dt, player.position); },
-  stats: () => ({ ...Object.fromEntries(pieces.map(p => [p.name, p.tris])), smoke: smokeMesh === null ? 0 : 2 * prepared.view.smoke.puffs }),
+  update: () => { if (smokeMesh !== null) { const wind = painterlyUniforms.uPWind.value, shade = painterlyUniforms.uPShade.value, sun = sky.sunColor; setLentParam(SMOKE_LOOK, 'wind', [clamp(wind.x, -8, 8), clamp(wind.y, -8, 8), clamp(wind.z, -8, 8)]); setLentParam(SMOKE_LOOK, 'shade', [shade.r, shade.g, shade.b]); setLentParam(SMOKE_LOOK, 'sunColour', [sun.r, sun.g, sun.b]); } },
  };
 }
 
