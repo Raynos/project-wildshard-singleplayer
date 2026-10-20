@@ -1,0 +1,23 @@
+{
+  "id": "weapon.golden-bow",
+  "name": "Golden Bow",
+  "style": "golden",
+  "drawSpeed": 1.2,
+  "signal": "bow",
+  "threshold": 0.95,
+  "pierce": 1.2,
+  "crush": 3,
+  "crushKinds": [
+    "balbal",
+    "kurgan-balbal"
+  ],
+  "sourceTag": "arrow.sun",
+  "flight": {
+    "base": 30,
+    "draw": 28,
+    "offset": 0.55,
+    "step": 0.6,
+    "from": 2.5,
+    "gap": 1.2
+  }
+}

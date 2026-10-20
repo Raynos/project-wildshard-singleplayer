@@ -9,12 +9,12 @@ const {OVAL,LINE_X}=await import('./horseCourse.ts');
 const courseState=['lap','started','running','half','best','last','prevX'];
 const quest=JSON.parse(readFileSync(new URL('../data/questContent.json',import.meta.url),'utf8'));
 if(Math.max(quest.clueFlags.length,quest.featherFlags.length,quest.featherElites.length)>32)throw new Error('Chapter table exceeds its bounded loop');
-const fields=[...courseState,'courseX','courseY','courseZ','courseTime','courseMounted','bonded','argymaq','inside','king','tied','titan','clueStep',
+const fields=['bowPower','bowThreshold','bowBaseDamage','bowPierce','bowCrush','bowCrushScale',...courseState,'courseX','courseY','courseZ','courseTime','courseMounted','bonded','argymaq','inside','king','tied','titan','clueStep',
  ...quest.clueFlags.map((_,i)=>`clue${i}`),...quest.featherFlags.map((_,i)=>`feather${i}`),
  ...quest.featherElites.flatMap((_,i)=>[`elite${i}`,`felled${i}`]),'carrying','left','slow','cheer','warned','dt','playerX','playerZ','goatX','goatZ','mounted','horse','fast','practice','horseX','horseZ'];
-const channels=[...courseState,'courseEvent','courseFell','carrying','left','slow','cheer','warned','event','pose','goal','warning','qBonded','qArgymaq','qInside','qKing','qTied','qTitan',
+const channels=['bowSun','bowDamage',...courseState,'courseEvent','courseFell','carrying','left','slow','cheer','warned','event','pose','goal','warning','qBonded','qArgymaq','qInside','qKing','qTied','qTitan',
  ...quest.clueFlags.map((_,i)=>`qClue${i}`),...quest.featherFlags.flatMap((_,i)=>[`qFeather${i}`,`qNotice${i}`]),
- ...quest.featherElites.map((_,i)=>`qElite${i}`)],signals=['step','win','quest','carving','feathers','courseReset','courseStep'];
+ ...quest.featherElites.map((_,i)=>`qElite${i}`)],signals=['bow','step','win','quest','carving','feathers','courseReset','courseStep'];
 const aliases=values=>Object.fromEntries(values.map(name=>[name,name]));
 const registry=values=>new Map([...values].sort((a,b)=>a<b?-1:a>b?1:0).map((name,i)=>[name,i+1]));
 const row={id:'nalati.kokpar',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/kokpar.as',

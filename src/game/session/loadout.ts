@@ -1,3 +1,4 @@
+import { bindEquipmentActors } from '../loadout/actors';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
 import { weaponInputContext } from '@wildshard/engine/input/gameplay';
@@ -60,6 +61,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   const shardSword = (await step('weapon', () => Promise.all([viewmodelTexturesReady(), chunk.sword?.() ?? null])))[1]; // the viewmodels' textures from the worker + the lever-action's model (usually long done) + the shard's own sword (ShardManifest.sword); the build below is synchronous
   let arena: Arena | null = null;
   const targets: Targets = authoredTargets(app.events, { raycast: (origin, dir, maxDist) => animals.raycast(origin, dir, maxDist) }, () => arena?.entered === true ? arena : null);
+  bindEquipmentActors(targets,animals,game.levelScope);
   const swimArms = shardSword?.swim;
   const authoredKit = await boot.runtime.buildEquipment?.(targets, nolock, shardSword);
   if (authoredKit === undefined) throw new Error('Shard has no primary equipment factory');

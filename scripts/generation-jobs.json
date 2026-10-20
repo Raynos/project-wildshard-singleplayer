@@ -20488,7 +20488,8 @@
       "id": "nalati-gear-specimens",
       "shard": "nalati-grasslands",
       "catalogueDependencies": [
-        "nalati-recurve-pool"
+        "nalati-recurve-pool",
+        "nalati-kokpar"
       ],
       "entry": "src/shards/nalati-grasslands/generators/bake-gear.mjs",
       "command": [
@@ -20526,21 +20527,25 @@
         "src/shards/nalati-grasslands/data/weaponEffects.json",
         "public/assets/nalati/baked/6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea.glb",
         "src/shards/nalati-grasslands/data/loadout.json",
-        "src/shards/nalati-grasslands/data/bowTrail.json"
+        "src/shards/nalati-grasslands/data/bowTrail.json",
+        "src/shards/nalati-grasslands/data/bowVariant.json",
+        "src/shards/nalati-grasslands/data/kokpar.generated.json"
       ],
       "outputs": [
         "public/assets/nalati/baked/gear-specimens.bin",
         "src/shards/nalati-grasslands/boot/gear.generated.json",
         "src/shards/nalati-grasslands/boot/weaponEffects.generated.ts",
         "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json",
-        "src/shards/nalati-grasslands/boot/bowTrail.generated.json"
+        "src/shards/nalati-grasslands/boot/bowTrail.generated.json",
+        "src/shards/nalati-grasslands/boot/bowVariant.generated.json"
       ],
       "buildTimeOutputs": [
         "public/assets/nalati/baked/gear-specimens.bin",
         "src/shards/nalati-grasslands/boot/gear.generated.json",
         "src/shards/nalati-grasslands/boot/weaponEffects.generated.ts",
         "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json",
-        "src/shards/nalati-grasslands/boot/bowTrail.generated.json"
+        "src/shards/nalati-grasslands/boot/bowTrail.generated.json",
+        "src/shards/nalati-grasslands/boot/bowVariant.generated.json"
       ],
       "platform": "portable"
     },

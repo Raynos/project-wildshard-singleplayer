@@ -6,6 +6,11 @@ import { Signal, Field, Channel, Read, Do, Params } from './generated/nalatiKokp
 @inline function distance(x:f64,z:f64,tx:f64,tz:f64):f64 { return Math.hypot(x-tx,z-tz); }
 // Stateless requests borrow the original page clocks; no actor or RNG is created.
 export function onSignal(signal:i32,value:f64,source:i32):void {
+  if(signal==Signal.bow){
+    Do.channel(Channel.bowSun,get(Field.bowPower)>=get(Field.bowThreshold)?1:0);
+    Do.channel(Channel.bowDamage,Math.round(get(Field.bowBaseDamage)*get(Field.bowPierce))*(get(Field.bowCrush)!=0?get(Field.bowCrushScale):1));
+    return;
+  }
   if(chapterSignal(signal)||courseSignal(signal))return;
   let carrying=get(Field.carrying),left=get(Field.left),slow=get(Field.slow),cheer=get(Field.cheer),warned=get(Field.warned);
   let event:i32=0,pose:i32=0,goal:i32=0,warning:i32=0;

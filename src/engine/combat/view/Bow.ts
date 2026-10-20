@@ -237,6 +237,8 @@ export class Bow<Style extends string = string> extends Weapon {
   private mounted = false;
 
   /** the bow's look: 'recurve' (horn and birch) or 'golden' (the Golden King's reward) — repaints the limbs + string */
+  /** Stable native target identity, retained across held-variant replacement. */
+  get targetSource():Targets|undefined{return this.targets;}
   setStyle(style: Style): void { this.style = style; this.bowMesh.repaint?.(style); }
   style: Style;
   /** the view is > 110° off the horse's heading (the HUD's REAR SHOT chip; a hit on a pursuer staggers — B7's `damageMultiplier`) */
