@@ -1,0 +1,32 @@
+{
+  "files": {
+    "observations": "world/weather-observations.json",
+    "rain": "world/rain.json",
+    "program": "world/weather.json",
+    "shelter": "actors/shelter.json"
+  },
+  "channels": "weather",
+  "debug": "pine.weather",
+  "heldPhase": 0.5,
+  "focus": {
+    "kind": "deer",
+    "variant": "ghost",
+    "near": 140,
+    "threshold": 0.02,
+    "retention": 0.8,
+    "height": 1.2,
+    "radius": 19,
+    "gain": 0.82
+  },
+  "system": {
+    "id": "shard.pine.weather",
+    "after": [
+      "shard.pine.weather.state"
+    ],
+    "before": [
+      "world.life",
+      "first hints",
+      "main.frame"
+    ]
+  }
+}

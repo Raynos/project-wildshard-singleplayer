@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./looks/forestWeather": "./looks/forestWeather.ts",
     "./quest/forestStory": "./quest/forestStory.ts",
     "./quest/forestStoryRows": "./quest/forestStoryRows.ts",
     "./npc/figures": "./npc/figures.ts",
