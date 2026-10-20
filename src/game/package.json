@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./quest/nativeInputs": "./quest/nativeInputs.ts",
+    "./quest/nativeComposition": "./quest/nativeComposition.ts",
     "./combat/roamingSession": "./combat/roamingSession.ts",
     "./boss/roamingProjection": "./boss/roamingProjection.ts",
     "./boss/socketRig": "./boss/socketRig.ts",

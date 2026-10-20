@@ -60,6 +60,10 @@ const savedSchema = (count: number, ROSTER: number) => {
   practice: v.strictObject({ dead: finite, fade: finite }), ids: v.strictObject({ next: v.pipe(v.number(), v.integer(), v.minValue(0)), used: v.array(v.string()) }) });
 };
 
+const populations = new WeakMap<SimHost, Map<string, ReturnType<typeof installMixedPopulation>>>();
+export function mixedPopulation(host: SimHost, id: string): ReturnType<typeof installMixedPopulation> {
+  const value = populations.get(host)?.get(id); if (value === undefined) throw new Error('Missing mixed population'); return value;
+}
 /** Mixed native population host. Rows own policy selection, reserved slots,
  * return gates, pose services and the physical volley's before/after boundary.
  * The v8 continuation retains per-body policies, poses, ids and native handles. */
@@ -282,8 +286,13 @@ export function installMixedPopulation(host: SimHost, ports: MixedPopulationInpu
     if (body !== null) hunt.staggered(body, strength, running);
   };
   const publishPoses = (): void => { poses.publish(i => rosterAt(i)?.actor?.entityId); };
+  const publish = (value: ReturnType<typeof installMixedPopulation>): ReturnType<typeof installMixedPopulation> => {
+    const book = populations.get(host) ?? new Map<string, ReturnType<typeof installMixedPopulation>>();
+    if (book.has(rows.step)) throw new Error('Duplicate mixed population');
+    book.set(rows.step, value); populations.set(host, book); host.scope.onDispose(() => { book.delete(rows.step); }); return value;
+  };
   const population = { publishPoses, bodies: () => bodies, hunt, captain: () => captain?.actor ?? null, spawnCaptain, alarm, staggered };
-  if (saved === undefined) { keep(); return { ...population, settle: () => undefined }; }
+  if (saved === undefined) { keep(); return publish({ ...population, settle: () => undefined }); }
 
   const keeper = v.parse(Saved, saved.adapters.find(adapter => adapter.id === ISLAND_STEP)?.state);
   if (keeper.bodies.length < BODY_COUNT || keeper.bodies.length >= ROSTER || keeper.herds.length < bake.herds.length) throw new Error('Incompatible Mixed population population continuation');
@@ -306,5 +315,5 @@ export function installMixedPopulation(host: SimHost, ports: MixedPopulationInpu
 
   if (keeper.captain !== null) captain = captainBody(keeper.captain.id);
   const live = [...bodies.filter((_, i) => keeper.bodies[i]?.live === true), ...(captain === null ? [] : [captain])];
-  return { ...population, settle: orderedNativeReinstall(saved, ISLAND_STEP, live, reinstall, keep) };
+  return publish({ ...population, settle: orderedNativeReinstall(saved, ISLAND_STEP, live, reinstall, keep) });
 }

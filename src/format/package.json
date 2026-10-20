@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./nativeQuestComposition": "./nativeQuestComposition.ts",
     "./roamingCombat": "./roamingCombat.ts",
     "./roamingBossProjection": "./roamingBossProjection.ts",
     "./bossSocketRig": "./bossSocketRig.ts",
