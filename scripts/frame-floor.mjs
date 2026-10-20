@@ -18,6 +18,7 @@ import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
+import { startFloorNative } from './frame-floor-native.mjs';
 import { validateFrameFloorArgs } from './frame-floor-args.mjs';
 import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
 import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
@@ -37,6 +38,8 @@ validateFrameFloorArgs(args);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const shards = flag('shards', ALL.join(',')).split(',');
 const surface = flag('surface', 'both');
+const nativeDirectory = flag('native-memory', '');
+if (nativeDirectory !== '' && (surface !== 'sim' || !existsSync(nativeDirectory))) throw new Error('--native-memory requires Simulator and an existing scratch directory');
 const frames = Number(flag('frames', '120'));
 const settleMs = Number(flag('settle', '2')) * 1000;
 const standingPoses = flag('standing-poses', '').split(',').filter(Boolean);
@@ -675,7 +678,9 @@ async function safariPage(base) {
 }
 async function worker() {
   const base = flag('base', ''), deadline = Number(flag('deadline', '0')), rows = [];
-  let browser, context, page, proxy, inspector;
+  let browser, context, page, proxy, inspector, nativeMemory;
+  /** @type {ReturnType<typeof startFloorNative> | undefined} */
+  let stopNative;
   let lastRoute = null;
   // Retain the existing once-a-second route ledger's memory envelope, including loading between standing witnesses.
   // This records already-read model costs; it adds no browser sampling or timing instrumentation.
@@ -751,6 +756,7 @@ async function worker() {
           xcrun(['openurl', udid, `${base}version.json`]);
           await connect(`${base}version.json`);
           await retryEvaluate(`(() => { ${fixture('phone')}; return true; })()`);
+          if (nativeDirectory !== '') stopNative = startFloorNative(ROOT, nativeDirectory, udid, expression => inspector?.raw(expression));
           // Reconnect after navigation: an inspector evaluation envelope can disappear in a WebContent process swap.
           // The helper sets live pose pins before the clean build's modules boot.
           inspector.close(); inspector = undefined;
@@ -759,7 +765,10 @@ async function worker() {
           await connect(gameUrl);
         },
         tapGrid: () => inspector.raw(FLOOR_GRID_TAP),
-        evaluate: retryEvaluate, errors: () => retryEvaluate('window.__frameFloorErrors ?? []'), progress: () => lastRoute, unload: () => { inspector?.close(); inspector = undefined; },
+        evaluate: retryEvaluate, errors: () => retryEvaluate('window.__frameFloorErrors ?? []'), progress: () => lastRoute, unload: async () => {
+          if (stopNative !== undefined) { nativeMemory = await stopNative(); stopNative = undefined; }
+          inspector?.close(); inspector = undefined;
+        },
         // the tap's fresh document (same helper page, so the pins stay): reconnect to whatever page the helper path now holds
         followed: async () => { await sleep(1500); await connect(`${base}frame-floor-safari.html`); },
         scriptProfile: safariProfileDir === '' ? null : { start: () => startScriptProfile(inspector) },
@@ -770,9 +779,13 @@ async function worker() {
   } catch (error) {
     for (const shard of shards.filter((s) => !rows.some((r) => r.shard === s))) rows.push({ shard, complete: false, pass: false, error: errorText(error) });
   } finally {
+    if (stopNative !== undefined) {
+      try { nativeMemory = await stopNative(); }
+      catch (error) { nativeMemory = { error: errorText(error) }; }
+    }
     inspector?.close(); proxy?.kill('SIGTERM'); await context?.close(); await browser?.close();
   }
-  writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows, memoryJourney: [...memoryJourney.values()] }));
+  writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows, memoryJourney: [...memoryJourney.values()], ...(nativeMemory === undefined ? {} : { nativeMemory }) }));
 }
 function run(command, argv, options = {}) {
   return new Promise((resolve, reject) => {
@@ -820,6 +833,7 @@ async function main() {
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
+      if (nativeDirectory !== '') workerArgs.push(`--native-memory=${nativeDirectory}`);
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
