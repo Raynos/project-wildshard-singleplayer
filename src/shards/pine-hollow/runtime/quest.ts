@@ -15,7 +15,7 @@ import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, isPineThrall } from '../quest/featLaw';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import { DirectorScriptStageLane, type readDirectorProduct } from '@wildshard/game/plugin/director';
-import { LEVER_FLAG } from '../data/nativeLoadout';
+import LEVER_FLAG from '../data/nativeLoadout.json' with { type: 'json' };
 import { NativeInventory, nativeInventorySchema, type NativeInventoryProfile } from '@wildshard/game/inventoryLaw';
 import { ContractBoard, CONTRACT_ACTION } from '@wildshard/game/quest/contractBoard';
 import { eliteOf } from '@wildshard/game/quest/contracts';
