@@ -20,6 +20,7 @@ import type { Balbals } from '../world/Balbals';
 
 import type { NalatiLoadout } from '../weapons/loadout';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
+import * as v from 'valibot';
 import { BalbalWarriors } from './balbalWarriors';
 import { GhostRiders } from './ghostRiders';
 
@@ -55,7 +56,8 @@ export interface NightEnemies {
 export async function wireNightEnemies(ctx: NightEnemiesCtx): Promise<NightEnemies> {
   const product = await loadFirstPartyProduct('nalati-grasslands');
   const weather = await product.json<{ night: Omit<NightRows, 'program'>; reactions: unknown }>('world/weather.json');
-  const rows: NightRows = { ...weather.night, program: weather.reactions };
+  const program = v.parse(v.object({ script: v.unknown(),bytes: v.string() }),weather.reactions);
+  const rows: NightRows = { ...weather.night, program };
   if (ctx.game.levelScope.disposed) throw new Error('Nalati night owner was disposed during admission');
   const balbals = new BalbalWarriors({ scene: ctx.game.scene, balbals: ctx.balbals, clock: ctx.clock, scope: ctx.game.levelScope }, rows);
   const riders = new GhostRiders({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, clock: ctx.clock }, rows);
