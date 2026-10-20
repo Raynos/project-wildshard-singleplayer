@@ -14,7 +14,6 @@ import { graniteBlock } from './granite';
 import { painted, paintedSpecimen, isPainted, rememberPainted, type Paint, type PaintCtx, type Made, type Kit, type PaintAt } from './painted';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, generatedBounds, instanceTris, type MemberData, type InstanceData, type GeneratedSpec } from './placement';
 import type { FieldstoneParams, FieldstoneLook, Board, CragLedgeParams, LeopardCaveParams, KurganEntranceParams, KurganKerbParams, FirewoodParams, ChurnParams } from './campParams';
-import { Flutter } from '../world/Flutter';
 import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIRN, CRAGS, WEST_CRAGS, CRAG_CAVE, KURGANS, GREAT_KURGAN, KURGAN_BALBALS, GREAT_KURGAN_DOOR } from './poiLayout';
 import { boxDescs, prism, slab, supportHull, type Box } from './solid';
 import { placementMatrix } from './modelPlacement';
@@ -231,12 +230,11 @@ const colour = (c: Rgb): string | number => {
   if (typeof c === 'string' || typeof c === 'number') return c;
   throw new Error('[nalati places] a cloth colour the bake cannot replay');
 };
-class RecordingFlutter extends Flutter {
-  constructor(private readonly log: EffectRow[]) { super(); }
-  override streamer(a: THREE.Vector3, len: number, w: number, color: Rgb, o: { droop?: number; taper?: number } = {}): void { this.log.push(['streamer', point(a), len, w, colour(color), o]); }
-  override flag(top: THREE.Vector3, h: number, len: number, color: Rgb, o: { droop?: number; taper?: number } = {}): void { this.log.push(['flag', point(top), h, len, colour(color), o]); }
-  override strip(a: THREE.Vector3, len: number, w: number, color: Rgb): void { this.log.push(['strip', point(a), len, w, colour(color)]); }
-}
+const recordingFlutter = (log: EffectRow[]): PaintCtx['flutter'] => ({
+  streamer: (a, len, w, color, o = {}) => { log.push(['streamer', point(a), len, w, colour(color), o]); },
+  flag: (top, h, len, color, o = {}) => { log.push(['flag', point(top), h, len, colour(color), o]); },
+  strip: (a, len, w, color) => { log.push(['strip', point(a), len, w, colour(color)]); },
+});
 const recordingPlumes = (log: EffectRow[]): Plumes => ({ emitter: (p, o = {}) => { log.push(['emitter', point(p), o]); } });
 
 // ── the places (the builders, verbatim but for drawing: each mesh's geometry is kept with its material's kind) ─────────
@@ -1051,7 +1049,7 @@ export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = 
   const blocks: Uint8Array[] = [];
   const rows = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace, kurgansPlace, cragsPlace, roadsPlace, watchtowerPlace, kokparPlace, (ctx: PaintCtx) => finishBuild(outcropsPlace(ctx)), (ctx: PaintCtx) => finishBuild(dressingStatics(ctx, dressingInput(dressing).plan)), (ctx: PaintCtx) => finishBuild(dressingClutter(ctx, dressingInput(dressing).clutter))].map((build): PlaceRow => {
     const effects: EffectRow[] = [];
-    const ctx: PaintCtx = { ground, flutter: new RecordingFlutter(effects), smoke: recordingPlumes(effects) };
+    const ctx: PaintCtx = { ground, flutter: recordingFlutter(effects), smoke: recordingPlumes(effects) };
     const p = build(ctx, effects), { members, instances } = p.set.rows();
     return {
       name: p.name, group: p.group, surface: p.surface, tris: p.tris, anchors: p.anchors ?? {},
