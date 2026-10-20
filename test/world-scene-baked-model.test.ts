@@ -194,7 +194,7 @@ test('fictional baked building retains ordered draws, depth layers and tier band
   if (!(drawnMoss instanceof BufferAttribute) || !(originalMoss instanceof BufferAttribute)) throw new Error('Missing native custom channel');
   expect(drawnMoss.array).toEqual(originalMoss.array);
   const game = {}, context = { scope: owner, app: { registry }, game } as ShardContext;
-  Object.assign(game, { runtime: { world: { sky, game: host } } });
+  Object.assign(game, { runtime: { world: { sky, game: host, registry } } });
   const placement = parseWorldScenePlacement({ id: 'shelter', model: 'shelter', draw: 'single',
     poses: [{ x: 3, y: 1, z: 4, yxz: { yaw: 0, yawAtan2: [2, 3], scale: 1 } }], piece: { id: 'jetty', solidFloor: true, floorPolicy: 'highest',
       floors: [{ x: 3, z: 4, hw: 2, hd: 3, y: 5 }, { x: 3, z: 4, hw: 2, hd: 3, y: 7 }] } });
