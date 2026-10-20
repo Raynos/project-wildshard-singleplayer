@@ -1,10 +1,10 @@
 {
-  "date": "18 OCT 2026",
-  "updated": "2026-10-18T18:20:11Z",
+  "date": "19 OCT 2026",
+  "updated": "2026-10-20T04:14Z",
   "entries": [
-    "Infinite Wildshard: fixed road entry into Signal Dunes",
-    "Signal Dunes: fixed skitterer pack startup during slow loads",
-    "Slow grid launches no longer return to the title",
-    "Nalati Grasslands: restored entering play after loading"
+    "Nine Dragon Stack: fixed a severe desktop slowdown after entering",
+    "Every shard's map is now drawn straight from its world",
+    "Nalati Grasslands: riding, taming, weapons and stealth rebuilt on shared systems",
+    "Nine Dragon Stack: grapple courses and portal rides rebuilt on shared systems"
   ]
 }
