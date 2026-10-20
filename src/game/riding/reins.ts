@@ -1,5 +1,6 @@
 /** Client-only riding straps and Explorer projection; never imported by simulation poses. */
 import * as THREE from 'three';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { ReinPresentationSchema, type ReinPresentationRows, type ReinRibbonRows, type ReinRibbonFrame } from '@wildshard/format/riding';
@@ -154,4 +155,56 @@ export function reinSpecimen(rows: { id: string; name: string; file: string; pro
       const holder = new THREE.Group(); holder.name = 'reins'; holder.add(mesh); return holder;
     },
   });
+}
+
+const _anchorMatrix = new THREE.Matrix4(), _anchorPoint = new THREE.Vector3();
+/** Client-only strap projection from native skeleton weights and declared
+ * anchor roles. The actor keeps its pose; no content sampler or hook binds. */
+export class MountedReins {
+  private readonly ribbon: ReinRibbon;
+  private readonly rows: ReinPresentationRows;
+  private readonly frame: ReinRibbonFrame = { yaw: 0, drop: false, head: [0, 0, 0], crest: [0, 0, 0], muzzle: [0, 0, 0], withers: [0, 0, 0] };
+  private readonly muzzleLocal = new WeakMap<Animal, THREE.Vector3>();
+  get group(): THREE.Group { return this.ribbon.group; }
+  constructor(camera: THREE.PerspectiveCamera, input: unknown, scope?: Scope) { this.rows=parse(ReinPresentationSchema,input);this.ribbon = new ReinRibbon(camera, this.rows, scope); }
+  /** the muzzle in the head bone's frame: of the vertices the head bone moves most, the one farthest from it (bind pose:
+   *  bone⁻¹ · bindMatrix · v) — found in the actor's admitted mesh */
+  private muzzleOf(a: Animal): THREE.Vector3 | null {
+    const rows = this.rows;
+    const hit = this.muzzleLocal.get(a);
+    if (hit !== undefined) return hit;
+    const mesh = a.mesh, sk = mesh.skeleton, head = sk.getBoneByName(rows.anchors.head);
+    if (head === undefined) return null;   // missing declared anchor
+    const hi = sk.bones.indexOf(head), inv = sk.boneInverses[hi];
+    if (inv === undefined) return null;
+    const g = mesh.geometry, pos = g.getAttribute('position'), si = g.getAttribute('skinIndex'), sw = g.getAttribute('skinWeight');
+    _anchorMatrix.multiplyMatrices(inv, mesh.bindMatrix);
+    let best: THREE.Vector3 | null = null, bd = -1;
+    for (let i = 0; i < pos.count; i++) {
+      let w = 0;
+      for (let c = 0; c < 4; c++) if (si.getComponent(i, c) === hi) w += sw.getComponent(i, c);
+      if (w < rows.anchors.minWeight) continue;
+      _anchorPoint.fromBufferAttribute(pos, i).applyMatrix4(_anchorMatrix);
+      const d = _anchorPoint.lengthSq();
+      if (d > bd) { bd = d; best = (best ?? new THREE.Vector3()).copy(_anchorPoint); }
+    }
+    if (best === null) return null;
+    this.muzzleLocal.set(a, best);
+    return best;
+  }
+
+  update(dt: number, actor: Animal | null, on: boolean, drop: boolean): void {
+    const rows = this.rows;
+    if (!on || actor === null) { this.ribbon.update(dt, null); return; }
+    const muzzle = this.muzzleOf(actor), skeleton = actor.mesh.skeleton;
+    const head = skeleton.getBoneByName(rows.anchors.head), crest = skeleton.getBoneByName(rows.anchors.crest), body = skeleton.getBoneByName(rows.anchors.body);
+    if (muzzle === null || head === undefined || crest === undefined || body === undefined) { this.ribbon.group.visible = false; return; }
+    actor.mesh.updateMatrixWorld(true);
+    const frame = this.frame; frame.drop = drop; frame.yaw = actor.yaw;
+    _anchorPoint.setFromMatrixPosition(head.matrixWorld).toArray(frame.head);
+    _anchorPoint.setFromMatrixPosition(crest.matrixWorld).toArray(frame.crest);
+    _anchorPoint.copy(muzzle).applyMatrix4(head.matrixWorld).toArray(frame.muzzle);
+    _anchorPoint.fromArray(rows.anchors.withers).applyMatrix4(body.matrixWorld).toArray(frame.withers);
+    this.ribbon.update(dt, frame);
+  }
 }

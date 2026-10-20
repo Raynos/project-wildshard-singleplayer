@@ -60,7 +60,7 @@ import type { MountProfile } from '@wildshard/format/riding';
 import type { RideHUD } from '@wildshard/game/riding/hud';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { PanelDefinition } from '@wildshard/format/panelTemplate';
-import { Reins } from '../ride/Reins';
+import { MountedReins as Reins } from '@wildshard/game/riding/reins';
 import { SheepRaid } from '../creatures/shepherdView';
 import { cleanHorseName } from '../ride/horseNames';
 import { legacyAdventureBond } from '@wildshard/game/quest/legacyRecords';
@@ -130,7 +130,7 @@ export interface Nalati {
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
   const { admission, roads, rest } = v.parse(v.object({ admission: v.unknown(),
     roads: v.array(v.array(v.tuple([v.number(),v.number()]))), rest: v.object({ x: v.number(), z: v.number(), face: v.object({ x:v.number(),z:v.number() }) }) }), await plugin.product.json('sim/headless-boot.json'));
-  const ridingPrograms = await plugin.product.json<RidingPrograms>('ride/rules.json');
+  const ridingPrograms = await plugin.product.json<RidingPrograms & {reins:unknown}>('ride/rules.json');
   const { constants: { nativeTaming, nativeRide,pageGroups,pageWildlife,nativeWeather } } = v.parse(v.object({ constants: v.object({
     nativeWeather:v.unknown(),pageWildlife: v.unknown(),pageGroups: v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
     nativeRide: v.object({ speeds:v.object({ walk:v.number(),trot:v.number(),canter:v.number(),gallop:v.number() }),thrownDamage:v.number(),thrownLabel:v.string() }) }) }), await plugin.product.json('sim/headless-assembly.json'));
@@ -450,7 +450,7 @@ export interface Ride {
   reins: Reins; raid: SheepRaid; noteShot:(x:number,z:number)=>void;
 }
 interface RideCtx {
-  ctx: ShardContext; player: Player; camera: Game['camera']; animals: AnimalManager; wildlife: Wildlife; programs: RidingPrograms;
+  ctx: ShardContext; player: Player; camera: Game['camera']; animals: AnimalManager; wildlife: Wildlife; programs: RidingPrograms & {reins:unknown};
   preset: ReturnType<typeof readPageRidingPreset>; rest: {x:number;z:number;face:{x:number;z:number}}; roads: NonNullable<MountProfile['roads']>;
   nativeTaming: {binding:unknown;rail:{x:number;z:number}}; nativeRide: Pick<MountProfile,'speeds'|'thrownDamage'|'thrownLabel'>;
   namePanel: PanelDefinition; persistence?: NalatiPersistence;
@@ -468,7 +468,7 @@ function wireRide(ctx: RideCtx): Ride {
     actions: { ...ctx.preset.actions, program: ctx.programs.riding, rail: ctx.nativeTaming.rail },
     mountables: ctx.wildlife.mountables.map(actor => ({ id: actor.entityId, name: ctx.preset.mountableLabel })),
   });
-  const { mount, taming, hud, interactable } = session, reins = new Reins(ctx.camera, ctx.ctx.scope), namer = new DataPanel(ctx.namePanel);
+  const { mount, taming, hud, interactable } = session, reins = new Reins(ctx.camera, ctx.programs.reins, ctx.ctx.scope), namer = new DataPanel(ctx.namePanel);
   const publishRaidNotice = (text: string): void => { ctx.ctx.game.runtime?.play?.hud.toast(text); };
   const raid = new SheepRaid({ animals: ctx.animals, wildlife: ctx.wildlife, toast: publishRaidNotice }), nameValues = { current: '' };
   const nameActions = new Map<string, (value: unknown) => void>([['save', value => {

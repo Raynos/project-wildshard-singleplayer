@@ -1,7 +1,6 @@
 import { enterClientAudioScene } from '@wildshard/game/audio/sceneDirector';
 import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
 import { prepareStormTitan } from '../combat/stormTitan';
-import { prepareNalatiReins } from './reins';
 import { arsenal,prepareSabre,prepareSpear } from '../weapons/nativeMelee';
 
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
@@ -57,7 +56,6 @@ export class NalatiPlugin extends ShardPlugin {
     const actorRows = await ctx.product.json<{ species: unknown }>('actors/sheep.json');
     await prepareNalatiSpecies(actorRows.species, ctx.product.shardfile.clientChannels ?? [], await ctx.product.file('actors/balbal-cracks.bin'));
     prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
-    prepareNalatiReins((await ctx.product.json<{ reins: unknown }>('ride/rules.json')).reins);
     await prepareStormTitan(ctx.product);
     this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, this.persistence ?? undefined))));
     await prepareSabre(ctx.product);
