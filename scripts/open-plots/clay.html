@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hologram review</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#d6d8dc}canvas{display:block;width:100vw;height:100vh}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head>
+<body>
+<script type="module">
+// Review page for open-plots holograms (open-plots-mini-plan P5/P6), not the game: ?model=<glb>&mode=clay|holo&yaw=35&elev=22&dist=30
+// clay: the processed GLB (12 m, base centre at the origin, front +Z) in flat clay. holo: the G545 look as the pilot
+// previewed it (fresnel rim, scanlines, 28-degree feature edges at 0.55, wireframe at 0.07, #46e6ff) on the plot navy.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+
+const q = new URLSearchParams(location.search), holo = q.get('mode') === 'holo';
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(holo ? 0x07142a : 0xd6d8dc);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8890a0, 1.6));
+const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(-6, 10, 8); scene.add(key);
+const rim = new THREE.DirectionalLight(0xffffff, 0.8); rim.position.set(8, 6, -6); scene.add(rim);
+const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 500);
+const yaw = THREE.MathUtils.degToRad(+(q.get('yaw') ?? 35)), elev = THREE.MathUtils.degToRad(+(q.get('elev') ?? 22)), dist = +(q.get('dist') ?? 30);
+const target = new THREE.Vector3(0, 5.4, 0);
+camera.position.set(Math.sin(yaw) * Math.cos(elev) * dist, target.y + Math.sin(elev) * dist, Math.cos(yaw) * Math.cos(elev) * dist);
+camera.lookAt(target);
+const colour = new THREE.Color(0x46e6ff);
+const surface = new THREE.ShaderMaterial({
+  uniforms: { uColor: { value: colour } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+  vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vW;
+    void main(){ vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; vec4 mv = viewMatrix * w;
+      vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+  fragmentShader: `uniform vec3 uColor; varying vec3 vN; varying vec3 vV; varying vec3 vW;
+    void main(){ float rim = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), 2.2);
+      float scan = pow(0.5 + 0.5 * sin(vW.y * 18.0), 6.0) * 0.12;
+      gl_FragColor = vec4(uColor * (0.07 + rim * 0.7 + scan), 1.0); }`,
+});
+const line = (alpha) => new THREE.LineBasicMaterial({ color: colour.clone().multiplyScalar(alpha), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+loader.load(q.get('model'), (gltf) => {
+  const meshes = []; gltf.scene.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  for (const o of meshes) {
+    if (!holo) { o.material = new THREE.MeshStandardMaterial({ color: 0xb8b4ac, roughness: 0.75, side: THREE.DoubleSide, flatShading: true }); continue; }
+    o.geometry.computeVertexNormals(); o.material = surface;
+    o.add(new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 28), line(0.55)));
+    o.add(new THREE.LineSegments(new THREE.WireframeGeometry(o.geometry), line(0.07)));
+  }
+  scene.add(gltf.scene);
+  renderer.render(scene, camera);
+  requestAnimationFrame(() => { renderer.render(scene, camera); window.__ready = true; });
+}, undefined, (error) => { document.title = `ERR ${error}`; window.__ready = true; });
+</script>
+</body>
+</html>
