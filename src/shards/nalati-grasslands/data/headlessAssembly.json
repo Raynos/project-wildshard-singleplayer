@@ -39,10 +39,6 @@
       "sampleStrike",
       "NALATI_STRIKES"
     ],
-    "src/shards/nalati-grasslands/creatures/knockdown": [
-      "knockdownDash",
-      "KNOCKDOWN_TIME"
-    ],
     "src/shards/nalati-grasslands/combat/eliteRoster": [
       "NativePouncerKeeper",
       "NativeHowlerKeeper"
@@ -77,6 +73,9 @@
     ],
     "@wildshard/game/systems/looks/trample": [
       "installTrampleTrail"
+    ],
+    "@wildshard/game/population/relations": [
+      "knockdownVelocity"
     ]
   },
   "constants": {
@@ -1247,15 +1246,52 @@
               "swipeDamage": 14,
               "knock": {
                 "dash": {
-                  "$ref": [
-                    "src/shards/nalati-grasslands/creatures/knockdown",
-                    "knockdownDash"
-                  ]
+                  "$fn": {
+                    "$call": [
+                      {
+                        "$ref": [
+                          "@wildshard/game/population/relations",
+                          "knockdownVelocity"
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "constants",
+                          "nativeKnockdown"
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "args",
+                          0
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "args",
+                          1
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "args",
+                          2
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "args",
+                          3
+                        ]
+                      }
+                    ]
+                  }
                 },
                 "duration": {
                   "$ref": [
-                    "src/shards/nalati-grasslands/creatures/knockdown",
-                    "KNOCKDOWN_TIME"
+                    "constants",
+                    "nativeKnockdown",
+                    "seconds"
                   ]
                 }
               }

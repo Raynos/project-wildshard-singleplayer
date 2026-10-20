@@ -1,7 +1,7 @@
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { GrassField } from '../systems/looks/grassField';
 import { TrampleField } from '../systems/looks/trample';
-import { PopulationRelations } from './relations';
+import { knockdownVelocity, PopulationRelations } from './relations';
 import { Vector3 } from 'three';
 import { AggressionDirector } from '@wildshard/engine/ai/director';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
@@ -258,9 +258,10 @@ export class NativeWildlifeFrame {
     this.relations.ripple();
   }
   scare(x: number, z: number, radius = this.rows.scareRadius): void { this.relations.scare(x, z, radius); this.host.events.emit('creature.signal', { name: 'scare', x, z }); }
+  private readonly knocked={x:0,z:0};
   knockdown(x: number, z: number, strength: number): void {
-    const row = this.rows.knockdown, length = Math.hypot(x,z) || 1, speed = row.speed*Math.max(row.min,Math.min(row.max,strength));
-    this.host.dashPlayer(x/length*speed, z/length*speed, row.seconds);
+    const row=this.rows.knockdown;knockdownVelocity(row,x,z,strength,this.knocked);
+    this.host.dashPlayer(this.knocked.x,this.knocked.z,row.seconds);
   }
   snapshot(): { wild: { init: boolean; x: number; z: number; v: number; at: number }; flocks: string[]; marmots: ReturnType<ForagerPopulation['snapshot']> } {
     return { wild: { ...this.state, at: this.state.at ?? 0 }, flocks: this.flocks.map(flock => flock.snapshot()), marmots: this.foragers.snapshot() };

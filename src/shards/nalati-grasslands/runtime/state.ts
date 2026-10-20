@@ -3,7 +3,6 @@ import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
 import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
-import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
 import { createPageCrowds, readCrowdBody, type PageCrowdViews } from '@wildshard/game/ambient/crowdPage';
 import { PageWildlife, type WildlifeBuildStep } from '@wildshard/game/population/wildlife';
@@ -11,7 +10,6 @@ import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import { Marmots,preloadCover } from '../creatures/marmots';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv,bindPageGroups } from '@wildshard/game/population/pageGroups';
-import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { Group, Mesh, Vector3, type Object3D } from 'three';
@@ -237,29 +235,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const wildPlayer = { position: player.position, forward: new Vector3(0, 0, -1), crouching: false };
   const extra = { mounted: false };
   let ride: Ride | null = null;   // riding + taming (B7 / B8) — wired in the riding section below
-  // toasts for the herd / pack moments, each at most once in a while
-  const lastToast = new Map<string, number>();
-  const toastOnce = (key: string, text: string, every: number): void => {
-    if (now - (lastToast.get(key) ?? -1e9) < every) return;
-    lastToast.set(key, now); plugin.game.runtime?.play?.hud.toast(text);
-  };
-  const onSignal = (name: string, x: number, z: number): void => {
-    void x; void z;
-    if (name === 'howl') toastOnce(name, 'A wolf howls — the pack has your scent', 60);
-    else if (name === 'stampede') toastOnce(name, 'Stampede!', 20);
-    else if (name === 'pack-driven-off') toastOnce(name, 'The stallion drives the wolves off', 30);
-    else if (name === 'stallion-beaten') toastOnce(name, 'The stallion gives ground', 30);
-  };
-  installEnteredRuntimeService(plugin,scope => { plugin.app.events.on('creature.signal',({ name,x,z }) => { onSignal(name,x,z); },scope); });
-  // bowled over (the stallion's charge, a stampede): shoved along the blow (creatures/knockdown.ts, the host's rule too), a red flash
-  const knocked = { x: 0, z: 0 };
-  const onKnockdown = (dirX: number, dirZ: number, strength: number): void => {
-    knockdownDash(dirX, dirZ, strength, knocked);
-    player.dash(knocked.x, knocked.z, KNOCKDOWN_TIME);
-    plugin.game.runtime?.play?.hud.damageFlash();
-    toastOnce('knockdown', 'Knocked down!', 4);
-  };
-  installEnteredRuntimeService(plugin,scope => { plugin.app.events.on('creature.knockdown',({ x,z,strength }) => { onKnockdown(x,z,strength); },scope); });
   let flockDelta = 0, flockTime = 0, flockAdvance: PreparedCrowds['advance'] | undefined;
   const missingCrowdFrame = new Error('Missing declared native crowd frame');
   const advanceFlock = (view: Flock,index: number,speed: number): void => {

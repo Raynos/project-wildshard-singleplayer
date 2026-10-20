@@ -14,6 +14,7 @@ import { grassBaseHeightAt } from '../systems/looks/grassField';
 import { grassHeightAt, trample } from '../systems/looks/trample';
 import * as v from 'valibot';
 import type { Rng } from '@wildshard/engine/core/rng';
+import { knockdownVelocity } from './relations';
 import { ReturnProgram } from './returnProgram';
 import { createCreatureSpawner, type CreatureSpawnRow } from '../plugin/brain';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -213,10 +214,21 @@ let renderedDamage: { program: ReturnProgram; variant: string } | null = null;
 export function bindPageGroups(ctx: ShardContext,input: unknown): void {
   const rows = v.parse(PageGroupRowsSchema,input),herd = nativeGroupBrain(rows.herd);
   if (herd.kind !== 'herd') throw new Error('Invalid rendered damage preset');
-  const program=ReturnProgram.page(rows.damage,ctx.scope);
+  const program=ReturnProgram.page(rows.damage,ctx.scope),lastNotice=new Map<string,number>(),knocked={x:0,z:0};
   installEnteredRuntimeService(ctx,scope=>{
     const previous=renderedDamage;renderedDamage={program,variant:herd.stallionVariant};
     scope.onDispose(()=>{renderedDamage=previous;});wildEnv.enter(scope,input);
+    const effects=rows.effects;if(effects===undefined)return;
+    const toast=(key:string,text:string,every:number):void=>{
+      const now=ctx.app.clock.now;if(now-(lastNotice.get(key)??-1e9)<every)return;
+      lastNotice.set(key,now);ctx.game.runtime?.play?.hud.toast(text);
+    };
+    ctx.app.events.on('creature.signal',({name})=>{const notice=effects.notices.find(row=>row.signal===name);if(notice!==undefined)toast(name,notice.text,notice.every);},scope);
+    ctx.app.events.on('creature.knockdown',({x,z,strength})=>{
+      const player=ctx.game.runtime?.world?.player;if(player===undefined)return;
+      knockdownVelocity(effects.knockdown,x,z,strength,knocked);player.dash(knocked.x,knocked.z,effects.knockdown.seconds);
+      ctx.game.runtime?.play?.hud.damageFlash();toast('knockdown',effects.knockdown.text,effects.knockdown.every);
+    },scope);
   });
 }
 /** Native page body lookup, independent from content ids and species names. */

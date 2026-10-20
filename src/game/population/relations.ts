@@ -37,3 +37,9 @@ export class PopulationRelations<A extends AnimalSim = Animal> {
   private admitted(x: number, z: number, px: number, pz: number, radius: number): boolean { return this.program.project(this.row.range, { x, z, px, pz, radius })['accept'] === 1; }
 }
 
+
+/** Pure native knockback projection from admitted speed/clamp rows. */
+export function knockdownVelocity(rows:{speed:number;min:number;max:number},x:number,z:number,strength:number,out:{x:number;z:number}):void{
+  const length=Math.hypot(x,z)||1,speed=rows.speed*Math.max(rows.min,Math.min(rows.max,strength));
+  out.x=x/length*speed;out.z=z/length*speed;
+}

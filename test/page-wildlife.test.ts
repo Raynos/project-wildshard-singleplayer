@@ -6,12 +6,15 @@ import { PlayerHealth } from '../src/engine/combat/health';
 import type { ShardContext } from '../src/game/plugin/context';
 import { bindPageGroups, wildEnv } from '../src/game/population/pageGroups';
 import { PagePastureRaid } from '../src/game/riding/pagePasture';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { PageWildlife } from '../src/game/population/wildlife';
 import { CrowdTargets } from '../src/game/shardfile/crowdRuntime';
 import { FlockBrain } from '../src/engine/ai/flock';
 import { parseFlock } from '../src/format/crowds';
+import type { ShardRuntime } from '../src/game/shard/runtime';
+import type { Player } from '../src/engine/player/Player';
+import { knockdownVelocity } from '../src/game/population/relations';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
@@ -73,4 +76,25 @@ test.each([false,true])('orchard group admission restores observations across re
     expect(()=>bindPageGroups(ctx,{...rows,install:()=>undefined})).toThrow();
   }finally{scope.dispose();}
   expect(wildEnv.wind).toBe(previous);
+});
+
+
+test('orchard population rows own notice cooldowns and native knockback effects until exit',()=>{
+  const scope=new Scope('orchard.effects'),application=new App(),toast=vi.fn<(text:string)=>void>(),flash=vi.fn<()=>void>(),dash=vi.fn<Player['dash']>();
+  const world=legacyDouble<NonNullable<ShardRuntime['world']>>({player:legacyDouble<Player>({dash})});
+  const hud=legacyDouble<NonNullable<ShardRuntime['play']>['hud']>({toast,damageFlash:flash});
+  const runtime=legacyDouble<ShardRuntime>({world,play:legacyDouble<NonNullable<ShardRuntime['play']>>({hud})});
+  const ctx=legacyDouble<ShardContext>({scope,app:application,game:legacyDouble<ShardContext['game']>({runtime})});
+  const rows={...headlessAssembly.constants.pageGroups,effects:{notices:[{signal:'grunt',text:'Boars nearby',every:2}],knockdown:{speed:4,min:.25,max:2,seconds:.5,text:'Fallen',every:1}}};
+  try{
+    bindPageGroups(ctx,rows);
+    application.events.emit('creature.signal',{name:'grunt',x:0,z:0});application.events.emit('creature.signal',{name:'grunt',x:0,z:0});
+    application.events.emit('creature.signal',{name:'howl',x:0,z:0});application.events.flush('update');expect(toast.mock.calls).toEqual([['Boars nearby']]);
+    application.clock.tick(2);application.events.emit('creature.signal',{name:'grunt',x:0,z:0});application.events.flush('update');expect(toast).toHaveBeenCalledTimes(2);
+    application.events.emit('creature.knockdown',{x:3,z:4,strength:4});application.events.emit('creature.knockdown',{x:3,z:4,strength:4});
+    application.events.flush('update');expect(dash).toHaveBeenCalledTimes(2);expect(dash).toHaveBeenLastCalledWith(4.8,6.4,.5);expect(flash).toHaveBeenCalledTimes(2);expect(toast).toHaveBeenLastCalledWith('Fallen');expect(toast).toHaveBeenCalledTimes(3);
+    const out={x:9,z:9};knockdownVelocity(rows.effects.knockdown,0,0,0,out);expect(out).toEqual({x:0,z:0});
+    expect(()=>bindPageGroups(ctx,{...rows,effects:{...rows.effects,knockdown:{...rows.effects.knockdown,min:3}}})).toThrow();
+  }finally{scope.dispose();}
+  application.events.emit('creature.knockdown',{x:3,z:4,strength:4});application.events.emit('creature.signal',{name:'grunt',x:0,z:0});application.events.flush('update');expect(dash).toHaveBeenCalledTimes(2);expect(toast).toHaveBeenCalledTimes(3);
 });

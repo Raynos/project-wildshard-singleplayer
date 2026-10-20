@@ -128,9 +128,17 @@ export const NativeGroupRowsSchema = v.strictObject({
   ])), v.maxLength(17)),
 });
 
+/** Native population knockback tuning, shared by page and renderer-free bodies. */
+const knockdownEntries={speed:v.pipe(finite,v.minValue(0)),min:v.pipe(finite,v.minValue(0)),max:v.pipe(finite,v.minValue(0)),seconds:v.pipe(finite,v.minValue(0))};
+export const PopulationKnockdownSchema = v.pipe(v.strictObject(knockdownEntries),v.check(row=>row.min<=row.max));
+/** Native population notices and knockdown effects; no authored event handlers. */
+export const PopulationEffectsSchema = v.strictObject({
+  notices:v.pipe(v.array(v.strictObject({signal:id,text:v.pipe(v.string(),v.minLength(1),v.maxLength(256)),every:v.pipe(finite,v.minValue(0))})),v.maxLength(32),v.check(rows=>new Set(rows.map(row=>row.signal)).size===rows.length)),
+  knockdown:v.pipe(v.strictObject({...knockdownEntries,text:v.pipe(v.string(),v.minLength(1),v.maxLength(256)),every:v.pipe(finite,v.minValue(0))}),v.check(row=>row.min<=row.max)),
+});
 /** Client population groups use the same admitted brains and contact rows. */
 export const PageGroupRowsSchema = v.strictObject({
   pack: GroupBrainSchema,herd: GroupBrainSchema,contacts: v.strictObject({ pack: CreatureStrikeSchema,herd: CreatureStrikeSchema }),
   world: NativeRidingSchema.entries.world,wind: v.strictObject({ x: finite,z: finite,strength: finite }),
-  prey: id,damage: ReturnProgramSchema,
+  prey: id,damage: ReturnProgramSchema,effects:v.exactOptional(PopulationEffectsSchema),
 });
