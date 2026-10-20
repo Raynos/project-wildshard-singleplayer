@@ -3,15 +3,14 @@
 import { Matrix4 } from 'three';
 import * as v from 'valibot';
 import { nameBlob } from '@wildshard/sdk/blobs';
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { WorldSceneWeldSchema, parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import baked from '../data/cabinScenes.generated.json' with { type: 'json' };
 import cabins from '../data/cabins.json' with { type: 'json' };
 import logKit from '../data/logKit.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { HEARTH_LOOKS } from './hearthLook';
-import { CABIN_LIVING_LIBRARIES, CABIN_LIVING_BLOBS, CABIN_SITES, CabinSitesSchema, cabinLivingResources } from './cabinLivingContribution';
+import { CABIN_LIVING_LIBRARIES, CABIN_LIVING_BLOBS, CABIN_SITES, cabinLivingResources } from './cabinLivingContribution';
 
 const text = v.string(), words = v.array(v.number()), contacts = v.array(v.unknown());
 const registration = v.variant('kind', [
@@ -51,8 +50,8 @@ function sourceGraph(file: string): WorldSceneWeld {
 }
 
 export const CABIN_PLACEMENTS: ReturnType<typeof parseWorldScenePlacement>[] = [];
-export const CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[] = [...CABIN_LIVING_BLOBS, nameBlob('world/building-sites.json', 'json', new TextEncoder().encode(JSON.stringify(CABIN_SITES)), { jsonSchema: namedJsonSchema(CabinSitesSchema) })];
-const encode = (file: string, row: unknown) => nameBlob(file, 'json', new TextEncoder().encode(JSON.stringify(row)), { jsonSchema: namedJsonSchema(WorldSceneWeldSchema) });
+export const CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[] = [...CABIN_LIVING_BLOBS, nameBlob('world/building-sites.json', 'json', new TextEncoder().encode(JSON.stringify(CABIN_SITES)))];
+const encode = (file: string, row: unknown) => nameBlob(file, 'json', new TextEncoder().encode(JSON.stringify(row)));
 for (const world of metadata.worlds) {
   const prefix = `cabins.${world.tier}.${String(world.shadow)}`, placements: string[] = [], hamlet: string[] = [];
   for (const [index, row] of world.registrations.entries()) {
