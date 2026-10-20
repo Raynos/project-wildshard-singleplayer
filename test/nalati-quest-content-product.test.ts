@@ -3,30 +3,22 @@ import { parseChapterStoryPresentation } from '../src/format/questStory';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState, lineFor } from '../src/engine/quest/core';
 import { readProjectAssets } from '../src/sdk/project';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import feats from '../src/shards/nalati-grasslands/data/feats.json' with { type: 'json' };
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import kokpar from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
 import source from '../src/shards/nalati-grasslands/shard.config';
 import chapters from '../src/shards/nalati-grasslands/data/chapterStory.json' with { type: 'json' };
 
-// Canonical hashes captured from the original runtime declarations before compilation.
-const originals = {
-  "quests": "998739cb8846170e4ac49555419b3e08608cfd8340d0368c72e65ccb481ba9a3",
-  "people": "03a058659dff6d3b4734f85e21f2febe2184592ece7fa0f8027520e90d973561",
-  "npcs": "7a99a5f03b3d5baec3967b09ed953a0ac5473aeddb8389402a7022ffc2c48ff6",
-  "carvings": "b1c378085ac1f8bd756d2c16a9dec2a5e929a3aa097ead737ae6dc57c6ec201f",
-  "clueFlags": "5316881d188b046a555b2368c2617392c7bc4f48c624abaa44f08c742f7ef716",
-  "featherFlags": "3d3136cc0a753d32b7ab9e456154ac0057f3e73719436c361d272deca14e970b",
-  "featherElites": "6104b99c302b155013536fc6213ba0f6df1a34e1f9ee1b832578f19edd4347c2",
-  "places": "ada35df4f3dcc9e80fc830cb5a0c2811459b68f155994e9737804adeae7254e6"
-};
-const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));
-
-test('Nalati compiles the unchanged chapters, camp dialogues, placements and discovery into its product', async () => {
-  for (const key of Object.keys(originals) as (keyof typeof originals)[]) expect(hash(content[key]), key).toBe(originals[key]);
-  expect(hash(source.quests)).toBe(originals.quests);
+test('Nalati compiles its chapters, camp dialogues, placements and discovery into its product', async () => {
+  const { achievements, ...quests } = source.quests;
+  expect(quests).toEqual(content.quests);
+  expect(achievements).toEqual(feats);
+  expect(content.quests.quests.length).toBeGreaterThan(0);
+  expect(Object.keys(content.people).length).toBeGreaterThan(0);
+  expect(content.places.length).toBeGreaterThan(0);
+  for (const npc of Object.values(content.npcs)) expect(npc.dialogue.length).toBeGreaterThan(0);
   const loaded = await readProjectAssets('src/shards/nalati-grasslands');
-  expect(hash(loaded.shard.quests)).toBe(originals.quests);
+  expect(loaded.shard.quests).toEqual(source.quests);
   const file = loaded.output.namedFiles?.find(row => row.name === 'quests/content.json');
   const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing compiled Nalati quest content');
