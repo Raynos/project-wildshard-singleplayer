@@ -40,6 +40,23 @@ export interface MixedPopulationInput {
   readonly reserved: { readonly pose: NativeCreaturePoseRecipe; readonly pool: { readonly x: number; readonly z: number; readonly yaw: number } };
   readonly seed: number; readonly spawnY: number; readonly waterLevel: number; readonly nav: HuntNav | null;
 }
+// The retained continuation predates canonical product JSON. Rebuild its typed
+// records in wire order before native actor/pose owners capture their contracts.
+function continuationDims(input: AnimalSimSpec['dims']): AnimalSimSpec['dims'] {
+  const { bodyY, bodyHalfLen, bodyRadius, headRadius, legLen, feet, halfWidth, ...rest } = input;
+  return { bodyY, bodyHalfLen, bodyRadius, headRadius, legLen, feet, halfWidth, ...rest };
+}
+function continuationSpec(input: AnimalSimSpec): AnimalSimSpec {
+  const { kind, label, variant, rarity, hp, aggressive, mods, dims, ...rest } = input;
+  return { kind, label, variant, rarity, hp, aggressive,
+    mods: { speed: mods.speed, chargeDist: mods.chargeDist, damageTaken: mods.damageTaken, chargeDamage: mods.chargeDamage, relentless: mods.relentless },
+    dims: continuationDims(dims), ...rest };
+}
+function continuationPose(input: NativeCreaturePoseRecipe): NativeCreaturePoseRecipe {
+  const { joints, custom, pose, ...rest } = input;
+  return { joints: joints.map(({ name, parent, position, order, scale }) => ({ name, parent, position, order, scale })), custom,
+    ...(pose === undefined ? {} : { pose: { grazeNeck: pose.grazeNeck, gallopTail: pose.gallopTail } }), ...rest };
+}
 const finite = v.pipe(v.number(), v.finite());
 const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
 const Point = v.tuple([finite, finite, finite]);
@@ -87,7 +104,8 @@ export function installMixedPopulation(host: SimHost, ports: MixedPopulationInpu
   const biteStrike = strikeFromData(bite);
 
   const FULL_ROSTER = new Error('Mixed population ecology roster exceeds its native bound');
-  const { bake, specs } = ports, rng = new Rng(ports.seed + 31), bodies: MixedPopulationBody[] = [], player = host.player.position;
+  const { bake } = ports, specs = new Map([...ports.specs].map(([kind, spec]) => [kind, continuationSpec(spec)])),
+    rng = new Rng(ports.seed + 31), bodies: MixedPopulationBody[] = [], player = host.player.position;
 
   installPopulationEnvironment(host, { res: Math.sqrt(bake.ground.heights.length), size: bake.ground.scale.x, heights: bake.ground.heights }, roster.environment);
   const ground = populationEnvironment(host, roster.environment.id), heightAt = ground.heightAt;
@@ -120,7 +138,8 @@ export function installMixedPopulation(host: SimHost, ports: MixedPopulationInpu
       for (const pose of clips) pose(c);
     }] as const;
   }));
-  const poses = createNativeCreaturePoses([...bake.actors, { kind: rows.reserve.kind, variant: rows.reserve.variant, pose: ports.reserved.pose }], ROSTER, callbacks);
+  const poses = createNativeCreaturePoses([...bake.actors, { kind: rows.reserve.kind, variant: rows.reserve.variant, pose: ports.reserved.pose }]
+    .map(({ kind, variant, pose }) => ({ kind, variant, pose: continuationPose(pose) })), ROSTER, callbacks);
 
   const intake = createNativeCreatureRoster<MixedPopulationBody>(host, {
     specs: specs.values(), variants: new Map(roster.variants.map(row => [row.kind, row.rows])),
