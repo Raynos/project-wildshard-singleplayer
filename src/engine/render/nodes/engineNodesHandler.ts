@@ -526,10 +526,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
           if (!(material instanceof NodeMaterial)) this.blocks?.invalidateBindings();
           draw(camera, scene, geometry, material, object, group); return;
         }
-        this.drawShadow(camera, material, object, group, next => {
-          if (!(next instanceof NodeMaterial)) this.blocks?.invalidateBindings();
-          draw(camera, scene, geometry, next, object, group);
-        });
+        // A shadow cast: the stock depth material, or a vertex-moving graph's own depth variant (no closure per cast)
+        const depth = this.shadowCasterDepth(material, object, group);
+        if (depth === null) { this.blocks?.invalidateBindings(); draw(camera, scene, geometry, material, object, group); return; }
+        this.drawShadow(camera, depth, object, () => { draw(camera, scene, geometry, depth, object, group); });
       };
     }
     // precompile's shadow jobs compile the variant this handler's shadow draws use (sp-o289)
@@ -588,26 +588,27 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     return depth;
   }
 
-  /** The classic shadow map calls renderBufferDirect without the main node callbacks. */
-  private drawShadow(camera: THREE.Camera, stock: THREE.Material, object: THREE.Object3D,
-    group: THREE.GeometryGroup | null, draw: (material: THREE.Material) => void): void {
-    if (!(stock instanceof THREE.MeshDepthMaterial || stock instanceof THREE.MeshDistanceMaterial) || !(object instanceof THREE.Mesh)) { draw(stock); return; }
+  /** the depth variant a shadow cast of `object` draws with in place of the stock depth material `stock`, or null (stock) */
+  private shadowCasterDepth(stock: THREE.MeshDepthMaterial | THREE.MeshDistanceMaterial, object: THREE.Object3D, group: THREE.GeometryGroup | null): GraphShadowDepthMaterial | null {
+    if (!(object instanceof THREE.Mesh)) return null;
     // Explicit custom depth/distance materials belong to their caller.
-    if (stock === object.customDepthMaterial || stock === object.customDistanceMaterial) { draw(stock); return; }
+    if (stock === object.customDepthMaterial || stock === object.customDistanceMaterial) return null;
     const source: unknown = Array.isArray(object.material) ? object.material[group?.materialIndex ?? 0] : object.material;
-    const depth = this.shadowDepthOf(source, stock);
-    if (depth === null) { draw(stock); return; }
-    const top = internals(this).renderStack.at(-1), frame: unknown = Reflect.get(this, 'nodeFrame');
-    if (top === undefined || typeof frame !== 'object' || frame === null) throw new Error('Graph shadow depth requires an active render');
-    const oldCamera = top.camera, saved: unknown[] = ['camera', 'material', 'object'].map((key): unknown => Reflect.get(frame, key));
-    top.camera = camera; Reflect.set(frame, 'camera', camera);
+    return this.shadowDepthOf(source, stock);
+  }
+
+  /** The classic shadow map calls renderBufferDirect without the main node callbacks: run them for the depth variant. */
+  private drawShadow(camera: THREE.Camera, depth: GraphShadowDepthMaterial, object: THREE.Object3D, draw: () => void): void {
+    const top = internals(this).renderStack.at(-1), frame = this.frame;
+    if (top === undefined) throw new Error('Graph shadow depth requires an active render');
+    const oldCamera = top.camera, savedCamera = frame.camera, savedMaterial = frame.material, savedObject = frame.object;
+    top.camera = camera; frame.camera = camera;
     try {
       this.setObject(object, depth);
       this.beforeDraw(depth, object);
-      draw(depth);
+      draw();
     } finally {
-      top.camera = oldCamera;
-      for (const [i, key] of ['camera', 'material', 'object'].entries()) Reflect.set(frame, key, saved[i]);
+      top.camera = oldCamera; frame.camera = savedCamera; frame.material = savedMaterial; frame.object = savedObject;
     }
   }
 
