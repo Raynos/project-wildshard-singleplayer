@@ -143,6 +143,7 @@ export class PracticeNativeActor {
 
   /** Explicit placement, not displacement. Ordinary movement, including stagger, never calls this reset. */
   place(at: Readonly<{ x: number; y: number; z: number }>, yaw: number): void {
+    if (!this.pose.placementAllowed) throw new Error('Physical native placement is unsupported');
     if (this.scope.disposed || ![at.x, at.y, at.z, yaw].every(Number.isFinite)) throw new Error('Invalid native practice placement');
     this.actor.place(at.x, at.z, yaw, at.y);
     if (this.actor.motor instanceof CharacterMotor) this.actor.motor.resetAt(this.actor.position);

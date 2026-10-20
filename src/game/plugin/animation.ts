@@ -844,6 +844,7 @@ export class NativeCreaturePose {
         distance: h.motion[3] ?? 0, total: h.motion[4] ?? 0, heading: h.motion[5] ?? 0 }) });
   }
   /** Explicit diagnostic placement/re-entry boundary, never inferred from a large distance threshold. */
+  get placementAllowed(): boolean { return this.history !== undefined && !this.physicalRoot; }
   resetMotionAnchor(): void {
     const h = this.history; if (h === undefined || this.physicalRoot) throw new Error('Missing living native practice pose owner');
     const a = this.actor;
@@ -901,12 +902,14 @@ export class NativeCreaturePose {
         bones: this.joints.map((joint, index) => [this.recipe.joints[index]?.name, transform(joint)]) });
     }
     const h = this.history;
-    return JSON.stringify({ version: h === undefined ? 1 : 2, recipe: this.identity, scalar: this.law.snapshot(), breath: this.quad?.snapshot() ?? 0,
+    return JSON.stringify({ version: h === undefined ? 1 : this.corpse === undefined ? 2 : 3, recipe: this.identity, scalar: this.law.snapshot(), breath: this.quad?.snapshot() ?? 0,
       local: NativeCreaturePose.encoded([...this.joints.flatMap(NativeCreaturePose.values), ...NativeCreaturePose.values(this.root)]), published: NativeCreaturePose.encoded(Array.from(this.published)), frame: NativeCreaturePose.encoded(Array.from(this.publishedFrame)), leg: NativeCreaturePose.encoded(Array.from(this.legAbd)), wasAlive: this.wasAlive,
       ...(h === undefined ? {} : { history: { ordinal: h.ordinal, kind: h.kind, elapsed: h.elapsed, time: h.time,
         entry: NativeCreaturePose.encoded(Array.from(h.entry)), previous: NativeCreaturePose.encoded(Array.from(h.previous)),
         root: NativeCreaturePose.encoded(Array.from(h.root)), previousRoot: NativeCreaturePose.encoded(Array.from(h.previousRoot)),
-        motion: NativeCreaturePose.encoded(Array.from(h.motion)), anchor: NativeCreaturePose.encoded(Array.from(h.anchor)) } }) });
+        motion: NativeCreaturePose.encoded(Array.from(h.motion)), anchor: NativeCreaturePose.encoded(Array.from(h.anchor)) } }),
+      ...(this.corpse === undefined ? {} : { physical: { active: this.physicalRoot, frozen: this.physicalFrozen,
+        previous: this.physicalPrevious.toArray(), current: this.physicalCurrent.toArray(), owner: this.corpse.diagnostic() } }) });
   }
   /** Convert a scalar-only legacy clock or its complete named joint/root envelope. Preflight is quiet;
    * complete transforms retain frozen far-LOD joints exactly, while scalar-only callers republish from the actor. */

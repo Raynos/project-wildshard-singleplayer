@@ -504,6 +504,8 @@ export class NativeCorpseReservation {
   }
   get physics(): Physics { return this.system.physics; }
   get state(): ReservationState { return this.system.nativeState(this); }
+  /** Quiet resource observation, including a failed provisional body retained after owner closure. */
+  get resourceState(): NativeRigidCorpse['state'] | null { return this.resource?.state ?? null; }
   /** @internal Claim only while preparing this actor's next lethal transaction. */
   begin(): void { this.system.transitionNative(this, 'reserved', 'prepared'); }
   /** @internal Failed preparation retains the admitted actor's guarantee. */

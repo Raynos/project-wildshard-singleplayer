@@ -73,6 +73,12 @@ export class NativeCorpseOwner {
   }
   get ownsRoot(): boolean { return this.resource !== undefined; }
   get deathPosition(): CorpseRootEndpoint['position'] | undefined { const p = this.lethalRoot?.position; return p === undefined ? undefined : { ...p }; }
+  /** Bounded quiet observation only. This is not an input or a physical restoration capability. */
+  diagnostic(): { lease: NativeCorpseReservation['state']; resource: NativeRigidCorpse['state'] | null;
+    terminal: boolean; birthFrame: number; preTick: number; postTick: number; prepared: boolean } {
+    return { lease: this.lease.state, resource: this.resource?.state ?? this.lease.resourceState, terminal: this.terminal,
+      birthFrame: this.birthFrame, preTick: this.preTick, postTick: this.postTick, prepared: this.prepared };
+  }
   prepare(hit: AnimalAppliedHit, pose: LethalPose): NativeCorpseHandoff {
     const motor = this.actor.motor, physics = this.lease.physics;
     if (this.terminal || this.scope.disposed || !this.actor.alive || hit.alive || this.resource !== undefined

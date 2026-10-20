@@ -163,6 +163,7 @@ export class Animal extends AnimalSim {
       flying: { get: () => sim.flying }, lockable: { get: () => sim.lockable },
       lockRange: { get: () => sim.lockRange }, hasImpulse: { get: () => sim.hasImpulse },
       place: { value: (x: number, z: number, yaw: number, y?: number): void => {
+        if (this.publishedPose?.placementAllowed === false) throw new Error('Physical native placement is unsupported');
         sim.place(x, z, yaw, y); this.mesh.position.copy(sim.position); this.mesh.rotation.y = sim.yaw;
         this.publishedPose?.resetMotionAnchor();
       } },

@@ -99,17 +99,96 @@ lethal-position loot, bounded freeze, Retry before the first post-lethal tick
 and Retry after freeze, with unrelated world/storage sentinels unchanged.
 Default-off lifecycle tests remain separate and unchanged.
 
-Remaining implementation acceptance gates include actual full-cap actor creation
-refusal, terminal activation/motor-retirement faults, more phase/cadence and
-quaternion-sign coverage, Retry during collapse/reselection/exit with a live
-resource, disposed-physics cleanup, and physical-opt-in player defeat. The
-proposal's bounded physical diagnostic envelope is also not implemented in
-this slice. Physical-bound pose-only restore explicitly refuses; fresh isolated
-Retry/reload with empty stores is supported instead of historical mid-bout
-restore. The embedded-world snapshot guard remains intact.
+## Follow-on owner proof
+
+The next bounded slice adds quiet version-3 physical diagnostics: previous and
+current quaternion tuples, active/frozen flags, lease/resource state, terminal
+state, owning tick identities and whether a local step is pending. A failed
+provisional resource remains observable through its lease even if activation
+never reached the actor owner. These are bounded output-only observations, not
+restorable inputs. Without the opt-in, version-1/2 fields and serialization order
+are unchanged. Physical-bound pose-only restore and embedded-world snapshot
+restoration still refuse; no rewind authority was added.
+
+Actual additional proofs now cover:
+
+- Fill the real shared cap with legacy rigid corpses, refuse practice actor
+  creation before a target/onBegin appears, keep native resource/controller
+  counts unchanged, release one slot and admit a fresh actor. A failure after
+  reservation and real motor creation also cleans before a valid fresh entry.
+- Terminal enabled-state rollback, retired-controller removal before/after
+  native effects, and provisional activation plus persistent cleanup failure.
+  Failed owners close; surviving resources remain counted and explicit cleanup
+  remains retryable after scope closure. Disposing the borrowed host/world first
+  leaves native resource disposal safe without touching freed handles.
+- The actual demo's physical collapse Retry, reselection and exit remove the
+  old body at the native removal boundary and reset the next actor's state.
+  Real admitted decision attacks defeat the local player while the enemy still
+  holds its reservation; Retry releases/reacquires exactly one slot.
+- Actual 30/60/120Hz Game deliveries with 0/1/100 quiet reads produce the exact
+  same first 120 fixed actor/control/pose/physical diagnostic endpoints. The
+  test compares owning ticks, not nominal elapsed-frame arithmetic: the
+  existing scheduler may deliver the boundary tick in the next catch-up frame.
+  No clock, timestep or solver setting was changed.
+- Duplicate/mismatched pre/post identities refuse without state advancement.
+  A hit between pre and physics publishes the physical movement after that
+  physics step while retaining event elapsed zero until a prepared local step.
+- Opposite quaternion representations of the same actual physical orientation
+  retain exact alpha-zero/one endpoints and interpolate the short arc between
+  them, without changing physics parameters or advancing on a view read.
+
+Further review caught a genuine placement atomicity bug: native and bound-view
+placement wrote actor/mesh coordinates before the pose rejected a physical-root
+reset. Both supported entry points now inspect a readonly placement permission
+before any write. Live and frozen physical placement refuses with exact actor,
+body, pose and view invariance; existing living/default-off placement remains.
+This is refusal, not a new physical teleport or restoration capability.
+
+The expanded 13-file regression initially passed **221/221**; after placement,
+quaternion-sign and assertion repairs, it passed **224/224**. Current focused
+strict TypeScript passed. The final lint attempt caught an unsafe generic Three
+Bone assignment in the cap test; an explicit runtime instanceof type guard
+replaces that narrowing without a cast or suppression. Its isolated lint rerun
+is pending at this source freeze; the 224-test and TypeScript receipts precede
+only that test-only type-guard correction.
+The first run exposed test setup
+errors rather than a new runtime repair: a disposed rig no longer has valid
+bone ancestry; the new diagnostic intentionally records a refused pre attempt;
+parsed arrays require exact deep comparison, not object identity; and the
+borrowed world's own player must retire through its host before world disposal.
+The corrected tests retain exact logical publication, capacity and lifecycle
+assertions. They do not weaken contact thresholds or change runtime parameters.
+
+Strict TypeScript also caught a vacuous new snapshot-guard assertion calling a
+nonexistent method. The regression now calls the actual `snapshotSimHost` API
+and requires its borrowed-world refusal message. Terminal failure tests require
+the AggregateError class and exact injected nested causes, not just any throw.
+Admission tests install the real optional onBegin callback through the actual
+demo factory and require zero calls on refusal and one on subsequent admission.
+
+Independent final review and selected consumer contact/motion admission remain
+separate. Fresh isolated Retry/reload
+with empty stores is the supported persistence behavior, not historical
+mid-bout restore. The embedded-world snapshot guard remains intact.
 
 Selected geometry representability, one coherent complete authored pose pass,
 weighted surface/contact checks and root's separate private app-build/capture
 decision remain later gates. No public pins, cap increase, multi-body/joint
 expansion, padding, root lift, solver/timing study or persistent reward/quest
 authority is introduced here.
+
+## Private canonical browser engineering gate
+
+No further concrete owner-code blocker is known after the placement repair,
+subject to final lint and independent owner-proof review. A private browser
+composition would still need root authorization and must explicitly use the
+retained canonical test rig, strict numeric ownership probe and synthetic test
+hull. The current tests replace graphics only; they exercise real scheduler,
+actor and physics ownership, not a real renderer or a visible complete cycle.
+
+Such a build could establish renderer/scheduler/physical-root engineering
+evidence only. It would not admit the selected fifteen-bone geometry, the
+rejected selected motion, public Conch4, surface coverage, foot contacts or
+animation quality. No shared Arena/public pin change follows from it. Historical
+mid-bout rewind remains unsupported and is not a prerequisite to a fresh
+isolated Retry/reload test. No private app build has been run by this slice.

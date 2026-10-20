@@ -20,6 +20,8 @@ export interface AnimalPoseTransition {
 /** Read-only render consumer. Copying endpoints cannot evaluate animation or advance simulation. */
 export interface AnimalPublishedPose {
   readonly entityId: string;
+  /** A physical root cannot be teleported through a pose-only placement entry point. */
+  readonly placementAllowed?: boolean;
   copyPublished: (root: AnimalRigJoint, bones: Readonly<Record<string, AnimalRigJoint>>, alpha: number) => void;
   resetMotionAnchor: () => void;
 }

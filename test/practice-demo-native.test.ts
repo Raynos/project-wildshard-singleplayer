@@ -2,7 +2,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Load the installed physics WASM and retained canonical fixture, without network or app build.
 import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
-import { BoxGeometry, MeshStandardMaterial, Vector3 } from 'three';
+import { Bone, BoxGeometry, MeshStandardMaterial, Vector3, type Object3D } from 'three';
 import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { CreatureBodies } from '../src/engine/physics/creatures';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
@@ -60,7 +60,9 @@ async function boot(poseFile: string | null = 'poses/native-proof.json', corpse 
   const worldHits = vi.fn<() => void>(), worldDeaths = vi.fn<() => void>(); const outside = new Scope('unrelated-world');
   app.events.on('damage.dealt', worldHits, outside); app.events.on('actor.died', worldDeaths, outside);
   localStorage.setItem('world-save-sentinel', 'unrelated progress and purse');
-  const enter = vi.spyOn(PracticeCreature.prototype, 'enter');
+  const enter = vi.spyOn(PracticeCreature.prototype, 'enter'), begin = vi.fn<() => void>();
+  const create = PracticeCreature.create.bind(PracticeCreature);
+  const factory = vi.spyOn(PracticeCreature, 'create').mockImplementation(options => create({ ...options, onBegin: () => { begin(); options.onBegin?.(); } }));
   const demo = await graphics.load(startPracticeDemo({
     canvas, level: practiceLevel(), product, ...(poseFile === null ? {} : { nativePractice: { 'conch-duelist:conch-duelist': { poseFile, ...(corpse ? { corpse: 'rigid' as const } : {}) } } }),
     status: message => { statuses.push(message); },
@@ -97,10 +99,10 @@ async function boot(poseFile: string | null = 'poses/native-proof.json', corpse 
   app.combat.registerTargets(outside, () => [app.combat.targetPort(other.combatActor(), other)]);
   const sword = weapons.current; const write = vi.spyOn(localStorage, 'setItem');
   const physics = app.physics; if (!(physics instanceof Physics)) throw new Error('Missing actual physics');
-  return { demo, graphics, statuses, faults, creature, enter, sword, weapons, physics,
+  return { demo, graphics, statuses, faults, creature, enter, begin, sword, weapons, physics,
     worldUnchanged: () => { expect(other.snapshot()).toEqual(otherBefore); expect(worldHealth.snapshot()).toEqual(worldBefore); expect(worldHits).not.toHaveBeenCalled(); expect(worldDeaths).not.toHaveBeenCalled();
       expect(write).not.toHaveBeenCalled(); expect(localStorage.getItem('world-save-sentinel')).toBe('unrelated progress and purse'); expect(saveEnvironment().persistent()).toBe(false); expect(saveEnvironment().storage('shard')).toBeNull(); },
-    dispose: () => { demo.dispose(); outside.dispose(); offFault(); enterOwner(null); graphics.dispose(); document.body.replaceChildren(); },
+    dispose: () => { demo.dispose(); factory.mockRestore(); outside.dispose(); offFault(); enterOwner(null); graphics.dispose(); document.body.replaceChildren(); },
   };
 }
 function nativeOf(creature: PracticeCreature): PracticeNativeActor {
@@ -300,8 +302,8 @@ test('refused numeric weapon contact reaches the actual Game retry fault policy 
   } finally { f.dispose(); }
 });
 
-test('real admitted decision attacks defeat only the local player and Retry re-enables a fresh bout', async () => {
-  const f = await boot();
+test.each([false, true])('real decision attacks defeat only the local player and Retry resets physical opt-in=%s', async corpse => {
+  const f = await boot('poses/native-proof.json', corpse);
   try {
     const native = nativeOf(f.creature()), events = eventsOf(f.creature()); let hits = 0;
     events.on('damage.dealt', value => { if (value.req.target.id === 'actor.player') hits++; }, scopeOf(f.creature()));
@@ -313,7 +315,9 @@ test('real admitted decision attacks defeat only the local player and Retry re-e
     expect(app.combat.targets().every(target => !target.hittable)).toBe(true);
     const count = hits; for (let i = 0; i < 120; i++) f.graphics.frame(1 / 60);
     expect(hits).toBe(count); expect(f.creature().playerHealth).toBe(0); expect(native.actor.alive).toBe(true);
-    const retired = retireCheck(f); f.demo.retry(); retired();
+    const old = native.actor.motor; if (!(old instanceof CharacterMotor)) throw new Error('Missing living motor');
+    const retired = corpse ? () => { expect(native.corpse?.scope.disposed).toBe(true); expect(old.collider.isValid()).toBe(false); expect(ragdollsFor(f.physics).reserved).toBe(1); } : retireCheck(f);
+    f.demo.retry(); retired();
     expect(f.demo.player.carried).toBe(false); expect(f.weapons.enabled).toBe(true);
     expect(f.creature().playerHealth).toBe(f.creature().playerMaxHealth); expect(nativeOf(f.creature()).pose.context.transition?.ordinal).toBe(0);
     expect(f.faults).toEqual([]); f.worldUnchanged();
@@ -357,4 +361,90 @@ test('actual demo physical opt-in pairs one scheduler, late weapon death, fixed 
     swing(f, 10000, () => !fresh.actor.alive); f.demo.retry(); expect(system.reserved).toBe(1); expect(system.live).toBe(0);
     expect(f.faults).toEqual([]); f.worldUnchanged();
   } finally { f.dispose(); }
+});
+
+test('full shared cap refuses actual native actor creation before target/onBegin; one released slot admits a fresh bout', async () => {
+  const f = await boot('poses/native-proof.json', true), system = ragdollsFor(f.physics), legacy = [];
+  try {
+    const creature = f.creature(), view = creature.targets[0]; if (view === undefined) throw new Error('Missing bound view');
+    const at = nativeOf(creature).actor.position.clone(), root = view.mesh.clone(), bones: Record<string, Bone> = {};
+    const isBone = (node: Object3D): node is Bone => node instanceof Bone;
+    root.traverse(node => { if (isBone(node)) bones[node.name] = node; });
+    creature.exit(); expect(system.occupied).toBe(0);
+    while (system.occupied < system.cap) {
+      const corpse = system.spawn({ root, bones, dims: view.dims, scale: view.scale, build: 'rigid', lite: false,
+        velocity: { x: 0, y: 0, z: 0 }, hitPoint: at, dir: { x: 1, y: 0, z: 0 }, damage: 20,
+        corpsePose: { complete: false, step: () => undefined, render: () => undefined } });
+      if (corpse === null) throw new Error('Missing legacy capacity'); legacy.push(corpse);
+    }
+    const counts = [f.physics.world.bodies.len(), f.physics.world.colliders.len(), f.physics.world.characterControllers.size];
+    const statuses = [...f.statuses], targets = app.combat.targets(), begins = f.begin.mock.calls.length;
+    expect(() => creature.enter(at)).toThrow('capacity unavailable');
+    expect(creature.targets).toEqual([]); expect(Reflect.get(creature, 'native')).toBeNull(); expect(Reflect.get(creature, 'bout')).toBeNull();
+    expect(f.statuses).toEqual(statuses); expect(app.combat.targets()).toEqual(targets); expect(f.begin).toHaveBeenCalledTimes(begins);
+    expect([f.physics.world.bodies.len(), f.physics.world.colliders.len(), f.physics.world.characterControllers.size]).toEqual(counts);
+    expect(system.occupied).toBe(system.cap); expect(system.reserved).toBe(0);
+    legacy.pop()?.dispose(); creature.enter(at); expect(f.begin).toHaveBeenCalledTimes(begins + 1); expect(system.occupied).toBe(system.cap); expect(system.reserved).toBe(1);
+    expect(nativeOf(creature).actor.alive).toBe(true); expect(creature.targets).toHaveLength(1); f.worldUnchanged();
+  } finally { for (const resource of legacy) resource.dispose(); f.dispose(); }
+});
+
+test('failure after reservation and real motor construction cleans admission before a valid fresh entry', async () => {
+  const f = await boot('poses/native-proof.json', true), system = ragdollsFor(f.physics);
+  try {
+    const creature = f.creature(), at = nativeOf(creature).actor.position.clone(); creature.exit();
+    const counts = [f.physics.world.bodies.len(), f.physics.world.colliders.len(), f.physics.world.characterControllers.size];
+    const statuses = [...f.statuses], targets = app.combat.targets(), begins = f.begin.mock.calls.length;
+    const failure = vi.spyOn(NativeCreaturePose.prototype, 'initializePractice').mockImplementationOnce(() => { throw new Error('admission pose fault'); });
+    expect(() => creature.enter(at)).toThrow('admission pose fault'); failure.mockRestore();
+    expect(creature.targets).toEqual([]); expect(Reflect.get(creature, 'bout')).toBeNull(); expect(system.occupied).toBe(0);
+    expect([f.physics.world.bodies.len(), f.physics.world.colliders.len(), f.physics.world.characterControllers.size]).toEqual(counts);
+    expect(f.statuses).toEqual(statuses); expect(app.combat.targets()).toEqual(targets); expect(f.begin).toHaveBeenCalledTimes(begins);
+    creature.enter(at); expect(f.begin).toHaveBeenCalledTimes(begins + 1); expect(system.reserved).toBe(1); expect(nativeOf(creature).actor.alive).toBe(true); f.worldUnchanged();
+  } finally { f.dispose(); }
+});
+
+test('actual physical collapse Retry, reselection and exit dispose the old body and reset isolated ownership', async () => {
+  const f = await boot('poses/native-proof.json', true), system = ragdollsFor(f.physics);
+  try {
+    const initial = nativeOf(f.creature()).pose.snapshot();
+    for (const action of ['retry', 'select', 'exit'] as const) {
+      const old = nativeOf(f.creature()); swing(f, 10000, () => !old.actor.alive); f.graphics.frame(1 / 60);
+      expect(system.live).toBe(1); expect(old.pose.context.deathT).toBeGreaterThan(0);
+      const handles: number[] = []; f.physics.world.forEachRigidBody(body => { if (body.isDynamic()) handles.push(body.handle); }); expect(handles).toHaveLength(1);
+      const remove = f.physics.world.removeRigidBody.bind(f.physics.world);
+      const removed: number[] = []; const spy = vi.spyOn(f.physics.world, 'removeRigidBody').mockImplementation(body => {
+        const handle = body.handle; remove(body); if (handles.includes(handle)) { expect(f.physics.world.bodies.contains(handle)).toBe(false); removed.push(handle); }
+      });
+      if (action === 'retry') f.demo.retry(); else if (action === 'select') expect(await f.graphics.load(f.demo.select('conch-duelist:conch-duelist'))).toBe(true);
+      else f.demo.arena.exit();
+      spy.mockRestore(); expect(removed).toEqual(handles); expect(old.corpse?.scope.disposed).toBe(true); expect(() => old.snapshot()).toThrow('disposed');
+      expect(system.live).toBe(0); expect(system.reserved).toBe(action === 'exit' ? 0 : 1);
+      if (action !== 'exit') { const fresh = nativeOf(f.creature()); expect(fresh.pose.snapshot()).toBe(initial); expect(fresh.host.clock.frame).toBe(0); }
+    }
+    expect(f.faults).toEqual([]); f.worldUnchanged();
+  } finally { f.dispose(); }
+});
+
+test('actual 30/60/120Hz scheduler delivery and 0/1/100 quiet reads produce the same fixed physical tape', async () => {
+  let expected: string[] | undefined;
+  for (const [hz, queries] of [[30, 0], [60, 1], [120, 100]] as const) {
+    const f = await boot('poses/native-proof.json', true);
+    try {
+      const native = nativeOf(f.creature()), view = f.creature().targets[0]; if (view === undefined) throw new Error('Missing bound view');
+      const tape: string[] = [], fixed = native.fixed.bind(native);
+      vi.spyOn(native, 'fixed').mockImplementation(() => { fixed(); tape.push(JSON.stringify(native.snapshot())); });
+      app.combat.hit({ source: 'env', sourceTags: ['dmg.melee'], target: native.actor.combatActor(), amount: 10000,
+        point: native.actor.position.clone(), dir: new Vector3(.7, .2, -.5) }); f.creature().publishNativeFrame();
+      for (let frame = 0; frame < hz * 3 && tape.length < 120; frame++) {
+        f.graphics.frame(1 / hz); const before = native.snapshot();
+        for (let i = 0; i < queries; i++) { native.pose.headWorld(new Vector3()); view.renderPublishedPose((i % 3) / 2); native.corpse?.diagnostic(); }
+        expect(native.snapshot()).toEqual(before);
+      }
+      // Compare the same120 owning ticks; a catch-up frame may deliver one extra tick.
+      expect(tape.length).toBeGreaterThanOrEqual(120); expect(tape.length).toBeLessThanOrEqual(121);
+      const prefix = tape.slice(0, 120); if (expected === undefined) expected = prefix; else expect(prefix).toEqual(expected);
+      expect(f.faults).toEqual([]); f.worldUnchanged();
+    } finally { f.dispose(); }
+  }
 });
