@@ -1,6 +1,4 @@
-import { NumericPoseSchema } from '@wildshard/game/plugin/channelPrograms';
 import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
-import { SpawnScriptRowSchema } from '@wildshard/format/spawnScripts';
 import { ExchangeSchema } from '@wildshard/format/exchange';
 import { ContractCatalogueSchema } from '@wildshard/format/contracts';
 import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
@@ -83,7 +81,7 @@ import { NavigationSchema } from '@wildshard/format/navigation';
 import { NativeGroundSchema } from '@wildshard/format/nativeGround';
 import { UiSchema } from '@wildshard/format/ui';
 import { ClientScriptsSchema } from '@wildshard/format/clientScripts';
-import { ClientChannelsSchema, ClientChannelProgramSchema, PrivateSceneSchema, WorldSceneSchema } from '@wildshard/format/clientChannels';
+import { ClientChannelsSchema, ClientChannelProgramSchema, PrivateSceneSchema, WorldSceneSchema, NumericPoseSchema } from '@wildshard/format/clientChannels';
 
 import { ForestLifeSchema } from '@wildshard/format/ambientLife';
 
@@ -145,12 +143,12 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots = {
+  'clientChannels.NumericPose': NumericPoseSchema,
   'questInteractions.QuestPageInteractions': QuestPageInteractionsSchema,
   'cueDirector.CueDirectorWire': CueDirectorWireSchema,
   'questSteps.QuestHintRows': QuestHintRowsSchema,
   'questSteps.QuestKillRows': QuestKillRowsSchema,
   'questSteps.QuestServiceActions': QuestServiceActionsSchema,
-  'spawnScripts.SpawnScriptRow': SpawnScriptRowSchema,
   'exchange.Exchange': ExchangeSchema,
   'contracts.ContractCatalogue': ContractCatalogueSchema,
   'achievementCounters.AchievementCounterData': AchievementCounterDataSchema,
@@ -344,7 +342,6 @@ for (const [key, schema] of Object.entries(wireRoots)) {
   const module = key.slice(0, key.indexOf('.')), binding = key.slice(key.indexOf('.') + 1);
   rememberActions(schema, `@wildshard/format/${module}#${binding}Schema`, new WeakSet());
 }
-rememberActions(NumericPoseSchema, '@wildshard/game/plugin/channelPrograms#NumericPoseSchema', new WeakSet());
 // A composed quest host shares this exact check object; its nested path must not rename the defining public check.
 wireChecks.set(DirectorStagesSchema.pipe[1], '@wildshard/format/directorStages#DirectorStagesSchema.pipe.1');
 
@@ -423,10 +420,12 @@ export function namedJsonSchema(schema: GenericSchema): Readonly<Record<string, 
 
 /** The migrated wire roots, generated from their defining Valibot schemas; whole-shard extraction remains open. */
 export function formatJsonSchemas(): Readonly<Record<string, FormatJsonSchema>> {
-  const document = (name: string, schema: GenericSchema): FormatJsonSchema => ({
-    ...formatJsonSchema(schema), title: name,
-    $comment: 'DO-NOT-EDIT: generated from @wildshard/format by scripts/gen-format-schema.mjs. Structural schema; named checks and UTF-16 bounds still require the defining Valibot parser.',
-  });
+  const document = (name: string, schema: GenericSchema): FormatJsonSchema => {
+    try { return {
+      ...formatJsonSchema(schema), title: name,
+      $comment: 'DO-NOT-EDIT: generated from @wildshard/format by scripts/gen-format-schema.mjs. Structural schema; named checks and UTF-16 bounds still require the defining Valibot parser.',
+    }; } catch (error) { throw new Error(`Format schema ${name}: ${String(error)}`, { cause: error }); }
+  };
   return { 'edge-profiles': document('edge-profiles', EdgeProfilesSchema), plumbing: document('plumbing', PlumbingSchema),
     state: document('state', StateSchema), 'commons-costs': document('commons-costs', CommonsCostsSchema),
     ...Object.fromEntries(Object.entries(wireRoots).map(([name, schema]) => [name, document(name, schema)])) };

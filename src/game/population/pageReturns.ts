@@ -1,13 +1,9 @@
+import { PageReturnRowsSchema } from '@wildshard/format/namedJsonContracts';
 import type { ShardContext } from '../plugin/context';
 import { app } from '@wildshard/engine/app/runtime';
 import { ReturnProgram } from './returnProgram';
 import { RespawnQueue } from './respawn';
 import * as v from 'valibot';
-
-const finite = v.pipe(v.number(), v.finite());
-export const PageReturnRowsSchema = v.strictObject({ step: v.string(), water: finite, fixed: v.array(v.string()), program: v.unknown(),
-  outOfSight: v.pipe(finite, v.minValue(0)), rules: v.record(v.string(), v.strictObject({
-    delay: v.strictObject({ min: v.pipe(finite, v.minValue(0)), max: v.pipe(finite, v.minValue(0)) }), night: v.exactOptional(v.boolean()) })) });
 
 /** Page actor returns over the real manager. The declared guest owns delay,
  * visibility/night eligibility and terrain retry law. The host owns deaths,

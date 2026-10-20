@@ -1,8 +1,8 @@
+import { HEADLESS_ASSEMBLY_JSON_SCHEMA, DirectorBindingsSchema, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '@wildshard/sdk/headlessAssembly';
-import { WorldSceneSchema } from '@wildshard/format/clientChannels';
+import { WorldSceneSchema, NumericPoseSchema } from '@wildshard/format/clientChannels';
 import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
 import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { PageLifeSchema } from '@wildshard/format/pageLife';
@@ -15,13 +15,8 @@ import { QuestStepRowsSchema, QuestHintRowsSchema, QuestServiceActionsSchema } f
 import { QuestPageInteractionsSchema } from '@wildshard/format/questInteractions';
 import { QuestStorySchema } from '@wildshard/format/questStory';
 import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
-import { NumericPoseSchema } from '@wildshard/game/plugin/channelPrograms';
-import { DirectorBindingsSchema } from '@wildshard/game/plugin/director';
-import { ReturnProgramSchema } from '@wildshard/game/population/returnProgram';
-import { PageReturnRowsSchema } from '@wildshard/game/population/pageReturns';
-import { QuestTraderSchema } from '@wildshard/game/quest/trader';
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema, PlaceSetsSchema, CoverCompositionSchema, EntryLandingsSchema } from './sections';
-import { KeeperRowsSchema } from '../sim/baked';
+import { KeeperRowsSchema } from '../data/keeperSchema';
 
 const text = v.string(), number = v.number();
 const schemas: Readonly<Record<string, v.GenericSchema>> = {

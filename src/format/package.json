@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./namedJsonContracts": "./namedJsonContracts.ts",
     "./cueDirector": "./cueDirector.ts",
     "./colourFunction": "./colourFunction.ts",
     "./paintedLook": "./paintedLook.ts",

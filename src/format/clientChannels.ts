@@ -345,3 +345,20 @@ export type WorldSceneBindingKind = v.InferOutput<typeof worldBinding>['kind'];
 export const WorldSceneBindingsSchema = v.pipe(v.record(name,worldBinding),v.check(rows=>Object.keys(rows).length<=128,'bounded world bindings'));
 /** Refuse functions, unknown fields and unbounded anchor values before binding native parts. */
 export function parseWorldSceneBindings(input:unknown):v.InferOutput<typeof WorldSceneBindingsSchema>{return v.parse(WorldSceneBindingsSchema,input);}
+
+/** Numeric creature-pose wire rows; the game retains joint evaluation and scalar admission. */
+export const NumericPoseSchema = v.strictObject({
+  programs: ClientChannelsSchema,
+  group: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
+  states: v.optional(v.pipe(v.array(v.pipe(v.string(), v.maxLength(128))), v.maxLength(64)), []),
+  look: v.exactOptional(v.tuple([v.pipe(v.number(), v.finite()), v.pipe(v.number(), v.finite(), v.minValue(0)), v.pipe(v.number(), v.finite(), v.minValue(0))])),
+  squash: v.exactOptional(v.string()),
+  variant: v.exactOptional(v.string()),
+  alive: v.exactOptional(v.boolean()),
+  scalars: v.optional(v.pipe(v.array(v.strictObject({
+    name: v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9.-]{0,63}$/u)),
+    path: v.union([v.tuple([v.picklist(['t', 'seed', 'speed', 'strafe', 'phase', 'attack', 'brace', 'flinch', 'deathT'])]),
+      v.tuple([v.picklist(['mem', 'dims']), v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9.-]{0,63}$/u))])]),
+    fallback: v.exactOptional(v.pipe(v.number(), v.finite())),
+  })), v.maxLength(64)), []),
+});

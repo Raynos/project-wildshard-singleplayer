@@ -1,3 +1,4 @@
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { DecisionModule } from '@wildshard/engine/script/decisionModule';
 import { scriptV1Layout, SCRIPT_V1_EVENTS, SCRIPT_V1_COMMANDS } from '@wildshard/format/scriptAbiV1';
 import { parseDecisionScripts, SCRIPT_V1_REFERENCE_KINDS, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
@@ -9,7 +10,6 @@ import * as v from 'valibot';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { sha256 } from '../plugin/brain';
 
-export const ReturnProgramSchema = v.strictObject({ script: v.unknown(), bytes: v.string() });
 const scoped = new WeakMap<Scope, Map<string, { declaration: string; program: ReturnProgram }>>();
 
 /** Event-only, stateless v1 projections. The caller retains its queue, phase and

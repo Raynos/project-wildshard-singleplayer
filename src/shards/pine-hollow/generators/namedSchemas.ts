@@ -1,10 +1,7 @@
+import { HEADLESS_ASSEMBLY_JSON_SCHEMA, PosedLibrarySchema, DirectorBindingsSchema, AdventurePersistenceSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '@wildshard/sdk/headlessAssembly';
-import { PosedLibrarySchema } from '@wildshard/sdk/looks/posedInstances';
-import { DirectorBindingsSchema } from '@wildshard/game/plugin/director';
-import { AdventurePersistenceSchema } from '@wildshard/game/quest/persistence';
 import { PageLifeSchema } from '@wildshard/format/pageLife';
 import { CoverAppearanceSchema } from '@wildshard/format/coverAppearance';
 import { EliteFeatureSchema } from '@wildshard/format/eliteFeature';

@@ -1,5 +1,5 @@
 import * as poseSchema from 'valibot';
-import { ClientChannelsSchema, parseClientChannels } from '@wildshard/format/clientChannels';
+import { NumericPoseSchema, parseClientChannels } from '@wildshard/format/clientChannels';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
 import {createClientChannels,bindClientChannelInputs} from './channels';
@@ -40,21 +40,6 @@ export function installChannelPrograms(input:unknown,group:string,owners:Readonl
  });
 }
 
-export const NumericPoseSchema = poseSchema.strictObject({
-  programs: ClientChannelsSchema,
-  group: poseSchema.pipe(poseSchema.string(), poseSchema.minLength(1), poseSchema.maxLength(128)),
-  states: poseSchema.optional(poseSchema.pipe(poseSchema.array(poseSchema.pipe(poseSchema.string(), poseSchema.maxLength(128))), poseSchema.maxLength(64)), []),
-  look: poseSchema.exactOptional(poseSchema.tuple([poseSchema.pipe(poseSchema.number(), poseSchema.finite()), poseSchema.pipe(poseSchema.number(), poseSchema.finite(), poseSchema.minValue(0)), poseSchema.pipe(poseSchema.number(), poseSchema.finite(), poseSchema.minValue(0))])),
-  squash: poseSchema.exactOptional(poseSchema.string()),
-  variant: poseSchema.exactOptional(poseSchema.string()),
-  alive: poseSchema.exactOptional(poseSchema.boolean()),
-  scalars: poseSchema.optional(poseSchema.pipe(poseSchema.array(poseSchema.strictObject({
-    name: poseSchema.pipe(poseSchema.string(), poseSchema.regex(/^[a-zA-Z][a-zA-Z0-9.-]{0,63}$/u)),
-    path: poseSchema.union([poseSchema.tuple([poseSchema.picklist(['t', 'seed', 'speed', 'strafe', 'phase', 'attack', 'brace', 'flinch', 'deathT'])]),
-      poseSchema.tuple([poseSchema.picklist(['mem', 'dims']), poseSchema.pipe(poseSchema.string(), poseSchema.regex(/^[a-zA-Z][a-zA-Z0-9.-]{0,63}$/u))])]),
-    fallback: poseSchema.exactOptional(poseSchema.pipe(poseSchema.number(), poseSchema.finite())),
-  })), poseSchema.maxLength(64)), []),
-});
 /** Numeric pose rows on existing joints. Each rig lends its frame and transforms to the existing channel evaluator;
  * optional bones are skipped, and no actor memory, clock, random stream or continuation is added. */
 export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => void {

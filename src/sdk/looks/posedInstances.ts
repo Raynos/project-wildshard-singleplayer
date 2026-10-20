@@ -1,3 +1,4 @@
+import { PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -15,19 +16,6 @@ import { lentLook, setLentParam, setLentTexture } from './lentLooks';
  * Owns only its wrapper and live matrix/vec4 buffers; source arrays are lent.
  * Pine uses two channels, Nalati's flock uses one `iAnim` channel (G441 W3).
  */
-
-const number = v.pipe(v.number(), v.finite()), text = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
-const posedLaneSchema = v.union([number, text, v.strictObject({ any: v.pipe(v.array(v.strictObject({ field: text, op: v.picklist(['gt', 'lt']), value: number })), v.minLength(1), v.maxLength(8)), yes: number, no: number })]);
-const posedChannelSchema = v.tuple([posedLaneSchema, posedLaneSchema, posedLaneSchema, posedLaneSchema]);
-const tierFiles = v.strictObject({ geometry: text, atlas: text });
-
-export const PosedLibrarySchema = v.strictObject({ name: text, glow: v.optional(text), atlas: text, attributes: v.tuple([text, text]), channels: v.tuple([posedChannelSchema, posedChannelSchema]),
-      assets: v.strictObject({ name: text, channels: v.pipe(v.array(v.strictObject({ name: text, source: text, width: v.picklist([1, 2, 3, 4]) })), v.minLength(1), v.maxLength(16)),
-        ranges: v.pipe(v.array(v.strictObject({ kind: number, start: number, count: number, box: v.tuple([number, number, number, number, number, number]) })), v.minLength(1), v.maxLength(32)) }),
-      tiers: v.strictObject({ phone: tierFiles, desktop: tierFiles }),
-      models: v.pipe(v.array(v.strictObject({ id: text, name: text, pipeline: v.picklist(['code', 'hunyuan']), file: text, kind: number, copies: number,
-        box: v.tuple([number, number, number]), pose: v.record(text, number) })), v.minLength(1), v.maxLength(32)),
-    });
 
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 

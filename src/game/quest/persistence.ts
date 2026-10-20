@@ -1,3 +1,4 @@
+import { AdventurePersistenceSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import type { ShardContext } from '../plugin/context';
@@ -12,18 +13,6 @@ const natural = v.pipe(finite, v.minValue(0));
 const counts = v.record(v.string(), v.pipe(natural, v.integer()));
 const names = v.record(v.string(), v.string());
 const cosmetics = v.object({ owned: v.array(v.string()), worn: names });
-const key = v.pipe(v.string(), v.minLength(1));
-const recordRow = v.strictObject({ key, flagPrefix: v.exactOptional(key) });
-export const AdventurePersistenceSchema = v.strictObject({
-  bosses: recordRow, elites: recordRow, nonnegative: v.boolean(),
-  legacyNamespace: v.picklist(['content', 'instance']), refuseWrites: v.boolean(),
-  names: v.exactOptional(key), cosmetics: v.exactOptional(recordRow),
-  bond: v.exactOptional(v.strictObject({ key, flags: v.pipe(v.array(v.strictObject({ flag: key, equals: v.exactOptional(v.string()) })), v.maxLength(16)) })),
-  counters: v.exactOptional(v.strictObject({ key, prefix: v.string(), separator: v.string(), maximum: v.pipe(natural, v.integer(), v.maxValue(4096)),
-    feats: v.pipe(v.array(v.strictObject({ id: key, count: v.pipe(natural, v.integer(), v.maxValue(4096)),
-      event: v.exactOptional(key), kind: v.exactOptional(key), variant: v.exactOptional(key), fact: v.nullable(key) })), v.maxLength(256)) })),
-});
-
 /** A durable typed record; failure to persist refuses progression explicitly. */
 export interface SavedRecord<T> { read: (namespace?: string) => T; write: (value: T, namespace?: string) => boolean }
 /** Existing shard-specific legacy slots are read only when their declared field initializes. */
