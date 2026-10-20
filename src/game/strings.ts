@@ -37,7 +37,7 @@ export const GAME_STRINGS = {
     built: (version: number): string => `BUILT FOR SHARDFILE V${version}`,
     saveKept: 'YOUR SAVE IS KEPT',
   },
-  /** SF65 (G237–G241): SHARD SELECT's Developer entry buttons (LEGACY / SHARDFILE) and each card's port badge */
+  /** SF65 (G237–G241): SHARD SELECT's LEGACY / SHARDFILE entry buttons (G531: behind the Legacy shard buttons row) and each card's port badge */
   entry: {
     legacy: 'LEGACY',
     shardfile: 'SHARDFILE',
@@ -45,6 +45,9 @@ export const GAME_STRINGS = {
     shardfileLine: 'CURRENT PORT STATE',
     notYet: 'NOT YET',
     shardfileOnly: 'SHARDFILE ONLY · NO LEGACY',
+    /** G531: the Developer-tools row that brings the LEGACY buttons back (deleted with the legacy copies, NEXT N5) */
+    legacyRow: { label: 'Legacy shard buttons', off: 'Off', on: 'On',
+      note: 'G531: SHARD SELECT shows only each shard\'s shardfile entry; On brings back the LEGACY / SHARDFILE buttons; live' },
     /** G238: the SF6 public share, e.g. "3% PORTED"; a share under one percent reads "<1% PORTED" */
     ported: (share: number): string => `${share > 0 && share < 0.005 ? '<1' : String(Math.round(share * 100))}% PORTED`,
   },

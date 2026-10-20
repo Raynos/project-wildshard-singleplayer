@@ -215,7 +215,7 @@ export const ManifestMetadataSchema = v.strictObject({
   bindings,
   boot: v.exactOptional(v.strictObject({viewmodelSets: v.exactOptional(v.pipe(v.array(v.picklist(['walnut', 'brushed-steel', 'leather', 'cord', 'bolt', 'anodised', 'polymer', 'gunmetal'])), v.maxLength(8))), shaders: v.exactOptional(v.strictObject({background: v.boolean()})), audio: v.exactOptional(strings), precache: strings, stagedWorld: v.exactOptional(v.boolean()),
     steps: v.exactOptional(v.record(text, v.strictObject({label: text, weight: number}))), bytes: v.exactOptional(v.strictObject({sky: v.exactOptional(text), trees: v.exactOptional(text), cabins: v.exactOptional(text), props: v.exactOptional(text), music: v.exactOptional(text), sfx: v.exactOptional(text)}))})),
-  entries: v.exactOptional(v.strictObject({legacy: v.boolean(), shardfile: v.boolean(), public: v.picklist(['legacy', 'shardfile'])})),
+  entries: v.exactOptional(v.strictObject({legacy: v.boolean(), shardfile: v.boolean()})),
   gridShardfile: v.exactOptional(text), shardfile: v.exactOptional(text), runtimeEntry: v.exactOptional(v.picklist(['runtime/index.ts', 'runtime/hybrid.ts'])),
   ground: v.exactOptional(v.strictObject({structures: v.literal(true), paths: v.exactOptional(v.literal('plugin'))})),
   groundColour: v.exactOptional(rgb), world: v.exactOptional(v.strictObject({killY: number})),

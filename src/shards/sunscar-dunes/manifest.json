@@ -392,8 +392,7 @@
   "pois": [],
   "entries": {
     "legacy": false,
-    "shardfile": true,
-    "public": "shardfile"
+    "shardfile": true
   },
   "boundary": {
     "visible": false

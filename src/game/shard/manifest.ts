@@ -435,9 +435,10 @@ export interface ChunkHud {
 /** SF65: LEGACY is the original TypeScript shard; SHARDFILE is its current port state (the shardfile plus any TypeScript
  *  not yet ported). */
 export type ShardEntryMode = 'legacy' | 'shardfile';
-/** Which entries exist (a missing one is a disabled button: NOT YET, or SHARDFILE ONLY · NO LEGACY) and which one the
- *  public build enters. */
-export interface ShardEntries { readonly legacy: boolean; readonly shardfile: boolean; readonly public: ShardEntryMode }
+/** Which entries exist (a missing one is a disabled button: NOT YET, or SHARDFILE ONLY · NO LEGACY). G531: SHARD SELECT
+ *  enters the shardfile whenever there is one; `public` is G326's retired per-card flip, still spelled only by the sealed
+ *  frozen copies (SF73), read by nothing and deleted with them (SHARD-PLATFORM-NEXT N5). */
+export interface ShardEntries { readonly legacy: boolean; readonly shardfile: boolean; readonly public?: 'legacy' }
 
 export interface ShardManifest {
   /** Frozen standalone copy. It is paired with the same slug without -legacy, hidden from ordinary cards and never admitted to the grid. */

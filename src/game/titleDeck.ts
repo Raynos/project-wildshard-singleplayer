@@ -27,7 +27,8 @@ import { shards } from './shard/list';
 import { ordinaryShardManifests } from './shard/legacy';
 import type { ShardSlug } from './shard/slugs.generated';
 import type { ShardEntries, ShardEntryMode, ShardManifest } from './shard/manifest';
-import { chooseShardEntry, hasEntry, shardEntries } from './shard/entryMode';
+import { chooseShardEntry, defaultEntry, hasEntry, shardEntries } from './shard/entryMode';
+import { installLegacyButtonsRow, legacyButtons, onLegacyButtons } from './shard/legacyButtons';
 import { PORT_SHARES } from './shard/portShares';
 import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
@@ -54,7 +55,7 @@ export interface TitleCard {
   upgrade?: { readonly built: number };
   /** G167: this session refused the shard (memory, safety, format or load): the dimmed UNAVAILABLE card with its reason */
   unavailable?: ShardRefusal;
-  /** SF65 (G237 / G241): the shard's LEGACY / SHARDFILE entries, the Developer buttons' enabled state */
+  /** SF65 (G237 / G241): the shard's LEGACY / SHARDFILE entries, the legacy buttons' enabled state (G531) */
   entries?: ShardEntries;
   /** SF65 (G238): the ported share (0..1, from the last committed plan ruler run, E486), the Developer card's "N% PORTED" badge */
   ported?: number;
@@ -121,7 +122,7 @@ export interface TitleDeckOptions {
   readonly cards: readonly TitleCard[];
   /** the shard this page is running (its card is LOADED and selected first); null on the cold launch */
   readonly active: string | null;
-  /** `entry`: SF65's LEGACY / SHARDFILE button with Developer on, else the shard's public entry (recorded for the boot first) */
+  /** `entry`: SF65's LEGACY / SHARDFILE button with the legacy buttons on, else the shard's shardfile (recorded for the boot first) */
   readonly onEnter: (card: TitleCard, entry: ShardEntryMode) => void;
   readonly onExplore: (card: TitleCard) => void;
   readonly onSettings: () => void;
@@ -185,9 +186,10 @@ function dotTag(card: DeckEntry, mode: MenuMode): 'soon' | 'developer' | '' {
   return restricted(card) ? 'developer' : '';
 }
 
-/** SF65 (G237): with Developer on, a shard card that can be entered offers LEGACY and SHARDFILE instead of one ENTER WORLD */
-function dualEntry(card: DeckEntry, mode: MenuMode): card is DeckEntry & { readonly shard: TitleCard; readonly entries: ShardEntries } {
-  return mode.developer && card.shard !== null && card.entries !== undefined && canEnter(card, mode);
+/** SF65 (G237): a shard card that can be entered offers LEGACY and SHARDFILE instead of one ENTER WORLD only with the
+ *  Developer-tools row Legacy shard buttons on (G531: off by default; the row and these buttons go with the legacy copies, N5) */
+function dualEntry(card: DeckEntry, mode: MenuMode, legacy: boolean = legacyButtons()): card is DeckEntry & { readonly shard: TitleCard; readonly entries: ShardEntries } {
+  return legacy && mode.developer && card.shard !== null && card.entries !== undefined && canEnter(card, mode);
 }
 
 function hintFor(card: DeckEntry, active: boolean, mode: MenuMode = menuMode()): string {
@@ -199,6 +201,7 @@ function hintFor(card: DeckEntry, active: boolean, mode: MenuMode = menuMode()):
 }
 
 export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
+  installLegacyButtonsRow(); // G531: Settings ▸ Debug offers it from the title on
   const mode = opts.mode ?? menuMode;
   const scope = app.engineScope.child('title-deck');
   const { cards } = opts;
@@ -290,8 +293,8 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     explore.disabled = !canExplore(c, mode());
     explore.classList.toggle('off', !canExplore(c, mode())); // menu.css hides .off
     required(play, 'b').textContent = c.draft ? (isDev() ? GAME_STRINGS.drafts.draftMode : GAME_STRINGS.drafts.followBuild) : c.upgrade !== undefined ? GAME_STRINGS.upgrade.badge : c.unavailable !== undefined ? GAME_STRINGS.unavailable.badge : canEnter(c, mode()) ? 'Enter world' : 'Coming soon';
-    // SF65 (G237–G241): Developer on, two buttons in ENTER WORLD's place: LEGACY (disabled SHARDFILE ONLY · NO LEGACY without
-    // legacy TypeScript) and SHARDFILE (disabled NOT YET without a shardfile path)
+    // SF65 (G237–G241), G531: with the legacy buttons on, two buttons in ENTER WORLD's place: LEGACY (disabled SHARDFILE ONLY
+    // · NO LEGACY without legacy TypeScript) and SHARDFILE (disabled NOT YET without a shardfile path)
     const dual = dualEntry(c, mode());
     modes.classList.toggle('ws-menu-modes-dual', dual);
     shardfile.hidden = !dual;
@@ -317,12 +320,12 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     chooseShardEntry(c.slug, entry);
     opts.onEnter(c.shard, entry);
   };
-  /** ENTER WORLD, or a key: the shard's public entry (Developer on too: the buttons pick LEGACY / SHARDFILE) */
+  /** ENTER WORLD, or a key: the shard's shardfile (G531; with the legacy buttons on, the buttons pick LEGACY / SHARDFILE) */
   const activate = (): void => {
     const c = entries[index];
     // A draft opens on the drafts site (J16, J19): FOLLOW THE BUILD shows its teaser, DRAFT MODE its pages (Developer on there).
     if (c?.draft) { window.open(c.draft.url, '_blank', 'noopener'); return; }
-    if (c?.shard) enterAs(c, c.entries?.public ?? 'legacy');
+    if (c?.shard) enterAs(c, c.entries === undefined ? 'legacy' : defaultEntry(c.entries));
   };
 
   // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
@@ -377,6 +380,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   const strip = new ResizeObserver(() => { list.scrollLeft = 0; if (!drag) place(index, 0, false); });
   strip.observe(list);
   scope.onDispose(() => { strip.disconnect(); });
+  scope.onDispose(onLegacyButtons(apply));
 
   apply();
   return {

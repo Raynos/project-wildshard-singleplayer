@@ -8,7 +8,7 @@ const SEED = 0x9d2a;
 /** Fixed pre-admission metadata, evaluated only by the boot producer. */
 export const NINE_MANIFEST_ROWS = {
 api: 1,
-entries: { legacy: true, shardfile: true, public: 'shardfile' },
+entries: { legacy: true, shardfile: true },
 gridShardfile: '/shardfiles/nine-dragon-stack/shard.json',
 kitLook: 'pbr',
 creatures: manifest.CREATURE_LOOK,

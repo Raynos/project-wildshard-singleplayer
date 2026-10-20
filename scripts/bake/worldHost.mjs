@@ -12,7 +12,7 @@ const noop = () => undefined;
 export async function visitAuthoredWorld(manifest, options) {
   // Bake authored geometry from its native plugin, independently of the public card's product entry.
   // Disabling the product entry here also fences a saved Developer selection; the shipped manifest is untouched.
-  const def = { ...manifest, entries: { legacy: true, shardfile: false, public: 'legacy' } };
+  const def = { ...manifest, entries: { legacy: true, shardfile: false } };
   const { root: ROOT, sky, element: el } = options;
   if ((options.visitPlacement !== undefined || options.visit !== undefined) && options.createTerrain === undefined) throw new Error('Authored world capture requires the real terrain builder');
   const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);

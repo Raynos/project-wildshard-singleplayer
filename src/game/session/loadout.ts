@@ -9,6 +9,7 @@ import { GAME_STRINGS } from '../strings';
 import { titleCards } from '../titleDeck';
 import { buildTitleMenu } from '../mainMenu';
 import { shardEntry } from '../shard/entryMode';
+import { installLegacyButtonsRow } from '../shard/legacyButtons';
 import { pageMode } from '../plugin/context';
 import { enterGrid } from '../plugin/ui';
 import { travel } from '../travel/travel';
@@ -93,6 +94,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   const hud = withOwner(game.engineScope, () => new HUD({ pointerLock: !nolock, weaponUi: weapons.current.row.ui, maxBolts: weapons.state.magazine, ...(chunk.status === 'hidden' ? { developerBanner: GAME_STRINGS.developer.banner(chunk.slug.replace(/^_/, '')) } : {}) }));
   // the title deck (E318): this level's card enters or explores here, another's opens in a fresh page (travel)
   const booted = shardEntry(chunk); // SF65: the way this page entered the shard (LEGACY / SHARDFILE)
+  installLegacyButtonsRow(); // G531: pause ▸ Settings ▸ Debug offers it in every shard
   hud.titleDeck = (here) => {
     const primary = primaryShardManifest(shards(), chunk);
     const cards = titleCards(), own = cards[cards.map((card): string => card.slug).indexOf(primary.slug)];

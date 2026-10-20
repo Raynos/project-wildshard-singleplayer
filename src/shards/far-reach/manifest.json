@@ -152,8 +152,7 @@
   },
   "entries": {
     "legacy": false,
-    "shardfile": true,
-    "public": "shardfile"
+    "shardfile": true
   },
   "ground": {
     "structures": true,

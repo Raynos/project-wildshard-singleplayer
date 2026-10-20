@@ -2,8 +2,7 @@
   "gridShardfile": "/shardfiles/pine-hollow/shard.json",
   "entries": {
     "legacy": true,
-    "shardfile": true,
-    "public": "shardfile"
+    "shardfile": true
   },
   "uses": [
     "dayCycle",

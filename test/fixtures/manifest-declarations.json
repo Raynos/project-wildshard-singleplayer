@@ -194,7 +194,6 @@
     "debugOptions": [],
     "entries": {
       "legacy": true,
-      "public": "shardfile",
       "shardfile": true
     },
     "explore": {
@@ -897,7 +896,6 @@
     "encounters": [],
     "entries": {
       "legacy": true,
-      "public": "shardfile",
       "shardfile": true
     },
     "explore": {

@@ -5,7 +5,7 @@ export const NALATI_MANIFEST_ROWS = {
   uses: ['dayCycle', 'weather', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'loot', 'feats'],
   api: 1,
   gridShardfile: '/shardfiles/nalati-grasslands/shard.json',
-  entries: { legacy: true, shardfile: true, public: 'shardfile' },
+  entries: { legacy: true, shardfile: true },
   loadout: { weapons: ['bow', 'sabre', 'spear', 'rifle'], tools: ['tool.hoverboard'], start: ['bow', 'sabre', 'spear', 'tool.hoverboard'], held: 'bow', loans: [{ id: 'rifle', in: 'practice' }] },
   bag: { tabs: ['map', 'gear', 'finds', 'feats'], pack: { slots: 0 }, skinsTitle: 'Skins' },
   kitLook: 'painterly',
