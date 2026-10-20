@@ -7,6 +7,34 @@ import sys
 from pathlib import Path
 
 
+BENT_RULE = re.compile(
+    r"\bG\d{2,4}\b|\bguard\b|\blimit\b|\bbudget\b|\bceiling\b|\bplatform\s*\+\d+"
+    r"|\blook cut\b|\bgameplay cut\b",
+    re.IGNORECASE,
+)
+
+
+def builder_call_error(lines):
+    """G500/G518: a Builder-Call is a steer, or a ratify naming the rule it bends."""
+    for line in lines:
+        match = re.match(r"Builder-Call:\s*(.*)", line, re.IGNORECASE)
+        if not match:
+            continue
+        value = match[1].strip()
+        if re.match(r"steer\b", value, re.IGNORECASE):
+            continue
+        ratify = re.match(r"ratify\b(.*)", value, re.IGNORECASE)
+        if ratify and BENT_RULE.search(ratify[1]):
+            continue
+        if ratify:
+            return ("A bare 'Builder-Call: ratify' is refused (G518): name the "
+                    "rule it bends (a G-row, guard, limit, budget, platform "
+                    "growth, look or gameplay cut); a plain ratify carries no "
+                    "trailer.")
+        return "A Builder-Call trailer is 'steer ...' or 'ratify - <rule bent>'."
+    return None
+
+
 def validate(message, human=False):
     lines = [line for line in message.splitlines() if not line.startswith("#")]
     while lines and not lines[-1].strip():
@@ -35,6 +63,9 @@ def validate(message, human=False):
         line, re.IGNORECASE
     ) for line in lines):
         return "Use Assisted-by, not Co-Authored-By, for AI agents."
+    error = builder_call_error(lines)
+    if error:
+        return error
     trailers = [i for i, line in enumerate(lines) if line.startswith("Assisted-by:")]
     if human and not trailers:
         return None
