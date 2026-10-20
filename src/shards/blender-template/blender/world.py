@@ -13,6 +13,7 @@ collider; flat tops are cut at the 62.5 m tile lattice and no two upward faces o
 import math
 import os
 import sys
+import bmesh
 import bpy
 import numpy as np
 
@@ -481,6 +482,75 @@ for x, z in [(-RING, -RING), (RING, -RING), (-RING, RING), (RING, RING)]:
     heads.box(cx - 1.4, cx + 1.4, 4, 5.2, cz - 1.4, cz + 1.4)
 lamps.done()
 heads.done()
+
+# The dev-map look (G527): SF56's measure layer draws it in the shader from the first UV set. A structure face packs
+# role 1 (orange) and a trim face role 2 (dark grey) with its own metres and its size, so the layer grids it from its
+# bottom-left corner and stencils "W×H" on it; ground, every route face and a wall or post cap under 2 m keep
+# the floor role (light grey, a world-space 1 m grid) or take trim. A face spans at most 62 m, so a wider face is
+# split at the midpoints between the tile lattice lines first. The clay vertex colours below stay the Debug clay.
+SLOT, SPAN = 64, 62
+midpoints = [-218.75 + 62.5 * k for k in range(8)]
+
+
+def half(d):
+    q = round(d * 2)
+    return q if d <= 31.5 and abs(d * 2 - q) < 0.02 else 0
+
+
+def frame(normal):
+    """A face's right and up axes as seen from outside (game coordinates); a floor-facing face reads north up."""
+    up = np.array((0.0, 0.0, 1.0)) if abs(normal[1]) > 0.9 else np.array((0.0, 1.0, 0.0)) - normal[1] * normal
+    up /= np.linalg.norm(up)
+    return np.cross(up, normal), up
+
+
+def faces_of(obj):
+    data, world = obj.data, obj.matrix_world
+    for face in data.polygons:
+        n = world.to_3x3() @ face.normal
+        normal = np.array((n.x, n.z, -n.y))
+        normal /= np.linalg.norm(normal)
+        points = [world @ data.vertices[data.loops[loop].vertex_index].co for loop in face.loop_indices]
+        right, up = frame(normal)
+        coords = [(float(np.dot((p.x, p.z, -p.y), right)), float(np.dot((p.x, p.z, -p.y), up))) for p in points]
+        yield face, normal, coords
+
+
+def measured(obj):
+    return obj.type == 'MESH' and not obj.name.startswith('ws_terrain_ground') and obj.name != 'HallDoor'
+
+
+for obj in [o for o in bpy.context.scene.objects if measured(o)]:
+    wide = set()
+    for face, normal, coords in faces_of(obj):
+        us, vs = [c[0] for c in coords], [c[1] for c in coords]
+        if obj.data.materials[face.material_index] is not road and (max(us) - min(us) > SPAN or max(vs) - min(vs) > SPAN):
+            points = [obj.matrix_world @ obj.data.vertices[i].co for i in face.vertices]
+            for axis in (0, 1):
+                lo, hi = min(p[axis] for p in points), max(p[axis] for p in points)
+                wide |= {(axis, c) for c in midpoints if lo < (c if axis == 0 else -c) < hi}
+    if wide:
+        assert obj.matrix_world.is_identity, obj.name
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+        for axis, c in sorted(wide):
+            co, no = ((c, 0, 0), (1, 0, 0)) if axis == 0 else ((0, -c, 0), (0, 1, 0))
+            bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=co, plane_no=no)
+        bm.to_mesh(obj.data)
+        bm.free()
+    uv = obj.data.uv_layers.active
+    tone = tones.get(obj.name, STONE)
+    for face, normal, coords in faces_of(obj):
+        if obj.data.materials[face.material_index] is road:
+            continue  # floor: the shader grids it in world space
+        u0, v0 = min(c[0] for c in coords), min(c[1] for c in coords)
+        w, h = max(c[0] for c in coords) - u0, max(c[1] for c in coords) - v0
+        assert w <= SPAN and h <= SPAN, (obj.name, w, h)
+        cap = normal[1] > 0.9 and min(w, h) < 2
+        role = 2 if tone == TRIM or cap else 1
+        for loop, (u, v) in zip(face.loop_indices, coords):
+            # glTF stores 1 - v, so the exported UV is the measure UV itself
+            uv.data[loop].uv = (SLOT * (role + 4 * half(w)) + 1 + u - u0, 1 - (SLOT * half(h) + 1 + v - v0))
 
 # Linear vertex colours on every mesh (a vertex-coloured surface without the attribute would draw black): the 'Clay'
 # faces take their tone, route faces stay 1, and structures darken softly toward the ground like clay occlusion.

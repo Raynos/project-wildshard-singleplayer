@@ -9,6 +9,13 @@
   "migrationBase": "51a68db06eeaceda20a1c571e509724f535a7086",
   "pins": [
     {
+      "path": "src/shards/blender-template/assets/world.glb",
+      "oid": "55f92056db514b8e343fa27cf49024ee2258429b",
+      "bytes": 1034748,
+      "kind": "runtime",
+      "purpose": "Template 2's committed Blender world (SF55), the build input of its shardfile tiles; the G527 dev-map measure UVs add 1.7 KB to the 1.03 MB clay export"
+    },
+    {
       "path": "public/assets/nalati/baked/places.bin",
       "oid": "7d3fb3c08c279cfa1be727d84b1c3a6f3f29dcd7",
       "bytes": 11547006,

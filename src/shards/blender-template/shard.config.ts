@@ -14,7 +14,7 @@ export const behaviour = [{ id: 'door', source: 'behaviour/door.as', maximumPage
 const project = { ...base, ...SOURCE,
   files: [{ hash: CARD_HASH, kind: 'image', compressed: CARD_BYTES.length, ...cost, dependencies: [], critical: false }],
   library: [CARD_HASH], budgets: { ...base.budgets, library: { resident: cost.decoded + cost.gpu, compressed: CARD_BYTES.length } },
-  world: { glb: 'assets/world.glb', materials: { Clay: 'pbr', 'Road clay': 'pbr', 'Hall door': 'pbr' }, colliders: 'mesh',
+  world: { glb: 'assets/world.glb', materials: { Clay: 'pbr', 'Road clay': 'pbr', 'Hall door': 'door' }, colliders: 'mesh',
     interactive: [{ node: 'HallDoor', id: 'blender.door', colliderId: 'blender.door.collider' }] },
   // G166 look B, a clay studio: the GLB's vertex colours carry the clay tones; a fixed mid-morning sun from the
   // south-west lights the hall door three-quarter on, a high warm/cool hemisphere keeps every shaded face readable,
