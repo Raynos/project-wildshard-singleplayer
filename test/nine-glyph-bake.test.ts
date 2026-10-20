@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { DataTexture, RGFormat, UnsignedByteType } from 'three';
 import { output } from '../src/shards/nine-dragon-stack/generators/output';
+import glyphs from '../src/shards/nine-dragon-stack/data/glyphs.generated.json' with { type: 'json' };
 import baseline from './fixtures/nine-glyphs.json' with { type: 'json' };
 import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/generators/words';
 import signRows from '../src/shards/nine-dragon-stack/data/signView.json' with { type: 'json' };
@@ -14,17 +15,16 @@ function blob(name: string): Uint8Array {
   return bytes;
 }
 const files = { file: (name: string): Promise<Uint8Array> => Promise.resolve(blob(name)) };
-async function loadGlyphField(tier: string, sourceFiles: { readonly file: (name: string) => Promise<Uint8Array> }) {
-  const [{ KTX2Loader }, v] = await Promise.all([import('three/addons/loaders/KTX2Loader.js'), import('valibot')]);
-  const meta = v.parse(v.object({ words: v.array(v.string()), layout: v.object({ cell: v.number(), fontPx: v.number(), spread: v.number(), skeletonSpread: v.number() }),
-    rects: v.record(v.string(), v.object({ u0: v.number(), v0: v.number(), u1: v.number(), v1: v.number() })) }),
-  JSON.parse(new TextDecoder().decode(await sourceFiles.file(`signs/glyphs-${tier}.json`))));
+
+async function loadGlyphField(tier: 'phone' | 'desktop', sourceFiles: { readonly file: (name: string) => Promise<Uint8Array> }) {
+  const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
+  const { layout, rects } = glyphs[tier], meta = { layout, rects, words: WORDS };
   const loader = new KTX2Loader(), bytes = await sourceFiles.file(`signs/glyphs-${tier}.ktx2`);
   loader.workerConfig = { astcSupported: false, astcHDRSupported: false, etc1Supported: false, etc2Supported: false, dxtSupported: false, bptcSupported: false, pvrtcSupported: false };
   const texture: unknown = await new Promise((resolve, reject) => { loader.parse(Uint8Array.from(bytes).buffer, resolve, reject); });
   loader.dispose(); if (!(texture instanceof DataTexture)) throw new Error('Glyph KTX2 must decode as RG8');
   return { texture, ...meta, chars: Object.keys(meta.rects).join(''), rect: (ch: string) => {
-    const rect = meta.rects[ch]; if (rect === undefined) throw new Error(`glyph atlas has no ${ch}`); return rect;
+    const rect = Object.entries(meta.rects).find(([key]) => key === ch)?.[1]; if (rect === undefined) throw new Error(`glyph atlas has no ${ch}`); return rect;
   } };
 }
 

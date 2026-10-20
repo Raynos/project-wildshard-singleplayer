@@ -23,7 +23,7 @@ import { type DrawnPlaced as InKitPlaced, registerDrawnInto } from '../runtime/k
 import { defineModel, sharedModelContext, type ModelContext, type ModelDef, type ModelPart, type Placement } from '@wildshard/engine/models/model';
 import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
 import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
-import { jiehuaMaterial as facadeMaterial, windowMaterial, facadeUniforms, syncLooks } from '../look/facadeMaterial';
+import { jiehuaMaterial as facadeMaterial, facadeUniforms, syncLooks } from '../look/facadeMaterial';
 import metadata, { Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
 import { Shared, restoreWeave } from '../look/style';
@@ -39,7 +39,7 @@ import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, umbrellaWalker } from '../models/crowd';
 import { loadLayoutBake, restoreLayout } from './layoutBake';
-import { loadCast, loadCastLods, loadFixedRows, loadSignAtlas, loadSpill, loadFacadeWindows } from './casts';
+import { loadCast, loadCastLods, loadFixedRows, loadSignAtlas, loadSpill } from './casts';
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
 
@@ -229,7 +229,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     const model = models.model(`facade:${row.id}`);
     nameDraws(await placeSliced(model, poses(row.poses, row.count), { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere', ...(row.small ? { far: 85 } : {}) }, parent: facade, piece: { id: `nds-facade-${row.id}`, name: model.name } }, slice.due), `facade-${row.id}`);
   }
-  facade.add(...await loadFacadeWindows(windowMaterial(uniforms)));
+  facade.add(...metadata.windowBindings[entryCaps ? 'capped' : 'open'].map(id => opts.scenes.object(id)));
   root.add(facade);
   await slice();
   const neonMeshes = { boards: new Mesh(signs.geometry('neon-world-boards'), lentLook('nine-neon-board')), tubes: new Mesh(signs.geometry('neon-world-tubes'), lentLook('nine-neon-tube')) };

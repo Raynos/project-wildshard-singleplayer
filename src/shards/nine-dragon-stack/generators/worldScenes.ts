@@ -1,3 +1,4 @@
+import { addWindowNodes, windowStep } from './facadeWindowRecipe';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
 import { portalLookRows } from './portalLook';
 // Nine Dragon's models on the shared world-scene host (G465): the Explorer catalogue (data/explorerModels.json) plus the
@@ -94,7 +95,8 @@ const catalogue = parseWorldSceneModels({ product: 'nine-dragon-stack', models }
 interface Dressing { readonly id: string; readonly model: string; readonly material: string; readonly order: number; readonly name: string; readonly culled: boolean; readonly pose?: object }
 const dressing: Dressing[] = [], dress = (id: string, model: string, material: string, order: number, name: string, culled = true, pose?: object): Dressing => ({ id, model, material, order, name, culled, ...(pose === undefined ? {} : { pose }) });
 // the painted sky (a sphere the frame keeps on the eye, inside the far plane) and the LED scroll screen (lab P7's 千里江山图)
-const shapeMaterial = new MeshBasicMaterial(), shapes = [['sky', new SphereGeometry(2000, 32, 16)], ['scroll', new PlaneGeometry(58, 80)]] as const;
+const windowQuad = new PlaneGeometry(1, 1); windowQuad.translate(0, 0.5, 0);
+const shapeMaterial = new MeshBasicMaterial(), shapes = [['sky', new SphereGeometry(2000, 32, 16)], ['scroll', new PlaneGeometry(58, 80)], ['window-quad', windowQuad]] as const;
 const SHAPE_BLOBS = shapes.map(([id, geometry]) => nameBlob(`world/geometry/${id}.glb`, 'glb', compressGlb(staticGlb([{ geometry, material: shapeMaterial, nativeAttributes: true, compactIndex: true }], id))));
 // (E281) the painted sky draws after the world's opaques (the viewmodels' depth clearer sits at 999): with its depth test at
 // the far plane it then shades only where the sky shows, so the skyline's layers cost nothing under the city
@@ -103,15 +105,15 @@ if (tiles.has('canopy:core')) dressing.push(dress('crown-core', 'canopy:core', '
 if (tiles.has('mist:sheets')) dressing.push(dress('sheets', 'mist:sheets', 'mist-sheet', 2, 'sheets'));
 dressing.push(dress('steam', 'mist:steam', 'steam', 3, 'steam', false));
 for (const { model } of dressing) if (!shapes.some(([id]) => id === model)) alias(model, model);
-const recipe = parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [],
+const recipe = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [],
   nodes: [{ kind: 'group', id: 'root', children: dressing.map(row => row.id) },
     ...dressing.map(row => ({ kind: 'mesh', id: row.id, geometry: row.model, material: row.material, missing: 'omit', name: row.name, renderOrder: row.order, frustumCulled: row.culled, ...row.pose }))],
-  materials: [...new Set(dressing.map(row => row.material))].map(material => ({ kind: 'port', id: material, source: material })) } });
+  materials: [...new Set(dressing.map(row => row.material))].map(material => ({ kind: 'port', id: material, source: material })) } }), [0, 1]);
 
 const look = (id: string, name: string) => ({ id, kind: 'look', look: name });
 const library = (id: keyof typeof aliases) => ({ id, kind: 'whole', ...(id === 'native' ? {} : { load: 'explorer' }), models: [...aliases[id].values()] });
 // the wet floor's reflection cards and the lanterns' halos (phone only), per deck ending: open in a grid cell, capped alone
-const cards = presentationData(), empty = parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } });
+const cards = presentationData(), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [2]);
 // one file per distinct buffer: an ending whose cards match the other's reads the same file
 const cardFiles = new Map<string, string>();
 const cardFile = (caps: 'open' | 'capped', kind: 'streaks' | 'halos'): string => {
@@ -119,8 +121,11 @@ const cardFile = (caps: 'open' | 'capped', kind: 'streaks' | 'halos'): string =>
   cardFiles.set(text, file);
   return file;
 };
-const cardSteps = (['open', 'capped'] as const).map(caps => ({ id: `cards-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/cards.json',
-  draws: [{ kind: 'buffered', file: cardFile(caps, 'streaks'), material: 'streaks', order: 4 }, { kind: 'buffered', file: cardFile(caps, 'halos'), material: 'halo', order: 5, tier: 'phone' }] }));
+const cardSteps = (['open', 'capped'] as const).map(caps => {
+  const step = { id: `cards-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/cards.json',
+    draws: [{ kind: 'buffered', file: cardFile(caps, 'streaks'), material: 'streaks', order: 4 }, { kind: 'buffered', file: cardFile(caps, 'halos'), material: 'halo', order: 5, tier: 'phone' }] };
+  return Object.assign(step, windowStep([2]));
+});
 const CARD_BLOBS = [...cardFiles].map(([text, file]) => nameBlob(file, 'json', new TextEncoder().encode(text)));
 const portalLook = portalLookRows();
 export const NINE_SCENE_BLOBS: NamedBlob[] = [...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
@@ -131,7 +136,8 @@ const lent = [...signTextures, { kind: 'layers', looks: painted, param: 'uPaint'
   { kind: 'image', looks: ['nine-canopy-cards'], param: 'atlas', sizeParam: 'atlasSize', ...canopy.atlas },
   { kind: 'image', looks: ['nine-scroll'], param: 'scroll', url: '/assets/nine-dragon/lab/organic/scroll.webp', srgb: true, wrapT: 1001, anisotropy: 4 }];
 export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, libraries: [...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
-  materials: [...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('lantern', 'nine-lantern'),
+  materials: [...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
     look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo')],
-  steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? 'shapes', model }])),
-    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: Object.fromEntries(['crown-core', 'crown-cards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) }, ...cardSteps, ...portalLook.scenes.steps] });
+  steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? 'shapes', model }])), ...windowStep([0, 1]).geometry },
+    instanceAttributes: windowStep([0, 1]).instanceAttributes,
+    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1]).publish, ...Object.fromEntries(['crown-core', 'crown-cards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...portalLook.scenes.steps] });

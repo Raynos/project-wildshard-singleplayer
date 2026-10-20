@@ -1,6 +1,6 @@
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { PlaneGeometry, InstancedBufferAttribute, InstancedMesh, type Material, type Object3D, type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3 } from 'three';
-import type { GeometryBoot, SignAtlas, CastChannels } from '../runtime/productSections.generated';
+import { type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3 } from 'three';
+import type { SignAtlas, CastChannels } from '../runtime/productSections.generated';
 import type { Emitter } from '../runtime/looks/emitterCards';
 import { createModelLibrary, type ModelGeometryPool } from '@wildshard/game/plugin/geometry';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -73,8 +73,8 @@ export async function loadSignAtlas(tier: 'phone' | 'desktop', scenes: SceneHand
   const textures = { mono: scenes.texture('signs.mono'), colour: scenes.texture('signs.colour'), sdf: scenes.texture('signs.sdf') };
   return { keys: rows.keys, glyphLayout: rows.glyphLayout, textures,
     copies: rows.copies,
-    neonLights: rows.neonLights.map(({ at, color, ...rest }) => ({ ...rest, at: new Vector3(...at), color: new Color(...color) })),
-    lights: rows.lights.map(({ at, color, ...rest }) => ({ ...rest, at: new Vector3(...at), color: new Color(...color) })),
+    neonLights: rows.neonLights.map(({ at, color, ...rest }) => Object.assign(rest, { at: new Vector3(...at), color: new Color(...color) })),
+    lights: rows.lights.map(({ at, color, ...rest }) => Object.assign(rest, { at: new Vector3(...at), color: new Color(...color) })),
     geometry: name => {
       const index = rows.pools.findIndex(pool => pool.parts.includes(name));
       const geometry = libraries[index]?.geometry(name, name === 'world' ? { borrow: true } : undefined);
@@ -101,22 +101,4 @@ export function castLod(base: BufferGeometry, prepared: BufferGeometry, middle: 
     prepared.boundingBox = null;
   }
   return prepared;
-}
-
-/** Native scene/geometry readers restore the offline window bases and channels. */
-export async function loadFacadeWindows(material: Material): Promise<Object3D[]> {
-  const product = await loadFirstPartyProduct('nine-dragon-stack');
-  const { rows } = await product.json<GeometryBoot>('geometry/layout.json');
-  return Promise.all(Array.from({ length: Math.ceil(rows.counts.windows / 4096) }, async (_, index) => {
-    const bytes = Uint8Array.from(await product.file(`geometry/facade-windows-${index}.bin`));
-    const count = Math.min(4096, rows.counts.windows - index * 4096);
-    if (bytes.byteLength !== count * 26 * 4) throw new Error('Nine window instance packet differs');
-    const channel = (offset: number, width: number): InstancedBufferAttribute => new InstancedBufferAttribute(new Float32Array(bytes.buffer, count * offset * 4, count * width), width);
-    const quad = new PlaneGeometry(1, 1); quad.translate(0, 0.5, 0);
-    quad.setAttribute('aWin', channel(16, 4)); quad.setAttribute('aWall', channel(20, 3));
-    const made = new InstancedMesh(quad, material, count); made.name = 'facade-windows';
-    made.instanceMatrix = channel(0, 16); made.instanceColor = channel(23, 3);
-    made.computeBoundingSphere(); made.computeBoundingBox();
-    return made;
-  }));
 }

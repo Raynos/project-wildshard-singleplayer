@@ -20,8 +20,6 @@ import { facadeWindowBlobs } from './facadeWindows';
 import { layoutBlobs } from './layoutBlobs';
 import { MeshStandardMaterial } from 'three';
 import { nameBlob, emitNamedBlobs } from '@wildshard/sdk/blobs';
-import { WORDS } from './words';
-import glyphs from '../data/glyphs.generated.json' with { type: 'json' };
 import { buildHalo } from './jianHalo';
 import { buildViewmodelParts } from './viewmodelParts';
 import { buildSword } from './jianSupport';
@@ -51,9 +49,7 @@ const material = new MeshStandardMaterial({ flatShading: true, vertexColors: tru
 material.name = 'sword';
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
 const viewmodel = buildViewmodelParts();
-const glyphBlobs = Object.entries(glyphs).map(([tier, row]) =>
-  nameBlob(`signs/glyphs-${tier}.json`, 'json', json({ size: row.size, layout: row.layout, rects: row.rects, words: WORDS })));
-const emitted = emitNamedBlobs(glyphBlobs.concat(NINE_SCENE_BLOBS, signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
+const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/cast-channels.json', 'json', json(v.parse(CastChannelsSchema, CAST_CHANNELS))),

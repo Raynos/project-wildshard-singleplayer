@@ -1,0 +1,4 @@
+{
+  "open": ["dressing.windows-0", "dressing.windows-1", "cards-open.windows-2"],
+  "capped": ["dressing.windows-0", "dressing.windows-1", "cards-capped.windows-2"]
+}

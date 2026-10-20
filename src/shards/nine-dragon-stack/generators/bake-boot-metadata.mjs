@@ -1,4 +1,5 @@
 import { hookGeometry } from './hookGeometry.ts';
+import windowBindings from '../data/windowBindings.json' with { type: 'json' };
 import { compositeRows } from './composite.ts';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import lod from '../data/lod.json' with { type: 'json' };
@@ -62,7 +63,7 @@ const box = hook.boundingBox, sphere = hook.boundingSphere;
 if (box === null || sphere === null) throw new Error('Hook source requires its original bounds');
 const hookBounds = { box: { min: box.min.toArray(), max: box.max.toArray() }, sphere: { center: sphere.center.toArray(), radius: sphere.radius } };
 hook.dispose();
-const metadata = { specimens: { crowd: crowdSpecimen, gear: gearSpecimen, hook: { ...hookSpecimen, bounds: hookBounds } }, composite: compositeRows(), ...NINE_LAYOUT_PLAN, CROWD_LEVELS: lod.CROWD_LEVELS, lod, ledgerFacts, sources, manifest: { BOOT_FILES: manifest.BOOT_FILES, COMPARE_ROWS: manifest.COMPARE_ROWS }, ceilings, runtimeCost, samples, strings, rows: NINE_MANIFEST_ROWS, explorerModels, looks: { paint, light, canopy, filament } };
+const metadata = { windowBindings, specimens: { crowd: crowdSpecimen, gear: gearSpecimen, hook: { ...hookSpecimen, bounds: hookBounds } }, composite: compositeRows(), ...NINE_LAYOUT_PLAN, CROWD_LEVELS: lod.CROWD_LEVELS, lod, ledgerFacts, sources, manifest: { BOOT_FILES: manifest.BOOT_FILES, COMPARE_ROWS: manifest.COMPARE_ROWS }, ceilings, runtimeCost, samples, strings, rows: NINE_MANIFEST_ROWS, explorerModels, looks: { paint, light, canopy, filament } };
 writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/metadata.generated.json'), jsonBytes(metadata));
 const shape = value => Array.isArray(value) ? `[${value.map(shape).join(',')}]` : value !== null && typeof value === 'object' ? `{${Object.entries(value).map(([key, child]) => `readonly ${JSON.stringify(key)}:${shape(child)}`).join(';')}}` : JSON.stringify(value);
 writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/lookTypes.generated.d.ts'), `export type LookRows = ${shape(metadata.looks)};\nexport type CompositeRows = ${shape(metadata.composite)};\n`);
