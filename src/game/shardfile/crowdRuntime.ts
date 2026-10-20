@@ -1,7 +1,7 @@
-import { FlockBrain, type FlockPorts, type FlockThreat } from '@wildshard/engine/ai/flock';
+import { FlockBrain, type FlockPorts, type FlockThreat, type FlockPose } from '@wildshard/engine/ai/flock';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { LevelContext } from '@wildshard/engine/level/context';
-import type { Vector3 } from 'three';
+import { Vector3 } from 'three';
 import { parseFlock, type ShardFlock } from '@wildshard/format/crowds';
 
 /** Trusted perception sampled in the owning clock; threat identities remain native references. */
@@ -110,4 +110,57 @@ export function installDeclaredCrowdFrames(context: Pick<LevelContext, 'system'>
     });
     if (runtime !== null && visited.size !== runtime.policies.size) throw new Error('Incomplete native crowd frame');
   } });
+}
+
+/** Stable prey identity reads and damages the authoritative crowd member. */
+export class CrowdPrey {
+  private readonly point = new Vector3();
+  constructor(readonly flock: CrowdTargets, readonly index: number) {}
+  get position(): Vector3 { return this.flock.positions(this.index, this.point); }
+  get yaw(): number { return this.flock.headingOf(this.index); }
+  get alive(): boolean { return this.flock.isAlive(this.index); }
+  readonly applyDamage = (): boolean => { this.flock.kill(this.index); return true; };
+}
+
+/** Spatial and damage projection of an existing crowd owner. Rows specify local
+ * hit spheres and the prey anchor; this host never advances flock decisions. */
+export class CrowdTargets {
+  readonly n: number;
+  private readonly targetPose: FlockPose = { x: 0, y: 0, z: 0, yaw: 0, speed: 0, phase: 0, graze: 0, dead: false, deathTime: 0, scale: 1, wool: 0 };
+  constructor(protected readonly controller: Pick<FlockBrain, 'n' | 'alive' | 'cx' | 'cz' | 'panicking' | 'readPose' | 'kill' | 'scare' | 'straggler' | 'nearest'>,
+    private readonly targets: { readonly preyY: number; readonly hits: readonly (readonly number[])[] }) {
+    if (!Number.isFinite(targets.preyY) || targets.hits.length === 0 || targets.hits.length > 16
+      || targets.hits.some(row => row.length !== 3 || row.some(value => !Number.isFinite(value)) || (row[2] ?? 0) <= 0)) throw new Error('Invalid crowd target rows');
+    this.n = controller.n;
+  }
+  get alive(): number { return this.controller.alive; }
+  get cx(): number { return this.controller.cx; }
+  get cz(): number { return this.controller.cz; }
+  get panicking(): boolean { return this.controller.panicking; }
+  positions(index: number, out: Vector3): Vector3 { const p = this.controller.readPose(index, this.targetPose); return out.set(p.x, p.y + this.targets.preyY, p.z); }
+  headingOf(index: number): number { return this.controller.readPose(index, this.targetPose).yaw; }
+  isAlive(index: number): boolean { return index >= 0 && index < this.n && !this.controller.readPose(index, this.targetPose).dead; }
+  owns(prey: CrowdPrey): boolean { return prey.flock === this; }
+  prey(index: number): CrowdPrey { if (!Number.isInteger(index) || index < 0 || index >= this.n) throw new RangeError('Unknown crowd member'); return new CrowdPrey(this, index); }
+  nearest(x: number, z: number): number { return this.controller.nearest(x, z); }
+  kill(index: number): void { this.controller.kill(index); }
+  scare(x: number, z: number, seconds: number): void { this.controller.scare(x, z, seconds); }
+  straggler(minimum = 12): number { return this.controller.straggler(minimum); }
+  raycast(origin: Vector3, direction: Vector3, maximum: number): number {
+    let best = maximum, member = -1;
+    for (let index = 0; index < this.n; index++) {
+      const p = this.controller.readPose(index, this.targetPose); if (p.dead) continue;
+      for (const sphere of this.targets.hits) {
+        const [offset, up, radius] = sphere; if (offset === undefined || up === undefined || radius === undefined) throw new Error('Missing target sphere');
+        const ox = origin.x - p.x - Math.sin(p.yaw) * offset * p.scale;
+        const oy = origin.y - p.y - up * p.scale;
+        const oz = origin.z - p.z - Math.cos(p.yaw) * offset * p.scale;
+        const b = ox * direction.x + oy * direction.y + oz * direction.z, c = ox * ox + oy * oy + oz * oz - (radius * p.scale) ** 2;
+        const discriminant = b * b - c; if (discriminant < 0) continue;
+        const entry = -b - Math.sqrt(discriminant), distance = entry >= 0 ? entry : c < 0 ? 0 : -1;
+        if (distance >= 0 && distance < best) { best = distance; member = index; }
+      }
+    }
+    return member;
+  }
 }

@@ -1,3 +1,4 @@
+import { CrowdPrey } from '@wildshard/game/shardfile/crowdRuntime';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
@@ -16,7 +17,7 @@ import { Pack, HorseHerd, type PackController, type PackPrey, type HerdControlle
 import { declaredGroupFactories } from '../runtime/groupDeclared';
 import { PAGE_GROUP_WORLD } from '../runtime/groupPorts';
 import { app } from '@wildshard/engine/app/runtime';
-import { type Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
+import { type Flock, dogWolves, type FlockOpts } from './flock';
 import { wildEnv } from './env';
 import { pushWildMovers } from '../look/trampleMovers';
 import { Marmots } from './marmots';
@@ -213,8 +214,8 @@ export class Wildlife {
   preyIdentity(prey: PackPrey): string {
     const actor = this.animals.animals.find(value => value === prey);
     if (actor !== undefined) return `actor:${actor.entityId}`;
-    if (!(prey instanceof SheepPrey)) throw new Error('Unbound native prey');
-    const flock = this.flocks.indexOf(prey.flock);
+    if (!(prey instanceof CrowdPrey)) throw new Error('Unbound native prey');
+    const flock = this.flocks.findIndex(view => view.owns(prey));
     if (flock === -1 || prey.index < 0 || prey.index >= prey.flock.n) throw new Error('Unbound native flock prey');
     const id = `sheep:${flock}:${prey.index}`; this.preyBindings.set(id, prey); return id;
   }

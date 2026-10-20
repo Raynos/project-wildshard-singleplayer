@@ -7,7 +7,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
-import type { PackPrey } from '../runtime/groupRegistry';
+import { CrowdTargets } from '@wildshard/game/shardfile/crowdRuntime';
 import { productRiggedHulls, type RiggedHullAsset } from '@wildshard/sdk/looks/riggedHulls';
 
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
@@ -40,47 +40,20 @@ export interface FlockBody { readonly geometry: THREE.BufferGeometry; readonly p
 
 export interface FlockOpts { x: number; z: number; count: number; seed: number; /** m the flock may wander from home (default 45) */ range?: number }
 
-/** Native renderer inputs; the declared owner supplies all decisions and randomness. */
-export interface SheepPose {
-  x: number; y: number; z: number; yaw: number; speed: number; phase: number; graze: number;
-  dead: boolean; deathTime: number; scale: number; wool: number;
-}
-/** G51 structural view/prey port; no engine policy subclass or second scheduler executes when installed. */
-export interface FlockController {
-  readonly n: number; readonly alive: number; readonly cx: number; readonly cz: number; readonly panicking: boolean;
-  readPose: (index: number, out: SheepPose) => SheepPose;
-  kill: (index: number) => void; scare: (x: number, z: number, seconds: number) => void;
-  straggler: (minimum?: number) => number; nearest: (x: number, z: number) => number;
-}
-const _p = new THREE.Vector3();
 const flockOfDog = new WeakMap<Animal, Flock>();
 const smooth = (t: number): number => t * t * (3 - 2 * t);
 /** the wolves the sheepdog watches for (Wildlife keeps it current) */
 export const dogWolves: Animal[] = [];
 
-/** B1: one sheep as a wolf pack's prey (Pack.raid): its position and heading read live off the flock, a bite kills it */
-export class SheepPrey implements PackPrey {
-  private readonly p = new THREE.Vector3();
-  constructor(readonly flock: Flock, readonly index: number) {}
-  get position(): THREE.Vector3 { return this.flock.positions(this.index, this.p); }
-  get yaw(): number { return this.flock.headingOf(this.index); }
-  get alive(): boolean { return this.flock.isAlive(this.index); }
-  readonly applyDamage = (): boolean => { this.flock.kill(this.index); return true; };
-}
-export class Flock {
+export class Flock extends CrowdTargets {
   private draw: PosedDraw | null = null;
   get mesh(): THREE.InstancedMesh { if (this.draw === null) throw new Error('Flock view is not built'); return this.draw.mesh; }
-  readonly n: number;
   dog: Animal | null = null;
   onSound?: ((name: string, x: number, z: number) => void) | undefined;
   private uTime = { value: 0 };
-  get alive(): number { return this.controller.alive; }
-  get cx(): number { return this.controller.cx; }
-  get cz(): number { return this.controller.cz; }
-
-  constructor(private readonly sky: Sky, opts: FlockOpts, private readonly body: FlockBody, private readonly controller: FlockController) {
+  constructor(private readonly sky: Sky, opts: FlockOpts, private readonly body: FlockBody, controller: ConstructorParameters<typeof CrowdTargets>[0]) {
+    super(controller, viewRows);
     if (controller.n !== opts.count) throw new Error('Flock view roster mismatch');
-    this.n = opts.count;
   }
 
   static ofDog(dog: Animal): Flock | null { return flockOfDog.get(dog) ?? null; }
@@ -146,36 +119,6 @@ export class Flock {
     mat.map = rig.map; mat.needsUpdate = true;
   }
 
-  positions(i: number, out: THREE.Vector3): THREE.Vector3 { const p = this.controller.readPose(i, this.pose); return out.set(p.x, p.y + viewRows.preyY, p.z); }
-  /** sheep i's heading (animal yaw) and whether it lives */
-  headingOf(i: number): number { return this.controller.readPose(i, this.pose).yaw; }
-  isAlive(i: number): boolean { return i >= 0 && i < this.n && !this.controller.readPose(i, this.pose).dead; }
-  /** B1: sheep i as a wolf pack's prey (Pack.raid): live position / heading, a bite kills it */
-  prey(i: number): SheepPrey { return new SheepPrey(this, i); }
-  /** the living sheep nearest (x, z) — the one a raid from that side reaches first — or -1 */
-  nearest(x: number, z: number): number { return this.controller.nearest(x, z); }
-
-  /** the sheep index a ray hits (a 0.42 m body sphere + a 0.14 m head sphere per sheep), or -1 */
-  raycast(o: THREE.Vector3, d: THREE.Vector3, maxDist: number): number {
-    let best = maxDist, bi = -1;
-    for (let i = 0; i < this.n; i++) {
-      const pose = this.controller.readPose(i, this.pose); if (pose.dead) continue;
-      const s = pose.scale, yw = pose.yaw;
-      for (const [off, up, r] of viewRows.hits) {
-        _p.set(pose.x + Math.sin(yw) * off * s, pose.y + up * s, pose.z + Math.cos(yw) * off * s);
-        const t = raySphere(o, d, _p, r * s);
-        if (t >= 0 && t < best) { best = t; bi = i; }
-      }
-    }
-    return bi;
-  }
-
-  /** The declared flock owns deaths, panic and straggler decisions. */
-  kill(i: number): void { this.controller.kill(i); }
-  scare(x: number, z: number, secs: number): void { this.controller.scare(x, z, secs); }
-  straggler(minD = 12): number { return this.controller.straggler(minD); }
-  get panicking(): boolean { return this.controller.panicking; }
-
   private readonly pose = { x: 0, y: 0, z: 0, yaw: 0, speed: 0, phase: 0, graze: 0, dead: false, deathTime: 0, scale: 1, wool: 0, pitch: 0, roll: 0, death: 0 };
   /** Upload the current authoritative poses through the shared instance host; paused bodies preserve shader time and upload state. */
   project(time?: number): void {
@@ -191,15 +134,6 @@ export class Flock {
     }
     draw.commit();
   }
-}
-
-function raySphere(o: THREE.Vector3, d: THREE.Vector3, c: THREE.Vector3, r: number): number {
-  const ox = o.x - c.x, oy = o.y - c.y, oz = o.z - c.z;
-  const b = ox * d.x + oy * d.y + oz * d.z, cc = ox * ox + oy * oy + oz * oz - r * r;
-  const disc = b * b - cc;
-  if (disc < 0) return -1;
-  const t = -b - Math.sqrt(disc);
-  return t >= 0 ? t : cc < 0 ? 0 : -1;
 }
 
 /**

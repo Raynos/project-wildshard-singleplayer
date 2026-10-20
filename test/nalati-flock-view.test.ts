@@ -1,14 +1,15 @@
+import type { FlockBrain, FlockPose } from '../src/engine/ai/flock';
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { SkyRig } from '../src/engine/world/skyRig';
-import { Flock, type SheepPose, type FlockController } from '../src/shards/nalati-grasslands/creatures/flock';
+import { Flock } from '../src/shards/nalati-grasslands/creatures/flock';
 
 test('flock lends live poses to the shared draw and keeps prey and paused uploads authoritative', async () => {
-  const rows: SheepPose[] = [
+  const rows: FlockPose[] = [
     { x: 4, y: 2, z: 8, yaw: .3, speed: 3, phase: .2, graze: .4, dead: false, deathTime: 0, scale: 1.2, wool: 2 },
     { x: 9, y: 1, z: -3, yaw: -.2, speed: 0, phase: .1, graze: 0, dead: true, deathTime: .5, scale: .8, wool: 0 },
   ];
-  const controller: FlockController = { n: 2, get alive() { return rows.filter(p => !p.dead).length; }, cx: 5, cz: 6, panicking: false,
+  const controller: Pick<FlockBrain, 'n' | 'alive' | 'cx' | 'cz' | 'panicking' | 'readPose' | 'kill' | 'scare' | 'straggler' | 'nearest'> = { n: 2, get alive() { return rows.filter(p => !p.dead).length; }, cx: 5, cz: 6, panicking: false,
     readPose: (i, out) => { const pose = rows[i]; if (pose === undefined) throw new Error('Missing test pose'); return Object.assign(out, pose); },
     kill: i => { const p = rows[i]; if (p !== undefined) p.dead = true; }, scare: () => undefined, straggler: () => -1, nearest: () => 0 };
   const rig = new THREE.BoxGeometry(), n = rig.getAttribute('position').count;
