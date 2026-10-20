@@ -36,7 +36,7 @@ class ShapeBook {
     this.bytes = bytes; this.pending = Promise.resolve();
   }
   load(): Promise<void> {
-    this.pending ??= fetchLaneBake(this.rows.binary.url).then(bytes => {
+    this.pending ??= this.rows.shapes.length === 0 ? Promise.resolve() : fetchLaneBake(this.rows.binary.url).then(bytes => {
       this.use(bytes); return undefined;
     });
     return this.pending;

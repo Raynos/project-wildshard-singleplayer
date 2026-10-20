@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./ui/panels": "./ui/panels.ts",
+    "./ui/panelTemplates": "./ui/panelTemplates.ts",
+    "./ui/dataPanels": "./ui/dataPanels.ts",
     "./population/nativeBake": "./population/nativeBake.ts",
     "./ambient/foragerDraw": "./ambient/foragerDraw.ts",
     "./riding/mountedFigure": "./riding/mountedFigure.ts",

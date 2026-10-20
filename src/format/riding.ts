@@ -1,3 +1,5 @@
+import { PanelDefinitionSchema } from './panelTemplate';
+import { ReturnProgramSchema } from './namedJsonContracts';
 import * as v from 'valibot';
 import { InputExtraEntries, InputKeysSchema } from './inputDeclarations';
 import { isJsonData } from './json';
@@ -68,3 +70,37 @@ export const RidingPresentationSchema = v.strictObject({ alive: v.string(),
   base: v.strictObject({ bone: v.string(), target: v.string() }),
   wind: v.strictObject({ x: v.string(), z: v.string(), strength: v.string() }),
 });
+
+const nameGraphemes = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+/** Normalize a mounted companion's display name to the admitted grapheme cap. */
+export function cleanMountName(raw: string, maximum: number): string {
+  if (!Number.isInteger(maximum) || maximum < 1 || maximum > 128) throw new Error('Invalid mount name limit');
+  const kept = raw.normalize('NFC').replaceAll(/[^\p{L}\p{N} '.-]/gu, '').replaceAll(/\s+/g, ' ').trim();
+  const cased = kept.split(' ').map(word => word.charAt(0).toLocaleUpperCase() + word.slice(1)).join(' ');
+  return Array.from(nameGraphemes.segment(cased), row => row.segment).slice(0, maximum).join('').trim();
+}
+
+/** Admitted native taming labels and stable saved identities. */
+export const PageTamingBindingSchema = v.strictObject({ upgradeKind: v.string(), bonds: v.tuple([v.string(), v.string()]), names: v.tuple([v.string(), v.string()]),
+  offset: v.tuple([v.number(), v.number()]), fields: v.strictObject({ upgraded: v.string(), horseUpgraded: v.string(), candidateUpgraded: v.string() }),
+  labels: v.strictObject({ mount: v.string(), breaking: v.string(), trust: v.string(), start: v.string(), thrown: v.string(), bonded: v.tuple([v.string(), v.string()]) }) });
+
+/** Native controls and presentation policy for an entered riding session. */
+export const PageRidingPresetSchema = v.strictObject({ controls: v.exactOptional(RidingControlsSchema), mode: v.strictObject({ id: v.literal('ride'), hud: v.literal('ride') }), mountableLabel: v.string(),
+  taming: v.strictObject({ herds: v.string(), adopted: v.strictObject({ kind: v.string(), variant: v.string(),
+    upgrade: v.strictObject({ scale: v.number(), colour: v.tuple([v.number(),v.number(),v.number()]) }) }),
+    thrownLabel: v.string(), breakingContext: v.string(), stowOnBreaking: v.boolean() }),
+  actions: v.strictObject({ herds: v.string(), tagRange: v.number(), tagHeight: v.number(), squeal: v.string(),
+    labels: v.strictObject({ name: v.string(), panic: v.string(), thrown: v.string(), bolt: v.string() }) }) });
+
+/** Client-only session composition; every dependency is JSON data. */
+const point = v.strictObject({ x: v.number(), z: v.number() });
+export const ClientRidingSessionSchema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
+  preset: PageRidingPresetSchema, programs: v.object({ approach: ReturnProgramSchema, breaking: ReturnProgramSchema, riding: ReturnProgramSchema,
+    initial: v.record(v.string(), v.number()), reins: ReinPresentationSchema }),
+  profile: v.strictObject({ speeds: v.strictObject({ walk: v.number(), trot: v.number(), canter: v.number(), gallop: v.number() }), thrownDamage: v.number(), thrownLabel: v.string() }),
+  roads: v.array(v.array(v.tuple([v.number(), v.number()]))), rest: v.strictObject({ ...point.entries, face: point }),
+  taming: v.strictObject({ binding: PageTamingBindingSchema, rail: point }),
+  naming: v.strictObject({ panel: PanelDefinitionSchema, action: v.string(), maximum: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(128)), notice: v.string(), bondedFeat: v.string() }),
+  figure: v.strictObject({ row: v.unknown(), shapes: v.record(v.string(), v.unknown()), geometry: v.pipe(v.array(v.string()), v.maxLength(16)) }),
+}));

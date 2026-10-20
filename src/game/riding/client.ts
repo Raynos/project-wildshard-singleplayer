@@ -1,3 +1,15 @@
+import type { ShardContext } from '../plugin/context';
+import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
+import { DataPanel } from '../ui/dataPanels';
+import { enteredAdventurePersistence } from '../quest/chapterBindings';
+import { mountedPageLoadout } from '../loadout/mounted';
+import { clientWildlife } from '../population/wildlife';
+import type { CrowdDraw } from '../ambient/crowdDraw';
+import { wildEnv } from '../population/pageGroups';
+import { shapeBook } from '../models/shapeBook';
+import { MountedReins } from './reins';
+import { MountedFigure } from './mountedFigure';
+import { PastureView } from './pastureView';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -12,18 +24,13 @@ import { TamingBinding } from './binding';
 import type { TamingObservation } from './bindingTypes';
 import type { TamingPrograms } from './taming';
 import { Mount, enteredMount } from './mount';
-import { RidingControlsSchema, type RidingControls, type MountProfile } from '@wildshard/format/riding';
+import { RidingControlsSchema, PageTamingBindingSchema, PageRidingPresetSchema, ClientRidingSessionSchema, cleanMountName, type RidingControls, type MountProfile } from '@wildshard/format/riding';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../population/returnProgram';
 import { RideHUD } from './hud';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { arenaBoundaryBlocked } from '../boss/arenaField';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-
-const Profile = v.strictObject({ upgradeKind: v.string(), bonds: v.tuple([v.string(), v.string()]), names: v.tuple([v.string(), v.string()]),
-  offset: v.tuple([v.number(), v.number()]), fields: v.strictObject({ upgraded: v.string(), horseUpgraded: v.string(), candidateUpgraded: v.string() }),
-  labels: v.strictObject({ mount: v.string(), breaking: v.string(), trust: v.string(), start: v.string(), thrown: v.string(), bonded: v.tuple([v.string(), v.string()]) }) });
-
 
 const collections = new WeakMap<Scope, Map<string, readonly HerdBrain<Animal>[]>>();
 function nativeHerds(value: unknown): value is readonly HerdBrain<Animal>[] {
@@ -58,7 +65,7 @@ export interface PageTamingOwner {
 /** Client-only native effect adapter. Placement, persisted bond values, labels and
  * upgrade appearance are rows; the existing engine actors own their real rigs. */
 export function createPageTaming(ctx: LevelContext, player: Player, animals: AnimalManager, mount: Mount, rows: PageTamingRows): PageTamingOwner {
-  const profile = v.parse(Profile, rows.binding);
+  const profile = v.parse(PageTamingBindingSchema, rows.binding);
   const colour = v.parse(v.tuple([v.number(), v.number(), v.number()]), rows.adopted.upgrade.colour);
   const herds = collections.get(ctx.scope)?.get(rows.herds); if (herds === undefined) throw new Error('Missing rendered riding herds');
   let events: PageTamingEvent[] = [];
@@ -249,14 +256,8 @@ export function createPageRiding(ctx: LevelContext, player: Player, animals: Ani
     drainEvents: () => [...taming.drainEvents(), ...actions.drainEvents()] };
 }
 
-const PagePreset = v.strictObject({ controls: v.exactOptional(RidingControlsSchema), mode: v.strictObject({ id: v.literal('ride'), hud: v.literal('ride') }), mountableLabel: v.string(),
-  taming: v.strictObject({ herds: v.string(), adopted: v.strictObject({ kind: v.string(), variant: v.string(),
-    upgrade: v.strictObject({ scale: v.number(), colour: v.tuple([v.number(),v.number(),v.number()]) }) }),
-    thrownLabel: v.string(), breakingContext: v.string(), stowOnBreaking: v.boolean() }),
-  actions: v.strictObject({ herds: v.string(), tagRange: v.number(), tagHeight: v.number(), squeal: v.string(),
-    labels: v.strictObject({ name: v.string(), panic: v.string(), thrown: v.string(), bolt: v.string() }) }) });
 /** Admit the shard's client labels, input contexts, upgrade look and HUD tuning. */
-export function readPageRidingPreset(input: unknown): v.InferOutput<typeof PagePreset> { return v.parse(PagePreset,input); }
+export function readPageRidingPreset(input: unknown): v.InferOutput<typeof PageRidingPresetSchema> { return v.parse(PageRidingPresetSchema,input); }
 
 /** Client-only native action routing over the entered mount and HUD. */
 function bindRidingControls(ctx: LevelContext, mount: Mount, taming: PageTamingOwner, hud: RideHUD, rows: RidingControls): void {
@@ -279,4 +280,73 @@ function bindRidingControls(ctx: LevelContext, mount: Mount, taming: PageTamingO
     if(input.consume('ride.horseTab')&&!mount.breaking)mount.dismount();
   }});
   ctx.scope.onDispose(()=>{mount.dismount();mount.input=null;taming.setInput(null);});
+}
+
+/** The existing mount, taming and pasture authorities with their client views. */
+export interface PageRidingView {
+  readonly mount: Mount; readonly taming: PageTamingOwner; readonly hud: RideHUD; readonly interactable: Interactable;
+  readonly mounted: boolean; readonly reins: MountedReins; readonly raid: PastureView<CrowdDraw>;
+  update: (dt: number) => void; late: (dt: number) => void; noteShot: (x: number, z: number) => void;
+}
+const clientSessions = new WeakMap<Scope, { readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; readonly figure: MountedFigure; view: PageRidingView | null }>();
+/** Admit the client session before world wiring; body and equipment authorities
+ * arrive through their native stages, never through authored callbacks. */
+export async function installClientRiding(ctx: ShardContext, feature: ClientFeatureRow): Promise<void> {
+  if (feature.kind !== 'riding.session' || ctx.scope.disposed || clientSessions.has(ctx.scope)) throw new Error('Invalid riding feature owner');
+  const active = (): void => { if (ctx.scope.disposed) throw new Error('Riding owner left during admission'); };
+  const rows = v.parse(ClientRidingSessionSchema, await ctx.product.json(feature.file)), shapes = shapeBook(rows.figure.shapes);
+  active(); await shapes.load(); active();
+  const geometry = shapes.geometries(rows.figure.geometry);
+  for (const [, resource] of geometry) ctx.scope.own(resource);
+  const figure = new MountedFigure(rows.figure.row, new Map(geometry));
+  clientSessions.set(ctx.scope, { rows, figure, view: null });
+  ctx.scope.onDispose(() => { clientSessions.delete(ctx.scope); });
+}
+/** Enter after native animals and equipment exist. The plan supplies all labels,
+ * guest rows and resource ids; the page resolves its own concrete authorities. */
+export function enterClientRiding(ctx: ShardContext): PageRidingView {
+  const owner = clientSessions.get(ctx.scope), runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
+  if (owner === undefined || ctx.scope.disposed || runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Riding feature is not ready');
+  if (owner.view !== null) throw new Error('Riding feature is already entered');
+  const population = clientWildlife(ctx); if (population === null) throw new Error('Riding requires built wildlife');
+  const { rows, figure } = owner, persistence = enteredAdventurePersistence(ctx.scope), kit = mountedPageLoadout(ctx);
+  const names = persistence.names.read(), preset = rows.preset;
+  admitRenderedHerds(ctx.scope, preset.taming.herds, population.herds); admitRidingWind(ctx.scope, wildEnv.wind);
+  const session = createPageRiding(ctx, world.player, play.animals, world.game.camera, {
+    profile: { ...rows.profile, names, roads: rows.roads, restAt: rows.rest }, mode: preset.mode, ...(preset.controls === undefined ? {} : { controls: preset.controls }),
+    taming: { ...preset.taming, programs: rows.programs, binding: rows.taming.binding, savedBond: persistence.bond.read(), rest: rows.rest },
+    actions: { ...preset.actions, program: rows.programs.riding, rail: rows.taming.rail },
+    mountables: population.mountables.map(actor => ({ id: actor.entityId, name: preset.mountableLabel })),
+  });
+  const { mount, taming, hud, interactable } = session, reins = new MountedReins(world.game.camera, rows.programs.reins, ctx.scope);
+  const namer = new DataPanel(rows.naming.panel), raid = new PastureView(ctx.game, play.animals, population, figure), nameValues = { current: '' };
+  let namingActor: string | null = null;
+  const actions = new Map<string, (value: unknown) => void>([[rows.naming.action, value => {
+    if (typeof value !== 'string') throw new Error('Mount name input requires text');
+    const name = cleanMountName(value, rows.naming.maximum);
+    if (name.length > 0 && namingActor !== null) { mount.rename(namingActor, name); persistence.names.write(names); play.hud.toast(rows.naming.notice + name); }
+  }]]);
+  ctx.scope.onDispose(() => { namer.close(); });
+  const weaponMount = { speed: 0, yaw: 0 };
+  const view: PageRidingView = {
+    mount, taming, hud, interactable, reins, raid, get mounted() { return mount.mounted; },
+    noteShot: (x, z) => { taming.noteShot(x, z); },
+    update: dt => {
+      session.update(dt, wildEnv.wetAt(mount.feet.x, mount.feet.z), false, namer.isOpen); wildEnv.playerMounted = mount.mounted;
+      for (const event of session.drainEvents()) {
+        if (event.kind === 'notice') play.hud.toast(event.text);
+        else if (event.kind === 'bond') persistence.bond.write(event.value);
+        else if (event.kind === 'bonded') persistence.feat(rows.naming.bondedFeat);
+        else if (event.kind === 'name') { namingActor = event.actor; nameValues.current = event.current; namer.open(nameValues, actions); }
+      }
+      raid.update(dt, world.player.position);
+    },
+    late: dt => {
+      weaponMount.speed = mount.speed; weaponMount.yaw = mount.heading - Math.PI; kit.setMount(mount.mounted ? weaponMount : null);
+      if (mount.gallopFloat) kit.bow.extraSpreadDeg *= .5;
+      const bow = kit.bow, drawing = ctx.app.equipment?.current === bow && (bow.adsHeld || bow.drawing);
+      reins.update(dt, mount.horse, mount.mounted, mount.breaking || drawing);
+    },
+  };
+  owner.view = view; return view;
 }

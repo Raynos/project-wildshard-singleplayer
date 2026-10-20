@@ -8,7 +8,7 @@ import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
 import { parsePanelDefinition } from '../src/format/panelTemplate';
 import horsePanel from '../src/shards/nalati-grasslands/data/namePanel.json' with { type: 'json' };
 import { claim, newBoard, reroll } from '../src/game/quest/contracts';
-import { cleanHorseName } from '../src/shards/nalati-grasslands/ride/horseNames';
+import { cleanMountName } from '../src/format/riding';
 
 test('the persistent lodge board retains its frame, payouts, keys and scoped row listeners', () => {
   const scope = new Scope('board-lifecycle'), board = newBoard(CONTRACTS), events: string[] = [];
@@ -51,7 +51,7 @@ test('the horse-name data preserves submit, focus, grace, layer ownership and fr
   const owner = new Scope('horse-panel-lifecycle'), saves: string[] = [];
   const now = vi.spyOn(performance, 'now').mockReturnValue(1000);
   const panel = new DataPanel(parsePanelDefinition(horsePanel), { scope: owner });
-  const save = new Map([['save', (value: unknown) => { const name = cleanHorseName(String(value)); if (name.length > 0) saves.push(name); }]]);
+  const save = new Map([['save', (value: unknown) => { const name = cleanMountName(String(value), 16); if (name.length > 0) saves.push(name); }]]);
   try {
     panel.open({ current: 'Camp horse' }, save);
     const first = panel.view;

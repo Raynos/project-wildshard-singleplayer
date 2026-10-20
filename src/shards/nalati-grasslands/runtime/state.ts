@@ -1,6 +1,5 @@
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
-import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
 import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
 import { clientWildlife, type PageWildlife } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
@@ -15,7 +14,6 @@ import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/pla
 import type { TargetHit } from '@wildshard/engine/combat/types';
 import type { ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import type { Game } from '@wildshard/engine/core/Game';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -44,18 +42,7 @@ import { StealthController, type StealthController as Stealth, type StealthThrea
 import { clientAudioScene, type AudioSceneDirector } from '@wildshard/game/audio/sceneDirector';
 import { wireLookV2 } from '../look/index';
 import { reseedGrassV2 } from '../look/field';
-import type { TamingPrograms as RidingPrograms } from '@wildshard/game/riding/taming';
-import { admitRenderedHerds, admitRidingWind, createPageRiding, readPageRidingPreset, type PageTamingOwner } from '@wildshard/game/riding/client';
-import type { Mount } from '@wildshard/game/riding/mount';
-import type { MountProfile } from '@wildshard/format/riding';
-import type { RideHUD } from '@wildshard/game/riding/hud';
-import type { Interactable } from '@wildshard/engine/world/interact/types';
-import type { PanelDefinition } from '@wildshard/format/panelTemplate';
-import { MountedReins as Reins } from '@wildshard/game/riding/reins';
-import { PastureView } from '@wildshard/game/riding/pastureView';
-import { MountedFigure } from '@wildshard/game/riding/mountedFigure';
-import { cleanHorseName } from '../ride/horseNames';
-import { legacyAdventureBond } from '@wildshard/game/quest/legacyRecords';
+import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
 import { ArenaScriptEncounter,readArenaScriptData } from '@wildshard/game/boss/arenaScript';
 import type { CosmeticFinishLocker, CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
@@ -112,16 +99,9 @@ export interface Nalati {
 }
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
-  const { admission, roads, rest } = v.parse(v.object({ admission: v.unknown(),
-    roads: v.array(v.array(v.tuple([v.number(),v.number()]))), rest: v.object({ x: v.number(), z: v.number(), face: v.object({ x:v.number(),z:v.number() }) }) }), await plugin.product.json('sim/headless-boot.json'));
-  const ridingPrograms = await plugin.product.json<RidingPrograms & {reins:unknown}>('ride/rules.json');
-  const { constants: { nativeTaming, nativeRide,nativeWeather } } = v.parse(v.object({ constants: v.object({
-    nativeWeather:v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
-    nativeRide: v.object({ speeds:v.object({ walk:v.number(),trot:v.number(),canter:v.number(),gallop:v.number() }),thrownDamage:v.number(),thrownLabel:v.string() }) }) }), await plugin.product.json('sim/headless-assembly.json'));
-  const ridingPreset = readPageRidingPreset(v.parse(v.object({ client:v.unknown() }),ridingPrograms).client);
-  const eliteProgram=ReturnProgram.page(admission,plugin.scope);
-  const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
-  if (namePanel === undefined) throw new Error('Nalati requires its named horse panel');
+  const { admission } = v.parse(v.object({ admission: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
+  const { constants: { nativeWeather } } = v.parse(v.object({ constants: v.object({ nativeWeather: v.unknown() }) }), await plugin.product.json('sim/headless-assembly.json'));
+  const eliteProgram = ReturnProgram.page(admission, plugin.scope);
   const { game, sky } = ctx;
   const slice = slicer(0, progress);
   let completed = 0;
@@ -225,7 +205,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     await plugin.product.json('combat/timed-encounters.json'), { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest());
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
   weather.weather.on('strike', e => { clientWildlife(plugin)?.scare(e['x'] ?? 0, e['z'] ?? 0, 60); });
-  const mountedFigureRows = await plugin.product.json('riding/mounted-figure.json');
   const nalati: Nalati = {
     persistence, pois, weather, groups, boss, elites, stealth, ride, titan,
     get wildlife() { return clientWildlife(plugin); },
@@ -239,7 +218,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       stealth = new StealthController(plugin,player,stealthRows);
       nalati.stealth = stealth;
       if (wildlife === null) throw new Error('Nalati creatures have not been built');
-      ride = wireRide({ figure: new MountedFigure(mountedFigureRows, new Map(shapeBook(shapeRows).geometries(['shepherd-body','shepherd-arm']))), kit:p, roads, rest, nativeTaming, nativeRide, preset: ridingPreset, programs: ridingPrograms, namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, animals: attachedAnimals, wildlife, camera: game.camera });
+      ride = enterClientRiding(plugin);
       nalati.ride = ride;
       plugin.debug.expose('nalati.ride',ride);
 
@@ -320,75 +299,4 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   plugin.debug.expose('nalati.dressing', dressing);
   await slice(total, total, 'World services');
   return nalati;
-}
-
-export interface Ride {
-  refuse: ((x:number,z:number)=>boolean) | null; mount: Mount; taming: PageTamingOwner; hud: RideHUD; interactable: Interactable;
-  readonly mounted: boolean; update:(dt:number)=>void; late:(dt:number)=>void;
-  reins: Reins; raid: PastureView<Flock>; noteShot:(x:number,z:number)=>void;
-}
-interface RideCtx {
-  figure: MountedFigure;
-  kit:NalatiLoadout; ctx: ShardContext; player: Player; camera: Game['camera']; animals: AnimalManager; wildlife: Wildlife; programs: RidingPrograms & {reins:unknown};
-  preset: ReturnType<typeof readPageRidingPreset>; rest: {x:number;z:number;face:{x:number;z:number}}; roads: NonNullable<MountProfile['roads']>;
-  nativeTaming: {binding:unknown;rail:{x:number;z:number}}; nativeRide: Pick<MountProfile,'speeds'|'thrownDamage'|'thrownLabel'>;
-  namePanel: PanelDefinition; persistence?: NalatiPersistence;
-}
-/** Bind this shard's remaining presentation and persistence to the game owner. */
-function wireRide(ctx: RideCtx): Ride {
-  let savedBond: string | null = null, namingActor: string | null = null;
-  try { savedBond = ctx.persistence?.bond.read() ?? legacyAdventureBond('tulpar').read('nalati-grasslands'); } catch { /* unavailable storage */ }
-  admitRenderedHerds(ctx.ctx.scope, ctx.preset.taming.herds, ctx.wildlife.herds);
-  admitRidingWind(ctx.ctx.scope, wildEnv.wind);
-  const names = ctx.persistence?.names.read() ?? {};
-  const session = createPageRiding(ctx.ctx, ctx.player, ctx.animals, ctx.camera, {
-    profile: { ...ctx.nativeRide, names, roads: ctx.roads, restAt: ctx.rest }, mode: ctx.preset.mode, ...(ctx.preset.controls===undefined?{}:{controls:ctx.preset.controls}),
-    taming: { ...ctx.preset.taming, programs: ctx.programs, binding: ctx.nativeTaming.binding, savedBond, rest: ctx.rest },
-    actions: { ...ctx.preset.actions, program: ctx.programs.riding, rail: ctx.nativeTaming.rail },
-    mountables: ctx.wildlife.mountables.map(actor => ({ id: actor.entityId, name: ctx.preset.mountableLabel })),
-  });
-  const { mount, taming, hud, interactable } = session, reins = new Reins(ctx.camera, ctx.programs.reins, ctx.ctx.scope), namer = new DataPanel(ctx.namePanel);
-  const publishRaidNotice = (text: string): void => { ctx.ctx.game.runtime?.play?.hud.toast(text); };
-  const raid = new PastureView(ctx.ctx.game, ctx.animals, ctx.wildlife, ctx.figure), nameValues = { current: '' };
-  const nameActions = new Map<string, (value: unknown) => void>([['save', value => {
-    if (typeof value !== 'string') throw new Error('Name input requires text');
-    const name = cleanHorseName(value);
-    if (name.length > 0 && namingActor !== null) {
-      mount.rename(namingActor, name); ctx.persistence?.names.write(names); publishRaidNotice(`Your horse is ${name}`);
-    }
-  }]]);
-  ctx.ctx.scope.onDispose(() => { namer.close(); });
-  const advanceSession = session.update, advanceRaid = raid.update.bind(raid), advanceReins = reins.update.bind(reins);
-  const weaponMount = { speed: 0, yaw: 0 };
-  const ride: Ride = {
-    refuse: null, mount, taming, hud, interactable, reins, raid,
-    get mounted() { return mount.mounted; },
-    noteShot(x, z) { taming.noteShot(x, z); },
-    update(dt) {
-      const ahead = 2 + mount.speed * .4;
-      const wet = wildEnv.wetAt(mount.feet.x, mount.feet.z);
-      const blocked = ride.refuse?.(mount.feet.x + Math.sin(mount.heading) * ahead, mount.feet.z + Math.cos(mount.heading) * ahead) === true;
-      advanceSession(dt, wet, blocked, namer.isOpen);
-      wildEnv.playerMounted = mount.mounted;
-      const events = session.drainEvents();
-      for (let i = 0; i < 64; i++) {
-        const event = events[i]; if (event === undefined) break;
-        if (event.kind === 'notice') publishRaidNotice(event.text);
-        else if (event.kind === 'bond') ctx.persistence?.bond.write(event.value);
-        else if (event.kind === 'bonded') ctx.persistence?.feat('tame');
-        else if (event.kind === 'name') {
-          namingActor = event.actor; nameValues.current = event.current; namer.open(nameValues, nameActions);
-        }
-      }
-      advanceRaid(dt, ctx.player.position);
-    },
-    late(dt) {
-      weaponMount.speed = mount.speed; weaponMount.yaw = mount.heading - Math.PI;
-      ctx.kit.setMount(mount.mounted ? weaponMount : null);
-      if (mount.gallopFloat) ctx.kit.bow.extraSpreadDeg *= .5;
-      const bow=ctx.kit.bow,drawing=ctx.ctx.app.equipment?.current===bow && (bow.adsHeld || bow.drawing);
-      advanceReins(dt, mount.horse, mount.mounted, mount.breaking || drawing);
-    },
-  };
-  return ride;
 }
