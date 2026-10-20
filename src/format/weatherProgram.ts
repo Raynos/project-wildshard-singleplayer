@@ -70,6 +70,10 @@ export const WeatherReactionsSchema = v.strictObject({
     write: v.pipe(v.array(v.tuple([name, v.pipe(v.string(), v.regex(/^(?:register\.[a-zA-Z][a-zA-Z0-9]*|phaseT)$/u))])), v.maxLength(32)),
     emit: v.pipe(v.array(v.strictObject({ event: name, when: name, fields: named })), v.maxLength(8)),
   })), v.minLength(1), v.maxLength(16)),
+  /** the HUD's weather chip (the first row of the current state, `within` seconds of its end when given; `{left}` the
+   *  phase's mm:ss, `{wind}` the wind in m/s) and GET LOW while the `low` register is 1 */
+  hud: v.exactOptional(v.strictObject({ chips: v.pipe(v.array(v.strictObject({ state: id, within: v.exactOptional(v.pipe(finite, v.minValue(0))),
+    title: v.pipe(v.string(), v.maxLength(64)), tone: v.picklist(['soon', 'storm', 'clearing']) })), v.maxLength(16)), sub: v.pipe(v.string(), v.maxLength(64)), low: name })),
 });
 export type WeatherReactionRows = v.InferOutput<typeof WeatherReactionsSchema>;
 /** Admit reaction rows against the continuation they drive: every register they read or write is the program's own. */
@@ -79,7 +83,7 @@ export function parseWeatherReactions(value: unknown, program: WeatherProgram): 
   const refs = rows.steps.flatMap(step => [step.when ?? '', ...step.observe.map(row => row[1]), ...step.write.map(row => row[1]),
     ...(step.probe === undefined ? [] : [step.probe.x, step.probe.z, String(step.probe.radius)]), ...step.emit.flatMap(row => row.fields.map(field => field[1]))]);
   if (!refs.every(known) || !Object.hasOwn(registers, rows.flash) || (rows.actions?.unless !== undefined && !Object.hasOwn(registers, rows.actions.unless))
-    || !rows.active.every(state => program.states.includes(state)) || (rows.actions !== undefined && program.actions?.[rows.actions.event] === undefined))
+    || !rows.active.every(state => program.states.includes(state)) || (rows.hud !== undefined && (!Object.hasOwn(registers, rows.hud.low) || !rows.hud.chips.every(chip => program.states.includes(chip.state)))) || (rows.actions !== undefined && program.actions?.[rows.actions.event] === undefined))
     throw new RangeError('Invalid weather reaction references');
   return rows;
 }

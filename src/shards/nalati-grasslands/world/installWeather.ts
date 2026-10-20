@@ -33,7 +33,7 @@ import type { Game } from '@wildshard/engine/core/Game';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { Player } from '@wildshard/engine/player/Player';
-import type { HUD } from '@wildshard/engine/ui/HUD';
+import type { WeatherHUD } from '@wildshard/engine/ui/HUD';
 import { DayCycle, compassDir, type DayPhase } from '@wildshard/engine/world/dayCycle';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -49,7 +49,6 @@ import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
 import { lentLook, setLentTexture, pushLentParams, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
-type WeatherHUD = Parameters<HUD['setWeather']>[0];
 declare module '@wildshard/engine/events/maps' { interface EventMap { 'weather.changed': WeatherHUD } }
 
 export interface WeatherCtx {
@@ -90,7 +89,6 @@ export interface NalatiWeather {
 
 const TIME_NAMES = ['dawn', 'day', 'noon', 'golden', 'dusk', 'night', 'midnight'] as const;
 function isTimeName(s: string): s is DayPhase | 'noon' | 'midnight' { return (TIME_NAMES as readonly string[]).includes(s); }
-const mmss = (s: number): string => { const t = Math.max(0, Math.ceil(s)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
 
 export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   const program=readWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.ctx.product.file('world/weather.json'))));
@@ -150,8 +148,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
     return ((dx * rx + dz * rz) / d) * 0.7;
   }
 
-  // ── HUD + audio, throttled ──
-  let hudKey = '';
+  // ── audio, throttled ──
   let audioT = 0;
 
   const out: NalatiWeather = {
@@ -179,16 +176,9 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       fx.rain.visible &&= !indoors;
       // the creatures
       stormEnv(wildEnv, clock, weather);
-      // HUD (the event fires on change only)
-      const ws = `WIND ${Math.round(wind.speed)} m/s`;
-      let chip: WeatherHUD['chip'] = null;
-      if (weather.weather.state === 'building' && weather.weather.phaseLeft <= 45) chip = { title: `Storm in ${mmss(weather.weather.phaseLeft)}`, sub: ws, tone: 'soon' };
-      else if (weather.weather.state === 'gust') chip = { title: 'Storm', sub: ws, tone: 'storm' };
-      else if (weather.weather.state === 'storm') chip = { title: `Storm ${mmss(weather.weather.phaseLeft)}`, sub: ws, tone: 'storm' };
-      else if (weather.weather.state === 'clearing') chip = { title: 'Clearing', sub: ws, tone: 'clearing' };
-      const detail: WeatherHUD = { chip, getLow: weather.register('low') === 1 && !indoors };
-      const key = `${chip?.title ?? ''}|${chip?.sub ?? ''}|${String(detail.getLow)}`;
-      if (key !== hudKey) { hudKey = key; ctx.ctx.app.events.emit('weather.changed', detail); }
+      // HUD (rows: generators/weatherDecision.mjs `hud`; the event fires on change only)
+      const hud = weather.hud(wind.speed, indoors);
+      if (hud !== null) ctx.ctx.app.events.emit('weather.changed', hud);
       // audio beds at 4 Hz
       audioT -= dt;
       if (audioT <= 0 && hooks.audio) {

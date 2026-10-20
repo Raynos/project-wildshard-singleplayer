@@ -85,3 +85,13 @@ test('event records keep their last fields and age; raise fires a declared event
   marshWeather.update(.05); expect(marshWeather.record('flicker')['age']).toBeCloseTo(.05);
   expect(() => { marshWeather.raise('flicker', { age: 3 }); }).toThrow(); expect(() => { marshWeather.raise('missing', {}); }).toThrow();
 });
+
+test('hud rows name the phase, count it down and report only changes', () => {
+  const marshWeather = install({ ...marsh, hud: { chips: [{ state: 'rain', title: 'Rain {left}', tone: 'storm' }], sub: 'WIND {wind}', low: 'low' } });
+  marshWeather.weather.force('rain', .5); marshWeather.weather.hold = true;
+  const left = Math.ceil(marshWeather.weather.phaseLeft);
+  expect(marshWeather.hud(7.4, false)).toEqual({ chip: { title: `Rain ${String(Math.floor(left / 60))}:${String(left % 60).padStart(2, '0')}`, sub: 'WIND 7', tone: 'storm' }, getLow: false });
+  expect(marshWeather.hud(7.4, false)).toBeNull();
+  marshWeather.weather.registers['low'] = 1; expect(marshWeather.hud(7.4, true)).toBeNull(); expect(marshWeather.hud(7.4, false)?.getLow).toBe(true);
+  expect(() => install({ ...marsh, hud: { chips: [{ state: 'snow', title: '', tone: 'storm' }], sub: '', low: 'low' } })).toThrow();
+});

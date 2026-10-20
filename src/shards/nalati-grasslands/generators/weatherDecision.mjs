@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
  */
 const reg=name=>`register.${name}`,inp=name=>`input.${name}`,out=name=>[name,`output.${name}`];
 const player=['px','py','pz','crouched','mounted','sheltered'].map(name=>[name,inp(name)]);
-export const STORM={version:1,hz:10,actions:{event:'lightning',unless:'armed'},active:['gust','storm'],flash:'flash',shelter:{margin:1.5,circles:[]},points:[],steps:[
+export const STORM={version:1,hz:10,hud:{chips:[{state:'building',within:45,title:'Storm in {left}',tone:'soon'},{state:'gust',title:'Storm',tone:'storm'},{state:'storm',title:'Storm {left}',tone:'storm'},{state:'clearing',title:'Clearing',tone:'clearing'}],sub:'WIND {wind} m/s',low:'low'},actions:{event:'lightning',unless:'armed'},active:['gust','storm'],flash:'flash',shelter:{margin:1.5,circles:[]},points:[],steps:[
  {signal:'tick',observe:[['dt','dt'],['armed',reg('armed')],['pendingT',reg('pendingT')],['ready',reg('ready')],['storm','state.storm'],['gust','state.gust'],['bearing',reg('stormFrom')],['flash',reg('flash')]],random:true,
   write:[['pendingT',reg('pendingT')],['land',reg('land')],['arm',reg('arm')],['flash',reg('flash')]],emit:[{event:'flash',when:'distance',fields:[out('distance'),out('bearing')]}]},
  {signal:'arm',when:reg('arm'),observe:[['px',inp('px')],['pz',inp('pz')],['lowFor',reg('lowFor')]],random:true,write:[['x',reg('cx')],['z',reg('cz')],['radius',reg('cradius')]],emit:[]},

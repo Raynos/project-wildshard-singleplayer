@@ -9,6 +9,7 @@ import type { LevelContext } from '@wildshard/engine/level/context';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { WeatherProgram, WeatherReactionRows } from '@wildshard/format/weatherProgram';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
+import type { WeatherHUD } from '@wildshard/engine/ui/HUD';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ReturnProgram } from '../population/returnProgram';
 import * as v from 'valibot';
@@ -107,6 +108,17 @@ export class WeatherReactions {
     const record = this.events.get(event); if (record === undefined) throw new Error(`Undeclared weather reaction: ${event}`);
     for (const [field, value] of Object.entries(fields)) { if (!Object.hasOwn(record, field) || field === 'age' || !Number.isFinite(value)) throw new Error(`Invalid weather reaction field: ${field}`); record[field] = value; }
     record['age'] = 0; for (const fn of this.listeners.get(event) ?? []) fn(record);
+  }
+  private hudKey = '';
+  /** The HUD's chip and GET LOW (rows `hud`) when they changed since the last call, else null; `quiet` holds GET LOW off. */
+  hud(wind: number, quiet: boolean): WeatherHUD | null {
+    const rows = this.rows.hud, w = this.weather; if (rows === undefined) return null;
+    const row = rows.chips.find(chip => chip.state === w.state && (chip.within === undefined || w.phaseLeft <= chip.within)), left = Math.max(0, Math.ceil(w.phaseLeft));
+    const fill = (text: string): string => text.replaceAll('{left}', `${String(Math.floor(left / 60))}:${String(left % 60).padStart(2, '0')}`).replaceAll('{wind}', String(Math.round(wind)));
+    const detail: WeatherHUD = { chip: row === undefined ? null : { title: fill(row.title), sub: fill(rows.sub), tone: row.tone }, getLow: this.register(rows.low) === 1 && !quiet };
+    const key = `${detail.chip?.title ?? ''}|${detail.chip?.sub ?? ''}|${String(detail.getLow)}`;
+    if (key === this.hudKey) return null;
+    this.hudKey = key; return detail;
   }
   on(event: string, fn: (event: WeatherReactionEvent) => void): void { const list = this.listeners.get(event) ?? []; list.push(fn); this.listeners.set(event, list); }
   /** One frame: the phase loop, then (at the rows' cadence) the actions and the steps in order. True on a decision tick. */
