@@ -11,5 +11,12 @@
     "surface": "rock",
     "solidFloor": true
   },
-  "reefPiece": "wreck-cove-reef-rocks"
+  "reefPiece": "wreck-cove-reef-rocks",
+  "audioBounds": {
+    "x": 142,
+    "z": 18.9,
+    "r": 5.2,
+    "yMin": -1.1102230246251565e-16,
+    "yMax": 4.9
+  }
 }

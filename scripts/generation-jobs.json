@@ -1935,7 +1935,7 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "src/sdk/package.json",
-        "src/shards/driftwood-isle/data/coveBake.json"
+        "src/shards/driftwood-isle/data/coveComposition.json"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/audio.generated.json"
