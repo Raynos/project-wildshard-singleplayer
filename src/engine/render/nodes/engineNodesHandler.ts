@@ -314,6 +314,14 @@ function wholeKey(stock: string, toneMapped: boolean, rawOutput: boolean, object
   return `${stock}|${PROGRAM_KEY}|${toneMapped ? 'tm' : 'raw'}${rawOutput ? '|out:raw' : ''}|${objectKey}${fog === null ? '' : `|fog:${fog.id}`}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
 }
 
+/** one bound target's key context (`EngineNodesHandler.keyContextNow`) */
+interface KeyContext {
+  top: object; lights: number; readonly scene: object; readonly sceneKey: unknown;
+  readonly toneMapping: THREE.ToneMapping; readonly colorSpace: string; readonly stamp: number;
+}
+/** the key contexts a material keeps memos for at once (the screen and the targets one frame draws it into) */
+const MEMO_CONTEXTS = 4;
+
 /** one material's program keys within one key context and material version (`customProgramCacheKeyCallback`) */
 interface StockKeyMemo {
   readonly stamp: number;
@@ -359,17 +367,17 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly objectVariants = new NodeProgramVariants();
   /** each classic PMREM environment's upright node (`ClassicPMREMNode`) */
   private readonly environments = new WeakMap<THREE.Texture, Node>();
-  /** the stock program key per material, valid for one key context (`customProgramCacheKeyCallback`, `keyContextNow`) */
-  private readonly stockKeys = new WeakMap<THREE.Material, StockKeyMemo>();
+  /** the stock program keys per material, one memo per key context it drew under (`customProgramCacheKeyCallback`) */
+  private readonly stockKeys = new WeakMap<THREE.Material, StockKeyMemo[]>();
   /**
-   * What a program key's scene and output parts are computed under: the render call (its stack entry), the lights, the
-   * bound target and the renderer's output transform. Its stamp advances whenever one of them moves, so a target bound
-   * inside one render call (or a light update) never reuses a key computed for the previous target (sp-o286, sp-o290).
+   * What a program key's scene and output parts are computed under, per bound target (null: the screen): the render call
+   * (its stack entry), the lights, the scene context's hash and the renderer's output transform. A target keeps its own
+   * stamp, so a frame that alternates targets keeps every material's key for each; a stamp advances whenever its scene
+   * hash or output transform moves, so a target bound inside one render call (or a light update) never reuses a key
+   * computed for another target (sp-o286, sp-o290).
    */
-  private keyContext: {
-    top: object; lights: number; readonly scene: object; readonly sceneKey: unknown; readonly target: THREE.RenderTarget | null;
-    readonly toneMapping: THREE.ToneMapping; readonly colorSpace: string; readonly stamp: number;
-  } | null = null;
+  private readonly keyContexts = new WeakMap<THREE.RenderTarget, KeyContext>();
+  private screenKeyContext: KeyContext | null = null;
   /** the last key context's stamp (`keyContextNow`) */
   private keyContextStamp = 0;
   /** advances at every `updateLights`: the key context's validity */
@@ -444,10 +452,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const stamp = keyContext();
       const rawOutput = this.userData['graphRawOutput'] === true, objectKey = nodeObjectKey(object);
       if (stamp < 0) return wholeKey(stockKey.call(this), this.toneMapped, rawOutput, objectKey, fog, layer);
-      let memo = stockKeys.get(this);
-      if (memo === undefined || memo.stamp !== stamp || memo.version !== this.version) {
+      let memos = stockKeys.get(this);
+      if (memos === undefined || memos[0]?.version !== this.version) { memos = []; stockKeys.set(this, memos); }
+      let memo = memos.find(m => m.stamp === stamp);
+      if (memo === undefined) {
         memo = { stamp, version: this.version, receive: undefined, plain: undefined, fog, layer, toneMapped: this.toneMapped, rawOutput, keys: new Map() };
-        stockKeys.set(this, memo);
+        // a few key contexts a frame (the screen and its targets); a context that moved on drops out first
+        if (memos.length >= MEMO_CONTEXTS) memos.shift();
+        memos.push(memo);
       } else if (memo.fog !== fog || memo.layer !== layer || memo.toneMapped !== this.toneMapped || memo.rawOutput !== rawOutput) {
         memo.fog = fog; memo.layer = layer; memo.toneMapped = this.toneMapped; memo.rawOutput = rawOutput; memo.keys.clear();
       }
@@ -495,15 +507,16 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (top === undefined || renderer === null) return -1;
     const target = renderer.getRenderTarget();
     if (target !== null && Reflect.get(target, 'isXRRenderTarget') === true) return -1;
-    const c = this.keyContext, same = c?.target === target && c.toneMapping === renderer.toneMapping && c.colorSpace === renderer.outputColorSpace;
+    const c = target === null ? this.screenKeyContext : this.keyContexts.get(target);
+    const same = c !== undefined && c !== null && c.toneMapping === renderer.toneMapping && c.colorSpace === renderer.outputColorSpace;
     if (same && c.top === top && c.lights === this.lightsStamp) return c.stamp;
     // A new render call or light update: the stock key's scene part is the scene context's hash (its lights, environment
     // and fog), read once here; an unchanged hash keeps the stamp, so a material's key outlives the render call.
     const scene = top.sceneContext, sceneKey = scene.getCacheKey();
     if (same && c.scene === scene && c.sceneKey === sceneKey) { c.top = top; c.lights = this.lightsStamp; return c.stamp; }
-    const stamp = ++this.keyContextStamp;
-    this.keyContext = { top, lights: this.lightsStamp, scene, sceneKey, target, toneMapping: renderer.toneMapping, colorSpace: renderer.outputColorSpace, stamp };
-    return stamp;
+    const next: KeyContext = { top, lights: this.lightsStamp, scene, sceneKey, toneMapping: renderer.toneMapping, colorSpace: renderer.outputColorSpace, stamp: ++this.keyContextStamp };
+    if (target === null) this.screenKeyContext = next; else this.keyContexts.set(target, next);
+    return next.stamp;
   }
 
   override renderEnd(): void { try { super.renderEnd(); } finally { this.textureUpdates.endRender(); this.blocks?.invalidateBindings(); } }

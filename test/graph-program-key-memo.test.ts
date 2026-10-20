@@ -83,3 +83,32 @@ test('the program-key memo outlives render calls of an unchanged scene', () => {
   expect(call([sun])).toBe(fogged); expect(walk).toHaveBeenCalledTimes(2);
   walk.mockRestore();
 });
+
+// A frame that draws a material into a target and to the screen keeps a memo for each: alternating them costs no walk.
+test('the program-key memo keeps a key per bound target across alternating render calls', () => {
+  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
+  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
+  let target: THREE.WebGLRenderTarget | null = null;
+  const fields: Record<string, unknown> = {
+    extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => target,
+    toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
+    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
+    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
+  };
+  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+  const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
+  const material = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(), material), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
+  scene.add(mesh);
+  const offscreen = new THREE.WebGLRenderTarget(1, 1);
+  const walk = vi.spyOn(NodeMaterial.prototype, 'customProgramCacheKey');
+  const call = (into: THREE.WebGLRenderTarget | null): string => {
+    target = into; handler.renderStart(scene, camera); handler.updateLights([]); handler.setObject(mesh, material);
+    const key = material.customProgramCacheKey(); handler.renderEnd(); return key;
+  };
+  const screen = call(null), inTarget = call(offscreen);
+  expect(inTarget).not.toBe(screen);
+  for (let i = 0; i < 3; i++) { expect(call(offscreen)).toBe(inTarget); expect(call(null)).toBe(screen); }
+  expect(walk).toHaveBeenCalledTimes(2);
+  walk.mockRestore();
+});
