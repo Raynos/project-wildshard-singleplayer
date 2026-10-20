@@ -1619,7 +1619,11 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 The client-only `game/audio/cueDirector` schedules existing sound cues and
 native VFX from `CueDirectorSchema` rows. Construct `CueDirector(game, rows,
 scope?, sounds?)` for impact targets, or use `CueDirector.install(ctx, rows)`
-to prepare effect fields from declared scene-library looks. `cue(id, point,
+to prepare effect fields from declared scene-library looks. An optional third
+argument `clock: 'owner'` leaves `update(dt)` with the borrowing encounter;
+the default `'system'` installs the entered update system. An `audio.cues`
+client row can declare `stage: 'world'` and a stable `id` to lend its prepared
+director before play; both stages retain entered-scope disposal. `cue(id, point,
 direction)` dispatches VFX in row order, then its optional sound and phase.
 Impact targets declare material, count, direction reversal and world offset.
 Field targets declare a field id, horizontal aim distance and world offset;
@@ -9103,6 +9107,10 @@ The native installer drives the same owner and carries its ordinary
 mover/script continuation. A restore just before arrival still releases
 at the baked landing. Terrain and deck queries run only in the producer.
 No shard callback, extra ride controller or clock enters the row.
+`MoverRuntime.enter(ctx, world, data, rows, targets, ports)` admits borrowed
+view bindings for existing native objects. Pine and Driftwood lend their real
+flags and prompts; installation retains the fixed-step mover owner. The
+entered `player.carrying` answer reads that same owner.
 
 ### Declared completion cards (`ui/completion`)
 
@@ -9695,6 +9703,10 @@ model metadata, exact parameter choices, library/material slot ids, draw flags,
 collider rows, and optional site origins, floor rectangles, boxes and anchors.
 `model(key)` returns the model contract; `site(key, choice, modelContext,
 registry)` places the declared site through the existing model/physics owner.
+`project(id, modelContext, parent)` places declared decorative copies from
+bounded channel rows and returns each body with `advance(time)`. Copies begin
+at their evaluated time-zero pose and borrow the caller's existing clock; the
+projection installs no motion authority. Unknown projection ids refuse.
 Unknown parameters refuse before construction. No geometry builder, callback,
 subclass or shard service is accepted.
 
@@ -9981,7 +9993,7 @@ The compiled registry in `src/game/shardfile/clientPlan.ts` owns the order:
 | `population.homes` | play / 60 | entered | native plan, scripts |
 | `boss.held` | play / 70 | entered | native plan |
 | `boss.telegraph` | play / 75 | entered | native plan, strikes |
-| `audio.cues` | play / 30 | entered | scenes |
+| `audio.cues` | world / 48 when declared, otherwise play / 30 | entered | scenes |
 | `weather.fields` | play / 40 | entered | none |
 | `fx.trail` | play / 90 | entered | scenes |
 | `debug.expose` (`name`) | play / 100 | entered | none |
