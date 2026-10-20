@@ -1,4 +1,7 @@
 // @vitest-environment happy-dom
+import * as materialCompiler from '../src/game/shardfile/clientMaterials';
+import * as textureCapabilities from '../src/engine/core/ktx2';
+import type { ResidencyAllocator } from '../src/game/grid/allocator';
 import { painterlyUniforms, setPainterlyLook } from '../src/engine/world/painterly';
 import { clientCosmeticFinishes } from '../src/game/shardfile/clientCosmeticFinishes';
 import { publishBoundPersistence } from '../src/game/quest/chapterBindings';
@@ -165,4 +168,22 @@ test('an orchard installs painterly setup and its frame update from an unordered
   const row=system.mock.calls[0]?.[0];if(row===undefined)throw new Error('Missing declared painterly frame');row.run(.2,0);
   expect(painterlyUniforms.uPTime.value).toBeCloseTo(time+.2);
   f.ctx.scope.dispose();setPainterlyLook({shadeTint:shade,rimColor:rim});painterlyUniforms.uPTime.value=time;
+});
+
+
+test('a trusted runtime honors required graph rows before allocating presentation', async () => {
+  const f=context();f.source.look.materials['orchard-water']={family:'pbr'};
+  f.sections.set('client/plan',{version:1,features:[{kind:'world.scenes',graphs:'required'}]});
+  Object.assign(f.runtime,{world:{game:{renderer:{}}}});
+  Object.assign(f.ctx,{tiers:{knobs:vi.fn()}});
+  const assets=new ClientAssets(f.source,new Map(),browserShardfileOptions('https://example.invalid/'));
+  const client=new ShardfileClient(f.source,assets,{instance:'orchard-graph',trustedRuntime:true,
+    allocator:{} as ResidencyAllocator,recipes:new Map(),items:new Map(),catalogue:[],voices:()=>new Map(),
+    icon:()=>{throw new Error('No fixture icon');}});
+  const compile=vi.spyOn(materialCompiler,'clientMaterials').mockRejectedValue(new Error('Reached graph allocation'));
+  const textures=vi.spyOn(textureCapabilities,'ktx2TranscodeSupport').mockReturnValue({astc:false,bc7:false});
+  try{
+    await expect(client.world(f.ctx)).rejects.toThrow('Reached graph allocation');
+    expect(compile.mock.calls[0]?.[4]).toMatchObject({trustedGraphs:true,graphs:true});
+  }finally{compile.mockRestore();textures.mockRestore();f.ctx.scope.dispose();}
 });
