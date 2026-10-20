@@ -1,6 +1,7 @@
 import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
-import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { createRigLoader } from '../anim/rig';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { fetchImage, tierUrl } from '../boot/bytes';
 import { initKtx2, ktx2Layers, ktx2Texture, linearKtx2Texture, prepareCompressedTexture, releaseAfterUpload } from './ktx2';
@@ -10,7 +11,7 @@ import type { Renderer } from '../render/renderer';
 import { labelAsset, labelObjectTree } from '../render/gpuLabels';
 import { memorySaverOn, releaseOnUpload } from '../render/memorySaver';
 
-const gltfLoader = new GLTFLoader();
+const gltfLoader = createRigLoader();
 const hdrLoader = new HDRLoader();
 
 export interface PBRSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }

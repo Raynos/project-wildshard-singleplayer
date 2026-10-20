@@ -11,8 +11,7 @@
  */
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { createRigLoader } from '@wildshard/engine/anim/rig';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2File, ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -40,7 +39,7 @@ export interface BakedTiles { readonly group: THREE.Group; readonly tiles: reado
 
 const owned = <T>(owner: BakedTilesOwner, fn: () => T): T => owner.scope === undefined ? fn() : withOwner(owner.scope, fn);
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
-const gltf = (): GLTFLoader => new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+const gltf = createRigLoader;
 
 async function bytesOf(product: ShardProduct, source: BakedSource): Promise<Uint8Array> {
   if ('file' in source) return product.file(source.file);

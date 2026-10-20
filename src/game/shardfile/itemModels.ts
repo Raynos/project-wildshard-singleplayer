@@ -1,5 +1,5 @@
 import { type Group, Mesh, SkinnedMesh, BufferGeometry, Material, type Object3D } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { createRigLoader } from '@wildshard/engine/anim/rig';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardItems } from '@wildshard/format/items';
 import { parseGlb } from '@wildshard/format/product';
@@ -31,7 +31,7 @@ async function parseModel(bytes: Uint8Array): Promise<Group> {
     const section: unknown = Reflect.get(doc, field);
     if (section !== undefined && (!Array.isArray(section) || section.length > 0)) throw new Error('Equipment model must be static and untextured');
   }
-  const file = await new GLTFLoader().parseAsync(bytes.slice().buffer, '');
+  const file = await createRigLoader().parseAsync(bytes.slice().buffer, '');
   const meshes: Mesh[] = [];
   file.scene.traverse(node => { if (isMesh(node)) meshes.push(node); });
   if (meshes.length === 0 || meshes.some(node => node instanceof SkinnedMesh)) { disposeModel(file.scene); throw new Error('Equipment model requires static mesh geometry'); }

@@ -5,14 +5,13 @@
  * hand the parts back. Moved from src/shards/pine-hollow/world/landmarks.ts (Pine Hollow's hero props).
  */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { createRigLoader } from '../anim/rig';
 import { labelAsset, labelObjectTree } from '../render/gpuLabels';
 
 /** one mesh of a GLB in the file's own space, and its bounds */
 export interface GlbPart { geometry: THREE.BufferGeometry; material: THREE.Material; box: THREE.Box3 }
 
-const gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+const gltf = createRigLoader();
 
 /** the meshopt build quantizes (normalized int16 positions under a scaled node): back to float before a matrix is baked in,
  *  or `applyMatrix4` clamps every position to the unit box */

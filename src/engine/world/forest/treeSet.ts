@@ -12,8 +12,7 @@
  * wind, fades, batching and colliders run unchanged.
  */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { createRigLoader } from '../../anim/rig';
 
 /** the bark array's layers, in the order treegen.py's BARK_* constants index them */
 export const BARK_LAYERS = ['pine_bark', 'fir_bark', 'metasequoia_bark', 'birch_bark', 'bark_willow_02'] as const;
@@ -84,7 +83,7 @@ const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>
 
 /** The set's GLB, as `name → part → geometry` for the given variants (a missing mesh is an error: the set is stale). */
 export async function loadTreeSetGeometry(url: string, variants: readonly { name: string; height: number }[]): Promise<Map<string, Record<TreeSetPart, THREE.BufferGeometry>>> {
-  const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(url);
+  const gltf = await createRigLoader().loadAsync(url);
   const meshes = new Map<string, THREE.Mesh>();
   gltf.scene.traverse((o) => { if (isMesh(o)) meshes.set(o.name, o); });
   const out = new Map<string, Record<TreeSetPart, THREE.BufferGeometry>>();
