@@ -14,6 +14,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { CueDirector } from '../audio/cueDirector';
 import { GroundTell } from '../Elite';
+import { LightningStrip } from '../weapons/arcPower';
 import type { ReturnProgram } from '../population/returnProgram';
 import { createClientScene } from '../plugin/ui';
 import { installChannelPrograms } from '../plugin/channelPrograms';
@@ -313,6 +314,10 @@ export const CloudBodySchema = v.strictObject({
     name: id, look: id, swell: pair, drift: triple, spin: finite, squash: finite }),
   params: v.strictObject({ time: id, focus: id, glow: id, flash: id, alpha: id, fogColour: id, fog: id }),
   focus: v.strictObject({ part: id, open: id, colour: v.tuple([triple, triple]), glow: id, glowAlpha: pair, lookGlow: pair, ring: id, spin: finite, pulse: triple, dome: id }),
+  /** a lightning strip in `from`'s hand (`segments`, `colour`), re-jagged every `every` s: held `reach` m out along `back` → `from`
+   *  ([jag, width] `held`) or struck to a point ([jag, width] `struck`) */
+  strip: v.exactOptional(v.strictObject({ from: id, back: id, reach: finite, colour: triple, segments: v.pipe(finite, v.integer(), v.minValue(2), v.maxValue(64)),
+    every: v.pipe(finite, v.minValue(0.01)), held: pair, struck: pair })),
 });
 interface Puff { readonly bone: THREE.Object3D; readonly p: THREE.Vector3; readonly r: number; readonly ph: number }
 const at = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), turn = new THREE.Quaternion(), size = new THREE.Vector3(), matrix = new THREE.Matrix4();
@@ -333,6 +338,8 @@ export class CloudBody {
   private readonly focusMaterial: THREE.Material; private readonly glowMaterial: THREE.Material;
   private readonly ringMaterial: THREE.Material; private readonly domeMaterial: THREE.Material;
   private time = 0;
+  private readonly strip: LightningStrip | null = null;
+  private stripAt: THREE.Vector3 | null = null; private stripT = 0;
   constructor(scene: THREE.Scene, input: unknown, private readonly pose: Readonly<Record<string, number>>, ports: ReadonlyMap<string, unknown> = new Map()) {
     const rows = this.rows = v.parse(CloudBodySchema, input);
     this.made = encounterMaterials(rows.materials);
@@ -351,6 +358,7 @@ export class CloudBody {
     this.puffs.frustumCulled = false; this.puffs.castShadow = false; this.puffs.receiveShadow = false; this.puffs.name = rows.puffs.name;
     scene.add(this.puffs);
     const f = rows.focus;
+    if (rows.strip !== undefined) { this.strip = new LightningStrip(scene, rows.strip.segments, new THREE.Color(...rows.strip.colour)); this.strip.alpha = 0; }
     this.focusMaterial = this.materialOf(f.part); this.glowMaterial = this.materialOf(f.glow); this.ringMaterial = this.materialOf(f.ring); this.domeMaterial = this.materialOf(f.dome);
     this.setVisible(false);
   }
@@ -358,12 +366,17 @@ export class CloudBody {
   setVisible(on: boolean): void {
     this.visible = on; this.puffs.visible = on;
     for (const key of this.rows.shown) this.part(key).visible = on;
-    if (!on) { this.part(this.rows.focus.ring).visible = false; this.part(this.rows.focus.dome).visible = false; }
+    if (!on) { this.part(this.rows.focus.ring).visible = false; this.part(this.rows.focus.dome).visible = false; if (this.strip !== null) this.strip.alpha = 0; }
+  }
+  /** Point the strip at `target` (struck) or hold it out (`null`) at `alpha` (0 hides it). */
+  aim(target: THREE.Vector3 | null, alpha: number): void {
+    if (this.strip === null) return;
+    this.stripAt = target; this.strip.alpha = alpha;
   }
   /** the focus's world position (after `update`) */
   focusWorld(out: THREE.Vector3): THREE.Vector3 { return this.part(this.rows.focus.part).getWorldPosition(out); }
   update(t: number, camera: THREE.Camera): void {
-    const rows = this.rows, c = rows.puffs, f = rows.focus, open = this.pose[f.open] ?? 0;
+    const rows = this.rows, c = rows.puffs, f = rows.focus, open = this.pose[f.open] ?? 0, dt = Math.max(0, t - this.time);
     this.time = t;
     this.draw.evaluate({ time: t, delta: 0, values: {} });
     this.part(rows.root).updateMatrixWorld(true);
@@ -386,6 +399,13 @@ export class CloudBody {
       this.ringMaterial.opacity = open * (f.pulse[0] + f.pulse[1] * Math.sin(t * f.pulse[2]));
     }
     if (isFx(this.domeMaterial)) this.domeMaterial.uniforms.uTime.value = t;
+    this.stripT -= dt;
+    if (this.strip !== null && rows.strip !== undefined && this.stripT <= 0 && this.strip.alpha > 0) {
+      const s = rows.strip, hand = this.part(s.from).getWorldPosition(at);
+      this.stripT = s.every;
+      if (this.stripAt !== null) this.strip.set(hand, this.stripAt, s.struck[0], s.struck[1]);
+      else { this.part(s.back).getWorldPosition(size).sub(hand).multiplyScalar(-1).normalize().multiplyScalar(s.reach).add(hand); this.strip.set(hand, size, s.held[0], s.held[1]); }
+    }
     this.syncLook();
   }
   /** push the look's params (also after the fight changes flash or alpha between updates) */
@@ -406,18 +426,22 @@ function isInstances(value: unknown): value is THREE.InstancedMesh { return valu
 function isFx(made: THREE.Material): made is FxMaterial { return made instanceof THREE.ShaderMaterial && 'uAlpha' in made.uniforms && 'uTime' in made.uniforms; }
 
 /**
- * An arena's dressing: `scene` and its `geometry` in declared `materials`, and its seal `wall` (those parts, standing at
- * `at` `sink` m into the ground) that rises with the seal at `ease`/s, each part spinning at its own `spin` rad/s.
+ * An arena's dressing: `scene` and its `geometry` in declared `materials`, its seal `wall` (those parts, standing at
+ * `at` `sink` m into the ground) that rises with the seal at `ease`/s, each part spinning at its own `spin` rad/s, and
+ * its ground `tells`.
  */
 export const ArenaSceneSchema = v.strictObject({
   scene: v.unknown(), geometry: v.record(id, v.unknown()), materials: v.record(id, material),
   wall: v.strictObject({ parts: v.pipe(v.array(id), v.maxLength(8)), spin: v.pipe(v.array(finite), v.maxLength(8)), at: pair, sink: finite, ease: finite }),
+  /** ground tells by id: `count` rings or lanes in a self-lit `colour` */
+  tells: v.record(id, v.strictObject({ kind: v.picklist(['ring', 'lane']), colour: triple, count: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(16)) })),
 });
 /** The arena's dressing built from rows; the caller lends its parts to the hazards that move them. */
 export class ArenaSceneView {
   private readonly rows: v.InferOutput<typeof ArenaSceneSchema>;
   private readonly parts: ReadonlyMap<string, THREE.Object3D>;
   private readonly wall: { readonly part: THREE.Object3D; readonly spin: number; readonly time: THREE.IUniform<number> | null }[];
+  private readonly tellRows = new Map<string, GroundTell[]>();
   private rise = 0;
   constructor(scene: THREE.Scene, input: unknown) {
     const rows = this.rows = v.parse(ArenaSceneSchema, input), loader = new THREE.BufferGeometryLoader();
@@ -430,7 +454,12 @@ export class ArenaSceneView {
       return { part, spin: rows.wall.spin[i] ?? 0, time: worn instanceof THREE.Material && isFx(worn) ? worn.uniforms.uTime : null };
     });
     scene.add(built.root);
+    for (const [key, row] of Object.entries(rows.tells)) this.tellRows.set(key, Array.from({ length: row.count }, () => new GroundTell(scene, row.kind, new THREE.Color(...row.colour))));
   }
+  /** a declared tell (its `index`th) */
+  tell(key: string, index = 0): GroundTell { const tell = this.tellRows.get(key)?.[index]; if (tell === undefined) throw new Error(`Missing arena tell ${key}`); return tell; }
+  /** every tell of an id */
+  tells(key: string): readonly GroundTell[] { const tells = this.tellRows.get(key); if (tells === undefined) throw new Error(`Missing arena tell ${key}`); return tells; }
   mesh(key: string): THREE.Mesh { const part: unknown = this.parts.get(key); if (!isMesh(part)) throw new Error(`Missing arena mesh ${key}`); return part; }
   instances(key: string): THREE.InstancedMesh { const part: unknown = this.mesh(key); if (!isInstances(part)) throw new Error(`Missing arena instances ${key}`); return part; }
   /** the wall rises while `sealed` and sinks away after */
@@ -440,5 +469,6 @@ export class ArenaSceneView {
       w.part.visible = this.rise > 0.02; w.part.scale.y = Math.max(0.02, this.rise); w.part.rotation.y += dt * w.spin;
       if (w.time !== null) w.time.value = t;
     }
+    for (const tells of this.tellRows.values()) for (const tell of tells) tell.setTime(t);
   }
 }

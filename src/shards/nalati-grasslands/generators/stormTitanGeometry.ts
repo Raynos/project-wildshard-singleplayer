@@ -1,7 +1,7 @@
 import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 import { parsePrivateScene, type PrivateScene, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import * as THREE from 'three';
-import { TITAN_ARENA, TITAN_PLACE } from './stormTitanFight';
+import { TITAN_ARENA, TITAN_CHAINS, TITAN_PLACE } from './stormTitanFight';
 
 /** Retained original static construction. Pose, shader hooks and hazards stay live. */
 function rng(seed: number): () => number { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
@@ -149,7 +149,9 @@ export function titanBodyRows(): { scene: PrivateScene; geometry: Record<string,
     puffs: { bones: ['root','chest','head','upperR','foreR','handR','upperL','foreL','handL'], detail: 2, name: 'titan-cloud', look: 'nalati-titan-cloud',
       swell: [.08,.9], drift: [.37,.29,.5], spin: .05, squash: .9 },
     params: { time: 't', focus: 'heart', glow: 'glow', flash: 'flash', alpha: 'alpha', fogColour: 'fogC', fog: 'fog' },
-    focus: { part: 'heart', open: 'heartOpen', colour: [[1.6,1.9,3.8],[3.2,3.1,4.2]], glow: 'glow', glowAlpha: [.55,.45], lookGlow: [.3,.6], ring: 'ring', spin: .8, pulse: [.7,.3,9], dome: 'dome' } };
+    focus: { part: 'heart', open: 'heartOpen', colour: [[1.6,1.9,3.8],[3.2,3.1,4.2]], glow: 'glow', glowAlpha: [.55,.45], lookGlow: [.3,.6], ring: 'ring', spin: .8, pulse: [.7,.3,9], dome: 'dome' },
+    // the Sky Spear: raised 34 m out past his right hand, or struck into the meadow
+    strip: { from: 'handR', back: 'foreR', reach: 34, colour: [2.2,2.4,3.8], segments: 18, every: .07, held: [.9,.5], struck: [1.4,.55] } };
 }
 
 /** The bone and heart draw law becomes bounded numeric channels, never an AS frame tick. */
@@ -201,7 +203,10 @@ export function titanArenaRows(radius: number, cell: number, grid: number): { sc
     materials: { wall0: { kind: 'fx', mode: 'stream', colour: [.5,.53,.62], alpha: .85, additive: false }, wall1: { kind: 'fx', mode: 'stream', colour: [.66,.7,.8], alpha: .55, additive: false },
       funnel: { kind: 'fx', mode: 'stream', colour: [.66,.62,.55], alpha: .75, additive: false }, debris: { kind: 'lambert', colour: 0x6a5a44 },
       scorch: { kind: 'decal', colour: 0x0d0a08, size: 64, alpha: [...pixels], opacity: .88, offset: -2 } },
-    wall: { parts: ['wall0','wall1'], spin: [.35,-.22], at: [TITAN_ARENA.center.x, TITAN_ARENA.center.z], sink: 6, ease: 1.2 } };
+    wall: { parts: ['wall0','wall1'], spin: [.35,-.22], at: [TITAN_ARENA.center.x, TITAN_ARENA.center.z], sink: 6, ease: 1.2 },
+    // the spear's aim ring and its closing fork, the storm riders' charge lanes, the chain lightning's landings
+    tells: { spear: { kind: 'ring', colour: [2.6,2,.8], count: 1 }, fork: { kind: 'ring', colour: [2.8,2.6,1.6], count: 1 },
+      lane: { kind: 'lane', colour: [1.2,2.2,2.8], count: 3 }, chain: { kind: 'ring', colour: [2.4,2.2,1.4], count: TITAN_CHAINS.count } } };
 }
 
 /** Interpolation stays on the client; the script publishes only coarse fight observations. */

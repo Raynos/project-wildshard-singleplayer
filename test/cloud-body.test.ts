@@ -22,7 +22,8 @@ const whale = { scene, poses, group: 'whale.pose', root: 'root', scale: 2, shown
   puffs: { rows: [{ bone: 'root', p: [0, 0, 0], r: 2, ph: 0, colour: [0.4, 0.4, 0.5] }, { bone: 'tail', p: [1, 0, 0], r: 1, ph: 1, colour: [0.3, 0.3, 0.4] }],
     bones: ['root', 'tail'], detail: 0, name: 'whale-cloud', look: 'whale-cloud', swell: [0, 1], drift: [1, 1, 0], spin: 0, squash: 1 },
   params: { time: 'uT', focus: 'uPearl', glow: 'uGlow', flash: 'uFlash', alpha: 'uAlpha', fogColour: 'uFogC', fog: 'uFog' },
-  focus: { part: 'pearl', open: 'open', colour: [[1, 1, 1], [3, 2, 1]], glow: 'halo', glowAlpha: [0.2, 0.6], lookGlow: [0.1, 0.9], ring: 'band', spin: 1, pulse: [1, 0, 1], dome: 'shell' } };
+  focus: { part: 'pearl', open: 'open', colour: [[1, 1, 1], [3, 2, 1]], glow: 'halo', glowAlpha: [0.2, 0.6], lookGlow: [0.1, 0.9], ring: 'band', spin: 1, pulse: [1, 0, 1], dome: 'shell' },
+  strip: { from: 'pearl', back: 'tail', reach: 10, colour: [1, 1, 2], segments: 4, every: 0.1, held: [0.5, 0.2], struck: [1, 0.3] } };
 
 let scope = new Scope('unused');
 afterEach(() => { scope.dispose(); });
@@ -65,4 +66,15 @@ test('rows refuse a puff on an undeclared bone and a focus part with no declared
   lendLooks(scope, { materials: new Map([['whale-cloud', new MeshBasicMaterial()]]), setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('Unused'); } });
   expect(() => new CloudBody(new Scene(), { ...whale, puffs: { ...whale.puffs, bones: ['root'] } }, { rise: 0, open: 0 }, new Map([['sky', { height: 0 }]]))).toThrow('undeclared bone');
   expect(() => new CloudBody(new Scene(), { ...whale, focus: { ...whale.focus, glow: 'tail' } }, { rise: 0, open: 0 }, new Map([['sky', { height: 0 }]]))).toThrow('declared material');
+});
+
+test('the strip shows only while aimed, struck to a point or held out past its part', () => {
+  const { body, world } = build();
+  const strips = (): number => world.children.filter(child => child.visible && child.type === 'Mesh').length;
+  body.setVisible(true); body.update(0, new PerspectiveCamera());
+  const shown = strips();
+  body.aim(null, 1); body.update(0.2, new PerspectiveCamera()); expect(strips()).toBe(shown + 1);
+  body.aim(new Vector3(0, 0, 0), 1); body.update(0.4, new PerspectiveCamera()); expect(strips()).toBe(shown + 1);
+  body.aim(null, 0); body.update(0.6, new PerspectiveCamera()); expect(strips()).toBe(shown);
+  body.aim(null, 1); body.setVisible(false); expect(strips()).toBe(0);
 });

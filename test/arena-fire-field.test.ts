@@ -100,7 +100,7 @@ const box = (): Omit<ReturnType<BufferGeometry['toJSON']>, 'uuid'> => { const { 
 const quarry = { scene: curtain, geometry: { ring: box(), rock: box() },
   materials: { dust: { kind: 'fx', mode: 'stream', colour: [0.6, 0.5, 0.4], alpha: 0.7, additive: false }, rock: { kind: 'lambert', colour: 0x806040 },
     burn: { kind: 'decal', colour: 0x101010, size: 2, alpha: [0, 0, 0, 255, 0, 0, 0, 128, 0, 0, 0, 64, 0, 0, 0, 0], opacity: 0.5, offset: -1 } },
-  wall: { parts: ['curtain'], spin: [2], at: [5, 6], sink: 1, ease: 10 } };
+  wall: { parts: ['curtain'], spin: [2], at: [5, 6], sink: 1, ease: 10 }, tells: { rockfall: { kind: 'ring', colour: [2, 1, 0.5], count: 2 } } };
 
 test('a second shard\'s arena dresses in its own materials and raises its curtain only while sealed', () => {
   restore = overrideTerrain({ heightAt: () => 4, normalAt: () => [0, 1, 0] });
@@ -113,5 +113,7 @@ test('a second shard\'s arena dresses in its own materials and raises its curtai
   for (let i = 0; i < 40; i++) view.update(0.05, 1 + i * 0.05, false);
   expect(wall.visible).toBe(false);
   expect(() => view.instances('curtain')).toThrow('instances');
+  expect(view.tells('rockfall')).toHaveLength(2); expect(view.tell('rockfall', 1)).toBe(view.tells('rockfall')[1]); expect(() => view.tell('rockfall', 2)).toThrow('tell');
+  view.tell('rockfall').ring(5, 6, 3, 1); expect(view.tell('rockfall').mesh.visible).toBe(true);
   expect(() => new ArenaSceneView(new Scene(), { ...quarry, materials: { ...quarry.materials, burn: { ...quarry.materials.burn, alpha: [0] } } })).toThrow('RGBA');
 });
