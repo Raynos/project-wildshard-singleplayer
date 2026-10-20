@@ -1,3 +1,5 @@
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { PackPrey } from '@wildshard/engine/ai/pack';
 import { FlockBrain, type FlockPorts, type FlockThreat, type FlockPose } from '@wildshard/engine/ai/flock';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { LevelContext } from '@wildshard/engine/level/context';
@@ -162,5 +164,41 @@ export class CrowdTargets {
       }
     }
     return member;
+  }
+}
+
+/** Native crowd/body identity joins and nearest ray selection over a live roster.
+ * Crowds may be appended by their owner without replacing existing prey objects. */
+export class CrowdRoster<T extends CrowdTargets> {
+  private readonly preyBindings = new Map<string, PackPrey>();
+  private readonly point = new Vector3();
+  private hit: { flock: T; index: number; distance: number } | null = null;
+  constructor(private readonly actors: readonly Animal[], private readonly crowds: readonly T[], private readonly prefix = 'crowd') {
+    if (!/^[a-z][a-z0-9_.-]*$/u.test(prefix)) throw new Error('Invalid crowd identity prefix');
+  }
+  identity(prey: PackPrey): string {
+    const actor = this.actors.find(value => value === prey);
+    if (actor !== undefined) return `actor:${actor.entityId}`;
+    if (!(prey instanceof CrowdPrey)) throw new Error('Unbound crowd prey');
+    const index = this.crowds.findIndex(view => view.owns(prey));
+    if (index === -1 || prey.index < 0 || prey.index >= prey.flock.n) throw new Error('Unbound crowd member');
+    const id = `${this.prefix}:${index}:${prey.index}`; this.preyBindings.set(id, prey); return id;
+  }
+  resolve(id: string): PackPrey | null {
+    if (id.startsWith('actor:')) return this.actors.find(actor => actor.entityId === id.slice(6)) ?? null;
+    const existing = this.preyBindings.get(id); if (existing !== undefined) return existing;
+    const match = id.startsWith(`${this.prefix}:`) ? /^(\d+):(\d+)$/u.exec(id.slice(this.prefix.length + 1)) : null; if (match === null) return null;
+    const view = this.crowds[Number(match[1])], index = Number(match[2]);
+    if (view === undefined || !Number.isSafeInteger(index) || index < 0 || index >= view.n) return null;
+    const prey = view.prey(index); this.preyBindings.set(id, prey); return prey;
+  }
+  raycast(origin: Vector3, direction: Vector3, maximum: number): { flock: T; index: number; distance: number } | null {
+    let best: { flock: T; index: number; distance: number } | null = null;
+    for (const view of this.crowds) {
+      const index = view.raycast(origin, direction, maximum); if (index < 0) continue;
+      const distance = view.positions(index, this.point).distanceTo(origin);
+      if (best === null || distance < best.distance) { best = this.hit ??= { flock: view, index, distance }; best.flock = view; best.index = index; best.distance = distance; }
+    }
+    return best;
   }
 }

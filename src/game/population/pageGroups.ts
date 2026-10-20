@@ -1,3 +1,6 @@
+import type { PackBrain } from '@wildshard/engine/ai/pack';
+import type { HerdBrain } from '@wildshard/engine/ai/herd';
+import type { CrowdTargets } from '../shardfile/crowdRuntime';
 import * as v from 'valibot';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { ReturnProgram } from './returnProgram';
@@ -112,4 +115,36 @@ export class PagePopulationPlanner {
     return members;
   }
   private member(actor: Animal, herd: number): Animal { actor.herd = herd; this.animals.herds[herd]?.members.push(actor); return actor; }
+}
+
+/** Group effects use existing pack, herd and crowd owners. Content contributes
+ * event-law ids and effect radii; no new brain or body clock is installed. */
+export class PopulationRelations {
+  constructor(private readonly program: ReturnProgram,
+    private readonly groups: { readonly packs: readonly Pick<PackBrain<Animal>, 'members' | 'awareness' | 'scare'>[];
+      readonly herds: readonly Pick<HerdBrain<Animal>, 'members' | 'cx' | 'cz' | 'stampeding' | 'disturb' | 'stampede'>[];
+      readonly crowds: readonly CrowdTargets[] },
+    private readonly row: { readonly alert: string; readonly range: string; readonly packRadius: number;
+      readonly disturbRadius: number; readonly disturbSeconds: number; readonly scareSeconds: number }) {}
+  alert(x: number, z: number): void {
+    for (const herd of this.groups.herds) for (const actor of herd.members) {
+      const result = this.program.project(this.row.alert, { x, z, px: actor.position.x, pz: actor.position.z, awareness: actor.mem['aw'] ?? 0 });
+      if (result['accept'] === 1) actor.mem['aw'] = result['awareness'] ?? 0;
+    }
+    for (const pack of this.groups.packs) for (const actor of pack.members) if (actor.alive) {
+      const result = this.program.project(this.row.alert, { x, z, px: actor.position.x, pz: actor.position.z, awareness: pack.awareness });
+      if (result['accept'] === 1) { pack.awareness = result['awareness'] ?? 0; break; }
+    }
+  }
+  disturb(x: number, z: number): void {
+    for (const herd of this.groups.herds) herd.disturb(x, z);
+    for (const view of this.groups.crowds) if (this.admitted(x, z, view.cx, view.cz, this.row.disturbRadius)) view.scare(x, z, this.row.disturbSeconds);
+  }
+  scare(x: number, z: number, radius: number): void {
+    for (const pack of this.groups.packs) pack.scare(x, z, this.row.packRadius);
+    for (const herd of this.groups.herds) if (this.admitted(x, z, herd.cx, herd.cz, radius)) herd.stampede(x, z);
+    for (const view of this.groups.crowds) if (this.admitted(x, z, view.cx, view.cz, radius)) view.scare(x, z, this.row.scareSeconds);
+  }
+  ripple(): void { for (const herd of this.groups.herds) if (herd.stampeding) for (const pack of this.groups.packs) pack.scare(herd.cx, herd.cz, this.row.packRadius); }
+  private admitted(x: number, z: number, px: number, pz: number, radius: number): boolean { return this.program.project(this.row.range, { x, z, px, pz, radius })['accept'] === 1; }
 }

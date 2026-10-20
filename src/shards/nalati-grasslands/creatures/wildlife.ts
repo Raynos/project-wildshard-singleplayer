@@ -1,8 +1,8 @@
 import { bindEliteAdmission } from '../runtime/argymaqKeeper';
-import { CrowdPrey } from '@wildshard/game/shardfile/crowdRuntime';
+import { CrowdRoster } from '@wildshard/game/shardfile/crowdRuntime';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';
-import { PagePopulationPlanner } from '@wildshard/game/population/pageGroups';
+import { PagePopulationPlanner, PopulationRelations } from '@wildshard/game/population/pageGroups';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import * as v from 'valibot';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -15,7 +15,7 @@ import * as THREE from 'three';
 
 
 
-import { Pack, HorseHerd, type PackController, type PackPrey, type HerdController } from '../runtime/groupRegistry';
+import { Pack, HorseHerd, type PackController, type HerdController } from '../runtime/groupRegistry';
 import { declaredGroupFactories } from '../runtime/groupDeclared';
 import { PAGE_GROUP_WORLD } from '../runtime/groupPorts';
 import { app } from '@wildshard/engine/app/runtime';
@@ -76,14 +76,17 @@ export class Wildlife {
   private prev = new THREE.Vector3(); private speed = 0; private init = false; private senseElapsed = 0;
   private wolves: Animal[] = [];
   private _v = new THREE.Vector3();
-  private sheepHit: SheepHit | null = null;
-  private readonly preyBindings = new Map<string, PackPrey>();
+  private readonly targets: CrowdRoster<Flock>;
+  private readonly relations: PopulationRelations;
   private controllers: WildlifeControllers;
 
-  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { bindEliteAdmission(opts.admission); this.pastureAuthor = ReturnProgram.page(opts.pasture); this.placement = ReturnProgram.page(opts.admission); this.population = new PagePopulationPlanner(animals, this.placement, new Rng(opts.seed ^ 0x3a17), { begin: 'begin', spot: 'spot', accept: 'accept', yaw: 'yaw' }); this.controllers = opts.controllers ?? this.declaredControllers(); }
+  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { bindEliteAdmission(opts.admission); this.pastureAuthor = ReturnProgram.page(opts.pasture); this.placement = ReturnProgram.page(opts.admission); this.population = new PagePopulationPlanner(animals, this.placement, new Rng(opts.seed ^ 0x3a17), { begin: 'begin', spot: 'spot', accept: 'accept', yaw: 'yaw' }); this.targets = new CrowdRoster(animals.animals, this.flocks, 'sheep');
+    this.relations = new PopulationRelations(this.placement, { packs: this.packs, herds: this.herds, crowds: this.flocks },
+      { alert: 'whistle', range: 'scare', packRadius: 20, disturbRadius: 25, disturbSeconds: 4, scareSeconds: 6 });
+    this.controllers = opts.controllers ?? this.declaredControllers(); }
 
   private declaredControllers(): WildlifeControllers {
-    const factory = declaredGroupFactories({ preyIdentity: prey => this.preyIdentity(prey), resolvePrey: id => this.resolvePrey(id),
+    const factory = declaredGroupFactories({ preyIdentity: prey => this.targets.identity(prey), resolvePrey: id => this.targets.resolve(id),
       resolveActor: id => this.animals.animals.find(actor => actor.entityId === id) ?? null },
       { sharedRng: () => app.rng.stream('ai'), register: (a, director) => { app.aggression.register(a, director); } }, PAGE_GROUP_WORLD);
     return {
@@ -130,14 +133,7 @@ export class Wildlife {
       // a whistle warns anything within 30 m (awareness +0.3)
       m.onWhistle = (x, z) => {
         this._v.set(x, heightAt(x, z), z); this.onSound?.('marmot_whistle', this._v);
-        for (const h of this.herds) for (const a of h.members) {
-          const row = this.placement.project('whistle', { x, z, px: a.position.x, pz: a.position.z, awareness: a.mem['aw'] ?? 0 });
-          if (row['accept'] === 1) a.mem['aw'] = row['awareness'] ?? 0;
-        }
-        for (const p of this.packs) for (const w of p.members) if (w.alive) {
-          const row = this.placement.project('whistle', { x, z, px: w.position.x, pz: w.position.z, awareness: p.awareness });
-          if (row['accept'] === 1) { p.awareness = row['awareness'] ?? 0; break; }
-        }
+        this.relations.alert(x, z);
       };
       this.marmots = m;
     }
@@ -182,25 +178,6 @@ export class Wildlife {
     for (const w of this.wolves) { if (!w.alive) continue; const d = Math.hypot(w.position.x - x, w.position.z - z); if (d < bd) { bd = d; best = w; } }
     return best;
   }
-  /** Native identity ownership: bind only an existing animal or an authored flock member. */
-  preyIdentity(prey: PackPrey): string {
-    const actor = this.animals.animals.find(value => value === prey);
-    if (actor !== undefined) return `actor:${actor.entityId}`;
-    if (!(prey instanceof CrowdPrey)) throw new Error('Unbound native prey');
-    const flock = this.flocks.findIndex(view => view.owns(prey));
-    if (flock === -1 || prey.index < 0 || prey.index >= prey.flock.n) throw new Error('Unbound native flock prey');
-    const id = `sheep:${flock}:${prey.index}`; this.preyBindings.set(id, prey); return id;
-  }
-  /** Resolve through this world's recipe; same-world restores preserve raid object identity. */
-  resolvePrey(id: string): PackPrey | null {
-    if (id.startsWith('actor:')) return this.animals.animals.find(actor => actor.entityId === id.slice(6)) ?? null;
-    const existing = this.preyBindings.get(id); if (existing !== undefined) return existing;
-    const match = /^sheep:(\d+):(\d+)$/u.exec(id);
-    if (match === null) return null;
-    const flock = this.flocks[Number(match[1])], index = Number(match[2]);
-    if (flock === undefined || !Number.isSafeInteger(index) || index < 0 || index >= flock.n) return null;
-    const prey = flock.prey(index); this.preyBindings.set(id, prey); return prey;
-  }
   private nearestFoal(x: number, z: number, r: number): Animal | null {
     let best: Animal | null = null, bd = r;
     for (const h of this.herds) for (const f of h.foals) { if (!f.alive) continue; const d = Math.hypot(f.position.x - x, f.position.z - z); if (d < bd) { bd = d; best = f; } }
@@ -233,34 +210,13 @@ export class Wildlife {
     }
     this.marmots?.update(dt, p, this.speed, player.crouching);
     // a wolf pack running through the flock scatters it (Flock reads the wolves); a stampede scatters packs in its path
-    for (const h of this.herds) if (h.stampeding) for (const pk of this.packs) pk.scare(h.cx, h.cz, 20);
+    this.relations.ripple();
   }
 
   /** an arrow / javelin landed at (x, z) */
-  disturb(x: number, z: number): void {
-    for (const h of this.herds) h.disturb(x, z);
-    for (const f of this.flocks) if (this.placement.project('scare', { x, z, px: f.cx, pz: f.cz, radius: 25 })['accept'] === 1) f.scare(x, z, 4);
-  }
-
-  /** lightning / anything terrifying at (x, z): packs within 20 m break, herds within r stampede, the flock bolts */
-  scare(x: number, z: number, r = 60): void {
-    for (const p of this.packs) p.scare(x, z, 20);
-    for (const h of this.herds) if (this.placement.project('scare', { x, z, px: h.cx, pz: h.cz, radius: r })['accept'] === 1) h.stampede(x, z);
-    for (const f of this.flocks) if (this.placement.project('scare', { x, z, px: f.cx, pz: f.cz, radius: r })['accept'] === 1) f.scare(x, z, 6);
-    wildEnv.onEvent?.('scare', x, z);   // B1: the horse under the rider panics (src/shards/nalati-grasslands/ride/ride.ts)
-  }
-
-  raycastSheep(o: THREE.Vector3, dir: THREE.Vector3, maxDist: number): SheepHit | null {
-    let best: SheepHit | null = null;
-    for (const f of this.flocks) {
-      const i = f.raycast(o, dir, maxDist);
-      if (i < 0) continue;
-      f.positions(i, this._v);
-      const d = this._v.distanceTo(o);
-      if (best === null || d < best.distance) { best = this.sheepHit ??= { flock: f, index: i, distance: d }; best.flock = f; best.index = i; best.distance = d; }
-    }
-    return best;
-  }
+  disturb(x: number, z: number): void { this.relations.disturb(x, z); }
+  scare(x: number, z: number, r = 60): void { this.relations.scare(x, z, r); wildEnv.onEvent?.('scare', x, z); }
+  raycastSheep(o: THREE.Vector3, dir: THREE.Vector3, maxDist: number): SheepHit | null { return this.targets.raycast(o, dir, maxDist); }
   killSheep(hit: SheepHit): void { hit.flock.kill(hit.index); }
 
   /** living wolves (for the HUD's threat chevrons / minimap) */

@@ -1,7 +1,7 @@
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { afterEach, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { PagePopulationPlanner } from '../src/game/population/pageGroups';
+import { PagePopulationPlanner, PopulationRelations } from '../src/game/population/pageGroups';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import type { Animal } from '../src/engine/entities/AnimalView';
@@ -35,4 +35,19 @@ test('an unrelated marsh roster uses guest member plans and preserves group allo
   expect(Math.abs(younger.position.x - parent.position.x)).toBeLessThanOrEqual(2);
   const scattered = planner.scatter({ kind: 'marsh-crane', x: -30, z: 20, radius: 5, variants: ['grey', 'white'] });
   expect(scattered.map(body => body.variant)).toEqual(['grey', 'white']); expect(scattered.every(body => body.herd === 1)).toBe(true);
+});
+
+test('marsh groups apply AS alert and range gates to their original owners', () => {
+  const body = legacyDouble<Animal>({ position: new Vector3(0, 0, 0), mem: {}, alive: true });
+  const scares: number[] = [], disturbances: number[] = [], stampedes: number[] = [];
+  const pack = { members: [body], awareness: .1, scare: (_x: number, _z: number, radius: number) => { scares.push(radius); } };
+  const herd = { members: [body], cx: 100, cz: 0, stampeding: true,
+    disturb: (x: number) => { disturbances.push(x); }, stampede: (x: number) => { stampedes.push(x); } };
+  const relations = new PopulationRelations(ReturnProgram.page(admission), { packs: [pack], herds: [herd], crowds: [] },
+    { alert: 'whistle', range: 'scare', packRadius: 7, disturbRadius: 12, disturbSeconds: 2, scareSeconds: 3 });
+  relations.alert(0, 0); expect(body.mem['aw']).toBeCloseTo(.3); expect(pack.awareness).toBeCloseTo(.4);
+  relations.disturb(2, 0); expect(disturbances).toEqual([2]);
+  relations.scare(0, 0, 20); expect(stampedes).toEqual([]); expect(scares).toEqual([7]);
+  relations.scare(100, 0, 20); expect(stampedes).toEqual([100]);
+  relations.ripple(); expect(scares).toEqual([7, 7, 7]);
 });
