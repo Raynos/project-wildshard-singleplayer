@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/build_colossus_complete.py",
+      "bytes": 31012,
+      "sha256": "a5b73ef6334c8d9a997e4271365554971e244eed45d4bba4a4489c37b64f3a7f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/tide-root-colossus-complete-character-next.glb",
+      "bytes": 993940,
+      "sha256": "3850986dc692952441053cd8b47465898cfc3aa11fcfbe18cfcac0bb7bb6e467"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/native-source.json",
+      "bytes": 2753553,
+      "sha256": "b3d6ce45e324abbadc5b1c417367ec04bd348a7db586731f5e5ece7f8fd9045f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/editable-native.json",
+      "bytes": 366869,
+      "sha256": "98a6ccd73816748fcb8ff873be43897e7630ebb6d3191800f30c999962682f26"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/tide-root-colossus-complete-character-refined.glb",
+      "bytes": 886088,
+      "sha256": "dfbe74b1192f507052c238c11b0dba0fd4fdc8d278066d2d87c5fac1cca83f0d"
+    }
+  ]
+}

@@ -1,0 +1,4060 @@
+{
+  "status": "static export audit; not a likeness, rig, intersection or performance gate",
+  "sha256": "b1b08a3974b5a658271416f756f8f76d0947f00cbed4d48a3044c71afe77c5a9",
+  "bytes": 993224,
+  "finiteAttributes": true,
+  "indexBoundsValid": true,
+  "externalDependencies": 0,
+  "meshes": 269,
+  "materialPrimitives": 957,
+  "triangles": 6002,
+  "animations": 0,
+  "skins": 0,
+  "weldTolerance": 1e-06,
+  "boundaryEdges": 0,
+  "nonmanifoldEdges": 0,
+  "windingConflicts": 0,
+  "zeroAreaTriangles": 0,
+  "nonpositiveMeshVolumes": 0,
+  "nonpositiveComponentVolumes": 0,
+  "normalOpposedVertices": 0,
+  "normalDeviatingVertices": 0,
+  "minimumNormalCosine": 0.9999999964235464,
+  "meshResults": [
+    {
+      "name": "Crooked pelvic trunk",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.27332777125370605,
+      "connectedComponentVolumes": [
+        0.27332777125370605
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974136918
+    },
+    {
+      "name": "Left chest load root",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.652358345778029,
+      "connectedComponentVolumes": [
+        0.6523583457780289
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976046678
+    },
+    {
+      "name": "Right chest load root",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.5574385662088771,
+      "connectedComponentVolumes": [
+        0.557438566208877
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974738714
+    },
+    {
+      "name": "Left clavicle cascade",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.32540451565760486,
+      "connectedComponentVolumes": [
+        0.3254045156576048
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976631143
+    },
+    {
+      "name": "Right clavicle cascade",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.26242311522635153,
+      "connectedComponentVolumes": [
+        0.26242311522635153
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975869408
+    },
+    {
+      "name": "Left lower cradle",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.11999018394054518,
+      "connectedComponentVolumes": [
+        0.1199901839405452
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975504485
+    },
+    {
+      "name": "Right diagonal cradle",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.14677459405922222,
+      "connectedComponentVolumes": [
+        0.14677459405922233
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999970700676
+    },
+    {
+      "name": "Left upper inward rib",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08732340936278062,
+      "connectedComponentVolumes": [
+        0.08732340936278064
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976989024
+    },
+    {
+      "name": "Right upper inward rib",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0785411610846731,
+      "connectedComponentVolumes": [
+        0.07854116108467311
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999972748908
+    },
+    {
+      "name": "Waist front spur",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.06853600904132263,
+      "connectedComponentVolumes": [
+        0.06853600904132266
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975339382
+    },
+    {
+      "name": "Rear diagonal trunk",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.4556516902626461,
+      "connectedComponentVolumes": [
+        0.4556516902626461
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999972669632
+    },
+    {
+      "name": "Left scapular arch",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.35284963880773274,
+      "connectedComponentVolumes": [
+        0.3528496388077326
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975512716
+    },
+    {
+      "name": "Right scapular arch",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.35868349791495996,
+      "connectedComponentVolumes": [
+        0.35868349791496
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973574841
+    },
+    {
+      "name": "Crossback lower root",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.24500431010842622,
+      "connectedComponentVolumes": [
+        0.24500431010842635
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976406332
+    },
+    {
+      "name": "Outer shoulder root -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.6284742454182667,
+      "connectedComponentVolumes": [
+        0.6284742454182666
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977674442
+    },
+    {
+      "name": "Arm descending trunk -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.4808285867129584,
+      "connectedComponentVolumes": [
+        0.48082858671295836
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980448229
+    },
+    {
+      "name": "Upper arm crossing bark -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.11337334177801663,
+      "connectedComponentVolumes": [
+        0.11337334177801663
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977935111
+    },
+    {
+      "name": "Elbow outer hook -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.11424771193346654,
+      "connectedComponentVolumes": [
+        0.11424771193346657
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979084927
+    },
+    {
+      "name": "Forearm main to outer claw -1",
+      "triangles": 80,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.5070475346474893,
+      "connectedComponentVolumes": [
+        0.5070475346474896
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.99999999737737
+    },
+    {
+      "name": "Forearm inner braid -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.3100754418308128,
+      "connectedComponentVolumes": [
+        0.3100754418308128
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975389054
+    },
+    {
+      "name": "Front forearm blade -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05477735714979292,
+      "connectedComponentVolumes": [
+        0.05477735714979291
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981470051
+    },
+    {
+      "name": "Middle root digit -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.09910804504347162,
+      "connectedComponentVolumes": [
+        0.09910804504347158
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977671021
+    },
+    {
+      "name": "Inner root digit -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.056203639662072626,
+      "connectedComponentVolumes": [
+        0.056203639662072695
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975952116
+    },
+    {
+      "name": "Opposed root thumb -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08407870166469508,
+      "connectedComponentVolumes": [
+        0.08407870166469503
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980150004
+    },
+    {
+      "name": "Thigh load root -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.2872077147161486,
+      "connectedComponentVolumes": [
+        0.28720771471614864
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999970579345
+    },
+    {
+      "name": "Thigh oblique bark -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.09561309953573044,
+      "connectedComponentVolumes": [
+        0.0956130995357304
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974858347
+    },
+    {
+      "name": "Embedded knee rock -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08303011606286864,
+      "connectedComponentVolumes": [
+        0.08303011606286864
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983820523
+    },
+    {
+      "name": "Calf rear load -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.40068086435981953,
+      "connectedComponentVolumes": [
+        0.40068086435981953
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998030595
+    },
+    {
+      "name": "Calf crossing root -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.24932662631747185,
+      "connectedComponentVolumes": [
+        0.24932662631747177
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998077647
+    },
+    {
+      "name": "Front ankle anchoring root -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.16367329166391245,
+      "connectedComponentVolumes": [
+        0.1636732916639124
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997284697
+    },
+    {
+      "name": "Outer embedded foot stone -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08426429226435493,
+      "connectedComponentVolumes": [
+        0.08426429226435495
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981082432
+    },
+    {
+      "name": "Inner grounded stone -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.049095412481696514,
+      "connectedComponentVolumes": [
+        0.04909541248169651
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980541984
+    },
+    {
+      "name": "Rear heel stone -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04560813899476468,
+      "connectedComponentVolumes": [
+        0.04560813899476469
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977025846
+    },
+    {
+      "name": "Hip fork -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.048229901503730535,
+      "connectedComponentVolumes": [
+        0.048229901503730535
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974666767
+    },
+    {
+      "name": "Arm winding bark ridge -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10436630192033727,
+      "connectedComponentVolumes": [
+        0.10436630192033726
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976632472
+    },
+    {
+      "name": "Forearm diagonal living root -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10165018820331981,
+      "connectedComponentVolumes": [
+        0.1016501882033198
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978937691
+    },
+    {
+      "name": "Lower leg lateral root -1",
+      "triangles": 68,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.15548707281217145,
+      "connectedComponentVolumes": [
+        0.15548707281217142
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978208967
+    },
+    {
+      "name": "Inner toe clasp -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08947693697985795,
+      "connectedComponentVolumes": [
+        0.08947693697985792
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982506605
+    },
+    {
+      "name": "Upper heart clasp -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.03314961856139875,
+      "connectedComponentVolumes": [
+        0.033149618561398767
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977969135
+    },
+    {
+      "name": "Lower heart claw -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.035948010030324794,
+      "connectedComponentVolumes": [
+        0.035948010030324794
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999970317306
+    },
+    {
+      "name": "Outer shoulder root 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.6474123552588509,
+      "connectedComponentVolumes": [
+        0.6474123552588505
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977989464
+    },
+    {
+      "name": "Arm descending trunk 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.5471047356037357,
+      "connectedComponentVolumes": [
+        0.5471047356037362
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999969009399
+    },
+    {
+      "name": "Upper arm crossing bark 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12962387089517682,
+      "connectedComponentVolumes": [
+        0.12962387089517685
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978247167
+    },
+    {
+      "name": "Elbow outer hook 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12483630191697541,
+      "connectedComponentVolumes": [
+        0.12483630191697545
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999972878458
+    },
+    {
+      "name": "Forearm main to outer claw 1",
+      "triangles": 80,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.5187050533309369,
+      "connectedComponentVolumes": [
+        0.5187050533309365
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975097954
+    },
+    {
+      "name": "Forearm inner braid 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.30817491040796446,
+      "connectedComponentVolumes": [
+        0.3081749104079643
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976852489
+    },
+    {
+      "name": "Front forearm blade 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05758903755549252,
+      "connectedComponentVolumes": [
+        0.057589037555492516
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999971667265
+    },
+    {
+      "name": "Middle root digit 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10388305113269855,
+      "connectedComponentVolumes": [
+        0.10388305113269855
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975758046
+    },
+    {
+      "name": "Inner root digit 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.059245691982471524,
+      "connectedComponentVolumes": [
+        0.059245691982471496
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973771266
+    },
+    {
+      "name": "Opposed root thumb 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08162827985930533,
+      "connectedComponentVolumes": [
+        0.08162827985930526
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973436384
+    },
+    {
+      "name": "Thigh load root 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.288819876036788,
+      "connectedComponentVolumes": [
+        0.288819876036788
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976847097
+    },
+    {
+      "name": "Thigh oblique bark 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0970941168279988,
+      "connectedComponentVolumes": [
+        0.0970941168279988
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976258527
+    },
+    {
+      "name": "Embedded knee rock 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08323232807261047,
+      "connectedComponentVolumes": [
+        0.08323232807261047
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978377906
+    },
+    {
+      "name": "Calf rear load 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.39906308516208694,
+      "connectedComponentVolumes": [
+        0.39906308516208705
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975180586
+    },
+    {
+      "name": "Calf crossing root 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.24941565979291058,
+      "connectedComponentVolumes": [
+        0.24941565979291064
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980017421
+    },
+    {
+      "name": "Front ankle anchoring root 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.166468635334506,
+      "connectedComponentVolumes": [
+        0.16646863533450604
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999966461575
+    },
+    {
+      "name": "Outer embedded foot stone 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08356715520498798,
+      "connectedComponentVolumes": [
+        0.08356715520498798
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998353212
+    },
+    {
+      "name": "Inner grounded stone 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04920980060951892,
+      "connectedComponentVolumes": [
+        0.049209800609518926
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981606982
+    },
+    {
+      "name": "Rear heel stone 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04502608420980929,
+      "connectedComponentVolumes": [
+        0.04502608420980929
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999986411566
+    },
+    {
+      "name": "Hip fork 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.047223157222908325,
+      "connectedComponentVolumes": [
+        0.04722315722290832
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997239915
+    },
+    {
+      "name": "Arm winding bark ridge 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12698125971819202,
+      "connectedComponentVolumes": [
+        0.1269812597181921
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999970769006
+    },
+    {
+      "name": "Forearm diagonal living root 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10404154260544371,
+      "connectedComponentVolumes": [
+        0.10404154260544375
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999996648278
+    },
+    {
+      "name": "Lower leg lateral root 1",
+      "triangles": 68,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.1558872201893061,
+      "connectedComponentVolumes": [
+        0.15588722018930606
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999972085076
+    },
+    {
+      "name": "Inner toe clasp 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08693167463415662,
+      "connectedComponentVolumes": [
+        0.08693167463415662
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999970855902
+    },
+    {
+      "name": "Upper heart clasp 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.03618064898930033,
+      "connectedComponentVolumes": [
+        0.03618064898930033
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974398119
+    },
+    {
+      "name": "Lower heart claw 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.038762339054214466,
+      "connectedComponentVolumes": [
+        0.03876233905421447
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978441961
+    },
+    {
+      "name": "Exposed turquoise heart",
+      "triangles": 24,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.17271675977551224,
+      "connectedComponentVolumes": [
+        0.17271675977551226
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980654831
+    },
+    {
+      "name": "Neck rear root",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.20285245172909927,
+      "connectedComponentVolumes": [
+        0.2028524517290994
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979441131
+    },
+    {
+      "name": "Central brow nasal keel",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.03163779573503779,
+      "connectedComponentVolumes": [
+        0.031637795735037784
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973100847
+    },
+    {
+      "name": "Layered pale cheek jaw -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.03950930418878464,
+      "connectedComponentVolumes": [
+        0.03950930418878465
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977371332
+    },
+    {
+      "name": "Outer broken jaw plane -1",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.02605921475115013,
+      "connectedComponentVolumes": [
+        0.026059214751150143
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979686899
+    },
+    {
+      "name": "Layered pale cheek jaw 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.037264629820355104,
+      "connectedComponentVolumes": [
+        0.03726462982035509
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997846192
+    },
+    {
+      "name": "Outer broken jaw plane 1",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.025117349323665918,
+      "connectedComponentVolumes": [
+        0.02511734932366593
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976124034
+    },
+    {
+      "name": "Recessed split jaw backing",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.029030067546023736,
+      "connectedComponentVolumes": [
+        0.029030067546023743
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976891075
+    },
+    {
+      "name": "Recessed eye socket -1",
+      "triangles": 12,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0013591042391885742,
+      "connectedComponentVolumes": [
+        0.0013591042391885748
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999988254588
+    },
+    {
+      "name": "Narrow cyan eye -1",
+      "triangles": 12,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0003293774024133929,
+      "connectedComponentVolumes": [
+        0.0003293774024133925
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983943335
+    },
+    {
+      "name": "Crown cheek flow -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10497645166190189,
+      "connectedComponentVolumes": [
+        0.10497645166190189
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999968963519
+    },
+    {
+      "name": "Brow descending ridge -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.022903044627557382,
+      "connectedComponentVolumes": [
+        0.022903044627557347
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999964235464
+    },
+    {
+      "name": "Recessed eye socket 1",
+      "triangles": 12,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0012041389598173727,
+      "connectedComponentVolumes": [
+        0.0012041389598173738
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999989576848
+    },
+    {
+      "name": "Narrow cyan eye 1",
+      "triangles": 12,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00032049210933873926,
+      "connectedComponentVolumes": [
+        0.0003204921093387388
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999992351366
+    },
+    {
+      "name": "Crown cheek flow 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.09893298963240628,
+      "connectedComponentVolumes": [
+        0.09893298963240633
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973627045
+    },
+    {
+      "name": "Brow descending ridge 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.02222238996784136,
+      "connectedComponentVolumes": [
+        0.02222238996784133
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997062883
+    },
+    {
+      "name": "Crown left main",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.14861823878725672,
+      "connectedComponentVolumes": [
+        0.14861823878725672
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999972146385
+    },
+    {
+      "name": "Crown left outer",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.06245377868731624,
+      "connectedComponentVolumes": [
+        0.062453778687316226
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977954538
+    },
+    {
+      "name": "Crown left terminal fork",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.011328316617382626,
+      "connectedComponentVolumes": [
+        0.01132831661738263
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979793155
+    },
+    {
+      "name": "Crown right main",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12056352101074484,
+      "connectedComponentVolumes": [
+        0.12056352101074486
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981216624
+    },
+    {
+      "name": "Crown right outer",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05392543867186625,
+      "connectedComponentVolumes": [
+        0.053925438671866256
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997251728
+    },
+    {
+      "name": "Crown right short tine",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.010035518912880487,
+      "connectedComponentVolumes": [
+        0.010035518912880521
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976363301
+    },
+    {
+      "name": "Upper arm embedded slate -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08522150627529985,
+      "connectedComponentVolumes": [
+        0.08522150627529987
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974463502
+    },
+    {
+      "name": "Forearm split slate -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.052224486932053844,
+      "connectedComponentVolumes": [
+        0.05222448693205383
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973659931
+    },
+    {
+      "name": "Outer thigh embedded slate -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07235035312750568,
+      "connectedComponentVolumes": [
+        0.07235035312750569
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984634043
+    },
+    {
+      "name": "Shin rising slate -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.09052672654971369,
+      "connectedComponentVolumes": [
+        0.0905267265497137
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978014787
+    },
+    {
+      "name": "Separate forward toe -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0266648920054422,
+      "connectedComponentVolumes": [
+        0.0266648920054422
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976826206
+    },
+    {
+      "name": "Splayed living toe -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08577554274973176,
+      "connectedComponentVolumes": [
+        0.08577554274973176
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999972415867
+    },
+    {
+      "name": "Flank bowed trunk -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.3829200342800198,
+      "connectedComponentVolumes": [
+        0.38292003428001986
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998132189
+    },
+    {
+      "name": "Forearm root split -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.13921784872182338,
+      "connectedComponentVolumes": [
+        0.13921784872182338
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981861923
+    },
+    {
+      "name": "Upper arm embedded slate 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10136048887879243,
+      "connectedComponentVolumes": [
+        0.10136048887879247
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997752579
+    },
+    {
+      "name": "Forearm split slate 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05894478521492025,
+      "connectedComponentVolumes": [
+        0.05894478521492025
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985244132
+    },
+    {
+      "name": "Outer thigh embedded slate 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07357211925267768,
+      "connectedComponentVolumes": [
+        0.07357211925267769
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980956581
+    },
+    {
+      "name": "Shin rising slate 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08894318926589417,
+      "connectedComponentVolumes": [
+        0.08894318926589417
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976636638
+    },
+    {
+      "name": "Separate forward toe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.02660978138797394,
+      "connectedComponentVolumes": [
+        0.026609781387973944
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978381292
+    },
+    {
+      "name": "Splayed living toe 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08504137871682198,
+      "connectedComponentVolumes": [
+        0.08504137871682195
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977123448
+    },
+    {
+      "name": "Flank bowed trunk 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.4064049331507755,
+      "connectedComponentVolumes": [
+        0.40640493315077547
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978864943
+    },
+    {
+      "name": "Forearm root split 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.13191364311492504,
+      "connectedComponentVolumes": [
+        0.131913643114925
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973435981
+    },
+    {
+      "name": "Interlocking rear heart cover",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.15812490144871252,
+      "connectedComponentVolumes": [
+        0.15812490144871255
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973327542
+    },
+    {
+      "name": "Lower diagonal abdominal braid",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07063153016668458,
+      "connectedComponentVolumes": [
+        0.07063153016668461
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999971555117
+    },
+    {
+      "name": "Left scapula saddle",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.1398701216381879,
+      "connectedComponentVolumes": [
+        0.13987012163818793
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974794893
+    },
+    {
+      "name": "Left scapula saddle layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.011884414030926743,
+      "connectedComponentVolumes": [
+        0.011884414030926745
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982913635
+    },
+    {
+      "name": "Left scapula saddle layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.019498328360801447,
+      "connectedComponentVolumes": [
+        0.01949832836080146
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999968628169
+    },
+    {
+      "name": "Left scapula saddle layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.006579422310598784,
+      "connectedComponentVolumes": [
+        0.00657942231059879
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999986309338
+    },
+    {
+      "name": "Left shoulder rear fold",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.14706175546959427,
+      "connectedComponentVolumes": [
+        0.14706175546959427
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999986067847
+    },
+    {
+      "name": "Left shoulder rear fold layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.008120401086578272,
+      "connectedComponentVolumes": [
+        0.008120401086578279
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984594414
+    },
+    {
+      "name": "Left shoulder rear fold layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.013098649653192893,
+      "connectedComponentVolumes": [
+        0.01309864965319291
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978995348
+    },
+    {
+      "name": "Left shoulder rear fold layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004370326974067834,
+      "connectedComponentVolumes": [
+        0.004370326974067839
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985209951
+    },
+    {
+      "name": "Left shoulder outer fall",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10655431788599301,
+      "connectedComponentVolumes": [
+        0.10655431788599296
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973256337
+    },
+    {
+      "name": "Left shoulder outer fall layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0036964971740256237,
+      "connectedComponentVolumes": [
+        0.0036964971740256203
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979930578
+    },
+    {
+      "name": "Left shoulder outer fall layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0071890577555755175,
+      "connectedComponentVolumes": [
+        0.007189057755575515
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999986912927
+    },
+    {
+      "name": "Left shoulder outer fall layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002978238855752137,
+      "connectedComponentVolumes": [
+        0.0029782388557521387
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983224545
+    },
+    {
+      "name": "Left collar sprout",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04092714424433776,
+      "connectedComponentVolumes": [
+        0.04092714424433774
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979626201
+    },
+    {
+      "name": "Left collar sprout layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0034608147509018437,
+      "connectedComponentVolumes": [
+        0.0034608147509018468
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998238696
+    },
+    {
+      "name": "Left collar sprout layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004763851319346354,
+      "connectedComponentVolumes": [
+        0.004763851319346352
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984210133
+    },
+    {
+      "name": "Left collar sprout layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0012939867919441236,
+      "connectedComponentVolumes": [
+        0.001293986791944124
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975663657
+    },
+    {
+      "name": "Right high shoulder island",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10129681445321352,
+      "connectedComponentVolumes": [
+        0.10129681445321356
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977401532
+    },
+    {
+      "name": "Right high shoulder island layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.008714232117166688,
+      "connectedComponentVolumes": [
+        0.008714232117166687
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978590803
+    },
+    {
+      "name": "Right high shoulder island layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.014513097928413217,
+      "connectedComponentVolumes": [
+        0.014513097928413215
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980971702
+    },
+    {
+      "name": "Right high shoulder island layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004064650502574256,
+      "connectedComponentVolumes": [
+        0.0040646505025742595
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999989004665
+    },
+    {
+      "name": "Right shoulder front fold",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08891494983803476,
+      "connectedComponentVolumes": [
+        0.08891494983803473
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979908352
+    },
+    {
+      "name": "Right shoulder front fold layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.006845558577633772,
+      "connectedComponentVolumes": [
+        0.006845558577633776
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998410558
+    },
+    {
+      "name": "Right shoulder front fold layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.01292848285340889,
+      "connectedComponentVolumes": [
+        0.012928482853408906
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999971983193
+    },
+    {
+      "name": "Right shoulder front fold layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003661948519553211,
+      "connectedComponentVolumes": [
+        0.003661948519553218
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984315479
+    },
+    {
+      "name": "Right rear outer fall",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0602352292621052,
+      "connectedComponentVolumes": [
+        0.060235229262105214
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975980146
+    },
+    {
+      "name": "Right rear outer fall layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003305168467095266,
+      "connectedComponentVolumes": [
+        0.003305168467095272
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999987073075
+    },
+    {
+      "name": "Right rear outer fall layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004988837060064769,
+      "connectedComponentVolumes": [
+        0.004988837060064769
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999988732199
+    },
+    {
+      "name": "Right rear outer fall layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0013399876839390763,
+      "connectedComponentVolumes": [
+        0.0013399876839390755
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984854936
+    },
+    {
+      "name": "Left scapular joining fold",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.054739109577910304,
+      "connectedComponentVolumes": [
+        0.05473910957791031
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974935769
+    },
+    {
+      "name": "Left scapular joining fold layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003544498322128175,
+      "connectedComponentVolumes": [
+        0.003544498322128173
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999988706982
+    },
+    {
+      "name": "Left scapular joining fold layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.005268810741881451,
+      "connectedComponentVolumes": [
+        0.005268810741881447
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983651073
+    },
+    {
+      "name": "Left scapular joining fold layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0015137623387561257,
+      "connectedComponentVolumes": [
+        0.0015137623387561291
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999987582019
+    },
+    {
+      "name": "Right outer shoulder overlap",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0466482265202573,
+      "connectedComponentVolumes": [
+        0.0466482265202573
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999988715587
+    },
+    {
+      "name": "Right outer shoulder overlap layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002412538681718965,
+      "connectedComponentVolumes": [
+        0.0024125386817189652
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976223453
+    },
+    {
+      "name": "Right outer shoulder overlap layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004271411801183053,
+      "connectedComponentVolumes": [
+        0.0042714118011830515
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998443835
+    },
+    {
+      "name": "Right outer shoulder overlap layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0011657270867511081,
+      "connectedComponentVolumes": [
+        0.0011657270867511081
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973638308
+    },
+    {
+      "name": "Left elbow rear tuft",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.013531302432889351,
+      "connectedComponentVolumes": [
+        0.01353130243288935
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974619296
+    },
+    {
+      "name": "Left elbow rear tuft layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010419588472580562,
+      "connectedComponentVolumes": [
+        0.0010419588472580553
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985961269
+    },
+    {
+      "name": "Left elbow rear tuft layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0016472201325169085,
+      "connectedComponentVolumes": [
+        0.0016472201325169102
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998540046
+    },
+    {
+      "name": "Left elbow rear tuft layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00048056023900263506,
+      "connectedComponentVolumes": [
+        0.0004805602390026342
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982869936
+    },
+    {
+      "name": "Right hip side tuft",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.010908759938308312,
+      "connectedComponentVolumes": [
+        0.010908759938308301
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983062924
+    },
+    {
+      "name": "Right hip side tuft layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.001644645733078223,
+      "connectedComponentVolumes": [
+        0.001644645733078223
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997752506
+    },
+    {
+      "name": "Right hip side tuft layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0020260876364523086,
+      "connectedComponentVolumes": [
+        0.0020260876364523095
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982605603
+    },
+    {
+      "name": "Right hip side tuft layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00011288175471654838,
+      "connectedComponentVolumes": [
+        0.00011288175471654751
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998659471
+    },
+    {
+      "name": "Nape tucked island",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05068998863199084,
+      "connectedComponentVolumes": [
+        0.05068998863199088
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973085463
+    },
+    {
+      "name": "Nape tucked island layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003112232156218482,
+      "connectedComponentVolumes": [
+        0.0031122321562184804
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985852768
+    },
+    {
+      "name": "Nape tucked island layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004970747245837844,
+      "connectedComponentVolumes": [
+        0.004970747245837844
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981169138
+    },
+    {
+      "name": "Nape tucked island layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0016011755797966584,
+      "connectedComponentVolumes": [
+        0.0016011755797966602
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982012776
+    },
+    {
+      "name": "Left upper back climbing growth",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10802097759624575,
+      "connectedComponentVolumes": [
+        0.10802097759624572
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975821202
+    },
+    {
+      "name": "Left upper back climbing growth layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.005880539387129416,
+      "connectedComponentVolumes": [
+        0.005880539387129411
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997888391
+    },
+    {
+      "name": "Left upper back climbing growth layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00990451616166127,
+      "connectedComponentVolumes": [
+        0.009904516161661275
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998316614
+    },
+    {
+      "name": "Left upper back climbing growth layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003317082426250912,
+      "connectedComponentVolumes": [
+        0.0033170824262509137
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.99999999741606
+    },
+    {
+      "name": "Left lower scapular fall",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07623012130636235,
+      "connectedComponentVolumes": [
+        0.07623012130636235
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984884411
+    },
+    {
+      "name": "Left lower scapular fall layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0043636662754061965,
+      "connectedComponentVolumes": [
+        0.00436366627540619
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980705916
+    },
+    {
+      "name": "Left lower scapular fall layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.006488097687306692,
+      "connectedComponentVolumes": [
+        0.006488097687306701
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983346792
+    },
+    {
+      "name": "Left lower scapular fall layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002075725776442598,
+      "connectedComponentVolumes": [
+        0.002075725776442593
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981310183
+    },
+    {
+      "name": "Right rear ridge growth",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05756187730325261,
+      "connectedComponentVolumes": [
+        0.05756187730325259
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999972763355
+    },
+    {
+      "name": "Right rear ridge growth layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.005343661286113709,
+      "connectedComponentVolumes": [
+        0.0053436612861137035
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981705596
+    },
+    {
+      "name": "Right rear ridge growth layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.009254328646684108,
+      "connectedComponentVolumes": [
+        0.009254328646684101
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984506909
+    },
+    {
+      "name": "Right rear ridge growth layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003907966159688928,
+      "connectedComponentVolumes": [
+        0.0039079661596889345
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998361409
+    },
+    {
+      "name": "Right lower back island",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07532842080492994,
+      "connectedComponentVolumes": [
+        0.07532842080492995
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980957576
+    },
+    {
+      "name": "Right lower back island layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003803381584071241,
+      "connectedComponentVolumes": [
+        0.0038033815840712417
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999967577694
+    },
+    {
+      "name": "Right lower back island layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.006707344931248079,
+      "connectedComponentVolumes": [
+        0.006707344931248082
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980900546
+    },
+    {
+      "name": "Right lower back island layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002136484652312934,
+      "connectedComponentVolumes": [
+        0.002136484652312934
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985569423
+    },
+    {
+      "name": "Central offset back growth",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04249211691182175,
+      "connectedComponentVolumes": [
+        0.042492116911821746
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982086801
+    },
+    {
+      "name": "Central offset back growth layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002578372480611461,
+      "connectedComponentVolumes": [
+        0.0025783724806114645
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979054548
+    },
+    {
+      "name": "Central offset back growth layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0044530199194936955,
+      "connectedComponentVolumes": [
+        0.004453019919493697
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998152902
+    },
+    {
+      "name": "Central offset back growth layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.001333305007650911,
+      "connectedComponentVolumes": [
+        0.0013333050076509128
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981142663
+    },
+    {
+      "name": "Left rib trailing growth",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.02119877815698771,
+      "connectedComponentVolumes": [
+        0.021198778156987667
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985499516
+    },
+    {
+      "name": "Left rib trailing growth layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002236910182943287,
+      "connectedComponentVolumes": [
+        0.0022369101829432885
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981134325
+    },
+    {
+      "name": "Left rib trailing growth layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003671002434519788,
+      "connectedComponentVolumes": [
+        0.0036710024345197887
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977666572
+    },
+    {
+      "name": "Left rib trailing growth layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0011564906815276985,
+      "connectedComponentVolumes": [
+        0.0011564906815277004
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981459069
+    },
+    {
+      "name": "Right collar crease",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.022518893945618127,
+      "connectedComponentVolumes": [
+        0.02251889394561811
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976450171
+    },
+    {
+      "name": "Right collar crease layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0014235519891656282,
+      "connectedComponentVolumes": [
+        0.001423551989165628
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977162142
+    },
+    {
+      "name": "Right collar crease layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0023198373399374514,
+      "connectedComponentVolumes": [
+        0.0023198373399374505
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983773299
+    },
+    {
+      "name": "Right collar crease layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0006679804030574801,
+      "connectedComponentVolumes": [
+        0.0006679804030574818
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985513771
+    },
+    {
+      "name": "Left elbow climbing moss",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.032276179672457675,
+      "connectedComponentVolumes": [
+        0.03227617967245767
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981973149
+    },
+    {
+      "name": "Left elbow climbing moss layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002579564090563362,
+      "connectedComponentVolumes": [
+        0.0025795640905633584
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976371836
+    },
+    {
+      "name": "Left elbow climbing moss layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004667411496083098,
+      "connectedComponentVolumes": [
+        0.0046674114960831015
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977218843
+    },
+    {
+      "name": "Left elbow climbing moss layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.001953789706769654,
+      "connectedComponentVolumes": [
+        0.0019537897067696537
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998608266
+    },
+    {
+      "name": "Left elbow front drape",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.026130549249854158,
+      "connectedComponentVolumes": [
+        0.026130549249854147
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985558059
+    },
+    {
+      "name": "Left elbow front drape layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0023143150355078856,
+      "connectedComponentVolumes": [
+        0.0023143150355078848
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985376766
+    },
+    {
+      "name": "Left elbow front drape layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004015603200676746,
+      "connectedComponentVolumes": [
+        0.004015603200676746
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982460316
+    },
+    {
+      "name": "Left elbow front drape layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0014076100242681544,
+      "connectedComponentVolumes": [
+        0.001407610024268155
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973493908
+    },
+    {
+      "name": "Right elbow outer island",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.03986095533951147,
+      "connectedComponentVolumes": [
+        0.03986095533951147
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999973646514
+    },
+    {
+      "name": "Right elbow outer island layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0031052682007312905,
+      "connectedComponentVolumes": [
+        0.0031052682007312923
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981096053
+    },
+    {
+      "name": "Right elbow outer island layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0044594688968441695,
+      "connectedComponentVolumes": [
+        0.004459468896844169
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980734054
+    },
+    {
+      "name": "Right elbow outer island layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0014057789299386989,
+      "connectedComponentVolumes": [
+        0.001405778929938692
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979385091
+    },
+    {
+      "name": "Right arm descending growth",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.027929880153887084,
+      "connectedComponentVolumes": [
+        0.027929880153887077
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980214778
+    },
+    {
+      "name": "Right arm descending growth layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002296572986100901,
+      "connectedComponentVolumes": [
+        0.002296572986100901
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999989852326
+    },
+    {
+      "name": "Right arm descending growth layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0034137838733706554,
+      "connectedComponentVolumes": [
+        0.003413783873370658
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979612609
+    },
+    {
+      "name": "Right arm descending growth layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010764377979047071,
+      "connectedComponentVolumes": [
+        0.0010764377979047054
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999970783432
+    },
+    {
+      "name": "Left forearm outer remnant",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.01490616193896466,
+      "connectedComponentVolumes": [
+        0.01490616193896465
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981997688
+    },
+    {
+      "name": "Left forearm outer remnant layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010602130996222332,
+      "connectedComponentVolumes": [
+        0.001060213099622234
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999987552325
+    },
+    {
+      "name": "Left forearm outer remnant layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0018510178519412345,
+      "connectedComponentVolumes": [
+        0.0018510178519412339
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985447363
+    },
+    {
+      "name": "Left forearm outer remnant layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0006260869216552211,
+      "connectedComponentVolumes": [
+        0.0006260869216552215
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980521355
+    },
+    {
+      "name": "Right forearm rear sprout",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.012047466899255411,
+      "connectedComponentVolumes": [
+        0.01204746689925541
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982497504
+    },
+    {
+      "name": "Right forearm rear sprout layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0008769264952217949,
+      "connectedComponentVolumes": [
+        0.0008769264952217947
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977018041
+    },
+    {
+      "name": "Right forearm rear sprout layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.001361724296407733,
+      "connectedComponentVolumes": [
+        0.0013617242964077336
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984033415
+    },
+    {
+      "name": "Right forearm rear sprout layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00039011315766766894,
+      "connectedComponentVolumes": [
+        0.00039011315766766905
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979427817
+    },
+    {
+      "name": "Left hip diagonal island",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.014978960017258113,
+      "connectedComponentVolumes": [
+        0.014978960017258106
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980264049
+    },
+    {
+      "name": "Left hip diagonal island layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0019351044990901182,
+      "connectedComponentVolumes": [
+        0.0019351044990901167
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979559864
+    },
+    {
+      "name": "Left hip diagonal island layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003691864968014368,
+      "connectedComponentVolumes": [
+        0.0036918649680143674
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977211076
+    },
+    {
+      "name": "Left hip diagonal island layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010319993401799073,
+      "connectedComponentVolumes": [
+        0.0010319993401799073
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999987197462
+    },
+    {
+      "name": "Left thigh root following growth",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.022819393412146317,
+      "connectedComponentVolumes": [
+        0.022819393412146307
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976726139
+    },
+    {
+      "name": "Left thigh root following growth layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0014810819625580363,
+      "connectedComponentVolumes": [
+        0.0014810819625580363
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997897481
+    },
+    {
+      "name": "Left thigh root following growth layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0025472599104045673,
+      "connectedComponentVolumes": [
+        0.0025472599104045665
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999987151984
+    },
+    {
+      "name": "Left thigh root following growth layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0008850278178646614,
+      "connectedComponentVolumes": [
+        0.0008850278178646612
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977107155
+    },
+    {
+      "name": "Right hip upward sprout",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.01658625833005989,
+      "connectedComponentVolumes": [
+        0.016586258330059896
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998096141
+    },
+    {
+      "name": "Right hip upward sprout layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0015996270142314846,
+      "connectedComponentVolumes": [
+        0.0015996270142314844
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983131784
+    },
+    {
+      "name": "Right hip upward sprout layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004374625586953742,
+      "connectedComponentVolumes": [
+        0.004374625586953742
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999986130125
+    },
+    {
+      "name": "Right hip upward sprout layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0004895861943525225,
+      "connectedComponentVolumes": [
+        0.0004895861943525225
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999985397644
+    },
+    {
+      "name": "Right thigh front fall",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.024908572261124688,
+      "connectedComponentVolumes": [
+        0.02490857226112469
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976738684
+    },
+    {
+      "name": "Right thigh front fall layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0017511058605947077,
+      "connectedComponentVolumes": [
+        0.0017511058605947072
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999967095485
+    },
+    {
+      "name": "Right thigh front fall layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0027545716771928304,
+      "connectedComponentVolumes": [
+        0.0027545716771928304
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998943216
+    },
+    {
+      "name": "Right thigh front fall layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0007969560597731211,
+      "connectedComponentVolumes": [
+        0.0007969560597731211
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982135219
+    },
+    {
+      "name": "Rear pelvis rooted growth",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.016285551069922237,
+      "connectedComponentVolumes": [
+        0.016285551069922237
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974018963
+    },
+    {
+      "name": "Rear pelvis rooted growth layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002233051634180489,
+      "connectedComponentVolumes": [
+        0.00223305163418049
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984032114
+    },
+    {
+      "name": "Rear pelvis rooted growth layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0035777426306551206,
+      "connectedComponentVolumes": [
+        0.00357774263065512
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983016572
+    },
+    {
+      "name": "Rear pelvis rooted growth layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0008056227838608438,
+      "connectedComponentVolumes": [
+        0.0008056227838608433
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983875149
+    },
+    {
+      "name": "Left shin outer fold",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.024421265174149723,
+      "connectedComponentVolumes": [
+        0.02442126517414973
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978505817
+    },
+    {
+      "name": "Left shin outer fold layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0019761886188721326,
+      "connectedComponentVolumes": [
+        0.0019761886188721335
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982813275
+    },
+    {
+      "name": "Left shin outer fold layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0035454636942390313,
+      "connectedComponentVolumes": [
+        0.003545463694239033
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999981240084
+    },
+    {
+      "name": "Left shin outer fold layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.001228361591142115,
+      "connectedComponentVolumes": [
+        0.0012283615911421147
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979301065
+    },
+    {
+      "name": "Left calf rear moss",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.013785962131553045,
+      "connectedComponentVolumes": [
+        0.013785962131553045
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997699507
+    },
+    {
+      "name": "Left calf rear moss layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0012287365445081255,
+      "connectedComponentVolumes": [
+        0.0012287365445081255
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999988665006
+    },
+    {
+      "name": "Left calf rear moss layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0019622863276639677,
+      "connectedComponentVolumes": [
+        0.0019622863276639686
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998084514
+    },
+    {
+      "name": "Left calf rear moss layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0005865104617956635,
+      "connectedComponentVolumes": [
+        0.0005865104617956635
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984550954
+    },
+    {
+      "name": "Right knee green sprout",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.018103958801307524,
+      "connectedComponentVolumes": [
+        0.01810395880130752
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997615903
+    },
+    {
+      "name": "Right knee green sprout layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0018539771850779227,
+      "connectedComponentVolumes": [
+        0.0018539771850779236
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979083939
+    },
+    {
+      "name": "Right knee green sprout layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0029512782201554693,
+      "connectedComponentVolumes": [
+        0.0029512782201554693
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999976932756
+    },
+    {
+      "name": "Right knee green sprout layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0008017917677730036,
+      "connectedComponentVolumes": [
+        0.0008017917677730036
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979784401
+    },
+    {
+      "name": "Right calf winding growth",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.020209974877320472,
+      "connectedComponentVolumes": [
+        0.020209974877320472
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977074029
+    },
+    {
+      "name": "Right calf winding growth layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0016263723749222066,
+      "connectedComponentVolumes": [
+        0.0016263723749222066
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999993373077
+    },
+    {
+      "name": "Right calf winding growth layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002528321578224483,
+      "connectedComponentVolumes": [
+        0.0025283215782244827
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999986456446
+    },
+    {
+      "name": "Right calf winding growth layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0007168550067495104,
+      "connectedComponentVolumes": [
+        0.0007168550067495096
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983175241
+    },
+    {
+      "name": "Right inner ankle moss",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.009284114551693718,
+      "connectedComponentVolumes": [
+        0.009284114551693715
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980256961
+    },
+    {
+      "name": "Right inner ankle moss layered cascade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010551571956919255,
+      "connectedComponentVolumes": [
+        0.0010551571956919255
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999979628373
+    },
+    {
+      "name": "Right inner ankle moss layered cascade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0018204134820626488,
+      "connectedComponentVolumes": [
+        0.0018204134820626488
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999977254308
+    },
+    {
+      "name": "Right inner ankle moss layered cascade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.000581963811545883,
+      "connectedComponentVolumes": [
+        0.000581963811545883
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998567272
+    },
+    {
+      "name": "Left outer long shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.006966103652543805,
+      "connectedComponentVolumes": [
+        0.006966103652543798
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999987383893
+    },
+    {
+      "name": "Left shoulder front spear",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.009628242535133724,
+      "connectedComponentVolumes": [
+        0.009628242535133716
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999988445645
+    },
+    {
+      "name": "Left shoulder back shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00696732863300388,
+      "connectedComponentVolumes": [
+        0.00696732863300388
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999988669223
+    },
+    {
+      "name": "Left collar small shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002998100856780945,
+      "connectedComponentVolumes": [
+        0.0029981008567809483
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983733947
+    },
+    {
+      "name": "Right high cascade",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00971089046223246,
+      "connectedComponentVolumes": [
+        0.00971089046223247
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974122272
+    },
+    {
+      "name": "Right front shorter shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004230029731583908,
+      "connectedComponentVolumes": [
+        0.004230029731583909
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999978423891
+    },
+    {
+      "name": "Right scapula long trailing shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.010456959803166993,
+      "connectedComponentVolumes": [
+        0.010456959803166993
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999972289677
+    },
+    {
+      "name": "Left upper back spear",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.006416808850508528,
+      "connectedComponentVolumes": [
+        0.006416808850508531
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999982684428
+    },
+    {
+      "name": "Left center back shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.005548723536279835,
+      "connectedComponentVolumes": [
+        0.005548723536279837
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999975221009
+    },
+    {
+      "name": "Right back oblique shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.008146619497553999,
+      "connectedComponentVolumes": [
+        0.008146619497554
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999988245026
+    },
+    {
+      "name": "Spinal lower shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003364283473575931,
+      "connectedComponentVolumes": [
+        0.0033642834735759337
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999984382801
+    },
+    {
+      "name": "Left rib narrow fall",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0020379243716498203,
+      "connectedComponentVolumes": [
+        0.0020379243716498194
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999983689418
+    },
+    {
+      "name": "Left elbow front shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004270991878117785,
+      "connectedComponentVolumes": [
+        0.004270991878117782
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999986779171
+    },
+    {
+      "name": "Left elbow outer short",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002370934205357972,
+      "connectedComponentVolumes": [
+        0.0023709342053579753
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999987156097
+    },
+    {
+      "name": "Right elbow outside spear",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004949692129314259,
+      "connectedComponentVolumes": [
+        0.004949692129314263
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999980618479
+    },
+    {
+      "name": "Right arm green fall",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0033609737899209166,
+      "connectedComponentVolumes": [
+        0.003360973789920915
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999997624568
+    },
+    {
+      "name": "Left hip slim fall",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004123552286128585,
+      "connectedComponentVolumes": [
+        0.004123552286128588
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999990517983
+    },
+    {
+      "name": "Right thigh diagonal shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00564443230462288,
+      "connectedComponentVolumes": [
+        0.005644432304622884
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999987994581
+    },
+    {
+      "name": "Left thigh rear shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0036557071687029277,
+      "connectedComponentVolumes": [
+        0.0036557071687029277
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999974810654
+    },
+    {
+      "name": "Left shin side spear",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004330764291683175,
+      "connectedComponentVolumes": [
+        0.004330764291683177
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999970851826
+    },
+    {
+      "name": "Right calf narrow fall",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00378920276241986,
+      "connectedComponentVolumes": [
+        0.0037892027624198596
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999986058896
+    },
+    {
+      "name": "Right knee outer leaf",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0033452002721290498,
+      "connectedComponentVolumes": [
+        0.0033452002721290498
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.9999999969471423
+    },
+    {
+      "name": "Low back unequal shoot",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0020191555023426414,
+      "connectedComponentVolumes": [
+        0.0020191555023426422
+      ],
+      "normalOpposedVertices": 0,
+      "normalDeviatingVertices": 0,
+      "minimumNormalCosine": 0.999999998637561
+    }
+  ]
+}
