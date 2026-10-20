@@ -1,6 +1,6 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-20 21:03 UTC. None quality-complete.
+Updated 2026-10-20 21:39 UTC. None quality-complete.
 
 OWNER: Original five need independent >=4/5 likeness and animation/readability. New four authorized in game19:13: Pitcher DI-N16, Medusa DI-N17, Keelmaw DI-N19, Iguana DI-N10. Other16 rejected. All9 need World/Explorer nine-angle references; original heroes authoritative, AI hidden surfaces approximate. No score inflation or structural-test acceptance.
 
@@ -14,6 +14,6 @@ UI: Site94 source7775195fa47ded94b1aef0c2f978b5d1bd899364 deployed20Oct20:59. Si
 
 BELLBACK: Specific5body/4joint approval still pending; no expansion or repeated solver/timing/CCD studies. Six-shard Explorer coverage remains open.
 
-SOURCE: Conch owner repairs208 regression/final42, strict/lint/hooks pass. Remaining lifecycle/cadence/diagnostic gates active; placement refusal defect under repair. Selected135-channel motion/361point recipe passes6 source tests but fails actor-facing contract and fixed-root toe support43.4626mm; frozen, no world step. Articulated source/authoritative foot-state design only. Iguana packed fields fixed8+1 tests; live coverage still fails6132 corners.
+SOURCE: Conch owner224 regression/final58, strict/lint/hooks pass. Private canonical engineering composition6 tests; build/browser not run. Selected135-channel motion fails actor-facing and fixed-root toe support43.4626mm; frozen. New articulated source333 hull points, packed seams repaired, Python9/native3 pass; matched static renders active. Foot-contact design only, no motion/contact admission. Iguana live coverage still fails6132 corners.
 
-PRESERVATION: Remoteb4af41f6caba01064507f7123e72afb7151ecf7c verified. Conch further gates pending. Site source protected. Rockhop/dotgamedev absent. Originals/hosts retained;4 duplicate publication archives reclaimed808140800B. Local/remote histories differ: compare protected bytes, never replay old delta. Hourly update20:12; next21:13.
+PRESERVATION: Remotec71d3f700aff600d294ea3a0d0139c4b987ceca5 verified. Private build and art review pending. Site source protected. Rockhop/dotgamedev absent. Originals/hosts retained;4 duplicate publication archives reclaimed808140800B. Local/remote histories differ: compare protected bytes, never replay old delta. Hourly update21:12; next22:13.
