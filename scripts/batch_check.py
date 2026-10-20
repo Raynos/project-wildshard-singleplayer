@@ -87,8 +87,11 @@ def main():
     for shard in args.shards:
         if re.fullmatch(r'[a-z0-9_-]+', shard) is None:
             parser.error('invalid shard slug: ' + shard)
-        subprocess.run(['git', 'cat-file', '-e', sha + ':src/shards/' + shard + '/manifest.json'],
-                       cwd=root, check=True, stdout=subprocess.DEVNULL)
+        # A declared shard has manifest.json; a shard still on the trusted runtime has manifest.ts.
+        if not any(subprocess.run(['git', 'cat-file', '-e', sha + ':src/shards/' + shard + '/manifest.' + ext],
+                                  cwd=root, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+                   for ext in ('json', 'ts')):
+            parser.error('no shard manifest at ' + sha + ': ' + shard)
     if args.inside:
         check_sources(root, sha, base)
         return 0
