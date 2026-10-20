@@ -13,7 +13,7 @@ export async function nightProgram() {
   for (let i=1;i<=4;i++) params[`z${i}`]=ridge[i][1]-BOWL.z;
   let distance = 0;
   for (let i=0;i<4;i++) {distance+=Math.hypot(ridge[i+1][0]-ridge[i][0],ridge[i+1][1]-ridge[i][1]);params[`d${i+1}`]=distance;}
-  const { script, bytes } = await weatherDecision(), program = { script, bytes };
+  const program = await weatherDecision();
   const {geometry,material,...arrow}=ghostArrowKind();
   const shape={data:geometry.toJSON().data};geometry.dispose();material.dispose();
   const wedge = wedgeMaterial();
