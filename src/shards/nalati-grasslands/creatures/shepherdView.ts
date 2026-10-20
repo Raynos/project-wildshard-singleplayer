@@ -6,7 +6,6 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import * as THREE from 'three';
 import type { PageWildlife } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
-import { horseBones } from '../species/horse';
 import { bakedActorGeometry } from '../world/places';
 import { PagePastureRaid } from '@wildshard/game/riding/pagePasture';
 
@@ -41,7 +40,7 @@ export class SheepRaid extends PagePastureRaid<Flock> {
     super(ctx.animals,ctx.wildlife,ctx.wildlife.pastureProfile);
     const h = this.shepherd;
     const figure = h === null ? null : shepherdRider(); this.rider = figure?.rider ?? null; this.arm = figure?.arm ?? null;
-    if (h !== null && figure !== null) horseBones(h).body.add(figure.rider);
+    if (h !== null && figure !== null) { const body = h.mesh.skeleton.getBoneByName('body'); if (body === undefined) throw new Error('Missing rider body joint'); body.add(figure.rider); }
   }
   override update(dt: number, player: THREE.Vector3): void {
     super.update(dt, player, this.ctx.wildlife.predators, app.clock.now, practiceRoom.open);

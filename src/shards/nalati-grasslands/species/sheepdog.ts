@@ -4,7 +4,7 @@ import { engineString } from '@wildshard/engine/strings';
 
 
 
-import { buildCanid, canidPostPose, SHEEPDOG_VARIANTS } from './wolf';
+import { nalatiBody, poseNalatiCreature } from './presentation';
 import type { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
@@ -69,8 +69,8 @@ export const SHEEPDOG_SPECIES: SpeciesDef = {
   sounds: { call: 'dog_bark', hurt: 'dog_yelp', callEvery: [40, 120] },
   pose: { grazeNeck: 0.5, gallopTail: 0.2 },
   gait: { trot: 1.6, gallop: 5.0 },
-  variants: SHEEPDOG_VARIANTS,
-  build: buildCanid,
-  postPose: canidPostPose,
+  variants: [{ id: 'collie', label: engineString('s_062ffea0e911'), weight: 1, rarity: 'common', scale: [.7, .72], hp: 60 }],
+  build: variant => nalatiBody('canid', variant),
+  postPose: context => { poseNalatiCreature(context.alive ? 'canid' : 'canidDead', context); },
   think: thinkSheepdog,
 };

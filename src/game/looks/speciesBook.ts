@@ -1,3 +1,8 @@
+import { groupSpecies } from '../population/groupSpecies';
+import { numericCreaturePose } from '../plugin/channelPrograms';
+import { poseRidingEnvelopes, type RidingPresentationRows } from '../riding/presentation';
+import { wildEnv } from '../population/pageGroups';
+import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import * as v from 'valibot';
 import { packedCreatureBodies,type BakedGeometryRow } from '../plugin/geometry';
 import { productRiggedHulls } from './riggedHulls';
@@ -24,13 +29,20 @@ function packedRows(input:unknown):unknown{
  * cache. Data names all variants, resources and material measurements; local
  * gameplay/pose callbacks never enter this owner. */
 export class SpeciesLookBook {
+  private readonly poses = new Map<string, ReturnType<typeof numericCreaturePose>>();
+  private readonly envelopes = new Map<string, RidingPresentationRows>();
   readonly rows;
   readonly looks:readonly SpeciesLook[];
   private readonly bodies;
   private readonly hulls;
   constructor(input:unknown){
     const book=v.parse(SpeciesLookBookSchema,input);this.bodies=packedCreatureBodies(packedRows(book.body));this.hulls=productRiggedHulls(book.slug);
-    this.rows=book.rows.map(row=>row.metadata);
+    for (const [id, pose] of Object.entries(book.poses ?? {})) this.poses.set(id, numericCreaturePose(pose));
+    for (const row of book.rows) if (row.postPose !== undefined) {
+      if (!this.poses.has(row.postPose.alive) || row.postPose.dead !== undefined && !this.poses.has(row.postPose.dead)) throw new Error('Missing species pose programme');
+      if (row.postPose.envelopes !== undefined) this.envelopes.set(row.postPose.alive, row.postPose.envelopes);
+    }
+    this.rows=book.rows.map(row=>({...row.metadata,...(row.group === undefined ? {} : groupSpecies(row.group))}));
     this.looks=book.rows.map(row=>{const look:SpeciesLook={id:row.id,species:row.metadata.id,kind:row.metadata.kind,rigContract:row.rigContract,fur:NO_FUR,
       variants:Object.fromEntries(Object.entries(row.variants).map(([id,source])=>{
         const variant:Pick<VariantDef,'tint'|'traits'>={};if(source.tint!==undefined)variant.tint=source.tint;if(source.traits!==undefined)variant.traits=source.traits;return [id,variant];
@@ -41,8 +53,15 @@ export class SpeciesLookBook {
       loadSkin:async variant=>{const name=this.hulls.hullOf(row.metadata.kind,variant.id);if(name!==null)await this.hulls.load(name);},
       skin:(variant,bones)=>{const hull=this.hulls.skin(row.metadata.kind,variant.id,bones);return hull===null?null:{...hull,normalMap:null,overgrown:false};},
     };
+    if (row.postPose !== undefined) { const pose = row.postPose; look.postPose = context => { this.pose(context.alive ? pose.alive : pose.dead ?? pose.alive, context); }; }
     if(row.rig!==undefined)look.rig=row.rig;if(row.pose!==undefined)look.pose=row.pose;if(row.gait!==undefined)look.gait=row.gait;
     if(row.eyeGlow!==undefined)look.eyeGlow=row.eyeGlow;if(row.eyeGlowIntensity!==undefined)look.eyeGlowIntensity=row.eyeGlowIntensity;return look;});
+  }
+  /** Apply admitted numeric joints and optional mount envelopes over a borrowed rig. */
+  pose(id: string, context: AnimalRigContext): void {
+    const pose = this.poses.get(id); if (pose === undefined) throw new Error('Missing species pose programme');
+    const envelopes = this.envelopes.get(id); if (envelopes !== undefined) poseRidingEnvelopes(context, envelopes, wildEnv.wind);
+    pose(context);
   }
   /** Cold specimens and page factories share the same immutable sources. */
   async preload():Promise<void>{await Promise.all([this.bodies.preload(),this.hulls.preload()]);}

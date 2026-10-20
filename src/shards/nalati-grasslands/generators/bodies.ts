@@ -9,15 +9,15 @@ import { buildFelid } from './leopardBody';
 import { buildEagle } from './eagleBody';
 import { buildKing } from './goldenKingBody';
 import { buildBalbal } from './balbalBody';
-import { HORSE_SPECIES } from '../species/horse';
-import { WOLF_SPECIES, SHEEPDOG_VARIANTS } from '../species/wolf';
+import { bodySpecies } from './speciesRows';
 import { KOKBORI_SPECIES } from '../species/kokbori';
 import { GHOSTRIDER_SPECIES } from '../species/ghostRider';
 import { LEOPARD_SPECIES } from '../species/leopard';
 import { EAGLE_SPECIES } from '../species/eagle';
 import { BALBAL_SPECIES } from '../species/balbal';
-import { argymaqDefinition } from '../combat/eliteRoster';
 import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from '../species/bodyKey';
+
+const HORSE_SPECIES = bodySpecies('horse'), WOLF_SPECIES = bodySpecies('wolf'), SHEEPDOG_VARIANTS = bodySpecies('sheepdog').variants;
 
 /** what a family's variant list needs of its species row */
 type AnimalSpeciesRow = Pick<SpeciesDef, 'variants' | 'spawnOnly'>;
@@ -38,7 +38,7 @@ export function bodyVariants(): { family: BodyFamily; variant: VariantDef }[] {
   const horse = [...HORSE_SPECIES.variants, ...(HORSE_SPECIES.spawnOnly ?? []), ...GHOSTRIDER_SPECIES.variants];
   const stallion = HORSE_SPECIES.variants.find((v) => v.id === 'stallion'), black = HORSE_SPECIES.variants.find((v) => v.id === 'black');
   if (stallion === undefined || black === undefined) throw new Error('[nalati bodies] the horse rows lost their stallion / black');
-  horse.push(...argymaqDefinition(HORSE_SPECIES, stallion).variants);
+  horse.push(...bodySpecies('argymaq').variants);
   // combat/elites.ts registerGhostHorse: Qara Batyr on the black horse when the ghost riders' own row is absent
   horse.push({ ...black, id: 'captain', traits: { ...black.traits, mane: 1.8 } });
   const canid = [...WOLF_SPECIES.variants, ...(WOLF_SPECIES.spawnOnly ?? []), ...SHEEPDOG_VARIANTS, ...KOKBORI_SPECIES.variants];

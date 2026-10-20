@@ -7,7 +7,7 @@ import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 
 
 
-import { buildCanid, canidPostPose } from './wolf';
+import { nalatiBody, poseNalatiCreature } from './presentation';
 
 
 /**
@@ -35,8 +35,8 @@ export const KOKBORI_SPECIES: SpeciesDef = {
   pose: { grazeNeck: 0.5, gallopTail: 0.3 },
   gait: { trot: 1.8, gallop: 5.6 },
   variants: body.variants.map(coat),
-  build: buildCanid,
-  postPose: canidPostPose,
+  build: variant => nalatiBody('canid', variant),
+  postPose: context => { poseNalatiCreature(context.alive ? 'canid' : 'canidDead', context); },
   act: eliteAct,
   think: eliteThink,
   damageMul: eliteDamageMul,

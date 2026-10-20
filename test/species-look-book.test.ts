@@ -8,7 +8,7 @@ import source from '../src/shards/nalati-grasslands/data/species.generated.json'
 
 test('orchard creature data owns body copies and look identities without control hooks',async()=>{
   const first=rows[0];if(first===undefined)throw new Error('Missing packed source fixture');
-  const input={slug:'orchard',body:source.presentation.packedBodies,rows:[{...first,id:'look.orchard.guard',metadata:{...first.metadata,id:'species.orchard.guard',kind:'orchard-guard',label:'Orchard guardian'}}]};
+  const input={slug:'orchard',body:source.presentation.packedBodies,poses:source.poses,rows:[{...first,id:'look.orchard.guard',metadata:{...first.metadata,id:'species.orchard.guard',kind:'orchard-guard',label:'Orchard guardian'}}]};
   const book=new SpeciesLookBook(input),fetch=vi.spyOn(globalThis,'fetch').mockImplementation(url=>{
     if(url!==source.packedBodies.file)throw new Error('Unexpected body source');
     return Promise.resolve(new Response(new Uint8Array(readFileSync(`public${source.packedBodies.file}`))));

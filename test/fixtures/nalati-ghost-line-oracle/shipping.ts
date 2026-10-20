@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import type { AnimalSim as Animal } from '../../../src/engine/entities/AnimalSim';
 import { BOWL } from '../../../src/shards/nalati-grasslands/generators/layout';
-import { HORSE_SPEED } from '../../../src/shards/nalati-grasslands/species/horse';
+import ecology from '../../../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 /** One admitted night line; identity, death and body ownership remain with the real ghost roster. */
 export interface GhostLineMember<A extends Animal> { readonly a: A; readonly slot: number; dead: boolean }
 export interface GhostLine<A extends Animal> { readonly riders: readonly GhostLineMember<A>[]; s: number; mode: 'patrol' | 'engage'; theta: number; dir: 1 | -1; engagedT: number }
 
+const HORSE_SPEED = ecology.modes.ride[0].gaits;
 const RIDGE: readonly (readonly [number, number])[] = Array.from({ length: 16 }, (_, i): readonly [number, number] => {
   const t = (i / 16) * Math.PI * 2, c = Math.cos(t), sn = Math.sin(t);
   return [BOWL.x + BOWL.ax * 0.85 * Math.sign(c) * Math.abs(c) ** (2 / 3), BOWL.z + BOWL.az * 0.85 * Math.sign(sn) * Math.abs(sn) ** (2 / 3)];

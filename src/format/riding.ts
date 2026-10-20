@@ -59,3 +59,12 @@ export const RidingControlsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Rid
     'lean.left': InputKeysSchema, 'lean.right': InputKeysSchema }), describe: InputExtraEntries.describe,
 }), v.check(rows => new Set([rows.foot,rows.mounted,rows.breaking]).size === 3, 'Distinct riding contexts'));
 export type RidingControls = v.InferOutput<typeof RidingControlsSchema>;
+
+/** Numeric envelope rows shared by native mounts and their client rigs. */
+export const RidingPresentationSchema = v.strictObject({ alive: v.string(),
+  smooth: v.array(v.strictObject({ source: v.string(), target: v.string(), rate: reinFinite, low: reinFinite, high: reinFinite })),
+  decay: v.array(v.strictObject({ source: v.string(), target: v.string(), rate: reinFinite })),
+  graze: v.strictObject({ target: v.string(), rate: reinFinite, speed: reinFinite }),
+  base: v.strictObject({ bone: v.string(), target: v.string() }),
+  wind: v.strictObject({ x: v.string(), z: v.string(), strength: v.string() }),
+});

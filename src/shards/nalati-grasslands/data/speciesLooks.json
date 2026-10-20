@@ -571,6 +571,92 @@
     "material": {
       "rim": 0.8,
       "bands": 0.85
+    },
+    "group": {
+      "kind": "herd",
+      "clock": "groupThinkAt",
+      "every": 0.1,
+      "confine": false,
+      "observeDamage": true,
+      "held": [
+        "ridden",
+        "owned"
+      ],
+      "damage": "damageScale"
+    },
+    "postPose": {
+      "alive": "horse",
+      "envelopes": {
+        "alive": "horsealive",
+        "smooth": [
+          {
+            "source": "rear",
+            "target": "horserear",
+            "rate": 3.5,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "buck",
+            "target": "horsebuck",
+            "rate": 5,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "headUp",
+            "target": "horseheadUp",
+            "rate": 3,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "pin",
+            "target": "horsepin",
+            "rate": 6,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "turnLead",
+            "target": "horseturnLead",
+            "rate": 3.2,
+            "low": -1,
+            "high": 1
+          }
+        ],
+        "decay": [
+          {
+            "source": "kick",
+            "target": "posekick",
+            "rate": 1.8
+          },
+          {
+            "source": "stamp",
+            "target": "posestamp",
+            "rate": 2.5
+          },
+          {
+            "source": "toss",
+            "target": "posetoss",
+            "rate": 2
+          }
+        ],
+        "graze": {
+          "target": "horsegraze",
+          "rate": 2.2,
+          "speed": 0.3
+        },
+        "base": {
+          "bone": "body",
+          "target": "horsebaseZ"
+        },
+        "wind": {
+          "x": "horseWindX",
+          "z": "horseWindZ",
+          "strength": "horseWindStrength"
+        }
+      }
     }
   },
   {
@@ -811,6 +897,18 @@
     "material": {
       "rim": 0.8,
       "bands": 0.85
+    },
+    "group": {
+      "kind": "pack",
+      "clock": "groupThinkAt",
+      "every": 0.1,
+      "confine": true,
+      "observeDamage": false,
+      "held": []
+    },
+    "postPose": {
+      "alive": "canid",
+      "dead": "canidDead"
     }
   },
   {
@@ -910,6 +1008,10 @@
     "material": {
       "rim": 0.8,
       "bands": 0.85
+    },
+    "postPose": {
+      "alive": "canid",
+      "dead": "canidDead"
     }
   },
   {
@@ -1239,6 +1341,80 @@
     "material": {
       "rim": 0.8,
       "bands": 0.85
+    },
+    "postPose": {
+      "alive": "horse",
+      "envelopes": {
+        "alive": "horsealive",
+        "smooth": [
+          {
+            "source": "rear",
+            "target": "horserear",
+            "rate": 3.5,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "buck",
+            "target": "horsebuck",
+            "rate": 5,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "headUp",
+            "target": "horseheadUp",
+            "rate": 3,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "pin",
+            "target": "horsepin",
+            "rate": 6,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "turnLead",
+            "target": "horseturnLead",
+            "rate": 3.2,
+            "low": -1,
+            "high": 1
+          }
+        ],
+        "decay": [
+          {
+            "source": "kick",
+            "target": "posekick",
+            "rate": 1.8
+          },
+          {
+            "source": "stamp",
+            "target": "posestamp",
+            "rate": 2.5
+          },
+          {
+            "source": "toss",
+            "target": "posetoss",
+            "rate": 2
+          }
+        ],
+        "graze": {
+          "target": "horsegraze",
+          "rate": 2.2,
+          "speed": 0.3
+        },
+        "base": {
+          "bone": "body",
+          "target": "horsebaseZ"
+        },
+        "wind": {
+          "x": "horseWindX",
+          "z": "horseWindZ",
+          "strength": "horseWindStrength"
+        }
+      }
     }
   },
   {
@@ -1340,6 +1516,10 @@
     "material": {
       "rim": 0.8,
       "bands": 0.85
+    },
+    "postPose": {
+      "alive": "canid",
+      "dead": "canidDead"
     }
   },
   {
@@ -1478,6 +1658,92 @@
     "material": {
       "rim": 0.8,
       "bands": 0.85
+    },
+    "postPose": {
+      "alive": "horse",
+      "envelopes": {
+        "alive": "horsealive",
+        "smooth": [
+          {
+            "source": "rear",
+            "target": "horserear",
+            "rate": 3.5,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "buck",
+            "target": "horsebuck",
+            "rate": 5,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "headUp",
+            "target": "horseheadUp",
+            "rate": 3,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "pin",
+            "target": "horsepin",
+            "rate": 6,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "turnLead",
+            "target": "horseturnLead",
+            "rate": 3.2,
+            "low": -1,
+            "high": 1
+          }
+        ],
+        "decay": [
+          {
+            "source": "kick",
+            "target": "posekick",
+            "rate": 1.8
+          },
+          {
+            "source": "stamp",
+            "target": "posestamp",
+            "rate": 2.5
+          },
+          {
+            "source": "toss",
+            "target": "posetoss",
+            "rate": 2
+          }
+        ],
+        "graze": {
+          "target": "horsegraze",
+          "rate": 2.2,
+          "speed": 0.3
+        },
+        "base": {
+          "bone": "body",
+          "target": "horsebaseZ"
+        },
+        "wind": {
+          "x": "horseWindX",
+          "z": "horseWindZ",
+          "strength": "horseWindStrength"
+        }
+      }
+    },
+    "group": {
+      "kind": "herd",
+      "clock": "groupThinkAt",
+      "every": 0.1,
+      "confine": false,
+      "observeDamage": true,
+      "held": [
+        "ridden",
+        "owned"
+      ],
+      "damage": "damageScale"
     }
   }
 ]

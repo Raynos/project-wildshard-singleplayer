@@ -1,13 +1,19 @@
+import { SPECIES_POSES } from '../../src/shards/nalati-grasslands/generators/speciesPoses';
 // Frozen pre-migration oracle for saved transforms and horse-head observations.
 import { Bone, Group, type Vector3 } from 'three';
 import * as v from 'valibot';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { AnimalPoseLaw } from '@wildshard/engine/entities/animalPose';
 import { QuadrupedRigPose, applyAnimalRoot, type AnimalRigContext } from '@wildshard/engine/entities/animalRig';
-import { HORSE_SPECIES, poseNalatiHorse } from '../../src/shards/nalati-grasslands/species/horse';
+import { bodySpecies } from '../../src/shards/nalati-grasslands/generators/speciesRows';
+import { poseRidingEnvelopes } from '../../src/game/riding/presentation';
+import { numericCreaturePose } from '../../src/game/plugin/channelPrograms';
+import envelopes from '../../src/shards/nalati-grasslands/data/horsePresentation.json' with { type: 'json' };
 import { bodyKey } from '../../src/shards/nalati-grasslands/species/bodyKey';
 import rows from '../../src/shards/nalati-grasslands/data/bodies.json' with { type: 'json' };
 
+const HORSE_SPECIES = bodySpecies('horse');
+const drawHorse = numericCreaturePose(SPECIES_POSES.horse);
 const finite = v.pipe(v.number(), v.finite());
 const triple = v.tuple([finite, finite, finite]);
 const transform = v.strictObject({ p: triple, r: triple, order: v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), s: triple });
@@ -68,7 +74,7 @@ export class NalatiTamingHorsePose {
       c.dt = dt; c.t = time; c.speed = a.speed; c.strafe = a.strafe; c.phase = this.pose.phase; c.state = a.state; c.alive = a.alive;
       c.deathT = input.deathT; c.flinch = input.flinch; c.brace = input.brace * input.brace * (3 - 2 * input.brace);
       c.attack = a.attackPhase; c.lookWeight = this.pose.lookAmt; c.yaw = a.yaw; c.mem = a.mem;
-      poseNalatiHorse(c, this.wind());
+      poseRidingEnvelopes(c, envelopes, this.wind()); drawHorse(c);
     }
     applyAnimalRoot(this.root, a.position, a.yaw, this.pose.tiltPitch, this.pose.tiltRoll, false, a.alive, input.flinch, 0, 0);
     this.root.scale.setScalar(a.scale); this.root.updateMatrixWorld(true);

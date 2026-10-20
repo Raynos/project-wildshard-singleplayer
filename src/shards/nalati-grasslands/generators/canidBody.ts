@@ -4,7 +4,11 @@ import { loft, skinPlain, S, boneIndex, mix, srgb, paletteColors, paintNoise, ty
 import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import * as THREE from 'three';
 import { tuft, hash01, type V3, type Skin } from './shape';
-import { WOLF } from '../species/wolf';
+import palette from '../data/wolfPalette.json' with { type: 'json' };
+import * as schema from 'valibot';
+
+const rgb = schema.tuple([schema.number(), schema.number(), schema.number()]);
+const WOLF = schema.parse(schema.object({ back: rgb, side: rgb, cream: rgb, leg: rgb, dark: rgb, nose: rgb, earIn: rgb, eye: rgb, mouth: rgb, scar: rgb }), palette);
 
 /**
  * Build-time only (SHARD-PLATFORM M3, Nalati's species bodies bake): the canid's lofts (the steppe wolf, the camp's collie,

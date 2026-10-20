@@ -8,7 +8,8 @@ import { engineString } from '@wildshard/engine/strings';
 import * as THREE from 'three';
 
 
-import { HORSE_SPECIES, HORSE_SPEED } from './horse';
+import horseRows from './horse.json' with { type: 'json' };
+import { nalatiBody, poseNalatiCreature } from './presentation';
 
 
 
@@ -38,8 +39,8 @@ function thinkGhost(a: Animal, c: ThinkCtx): void {
   a.lookWeight = 0.6; a.lookTarget.copy(c.player);
   if (tx === undefined || tz === undefined) { a.setMotion(a.yaw, 0, 1); return; }
   const dx = tx - a.position.x, dz = tz - a.position.z;
-  const v = m['v'] ?? HORSE_SPEED.canter;
-  a.state = v > HORSE_SPEED.canter ? 'flee' : 'wander';
+  const v = m['v'] ?? horseRows.speeds.canter;
+  a.state = v > horseRows.speeds.canter ? 'flee' : 'wander';
   a.setMotion(Math.atan2(dx, dz), Math.hypot(dx, dz) < 0.8 ? 0 : v, m['turn'] ?? 2.4);
 }
 
@@ -94,7 +95,7 @@ export function riderGeometry(captain = false): THREE.BufferGeometry {
   return g;
 }
 
-const horse = HORSE_SPECIES;
+const horse = horseRows.definition;
 export const GHOSTRIDER_SPECIES: SpeciesDef = {
   lockable: true,
   rigContract: { skeleton: 'ghostRider.v1', clips: [], sockets: ['body', 'head'] },
@@ -102,18 +103,18 @@ export const GHOSTRIDER_SPECIES: SpeciesDef = {
   label: engineString('s_1ccc05aa1f07'),
   fur: NO_FUR,
   aggressive: true,
-  walkSpeed: HORSE_SPEED.canter,
-  chargeSpeed: HORSE_SPEED.gallop,
+  walkSpeed: horseRows.speeds.canter,
+  chargeSpeed: horseRows.speeds.gallop,
   chargeDamage: 20,
   sounds: { call: 'horse_snort', hurt: 'horse_squeal', callEvery: [30, 70] },
   ...(horse.pose ? { pose: horse.pose } : {}),
   ...(horse.gait ? { gait: horse.gait } : {}),
-  ...(horse.postPose ? { postPose: horse.postPose } : {}),
+  postPose: context => { poseNalatiCreature('horse', context); },
   variants: [
     { id: 'rider', label: engineString('s_1ccc05aa1f07'), weight: 1, rarity: 'rare', scale: [1.0, 1.04], hp: 70, traits: { tack: 1, mane: 1.8 } },
     { id: 'captain', label: engineString('s_d77473617820'), weight: 0, rarity: 'legendary', scale: [1.12, 1.12], hp: 800, traits: { tack: 1, mane: 2.2, stallion: 1 } },
   ],
-  build: (v, rng) => horse.build(v, rng),
+  build: variant => nalatiBody('horse', variant),
   tick: 'ai',
   think: thinkGhost,
   // arrows land in full; a blade from the ground or the saddle ×1.5 (the design's "ride them down");

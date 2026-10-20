@@ -1,6 +1,4 @@
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
-import { HORSE_SPECIES } from './horse';
-import { WOLF_SPECIES } from './wolf';
 import { SHEEPDOG_SPECIES } from './sheepdog';
 import { BALBAL_SPECIES } from './balbal';
 import { GOLDENKING_SPECIES } from './goldenKing';
@@ -10,4 +8,4 @@ import { GHOSTRIDER_SPECIES } from './ghostRider';
 import { KOKBORI_SPECIES } from './kokbori';
 
 /** Existing per-species controls; shared look resources are admitted as data. */
-export const NALATI_DEFINITIONS:readonly SpeciesDef[]=[HORSE_SPECIES,WOLF_SPECIES,SHEEPDOG_SPECIES,BALBAL_SPECIES,GOLDENKING_SPECIES,LEOPARD_SPECIES,EAGLE_SPECIES,GHOSTRIDER_SPECIES,KOKBORI_SPECIES];
+export const NALATI_DEFINITIONS:readonly SpeciesDef[]=[SHEEPDOG_SPECIES,BALBAL_SPECIES,GOLDENKING_SPECIES,LEOPARD_SPECIES,EAGLE_SPECIES,GHOSTRIDER_SPECIES,KOKBORI_SPECIES];

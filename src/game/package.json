@@ -212,6 +212,7 @@
     "./population/respawn": "./population/respawn.ts",
     "./population/returnProgram": "./population/returnProgram.ts",
     "./population/pageReturns": "./population/pageReturns.ts",
+    "./population/groupSpecies": "./population/groupSpecies.ts",
     "./population/pageGroups": "./population/pageGroups.ts",
     "./population/actors": "./population/actors.ts",
     "./population/roster": "./population/roster.ts",
