@@ -1,3 +1,5 @@
+import { runtimeAudio } from '../plugin/audio';
+import type { ShardProduct } from '../shardfile/shardProduct';
 import { Vector3 } from 'three';
 import { parse } from 'valibot';
 import { unzlibSync } from 'fflate';
@@ -95,4 +97,19 @@ export class AudioSceneDirector {
   this.chorusT-=dt;
   if(this.chorusT<=0){const row=this.rows.chorus;this.chorusT=this.value(row.active)!==0?row.wait[0]+audioRandom()*(row.wait[1]-row.wait[0]):row.idle;if(this.value(row.when)!==0){const angle=audioRandom()*Math.PI*2,d=row.distance[0]+audioRandom()*(row.distance[1]-row.distance[0]);this.point.set(p.x+Math.cos(angle)*d,p.y+row.up,p.z+Math.sin(angle)*d);a.animal(row.call,this.point,p,this.player.yaw);}}
  }
+}
+
+
+const enteredScenes=new WeakMap<Scope,WeakMap<ShardProduct,AudioSceneDirector>>();
+/** Z1 installs one declared director and its signal subscriptions for the entered owner. */
+export function installClientAudioScene(ctx:ShardContext):void{
+ const world=ctx.game.runtime?.world;if(world===undefined||world===null||ctx.scope.disposed)throw new Error('Audio scene requires an entered world');
+ let products=enteredScenes.get(ctx.scope);if(products===undefined){products=new WeakMap();enteredScenes.set(ctx.scope,products);}
+ if(products.has(ctx.product))throw new Error('Audio scene is already installed');
+ const scene=new AudioSceneDirector(runtimeAudio(ctx,ctx.product.shardfile.audio),world.player);scene.listen(ctx);products.set(ctx.product,scene);
+ const installed=products;ctx.scope.onDispose(()=>{installed.delete(ctx.product);});
+}
+/** Native bindings borrow the installed audio scene and supply their numeric observations. */
+export function clientAudioScene(ctx:ShardContext):AudioSceneDirector{
+ const scene=enteredScenes.get(ctx.scope)?.get(ctx.product);if(scene===undefined||ctx.scope.disposed)throw new Error('Audio scene is not installed');return scene;
 }
