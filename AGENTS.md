@@ -15,7 +15,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - **Taste is his call**: a stylistic change keeps the old look as a Debug variant and goes to him as a variant sheet.
   Each shard keeps its own style (Driftwood low-poly toon, Nalati painterly, Pine Hollow photoreal PBR).
 - **Fun levels, not dioramas; no screenshot cheats.** Everything playable is real 3D that survives a walk-around.
-- **Render scale stays 2× on the phone** (no dynamic resolution). Memory limits: **1.8 GB loading, 1.0 GB Explorer** (lifted to **1.2 GB** until the end of SHARD-PLATFORM, then back to 1.0: Jake, 2026-10-15, G433);
+- **Render scale stays 2× on the phone** (no dynamic resolution). Memory limits: **1.8 GB loading, 1.2 GB Explorer** (Jake, 2026-10-20, G534: 1.2 GB stays; replaces G433's return to 1.0);
   a `gpuMB` ceiling is a ratchet, not the limit, and nothing trips below 500 MB.
 - **North and South America only: never raise a territory licence caveat.** Hunyuan3D is as allowed as TRELLIS.2.
   Only non-commercial / research-only terms matter, and only for shipped assets (fine for mockups).
