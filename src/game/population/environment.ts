@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { PopulationEnvironmentSchema, PopulationFieldSchema, type PopulationEnvironmentRows } from '@wildshard/format/populationEnvironment';
+import { PopulationEnvironmentSchema, PopulationFieldSchema, streamProjection, streamSurface, type PopulationEnvironmentRows } from '@wildshard/format/populationEnvironment';
 import { unzlibSync } from 'fflate';
 import { GrassField } from '../systems/looks/grassField';
 import { TrampleField } from '../systems/looks/trample';
@@ -23,20 +23,8 @@ export function populationEnvironment(host: SimHost, id: string): NativePopulati
 
 type Stream = NonNullable<PopulationEnvironmentRows['stream']>;
 function surface(stream: Stream, x: number, z: number): number | null {
-  let distance = Infinity, along = 0;
-  for (const row of stream.lines) {
-    const t = row.l2 > 0 ? Math.min(1, Math.max(0, ((x-row.x)*row.vx+(z-row.z)*row.vz)/row.l2)) : 0;
-    const d = Math.hypot(x-row.x-row.vx*t,z-row.z-row.vz*t);
-    if (d < distance) { distance = d; along = row.arc+t*row.length; }
-  }
-  if (distance > stream.halfWidth) return null;
-  const values = stream.bands.find(row => row.inclusive ? along <= row.until : along < row.until)?.values ?? stream.last;
-  let result = -Infinity;
-  for (const value of values) {
-    const row = value.profile.pieces.find(piece => along <= piece.until)?.line ?? value.profile.last;
-    result = Math.max(result, row.from+(row.to-row.from)*((along-row.start-row.offset)/row.span)+value.add);
-  }
-  return result;
+  const point = streamProjection(stream.lines, x, z);
+  return point.d > stream.halfWidth ? null : streamSurface(stream, point.s);
 }
 
 /** Install exact ground, ordered trunk and projected-water observations from data.

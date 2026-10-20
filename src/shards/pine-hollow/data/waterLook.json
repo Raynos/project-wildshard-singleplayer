@@ -14,7 +14,21 @@
     "pool": {
       "look": "pine-water-creek",
       "name": "beaver-pool",
-      "renderOrder": 5
+      "renderOrder": 5,
+      "transition": {
+        "full": -3,
+        "lowered": -3.68,
+        "seconds": 8,
+        "exponent": 2,
+        "depth": "aWater",
+        "film": -0.34,
+        "lift": 0.05,
+        "bank": -0.45,
+        "reveal": [
+          0.45,
+          0.9
+        ]
+      }
     },
     "trickle": {
       "look": "pine-water-trickle",

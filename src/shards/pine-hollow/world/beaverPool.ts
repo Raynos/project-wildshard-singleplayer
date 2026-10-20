@@ -1,102 +1,35 @@
-/**
- * Pine Hollow's beaver pool (E322 F-L6, Jake's pick "Local pool"): the dam's own small pool on the creek between the
- * gravel riffle at the pond's outlet and the dam (its bowl: BEAVER_POOL in src/shards/pine-hollow/data/layout.generated.ts, carved by the
- * chunk's landscape). Full, it stands at the pond's level; when the sluice opens (`open:dam-sluice`) it drains over
- * DRAIN_S to a muddy bed and the pond's outflow runs on as a trickle down the bed and out through the sluice.
- *
- *   const pool = await new BeaverPool(sky).build(); scene.add(pool.group);
- *   pool.setOpen(flags.has('open:dam-sluice'), true);    // a reload with the sluice open starts drained
- *   flags.onChange((f, on) => { if (f === 'open:dam-sluice') pool.setOpen(on); });
- *   game.onUpdate((dt) => { pool.update(dt); });
- *
- * Two draws in the creek's water (waterSurface.ts, as PineStreams draws it):
- *   · `still`: the pool's surface, laid on the pond surface's own grid (Water.ts `pondGrid`) over exactly the cells the
- *     pond leaves out (`ShardManifest.pondClip`), so full, the two read as one sheet over the riffle. While it drains each
- *     vertex is re-laid at the new level; the bed it uncovers keeps a glossy wet film (the shader's wet line), the mud.
- *   · `trickle`: a narrow running ribbon down the bed's channel, riffle to sluice, fading in as the pool goes.
- * The level also drives the creek's `streamAt` (`beaverPoolLevel`), so wading and the animals' dry test follow it; the
- * bed is the terrain itself, so the drained pool is walked on like any ground (the heightfield collider).
- */
+/** The admitted pool and trickle use the shared water-surface projection. */
 import * as THREE from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineWaterSurface, setWaterFade } from './water';
+import type { WaterSurface } from '@wildshard/game/systems/looks/waterSurface';
+import { drawPineWater, pineWaterSurface, setWaterFade } from './water';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { smoothstep } from '@wildshard/engine/core/noise';
 import { loadSiteTimbers } from '../runtime/world/timberSites';
 import { pineModels } from '../runtime/world/context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 
-/** seconds from the sluice lifting to the muddy bed */
-export const DRAIN_S = 8;
-/** the wet film's depth code on the uncovered bed (waterSurface.ts: the wet line peaks between −0.12 and −0.4) */
-const MUD_FILM = -0.34;
-
 export class BeaverPool {
   readonly group = new THREE.Group();
-  /** the pool's still surface */
-  still!: THREE.Mesh;
-  /** the trickle down the drained bed */
-  trickle!: THREE.Mesh;
-  /** 0 full … 1 drained */
-  private t = 0;
-  private open = false;
-  private ground = new Float32Array(0);
-
-  constructor(private sky: Sky) {}
-
+  private surface: WaterSurface | undefined;
+  private flow: THREE.Mesh | undefined;
+  constructor(private readonly sky: Sky) {}
   async build(): Promise<this> {
     const views = await loadSiteTimbers(pineModels(this.sky));
     const still = views.get('pine-pool-still'), trickle = views.get('pine-pool-trickle');
     if (still === undefined || trickle === undefined) throw new Error('[pool] admitted water draws missing');
-    this.still = this.buildStill(still.geometry.clone());
-    this.trickle = pineWaterSurface('trickle', trickle.geometry.clone()); // the channel's line under the dam, a few cm over the bed (baked)
-    this.group.add(this.still, this.trickle);
-    this.group.name = 'beaver-pool';
-    this.apply();
-    return this;
+    this.surface = drawPineWater('pool', still.geometry.clone(), authored.poolGround);
+    this.flow = pineWaterSurface('trickle', trickle.geometry.clone());
+    this.group.add(this.surface.mesh, this.flow); this.group.name = 'beaver-pool';
+    this.publish(); return this;
   }
-
-  /** the sluice is open (the pool drains, over DRAIN_S unless `instant`) or shut (it stands full) */
-  setOpen(open: boolean, instant = false): void {
-    this.open = open;
-    if (instant) { this.t = open ? 1 : 0; this.apply(); }
-  }
-
-  /** the pool's level now (m) */
-  get level(): number { return LAYOUT.beaverPoolLevel.y; }
-
-  update(dt: number): void {
-    const goal = this.open ? 1 : 0;
-    if (this.t === goal) return;
-    this.t = goal > this.t ? Math.min(1, this.t + dt / DRAIN_S) : Math.max(0, this.t - dt / DRAIN_S);
-    this.apply();
-  }
-
-  /** lay the surface at the level `t` gives: fast at first, slowing as the head falls (an orifice drains as √head) */
-  private apply(): void {
-    const P = LAYOUT.BEAVER_POOL, e = 1 - (1 - this.t) ** 2;
-    const level = P.full + (P.drained - P.full) * e;
-    LAYOUT.beaverPoolLevel.y = level;
-    const geo = this.still.geometry;
-    const pos = geo.getAttribute('position'), aw = geo.getAttribute('aWater');
-    for (let k = 0; k < pos.count; k++) {
-      const h = this.ground[k] ?? 0, d = level - h;
-      let y = level, code = d;
-      if (d < 0) {
-        if (h < P.full) { y = h + 0.05; code = Math.max(d, MUD_FILM); }   // the bed the water left: wet mud
-        else if (d > -0.45) y = h + 0.05;                                   // the bank just over the full line: the wet line
-      }
-      pos.setY(k, y); aw.setX(k, code);
-    }
-    pos.needsUpdate = true; aw.needsUpdate = true;
-    const fade = smoothstep(0.45, 0.9, this.t);
-    setWaterFade('trickle', fade);
-    this.trickle.visible = fade > 0.001;
-  }
-
-  /** the pool's still surface on the pond surface's grid (baked: the cells in the pool's reach, not always above its water) */
-  private buildStill(geo: THREE.BufferGeometry): THREE.Mesh {
-    this.ground = Float32Array.from(authored.poolGround);
-    return pineWaterSurface('pool', geo); // with the pond
+  get still(): THREE.Mesh { return this.ready().mesh; }
+  get trickle(): THREE.Mesh { if (this.flow === undefined) throw new Error('Pool is not built'); return this.flow; }
+  get level(): number { return this.ready().level; }
+  setOpen(open: boolean, instant = false): void { this.ready().setLowered(open, instant); if (instant) this.publish(); }
+  update(dt: number): void { this.ready().update(dt); this.publish(); }
+  private ready(): WaterSurface { if (this.surface === undefined) throw new Error('Pool is not built'); return this.surface; }
+  private publish(): void {
+    const surface = this.ready(); LAYOUT.beaverPoolLevel.y = surface.level;
+    setWaterFade('trickle', surface.reveal); this.trickle.visible = surface.reveal > 0.001;
   }
 }

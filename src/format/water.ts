@@ -37,6 +37,13 @@ export type ShardWater = v.InferOutput<typeof WaterSchema>;
 
 const param = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
 const literal = v.union([v.number(), v.pipe(v.array(v.number()), v.minLength(2), v.maxLength(4))]);
+const finite = v.pipe(v.number(), v.finite());
+/** A lowered surface retains a wet film on its admitted bed; reveal follows its normalized travel. */
+const transition = v.strictObject({ full: finite, lowered: finite,
+  seconds: v.pipe(finite, v.minValue(Number.MIN_VALUE)), exponent: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
+  depth: param, film: finite, lift: finite, bank: finite,
+  reveal: v.tuple([finite, finite]),
+});
 /**
  * A drawn water surface on a look.materials graph (G466 H7, `@wildshard/sdk/looks/waterSurface`): which graph it wears,
  * how it draws, the graph params the host feeds (`bind`: the wave clock, the open water's half-extent, the chunk's half), its static params, an optional baked floor texture (R = floor height; G = the foam
@@ -51,10 +58,15 @@ export const WaterSurfaceSchema = v.strictObject({
   waves: v.optional(v.boolean(), false),
   bind: v.optional(v.strictObject({ clock: v.optional(param), waterHalf: v.optional(param), chunkHalf: v.optional(param) }), {}),
   params: v.optional(v.record(param, literal), {}),
+  transition: v.exactOptional(transition),
   floor: v.optional(v.strictObject({ texture: param, res: v.pipe(v.number(), v.integer(), v.minValue(16), v.maxValue(2048)), foamReach: v.pipe(v.number(), v.minValue(0.1), v.maxValue(32)), foamBand: v.pipe(v.number(), v.minValue(0), v.maxValue(8)) })),
   dry: v.optional(v.strictObject({ prefix: param, slots: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8)), none: v.tuple([v.number(), v.number(), v.number(), v.number()]) })),
 });
 /** A validated water-surface row. */
 export type WaterSurfaceRow = v.InferOutput<typeof WaterSurfaceSchema>;
 /** Validate a water-surface row. */
-export function parseWaterSurface(input: unknown): WaterSurfaceRow { return v.parse(WaterSurfaceSchema, input); }
+export function parseWaterSurface(input: unknown): WaterSurfaceRow {
+  const row = v.parse(WaterSurfaceSchema, input), band = row.transition?.reveal;
+  if (band !== undefined && band[0] >= band[1]) throw new Error('Ordered water reveal band required');
+  return row;
+}

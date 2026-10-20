@@ -18,6 +18,7 @@ import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { parseWaterSurface, type WaterSurfaceRow } from '@wildshard/format/water';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { waveClock, waterExtent } from '@wildshard/engine/world/waves';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 /** a surface's compiled graph: its material and, for a row that feeds params or a floor, its writers */
 export interface WaterSurfaceLook {
@@ -32,6 +33,8 @@ export interface WaterColliderBox { x: number; z: number; hw: number; hd: number
 /** what one draw adds to the row: its level (mesh y), the baked floor heights (half-float bits, `res`²), dry rects,
  *  params known only at run time, and lent uniforms by param name */
 export interface WaterSurfaceDraw {
+  /** Per-vertex bed heights for a row that lowers its surface. */
+  readonly ground?: readonly number[];
   readonly level?: number;
   readonly floor?: Uint16Array;
   readonly dry?: readonly WaterDryRect[];
@@ -57,6 +60,11 @@ export class WaterSurface {
   private lent: Readonly<Record<string, { readonly value: number }>> = {};
   private floorData: Uint16Array | null = null;
   private floorTex: THREE.DataTexture | null = null;
+  private ground = new Float32Array(0);
+  private travel = 0;
+  private lowered = false;
+  /** Reveal of a companion draw, from the transition row's normalized travel band. */
+  get reveal(): number { const band = this.row.transition?.reveal; return band === undefined ? 0 : smoothstep(band[0], band[1], this.travel); }
 
   private readonly look: WaterSurfaceLook;
   constructor(row: unknown, look: WaterSurfaceLook) { this.row = parseWaterSurface(row); this.look = look; }
@@ -70,6 +78,9 @@ export class WaterSurface {
   /** Draw `geometry` in the look with this draw's level, floor, dry rects, params and lent uniforms. */
   draw(geometry: THREE.BufferGeometry, at: WaterSurfaceDraw = {}): this {
     const row = this.row, param = (name: string, value: GraphLiteral): void => { this.writer('param')(name, value); };
+    if (row.transition !== undefined && (at.ground?.length !== geometry.getAttribute('position').count
+      || !at.ground.every(Number.isFinite) || !geometry.hasAttribute(row.transition.depth))) throw new Error('Water transition requires matching bed and depth channels');
+    this.ground = Float32Array.from(at.ground ?? []);
     this.level = at.level ?? 0; this.lent = at.lent ?? {};
     for (const [name, value] of Object.entries(row.params)) param(name, value);
     for (const [name, value] of Object.entries(at.params ?? {})) param(name, value);
@@ -87,7 +98,34 @@ export class WaterSurface {
     mesh.name = row.name; mesh.position.y = this.level; mesh.receiveShadow = true; mesh.castShadow = false;
     mesh.frustumCulled = row.culled; mesh.renderOrder = row.renderOrder;
     this.group.add(mesh);
+    this.applyLevel();
     return this;
+  }
+
+  /** Select the row's full or lowered level; saved state can settle immediately. */
+  setLowered(lowered: boolean, instant = false): void {
+    if (this.row.transition === undefined) throw new Error('Water surface has no level transition');
+    this.lowered = lowered;
+    if (instant) { this.travel = lowered ? 1 : 0; this.applyLevel(); }
+  }
+
+  private applyLevel(): void {
+    const row = this.row.transition;
+    if (row === undefined) return;
+    const eased = 1 - (1 - this.travel) ** row.exponent;
+    this.level = row.full + (row.lowered - row.full) * eased;
+    const geometry = this.mesh.geometry, position = geometry.getAttribute('position'), depth = geometry.getAttribute(row.depth);
+    for (let i = 0; i < position.count; i++) {
+      const h = this.ground[i]; if (h === undefined) throw new Error('Missing admitted water bed');
+      const d = this.level - h;
+      let y = this.level, code = d;
+      if (d < 0) {
+        if (h < row.full) { y = h + row.lift; code = Math.max(d, row.film); }
+        else if (d > row.bank) y = h + row.lift;
+      }
+      position.setY(i, y); depth.setX(i, code);
+    }
+    position.needsUpdate = true; depth.needsUpdate = true;
   }
 
   /**
@@ -118,6 +156,11 @@ export class WaterSurface {
   /** the bound params: the clock (and the engine's wave clock, `waves`), the open water's half-extent, the lent uniforms */
   update(dt: number): void {
     this.time += dt;
+    const transition = this.row.transition, goal = this.lowered ? 1 : 0;
+    if (transition !== undefined && this.travel !== goal) {
+      this.travel = goal > this.travel ? Math.min(1, this.travel + dt / transition.seconds) : Math.max(0, this.travel - dt / transition.seconds);
+      this.applyLevel();
+    }
     if (this.row.waves) waveClock.t = this.time;
     this.step();
   }

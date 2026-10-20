@@ -23,16 +23,26 @@ export function pineGeography() {
     lines.push({ x: a[0], z: a[1], vx, vz, l2, length, arc }); arc += length;
   }
   const { dam, end } = creekSpan(), p = LAYOUT.BEAVER_POOL, b = LAYOUT.CREEK_BED;
-  const span = (until, start, offset, size, from, to) => ({ until, start, offset, span: size, from, to });
-  const run = span(end, dam, 3, end - dam - 3, b.afterDam, b.edge);
+  const segment = (until, start, offset, size, from, to) => ({ until, start, offset, span: size, from, to });
+  const run = segment(end, dam, 3, end - dam - 3, b.afterDam, b.edge);
   const { lead, crest, depth, halfWidth } = LAYOUT.CREEK_WATER;
-  return { forest, creek: { lines, dam, riffle: p.riffle, lead, crest, depth, halfWidth, run, bed: [
-    span(p.riffle - 4, 0, 0, 1, b.outlet, b.outlet),
-    span(p.riffle, p.riffle, -4, 4, b.outlet, p.crest),
-    span(p.riffle + p.slope, p.riffle, 0, p.slope, p.crest, p.bed),
-    span(dam, p.riffle + p.slope, 0, dam - (p.riffle + p.slope), p.bed, b.sill),
-    span(dam + 3, dam, 0, 3, b.sill, b.afterDam),
-  ] } };
+  const bed = [
+    segment(p.riffle - 4, 0, 0, 1, b.outlet, b.outlet),
+    segment(p.riffle, p.riffle, -4, 4, b.outlet, p.crest),
+    segment(p.riffle + p.slope, p.riffle, 0, p.slope, p.crest, p.bed),
+    segment(dam, p.riffle + p.slope, 0, dam - (p.riffle + p.slope), p.bed, b.sill),
+    segment(dam + 3, dam, 0, 3, b.sill, b.afterDam),
+  ];
+  const line = ({ from, to, start, offset, span }) => ({ from, to, start, offset, span });
+  const bedProfile = { pieces: bed.map(row => ({ until: row.until, line: line(row) })), last: line(run) };
+  const constant = height => ({ pieces: [], last: { from: height, to: height, start: 0, offset: 0, span: 1 } });
+  const value = (profile, add = 0) => ({ profile, add });
+  const stream = { lines, halfWidth, bands: [
+    { until: p.riffle, inclusive: false, values: [value(constant(LAYOUT.POND.level))] },
+    { until: dam-lead, inclusive: false, values: [{ ...value(constant(p.full)), level: 'pool' }, value(bedProfile, .05)] },
+    { until: dam, inclusive: true, values: [value(bedProfile, crest)] },
+  ], last: [value(bedProfile, crest), value({ pieces: [], last: line(run) }, depth)] };
+  return { forest, stream, creek: { lines, dam, riffle: p.riffle, lead, crest, depth, halfWidth, run, bed } };
 }
 
 if (import.meta.main) {

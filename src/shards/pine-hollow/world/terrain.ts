@@ -5,6 +5,7 @@ import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainFie
 import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import geography from '../data/geography.generated.json' with { type: 'json' };
+import { streamProjection, streamSurface } from '@wildshard/format/populationEnvironment';
 
 type Vec2 = [number, number];
 // Preserve the authored shared road aliases.
@@ -18,28 +19,9 @@ function forestAt(x: number, z: number) {
   return row;
 }
 /** Projection retains the native operation order over baked segment spans. */
-function creekAt(x: number, z: number): { d: number; s: number } {
-  let d = Infinity, s = 0;
-  for (const row of geography.creek.lines) {
-    const t = row.l2 > 0 ? Math.min(1, Math.max(0, ((x-row.x)*row.vx+(z-row.z)*row.vz)/row.l2)) : 0;
-    const distance = Math.hypot(x-row.x-row.vx*t,z-row.z-row.vz*t);
-    if (distance < d) { d = distance; s = row.arc+t*row.length; }
-  }
-  return { d, s };
-}
-function creekBedAt(s: number): number {
-  const row = geography.creek.bed.find(segment => s <= segment.until) ?? geography.creek.run;
-  return row.from+(row.to-row.from)*((s-row.start-row.offset)/row.span);
-}
+const creekAt = (x: number, z: number) => streamProjection(geography.creek.lines, x, z);
 /** The live pool level remains independent of the baked bed. */
-export function creekSurfaceAt(s: number): number {
-  const c = geography.creek;
-  if (s < c.riffle) return LAYOUT.POND.level;
-  if (s < c.dam-c.lead) return Math.max(LAYOUT.beaverPoolLevel.y,creekBedAt(s)+0.05);
-  if (s <= c.dam) return creekBedAt(s)+c.crest;
-  const r = c.run, run = r.from+(r.to-r.from)*((s-r.start-r.offset)/r.span)+c.depth;
-  return Math.max(creekBedAt(s)+c.crest,run);
-}
+export function creekSurfaceAt(s: number): number { return streamSurface(geography.stream, s, { pool: LAYOUT.beaverPoolLevel.y }); }
 /** Exact complementary pond-cell test, including the strict distance edge. */
 export function inBeaverPool(x: number, z: number): boolean {
   const n = creekAt(x,z), c = geography.creek;
