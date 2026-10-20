@@ -1,3 +1,20 @@
+import { NumericPoseSchema } from '@wildshard/game/plugin/channelPrograms';
+import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
+import { SpawnScriptRowSchema } from '@wildshard/format/spawnScripts';
+import { ExchangeSchema } from '@wildshard/format/exchange';
+import { ContractCatalogueSchema } from '@wildshard/format/contracts';
+import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
+import { PopulationShelterSchema } from '@wildshard/format/herdShelter';
+import { PanelDefinitionSchema } from '@wildshard/format/panelTemplate';
+import { HeldFinishesSchema } from '@wildshard/format/heldFinishes';
+import { FigureCatalogueSchema } from '@wildshard/format/figures';
+import { QuestStorySchema } from '@wildshard/format/questStory';
+import { WeatherProgramSchema } from '@wildshard/format/weatherProgram';
+import { NativePopulationRowsSchema } from '@wildshard/format/populationRoster';
+import { ChapterDirectorSchema } from '@wildshard/format/chapterDirector';
+import { EliteFeatureSchema } from '@wildshard/format/eliteFeature';
+import { CoverAppearanceSchema } from '@wildshard/format/coverAppearance';
+import { PageLifeSchema } from '@wildshard/format/pageLife';
 import { InputActionSchema, InputKeysSchema } from '@wildshard/format/inputDeclarations';
 import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/format/limbRig';
@@ -8,11 +25,11 @@ import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, Sp
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
-import type { GenericSchema } from 'valibot';
+import { finite, type GenericSchema } from 'valibot';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { PlumbingSchema } from '@wildshard/format/plumbing';
 import { StateSchema } from '@wildshard/format/state';
-import { QuestStepRowsSchema } from '@wildshard/format/questSteps';
+import { QuestStepRowsSchema, QuestServiceActionsSchema, QuestKillRowsSchema, QuestHintRowsSchema } from '@wildshard/format/questSteps';
 import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
 import { BakedBuildingLookSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
 import { WorldSceneWeldSchema } from '@wildshard/format/worldSceneWeld';
@@ -52,7 +69,7 @@ import { ItemsSchema, ItemFamilyNameSchema } from '@wildshard/format/items';
 import { TargetsSchema } from '@wildshard/format/targets';
 import { QuestDataSchema } from '@wildshard/format/quests';
 import { QuestGraphSchema } from '@wildshard/format/questGraph';
-import { InteractionRowsSchema } from '@wildshard/format/questInteractions';
+import { InteractionRowsSchema, QuestPageInteractionsSchema } from '@wildshard/format/questInteractions';
 import { QuestHostSchema } from '@wildshard/format/questHost';
 
 import { RowsSchema } from '@wildshard/format/rows';
@@ -128,6 +145,26 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots = {
+  'questInteractions.QuestPageInteractions': QuestPageInteractionsSchema,
+  'cueDirector.CueDirectorWire': CueDirectorWireSchema,
+  'questSteps.QuestHintRows': QuestHintRowsSchema,
+  'questSteps.QuestKillRows': QuestKillRowsSchema,
+  'questSteps.QuestServiceActions': QuestServiceActionsSchema,
+  'spawnScripts.SpawnScriptRow': SpawnScriptRowSchema,
+  'exchange.Exchange': ExchangeSchema,
+  'contracts.ContractCatalogue': ContractCatalogueSchema,
+  'achievementCounters.AchievementCounterData': AchievementCounterDataSchema,
+  'herdShelter.PopulationShelter': PopulationShelterSchema,
+  'panelTemplate.PanelDefinition': PanelDefinitionSchema,
+  'heldFinishes.HeldFinishes': HeldFinishesSchema,
+  'figures.FigureCatalogue': FigureCatalogueSchema,
+  'questStory.QuestStory': QuestStorySchema,
+  'weatherProgram.WeatherProgram': WeatherProgramSchema,
+  'populationRoster.NativePopulationRows': NativePopulationRowsSchema,
+  'chapterDirector.ChapterDirector': ChapterDirectorSchema,
+  'eliteFeature.EliteFeature': EliteFeatureSchema,
+  'coverAppearance.CoverAppearance': CoverAppearanceSchema,
+  'pageLife.PageLife': PageLifeSchema,
   'worldSceneWeld.WorldSceneWeld': WorldSceneWeldSchema,
   'worldSceneModels.WorldSceneModels': WorldSceneModelsSchema,
   'worldScenePlacement.WorldScenePlacement': WorldScenePlacementSchema,
@@ -286,6 +323,13 @@ function rememberActions(value: unknown, path: string, seen: WeakSet<object>): v
   if (typeof value !== 'object' || value === null || seen.has(value)) return;
   seen.add(value);
   const kind: unknown = Reflect.get(value, 'kind'), type: unknown = Reflect.get(value, 'type');
+  if (kind === 'schema' && type === 'lazy') {
+    const getter: unknown = Reflect.get(value, 'getter');
+    if (typeof getter === 'function') {
+      const nested: unknown = Reflect.apply(getter, undefined, [undefined]);
+      rememberActions(nested, `${path}.wrapped`, seen);
+    }
+  }
   if (kind === 'validation') {
     if (type === 'check' && !wireChecks.has(value)) wireChecks.set(value, path);
     else if (type === 'finite') wireFinite.add(value);
@@ -300,6 +344,7 @@ for (const [key, schema] of Object.entries(wireRoots)) {
   const module = key.slice(0, key.indexOf('.')), binding = key.slice(key.indexOf('.') + 1);
   rememberActions(schema, `@wildshard/format/${module}#${binding}Schema`, new WeakSet());
 }
+rememberActions(NumericPoseSchema, '@wildshard/game/plugin/channelPrograms#NumericPoseSchema', new WeakSet());
 // A composed quest host shares this exact check object; its nested path must not rename the defining public check.
 wireChecks.set(DirectorStagesSchema.pipe[1], '@wildshard/format/directorStages#DirectorStagesSchema.pipe.1');
 
@@ -343,7 +388,7 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
         return { ...jsonSchema, 'x-wildshard-checks': [...before, check] } satisfies FormatJsonSchema;
       }
       // JSON numbers cannot contain NaN or infinity. The existing ASCII regexes only use the Unicode flag.
-      if (finiteNumbers.has(valibotAction) || unicodeRegexes.has(valibotAction) || wireFinite.has(valibotAction) || wireRegexes.has(valibotAction)) return jsonSchema;
+      if (valibotAction.reference === finite || finiteNumbers.has(valibotAction) || unicodeRegexes.has(valibotAction) || wireFinite.has(valibotAction) || wireRegexes.has(valibotAction)) return jsonSchema;
       if (errors === undefined && jsonSchema.type === 'string' &&
           (valibotAction.type === 'min_length' || valibotAction.type === 'max_length')) {
         return { ...jsonSchema, 'x-wildshard-string-length': 'utf16-code-units' } satisfies FormatJsonSchema;
@@ -353,24 +398,25 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
   });
 }
 
-const namedSchemas = new WeakMap<GenericSchema, JsonSchema>();
+const namedSchemas = new WeakMap<GenericSchema, Readonly<Record<string, unknown>>>();
 /** Build-only draft-07 structure for a named JSON producer's defining schema.
  * Like the custom-section bridge, omit documentation annotations that Ajv does
  * not implement; the producer and defining reader retain semantic admission.
  * Unknown checks and transforms still refuse conversion. Never infer from data. */
-export function namedJsonSchema(schema: GenericSchema): JsonSchema {
+export function namedJsonSchema(schema: GenericSchema): Readonly<Record<string, unknown>> {
   const previous = namedSchemas.get(schema);
   if (previous !== undefined) return previous;
   const structural = (value: unknown): unknown => {
+    if (typeof value === 'string' && value.startsWith('#/$defs/')) return value.replace('#/$defs/', '#/definitions/');
     if (Array.isArray(value)) return value.map(structural);
     if (typeof value !== 'object' || value === null) return value;
     return Object.fromEntries(Object.entries(value)
       .filter(([key]) => key !== 'x-wildshard-checks' && key !== 'x-wildshard-string-length')
-      .map(([key, child]) => [key, structural(child)]));
+      .map(([key, child]) => [key === '$defs' ? 'definitions' : key, structural(child)]));
   };
   const wire = structural(formatJsonSchema(schema, 'draft-07'));
   if (typeof wire !== 'object' || wire === null || Array.isArray(wire)) throw new Error('Named JSON requires a defining object schema');
-  const result: JsonSchema = wire;
+  const result: Readonly<Record<string, unknown>> = Object.fromEntries(Object.entries(wire));
   namedSchemas.set(schema, result);
   return result;
 }

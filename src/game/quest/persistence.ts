@@ -14,7 +14,7 @@ const names = v.record(v.string(), v.string());
 const cosmetics = v.object({ owned: v.array(v.string()), worn: names });
 const key = v.pipe(v.string(), v.minLength(1));
 const recordRow = v.strictObject({ key, flagPrefix: v.exactOptional(key) });
-const Rows = v.strictObject({
+export const AdventurePersistenceSchema = v.strictObject({
   bosses: recordRow, elites: recordRow, nonnegative: v.boolean(),
   legacyNamespace: v.picklist(['content', 'instance']), refuseWrites: v.boolean(),
   names: v.exactOptional(key), cosmetics: v.exactOptional(recordRow),
@@ -48,7 +48,7 @@ export interface AdventurePersistence {
 
 /** Read this product's admitted saved-record policy before binding its native owners. */
 export async function readAdventurePersistence(ctx: Pick<ShardContext, 'product'>): Promise<unknown> {
-  return v.parse(Rows, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/persistence.json'))));
+  return v.parse(AdventurePersistenceSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/persistence.json'))));
 }
 
 /** Bind declared encounter, companion and achievement records over the original
@@ -56,7 +56,7 @@ export async function readAdventurePersistence(ctx: Pick<ShardContext, 'product'
  * stable fact identities, flag projections and checkpoint boundaries. */
 export function bindAdventurePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
   input: unknown, instance = source.identity.slug, legacy: AdventureLegacy = {}): AdventurePersistence {
-  const rows = v.parse(Rows, input), flags = new Flags(instance);
+  const rows = v.parse(AdventurePersistenceSchema, input), flags = new Flags(instance);
   const legacyInstance = rows.legacyNamespace === 'instance' ? instance : source.identity.slug;
   const facts = projectRuntimeFacts(bindRuntimeLedger(ctx, source, instance), undefined);
   const number = rows.nonnegative ? natural : finite;

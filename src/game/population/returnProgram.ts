@@ -9,7 +9,7 @@ import * as v from 'valibot';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { sha256 } from '../plugin/brain';
 
-const Program = v.strictObject({ script: v.unknown(), bytes: v.string() });
+export const ReturnProgramSchema = v.strictObject({ script: v.unknown(), bytes: v.string() });
 const scoped = new WeakMap<Scope, Map<string, { declaration: string; program: ReturnProgram }>>();
 
 /** Event-only, stateless v1 projections. The caller retains its queue, phase and
@@ -24,7 +24,7 @@ export class ReturnProgram {
   private random: Rng | undefined;
   private active = false;
   private constructor(input: unknown, private readonly floor: (x: number, z: number) => number) {
-    const row = v.parse(Program, input), script = parseDecisionScripts([row.script])[0];
+    const row = v.parse(ReturnProgramSchema, input), script = parseDecisionScripts([row.script])[0];
     if (script?.side !== 'sim' || script.state.length > 0 || script.tick !== null
       || script.timers.length > 0 || script.on.length !== 1 || script.on[0] !== 'signal'
       || script.commands.some(command => command !== 'channel')
@@ -58,7 +58,7 @@ export class ReturnProgram {
   }
   private static owned(owner: Scope, input: unknown, floor: (x: number, z: number) => number): ReturnProgram {
     if (owner.disposed) throw new Error('Return owner disposed');
-    const row = v.parse(Program, input), script = parseDecisionScripts([row.script])[0];
+    const row = v.parse(ReturnProgramSchema, input), script = parseDecisionScripts([row.script])[0];
     if (script === undefined) throw new Error('Missing return script');
     const { sourceHash: _sourceHash, ...executable } = script;
     // Alias identity follows sorted names; wire object property order is immaterial.

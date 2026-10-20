@@ -16,6 +16,19 @@ import { lentLook, setLentParam, setLentTexture } from './lentLooks';
  * Pine uses two channels, Nalati's flock uses one `iAnim` channel (G441 W3).
  */
 
+const number = v.pipe(v.number(), v.finite()), text = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
+const posedLaneSchema = v.union([number, text, v.strictObject({ any: v.pipe(v.array(v.strictObject({ field: text, op: v.picklist(['gt', 'lt']), value: number })), v.minLength(1), v.maxLength(8)), yes: number, no: number })]);
+const posedChannelSchema = v.tuple([posedLaneSchema, posedLaneSchema, posedLaneSchema, posedLaneSchema]);
+const tierFiles = v.strictObject({ geometry: text, atlas: text });
+
+export const PosedLibrarySchema = v.strictObject({ name: text, glow: v.optional(text), atlas: text, attributes: v.tuple([text, text]), channels: v.tuple([posedChannelSchema, posedChannelSchema]),
+      assets: v.strictObject({ name: text, channels: v.pipe(v.array(v.strictObject({ name: text, source: text, width: v.picklist([1, 2, 3, 4]) })), v.minLength(1), v.maxLength(16)),
+        ranges: v.pipe(v.array(v.strictObject({ kind: number, start: number, count: number, box: v.tuple([number, number, number, number, number, number]) })), v.minLength(1), v.maxLength(32)) }),
+      tiers: v.strictObject({ phone: tierFiles, desktop: tierFiles }),
+      models: v.pipe(v.array(v.strictObject({ id: text, name: text, pipeline: v.picklist(['code', 'hunyuan']), file: text, kind: number, copies: number,
+        box: v.tuple([number, number, number]), pose: v.record(text, number) })), v.minLength(1), v.maxLength(32)),
+    });
+
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 
 /** One instanced mesh of posable packed models (see the module comment). */
@@ -145,17 +158,7 @@ export class PosedDraw {
     return library;
   }
   private static async admitLibrary(product: Pick<ShardProduct, 'file' | 'url'>, name: string, load: typeof posedAssets): Promise<PosedLibrary> {
-    const number = v.pipe(v.number(), v.finite()), text = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
-    const lane = v.union([number, text, v.strictObject({ any: v.pipe(v.array(v.strictObject({ field: text, op: v.picklist(['gt', 'lt']), value: number })), v.minLength(1), v.maxLength(8)), yes: number, no: number })]);
-    const channel = v.tuple([lane, lane, lane, lane]);
-    const tierFiles = v.strictObject({ geometry: text, atlas: text });
-    const row = v.parse(v.strictObject({ name: text, glow: v.optional(text), atlas: text, attributes: v.tuple([text, text]), channels: v.tuple([channel, channel]),
-      assets: v.strictObject({ name: text, channels: v.pipe(v.array(v.strictObject({ name: text, source: text, width: v.picklist([1, 2, 3, 4]) })), v.minLength(1), v.maxLength(16)),
-        ranges: v.pipe(v.array(v.strictObject({ kind: number, start: number, count: number, box: v.tuple([number, number, number, number, number, number]) })), v.minLength(1), v.maxLength(32)) }),
-      tiers: v.strictObject({ phone: tierFiles, desktop: tierFiles }),
-      models: v.pipe(v.array(v.strictObject({ id: text, name: text, pipeline: v.picklist(['code', 'hunyuan']), file: text, kind: number, copies: number,
-        box: v.tuple([number, number, number]), pose: v.record(text, number) })), v.minLength(1), v.maxLength(32)),
-    }), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file(name))));
+    const row = v.parse(PosedLibrarySchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file(name))));
     let assets: PosedAssetSet | null = null, loading: Promise<void> | null = null;
     const preload = (): Promise<void> => (loading ??= (async () => {
       const files = row.tiers[TIER];

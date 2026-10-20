@@ -5,7 +5,7 @@ import { RespawnQueue } from './respawn';
 import * as v from 'valibot';
 
 const finite = v.pipe(v.number(), v.finite());
-const Rows = v.strictObject({ step: v.string(), water: finite, fixed: v.array(v.string()), program: v.unknown(),
+export const PageReturnRowsSchema = v.strictObject({ step: v.string(), water: finite, fixed: v.array(v.string()), program: v.unknown(),
   outOfSight: v.pipe(finite, v.minValue(0)), rules: v.record(v.string(), v.strictObject({
     delay: v.strictObject({ min: v.pipe(finite, v.minValue(0)), max: v.pipe(finite, v.minValue(0)) }), night: v.exactOptional(v.boolean()) })) });
 
@@ -13,7 +13,7 @@ const Rows = v.strictObject({ step: v.string(), water: finite, fixed: v.array(v.
  * visibility/night eligibility and terrain retry law. The host owns deaths,
  * traversal, herd membership, the named spawn stream and body construction. */
 export function installPageReturns(ctx: ShardContext, input: unknown): RespawnQueue {
-  const rows = v.parse(Rows, input), runtime = ctx.game.runtime, animals = runtime?.play?.animals, world = runtime?.world;
+  const rows = v.parse(PageReturnRowsSchema, input), runtime = ctx.game.runtime, animals = runtime?.play?.animals, world = runtime?.world;
   if (animals === undefined || world === undefined || world === null) throw new Error('Actor returns require the page population');
   const program = ReturnProgram.page(rows.program, ctx.scope);
   const queue = new RespawnQueue(rows.rules, rows.outOfSight, { order: 'reverse', limit: null, result: 'fresh' }, program);

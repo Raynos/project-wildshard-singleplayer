@@ -40,7 +40,7 @@ export function installChannelPrograms(input:unknown,group:string,owners:Readonl
  });
 }
 
-const numericPoseSchema = poseSchema.strictObject({
+export const NumericPoseSchema = poseSchema.strictObject({
   programs: ClientChannelsSchema,
   group: poseSchema.pipe(poseSchema.string(), poseSchema.minLength(1), poseSchema.maxLength(128)),
   states: poseSchema.optional(poseSchema.pipe(poseSchema.array(poseSchema.pipe(poseSchema.string(), poseSchema.maxLength(128))), poseSchema.maxLength(64)), []),
@@ -58,7 +58,7 @@ const numericPoseSchema = poseSchema.strictObject({
 /** Numeric pose rows on existing joints. Each rig lends its frame and transforms to the existing channel evaluator;
  * optional bones are skipped, and no actor memory, clock, random stream or continuation is added. */
 export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => void {
-  const row = poseSchema.parse(numericPoseSchema, input);
+  const row = poseSchema.parse(NumericPoseSchema, input);
   if (new Set(row.scalars.map(scalar => scalar.name)).size !== row.scalars.length
     || row.scalars.some(scalar => [scalar.name, ...scalar.path].some(key => ['constructor', 'prototype', '__proto__'].includes(key)))) throw new Error('Invalid creature pose scalar');
   if (row.programs.length === 0 || row.programs.some(program => {

@@ -139,7 +139,7 @@ export async function prepareEmbeddedDirector(data: unknown, module: { readonly 
 
 const borrowedPath = { owner: v.pipe(v.string(), v.minLength(1), v.maxLength(96)), path: v.pipe(v.array(v.union([v.string(), v.number()])), v.minLength(1), v.maxLength(16)) };
 const argument = v.union([v.string(), v.number(), v.boolean(), v.null()]);
-const directorBindings = v.strictObject({
+export const DirectorBindingsSchema = v.strictObject({
   observations: v.pipe(v.record(v.string(), v.union([v.number(), v.strictObject({ ...borrowedPath,
     args: v.exactOptional(v.pipe(v.array(argument), v.maxLength(16))), present: v.exactOptional(v.boolean()), fallback: v.exactOptional(v.number()),
   })])), v.maxEntries(32)),
@@ -325,7 +325,7 @@ export class DirectorScriptStageLane {
   /** Bind bounded data paths to actual native owners; resolution invokes no actions or requests. */
   static bind(data: unknown, script: DirectorLane, input: unknown, owners: ReadonlyMap<string, unknown>,
     scope: { readonly disposed: boolean; readonly onDispose: (cleanup: () => void) => void }, restoring = false): DirectorScriptStageLane {
-    const rows = v.parse(directorBindings, input);
+    const rows = v.parse(DirectorBindingsSchema, input);
     const observations = Object.entries(rows.observations).map(([key, row]) => {
       if (typeof row === 'number') return [key, () => row] as const;
       const call = row.args === undefined ? null : bindBorrowedMethod(owners, row);

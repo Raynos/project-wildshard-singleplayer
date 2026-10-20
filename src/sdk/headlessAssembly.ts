@@ -21,6 +21,30 @@ const valueList = (value: Value | undefined): value is readonly Value[] => Array
 const safeKey = (key: string): boolean => key.length > 0 && key.length <= 256 && !['__proto__', 'prototype', 'constructor', 'caller', 'callee', 'arguments'].includes(key);
 const operations = new Set(['$ref', '$call', '$new', '$fn', '$set', '$if', '$or', '$coalesce', '$eq', '$not', '$sequence']);
 
+/** Draft-07 wire contract for the trusted assembly language. Constants and
+ * operands are bounded JSON values; tag names and row/module shapes are closed.
+ * checkedHeadlessAssembly additionally checks depth, references and real exports. */
+export const HEADLESS_ASSEMBLY_JSON_SCHEMA = {
+  $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', additionalProperties: false,
+  required: ['version', 'modules', 'constants', 'prepare', 'install', 'level', 'ports', 'entries'],
+  definitions: {
+    key: { type: 'string', minLength: 1, maxLength: 256, not: { enum: ['__proto__', 'prototype', 'constructor', 'caller', 'callee', 'arguments'] } },
+    value: { anyOf: [{ type: ['null', 'boolean', 'number', 'string'] },
+      { type: 'array', maxItems: 4096, items: { $ref: '#/definitions/value' } },
+      { type: 'object', maxProperties: 256, propertyNames: { allOf: [{ $ref: '#/definitions/key' }, { pattern: '^[^$]' }] },
+        additionalProperties: { $ref: '#/definitions/value' } },
+      { type: 'object', minProperties: 1, maxProperties: 1, propertyNames: { enum: [...operations] },
+        additionalProperties: { $ref: '#/definitions/value' } }] },
+    rows: { type: 'array', maxItems: 256, items: { type: 'object', additionalProperties: false,
+      required: ['name', 'value'], properties: { name: { $ref: '#/definitions/key' }, value: { $ref: '#/definitions/value' } } } },
+  },
+  properties: { version: { const: 1 }, modules: { type: 'object', propertyNames: {
+    type: 'string', pattern: '^(?:@wildshard/[a-z]+/|src/(?:shards|game|engine|sdk)/)[A-Za-z0-9_./-]+$',
+  }, additionalProperties: { type: 'array', maxItems: 256, uniqueItems: true, items: { $ref: '#/definitions/key' } } },
+  constants: { $ref: '#/definitions/value' }, prepare: { $ref: '#/definitions/rows' }, install: { $ref: '#/definitions/rows' },
+  level: { $ref: '#/definitions/value' }, ports: { $ref: '#/definitions/value' }, entries: { $ref: '#/definitions/value' } },
+};
+
 function valueData(value: unknown, depth = 0): value is Value {
   if (depth > 48) return false;
   if (value === null || typeof value === 'boolean' || typeof value === 'string') return true;

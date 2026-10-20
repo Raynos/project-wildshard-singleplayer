@@ -16,12 +16,12 @@ import { bindBorrowedMethod } from '../plugin/borrowed';
 const finite = v.pipe(v.number(), v.finite()), text = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const placement = v.strictObject({ feet: v.strictObject({ poi: v.picklist(['world', 'hut', 'lookout', 'wreck', 'shrine', 'cave', 'pier']), x: finite, z: finite, yaw: finite }),
   npc: text, counter: text, counterAhead: finite, tradeAhead: finite, tradeHeight: finite, system: text });
-const schema = v.strictObject({ name: text, reopen: v.boolean(), placement: v.exactOptional(placement),
+export const QuestTraderSchema = v.strictObject({ name: text, reopen: v.boolean(), placement: v.exactOptional(placement),
   view: v.exactOptional(v.strictObject({ pitch: finite, closeDistance: v.pipe(finite, v.minValue(0)) })) });
 /** Immutable trader placement and view policy; stock and payments stay with the existing shop. */
-export type QuestTraderRows = v.InferOutput<typeof schema>;
+export type QuestTraderRows = v.InferOutput<typeof QuestTraderSchema>;
 /** Validate admitted rows before placing a model or changing a camera. */
-export function parseQuestTrader(input: unknown): QuestTraderRows { return v.parse(schema, input); }
+export function parseQuestTrader(input: unknown): QuestTraderRows { return v.parse(QuestTraderSchema, input); }
 /** The actual shop owner; the binding never creates a second inventory or save. */
 export interface TraderShop { open: () => void; close: () => void; readonly isOpen: boolean }
 /** Existing NPC motion and culling owners lent by the model registry. */
