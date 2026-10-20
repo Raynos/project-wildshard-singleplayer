@@ -26,7 +26,7 @@ import { hipRoof } from './hipRoof';
 import { type Hole, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, towerStack, wallShop } from './stairstreet';
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from './stairPlan';
 import paint from '../data/paint.json' with { type: 'json' };
-import type { SignPlace, SignSink, SignBoardKit } from '../assets/contracts/signPlacement';
+import type { SignPlace, SignSink, SignBoardKit } from './contracts/signPlacement';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { ASHLAR, COPING, FLOWER_COLS, ICO0, landingPlanter, leafBush, leafLook, leafQuad, tint } from './landingPlanter';
 import dims from '../data/specimenDims.json' with { type: 'json' };

@@ -15,7 +15,7 @@ import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { Ctx } from './ctx';
 import { Kit } from './kit';
 import { KitX, merge } from './kitx';
-import type { SignSink } from '../assets/contracts/signPlacement';
+import type { SignSink } from './contracts/signPlacement';
 import dims from '../data/specimenDims.json' with { type: 'json' };
 import { centred } from './layoutMath';
 import type { CanopyLump } from './banyanPlan';

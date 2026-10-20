@@ -4,7 +4,7 @@ import type { SignModelParams, SignStyle } from '../data/signTypes';
 import { SIGN_COLOUR, SIGN_LAYOUT, SIGN_STYLES } from './signs';
 import signRows from '../data/signView.json' with { type: 'json' };
 import { neonSize } from './signMath';
-import type { SignCallRow } from '../assets/contracts/signPlacement';
+import type { SignCallRow } from './contracts/signPlacement';
 
 interface PackedGeometry { readonly attributes: Record<string, { width: number; data: string }>; readonly index: string; readonly sphere: number[] | null }
 interface BakedSignAtlas extends ReturnType<SignAtlas['snapshot']> {

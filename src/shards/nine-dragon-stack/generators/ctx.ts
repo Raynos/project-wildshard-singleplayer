@@ -5,10 +5,10 @@ import { Kit } from './kit';
 import { Dressing } from './facadeDressing';
 import { KitX } from './kitx';
 import { KitSet } from './kit/kitSet';
-import type { SignSink } from '../assets/contracts/signPlacement';
+import type { SignSink } from './contracts/signPlacement';
 import { Rng } from '@wildshard/sdk/random';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
-import type { AuthoredPlacement } from '../assets/contracts/modelPlacement';
+import type { AuthoredPlacement } from './contracts/modelPlacement';
 
 interface Emitter { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }
 interface DrawnCopy<K> { readonly model: string; readonly kit: K; readonly at: AuthoredPlacement<object>; readonly box?: Box3 }

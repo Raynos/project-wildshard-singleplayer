@@ -17,10 +17,10 @@ import { mergeBakedPieces } from './facadePieces';
 import { peekQueued, restoreQueued } from './props3d';
 import { crossingColliders, wellSheets } from './wellBounds';
 import { banyanOut } from './banyanPlan';
-import type { SignPlace, SignSink, SignBoardKit } from '../assets/contracts/signPlacement';
+import type { SignPlace, SignSink, SignBoardKit } from './contracts/signPlacement';
 import { signBoard, signSize, neonSize } from './signMath';
 import { geometryWriter } from './bakeWrite';
-import type { AuthoredPlacement as Placement } from '../assets/contracts/modelPlacement';
+import type { AuthoredPlacement as Placement } from './contracts/modelPlacement';
 import { type BakedPlace, type LayoutRows, LayoutRowsSchema, type SignCallRow } from './sections';
 import * as v from 'valibot';
 
