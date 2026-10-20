@@ -1,7 +1,7 @@
 import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
 import { prepareStormTitan } from '../combat/stormTitan';
 import { prepareNalatiReins } from './reins';
-import { prepareSabre, prepareSpear } from '../weapons/nativeMelee';
+import { arsenal,prepareSabre,prepareSpear } from '../weapons/nativeMelee';
 
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { nalatiSpecies,nalatiLooks } from '../species/catalogue';
@@ -17,10 +17,6 @@ import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
-import { FirearmWeaponProfileSchema, parseHeldFirearmRows, parseHeldFirearmView } from '@wildshard/format/weaponProfiles';
-import { parse } from 'valibot';
-import rifleRows from '../data/rifle.generated.json' with { type: 'json' };
 import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
 import { RIVER } from '../world/geography';
 import { prepareGrassV2 } from '../look/field';
@@ -28,9 +24,7 @@ import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './state';
 import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
 import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
-import { buildNalatiLoadoutSliced, type NalatiLoadout } from '../weapons/loadout';
-import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
-import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
+import { prepareWeaponCatalogue } from '../weapons/loadout';
 import { installNalatiQuestView } from '../quest/kokpar';
 import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
@@ -55,7 +49,6 @@ function readFeat(feat: (typeof NALATI_FEATS)[number]): AchievementDef {
 
 export class NalatiPlugin extends ShardPlugin {
   private rt: Nalati | null = null;
-  private loadout: NalatiLoadout | null = null;
   private persistence: NalatiPersistence | null = null;
   private runtime(): Nalati { if (this.rt === null) throw new Error('Nalati world hook has not run'); return this.rt; }
 
@@ -97,6 +90,7 @@ export class NalatiPlugin extends ShardPlugin {
     this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, this.persistence ?? undefined))));
     await prepareSabre(ctx.product);
     await prepareSpear(ctx.product);
+    await prepareWeaponCatalogue();
     const rt = this.rt;
     // the ramps sit on the live (baked) heightfield the capsule walks, not the analytic TERRAIN field (R2: the analytic
     // heights laid 9 fewer ramps)
@@ -120,25 +114,11 @@ export class NalatiPlugin extends ShardPlugin {
     ctx.rows.species(nalatiSpecies());
     ctx.rows.speciesLook(nalatiLooks());
     ctx.rows.feat(NALATI_FEATS.map(readFeat));
-    ctx.rows.weapon(['weapon.bow', 'weapon.sabre', 'weapon.spear', 'weapon.rifle'].map(id => readItemEquipment(ctx.product.shardfile.items, id)));
-    shell.buildEquipment = async (targets, nolock) => {
-      const kit = await buildNalatiLoadoutSliced(world, targets, nolock, macrotask, ctx.product.shardfile.items); // SF67: a task apart per weapon
-      this.loadout = kit;
-      await macrotask();
-      const rifleItem = ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.rifle');
-      const profile = { ...parse(FirearmWeaponProfileSchema, rifleItem?.kind === 'weapon' ? rifleItem.profile : undefined), ...rifleRows.feel };
-      const rifle = new HeldFirearm(world, targets, { row: readItemEquipment(ctx.product.shardfile.items, 'weapon.rifle'), allowUnlocked: nolock, muzzleLight: true,
-        profile, view: parseHeldFirearmView(rifleRows.view), rows: parseHeldFirearmRows(rifleRows.rows), model: {} });
-      bindRuntimeEquipment(ctx, ctx.product.shardfile, [kit.bow, kit.sabre, kit.spear, rifle].map(weapon => {
-        const item = ctx.product.shardfile.items.rows.find(row => row.id === weapon.row.id);
-        return { id: weapon.row.id, weapon, profile: item?.kind === 'weapon' ? item.profile : undefined };
-      }));
-      return { primary: kit.base, rifle, secondary: null, extras: kit.extras, order: ['bow', 'sabre', 'spear'], install: (weapons) => { kit.install(weapons); } };
-    };
+    arsenal.installPage(ctx);
   }
 
   override async play(ctx: ShardContext): Promise<void> {
-    const shell = host(ctx), world = shell.world, h = shell.play, rt = this.runtime(), kit = this.loadout;
+    const shell = host(ctx), world = shell.world, h = shell.play, rt = this.runtime(), kit = arsenal.pageKit(ctx);
     if (world === null || h === null || kit === null) throw new Error('Nalati gameplay requires its equipment and UI');
     const { player, params } = world;
     const { animals, weapons, hud, audio, music, progress } = h;

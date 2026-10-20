@@ -1,9 +1,5 @@
-import { arsenal } from './nativeMelee';
 import type { MountedLoadout } from '@wildshard/game/loadout/mounted';
 import type { HeldPolearmWorld } from '@wildshard/game/weapons/heldPolearm';
-import type { GoldenBowPower } from '../runtime/weapons/GoldenBow';
-import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
-import type { Targets } from '@wildshard/engine/combat/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 
@@ -19,13 +15,9 @@ export const weaponCatalogue = defineSpecimenCatalogue<Record<string, object>>(g
 /** The composite recurve's baked rows and parts (generators/recurvePool.ts): the held bow draw's (H3); the Golden Bow and the
  *  Sky-Wolf skin are its paints. */
 export type NalatiWorld = HeldPolearmWorld;
-export type NalatiLoadout = MountedLoadout & {upgradeBow:(weapons:EquipmentService,power:GoldenBowPower)=>void};
-
-export async function buildNalatiLoadoutSliced(world:NalatiWorld,targets:Targets,allowUnlocked:boolean,_yieldTask:()=>Promise<void>,items:unknown):Promise<NalatiLoadout>{
-  weaponCatalogue.usePacked(await fetchLaneBake(gear.packed.bin));
-  const kit=await arsenal.build(world,targets,allowUnlocked,items);
-  return Object.assign(kit,{upgradeBow:(weapons:EquipmentService,power:GoldenBowPower):void=>{const next=kit.replaceBow(weapons);if(next!==null)power.apply(next);}});
-}
+export type NalatiLoadout = MountedLoadout;
+/** Prepare the specimen source before native page equipment assembly. */
+export async function prepareWeaponCatalogue():Promise<void>{weaponCatalogue.usePacked(await fetchLaneBake(gear.packed.bin));}
 
 /** The reward orb and Explorer resolve the same baked weapon geometry. */
 export function weaponSpecimen(key: string, sky: Sky): Object3D {

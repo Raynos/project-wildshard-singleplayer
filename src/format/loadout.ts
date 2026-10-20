@@ -35,6 +35,7 @@ export const MountedLoadoutSchema = v.pipe(v.unknown(),v.check(isJsonData),v.str
   polearm: v.strictObject({ file:text,item:weapon }),
   bow: v.strictObject({ file:text,item:weapon }),
   initial:v.picklist(['blade','polearm','bow']),
+  page:v.exactOptional(v.strictObject({ firearm:v.strictObject({file:text,item:weapon,muzzleLight:v.boolean()}),order:v.pipe(v.array(slot),v.maxLength(16)) })),
   variants:v.strictObject({ bow:v.strictObject({id:weapon,name:text}),blade:v.strictObject({id:weapon,name:text}) }),
 }));
 export type MountedLoadoutRows = v.InferOutput<typeof MountedLoadoutSchema>;

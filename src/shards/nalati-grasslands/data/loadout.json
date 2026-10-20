@@ -11,5 +11,17 @@
     "file": "/assets/nalati/baked/recurve-pool.json",
     "item": "weapon.bow"
   },
-  "initial": "bow"
+  "initial": "bow",
+  "page": {
+    "firearm": {
+      "file": "weapons/rifle-page.json",
+      "item": "weapon.rifle",
+      "muzzleLight": true
+    },
+    "order": [
+      "bow",
+      "sabre",
+      "spear"
+    ]
+  }
 }
