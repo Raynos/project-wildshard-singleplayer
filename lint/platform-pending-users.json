@@ -649,7 +649,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/sdk/headlessRuntime.ts",
+      "module": "src/game/population/nativeBake.ts",
       "export": "NativeBakedActor",
       "shard": "nalati-grasslands",
       "plan": {
@@ -667,7 +667,7 @@
       }
     },
     {
-      "module": "src/sdk/headlessRuntime.ts",
+      "module": "src/game/population/nativeBake.ts",
       "export": "NativePhysicsBake",
       "shard": "nalati-grasslands",
       "plan": {
@@ -685,7 +685,7 @@
       }
     },
     {
-      "module": "src/sdk/headlessRuntime.ts",
+      "module": "src/game/population/nativeBake.ts",
       "export": "NativeBakeReader",
       "shard": "nalati-grasslands",
       "plan": {
@@ -696,7 +696,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/sdk/headlessRuntime.ts",
+      "module": "src/game/population/nativeBake.ts",
       "export": "createNativeBakeReader",
       "shard": "nalati-grasslands",
       "plan": {

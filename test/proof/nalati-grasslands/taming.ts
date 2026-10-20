@@ -8,10 +8,13 @@ import { createTrustedHeadlessResident } from '../../../src/sdk/headlessRuntime'
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
-import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
+import { readPopulationBake } from '../../../src/game/population/nativeBake';
+import physics from '../../../src/shards/nalati-grasslands/data/physics.generated.json' with {type:'json'};
 import { nativeTamingOf } from '@wildshard/game/riding/nativeTaming';
 import { mountedPlayerOf } from '@wildshard/game/riding/native';
 import { canonicalSimDigest } from '../../fake/simState';
+
+const nalatiBake=()=>readPopulationBake(physics,{label:'Nalati',resolution:256,size:500});
 
 const MODULE = new URL('../../fixtures/nalati-headless.ts', import.meta.url).href;
 function law(host: SimHost) {

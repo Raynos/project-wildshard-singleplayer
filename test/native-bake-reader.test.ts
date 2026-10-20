@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
-import { createNativeBakeReader, nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats } from '../src/sdk/headlessRuntime';
+import { createNativeBakeReader, nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats } from '../src/game/population/nativeBake';
 import { pineBake, parsePineSolid } from '../src/shards/pine-hollow/runtime/baked';
 import baked from '../src/shards/pine-hollow/data/physics.generated.json' with { type: 'json' };
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';

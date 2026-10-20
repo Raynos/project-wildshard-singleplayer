@@ -14,7 +14,8 @@
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
     "@wildshard/game/loot/exchange": ["parseExchange"],
     "@wildshard/format/weatherProgram": ["parseWeatherProgram"],
-    "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands", "installNativeCollision"],
+    "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands"],
+    "@wildshard/game/population/nativeBake": ["installNativeCollision"],
     "@wildshard/game/shardfile/borrowedDecisions": ["nativeDecisionAuthority"],
     "@wildshard/sdk/populationRoster": ["installPopulationRoster"],
     "@wildshard/game/population/environment": ["installPopulationEnvironment"],
@@ -485,7 +486,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["@wildshard/sdk/headlessRuntime", "installNativeCollision"]
+            "$ref": ["@wildshard/game/population/nativeBake", "installNativeCollision"]
           },
           {
             "$ref": ["host"]
@@ -1285,7 +1286,7 @@
           "$fn": {
             "$call": [
               {
-                "$ref": ["@wildshard/sdk/headlessRuntime", "installNativeCollision"]
+                "$ref": ["@wildshard/game/population/nativeBake", "installNativeCollision"]
               },
               {
                 "$ref": ["args", 0]

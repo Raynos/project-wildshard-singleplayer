@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { parseUiStrings } from '../src/format/uiStrings';
 import { parseWorldPhysics } from '../src/format/worldPhysics';
 import { emitPlatformSections, worldPhysicsSection } from '../src/sdk/platformSections';
-import { nativeBodySpecSchema, nativeColliderSchema, nativeGroundSchema } from '../src/sdk/headlessRuntime';
+import { nativeBodySpecSchema, nativeColliderSchema, nativeGroundSchema } from '../src/game/population/nativeBake';
 import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema } from '../src/format/nativePhysics';
 import * as v from 'valibot';
 import pine from '../src/shards/pine-hollow/data/physics.generated.json';

@@ -53,7 +53,6 @@
       "driftwood-isle/custom/oceanSurface": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit"
     },
     "shardfile/sim-in-runtime": {
-      "src/shards/nalati-grasslands/runtime/baked.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nine-dragon-stack/runtime/jian.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nine-dragon-stack/runtime/portals/hostRide.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/baked.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm."
@@ -85,7 +84,7 @@
     "sim-in-runtime/driftwood-isle": 0,
     "sim-in-runtime/far-reach": 0,
     "sim-in-runtime/ink-cel-valley": 0,
-    "sim-in-runtime/nalati-grasslands": 1,
+    "sim-in-runtime/nalati-grasslands": 0,
     "sim-in-runtime/nine-dragon-stack": 2,
     "sim-in-runtime/pastel-plain": 0,
     "sim-in-runtime/pine-hollow": 1,
@@ -331,7 +330,6 @@
     "src/shards/nalati-grasslands/runtime/audio/files.ts": 1,
     "src/shards/nalati-grasslands/runtime/audio/sound.ts": 1,
     "src/shards/nalati-grasslands/runtime/audio/synth.ts": 1,
-    "src/shards/nalati-grasslands/runtime/baked.ts": 1,
     "src/shards/nalati-grasslands/runtime/bootRoster.ts": 3,
     "src/shards/nalati-grasslands/runtime/flockDeclared.ts": 1,
     "src/shards/nalati-grasslands/runtime/ghostVolleyDirector.ts": 3,
@@ -737,7 +735,6 @@
     "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts": 1,
     "src/shards/nalati-grasslands/runtime/audio/sound.ts": 5,
     "src/shards/nalati-grasslands/runtime/audio/synth.ts": 1,
-    "src/shards/nalati-grasslands/runtime/baked.ts": 2,
     "src/shards/nalati-grasslands/runtime/bootRoster.ts": 11,
     "src/shards/nalati-grasslands/runtime/enteredEnvironment.ts": 1,
     "src/shards/nalati-grasslands/runtime/flockDeclared.ts": 5,
@@ -1195,7 +1192,6 @@
     "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts": 6,
     "src/shards/nalati-grasslands/runtime/audio/SteppeScore.ts": 4,
     "src/shards/nalati-grasslands/runtime/audio/synth.ts": 6,
-    "src/shards/nalati-grasslands/runtime/baked.ts": 1,
     "src/shards/nalati-grasslands/runtime/bootRoster.ts": 3,
     "src/shards/nalati-grasslands/runtime/eliteBrain.ts": 2,
     "src/shards/nalati-grasslands/runtime/flockDeclared.ts": 1,

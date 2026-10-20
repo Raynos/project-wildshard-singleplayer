@@ -7,7 +7,7 @@ import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generat
 import physics from '../src/shards/driftwood-isle/data/physics.generated.json' with { type: 'json' };
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
-import { nativeBakeGround } from '../src/sdk/headlessRuntime';
+import { nativeBakeGround } from '../src/game/population/nativeBake';
 import { terrainTileHeight } from '../src/format/terrainTileBytes';
 import { Rng } from '../src/engine/core/rng';
 

@@ -1,19 +1,11 @@
 {
   "version": 1,
   "modules": {
-    "src/shards/nalati-grasslands/runtime/baked": [
-      "nalatiBake",
-      "NALATI_GROUND_RES",
-      "NALATI_GROUND_SIZE"
-    ],
     "@wildshard/engine/world/BakedTerrain": [
       "bakedSamplers"
     ],
     "@wildshard/engine/physics/navmesh": [
       "readNavmesh"
-    ],
-    "@wildshard/sdk/headlessRuntime": [
-      "installNativeCollision"
     ],
     "src/shards/nalati-grasslands/wet": [
       "nalatiWetAt"
@@ -72,6 +64,13 @@
     ],
     "@wildshard/game/population/relations": [
       "knockdownVelocity"
+    ],
+    "@wildshard/game/population/nativeBake": [
+      "readPopulationBake",
+      "installNativeCollision"
+    ],
+    "src/shards/nalati-grasslands/data/physics.generated.json": [
+      "default"
     ]
   },
   "constants": {
@@ -235,6 +234,11 @@
         },
         "toast": "Struck by lightning — get low in a storm"
       }
+    },
+    "nativeBake": {
+      "label": "Nalati",
+      "resolution": 256,
+      "size": 500
     }
   },
   "prepare": [
@@ -301,8 +305,20 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/baked",
-              "nalatiBake"
+              "@wildshard/game/population/nativeBake",
+              "readPopulationBake"
+            ]
+          },
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/data/physics.generated.json",
+              "default"
+            ]
+          },
+          {
+            "$ref": [
+              "constants",
+              "nativeBake"
             ]
           }
         ]
@@ -528,7 +544,7 @@
         "$call": [
           {
             "$ref": [
-              "@wildshard/sdk/headlessRuntime",
+              "@wildshard/game/population/nativeBake",
               "installNativeCollision"
             ]
           },
@@ -545,8 +561,9 @@
           {
             "resolution": {
               "$ref": [
-                "src/shards/nalati-grasslands/runtime/baked",
-                "NALATI_GROUND_RES"
+                "constants",
+                "nativeBake",
+                "resolution"
               ]
             }
           }
@@ -1573,8 +1590,9 @@
     "ground": {
       "size": {
         "$ref": [
-          "src/shards/nalati-grasslands/runtime/baked",
-          "NALATI_GROUND_SIZE"
+          "constants",
+          "nativeBake",
+          "size"
         ]
       },
       "height": 0

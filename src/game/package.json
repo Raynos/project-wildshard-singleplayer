@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./population/nativeBake": "./population/nativeBake.ts",
     "./ambient/foragerDraw": "./ambient/foragerDraw.ts",
     "./riding/mountedFigure": "./riding/mountedFigure.ts",
     "./riding/pastureView": "./riding/pastureView.ts",

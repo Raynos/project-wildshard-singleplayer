@@ -14,7 +14,8 @@
     "@wildshard/game/plugin/director": ["DirectorScriptStageLane", "readDirectorProduct"],
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
     "@wildshard/engine/world/waves": ["waveHeight"],
-    "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands", "installNativeCollision", "nativeBakeGround", "nativeBakeFloats"],
+    "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands"],
+    "@wildshard/game/population/nativeBake": ["installNativeCollision", "nativeBakeGround", "nativeBakeFloats"],
     "@wildshard/game/shardfile/borrowedDecisions": ["nativeDecisionAuthority"],
     "@wildshard/game/plugin/nativeItems": ["installNativeItems"],
     "@wildshard/game/plugin/mover": ["proveTerrainEntries"],
@@ -209,8 +210,8 @@
         ]
       }
     },
-    {"name": "ground", "value": {"$call": [{"$ref": ["@wildshard/sdk/headlessRuntime", "nativeBakeGround"]}, {"$ref": ["constants", "physics", "ground"]}, 256, 500, "Driftwood"]}},
-    {"name": "bake", "value": {"actors": {"$ref": ["constants", "physics", "actors"]}, "herds": {"$ref": ["constants", "physics", "herds"]}, "habitat": {"$ref": ["constants", "physics", "habitat"]}, "captain": {"$ref": ["constants", "physics", "captain"]}, "ground": {"$ref": ["ground"]}, "solids": {"$call": [{"$ref": ["constants", "physics", "solids", "map"]}, {"$fn": {"$if": [{"$ref": ["args", 0, "vertices"]}, {"$call": [{"$ref": ["assembly", "merge"]}, {"$ref": ["args", 0]}, {"points": {"$call": [{"$ref": ["@wildshard/sdk/headlessRuntime", "nativeBakeFloats"]}, {"$ref": ["args", 0, "vertices"]}]}}]}, {"$ref": ["args", 0]}]}}]}}},
+    {"name": "ground", "value": {"$call": [{"$ref": ["@wildshard/game/population/nativeBake", "nativeBakeGround"]}, {"$ref": ["constants", "physics", "ground"]}, 256, 500, "Driftwood"]}},
+    {"name": "bake", "value": {"actors": {"$ref": ["constants", "physics", "actors"]}, "herds": {"$ref": ["constants", "physics", "herds"]}, "habitat": {"$ref": ["constants", "physics", "habitat"]}, "captain": {"$ref": ["constants", "physics", "captain"]}, "ground": {"$ref": ["ground"]}, "solids": {"$call": [{"$ref": ["constants", "physics", "solids", "map"]}, {"$fn": {"$if": [{"$ref": ["args", 0, "vertices"]}, {"$call": [{"$ref": ["assembly", "merge"]}, {"$ref": ["args", 0]}, {"points": {"$call": [{"$ref": ["@wildshard/game/population/nativeBake", "nativeBakeFloats"]}, {"$ref": ["args", 0, "vertices"]}]}}]}, {"$ref": ["args", 0]}]}}]}}},
     {"name": "specs", "value": {"$new": [{"$ref": ["assembly", "Map"]}, {"$ref": ["constants", "nativeSpecs"]}]}},
     {"name": "heightAt", "value": {"$fn": {"$call": [{"$ref": ["@wildshard/format/terrainTileBytes", "terrainTileHeight"]}, {"resolution": 256, "x": -250, "z": -250, "size": 500, "heights": {"$ref": ["ground", "heights"]}}, {"$ref": ["args", 0]}, {"$ref": ["args", 1]}, {"layout": "column-major", "boundary": "clamp"}]}}},
     {
@@ -370,7 +371,7 @@
           {
             "$call": [
               {
-                "$ref": ["@wildshard/sdk/headlessRuntime", "installNativeCollision"]
+                "$ref": ["@wildshard/game/population/nativeBake", "installNativeCollision"]
               },
               {
                 "$ref": ["host"]
