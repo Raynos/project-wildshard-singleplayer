@@ -1,7 +1,7 @@
 import { admitMountRoster, BondedMountRoster } from '@wildshard/game/riding/roster';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
-import { createNativeHunt, createNativeSpeciesContext } from '@wildshard/game/plugin/brain';
-import { NativeManager } from '@wildshard/game/population/nativeManager';
+import { createNativeHunt } from '@wildshard/game/plugin/brain';
+import { NativeManager, NativePopulationDriver } from '@wildshard/game/population/nativeManager';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { admitNativeRosterServices, createNativeCreatureRoster, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
 import * as v from 'valibot';
@@ -13,7 +13,6 @@ import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntNav, type HuntTree } from '@wildshard/engine/ai/hunt';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
-import { canReach } from '@wildshard/engine/ai/reach';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
@@ -21,8 +20,6 @@ import { nativeBodySpecSchema } from '@wildshard/sdk/headlessRuntime';
 import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
 import { FlockBrain, type FlockPorts } from '@wildshard/engine/ai/flock';
 import { parseFlock } from '@wildshard/format/crowds';
-import { setDogFlock, thinkSheepdog } from '../species/sheepdog';
-import { actHorseBody, actWolfBody, decideHorse, decideWolf, horseHeld } from './groupDispatch';
 import { SEED, TERRAIN } from '../world/geography';
 import { nalatiWetAt } from '../wet';
 import { pushWildMovers } from '../look/trampleMovers';
@@ -180,7 +177,6 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
       const dog = dogs[dogIndex++];
       if (dog === undefined) throw new Error(`Nalati flock ${String(i)} has no dog in the roster`);
       brain.dog = dog;
-      setDogFlock(dog, { flock: brain, wolves, rng: host.rng.stream('ai'), bark: () => undefined }, author);
     }
     return brain;
   });
@@ -231,21 +227,8 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
     return undefined;
   };
   function asHunt(a: AnimalSim): NalatiHuntBody { const b = ownedBody(a); if (b === undefined) throw new Error(`Nalati headless body ${a.entityId} is not the manager's`); return b; }
-  const speciesContext = (actor: NalatiHuntBody) => {
-    const { observation } = createNativeSpeciesContext({ host, hunt, rng, world: env, heightAt: floor.heightAt, waterLevel: TERRAIN.waterLevel() }, actor,
-      actor.herd >= 0 ? hunt.herds[actor.herd]?.members ?? null : null);
-    return { ...observation, claim: groups.claim, mayAttack: groups.mayAttack,
-      steer: (a: AnimalSim, yaw: number, velocity: number, turn: number): void => { hunt.steerAny(asHunt(a), yaw, velocity, turn); },
-      pathYaw: (a: AnimalSim, x: number, z: number, every = 1): number => hunt.pathYawFor(asHunt(a), x, z, every),
-      confine: (a: AnimalSim): void => { hunt.confine(asHunt(a)); } };
-  };
-  const contexts = new WeakMap<AnimalSim, ReturnType<typeof speciesContext>>(), missingContext = new Error('Missing native species observation');
-  for (let i = 0; i < BODY_MAX; i++) { const actor = bodies[i]; if (actor === undefined) break; contexts.set(actor, speciesContext(actor)); }
-  const context = (actor: NalatiHuntBody, dt: number) => {
-    const c = contexts.get(actor); if (c === undefined) throw missingContext;
-    c.dt = dt; c.t = host.clock.now; c.playerSpeed = speed.speed;
-    c.herd = actor.herd >= 0 ? hunt.herds[actor.herd]?.members ?? null : null; return c;
-  };
+  const driver = new NativePopulationDriver(host, manager, hunt, rng, bodies, packOf, herdOf, ports.elites, flocks, wolves,
+    { tokens: 'nalati.tokens', program: ports.boot.admission, packKind: 'wolf', dogKind: 'sheepdog', eliteKinds: ['leopard', ecology.species.kokbori.kind], dispatch: 'dispatch', dogDecision: 'dog' });
   const placement = new Rng(0); placement.restore(ports.wildStream);
   const raids: v.InferOutput<typeof RaidPack>[] = [], elitePacks: v.InferOutput<typeof RaidPack>[] = [];
   const deferredSpec = (kind: string, variant: string) => v.parse(nativeBodySpecSchema('axis'), ports.boot.recipes.find(row => row.kind === kind && row.variant === variant));
@@ -258,7 +241,7 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
     kind: 'horse', variant: 'tulpar', wildKinds: ['horse', ecology.argymaq], specs: ports.boot.recipes,
     scale: scaleVariants.get('horse')?.find(row => row.id === 'tulpar')?.scale ?? [1, 1], spawnY: ports.spawnY, program: ports.boot.admission });
   const bonded = mountRoster.records, hiddenStallions = mountRoster.hidden;
-  let dodgeCd = 0, reinstalling = ports.snapshot !== undefined;
+  let reinstalling = ports.snapshot !== undefined;
   const makeBody = (saved: v.InferOutput<typeof RaidBody>, kind: 'wolf' | 'leopard' | 'kokbori' | 'horse', herd: number): NalatiHuntBody => {
     if (host.entities.size >= BODY_MAX || !/^creature:\d+$/u.test(saved.id) || Number(saved.id.slice(9)) < nextId() || saved.scale <= 0) throw new Error('Invalid Nalati raid roster');
     continueIds(Number(saved.id.slice(9)));
@@ -270,7 +253,7 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
     const slot = intake.body(saved.id, kind, saved.variant, herd, { x, z }, saved.yaw, [saved.scale, saved.scale], saved);
     slot.recipe.spec = spec; slot.recipe.at.y = y;
     const a = intake.materialize(slot, slot.recipe, y !== floor.heightAt(x, z));
-    a.herd = herd; contexts.set(a, speciesContext(a));
+    a.herd = herd; driver.admit(a);
     bodies.push(a); seen.push(false); if (kind === 'wolf') wildWolves.push(a);
     rng.restore(saved.adopted); hunt.adopt(a, x, z);
     // Ride can spawn before AnimalManager.sync in this frame. Give nearby new raiders the same native capsule now.
@@ -407,45 +390,6 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
     const prey = preyRows[0]?.[i]; if (prey === undefined) throw new Error('Unknown Nalati sheep'); return prey;
   }, spawnPack, groups.firstRaid);
   host.onStep('nalati.raid', () => undefined, { snapshot: () => raid.snapshot(), restore: value => { raid.restore(value); } });
-  const routeFields = { elite: 0, wolf: 0, dog: 0, held: 0 };
-  /** AnimalManager.think for a self-thinking species: the dead and the stunned hold, else its own decision, the herd's centre after */
-  const missingElite = new Error('Nalati leopard has no hosted elite brain');
-  const decide = (a: NalatiHuntBody, dt: number): void => {
-    const elite = ports.elites.brains.get(a);
-    if (!a.alive) { a.lookWeight = 0; return; }
-    if ((a.kind === 'leopard' || a.kind === ecology.species.kokbori.kind) && elite === undefined) throw missingElite;
-    if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.setStrafe(0); a.lookTarget.copy(player); a.lookWeight = 1; return; }
-    routeFields.elite = Number(elite !== undefined); routeFields.wolf = Number(a.kind === 'wolf'); routeFields.dog = Number(a.kind === 'sheepdog'); routeFields.held = Number(horseHeld(a));
-    const route = author.project('dispatch', routeFields)['state'];
-    if (route === 0) return;
-    const ctx = context(a, dt);
-    if (route === 1) elite?.think(a, ctx);
-    else if (route === 2) decideWolf(a, ctx, packOf.get(a) ?? null);
-    else if (route === 3) thinkSheepdog(a, ctx);
-    else if (route === 4) decideHorse(a, ctx, herdOf.get(a) ?? null);
-    const herd = a.herd >= 0 ? hunt.herds[a.herd] : undefined;
-    if (herd !== undefined) hunt.updateHerd(herd);
-  };
-  host.useBodyStep({
-    before: (_id, body, dt) => {
-      const a = ownedBody(body);
-      // the sheepdog has no body act (its species has none)
-      if (a === undefined || a.hidden || !a.alive || a.stunned || a.kind === 'sheepdog') return;
-      const elite = ports.elites.brains.get(a);
-      if (elite !== undefined) elite.act(a);
-      else if (a.kind === 'wolf') actWolfBody(a, context(a, dt), packOf.get(a) ?? null);
-      else { const herd = herdOf.get(a); if (herd !== undefined) actHorseBody(a, context(a, dt), herd); }
-    },
-    after: (_id, body) => {
-      const a = ownedBody(body);
-      if (a?.alive === true && !a.hidden && !a.stunned && a.state === 'charge') hunt.chargeContact(a, player);
-    },
-  });
-  const takeBrainStep = (a: AnimalSim, urgent: boolean): number => {
-    const dt = host.brainDt(a.entityId, urgent), last = a.mem['groupThinkAt'];
-    if (dt <= 0 || (last !== undefined && host.clock.now - last < .1 - 1e-9)) return 0;
-    a.mem['groupThinkAt'] = host.clock.now; return last === undefined ? dt : host.clock.now - last;
-  };
   let wildAt = host.clock.now;
   const speedFields = { x: 0, z: 0, px: 0, pz: 0, dt: 0, speed: 0 };
   const savePacks = (list: readonly v.InferOutput<typeof RaidPack>[]): v.InferOutput<typeof RaidPack>[] => list.map(r => ({ x: r.x, z: r.z, herd: r.herd, bodies: r.bodies.map(b => ({ id: b.id, variant: b.variant, seed: b.seed, scale: b.scale, at: [...b.at], yaw: b.yaw, adopted: { ...b.adopted } })) }));
@@ -474,44 +418,19 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
     }
     // Ride.update follows Wildlife and precedes the manager's think loop on the page.
     ports.rideUpdate?.(dt); raid.update(dt, host.player.position, wolves, host.clock.now);
-    // the manager's think loop
-    if (!speed.seen) { speed.prev.set(player.x, 0, player.z); speed.seen = true; }
-    const moved = Math.hypot(player.x - speed.prev.x, player.z - speed.prev.z);
-    speed.prev.set(player.x, 0, player.z);
-    speed.speed += (Math.min(moved / dt, 9) - speed.speed) * (1 - 0.5 ** (dt * 10));
-    manager.advance(dt); hunt.resetRepaths();
-    // player.dodge is queued until fixed.post. Its public cooldown rises ONLY on an accepted input in the player step;
-    // observe that edge now, where the page notices dodgeFx.id, before the ordinary per-body decision loop.
-    const dodged = host.playerDodge.cd > dodgeCd; dodgeCd = host.playerDodge.cd;
-    if (dodged) for (let i = 0; i < BODY_MAX; i++) {
-      const a = bodies[i]; if (a === undefined) break;
-      if (!a.alive || a.harnessHold || a.hidden || (!a.aggressive && !hunt.sensed(a))) continue;
-      const step = takeBrainStep(a, true); if (step > 0) decide(a, step);
-    }
-    for (let i = 0; i < BODY_MAX; i++) {
-      const a = bodies[i];
-      if (a === undefined) break;
-      if (a.harnessHold || a.hidden) continue;
-      let urgent = false;
-      if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
-        const line = canReach(a, player, host.physics);
-        urgent = seen[i] === true && !line; seen[i] = line;
-      }
-      const brain = takeBrainStep(a, urgent);
-      if (brain > 0) { a.sampleTerrain(); decide(a, brain); }
-    }
+    driver.update(dt);
   }, {
     snapshot: () => {
       const ids = bodies.map(a => a.entityId), common = manager.snapshot(ids, ids);
       return ({ ...(bonded.length === 0 ? {} : { bonded: bonded.map(row => ({ upgraded: row.upgraded, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })) }),
-      ...(hiddenStallions.size === 0 ? {} : { hiddenStallions: [...hiddenStallions] }), elitePacks: savePacks(elitePacks), dormant: [...ports.elites.absent].map(a => a.entityId), dodgeCd, nextId: nextId(), retired: [...retired], elites: eliteSpawns.map(row => ({ kind: row.kind, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })), rng: common.rng, clock: common.clock, speed: { init: speed.seen, x: speed.prev.x, z: speed.prev.z, v: speed.speed }, seen: common.sight.map(value => value === true),
+      ...(hiddenStallions.size === 0 ? {} : { hiddenStallions: [...hiddenStallions] }), elitePacks: savePacks(elitePacks), dormant: [...ports.elites.absent].map(a => a.entityId), dodgeCd: driver.snapshot(), nextId: nextId(), retired: [...retired], elites: eliteSpawns.map(row => ({ kind: row.kind, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })), rng: common.rng, clock: common.clock, speed: { init: speed.seen, x: speed.prev.x, z: speed.prev.z, v: speed.speed }, seen: common.sight.map(value => value === true),
       memories: bodies.flatMap((a, i) => { const memory = common.memories[i]; return memory === null || memory === undefined ? [] : [[a.entityId, memory] as [string, SavedMemory]]; }),
       herds: common.herds, groups: decided().map(g => g.snapshot()), wild: { ...wild, at: wildAt }, flocks: flocks.map(f => f.snapshot()), marmots: marmots.snapshot(), placement: { ...placement.snapshot() }, raids: savePacks(raids) });
     },
     restore: value => {
       const saved = v.parse(Saved, value);
       if (saved.seen.length !== bodies.length || saved.herds.length !== hunt.herds.length || saved.groups.length !== decided().length || saved.flocks.length !== flocks.length) throw new Error('Incompatible Nalati creatures continuation');
-      dodgeCd = saved.dodgeCd;
+      driver.restore(saved.dodgeCd);
       marmots.restore(saved.marmots); placement.restore(saved.placement);
       const memories = new Map(saved.memories), ids = bodies.map(a => a.entityId);
       manager.restore({ rng: saved.rng, clock: saved.clock, noise: { seen: saved.speed.init, speed: saved.speed.v,

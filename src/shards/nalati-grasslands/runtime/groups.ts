@@ -1,3 +1,4 @@
+import { admitNativeManagerTokens } from '@wildshard/game/population/nativeManager';
 import { bindEliteAdmission } from './argymaqKeeper';
 import { admitNativeHerds } from '@wildshard/game/shardfile/groupRuntime';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
@@ -140,6 +141,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   };
   const groups: NalatiGroups = { packs, herds, firstRaid, bindPrey, addPack, env: world.env, grass: ports.grass, claim: a => policies.get(a)?.take(a) ?? true, mayAttack: a => policies.get(a)?.free(a) ?? true };
   admitNativeHerds(host, 'nalati.herds', herds, world.env.wind);
+  admitNativeManagerTokens(host, 'nalati.tokens', policies);
   installed.set(host, groups);
   return groups;
 }

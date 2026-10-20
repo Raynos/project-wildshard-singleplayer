@@ -73,3 +73,34 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
     expect(random.snapshot()).toEqual(before); expect(roster.spawn(2, 3, 0, true).entityId).toBe('creature:1');
   } finally { host.dispose(); }
 });
+
+test('orchard native manager drives the admitted roster at ten Hz across body frames', async () => {
+  const { fixtureNativeRoster } = await import('./fixtures/native-roster');
+  const { Rng } = await import('@wildshard/engine/core/rng');
+  const { NativeManager, NativePopulationDriver, admitNativeManagerTokens } = await import('@wildshard/game/population/nativeManager');
+  const { createNativeCreatureRoster } = await import('@wildshard/game/shardfile/homeKeeper');
+  const { eliteBindings } = await import('@wildshard/game/shardfile/eliteEncounters');
+  const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier }), random = new Rng(71);
+  const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing orchard actor');
+  const { hunt, services } = fixtureNativeRoster(host, random);
+  const intake = createNativeCreatureRoster(host, { specs: [sample.spec], variants: new Map(), rng: random, services, hunted: 'every', spawnY: 10 });
+  const slot = intake.body('orchard.boar', sample.spec.kind, sample.spec.variant, -1, { x: 2, z: 3 }, 0, [1, 1]);
+  const actor = intake.arrive(slot); intake.remember(slot);
+  const manager = new NativeManager(host, hunt, random, { limit: 64, sightSlots: 1, initialSight: false });
+  admitNativeManagerTokens(host, 'orchard.tokens', new WeakMap());
+  const driver = new NativePopulationDriver(host, manager, hunt, random, [actor], new Map(), new Map(), eliteBindings(), [], [],
+    { tokens: 'orchard.tokens', program: admission, packKind: 'boar', dogKind: 'collie', eliteKinds: [], dispatch: 'dispatch', dogDecision: 'dog' });
+  host.onStep('orchard.population', dt => { driver.update(dt); });
+  try {
+    actor.setMotion(1, 3, 1);
+    for (let i = 0; i < 3; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    const decision = actor.mem['groupThinkAt'];
+    expect(decision).toBeGreaterThanOrEqual(0); expect(actor.speed).toBeLessThan(.1);
+    for (let i = 0; i < 2; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    expect(actor.mem['groupThinkAt']).toBe(decision);
+    driver.restore(2.5); expect(driver.snapshot()).toBe(2.5);
+    expect(() => driver.restore(-1)).toThrow(); expect(() => driver.admit(actor)).toThrow();
+  } finally { host.dispose(); }
+});
