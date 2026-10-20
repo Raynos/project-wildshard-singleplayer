@@ -60,6 +60,7 @@ export function installWorldScenes(ctx: ShardContext, input: WorldScenesSection,
 }
 
 async function build(ctx: ShardContext, section: WorldScenesSection, resident: Scope): Promise<SceneHandles> {
+  const registry = ctx.game.runtime?.world?.registry ?? ctx.app.registry;
   const product = ctx.product, recipes = new Map<string, WorldSceneRecipe>(), packets = new Map<string, Uint8Array>(), libraryRows = new Map(section.libraries.map(row => [row.id, row]));
   if (section.libraries.some(row => row.kind === 'models' || row.kind === 'baked')) await prepareSceneSources(product);
   const slots = new Set(section.materials.map(row => row.id));
@@ -315,7 +316,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         // Decoder-only staging is adopted by the assembly, never uploaded.
         geometry.set(key, shape);
       }
-      handles.publish(row.id, new WorldSceneWeldAssembly(row, handles, { geometry, materials, plumbing: product.shardfile.plumbing }, owner, ctx.app.registry));
+      handles.publish(row.id, new WorldSceneWeldAssembly(row, handles, { geometry, materials, plumbing: product.shardfile.plumbing }, owner, registry));
     }
     if (batches.size > 0 && sky === undefined) throw new Error('Scene batches need a world sky');
     for (const row of batches.values()) {
@@ -396,7 +397,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         const prepared = registered.get(row.id); if (prepared === undefined) throw new Error('Missing scene registry part');
         const scalar = row.active;
         const active = scalar === undefined ? undefined : () => handles.number(scalar) !== 0;
-        withOwner(owner, () => ctx.app.registry.add({ id: instance.id === '' ? row.id : `${row.id}.${instance.id}`, name: row.name, file: row.file, category: row.category, object: prepared.root, colliders: prepared.colliders, ...(row.surface === undefined ? {} : { surface: row.surface }), solidFloor: row.solidFloor, ...(active === undefined ? {} : { active }), ...(row.mode === undefined ? {} : { mode: row.mode }) }));
+        withOwner(owner, () => registry.add({ id: instance.id === '' ? row.id : `${row.id}.${instance.id}`, name: row.name, file: row.file, category: row.category, object: prepared.root, colliders: prepared.colliders, ...(row.surface === undefined ? {} : { surface: row.surface }), solidFloor: row.solidFloor, ...(active === undefined ? {} : { active }), ...(row.mode === undefined ? {} : { mode: row.mode }) }));
         await buildYield(owner);
       }
       if (section.libraries.some(row => row.kind === 'models' || row.kind === 'baked')) ctx.root.add(made.root);

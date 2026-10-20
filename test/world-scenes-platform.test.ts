@@ -70,7 +70,7 @@ test('resident worlds admit every frozen choice and load only requested specimen
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing specimen fixture sky');
   const context = fixture(), rows = section(), reads: string[] = [];
-  Object.assign(context.game, { runtime: { world: { sky, game: context.game } } });
+  Object.assign(context.game, { runtime: { world: { sky, game: context.game, registry: context.app.registry } } });
   const graph = (model: string) => ({ id: `specimen.${model}`, root: 'specimen.root', nodes: [{ id: 'shape', parent: 'specimen.root', kind: 'mesh',
     geometry: { library: 'shapes', model }, material: 'paint', sphere: [0, 0, 0, 2] }] });
   const catalogue = { product: 'fixture-harbour', models: [{ key: 'crate', id: 'fixture-harbour/crate', name: 'Crate', file: 'crate.json', category: 'props', pipeline: 'code',
@@ -116,7 +116,8 @@ test('fictional prewelded copies borrow named parts and keep independent contact
   const library = rows.libraries.find(row => row.kind === 'owned');
   if (library?.kind !== 'owned' || library.models[0] === undefined) throw new Error('Missing fixture model');
   library.models[0].file = { phone: 'models/stone.glb', desktop: 'models/stone.glb' };
-  Object.assign(context.game, { runtime: { world: { sky, game: context.game } } });
+  const destination = new WorldRegistry();
+  Object.assign(context.game, { runtime: { world: { sky, game: context.game, registry: destination } } });
   const catalogue = { product: 'fixture-harbour', models: [{ key: 'posts', id: 'fixture-harbour/posts', name: 'Posts', category: 'props', pipeline: 'code', file: 'posts.json', defaults: {},
     choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 99, hy: 99, hz: 99 }], draws: [{ id: 'post', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
   const row = { id: 'posts', model: 'posts', draw: 'merged', drawnInto: { part: 'markers.east.stone', boxes: [3, 0, 0, 5, 1, 1] },
@@ -132,9 +133,11 @@ test('fictional prewelded copies borrow named parts and keep independent contact
     const mesh = handles.object('markers.east.stone'), placed = await handles.place('posts');
     expect(placed.object).toBe(mesh); expect(placed.copyBox(0, new Box3())).toEqual(new Box3(new Vector3(3, 0, 0), new Vector3(5, 1, 1)));
     expect(placed.colliders).toEqual(row.colliders); expect(await handles.place('posts')).toBe(placed);
-    expect(context.app.registry.pieces.filter(piece => piece.id === 'placed-posts')).toHaveLength(1);
+    expect(destination.pieces.filter(piece => piece.id === 'placed-posts')).toHaveLength(1);
     const moving = await handles.place('live');
-    expect(context.app.registry.pieces.find(piece => piece.id === 'live-post')?.follows).toBe(moving.object);
+    expect(destination.pieces.find(piece => piece.id === 'live-post')?.follows).toBe(moving.object);
+    expect(destination.pieces.some(piece => piece.id === 'harbour-wall')).toBe(true);
+    expect(context.app.registry.pieces).toHaveLength(0);
     expect(handles.floorAt('live', 4, 0)).toBe(3); expect(handles.floorAt('live', 40, 0)).toBeUndefined();
     await expect(installWorldScenes(fixture(), parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json', placements: [{ ...row, drawnInto: { ...row.drawnInto, boxes: [] } }] }))).rejects.toThrow();
   } finally { vi.restoreAllMocks(); context.scope.dispose(); }
@@ -316,7 +319,7 @@ test('authored raw LODs and deferred named placements retain their native model 
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
   const context = fixture(), rows = section();
-  Object.assign(context.game, { renderer: null, runtime: { world: { sky, game: context.game } } });
+  Object.assign(context.game, { renderer: null, runtime: { world: { sky, game: context.game, registry: context.app.registry } } });
   const draw = { id: 'face', library: 'shapes', model: 'stone', material: 'paint', castShadow: true, sphere: [0, 0, 0, 3] };
   const data = { product: 'fixture-harbour', models: [{ key: 'marker', id: 'fixture-harbour/marker', name: 'Marker', category: 'props', pipeline: 'blender', file: 'markers.json', defaults: {}, assembly: 'parts',
     choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [draw], lods: [{ from: 20, draws: [{ ...draw, castShadow: false }] }] }] }] };
@@ -389,7 +392,7 @@ test('deferred source slots decode at their named placement', async () => {
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
   const context = fixture(), rejected = fixture(), retired = fixture(), material = new MeshStandardMaterial(), rows = section();
-  Object.assign(context.game, { renderer: null, runtime: { world: { sky, game: context.game } } });
+  Object.assign(context.game, { renderer: null, runtime: { world: { sky, game: context.game, registry: context.app.registry } } });
   const data = { product: 'fixture-harbour', models: [{ key: 'marker', id: 'fixture-harbour/deferred', name: 'Marker', category: 'props', pipeline: 'blender', file: 'markers.json', defaults: {}, assembly: 'parts',
     choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'face', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
   const source = { id: 'paint', kind: 'source', load: 'placement', url: '/fixture.glb' };
@@ -404,7 +407,7 @@ test('deferred source slots decode at their named placement', async () => {
     await handles.place('markers.placed'); await handles.place('markers.placed');
     expect(load).toHaveBeenCalledOnce();
     await expect(installWorldScenes(rejected, parseWorldScenes({ ...rows, materials: [source] }))).rejects.toThrow('Deferred source material');
-    Object.assign(retired.game, { renderer: null, runtime: { world: { sky, game: retired.game } } });
+    Object.assign(retired.game, { renderer: null, runtime: { world: { sky, game: retired.game, registry: retired.app.registry } } });
     const retiredFile = retired.product.file.bind(retired.product), retiredHas = retired.product.hasFile.bind(retired.product);
     vi.spyOn(retired.product, 'hasFile').mockImplementation(name => name === 'models/catalogue.json' || retiredHas(name));
     vi.spyOn(retired.product, 'file').mockImplementation(name => name === 'models/catalogue.json' ? Promise.resolve(new TextEncoder().encode(JSON.stringify(data))) : retiredFile(name));

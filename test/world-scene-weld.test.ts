@@ -192,7 +192,8 @@ test('deferred world assembly publishes live seeds before borrowing the living r
     choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [] }] }] };
   const dormant = { ...graph, root: 'dormant.root', placements: ['quay-dormant'], resources: [{ id: 'dormant.seeds', kind: 'seeds', words: [0, 0, 0, 0] }] };
   const files = new Map<string, unknown>([['world.json', graph], ['other.json', dormant], ['catalogue.json', catalogue]]);
-  const context = { scope: owner, app: { registry: new WorldRegistry() }, game: { runtime: { world: { sky } } },
+  const registry = new WorldRegistry();
+  const context = { scope: owner, app: { registry }, game: { runtime: { world: { sky, registry } } },
     product: { shardfile: emptyShardfile({ slug: 'fixture-quay', name: 'Quay', author: 'Fixture', revision: 1, seed: 1 }),
       hasFile: (name: string) => files.has(name), url: (name: string) => name,
       file: (name: string) => Promise.resolve(new TextEncoder().encode(JSON.stringify(files.get(name)))) } } as ShardContext;

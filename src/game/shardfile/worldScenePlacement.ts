@@ -61,7 +61,7 @@ export class WorldScenePlacement {
         const yaw = yawAtan2 === undefined ? rotation.yaw : Math.atan2(yawAtan2[0], yawAtan2[1]);
         return { ...pose, matrix: modelPoseMatrix({ ...pose, ...rotation, yaw }) };
       }),
-      { ctx: sharedModelContext(world.sky, world.game), registry: this.ctx.app.registry, draw: row.draw,
+      { ctx: sharedModelContext(world.sky, world.game), registry: world.registry, draw: row.draw,
         ...(row.drawnInto === undefined || borrowed === undefined ? {} : { drawnInto: { object: borrowed, boxes: Float32Array.from(row.drawnInto.boxes) } }),
         ...(this.batch === undefined ? {} : { batch: this.batch.reserve() }),
         ...(row.cull === undefined ? {} : { cull }), ...(row.sortObjects === undefined ? {} : { sortObjects: row.sortObjects }),
