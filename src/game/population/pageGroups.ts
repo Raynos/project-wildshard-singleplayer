@@ -1,3 +1,5 @@
+import { installEnteredRuntimeService } from '../shard/retainedHooks';
+import type { ShardContext } from '../plugin/context';
 import { PackBrain, type PackPorts } from '@wildshard/engine/ai/pack';
 import { HerdBrain } from '@wildshard/engine/ai/herd';
 import { CrowdRoster, type CrowdTargets } from '../shardfile/crowdRuntime';
@@ -206,11 +208,16 @@ export class PageWildEnvironment {
 export const wildEnv = new PageWildEnvironment();
 const renderedPacks = new WeakMap<Animal,PackBrain<Animal>>(), renderedHerds = new WeakMap<Animal,HerdBrain<Animal>>();
 let renderedDamage: { program: ReturnProgram; variant: string } | null = null;
-/** Entered damage policy is admitted data, with the same scope as the native actors. */
-export function bindHerdDamage(input: unknown,scope: Scope): void {
+/** Client-only group admission. Entered observations and damage borrow the
+ * same native rows across retained home entries; no author installer binds. */
+export function bindPageGroups(ctx: ShardContext,input: unknown): void {
   const rows = v.parse(PageGroupRowsSchema,input),herd = nativeGroupBrain(rows.herd);
   if (herd.kind !== 'herd') throw new Error('Invalid rendered damage preset');
-  renderedDamage = { program: ReturnProgram.page(rows.damage,scope),variant: herd.stallionVariant };
+  const program=ReturnProgram.page(rows.damage,ctx.scope);
+  installEnteredRuntimeService(ctx,scope=>{
+    const previous=renderedDamage;renderedDamage={program,variant:herd.stallionVariant};
+    scope.onDispose(()=>{renderedDamage=previous;});wildEnv.enter(scope,input);
+  });
 }
 /** Native page body lookup, independent from content ids and species names. */
 export function renderedPackOf(actor: Animal): PackBrain<Animal> | null { return renderedPacks.get(actor) ?? null; }

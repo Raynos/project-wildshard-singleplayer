@@ -6,13 +6,12 @@ import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
 import { createPageCrowds, readCrowdBody, type PageCrowdViews } from '@wildshard/game/ambient/crowdPage';
-import { bindEnteredEnvironment } from './enteredEnvironment';
 import { PageWildlife, type WildlifeBuildStep } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import { setDogFlock } from '../species/sheepdog';
 import { Marmots,preloadCover } from '../creatures/marmots';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import { wildEnv,bindHerdDamage } from '@wildshard/game/population/pageGroups';
+import { wildEnv,bindPageGroups } from '@wildshard/game/population/pageGroups';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
@@ -132,7 +131,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     nativeWeather:v.unknown(),pageWildlife: v.unknown(),pageGroups: v.unknown(),nativeTaming: v.object({ binding: v.unknown(), rail: v.object({ x:v.number(),z:v.number() }) }),
     nativeRide: v.object({ speeds:v.object({ walk:v.number(),trot:v.number(),canter:v.number(),gallop:v.number() }),thrownDamage:v.number(),thrownLabel:v.string() }) }) }), await plugin.product.json('sim/headless-assembly.json'));
   const ridingPreset = readPageRidingPreset(v.parse(v.object({ client:v.unknown() }),ridingPrograms).client);
-  const eliteProgram=ReturnProgram.page(admission,plugin.scope); bindHerdDamage(pageGroups, plugin.scope); bindEnteredEnvironment(plugin,pageGroups);
+  const eliteProgram=ReturnProgram.page(admission,plugin.scope); bindPageGroups(plugin,pageGroups);
   const flockBody = await readCrowdBody(plugin.product, { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
   const crowdPage = await plugin.product.json<{ page: { world: unknown } }>('actors/sheep.json');
   const dogWolves: Animal[] = []; plugin.scope.own(flockBody.geometry);

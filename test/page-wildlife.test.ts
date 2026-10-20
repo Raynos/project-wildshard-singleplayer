@@ -1,7 +1,10 @@
+import { App } from '../src/engine/app/app';
+import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { app } from '../src/engine/app/runtime';
 import { Scope } from '../src/engine/app/scope';
 import { PlayerHealth } from '../src/engine/combat/health';
-import { wildEnv } from '../src/game/population/pageGroups';
+import type { ShardContext } from '../src/game/plugin/context';
+import { bindPageGroups, wildEnv } from '../src/game/population/pageGroups';
 import { PagePastureRaid } from '../src/game/riding/pagePasture';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
@@ -56,4 +59,18 @@ test('orchard population emits crowd work between native groups and mount placem
   expect(raid.snapshot().state).toEqual(saved.state);
   raid.update(1/60,new Vector3(),[],.1); expect(raid.snapshot().elapsed).toBe(0);
   }finally{scope.dispose();app.levelScope=previous;wildEnv.playerHealth01=previousHealth;}
+});
+
+
+test.each([false,true])('orchard group admission restores observations across retained=%s entry',retained=>{
+  const scope=new Scope('orchard.groups'),previous=wildEnv.wind;
+  const rows={...headlessAssembly.constants.pageGroups,wind:{x:1,z:0,strength:.25}},base=legacyDouble<ShardContext>({scope,app:new App()});
+  const hooks=retained?new RetainedRuntimeHooks(base,{deferActivation:true}):null,ctx=hooks?.context??base;
+  try{
+    bindPageGroups(ctx,rows);if(hooks!==null){expect(wildEnv.wind).toBe(previous);hooks.activate();}
+    expect(wildEnv.wind).toEqual(rows.wind);expect(wildEnv.wind).not.toBe(previous);
+    if(hooks!==null){wildEnv.wind.strength=.7;hooks.deactivate();expect(wildEnv.wind).toBe(previous);hooks.activate();expect(wildEnv.wind.strength).toBe(.7);}
+    expect(()=>bindPageGroups(ctx,{...rows,install:()=>undefined})).toThrow();
+  }finally{scope.dispose();}
+  expect(wildEnv.wind).toBe(previous);
 });
