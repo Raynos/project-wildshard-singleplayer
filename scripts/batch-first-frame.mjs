@@ -18,7 +18,7 @@ try {
   await page.goto(`${base}/?chunk=${encodeURIComponent(shard)}&mute=1&nolock=1&skipintro=1&touch=1&tier=phone`, { waitUntil: 'domcontentloaded' });
   try {
     await page.waitForFunction(() => {
-      const fatal = document.querySelector('#wserr .msg')?.textContent;
+      const fatal = document.querySelector('#wserr .msg, .ws-load-error')?.textContent;
       if (fatal) throw new Error(fatal);
       const renderer = window.__wildshard?.world?.game.renderer;
       return Boolean(renderer && renderer.info.render.frame > 0 && renderer.info.render.calls > 0 && !renderer.getContext().isContextLost());
