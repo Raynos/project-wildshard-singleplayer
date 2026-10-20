@@ -9,3 +9,5 @@
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
 **Lanes (16:30):** Opus sp-o1 SF88c; sp-o2 stale-PWA fix; sp-o3 M2 oneFrameLooks + SF88e; sp-o4 M2 baked tiles; sp-o5 Template 2 restyle -> phase C. Codex sp-x1 G520 close -> step 1; sp-x6 Nine; sp-x8 M2 memory x6; sp-x9 5x5 drive; next free Codex -> G531 + step 2; then 3, 4; sp-x7 push.
+
+**Simulator note for wildshard-v (17:05):** your loading-audit job (PID 13272) holds the one Simulator, with a repeat (PID 14800) queued; sp-x8's G535 memory runs (Sky + Signal first, PID 35945) have waited since 16:52. Please let them run before the audit repeat.
