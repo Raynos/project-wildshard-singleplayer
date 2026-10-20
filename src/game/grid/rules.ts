@@ -49,8 +49,16 @@ export function installGridTravellerCombat(events: Events, scope: Scope, travell
   }, scope);
 }
 
-/** Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. */
+/** Minimal board port for standalone and residency policy; no Player or browser dependency enters here. */
 export interface GridHoverPort { hoverSpeedLimit: (() => number) | null }
+/** A directly opened padding shard uses its same authored road class; ordinary shards retain their existing port. */
+export function installShardHoverSpeed(player: GridHoverPort, scope: Scope, speedClass: 'shard' | 'road' = 'shard'): void {
+  if (scope.disposed || speedClass !== 'road') return;
+  const previous = player.hoverSpeedLimit;
+  const limit = () => 30;
+  player.hoverSpeedLimit = limit;
+  scope.onDispose(() => { if (player.hoverSpeedLimit === limit) player.hoverSpeedLimit = previous; });
+}
 /** Install the live deck/strip cap and restore the previous port when this residency scope leaves. */
 export function installGridHoverSpeed(player: GridHoverPort, scope: Scope, read: () => { local: Readonly<GridPoint>; shardCap: number; onHighwayDeck: boolean; speedClass?: 'shard' | 'road' }): void {
   if (scope.disposed) return;

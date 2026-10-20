@@ -5,7 +5,7 @@ import { Events } from '../src/engine/events/events';
 import { isDev, setDev } from '../src/engine/core/devMode';
 import { hoverSpeed } from '../src/engine/player/hoverSpeed';
 import { mountHoverBoost } from '../src/engine/ui/hoverBoost';
-import { gridHoverSpeed, installGridHoverSpeed } from '../src/game/grid/rules';
+import { gridHoverSpeed, installGridHoverSpeed, installShardHoverSpeed, type GridHoverPort } from '../src/game/grid/rules';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { CARD } from '../src/shards/_template/data/card';
 import { MANIFEST as padding } from '../src/shards/_template/discovery.generated';
@@ -23,8 +23,17 @@ test('real padding declarations select road cruise; a main shard keeps its defau
   for (const row of [padding, blender, PASTEL, INK, openPlot]) {
     expect(row.hoverSpeedClass).toBe('road');
     expect(gridHoverSpeed(centre, 14, row.hoverSpeedClass)).toBe(30);
+    const scope = new Scope('standalone-padding'), player: GridHoverPort = { hoverSpeedLimit: null };
+    installShardHoverSpeed(player, scope, row.hoverSpeedClass);
+    expect(hoverSpeed(player.hoverSpeedLimit?.(), true)).toBe(60);
+    scope.dispose(); expect(player.hoverSpeedLimit).toBe(null);
   }
   expect(gridHoverSpeed(centre, 14, main.hoverSpeedClass)).toBe(14);
+  const scope = new Scope('standalone-main'), player: GridHoverPort = { hoverSpeedLimit: null };
+  installShardHoverSpeed(player, scope, main.hoverSpeedClass);
+  expect(player.hoverSpeedLimit).toBe(null);
+  expect(hoverSpeed(player.hoverSpeedLimit?.(), true)).toBe(56);
+  scope.dispose();
   for (const plot of new GridAssembly({ developer: false, devserver: false }).plots) {
     expect(gridHoverSpeed(centre, 14, plot.hoverSpeedClass)).toBe(30);
   }

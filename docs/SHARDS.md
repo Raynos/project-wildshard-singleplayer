@@ -951,8 +951,9 @@ coexist; retain the source until the retirement migration succeeds.
 ## Hover speed class (G540)
 
 A discovery manifest may set `hoverSpeedClass: 'road'` to keep the grid's
-30 m/s board cruise inside a padding shard. Absent or `'shard'` retains the
-ordinary 14 m/s interior cruise; the entry strip still eases into road speed.
+30 m/s board cruise inside a padding shard, including direct standalone entry.
+Absent or `'shard'` retains the ordinary 14 m/s interior cruise; the entry
+strip still eases into road speed.
 Platform open plots declare the same road class in their catalogue rows.
 The six main shards and Showcase use the default class.
 

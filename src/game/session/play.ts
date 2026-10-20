@@ -72,6 +72,7 @@ import { installBudgetOverlay } from '../grid/budgetOverlay';
 import { installMemoryWarning } from '../grid/memoryWarning';
 import { ACCENTS } from '@wildshard/format/accent';
 import { installMinimapBlend } from '../grid/minimapBlend';
+import { installShardHoverSpeed } from '../grid/rules';
 import { findShard } from '../shard/registry';
 import { accentHex, hudAccent, onHudAccent, setHudAccent } from './hudAccent';
 import { firstPartyInstance } from '../grid/instances';
@@ -119,6 +120,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
         try { renderer.compile(object, game.camera, game.rootScene); } finally { renderer.setRenderTarget(prev); }
       } }; },
       onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }, p) : null);
+  if (grid === null) installShardHoverSpeed(player, game.levelScope, manifest.hoverSpeedClass);
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
     // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any
     // other boot loads them when the room opens, in every mode (G187: −33.6 MB of GL on Pine; SF47 made it the only path).
