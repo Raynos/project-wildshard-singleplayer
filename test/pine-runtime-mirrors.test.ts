@@ -34,7 +34,7 @@ test('world view rows come from the admitted named product', async () => {
     shardfile:emptyShardfile({ slug:'pine-hollow', name:'Pine', author:'Wildshard', revision:1, seed:1 }),
     sections:new Map(), files:new Map([['look/native-view.json', { hash:file.hash, url:file.path }]]), read:() => Promise.resolve(bytes) });
   await admitPineView(product);
-  expect(pineView()).toEqual({ ...NATIVE_VIEW, ...logKit });
+  expect(pineView()).toEqual(v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit }));
   expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, KING_ARENA_FOG:'31' })).toThrow();
   expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, BOSS_ENCOUNTER: { ...NATIVE_VIEW.BOSS_ENCOUNTER, profile: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile, fight: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight, strike: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight.strike, action: 'unknown' } } } } })).toThrow();
 });
