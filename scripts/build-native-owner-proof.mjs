@@ -13,6 +13,7 @@ import { starterArmClipsTableSource } from './gen-starter-arm-clips.mjs';
 import { starterEffectsTableSource } from './gen-starter-effects.mjs';
 import { rapierAlias, rapierPreviewPlugin } from '../vite/rapier.ts';
 import { ROOT, OUTPUT, CANONICAL, PIN, hash, inventory, verifyPin } from './native-owner-proof-pin.mjs';
+import { nativeOwnerProofComposition, assertNativeOwnerProofComposition } from './native-owner-proof-composition.ts';
 
 assertHeavyLease('build');
 const pin = verifyPin(), destination = resolve(ROOT, OUTPUT), product = join(destination, 'product'), dist = join(destination, 'dist');
@@ -71,14 +72,7 @@ await build({ configFile: false, publicDir: false, base: './', resolve: { alias:
   define: { __DEVSERVER__: true, __BUILD_ID__: JSON.stringify(`PRIVATE-SYNTHETIC-OWNER-${hash(readFileSync(resolve(ROOT, PIN))).slice(0, 12)}`),
     __SAVE_NAMESPACES__: '[]', __SHARDFILE_VALIDATOR__: JSON.stringify(validation.revision), __SHARDFILE_VERDICTS__: JSON.stringify([validation]) },
   build: { outDir: dist, target: 'es2022', sourcemap: false, cssCodeSplit: false, rolldownOptions: { input: resolve(ROOT, 'practice.html') } },
-  plugins: [watchInputs(), rapierPreviewPlugin(), { name: 'private-native-owner-composition',
-    resolveId(source, importer) {
-      if (importer === undefined || !source.startsWith('.')) return null;
-      const path = resolve(dirname(importer), source).replace(/\.ts$/u, '');
-      if (path === resolve(ROOT, 'src/practiceBoot') && importer === resolve(ROOT, 'src/practice.ts')) return resolve(ROOT, 'src/nativeOwnerProofBoot.ts');
-      return tables.has(path) ? `\0native-owner-proof:${path}.ts` : null;
-    },
-    load(id) { return id.startsWith('\0native-owner-proof:') ? tables.get(id.slice('\0native-owner-proof:'.length).replace(/\.ts$/u, '')) ?? null : null; },
+  plugins: [watchInputs(), rapierPreviewPlugin(), { ...nativeOwnerProofComposition(ROOT, tables),
     transformIndexHtml(html) {
       return html.replace('Wildshard practice demo', 'PRIVATE synthetic owner proof')
         .replace('Developer arena · rejected meshes', 'PRIVATE · SYNTHETIC OWNERSHIP PROBE')
@@ -95,6 +89,7 @@ for (const [from, relative] of [[payloadPath, bodyFile], ...assets.map(path => [
 }
 verifyPin();
 for (const [path, digest] of Object.entries(sourceFiles)) if (hash(readFileSync(resolve(ROOT, path))) !== digest) throw new Error(`Build source changed: ${path}`);
+assertNativeOwnerProofComposition(sourceFiles, pin.files['src/nativeOwnerProofBoot.ts']);
 const receipt = { schema: 'wildshard.native-owner.private-host.v1', synthetic: true, modelAdmission: false, publicAdmission: false,
   pin, pinSha256: hash(readFileSync(resolve(ROOT, PIN))), sourceHash: index.build.sourceHash,
   productFiles: inventory(product), sourceFiles, hostFiles: inventory(dist),

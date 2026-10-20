@@ -1,6 +1,6 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-20 21:39 UTC. None quality-complete.
+Updated 2026-10-20 21:52 UTC. None quality-complete.
 
 OWNER: Original five need independent >=4/5 likeness and animation/readability. New four authorized in game19:13: Pitcher DI-N16, Medusa DI-N17, Keelmaw DI-N19, Iguana DI-N10. Other16 rejected. All9 need World/Explorer nine-angle references; original heroes authoritative, AI hidden surfaces approximate. No score inflation or structural-test acceptance.
 
@@ -14,6 +14,6 @@ UI: Site94 source7775195fa47ded94b1aef0c2f978b5d1bd899364 deployed20Oct20:59. Si
 
 BELLBACK: Specific5body/4joint approval still pending; no expansion or repeated solver/timing/CCD studies. Six-shard Explorer coverage remains open.
 
-SOURCE: Conch owner224 regression/final58, strict/lint/hooks pass. Private canonical engineering composition6 tests; build/browser not run. Selected135-channel motion fails actor-facing and fixed-root toe support43.4626mm; frozen. New articulated source333 hull points, packed seams repaired, Python9/native3 pass; matched static renders active. Foot-contact design only, no motion/contact admission. Iguana live coverage still fails6132 corners.
+SOURCE: Conch private build failed: normal boot/global tables, no browser. Resolver repair8 tests/strict/lint pass; review/checkpoint pending. Selected motion fails facing/toe support43.4626mm, frozen. Articulated closure/native tests pass;20 matched static raws reviewed: fresh candidate/baseline3.89 tie, below4; historical4.05/native3.15 separate. Caps/soles/articulation/contact unaccepted. Foot-contact design only. Iguana live coverage fails6132 corners.
 
-PRESERVATION: Remotec71d3f700aff600d294ea3a0d0139c4b987ceca5 verified. Private build and art review pending. Site source protected. Rockhop/dotgamedev absent. Originals/hosts retained;4 duplicate publication archives reclaimed808140800B. Local/remote histories differ: compare protected bytes, never replay old delta. Hourly update21:12; next22:13.
+PRESERVATION: Remote3e37c0e6b0977e4af16b00a4af8aae0f82bd1c9c verified470 paths. Site95 source5faa3565526539c52ca6a1ef2819e05bf068b58c protects20 raw captures and inputs; dist unchanged,94 live. Raw log local, sanitized copy protected. Rockhop/dotgamedev absent. Hosts retained. Histories differ: compare protected bytes, never replay old delta. Hourly21:12; next22:13.

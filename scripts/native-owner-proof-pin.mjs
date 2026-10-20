@@ -6,12 +6,12 @@ import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const ROOT = resolve(import.meta.dirname, '..');
-export const PIN = 'docs/reviews/conch-authoritative-motion-contract/PRIVATE-CANONICAL-BROWSER-PIN.json';
-export const OUTPUT = 'tmp/native-owner-browser-proof';
+export const PIN = 'docs/reviews/conch-authoritative-motion-contract/PRIVATE-CANONICAL-BROWSER-PIN-RESOLVER1.json';
+export const OUTPUT = 'tmp/native-owner-browser-proof-resolver1';
 export const CANONICAL = 'art/driftwood-isle/approved-conch/runtime-admission/arena-candidate1';
 export const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 export const INPUTS = [
-  'scripts/native-owner-proof-pin.mjs', 'scripts/build-native-owner-proof.mjs',
+  'scripts/native-owner-proof-pin.mjs', 'scripts/build-native-owner-proof.mjs', 'scripts/native-owner-proof-composition.ts',
   'scripts/qa-native-owner-proof.mjs', 'scripts/qa-native-owner-observation.mjs',
   'scripts/qa-native-owner-observation.d.mts',
   'src/nativeOwnerProofBoot.ts', 'src/practice.ts', 'src/practiceContent.ts', 'src/practiceLevel.ts',

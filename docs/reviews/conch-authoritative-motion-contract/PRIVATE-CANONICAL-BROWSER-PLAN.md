@@ -2,8 +2,9 @@
 
 Scope: root authorized preparation on 2026-10-20, with one private build only
 after checkpoint/review acknowledgement. This is not selected Conch, public
-Conch4, a likeness score, animation acceptance or contact admission. No build,
-server or browser capture has run at this source checkpoint.
+Conch4, a likeness score, animation acceptance or contact admission. The initial
+source checkpoint preceded any build. The first authorized build's rejected
+composition and pending correction are recorded below; no browser has run.
 
 ## Exact source and owner
 
@@ -30,10 +31,10 @@ server or browser capture has run at this source checkpoint.
 
 ## Pin, product and host closure
 
-Root alone creates `PRIVATE-CANONICAL-BROWSER-PIN.json` with the explicit GO and
+Root authorizes creation of `PRIVATE-CANONICAL-BROWSER-PIN-RESOLVER1.json` with the explicit GO and
 independent review hash, using `scripts/native-owner-proof-pin.mjs --pin-reviewed`.
 The helper refuses an existing pin, incomplete/mutated input or noncanonical
-pack. There is currently no pin. The builder requires the actual shared build
+pack. There is currently no corrected pin. The builder requires the actual shared build
 lease and this exact reviewed input pin before writing anything.
 
 The first draft only pinned a curated file list and recorded imported modules
@@ -58,7 +59,7 @@ actual-loaded-module receipt, not the pre-build identity authority. Later
 documentation-only commits may advance HEAD without changing the source pin.
 
 `scripts/build-native-owner-proof.mjs` owns only the new
-`tmp/native-owner-browser-proof` root and refuses any pre-existing root. It
+`tmp/native-owner-browser-proof-resolver1` root and refuses any pre-existing root. It
 compiles the strict product and then one app. It records the actual product,
 source-module graph, copied assets and final host inventory. Inputs are checked
 again after the build. No world bake, service worker, deployment, save authority,
@@ -138,3 +139,42 @@ including the independently identified transitive helpers. A temporary owned
 inventory fixture detected mutation, addition and removal and was removed.
 No pin was created and no app build, static server or browser capture ran.
 Root checkpoint and independent final composition review remain build-GO gates.
+
+## First authorized build: resolver failure, no browser
+
+Root authorized the first private build at local source commit
+`bed81d6e2615e0214ea9089ff5a1f0b18fdd2351`. Its original pin remains unchanged at
+`PRIVATE-CANONICAL-BROWSER-PIN.json`, SHA256
+`3404e015a61013060660b937fe43456f777393c6ea226136153366763efe0cd1`.
+The build exited 0 in 6.55 seconds, but post-build graph inspection rejected it:
+the graph loaded `src/practiceBoot.ts`, omitted `src/nativeOwnerProofBoot.ts`,
+and loaded all four original global generated tables rather than the private
+virtual tables. Vite's ordinary filesystem resolver ran before the custom
+normal-order resolver. Build exit 0 was not composition acceptance.
+
+The failed artifact and receipt are retained under
+`tmp/native-owner-browser-proof`; receipt SHA256
+`a841d37562f08909a2bc0d955276e6c98ce2baa5db766ae12ef06e6468368b0d`.
+The exact failed receipt is also preserved for source checkpoint as
+`PRIVATE-CANONICAL-FIRST-BUILD-RECEIPT.json`; it is evidence of a rejected
+composition, not a build acceptance despite the original v1 receipt schema.
+No server, browser or capture was launched. The original pin and output are not
+overwritten, and no public product, source entry or runtime pin changed.
+
+Root authorized a bounded correction: one shared pre-enforced Vite resolver
+used by the actual builder and an executable tiny-module resolver regression.
+The regression uses the actual `import('./practiceBoot')` form, reproduces the
+old normal-order resolution and checks corrected native boot plus all four
+virtual tables. A mandatory pre-receipt guard now
+requires the pinned native-boot hash, excludes normal practice boot and refuses
+each original global generated table. Corrected attempts use the separate
+RESOLVER1 pin/output names above; no corrected pin or app build exists yet.
+The first eight-test repair run and focused strict typing passed. Repair lint
+then identified that the receipt's sparse file map had been typed as if every
+key existed; the type was corrected to include absent entries, without a rule
+suppression. Final 2026-10-20 21:51 UTC: the actual dynamic-import resolver
+regressions and existing product/observer tests passed 8/8 in two files; focused
+strict TypeScript, isolated type-aware lint and both changed MJS syntax checks
+all passed. These tiny fixture bundles are not a corrected app build.
+Independent review, root checkpoint and fresh explicit corrected-build GO are
+required before retry.
