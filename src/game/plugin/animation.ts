@@ -1095,6 +1095,10 @@ export class NativeCreaturePose {
       if (history === undefined || this.contactSurface === undefined) throw new Error('Missing contact continuation publication');
       for (const endpoint of [contact.current, contact.previous]) {
         const steps = endpoint.feet.reduce((sum, foot) => sum + foot.step, 0);
+        if ((steps === 0 && endpoint.next !== 0) || endpoint.feet.some((foot, index) =>
+          (foot.mode === 'swing' && (endpoint.next !== (index === 0 ? 1 : 0) || JSON.stringify(foot.plant) !== JSON.stringify(foot.start)))
+          || (foot.step === 0 && (JSON.stringify(foot.plant) !== JSON.stringify(foot.start) || JSON.stringify(foot.plant) !== JSON.stringify(foot.target)))))
+          throw new Error('Invalid contact continuation canonical phase');
         if (steps > Math.ceil(endpoint.tick / this.contactRecipe.swingTicks)
           || endpoint.feet.some(foot => (foot.step === 0 && (foot.elapsed !== 0 || foot.mode !== 'stance'))
             || (foot.step > 0 && foot.mode === 'stance' && foot.elapsed !== this.contactRecipe?.swingTicks)
@@ -1128,8 +1132,10 @@ export class NativeCreaturePose {
       if (contact.current.tick === contact.previous.tick
         && (!same(currentJointValues, history.previous) || !same(currentRootValues, history.previousRoot)))
         throw new Error('Invalid contact continuation zero-time publication');
-      if (contact.current.tick === 0 && JSON.stringify(initialPracticeContacts(this.contactRecipe, current.root, this.contactSurface)) !== JSON.stringify(contact.current))
-        throw new Error('Invalid initial contact continuation');
+      for (const [endpoint, transform] of [[contact.current, current], [contact.previous, previous]] as const) {
+        if (endpoint.tick === 0 && JSON.stringify(initialPracticeContacts(this.contactRecipe, transform.root, this.contactSurface)) !== JSON.stringify(endpoint))
+          throw new Error('Invalid initial contact continuation');
+      }
 
     }
     const validation = new AnimalPoseLaw(this.law.recipe); validation.restore(state.scalar);

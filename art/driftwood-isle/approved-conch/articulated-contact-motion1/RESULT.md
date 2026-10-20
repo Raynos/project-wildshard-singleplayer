@@ -51,3 +51,11 @@ The bounded repair validates supplied current-local and previous-publication tra
 Failed or released contact continuations explicitly refuse atomically in this bounded slice. Their diagnostic snapshots remain available and damage/root displacement remain unchanged, but this implementation does not claim it can restore every snapshot. There is no released-foot exemption, recovery claim, or admission resulting from that refusal. A dedicated failed-state restoration contract remains open.
 
 Author final gates: 79/79 tests across seven files, strict TypeScript, changed-source type-aware lint, and whitespace checks pass. All six frozen geometry outputs and six complete test input copies are byte-verified unchanged. The exact repaired bytes still require independent review and actual staged-tree hooks; no app/build was run.
+
+## Canonical phase boundary repair, 2026-10-20
+
+The next independent review passed 26/27 probes and identified an initial boundary: canonical validation covered current tick zero but not previous tick zero. The failed evidence is preserved with the reviewed source checkpoint `1b148bbb5e3a8fd0cbbd2683e9b5ba0f39394806`.
+
+Both tick-zero endpoints now compare against their respective roots. The existing state-machine assignments also establish explicit checked invariants: no released steps means next-foot zero; a swinging foot has next-foot set to its opposite and plant equal to start; an unstepped foot has identical plant/start/target frames. No motion parameter or assignment changed. Atomic regressions include a coherent forged previous initial endpoint whose altered IK and publications agree, isolating the initial-canonical check rather than relying on an unrelated FK mismatch. Genuine pre/post-publication restoration spans 48 full gait ticks at two yaws and two scales, plus zero-time repeated hits.
+
+Canonical-boundary author gates: 16/16 focused and 81/81 tests across seven files; exact-final strict TypeScript, type-aware lint, and whitespace checks pass. Six frozen source outputs and six complete source fixtures remain byte-verified. Independent final review and actual staged hooks remain pending.

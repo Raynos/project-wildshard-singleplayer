@@ -16,7 +16,7 @@ import { numericCreaturePose } from '../src/game/plugin/channelPrograms';
 import { rigidCorpseSchema } from '../src/format/rigidCorpse';
 import { PracticeFootContactSchema, solvePracticeContacts, validatePracticeContact, initialPracticeContacts,
   practiceContactClearance, samplePracticeContactFrames, CONTACT_ARITHMETIC_BOUND,
-  type PracticeContactSurface } from '../src/game/plugin/practiceFootContact';
+  type PracticeContactSurface, type PracticeContactState } from '../src/game/plugin/practiceFootContact';
 import source from './proof/conch-grounded-source/model.json' with { type: 'json' };
 import hullInput from './proof/conch-grounded-source/recipe.json' with { type: 'json' };
 import declaration from './proof/conch-grounded-source/motion.json' with { type: 'json' };
@@ -255,7 +255,7 @@ test('restore rejects off-slab footprints and simultaneous swing atomically', ()
 test('supported continuation validates every gait phase, pending publication and equal-tick hits', () => {
   for (const yaw of [0, .7]) for (const scale of [.8, 1.3]) {
     const f = fixture(yaw, scale);
-    for (let tick = 1; tick <= 36; tick++) {
+    for (let tick = 1; tick <= 48; tick++) {
       f.actor.position.z += .006;
       f.pose.advance(1 / 60, tick / 60, true);
       const pending = f.pose.snapshot(); f.pose.restore(pending); expect(f.pose.snapshot()).toBe(pending);
@@ -306,5 +306,58 @@ test('released and failed snapshots remain diagnostics and explicitly refuse res
   const wire = f.pose.snapshot();
   expect(f.pose.contactDiagnostic()?.current.failures.length).toBeGreaterThan(0);
   expect(() => f.pose.restore(wire)).toThrow('Unsupported failed contact continuation');
+  expect(f.pose.snapshot()).toBe(wire);
+});
+
+test('both initial endpoints and all directly derived phase identities reject forgery atomically', () => {
+  interface Endpoint { next: number; feet: { mode: string; step: number; plant: { position: number[] };
+    start: { position: number[] }; target: { position: number[] } }[] }
+  interface Saved { contact: { current: Endpoint; previous: Endpoint } }
+  const reject = (f: ReturnType<typeof fixture>, change: (saved: Saved) => void) => {
+    const wire = f.pose.snapshot(), saved = JSON.parse(wire) as Saved; change(saved);
+    expect(() => f.pose.restore(JSON.stringify(saved))).toThrow(/contact continuation/u);
+    expect(f.pose.snapshot()).toBe(wire);
+  };
+  const first = fixture(); first.tick();
+  reject(first, saved => { saved.contact.previous.next = 1; saved.contact.current.next = 1; });
+  first.tick();
+  reject(first, saved => { saved.contact.previous.next = 1; saved.contact.current.next = 1; });
+  reject(first, saved => {
+    for (const endpoint of [saved.contact.previous, saved.contact.current]) for (const foot of endpoint.feet)
+      for (const frame of [foot.start, foot.target]) frame.position[0] = (frame.position[0] ?? 0) + .005;
+  });
+  const moving = fixture(); for (let tick = 0; tick < 16; tick++) { moving.actor.position.z += .006; moving.tick(); }
+  reject(moving, saved => {
+    for (const endpoint of [saved.contact.previous, saved.contact.current]) {
+      const index = endpoint.feet.findIndex(foot => foot.mode === 'swing');
+      if (index === -1) throw new Error('Missing swing'); endpoint.next = index;
+    }
+  });
+  reject(moving, saved => {
+    for (const endpoint of [saved.contact.previous, saved.contact.current]) {
+      const foot = endpoint.feet.find(row => row.mode === 'swing');
+      if (foot === undefined) throw new Error('Missing swing'); foot.plant.position[0] = (foot.plant.position[0] ?? 0) + .005;
+    }
+  });
+});
+
+test('previous tick-zero endpoint must be canonical even when forged joints and frames agree', () => {
+  const f = fixture(); f.tick(); const wire = f.pose.snapshot();
+  const saved = JSON.parse(wire) as { contact: { current: PracticeContactState; previous: PracticeContactState };
+    local: number[]; published: number[]; history: { previous: number[] } };
+  for (const endpoint of [saved.contact.current, saved.contact.previous]) for (const foot of endpoint.feet)
+    for (const frame of [foot.plant, foot.start, foot.target]) frame.position[0] += .005;
+  const solution = solvePracticeContacts(contact, recipe.joints, f.render(1).root, f.surface,
+    saved.contact.current.feet.map(foot => foot.plant));
+  expect(solution.failures).toEqual([]);
+  const data = new DataView(new ArrayBuffer(8));
+  for (const [name, rotation] of Object.entries(solution.rotations)) {
+    const index = recipe.joints.findIndex(def => def.name === name);
+    for (const [axis, scalar] of rotation.entries()) for (const words of [saved.local, saved.published, saved.history.previous]) {
+      data.setFloat64(0, scalar); const offset = (index * 10 + 3 + axis) * 2;
+      words[offset] = data.getUint32(0); words[offset + 1] = data.getUint32(4);
+    }
+  }
+  expect(() => f.pose.restore(JSON.stringify(saved))).toThrow('Invalid initial contact continuation');
   expect(f.pose.snapshot()).toBe(wire);
 });
