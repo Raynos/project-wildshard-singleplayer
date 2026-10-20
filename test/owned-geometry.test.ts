@@ -30,11 +30,14 @@ it.each([false, true])('takes private GLB attributes without another geometry co
   const loader = vi.spyOn(rigLoaders, 'createRigLoader').mockImplementation(() => create().register(() => ({
     name: 'owned-intake-probe', afterRoot: file => {
       file.scene.traverse(node => { if (node instanceof Mesh && node.geometry instanceof BufferGeometry) decoded = node.geometry; });
+      return null;
     },
   })));
   const intake = createOwnedGeometry('/exclusive.glb');
   try {
-    await intake.load(staticGlb([{ geometry: source, material, nativeAttributes }]));
+    await intake.load(nativeAttributes
+      ? staticGlb([{ geometry: source, material, nativeAttributes: true }])
+      : staticGlb([{ geometry: source, material }]));
     const taken = intake.take();
     try {
       if (decoded === undefined) throw new Error('Missing decoded geometry');
