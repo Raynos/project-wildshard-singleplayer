@@ -31,8 +31,7 @@ import { wildEnv } from '../creatures/env';
  *        walk ≤ 1.8 m/s (HORSE_SPEED.walk) · trot 3.0–6.0 (blend in from 3.0, 4.5 typical) · canter 6.5–10 (the gallop
  *        cycle at a lower stride rate, 8.5 typical) · gallop 13. The stride rate follows the ground speed, so hooves
  *        never slide at any speed in between.
- *   horseBones(horse)          → { body, neck1, neck2, head, earL, earR, mane1, mane2, tail, tail2, tail3 } (THREE.Bone)
- *                                 — for the first-person head/neck view and a bridle; read their matrixWorld after update
+ *   horseBones(horse)          → { body } for seated riders; read matrixWorld after the pose update
  *   horse.mem knobs (0..1, eased in postPose; set them, the pose follows):
  *        rear    up on the hind legs, forelegs tucked (the stallion's display, a thrown rider)
  *        buck    the hind end kicks up in a rhythm (taming rounds); mem.buckDir ±1 tilts it left / right
@@ -58,25 +57,18 @@ export function poseNalatiHorse(c: AnimalRigContext, wind: { readonly x: number;
 // ── rig API for riding (B7) ────────────────────────────────────────────────────────────────────────────────────────
 
 export interface HorseBones {
-  body: THREE.Bone; neck1: THREE.Bone; neck2: THREE.Bone; head: THREE.Bone; earL: THREE.Bone; earR: THREE.Bone;
-  mane1: THREE.Bone; mane2: THREE.Bone; tail: THREE.Bone; tail2: THREE.Bone; tail3: THREE.Bone;
+  body: THREE.Bone;
 }
 
 const boneCache = new WeakMap<Animal, HorseBones>();
 
-/** the horse's named bones (cached); throws for a non-horse */
+/** The seated rider's body anchor, cached without querying unused bones. */
 export function horseBones(a: Animal): HorseBones {
   const hit = boneCache.get(a);
   if (hit !== undefined) return hit;
-  const get = (n: string): THREE.Bone => {
-    const found = a.mesh.skeleton.getBoneByName(n);
-    if (found === undefined) throw new Error(`horseBones: '${a.kind}' has no bone '${n}'`);
-    return found;
-  };
-  const out: HorseBones = {
-    body: get('body'), neck1: get('neck1'), neck2: get('neck2'), head: get('head'), earL: get('earL'), earR: get('earR'),
-    mane1: get('mane1'), mane2: get('mane2'), tail: get('tail'), tail2: get('tail2'), tail3: get('tail3'),
-  };
+  const body = a.mesh.skeleton.getBoneByName('body');
+  if (body === undefined) throw new Error(`horseBones: '${a.kind}' has no body bone`);
+  const out = { body };
   boneCache.set(a, out);
   return out;
 }
