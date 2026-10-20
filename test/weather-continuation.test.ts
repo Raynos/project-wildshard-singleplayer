@@ -7,6 +7,7 @@ import { parseWeatherProgram } from '../src/format/weatherProgram';
 import { PineWeather } from '../src/shards/pine-hollow-legacy/world/weatherProfile';
 import { steppeStorm, readWeatherProgram } from '../src/shards/nalati-grasslands/world/weatherStep';
 import { installWeatherContinuation } from '../src/game/plugin/weather';
+import { Scope } from '../src/engine/app/scope';
 import nalati from '../src/shards/nalati-grasslands/data/weather.json' with {type:'json'};
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type:'json' };
 import saved from './fixtures/weather-continuation.json' with { type:'json' };
@@ -39,29 +40,34 @@ test('old v1 cadence/wind saves resume exactly and malformed restore is atomic',
     }
   }
 });
-test('Nalati dispatches weather reactions at ten Hz and keeps one phase owner',()=>{
-  const player={x:1,y:1.75,z:2,crouched:false,mounted:false,sheltered:true};
-  let queries=0;
-  const restore=overrideTerrain({heightAt:()=>0});
-  const current=steppeStorm(7,{heightAt:()=>0,exposed:()=>{queries++;},player:()=>player},readWeatherProgram({weather:nalati,reactions:weatherScript}));
-  current.weather.force('storm',.4);current.weather.hold=true;
-  const phases=current.weather;
-  for(let i=0;i<60;i++)current.update(1/60);
-  expect(queries).toBeGreaterThanOrEqual(10);expect(queries).toBeLessThanOrEqual(11);
-  expect(current.weather).toBe(phases);expect(current.getLow).toBe(false);
-  const checkpoint=current.snapshot();current.update(.1);current.restore(checkpoint);
-  expect(current.snapshot()).toEqual(checkpoint);restore();
-});
-test('Nalati scores every exposed target across bounded script requests',()=>{
+test('Nalati runs its reactions at ten Hz on one phase owner and snapshots them whole',()=>{
   const restore=overrideTerrain({heightAt:()=>0});
   try {
-    const current=steppeStorm(19,{heightAt:()=>0,player:()=>({x:0,y:0,z:0,crouched:false,mounted:false,sheltered:false}),
-      exposed:(x,z,_radius,out)=>{for(let i=0;i<20;i++)out.push({x,z,top:i+10,kind:'tree',ref:i});}},
-    readWeatherProgram({weather:nalati,reactions:weatherScript}));
+    const scope=new Scope('weather-test'),current=steppeStorm(7,readWeatherProgram({weather:nalati,reactions:weatherScript}),[],[[1,2,3]],{scope});
+    Object.assign(current.inputs,{px:1,py:0,pz:2,calmSpeed:5,calmDir:0,calmGust:.6,crouched:0,mounted:0,titanHeld:0});
+    current.weather.force('storm',.4);current.weather.hold=true;
+    const phases=current.weather;let ticks=0;
+    for(let i=0;i<60;i++)if(current.update(1/60))ticks++;
+    expect(ticks).toBeGreaterThanOrEqual(9);expect(ticks).toBeLessThanOrEqual(10);
+    expect(current.weather).toBe(phases);expect(current.inputs['sheltered']).toBe(1);expect(current.register('low')).toBe(0);
+    const checkpoint=current.snapshot();current.update(.1);current.restore(checkpoint);
+    expect(current.snapshot()).toEqual(checkpoint);scope.dispose();
+  } finally {restore();}
+});
+test('Nalati strikes the highest probed point and lands it 1.2 s later',()=>{
+  const restore=overrideTerrain({heightAt:()=>0});
+  try {
+    const scope=new Scope('weather-test'),points=Array.from({length:63*63},(_,i):[number,number,number]=>[(i%63)*8-248,Math.floor(i/63)*8-248,50]);
+    const current=steppeStorm(19,readWeatherProgram({weather:nalati,reactions:weatherScript}),points,[],{scope});
+    Object.assign(current.inputs,{px:0,py:0,pz:0,calmSpeed:5,calmDir:0,calmGust:.6,crouched:0,mounted:0,titanHeld:0});
     current.weather.force('storm',.4);current.weather.hold=true;current.weather.registers['nextBolt']=0;
-    const telegraphs:unknown[]=[];current.onTelegraph(strike=>{telegraphs.push(strike); });
-    current.update(.1);
-    expect(telegraphs).toHaveLength(1);expect(telegraphs[0]).toMatchObject({kind:'tree',y:29,ref:19});
+    const telegraphs:Record<string,number>[]=[],strikes:Record<string,number>[]=[];
+    current.on('telegraph',e=>{telegraphs.push({...e});});current.on('strike',e=>{strikes.push({...e});});
+    for(let i=0;i<10&&telegraphs.length===0;i++)current.update(.1);
+    expect(telegraphs).toHaveLength(1);expect(telegraphs[0]?.['kind']).toBe(1);expect(telegraphs[0]?.['y']).toBe(50);
+    for(let i=0;i<13;i++)current.update(.1);
+    expect(strikes).toHaveLength(1);expect(strikes[0]).toMatchObject({x:telegraphs[0]?.['x'],kind:1});expect(current.register('armed')).toBe(0);
+    scope.dispose();
   } finally {restore();}
 });
 test('weather programs refuse incomplete phases, outputs and unbounded expressions',()=>{

@@ -1,0 +1,77 @@
+import { afterEach, expect, test } from 'vitest';
+import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { Scope } from '../src/engine/app/scope';
+import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
+import { parseWeatherProgram, parseWeatherReactions } from '../src/format/weatherProgram';
+import { installWeatherReactions } from '../src/game/plugin/weather';
+import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
+import storm from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
+
+// A made-up marsh shard (G474's fixture second user): a Pine-shaped rain program whose rain flashes in the cloud and whose
+// open ground tells the player to keep low, on its own registers, cadence, points and shelters.
+const program = parseWeatherProgram({ ...pine, registers: { ...pine.registers, ready: 0, armed: 0, wait: 0, flash: 0, bearing: 2, low: 0, lowFor: 0 },
+  actions: { ...pine.actions, squall: [{ target: 'ready', value: 'state.rain' }] } });
+const player = ['px', 'py', 'pz', 'crouched', 'mounted', 'sheltered'].map(name => [name, `input.${name}`]);
+const marsh = { version: 1, hz: 5, script: storm.script, bytes: storm.bytes, actions: { event: 'squall' }, active: ['rain'], flash: 'flash',
+  shelter: { margin: 1, circles: [[40, 40, 3]] }, points: [[5, 0, 9], [200, 200, 30]],
+  steps: [
+    { signal: 'tick', observe: [['dt', 'dt'], ['armed', 'register.armed'], ['pendingT', 'register.wait'], ['ready', 'register.ready'], ['storm', 'state.never'],
+      ['gust', 'state.rain'], ['bearing', 'register.bearing'], ['flash', 'register.flash']], random: true,
+      write: [['flash', 'register.flash']], emit: [{ event: 'flicker', when: 'distance', fields: [['far', 'output.distance'], ['towards', 'output.bearing']] }] },
+    { signal: 'low', observe: [...player, ['dt', 'dt'], ['lowFor', 'register.lowFor'], ['gust', 'state.rain'], ['storm', 'state.never']],
+      probe: { x: 'input.px', z: 'input.pz', radius: 30 }, write: [['low', 'register.low'], ['lowFor', 'register.lowFor']], emit: [] },
+  ] };
+
+let restore = (): void => undefined;
+afterEach(() => { restore(); });
+function install(rows: unknown = marsh): ReturnType<typeof installWeatherReactions> {
+  restore = overrideTerrain({ heightAt: () => 0 });
+  const air = new WeatherContinuation(program, { seed: 5, mode: 'live' });
+  const reactions = installWeatherReactions(air, parseWeatherReactions(rows, program), { scope: new Scope('marsh') });
+  Object.assign(reactions.inputs, { crouched: 0, mounted: 0 });
+  return reactions;
+}
+
+test('a second shard drives its own rows at its own cadence and hears its own events', () => {
+  const marshWeather = install();
+  marshWeather.weather.force('rain', .2); marshWeather.weather.hold = true;
+  const flickers: Record<string, number>[] = [];
+  marshWeather.on('flicker', event => { flickers.push({ ...event }); });
+  let ticks = 0;
+  for (let i = 0; i < 60; i++) if (marshWeather.update(1 / 60)) ticks++;
+  expect(ticks).toBe(5);
+  expect(flickers).toHaveLength(5);
+  for (const flicker of flickers) { expect(flicker['far']).toBeGreaterThanOrEqual(500); expect(flicker['far']).toBeLessThanOrEqual(1200); }
+  expect(marshWeather.flash).toBe(.55); expect(marshWeather.stormActive).toBe(true);
+});
+
+test('probes, shelters and covered inputs decide what the steps observe', () => {
+  const marshWeather = install();
+  marshWeather.weather.force('rain', .2); marshWeather.weather.hold = true;
+  Object.assign(marshWeather.inputs, { px: 0, py: 0, pz: 0 });
+  marshWeather.update(.2); expect(marshWeather.register('low')).toBe(0); // the 9 m point stands over the player
+  Object.assign(marshWeather.inputs, { px: -120, pz: -120 });
+  marshWeather.update(.2); expect(marshWeather.register('low')).toBe(1); expect(marshWeather.register('lowFor')).toBeCloseTo(.2);
+  Object.assign(marshWeather.inputs, { px: 40, pz: 41 });
+  marshWeather.update(.2); expect(marshWeather.inputs['sheltered']).toBe(1); expect(marshWeather.register('low')).toBe(0);
+  Object.assign(marshWeather.inputs, { px: -120, pz: -120, covered: 1 });
+  marshWeather.update(.2); expect(marshWeather.register('low')).toBe(0);
+});
+
+test('the whole continuation snapshots as plain values and refuses foreign registers', () => {
+  const marshWeather = install();
+  marshWeather.weather.force('rain', .2);
+  for (let i = 0; i < 7; i++) marshWeather.update(.07);
+  const saved = marshWeather.snapshot(), copy = structuredClone(saved);
+  for (let i = 0; i < 9; i++) marshWeather.update(.09);
+  marshWeather.restore(copy); expect(marshWeather.snapshot()).toEqual(saved);
+  expect(() => { marshWeather.restore({ ...saved, registers: { other: 1 } }); }).toThrow(); expect(marshWeather.snapshot()).toEqual(saved);
+});
+
+test('rows refuse registers, states and actions their program does not declare', () => {
+  const step = marsh.steps[1];
+  if (step === undefined) throw new Error('Missing fixture step');
+  for (const rows of [{ ...marsh, flash: 'missing' }, { ...marsh, active: ['snow'] }, { ...marsh, actions: { event: 'missing' } }, { ...marsh, hz: 30 },
+    { ...marsh, steps: [{ ...step, write: [['low', 'register.missing']] }] }, { ...marsh, steps: [{ ...step, observe: [['dt', 'clock']] }] }])
+    expect(() => parseWeatherReactions(rows, program)).toThrow();
+});

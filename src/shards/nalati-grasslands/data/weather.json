@@ -409,7 +409,21 @@
     "windGustiness": 0.6,
     "armed": 0,
     "ready": 0,
-    "flash": 0
+    "flash": 0,
+    "pendingT": 0,
+    "land": 0,
+    "arm": 0,
+    "cx": 0,
+    "cz": 0,
+    "cradius": 0,
+    "sx": 0,
+    "sy": 0,
+    "sz": 0,
+    "skind": 0,
+    "low": 0,
+    "lowFor": 0,
+    "asked": -1,
+    "stormFrom": 0.7853981633974483
   },
   "actions": {
     "enter": [

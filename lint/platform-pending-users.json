@@ -2678,6 +2678,30 @@
           "row": "G483"
         }
       }
+    },
+    {
+      "module": "src/game/plugin/weather.ts",
+      "export": "WeatherReactions",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "weather reactions + keyed sky",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
+    },
+    {
+      "module": "src/game/plugin/weather.ts",
+      "export": "installWeatherReactions",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "weather reactions + keyed sky",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     }
   ]
 }

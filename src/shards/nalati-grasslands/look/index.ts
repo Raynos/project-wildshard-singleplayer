@@ -75,7 +75,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   ctx.updates.push((dt) => {
     sweepT -= dt;
     if (sweepT <= 0) { sweepT = 2; bake.sweep(); } // streamed-in casters join the bake (and leave the phone's CSM)
-    const look = weather.look, w = weather.weather;
+    const look = weather.look, w = weather.air;
     cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)
     bake.update(sky.sunDir); // step 6: after the cheat, so the baked shadows fall from the key
     setLentParam('nalati-panorama', 'uSunNow', look.sunDir.toArray());

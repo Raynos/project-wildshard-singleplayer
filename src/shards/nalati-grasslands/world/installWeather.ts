@@ -16,7 +16,8 @@ import { tint as regrade } from '../look/fog';
  *   w.update(dt)                                                  // every frame (index.ts pushes it)
  *   w.bind({ audio, hurt, scare })                                // main.ts, once the audio / health exist (see below)
  *   w.clock    — DayClock: .phase ('dawn' | 'day' | 'golden' | 'dusk' | 'night'), .hour, .onDusk / onNight / onDawn(fn)
- *   w.weather  — Weather: .state, .stormActive, .onStrike(fn), .onPhase(fn), .hold (a boss fight), .force(phase)
+ *   w.weather  — WeatherReactions (@wildshard/game/plugin/weather): .stormActive, .flash, .on('strike' | 'telegraph' | 'flash' | 'hurt' | 'wind', fn)
+ *   w.air      — its continuation: .state, .onPhase(fn), .hold (a boss fight), .force(phase)
  *
  * Dev params: `?time=dawn|day|noon|golden|dusk|night|midnight|<hour>` ·
  * `?clock=0` (freeze the clock) · `?weather=clear|building|gust|storm|clearing|after[:0..1]` (jump into a phase,
@@ -24,7 +25,7 @@ import { tint as regrade } from '../look/fog';
  *
  * Hooks for other rows: B11 balbals `w.clock.onDusk(…)`, ghost riders `w.clock.onNight(…)`; B12 Qyran and B14 the
  * Storm Titan read `w.weather.stormActive`; B13 sets `w.air.hold = true` during a boss fight; the
- * herds / packs: `w.weather.onStrike((s) => wildlife.scare(s.x, s.z, 60))` (or pass `scare` to `bind`).
+ * herds / packs: pass `scare` to `bind`.
  */
 import * as THREE from 'three';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -37,13 +38,12 @@ import { DayCycle, compassDir, type DayPhase } from '@wildshard/engine/world/day
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { wind } from '@wildshard/engine/world/steppeWind';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { audioVoicePatches } from '@wildshard/game/audio/voicePatches';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
-import type { Lightning as Weather, Exposed, LightningPlayer, Strike } from './Lightning';
-import { readWeatherProgram, steppeStorm, stormWind, stepStorm, stormEnv, yurtsOf, yurtShelters, exposeTrees, type YurtCircle } from './weatherStep';
+import type { WeatherReactions, WeatherReactionEvent } from '@wildshard/game/plugin/weather';
+import { readWeatherProgram, steppeStorm, stormEnv, yurtsOf } from './weatherStep';
 import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
 import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
 import { lentLook, setLentTexture, pushLentParams, setLentParam } from '@wildshard/sdk/looks/lentLooks';
@@ -79,15 +79,13 @@ export interface WeatherHooks {
 
 export interface NalatiWeather {
   clock: DayCycle<SteppeKey>;
-  weather: Weather;
+  weather: WeatherReactions;
   /** Plain admitted weather owner; lightning is composed separately. */
   air: WeatherContinuation;
   rig: Awaited<ReturnType<typeof weatherSky>>;
   fx: Awaited<ReturnType<typeof weatherEffects>>;
   /** the look applied last frame (clock + storm) */
   look: SkyLook;
-  /** the yurts the lightning's shelter rule reads (world/weatherStep.ts yurtsOf over the POI colliders; the headless bake's `yurts`) */
-  readonly yurts: readonly YurtCircle[];
   update: (dt: number) => void;
   bind: (hooks: WeatherHooks) => void;
 }
@@ -98,7 +96,7 @@ const mmss = (s: number): string => { const t = Math.max(0, Math.ceil(s)); retur
 
 export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   const program=readWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.ctx.product.file('world/weather.json'))));
-  const { game, player, forest } = ctx;
+  const { game, player } = ctx;
   const def = ctx.manifest;
   const qs = ctx.ctx.app.params;
   const hooks: WeatherHooks = {};
@@ -120,21 +118,10 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
     ['tint',{key:regrade.key.value,light:regrade.light.value,veilColour:regrade.veilColour.value,moon:regrade.moon,veil:regrade.veil,flash:regrade.flash}]]));
   const lit={overcast:0,rain:0,flash:0,waterRain:0,dayFog:0.2126*rig.dayFog.r+0.7152*rig.dayFog.g+0.0722*rig.dayFog.b,dayKey:Math.max(0.1,rig.daySunIntensity)};
 
-  // ── the lightning's view of the world ──
-  const yurts = yurtsOf(ctx.colliders ?? []);
-  let held = false;   // the Storm Titan's hold (hooks.stormHold), read by the lightning's player() below
-  const lp: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false };
-  const weather = steppeStorm(def.seed, {
-    heightAt,
-    exposed(x: number, z: number, r: number, out: Exposed[]) { exposeTrees(forest.nearby(x, z, r), (t) => t.y + t.height, (t) => t, x, z, r, out); },
-    player() {
-      const p = player.position;
-      lp.x = p.x; lp.y = p.y; lp.z = p.z;
-      lp.crouched = player.crouching; lp.mounted = wildEnv.playerMounted;
-      lp.sheltered = indoors || held || yurtShelters(yurts, p.x, p.z);
-      return lp;
-    },
-  }, program, undefined, game.levelScope);
+  // ── the storm (world/weatherStep.ts, the host's rules too): struck at the spruces' tops, sheltered by the yurts ──
+  let held = false;   // the Storm Titan's hold (hooks.stormHold)
+  const weather = steppeStorm(def.seed, program, ctx.forest.trees.map(t => [t.x, t.z, t.y + t.height]), yurtsOf(ctx.colliders ?? []), { scope: game.levelScope });
+  Object.assign(weather.inputs, { calmSpeed: wind.speed, calmDir: wind.dir, calmGust: wind.gustiness });
   const wq = qs.get('weather');
   if (wq) {
     const [ph = '', at = '0'] = wq.split(':');
@@ -144,21 +131,20 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
 
   const fx = weatherEffects(ctx,rig.rows);
 
-  weather.onTelegraph((s) => {
+  weather.on('telegraph', (s) => {
     fx.telegraph(s);
-    const d = Math.hypot(s.x - player.position.x, s.z - player.position.z);
-    if (d < 160 && hooks.audio) audioVoicePatches(hooks.audio).play('lightningCrackle',{pan:panOf(s.x,s.z),gain:Math.max(.15,1-d/160)});
+    const d = Math.hypot((s['x'] ?? 0) - player.position.x, (s['z'] ?? 0) - player.position.z);
+    if (d < 160 && hooks.audio) audioVoicePatches(hooks.audio).play('lightningCrackle',{pan:panOf(s['x'] ?? 0,s['z'] ?? 0),gain:Math.max(.15,1-d/160)});
   });
-  weather.onStrike((s) => {
-    fx.bolt(s);
-    hooks.scare?.(s.x, s.z);
-  });
-  weather.onFlash((dist, bearing) => {
+  weather.on('strike', (s) => { fx.bolt(s); hooks.scare?.(s['x'] ?? 0, s['z'] ?? 0); });
+  weather.on('flash', (e) => {
+    const bearing = e['bearing'] ?? 0, p = player.position;
     fx.inCloudFlash(bearing);
-    const p = player.position;
-    if (hooks.audio) audioVoicePatches(hooks.audio).play('thunder',{distance:dist,pan:panOf(p.x+Math.cos(bearing)*100,p.z+Math.sin(bearing)*100)});
+    if (hooks.audio) audioVoicePatches(hooks.audio).play('thunder',{distance:e['distance'] ?? 0,pan:panOf(p.x+Math.cos(bearing)*100,p.z+Math.sin(bearing)*100)});
   });
-  weather.onPlayerHit((dmg) => hooks.hurt?.(game.app.events.ask('weather.damage', dmg), 'Struck by lightning — get low in a storm'));
+  weather.on('hurt', (e) => hooks.hurt?.(game.app.events.ask('weather.damage', e['damage'] ?? 0), 'Struck by lightning — get low in a storm'));
+  // the wind: the storm asks for its own; back to the calm prevailing westerly after
+  weather.on('wind', (e) => { wind.setTarget(e['speed'] ?? wind.speed, e['dir'] ?? wind.dir, e['gustiness'], e['seconds']); });
 
   /** stereo pan of a world point for the listener (Player.yaw convention: forward = (−sin, −cos)) */
   function panOf(x: number, z: number): number {
@@ -168,15 +154,12 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
     return ((dx * rx + dz * rz) / d) * 0.7;
   }
 
-  // ── the wind: the storm asks for its own; back to the calm prevailing westerly after ──
-  const windAsk = stormWind(wind);
-
   // ── HUD + audio, throttled ──
   let hudKey = '';
   let audioT = 0;
 
   const out: NalatiWeather = {
-    clock, weather, air:weather.weather, rig, fx, look, yurts,
+    clock, weather, air:weather.weather, rig, fx, look,
     bind(h) { Object.assign(hooks, h); },
     update(dt) {
       indoors = hooks.indoors?.() === true;
@@ -184,14 +167,17 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       // the Golden King is fought indoors (no storm starts meanwhile); the Storm Titan in the storm that called him
       weather.weather.hold = indoors || held;
       clock.update(dt);
-      // the storm (the Storm Titan's holds it open) and the wind it asks for (world/weatherStep.ts, the host's rule too)
-      stepStorm(weather, windAsk, wind, dt, held);
+      // the storm (the Storm Titan's holds it open) and the wind it asks for
+      const p = player.position, inputs = weather.inputs;
+      inputs['px'] = p.x; inputs['py'] = p.y; inputs['pz'] = p.z; inputs['crouched'] = Number(player.crouching); inputs['mounted'] = Number(wildEnv.playerMounted);
+      inputs['covered'] = Number(indoors || held); inputs['titanHeld'] = Number(held);
+      weather.update(dt);
       // the look
       rig.sample();
       stormLook.evaluate({time:0,delta:dt,values:{overcast:weather.weather.overcast,flash:weather.flash,rain:weather.weather.rain,wet:weather.weather.wet}});
       rig.flash = weather.flash * 0.7;
       rig.apply(dt);
-      Object.assign(lit,{overcast:weather.weather.overcast,rain:weather.weather.rain,flash:weather.flash,waterRain:indoors?0:weather.weather.rain});
+      lit.overcast=weather.weather.overcast;lit.rain=weather.weather.rain;lit.flash=weather.flash;lit.waterRain=indoors?0:weather.weather.rain;
       afterLook.evaluate({time:0,delta:dt,values:lit});pushLentParams(waterParams);
       fx.update(dt, weather, look, game.camera, { x: wind.dirX * wind.speed, z: wind.dirZ * wind.speed });
       fx.rain.visible &&= !indoors;
@@ -200,11 +186,11 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       // HUD (the event fires on change only)
       const ws = `WIND ${Math.round(wind.speed)} m/s`;
       let chip: WeatherHUD['chip'] = null;
-      if (weather.weather.state === 'building' && weather.untilStorm <= 45) chip = { title: `Storm in ${mmss(weather.untilStorm)}`, sub: ws, tone: 'soon' };
+      if (weather.weather.state === 'building' && weather.weather.phaseLeft <= 45) chip = { title: `Storm in ${mmss(weather.weather.phaseLeft)}`, sub: ws, tone: 'soon' };
       else if (weather.weather.state === 'gust') chip = { title: 'Storm', sub: ws, tone: 'storm' };
-      else if (weather.weather.state === 'storm') chip = { title: `Storm ${mmss(weather.phaseLeft)}`, sub: ws, tone: 'storm' };
+      else if (weather.weather.state === 'storm') chip = { title: `Storm ${mmss(weather.weather.phaseLeft)}`, sub: ws, tone: 'storm' };
       else if (weather.weather.state === 'clearing') chip = { title: 'Clearing', sub: ws, tone: 'clearing' };
-      const detail: WeatherHUD = { chip, getLow: weather.getLow && !indoors };
+      const detail: WeatherHUD = { chip, getLow: weather.register('low') === 1 && !indoors };
       const key = `${chip?.title ?? ''}|${chip?.sub ?? ''}|${String(detail.getLow)}`;
       if (key !== hudKey) { hudKey = key; ctx.ctx.app.events.emit('weather.changed', detail); }
       // audio beds at 4 Hz
@@ -253,13 +239,14 @@ function weatherEffects(ctx: WeatherCtx, rows: Awaited<ReturnType<typeof weather
  ctx.game.levelScope.onDispose(()=>{group.removeFromParent();for(const g of shapes)g.dispose();rain.geometry.dispose();noise.dispose();for(const sprite of [glow,fire]){sprite.material.map?.dispose();sprite.material.dispose();}});
  group.name='weather-fx';ctx.game.scene.add(group);
  return {group,rain,
-  telegraph(s:Strike){glow.position.set(s.x,s.y+.4,s.z);timers.glowT=0;},
-  bolt(s:Strike){timers.glowT=99;timers.boltT=0;setLentParam('nalati-lightning-bolt','origin',[s.x,s.y,s.z]);if(s.kind==='tree'){setLentParam('nalati-strike-smoke','origin',[s.x,s.y-2,s.z]);fire.position.set(s.x,s.y-1.5,s.z);timers.smokeLeft=360;}},
+  telegraph(s:WeatherReactionEvent){glow.position.set(s['x']??0,(s['y']??0)+.4,s['z']??0);timers.glowT=0;},
+  /** a bolt at (x, y, z); `kind` 1 (a spruce) leaves it smoking and burning */
+  bolt(s:WeatherReactionEvent){const x=s['x']??0,y=s['y']??0,z=s['z']??0;timers.glowT=99;timers.boltT=0;setLentParam('nalati-lightning-bolt','origin',[x,y,z]);if(s['kind']===1){setLentParam('nalati-strike-smoke','origin',[x,y-2,z]);fire.position.set(x,y-1.5,z);timers.smokeLeft=360;}},
   inCloudFlash(bearing:number){setLentParam('nalati-storm-deck','flashDir',new THREE.Vector3(Math.cos(bearing),.25,Math.sin(bearing)).normalize().toArray());},
-  update(dt:number,weather:Weather,look:SkyLook,camera:THREE.Camera,airWind:{x:number;z:number}){
+  update(dt:number,weather:WeatherReactions,look:SkyLook,camera:THREE.Camera,airWind:{x:number;z:number}){
    timers.boltT+=dt;timers.glowT+=dt;timers.smokeLeft=Math.max(0,timers.smokeLeft-dt);timers.smokeT+=dt;
    windReading.x=airWind.x;windReading.z=airWind.z;
-   if(lane===null){owners.set('weather',{get front(){return weather.front;},get stormFrom(){return weather.stormFrom;},get rainbow(){return weather.rainbow;},get overcast(){return weather.overcast;},get flash(){return weather.flash;},get rain(){return weather.rain;},get wet(){return weather.weather.wet;}});owners.set('look',look);owners.set('camera',camera.position);lane=installChannelPrograms(channels,'nalati.fx',owners);}
+   if(lane===null){const air=weather.weather;owners.set('weather',{get front(){return air.n['front']??0;},get stormFrom(){return weather.register('stormFrom');},get rainbow(){return air.n['rainbow']??0;},get overcast(){return air.overcast;},get flash(){return weather.flash;},get rain(){return air.rain;},get wet(){return air.wet;}});owners.set('look',look);owners.set('camera',camera.position);lane=installChannelPrograms(channels,'nalati.fx',owners);}
    lane.evaluate({time:0,delta:dt,values:{...timers,active:Number(weather.weather.state!=='clear'),count}});pushLentParams(params);
    for(const [id,part] of parts)part.visible=(flags[id]??0)>0;
    velocity.set(uniforms.uVelx,uniforms.uVely,uniforms.uVelz);

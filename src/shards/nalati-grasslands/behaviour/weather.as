@@ -39,6 +39,18 @@ let resultCount:i32=0;
  return height(x,z)-mean/4>1.5?1:0;
 }
 @inline function top():f64{return f(Field.py)+(f(Field.crouched)>0?1.05:1.75)+(f(Field.mounted)>0?1.5:0);}
+// The strike's best target so far (one request; ReturnProgram rewinds the module after each).
+let bestX=0.0,bestY=0.0,bestZ=0.0,bestKind=0.0,bestScore=0.0;
+@inline function scanAt(cx:f64,cz:f64,r:f64,scan:i32):void {
+ Read.radial(f64(scan)*Math.PI/4,r*.6);const tx=cx+List.at(1),tz=cz+List.at(0),ty=height(tx,tz),s=ty+terrainRidge(tx,tz);
+ if(s>bestScore){bestX=tx;bestZ=tz;bestY=ty;bestScore=s;bestKind=0;}
+}
+@inline function candidateAt(count:f64,i:i32):void {
+ if(f64(i)>count)return;
+ const tx=Read.field(i,Field.x),tz=Read.field(i,Field.z),ty=Read.field(i,Field.top),s=ty+terrainRidge(tx,tz);
+ if(s>bestScore){bestX=tx;bestZ=tz;bestY=ty;bestScore=s;bestKind=1;}
+}
+@inline function above(count:f64,i:i32,head:f64):bool { return f64(i)<=count&&Read.field(i,Field.top)>head; }
 // Requests are dispatched by the world adapter at no more than ten Hz.
 
 @inline function decide(signal:i32,value:f64,source:i32):void {
@@ -140,34 +152,34 @@ if(signal==Signal.arm){
   const hunt=f(Field.lowFor)>3&&Read.random()<.45,angle=hunt?0:Read.random()*Math.PI*2,d=hunt?0:40+Read.random()*190;
   Read.radial(angle,d);const dx=List.at(1),dz=List.at(0);put(Channel.x,f(Field.px)+dx);put(Channel.z,f(Field.pz)+dz);put(Channel.radius,hunt?30:35);
  }else if(signal==Signal.pick){
-  const cx=f(Field.cx),cz=f(Field.cz),r=f(Field.radius),first=f(Field.first)>0;
-  let x=f(Field.bestX),z=f(Field.bestZ),y=f(Field.bestY),kind=f(Field.bestKind),index=f(Field.bestIndex),score=f(Field.bestScore);
-  if(first){x=cx;z=cz;y=height(cx,cz);kind=0;index=-1;score=y+terrainRidge(cx,cz);}
-  const scan=f(Field.scan);
-  if(scan>=0){const a=scan*Math.PI/4;Read.radial(a,r*.6);const dx=List.at(1),dz=List.at(0),tx=cx+dx,tz=cz+dz,ty=height(tx,tz),s=ty+terrainRidge(tx,tz);if(s>score){x=tx;z=tz;y=ty;score=s;kind=0;index=-1;}}
-  if(f(Field.count)>0){
-   const tx=Read.field(1,Field.x),tz=Read.field(1,Field.z),ty=Read.field(1,Field.top),s=ty+terrainRidge(tx,tz);
-   if(s>score){x=tx;z=tz;y=ty;score=s;kind=Read.field(1,Field.kind);index=Read.field(1,Field.index);}
-  }
-  if(first){const px=f(Field.px),pz=f(Field.pz),py=top(),ps=py+terrainRidge(px,pz);
-  if(f(Field.sheltered)==0&&length(px-cx,pz-cz)<=r&&ps>score){x=px;z=pz;y=py;kind=3;index=-1;score=ps;}}
-  put(Channel.x,x);put(Channel.y,y);put(Channel.z,z);put(Channel.kind,kind);put(Channel.index,index);put(Channel.score,score);
+  // the highest of: the cell's centre, the player in it, eight points round it, the probed candidates (ties keep the first);
+  // unrolled: every loop iteration and call is charged fuel
+  const cx=f(Field.cx),cz=f(Field.cz),r=f(Field.radius),count=f(Field.count);
+  bestX=cx;bestZ=cz;bestY=height(cx,cz);bestKind=0;bestScore=bestY+terrainRidge(cx,cz);
+  const px=f(Field.px),pz=f(Field.pz),py=top(),ps=py+terrainRidge(px,pz);
+  if(f(Field.sheltered)==0&&length(px-cx,pz-cz)<=r&&ps>bestScore){bestX=px;bestZ=pz;bestY=py;bestKind=3;bestScore=ps;}
+  scanAt(cx,cz,r,0);scanAt(cx,cz,r,1);scanAt(cx,cz,r,2);scanAt(cx,cz,r,3);scanAt(cx,cz,r,4);scanAt(cx,cz,r,5);scanAt(cx,cz,r,6);scanAt(cx,cz,r,7);
+  candidateAt(count,1);candidateAt(count,2);candidateAt(count,3);candidateAt(count,4);candidateAt(count,5);candidateAt(count,6);candidateAt(count,7);candidateAt(count,8);
+  put(Channel.x,bestX);put(Channel.y,bestY);put(Channel.z,bestZ);put(Channel.kind,bestKind);put(Channel.armed,1);put(Channel.pendingT,1.2);
  }else if(signal==Signal.low){
-  if(f(Field.active)==0||f(Field.sheltered)>0||f(Field.blocked)>0){put(Channel.low,0);put(Channel.lowFor,0);return;}
-  const px=f(Field.px),pz=f(Field.pz),head=top()+terrainRidge(px,pz);let low=true;
+  if(f(Field.gust)+f(Field.storm)==0||f(Field.sheltered)>0){put(Channel.low,0);put(Channel.lowFor,0);return;}
+  const px=f(Field.px),pz=f(Field.pz),head=top()+terrainRidge(px,pz),count=f(Field.count);let low=true;
   if(height(px+(12),pz+(0))+1.2>=head||height(px+(8.485281374238571),pz+(8.485281374238571))+1.2>=head||height(px+(0),pz+(12))+1.2>=head||height(px+(-8.485281374238571),pz+(8.485281374238571))+1.2>=head||height(px+(-12),pz+(0))+1.2>=head||height(px+(-8.485281374238571),pz+(-8.485281374238571))+1.2>=head||height(px+(0),pz+(-12))+1.2>=head||height(px+(8.485281374238571),pz+(-8.485281374238571))+1.2>=head||height(px+(30),pz+(0))+1.2>=head||height(px+(21.213203435596427),pz+(21.213203435596427))+1.2>=head||height(px+(0),pz+(30))+1.2>=head||height(px+(-21.213203435596427),pz+(21.213203435596427))+1.2>=head||height(px+(-30),pz+(0))+1.2>=head||height(px+(-21.213203435596427),pz+(-21.213203435596427))+1.2>=head||height(px+(0),pz+(-30))+1.2>=head||height(px+(21.213203435596427),pz+(-21.213203435596427))+1.2>=head)low=false;
-  if(f(Field.count)>0&&Read.field(1,Field.top)>head)low=false;
+  if(above(count,1,head)||above(count,2,head)||above(count,3,head)||above(count,4,head)||above(count,5,head)||above(count,6,head)||above(count,7,head)||above(count,8,head))low=false;
   put(Channel.low,low?1:0);put(Channel.lowFor,low?f(Field.lowFor)+f(Field.dt):0);
  }else if(signal==Signal.tick){
-  if(f(Field.armed)>0){const t=f(Field.pendingT)-f(Field.dt);put(Channel.pendingT,t);put(Channel.land,t<=0?1:0);}
+  let arm=0.0,land=0.0;
+  if(f(Field.armed)>0){const t=f(Field.pendingT)-f(Field.dt);put(Channel.pendingT,t);land=t<=0?1:0;}
   else if(f(Field.ready)>0){
-   if(f(Field.storm)>0)put(Channel.arm,1);
-   else{const gust=f(Field.gust)>0;put(Channel.distance,gust?500+Read.random()*700:1200+Read.random()*1800);put(Channel.flash,gust?.55:.3);put(Channel.bearing,f(Field.bearing)+(Read.random()*1.2-.6));}
+   if(f(Field.storm)>0)arm=1;
+   else{const gust=f(Field.gust)>0;put(Channel.distance,gust?500+Read.random()*700:1200+Read.random()*1800);put(Channel.flash,Math.max(f(Field.flash),gust?.55:.3));put(Channel.bearing,f(Field.bearing)+(Read.random()*1.2-.6));}
   }
+  put(Channel.arm,arm);put(Channel.land,land);
  }else if(signal==Signal.hit){
   const d=length(f(Field.x)-f(Field.px),f(Field.z)-f(Field.pz));put(Channel.distance,d);put(Channel.bearing,angle(f(Field.z)-f(Field.pz),f(Field.x)-f(Field.px)));
-  put(Channel.damage,f(Field.sheltered)==0&&d<=4&&Math.abs(f(Field.y)-f(Field.py))<6?60:0);
- }else if(signal==Signal.wind){
+  if(f(Field.sheltered)==0&&d<=4&&Math.abs(f(Field.y)-f(Field.py))<6)put(Channel.damage,60);
+  put(Channel.flash,1);put(Channel.armed,0);put(Channel.land,0);
+}else if(signal==Signal.wind){
   const hold=f(Field.titanHeld)>0&&f(Field.storm)>0&&f(Field.phaseLen)-f(Field.phaseT)<30;
   put(Channel.phaseT,hold?f(Field.phaseLen)-30:f(Field.phaseT));
   const speed=f(Field.windSpeed),asking=speed>=0;

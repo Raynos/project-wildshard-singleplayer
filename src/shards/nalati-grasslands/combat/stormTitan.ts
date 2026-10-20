@@ -680,7 +680,7 @@ export class StormTitanFight implements BossScript {
   // ── a strike from the sky ──
   private bolt(x: number, z: number): void {
     const y = heightAt(x, z);
-    this.ctx.weather.fx.bolt({ x, y, z, kind: 'ground' });
+    this.ctx.weather.fx.bolt({ x, y, z, kind: 0 });
     this.ctx.weather.weather.flash = 1;
     this.body.uni.uFlash.value = 1;
     wildEnv.onEvent?.('lightning', x, z);

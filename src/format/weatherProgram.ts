@@ -44,3 +44,42 @@ function validReferences(row:v.InferOutput<typeof WeatherProgramSchema>):boolean
 export type WeatherProgram = v.InferOutput<typeof WeatherProgramSchema>;
 /** Parse authored or hash-checked product data before creating a weather owner. */
 export function parseWeatherProgram(value: unknown): WeatherProgram { const rows=v.parse(WeatherProgramSchema,value);if(!validReferences(rows))throw new RangeError('Invalid weather numeric references');return rows; }
+
+const name = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9]*$/u), v.maxLength(64));
+/** A reaction's numeric source: a continuation register, a caller input, the step's own output, a state flag, or the clock. */
+const source = v.pipe(v.string(), v.regex(/^(?:(?:register|input|output|state)\.[a-zA-Z][a-zA-Z0-9]*|dt|phaseT|phaseLen)$/u));
+const named = v.pipe(v.array(v.tuple([name, source])), v.maxLength(32));
+/**
+ * Weather reactions (G474): what a weather continuation does at a bounded cadence beyond its phases, as ordered steps of one
+ * admitted return program (`script` and its module `bytes`). Each decision tick runs the continuation's `actions` list (unless its register is set),
+ * then every step whose `when` source is non-zero: the step's `observe` fields (and, with `probe`, the nearest ≤ 8 declared
+ * points within the probed circle as candidates `x z top`) go to its `signal`; each `write` copies an output to a register or
+ * the phase clock (`phaseT`), and each `emit` raises an event while its `when` output is present. `active` states make the
+ * weather "on" for its readers; `flash` names the register they may raise; `shelter` circles grow by `margin` and mark the
+ * caller's `input.sheltered`.
+ */
+export const WeatherReactionsSchema = v.strictObject({
+  version: v.literal(1), hz: v.pipe(finite, v.minValue(1), v.maxValue(10)), script: v.unknown(), bytes: v.string(),
+  actions: v.exactOptional(v.strictObject({ event: id, unless: v.exactOptional(name) })),
+  active: v.pipe(v.array(id), v.maxLength(32)), flash: name,
+  shelter: v.strictObject({ margin: v.pipe(finite, v.minValue(0)), circles: v.pipe(v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])), v.maxLength(256)) }),
+  points: v.pipe(v.array(v.tuple([finite, finite, finite])), v.maxLength(8192)),
+  steps: v.pipe(v.array(v.strictObject({
+    signal: name, when: v.exactOptional(source), observe: named,
+    probe: v.exactOptional(v.strictObject({ x: source, z: source, radius: v.union([source, v.pipe(finite, v.minValue(0))]) })), random: v.optional(v.boolean(), false),
+    write: v.pipe(v.array(v.tuple([name, v.pipe(v.string(), v.regex(/^(?:register\.[a-zA-Z][a-zA-Z0-9]*|phaseT)$/u))])), v.maxLength(32)),
+    emit: v.pipe(v.array(v.strictObject({ event: name, when: name, fields: named })), v.maxLength(8)),
+  })), v.minLength(1), v.maxLength(16)),
+});
+export type WeatherReactionRows = v.InferOutput<typeof WeatherReactionsSchema>;
+/** Admit reaction rows against the continuation they drive: every register they read or write is the program's own. */
+export function parseWeatherReactions(value: unknown, program: WeatherProgram): WeatherReactionRows {
+  const rows = v.parse(WeatherReactionsSchema, value), registers = program.registers ?? {};
+  const known = (ref: string): boolean => !ref.startsWith('register.') || Object.hasOwn(registers, ref.slice(9));
+  const refs = rows.steps.flatMap(step => [step.when ?? '', ...step.observe.map(row => row[1]), ...step.write.map(row => row[1]),
+    ...(step.probe === undefined ? [] : [step.probe.x, step.probe.z, String(step.probe.radius)]), ...step.emit.flatMap(row => row.fields.map(field => field[1]))]);
+  if (!refs.every(known) || !Object.hasOwn(registers, rows.flash) || (rows.actions?.unless !== undefined && !Object.hasOwn(registers, rows.actions.unless))
+    || !rows.active.every(state => program.states.includes(state)) || (rows.actions !== undefined && program.actions?.[rows.actions.event] === undefined))
+    throw new RangeError('Invalid weather reaction references');
+  return rows;
+}

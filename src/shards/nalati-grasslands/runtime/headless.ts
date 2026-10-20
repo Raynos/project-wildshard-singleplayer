@@ -21,10 +21,10 @@ import type { SkyKey } from '../look/skyRig';
 import * as v from 'valibot';
 import { Wind } from '@wildshard/engine/world/steppeWind';
 import type { WildEnv } from '../creatures/env';
-import type { LightningPlayer, Lightning } from '../world/Lightning';
+import type { WeatherReactions } from '@wildshard/game/plugin/weather';
 import type { WeatherProgram } from '@wildshard/format/weatherProgram';
 import type { SunClock } from '../look/wildLight';
-import { exposeTrees, steppeStorm, stepStorm, stormEnv, stormWind, windEnv, yurtShelters, type StormWind, type YurtCircle } from '../world/weatherStep';
+import { steppeStorm, stormEnv, windEnv } from '../world/weatherStep';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import { Vector3 } from 'three';
 import { ATTACK_TURN, type HuntGround, type HuntNav, type HuntTree } from '@wildshard/engine/ai/hunt';
@@ -67,96 +67,68 @@ export function installNalatiTrample(host: SimHost, trample: TrampleField): void
   installTrampleTrail(host, trample, { id: 'nalati.trample', radius: .55, strength: 1, speedLimit: 30 });
 }
 
-/** The host's weather: its own steppe wind, the storm on the page's seed and the wind the storm last asked for. */
-export interface NalatiHostWeather { readonly wind: Wind; readonly storm: Lightning; readonly ask: StormWind }
-const weathers = new WeakMap<SimHost, NalatiHostWeather>();
-/** The weather installed into `host` (its tests read it), or undefined. */
-export function nalatiWeatherOf(host: SimHost): NalatiHostWeather | undefined { return weathers.get(host); }
-
 const num = v.pipe(v.number(), v.finite());
 const WindValue = v.strictObject({ speed: num, dir: num, gustiness: num, time: num, travel: num, wander: v.boolean(), baseSpeed: num, baseDir: num,
   target: v.strictObject({ speed: num, dir: num, gustiness: num, rate: num }) });
-const StormValue = v.strictObject({ state: v.string(), phaseT: num, phaseLen: num, mode: v.string(), hold: v.boolean(),
-  n: v.strictObject({ overcast: num, rain: num, wet: num, wind: num, fog: num, front: num, rainbow: num }),
-  rng: v.strictObject({ version: num, state: num, initial: num, scrambledFork: v.boolean() }),
-  flash: num, windSpeed: v.nullable(num), windGustiness: num, getLow: v.boolean(), stormFrom: num,
-  pending: v.nullable(v.strictObject({ x: num, y: num, z: num, kind: v.picklist(['tree', 'player', 'ground', 'thing']), t: num })),
+/** A save from before the storm ran on weather reactions: its continuation, timers and armed strike as registers. */
+const OldStorm = v.object({ state: v.string(), phaseT: num, phaseLen: num, mode: v.string(), hold: v.boolean(), n: v.record(v.string(), num), rng: v.unknown(),
+  flash: num, windSpeed: v.nullable(num), windGustiness: num, getLow: v.boolean(), stormFrom: num, pending: v.nullable(v.object({ x: num, y: num, z: num, kind: v.string(), t: num })),
   nextBolt: num, nextGust: num, windTarget: num, getLowFor: num, getLowTick: num });
-const WeatherValue = (states:readonly string[]) => v.strictObject({ wind: WindValue, storm: v.strictObject({...StormValue.entries,state:v.picklist(states)}), asked: v.nullable(num) });
+const WeatherValue = v.strictObject({ wind: WindValue, storm: v.unknown(), asked: v.exactOptional(v.nullable(num)) });
 
 /** A baked spruce as the lightning reads it: its trunk circle (the grid's bucket key) and its top. */
 interface NalatiTree { readonly x: number; readonly z: number; readonly r: number; readonly top: number }
-/** The lightning's world from the bake: the forest's trunks in its own 16 m cells, in its order (the page's `forest.nearby`,
- *  engine TreeGrid) with their tops, and the yurts' shelter circles. */
-export function nalatiLightningGround(bake: Pick<NalatiBake, 'trees' | 'tops' | 'yurts'>): { readonly trees: TreeGrid<NalatiTree>; readonly yurts: readonly YurtCircle[] } {
+/** The baked forest's trunks in its own 16 m cells, in its order (the page's `forest.nearby`, engine TreeGrid), with their tops. */
+export function nalatiLightningGround(bake: Pick<NalatiBake, 'trees' | 'tops'>): { readonly trees: TreeGrid<NalatiTree> } {
   const trees = new TreeGrid<NalatiTree>();
   bake.trees.forEach(([x, z, r], i) => {
     const top = bake.tops[i];
     if (top === undefined) throw new Error(`Nalati baked tree ${String(i)} has no top`);
     trees.add({ x, z, r, top });
   });
-  return { trees, yurts: bake.yurts.map(([x, z, r]) => ({ x, z, r })) };
+  return { trees };
 }
 
 /**
  * The steppe weather on the host's fixed step (SF72), the page's rules (world/weatherStep.ts) in its frame order: the wind
- * advances (the painterly grass's `wind.update`, look/grass.ts), the storm steps after the day clock (world/installWeather.ts:
- * its state machine on the page's seed, the wind it asks for), then the creatures' view takes the light, the storm and the
- * wind (the page's weather and Wildlife frames). The host's wind is its own (`new Wind(box)`: the page's tree sway untouched).
- * Its wind, storm and ask ride the snapshot (`nalati.weather`), exactly.
- *
- * The lightning's world is the page's: the baked spruces in the forest's 16 m cells with their tops (`exposeTrees`, the page's
- * `exposed`; a host's tree carries no live reference, so an armed strike on one is a plain saved value), the ground, and the
- * player as the page's `player()` builds it — the host's position; crouched and mounted as the wild view says (command-v1 crouch and the owned mounted driver supply those flags); sheltered beside a baked yurt (`yurtShelters`), never indoors (the host cannot
- * enter the Golden King's dungeon) and never held (the Storm Titan, who needs a rider, is not hosted), so `hold` stays off.
- * A strike within 4 m hurts the player through the host's combat pipeline as the page's `hurt` does (60, the weather's
- * damage ask, `env.lightning`). A landed strike scares the creatures within 60 m (`ports.scare`, Wildlife's `scare` as the page
- * binds it: the packs break, the herds stampede, the flock bolts, the 'scare' signal); strikes land only in the storm phase,
- * 12–18 min in.
+ * advances, the storm's reactions step (struck at the baked spruces' tops, sheltered by the baked yurts; never indoors and
+ * never held: the host cannot enter the Golden King's dungeon nor host the Storm Titan), then the creatures' view takes the
+ * light, the storm and the wind. A strike within 4 m hurts the player through the host's combat pipeline (`env.lightning`);
+ * a landed strike scares the creatures within 60 m. The wind and the storm ride the snapshot (`nalati.weather`).
  */
 export function installNalatiWeather(host: SimHost, ports: { program:WeatherProgram; heightAt: (x: number, z: number) => number; clock: SunClock; env: Pick<WildEnv, 'light' | 'storm' | 'wind' | 'playerCrouched' | 'playerMounted'>;
-  bake: Pick<NalatiBake, 'trees' | 'tops' | 'yurts'>; scare: (x: number, z: number) => void }): NalatiHostWeather {
-  const wind = new Wind({ value: 1 }), env = ports.env, clock = ports.clock, ground = nalatiLightningGround(ports.bake);
-  const lp: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false };
-  const storm = steppeStorm(SEED, {
-    heightAt: ports.heightAt,
-    exposed: (x, z, r, out) => { exposeTrees(ground.trees.nearby(x, z, r), t => t.top, () => undefined, x, z, r, out); },
-    player: () => {
-      const p = host.player.position;
-      lp.x = p.x; lp.y = p.y; lp.z = p.z;
-      lp.crouched = env.playerCrouched; lp.mounted = env.playerMounted;
-      lp.sheltered = yurtShelters(ground.yurts, p.x, p.z);
-      return lp;
-    },
-  }, ports.program, host);
-  const savedSchema=WeatherValue(storm.weather.profile.states);
-  storm.onStrike(strike => { ports.scare(strike.x, strike.z); });
-  storm.onPlayerHit(dmg => {
-    const health = host.player.health;
-    host.combat.hit({ source: 'env', sourceTags: ['env.lightning', 'feel.jolt', 'cover.checked'], target: health, amount: host.events.ask('weather.damage', dmg),
+  bake: Pick<NalatiBake, 'trees' | 'tops' | 'yurts'>; scare: (x: number, z: number) => void }): { readonly wind: Wind; readonly storm: WeatherReactions } {
+  const wind = new Wind({ value: 1 }), env = ports.env, clock = ports.clock, bake = ports.bake;
+  const storm = steppeStorm(SEED, ports.program, bake.trees.map(([x, z], i) => [x, z, bake.tops[i] ?? 0]), bake.yurts, { host });
+  Object.assign(storm.inputs, { calmSpeed: wind.speed, calmDir: wind.dir, calmGust: wind.gustiness, titanHeld: 0, crouched: 0, mounted: 0 });
+  storm.on('strike', e => { ports.scare(e['x'] ?? 0, e['z'] ?? 0); });
+  storm.on('wind', e => { wind.setTarget(e['speed'] ?? wind.speed, e['dir'] ?? wind.dir, e['gustiness'], e['seconds']); });
+  storm.on('hurt', e => {
+    host.combat.hit({ source: 'env', sourceTags: ['env.lightning', 'feel.jolt', 'cover.checked'], target: host.player.health, amount: host.events.ask('weather.damage', e['damage'] ?? 0),
       point: host.player.position.clone(), dir: new Vector3(), cause: { kind: 'env.lightning', label: 'Struck by lightning', text: 'Struck by lightning' }, toast: 'Struck by lightning — get low in a storm' });
   });
-  const ask = stormWind(wind);
   const view = (): void => { stormEnv(env, clock, storm); windEnv(env, wind); };
   host.onStep('nalati.weather', dt => {
     wind.update(dt);
-    stepStorm(storm, ask, wind, dt, false);
+    const p = host.player.position, inputs = storm.inputs;
+    inputs['px'] = p.x; inputs['py'] = p.y; inputs['pz'] = p.z; inputs['crouched'] = Number(env.playerCrouched); inputs['mounted'] = Number(env.playerMounted);
+    storm.update(dt);
     view();
   }, {
-    snapshot: () => {
-      const w = wind.snapshot(), s = storm.snapshot();
-      return { wind: { ...w, target: { ...w.target } }, storm: { ...s, n: { ...s.n }, rng: { ...s.rng }, pending: s.pending === null ? null : { ...s.pending } }, asked: ask.asked };
-    },
+    snapshot: () => { const w = wind.snapshot(); return { wind: { ...w, target: { ...w.target } }, storm: storm.snapshot() }; },
     restore: value => {
-      const saved = v.parse(savedSchema, value);
-      wind.restore(saved.wind); storm.restore(saved.storm); ask.asked = saved.asked;
+      const saved = v.parse(WeatherValue, value), old = v.safeParse(OldStorm, saved.storm);
+      wind.restore(saved.wind);
+      if (!old.success) storm.restore(saved.storm);
+      else { const o = old.output, p = o.pending; storm.restore({ version: 1, weather: { version: 1, state: o.state, mode: o.mode, hold: o.hold, phaseT: o.phaseT, phaseLen: o.phaseLen, n: o.n, rng: o.rng },
+        elapsed: Math.max(0, .1 - o.getLowTick), registers: { ...storm.weather.registers, flash: o.flash, windSpeed: o.windSpeed ?? -1, windGustiness: o.windGustiness, nextBolt: o.nextBolt, nextGust: o.nextGust,
+          windTarget: o.windTarget, low: Number(o.getLow), lowFor: o.getLowFor, stormFrom: o.stormFrom, asked: saved.asked ?? -1, armed: Number(p !== null), pendingT: p?.t ?? 0,
+          sx: p?.x ?? 0, sy: p?.y ?? 0, sz: p?.z ?? 0, skind: ['ground', 'tree', 'thing', 'player'].indexOf(p?.kind ?? 'ground') } }); }
       view();
     },
   });
   view();
-  const out = { wind, storm, ask };
-  weathers.set(host, out);
-  return out;
+  return { wind, storm };
 }
 
 /** One manager body in the host: the roster's recipe, its baked native spec, the live actor. */

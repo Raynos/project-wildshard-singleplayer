@@ -65,7 +65,7 @@ test('firing policy rejects quiet and distant riders and admits a finite ballist
 });
 
 test('weather policy holds the titan storm and restores calm after its wind ends', () => {
-  const script = ReturnProgram.page(weather), fields = { titanHeld: 1, storm: 1, gust: 0, building: 0, after: 0,
+  const script = ReturnProgram.page({ script: weather.script, bytes: weather.bytes }), fields = { titanHeld: 1, storm: 1, gust: 0, building: 0, after: 0,
     phaseT: 90, phaseLen: 100, asked: 18, calmSpeed: 4, calmDir: 2, calmGust: .3, windSpeed: 18, windGustiness: .8 };
   expect(script.project('wind', fields)).toEqual({ phaseT: 70, asked: 18, speed: 18, dir: Math.PI / 4, gustiness: .8, seconds: 10 });
   expect(script.project('wind', { ...fields, titanHeld: 0, windSpeed: -1 })).toEqual({ phaseT: 90, asked: -1, speed: 4, dir: 2, gustiness: .3, seconds: 30 });
