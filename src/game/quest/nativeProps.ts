@@ -21,10 +21,12 @@ export class NativeQuestProps {
   private readonly lifted = { x: 0, y: 0, z: 0 };
   private readonly env: BarrelEnv;
   private readonly host: SimHost;
+  private readonly dropped = new Map<string, v.InferOutput<typeof point> | null>();
   constructor(host: SimHost, input: unknown, restoring: boolean) {
     this.host = host;
     this.rows = v.parse(NativeQuestPropsSchema, input);
-    if (new Set(this.rows.barrels.map(row => row.id)).size !== this.rows.barrels.length
+    if (new Set(this.rows.drops.map(row => row.id)).size !== this.rows.drops.length
+      || new Set(this.rows.barrels.map(row => row.id)).size !== this.rows.barrels.length
       || this.rows.floors.some(row => row.values.length !== row.width * row.height)) throw new Error('Invalid native quest prop rows');
     this.service = new Bodies(host.physics, host.player.position);
     this.env = { player: { position: host.player.position, velocity: this.walk }, floorAt: (x, z) => this.floorAt(x, z),
@@ -32,6 +34,14 @@ export class NativeQuestProps {
     this.barrels = this.rows.barrels.map(row => ({ row, body: null as Body | null, adopt: null as number | null,
       watch: new BarrelWatch(row.home, row.leash), upright: { x: 0, y: Math.sin(row.yaw / 2), z: 0, w: Math.cos(row.yaw / 2) } }));
     this.gates = this.rows.gates.map(() => null);
+    for (const row of this.rows.drops) this.dropped.set(row.id, null);
+    if (this.rows.drops.length > 0) host.events.on('actor.died', ({ actor }) => {
+      const body = [...host.entities.values()].find(native => native.combatActor() === actor);
+      if (body === undefined) return;
+      for (const row of this.rows.drops) if (body.kind === row.kind) {
+        const { x, z } = body.position; this.dropped.set(row.id, { x, y: this.floorAt(x, z), z });
+      }
+    }, host.scope);
     if (!restoring) {
       for (const slot of this.barrels) slot.body = this.service.spawn({ ...BARREL_BODY, owner: slot.row.owner }, this.lift(slot.row.home), undefined, slot.upright);
       this.findGates();
@@ -40,6 +50,16 @@ export class NativeQuestProps {
   }
   private lift(at: { readonly x: number; readonly y: number; readonly z: number }) {
     this.lifted.x = at.x; this.lifted.y = at.y + BARREL_HALF + 0.01; this.lifted.z = at.z; return this.lifted;
+  }
+  /** A defeated native body drops its declared prop on the same captured floor. */
+  dropAt(id: string): Readonly<v.InferOutput<typeof point>> | null {
+    if (!this.dropped.has(id)) throw new Error('Unknown native quest drop');
+    return this.dropped.get(id) ?? null;
+  }
+  /** The existing quest envelope owns persistence; restore does not replay a death. */
+  restoreDrop(id: string, input: unknown): void {
+    if (!this.dropped.has(id)) throw new Error('Unknown native quest drop');
+    this.dropped.set(id, v.parse(v.nullable(point), input));
   }
   /** Captured platform samples layer over the host's native ground. */
   floorAt(x: number, z: number): number {

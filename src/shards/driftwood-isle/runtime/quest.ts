@@ -120,15 +120,16 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   });
   host.scope.onDispose(() => { reward.dispose(); });
   const keyPrompt = { x: 0, y: 0, z: 0 };
-  const state: { key: { x: number; y: number; z: number } | null; iron: boolean } = { key: null, iron: false };
+  const state = { iron: false };
   const feats=ports.feats.filter(f=>f.kind===undefined);
   if(feats.length>policy.limits.rows||feats.some(f=>f.count>policy.limits.rows))throw new RangeError('Driftwood feats exceed their finite bound');
   const flagRows=feats.map(feat=>ports.counters.flags.find(row=>row.id===feat.id)??{id:feat.id,method:'count' as const,value:{constant:0 as const}});
   const counterBook=new AchievementCounterBook({...ports.counters,feats,flags:flagRows,write:'each'},Object.fromEntries(feats.map(feat=>[feat.id,0])));
   /** the row's prompt point: the hold key's follows where the sailor fell (Interactables.moveTo, 1 m over the key) */
   const promptOf = (r: (typeof rules)[number]): { x: number; y: number; z: number } | undefined => {
-    if (r.d.kind !== 'key' || state.key === null) return r.spot.prompt;
-    keyPrompt.x = state.key.x; keyPrompt.y = state.key.y + 1.0; keyPrompt.z = state.key.z;
+    const key = props.dropAt(policy.keyDrop.id);
+    if (r.d.kind !== 'key' || key === null) return r.spot.prompt;
+    keyPrompt.x = key.x; keyPrompt.y = key.y + 1.0; keyPrompt.z = key.z;
     return keyPrompt;
   };
   const guarded = (): boolean => {
@@ -158,14 +159,6 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     ]) });
   commit = graph.run;
 
-  // the sailor's fall drops the hold key on the floor there (quest/Spine.ts's kill hook, order 10)
-  host.events.on('actor.died', ({ actor }) => {
-    const body = ports.bodies().find(b => b.actor?.combatActor() === actor);
-    if (body?.kind !== 'sailor' || body.actor === null) return;
-    const { x, z } = body.actor.position;
-    state.key = { x, y: props.floorAt(x, z), z };
-  }, host.scope);
-
   const offFlags = flags.onChange((f, on) => {
     if (!on || f.startsWith('plate:') || f.startsWith('lever:')) return;
     counterBook.counters.syncFlags(flags);
@@ -184,14 +177,14 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     ports.finale.update(dt);
     reward.update(dt, flags.has(policy.rewardFlag));
   }, {
-    snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: cables.snapshot(cableId), reward: reward.snapshot(), counts: counterBook.snapshot(),
+    snapshot: () => ({ key: props.dropAt(policy.keyDrop.id), finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: cables.snapshot(cableId), reward: reward.snapshot(), counts: counterBook.snapshot(),
       barrel: props.snapshot(policy.barrelOwner.id) }),
     restore: value => {
       const saved = v.parse(Saved, value);
       cables.restore(cableId, saved.zipline);
       reward.restore(saved.reward);
       pack.restore(saved.pack);
-      ports.finale.restore(saved.finale); state.key = saved.key; state.iron = saved.iron;
+      ports.finale.restore(saved.finale); props.restoreDrop(policy.keyDrop.id, saved.key); state.iron = saved.iron;
       counterBook.restore(Object.fromEntries(feats.map(f=>[f.id,saved.counts[f.id]??0])));
       props.restore(policy.barrelOwner.id, saved.barrel);
     },

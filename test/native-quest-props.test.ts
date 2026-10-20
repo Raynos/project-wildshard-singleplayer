@@ -19,12 +19,24 @@ test('salt-marsh physical quest props own independent handles, floor layers and 
     { kind: 'box', x: 8, y: 1.5, z: 0, hx: .5, hy: 1.5, hz: .2 },
   ] }).colliders[0];
   const rows = { water: -5, floors: [{ x: 0, z: 0, step: 2, width: 3, height: 3, values: Array.from({ length: 9 }, () => 3) }],
+    drops: [{ id: 'reed-token', kind: 'boar' }],
     barrels: ['north', 'south'].map((id, i) => ({ id, home: { x: 2 + i * 3, y: 0, z: 2 }, yaw: .5, leash: 6, owner: { kind: 'barrel', id } })),
     plates: [{ at: { x: 4, y: .5, z: 2 }, size: 1, when: { all: ['marsh.plate'] } }],
     gates: [{ flag: 'open:marsh.gate', box: { x: 8, z: 0, hw: .5, hd: .2, yTop: 3, yBottom: 0 } }],
   };
   try {
     const props = new NativeQuestProps(host, rows, false), first = props.snapshot('north'), second = props.snapshot('south');
+    expect(props.dropAt('reed-token')).toBeNull();
+    const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing native drop body');
+    const fallen = host.spawn({ ...sample, at: { x: 2, y: 3, z: 2 } });
+    host.combat.hit({ source: 'env', sourceTags: [], target: fallen.combatActor(), amount: 10000, point: fallen.position, dir: fallen.position.clone() });
+    host.events.flush('fixed.post');
+    expect(props.dropAt('reed-token')).toEqual({ x: 2, y: 3, z: 2 });
+    props.restoreDrop('reed-token', { x: -2, y: 0, z: 1 });
+    expect(props.dropAt('reed-token')).toEqual({ x: -2, y: 0, z: 1 });
+    expect(() => props.restoreDrop('reed-token', { x: Infinity, y: 0, z: 1 })).toThrow();
+    expect(() => props.restoreDrop('missing', null)).toThrow();
+    host.retire(fallen.entityId);
     if (first === null || second === null || gate === undefined) throw new Error('Missing native props');
     expect(first.handle).not.toBe(second.handle); expect(props.floorAt(2, 2)).toBe(3); expect(props.floorAt(-10, -10)).toBe(0);
     const body = host.physics.world.getRigidBody(first.handle), other = host.physics.world.getRigidBody(second.handle);
@@ -68,5 +80,6 @@ test('salt-marsh physical quest props own independent handles, floor layers and 
 test('Driftwood prop compilation retains one barrel, both plates and the captured hold grid', () => {
   expect(v.parse(NativeQuestPropsSchema, NATIVE_QUEST_PROPS)).toEqual(NATIVE_QUEST_PROPS);
   expect(NATIVE_QUEST_PROPS.barrels.map(row => row.id)).toEqual(['tide-barrel']);
+  expect(NATIVE_QUEST_PROPS.drops).toEqual([{ id: 'hold-key', kind: 'sailor' }]);
   expect(NATIVE_QUEST_PROPS.plates).toHaveLength(2); expect(NATIVE_QUEST_PROPS.gates.map(row => row.flag)).toEqual(['open:sluice']);
 });

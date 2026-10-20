@@ -24,5 +24,6 @@
   "barrelOwner": {
     "kind": "barrel",
     "id": "tide-barrel"
-  }
+  },
+  "keyDrop": { "id": "hold-key", "kind": "sailor" }
 }

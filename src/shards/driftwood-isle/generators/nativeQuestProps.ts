@@ -14,6 +14,7 @@ const point = (id: string) => { const { x, y, z } = at(id); return { x, y, z }; 
 const hold = physics.habitat.hold, side = Math.round(2 * hold.guardR / hold.step) + 1;
 /** Physical prop and platform samples; every decision stays in the existing kit law. */
 export const NATIVE_QUEST_PROPS = v.parse(NativeQuestPropsSchema, { water: DECLARED_SEA.level,
+  drops: [policy.keyDrop],
   floors: [{ x: hold.x - hold.guardR, z: hold.z - hold.guardR, step: hold.step, width: side, height: side, values: hold.floor }],
   barrels: DRIFTWOOD_INTERACT.rows.flatMap(row => row.kind === 'barrel' ? [{ id: row.id, home: point(row.id), yaw: at(row.id).yaw,
     leash: row.leash, owner: policy.barrelOwner }] : []),

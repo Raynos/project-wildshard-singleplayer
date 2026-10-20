@@ -9,6 +9,7 @@ const propCount = v.pipe(propFinite, v.integer(), v.minValue(1), v.maxValue(64))
 /** Native physical quest props use the existing barrel and gate mechanics.
  * Layered floor rasters preserve captured platform sampling without callbacks. */
 export const NativeQuestPropsSchema = v.strictObject({ water: propFinite,
+  drops: v.optional(v.pipe(v.array(v.strictObject({ id: name, kind: name })), v.maxLength(64)), []),
   floors: v.pipe(v.array(v.strictObject({ x: propFinite, z: propFinite, step: v.pipe(propFinite, v.minValue(0.001)),
     width: propCount, height: propCount, values: v.pipe(v.array(v.nullable(propFinite)), v.maxLength(4096)) })), v.maxLength(64)),
   barrels: v.pipe(v.array(v.strictObject({ id: name, home: propPoint, yaw: propFinite, leash: v.pipe(propFinite, v.minValue(0)),
