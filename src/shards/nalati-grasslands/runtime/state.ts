@@ -152,7 +152,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   await slice(++completed, total, 'Dressing');
 
   // ── weather + day/night (weather agent, B10): the painted sky, its clock and the storm, all rows of the page's weather host ──
-  const rig = await installForestWeather(plugin, await plugin.product.json('world/forest-weather.json')), storm = rig?.storm ?? null, painted = rig?.sky ?? null;
+  const rows = v.parse(v.object({ page: v.unknown() }), await plugin.product.json('world/weather.json')).page;
+  const rig = await installForestWeather(plugin, rows), storm = rig?.storm ?? null, painted = rig?.sky ?? null;
   if (rig === null || storm === null || painted === null) throw new Error('Nalati requires its painted sky and storm');
   const weather: NalatiWeather = { clock: painted.clock, look: painted.look, dome: painted.dome, air: rig.weather, weather: storm };
   groups['weather'] = rig.group;

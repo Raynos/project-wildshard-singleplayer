@@ -20,7 +20,7 @@ export const NALATI_WEATHER_PAGE = {
     moon: { disc: [0.85, 0.9, 1], gain: 1.4, scale: 0.55, halo: 0.5, haloOpacity: 0.35 },
   },
   storm: {
-    file: 'world/weather.json', idle: 'clear',
+    file: 'world/weather.json', idle: 'clear', native: { file: 'sim/headless-assembly.json', shelters: 'nativeShelters', world: 'nativeWeather' },
     cues: [
       { event: 'telegraph', patch: 'lightningCrackle', kind: 'near', range: 160, floor: 0.15, reach: 0 },
       { event: 'flash', patch: 'thunder', kind: 'distant', range: 0, floor: 0, reach: 100 },

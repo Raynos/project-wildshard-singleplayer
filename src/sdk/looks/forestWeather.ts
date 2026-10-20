@@ -71,10 +71,11 @@ export async function installForestWeather(ctx: ShardContext, input: unknown): P
     weather = installWeatherContinuation({ seed: SEED, system: ctx.system, state: dev }, parseWeatherProgram(await read(policy.files.program)), sky.clock, 'live');
   } else {
     // the storm's reactions step the continuation, struck at the forest's crowns and sheltered by the bundle's baked circles
-    const bundle = v.parse(v.object({ shelters: v.unknown(), world: v.unknown() }), await read(policy.storm.file)), program = nativeWeatherBundle(await read(policy.storm.file), bundle.shelters);
+    const native = v.parse(v.object({ constants: v.record(v.string(), v.unknown()) }), await read(policy.storm.native.file)).constants;
+    const program = nativeWeatherBundle(await read(policy.storm.file), native[policy.storm.native.shelters]);
     weather = installWeatherContinuation({ seed: SEED }, program.weather, { phase: 0 }, undefined);
     const reactions = installWeatherReactions(weather, { ...program.reactions, points: world.forest.trees.map(t => [t.x, t.z, t.y + t.height]) }, { scope: world.game.levelScope });
-    storm = { rows: policy.storm, reactions, world: v.parse(WeatherWorldSchema, bundle.world) };
+    storm = { rows: policy.storm, reactions, world: v.parse(WeatherWorldSchema, native[policy.storm.native.world]) };
   }
   if (policy.mode === 'setting') weather.setMode(setting('weather'), policy.heldPhase);
   const parts = policy.parts === undefined ? null : await weatherParts(ctx, world, policy.parts, sky);

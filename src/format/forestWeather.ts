@@ -23,11 +23,12 @@ const PartsSchema = v.strictObject({
 /** A voice played on a reaction event: `near` at the event's x z (gain falling to `floor` at `range` m, none beyond),
  *  `distant` at the event's `distance` along its `bearing`, `reach` m out. */
 const CueSchema = v.strictObject({ event: id, patch: id, kind: v.picklist(['near', 'distant']), range: n, floor: n, reach: n });
-/** Weather reactions on the page: the bundle file (`weather` + `reactions` + baked `shelters`, the host's native rows as
- *  `world`), struck at the world forest's crowns; held while the page answers `weather.indoors` / `weather.storm-hold`. */
+/** Weather reactions on the page: the bundle file (`weather` + `reactions`), struck at the world forest's crowns, sheltered
+ *  by and hurting through the renderer-free host's own rows (`native`: its assembly file's `constants.<shelters>` circles and
+ *  `constants.<world>` weather-world rows); held while the page answers `weather.indoors` / `weather.storm-hold`. */
 const StormSchema = v.strictObject({
   /** `idle` the calm phase: no storm wind bed, and the parts lane's `active` is 0 */
-  file: id, idle: id, cues: v.pipe(v.array(CueSchema), v.maxLength(8)),
+  file: id, idle: id, native: v.strictObject({ file: id, shelters: id, world: id }), cues: v.pipe(v.array(CueSchema), v.maxLength(8)),
   /** the group's `rain` and `wind` (the steppe wind's smoothstep over `range` m/s, silent while idle) every `every` s */
   beds: v.strictObject({ group: id, every: n, rain: id, wind: id, range: v.tuple([n, n]) }),
 });

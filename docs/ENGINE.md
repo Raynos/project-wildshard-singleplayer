@@ -50,7 +50,8 @@ Pine Hollow is the first user; an orchard fixture drives the same rows in `test/
 `@wildshard/sdk/looks/forestWeather` (`installForestWeather(ctx, rows)`, G474, client-only) is a page's whole weather
 from one `@wildshard/format/forestWeather` row set, each block optional: a phase `program` on its own page system (Settings
 ▸ Weather when `mode` is `setting`), or a `storm` whose reactions step it (`game/weather/reactions`: the bundle file's
-weather, reactions, baked shelter circles and native `world` rows, struck at the world forest's crowns; held while the page
+weather and reactions, sheltered by and hurting through the renderer-free host's own assembly rows (`native`), struck at
+the world forest's crowns; held while the page
 answers the asks `weather.indoors` and `weather.storm-hold`; its wind targets, cue voices, rain and wind beds, HUD
 `weather.changed`, creatures' light (`weatherWorldLight`), wildlife scare and hurts); a painted `sky`; the drawn `parts`
 (baked shapes in lent looks, sprites and a camera-local rain curtain, posed by one channel lane over the weather's numbers
