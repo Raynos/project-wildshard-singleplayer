@@ -25,7 +25,7 @@ import { hipRoof } from './hipRoof';
 import { STEEL_DK, STONE, lampPostStone, lotusPost } from './wellParts';
 import { WORDS } from './words';
 import { stand } from './well-galleries';
-import { NEON, clamp } from '../util';
+import { NEON, clamp } from './util';
 import { Rng } from '@wildshard/sdk/random';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 

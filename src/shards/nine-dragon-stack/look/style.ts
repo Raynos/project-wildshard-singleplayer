@@ -2,16 +2,13 @@
 // SHARD-PLATFORM M3: the programs and the shared uniforms are rows in runtime/looks/look.ts on the SDK shader family
 // (@wildshard/sdk/looks/shaderFamily); this module makes the family (the splices the data cannot hold), the live shared
 // uniforms and each material.
-import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type Texture, type IUniform } from 'three';
+import { DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type Texture, type IUniform } from 'three';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { paintUniforms } from './paint';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
 import { lightVolUniforms } from './light';
-import { METAL, SUTRA } from '../util';
 import { fogBandWindow } from '../runtime/looks/fogBands';
 import type { SharedUniformRows } from './uniformTypes';
-
-const c = (hex: number): Color => new Color(hex);
 
 export type Uniforms = Record<string, IUniform>;
 
@@ -29,10 +26,6 @@ export function restoreWeave(data: Uint8Array): DataTexture {
 function sharedUniforms(silk: Texture, rows: SharedUniformRows) {
   return {
     ...uniformsFrom({ ...rows }),
-    uSilver: { value: c(METAL.silver) },
-    uGold: { value: c(METAL.gold) },
-    uPaper: { value: c(SUTRA.indigo) },
-    uPaperDeep: { value: c(SUTRA.deep) },
     uSilk: { value: silk },
     // the painted surfaces (paint.ts, merged from lab P5): the texture array and its strengths
     ...paintUniforms(),

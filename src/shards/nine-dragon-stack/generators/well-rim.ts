@@ -11,7 +11,7 @@ import { dragonHook, stool } from './props';
 import { relief } from './gate';
 import { placeLion } from './props3d';
 import type { KitX } from './kitx';
-import { NEON } from '../util';
+import { NEON } from './util';
 import { Rng } from '@wildshard/sdk/random';
 import { NEONS } from './towers';
 import { WORDS } from './words';

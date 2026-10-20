@@ -13,6 +13,10 @@ export interface SharedUniformRows {
   readonly uInk1: { readonly rgb: number };
   readonly uLineFog: number;
   readonly uGoldDim: { readonly rgb: number };
+  readonly uSilver: { readonly rgb: number };
+  readonly uGold: { readonly rgb: number };
+  readonly uPaper: { readonly rgb: number };
+  readonly uPaperDeep: { readonly rgb: number };
   readonly uLightDir: { readonly v3: readonly [number, number, number]; readonly normalize: true; };
   readonly uShade: { readonly rgb: number };
   readonly uPool: number;

@@ -299,8 +299,7 @@
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "src/shards/nalati-grasslands/behaviour",
-        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json"
+        "src/shards/nalati-grasslands/behaviour"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/species.generated.json",
@@ -19316,7 +19315,7 @@
         "src/shards/nine-dragon-stack/generators/glyphPage.ts",
         "src/shards/nine-dragon-stack/generators/glyphField.ts",
         "src/shards/nine-dragon-stack/generators/words.ts",
-        "src/shards/nine-dragon-stack/util.ts",
+        "src/shards/nine-dragon-stack/generators/util.ts",
         "src/shards/nine-dragon-stack/generators/signs.ts",
         "src/shards/nine-dragon-stack/data/signTypes.d.ts"
       ],

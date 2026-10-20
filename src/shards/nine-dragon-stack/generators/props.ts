@@ -4,7 +4,7 @@ import type { Rng } from '@wildshard/sdk/random';
 import { Box3, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, Kit, type Look } from './kit';
-import { METAL } from '../util';
+import { METAL } from './util';
 import type { LaundryKind } from '../data/specimenDims';
 
 const rot = (ox: number, oz: number, r: number): [number, number] => [ox * Math.cos(r) + oz * Math.sin(r), -ox * Math.sin(r) + oz * Math.cos(r)];

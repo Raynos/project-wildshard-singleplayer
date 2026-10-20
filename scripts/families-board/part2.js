@@ -21,7 +21,7 @@ import { Shared, restoreWeave } from '../../src/shards/nine-dragon-stack/look/st
 import { silkWeaveBytes } from '../../src/shards/nine-dragon-stack/generators/silkWeave';
 import { GlyphAtlas } from '../../src/shards/nine-dragon-stack/look/glyphs';
 import { NeonSigns, NEON_LOOK } from '../../src/shards/nine-dragon-stack/look/neonsigns';
-import { chars } from '../../src/shards/nine-dragon-stack/util';
+import { chars } from '../../src/shards/nine-dragon-stack/generators/util';
 
 /** @param {THREE.WebGLRenderer} renderer @param {number} size */
 export function part2(renderer, size) {

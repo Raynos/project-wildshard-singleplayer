@@ -8,7 +8,7 @@ import { E, K, type Look } from './kit';
 import { hipRoof } from './hipRoof';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { SIGN_WORDS } from './words';
-import { NEON, WALL, chars } from '../util';
+import { NEON, WALL, chars } from './util';
 
 const { Y0 } = NINE_LAYOUT_PLAN;
 
