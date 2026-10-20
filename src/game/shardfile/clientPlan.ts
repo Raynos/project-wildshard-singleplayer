@@ -17,6 +17,7 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { installClientAudioScene, enterClientAudioScene } from '../audio/sceneDirector';
 import { installClientWaterSurfaces } from './clientWaterSurfaces';
+import { installClientBakedTiles } from './bakedTiles';
 import { installClientCosmeticFinishes } from './clientCosmeticFinishes';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { installClientCues } from './clientCues';
@@ -65,6 +66,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: installPracticeCourse },
   'population.wildlife': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientWildlife },
   'world.water': {phase:'world',rank:42,lifetime:'entered',sections:[],install:installClientWaterSurfaces},
+  'world.baked': { phase: 'world', rank: 43, lifetime: 'resident', sections: [], install: installClientBakedTiles },
   'audio.scene': {phase:'world',rank:48,lifetime:'entered',sections:[],install:installClientAudioScene,play:{rank:30,install:enterClientAudioScene}},
   'look.painterly': {phase:'world',rank:10,lifetime:'entered',sections:[],install:(ctx,row)=>{
     if(row.kind!=='look.painterly')throw new Error('Invalid painterly feature');
@@ -139,6 +141,11 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     if (plan.features.some(row => row.kind === 'light.emitters') && !plan.features.some(row => row.kind === 'world.scenes')) throw new Error('Emitters require the scene feature');
     if (plan.features.some(row => row.kind === 'motion.channels') && !plan.features.some(row => row.kind === 'world.scenes')) throw new Error('Motion requires the scene feature');
     if(plan.features.some(row=>row.kind==='held.cosmetics')&&product.section('held/finishes').cosmetics===undefined)throw new Error('Cosmetic feature requires declared finishes');
+    for (const row of plan.features) if (row.kind === 'world.baked') for (const baked of row.rows) {
+      const files = [baked.glb, ...baked.lightmaps.flatMap(map => [map.source.phone, map.source.desktop]), ...(baked.instances === null ? [] : [baked.instances.table, baked.instances.protos, baked.instances.plan.phone.source, baked.instances.plan.desktop.source])];
+      const looks = [baked.look, ...Object.values(baked.instances?.looks ?? {}).map(slot => slot.look)];
+      if (files.some(file => 'file' in file && !product.hasFile(file.file)) || looks.some(look => product.shardfile.look.materials[look] === undefined)) throw new Error('Baked tiles require their admitted files and look');
+    }
     for(const row of plan.features)if(row.kind==='world.water')for(const water of row.rows){if(!product.hasFile(water.geometry)||product.shardfile.look.materials[water.surface.look]===undefined||water.surface.floor!==undefined)throw new Error('Water requires declared geometry and look without floor textures');}
     for (const row of plan.features) if ((row.kind === 'state.adventure' || row.kind === 'world.meadow') && !product.hasFile(row.file)) throw new Error('World services require their admitted data files');
     for (const row of plan.features) if (row.kind === 'riding.session' && (!product.hasFile(row.file) || !plan.features.some(feature => feature.kind === 'population.wildlife'))) throw new Error('Riding requires its admitted session file and wildlife feature');

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./bakedTiles": "./bakedTiles.ts",
     "./findsCatalogue": "./findsCatalogue.ts",
     "./forestWeather": "./forestWeather.ts",
     "./pagePreparation": "./pagePreparation.ts",

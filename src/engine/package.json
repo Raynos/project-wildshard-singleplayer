@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./render/lightmaps": "./render/lightmaps.ts",
     "./ai/director": "./ai/director.ts",
     "./fx/effectField": "./fx/effectField.ts",
     "./core/deflate": "./core/deflate.ts",

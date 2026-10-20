@@ -1,4 +1,5 @@
 import { PagePathRampSchema } from './pagePreparation';
+import { BakedTilesSchema } from './bakedTiles';
 import { WaterSurfaceSchema } from './water';
 import { ClientCuesSchema } from './clientCues';
 import { ClientTrailsSchema } from './clientTrails';
@@ -38,6 +39,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('audio.scene') }),
   v.strictObject({kind:v.literal('world.water'),rows:v.pipe(v.array(v.strictObject({id,surface:WaterSurfaceSchema,geometry:v.pipe(v.string(),v.minLength(1),v.maxLength(256))})),v.minLength(1),v.maxLength(8),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))}),
   v.strictObject({ kind: v.literal('world.scenes'), graphs: v.exactOptional(v.picklist(['required', 'debug'])) }),
+  v.strictObject({ kind: v.literal('world.baked'), rows: v.pipe(v.array(BakedTilesSchema), v.minLength(1), v.maxLength(4), v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'unique baked tile ids')) }),
   v.strictObject({ kind: v.literal('motion.channels'), rows: SceneMotionSchema }),
   ClientHeldMeleeSchema, ClientSpeciesProgramSchema, ClientQuestPageSchema, ClientPopulationSchema, ClientTrailsSchema, ClientCuesSchema,
   ClientHeldBossSchema, ClientSpawnedBossSchema, ClientPlayerEnterSchema, ClientBossTelegraphSchema,

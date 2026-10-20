@@ -23,7 +23,7 @@ function record(input: unknown): Record<string, unknown> {
 /** Sample the real authored ground boundary with Three's offline raycaster, never a synthetic flat edge.
  * Missing boundary ground refuses. ws_terrain selects the sampling surface when present; all collision stays WMC1. */
 function edges(world: NormalizedWorld): Shardfile['edge'] {
-  const material = new MeshStandardMaterial({ side: DoubleSide }), terrain = world.static.filter(row => row.terrain);
+  const material = new MeshStandardMaterial({ side: DoubleSide }), terrain = [...world.static, ...world.undrawn].filter(row => row.terrain);
   const primitives = terrain.length === 0 ? world.collision : terrain, meshes = primitives.map(row => new Mesh(worldGeometry(row), material));
   meshes.forEach(mesh => mesh.updateMatrixWorld(true));
   const ray = new Raycaster(new Vector3(), new Vector3(0, -1, 0), 0, 501);
@@ -102,7 +102,7 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
       library.push(file.hash); return { id: panel.id, file: file.hash, visible: true };
     });
     // The far proxy is an independently measured vertex-colour approximation, one draw and no interactive panels.
-    const farRows = await Promise.all(world.static.map(row => simplifyWorldPrimitive(row, 0.1, 2)));
+    const farRows = await Promise.all([...world.static, ...world.undrawn].map(row => simplifyWorldPrimitive(row, 0.1, 2)));
     const farParts = farRows.map(row => {
       const part = worldGeometry(row.primitive), colour = world.materials[row.primitive.material]?.colour ?? [1, 1, 1];
       const n = part.getAttribute('position').count, values: number[] = [], original = part.hasAttribute('color') ? part.getAttribute('color') : null;

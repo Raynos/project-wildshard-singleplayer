@@ -29,6 +29,9 @@ export const WorldSourceSchema = v.pipe(v.unknown(), v.check(plainWorldData, 'wo
   colliders,
   objects: v.optional(v.pipe(v.record(name, id), v.check((rows) => Object.keys(rows).length <= 1024, 'at most 1024 stable object names')), {}),
   interactive: v.optional(v.pipe(v.array(interactive), v.maxLength(64)), []),
+  /** G532 (4): nodes under this name prefix collide, sample the edges and fill the far proxy, but the authored tiles never
+   *  draw them: a baked-tiles row in the client plan draws them with their lightmaps */
+  undrawn: v.optional(name),
 }), v.check((source) => {
   const nodes = [...Object.keys(source.objects), ...source.interactive.map((row) => row.node)];
   const ids = [...Object.values(source.objects), ...source.interactive.map((row) => row.id)];

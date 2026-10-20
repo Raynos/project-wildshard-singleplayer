@@ -1,0 +1,163 @@
+/**
+ * Baked tiles (G532 (4), `format/bakedTiles`): a Blender-built tile set drawn with one look, its offline bake's lightmaps
+ * lent to that look, and its prototypes placed instanced (one model per family, `engine/models/place`) with their
+ * collider boxes. Client-only presentation; the API takes one row, and the `world.baked` client feature installs the
+ * client plan's rows once per resident (HOST-BAR: an island cove with placed families and a dev-map cell's ground).
+ *
+ *   const baked = await installBakedTiles({ product, parent, sky, registry }, row);   // then once a frame: baked.update()
+ *
+ * The lightmaps carry only what the clock barely moves (sky occlusion, the sun's bounce); the sun and its shadows stay
+ * live, and the bounce follows the live sun (`engine/render/lightmaps`). A required file that fails refuses the build.
+ */
+import * as THREE from 'three';
+import * as v from 'valibot';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { slicer } from '@wildshard/engine/boot/plan';
+import { ktx2File, ktx2Texture } from '@wildshard/engine/core/ktx2';
+import { TIER } from '@wildshard/engine/core/tier';
+import { defineGeometryModel, modelContext } from '@wildshard/engine/models/model';
+import { placeSliced } from '@wildshard/engine/models/place';
+import type { CullOptions } from '@wildshard/engine/models/cull';
+import { sunBounce } from '@wildshard/engine/render/lightmaps';
+import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
+import type { ShardContext } from '../plugin/context';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import { BakedPlanSchema, BakedTilesSchema, type BakedPlan, type BakedSource, type BakedTilesRow } from '@wildshard/format/bakedTiles';
+import { followToonLook } from '../looks/toonLook';
+import { hasLentLook, lendLooks, lentLook, setLentParam, setLentTexture } from './lentLooks';
+import { runtimeLookMaterials } from './runtimeProduct';
+import type { ShardProduct } from './shardProduct';
+
+/** What a row is drawn into: the product its files resolve against, the live world, and the scope its pieces leave with
+ *  (absent: the ambient owner, as a resident world's build). */
+export interface BakedTilesOwner { readonly product: ShardProduct; readonly parent: THREE.Object3D; readonly sky: SkyRig; readonly registry: WorldRegistry; readonly scope?: Scope }
+/** The drawn set: its group, its tiles in file order, and its once-a-frame bounce update. */
+export interface BakedTiles { readonly group: THREE.Group; readonly tiles: readonly THREE.Mesh[]; readonly update: () => void }
+
+const owned = <T>(owner: BakedTilesOwner, fn: () => T): T => owner.scope === undefined ? fn() : withOwner(owner.scope, fn);
+const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
+const gltf = (): GLTFLoader => new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+
+async function bytesOf(product: ShardProduct, source: BakedSource): Promise<Uint8Array> {
+  if ('file' in source) return product.file(source.file);
+  const response = await fetch(source.url, { cache: 'force-cache' });
+  if (!response.ok) throw new Error(`Required baked file load failed (${String(response.status)})`);
+  return new Uint8Array(await response.arrayBuffer());
+}
+async function sceneOf(product: ShardProduct, source: BakedSource): Promise<THREE.Group> {
+  return 'url' in source ? (await gltf().loadAsync(source.url)).scene : (await gltf().parseAsync(Uint8Array.from(await product.file(source.file)).buffer, '')).scene;
+}
+async function textureOf(product: ShardProduct, source: BakedSource): Promise<THREE.Texture> {
+  if ('file' in source) return ktx2File(product.url(source.file));
+  return (await ktx2Texture(source.url)) ?? new THREE.TextureLoader().loadAsync(source.url);
+}
+/** A tier's plan: its exact bytes (and, for a public file, the content hash its name carries) before its rows. */
+async function planOf(product: ShardProduct, row: NonNullable<BakedTilesRow['instances']>['plan']['phone'], keys: ReadonlySet<string>): Promise<BakedPlan> {
+  const bytes = await bytesOf(product, row.source), named = 'url' in row.source ? /[0-9a-f]{64}/u.exec(row.source.url)?.[0] : undefined;
+  if (named !== undefined && Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', Uint8Array.from(bytes))), b => b.toString(16).padStart(2, '0')).join('') !== named) throw new Error('Required baked plan content differs');
+  if (bytes.length !== row.bytes) throw new Error('Required baked plan content differs');
+  const plan = v.parse(BakedPlanSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+  if (plan.used !== row.used || plan.families.some(f => !keys.has(f.key) || f.indices.some(i => i >= plan.used))) throw new Error('Required baked plan layout differs');
+  return plan;
+}
+
+/** Draw one admitted row under `owner.parent`; resolves once every tile and copy is placed and registered. */
+export async function installBakedTiles(owner: BakedTilesOwner, input: BakedTilesRow): Promise<BakedTiles> {
+  const row = v.parse(BakedTilesSchema, input), { product, sky } = owner, instances = row.instances;
+  const [scene, maps, table, protos, plan] = await Promise.all([
+    sceneOf(product, row.glb), Promise.all(row.lightmaps.map(map => textureOf(product, map.source[TIER]))),
+    instances === null ? null : bytesOf(product, instances.table), instances === null ? null : sceneOf(product, instances.protos),
+    instances === null ? null : planOf(product, instances.plan[TIER], new Set(instances.families.map(f => f.key))),
+  ]);
+  // the bake's maps, unflipped (KTX2 and GLB keep their encoded orientation), lent to the look's texture params
+  for (const [i, map] of row.lightmaps.entries()) {
+    const texture = maps[i]; if (texture === undefined) throw new Error('Missing baked lightmap');
+    texture.flipY = false; texture.colorSpace = THREE.NoColorSpace; texture.channel = map.channel; texture.anisotropy = map.anisotropy; texture.needsUpdate = true;
+    setLentTexture(row.look, map.param, texture);
+  }
+  const material = lentLook(row.look), group = new THREE.Group(), tiles: THREE.Mesh[] = [];
+  if (row.sky) sky.setupMaterial(material);
+  group.name = row.id; owner.parent.add(group);
+  const follow = row.toonDay ? followToonLook(product, row.look) : null;
+  scene.updateMatrixWorld(true);
+  scene.traverse(o => {
+    if (!isMesh(o) || !o.name.startsWith(row.tiles[TIER])) return;
+    // the tile keeps its node transform (meshopt's dequantisation lives there), lowered by the row's drop
+    const m = new THREE.Mesh(o.geometry, material);
+    m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrix.elements[13] -= row.drop; m.matrixWorld.copy(m.matrix);
+    m.name = `${row.meshPrefix}${o.name}`; m.castShadow = true; m.receiveShadow = true;
+    if (follow !== null) m.onBeforeRender = follow;
+    if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // flat-lit looks shade by derivatives; the normals bias the shadows
+    o.geometry.computeBoundingSphere();
+    tiles.push(m); group.add(m);
+  });
+  if (tiles.length === 0) throw new Error(`Baked tiles ${row.id} has no ${TIER} tiles`);
+  if (instances !== null && table !== null && protos !== null && plan !== null) await placeFamilies(owner, row, instances, new Float32Array(Uint8Array.from(table).buffer), protos, plan, group);
+  const sun = row.sun, light = (): THREE.DirectionalLight | undefined => sky.csm.lights[0];
+  const update = sun === null ? () => undefined : () => { setLentParam(row.look, sun.param, sunBounce(light(), sky.sunDir.y, sun.referenceY, sun.gain)); };
+  update();
+  return { group, tiles, update };
+}
+
+/**
+ * Each family is one model placed instanced under the group (one InstancedMesh per prototype and level): each copy its
+ * table row's matrix and tint. Casters are drawn while the camera or a casting cascade sees them; cover by cells within
+ * its reach. A family's collider boxes go on its piece (`<id>-<key>`); boxes no copy claims register as `<id>-unclaimed`.
+ */
+async function placeFamilies(owner: BakedTilesOwner, row: BakedTilesRow, instances: NonNullable<BakedTilesRow['instances']>, f: Float32Array, protos: THREE.Group, plan: BakedPlan, group: THREE.Group): Promise<void> {
+  const geometry = new Map<string, THREE.BufferGeometry>();
+  protos.traverse(o => { if (isMesh(o)) geometry.set(o.name, o.geometry); });
+  const materials = Object.fromEntries(Object.entries(instances.looks).map(([slot, entry]) => [slot, lentLook(entry.look)]));
+  const ctx = modelContext(owner.sky), slice = slicer();
+  for (const family of plan.families) {
+    const declared = instances.families.find(entry => entry.key === family.key); if (declared === undefined) throw new Error('Missing baked family');
+    const model = defineGeometryModel(declared.model, 'proto', { category: declared.model.category, pipeline: declared.model.pipeline }, { geometry, materials });
+    const placements = family.indices.map(i => {
+      const o = i * 10, x = f[o + 1] ?? 0, y = (f[o + 2] ?? 0) - row.drop, z = f[o + 3] ?? 0, scale = f[o + 8] ?? 1, tint = f[o + 9] ?? 1;
+      const matrix = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion(f[o + 4] ?? 0, f[o + 5] ?? 0, f[o + 6] ?? 0, f[o + 7] ?? 1), new THREE.Vector3(scale, scale, scale));
+      return { x, y, z, matrix, color: new THREE.Color(tint, tint, tint), variant: instances.names[f[o] ?? 0] ?? '' };
+    });
+    const slot = instances.looks[declared.look]; if (slot === undefined) throw new Error('Missing baked family look');
+    const cull: CullOptions = slot.cull[TIER];
+    await owned(owner, () => placeSliced(model, placements, { ctx, draw: 'instanced', registry: owner.registry, parent: group, cull,
+      piece: { id: `${row.id}-${family.key}`, ...(family.colliders.length > 0 ? { colliders: family.colliders.map(c => boxDesc(c, instances.surface)) } : {}) } }, slice.due));
+  }
+  owned(owner, () => owner.registry.add({ id: `${row.id}-unclaimed`, name: instances.unclaimed, category: 'nature', file: 'src/game/shardfile/bakedTiles.ts', colliders: plan.unclaimed.map(c => boxDesc(c, instances.surface)), surface: instances.surface, solidFloor: false }));
+}
+
+const built = new WeakMap<Scope, WeakMap<ShardProduct, Promise<readonly BakedTiles[]>>>();
+const drawnOf = new WeakMap<ShardProduct, ReadonlyMap<string, BakedTiles>>();
+/** The `world.baked` client feature: each declared row drawn once per resident (re-entries reuse it), its bounce moved once a
+ *  frame. The looks it wears are lent for the resident before the first row. */
+export async function installClientBakedTiles(ctx: ShardContext, feature: ClientFeatureRow, resident: Scope): Promise<void> {
+  if (feature.kind !== 'world.baked') throw new Error('Invalid baked tiles feature');
+  let products = built.get(resident); if (products === undefined) { products = new WeakMap(); built.set(resident, products); }
+  let pending = products.get(ctx.product);
+  if (pending === undefined) {
+    pending = draw(ctx, feature.rows, resident); products.set(ctx.product, pending);
+    const cache = products; resident.onDispose(() => { cache.delete(ctx.product); drawnOf.delete(ctx.product); });
+  }
+  const drawn = await pending;
+  ctx.system({ id: 'client.baked.tiles', phase: 'update', after: ['main.world'], before: ['engine.creatures.update'], run: () => { for (const baked of drawn) baked.update(); } });
+}
+async function draw(ctx: ShardContext, rows: readonly BakedTilesRow[], resident: Scope): Promise<readonly BakedTiles[]> {
+  const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Baked tiles require the world stage');
+  const looks = rows.flatMap(row => [row.look, ...Object.values(row.instances?.looks ?? {}).map(slot => slot.look)]);
+  const missing = [...new Set(looks)].filter(look => !hasLentLook(look));
+  if (missing.length > 0) lendLooks(resident, await runtimeLookMaterials({ scope: resident, game: ctx.game }, ctx.product.shardfile, true, missing));
+  const drawn: BakedTiles[] = [], byId = new Map<string, BakedTiles>();
+  for (const row of rows) {
+    const baked = await installBakedTiles({ product: ctx.product, parent: ctx.root, sky: world.sky, registry: ctx.app.registry, scope: resident }, row);
+    drawn.push(baked); byId.set(row.id, baked); resident.onDispose(() => { baked.group.removeFromParent(); });
+  }
+  drawnOf.set(ctx.product, byId);
+  return drawn;
+}
+/** A product's drawn baked tiles by row id, for the shard view code that dresses them further; throws before the feature drew it. */
+export function bakedTilesOf(product: ShardProduct, id: string): BakedTiles {
+  const value = drawnOf.get(product)?.get(id); if (value === undefined) throw new Error(`Baked tiles ${id} are not drawn`); return value;
+}

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/bakedTiles": "./shardfile/bakedTiles.ts",
     "./quest/chapterBindings": "./quest/chapterBindings.ts",
     "./ui/panels": "./ui/panels.ts",
     "./ui/panelTemplates": "./ui/panelTemplates.ts",

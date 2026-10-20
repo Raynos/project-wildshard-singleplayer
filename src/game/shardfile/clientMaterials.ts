@@ -5,13 +5,14 @@ import { sceneVectors, sceneScalarValue } from './sceneInputs';
  * transcoded once (its mips dropped from JS after upload). A family named by the look, the terrain or the props without
  * its own entry gets the family's plain default, vertex-coloured (PBR's dielectric). No URL, no shader source and no callback comes from the shard.
  */
-import { ClampToEdgeWrapping, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, RepeatWrapping, SRGBColorSpace, NoColorSpace, type Texture, type Material } from 'three';
+import { MeshStandardMaterial, ClampToEdgeWrapping, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, RepeatWrapping, SRGBColorSpace, NoColorSpace, type Texture, type Material } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { BASIS_PATH, releaseAfterUpload, detectKtx2Support } from '@wildshard/engine/core/ktx2';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { familyMaterial, moveFamilyMaterial } from '@wildshard/engine/render/families/registry';
+import { bindStandardLightmap, setStandardLightmap } from '@wildshard/engine/render/lightmaps';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -193,15 +194,21 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
     return bindGraphMeshMap(material, map, scope);
   };
+  const standardSurface = (id: string, material: Material): material is MeshStandardMaterial => {
+    const entry = shard.look.materials[id]; return entry !== undefined && !isGraphEntry(entry) && material instanceof MeshStandardMaterial;
+  };
   return { toon, setParam: (id, name, value) => {
     if (scope.disposed) throw new Error('Material scope unloaded');
     const material = materials.get(id);
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
+    // a standard (PBR) surface's params are its baked lightmaps' (engine render/lightmaps)
+    if (standardSurface(id, material) && typeof value === 'number') { setStandardLightmap(material, name, value); return; }
     graphs.setParam(material, name, value);
   }, setTexture: (id, name, texture) => {
     if (scope.disposed) throw new Error('Material scope unloaded');
     const material = materials.get(id);
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
+    if (standardSurface(id, material)) { bindStandardLightmap(material, name, texture); return; }
     graphs.setTexture(material, name, texture);
   }, materials, textures, compile, bindMeshMap, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
     graphs: { bind: (sources) => { if (sources.state !== undefined) stateOf = sources.state; graphs.bind(sources); moveCurves(); }, readout: graphs.readout }, surfaces };
