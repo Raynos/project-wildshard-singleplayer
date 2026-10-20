@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { bakeLods } from './lods.ts';
+import { hookProduct } from './hookProduct.ts';
 import { FRAMES, deckParts } from './floorRows.ts';
 import { bakeCasts, bakeFixedKits, readFixedSlots } from './casts.ts';
 
@@ -19,3 +20,7 @@ writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/fixedKits.generat
   (_key, value) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value)}\n`);
 
 writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/deckFloors.generated.json'), `${JSON.stringify(floors)}\n`);
+writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/castHook.generated.json'), `${JSON.stringify({
+  ...await hookProduct(url => new Uint8Array(readFileSync(resolve(root, `public${url}`)))),
+  casts: [...new Map([...casts, ...fixed.packs, ...lods])].map(([name, bytes]) => ({ name, glb: Buffer.from(bytes).toString('base64') })),
+})}\n`);

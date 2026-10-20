@@ -1,24 +1,9 @@
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3 } from 'three';
-import type { SignAtlas, CastChannels } from '../runtime/productSections.generated';
+import type { SignAtlas } from '../runtime/productSections.generated';
 import type { Emitter } from '../runtime/looks/emitterCards';
-import { createModelLibrary, type ModelGeometryPool } from '@wildshard/game/plugin/geometry';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import type { FixedRows } from './castTypes';
 import { layoutReviver } from './layoutBake';
-
-/** Adopt the exact prepared prop at its former load phase; the caller owns this geometry. */
-export async function loadCast(name: string, applicationChannels?: ModelGeometryPool['channels']): Promise<BufferGeometry> {
-  const declared = await (await loadFirstPartyProduct('nine-dragon-stack')).json<CastChannels>('geometry/cast-channels.json');
-  const channels = applicationChannels ?? declared;
-  const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-    geometryPools: [{ url: `/assets/nine-dragon/baked/casts/${name}.glb`, parts: [name], channels }],
-  }, `Nine ${name}`);
-  await library.preload();
-  const geometry = library.geometry(name, { borrow: true });
-  if (geometry === null) throw new Error(`Nine prepared cast ${name} did not load`);
-  return geometry;
-}
 
 /** Attach verified, lossless float32 spill to the final merged vertex stream. */
 export async function loadSpill(meshes: readonly (readonly [string, BufferGeometry])[], tier: 'phone' | 'desktop', caps: boolean): Promise<void> {
@@ -38,12 +23,6 @@ export async function loadSpill(meshes: readonly (readonly [string, BufferGeomet
   }
 }
 
-/** Recorded fixed additions; their source author and the geometry are generated together. */
-export async function loadFixedRows(): Promise<FixedRows> {
-  const bytes = await (await loadFirstPartyProduct('nine-dragon-stack')).file('geometry/fixed-kits.json');
-  return JSON.parse(new TextDecoder().decode(bytes), layoutReviver) as FixedRows;
-}
-
 export interface BakedSigns {
   readonly keys: Readonly<Record<string, string>>;
   readonly lights: readonly Emitter[];
@@ -54,42 +33,25 @@ export interface BakedSigns {
   readonly geometry: (name: string) => BufferGeometry;
 }
 
-/** Existing rest-pool reader and product texture handles; painting, packing and face construction are offline. */
+/** Sign metadata references textures and mutable geometries owned by the shared scene host. */
 export async function loadSignAtlas(tier: 'phone' | 'desktop', scenes: SceneHandles): Promise<BakedSigns> {
   const product = await loadFirstPartyProduct('nine-dragon-stack');
   const rows = JSON.parse(new TextDecoder().decode(await product.file(`signs/atlas-${tier}.json`)), layoutReviver) as SignAtlas;
-  const libraries = await Promise.all(rows.pools.map(async pool => {
-    const url = URL.createObjectURL(new Blob([Uint8Array.from(await product.file(pool.name))]));
-    try {
-      const channels = rows.channels.flatMap(row => {
-        const parts = row.parts?.filter(part => pool.parts.includes(part));
-        return parts?.length === 0 ? [] : [{ ...row, ...(parts === undefined ? {} : { parts }) }];
-      });
-      const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-        geometryPools: [{ url, parts: pool.parts, channels }] }, `Nine sign atlas ${tier}`);
-      await library.preload(); return library;
-    } finally { URL.revokeObjectURL(url); }
-  }));
   const textures = { mono: scenes.texture('signs.mono'), colour: scenes.texture('signs.colour'), sdf: scenes.texture('signs.sdf') };
   return { keys: rows.keys, glyphLayout: rows.glyphLayout, textures,
     copies: rows.copies,
     neonLights: rows.neonLights.map(({ at, color, ...rest }) => Object.assign(rest, { at: new Vector3(...at), color: new Color(...color) })),
     lights: rows.lights.map(({ at, color, ...rest }) => Object.assign(rest, { at: new Vector3(...at), color: new Color(...color) })),
-    geometry: name => {
-      const index = rows.pools.findIndex(pool => pool.parts.includes(name));
-      const geometry = libraries[index]?.geometry(name, name === 'world' ? { borrow: true } : undefined);
-      if (geometry === null || geometry === undefined) throw new Error(`Nine baked sign has no ${name}`);
-      return geometry;
-    },
+    geometry: name => { const geometry = scenes.geometry(`signs.${name}`); return name === 'world' ? geometry : geometry.clone(); },
   };
 }
 
 /** Load exact prepared levels; middle levels retain the full cast's shared attribute buffers. */
-export async function loadCastLods(target: Map<string, BufferGeometry>, key: string, base: BufferGeometry, levels: readonly (number | 'far')[], channels?: ModelGeometryPool['channels']): Promise<void> {
-  await Promise.all(levels.map(async level => {
+export function loadCastLods(target: Map<string, BufferGeometry>, key: string, base: BufferGeometry, levels: readonly (number | 'far')[], scenes: SceneHandles): void {
+  for (const level of levels) {
     const suffix = level === 'far' ? 'far' : `mid${level}`;
-    target.set(`${key}:${suffix}`, castLod(base, await loadCast(`${key}-${suffix}`, channels), level !== 'far'));
-  }));
+    target.set(`${key}:${suffix}`, castLod(base, scenes.geometry(`casts.${key}-${suffix}`), level !== 'far'));
+  }
 }
 
 /** Prepared indices share the native full-detail attributes; compact far levels own their packed attributes. */

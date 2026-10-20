@@ -10707,7 +10707,6 @@
         "src/shards/nine-dragon-stack/data/deckFloors.generated.json",
         "public/assets/nine-dragon/baked/casts/lion-mid10.glb",
         "public/assets/nine-dragon/baked/casts/lion-mid30.glb",
-        "public/assets/nine-dragon/baked/casts/dragon-hook.glb",
         "public/assets/nine-dragon/baked/casts/dragon-hook-mid15.glb",
         "public/assets/nine-dragon/baked/casts/dragon-hook-mid40.glb",
         "public/assets/nine-dragon/baked/casts/walker-dark-mid12.glb",
@@ -10733,7 +10732,8 @@
         "public/assets/nine-dragon/baked/casts/sitter-light-far.glb",
         "public/assets/nine-dragon/baked/casts/walker-oxblood.glb",
         "public/assets/nine-dragon/baked/casts/walker-paper.glb",
-        "public/assets/nine-dragon/baked/casts/walker-blue.glb"
+        "public/assets/nine-dragon/baked/casts/walker-blue.glb",
+        "src/shards/nine-dragon-stack/data/castHook.generated.json"
       ],
       "buildTimeOutputs": [
         "public/assets/nine-dragon/baked/casts/walker-dark.glb",
@@ -10749,7 +10749,6 @@
         "src/shards/nine-dragon-stack/data/deckFloors.generated.json",
         "public/assets/nine-dragon/baked/casts/lion-mid10.glb",
         "public/assets/nine-dragon/baked/casts/lion-mid30.glb",
-        "public/assets/nine-dragon/baked/casts/dragon-hook.glb",
         "public/assets/nine-dragon/baked/casts/dragon-hook-mid15.glb",
         "public/assets/nine-dragon/baked/casts/dragon-hook-mid40.glb",
         "public/assets/nine-dragon/baked/casts/walker-dark-mid12.glb",
@@ -10775,7 +10774,8 @@
         "public/assets/nine-dragon/baked/casts/sitter-light-far.glb",
         "public/assets/nine-dragon/baked/casts/walker-oxblood.glb",
         "public/assets/nine-dragon/baked/casts/walker-paper.glb",
-        "public/assets/nine-dragon/baked/casts/walker-blue.glb"
+        "public/assets/nine-dragon/baked/casts/walker-blue.glb",
+        "src/shards/nine-dragon-stack/data/castHook.generated.json"
       ],
       "platform": "portable",
       "catalogueDependencies": [

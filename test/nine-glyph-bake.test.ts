@@ -7,6 +7,9 @@ import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/generators/wo
 import signRows from '../src/shards/nine-dragon-stack/data/signView.json' with { type: 'json' };
 import profiles from '../src/shards/nine-dragon-stack/data/specimenProfiles.json' with { type: 'json' };
 import { GLYPH_LAYOUT } from '../src/shards/nine-dragon-stack/generators/signs';
+import { NINE_WORLD_SCENES } from '../src/shards/nine-dragon-stack/generators/worldScenes';
+import { worldScenesForTier } from '../src/format/worldScenes';
+import { createModelLibrary } from '../src/game/plugin/geometry';
 
 
 function blob(name: string): Uint8Array {
@@ -16,6 +19,35 @@ function blob(name: string): Uint8Array {
 }
 const files = { file: (name: string): Promise<Uint8Array> => Promise.resolve(blob(name)) };
 
+test('sign pools select one tier and publish all original parts without extra descriptor files', () => {
+  for (const tier of ['phone', 'desktop'] as const) {
+    const section = worldScenesForTier(NINE_WORLD_SCENES, tier), libraries = section.libraries.filter(row => row.kind === 'pool' && row.publish === 'signs');
+    expect(libraries).toHaveLength(15);
+    const poolFiles = libraries.flatMap(library => library.kind === 'pool' ? library.files : []);
+    const parts = poolFiles.flatMap(file => file.parts);
+    expect(parts).toHaveLength(1309); expect(new Set(parts).size).toBe(parts.length);
+    for (const library of libraries) {
+      if (library.kind !== 'pool') throw new Error('Missing admitted Nine sign pool');
+      expect(library.files).toHaveLength(1);
+      expect(() => createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
+        geometryPools: library.files.map(file => {
+          const pool = { url: typeof file.file === 'string' ? file.file : file.file[tier], parts: file.parts };
+          return file.channels === undefined ? pool : Object.assign(pool, { channels: file.channels });
+        }),
+      }, 'Nine sign source admission')).not.toThrow();
+    }
+    for (const file of poolFiles) {
+      expect(file.tier).toBe(tier);
+      if (typeof file.file !== 'string') throw new Error('Sign files carry their tier directly');
+      expect(blob(file.file).byteLength).toBeGreaterThan(0);
+      for (const channel of file.channels ?? []) expect(channel.parts?.every(part => file.parts.includes(part))).toBe(true);
+    }
+    expect(output.namedFiles.some(file => file.name === `signs/glyphs-${tier}.json`)).toBe(false);
+  }
+  const fixed: unknown = JSON.parse(new TextDecoder().decode(blob('geometry/fixed-kits.json')));
+  if (fixed === null || typeof fixed !== 'object') throw new Error('Missing Nine practice rows');
+  expect(Object.keys(fixed)).toEqual(['practice']);
+});
 async function loadGlyphField(tier: 'phone' | 'desktop', sourceFiles: { readonly file: (name: string) => Promise<Uint8Array> }) {
   const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
   const { layout, rects } = glyphs[tier], meta = { layout, rects, words: WORDS };

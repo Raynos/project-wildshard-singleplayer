@@ -1,6 +1,5 @@
-import { type BufferGeometry, Color, Float32BufferAttribute, MeshStandardMaterial } from 'three';
+import { type BufferGeometry, Color, Float32BufferAttribute } from 'three';
 import { hookGeometry } from './hookGeometry';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { castGeometry, packGeometry } from './casts';
 import { lodReady, simplifiedCopy, clusterLod, PX_PER_M } from './meshLod';
 import lodRows from '../data/lod.json' with { type: 'json' };
@@ -45,7 +44,6 @@ export async function bakeLods(read: (url: string) => Uint8Array): Promise<Map<s
   const lion = await castGeometry('lion', read);
   for (const d of [10, 30]) mid('lion', lion, d, d * PX_PER_M * SCULPT_PX);
   const hook = await hookGeometry(read);
-  rows.set('dragon-hook', staticGlb([{ name: 'dragon-hook', geometry: hook, material: new MeshStandardMaterial(), nativeAttributes: true, compactIndex: true }], 'nine-hook'));
   for (const d of hookRows.lods) mid('dragon-hook', hook, d, (d * PX_PER_M * SCULPT_PX) / hookRows.scale);
   for (const name of ['walker-dark', 'walker-light', 'sitter-dark', 'sitter-light'] as const) {
     const base = await castGeometry(name, read);

@@ -59,6 +59,7 @@ export const LayoutProjectionSchema = v.strictObject({
   kits: v.array(v.tuple([v.string(), v.nullable(finite)])), alphaKits: v.array(v.tuple([v.string(), finite])),
   farOf: LayoutRowsSchema.entries.farOf, inKit: LayoutRowsSchema.entries.inKit, shell: v.nullable(finite),
   lanterns: v.array(v.array(finite)), acs: v.array(v.array(finite)), hooks: v.array(V3),
+  fixed: v.strictObject({ lanterns: v.array(v.array(finite)), drop: finite }),
   hookMounts: v.array(v.strictObject({ ring: V3, out: V3 })),
   inst: v.array(v.tuple([v.string(), v.array(v.strictObject({ matrix: v.array(finite), color: V3 }))])),
 });
@@ -126,8 +127,6 @@ export const SignAtlasSchema = v.strictObject({
   neonLights: v.array(v.strictObject({ at: V3, color: V3, w: N, h: N, power: N, spill: N })),
   copies: v.array(v.strictObject({ neon: v.boolean(), boxes: v.array(N), poses: v.array(v.strictObject({ x: N, y: N, z: N, yaw: N, variant: v.string(), params: v.record(v.string(), v.unknown()) })) })),
 });
-
-export const CastChannelsSchema = v.pipe(v.array(v.strictObject({ name: v.string(), source: v.string(), width: v.number() })), v.maxLength(16));
 
 /** Validate the course with its defining public schema before serializing it. */
 export function parseFixedRows(value: unknown): Omit<v.InferOutput<typeof FixedRowsSchema>, 'practice'> & { practice: Omit<v.InferOutput<typeof FixedRowsSchema>['practice'], 'presentation'> & { presentation: v.InferOutput<typeof PracticeSceneSchema> } } {

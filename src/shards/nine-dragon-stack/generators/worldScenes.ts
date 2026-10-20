@@ -1,5 +1,9 @@
 import { addWindowNodes, windowStep } from './facadeWindowRecipe';
+import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_BLOBS } from './signAtlasSources';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
+import { CAST_LIBRARIES, CAST_WELD, castBlobs, CAST_MATERIALS } from './castSources';
+import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { LayoutRowsSchema } from './sections';
 import { portalLookRows } from './portalLook';
 // Nine Dragon's models on the shared world-scene host (G465): the Explorer catalogue (data/explorerModels.json) plus the
 // code-built specimens the page placed itself (the brush figures, the banyan and what stands at its foot, the paper
@@ -48,6 +52,13 @@ function alias(id: string, key: string, matrix?: readonly number[]): void {
   const library = resident.has(part) ? 'native' : 'native-explorer';
   aliases[library].set(id, { id, part, files, ...(matrix === undefined ? {} : { matrix }) }); libraryOf.set(id, library);
 }
+// The original layout partitions are native resources; the scene owner reads each tile once.
+const layoutRows = v.parse(LayoutRowsSchema, JSON.parse(JSON.stringify(layout.rows), (_key, value: unknown) =>
+  value === '-0' ? -0 : value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value));
+const layoutIds = [...new Set([...layoutRows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...layoutRows.alphaKits.map(row => row.geo), ...layoutRows.shell === null ? [] : [layoutRows.shell]])];
+for (const id of layoutIds) alias(`layout-${id}`, `layout_${id}`);
+const layoutWeld = parseWorldSceneWeld({ id: 'layout', root: 'dressing.root', nodes: [], resources: layoutIds.map(id => ({
+  id: `layout.${id}`, kind: 'geometry', source: { library: libraryOf.get(`layout-${id}`), model: `layout-${id}` } })) });
 for (const row of explorer.sources) if (!('resident' in row) || !row.resident.startsWith('lion')) alias(row.id, 'resident' in row ? row.resident : row.key, 'transform' in row ? row.transform : undefined);
 const draw = (id: string, model: string, material: string, renderOrder?: number): Draw => {
   alias(model, model);
@@ -128,15 +139,15 @@ const cardSteps = (['open', 'capped'] as const).map(caps => {
 });
 const CARD_BLOBS = [...cardFiles].map(([text, file]) => nameBlob(file, 'json', new TextEncoder().encode(text)));
 const portalLook = portalLookRows();
-export const NINE_SCENE_BLOBS: NamedBlob[] = [...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
+export const NINE_SCENE_BLOBS: NamedBlob[] = [...SIGN_ATLAS_BLOBS, ...castBlobs(layoutWeld.resources), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
   nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...CARD_BLOBS];
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
 const painted = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
 const lent = [...signTextures, { kind: 'layers', looks: painted, param: 'uPaint', base: '/assets/nine-dragon/paint', label: 'Nine Dragon paint array (GPU only)', size: paint.sizes, anisotropy: 8, layers: paint.layers.map(({ name, alpha }) => ({ name, alpha })) },
   { kind: 'image', looks: ['nine-canopy-cards'], param: 'atlas', sizeParam: 'atlasSize', ...canopy.atlas },
   { kind: 'image', looks: ['nine-scroll'], param: 'scroll', url: '/assets/nine-dragon/lab/organic/scroll.webp', srgb: true, wrapT: 1001, anisotropy: 4 }];
-export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, libraries: [...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
-  materials: [...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
+export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, welds: [CAST_WELD], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
+  materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
     look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo')],
   steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? 'shapes', model }])), ...windowStep([0, 1]).geometry },
     instanceAttributes: windowStep([0, 1]).instanceAttributes,

@@ -1,3 +1,4 @@
+import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare packed bytes natively without per-element assertion diagnostics.
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
@@ -5,7 +6,7 @@ import { BufferAttribute, type BufferGeometry } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { nineLayoutSource, runLayout, SignRecorder } from '../src/shards/nine-dragon-stack/generators/layout';
 import { layoutProjection } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
-import { LayoutBake, restoreLayout } from '../src/shards/nine-dragon-stack/world/layoutBake';
+import { prepareLayout, restoreLayout } from '../src/shards/nine-dragon-stack/world/layoutBake';
 
 function exactGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
   expect(Object.keys(actual.attributes)).toEqual(Object.keys(expected.attributes));
@@ -40,9 +41,10 @@ test('bakes every native solid/swept draw in order with exact channels, bounds a
   for (const [name, kit] of author.kitxs) if (!author.kits.has(name) && kit.vertexCount > 0) expected.set(name, kit.build());
   const source = nineLayoutSource();
   expect(source.rows.kitxs).toEqual([]);
-  const bake = new LayoutBake(layoutProjection(source.rows, source.records), new Map(source.geometries.map((geometry, i) => [i, geometry])));
-  await bake.prepare(() => Promise.resolve());
-  const restored = restoreLayout(bake);
+  const rows = layoutProjection(source.rows, source.records), scenes = new SceneHandles();
+  for (const [id, geometry] of source.geometries.entries()) scenes.publish(`layout.${id}`, geometry.clone());
+  await prepareLayout(rows, scenes, () => Promise.resolve());
+  const restored = restoreLayout(rows, scenes);
   const actual = new Map([...restored.kits].flatMap(([name, geometry]) => geometry === null ? [] : [[name, geometry] as const]));
   expect([...actual.keys()]).toEqual([...expected.keys()]);
   for (const [name, geometry] of expected) {
@@ -64,9 +66,10 @@ test('restores the offline facade shell with exact packed channels and bounds', 
   if (index === null) throw new Error('Nine layout has no facade shell');
   const original = source.geometries[index];
   if (original === undefined) throw new Error('Nine layout lost its shell geometry');
-  const bake = new LayoutBake(layoutProjection(source.rows, source.records), new Map(source.geometries.map((geometry, i) => [i, geometry])));
-  await bake.prepare(() => Promise.resolve());
-  const ctx = restoreLayout(bake);
+  const rows = layoutProjection(source.rows, source.records), scenes = new SceneHandles();
+  for (const [id, geometry] of source.geometries.entries()) scenes.publish(`layout.${id}`, geometry.clone());
+  await prepareLayout(rows, scenes, () => Promise.resolve());
+  const ctx = restoreLayout(rows, scenes);
   const restored = ctx.shell;
   if (restored === null) throw new Error('Nine restored no facade shell');
   expect(restored === original).toBe(false);

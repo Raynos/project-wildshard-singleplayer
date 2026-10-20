@@ -1,3 +1,4 @@
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 /**
  * The crowd (dome B, E169; E281; E306 / E315 M4): two TRELLIS.2 casts from the lab — the umbrella walker
@@ -12,7 +13,7 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { BufferGeometry } from 'three';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '@wildshard/engine/models/model';
 import { lod as lodRows, specimens } from '../boot/metadata.generated.json' with { type: 'json' };
-import { loadCast, loadCastLods } from '../world/casts';
+import { loadCastLods } from '../world/casts';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
 
@@ -20,13 +21,13 @@ const rows = specimens.crowd;
 const FILE = 'src/shards/nine-dragon-stack/models/crowd.ts';
 
 /** load both casts in both ramps into the look (the fragment awaits it before placing) */
-export async function loadCrowd(look: NdLook): Promise<void> {
+export function loadCrowd(look: NdLook, scenes: SceneHandles): void {
   const names = Object.entries(rows).flatMap(([key, row]) => row.variants.map(variant => `${key}-${variant.id}`));
-  await Promise.all(names.map(async key => {
-    const base = await loadCast(key);
+  for (const key of names) {
+    const base = scenes.geometry(`casts.${key}`);
     look.geo.set(key, base);
-    await loadCastLods(look.geo, key, base, [...lodRows.MID_FROM, 'far']);
-  }));
+    loadCastLods(look.geo, key, base, [...lodRows.MID_FROM, 'far'], scenes);
+  }
 }
 
 const figure = (ctx: ModelContext, geometry: BufferGeometry): readonly ModelPart[] => [{ geometry, material: lowPolyLookMaterial(ctx.sky, 'nine-architecture') }];

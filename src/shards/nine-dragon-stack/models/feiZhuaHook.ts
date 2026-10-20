@@ -7,12 +7,10 @@
  * is the flat wall plate, so the Model Explorer turns it round to face the first view (E289).
  */
 import { specimens } from '../boot/metadata.generated.json' with { type: 'json' };
-import { type BufferGeometry, Box3, Sphere, Vector3, Color, type Material, Matrix4, Mesh, MeshStandardMaterial } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { type BufferGeometry, Box3, Sphere, Vector3, type Material, Matrix4 } from 'three';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '@wildshard/engine/models/model';
-import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { loadCastLods } from '../world/casts';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
@@ -37,25 +35,16 @@ export function feiZhuaAt(ring: Vector3, out: Vector3): Matrix4 {
  * the node's matrix restoring the scale); baking the matrix into int16 storage clamped every coordinate to ±1 and
  * flattened the dragon into a card (E289), so the transformed attributes are widened to float first.
  */
-export async function loadFeiZhuaHook(look: NdLook): Promise<void> {
-  const cast = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('/assets/nine-dragon/lab/grapple/dragon-hook.glb');
-  cast.scene.updateMatrixWorld(true);
-  const meshes: Mesh[] = [];
-  cast.scene.traverse((object) => { if (object instanceof Mesh) meshes.push(object as Mesh); });
-  const source = meshes[0];
-  if (source === undefined) return;
-  const intake = createOwnedGeometry('/assets/nine-dragon/baked/casts/dragon-hook.glb');
-  await intake.load(); const geo = intake.take();
+export async function loadFeiZhuaHook(look: NdLook, scenes: SceneHandles): Promise<void> {
+  await scenes.assemble('casts');
+  const geo = scenes.geometry('casts.dragon-hook');
   geo.boundingBox = new Box3(new Vector3().fromArray(rows.bounds.box.min), new Vector3().fromArray(rows.bounds.box.max));
   geo.boundingSphere = new Sphere(new Vector3().fromArray(rows.bounds.sphere.center), rows.bounds.sphere.radius);
-  const mat = source.material instanceof MeshStandardMaterial ? source.material.clone() : new MeshStandardMaterial({ color: rows.material.fallback });
-  mat.color.multiply(new Color(rows.material.tint));
-  mat.metalness = rows.material.metalness;
-  mat.roughness = rows.material.roughness;
+  const mat = scenes.standard('casts.hook-brass');
   // (E264) the sculpt's decoded maps (two 1024² bitmaps, 4 MB each) are on the GPU after the first draw
   for (const t of [mat.map, mat.normalMap, mat.roughnessMap, mat.metalnessMap, mat.aoMap, mat.emissiveMap]) if (t !== null) gpuOnlyTexture(t, 'the Fei Zhua sculpt maps (GPU only)');
   look.geo.set('dragon-hook', geo);
-  await loadCastLods(look.geo, 'dragon-hook', geo, rows.lods, []);
+  loadCastLods(look.geo, 'dragon-hook', geo, rows.lods, scenes);
   look.hookMat = mat;
 }
 

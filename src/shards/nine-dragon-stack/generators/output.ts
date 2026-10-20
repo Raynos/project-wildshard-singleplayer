@@ -1,8 +1,9 @@
 import practiceCard from '../data/practiceCard.json' with { type: 'json' };
+import { facadeWindowBlobs } from './facadeWindows';
 import entryProof from '../data/entryProof.generated.json' with { type: 'json' };
 import { heldGraphFiles } from './heldGraphFiles';
 import { heldView } from './heldView';
-import { parseFixedRows, CastChannelsSchema } from './sections';
+import { parseFixedRows } from './sections';
 import sharedUniforms from '../data/sharedUniforms.json' with { type: 'json' };
 import AO_TUNING from '../data/aoLook.json' with { type: 'json' };
 import { postRows } from './postGraphs';
@@ -16,7 +17,6 @@ import * as v from 'valibot';
 import type { GrappleRows } from '../data/grappleTypes';
 import aim from '../data/grapple.json' with { type: 'json' };
 import bursts from '../data/burstFields.json' with { type: 'json' };
-import { facadeWindowBlobs } from './facadeWindows';
 import { layoutBlobs } from './layoutBlobs';
 import { MeshStandardMaterial } from 'three';
 import { nameBlob, emitNamedBlobs } from '@wildshard/sdk/blobs';
@@ -28,15 +28,11 @@ import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json'
 import fixedKits from '../data/fixedKits.generated.json' with { type: 'json' };
 import { lightVolumeBlobs } from './lightVolumes';
 import lantern from '../data/lantern.json' with { type: 'json' };
-import castRows from '../data/casts.json' with { type: 'json' };
-import { signAtlasBlobs } from './signAtlasOutput';
 import { spillBlobs } from './spillBlobs';
 import { plainWeaveBytes, silkWeaveBytes } from './silkWeave';
 import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from './worldScenes';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
-
-const { CAST_CHANNELS } = castRows;
 
 const burstSchema = v.strictObject({ name: v.string(), shape: v.picklist(['flake', 'streak']), count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(24)), life: v.pipe(v.number(), v.minValue(0.001), v.maxValue(1)) });
 const effectRows = v.parse(v.strictObject({ muzzle: burstSchema, bite: burstSchema, dock: burstSchema, sparks: burstSchema }), bursts);
@@ -49,11 +45,10 @@ const material = new MeshStandardMaterial({ flatShading: true, vertexColors: tru
 material.name = 'sword';
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
 const viewmodel = buildViewmodelParts();
-const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
+const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
-  nameBlob('geometry/cast-channels.json', 'json', json(v.parse(CastChannelsSchema, CAST_CHANNELS))),
-  nameBlob('geometry/fixed-kits.json', 'json', json(parseFixedRows({ ...fixedKits, lantern, practice: grappleCourseScene(course) }))),
+  nameBlob('geometry/fixed-kits.json', 'json', json({ practice: parseFixedRows({ ...fixedKits, lantern, practice: grappleCourseScene(course) }).practice })),
   nameBlob('weapons/jian-cloth.json', 'json', json(Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])))),
   nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
   nameBlob('sim/headless-constants.json', 'json', json({ ...headlessConstants, entryProof })),

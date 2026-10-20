@@ -38,8 +38,8 @@ import { ndLook, ndModelContext, need } from './modelLook';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, umbrellaWalker } from '../models/crowd';
-import { loadLayoutBake, restoreLayout } from './layoutBake';
-import { loadCast, loadCastLods, loadFixedRows, loadSignAtlas, loadSpill } from './casts';
+import { loadLayoutBake, prepareLayout, restoreLayout } from './layoutBake';
+import { loadCastLods, loadSignAtlas, loadSpill } from './casts';
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
 
@@ -99,7 +99,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // between the synchronous phases): a ~30 ms task while loading, an 8 ms work slice when a grid cell builds it in play
   const slice = slicer(30);
   progress(0, 'paint + fonts');
-  const layoutReady = loadLayoutBake(opts.scope);
+  const layoutReady = loadLayoutBake();
   // every code-built model is a row of the world-scene catalogue (generators/worldScenes.ts), placed on the shared context
   const catalogueRows = parseWorldSceneModels(await product.json<unknown>('models/world-scenes.json')), keys = new Map(catalogueRows.models.map(row => [row.id, row.key]));
   const models = { ctx: sharedModelContext(opts.sky, { renderer }), model: defineWorldSceneCatalogue(catalogueRows).model };
@@ -121,13 +121,14 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // the page restores it and has no live builders to fall back on
   const layout = await layoutReady;
   progress(0.2, 'layout: baked');
-  // the layout's geometry copies (with their bounds) are made in slices first: the restore then only takes them
-  await layout.prepare(() => slice());
-  const ctx = restoreLayout(layout);
+  // The scene host owns the geometry; retain each original bound with pauses between scans.
+  await prepareLayout(layout, opts.scenes, () => slice());
+  const ctx = restoreLayout(layout, opts.scenes);
   // SF51-g: the four landing decks at road height (world/entries.ts), each with its portal to the square (G224)
   // G200: played alone (no road beyond the decks) each deck's open end gets its balustrade and brazier
   const entryCaps = opts.caps === true;
-  const [entries, boards, fixed] = await Promise.all([loadCast(entryCaps ? 'entries-capped' : 'entries-open'), loadCast('facade-signs'), loadFixedRows()]);
+  const entries = opts.scenes.geometry(entryCaps ? 'casts.entries-capped' : 'casts.entries-open');
+  const boards = opts.scenes.geometry('casts.facade-signs'), fixed = layout.fixed;
   ctx.kits.set('entries', entries);
   for (const row of entryCaps ? fixed.lanterns : []) ctx.lanterns.push(new Matrix4().fromArray(row));
   for (const frame of worldRows.portalLanterns) ctx.lanterns.push(new Matrix4().fromArray(worldData, frame));
@@ -144,7 +145,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   bindLowPolyMaterial(opts.sky, 'nine-architecture', mat, opts.scope);
   const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
   // a paper lantern hangs its drop below its hanger, upright, at the hanger's scale
-  const hung = ctx.lanterns.map(m => { m.decompose(tmpP, tmpQ, tmpS); const k = tmpS.x; return at<Record<string, unknown>>(new Matrix4().makeScale(k, k, k).setPosition(tmpP.x, tmpP.y - fixed.lantern.drop * k, tmpP.z)); });
+  const hung = ctx.lanterns.map(m => { m.decompose(tmpP, tmpQ, tmpS); const k = tmpS.x; return at<Record<string, unknown>>(new Matrix4().makeScale(k, k, k).setPosition(tmpP.x, tmpP.y - fixed.drop * k, tmpP.z)); });
   const lanternsAt = hung.map(({ x, y, z }) => new Vector3(x, y, z));
   // every mesh is named by what built it (`kit:<name>`, `facade`, `crowd`, …): the budget ruler sorts them into lanes
   const named = <T extends Object3D>(o: T, name: string): T => { o.name = name; return o; };
@@ -172,8 +173,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // stair-street's and the Well rim's lions), the booths, parasol tables and pavilions are the night market
   const squareSets = { square: [] as Placed[], stair: [] as Placed[], rim: [] as Placed[] }, market: Placed[] = [];
   if (worldRows.lions.length > 0) {
-    const geometry = await loadCast('lion'); nd.look.geo.set('lion', geometry);
-    await loadCastLods(nd.look.geo, 'lion', geometry, [10, 30]);
+    const geometry = opts.scenes.geometry('casts.lion'); nd.look.geo.set('lion', geometry);
+    loadCastLods(nd.look.geo, 'lion', geometry, [10, 30], opts.scenes);
     const lions = await placeSliced(guardianLion, worldRows.lions.map(frame => at(new Matrix4().fromArray(worldData, frame))), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-lions' } }, slice.due);
     nameDraws(lions, 'glb:lion');
     for (const [k, idx] of [['square', worldRows.shares.plaza], ['stair', worldRows.shares.street], ['rim', worldRows.shares.rim]] as const) { const share = copiesAt(lions, idx); if (share !== null) squareSets[k].push(share); }
@@ -283,11 +284,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.75, 'crowd models');
 
   // the TRELLIS crowd (models/crowd.ts: the casts in their ramps and dyes), dealt to its colourways (crowd.ts `dealCrowd`)
-  await loadCrowd(nd.look);
+  loadCrowd(nd.look, opts.scenes);
   // The lab's 18k-triangle cast-brass dragon has a production placement at three close Well hooks (models/feiZhuaHook.ts).
   // One instanced draw keeps it within the phone budget; the underlying procedural brackets and collision-free ring
   // anchors stay.
-  await loadFeiZhuaHook(nd.look);
+  await loadFeiZhuaHook(nd.look, opts.scenes);
   if (nd.look.hookMat !== null) {
     const mounts = ctx.hookMounts.filter((m) => m.ring.y > Y0 - 23 && m.ring.y < Y0 + 14)
       .sort((a, b) => a.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)) - b.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)))

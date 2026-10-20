@@ -1,9 +1,6 @@
 // Committed predecessor bytes are test oracles only; no product/runtime imports this module.
 import * as v from 'valibot';
 import { bakedGeometryBytes, readBakedGeometry } from '../../../src/game/plugin/geometry';
-import { layoutProjection } from '../../../src/shards/nine-dragon-stack/generators/layoutProjection';
-import { LayoutBake, layoutReviver } from '../../../src/shards/nine-dragon-stack/world/layoutBake';
-import { LayoutRowsSchema } from '../../../src/shards/nine-dragon-stack/generators/sections';
 import type { BufferGeometry } from 'three';
 
 const finite = v.number();
@@ -32,17 +29,6 @@ export class SpecimenBake {
 }
 
 
-export function oracleLayout(bytes: Uint8Array): LayoutBake {
-  const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), jsonBytes = header.getUint32(0, true), count = header.getUint32(4, true);
-  const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes.subarray(8, 8 + jsonBytes)), layoutReviver);
-  const rows = v.parse(LayoutRowsSchema, parsed);
-  let offset = Math.ceil((8 + jsonBytes) / 8) * 8;
-  const records = new Float64Array(bytes.slice(offset, offset + count * 8).buffer); offset += count * 8;
-  const geometries = new Map<number, ReturnType<typeof readBakedGeometry>>();
-  for (const [index, row] of rows.geometries.entries()) { geometries.set(index, readBakedGeometry(bytes, offset, row)); offset += bakedGeometryBytes(row); }
-  if (offset !== bytes.length) throw new Error('Nine layout oracle size differs');
-  return new LayoutBake(layoutProjection(rows, [...records]), geometries);
-}
 export function oracleSpecimens(bytes: Uint8Array): SpecimenBake {
   const jsonBytes = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true);
   const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes.subarray(4, 4 + jsonBytes)));

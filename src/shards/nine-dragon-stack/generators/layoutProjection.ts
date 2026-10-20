@@ -1,5 +1,7 @@
 import * as v from 'valibot';
 import { LayoutProjectionSchema, type LayoutRows, type LayoutProjection } from './sections';
+import fixed from '../data/fixedKits.generated.json' with { type: 'json' };
+import lantern from '../data/lantern.json' with { type: 'json' };
 
 /** Decode the predecessor's mixed stream once at build time, retaining every double and signed zero. */
 export function layoutProjection(rows: LayoutRows, records: readonly number[]): LayoutProjection {
@@ -26,7 +28,8 @@ export function layoutProjection(rows: LayoutRows, records: readonly number[]): 
     const row = rows.geometries[id]; if (row === undefined) throw new Error(`Missing Nine geometry ${id}`);
     return { id, box: row.box };
   }), kits: rows.kits.map(row => [row.name, row.geo]), alphaKits: rows.alphaKits.map(row => [row.name, row.geo]),
-  farOf: rows.farOf, inKit: rows.inKit, shell: rows.shell, lanterns, acs, hooks, hookMounts, inst });
+  farOf: rows.farOf, inKit: rows.inKit, shell: rows.shell, lanterns, acs, hooks, hookMounts, inst,
+  fixed: { lanterns: fixed.lanterns.map(row => row.map(Number)), drop: lantern.drop } });
 }
 
 /** JSON admission normalizes zero; restore explicitly declared negative-zero words for author proofs. */

@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { BufferAttribute, Float32BufferAttribute, Mesh, Box3, Sphere, Vector3, type Object3D, type BufferGeometry } from 'three';
+import { CAST_BLOBS } from '../../src/shards/nine-dragon-stack/generators/castSources';
 import { createOwnedGeometry } from '../../src/engine/models/ownedGeometry';
 import metadata from '../../src/shards/nine-dragon-stack/boot/metadata.generated.json' with { type: 'json' };
 import { createModelLibrary } from '../../src/game/plugin/geometry';
@@ -86,6 +87,7 @@ test('layout blobs retain every float64 bit and signed author zero', () => {
   const projection = blobs.find(row => row.file.name === 'geometry/layout-projection.json');
   if (projection === undefined) throw new Error('Missing client layout projection');
   expect(JSON.parse(new TextDecoder().decode(projection.bytes), layoutReviver)).toEqual(layoutProjection(original.rows, original.records));
+  expect(layoutProjection(original.rows, original.records).fixed.lanterns).toEqual(fixed.lanterns);
 });
 
 
@@ -121,7 +123,9 @@ beforeAll(async () => {
   }
   hook.applyMatrix4(source.matrixWorld); lodBases.set('dragon-hook', hook);
   const bakedHook = createOwnedGeometry('hook');
-  await bakedHook.load(read('/assets/nine-dragon/baked/casts/dragon-hook.glb'));
+  const fullHook = CAST_BLOBS.find(row => row.file.name === 'geometry/dragon-hook.glb');
+  if (fullHook === undefined) throw new Error('Missing full-detail hook blob');
+  await bakedHook.load(fullHook.bytes);
   const nativeHook = bakedHook.take(), bounds = metadata.specimens.hook.bounds;
   nativeHook.boundingBox = new Box3(new Vector3().fromArray(bounds.box.min), new Vector3().fromArray(bounds.box.max));
   nativeHook.boundingSphere = new Sphere(new Vector3().fromArray(bounds.sphere.center), bounds.sphere.radius);

@@ -12,7 +12,7 @@ const layout = JSON.parse(readFileSync(new URL('../data/layout.generated.json', 
 const world = await worldRows(layout.rows, layout.records, url => new Uint8Array(readFileSync(new URL(`../../../../public${url}`, import.meta.url))));
 // the layout bake's whole tiles: which tiles hold each partition, and whether the page loads it at boot (not Explorer-only)
 const baked = JSON.parse(readFileSync(new URL('../data/world.generated.json', import.meta.url), 'utf8')), wholeTiles = {};
-for (const [kind, hashes] of Object.entries(baked.libraries)) for (const hash of hashes) {
+for (const [kind, hashes] of [...Object.entries(baked.libraries), ['layout', baked.props.tiles.flatMap(tile => [tile.file].concat(tile.additionalFiles ?? []))]]) for (const hash of hashes) {
   const bytes = readFileSync(new URL(`../assets/${hash}`, import.meta.url));
   for (const node of JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + bytes.readUInt32LE(12)))).nodes ?? []) {
     const id = node.extras?.wholePartition?.id; if (typeof id !== 'string') continue;
