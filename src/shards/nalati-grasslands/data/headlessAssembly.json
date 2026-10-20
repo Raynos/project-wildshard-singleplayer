@@ -925,23 +925,53 @@
               },
               "taming": {
                 "$fn": {
-                  "$coalesce": [
+                  "$call": [
                     {
-                      "$call": [
-                        {
+                      "$fn": {
+                        "phase": {
                           "$ref": [
-                            "@wildshard/game/riding/nativeTaming",
-                            "nativeTamingOf"
+                            "args",
+                            0,
+                            "phase"
+                          ]
+                        },
+                        "tulpar": {
+                          "$ref": [
+                            "args",
+                            0,
+                            "companion"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "$coalesce": [
+                        {
+                          "$coalesce": [
+                            {
+                              "$call": [
+                                {
+                                  "$ref": [
+                                    "@wildshard/game/riding/nativeTaming",
+                                    "nativeTamingOf"
+                                  ]
+                                },
+                                {
+                                  "$ref": [
+                                    "host"
+                                  ]
+                                }
+                              ]
+                            },
+                            null
                           ]
                         },
                         {
-                          "$ref": [
-                            "host"
-                          ]
+                          "phase": "wild",
+                          "companion": null
                         }
                       ]
-                    },
-                    null
+                    }
                   ]
                 }
               },
