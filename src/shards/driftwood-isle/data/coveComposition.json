@@ -12,6 +12,15 @@
     "solidFloor": true
   },
   "reefPiece": "wreck-cove-reef-rocks",
+  "audioFall": {
+    "foot": [127.5, 18]
+  },
+  "audioCave": {
+    "x": 142,
+    "z": 14.5,
+    "yaw": 0,
+    "depth": 8.8
+  },
   "audioBounds": {
     "x": 142,
     "z": 18.9,

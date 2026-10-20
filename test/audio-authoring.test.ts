@@ -11,8 +11,10 @@ import {islandCoveSpec} from '../src/shards/driftwood-isle/generators/coveLayout
 it.each([
   ['pine-hollow',pineSource,pineOutput],['driftwood-isle',islandSource,islandOutput],
 ] as const)('%s publishes its authored audio through the existing section',async(slug,source,output)=>{
-  const rows=parseAudioData(slug==='driftwood-isle'?{...source.audio,gameplay:{...source.audio.gameplay,constants:{cove:{caveBounds:cove.audioBounds}}}}:source.audio);
+  const rows=parseAudioData(slug==='driftwood-isle'?{...source.audio,gameplay:{...source.audio.gameplay,constants:{cove:{fall:cove.audioFall,cave:cove.audioCave,caveBounds:cove.audioBounds}}}}:source.audio);
   expect(cove.audioBounds).toEqual(islandCoveSpec().caveBounds);
+  expect(cove.audioFall.foot).toEqual(islandCoveSpec().fall.foot);
+  expect(islandCoveSpec().cave).toMatchObject(cove.audioCave);
   expect(output.audio).toEqual(rows);
   const product=await readProjectAssets(`src/shards/${slug}`);
   expect(product.shard.audio).toEqual(rows);
@@ -20,3 +22,19 @@ it.each([
   expect(()=>parseAudioData({...source.audio,pcm:{bad:{seed:[1,2],values:[],samples:0}}})).toThrow();
   expect(()=>parseAudioData({...source.audio,zones:{...source.audio.zones,tickHz:0}})).toThrow();
 },30000);
+
+it('every declared cove ambience read resolves in the emitted runtime owner',()=>{
+  const rows=parseAudioData(islandOutput.audio);
+  const reads=rows.zones?.lifecycle?.inputs.filter(row=>row.kind==='read'&&row.owner==='cove')??[];
+  expect(reads).toHaveLength(6);
+  for(const row of reads){
+    if(row.kind!=='read')throw new Error('Expected numeric owner read');
+    let value:unknown=rows.gameplay?.constants?.['cove'];
+    for(const field of row.path){
+      if(typeof value!=='object'||value===null)throw new Error(`Missing cove ambience path: ${row.path.join('.')}`);
+      value=Reflect.get(value,field);
+    }
+    expect(typeof value,row.path.join('.')).toBe('number');
+    expect(Number.isFinite(value),row.path.join('.')).toBe(true);
+  }
+});

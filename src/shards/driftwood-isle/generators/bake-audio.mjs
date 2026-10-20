@@ -7,5 +7,5 @@ import {byteWriter} from '../../../../scripts/bake-output.mjs';
 import {fileURLToPath} from 'node:url';
 
 const writer=byteWriter(process.argv.includes('--check'),'audio-section');
-writer.put(fileURLToPath(new URL('../data/audio.generated.json',import.meta.url)),encodeCanonicalJson({audio:parseAudioData({...source.audio,gameplay:{...source.audio.gameplay,constants:{cove:{caveBounds:cove.audioBounds}}}})}));
+writer.put(fileURLToPath(new URL('../data/audio.generated.json',import.meta.url)),encodeCanonicalJson({audio:parseAudioData({...source.audio,gameplay:{...source.audio.gameplay,constants:{cove:{fall:cove.audioFall,cave:cove.audioCave,caveBounds:cove.audioBounds}}}})}));
 writer.finish();

@@ -26,7 +26,7 @@ import { OCEAN_FILES } from './oceanFiles';
 import { OCEAN_FOAM } from './oceanFoam';
 
 
-const {audioBounds: _audioBounds, ...runtimeCoveComposition} = coveComposition;
+const {audioBounds: _audioBounds, audioFall: _audioFall, audioCave: _audioCave, ...runtimeCoveComposition} = coveComposition;
 
 /** Build-only client row assembly; the canonical registry validates it at publication. */
 export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] = [
