@@ -1,12 +1,10 @@
-import { PopulationEnvironmentSchema } from '@wildshard/format/populationEnvironment';
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeGroundSchema, nativeBakeGround, nativeBakeActors } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
-import { BodySlotsSchema } from '@wildshard/format/bodySlots';
+import { KeeperRowsSchema } from '../data/keeperSchema';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import DRIFTWOOD_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
-import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The baked floor's lattice (Rapier's own column-major heightfield, from authored rows: generators/physics.ts, G350-DW). */
 export const DRIFTWOOD_GROUND_RES = DRIFTWOOD_TERRAIN.res, DRIFTWOOD_GROUND_SIZE = DRIFTWOOD_TERRAIN.size;
@@ -49,9 +47,9 @@ export interface DriftwoodBake {
 
 let parsed: DriftwoodBake | null = null;
 /** Driftwood's physics product (generators/physics.ts, G350-DW), strictly parsed and decoded once. */
-export function driftwoodBake(): DriftwoodBake {
+export function driftwoodBake(input: unknown): DriftwoodBake {
   if (parsed !== null) return parsed;
-  const bake = v.parse(Bake, baked), RES = DRIFTWOOD_GROUND_RES, SIZE = DRIFTWOOD_GROUND_SIZE;
+  const bake = v.parse(Bake, input), RES = DRIFTWOOD_GROUND_RES, SIZE = DRIFTWOOD_GROUND_SIZE;
   const ground = nativeBakeGround(bake.ground, RES, SIZE, 'Driftwood'), { heights } = ground;
   const floor = { resolution: RES, x: -SIZE / 2, z: -SIZE / 2, size: SIZE, heights };
   const floorAt = (x: number, z: number): number => terrainTileHeight(floor, x, z, DRIFTWOOD_TERRAIN.sampling);
@@ -99,17 +97,6 @@ const EnemyPlacements = v.object({ seed: finite, practice: xz, native: v.strictO
 export type NativeEnemyPlacements = v.InferOutput<typeof EnemyPlacements>;
 export function readEnemyPlacements(input: unknown): NativeEnemyPlacements { return v.parse(EnemyPlacements, input); }
 
-const stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
-export const KeeperRowsSchema = v.strictObject({ environment: PopulationEnvironmentSchema, seed: finite,
-  volley: BodySlotsSchema,
-  ecology: v.strictObject({ program: v.unknown(), outOfSight: v.pipe(finite, v.minValue(0)), rules: v.record(v.string(), v.strictObject({
-    delay: v.strictObject({ min: v.pipe(finite, v.minValue(0)), max: v.pipe(finite, v.minValue(0)) }), night: v.exactOptional(v.boolean()) })) }),
-  fauna: v.strictObject({ seed: finite, centres: v.pipe(v.array(v.tuple([finite, finite])), v.maxLength(32)),
-    rows: v.pipe(v.array(v.strictObject({ id: v.string(), herd: finite, seed: finite, x: finite, z: finite, yaw: finite, stream })), v.maxLength(64)), stream }),
-  variants: v.pipe(v.array(v.strictObject({ kind: v.string(), rows: v.pipe(v.array(v.strictObject({ id: v.string(), scale: v.tuple([finite, finite]) })), v.maxLength(32)) })), v.maxLength(32)),
-  herds: v.pipe(v.array(v.strictObject({ kind: v.string(), x: finite, z: finite })), v.maxLength(32)),
-  bodies: v.pipe(v.array(v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, x: finite, z: finite,
-    yaw: finite, seed: finite, scale: finite, fauna: v.boolean(), practice: v.boolean(), stream: v.nullable(stream) })), v.length(34)) });
 /** Admitted immutable keeper boot rows; version-8 live continuation stays with the existing native owner. */
 export type NativeKeeperRows = v.InferOutput<typeof KeeperRowsSchema>;
 export function readKeeperRows(input: unknown): NativeKeeperRows { return v.parse(KeeperRowsSchema, input); }

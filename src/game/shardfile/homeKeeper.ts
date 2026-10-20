@@ -1,4 +1,5 @@
 import { NativeActors } from '../population/actors';
+import { NativeReturns } from '../population/nativeReturns';
 import * as v from 'valibot';
 import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
@@ -312,6 +313,8 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
   byId: Map<string, B>;
   /** Identity lifecycle above the native body map, including dormant prewarm and permanent retirement. */
   identities: NativeActors<HuntBody>;
+  /** Bind declared return rules to this roster's real identities and death events. */
+  returns: (rows: unknown) => NativeReturns;
   floor: (x: number, z: number, fromY: number) => number;
   /** Join an already materialized host actor without spawning, sampling or drawing. */
   attach: (body: B, actor: AnimalSim) => HuntBody;
@@ -452,7 +455,8 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     const level = saved.entities.find(entity => entity.id === item.id)?.state.flags.levelGround;
     return materialize(item, item.recipe, level ?? found.structure);
   };
-  const roster = { body, spec, read: recipes.read, byId, identities, floor, attach, materialize, arrive, draw, remember, retire, sleep, retireDead, refill, adopt, retarget, reinstall };
+  const returns = (input: unknown): NativeReturns => new NativeReturns(host, byId, hunt, input);
+  const roster = { body, spec, read: recipes.read, byId, identities, returns, floor, attach, materialize, arrive, draw, remember, retire, sleep, retireDead, refill, adopt, retarget, reinstall };
   nativeRosters.set(roster, host); return roster;
 }
 

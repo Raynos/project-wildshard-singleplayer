@@ -275,6 +275,9 @@
         "$call": [
           {
             "$ref": ["src/shards/driftwood-isle/sim/baked", "driftwoodBake"]
+          },
+          {
+            "$ref": ["constants", "physics"]
           }
         ]
       }

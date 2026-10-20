@@ -16,7 +16,7 @@ test('offline placements retain the frozen page/native populations, herds, yaw a
   const entries = [
     { rows: actual.page.phone, palms: [...foliage.tiers.phone.palms.specs, ...extra], heightAt: driftwoodGroundSampler() },
     { rows: actual.page.desktop, palms: [...foliage.tiers.desktop.palms.specs, ...extra], heightAt: driftwoodGroundSampler() },
-    { rows: actual.native, palms: physics.habitat.perchBases, heightAt: driftwoodBake().floorAt },
+    { rows: actual.native, palms: physics.habitat.perchBases, heightAt: driftwoodBake(physics).floorAt },
   ];
   for (const { rows, palms, heightAt } of entries) {
     const expected = legacyPlacement({ seed: foliage.seed, waterLevel: 0, crabSites: physics.habitat.crabSites, palms, heightAt });

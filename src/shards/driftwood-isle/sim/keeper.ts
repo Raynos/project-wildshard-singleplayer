@@ -23,8 +23,6 @@ import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake, NativeEnemyPlacements, NativeKeeperRows } from './baked';
-import { RespawnQueue } from '@wildshard/sdk/populationRespawn';
-import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { ReturnGate } from '@wildshard/game/population/respawn';
 
 const poseSailor = numericCreaturePose(sailorClips);
@@ -241,33 +239,18 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   host.events.on('damage.dealt', ({ req, killed }) => { cadence.damaged(req.target, killed); }, host.scope);
   // Reusable native recipe slots are cold-allocated; only host.spawn materializes an entity on a due event.
   const extra = Array.from({ length: ROSTER - BODY_COUNT - 1 }, () => enemyBody('', 'crab', 'small', -1, { x: 0, z: 0 }, 0));
-  const queue = new RespawnQueue(roster.ecology.rules, roster.ecology.outOfSight, undefined, ReturnProgram.native(host, roster.ecology.program)), ecology = { now: 0, check: 0 };
-  const pendingIds = new Map<(typeof queue.pending)[number], string>();
-  host.events.on('actor.died', ({ actor }) => {
-    const body = bodies.find(b => b.actor?.combatActor() === actor), a = body?.actor;
-    if (body === undefined || a === null || a === undefined) return;
-    if (queue.pending.length >= ROSTER) throw new Error('Driftwood ecology queue exceeds its native bound');
-    const h = hunt.herds[body.herd];
-    const entry = queue.accepts(body.kind) ? queue.add(body.kind, body.variant, body.herd, h?.cx ?? a.position.x, h?.cz ?? a.position.z, ecology.now, host.rng.stream('spawn').next()) : null;
-    if (entry !== null) pendingIds.set(entry, body.id);
-  }, host.scope);
+  const returns = intake.returns(roster.ecology);
   const respawns = (dt: number): void => {
-    ecology.now += dt;
-    if (ecology.now - ecology.check < 1) return;
-    ecology.check = ecology.now;
-    const due = queue.take(ecology.now, player.x, player.z, host.dayClock?.night ?? 0);
-    for (let n = 0; n < ROSTER; n++) {
-      const entry = due[n]; if (entry === undefined) break;
-      const at = queue.place(entry, ecology.now, ports.waterLevel, entry.kind === 'sailor', host.rng.stream('spawn'));
-      if (at === null) continue;
-      const { x, z } = at;
+    for (const pending of returns.take(dt)) {
+      const entry = returns.place(pending); if (entry === null) continue;
+      const { x, z } = entry;
       if (bodies.length + 1 >= ROSTER) throw FULL_ROSTER;
       const body = intake.retarget(extra[bodies.length - BODY_COUNT], entry.kind, entry.variant, entry.herd, x, z, 'spawn');
       draw(body, !FAUNA.has(body.kind));
       if (body.kind === 'sailor') { body.recipe.at.y = bake.holdFloorAt(x, z) ?? heightAt(x, z); join(body, intake.materialize(body, body.recipe, true)); } else place(body);
       if (FAUNA.has(body.kind)) intake.remember(body);
-      const fallen = intake.retireDead(pendingIds.get(entry)); if (fallen !== null) fallen.brain = null;
-      pendingIds.delete(entry); bodies.push(body);
+      const fallen = intake.retireDead(entry.id); if (fallen !== null) fallen.brain = null;
+      bodies.push(body);
     }
   };
   let poseNear = false; // recomputed before each body; never continuation state
@@ -308,7 +291,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       Math.hypot(player.x - PRACTICE_AT.x, player.z - PRACTICE_AT.z)) === 'replace') replacePractice(practice.body);
   }, {
     snapshot: () => { const common = continuation.snapshot(bodies.map(body => body.actor === null ? null : body.id),
-      bodies.flatMap(body => body.actor !== null && body.brain === null ? [body.id] : [])); return ({ version: 8, rng: common.rng, ecology: { ...ecology, pending: queue.pending.map(entry => ({ ...entry, variant: entry.variant ?? '', id: pendingIds.get(entry) ?? '' })) },
+      bodies.flatMap(body => body.actor !== null && body.brain === null ? [body.id] : [])); return ({ version: 8, rng: common.rng, ecology: returns.snapshot(),
       coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(bodies.map(b => b.actor?.entityId ?? '')) },
       tokens: [...bodies, ...(captain === null ? [] : [captain])].flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: common.clock, speed: common.noise.speed, prev: common.noise.seen ? common.noise.prev : null,
@@ -324,8 +307,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       const holders = state.tokens.map(id => { const a = (captain?.id === id ? captain : bodies.find(b => b.id === id))?.actor ?? null; if (a === null) throw new Error('Unknown Driftwood token holder'); return a; });
       placed.stream.restore(state.coconuts.rng);
       volley.restore(state.coconuts, bodies.map(b => b.actor));
-      ecology.now = state.ecology.now; ecology.check = state.ecology.check; queue.pending.length = 0; pendingIds.clear();
-      state.ecology.pending.forEach(({ id, ...entry }) => { queue.pending.push(entry); pendingIds.set(entry, id); });
+      returns.restore(state.ecology);
       practice.dead = state.practice.dead; practice.fade = state.practice.fade; entityIds.restoreAllocator(state.ids);
       hunt.tokens.clear(); holders.forEach(a => { hunt.tokens.take(a); });
       state.bodies.forEach(b => { if ((b.pose !== null) !== b.live) throw new Error('Missing Driftwood pose continuation'); if (b.pose !== null) poses.get(b.id)?.restore(b.pose); });

@@ -8,7 +8,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import * as v from 'valibot';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
-import { sha256 } from '../plugin/brain';
+import { sha256 } from '../plugin/moduleHash';
 
 const scoped = new WeakMap<Scope, Map<string, { declaration: string; program: ReturnProgram }>>();
 
