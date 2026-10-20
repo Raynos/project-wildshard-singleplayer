@@ -283,6 +283,22 @@ function runtimeTags(source, path, fallback) {
     for(const child of children(node))visit(child,depth+1);
   };
   visit(parsed.program,0);
+  // G515: dependency crumbs belong to the enclosing file's component. Keep
+  // imported owners above for real calls, but don't turn wiring into a feature.
+  const wire = node => node === null || node === undefined || ['Identifier', 'Literal', 'ThisExpression'].includes(node.type)
+    || (node.type === 'MemberExpression' && !node.computed && wire(node.object));
+  const crumbs = node => {
+    const field = (node.type === 'Property' || node.type === 'PropertyDefinition')
+      && !node.computed && !node.method && node.kind !== 'get' && node.kind !== 'set'
+      && lineOf(node.start) === lineOf(Math.max(node.start,node.end-1)) && wire(node.value)
+      && !blanked.slice(starts[lineOf(node.start)],node.start).trim()
+      && /^[,;]?\s*$/u.test(blanked.slice(node.end,starts[lineOf(node.end)+1] ?? source.length));
+    if (node.type === 'ImportDeclaration'
+      || (['ExportNamedDeclaration', 'ExportAllDeclaration'].includes(node.type) && !node.declaration)
+      || field) assign(node,fallback,Number.MAX_SAFE_INTEGER,'file owner wiring');
+    for (const child of children(node)) crumbs(child);
+  };
+  crumbs(parsed.program);
   return tags.filter(row=>row!==null);
 }
 /** Attribute each canonical contribution exactly once; ranges retain physical TS lines for auditing.
