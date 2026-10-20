@@ -756,7 +756,7 @@ async function worker() {
           xcrun(['openurl', udid, `${base}version.json`]);
           await connect(`${base}version.json`);
           await retryEvaluate(`(() => { ${fixture('phone')}; return true; })()`);
-          if (nativeDirectory !== '') stopNative = startFloorNative(ROOT, nativeDirectory, udid, expression => inspector?.raw(expression));
+          if (nativeDirectory !== '') stopNative = startFloorNative(ROOT, nativeDirectory, udid, expression => inspector?.raw(expression), () => { inspector?.close(); });
           // Reconnect after navigation: an inspector evaluation envelope can disappear in a WebContent process swap.
           // The helper sets live pose pins before the clean build's modules boot.
           inspector.close(); inspector = undefined;
