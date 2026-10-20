@@ -1,0 +1,12 @@
+{
+  "status": "Builder technical verification, independent visual review pending",
+  "all20ActualPNGsInspected": true,
+  "originalHeroAndCorrectedSheetsInspected": true,
+  "nativeConsumerTestsPassed": 4,
+  "strictGeometryAuditPassed": true,
+  "producerSHA256": "9131179d9b5c8a05fe41f5914cfd242936236b844096fdf3f74984729d5334f8",
+  "glbSHA256": "dfbe74b1192f507052c238c11b0dba0fd4fdc8d278066d2d87c5fac1cca83f0d",
+  "assetClosureSHA256": "2a0b82e03768ff47a6ea42fe1afccae3e4f40a07470e19c336b1753f8b7c8e16",
+  "rawBlendSavedNotReopened": true,
+  "noRuntimeOrAnimationAcceptance": true
+}

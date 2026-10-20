@@ -13,6 +13,7 @@ for version,source in [('predecessor',base.parent/'complete-character-next/build
  dest=out/version;dest.mkdir(exist_ok=True)
  sys.argv=[str(source),'--','--out',str(dest)]
  g=runpy.run_path(str(source),run_name='__main__');scene=bpy.context.scene
+ bpy.ops.wm.save_as_mainfile(filepath=str(dest/'editable-source.blend'))
  scene.render.engine='CYCLES';scene.cycles.samples=16;scene.cycles.use_denoising=False
  scene.render.resolution_x=525;scene.render.resolution_y=700;scene.render.resolution_percentage=100
  scene.world.color=(.12,.12,.12);scene.view_settings.view_transform='Standard'

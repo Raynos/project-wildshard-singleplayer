@@ -1,0 +1,55 @@
+{
+  "allGeometryInsideFrame": true,
+  "records": [
+    {
+      "view": "hero",
+      "horizontalMarginPixels": 24.782525934355295,
+      "verticalMarginPixels": 65.11276793077143
+    },
+    {
+      "view": "front",
+      "horizontalMarginPixels": 18.049907684326186,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "view": "left",
+      "horizontalMarginPixels": 124.77359554984353,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "view": "right",
+      "horizontalMarginPixels": 124.77359554984353,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "view": "back",
+      "horizontalMarginPixels": 18.049907684326186,
+      "verticalMarginPixels": 66.13238074562767
+    },
+    {
+      "view": "top",
+      "horizontalMarginPixels": 18.049907684326186,
+      "verticalMarginPixels": 212.21302022891342
+    },
+    {
+      "view": "diag-front",
+      "horizontalMarginPixels": 18.049907684326186,
+      "verticalMarginPixels": 85.71318813866536
+    },
+    {
+      "view": "diag-left",
+      "horizontalMarginPixels": 60.60290557011491,
+      "verticalMarginPixels": 52.93018719364576
+    },
+    {
+      "view": "diag-right",
+      "horizontalMarginPixels": 51.69937615912518,
+      "verticalMarginPixels": 52.93999276250155
+    },
+    {
+      "view": "diag-back",
+      "horizontalMarginPixels": 60.60290557011491,
+      "verticalMarginPixels": 67.45653761847123
+    }
+  ]
+}

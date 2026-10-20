@@ -1,0 +1,14 @@
+{
+  "method": "Exact exported GLB byte equality before and after captures",
+  "rendered": {
+    "path": "tmp/colossus-complete-character-refined/candidate/tide-root-colossus-complete-character-refined.glb",
+    "bytes": 886088,
+    "sha256": "dfbe74b1192f507052c238c11b0dba0fd4fdc8d278066d2d87c5fac1cca83f0d"
+  },
+  "final": {
+    "path": "art/driftwood-isle/lowpoly-colossus/complete-character-refined/tide-root-colossus-complete-character-refined.glb",
+    "bytes": 886088,
+    "sha256": "dfbe74b1192f507052c238c11b0dba0fd4fdc8d278066d2d87c5fac1cca83f0d"
+  },
+  "geometryMaterialsTransformsIdentical": true
+}
