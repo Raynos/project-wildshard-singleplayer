@@ -34,12 +34,11 @@ export function uprightPoses(poses: readonly Readonly<{ matrix: readonly number[
 
 /**
  * The world's declared copies the world build used to place by hand (world/build.ts and the old Blender island module): the cove's
- * small rocks, the shore boulders, the wreck and its cargo and reef rocks, the sea cave's reef rocks. Each is a world
+ * small rocks, the wreck and its cargo and reef rocks, the sea cave's reef rocks. Each is a world
  * scene placement drawn into the part its scene step publishes, registering its piece's colliders and floors.
  */
 export const WORLD_PLACEMENTS: readonly WorldScenePlacementRow[] = [
   baked('rocks.small.copies', 'smallRock', 'rocks.small', { id: 'cove-small-rocks' }, rocks.world.small),
-  baked('rocks.shore.copies', 'shoreBoulder', 'rocks.shore', { id: 'rocks', solidFloor: true }, rocks.world.shore),
   parseWorldScenePlacement({ id: 'wreck.ship', model: 'shipwreck', draw: 'merged', drawnInto: { part: 'wreck.root', boxes: wreck.shipBox },
     poses: [{ x: wreck.spec.x, y: wreck.floorY, z: wreck.spec.z, params: { site: wreck.spec }, yxz: { yaw: wreck.spec.heading, scale: 1 } }],
     colliders: wreck.descs, piece: { id: 'wreck', floors: wreck.floors, floorPolicy: 'first', solidFloor: true } }),
