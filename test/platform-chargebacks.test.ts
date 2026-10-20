@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify retired receipts without touching the shared WIP ledger.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { chargePlatformUsers, platformChargeback, recordPrivateCharge } from '../scripts/platform-chargebacks.mjs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chargePlatformUsers, inlinePlatformSpans, platformChargeback, recordPrivateCharge } from '../scripts/platform-chargebacks.mjs';
 import { pendingPlatformUsers, partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
 import { componentInventory } from '../scripts/shard-components.mjs';
 
@@ -39,6 +39,22 @@ test('a non-shard sole user maps to its reviewed owner or reports its excluded l
   expect(recordPrivateCharge(charges, 'fixture-only-user', { path: 'src/game/fixture.ts', name: 'unused', lines: 7 }, report)).toBe(false);
   expect(reports[1]).toContain('src/game/fixture.ts#unused: 7 lines owned by fixture-only-user');
   expect(charges.get('nalati-grasslands')).toEqual([arena]);
+});
+
+test('Nine pool spans charge actual source lines while instance packets remain shared', () => {
+  const reports: string[] = [], selected: string[] = [];
+  const charges = new Map<string, { path: string; name: string; lines: number }[]>([['nine-dragon-stack', []]]);
+  for (const path of ['src/game/shardfile/worldScenes.ts', 'src/format/worldScenes.ts']) {
+    const source = readFileSync(path, 'utf8'), lines = source.split('\n');
+    for (const span of inlinePlatformSpans(path, source, line => { reports.push(line); })) {
+      expect(platformChargeback(path, span.name)).toBe('C1');
+      recordPrivateCharge(charges, 'fixture-only-user', { path, name: span.name, lines: span.lines.length });
+      selected.push(...span.lines.map(line => lines[line] ?? ''));
+    }
+  }
+  expect(reports).toEqual([]);
+  expect(charges.get('nine-dragon-stack')?.reduce((sum, row) => sum + row.lines, 0)).toBe(14);
+  expect(selected.join('\n')).not.toMatch(/instanceMatrix|instanceAttributes|packet/u);
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {

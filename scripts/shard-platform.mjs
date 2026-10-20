@@ -16,7 +16,7 @@ import { outputRuntime, outputSections } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
-import { chargePlatformUsers, hasChargebackDeclarations, platformChargeback, recordPrivateCharge, retiredPlatformModule } from './platform-chargebacks.mjs';
+import { chargePlatformUsers, hasChargebackDeclarations, inlinePlatformSpans, platformChargeback, recordPrivateCharge, retiredPlatformModule } from './platform-chargebacks.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -857,6 +857,16 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
         if (!claimed.has(line) && code[line]) { claimed.add(line); lines++; }
       }
       if (lines > 0) recordPrivateCharge(privateExports, [...owners][0], { path, name: local === '\0default' ? 'default' : local, exported: exportedLocals.has(local), lines });
+    }
+  }
+  // The pool additions are branches of a shared world-scene declaration, not
+  // independent bindings. Charge their actual source lines only once.
+  if (moduleUsers.has('src/game/shardfile/worldScenes.ts')) for (const path of ['src/game/shardfile/worldScenes.ts', 'src/format/worldScenes.ts']) {
+    if (!masks.has(path)) masks.set(path, codeLineMask(text(path), info(path).comments));
+    const { code } = masks.get(path);
+    for (const span of inlinePlatformSpans(path, text(path))) {
+      const lines = span.lines.filter(line => code[line]).length;
+      if (lines > 0) recordPrivateCharge(privateExports, undefined, { path, name: span.name, exported: false, lines });
     }
   }
   const trustedRuntime = (slug, path) => {
