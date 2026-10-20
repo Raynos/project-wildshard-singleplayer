@@ -25,8 +25,7 @@ import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './state';
 import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
 import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
-import { prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
-import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' };
+import { prepareWeaponCatalogue } from '../weapons/loadout';
 import { installNalatiQuestView } from '../quest/kokpar';
 import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
@@ -132,7 +131,7 @@ export class NalatiPlugin extends ShardPlugin {
       toast: (text: string) => { hud.toast(text); }, feed: (text: string) => { hud.killFeed(text); }, pickupHum: (on: boolean) => { audio.pickupHum(on); },
       music: (event: 'death' | 'pickup' | 'victory' | 'phase' | 'intro') => { if (event === 'death' || event === 'pickup') music.sting(event); else if (event === 'victory') music.sting('chunk'); else music.combat(1); } };
     await part();
-    ctx.scope.run(() => rt.boss.bind(ctx,kit,weaponCatalogue.model('goldenBow'),bowVariant));
+    ctx.scope.run(() => rt.boss.bind({ ...common, persistence: persistence.bosses, context: ctx, bow: kit.bow, upgradeBow: (power) => { kit.upgradeBow(weapons, power); } }));
     await part();
     ctx.scope.run(() => rt.elites.bind({ persistence: persistence.elites, animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables: shell.interactables, params,
       toast: common.toast, feed: common.feed, record: (kind, variant) => { persistence.kill(kind, variant); persistence.feat(kind); }, pickupHum: common.pickupHum,
