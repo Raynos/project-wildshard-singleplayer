@@ -1,0 +1,37 @@
+{
+  "status": "complete source WIP; no likeness or runtime acceptance",
+  "files": {
+    "build_complete.py": {
+      "sha256": "a73fec30a0f270ac6d918872f54d218dec3171a3943be7aecfb573f1d4833328",
+      "bytes": 16810
+    },
+    "audit_complete.py": {
+      "sha256": "5490d7a149001e8eeb440baaa54e3738646660c2700bd5844656f29edcd2bd21",
+      "bytes": 9220
+    },
+    "native-source.json": {
+      "sha256": "ab2321dfb0f6ccd4231151e8970db7881d6a2941741bc2e92827c713b0d13198",
+      "bytes": 1460482
+    },
+    "metadata.json": {
+      "sha256": "203c5e7ff559e28564cc3c3c3824fb84156c07aa6eac484446421eb38ada6a9e",
+      "bytes": 8382
+    },
+    "payload.bin": {
+      "sha256": "c0f9c3af786cb9ed660594fc91945a863aea4a2f575cfb573b5b377817d2e9f1",
+      "bytes": 38648
+    },
+    "brine-pitcher-v1.glb": {
+      "sha256": "d3e5860cb4b5e1738dddbe3c0b1058dc3b3c7d5de16beca83d506f74ee46c22a",
+      "bytes": 856624
+    },
+    "construction.json": {
+      "sha256": "c505ffe8a155d349dfc9b65476966773ed63f10aced54a647f7a8d175e3899b0",
+      "bytes": 14745
+    },
+    "source-audit.json": {
+      "sha256": "9244799f2589a7b41898236028e0363a7647501bfbb93957465fae257feb2f00",
+      "bytes": 14081
+    }
+  }
+}

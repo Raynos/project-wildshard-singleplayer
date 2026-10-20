@@ -62,3 +62,15 @@ The closed-hood source is stored verbatim in a nested historical folder; its ori
 relative codec lookup assumes placement at the parent complete-character-next level.
 Its exact generated assets and ten actual views are retained under ignored raw
 `candidate/`, and independently checkpointed by the coordinator.
+
+## Actual capture inspection
+
+All ten final actual views were opened individually. Preserve the original framing: the
+hero clips a small left hood tip, and elevated-back clips the top of the central hood.
+The broader tilted lids also occlude mouths from top/back angles and show protruding
+fan-vein tips on the green crowns. These are explicit visual shortcomings, not hidden
+by the topology pass. No likeness score is assigned.
+
+A separately labeled supplemental hero pair uses orthographic scale5.5 for BOTH v3 and
+next, retaining every other camera/lighting setting. It is for complete silhouette
+visibility only and does not replace the unchanged nine-view/hero scoring protocol.

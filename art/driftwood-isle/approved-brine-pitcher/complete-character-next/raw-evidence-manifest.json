@@ -1,5 +1,20 @@
 {
-  "status": "Final geometry frozen; corrected capture pending shared render slot",
+  "status": "All original protocol captures and supplemental heroes complete",
+  "protocol": {
+    "orthographicScale": 5,
+    "resolution": [
+      600,
+      720
+    ],
+    "samples": 24,
+    "denoising": false
+  },
+  "supplemental": {
+    "orthographicScale": 5.5,
+    "bothSourcesSameAdjustment": true,
+    "replacesProtocol": false,
+    "wrapperSha256": "7b88f262fdabbefd96d4720a1e3c53b5c2a67a04d438e0a51d49c9b485ed3fe3"
+  },
   "rawFiles": {
     "tmp/pitcher-complete-next-20261020/candidate/back.png": {
       "sha256": "84ad71ea5a384af6641cae203b85eaccbdf2b2611fd7bf26ca978bc8c9b890e5",
@@ -133,13 +148,49 @@
       "sha256": "ad33b83a326473f15cfbc8e62ec1ba2b326cf218d1054efe38a6aa897306e749",
       "bytes": 863404
     },
+    "tmp/pitcher-complete-next-20261020/final/back.png": {
+      "sha256": "4b58fa499ac83693f78cc9405040cba545df23b2e664e6215be9040f5c0c079d",
+      "bytes": 643559
+    },
     "tmp/pitcher-complete-next-20261020/final/brine-pitcher-v1.glb": {
       "sha256": "465657cbdf055d1f1da097a4e4f9e910897942750d5f21cddc89e4f96c46e2c3",
       "bytes": 856628
     },
+    "tmp/pitcher-complete-next-20261020/final/cameras.json": {
+      "sha256": "e786801cab422130047a2801c8209f907ba44ef943815e5487a779d488f41157",
+      "bytes": 1173
+    },
     "tmp/pitcher-complete-next-20261020/final/construction.json": {
       "sha256": "430bf74708c2079f005b7237b1069549390931ce077f188c37340eac3a49ddde",
       "bytes": 14745
+    },
+    "tmp/pitcher-complete-next-20261020/final/elevated-back.png": {
+      "sha256": "3e4acd693f170ad25801564d136ad2b892dfbb351376f501dac5be0a595fe20d",
+      "bytes": 937298
+    },
+    "tmp/pitcher-complete-next-20261020/final/elevated-front.png": {
+      "sha256": "fa1e80c63753bb66624af9527e20bd63962f65f2acaa25884b484392e99e3ed7",
+      "bytes": 912900
+    },
+    "tmp/pitcher-complete-next-20261020/final/elevated-left.png": {
+      "sha256": "b79b2192867150a92a93cf7affed1a30c6dbc9f599478c73ef3aa0ca60519ccf",
+      "bytes": 896016
+    },
+    "tmp/pitcher-complete-next-20261020/final/elevated-right.png": {
+      "sha256": "f5a57e5f5bfb59bc657b19a8ae770942429e8415f0ad346ac0c0458952a27611",
+      "bytes": 883908
+    },
+    "tmp/pitcher-complete-next-20261020/final/front.png": {
+      "sha256": "078c5713d6f6b15626447772ad7f1bb5542d530e65c528c8a48ffabb08a5f76a",
+      "bytes": 678099
+    },
+    "tmp/pitcher-complete-next-20261020/final/hero.png": {
+      "sha256": "b4662291fd9d3eb9fe67f400c1549c9cc12be6ba5235759313c35489aa5d4b73",
+      "bytes": 901969
+    },
+    "tmp/pitcher-complete-next-20261020/final/left.png": {
+      "sha256": "26a0c460452dab242475ba56b8b830318bb67a0d8ae64fe5e84632fbb31ed893",
+      "bytes": 474619
     },
     "tmp/pitcher-complete-next-20261020/final/metadata.json": {
       "sha256": "911efbaf7bee02496d535480abec0de6e48e512418c092c0a3f2cce1553f85fa",
@@ -153,11 +204,74 @@
       "sha256": "75823a44e5376318e988ed5c89a504382fe81b2db91edc247952f249495277ec",
       "bytes": 38655
     },
+    "tmp/pitcher-complete-next-20261020/final/right.png": {
+      "sha256": "691d3e56ff88f94214875dbe83b20ef4a7394cc616a30c49103b4011a07d2a16",
+      "bytes": 478738
+    },
     "tmp/pitcher-complete-next-20261020/final/source-audit.json": {
       "sha256": "62467b06fbce203226181697ba6e3b248004bc5847a6c84308b8a1bc130639b6",
       "bytes": 14080
+    },
+    "tmp/pitcher-complete-next-20261020/final/top.png": {
+      "sha256": "eadded855ea036c45e298f7fc25f321b07142a4d18c55b6b5929d51bd6d9fcd3",
+      "bytes": 870155
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-final/brine-pitcher-v1.glb": {
+      "sha256": "465657cbdf055d1f1da097a4e4f9e910897942750d5f21cddc89e4f96c46e2c3",
+      "bytes": 856628
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-final/cameras.json": {
+      "sha256": "3335b706c8d60cf7b85c2de7b0ed2fd44715a1572f5a7cee2c8dddece9652df9",
+      "bytes": 129
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-final/construction.json": {
+      "sha256": "430bf74708c2079f005b7237b1069549390931ce077f188c37340eac3a49ddde",
+      "bytes": 14745
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-final/hero.png": {
+      "sha256": "a7d0fc0f6117c7556d3abdb6200df3aae4b6addb6d5b92c9da4e78d2d59bb7dd",
+      "bytes": 868649
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-final/metadata.json": {
+      "sha256": "911efbaf7bee02496d535480abec0de6e48e512418c092c0a3f2cce1553f85fa",
+      "bytes": 8382
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-final/native-source.json": {
+      "sha256": "5230fb109a4d89163e84fff6569a2a6bb1ea5fd402c79fa7be4a14085ac4fecf",
+      "bytes": 1460442
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-final/payload.bin": {
+      "sha256": "75823a44e5376318e988ed5c89a504382fe81b2db91edc247952f249495277ec",
+      "bytes": 38655
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-baseline/brine-pitcher-v1.glb": {
+      "sha256": "e9c6e859beb91f4889c8f4f29af330ba4094955badd167fea1dd0a44dcb02199",
+      "bytes": 770624
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-baseline/cameras.json": {
+      "sha256": "3335b706c8d60cf7b85c2de7b0ed2fd44715a1572f5a7cee2c8dddece9652df9",
+      "bytes": 129
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-baseline/construction.json": {
+      "sha256": "60712405dffd8ef8c199ef9c940ea7312efd9627892e10bc7e9e412ea7f04052",
+      "bytes": 12169
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-baseline/hero.png": {
+      "sha256": "a12fe199304e5d9fbe783dcff60094358e95280e8a84f4d8d1d3d6fa29aeda1b",
+      "bytes": 837365
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-baseline/metadata.json": {
+      "sha256": "2faa7fb3782856aa52fbf802af15eb069cca23bf13dbd642f9b506cdd3bf1d58",
+      "bytes": 8382
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-baseline/native-source.json": {
+      "sha256": "68f88cb3a5e5c008736ece6e72cfece99516210d3e241c20d698cc055a2aff94",
+      "bytes": 1365582
+    },
+    "tmp/pitcher-complete-next-20261020/supplemental-baseline/payload.bin": {
+      "sha256": "70cc84fae55360f410433857685713a2475a0974cf853740f1ccbde725e6957e",
+      "bytes": 34975
     }
   },
-  "unchangedCaptureSource": "art/driftwood-isle/approved-brine-pitcher/build_pitcher_v3.py",
   "baselineNativeMatchesPredecessor": true
 }
