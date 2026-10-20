@@ -18,7 +18,7 @@ TASK FOR CODEX: generate exactly one image with your built-in image_gen tool, th
   gtimeout 1500 codex exec -s workspace-write --skip-git-repo-check -C "$R" --add-dir "$HOME/.codex/generated_images" \
     -i "$art" -o "$T/$id.last.txt" "$prompt" > "$T/$id.log" 2>&1
   if [ -f "$T/$id.png" ]; then
-    magick "$T/$id.png" -resize '1024x1024>' -strip -quality 82 "$D/$id.jpg" && echo "done $id"
+    magick "$T/$id.png" -resize '1024x1024>' -strip -quality 78 "$D/$id.jpg" && echo "done $id"
   else echo "FAILED $id"; fi
 }
 n=0
