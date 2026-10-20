@@ -3065,21 +3065,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 `@wildshard/game/systems/items/lash` provides renderer-free `LashRuntime` for a declared weapon row. `lashSpec` combines its contact, damage and cooldown data with lash timing and move ids. The owner supplies aim, combat targets, world crack targets and the damage pipeline; `cool` and `advance` run on its existing clock. `snapshot` / `restore` retain the unroll and second-lash continuation. The browser keeps its cord and charge view while the headless owner supplies physical contact volumes. `lashVolumeHit` and `lashLane` share the contact geometry. `@wildshard/game/systems/items/lashHost` `installLashHost(host, { step, row, timing, moves, eye, commands, targets })` is a declared lash weapon in the renderer-free host (SF27): locked on, each lash leaves the player's eye toward the commanded creature's body or a world command's target spot (a target gone keeps the last aim); it takes the first body it meets (head balls and body capsules), else a chest in its lane, else a target row's spot (`LashTargetRow`: an interaction row's act, its spot and radius, and `crack: 'light'` — a crack's first lash — or `'heavy'` — the double crack's second, its first wraps); `cracked()` names the act it reached this tick, which the interaction step's crack rows read. Its continuation is `{ version: 2, …lash, target, world, dir }`. Signal's whip is the first (`data/headless.ts` SIGNAL_HEADLESS.lash, the well's crank and the waymark bowls as its targets).
 
-`@wildshard/game/plugin/weaponFamily` is the weapon families' hook surface (SF36). A family holds
-`hooks: WeaponHooks | null` (null, the default, is its row rule) and asks `hooks.damage({ phase, base, facts })` where it
-computes a number a shard may own; a null answer keeps the row rule, so a hook can never stop a weapon working. The
-mounted sword asks at its pass slash (phase `pass`, facts `speed` and `links`). `@wildshard/game/plugin/weaponFamily`
-validates a shard's declaration (`{ id, entity, module, parameters, weapons: [{ weapon, damage: { event, phases, facts,
-min, max } }] }`), checks the module's SHA-256 and admits it on its own `ScriptHost` under the unchanged ABI-v0 fuel,
-memory, event, query and failure ceilings; `WeaponHookLane.hooks(weaponId)` refuses an undeclared weapon. Each call is its
-own script tick with the inputs `[tick, 0, 1 (damage), entity, phase, weapon, base, ...facts]`, and must answer one
-declared event whose integer value lies in `[min, max]`; a trap, a fuel overrun, a stray effect or an out-of-bounds fact
-declines. `parameters` reach the module through the parameter query (410). The module's memory and globals return to their
-admitted snapshot after every call, so a hook is pure and carries no continuation. `installWeaponHooks`
-(`@wildshard/game/plugin/weaponFamily`) fetches and admits behind the default-off Developer "Shard directors
-(data)" row and clears the hooks with the level scope. Nalati's sabre is the first: `behaviour/weapons.as`,
-`behaviour/weapons.json` (rebuilt by `node scripts/bake/weapon-hooks.mjs` in a clean export), and
-`test/combat/mounted-sword-parity.test.ts` plays its twenty-second trace identically on the hook.
+
 
 `@wildshard/engine/ai/strikeRows` binds admitted `StrikeData` to the existing `StrikeRunner`. Scores are data (`constant` or `horizontal-distance` with a strict `above` boundary), evaluated without RNG, rendering or actor memory; `range: null` explicitly preserves an unlimited native contact range. `@wildshard/sdk/species` validates these rows and gameplay-only species data before native registration. Brain callbacks and view recipes stay with the trusted runtime.
 

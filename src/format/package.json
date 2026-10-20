@@ -124,7 +124,6 @@
     "./runtime": "./runtime.ts",
     "./clientState": "./clientState.ts",
     "./liftRider": "./liftRider.ts",
-    "./weaponHooks": "./weaponHooks.ts",
     "./speciesScripts": "./speciesScripts.ts",
     "./eliteScripts": "./eliteScripts.ts",
     "./skins": "./skins.ts",

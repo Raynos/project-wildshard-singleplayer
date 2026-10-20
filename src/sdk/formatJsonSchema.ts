@@ -92,7 +92,6 @@ import { MemoryMeasurementSchema, RuntimeCostSchema, RegionalSimCostSchema } fro
 import { RuntimeSchema } from '@wildshard/format/runtime';
 import { ClientCheckpointSchema, ItemCheckpointStatesSchema, LogicalClientCheckpointSchema } from '@wildshard/format/clientState';
 import { LiftRiderSchema } from '@wildshard/format/liftRider';
-import { WeaponHooksSchema } from '@wildshard/format/weaponHooks';
 import { ScriptSpeciesSchema } from '@wildshard/format/speciesScripts';
 import { EliteScriptSchema } from '@wildshard/format/eliteScripts';
 import { SkinLookParametersSchema, SkinClipParametersSchema, ShardSkinFileSchema } from '@wildshard/format/skins';
@@ -291,7 +290,6 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'clientState.ItemCheckpointStates': ItemCheckpointStatesSchema,
   'clientState.LogicalClientCheckpoint': LogicalClientCheckpointSchema,
   'liftRider.LiftRider': LiftRiderSchema,
-  'weaponHooks.WeaponHooks': WeaponHooksSchema,
   'speciesScripts.ScriptSpecies': ScriptSpeciesSchema,
   'eliteScripts.EliteScript': EliteScriptSchema,
   'skins.SkinLookParameters': SkinLookParametersSchema,
