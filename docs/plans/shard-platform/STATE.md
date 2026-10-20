@@ -4,7 +4,7 @@
 
 **G515 (6878eec2c0) at lane boundaries:** C8 audio + C7 (sp-x1, landed), C3 weather (sp-o1), then C6 with Jake's G516 picks (867606f6ba, 12 items); ruler crumbs landed (33a416fcef); blade-sampling rows (sp-o5); Nine Jian combo onto held-melee; rename engine/player/nalatiArms.ts; cloth-strip host moot (Flutter gone). **G517:** AS engine work is WASM-HOST's; lanes touch engine/script, compileScript, scriptAbi/scriptAdmission only for bug fixes.
 
-**Jake's 11:52 phone boot error (reply):** live boots Nalati on the phone tier (15:45); a cached PWA ran old JS against a fresh shard.json; sp-o2 adds a hash check + one reload. **Status 16:30:** Nalati grid entry fixed and proven in a real page (f432e05222 + 2ae1ef4098); live 2c91b8460 (CI green from 97915af6ca). Runtime TS 14:57: Nalati 1,409, Nine 1,701, DW 1,762, Pine 821.
+**Jake's 16:38/16:44 live reports (reply):** reproduced on 97915af6c, grid entry only (SHARD SELECT fine in 4 runs). (a) Pier fall: grid-entered Driftwood registers 955 colliders and none of the pier/boat scene pieces (scene placement used ctx.app.registry after an await); sp-x7 landing the registry fix, sp-x9 adds the grid regression + physics walk. (b) 'Weapons · HUD' park 44-72 s (80-120 s to playable): GridSession.create builds platform strips/road one frame per slice with no progress (grid/session.ts:328-334), likely worse since ff7d42241b; sp-x9 slices it on the build budget + gives it a progress step (feeds G537). Also seen: /api/telemetry 500 on every load; 404 nine near.json in the grid. Stale-PWA fix landed (ae06555bcf).
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
