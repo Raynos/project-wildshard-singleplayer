@@ -20,9 +20,10 @@
  */
 import { BackSide, Color, ConstantAlphaFactor, CustomBlending, Fog, Mesh, OneMinusConstantAlphaFactor, ShaderMaterial, SphereGeometry, Vector3, type Object3D, type Scene } from 'three';
 import { ROAD_SKY } from './frameModel';
+import { FAR_RING } from './farProxy';
 
-/** the dome's radius (m): past every far proxy, inside the camera's far plane (2600 m) */
-const RADIUS = 2300;
+/** the dome's radius (m): past every far proxy across the grid's sightline, inside the grid camera's far plane (SF88c) */
+const RADIUS = FAR_RING.domeRadius;
 /** the render order: after the page's sky pieces (−20 … −10), before every region's own sky (−9.9 … −9.1); `BASE_SKY_ORDER` */
 export const ROAD_SKY_ORDER = -9.95;
 /** below this weight the dome is not drawn */

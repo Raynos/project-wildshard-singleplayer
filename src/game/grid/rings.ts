@@ -1,7 +1,8 @@
 /**
  * Render streaming rings for the grid (SHARD-PLATFORM SF18b). From the camera's world position and velocity, every
  * fixed step picks the tiles the view wants: L0 (62.5 m) to 150 m plus a lookahead of speed × readiness time along the
- * heading, L1 (125 m) to 400 m, and one far proxy per shard in a bounded ring (at most `CONTENT_CAPS.farCount`).
+ * heading, L1 (125 m) to 400 m, and one far proxy per shard in a bounded ring (`CONTENT_CAPS.farCount` charges of
+ * `CONTENT_CAPS.far.resident` bytes each, spent on the proxies' own bytes, nearest first).
  *
  * - **Parent-first**: a tile is requested only once its parent is uploaded (far proxy → L1 → L0), and the request holds
  *   the parent's residency lease, so a parent is never evicted under a child. A shard without a far proxy has its 16 L1
@@ -52,8 +53,12 @@ export interface RingOptions {
   viewDistance?: number;
   /** far proxies prefetch this much beyond the view (default 435 m, SF18d's readiness distance at 30 m/s) */
   farPrefetch?: number;
-  /** the bounded far ring: at most this many far proxies are wanted (default `CONTENT_CAPS.farCount`, 9) */
+  /** the bounded far ring: this many far proxy charges of `CONTENT_CAPS.far.resident` each (default `CONTENT_CAPS.farCount`, 9:
+   *  14.4 MB), spent nearest first on each proxy's own catalogue bytes (SF88c: a 0.24 MB proxy is not charged as 1.6 MB) */
   farCount?: number;
+  /** far proxies are wanted for cells within this (m, to their square; default `viewDistance + farPrefetch`; SF88c: the
+   *  grid's whole sightline) */
+  farRadius?: number;
   /** uploaded tiles per level, wanted or cached, beyond which unwanted cache drops farthest-first (memory is bounded by count, not only distance) */
   residentCaps?: Partial<Record<RingLevel, number>>;
   uploadsPerFrame?: number; uploadBytesPerFrame?: number; maxInFlight?: number;
@@ -118,9 +123,11 @@ export class RenderRings<D> {
   constructor(cells: readonly RingCell[], allocator: ResidencyAllocator, catalogue: RingCatalogue, ports: RingPorts<D>, options: RingOptions = {}) {
     if (new Set(cells.map((c) => c.instance)).size !== cells.length || cells.some((c) => c.instance.length === 0 || !Number.isFinite(c.origin.x) || !Number.isFinite(c.origin.z))) throw new RangeError('Invalid ring cells');
     this.cells = [...cells].sort((a, b) => a.instance.localeCompare(b.instance)); this.allocator = allocator; this.catalogue = catalogue; this.ports = ports;
-    this.options = { readinessSeconds: 4, viewDistance: 1.5 * C.pitch, farPrefetch: 435, farCount: C.farCount, uploadsPerFrame: 2, uploadBytesPerFrame: 8 * 1_000_000, maxInFlight: 8, ...options,
-      residentCaps: { far: options.farCount ?? C.farCount, l1: C.l1Count, l0: C.l0Count, ...options.residentCaps } };
+    const viewDistance = options.viewDistance ?? 1.5 * C.pitch, farPrefetch = options.farPrefetch ?? 435;
+    this.options = { readinessSeconds: 4, viewDistance, farPrefetch, farRadius: viewDistance + farPrefetch, farCount: C.farCount, uploadsPerFrame: 2, uploadBytesPerFrame: 8 * 1_000_000, maxInFlight: 8, ...options,
+      residentCaps: { l1: C.l1Count, l0: C.l0Count, ...options.residentCaps } };
     if (!Number.isInteger(this.options.farCount) || this.options.farCount < 1) throw new RangeError('Invalid far ring count');
+    if (!(this.options.farRadius >= this.options.viewDistance)) throw new RangeError('Invalid far ring reach');
   }
 
   /** Cells currently in view (each must show its far proxy, or finer, everywhere). */
@@ -200,9 +207,17 @@ export class RenderRings<D> {
     const cellDistance = (cell: RingCell): number => rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'far', 0, 0);
     const ranked = this.cells.map((cell) => ({ cell, d: cellDistance(cell) })).sort((a, b) => a.d - b.d || a.cell.instance.localeCompare(b.cell.instance));
     this.visibleCells = ranked.filter((r) => r.d <= this.options.viewDistance).map((r) => r.cell);
-    for (const { cell, d } of ranked.filter((r) => r.d <= this.options.viewDistance + this.options.farPrefetch).slice(0, this.options.farCount)) {
-      if (this.catalogue(cell.instance, 'far', 0, 0) !== null) { add(this.tile(cell.instance, 'far', 0, 0), d); continue; }
-      // no far proxy: its 16 L1 tiles are its coarse level
+    // the far ring: nearest first while the proxies' own bytes fit its budget; a cell with no far proxy keeps the old
+    // reach and slot count for its 16 L1 tiles (its coarse level), which the near L1 refinement shares
+    let farBytes = 0, coarse = 0;
+    for (const { cell, d } of ranked) {
+      if (d > this.options.farRadius) break;
+      const bytes = this.catalogue(cell.instance, 'far', 0, 0);
+      if (bytes !== null) {
+        if (farBytes + bytes > this.farBudget()) continue;
+        farBytes += bytes; add(this.tile(cell.instance, 'far', 0, 0), d); continue;
+      }
+      if (d > this.options.viewDistance + this.options.farPrefetch || ++coarse > this.options.farCount) continue;
       for (let z = 0; z < 4; z++) for (let x = 0; x < 4; x++) add(this.tile(cell.instance, 'l1', x, z), rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'l1', x, z));
     }
     const l1: { tile: RingTile; d: number }[] = [], l0: { tile: RingTile; d: number }[] = [];
@@ -246,26 +261,31 @@ export class RenderRings<D> {
    * unwanted tile has no wanted descendant, and the children go first so a parent never leaves under one.
    */
   private release(want: ReadonlyMap<string, unknown>, camera: RingCamera): void {
-    const keep = { far: this.options.viewDistance + this.options.farPrefetch + C.pitch / 2, l1: L1_RADIUS + C.l1.size, l0: L0_RADIUS + C.l0.size } as const;
+    const keep = { far: this.options.farRadius + C.pitch / 2, l1: L1_RADIUS + C.l1.size, l0: L0_RADIUS + C.l0.size } as const;
     // each slot's distance once (a pure function of the camera), not twice per comparison
     const distances = new Map<Slot<D>, number>();
     for (const slot of this.slots.values()) distances.set(slot, this.distance(slot.tile, camera));
     const away = (slot: Slot<D>): number => distances.get(slot) ?? this.distance(slot.tile, camera);
     const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level] || away(b) - away(a) || a.tile.key.localeCompare(b.tile.key));
     const count = { far: 0, l1: 0, l0: 0 };
-    for (const slot of this.slots.values()) if (slot.state === 'uploaded') count[slot.tile.level]++;
+    let farBytes = 0;
+    for (const slot of this.slots.values()) if (slot.state === 'uploaded') { count[slot.tile.level]++; if (slot.tile.level === 'far') farBytes += slot.bytes; }
     const dropTree = (slot: Slot<D>): void => {
       for (const child of this.slots.values()) if (child.parent === slot.tile.key) dropTree(child);
       if (this.slots.get(slot.tile.key) !== slot) return;
-      if (slot.state === 'uploaded') count[slot.tile.level]--;
+      if (slot.state === 'uploaded') { count[slot.tile.level]--; if (slot.tile.level === 'far') farBytes -= slot.bytes; }
       this.drop(slot);
     };
     for (const slot of order) {
       if (want.has(slot.tile.key) || this.slots.get(slot.tile.key) !== slot) continue;
       const level = slot.tile.level, cap = this.options.residentCaps[level] ?? Infinity;
-      if (slot.state !== 'uploaded' ? !this.hasChildren(slot.tile) : away(slot) > keep[level] || count[level] > cap) dropTree(slot);
+      const over = count[level] > cap || (level === 'far' && farBytes > this.farBudget());
+      if (slot.state !== 'uploaded' ? !this.hasChildren(slot.tile) : away(slot) > keep[level] || over) dropTree(slot);
     }
   }
+
+  /** The far ring's byte budget: `farCount` charges of `CONTENT_CAPS.far.resident`. */
+  private farBudget(): number { return this.options.farCount * C.far.resident; }
 
   /** Whether the catalogue has the parent tile at all (a shard without a far proxy starts at L1). */
   private exists(child: RingTile): boolean {
@@ -318,6 +338,9 @@ export class RenderRings<D> {
       catch (error) { this.drop(slot); throw error; }
       slot.data = null; slot.state = 'uploaded';
       count++; bytes += slot.bytes; this.uploads++;
+      // a far proxy's own bytes are known once it has loaded (the catalogue charged a full slot before): charge those
+      const actual = slot.tile.level === 'far' ? this.catalogue(slot.tile.instance, 'far', 0, 0) : null;
+      if (actual !== null && actual < slot.bytes) { slot.lease.shrink(actual); slot.bytes = actual; }
       const parent = slot.parent; if (parent !== null) this.remask(parent);
     }
   }

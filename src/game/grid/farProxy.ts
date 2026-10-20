@@ -1,7 +1,7 @@
 /**
  * The far view (SHARD-PLATFORM SF23): one baked low-poly proxy per shard, drawn in the render rings' bounded far ring
  * (`RenderRings`, at most `CONTENT_CAPS.farCount` proxies, charged through the one `ResidencyAllocator` as category `far`).
- * The 3 × 3 grid's longest sightline is ≈ 2.4 km, so Part A has no impostors (R3-C20; S6b adds them for larger grids).
+ * The 5 × 5 grid's longest sightline is ≈ 3.9 km (`GRID_SIGHTLINE`); every cell keeps its proxy across it (SF88c).
  *
  * A proxy is the shard's baked terrain (its `terrain.bin` heights and splat) resampled onto 4 × 4 regions, one per L1
  * footprint (125 m), each a 12 × 12 quad lattice with skirts on all four sides, plus a water sheet where the ground dips
@@ -14,6 +14,7 @@
  * hide the cracks between regions keep the ground's colour. Node-safe; no three.js.
  */
 import { CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { GRID_RADIUS } from '@wildshard/format/contentBounds';
 
 /** Linear RGB, 0..1. */
 export type FarRgb = readonly [number, number, number];
@@ -88,13 +89,18 @@ export const FAR_SKIRT = 8;
  * Nalati's snow-ring berm) reads as a solid cliff down past road level from a neighbour, never as ground over a void.
  */
 export const FAR_EDGE_FLOOR = -20;
+/** SF88c (G526): the platform's corner-to-corner sightline across its outer road (the 5 × 5: ≈ 3.9 km). */
+export const GRID_SIGHTLINE = 2 * (GRID_RADIUS + 0.5) * CONTENT_CAPS.pitch * Math.SQRT2;
 /**
- * The far ring (SF23 owns its parameters; SF18b's `RenderRings` owns the scheduler). The ring keeps at most `count`
- * proxies, nearest first, for cells within `viewDistance + farPrefetch` of the camera (the rings' defaults: 1.5 pitches,
- * plus SF18d's 435 m readiness distance), so boot residency is the same for any grid larger than 3 × 3. `drawDistance`
- * is the camera far plane the proxies need: the 3 × 3 grid's corner-to-corner sightline (≈ 2.4 km) with margin.
+ * The far ring (SF23 owns its parameters; SF18b's `RenderRings` owns the scheduler). SF88c: the ring wants a proxy for
+ * every cell within `reach` (the grid's whole sightline, so no cell of the 5 × 5 pops in or out while you drive the
+ * outer road), nearest first while the proxies' own bytes fit `count` charges of `CONTENT_CAPS.far.resident` (14.4 MB;
+ * a baked proxy is ≈ 0.48–0.71 MB, so every cell fits). `viewDistance` (1.5 pitches) is still what the loader waits for.
+ * `drawDistance` is the grid camera's far plane and `domeRadius` the road sky's camera-kept dome: past the sightline
+ * (the far corner's rail) and inside the far plane, so nothing on the platform is clipped or drawn behind the sky.
  */
-export const FAR_RING = { count: CONTENT_CAPS.farCount, viewDistance: 1.5 * CONTENT_CAPS.pitch, farPrefetch: 435, drawDistance: 2600 } as const;
+export const FAR_RING = { count: CONTENT_CAPS.farCount, viewDistance: 1.5 * CONTENT_CAPS.pitch, farPrefetch: 435, reach: GRID_SIGHTLINE,
+  drawDistance: Math.ceil(GRID_SIGHTLINE / 100) * 100 + 400, domeRadius: Math.ceil(GRID_SIGHTLINE / 100) * 100 + 200 } as const;
 
 /**
  * G342 near round 5 (sp-o67's open row 1: the tall grey cliff where Nalati's mountains meet its cell edge): how a near

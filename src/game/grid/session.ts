@@ -47,7 +47,7 @@ import { PlatformRenderAdmissionError, PlatformRenderResidency } from './renderR
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
 import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
 import { bindCellCover, cellCoverPort } from './cellCover';
-import type { FarLookRuntime } from './farProxy';
+import { FAR_RING, type FarLookRuntime } from './farProxy';
 import { NearPlaceholders, type NearPlaceholderState } from './nearPlaceholderView';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
@@ -521,7 +521,7 @@ export class GridSession {
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them
     this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000
       : this.near.owns(id) ? null : tileCost(id, level, x, z)),
-      levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
+      levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach });
     if (host.renderer !== undefined) void this.admitTiles(host.renderer, roots, tiles.instances);
     host.scope.onDispose(() => {
       this.rings.dispose();

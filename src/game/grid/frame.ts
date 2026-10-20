@@ -48,6 +48,7 @@ import { CAMERA_FOV } from '@wildshard/engine/core/config';
 import type { LookCellPost } from '@wildshard/engine/render/look';
 import type { FarProxyView } from './farView';
 import { RoadSky, type RoadSkyPage } from './roadSky';
+import { FAR_RING } from './farProxy';
 import { bindFrameLook, type FrameLookContribution, type FramePost, type FrameSkyLayer, type RegionChain, type RegionPost } from './frameLook';
 import { NEUTRAL_GRADE, ROAD_SKY, dominantOwner, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
 
@@ -413,6 +414,9 @@ export class GridFrame {
     // the scene fog is the owner's air while the scene draws (the backdrop has written its own by then)
     const prev = host.scene.onBeforeRender.bind(host.scene);
     host.scene.onBeforeRender = (...args) => { this.beforeScene(); prev(...args); };
+    // SF88c: the grid's whole sightline inside the camera's far plane (a standalone boot's 2600 m covers one cell); back on dispose
+    const lens = host.camera instanceof PerspectiveCamera ? host.camera : null, standaloneFar = lens?.far ?? 0;
+    if (lens !== null) { lens.far = FAR_RING.drawDistance; lens.updateProjectionMatrix(); }
     // G165: the road's own sky, its opacity the road's weight
     const detachSky = this.roadSky.attach(host);
     this.stack(null, { weight: (w) => { this.roadSky.weight(w); } });
@@ -431,6 +435,7 @@ export class GridFrame {
       for (const passes of this.cellPasses.values()) for (const p of passes) p.dispose();
       this.cellPasses.clear();
       detachSky(); this.roadSky.dispose();
+      if (lens !== null) { lens.far = standaloneFar; lens.updateProjectionMatrix(); }
       for (const set of this.stacks.values()) for (const stack of set) stack.dispose?.();
       this.stacks.clear();
     });

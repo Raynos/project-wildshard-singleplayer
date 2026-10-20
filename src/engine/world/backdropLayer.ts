@@ -89,7 +89,7 @@ export const BASE_SKY_ORDER = -9.95;
 const OFF = 0.001;
 /**
  * G321: the least horizontal radius a layered backdrop's camera-kept dome (`SkyBackdrop.clouds`) is drawn at, as a share of
- * the camera's far plane (1950 m on the grid's 2600 m camera, inside the road dome's 2300 m): past every world thing it
+ * the camera's far plane (3300 m on the grid's 4400 m camera, inside the road dome's 4200 m): past every world thing it
  * must not cover, since the layer draws it depth-tested after the world
  */
 export const LAYER_DOME_REACH = 0.75;
