@@ -44,6 +44,7 @@ import { boundEntryWarmup } from '../render/entryWarmupBound';
 import { onSettingChange, setting } from '../ui/Settings';
 import { dropOutputDepth, halfLuminance, installMemorySaver, memorySaverOn, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
+import { installShadowMaterialOwnership } from '../render/shadowMaterialOwnership';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
 import { exploreEntryPending, recordExploreFrame, recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
 import { cullPlaced } from '../models/place';
@@ -405,20 +406,8 @@ export class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap; // r186 removed PCFSoft: it renders PCF anyway, and the type is in every program's cache key
     setAnisotropy(this.renderer);
-    // Three keeps its generated shadow materials in WebGLShadowMap's renderer cache, outside the scene graph.
-    const draw = this.renderer.renderBufferDirect.bind(this.renderer);
-    this.renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
-      if ((material instanceof THREE.MeshDepthMaterial || material instanceof THREE.MeshDistanceMaterial) &&
-        material !== object.customDepthMaterial && material !== object.customDistanceMaterial) {
-        const key = `renderer:shadow:${material.uuid}`;
-        if (!app.assets.has(key)) {
-          app.assets.register(key, material, { retain: true });
-          this.engineScope.listenOnceEmitter(material, 'dispose', () => { app.assets.forgetDisposed(key); });
-        }
-      }
-      draw(camera, scene, geometry, material, object, group);
-    };
     this.uploads.attach(this.renderer);
+    installShadowMaterialOwnership(this.renderer, app.assets, this.engineScope);
     installMemorySaver(this.renderer); // SF22d: Debug ▸ Memory saver (off: nothing installed)
     // shadow-only casters (shadowLayer.ts): the shadow pass tests layers against the view camera, so the view camera sees
     // SHADOW_LAYER while — and only while — the shadow maps draw. Before this the cabins' depth proxies (PLAY-PERF lever
