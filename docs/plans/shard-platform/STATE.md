@@ -8,7 +8,7 @@
 
 **Batches:** twentieth 9f77d61bd LIVE (16:54 Cancun). Twenty-first sealed 2ba606e3d, pushed. Twenty-second window open to 19:30 Cancun, no landing order. Mega-build (G506/G507) 17:18 to 18:50: −6,284 shard lines from commit bodies (Nalati −3,482, Nine −2,713, DW −67, Pine −22), ~4,000 lines/h against ~400 before. PUSHED 986c8cf957 (23:3x) after the day's blockers. Mirror ruler at 821f8845ae (22:40): Nalati 10,831, Nine 3,521. Against the mini-plans' bases (Nalati ~28,400, Nine ~21,100) Nine is ~17 % (under 20 %) and Nalati ~38 %; Nalati's remaining path is G470 AS for its single-shard law (~2,540) and H11 index boot (sp-x8).
 
-**Fleet idle 06:37 to 23:13 on 10-19** (coordinator session dropped); restarted on G512/G513.
+**10-20 02:05:** main fully pushed (5831e0baf9, CI lint partitioned); live still 2ba606e3d until CI + smoke pass (sp-x7). Raw runtime TS: Nalati ~9,270, Pine ~4,155, DW ~3,840, Nine ~3,150. Open visual bug: Nalati world fogged out on served builds (sp-o3). Mirror slots: Opus check2, Codex check3 (17883fd30b).
 
 **W3 milestone perf (quiet run at be5cdbf822, sp-x1):** desktop p95/max 16.7–16.8 ms on all six (pass; Nine's 1.1 s/frame descriptor scan fixed in c1c956faca). Simulator p95/max: Sky 35/40, Signal 34/36, Nalati 34/44 pass; DW 45/49, Pine 38/49, Nine 42/45 FAIL (gate 35). sp-x1 fixing, Nine GPU/post first.
 
