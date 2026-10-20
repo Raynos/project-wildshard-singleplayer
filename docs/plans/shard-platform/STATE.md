@@ -8,7 +8,7 @@
 
 **Batches:** twentieth 9f77d61bd LIVE (16:54 Cancun). Twenty-first sealed 2ba606e3d, pushed. Twenty-second window open to 19:30 Cancun, no landing order. Mega-build (G506/G507) 17:18 to 18:50: −6,284 shard lines from commit bodies (Nalati −3,482, Nine −2,713, DW −67, Pine −22), ~4,000 lines/h against ~400 before. PUSHED 986c8cf957 (23:3x) after the day's blockers. Mirror ruler at 821f8845ae (22:40): Nalati 10,831, Nine 3,521. Against the mini-plans' bases (Nalati ~28,400, Nine ~21,100) Nine is ~17 % (under 20 %) and Nalati ~38 %; Nalati's remaining path is G470 AS for its single-shard law (~2,540) and H11 index boot (sp-x8).
 
-**10-20 02:05:** PUSHED 47f71dd92e (08:20) after a one-cycle landing freeze; CI + smoke next; exact-SHA smoke retargeted after the uniform fix; live still 2ba606e3d until CI + smoke pass (sp-x7). Raw runtime TS (07:36): Nalati ~4,470, Pine ~1,620, DW ~2,145, Nine ~2,400. Nalati fog-out bug: sp-o3.
+**10-20 02:05:** PUSHED 47f71dd92e (08:20) after a one-cycle landing freeze; CI + smoke next; exact-SHA smoke retargeted after the uniform fix; live still 2ba606e3d until CI + smoke pass (sp-x7). Raw runtime TS (08:31): Nalati ~2,480, Pine ~1,240, DW ~2,010, Nine ~2,400. Nalati fog-out bug: sp-o3.
 
 **Simulator gate (sp-o1, quiet, 04:00):** uniform fix 35e10450d3 + 13 graph-runtime cuts: Pine 34, Nine 34 PASS; Driftwood grid cell 34 PASS, standalone 45 FAIL (a shadow cascade re-renders every ~0.5 s; sp-o1 on it). Desktop 16.8 everywhere.
 
