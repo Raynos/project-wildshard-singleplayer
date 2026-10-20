@@ -5,10 +5,6 @@ import { updateAuthoringMatrix } from './sceneTransform';
 
 /** A complete set of admitted platform traversal declarations. */
 export interface ModeRows { grapple?: GrappleMode[]; ride?: RideMode[]; traverse: (ZiplineMode | UpdraftMode | LadderMode)[] }
-/** A cable's admitted data, independent of any native view. */
-export type ZiplineRow = ZiplineMode;
-/** A board-only directional wind column's admitted data. */
-export type UpdraftRow = UpdraftMode;
 
 /** Data-only cable parameters; its endpoints come from ordinary authoring vectors. */
 export type ZiplineOptions = Partial<Pick<ZiplineMode, 'sag' | 'hang' | 'gravity' | 'drag' | 'maxSpeed'>>;

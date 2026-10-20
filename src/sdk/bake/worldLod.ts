@@ -2,8 +2,6 @@ import { MeshoptSimplifier } from 'meshoptimizer/simplifier';
 import type { WorldPrimitive } from './world';
 import type { NativeLatticeTile } from './nativeLattice';
 
-/** Pinned offline WASM simplification; source topology and every attribute stay owned by the author. */
-export const WORLD_LOD_TOOL = 'meshoptimizer@1.2.0';
 /** Actual triangle count and the tool's absolute appearance-error estimate, including float-position allowance. */
 export interface WorldLod { primitive: WorldPrimitive; errorMetres: number; sourceTriangles: number; triangles: number }
 /** Native render-only L1 result; actual counts can exceed the requested ratio because every border remains locked. */

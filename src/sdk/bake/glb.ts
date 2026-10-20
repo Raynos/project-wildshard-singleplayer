@@ -1,4 +1,4 @@
-import { BufferAttribute, Float16BufferAttribute, Box3, Matrix4, type Color, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3, Group, Mesh, type Material, type Object3D, BufferGeometry, Euler } from 'three';
+import { BufferAttribute, Float16BufferAttribute, Matrix4, type Color, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3, Group, Mesh, type Material, type Object3D, BufferGeometry, Euler } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { parseGlb } from '../assets';
 import { parsePrivateScene, compileTubeCurve, type TubeCurveProfile, type TubeCurveFrame, type PrivateScene } from '@wildshard/format/clientChannels';
@@ -251,5 +251,3 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
   let at = 28 + length; for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.length; }
   parseGlb(bytes); return bytes;
 }
-/** Collect world-space bounds without changing or flattening the generator's hierarchy. */
-export function propBounds(root: Object3D): Box3 { root.updateMatrixWorld(true); return new Box3().setFromObject(root); }

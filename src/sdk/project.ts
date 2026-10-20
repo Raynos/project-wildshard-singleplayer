@@ -89,11 +89,6 @@ async function projectModule(project: string, decisionLegacyLines?: number): Pro
   const mirrors = projectMirrors('mirrors' in loaded ? loaded['mirrors'] : sidecar !== undefined && 'mirrors' in sidecar ? sidecar['mirrors'] : undefined);
   return { shard, commons: 'commons' in loaded ? loaded['commons'] : undefined, baked, output, mirrors };
 }
-/** Compile a trusted local TypeScript config; only its serialisable default export enters the product. */
-export async function readProject(project: string, options: { decisionLegacyLines?: number } = {}): Promise<Shardfile> {
-  const loaded = await projectModule(project, options.decisionLegacyLines);
-  return mergeProjectBlobs(loaded.shard, loaded.baked, loaded.output.blobs, loaded.output.options.namedFiles).shard;
-}
 
 /** Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. */
 export async function readProjectAssets(project: string, map?: ProjectMap, manifestSource?: ProjectManifestSource, options: { decisionLegacyLines?: number } = {}): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {

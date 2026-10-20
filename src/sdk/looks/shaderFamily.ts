@@ -28,5 +28,3 @@ export const BLEND_KEEP_ALPHA: typeof PLATFORM_BLEND_KEEP_ALPHA = PLATFORM_BLEND
 export const BLEND_ADD_KEEP_ALPHA: typeof PLATFORM_BLEND_ADD_KEEP_ALPHA = PLATFORM_BLEND_ADD_KEEP_ALPHA;
 /** A shard's shader look family: its GLSL fragments and program rows; builds spliced sources and materials. */
 export const ShaderFamily: typeof PlatformShaderFamily = PlatformShaderFamily;
-/** A shader look family. */
-export type ShaderFamilyView<P extends string = string> = PlatformShaderFamily<P>;

@@ -3130,8 +3130,7 @@ context without reconstructing the adapter.
 and restore perform no decisions or RNG draws. Automatic `bind` / `policy` without that body ownership refuses.
 
 The guardian family also admits explicit `pattern: 'interior' | 'perch'` data through
-`@wildshard/format/brains` `GuardianPatternsSchema` / `parseGuardianPattern` (author helper
-`@wildshard/sdk/brains` `guardianPattern`). The species catalogue and full shardfile factory canonicalize it to the
+`@wildshard/format/brains` `GuardianPatternsSchema` / `parseGuardianPattern`. The species catalogue and full shardfile factory canonicalize it to the
 legacy native family before all-row preflight. The declared tuning, body adapter and ordered save-contract bytes stay
 exact; no-pattern `guardian` and old `perch-hunter` rows remain unchanged. This adds author data rather than a second
 body, RNG or presentation owner.
@@ -4769,7 +4768,7 @@ state. Socket-lift intents require a matching admitted edge and mover. The
 
 ### Native melee owner rows (W1-C6)
 
-A weapon's optional `native` attachment is admitted as a `NativeMeleeRow`
+A weapon's optional `native` attachment is admitted by `NativeMeleeRowSchema`
 (`@wildshard/format/weaponProfiles`). It selects fixed-step command and
 cooldown ordering, eye/pitch aiming, body selection and a bounded ordered
 continuation layout. Contact values remain in `item.contacts`; hooks remain

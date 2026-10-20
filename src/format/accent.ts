@@ -4,7 +4,7 @@
  * cyan `#8fe3ff`, which no shard may declare (nor anything in the cyan band, OKLCH hue ≈ 195–235°, which the palette
  * leaves empty). Inside a grid cell the HUD swaps to that shard's accent; on the road it is the cyan again.
  *
- * The shardfile and author manifest use this defining `AccentSchema` and `parseAccent`. Game maps the admitted
+ * The shardfile and author manifest use this defining `AccentSchema`. Game maps the admitted
  * palette hex into HUD variables without redefining the palette or its admission rules.
  */
 import * as v from 'valibot';
@@ -29,9 +29,3 @@ const isAccentId = (value: string): value is AccentId => Object.hasOwn(ACCENTS, 
 /** The shardfile field: a palette id; the road's cyan is refused by name or hex. */
 export const AccentSchema = v.pipe(v.string(), v.check((value) => !RESERVED.has(value.toLowerCase()), 'The HUD cyan is reserved for the road and the safe zone; pick one of the 20 accents'),
   v.custom<AccentId>((value) => typeof value === 'string' && isAccentId(value), 'Not one of the 20 HUD accents (art/hud/round-20-accent-palette/README.md)'));
-
-/** Validate a declared accent (throws with the schema's message), returning its id. */
-export function parseAccent(value: unknown): AccentId {
-  return v.parse(AccentSchema, value);
-}
-

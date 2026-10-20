@@ -158,8 +158,6 @@ export const NativeMeleeRowSchema = v.pipe(v.strictObject({
     && (field.min === undefined || field.max === undefined || field.min <= field.max))
   && (row.mode === 'timed' ? ['primary', 'time', 'heavy', 'landed', 'target', 'world', 'direction'] : ['primary', 'secondary'])
     .every(source => row.continuation.fields.some(field => field.source === source)), 'Unique actions and complete native melee continuation'));
-/** Authoring accepts literal readonly rows; the host validates before installing its step. */
-export type NativeMeleeRow = AuthoredContact<v.InferOutput<typeof NativeMeleeRowSchema>>;
 
 /** Admit only the supported native single-bolt or per-round hitscan law, before allocation or RNG. */
 export function parseNativeFirearmProfile(input: unknown, mode: 'bolt' | 'lever'): v.InferOutput<typeof FirearmWeaponProfileSchema> {

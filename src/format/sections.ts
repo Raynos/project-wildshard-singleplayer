@@ -124,7 +124,3 @@ export type PlatformSectionName = keyof PlatformSections;
 export type CustomSectionName = `custom/${string}`;
 /** Any section name an index may list. */
 export type SectionName = PlatformSectionName | CustomSectionName;
-/** When the loader fetches a section: with admission (`boot`), on entering the shard (`enter`), or as the player moves. */
-export type SectionLoad = 'boot' | 'enter' | 'stream';
-/** Who reads a section: the headless simulation, the client, or both. */
-export type SectionAudience = 'sim' | 'client' | 'both';

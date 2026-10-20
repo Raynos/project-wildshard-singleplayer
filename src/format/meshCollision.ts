@@ -1,5 +1,4 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
@@ -13,11 +12,6 @@ v.check(data => new Set(data.panels.map(row => row.id)).size === data.panels.len
 v.check(data => { const refs = [...data.tiles, ...data.panels].map(row => row.file); return new Set(refs).size === refs.length; }, 'independently charged mesh collision chunks'));
 /** Admitted metadata references immutable WMC1 bytes, never an authored physics closure. */
 export type ShardMeshCollision = v.InferOutput<typeof MeshCollisionSchema>;
-/** Parse JSON-only mesh bindings before allocating native geometry. */
-export function parseMeshCollision(input: unknown): ShardMeshCollision {
-  if (!isJsonData(input)) throw new Error('Mesh collision declarations are JSON data only');
-  return v.parse(MeshCollisionSchema, input);
-}
 /** Renderer-neutral references checked before immutable asset admission. */
 export interface CollisionSource {
   meshCollision: ShardMeshCollision | null;
