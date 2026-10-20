@@ -16,6 +16,15 @@ const writer = byteWriter(process.argv.includes('--check'), 'nalati-kurgan');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/kurganLayout.generated.json'), jsonBytes(layout));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/goldenKing.generated.json'), jsonBytes({
   profile: parseBossProfile(GOLDEN_KING_BOSS_PROFILE), encounter: KING_ENCOUNTER, reward: KING_REWARD, tuning: KING_TUNING,
+  page: { profile: GOLDEN_KING_BOSS_PROFILE, body: 'nalati.golden-king', identity: 'runtime',
+    add: { kind: 'balbal', variant: 'warrior', memory: { floorY: layout.DUNGEON.y, emergeT: 1.9,
+      minX: layout.DUNGEON.x - layout.CH + .9, maxX: layout.DUNGEON.x + layout.CH - .9,
+      minZ: layout.DUNGEON.z - layout.CH + .9, maxZ: layout.DUNGEON.z + layout.CH - .9 } },
+    damageTag: 'boss.golden-king', maxZ: layout.DUNGEON.z + layout.CH - 1.1,
+    reward: [layout.DUNGEON.x + layout.PEDESTAL.x, layout.DUNGEON.y + layout.PEDESTAL.h + .02, layout.DUNGEON.z + layout.PEDESTAL.z],
+    respawn: [layout.DUNGEON.x + layout.CHECKPOINT.x, layout.DUNGEON.y, layout.DUNGEON.z + layout.CHECKPOINT.z], yaw: layout.CHECKPOINT.yaw,
+    presentation: { reach: KING_TUNING.reach, ringMax: KING_TUNING.ringMax, beamRadius: KING_TUNING.beamRadius },
+    cuts: strikes.cuts, hazards: { sunburst: strikes.sunburst, sand: strikes.sand, beam: strikes.beam } },
 }));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/strikeProfiles.generated.json'), jsonBytes(strikes));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/goldenKingPose.generated.json'), jsonBytes(GOLDEN_KING_POSE));

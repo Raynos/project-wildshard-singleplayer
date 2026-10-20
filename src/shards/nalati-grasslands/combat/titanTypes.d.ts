@@ -32,6 +32,6 @@ export interface TitanGeometryData {
   arena: { scene: PrivateScene; geometry: Record<string,Geometry>; scorch: number[] };
 }
 export interface KurganData {
-  king: { profile: unknown; encounter: Encounter; reward: Reward; tuning: { reach: number; ringMax: number; beamRadius: number } };
+  king: { page: unknown; profile: unknown; encounter: Encounter; reward: Reward; tuning: { reach: number; ringMax: number; beamRadius: number } };
   programs: Programs; arenaRoom: unknown;
 }

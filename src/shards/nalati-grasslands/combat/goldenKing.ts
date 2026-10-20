@@ -1,26 +1,19 @@
-import type { FightHost, GoldenKingFight, KurganPlay, KurganCtx } from './bossBindings';
+import type { GoldenKingFight, KurganPlay, KurganCtx } from './bossBindings';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { weaponEffects } from '../boot/weaponEffects.generated';
 import { weaponSpecimen } from '../weapons/loadout';
-import { NALATI_STRIKES, sampleStrike, sampleArena } from './strikes';
-import { canReach } from '@wildshard/engine/ai/reach';
 import { app } from '@wildshard/engine/app/runtime';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
-import { encounterHit } from './damage';
 import * as THREE from 'three';
-import { bossFight, type PhasedBossFight } from '@wildshard/game/plugin/bossPhase';
-import { parseBossProfile } from '@wildshard/format/bossProfiles';
-import { GOLDEN_KING, bindGoldenKing, BALBAL as KURGAN_BALBAL } from '../species/rows';
+import { BALBAL as KURGAN_BALBAL } from '../species/rows';
 import layout from '../data/kurganLayout.generated.json' with { type: 'json' };
 import { installBossEncounter, type Boss } from '@wildshard/game/Boss';
 import { GoldenBowPower } from '../runtime/weapons/GoldenBow';
 import type { KurganData } from './titanTypes';
 import { bakedActorGeometry } from '../world/places';
-import { BossArenaRoom, arenaRoomViews, ArenaRoomSchema } from '@wildshard/game/boss/arenaRoom';
+import { BossArenaRoom, arenaRoomFight, ArenaRoomSchema } from '@wildshard/game/boss/arenaRoom';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import * as v from 'valibot';
@@ -30,104 +23,8 @@ let preparedKing: KurganData | null = null;
 function kingRows(): KurganData { if (preparedKing === null) throw new Error('King rows are not prepared'); return preparedKing; }
 export async function prepareKurganRows(product: Pick<ShardProduct, 'json'>): Promise<void> { preparedKing = await product.json<KurganData>('combat/titan-fight.json'); }
 
-const { DUNGEON, CH, PEDESTAL, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } = layout;
+const { DUNGEON, DROMOS_SPAWN, DROMOS_END } = layout;
 
-
-/** NALATI-MERGE F9: the chamber floor is level, and it is not the terrain. Animal.sampleTerrain tilts a body to the slope
- *  heightAt reads under it, and under the dungeon (140 m up, over the kurgan field's mound) that slope is steep: the King
- *  stood pitched ~44° and rolled ~26° through the whole fight (procedural and model alike). levelGround keeps him (and
- *  the balbal adds) upright; `sampleTerrain` re-zeroes the tilt spawn() already sampled. */
-function standOnFloor(a: Animal): void { a.levelGround = true; a.sampleTerrain(); }
-
-/** The arena strikes the fight's hazards resolve by name. */
-const KING_HAZARDS: Readonly<Record<string, StrikeSpec>> = { sunburst: NALATI_STRIKES.sunburst, sand: NALATI_STRIKES.sand, beam: NALATI_STRIKES.beam };
-
-/** What the Golden King fight is lent by the glue: the player, the animals, an optional body spawner, the player's hurt and the feed. */
-
-
-/** The Golden King fight: the platform phased fight on his row, its `BossScript`, his body and the glue's park / dev hooks. */
-
-
-/** The Golden King's fight in the kurgan chamber: his row on the platform phased boss fight, the chamber as its arena and views. */
-export function goldenKingFight(dungeon: BossArenaRoom, host: FightHost): GoldenKingFight {
-  const profile = parseBossProfile(kingRows().king.profile);
-  if (profile.pattern !== 'arena') throw new Error('The Golden King requires its declared arena pattern');
-  /** out of the fight for good: hidden, out of the animals list (the minimap, the harvest prompt, the aim assist) */
-  const retire = (a: Animal): void => {
-    if (dungeon.actor === a) dungeon.actor = null;
-    a.hidden = true; a.mesh.visible = false;
-    a.position.y = -9999;
-    const list = host.animals.animals, i = list.indexOf(a);
-    if (i !== -1) list.splice(i, 1);
-    a.mesh.removeFromParent();
-  };
-  const phased: PhasedBossFight<Animal> = bossFight<Animal>(profile, {
-    arena: {
-      floorAt: dungeon.floorHeightAt,
-      pile: (x, z, r, dh, cap) => { dungeon.addSand(x, z, r, dh, cap); },
-      clear: () => { dungeon.clearSand(); },
-      drain: (dt, rate) => { dungeon.drainSand(dt, rate); },
-      inArena: (p) => dungeon.inChamber(p) && p.z - DUNGEON.z < CH - 1.1,
-      seal: (on) => { dungeon.setSealed(on); },
-    },
-    body: {
-      spawn: (x, z) => {
-        const k = host.spawnKing === undefined ? host.animals.spawn(GOLDEN_KING, x, z, 0, 'king') : host.spawnKing();
-        if (k === null) return null;
-        dungeon.actor = k;
-        k.herd = -1;
-        standOnFloor(k);
-        return k;
-      },
-      retire,
-      bind: (a, brain) => { bindGoldenKing(a, { think: brain.think, act: brain.act, damageMul: brain.damageMul }); },
-      ready: (k, floorY) => { k.yOffset = floorY - k.position.y; k.mesh.visible = true; },
-    },
-    spawnAdd: (_i, x, z, yaw) => {
-      const a = host.animals.spawn(KURGAN_BALBAL, x, z, yaw, 'warrior');
-      a.herd = -1;
-      standOnFloor(a);
-      const m = a.mem;
-      m['floorY'] = DUNGEON.y; m['emergeT'] = 1.9;
-      m['minX'] = DUNGEON.x - CH + 0.9; m['maxX'] = DUNGEON.x + CH - 0.9; m['minZ'] = DUNGEON.z - CH + 0.9; m['maxZ'] = DUNGEON.z + CH - 0.9;
-      a.yOffset = DUNGEON.y - a.position.y;
-      return a;
-    },
-    player: { get position() { return host.player.position; }, dash: (x, z, seconds) => { host.player.dash(x, z, seconds); } },
-    hurt: (damage, throughWalls) => { host.hurt(damage, throughWalls); },
-    cut: (i, a, onHit) => {
-      const spec = NALATI_STRIKES.cuts[i] ?? NALATI_STRIKES.cuts[0], pl = host.player.position;
-      return spec !== undefined && sampleStrike(spec, a, pl, onHit, { reach: () => canReach(a, pl, app.physics) });
-    },
-    hazard: (strike, from, onHit, opts) => {
-      const spec = KING_HAZARDS[strike];
-      if (spec === undefined) throw new Error(`Golden King: no arena strike ${strike}`);
-      sampleArena(spec, from, host.player.position, onHit, app.physics, opts);
-    },
-    rng: () => app.rng.stream('ai').next(),
-    feed: (line) => { host.feed(line); },
-    views: arenaRoomViews(dungeon, kingRows().king.tuning),
-    rewardPoint: () => dungeon.world(PEDESTAL.x, PEDESTAL.h + 0.02, PEDESTAL.z),
-    respawnPoint: () => ({ pos: dungeon.world(CHECKPOINT.x, 0, CHECKPOINT.z), yaw: CHECKPOINT.yaw }),
-  });
-  const king = (): Animal | null => phased.body();
-  return {
-    phased, script: phased.script, king,
-    setPresent: (on) => {
-      const list = host.animals.animals;
-      const mine: Animal[] = [];
-      const k = king();
-      if (k) mine.push(k);
-      for (const a of phased.adds()) mine.push(a);
-      for (const a of mine) {
-        const i = list.indexOf(a);
-        if (on && i === -1 && !a.hidden) { list.push(a); host.animals.group.add(a.mesh); }
-        if (!on && i !== -1) { list.splice(i, 1); a.mesh.removeFromParent(); }
-      }
-    },
-    devKill: () => { phased.kill(); },
-  };
-}
 
 // ─────────────────────────────── the glue ───────────────────────────────
 
@@ -201,12 +98,7 @@ export class KurganBoss {
     try { play.animals.factory.model(KURGAN_BALBAL, 'warrior'); } catch (e) { console.warn('[kurgan] the balbal adds did not build', e); }
     this.golden = new GoldenBowPower({ multipliers: weaponEffects.multipliers, scene: game.scene, sky, camera: game.camera, raycast: (o, d, max) => play.animals.raycast(o, d, max) });
     const encounter = installBossEncounter({ definition: kingRows().king.encounter, reward: kingRows().king.reward }, () => {
-      this.fight = goldenKingFight(this.dungeon, {
-        player, animals: play.animals,
-        ...(play.spawnKing === undefined ? {} : { spawnKing: play.spawnKing }),
-        hurt: (dmg, throughWalls) => { const k = this.fight?.king() ?? null; if (k) encounterHit(k, dmg, 'boss.golden-king', player.position, throughWalls); },
-        feed: play.feed,
-      });
+      this.fight = arenaRoomFight(play.context, this.dungeon, kingRows().king.page);
       return this.fight.script;
     }, {
       game, player, spareLight: this.spareLight, scope: game.levelScope, chunkId: 'nalati-grasslands', interactables: play.interactables,

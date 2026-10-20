@@ -1,4 +1,8 @@
 // @vitest-environment happy-dom
+import { app } from '../src/engine/app/runtime';
+import type { ShardContext } from '../src/game/plugin/context';
+import { arenaRoomFight } from '../src/game/boss/arenaRoom';
+import { NALATI_RUNTIME_SPAWNS } from '../src/shards/nalati-grasslands/generators/spawns';
 import { expect, test } from 'vitest';
 import { MeshBasicMaterial, Vector3 } from 'three';
 import { BossBrain, type BossScript, type BossDefinition } from '../src/engine/ai/BossBrain';
@@ -7,7 +11,7 @@ import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { StormTitanFight, prepareStormTitan } from '../src/shards/nalati-grasslands/combat/stormTitan';
-import { goldenKingFight, prepareKurganRows } from '../src/shards/nalati-grasslands/combat/goldenKing';
+import { prepareKurganRows } from '../src/shards/nalati-grasslands/combat/goldenKing';
 import { bossArena } from './fake/bossArena';
 import type { TitanRiders } from '../src/shards/nalati-grasslands/combat/bossBindings';
 import type { NalatiWeather } from '../src/shards/nalati-grasslands/world/installWeather';
@@ -43,7 +47,9 @@ test('Golden King runs all phases, clears the real adds and reaches its single r
   Reflect.set(f.player, 'dash', () => undefined);
   f.player.position.set(layout.DUNGEON.x, layout.DUNGEON.y, layout.DUNGEON.z + 5);
   await prepareKurganRows({ json: <T>() => Promise.resolve(structuredClone<unknown>({ king, programs }) as T) });
-  const fight = goldenKingFight(dungeon, { player: f.player, animals: f.manager, hurt: () => undefined, feed: () => undefined });
+  const context = legacyDouble<ShardContext>({ app, game: { runtime: { world: { player: f.player }, play: { animals: f.manager, hud: { killFeed: () => undefined } } } },
+    product: { shardfile: { runtime: { binds: ['spawns'], spawns: NALATI_RUNTIME_SPAWNS } } } });
+  const fight = arenaRoomFight(context, dungeon, king.page);
   const e = encounter(king.encounter, fight.script, f.player.position), direction = new Vector3(0, 0, -1);
   try {
     e.brain.arm();
@@ -51,12 +57,12 @@ test('Golden King runs all phases, clears the real adds and reaches its single r
       const dt = 1 / 30, t = frame * dt; e.step(dt, t); f.manager.update(dt, t, f.player.position);
       if (frame % 15 === 0 && e.brain.state === 'fight') {
         for (const add of fight.phased.adds()) if (add.alive) add.applyDamage(1000, add.position, direction);
-        const body = fight.king(); if (body !== null && !fight.script.shielded) body.applyDamage(90, body.headWorld(new Vector3()), direction);
+        const body = fight.body(); if (body !== null && !fight.script.shielded) body.applyDamage(90, body.headWorld(new Vector3()), direction);
       }
     }
     expect(e.brain.state).toBe('victory'); expect(e.trace).toEqual(['intro:0','fight:0','beat:1','fight:1','beat:2','fight:2','victory:2']);
     expect(e.saved).toEqual({ defeated: true, rewardTaken: false, kills: 1 }); expect(e.rewards).toBe(1);
-    expect(fight.king()?.alive).toBe(false); expect(fight.phased.adds().filter(a => a.alive)).toHaveLength(0);
+    expect(fight.body()?.alive).toBe(false); expect(fight.phased.adds().filter(a => a.alive)).toHaveLength(0);
   } finally { restore(); }
 });
 

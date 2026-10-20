@@ -36,7 +36,6 @@ import { horsePlayground } from '../playground/registration';
 import { bindAdventurePersistence, readAdventurePersistence, type AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
 import { horseNamesSave, tulparSave } from '../ride/saves';
 import { nalatiSkinsSave } from '../weapons/saves';
-import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { hasLentLook, lendLooks } from '@wildshard/sdk/looks/lentLooks';
 
@@ -150,7 +149,6 @@ export class NalatiPlugin extends ShardPlugin {
     const part = async (): Promise<void> => { await macrotask(); if (ctx.scope.disposed) throw new Error('Nalati was unloaded during play installation'); };
     const own = enteredOwner(), owned = <T>(fn: () => T): T => (own === null ? fn() : withOwner(own, fn));
     await part(); // not in the page's play-stage task
-    const king = owned(() => bindRuntimeBoss(ctx, ctx.product.shardfile, 'nalati.golden-king', undefined, { identity: 'runtime' }));
     const wildlife = rt.wildlife;
     if (wildlife === null) throw new Error('Nalati creatures have not been built');
     const hurt = (tag: DamageRequest['sourceTags'][number], amount: number, cause: DamageRequest['cause'], toast?: string): void => {
@@ -173,7 +171,7 @@ export class NalatiPlugin extends ShardPlugin {
       toast: (text: string) => { hud.toast(text); }, feed: (text: string) => { hud.killFeed(text); }, pickupHum: (on: boolean) => { audio.pickupHum(on); },
       music: (event: 'death' | 'pickup' | 'victory' | 'phase' | 'intro') => { if (event === 'death' || event === 'pickup') music.sting(event); else if (event === 'victory') music.sting('chunk'); else music.combat(1); } };
     await part();
-    ctx.scope.run(() => rt.boss.bind({ ...common, persistence: persistence.bosses, spawnKing: () => king.spawn(), bow: kit.bow, upgradeBow: (power) => { kit.upgradeBow(weapons, power); } }));
+    ctx.scope.run(() => rt.boss.bind({ ...common, persistence: persistence.bosses, context: ctx, bow: kit.bow, upgradeBow: (power) => { kit.upgradeBow(weapons, power); } }));
     await part();
     ctx.scope.run(() => rt.elites.bind({ persistence: persistence.elites, animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables: shell.interactables, params,
       toast: common.toast, feed: common.feed, record: (kind, variant) => { persistence.kill(kind, variant); persistence.feat(kind); }, pickupHum: common.pickupHum,

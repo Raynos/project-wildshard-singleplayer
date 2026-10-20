@@ -1,3 +1,4 @@
+import type { ShardContext } from '@wildshard/game/plugin/context';
 import type * as THREE from 'three';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -66,19 +67,10 @@ export interface Chain { tell: GroundTell; x: number; z: number; t: number; on: 
 
 export interface StormRider { a: Animal; mode: 'circle' | 'aim' | 'charge' | 'open'; t: number; th: number; lane: GroundTell; x0: number; z0: number; x1: number; z1: number; hit: boolean }
 
-export interface FightHost {
-  player: Player;
-  animals: AnimalManager;
-  spawnKing?: () => Animal | null;
-  /** the player takes `dmg` from the King / a hazard (routed to the shared damage pipeline) */
-  hurt: (dmg: number, throughWalls?: boolean) => void;
-  feed: (text: string) => void;
-}
-
 export interface GoldenKingFight {
   readonly phased: PhasedBossFight<Animal>;
   readonly script: BossScript;
-  readonly king: () => Animal | null;
+  readonly body: () => Animal | null;
   /** park / unpark every fight animal (the player left / came back): out of the lists the HUD and the minimap read */
   readonly setPresent: (on: boolean) => void;
   /** dev: kill him now (screenshots of the victory) */
@@ -86,9 +78,9 @@ export interface GoldenKingFight {
 }
 
 export interface KurganPlay {
+  context: ShardContext;
   persistence?: BossPersistence;
   animals: AnimalManager;
-  spawnKing?: () => Animal | null;
   setWeaponsEnabled: (on: boolean) => void;
   bow: Bow | null;
   upgradeBow: (power: GoldenBowPower) => void;

@@ -1,3 +1,4 @@
+import { arenaRoomBrain } from '@wildshard/game/boss/arenaRoom';
 import { parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import speciesRows from './speciesRows.json' with { type: 'json' };
 import type { SpeciesRow, SpeciesVariant } from '@wildshard/engine/ai/species';
@@ -130,10 +131,10 @@ export const GOLDENKING_SPECIES: SpeciesDef = {
   think: (a, c) => {
     const m = a.mem;
     if (m['init'] !== 1) { m['init'] = 1; m['pose'] ??= 0; m['rise'] ??= 0; m['cape'] ??= 1; m['crown'] ??= 1; m['floorY'] ??= c.heightAt(a.position.x, a.position.z); }
-    kingBrains.get(a)?.think(a, c);
+    (kingBrains.get(a) ?? arenaRoomBrain(a))?.think(a, c);
   },
-  act: (a, c) => { kingBrains.get(a)?.act(a, c); },
-  damageMul: (a, point, direction) => kingBrains.get(a)?.damageMul(a, point, direction) ?? 1,
+  act: (a, c) => { (kingBrains.get(a) ?? arenaRoomBrain(a))?.act(a, c); },
+  damageMul: (a, point, direction) => (kingBrains.get(a) ?? arenaRoomBrain(a))?.damageMul(a, point, direction) ?? 1,
 };
 
 
