@@ -1,4 +1,5 @@
 import type { ScriptContract } from '@wildshard/format/scriptContract';
+import type { JsonSchema } from '@valibot/to-json-schema';
 import { assetCost, type AssetCost } from '@wildshard/format/product';
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
@@ -11,7 +12,7 @@ import { compressGlb } from './bake/glbCompression';
 /** Named assets, including lazily read JSON bakes, occupy kind-specific content-addressed paths. */
 export type NamedBlobKind = OutputFile['kind'];
 /** Conservative owner costs may exceed measured minima; undersized claims refuse before emission. */
-export interface BlobOptions extends Partial<AssetCost> { readonly script?: ScriptContract; readonly critical?: boolean; readonly dependencies?: readonly string[]; readonly jsonSchema?: Readonly<Record<string, unknown>> }
+export interface BlobOptions extends Partial<AssetCost> { readonly script?: ScriptContract; readonly critical?: boolean; readonly dependencies?: readonly string[]; readonly jsonSchema?: JsonSchema | Readonly<Record<string, unknown>> }
 /** Build-only meshopt candidate, kept only if gzip-9 does not grow; compressed input needs no option. */
 export interface BlobSourceOptions extends BlobOptions { readonly meshopt?: boolean }
 /** One owned byte array and the exact index entry that names it. */
@@ -63,7 +64,7 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
   if (dependencies.some(hash => !reference.test(hash)) || new Set(dependencies).size !== dependencies.length || (options.critical !== undefined && typeof options.critical !== 'boolean')) throw new Error('Invalid blob dependencies or admission policy');
   const hash = hashImmutableBytes(bytes);
   const file: OutputFile = { name, path: `blobs/${kind}/${hash}.${suffix}`, kind, hash, compressed: bytes.length, ...costs, critical: options.critical ?? false, dependencies,
-    ...(options.jsonSchema === undefined ? {} : { jsonSchema: structuredClone(options.jsonSchema) }) };
+    ...(options.jsonSchema === undefined ? {} : { jsonSchema: structuredClone(Object.fromEntries(Object.entries(options.jsonSchema))) }) };
   outputBlobPath(file);
   return { file, bytes, ...(options.script === undefined ? {} : { script: { ...options.script } }) };
 }

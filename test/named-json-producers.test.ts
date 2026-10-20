@@ -10,9 +10,10 @@ test('Pine scene producers attach defining schemas and refuse corrupted nested r
   for (const blob of SCENE_BLOBS) expect(blob.file.jsonSchema, blob.file.name).toBeDefined();
   const scene = SCENE_BLOBS.find(blob => blob.file.name?.startsWith('scenes/placements/') === true);
   if (scene?.file.jsonSchema === undefined) throw new Error('Missing authored Pine placement');
+  const jsonSchema = scene.file.jsonSchema;
   const corrupt: unknown = { ...JSON.parse(new TextDecoder().decode(scene.bytes)), poses: [{ x: 'bad', y: 0, z: 0 }] };
-  expect(() => nameBlob('bad/placement.json', 'json', new TextEncoder().encode(JSON.stringify(corrupt)), { jsonSchema: scene.file.jsonSchema })).toThrow('refuses its schema');
-  expect(() => validateCustomSchema(scene.file.jsonSchema, corrupt)).toThrow('refuses its schema');
+  expect(() => nameBlob('bad/placement.json', 'json', new TextEncoder().encode(JSON.stringify(corrupt)), { jsonSchema })).toThrow('refuses its schema');
+  expect(() => validateCustomSchema(jsonSchema, corrupt)).toThrow('refuses its schema');
   expect(() => validateCustomSchema({ ...scene.file.jsonSchema, type: 'made-up' }, {})).toThrow();
 });
 
