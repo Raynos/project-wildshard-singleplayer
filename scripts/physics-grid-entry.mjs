@@ -11,7 +11,10 @@ export async function enterPhysicsGrid(page, base, tier, timeout) {
 /** Serialized into the browser: count native collider ownership, not loading-shell telemetry. */
 export function physicsEntryInventory() {
   const api = window.__wildshard, world = api.world, app = world.game.app, physics = app.physics;
-  const registered = Object.fromEntries(app.registry.pieces.filter(piece => (piece.colliders?.length ?? 0) > 0).map(piece => [piece.id, piece.colliders.length]));
+  // The page's closed practice room remains on neutral page physics in the grid.
+  const pieces = app.registry.pieces.filter(piece => (piece.colliders?.length ?? 0) > 0 && !piece.file.startsWith('src/engine/practice/'));
+  const registered = Object.fromEntries(pieces.map(piece => [piece.id, piece.colliders.length]));
+  const files = Object.fromEntries(pieces.map(piece => [piece.id, piece.file]));
   const native = {};
   physics.world.forEachCollider(collider => {
     const owner = physics.colliderTag(collider)?.owner;
@@ -20,7 +23,7 @@ export function physicsEntryInventory() {
   const ray = new physics.R.Ray({ x: 0, y: 5, z: -194 }, { x: 0, y: -1, z: 0 });
   const hit = physics.world.castRay(ray, 15, true, undefined, (2 << 16) | 1);
   const owner = hit === null ? null : physics.colliderTag(hit.collider)?.owner;
-  return { registered, native, total: physics.world.colliders.len(),
+  return { registered, files, native, total: physics.world.colliders.len(),
     pier: hit === null ? null : { y: 5 - hit.timeOfImpact, owner: owner !== null && typeof owner === 'object' && typeof owner.id === 'string' ? owner.id : null },
     grid: api.shard.grid?.state().live?.live?.current ?? null };
 }

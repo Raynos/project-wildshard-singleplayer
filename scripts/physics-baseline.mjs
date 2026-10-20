@@ -188,7 +188,7 @@ async function openGame(shard, q, { cpu, video }) {
     if (grid.grid !== shard) throw new Error(`Grid starts in ${grid.grid}, expected ${shard}`);
     const failures = physicsEntryFailures(standalone, grid);
     result.entry = { standalone, grid, failures };
-    if (failures.length > 0) { await ctx.close(); throw new Error(failures.join('\n')); }
+    if (failures.length > 0) { console.error(JSON.stringify(result.entry)); await ctx.close(); throw new Error(failures.join('\n')); }
   }
   await page.waitForTimeout(SETTLE_MS);
   try { result.activation[shard] = await activationWitness(page, shard); } catch (error) { await ctx.close(); throw error; }

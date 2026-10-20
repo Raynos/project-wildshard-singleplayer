@@ -2,6 +2,7 @@ import type { Page } from 'playwright';
 
 export interface EntryPhysicsInventory {
   registered: Record<string, number>;
+  files?: Record<string, string>;
   native: Record<string, number>;
   total: number;
   pier: { y: number; owner: string | null } | null;
