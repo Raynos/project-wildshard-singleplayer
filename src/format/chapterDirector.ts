@@ -1,7 +1,25 @@
 import * as v from 'valibot';
+import { WakeEncounterSchema } from './bossEncounter';
+import { QuestCommitEffectSchema } from './questSteps';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
+/** A chapter's wake encounter binds its real spawn and chapter by identity.
+ * Cues select lifecycle operations and ordered quest effects only. */
+export const ChapterWakeSchema = v.strictObject({ version: v.literal(1), quest: name, spawn: name, director: name,
+  encounter: WakeEncounterSchema,
+  cues: v.pipe(v.array(v.strictObject({ id: name, operation: v.picklist(['restore', 'wake', 'effects']),
+    effects: v.pipe(v.array(QuestCommitEffectSchema), v.maxLength(32)), combat: v.exactOptional(v.pipe(finite, v.minValue(0), v.maxValue(1))) })), v.maxLength(64)),
+  systems: v.strictObject({ encounter: name, director: name, before: v.pipe(v.array(name), v.maxLength(64)) }),
+});
+export type ChapterWakeRows = v.InferOutput<typeof ChapterWakeSchema>;
+/** Refuse aliases before any body, chapter subscription or UI is installed. */
+export function parseChapterWake(input: unknown): ChapterWakeRows {
+  const rows = v.parse(ChapterWakeSchema, input);
+  if (new Set(rows.cues.map(row => row.id)).size !== rows.cues.length || rows.systems.encounter === rows.systems.director)
+    throw new Error('Duplicate chapter wake identity');
+  return rows;
+}
 const caption = v.strictObject({ kicker: name, title: name, subtitle: v.pipe(v.string(), v.maxLength(1024)) });
 const observation = v.union([finite, v.strictObject({ flag: name }), v.strictObject({ read: v.picklist([
   'day-present', 'night', 'player-x', 'player-z', 'reward-x', 'reward-z',

@@ -8,7 +8,7 @@ import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { PageLifeSchema } from '@wildshard/format/pageLife';
 import { BuildingLifeRowsSchema, BuildingLifeLookSchema } from '@wildshard/format/buildings';
 import { FigureCatalogueSchema } from '@wildshard/format/figures';
-import { ChapterDirectorSchema } from '@wildshard/format/chapterDirector';
+import { ChapterDirectorSchema, ChapterWakeSchema } from '@wildshard/format/chapterDirector';
 import { DirectorSchema } from '@wildshard/format/director';
 import { DirectorStagesSchema } from '@wildshard/format/directorStages';
 import { QuestStepRowsSchema, QuestHintRowsSchema, QuestServiceActionsSchema } from '@wildshard/format/questSteps';
@@ -30,6 +30,7 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'world/building-life.json': v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: number }),
   'models/fixed-geometry.json': FixedGeometryGroupsSchema,
   'quests/chapter-director.json': ChapterDirectorSchema,
+  'quests/wake-boss.json': ChapterWakeSchema,
   'directors/main.json': v.strictObject({ declaration: DirectorSchema, module: v.strictObject({ module: text, bytes: text }), stages: DirectorStagesSchema, bindings: DirectorBindingsSchema, seed: number }),
   'poses/monkey.json': v.strictObject({ clips: v.tuple([NumericPoseSchema, NumericPoseSchema]), program: ReturnProgramSchema }),
   'quests/stall.json': QuestTraderSchema,

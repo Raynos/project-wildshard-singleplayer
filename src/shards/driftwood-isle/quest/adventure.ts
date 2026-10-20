@@ -24,14 +24,9 @@ import deathRows from '../data/questDeaths.json' with { type: 'json' };
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from '@wildshard/game/quest/story';
 import { installQuestTrader, type QuestTrader } from '@wildshard/game/quest/trader';
 import { trader, tradeCounter, traderRigOf } from '../runtime/models/trader';
-import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
-import { readChapterDirector } from '@wildshard/game/quest/chapterDirector';
-import { BossBar } from '@wildshard/engine/ui/BossBar';
-import { WakeBossEncounter } from '@wildshard/game/boss/wake';
-import { presentWakeBoss } from '@wildshard/game/boss/presentation';
-import { driftwoodRows } from '../runtime/boot/rows';
+import { installChapterWakeEncounter } from '@wildshard/game/quest/chapterDirector';
 import { installCompletion, type Completion as Complete } from '@wildshard/game/complete/declared';
 import { installPageReturns } from '@wildshard/game/population/pageReturns';
 import type { RespawnQueueInstance as RespawnQueue } from '@wildshard/sdk/populationRespawn';
@@ -186,40 +181,11 @@ export async function installAdventure(ctx: ShardContext): Promise<Adventure> {
       liveGuide.update(dt, Math.hypot(w.player.velocity.x, w.player.velocity.z)); }, 'shard.driftwood-isle.installGullGuide');
   }
   adventure.complete = installCompletion(ctx, flags, w.progress, adventure.spine.objective.root, anchors);   // before the finale: its reward hands over to the card
-  const captain = bindRuntimeBoss(ctx, declaration, 'driftwood.captain', undefined, { identity: 'runtime' });
-  const finale = await readChapterDirector(ctx, 'quests/chapter-director.json');
-  if (finale.rewardAt === null || finale.rewardPose === undefined) throw new Error('The finale requires its baked reward pose');
   const pool = place({ poi: 'shrine', anchor: 'shrine.pool', x: 0, z: 8 });
-  const view = driftwoodRows('custom/fixedLayouts').nativeView, bar = scope.run(() => new BossBar());
-  const encounter = new WakeBossEncounter(view.BOSS_ENCOUNTER, pool);
-  let body: AdvAnimal | null = null;
-  const spawn = (): void => {
-    if (body !== null) return;
-    try {
-      body = captain.spawn(); if (body === null) throw new Error('Captain spawn host unavailable');
-      body.herd = -1; body.mem['poolX'] = pool.x; body.mem['poolZ'] = pool.z; body.mem['arena'] = view.CAPTAIN_ARENA_R;
-    } catch (error) { console.error('[finale] the captain failed to spawn', error); flags.set('dead:captain'); }
-  };
-  const observation = () => ({ player: w.player.position, animal: body === null ? null : { position: body.position, mem: body.mem, hp: body.hp, maxHp: body.maxHp, alive: body.alive }, wake: flags.has(encounter.row.wakeFlag), dead: flags.has(encounter.row.deadFlag) });
-  const present = (): void => { presentWakeBoss(encounter, bar, ctx.app.events); };
-  const cues = (): void => {
-    for (const cue of finale.takeCues()) {
-      if (cue === 'captain.restore') spawn();
-      else if (cue === 'captain.wake') {
-        spawn(); encounter.wake(observation()); present();
-        services.run('captain-wake'); w.music.combat(1);
-      } else if (cue === 'captain.dead') services.run('captain-dead');
-    }
-  };
-  flags.onChange((flag, on) => { w.ironDrop?.bindGuardFlags(flags.all); if (on && !flag.startsWith('plate:')) guide?.progressed(); cues(); });
-  ctx.app.encounters.register({ id: view.CAPTAIN_ID, displayName: view.CAPTAIN_NAME }, scope);
-  ctx.app.encounters.boss(view.CAPTAIN_ID, encounter, scope);
-  ctx.on('player.died', () => { encounter.onPlayerDeath(w.player.position); present(); });
+  const finale = await installChapterWakeEncounter(ctx, await ctx.product.json('quests/wake-boss.json'), pool);
+  scope.onDispose(flags.onChange((flag, on) => { w.ironDrop?.bindGuardFlags(flags.all); if (on && !flag.startsWith('plate:')) guide?.progressed(); }));
   setAnchor('shrine.reward', finale.rewardAt);
-  adventure.finale = { get captain() { return body === null ? null : { kind: body.kind, position: body.position, mem: body.mem, hp: body.hp, maxHp: body.maxHp, alive: body.alive }; }, rewardAt: finale.rewardAt, rewardPose: finale.rewardPose };
-  cues();
-  w.game.onUpdate(dt => { bar.update(dt); encounter.update(observation()); present(); }, 'shard.driftwood-isle.installFinale');
-  w.game.onUpdate(dt => { finale.update(dt); cues(); }, 'shard.driftwood.director');
+  adventure.finale = { get captain() { return finale.actor; }, rewardAt: finale.rewardAt, rewardPose: finale.rewardPose };
   adventure.ecology = installPageReturns(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('sim/returns.json'))));
 
   // ── A7: the rope bridge sways under you — a slow roll + a little dip on the camera while your feet are on its planks ──
