@@ -19,13 +19,16 @@ export const QuestSceneEffectSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('emitter'), target: name, value: v.boolean() }),
   v.strictObject({ kind: v.literal('mark'), target: name, value: v.boolean() }),
 ]);
-/** Ordered effects, admitted identically for page actions and quest step rows. */
-export const QuestEffectSchema = v.union([QuestSceneEffectSchema, v.variant('kind', [
+/** Effects the concrete quest owners commit directly, in authored order. */
+export const QuestCommitEffectSchema = v.variant('kind', [
   toast, sting,
   v.strictObject({ kind: v.literal('reading'), title: v.pipe(v.string(), v.maxLength(512)),
     lines: v.pipe(v.array(v.pipe(v.string(), v.maxLength(8192))), v.maxLength(128)) }),
   v.strictObject({ kind: v.literal('flag'), flag: name, value: v.exactOptional(v.boolean()) }),
   v.strictObject({ kind: v.literal('item'), item: name, count: v.pipe(finite, v.safeInteger(), v.minValue(1)) }),
+]);
+/** Ordered effects, admitted identically for page actions and quest step rows. */
+export const QuestEffectSchema = v.union([QuestSceneEffectSchema, QuestCommitEffectSchema, v.variant('kind', [
   v.strictObject({ kind: v.literal('command'), script: name, type: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(2147483647)),
     target: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(2147483647)), value: finite }),
   v.strictObject({ kind: v.literal('notice'), text: v.pipe(v.string(), v.maxLength(2048)) }),
@@ -95,8 +98,7 @@ export function parseQuestServiceActions(input: unknown): v.InferOutput<typeof Q
 
 /** Quest-bound observations and publications around an existing spawn guest.
  * The AS program owns encounter decisions; these rows only connect owners. */
-const pageEffects = v.pipe(v.array(v.variant('kind', [toast, sting,
-  v.strictObject({ kind: v.literal('flag'), flag: name, value: v.exactOptional(v.boolean()) })])), v.maxLength(32));
+const pageEffects = v.pipe(v.array(QuestCommitEffectSchema), v.maxLength(32));
 /** A non-combat guide borrows an existing species model and an admitted
  * chapter projection. Path, motion and effect identities are authored data. */
 export const QuestLeadPageSchema = v.strictObject({ quest: name, step: name, signal: name,

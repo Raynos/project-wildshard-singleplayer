@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseQuestSpawnPage, QuestSpawnPageSchema } from '../src/format/questSteps';
+import { parseQuestSpawnPage, parseQuestLeadPage, QuestSpawnPageSchema, QuestLeadPageSchema } from '../src/format/questSteps';
 import { questSpawnObservations, questSpawnPublications } from '../src/game/quest/steps';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 
@@ -30,4 +30,17 @@ test('spawn bindings admit only bounded effects and structurally export their sc
   expect(() => parseQuestSpawnPage({ ...rows, cues: [...rows.cues, ...rows.cues] })).toThrow('Duplicate');
   expect(() => parseQuestSpawnPage({ ...rows, complete: [{ ...rows.complete[0], effects: [{ kind: 'call', owner: 'page' }] }] })).toThrow();
   expect(() => parseQuestSpawnPage({ ...rows, flags: () => [] })).toThrow();
+});
+
+test('guide and spawn publications admit every concrete quest effect kind', () => {
+  const effects = [{ kind: 'flag', flag: 'done:watch' }, { kind: 'item', item: 'reed-token', count: 2 },
+    { kind: 'toast', text: 'The reeds fall quiet' }, { kind: 'sting', name: 'chunk' },
+    { kind: 'reading', title: 'The watch', lines: ['A mark in the reeds'] }];
+  const spawn = parseQuestSpawnPage({ ...rows, complete: [{ ...rows.complete[0], effects }] });
+  expect(questSpawnPublications(spawn, ['asked:watch'], ['watch:complete'])).toEqual(effects);
+  const guide = parseQuestLeadPage({ quest: rows.quest, step: 'walk', signal: 'lead', nightAbove: 0.6,
+    actor: { kind: 'deer', variant: 'guide' }, path: [[1, 2]], motion: { faceTurn: 3, trotSpeed: 4, trotTurn: 4, stopTurn: 1 }, sound: 'deer_call',
+    effects: { appear: effects, complete: effects }, puffs: { color: [1, 1, 1], count: 2, height: 1, appear: [1, 1, 1, 1], fade: [1, 1, 1, 1] } });
+  expect(guide.effects.complete).toEqual(effects);
+  expect(() => formatJsonSchema(QuestLeadPageSchema)).not.toThrow();
 });
