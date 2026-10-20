@@ -4,7 +4,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { SampledAmbience } from '@wildshard/engine/audio/AmbienceBeds';
 import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 import { castRay } from '@wildshard/engine/physics/query';
-import { lanternAudioPositions } from '../../look/lanterns';
+import { ndRuntime } from '../state';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { ndCueMap } from './cues';
 
@@ -34,7 +34,7 @@ export async function installAudio(ctx: ShardContext): Promise<void> {
   const beds = new SampledAmbience(audio, profile, player, ctx.scope);
   ctx.scope.onDispose(() => { beds.dispose(); });
   audio.installBeds(requireAudioProfile(profile.beds, 'nd.beds').map(row => row.id), ctx.scope, () => beds.audible.length);
-  const hums = new PositionalLoops(audio, ctx.scope, lanternAudioPositions(), () => player.loop(positional.sample),
+  const hums = new PositionalLoops(audio, ctx.scope, ndRuntime().world.lanterns, () => player.loop(positional.sample),
     () => { tap.sound?.('nd.hum.lantern', 'ambient'); }, random, positional.max, positional.reach);
   const eye = new Vector3(), bedInputs = { x: 0, z: 0 };
   let since = 0, elapsed = 0;

@@ -37,6 +37,11 @@ export class FrameCamera {
     if (this.identity) return camera;
     if (stamp !== -1 && stamp === this.stamp && this.posedFor === camera) return this.local;
     this.stamp = stamp; this.posedFor = camera;
+    return this.pose(camera);
+  }
+
+  /** Pose the stand-in at `camera` seen from the frame, at the identity too: one camera object a pass reads every frame. */
+  pose(camera: THREE.Camera): THREE.PerspectiveCamera {
     camera.updateMatrixWorld();
     this.inv.copy(this.frame.matrixWorld).invert();
     this.m.multiplyMatrices(this.inv, camera.matrixWorld);

@@ -3,7 +3,8 @@
 // the shard adds the bleed pyramid before the colour chain and replaces the chain with its own composite (ink
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
-import { Color, Fog, Matrix4, type Object3D, PerspectiveCamera, type Texture, type Vector2, Vector4 } from 'three';
+import { Color, Fog, type Object3D, type PerspectiveCamera, type Texture, type Vector2, Vector4 } from 'three';
+import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { Pass } from 'postprocessing';
 import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
 import type { Tier } from '@wildshard/engine/core/tier';
@@ -13,7 +14,6 @@ import { ndRuntime } from '../runtime/state';
 import { glowUniforms, gradeUniforms, light, loadLut } from './light';
 import { composite, PLAZA, STAIR, STREET, WELL, Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
 import type { CompositeRows } from '../boot/lookTypes.generated';
-import { clearLanterns } from './lanterns';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { PostRowEffect, ScaledPostPass as RowRenderPass, prepareScaledPost } from '@wildshard/game/looks/scaledPost';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
@@ -89,19 +89,8 @@ interface Composite { reflect: RowRenderPass | null; haze: RowRenderPass | null;
  * `pose` re-poses `view` from the camera; call it before anything reads `view` in a frame.
  */
 function rootView(camera: PerspectiveCamera, root: Object3D): { view: PerspectiveCamera; pose: () => void } {
-  const view = new PerspectiveCamera(), m = new Matrix4();
-  view.name = 'nd-root-view';
-  const pose = (): void => {
-    camera.updateMatrixWorld();
-    m.copy(root.matrixWorld).invert().multiply(camera.matrixWorld);
-    m.decompose(view.position, view.quaternion, view.scale);
-    view.fov = camera.fov; view.zoom = camera.zoom; view.aspect = camera.aspect; view.near = camera.near; view.far = camera.far;
-    view.projectionMatrix.copy(camera.projectionMatrix);
-    view.projectionMatrixInverse.copy(camera.projectionMatrixInverse);
-    view.updateMatrixWorld(true);
-  };
-  pose();
-  return { view, pose };
+  const frame = new FrameCamera(root);
+  return { view: frame.pose(camera), pose: () => { frame.pose(camera); } };
 }
 
 /** (SF63) a draw-free pass at the head of a cell's side passes: poses the root view before they read it */
@@ -233,7 +222,6 @@ export function shardRender(): LookStrategy {
     },
     dispose(): void {
       handle = null;
-      clearLanterns();
     },
   };
 }
