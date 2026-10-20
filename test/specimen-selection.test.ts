@@ -1,3 +1,4 @@
+import { place } from '../src/engine/models/place';
 import { parse } from 'valibot';
 import { SpecimenAssetSchema } from '../src/format/specimenCatalogue';
 import { expect, test, vi } from 'vitest';
@@ -24,16 +25,16 @@ test('parameter rows select both carved copies and refuse unauthored shapes',()=
     expect(balbal.variants?.map(row=>row.id)).toEqual(['generated','bare','capped']);
     for(const id of ['bare','capped']){
       const params=paramsOf(balbal,id,undefined),built=balbal.build(context,params,new Rng(1));
-      if(!(built instanceof THREE.Group))throw new Error('Missing carving');
-      const mesh=built.children[0];if(!(mesh instanceof THREE.Mesh))throw new Error('Missing carving mesh');
-      const shape:unknown=mesh.geometry;if(!(shape instanceof THREE.BufferGeometry))throw new Error('Missing carving geometry');
+      if(built instanceof THREE.Object3D)throw new Error('Carving must retain native model parts');
+      const part=built[0];if(part===undefined)throw new Error('Missing carving mesh');
+      const shape:unknown=part.geometry;if(!(shape instanceof THREE.BufferGeometry))throw new Error('Missing carving geometry');
       const position:unknown=shape.getAttribute('position');if(!(position instanceof THREE.BufferAttribute))throw new Error('Missing carving position');
       expect(position.count).toBeGreaterThan(20);
-      expect(mesh.castShadow&&mesh.receiveShadow).toBe(true);
+      expect(part.castShadow&&part.receiveShadow).toBe(true);
       shape.dispose();
     }
     const orchard=defineSpecimenCatalogue<{crate:{stored:boolean}}>([{...rows.catalogue[0],key:'crate',model:{id:'orchard/crate',name:'Harvest crate',category:'props',pipeline:'code',file:'orchard.json',defaults:{stored:true}},
-      source:{kind:'selection',variants:[{params:{stored:true},source:rows.catalogue[0]?.source.kind==='selection'?rows.catalogue[0].source.variants[1]?.source:undefined}]}}]).model('crate');
+      source:{kind:'selection',variants:[{params:{stored:true},source:rows.catalogue[0]?.source.kind==='selection'?{...rows.catalogue[0].source.variants[1]?.source,representation:'group'}:undefined}]}}]).model('crate');
     expect(orchard.build(context,{stored:true},new Rng(1))).toBeInstanceOf(THREE.Group);
     expect(()=>orchard.build(context,{stored:false},new Rng(1))).toThrow('No authored specimen');
   }finally{vi.restoreAllMocks();}
@@ -56,4 +57,14 @@ test('fitted assets share the source loan without mutating it or leaking transfo
     const mesh=built.children[0];if(!(mesh instanceof THREE.Mesh))throw new Error('Missing fitted specimen');
     expect(mesh.geometry).toBe(fitted.geometry);expected.dispose();
   }finally{vi.restoreAllMocks();geometry.dispose();material.dispose();}
+});
+
+test('both carving variants place through the actual native instanced path',async()=>{
+  const sky=skyFixture();
+  try{
+    const placed=place(balbal,[{x:0,y:0,z:0,variant:'bare'},{x:3,y:0,z:0,variant:'capped'}],{ctx:modelContext(sky),draw:'instanced'});
+    await placed.registered;
+    const counts:number[]=[];placed.object.traverse(object=>{if(object instanceof THREE.InstancedMesh){counts.push(object.count);const shape:unknown=object.geometry;if(shape instanceof THREE.BufferGeometry)shape.dispose();}});
+    expect(counts).toEqual([1,1]);
+  }finally{vi.restoreAllMocks();}
 });

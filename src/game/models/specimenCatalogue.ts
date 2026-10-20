@@ -7,7 +7,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { loadTexture } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
-import { defineModel, announceModelReady, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
+import { defineModel, announceModelReady, type ModelContext, type ModelBuild, type ModelDef } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -262,7 +262,7 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
   for(const row of rows)if(row.source.kind==='selection'&&new Set(row.source.variants.map(variant=>parameterKey(variant.params))).size!==row.source.variants.length)throw new Error('Duplicate specimen selection');
   const definitions = new Map<string, ModelDef<object>>();
   for (const row of rows) {
-    const build = (ctx: ModelContext, params: object): THREE.Object3D => {
+    const build = (ctx: ModelContext, params: object): ModelBuild => {
       const source = row.source.kind==='selection'?row.source.variants.find(candidate=>parameterKey(candidate.params)===parameterKey(params))?.source:row.source;
       if(source===undefined)throw new Error(`No authored specimen: ${row.model.id}`);
       if(source.kind==='inline'){
@@ -270,8 +270,9 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
         if(decodedBytes.length!==bakedGeometryBytes(source.geometry))throw new Error('Inline specimen byte count differs');
         const decoded=readBakedGeometry(decodedBytes,0,source.geometry),geometry=source.geometry.expand?decoded.toNonIndexed():decoded;
         if(geometry!==decoded){decoded.dispose();geometry.computeBoundingBox();geometry.computeBoundingSphere();}
-        const group=new THREE.Group(),mesh=new THREE.Mesh(geometry,specimenMaterial(ctx.sky,source.material));
-        mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);queueMicrotask(()=>{announceModelReady(row.model.id);});return group;
+        const part={geometry,material:specimenMaterial(ctx.sky,source.material),castShadow:true,receiveShadow:true};
+        queueMicrotask(()=>{announceModelReady(row.model.id);});
+        return source.representation==='parts'?[part]:new THREE.Group().add(Object.assign(new THREE.Mesh(part.geometry,part.material),{castShadow:true,receiveShadow:true}));
       }
       if (source.kind === 'owned') {
         const variant = source.variants.find(candidate => parameterKey(candidate.params) === parameterKey(params));

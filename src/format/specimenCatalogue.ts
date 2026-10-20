@@ -28,7 +28,7 @@ const geometrySchema = v.strictObject({ attrs: v.pipe(v.array(v.tuple([text, v.p
   count: whole, index: v.nullable(v.picklist(['u16', 'u32'])), indexCount: whole, box: v.boolean(), expand: v.boolean() });
 const specimenSource = v.variant('kind', [
   v.strictObject({kind:v.literal('packed')}),v.strictObject({kind:v.literal('asset'),asset:SpecimenAssetSchema}),
-  v.strictObject({kind:v.literal('inline'),data:v.pipe(v.string(),v.maxLength(1048576)),geometry:geometrySchema,material:SpecimenMaterialSchema}),
+  v.strictObject({kind:v.literal('inline'),representation:v.exactOptional(v.picklist(['group','parts'])),data:v.pipe(v.string(),v.maxLength(1048576)),geometry:geometrySchema,material:SpecimenMaterialSchema}),
   v.strictObject({kind:v.literal('owned'),material:SpecimenMaterialSchema,variants:v.pipe(v.array(v.strictObject({params:paramsSchema,url:assetPath,size:v.tuple([finite,finite,finite])})),v.maxLength(256))}),
 ]);
 /** Complete JSON wire schema. It deliberately has no executable fields or extension callbacks. */

@@ -16,7 +16,7 @@ const generated={...specimens.assets.balbal,transform:{yaw:Math.PI,scale:2.15/me
 const carving=variant=>{
   const mesh=places.places.rows.find(row=>row.name===`actor:balbal:${variant}:2977`)?.meshes[0];
   if(mesh===undefined)throw new Error('Missing admitted balbal carving');
-  return{kind:'inline',data:deflateSync(binary.subarray(mesh.offset,mesh.offset+geometryBytes(mesh.geometry)),{level:9}).toString('base64'),geometry:mesh.geometry,material:specimens.materials.poi};
+  return{kind:'inline',representation:'parts',data:deflateSync(binary.subarray(mesh.offset,mesh.offset+geometryBytes(mesh.geometry)),{level:9}).toString('base64'),geometry:mesh.geometry,material:specimens.materials.poi};
 };
 const catalogue=v.parse(SpecimenCatalogueSchema,[{key:'balbal',model:{id:'nalati-grasslands/balbal',name:'Balbal',category:'props',pipeline:['trellis','code'],file:'src/shards/nalati-grasslands/models/balbal.ts',surface:'stone',defaults:{carved:null},
   variants:[{id:'generated',label:'TRELLIS.2',params:{}},{id:'bare',label:'Carved',params:{carved:'bare'}},{id:'capped',label:'Carved · cap',params:{carved:'capped'}}]},
