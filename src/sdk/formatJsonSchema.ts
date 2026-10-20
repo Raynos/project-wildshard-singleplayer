@@ -14,7 +14,10 @@ import { PlumbingSchema } from '@wildshard/format/plumbing';
 import { StateSchema } from '@wildshard/format/state';
 import { QuestStepRowsSchema } from '@wildshard/format/questSteps';
 import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
-import { BakedBuildingLookSchema, BuildingLifeLookSchema } from '@wildshard/format/buildings';
+import { BakedBuildingLookSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
+import { WorldSceneWeldSchema } from '@wildshard/format/worldSceneWeld';
+import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
+import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
 import { CommonsCostsSchema } from '@wildshard/format/commonsCosts';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 
@@ -63,7 +66,7 @@ import { NavigationSchema } from '@wildshard/format/navigation';
 import { NativeGroundSchema } from '@wildshard/format/nativeGround';
 import { UiSchema } from '@wildshard/format/ui';
 import { ClientScriptsSchema } from '@wildshard/format/clientScripts';
-import { ClientChannelsSchema, ClientChannelProgramSchema, PrivateSceneSchema } from '@wildshard/format/clientChannels';
+import { ClientChannelsSchema, ClientChannelProgramSchema, PrivateSceneSchema, WorldSceneSchema } from '@wildshard/format/clientChannels';
 
 import { ForestLifeSchema } from '@wildshard/format/ambientLife';
 
@@ -125,6 +128,11 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots = {
+  'worldSceneWeld.WorldSceneWeld': WorldSceneWeldSchema,
+  'worldSceneModels.WorldSceneModels': WorldSceneModelsSchema,
+  'worldScenePlacement.WorldScenePlacement': WorldScenePlacementSchema,
+  'clientChannels.WorldScene': WorldSceneSchema,
+  'buildings.BuildingLifeRows': BuildingLifeRowsSchema,
   'bodySlots.BodySlots': BodySlotsSchema,
   'limbRig.LimbRig': LimbRigSchema,
   'limbRig.LimbBlend': LimbBlendSchema,
@@ -343,6 +351,28 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
       return undefined;
     },
   });
+}
+
+const namedSchemas = new WeakMap<GenericSchema, JsonSchema>();
+/** Build-only draft-07 structure for a named JSON producer's defining schema.
+ * Like the custom-section bridge, omit documentation annotations that Ajv does
+ * not implement; the producer and defining reader retain semantic admission.
+ * Unknown checks and transforms still refuse conversion. Never infer from data. */
+export function namedJsonSchema(schema: GenericSchema): JsonSchema {
+  const previous = namedSchemas.get(schema);
+  if (previous !== undefined) return previous;
+  const structural = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(structural);
+    if (typeof value !== 'object' || value === null) return value;
+    return Object.fromEntries(Object.entries(value)
+      .filter(([key]) => key !== 'x-wildshard-checks' && key !== 'x-wildshard-string-length')
+      .map(([key, child]) => [key, structural(child)]));
+  };
+  const wire = structural(formatJsonSchema(schema, 'draft-07'));
+  if (typeof wire !== 'object' || wire === null || Array.isArray(wire)) throw new Error('Named JSON requires a defining object schema');
+  const result: JsonSchema = wire;
+  namedSchemas.set(schema, result);
+  return result;
 }
 
 /** The migrated wire roots, generated from their defining Valibot schemas; whole-shard extraction remains open. */

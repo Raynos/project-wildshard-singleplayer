@@ -5,6 +5,10 @@ import { CRAG_CAVE_ROWS } from './cragSceneContribution';
 import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows';
 import { CABIN_JSON_BLOBS } from './cabinSceneContribution';
 import { nameBlob } from '@wildshard/sdk/blobs';
+import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { WorldSceneSchema } from '@wildshard/format/clientChannels';
+import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
+import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import spray from '../data/sprayPuffs.json' with { type: 'json' };
 import { SPRAY_LOOK } from './streamLook';
@@ -22,10 +26,10 @@ const recipe = { scene: { version: 1, root: 'root', nodes: [
   { kind: 'mesh', id: 'spray', geometry: 'quad', material: 'spray', missing: 'empty', name: 'waterfall-spray', renderOrder: 7, frustumCulled: false, instances: count, matrices },
 ], materials: [{ kind: 'port', id: 'water', source: 'water' }, { kind: 'port', id: 'spray', source: 'spray' }] }, imports: [] };
 v.parse(CaveRowsSchema, CRAG_CAVE_ROWS);
-export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('scenes/streams.json', 'json', encode(recipe)),
+export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS), { jsonSchema: namedJsonSchema(CaveRowsSchema) }), nameBlob('scenes/streams.json', 'json', encode(recipe), { jsonSchema: namedJsonSchema(WorldSceneSchema) }),
   ...CABIN_JSON_BLOBS,
-  nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
-  ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];
+  nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS), { jsonSchema: namedJsonSchema(WorldSceneModelsSchema) }),
+  ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row), { jsonSchema: namedJsonSchema(WorldScenePlacementSchema) }))];
 export const SCENE_MODEL_BLOBS = [
   { name: 'models/stream-water.glb', kind: 'glb', source: 'assets/stream-scenes/water.glb' },
   { name: 'models/stream-quad.glb', kind: 'glb', source: 'assets/stream-scenes/quad.glb' },
