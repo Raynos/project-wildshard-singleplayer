@@ -1,12 +1,12 @@
-import { expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { createNativeBakeReader, nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats } from '../src/game/population/nativeBake';
+import { createNativeBakeReader, nativeColliderSchema, nativeBakeFloats } from '../src/game/population/nativeBake';
 import { pineBake, parsePineSolid } from '../src/shards/pine-hollow/runtime/baked';
 import baked from '../src/shards/pine-hollow/data/physics.generated.json' with { type: 'json' };
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
 
 const options = { label: 'Native test', resolution: 2, size: 4, parked: true,
-  spec: nativeBodySpecSchema('segments'), solid: nativeColliderSchema([1, 2, 6, 9], 'piece'), extra: v.object({ tag: v.string() }) };
+  rig: 'segments',shapes: [1,2,6,9],provenance: 'piece' };
 function input() {
   const heights = btoa(String.fromCodePoint(...new Uint8Array(new Float32Array([1, 2, 3, 4]).buffer)));
   return { version: 1, tag: 'owned', ground: { rows: 1, cols: 1, heights, scale: { x: 4, y: 1, z: 4 }, at: { x: 0, y: 0, z: 0 }, friction: 0.9, groups: 1 },
@@ -25,17 +25,17 @@ test('the full Pine product retains its ground, collider provenance, ordered rec
   expect(value.solids).toHaveLength(baked.solids.length);
   baked.solids.forEach((row, i) => {
     const solid = value.solids[i]; if (solid === undefined) throw new Error('Missing captured solid');
-    const captured = v.parse(options.solid, row);
+    const captured = v.parse(nativeColliderSchema([1,2,6,9],'piece'), row);
     expect(solid).toEqual(parsePineSolid(row));
     expect(solid.at).toEqual(captured.at); expect(solid.rot).toEqual(captured.rot);
   });
 });
 
-test('only a successful owner check publishes the memo; owned buffers are independent across readers', () => {
-  const source = input(), check = vi.fn(() => { if (check.mock.calls.length === 1) throw new Error('Owner refused'); });
-  const reader = createNativeBakeReader(source, { ...options, check });
-  expect(() => reader.read()).toThrow('Owner refused');
-  const value = reader.read(); expect(reader.read()).toBe(value); expect(check).toHaveBeenCalledTimes(2);
+test('failed native intake publishes no memo; independent readers own their buffers', () => {
+  const source = input();source.ground.scale.y=2;
+  const reader = createNativeBakeReader(source, options);
+  expect(() => reader.read()).toThrow('lattice');source.ground.scale.y=1;
+  const value = reader.read(); expect(reader.read()).toBe(value);
   const other = createNativeBakeReader(source, options).read();
   expect(other.ground.heights).toEqual(value.ground.heights); expect(other.ground.heights.buffer).not.toBe(value.ground.heights.buffer);
   value.ground.heights[0] = 9; expect(other.ground.heights[0]).toBe(1);
@@ -51,7 +51,8 @@ test('missing parked bodies, invalid lattices, actor identities and collider cha
   const solid = { shape: 6, body: null, at: [0, 0, 0], rot: [0, 0, 0, 1], groups: 1, friction: 1 };
   expect(() => createNativeBakeReader(input(), options).solid(solid)).toThrow('Unbuildable');
   expect(() => createNativeBakeReader(input(), options).solid({ ...solid, shape: 1, extra: true })).toThrow();
-  expect(() => createNativeBakeReader(input(), { ...options, extra: v.object({ actors: v.array(v.unknown()) }) }).read()).toThrow('shadows');
+  expect(() => createNativeBakeReader(input(), { ...options, check: () => true })).toThrow();
+  expect(() => createNativeBakeReader(input(), { ...options, extra: v.object({}) })).toThrow();
 });
 
 test('generation refuses missing native rosters and malformed private King and shelter metadata', () => {

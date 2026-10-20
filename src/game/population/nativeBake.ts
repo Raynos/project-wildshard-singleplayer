@@ -130,14 +130,13 @@ export interface NativeBakeReader<E> {
   readonly solid: (input: unknown) => NativeCollisionSolid;
 }
 /** Compose the existing native lattice, collider and actor readers. Cache only a fully admitted result, and keep
- * owner-specific root schemas/checks explicit. Neither failed parsing nor a failed owner check publishes a memo.
+ * compiled metadata schemas explicit. Failed parsing never publishes a memo.
  */
-export function createNativeBakeReader<E extends object>(input: unknown, options: {
+function nativeBakeReader<E extends object>(input: unknown, options: {
   readonly label: string; readonly resolution: number; readonly size: number; readonly parked: boolean;
   readonly spec: v.GenericSchema<unknown, AnimalSimSpec>;
   readonly solid: v.GenericSchema<unknown, NativeColliderRecord>;
   readonly extra: v.GenericSchema<unknown, E>;
-  readonly check?: (bake: NativePhysicsBake & E) => void;
 }): NativeBakeReader<E> {
   const finite = v.pipe(v.number(), v.finite());
   const body = { id: v.string(), kind: v.string(), variant: v.string(), spec: options.spec, seed: finite, scale: finite };
@@ -160,7 +159,6 @@ export function createNativeBakeReader<E extends object>(input: unknown, options
       const result = { ...extra, ground: nativeBakeGround(bake.ground, options.resolution, options.size, options.label),
         solids: bake.solids.map(decodeSolid), actors: nativeBakeActors(bake.actors, options.label),
         parked: nativeBakeActors(bake.parked ?? [], options.label), herds: bake.herds };
-      options.check?.(result);
       parsed = result;
       return result;
     },
@@ -177,13 +175,21 @@ const populationMetadata=v.object({
   ledges:v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite,r:v.pipe(finite,v.minValue(0))})),v.maxLength(6)),
   marmots:ForagerContinuation,
 });
-const populationIntake=v.strictObject({label:v.pipe(v.string(),v.minLength(1),v.maxLength(128)),resolution:v.pipe(finite,v.integer(),v.minValue(2)),size:v.pipe(finite,v.minValue(0.001))});
+const lattice={label:v.pipe(v.string(),v.minLength(1),v.maxLength(128)),resolution:v.pipe(finite,v.integer(),v.minValue(2)),size:v.pipe(finite,v.minValue(0.001))};
+const populationIntake=v.strictObject(lattice);
+const nativeIntake=v.strictObject({...lattice,parked:v.boolean(),rig:v.picklist(['segments','axis']),provenance:v.picklist(['piece','tagged']),
+  shapes:v.pipe(v.array(v.picklist([1,2,6,9])),v.minLength(1),v.maxLength(4),v.check(shapes=>new Set(shapes).size===shapes.length))});
+/** Public native admission accepts only stock data profiles, never a validator
+ * or owner-check callback. Metadata profiles are compiled into this module. */
+export function createNativeBakeReader(input:unknown,rows:unknown):NativeBakeReader<object>{
+  const row=v.parse(nativeIntake,rows);return nativeBakeReader(input,{...row,spec:nativeBodySpecSchema(row.rig),solid:nativeColliderSchema(row.shapes,row.provenance),extra:v.object({})});
+}
 /** Data-only population-world intake over the same native decoder. Admit the
  * complete roster join before publishing poses or translating null hit times.
  * The runtime plan retains this result; no module-global world cache exists. */
 export type PopulationBake=NativePhysicsBake & Omit<v.InferOutput<typeof populationMetadata>,'spawns'> & {spawns:{id:string;at:[number,number,number];yaw:number;mem:Record<string,number>}[]};
 export function readPopulationBake(input:unknown,rows:unknown):PopulationBake{
-  const row=v.parse(populationIntake,rows),bake=createNativeBakeReader(input,{...row,parked:false,spec:nativeBodySpecSchema('segments'),solid:nativeColliderSchema([1,2,6,9],'piece'),extra:populationMetadata}).read();
+  const row=v.parse(populationIntake,rows),bake=nativeBakeReader(input,{...row,parked:false,spec:nativeBodySpecSchema('segments'),solid:nativeColliderSchema([1,2,6,9],'piece'),extra:populationMetadata}).read();
   const ids=new Set(bake.actors.map(actor=>actor.id));
   if(ids.size!==bake.actors.length||!bake.herds.every(herd=>herd.members.every(id=>ids.has(id)))
     ||bake.spawns.length!==bake.actors.length||bake.spawns.some((spawn,index)=>spawn.id!==bake.actors[index]?.id)

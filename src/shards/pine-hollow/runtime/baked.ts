@@ -1,13 +1,11 @@
-import { createNativeBakeReader, nativeBodySpecSchema, nativeColliderSchema } from '@wildshard/game/population/nativeBake';
-import * as v from 'valibot';
+import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
 import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The exact captured native lattice, including the crag cuts. */
 export const PINE_GROUND_RES = PINE_TERRAIN.res, PINE_GROUND_SIZE = PINE_TERRAIN.size;
 const reader = createNativeBakeReader(baked, { label: 'Pine', resolution: PINE_GROUND_RES, size: PINE_GROUND_SIZE, parked: true,
-  spec: nativeBodySpecSchema('segments'), solid: nativeColliderSchema([1, 2, 6, 9], 'piece'),
-  extra: v.object({}) });
+  rig: 'segments',shapes: [1,2,6,9],provenance: 'piece' });
 /** Build-validated King and shelter facts, beside the original native binary decoder. */
 export type PineBake = ReturnType<typeof reader.read> & Pick<typeof baked, 'kingHit' | 'shelterTrees'>;
 export type PineSolid = PineBake['solids'][number];
