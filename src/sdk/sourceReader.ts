@@ -8,7 +8,7 @@ export function readBoundedFile(path: string, maximum: number): Uint8Array {
   const descriptor = openSync(path, 'r');
   try {
     const size = fstatSync(descriptor).size;
-    if (!Number.isSafeInteger(size) || size > maximum) throw new Error('File exceeds admission byte cap');
+    if (!Number.isSafeInteger(size) || size > maximum) throw new Error(`File exceeds admission byte cap: ${path} (${size} > ${maximum})`);
     const bytes = new Uint8Array(size); let at = 0;
     while (at < size) { const count = readSync(descriptor, bytes, at, size - at, null); if (count === 0) break; at += count; }
     if (readSync(descriptor, new Uint8Array(1), 0, 1, null) !== 0) throw new Error('File grew beyond admission byte cap');
