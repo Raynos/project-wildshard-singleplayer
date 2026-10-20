@@ -16,7 +16,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   ktx2: () => import('./ktx2.generated'),
   ground: { terrain: TERRAIN, structures: true },
   forest: { ...DECLARATION.forest, density: () => 0 },
-  sword: async () => (await import('./vm/fpArms')).jianArms(),
+  sword: async () => (await import('@wildshard/game/systems/viewmodel/graphArms')).graphSword('nine-dragon-stack', 'weapons/jian-row.json'),
   roster: async () => (await import('./roster')).ROSTER,
   render: async () => (await import('./look/render')).shardRender(),
 };

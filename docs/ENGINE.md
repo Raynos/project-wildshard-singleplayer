@@ -6887,6 +6887,19 @@ budgets from `format/streamedCover` rows (G475). Driftwood supplies rows
 and baked cells. Nalati's dressing layer is the planned W3 adopter; the
 feature carries G475's day-one approval directly.
 
+**Graph held arms (G475).** `@wildshard/game/systems/viewmodel/graphArms` dresses a `RigArms`
+in compiled graph looks from one product row (`@wildshard/format/heldArms` `GraphArmsSchema`,
+the `view` of a product JSON): rig URL, skeleton, joints, holds and lag; the blade row
+(socket, base, tip: `RigArmsOptions.blade`, read by the hit sweep and the trail); each
+mesh's look, attribute channels, side and map pair (the tier's KTX2 stand-in or the image);
+an R8 weave and a painted decal atlas scaled by a plumbing knob; back-side and additive
+looks; the pendant scene on a socket with its product geometry; and the per-frame look
+writes as named sources (`time`, `buffer`, `pixels`, `projection`). The swing trail is a
+`SlashTrail` ribbon sampled along the blade from `trail.from` (or a clip's `trailFrom`)
+through each move's windup to slashEnd, living a share of the clip's timing.
+`graphSword(slug, file)` is a manifest's sword; `graphArmsSpecimen(slug, file,
+settleFrames, renderer)` its Explorer card. The feature carries G475's held-arms approval.
+
 ### First-person arm rigs
 
 `src/game/systems/viewmodel/rigArms.ts` plays a baked skinned arm rig

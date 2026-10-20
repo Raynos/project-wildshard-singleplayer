@@ -17,7 +17,7 @@ import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 //                   weapons as children of R_weapon, the clips' metadata in vm_root's extras) played on the two
 //                   channels, or — `swim` — its looping swim clips blended by speed with the stroke's phase set from outside
 //   swordArmsOf     a RigArms as the engine Sword's animated rig (Sword.ts `SwordArms`)
-//   RigArmsOptions  the rig's clip aliases (default ARM_CLIPS + SWIM_CLIPS), held moves, walk rate and look lag; Driftwood's
+//   RigArmsOptions  the rig's clip aliases (default ARM_CLIPS + SWIM_CLIPS), held moves, walk rate, look lag and blade; Driftwood's
 //                   castaway arms use the defaults, Nine's ink rig (G441, W3) its own row
 import {
   type AnimationAction, type AnimationClip, Group, Matrix4, type Mesh, type Object3D, type Vector2, Vector3,
@@ -60,8 +60,10 @@ export interface RigArmsOptions {
   readonly holdLeft?: readonly string[];
   readonly walkRate?: number;
   readonly lag?: { readonly max: number; readonly pitch: number; readonly yaw: number };
+  /** the blade row: its socket and base / tip along the socket's +Y (absent: R_weapon and the shown weapon's `swords` extras) */
+  readonly blade?: { readonly socket: string; readonly base: number; readonly tip: number };
 }
-const DEFAULTS = { aliases: { ...ARM_CLIPS, ...SWIM_CLIPS }, holdRight: ['charge', 'sheathe', 'sheathed'], holdLeft: [], walkRate: 6, lag: { max: 0.05, pitch: 0.01, yaw: 0.012 } };
+const DEFAULTS = { aliases: { ...ARM_CLIPS, ...SWIM_CLIPS }, holdRight: ['charge', 'sheathe', 'sheathed'], holdLeft: [], walkRate: 6, lag: { max: 0.05, pitch: 0.01, yaw: 0.012 }, blade: { socket: 'R_weapon', base: 0.012, tip: 0.53 } };
 
 export interface RigState {
   /** 0 standing … 1 full walk */
@@ -85,14 +87,15 @@ export class RigArms {
   private walkW = 0;
   private moveName: string | null = null;
   private moveT = 0;
-  private blade0 = 0.012;
-  private blade1 = 0.53;
+  private blade0: number;
+  private blade1: number;
   private readonly m = new Matrix4();
   private readonly o: Required<RigArmsOptions>;
 
   /** `swim`: the swim clips only (no channels): swimStroke / swimTread blended by `swim()` */
   private constructor(scene: Object3D, clips: AnimationClip[], readonly swimming: boolean, contract: RigContract, bake: RigBake, options: RigArmsOptions) {
     this.o = { ...DEFAULTS, ...options };
+    this.blade0 = this.o.blade.base; this.blade1 = this.o.blade.tip;
     const vm = scene.getObjectByName('vm_root') ?? scene;
     if (vm.userData['rig'] !== contract.skeleton) throw new Error(`[anim] arm rig skeleton mismatch: ${String(vm.userData['rig'])}`);
     this.meta = vm.userData as RigMeta;
@@ -154,13 +157,13 @@ export class RigArms {
   get move(): string | null { return this.moveName; }
   get time(): number { return this.moveT; }
 
-  /** the blade in root space: base (the guard end of the blade) and tip */
-  blade(base: Vector3, tip: Vector3): void {
-    const w = this.nodes.get('R_weapon');
+  /** the blade in root space: base (the guard end of the blade, or `from` of the way to the tip: a trail's root) and tip */
+  blade(base: Vector3, tip: Vector3, from = 0): void {
+    const w = this.nodes.get(this.o.blade.socket);
     if (w === undefined) return;
     this.root.updateMatrixWorld();
     this.m.copy(this.root.matrixWorld).invert().multiply(w.matrixWorld);
-    base.set(0, this.blade0, 0).applyMatrix4(this.m);
+    base.set(0, this.blade0 + (this.blade1 - this.blade0) * from, 0).applyMatrix4(this.m);
     tip.set(0, this.blade1, 0).applyMatrix4(this.m);
   }
 

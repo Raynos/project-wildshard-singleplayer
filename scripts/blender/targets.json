@@ -162,7 +162,7 @@
     "public/assets/nine-dragon/viewmodel/fist-l-maps.webp", "public/assets/nine-dragon/viewmodel/fist-l-nrm.webp",
     "public/assets/nine-dragon/viewmodel/gauntlet-maps.webp", "public/assets/nine-dragon/viewmodel/gauntlet-nrm.webp"
    ],
-   "feeds": ["src/shards/nine-dragon-stack/vm/fpArms.ts"]
+   "feeds": ["src/shards/nine-dragon-stack/generators/heldView.ts"]
   },
   "driftwood-isle/fp-arms": {
    "about": "Driftwood's first-person castaway arms (E334, board 2 A / 3 A): the arms and both swords modelled round Nine Dragon's round-13 skeleton, which keeps its 16 clips; + 15 finger bones a hand, the swim clips and the skin (bake.mjs), then the rig gate (gate.mjs → gate.json). --preview also writes posed PLYs for preview.py",

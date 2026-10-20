@@ -204,6 +204,7 @@
     "./plugin/channels": "./plugin/channels.ts",
     "./shardfile/eliteEncounters": "./shardfile/eliteEncounters.ts",
     "./systems/viewmodel/toonArms": "./systems/viewmodel/toonArms.ts",
+    "./systems/viewmodel/graphArms": "./systems/viewmodel/graphArms.ts",
     "./population/shelter": "./population/shelter.ts",
     "./population/returnProgram": "./population/returnProgram.ts",
     "./population/pageGroups": "./population/pageGroups.ts",
