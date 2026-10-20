@@ -43,9 +43,6 @@
     "src/shards/nalati-grasslands/wet": [
       "nalatiWetAt"
     ],
-    "src/shards/nalati-grasslands/runtime/headlessMounted": [
-      "installNalatiMountedPlayer"
-    ],
     "src/shards/nalati-grasslands/world/geography": [
       "TERRAIN"
     ],
@@ -76,6 +73,9 @@
     "src/shards/nalati-grasslands/combat/eliteRoster": [
       "NativePouncerKeeper",
       "NativeHowlerKeeper"
+    ],
+    "@wildshard/game/riding/native": [
+      "installMountedPlayer"
     ]
   },
   "constants": {},
@@ -1281,8 +1281,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headlessMounted",
-              "installNalatiMountedPlayer"
+              "@wildshard/game/riding/native",
+              "installMountedPlayer"
             ]
           },
           {
@@ -1291,74 +1291,50 @@
             ]
           },
           {
-            "groups": {
-              "$ref": [
-                "groups"
-              ]
-            },
-            "mountable": {
-              "$call": [
-                {
-                  "$ref": [
-                    "boot",
-                    "mountable",
-                    "concat"
-                  ]
-                },
-                {
+            "$call": [
+              {
+                "$ref": [
+                  "assembly",
+                  "merge"
+                ]
+              },
+              {
+                "$ref": [
+                  "constants",
+                  "nativeRide"
+                ]
+              },
+              {
+                "mountable": {
                   "$call": [
                     {
                       "$ref": [
-                        "creatures",
-                        "bondedHorseIds"
+                        "boot",
+                        "mountable",
+                        "concat"
+                      ]
+                    },
+                    {
+                      "$call": [
+                        {
+                          "$ref": [
+                            "creatures",
+                            "bondedHorseIds"
+                          ]
+                        }
                       ]
                     }
                   ]
+                },
+                "program": {
+                  "$ref": [
+                    "boot",
+                    "riding",
+                    "riding"
+                  ]
                 }
-              ]
-            },
-            "heightAt": {
-              "$ref": [
-                "heightAt"
-              ]
-            },
-            "waterLevel": {
-              "$ref": [
-                "src/shards/nalati-grasslands/world/geography",
-                "TERRAIN",
-                "waterLevel"
-              ]
-            },
-            "surfaceAt": {
-              "$ref": [
-                "queries",
-                "surfaceAt"
-              ]
-            },
-            "wetAt": {
-              "$ref": [
-                "src/shards/nalati-grasslands/wet",
-                "nalatiWetAt"
-              ]
-            },
-            "inBounds": {
-              "$ref": [
-                "queries",
-                "inBounds"
-              ]
-            },
-            "roads": {
-              "$ref": [
-                "boot",
-                "roads"
-              ]
-            },
-            "programs": {
-              "$ref": [
-                "boot",
-                "riding"
-              ]
-            }
+              }
+            ]
           }
         ]
       }

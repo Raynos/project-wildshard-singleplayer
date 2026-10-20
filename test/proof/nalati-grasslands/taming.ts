@@ -10,7 +10,7 @@ import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
 import { nalatiTamingOf } from '../../../src/shards/nalati-grasslands/runtime/headlessTaming';
-import { nalatiMountedOf } from '../../../src/shards/nalati-grasslands/runtime/headlessMounted';
+import { mountedPlayerOf } from '@wildshard/game/riding/native';
 import { canonicalSimDigest } from '../../fake/simState';
 
 const MODULE = new URL('../../fixtures/nalati-headless.ts', import.meta.url).href;
@@ -68,7 +68,7 @@ export async function nalatiTamingWitness(rapier: Rapier, assets: ReadonlyMap<st
       }
       assert.deepEqual(first.effects, [], 'Taming must not invent quest facts');
     }
-    const taming = law(first.host), mounted = nalatiMountedOf(first.host);
+    const taming = law(first.host), mounted = mountedPlayerOf(first.host);
     assert.equal(prompt, true); assert.ok(breakingTicks > 0);
     assert.equal(taming.phase, 'bonded', JSON.stringify({ breakingTicks, checkpointTick, law: taming.snapshot() }));
     assert.equal(taming.tulpar?.variant, 'tulpar'); assert.equal(mounted?.horse, taming.tulpar);

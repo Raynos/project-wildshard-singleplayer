@@ -1,3 +1,5 @@
+import nativeRide from '../data/nativeRiding.json' with { type: 'json' };
+import ridingTerrain from '../data/ridingTerrain.generated.json' with { type: 'json' };
 import skinFinishes from '../data/skinFinishes.json' with { type: 'json' };
 import { nalatiDressingBlob } from './dressingSchemas';
 import { packDressingTable } from './dressingTable';
@@ -68,7 +70,7 @@ import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 const {polearm:_polearm,blade:_blade,programs:_programs,program:_program,...weaponPower}=heldWeapons;
 const sheepBody = bakeSheepBody();
 // Resolve author-only lair definitions into the admitted assembly, never runtime imports.
-const eliteAssembly = { ...headlessAssembly, constants: { ...headlessAssembly.constants, eliteDefs: ecology.elites } };
+const eliteAssembly = { ...headlessAssembly, constants: { ...headlessAssembly.constants, eliteDefs: ecology.elites, nativeRide: { ...nativeRide, speeds: ecology.modes.ride[0].gaits, world: ridingTerrain, roads: headlessBoot.roads } } };
 
 /** Author weather once; page and native owners consume the same admitted numeric program. */
 const dressing = { boulder: dressboulder, slab: dressslab, stone: dressstone, juniper: dressjuniper, rose: dressrose, willow: dresswillow, lupin: dresslupin, daisy: dressdaisy, reed: dressreed, logs: dresslogs, stumps: dressstumps, ovoos: dressovoos, poles: dresspoles, fences: dressfences, gates: dressgates, drifts: dressdrifts, colliders: dresscolliders, clutter: dressclutter };

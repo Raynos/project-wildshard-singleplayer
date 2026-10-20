@@ -6,7 +6,7 @@ import type { HeadlessRuntimeInstallation } from '@wildshard/sdk/headlessRuntime
 import { pickPrompt, setPromptSight } from '@wildshard/engine/world/interact/prompts';
 import type { NalatiGroups } from './groups';
 import type { NalatiHostCreatures } from './headlessCreatures';
-import type { NalatiMountedPlayer } from './headlessMounted';
+import type { NativeMountedPlayer } from '@wildshard/game/riding/native';
 import type { RidingPrograms } from './tamingBindings';
 import { TamingBinding } from './tamingLaw';
 import { createNativeCreaturePoses, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
@@ -30,7 +30,7 @@ export function nalatiTamingOf(host: SimHost): TamingBinding<AnimalSim, NalatiGr
  * The creature manager calls update after Wildlife, BEFORE raid and think. Only this law's owned clocks are saved here.
  */
 export function installNalatiTaming(host: SimHost, ports: {
-  readonly programs: RidingPrograms; readonly groups: NalatiGroups; readonly creatures: NalatiHostCreatures; readonly mounted: NalatiMountedPlayer;
+  readonly programs: RidingPrograms; readonly groups: NalatiGroups; readonly creatures: NalatiHostCreatures; readonly mounted: NativeMountedPlayer;
   readonly animate: (context: AnimalRigContext) => void;
   readonly poses: readonly { readonly kind: string; readonly variant: string; readonly pose: NativeCreaturePoseRecipe }[];
   readonly environment: WildEnv; readonly context: HeadlessRuntimeInstallation;
@@ -61,7 +61,7 @@ export function installNalatiTaming(host: SimHost, ports: {
     mount: { get mounted() { return mounted.mounted; }, get horse() { return mounted.horse; },
       get breakShake() { return shake; }, set breakShake(value) { shake = value; }, get breakRoll() { return roll; }, set breakRoll(value) { roll = value; },
       mount: (a, breaking) => mounted.mount(a.entityId, breaking), dismount: thrown => { mounted.dismount(thrown); },
-      addMountable: a => { mounted.addMountable(a); }, removeMountable: a => { mounted.removeMountable(a); } },
+      addMountable: a => { mounted.addMountable(a.entityId); }, removeMountable: a => { mounted.removeMountable(a.entityId); } },
     hud: { get offer() { return offer; }, get lean() { return lean; } }, herds: () => ports.groups.herds, rest: ports.rest,
     wind: () => ports.environment.wind, random: () => host.rng.stream('ai').next(),
     spawnBonded: (x, z, yaw, argymaq) => { const a = ports.creatures.spawnBondedHorse(x, z, yaw, argymaq); addPose(a); return a; },

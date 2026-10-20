@@ -1,0 +1,24 @@
+{
+  "step": "nalati.mounted",
+  "herds": "nalati.herds",
+  "kinds": [
+    "horse",
+    "argymaq"
+  ],
+  "adopted": {
+    "kind": "horse",
+    "variant": "tulpar"
+  },
+  "pose": {
+    "gait": {
+      "trot": 3,
+      "gallop": 6.4
+    },
+    "pose": {
+      "grazeNeck": 0,
+      "gallopTail": 0.55
+    }
+  },
+  "thrownDamage": 10,
+  "thrownLabel": "Thrown from the saddle"
+}

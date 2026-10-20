@@ -126,3 +126,22 @@ export function prepareDeclaredGroupBrains(host: SimHost, declarations: readonly
     }
   } };
 }
+
+// Built-in controllers are trusted services, never author-provided port objects.
+const nativeHerdCollections = new WeakMap<SimHost, Map<string, { herds: readonly HerdBrain<AnimalSim>[]; wind: { x: number; z: number; strength: number } }>>();
+/** Publish native herd controllers under a stable service identity. */
+export function admitNativeHerds(host: SimHost, id: string, herds: readonly HerdBrain<AnimalSim>[], wind?: { x: number; z: number; strength: number }): void {
+  const services = nativeHerdCollections.get(host) ?? new Map<string, { herds: readonly HerdBrain<AnimalSim>[]; wind: { x: number; z: number; strength: number } }>();
+  if (services.has(id) || herds.length > 8 || herds.some(herd => !(herd instanceof HerdBrain))) throw new Error('Invalid native herd collection');
+  services.set(id, { herds, wind: wind ?? { x: 0, z: 0, strength: 0 } }); nativeHerdCollections.set(host, services);
+  host.scope.onDispose(() => { services.delete(id); });
+}
+/** Resolve the built-in herd owner for a data-only feature install. */
+export function nativeHerds(host: SimHost, id: string): readonly HerdBrain<AnimalSim>[] {
+  const herds = nativeHerdCollections.get(host)?.get(id); if (herds === undefined) throw new Error('Missing native herd collection'); return herds.herds;
+}
+
+/** Shared numeric wind observation; no world or weather callback is retained. */
+export function nativeHerdWind(host: SimHost, id: string): { x: number; z: number; strength: number } {
+  const rows = nativeHerdCollections.get(host)?.get(id); if (rows === undefined) throw new Error('Missing native herd wind'); return rows.wind;
+}

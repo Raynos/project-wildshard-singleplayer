@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/groupRuntime": "./shardfile/groupRuntime.ts",
+    "./riding/native": "./riding/native.ts",
     "./riding/taming": "./riding/taming.ts",
     "./riding/physics": "./riding/physics.ts",
     "./population/nativeManager": "./population/nativeManager.ts",

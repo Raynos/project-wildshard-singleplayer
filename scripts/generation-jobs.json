@@ -100,12 +100,14 @@
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/geography.generated.json",
-        "src/shards/nalati-grasslands/boot/geography.generated.d.json.ts"
+        "src/shards/nalati-grasslands/boot/geography.generated.d.json.ts",
+        "src/shards/nalati-grasslands/data/ridingTerrain.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {
         "src/shards/nalati-grasslands/boot/geography.generated.json": "452039c1355d6c4dc38fb3ec088781a227845265f755ae050116629833c259f3",
-        "src/shards/nalati-grasslands/boot/geography.generated.d.json.ts": "a9e5650097097c587bc67d02a23d570147419e22332a7dba02313ffeee699b4d"
+        "src/shards/nalati-grasslands/boot/geography.generated.d.json.ts": "a9e5650097097c587bc67d02a23d570147419e22332a7dba02313ffeee699b4d",
+        "src/shards/nalati-grasslands/data/ridingTerrain.generated.json": "7ef772465250b581e69de18e4df9c7f370c894ec0dd823f527722c177217392c"
       }
     },
     {
