@@ -1,0 +1,128 @@
+{
+  "page": "pine.forest",
+  "ranged": "pine.ranged",
+  "content": "custom/questRuntime",
+  "ammo": "iron",
+  "panels": {
+    "board": "board",
+    "count": "count"
+  },
+  "files": {
+    "stall": "quests/stall.json",
+    "exchange": "quests/exchange.json",
+    "contracts": "quests/contracts.json",
+    "signals": "quests/lanterns.json",
+    "door": "quests/mill-door.json",
+    "transactions": "quests/transactions.json",
+    "services": "quests/services.json",
+    "director": "quests/chapter-director.json"
+  },
+  "figures": {
+    "catalogue": "people/catalogue.json",
+    "ids": [
+      "ranger",
+      "miller",
+      "trader"
+    ]
+  },
+  "store": {
+    "slot": "lodge",
+    "state": "pine.lodge"
+  },
+  "pickupEvent": "pickup",
+  "wheel": {
+    "flag": "errand:done",
+    "speed": 0.55
+  },
+  "door": {
+    "building": "watermill",
+    "flag": "errand:done"
+  },
+  "trades": {
+    "section": "custom/tradeCatalogue",
+    "finishes": [
+      "hollow-ash",
+      "scarback-furnace"
+    ],
+    "name": "Mott",
+    "place": "Pine Hollow",
+    "figure": "trader",
+    "call": "trade"
+  },
+  "board": {
+    "label": "Read the contract board",
+    "filled": "Read the contract board \u2014 one is filled"
+  },
+  "payment": {
+    "flag": "errand:paid",
+    "speaker": "miller",
+    "action": "miller.pay",
+    "call": "pay-miller"
+  },
+  "debug": {
+    "id": "pine.quest",
+    "browser": "__pineQuest"
+  },
+  "collections": [
+    {
+      "event": "resin",
+      "completeEvent": "all-resin",
+      "prefix": "resin:",
+      "names": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30"
+      ],
+      "label": "Amber resin",
+      "item": "amber-resin",
+      "complete": "Every drop of amber in the Hollow \u00b7 30 / 30"
+    },
+    {
+      "event": "token",
+      "completeEvent": "all-tokens",
+      "prefix": "token:",
+      "names": [
+        "the fire lookout",
+        "the hollow log",
+        "the islet",
+        "the King's stones",
+        "the waterfall",
+        "the ridge cabin",
+        "the mill hamlet",
+        "under the creek bridge"
+      ],
+      "label": "Carved tokens",
+      "take": "Carved token \u2014 ",
+      "fallback": "somewhere quiet",
+      "complete": "All eight carved tokens \u2014 they're on the ranger's mantel now",
+      "shelf": "timbers.token-shelf"
+    }
+  ]
+}

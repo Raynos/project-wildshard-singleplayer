@@ -12,10 +12,17 @@ import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { GeometryPack, fetchDeflated } from '../kit/geometryPack';
 import { resourceScope } from '@wildshard/engine/app/resources';
 
+const admitted = new WeakMap<ShardProduct, Map<string, FigureCatalogue>>();
+
 /** The SDK decodes the existing pack; game owns models, rows and presentation.
  * Public callers supply product/file ids and resident scene handles only.
  */
 export class FigureCatalogue {
+  /** Share the already admitted native catalogue with page composition. */
+  static async fromProduct(product: ShardProduct, file: string): Promise<FigureCatalogue> {
+    const ready = admitted.get(product)?.get(file); if (ready !== undefined) return ready;
+    const catalogue = new FigureCatalogue(product.slug, file); await catalogue.admit(product); return catalogue;
+  }
   private readonly figures = new FigureModels();
   private pending: Promise<void> | undefined;
   constructor(private readonly productId: string, private readonly file: string) {}
@@ -31,6 +38,9 @@ export class FigureCatalogue {
       }
     }
     await this.figures.admit(data, resources);
+    const book = admitted.get(product) ?? new Map<string, FigureCatalogue>();
+    book.set(this.file, this); admitted.set(product, book);
+    resourceScope().onDispose(() => { if (book.get(this.file) === this) book.delete(this.file); });
   }
   prepare(): Promise<void> {
     this.pending ??= (async () => {

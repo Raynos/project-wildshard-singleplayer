@@ -27,7 +27,7 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
  */
 import * as THREE from 'three';
 import { admitLandmarkRows, landmarkRows, landmarkFloors } from './landmarkRows';
-import { installPineQuest } from '../../quest/index';
+import { PineQuestViews } from '../../quest/views';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { type FloorRect, floorAtRects } from '@wildshard/engine/physics/box';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
@@ -82,6 +82,7 @@ export class PineLandmarks {
   /** the drawn-up canoe: its place and its copies (PH-C8 hides it while you paddle) */
   private canoe: { place: Place; placed: Awaited<ReturnType<ModelPlacementBatch['place']>> } | null = null;
   private cabins: PineCabins | null = null;
+  private chapter: PineQuestViews | null = null;
   private glow: THREE.Points | null = null;
   private glowMat: THREE.PointsMaterial | null = null;
   private anchors: Record<WaystoneId, THREE.Object3D> | null = null;
@@ -166,7 +167,8 @@ export class PineLandmarks {
     installRuntimeAudioEntry(ctx, 'play', { audio, music });
     const page = await installRangedPage(ctx, { ...input, shadowBatch: !pineMemoryTrim() });
     installEnteredRuntimeService(ctx, scope => { registerPineLap({ game, player, animals, music, hud, elites: page.fights.elites, king: page.fights.encounter }, scope); });
-    const quest = await installPineQuest(ctx, { cabins: floor.cabins, landmarks: this, loadout: page.loadout, compendium: page.compendium });
+    this.chapter = await PineQuestViews.install(ctx, this);
+    const quest = this.chapter.quest;
     const ambience = await finishForestPageAudio(ctx, input.id); quest.useSfx(ambience.sfx);
     const spots = this.crags?.cave.spots() ?? [];
     for (let i = 0; i < Math.min(spots.length, 256); i++) { const spot = spots[i]; if (spot !== undefined) ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); }
@@ -194,7 +196,8 @@ export class PineLandmarks {
 
   floorHeightAt(x: number, z: number): number | undefined { return floorAtRects(this.floors, x, z, 'highest'); }
 
-  update(t: number): void {
+  update(dt: number, t: number): void {
+    this.chapter?.present(dt, t);
     const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmp);
     this.crags?.cave.presentFrame(t, this.sky);
     // the lanterns on the clock (PH-L3): a banked ember by day, full flame at night, a slow flicker
