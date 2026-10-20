@@ -181,6 +181,12 @@ export function readRuler(value) {
   return /** @type {Ruler} */ (/** @type {unknown} */ (value));
 }
 
+/** Retain history across a scoring correction; the old aggregate is replaced by the fresh measurement.
+ * @param {unknown} value @param {Ruler['plan']} plan @returns {Ruler} */
+export function readRulerHistory(value, plan) {
+  return readRuler(isObject(value) ? { ...value, plan } : value);
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const repo = resolve(import.meta.dirname, '../..');
   const rev = process.argv.slice(2).find((a) => a.startsWith('--rev='))?.slice(6) ?? 'HEAD';
@@ -197,8 +203,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   // --seed=<json> {history, events}: only for the first file, e.g. the series a custom-vs-hours chart measured.
   const seed = process.argv.slice(2).find((a) => a.startsWith('--seed='))?.slice(7);
   const seeded = seed ? /** @type {Ruler} */ ({ basis: 'source', waves: [], ...JSON.parse(readFileSync(resolve(seed), 'utf8')) }) : null;
-  const prev = existsSync(file) ? readRuler(JSON.parse(readFileSync(file, 'utf8'))) : seeded;
-  const next = nextRuler(JSON.parse(out.slice(start)), prev, { revision, committedAt, now: new Date().toISOString() });
+  const measured = JSON.parse(out.slice(start));
+  const at = { revision, committedAt, now: new Date().toISOString() };
+  const fresh = nextRuler(measured, null, at);
+  const prev = existsSync(file) ? readRulerHistory(JSON.parse(readFileSync(file, 'utf8')), fresh.plan) : seeded;
+  const next = readRuler(nextRuler(measured, prev, at));
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(`${file}.tmp`, `${JSON.stringify(next, null, 1)}\n`);
   renameSync(`${file}.tmp`, file);

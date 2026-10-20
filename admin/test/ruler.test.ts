@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { netLineReport } from '../../scripts/shard-net-lines.mjs';
-import { SHARDS, nextRuler, readRuler, wavePercent } from '../../scripts/admin-data/ruler.mjs';
+import { SHARDS, nextRuler, readRuler, readRulerHistory, wavePercent } from '../../scripts/admin-data/ruler.mjs';
 
 const netLines = netLineReport({ sample: {customLines: 70, basis: 'source'} },
   [{wave: 'W2', revision: 'sealed', record: 'M0', customLines: {sample: 100},
@@ -27,6 +27,18 @@ it('reads the ruler into the G458 card data with W1 first', () => {
   expect(r.wave.until).toBeNull();
   expect(r.history).toHaveLength(1);
   expect(readRuler(structuredClone(r))).toEqual(r);
+});
+
+it('refreshes pre-correction history while enforcing the fresh plan bounds', () => {
+  const previous = nextRuler(raw({}), null, { revision: 'a'.repeat(40), committedAt: '2026-10-16T16:40:00Z', now: '2026-10-16T16:50:00Z' });
+  previous.plan.upper = 1.001688;
+  expect(() => readRuler(previous)).toThrow('plan.upper above 1');
+  const retained = readRulerHistory(previous, { lower: 0.6, upper: 1 });
+  expect(retained.history).toEqual(previous.history);
+  expect(retained.events).toEqual(previous.events);
+  expect(retained.plan).toEqual({ lower: 0.6, upper: 1 });
+  expect(() => readRulerHistory(previous, previous.plan)).toThrow('plan.upper above 1');
+  expect(() => readRulerHistory({}, retained.plan)).toThrow();
 });
 
 it('keeps W1 open past midnight, records a P4 re-base, never repeats a revision', () => {

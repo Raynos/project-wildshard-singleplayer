@@ -32,3 +32,4 @@ export const WAVES:readonly {id:string;label:string;shards:readonly string[];goa
 export function wavePercent(start:Record<string,number>,now:Record<string,number>,shards:readonly string[],goal:number):number;
 export function nextRuler(raw:unknown,prev:Ruler|null,at:{revision:string;committedAt:string;now:string}):Ruler;
 export function readRuler(value:unknown):Ruler;
+export function readRulerHistory(value:unknown,plan:Ruler['plan']):Ruler;
