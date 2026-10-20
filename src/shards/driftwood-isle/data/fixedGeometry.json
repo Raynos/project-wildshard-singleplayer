@@ -543,6 +543,34 @@
       "slot": "bridgeRopeUnit",
       "channels": [],
       "source": "/assets/driftwood-isle/baked/fixed-models/bridge-rope-unit.glb"
+    },
+    {
+      "slot": "bridgeDeck",
+      "channels": [
+        [
+          "_skinindex",
+          "skinIndex"
+        ],
+        [
+          "_skinweight",
+          "skinWeight"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/bridge-deck.glb"
+    },
+    {
+      "slot": "bridgeSpecimenDeck",
+      "channels": [
+        [
+          "_skinindex",
+          "skinIndex"
+        ],
+        [
+          "_skinweight",
+          "skinWeight"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/bridge-specimen-deck.glb"
     }
   ],
   "groups": {

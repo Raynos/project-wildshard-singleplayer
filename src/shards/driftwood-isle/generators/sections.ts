@@ -142,7 +142,7 @@ export const SECTIONS = {
     assembly: v.strictObject({ ocean: v.strictObject({ level: number, shallowColor: v.tuple([number, number, number]), deepColor: v.tuple([number, number, number]), deepDepth: number }),
       bridge: v.strictObject({ a: v.tuple([number, number]), b: v.tuple([number, number]), sag: number }),
       piers: v.pipe(v.array(v.strictObject({ id: text, label: text })), v.length(4)) }),
-    fixedDraws: v.pipe(v.array(v.strictObject({ slot: text, channels: v.pipe(v.array(v.tuple([text, text])), v.maxLength(8)) })), v.length(88)),
+    fixedDraws: v.pipe(v.array(v.strictObject({ slot: text, channels: v.pipe(v.array(v.tuple([text, text])), v.maxLength(8)) })), v.length(90)),
     shadowTiers: v.strictObject({ phone: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }), desktop: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }) }),
     entryDecks: v.tuple([entryDeck('north'), entryDeck('east'), entryDeck('south'), entryDeck('west')]),
     foliage: v.strictObject({ seed: natural, tiers: v.strictObject({ phone: foliageTier, desktop: foliageTier }) }),

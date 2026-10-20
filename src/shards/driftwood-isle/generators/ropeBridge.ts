@@ -28,6 +28,8 @@ export function ropeBridgeSegments(spec: RopeBridgeSpec, ground: (x: number, z: 
 const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
 const _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
 
+const isMesh=(o:THREE.Object3D):o is THREE.Mesh=>o instanceof THREE.Mesh;
+
 function ropeBridgeOrigin(spec: RopeBridgeSpec, ground: (x: number, z: number) => number): { x: number; y: number; z: number } {
   return { x: spec.a[0], y: Math.fround(ground(spec.a[0], spec.a[1])), z: spec.a[1] };
 }
@@ -244,6 +246,39 @@ class RopeBridgeBuilder {
     for (let i = 0; i < n; i++) out.push(this.slab((i / n) * this.len, ((i + 1) / n) * this.len));
     return out;
   }
+  /**
+   * The posts, planks and ropes at rest in own space as ONE geometry skinned to the deck (the runtime's bones: a holder per
+   * segment, then a still anchor): a plank rides its segment, a rope stretches from its first joint's segment to its
+   * second's, a stay rides one, the posts ride the anchor; painted as the instances were. No normals (flat shaded).
+   */
+  deck(): THREE.BufferGeometry {
+    const n = this.segs.length, parts: THREE.BufferGeometry[] = [], colour = new THREE.Color(), matrix = new THREE.Matrix4();
+    const piece = (source: THREE.BufferGeometry, at: THREE.Matrix4, paint: THREE.Color | null, start: number, end: number): void => {
+      const g = new THREE.BufferGeometry().setAttribute('position', source.getAttribute('position').clone());
+      const local = g.getAttribute('position'), count = local.count, joints = new Uint16Array(count * 4), weights = new Float32Array(count * 4);
+      for (let i = 0; i < count; i++) { joints[i * 4] = local.getY(i) > 0.5 ? end : start; weights[i * 4] = 1; }
+      g.setAttribute('color', paint === null ? source.getAttribute('color').clone()
+        : new THREE.Float32BufferAttribute(Array.from({ length: count }, () => [paint.r, paint.g, paint.b]).flat(), 3));
+      g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(joints, 4)).setAttribute('skinWeight', new THREE.Float32BufferAttribute(weights, 4));
+      parts.push(g.applyMatrix4(at));
+    };
+    const posts = this.mesh.children[0];
+    if (posts === undefined || !isMesh(posts)) throw new Error('Rope bridge posts are missing');
+    piece(posts.geometry, new THREE.Matrix4(), null, n, n);
+    const plank = this.planks.geometry.toNonIndexed(), rope = this.ropes.geometry.toNonIndexed();
+    this.plankSpecs.forEach((pk, i) => { this.planks.getMatrixAt(i, matrix); this.planks.getColorAt(i, colour); piece(plank, matrix, colour, pk.seg, pk.seg); });
+    // the ropes in setPoses' order: per side the load rope and the handrail of each span, then the stays at the odd joints
+    const joints: [number, number][] = [], bone = (k: number): number => Math.min(k, n - 1);
+    for (let side = 0; side < 2; side++) {
+      for (let k = 0; k < n; k++) joints.push([bone(k), bone(k + 1)], [bone(k), bone(k + 1)]);
+      for (let k = 1; k < n; k += 2) joints.push([bone(k), bone(k)]);
+    }
+    joints.forEach(([start, end], r) => { this.ropes.getMatrixAt(r, matrix); piece(rope, matrix, C.rope, start, end); });
+    const merged = mergeGeometries(parts, false);
+    for (const part of [...parts, plank, rope]) part.dispose();
+    return merged;
+  }
+
   facts() {
     const colour = new THREE.Color(), ownDescs = this.colliderDescs();
     for (const desc of ownDescs) if (desc.kind !== 'treads') { desc.x -= this.o.x; desc.y -= this.o.y; desc.z -= this.o.z; }
@@ -255,7 +290,6 @@ class RopeBridgeBuilder {
   }
 }
 
-const isMesh=(o:THREE.Object3D):o is THREE.Mesh=>o instanceof THREE.Mesh;
 
 /** Original rest construction runs only in the author job; its moving geometry is not shipped twice. */
 export function bridgeFacts(spec:RopeBridgeSpec, ground:(x:number,z:number)=>number): ReturnType<RopeBridgeBuilder['facts']> & {key:string;ground:{x:number;z:number;y:number}[]} {
@@ -273,6 +307,13 @@ export function bridgePosts(spec:RopeBridgeSpec, ground:(x:number,z:number)=>num
     if(posts===undefined||!isMesh(posts))throw new Error('Rope bridge posts are missing');
     return posts.geometry.clone();
   } finally {made.mesh.traverse(o=>{if(isMesh(o)){o.geometry.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])material.dispose();}});}
+}
+
+/** The span's posts, planks and ropes in its own space, skinned to its deck (`RopeBridgeBuilder.deck`). */
+export function bridgeDeck(spec:RopeBridgeSpec, ground:(x:number,z:number)=>number): THREE.BufferGeometry {
+  const made=new RopeBridgeBuilder(spec,ground).build();
+  try { return made.deck(); }
+  finally {made.mesh.traverse(o=>{if(isMesh(o)){o.geometry.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])material.dispose();}});}
 }
 
 /** Native white units for the live bridge instances; every vertex is authored offline. */

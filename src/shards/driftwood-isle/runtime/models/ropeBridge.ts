@@ -4,13 +4,14 @@
  * Anchor posts at both ends, a deck of planks hung on a sagging catenary, rope handrails with vertical stays.
  *
  * The deck moves (PHYSICS.md, the rope bridge): it is cut into ~0.9 m segments that src/engine/physics/ropeChain.ts hangs as a
- * jointed chain between the posts. It sags and bounces under the player's weight and bows sideways, and the planks,
- * load ropes, handrails and stays are drawn from the segments' poses every frame (two instanced meshes). Without a
- * physics world (the dev scenes, the Explorer) it is drawn at rest, and `floorHeightAt` is the still catenary.
+ * jointed chain between the posts. It sags and bounces under the player's weight and bows sideways: the posts, planks,
+ * load ropes, handrails and stays are one baked mesh skinned to the segments (generators/ropeBridge.ts `deck`), whose
+ * bones are the segments' holders. Without a physics world (the dev scenes, the Explorer) it is drawn at rest, and
+ * `floorHeightAt` is the still catenary.
  *
  * Its own space: the origin is end a on the ground, the span running to b (its params: the two ends' world xz, the sag,
  * the width and the ground under them — the posts' feet and the ends' treads read it, so it is built where it stands).
- * The drawn group (the posts, the two instanced meshes, a holder per deck segment) is handed over in own space and
+ * The drawn group (the skinned deck, a holder bone per deck segment and the posts' still bone) is handed over in own space and
  * placed `single` at the origin; the chain's segments stay in the world (`chainSpec`), their poses are carried into the
  * group's space as they are drawn. `ropeBridgeLayout(params)` is a placement's builder, shared with its build.
  */
@@ -37,26 +38,19 @@ export interface DeckSegment { x: number; y: number; z: number; rot: { x: number
 const SEG_HY = 0.05, SEG_KG = 14;
 /** the most deck segments a baked span carries (the island span 25, the specimen 13); a longer bake is refused */
 const MAX_SEGS = 64;
-/** the most rope pieces: 2 sides x (2 per segment + a stay every other segment) at MAX_SEGS */
-const MAX_ROPES = 320;
 /** the most own-space collider descriptors (posts, rails and end treads: 14 today); more are refused */
 const MAX_DESCS = 64;
 
 
-const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
-const _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
+const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _a = new THREE.Vector3();
 
 class RopeBridgeBuilder {
-  /** the posts (static), the planks and ropes (instanced, posed by `setPoses`), and one holder per deck segment */
+  /** the skinned deck and its bones: one holder per deck segment (posed by `setPoses`), then the posts' still anchor */
   mesh!: THREE.Group;
   private len = 0; private dir = new THREE.Vector2(); private width = 1.4;
   private segs: DeckSegment[] = [];
-  /** per segment: an Object3D at its pose (a bolt stuck in the deck rides it) */
-  private holders: THREE.Object3D[] = [];
-  private planks!: THREE.InstancedMesh;
-  private ropes!: THREE.InstancedMesh;
-  /** per plank: its segment, its offset along that segment, its width */
-  private plankSpecs: { seg: number; z: number; w: number }[] = [];
+  /** per segment: a bone at its pose (a bolt stuck in the deck rides it) */
+  private holders: THREE.Bone[] = [];
   /** the deck's live top-centre height at each joint (n + 1), for `floorHeightAt` */
   private live = new Float32Array(0);
 
@@ -79,44 +73,29 @@ class RopeBridgeBuilder {
     this.mesh = new THREE.Group();
     this.mesh.name = 'rope-bridge';
 
-    // ── anchor posts (two per end), sunk into the ground: the one static part, baked in own space ──
-    const posts = new THREE.Mesh((facts.key === bridgeKey(BRIDGE_SPANS.specimen) ? fixedDraw('bridgeSpecimenPosts') : fixedDraw('bridgePosts')).copy(), lowPolyLookMaterial(this.sky, 'still'));
-    posts.castShadow = true; posts.receiveShadow = true;
-    this.mesh.add(posts);
-
-    // ── the deck at rest: one segment per chord of the sag, its top face on the catenary ──
+    // ── the deck at rest: one segment per chord of the sag, its top face on the catenary; a bone per segment and the anchor ──
     this.segs=structuredClone(facts.segments);
-    for(let i=0;i<Math.min(this.segs.length,MAX_SEGS);i++){const h=new THREE.Object3D();h.matrixAutoUpdate=false;this.mesh.add(h);this.holders.push(h);}
-    const n=this.segs.length;
-    this.live = new Float32Array(n + 1);
-    this.plankSpecs=structuredClone(facts.planks);
-    // the planks and ropes wear the kit's still material (one shared graph toon material), their tints per copy
-    const still = lowPolyLookMaterial(this.sky, 'still');
-    this.planks = new THREE.InstancedMesh(fixedDraw('bridgePlankUnit').copy(), still, this.plankSpecs.length);
-    const col = new THREE.Color();
-    facts.colours.forEach((c,i)=>{this.planks.setColorAt(i,col.setRGB(c.r,c.g,c.b));});
-    this.ropes = new THREE.InstancedMesh(fixedDraw('bridgeRopeUnit').copy(), still, facts.ropeCapacity);
-    for (let i = 0; i < Math.min(this.ropes.count, MAX_ROPES); i++) this.ropes.setColorAt(i, col.setRGB(facts.ropeColour.r, facts.ropeColour.g, facts.ropeColour.b));
-    const live = (m: THREE.InstancedMesh): void => {
-      m.castShadow = true; m.receiveShadow = true;
-      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      m.frustumCulled = false; // it moves, and its instances span the gully
-      this.mesh.add(m);
-    };
-    live(this.planks); live(this.ropes);
-
+    this.holders=Array.from({length:Math.min(this.segs.length,MAX_SEGS)+1},()=>{const h=new THREE.Bone();h.matrixAutoUpdate=false;this.mesh.add(h);return h;});
+    this.live = new Float32Array(this.segs.length + 1);
     this.setPoses(null, 1);
+    // the posts, planks and ropes: one draw in a copy of the kit's still material, skinned to the bones as they stand at rest
+    const geometry = fixedDraw(facts.key === bridgeKey(BRIDGE_SPANS.specimen) ? 'bridgeSpecimenDeck' : 'bridgeDeck').copy();
+    geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(geometry.getAttribute('skinIndex').array, 4)); // the graph skins integer joints
+    const deck = new THREE.SkinnedMesh(geometry, lowPolyLookMaterial(this.sky, 'still').clone()); // its own copy: a graph's skinning binds one skeleton
+    deck.castShadow = true; deck.receiveShadow = true; deck.frustumCulled = false; // it moves, and it spans the gully
+    deck.bind(new THREE.Skeleton(this.holders, this.holders.map(h => h.matrix.clone().invert())), new THREE.Matrix4());
+    this.mesh.add(deck);
     return this;
   }
 
   /** the deck for src/engine/physics/ropeChain.ts: the segments at rest, their size and weight, their holders as owners */
   chainSpec(): { segments: DeckSegment[]; hx: number; hy: number; mass: number; owners: { id: string; name: string; follows: THREE.Object3D }[] } {
-    return { segments: this.segs, hx: this.width / 2 + 0.15, hy: SEG_HY, mass: SEG_KG, owners: this.holders.map((follows) => ({ id: 'bridge', name: 'Rope bridge', follows })) };
+    return { segments: this.segs, hx: this.width / 2 + 0.15, hy: SEG_HY, mass: SEG_KG, owners: this.holders.slice(0, this.segs.length).map((follows) => ({ id: 'bridge', name: 'Rope bridge', follows })) };
   }
 
-  /** Pose the drawn deck: from `deck` (a RopeChain, interpolated by `alpha`), or at rest when null. */
+  /** Pose the deck's bones: from `deck` (a RopeChain, interpolated by `alpha`), or at rest when null. */
   setPoses(deck: DeckPoses | null, alpha: number): void {
-    const hw = this.width / 2, n = this.segs.length;
+    const n = this.segs.length;
     this.segs.forEach((sg, i) => {
       if (deck) deck.pose(i, alpha, _p, _q); else { _p.set(sg.x, sg.y, sg.z); _q.set(sg.rot.x, sg.rot.y, sg.rot.z, sg.rot.w); }
       _p.x -= this.o.x; _p.y -= this.o.y; _p.z -= this.o.z; // the group stands at the origin: the holders are posed in its own space
@@ -125,37 +104,11 @@ class RopeBridgeBuilder {
       h.position.copy(_p); h.quaternion.copy(_q); h.updateMatrix();
       h.matrixWorldNeedsUpdate = true;
     });
-    // planks: flush with their segment's top face
-    this.plankSpecs.forEach((pk, i) => {
-      const h = this.holders[pk.seg];
-      if (!h) return;
-      _m.compose(_v.set(0, SEG_HY - 0.03, pk.z), _q2.identity(), _s.set(pk.w, 0.06, 0.3));
-      this.planks.setMatrixAt(i, _m.premultiply(h.matrix));
-    });
-    this.planks.instanceMatrix.needsUpdate = true;
-    // a joint's point at (x across, y up): segment k's start edge (the last segment's end edge for k = n)
-    const joint = (k: number, x: number, y: number, out: THREE.Vector3): THREE.Vector3 => {
+    // the deck's top centre at each joint: segment k's start edge (the last segment's end edge for k = n)
+    for (let k = 0; k <= Math.min(n, MAX_SEGS); k++) {
       const i = Math.min(k, n - 1), sg = this.segs[i], h = this.holders[i];
-      if (!sg || !h) return out.set(0, 0, 0);
-      return out.set(x, y, k < n ? -sg.hz : sg.hz).applyMatrix4(h.matrix);
-    };
-    for (let k = 0; k <= Math.min(n, MAX_SEGS); k++) this.live[k] = joint(k, 0, SEG_HY, _a).y;
-    let r = 0;
-    const rope = (from: THREE.Vector3, to: THREE.Vector3, radius: number): void => {
-      const d = _d.subVectors(to, from), l = d.length();
-      _q2.setFromUnitVectors(_y, d.divideScalar(l || 1));
-      this.ropes.setMatrixAt(r++, _m.compose(from, _q2, _s.set(radius, l, radius)));
-    };
-    for (const s of [-1, 1]) {
-      for (let k = 0; k < Math.min(n, MAX_SEGS); k++) {
-        rope(joint(k, s * (hw + 0.05), SEG_HY - 0.07, _a), joint(k + 1, s * (hw + 0.05), SEG_HY - 0.07, _b), 0.035); // the load rope under the plank ends
-        rope(joint(k, s * (hw + 0.12), SEG_HY + 0.97, _a), joint(k + 1, s * (hw + 0.12), SEG_HY + 0.97, _b), 0.035); // the handrail
-      }
-      // stays at the odd joints 1, 3, … below n
-      for (let j = 0; j < Math.min(n >> 1, MAX_SEGS); j++) { const k = 2 * j + 1; rope(joint(k, s * (hw + 0.1), SEG_HY - 0.05, _a), joint(k, s * (hw + 0.12), SEG_HY + 0.97, _b), 0.025); }
+      if (sg && h) this.live[k] = _a.set(0, SEG_HY, k < n ? -sg.hz : sg.hz).applyMatrix4(h.matrix).y;
     }
-    this.ropes.count = r;
-    this.ropes.instanceMatrix.needsUpdate = true;
   }
 
   /** the plank height under world (x, z) when over the span (the live deck while a chain poses it), else undefined */

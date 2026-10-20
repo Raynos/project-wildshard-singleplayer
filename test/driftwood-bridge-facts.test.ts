@@ -1,11 +1,11 @@
 import { beforeAll, expect, it } from 'vitest';
-import { BufferAttribute, Mesh, type Object3D } from 'three';
+import { BufferAttribute, Mesh, SkinnedMesh, type Object3D } from 'three';
 import { admitBridgeFacts } from '../src/shards/driftwood-isle/boot/bridgeFacts';
 import { ropeBridgeLayout, type RopeBridgeSpec } from '../src/shards/driftwood-isle/runtime/models/ropeBridge';
 import { fakeWorld } from './fake/world';
 import { fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
-import { bridgePosts, bridgeUnitGeometries } from '../src/shards/driftwood-isle/generators/ropeBridge';
+import { bridgeDeck, bridgeUnitGeometries } from '../src/shards/driftwood-isle/generators/ropeBridge';
 
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { fixtureBytes } from './fixtures/nativeBytes';
@@ -13,13 +13,9 @@ import fixedBlobs from '../src/shards/driftwood-isle/data/fixedBlobs.generated.j
 
 const span:RopeBridgeSpec={a:[0,0],b:[12,0],sag:0.9};
 const isMesh=(o:Object3D):o is Mesh=>o instanceof Mesh;
-// The page admits the baked posts before it builds; the author recipe stands in for the fixed-model bytes here.
-beforeAll(async () => { admitDriftwoodFixtureRows(); await fixedDraw('bridgeSpecimenPosts').load(bridgePosts(span,()=>0));
-  const units = bridgeUnitGeometries();
-  const plank = units['bridge-plank-unit'], rope = units['bridge-rope-unit'];
-  if (plank === undefined || rope === undefined) throw new Error('Missing native bridge unit');
-  await fixedDraw('bridgePlankUnit').load(plank); await fixedDraw('bridgeRopeUnit').load(rope);
-});
+const isSkinned=(o:Object3D):o is SkinnedMesh=>o instanceof SkinnedMesh;
+// The page admits the baked deck before it builds; the author recipe stands in for the fixed-model bytes here.
+beforeAll(async () => { admitDriftwoodFixtureRows(); await fixedDraw('bridgeSpecimenDeck').load(bridgeDeck(span,()=>0)); });
 it('keeps deck owners and the walk floor on the live chain poses', () => {
   const bridge=ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0});
   try {
@@ -49,20 +45,21 @@ it('refuses an unbaked site', () => {
   expect(()=>admitBridgeFacts(span,()=>1)).toThrow('terrain changed');
 });
 
-it('draws the baked anchor posts, painted, and refuses to draw before they load', async () => {
-  const want=bridgePosts(span,()=>0),bridge=ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0});
+it('draws the baked deck skinned to its segments, and refuses to draw before it loads', async () => {
+  const want=bridgeDeck(span,()=>0),bridge=ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0});
   try {
-    const posts=bridge.mesh.children[0];
-    if(posts===undefined||!isMesh(posts))throw new Error('Bridge posts absent');
-    expect(Array.from(posts.geometry.getAttribute('position').array)).toEqual(Array.from(want.getAttribute('position').array));
-    expect(Array.from(posts.geometry.getAttribute('color').array)).toEqual(Array.from(want.getAttribute('color').array));
+    const deck=bridge.mesh.children.find(isSkinned);
+    if(deck===undefined)throw new Error('Bridge deck absent');
+    expect(deck.skeleton.bones.length).toBe(bridge.chainSpec().segments.length+1);
+    for(const key of ['position','color','skinWeight'])expect(Array.from(deck.geometry.getAttribute(key).array)).toEqual(Array.from(want.getAttribute(key).array));
+    expect(deck.geometry.getAttribute('skinIndex').array).toBeInstanceOf(Uint16Array);
   } finally {
     want.dispose();
     bridge.mesh.traverse(o=>{if(isMesh(o)){o.geometry.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])material.dispose();}});bridge.mesh.clear();
   }
-  fixedDraw('bridgeSpecimenPosts').take().dispose();
+  fixedDraw('bridgeSpecimenDeck').take().dispose();
   expect(()=>ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0})).toThrow('not loaded');
-  await fixedDraw('bridgeSpecimenPosts').load(bridgePosts(span,()=>0));
+  await fixedDraw('bridgeSpecimenDeck').load(bridgeDeck(span,()=>0));
 });
 
 it('retains original native bridge units in named GLBs', async () => {

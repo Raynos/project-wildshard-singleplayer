@@ -2,6 +2,7 @@ import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, type BufferGeometry }
 import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import { driftwoodFixedSource } from './fixedSource';
 import { bridgeUnitGeometries } from './ropeBridge';
+import { originalBridgeDecks } from './driftwoodBridge.mjs';
 
 /** Original static world draws and own-space equipment/cover templates; each source draw is assembled exactly once. */
 export function driftwoodScene(project: string, head: BufferGeometry): { baked: BakedScene; fixed: ReturnType<typeof driftwoodFixedSource> } {
@@ -9,6 +10,7 @@ export function driftwoodScene(project: string, head: BufferGeometry): { baked: 
   fixed.geometries.set('wendell-head', head);
   // Append after the head so every existing template retains its native identity.
   for (const [id, geometry] of Object.entries(bridgeUnitGeometries())) fixed.geometries.set(id, geometry);
+  const decks = originalBridgeDecks(); fixed.geometries.set('bridge-deck', decks.world); fixed.geometries.set('bridge-specimen-deck', decks.specimen);
   const material = new MeshStandardMaterial({ vertexColors: true });
   let library = 0;
   for (const [id, geometry] of fixed.geometries) {
