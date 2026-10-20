@@ -511,7 +511,7 @@ export class StormTitanFight implements BossScript {
     if (gr === null) { this.domeBroken = true; return; }
     for (const [i, site] of this.data.TITAN_SUPPORT_SITES.entries()) {
       const { x, z } = site;
-      const a = gr.spawnRider({ x, z, yaw: 0, variant: 'rider', storm: true });
+      const a = gr.spawnRider({ x, z, yaw: 0, variant: 'rider', quiet: true });
       if (a === null) continue;
       const lane = this.lanes[i] ?? this.lanes[0];
       if (lane === undefined) continue;

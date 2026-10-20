@@ -8,7 +8,7 @@ import { engineString } from '@wildshard/engine/strings';
 import * as THREE from 'three';
 
 
-import { HORSE_SPECIES, HORSE_SPEED, horseBones } from './horse';
+import { HORSE_SPECIES, HORSE_SPEED } from './horse';
 
 
 
@@ -18,7 +18,7 @@ import { HORSE_SPECIES, HORSE_SPEED, horseBones } from './horse';
  * a spectral horse archer, cyan smoke and glass, galloping the ridge lines at night.
  *
  * The horse IS the creature row's horse (src/shards/nalati-grasslands/species/horse.ts — its build, gaits, mane / tail postPose, tack),
- * registered again as kind `ghost-rider` with this file's brain; src/shards/nalati-grasslands/combat/ghostRiders.ts swaps its material for the
+ * registered again as kind `ghost-rider` with this file's brain; the night rows (game/boss/presentation PatrolEncounterView) swap its material for the
  * ghost one (translucent teal, a fresnel rim, additive, no shadow) and seats the hooded rider (`riderGeometry`) on the
  * horse's body bone. The brain is a puppet: the controller writes the steering target every frame (`mem.tx / tz`, the
  * speed `mem.v`) — the line's formation, the ridge path, the circling — and does the shooting; `think` only steers.
@@ -32,8 +32,6 @@ export const GHOST_RIDER = 'ghost-rider';
 /** the horse rig's body bone and the seat on it (body-bone space; horse.ts's SADDLE_LOCAL) */
 export const GHOST_SEAT = new THREE.Vector3(0, 0.36, 0.28);
 
-const _p = new THREE.Vector3();
-
 function thinkGhost(a: Animal, c: ThinkCtx): void {
   const m = a.mem;
   const tx = m['tx'], tz = m['tz'];
@@ -43,11 +41,6 @@ function thinkGhost(a: Animal, c: ThinkCtx): void {
   const v = m['v'] ?? HORSE_SPEED.canter;
   a.state = v > HORSE_SPEED.canter ? 'flee' : 'wander';
   a.setMotion(Math.atan2(dx, dz), Math.hypot(dx, dz) < 0.8 ? 0 : v, m['turn'] ?? 2.4);
-}
-
-/** the rider's seat in world space (valid after the horse's update this frame) */
-export function ghostSeat(a: Animal, out: THREE.Vector3): THREE.Vector3 {
-  return out.copy(GHOST_SEAT).applyMatrix4(horseBones(a).body.matrixWorld);
 }
 
 /**
@@ -99,13 +92,6 @@ export function riderGeometry(captain = false): THREE.BufferGeometry {
   g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
   g.computeBoundingSphere();
   return g;
-}
-
-/** the rider's chest / head in world space, for the hit test the horse capsules miss (the controller's `riderTarget`) */
-export function ghostRiderPoints(a: Animal, chest: THREE.Vector3, head: THREE.Vector3): void {
-  const m = horseBones(a).body.matrixWorld;
-  chest.copy(_p.set(0, 0.5, 0.02).add(GHOST_SEAT)).applyMatrix4(m);
-  head.copy(_p.set(0, 0.9, 0.14).add(GHOST_SEAT)).applyMatrix4(m);
 }
 
 const horse = HORSE_SPECIES;

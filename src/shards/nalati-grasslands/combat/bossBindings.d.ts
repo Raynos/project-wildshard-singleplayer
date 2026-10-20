@@ -65,6 +65,6 @@ export interface StormRider { a: Animal; lane: GroundTell; law: CoupledMember }
 
 /** The boss borrows an existing native renderer; it never owns that renderer's catalogue. */
 export interface TitanRiders {
-  spawnRider: (options: { x: number; z: number; yaw: number; variant?: 'rider'; storm?: boolean }) => Animal | null;
+  spawnRider: (options: { x: number; z: number; yaw: number; variant?: 'rider'; quiet?: boolean }) => Animal | null;
   dissolve: (actor: Animal) => void;
 }

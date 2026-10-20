@@ -10,25 +10,18 @@ import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { encounterHit } from './damage';
 import type * as THREE from 'three';
-
-
-
-
-
 import type { Balbals } from '../world/Balbals';
-
-
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import * as v from 'valibot';
-import { GhostRiders } from './ghostRiders';
 import { CueDirector } from '@wildshard/game/audio/cueDirector';
-import { SlotEncounterView } from '@wildshard/game/boss/presentation';
+import { PatrolEncounterView, SlotEncounterView } from '@wildshard/game/boss/presentation';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { BALBAL_SLAM, creatureGuest } from '../species/balbal';
+import { riderGeometry } from '../species/ghostRider';
 
 /**
  * The dusk + night enemies (row B11 of project/archive/2026-09-23-nalati.md) as one piece for the shard wiring (src/shards/nalati-grasslands/index.ts):
- * the balbal warriors (night rows on game/boss/presentation SlotEncounterView — they wake at dusk) and the ghost riders (src/shards/nalati-grasslands/combat/ghostRiders.ts —
+ * the balbal warriors (night rows on game/boss/presentation SlotEncounterView — they wake at dusk) and the ghost riders (night rows on its PatrolEncounterView —
  * they ride at night). Both run off the weather row's clock (`weather.clock`); both are ordinary AnimalManager animals, so
  * the health bars, the damage numbers, the kill feed, the minimap, the aim assist and the achievements (Stonebreaker:
  * `progress.recordKill('balbal', …)`) all come for free.
@@ -47,7 +40,7 @@ import { BALBAL_SLAM, creatureGuest } from '../species/balbal';
 export interface NightEnemiesCtx { game: Game; sky: Sky; player: Player; forest: Forest; balbals: Balbals | null; clock: DayCycleClock }
 export interface NightEnemies {
   balbals: SlotEncounterView;
-  riders: GhostRiders;
+  riders: PatrolEncounterView;
   update: (dt: number, t: number) => void;
   attach: (animals: AnimalManager) => void;
   target: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, hit: TargetHit | null) => TargetHit | null;
@@ -65,24 +58,25 @@ export async function wireNightEnemies(ctx: NightEnemiesCtx): Promise<NightEnemi
   const tell = { ...rows.view.tell, cone: BALBAL_SLAM.cone, reach: BALBAL_SLAM.reach / 1.18, wind: BALBAL_SLAM.windup / 2.9, strike: BALBAL_SLAM.strike / 2.9 };
   const balbals = new SlotEncounterView(rows.slots, { ...rows.view, tell }, ReturnProgram.page(rows.program, ctx.game.levelScope),
     { scene: ctx.game.scene, cues, sites: ctx.balbals?.statues ?? null, guest: creatureGuest() });
-  const riders = new GhostRiders({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, clock: ctx.clock, cues }, rows);
+  const rider = ctx.game.levelScope.own(riderGeometry()), captain = ctx.game.levelScope.own(riderGeometry(true));
+  const riders = new PatrolEncounterView({ patrol: rows.patrol, motion: rows.motion, view: rows.ride }, ReturnProgram.page(rows.program, ctx.game.levelScope),
+    { game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, cues, figures: { rider, captain, storm: rider } });
   return {
     balbals, riders,
     update(dt, t) {
       for (const site of balbals.update(dt, { kind: Number(ctx.clock.dayPhase === 'dusk' || ctx.clock.dayPhase === 'night') })) ctx.balbals?.setAwake(site.index, site.awake === 1);
-      riders.update(dt, t);
+      // a ghost arrow hurts like any creature's blow (the pipeline: health, the red flash, the sound)
+      for (const { damage, from } of riders.update(dt, t, { hold: 0, night: Number(ctx.clock.dayPhase === 'night') })) {
+        const a = from ?? riders.riders[0]?.a;
+        if (a !== undefined) sampleStrike(NALATI_STRIKES.arrow, a, ctx.player.position, () => { encounterHit(a, damage, 'creature.ghost-rider', ctx.player.position); }, { origin: ctx.player.position });
+      }
       cues.setLight(Math.max(0.25, wildEnv.light)); cues.update(dt);
     },
     attach(animals) {
       // never let a night enemy stop the shard's boot (the shared tree is everyone's): a failed build logs and switches it off
       try { balbals.attachActors(animals); } catch (e) { console.error('[B11] balbal warriors off:', e); }
-      try { riders.attach(animals); } catch (e) { console.error('[B11] ghost riders off:', e); }
-      // a ghost arrow hurts like any creature's blow (the pipeline: health, the red flash, the sound)
-      riders.hurt = (damage, from) => {
-        const a = from ?? riders.riders[0]?.a;
-        if (a !== undefined) sampleStrike(NALATI_STRIKES.arrow, a, ctx.player.position, () => { encounterHit(a, damage, 'creature.ghost-rider', ctx.player.position); }, { origin: ctx.player.position });
-      };
+      try { riders.attachActors(animals); } catch (e) { console.error('[B11] ghost riders off:', e); }
     },
-    target(origin, dir, maxDist, hit) { return riders.riderTarget(origin, dir, maxDist, hit); },
+    target(origin, dir, maxDist, hit) { return riders.target(origin, dir, maxDist, hit); },
   };
 }
