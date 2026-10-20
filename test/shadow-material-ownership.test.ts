@@ -16,12 +16,12 @@ test('retiring a resident releases native shadow leases but never owns the share
   const renderer = {
     properties: { has: () => false, get: (object: unknown) => object, remove: () => undefined, update: () => undefined, dispose: () => undefined },
     renderBufferDirect: vi.fn<Renderer['renderBufferDirect']>(),
-    shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>(() => { renderer.renderBufferDirect(camera, scene, geometry, depth, mesh, null); }) },
+    shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>(() => { renderer.renderBufferDirect(camera, scene, geometry, depth, mesh, { start: 0, count: 0, materialIndex: 0 }); }) },
   };
   new UploadOwnership(page, assets).attach(renderer);
   installShadowMaterialOwnership(renderer, assets, page);
   // Ordinary offscreen depth jobs remain resident-owned and are safe to dispose after compilation.
-  renderer.renderBufferDirect(camera, scene, geometry, temporary, mesh, null);
+  renderer.renderBufferDirect(camera, scene, geometry, temporary, mesh, { start: 0, count: 0, materialIndex: 0 });
   expect(assets.has(`renderer:shadow:${temporary.uuid}`)).toBe(false);
   expect(sceneResourceOwner(temporary)).toBe(resident);
   expect(() => temporary.dispose()).not.toThrow();
