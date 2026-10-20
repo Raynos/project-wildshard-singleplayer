@@ -133,7 +133,18 @@ async function placeFamilies(owner: BakedTilesOwner, row: BakedTilesRow, instanc
  *  runtime's world build (`residentBakedTiles`), which in a grid can build its resident world before any plan phase. Keyed
  *  by slug: a grid may hold more than one admitted product object for the same shard. */
 const drawnBy = new Map<string, Promise<ReadonlyMap<string, BakedTiles>>>();
-const ticking = new WeakSet<Scope>();
+/** Per world: every drawn set it shows, and the one bounce system that moves them (its owner's scope ends it; the next
+ *  entering path registers it again). Two paths, two shards or two scopes in one world never register it twice. */
+const shown = new WeakMap<object, Set<ReadonlyMap<string, BakedTiles>>>(), ticking = new WeakSet();
+function tick(ctx: ShardContext, world: object, drawn: ReadonlyMap<string, BakedTiles>, resident: Scope): void {
+  let sets = shown.get(world); if (sets === undefined) { sets = new Set(); shown.set(world, sets); }
+  if (!sets.has(drawn)) { const live = sets; live.add(drawn); resident.onDispose(() => { live.delete(drawn); }); }
+  if (ticking.has(world)) return;
+  ticking.add(world); ctx.scope.onDispose(() => { ticking.delete(world); });
+  const moving = sets;
+  ctx.system({ id: 'client.baked.tiles', phase: 'update', after: ['main.world'], before: ['engine.creatures.update'],
+    run: () => { for (const set of moving) for (const baked of set.values()) baked.update(); } });
+}
 async function enterBakedTiles(ctx: ShardContext, rows: readonly BakedTilesRow[], resident: Scope): Promise<ReadonlyMap<string, BakedTiles>> {
   const slug = ctx.product.slug;
   let pending = drawnBy.get(slug);
@@ -142,11 +153,9 @@ async function enterBakedTiles(ctx: ShardContext, rows: readonly BakedTilesRow[]
     resident.onDispose(() => { if (drawnBy.get(slug) === drawing) drawnBy.delete(slug); });
     drawing.catch(() => { if (drawnBy.get(slug) === drawing) drawnBy.delete(slug); });
   }
-  const drawn = await pending;
-  if (!ticking.has(ctx.scope)) {
-    ticking.add(ctx.scope);
-    ctx.system({ id: 'client.baked.tiles', phase: 'update', after: ['main.world'], before: ['engine.creatures.update'], run: () => { for (const baked of drawn.values()) baked.update(); } });
-  }
+  const drawn = await pending, world = ctx.game.runtime?.world;
+  if (world === undefined || world === null) throw new Error('Baked tiles require the world stage');
+  tick(ctx, world, drawn, resident);
   return drawn;
 }
 /** The `world.baked` client feature: each declared row drawn once per shard resident, its bounce moved once a frame. */

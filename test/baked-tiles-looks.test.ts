@@ -42,9 +42,11 @@ test('baked tiles lend their graph looks over an earlier presentation fallback',
   } finally { compile.mockRestore(); presentation.dispose(); resident.dispose(); fallback.dispose(); compiled.dispose(); }
 });
 
-// G532 grid entry: a trusted runtime's resident world can build before any plan phase drew the tiles. Whichever path asks
-// first draws them once per shard; the other (here a second admitted product object of the same shard) reuses that draw.
-test('baked tiles draw once per shard whichever path enters first', async () => {
+// G532 standalone and grid entry in one run. Standalone, the plan feature (the data client's scope) and the trusted runtime's
+// world build (the resident's) both ask for the tiles in one world; in a grid the runtime's resident world asks first, on a
+// second admitted product object of the same shard. Each world draws once and registers one bounce system, as a world's
+// system registry refuses a duplicate id.
+test('baked tiles draw once and tick once per world, standalone and grid entry', async () => {
   const source = emptyShardfile({ slug: 'fixture-reef', name: 'Reef', author: 'Fixture', revision: 1, seed: 4 });
   source.look.materials['reef-ground'] = parseFamilyMaterial({ family: 'pbr' });
   const glb = staticGlb([{ geometry: new BoxGeometry(), material: new MeshStandardMaterial(), name: 'ground_0_0' }]);
@@ -53,24 +55,40 @@ test('baked tiles draw once per shard whichever path enters first', async () => 
   const plan = parseClientPlan({ version: 1, features: [{ kind: 'world.baked', rows: [row] }] });
   const product = () => createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map([['client/plan', plan]]),
     files: new Map([['world/ground.glb', { hash: 'a'.repeat(64), url: '/fixture/ground.glb' }]]), read: () => Promise.resolve(glb) });
-  const resident = new Scope('resident'), entered = new Scope('entered'), root = new Group(), material = new MeshBasicMaterial();
-  const world = { sky: { setupMaterial: vi.fn(), csm: { lights: [] }, sunDir: new Vector3(0, 1, 0) }, registry: {} };
-  const context = (scope: Scope) => {
-    const system = vi.fn<ShardContext['system']>(), base: Pick<ShardContext, 'product' | 'scope' | 'root' | 'system'> = { product: product(), scope, root, system };
-    const typed = base as ShardContext;
-    Object.defineProperty(typed, 'game', { enumerable: true, value: { runtime: { world } } });
-    return { ctx: { system }, typed };
+  const material = new MeshBasicMaterial();
+  const page = () => {
+    const ids = new Set<string>(), root = new Group();
+    const world = { sky: { setupMaterial: vi.fn(), csm: { lights: [] }, sunDir: new Vector3(0, 1, 0) }, registry: {} };
+    const system = vi.fn<ShardContext['system']>((spec) => { if (ids.has(spec.id)) throw new Error(`Duplicate system id: ${spec.id}`); ids.add(spec.id); });
+    const context = (scope: Scope): ShardContext => {
+      const base: Pick<ShardContext, 'product' | 'scope' | 'root' | 'system'> = { product: product(), scope, root, system }, typed = base as ShardContext;
+      Object.defineProperty(typed, 'game', { enumerable: true, value: { runtime: { world } } });
+      return typed;
+    };
+    return { root, system, context };
   };
   const compile = vi.spyOn(lookCompiler, 'runtimeLookMaterials').mockResolvedValue(lend('reef-ground', material, () => undefined));
+  const scopes: Scope[] = [];
+  const scope = (name: string): Scope => { const made = new Scope(name); scopes.push(made); return made; };
   try {
-    const runtime = context(resident), feature = context(entered);
-    const drawn = await residentBakedTiles(runtime.typed, resident);
-    await installClientBakedTiles(feature.typed, { kind: 'world.baked', rows: [row] }, entered);
+    // standalone: the data client's plan feature, then the runtime's world build, in one world
+    const standalone = page(), data = scope('data'), resident = scope('resident');
+    await installClientBakedTiles(standalone.context(data), { kind: 'world.baked', rows: [row] }, data);
+    const drawn = await residentBakedTiles(standalone.context(resident), resident);
     expect(drawn.get('ground')?.tiles.map(tile => tile.name)).toEqual(['baked-ground_0_0']);
-    expect(root.children).toHaveLength(1);
-    expect(compile).toHaveBeenCalledOnce();
-    expect(runtime.ctx.system).toHaveBeenCalledOnce(); expect(feature.ctx.system).toHaveBeenCalledOnce();
-    resident.dispose();
-    expect(root.children).toHaveLength(0);
-  } finally { compile.mockRestore(); resident.dispose(); entered.dispose(); material.dispose(); }
+    expect(standalone.root.children).toHaveLength(1); expect(standalone.system).toHaveBeenCalledOnce();
+    data.dispose(); resident.dispose();
+    expect(standalone.root.children).toHaveLength(0);
+    // grid: the resident world builds first, the entered plan phase follows on another product object
+    const grid = page(), gridResident = scope('grid-resident'), entered = scope('entered');
+    await residentBakedTiles(grid.context(gridResident), gridResident);
+    await installClientBakedTiles(grid.context(entered), { kind: 'world.baked', rows: [row] }, entered);
+    expect(grid.root.children).toHaveLength(1); expect(grid.system).toHaveBeenCalledOnce();
+    // a re-entry after the entered scope left reuses the resident's draw and its one system
+    entered.dispose();
+    const again = scope('again');
+    await installClientBakedTiles(grid.context(again), { kind: 'world.baked', rows: [row] }, again);
+    expect(grid.root.children).toHaveLength(1); expect(grid.system).toHaveBeenCalledOnce();
+    expect(compile).toHaveBeenCalledTimes(2);
+  } finally { compile.mockRestore(); for (const made of scopes) made.dispose(); material.dispose(); }
 });
