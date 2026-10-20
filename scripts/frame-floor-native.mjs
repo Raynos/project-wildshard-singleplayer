@@ -9,7 +9,8 @@ const expression = `(() => {
   const api = window.__wildshard, read = api && Object.getOwnPropertyDescriptor(api, 'memory')?.value;
   if (typeof read !== 'function') return null;
   const memory = read.call(api), grid = api.shard?.grid?.state(), live = grid?.live?.live;
-  return { at: Date.now(), origin: performance.timeOrigin, memory,
+  return { at: Date.now(), origin: performance.timeOrigin,
+    memory: { totals: memory.totals, unattributed: memory.unattributed, allocations: memory.allocations.filter(row => row.domain === 'gpu') },
     phase: live?.gameplayReady && live.pending.length === 0 && grid.live.crossing.phase === 'settled' ? 'playing' : 'loading',
     current: live?.current ?? null };
 })()`;
@@ -19,6 +20,8 @@ const expression = `(() => {
  * not a claim those two maxima occurred simultaneously). Raw logs stay scratch.
  */
 export function startFloorNative(root, directory, device, read, interrupt) {
+  const phase = join(directory, 'native.phase'), file = join(directory, 'native.jsonl');
+  writeFileSync(phase, 'measure', { flag: 'wx' });
   const quiet = join(root, '.git/quiet');
   const pushes = () => spawnSync('lsof', ['-t', join(root, '.git/push.lock')], { encoding: 'utf8' }).stdout.trim() !== '';
   if (pushes()) throw new Error('Native sampling deferred: push running or waiting');
@@ -26,13 +29,18 @@ export function startFloorNative(root, directory, device, read, interrupt) {
   writeFileSync(quiet, lease, { flag: 'wx' });
   const release = () => { try { if (readFileSync(quiet, 'utf8') === lease) unlinkSync(quiet); } catch { /* Already released. */ } };
   if (pushes()) { release(); throw new Error('Native sampling deferred: push won admission'); }
-  const phase = join(directory, 'native.phase'), file = join(directory, 'native.jsonl');
-  writeFileSync(phase, 'measure', { flag: 'wx' });
   const sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', device,
     '--phase-file', phase, '--out', file, '--max', '590', '--sample-interval-high', '--process-identities'], { stdio: 'ignore' });
   const done = new Promise((resolve, reject) => { sampler.once('error', reject); sampler.once('close', code => { resolve(code); }); });
   const controller = new AbortController();
   const gpu = [], errors = [];
+  let peakGpu = -1;
+  const accept = row => {
+    if (controller.signal.aborted || row === null || row === undefined) return;
+    if (row.memory.totals.gpu <= peakGpu) row.memory.allocations = [];
+    else peakGpu = row.memory.totals.gpu;
+    gpu.push(row);
+  };
   let interrupted;
   const abort = reason => { interrupted = reason; release(); controller.abort(); interrupt(); };
   const expires = setTimeout(() => { abort('Native quiet window exhausted'); }, 570_000);
@@ -42,16 +50,17 @@ export function startFloorNative(root, directory, device, read, interrupt) {
   const observing = (async () => {
     while (!controller.signal.aborted) {
       if (pushes()) { abort('Native sample invalidated: push running or waiting'); break; }
-      try { const row = await read(expression); if (row !== null && row !== undefined) gpu.push(row); }
+      try { accept(await read(expression)); }
       catch (error) { errors.push({ at: Date.now(), error: String(error) }); }
       await sleep(500);
     }
   })();
   return async () => {
-    controller.abort(); clearTimeout(expires); await observing; release();
-    process.removeListener('SIGTERM', terminate); process.removeListener('exit', release);
+    controller.abort(); clearTimeout(expires);
     writeFileSync(phase, 'done');
     const code = await done;
+    release(); await observing;
+    process.removeListener('SIGTERM', terminate); process.removeListener('exit', release);
     writeFileSync(join(directory, 'gpu.json'), JSON.stringify({ gpu, errors }));
     const native = readFileSync(file, 'utf8').trim().split('\n').map(line => JSON.parse(line));
     if (interrupted !== undefined) throw new Error(interrupted);
