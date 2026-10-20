@@ -4,7 +4,7 @@
 
 **G515 (Jake picks, 6878eec2c0), after HEALTHY, at each lane's next task:** mini plan C8 audio close-out and C7 (Nine entryway proof to build time, portals as look graphs, horseNames as riding state) first, then C3 (Nalati storm to AS; delete game/plugin/weather; Pine fxKit to groundFx), then C6; ruler counts crumb lines to the owning component; cloth-strip host (Nalati Flutter) and blade-sampling rows (Nine fpArms); one-user C6 hosts: Jake picks each himself via wildshard-v, no lane starts them; Nine Jian combo onto held-melee; rename engine/player/nalatiArms.ts. Others stay G513.
 
-**Status 08:45:** origin 9edc40f853; live still 2ba606e3d (10-18 18:22). Raw runtime TS: Nalati ~2,480, Nine ~2,400, DW ~2,010, Pine ~1,240 (from ~10,800 / ~3,520 / ~3,840 / ~4,155 at 10-19 23:30). Simulator: Pine, Nine, Nalati, Sky, Signal pass; Driftwood standalone 45 ms (sp-o1 on warm-up).
+**Status 10:21:** origin 41727d1754 (4 waiting); live still 2ba606e3d; boot smoke + deploy for 41727d1754 queued. Raw runtime TS: Nalati ~1,770, Nine ~2,140, DW ~1,990, Pine ~760 (from ~10,800 / ~3,520 / ~3,840 / ~4,155 at 10-19 23:30). Simulator: all pass but Driftwood standalone (sp-o1).
 
 **Rules in force:** G465 data on existing hosts; G467 generators aren't custom code; G468 whole-module deletes; G469/G511 one task per fresh session; G470 single-shard logic to AS + data; G482 HOST-BAR >= 5/6; G492 no mid-task re-briefs; G493 sp-x7 owns reds; G496 shrink-only sections (re-based under G514); G506/G509 quick per-batch checks + one boot; G507 mega-build; G508 maps paint from data (no bake windows); G510 no polling; G512 4 Codex + sp-x7 + 5 Opus panes.
 
